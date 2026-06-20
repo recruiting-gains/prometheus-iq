@@ -529,6 +529,29 @@
 
     .quick-counts.active { display: grid; }
 
+    .visit-location {
+      display: grid;
+      gap: 8px;
+      border: 1px solid #cbd8d2;
+      border-radius: var(--radius);
+      background: #f6f9f5;
+      padding: 10px;
+    }
+
+    .visit-location p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.38;
+    }
+
+    .visit-location .location-status {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     body[data-mode="rep"] .owner-only { display: none !important; }
     body[data-mode="rep"] .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
@@ -1431,6 +1454,38 @@
       return /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(Date.parse(`${text}T00:00:00`)) ? text : todayKey();
     }
 
+    function cleanCoordinate(value, maxAbs) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      return Math.min(maxAbs, Math.max(-maxAbs, Number(number.toFixed(6))));
+    }
+
+    function normalizeVisitLocation(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const lat = cleanCoordinate(raw.lat, 90);
+      const lng = cleanCoordinate(raw.lng, 180);
+      if (lat === null || lng === null) return null;
+      const capturedAt = cleanText(raw.capturedAt, 40);
+      return {
+        lat,
+        lng,
+        accuracy: cleanNumber(raw.accuracy, 100000),
+        capturedAt: capturedAt && !Number.isNaN(Date.parse(capturedAt)) ? capturedAt : new Date().toISOString(),
+        source: cleanText(raw.source, 40) || "rep-check-in",
+        scope: "visit-only"
+      };
+    }
+
+    function locationFromValues(values) {
+      return normalizeVisitLocation({
+        lat: values.locationLat,
+        lng: values.locationLng,
+        accuracy: values.locationAccuracy,
+        capturedAt: values.locationCapturedAt,
+        source: "rep-check-in"
+      });
+    }
+
     function safeId(value, usedIds) {
       const candidate = cleanText(value, 128);
       if (/^[A-Za-z0-9_-]+$/.test(candidate) && !usedIds.has(candidate)) {
@@ -1497,6 +1552,7 @@
           laterUnits: cleanNumber(raw.laterUnits, 10000),
           quality: cleanText(raw.quality, 80),
           notes: cleanText(raw.notes, 2000),
+          location: normalizeVisitLocation(raw.location),
           quick: raw.quick === true,
           createdAt
         };
@@ -1533,8 +1589,9 @@
         acc.leads += Number(v.leads || 0);
         acc.units += Number(v.units || 0);
         acc.laterUnits += Number(v.laterUnits || 0);
+        acc.verifiedVisits += v.location ? 1 : 0;
         return acc;
-      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0 });
+      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, verifiedVisits: 0 });
       return { visits: visits.length, ...sums };
     }
 
@@ -1599,11 +1656,12 @@
       const totalProduction = stats.units + stats.laterUnits;
       const permissionBoost = place.permission && place.permission !== "Unknown" && place.permission !== "No" ? 4 : 0;
       const output = totalProduction * 14 + stats.leads * 3 + stats.conversations * .2 + permissionBoost;
+      const verifiedVisitBoost = Math.min(6, stats.verifiedVisits * 2);
       const revisit = place.canRevisit === false ? -10 : 0;
       const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -18 : 0;
       const daysSince = daysSinceLastVisit(place.id);
       const recencyPenalty = daysSince === 1 ? -40 : daysSince <= 3 ? -10 : daysSince <= 6 ? -4 : 0;
-      return Math.round(base + seedPriority + output + windowFit + revisit + alreadyVisitedToday + recencyPenalty);
+      return Math.round(base + seedPriority + output + windowFit + verifiedVisitBoost + revisit + alreadyVisitedToday + recencyPenalty);
     }
 
     function routeSignal(place) {
@@ -1613,6 +1671,7 @@
       const reasons = [];
       if (totalUnits > 0) reasons.push(`it has produced ${totalUnits} ${totalUnits === 1 ? "unit" : "units"}`);
       if (stats.leads > 0) reasons.push(`it has created ${stats.leads} leads`);
+      if (stats.verifiedVisits > 0) reasons.push("it has verified visit history");
       if (!stats.visits) reasons.push("it is untested territory with upside");
       if (place.permission && place.permission !== "Unknown" && place.permission !== "No") reasons.push(`${place.permission.toLowerCase()} is already noted`);
       if (place.window === visitWindow(new Date().getHours()) || place.window === "Anytime") reasons.push("the timing fits right now");
@@ -1624,6 +1683,7 @@
       const stats = placeStats(place.id);
       const totalUnits = stats.units + stats.laterUnits;
       if (stats.visits >= 3 && (totalUnits > 0 || stats.leads >= 3)) return "High";
+      if (stats.verifiedVisits >= 2) return "Medium";
       if (stats.visits > 0 || Number(place.priority || 0) >= 10) return "Medium";
       return "Test";
     }
@@ -1738,6 +1798,9 @@
     function visitCard(v) {
       const place = state.places.find(p => p.id === v.placeId);
       const title = place ? place.name : v.placeName || "Unknown place";
+      const locationLabel = v.location
+        ? `GPS verified · ±${Math.round(Number(v.location.accuracy || 0)) || "?"}m`
+        : "";
       return `<article class="item">
         <div class="item-head">
           <div>
@@ -1748,6 +1811,7 @@
               <span>${Number(v.conversations || 0)} talks</span>
               <span>${Number(v.leads || 0)} leads</span>
               ${v.quality ? `<span>${escapeHtml(v.quality)}</span>` : ""}
+              ${locationLabel ? `<span>${escapeHtml(locationLabel)}</span>` : ""}
             </div>
           </div>
           <span class="pill green">${Number(v.units || 0) + Number(v.laterUnits || 0)} units</span>
@@ -1951,6 +2015,51 @@
       return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
     }
 
+    function visitLocationMarkup() {
+      return `<div class="visit-location">
+        <p><b>Verified Visit Location</b> attaches your current GPS location to this logged business visit only. Prometheus IQ does not track your full day or background movement.</p>
+        <input name="locationLat" type="hidden">
+        <input name="locationLng" type="hidden">
+        <input name="locationAccuracy" type="hidden">
+        <input name="locationCapturedAt" type="hidden">
+        <button class="btn secondary" type="button" data-verify-location>Attach Current Location</button>
+        <div class="location-status" data-location-status>Optional. Tap only when you want this visit verified.</div>
+      </div>`;
+    }
+
+    function attachVisitLocationControl(form) {
+      const button = form.querySelector("[data-verify-location]");
+      const status = form.querySelector("[data-location-status]");
+      if (!button || !status) return;
+      if (!("geolocation" in navigator)) {
+        button.disabled = true;
+        status.textContent = "GPS is not available on this device or browser.";
+        return;
+      }
+      button.addEventListener("click", () => {
+        status.textContent = "Requesting location permission for this visit only...";
+        navigator.geolocation.getCurrentPosition(position => {
+          form.elements.locationLat.value = position.coords.latitude;
+          form.elements.locationLng.value = position.coords.longitude;
+          form.elements.locationAccuracy.value = Math.round(position.coords.accuracy || 0);
+          form.elements.locationCapturedAt.value = new Date().toISOString();
+          button.textContent = "Location Attached";
+          status.textContent = `Verified visit location attached. Accuracy about ${Math.round(position.coords.accuracy || 0)} meters.`;
+        }, error => {
+          const messages = {
+            1: "Location permission was denied. Visit can still be saved without GPS.",
+            2: "Location was unavailable. Try again outside or save without GPS.",
+            3: "Location timed out. Try again or save without GPS."
+          };
+          status.textContent = messages[error.code] || "Location could not be attached. Visit can still be saved.";
+        }, {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 60000
+        });
+      });
+    }
+
     function openModal(type, preset = {}) {
       const modal = document.getElementById("modal");
       const title = document.getElementById("modalTitle");
@@ -1962,6 +2071,7 @@
         const options = state.places.map(p => `<option value="${escapeAttr(p.id)}" ${p.id === selectedPlaceId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("");
         body.innerHTML = `<form id="quickForm">
           <label>Where are you?<select name="placeId">${options}</select></label>
+          ${visitLocationMarkup()}
           <div class="quick-outcomes" aria-label="Visit outcome">
             <button class="quick-outcome" type="button" data-quick-outcome="none">No Contact<small>Save and move on</small></button>
             <button class="quick-outcome" type="button" data-quick-outcome="talk">Conversation<small>Spoke with someone</small></button>
@@ -1984,6 +2094,7 @@
         </form>`;
 
         const quickForm = body.querySelector("#quickForm");
+        attachVisitLocationControl(quickForm);
         const saveQuickResult = values => {
           const place = state.places.find(p => p.id === values.placeId);
           state.visits.push({
@@ -1998,6 +2109,7 @@
             laterUnits: 0,
             quality: values.outcome === "none" ? "No contact" : values.outcome === "sale" ? "Sale" : values.outcome === "lead" ? "Lead" : "Conversation",
             notes: String(values.notes || "").trim(),
+            location: locationFromValues(values),
             quick: true,
             createdAt: Date.now()
           });
@@ -2045,9 +2157,11 @@
             <label>Date<input name="date" type="date" value="${todayKey()}"></label>
             <label>Window<select name="window"><option>Morning</option><option>Midday</option><option>Evening</option></select></label>
           </div>
+          ${visitLocationMarkup()}
           <label>Notes<textarea name="notes" placeholder="Permission, traffic, where you set up, anything useful"></textarea></label>
           <button class="btn" type="submit">Save Visit</button>
         </form>`;
+        attachVisitLocationControl(body.querySelector("form"));
         body.querySelector("[name=window]").value = visitWindow(new Date().getHours());
         body.querySelector("form").addEventListener("submit", event => {
           event.preventDefault();
@@ -2065,6 +2179,7 @@
             laterUnits: Number(data.laterUnits || 0),
             quality: data.quality,
             notes: data.notes.trim(),
+            location: locationFromValues(data),
             createdAt: Date.now()
           });
           closeModal();
