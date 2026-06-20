@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+  <title id="title">Prometheus mark</title>
+  <desc id="desc">Standalone Prometheus ember logo mark.</desc>
+  <defs>
+    <linearGradient id="field" x1="34" y1="20" x2="276" y2="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#223a34"/>
+      <stop offset=".58" stop-color="#14211e"/>
+      <stop offset="1" stop-color="#0f1816"/>
+    </linearGradient>
+    <linearGradient id="ember" x1="98" y1="52" x2="218" y2="238" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7b64c"/>
+      <stop offset=".44" stop-color="#f0643c"/>
+      <stop offset="1" stop-color="#c93f31"/>
+    </linearGradient>
+    <linearGradient id="core" x1="126" y1="92" x2="196" y2="228" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff0a6"/>
+      <stop offset=".52" stop-color="#f6c34a"/>
+      <stop offset="1" stop-color="#f0643c"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="256" height="256" rx="56" fill="url(#field)"/>
+  <path d="M82 230h156" fill="none" stroke="#f3f5ef" stroke-width="18" stroke-linecap="round"/>
+  <path d="M108 230h104" fill="none" stroke="#0f8d69" stroke-width="7" stroke-linecap="round"/>
+  <path d="M168 70c34 38 54 72 54 109 0 48-34 85-80 85-39 0-67-26-67-62 0-28 17-53 46-73-5 26 7 45 27 51 8-38 5-69 20-110Z" fill="url(#ember)"/>
+  <path d="M162 118c22 29 34 52 34 77 0 32-21 55-51 55-25 0-44-17-44-41 0-18 11-35 31-48-4 17 5 30 18 33 6-26 3-49 12-76Z" fill="url(#core)"/>
+  <path d="M165 166c11 15 17 28 17 41 0 17-11 30-27 30-13 0-23-9-23-22 0-10 6-18 17-25-2 9 3 16 10 18 3-14 1-27 6-42Z" fill="#f3f5ef" opacity=".86"/>
+</svg>

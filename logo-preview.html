@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prometheus Logo Preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111816;
+      --muted: #64706c;
+      --paper: #f3f5ef;
+      --panel: #ffffff;
+      --line: rgba(17, 24, 22, .14);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      padding: 32px;
+    }
+
+    main {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .tile {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      min-height: 260px;
+      align-content: start;
+    }
+
+    .tile strong {
+      font-size: 14px;
+    }
+
+    .tile span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      align-self: center;
+    }
+
+    .mark {
+      width: min(220px, 100%);
+    }
+
+    .dark {
+      background: #14211e;
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 18px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Prometheus Logo Preview</h1>
+    <div class="grid">
+      <section class="tile">
+        <strong>Wordmark</strong>
+        <img src="icons/prometheus-wordmark.svg" alt="Prometheus wordmark">
+        <span>Use for decks, headers, and Canva designs.</span>
+      </section>
+      <section class="tile">
+        <strong>App icon</strong>
+        <img class="mark" src="icons/prometheus.svg" alt="Prometheus app icon">
+        <span>Current app icon replacement.</span>
+      </section>
+      <section class="tile">
+        <strong>Standalone mark</strong>
+        <img class="mark" src="icons/prometheus-mark.svg" alt="Prometheus logo mark">
+        <span>Use where the brand name appears nearby.</span>
+      </section>
+      <section class="tile dark">
+        <strong style="color: #f3f5ef;">Monochrome</strong>
+        <img class="mark" src="icons/prometheus-mono.svg" alt="Prometheus monochrome mark">
+        <span style="color: rgba(243,245,239,.72);">Use for masks, stamps, and high-contrast placements.</span>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# OS and editor noise
+.DS_Store
+Thumbs.db
+~$*.docx
+
+# Generated upload bundles
+deploy/*.zip
+
+# Local backups and private exports
+backups/
+exports/
+*.local.json
+*.backup.json
+*.bak
+
+# Dependency folders, if added later
+node_modules/
+.venv/
+venv/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example

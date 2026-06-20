@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Prometheus IQ | A Prometheus Product</title>
+  <meta name="description" content="Prometheus IQ is field-sales intelligence for reps who create sales outside the CRM. Private field testing now.">
+  <meta name="theme-color" content="#14211e">
+  <link rel="icon" href="icons/prometheus.svg" type="image/svg+xml">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111816;
+      --muted: #64706c;
+      --paper: #f3f5ef;
+      --panel: #ffffff;
+      --command: #14211e;
+      --command-2: #223a34;
+      --accent: #0f8d69;
+      --ember: #f0643c;
+      --gold: #d69a26;
+      --line: rgba(17, 24, 22, .14);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    a { color: inherit; }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      align-items: end;
+      background:
+        linear-gradient(180deg, rgba(20,33,30,.2), rgba(20,33,30,.78)),
+        linear-gradient(135deg, rgba(15,141,105,.22), rgba(240,100,60,.12)),
+        var(--command);
+      color: white;
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(135deg, rgba(0,0,0,.9), transparent 72%);
+    }
+
+    .hero-inner, .section-inner {
+      width: min(1080px, 100%);
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .nav {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      width: auto;
+      z-index: 2;
+    }
+
+    .brand {
+      font-weight: 950;
+      letter-spacing: 0;
+      font-size: 18px;
+    }
+
+    .status {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 999px;
+      padding: 0 12px;
+      color: rgba(255,255,255,.78);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0;
+      font-size: clamp(42px, 8vw, 86px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 650px;
+      margin: 18px 0 0;
+      color: rgba(255,255,255,.78);
+      font-size: clamp(17px, 2.2vw, 22px);
+      line-height: 1.38;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+
+    .btn {
+      min-height: 48px;
+      border-radius: var(--radius);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      text-decoration: none;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--ember), var(--gold));
+      color: white;
+    }
+
+    .btn.secondary {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+
+    section {
+      padding: 54px 18px;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      color: var(--muted);
+      max-width: 720px;
+      font-size: 18px;
+      line-height: 1.5;
+      margin: 14px 0 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .cards {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px;
+      min-height: 180px;
+    }
+
+    .card b {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .proof {
+      background: var(--command);
+      color: white;
+    }
+
+    .proof .lead,
+    .proof .card p {
+      color: rgba(255,255,255,.72);
+    }
+
+    .proof .card {
+      background: rgba(255,255,255,.08);
+      border-color: rgba(255,255,255,.13);
+    }
+
+    .contact {
+      background:
+        linear-gradient(135deg, rgba(15,141,105,.14), rgba(240,100,60,.12)),
+        #ffffff;
+    }
+
+    .footer {
+      padding: 24px 18px 40px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .hero { min-height: 88vh; }
+      .cards { grid-template-columns: 1fr; }
+      .nav { align-items: flex-start; }
+      .status { white-space: normal; text-align: right; }
+      section { padding: 42px 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <div class="nav">
+        <div class="brand">Prometheus IQ</div>
+        <div class="status">A Prometheus product · Private field testing</div>
+      </div>
+      <div class="hero-inner">
+        <h1>Field-sales intelligence for reps who sell outside the CRM.</h1>
+        <p>Prometheus IQ is being built in real local-store marketing work to help outside reps plan smarter routes, waste less gas, and learn which locations actually create sales.</p>
+        <div class="actions">
+          <a class="btn" href="mailto:prometheusrouteiq@gmail.com?subject=Prometheus%20private%20beta%20interest">Request private beta</a>
+          <a class="btn secondary" href="mailto:prometheusrouteiq@gmail.com?subject=Prometheus%20partner%20or%20investor%20interest">Partner / investor interest</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-inner">
+        <div class="eyebrow">The problem</div>
+        <h2>Outside reps are still guessing where to go.</h2>
+        <p class="lead">CRMs are useful after a lead exists. Prometheus IQ is focused on the field work before that: route decisions, location quality, visit outcomes, and the daily choices that create sales in the first place.</p>
+        <div class="grid cards">
+          <article class="card">
+            <b>Less wasted driving</b>
+            <p>Track which routes and location types deserve more time, and which ones are burning gas without producing results.</p>
+          </article>
+          <article class="card">
+            <b>Better next stops</b>
+            <p>Use visit history, conversations, leads, units, timing, and revisit value to guide the next move.</p>
+          </article>
+          <article class="card">
+            <b>Real field proof</b>
+            <p>Prometheus IQ is being tested through actual gym membership sales, not just a whiteboard idea.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof">
+      <div class="section-inner">
+        <div class="eyebrow">What it does</div>
+        <h2>A daily command center for local sales production.</h2>
+        <p class="lead">Prometheus IQ tracks field visits, conversations, leads, units, best windows, permission, revisit value, and route quality so tomorrow's plan can be smarter than today's.</p>
+        <div class="grid cards">
+          <article class="card">
+            <b>Route intelligence</b>
+            <p>Shows the best next move and the reason behind it without exposing the private scoring logic.</p>
+          </article>
+          <article class="card">
+            <b>Location memory</b>
+            <p>Turns every stop into reusable knowledge about what works, what does not, and when to return.</p>
+          </article>
+          <article class="card">
+            <b>Subscription path</b>
+            <p>Starting with gym sales, then expanding to other businesses with outside sales teams.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact">
+      <div class="section-inner">
+        <div class="eyebrow">Private beta</div>
+        <h2>Built in the field before public launch.</h2>
+        <p class="lead">Prometheus IQ is not publicly launched yet. The goal is to collect real results, refine the product, and open controlled testing with reps, managers, and strategic partners.</p>
+        <div class="actions">
+          <a class="btn" href="mailto:prometheusrouteiq@gmail.com?subject=Prometheus%20waitlist">Join the waitlist</a>
+          <a class="btn secondary" href="index.html">Open local app</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="section-inner">Prometheus IQ is a product of Prometheus and is in private testing. No public investment offer is being made through this page.</div>
+  </footer>
+</body>
+</html>

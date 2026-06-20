@@ -1,0 +1,19 @@
+{
+  "name": "Prometheus IQ",
+  "short_name": "Prometheus IQ",
+  "description": "A command center for field sales routes, visits, places, and daily unit production.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8f5",
+  "theme_color": "#16201f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/prometheus.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

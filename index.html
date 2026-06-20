@@ -1,0 +1,2262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prometheus IQ</title>
+  <meta name="theme-color" content="#16201f">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/prometheus.svg" type="image/svg+xml">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #111816;
+      --muted: #66716d;
+      --line: #d7ddd8;
+      --paper: #f3f5ef;
+      --panel: #ffffff;
+      --command: #14211e;
+      --command-2: #1f332e;
+      --accent: #0f8d69;
+      --accent-2: #f0643c;
+      --gold: #d69a26;
+      --blue: #236fa7;
+      --bad: #b93b35;
+      --shadow: 0 16px 44px rgba(15, 24, 22, .13);
+      --radius: 8px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(180deg, rgba(20, 33, 30, .08), rgba(243, 245, 239, 0) 260px),
+        var(--paper);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: rgba(20, 33, 30, .96);
+      border-bottom: 1px solid rgba(255,255,255,.11);
+      backdrop-filter: blur(14px);
+      padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+      color: white;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: rgba(255,255,255,.68);
+      font-size: 13px;
+    }
+
+    .goal-chip {
+      display: grid;
+      place-items: center;
+      min-width: 76px;
+      height: 48px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent-2), var(--gold));
+      color: white;
+      font-weight: 800;
+      box-shadow: 0 14px 34px rgba(240, 100, 60, .22);
+    }
+
+    .goal-chip span {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,.72);
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.08);
+    }
+
+    .mode-switch button {
+      min-width: 56px;
+      min-height: 36px;
+      border-radius: 5px;
+      background: transparent;
+      color: rgba(255,255,255,.68);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .mode-switch button.active {
+      background: white;
+      color: var(--command);
+    }
+
+    main {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 18px 16px 92px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 14px rgba(17, 24, 22, .05);
+    }
+
+    .pad { padding: 14px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .section-title small {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .stat {
+      min-height: 92px;
+      display: grid;
+      align-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent-2));
+      opacity: .85;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .progress {
+      height: 12px;
+      background: #e8ece9;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+
+    .progress i {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--accent), var(--gold), var(--accent-2));
+      transition: width .25s ease;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 2px 0 8px;
+      scrollbar-width: none;
+    }
+
+    .action-row::-webkit-scrollbar { display: none; }
+
+    .btn {
+      min-height: 44px;
+      border-radius: var(--radius);
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--command), #203b35);
+      color: white;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 10px 22px rgba(17, 24, 22, .12);
+    }
+
+    .btn.secondary {
+      background: #eef2ed;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.danger {
+      background: #f4e5e2;
+      color: var(--bad);
+      border: 1px solid #e8c5bf;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: white;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .item h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .meta {
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .map-link {
+      color: var(--blue);
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .address-line {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      border-radius: 999px;
+      padding: 0 8px;
+      background: #edf1ee;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill.green { background: #dff1e8; color: #0f6f50; }
+    .pill.yellow { background: #f8edcf; color: #7a5712; }
+    .pill.red { background: #f4e1de; color: #9b302a; }
+    .pill.blue { background: #dfeaf4; color: #215b88; }
+
+    .command-panel {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(15, 141, 105, .18), rgba(240, 100, 60, .12)),
+        linear-gradient(135deg, var(--command), var(--command-2));
+      border-color: rgba(255,255,255,.1);
+      color: white;
+      box-shadow: 0 18px 46px rgba(17, 24, 22, .2);
+    }
+
+    .command-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 22px 22px;
+      mask-image: linear-gradient(135deg, rgba(0,0,0,.75), transparent 78%);
+      pointer-events: none;
+    }
+
+    .command-panel > * {
+      position: relative;
+    }
+
+    .intel-label {
+      color: rgba(255,255,255,.64);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .intel-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .intel-main {
+      display: grid;
+      gap: 6px;
+    }
+
+    .intel-main h3 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.08;
+    }
+
+    .intel-main p {
+      margin: 0;
+      color: rgba(255,255,255,.74);
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    .intel-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .intel-metric {
+      min-height: 68px;
+      display: grid;
+      align-content: space-between;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.08);
+      padding: 10px;
+    }
+
+    .intel-metric b {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .intel-metric span {
+      color: rgba(255,255,255,.65);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .intel-warning {
+      border-left: 3px solid var(--gold);
+      background: rgba(255,255,255,.08);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .intel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn.bright {
+      background: linear-gradient(135deg, var(--accent-2), var(--gold));
+      color: white;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: white;
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: none;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quick-outcomes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .quick-outcome {
+      min-height: 72px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f2f5f1;
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      gap: 3px;
+      padding: 10px;
+      font-weight: 900;
+    }
+
+    .quick-outcome small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .quick-outcome[data-quick-outcome="sale"] {
+      background: #dff1e8;
+      border-color: #b9dfcf;
+      color: #0f6f50;
+    }
+
+    .quick-outcome.active {
+      border-color: var(--accent);
+      box-shadow: inset 0 0 0 2px var(--accent);
+    }
+
+    .quick-counts {
+      display: none;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .quick-counts.active { display: grid; }
+
+    body[data-mode="rep"] .owner-only { display: none !important; }
+    body[data-mode="rep"] .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .empty {
+      padding: 18px 14px;
+      border: 1px dashed #c8d0cc;
+      color: var(--muted);
+      text-align: center;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.55);
+    }
+
+    .status-line {
+      min-height: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      border-top: 1px solid var(--line);
+      background: rgba(255,255,255,.97);
+      backdrop-filter: blur(16px);
+      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+    }
+
+    .tabs {
+      max-width: 680px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .tab {
+      min-height: 54px;
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .tab svg {
+      width: 19px;
+      height: 19px;
+      stroke-width: 2.4;
+    }
+
+    .tab.active {
+      background: var(--command);
+      color: white;
+    }
+
+    .route-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .route-card > div:last-child {
+      display: grid;
+      justify-items: end;
+      gap: 5px;
+    }
+
+    .rank {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: #edf1ee;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+
+    .score {
+      color: var(--accent);
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .seg {
+      min-height: 38px;
+      border-radius: var(--radius);
+      padding: 0 11px;
+      background: #edf1ee;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      font-weight: 800;
+    }
+
+    .seg.active {
+      background: var(--ink);
+      color: white;
+      border-color: var(--ink);
+    }
+
+    .insight {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .insight b {
+      color: var(--ink);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      background: rgba(22,32,31,.44);
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .modal.active {
+      display: grid;
+      align-items: end;
+    }
+
+    .sheet {
+      width: min(680px, 100%);
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px 12px var(--radius) var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .sheet h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius);
+      background: #edf1ee;
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn svg { width: 20px; height: 20px; }
+
+    @media (min-width: 760px) {
+      main { padding-bottom: 112px; }
+      .grid.desktop-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid.desktop-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .intel-grid { grid-template-columns: 1.15fr .85fr; align-items: stretch; }
+      .modal.active { align-items: center; }
+      .sheet { border-radius: var(--radius); }
+    }
+
+    @media (max-width: 410px) {
+      .grid.three { grid-template-columns: 1fr; }
+      .grid.two { grid-template-columns: 1fr 1fr; }
+      .intel-metrics { grid-template-columns: 1fr; }
+      .brand h1 { font-size: 18px; }
+      .stat b { font-size: 24px; }
+      .tab { font-size: 10px; }
+      .mode-switch button { min-width: 48px; }
+      .goal-chip { min-width: 60px; }
+    }
+  </style>
+</head>
+<body data-mode="rep">
+  <div class="app">
+    <header>
+      <div class="topline">
+        <div class="brand">
+          <h1>Prometheus IQ</h1>
+          <p id="todayLabel">Command center</p>
+        </div>
+        <div class="mode-switch" aria-label="App mode">
+          <button class="active" data-mode-select="rep">Rep</button>
+          <button data-mode-select="owner">Owner</button>
+        </div>
+        <div class="goal-chip"><span>GOAL</span><strong id="goalTarget">4</strong></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="view active" id="view-today">
+        <div class="grid three desktop-three">
+          <article class="panel pad stat">
+            <span>Units Today</span>
+            <b id="unitsToday">0</b>
+          </article>
+          <article class="panel pad stat">
+            <span>Need</span>
+            <b id="unitsNeed">4</b>
+          </article>
+          <article class="panel pad stat">
+            <span>Visits Today</span>
+            <b id="visitsToday">0</b>
+          </article>
+        </div>
+
+        <div class="section-title">
+          <h2>Daily Scoreboard</h2>
+          <small id="paceLabel">0% complete</small>
+        </div>
+        <div class="panel pad grid">
+          <div class="progress" aria-label="Daily unit progress"><i id="goalProgress"></i></div>
+          <div class="grid two">
+            <div class="stat panel pad">
+              <span>Conversations</span>
+              <b id="talksToday">0</b>
+            </div>
+            <div class="stat panel pad">
+              <span>Leads</span>
+              <b id="leadsToday">0</b>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn" data-open="quick">Log Result</button>
+            <button class="btn secondary owner-only" data-open="visit">Detailed Visit</button>
+            <button class="btn secondary owner-only" data-open="location">+ Add Place</button>
+            <button class="btn secondary" data-tab="route">Build Route</button>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Route Intelligence</h2>
+          <small>Best next move</small>
+        </div>
+        <div class="panel pad command-panel" id="routeIntelligence">
+          <div class="intel-grid">
+            <div class="intel-main">
+              <div class="intel-label">Prometheus IQ read</div>
+              <h3 id="bestNextMove">Loading route signal</h3>
+              <p id="bestMoveReason">Prometheus IQ is checking today's activity and saved territory.</p>
+              <div class="intel-actions">
+                <button class="btn bright" data-tab="route">Open Route</button>
+                <button class="btn secondary" data-open="quick">Log Result</button>
+              </div>
+            </div>
+            <div class="intel-grid">
+              <div class="intel-metrics">
+                <div class="intel-metric"><span>Expected</span><b id="intelExpected">-</b></div>
+                <div class="intel-metric"><span>Window</span><b id="intelWindow">-</b></div>
+                <div class="intel-metric"><span>Confidence</span><b id="intelConfidence">-</b></div>
+              </div>
+              <div class="intel-warning" id="routeRisk">Start logging visits and this gets sharper.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">
+          <h2>Fastest Path To Goal</h2>
+          <small>Based on your data</small>
+        </div>
+        <div class="panel pad insight" id="needCalculator"></div>
+
+        <div class="section-title">
+          <h2>Today’s Route</h2>
+          <small id="dailyRouteCount">Updates as you log</small>
+        </div>
+        <div class="list" id="dailyRoute"></div>
+
+        <div class="section-title">
+          <h2>Today’s Visits</h2>
+          <small id="todayVisitCount">0 logged</small>
+        </div>
+        <div class="list" id="todayVisits"></div>
+      </section>
+
+      <section class="view" id="view-route">
+        <div class="section-title">
+          <h2>Route Builder</h2>
+          <small id="routeCount">0 options</small>
+        </div>
+        <div class="toolbar">
+          <button class="seg active" data-window="all">All day</button>
+          <button class="seg" data-window="morning">Morning</button>
+          <button class="seg" data-window="midday">Midday</button>
+          <button class="seg" data-window="evening">Evening</button>
+        </div>
+        <div class="list" id="routeList"></div>
+      </section>
+
+      <section class="view owner-only" id="view-places">
+        <div class="section-title">
+          <h2>Production Map</h2>
+          <small id="placesCount">0 places</small>
+        </div>
+        <div class="toolbar">
+          <button class="seg active" data-filter="all">All</button>
+          <button class="seg" data-filter="green">Units</button>
+          <button class="seg" data-filter="yellow">Leads</button>
+          <button class="seg" data-filter="blue">New</button>
+          <button class="seg" data-filter="red">Dead</button>
+        </div>
+        <div class="list" id="placesList"></div>
+      </section>
+
+      <section class="view owner-only" id="view-stats">
+        <div class="grid two desktop-three">
+          <article class="panel pad stat">
+            <span>Total Units</span>
+            <b id="totalUnits">0</b>
+          </article>
+          <article class="panel pad stat">
+            <span>Units / Visit</span>
+            <b id="unitsPerVisit">0.0</b>
+          </article>
+          <article class="panel pad stat">
+            <span>Best Category</span>
+            <b id="bestCategory">-</b>
+          </article>
+        </div>
+        <div class="section-title">
+          <h2>Best Places</h2>
+          <small>Ranked by units</small>
+        </div>
+        <div class="list" id="bestPlaces"></div>
+        <div class="section-title">
+          <h2>Best Time Windows</h2>
+          <small>Units per visit</small>
+        </div>
+        <div class="list" id="bestTimes"></div>
+
+        <div class="section-title">
+          <h2>Data</h2>
+          <small>Backup and restore</small>
+        </div>
+        <div class="panel pad grid">
+          <div class="status-line">Owner controls are stored on this device until secure cloud accounts are enabled.</div>
+          <div class="action-row">
+            <button class="btn secondary" id="exportData">Export Backup</button>
+            <button class="btn secondary" id="importData">Import Backup</button>
+            <button class="btn secondary" id="resetData">Reset App</button>
+          </div>
+          <input id="importFile" type="file" accept="application/json,.json" hidden>
+          <div class="status-line" id="dataStatus"></div>
+        </div>
+      </section>
+
+      <section class="view owner-only" id="view-find">
+        <div class="section-title">
+          <h2>Event Opportunities</h2>
+          <small>From Eventbrite</small>
+        </div>
+        <div class="panel pad grid">
+          <div class="insight">
+            <div><b>Plan the opportunity before driving.</b> Confirm organizer permission before promoting memberships, handing out cards, or setting up a table.</div>
+          </div>
+          <a class="btn secondary" href="https://www.eventbrite.com/d/tx--houston/events/" target="_blank" rel="noreferrer">Search More Houston Events</a>
+        </div>
+        <div class="list" id="eventOpportunities"></div>
+
+        <div class="section-title">
+          <h2>Find Places</h2>
+          <small>Territory ideas</small>
+        </div>
+        <div class="panel pad grid">
+          <label>
+            Add a place to try
+            <input id="quickPlaceName" placeholder="Example: Oak Ridge Apartments">
+          </label>
+          <div class="grid two">
+      <label>
+              Category
+              <select id="quickPlaceCategory">
+                <option>Apartment</option>
+                <option>Auto</option>
+                <option>Warehouse</option>
+                <option>Restaurant</option>
+                <option>Retail</option>
+                <option>Office</option>
+                <option>School</option>
+                <option>Salon</option>
+                <option>Clinic</option>
+                <option>College</option>
+                <option>Community</option>
+                <option>Transit</option>
+                <option>Employer</option>
+                <option>Business</option>
+                <option>Event</option>
+                <option>Other</option>
+              </select>
+            </label>
+            <label>
+              Best window
+              <select id="quickPlaceWindow">
+                <option>Morning</option>
+                <option>Midday</option>
+                <option>Evening</option>
+                <option>Anytime</option>
+              </select>
+            </label>
+          </div>
+          <button class="btn" id="quickAddPlace">Add To Territory</button>
+        </div>
+
+        <div class="section-title">
+          <h2>New Locations Today</h2>
+          <small>Refreshes daily</small>
+        </div>
+        <div class="list" id="dailySearches"></div>
+
+        <div class="section-title">
+          <h2>High-Volume Targets</h2>
+          <small>Tap to add</small>
+        </div>
+        <div class="list" id="targetIdeas"></div>
+      </section>
+    </main>
+
+    <nav aria-label="Main navigation">
+      <div class="tabs">
+        <button class="tab active" data-tab="today" aria-label="Today">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5"/><path d="M4 12h16"/><path d="M20 5v14"/><path d="M8 8h2"/><path d="M14 16h2"/></svg>
+          Today
+        </button>
+        <button class="tab" data-tab="route" aria-label="Route">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h6a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h7"/></svg>
+          Route
+        </button>
+        <button class="tab owner-only" data-tab="places" aria-label="Places">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s7-5.1 7-12a7 7 0 1 0-14 0c0 6.9 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          Places
+        </button>
+        <button class="tab owner-only" data-tab="stats" aria-label="Stats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5"/><path d="M8 17V9"/><path d="M13 17V5"/><path d="M18 17v-4"/><path d="M4 19h17"/></svg>
+          Stats
+        </button>
+        <button class="tab owner-only" data-tab="find" aria-label="Find">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="7"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+          Find
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="modalTitle">Add Visit</h2>
+        <button class="icon-btn" id="closeModal" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const GOAL = 4;
+    const storeKey = "prometheus-v1";
+    const modeStoreKey = "prometheus-mode";
+    const legacyStoreKey = "field-production-tracker-v3";
+    const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
+    const MAX_PLACES = 2000;
+    const MAX_VISITS = 10000;
+    const placeCategories = ["Apartment","Auto","Warehouse","Restaurant","Retail","Office","School","Salon","Clinic","College","Community","Transit","Employer","Business","Hotel","Event","Other"];
+    const visitWindows = ["Morning","Midday","Evening","Anytime","Afternoon"];
+    const permissionValues = ["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"];
+    const localDateKey = (date = new Date()) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+    const todayKey = () => localDateKey();
+    const id = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+
+    const starterPlaces = [
+      {
+        name: "Almeda Mall",
+        category: "Retail",
+        window: "Midday",
+        distance: "0.2 mi",
+        priority: 12,
+        address: "12200 Gulf Freeway, Houston, TX 77034",
+        notes: "Mall staff, food court traffic, independent shops, nearby parking-lot conversations."
+      },
+      {
+        name: "AutoZone Auto Parts - Seaford Dr",
+        category: "Auto",
+        window: "Midday",
+        distance: "2-4 mi",
+        priority: 11,
+        address: "10705 Seaford Dr, Houston, TX 77089",
+        notes: "Exact Google Maps location. Ask the manager before talking with employees or customers."
+      },
+      {
+        name: "Jiffy Lube Oil Change - Fuqua St",
+        category: "Auto",
+        window: "Morning",
+        distance: "2-4 mi",
+        priority: 11,
+        address: "10605 Fuqua St, Houston, TX 77089",
+        notes: "Exact Google Maps location. Potential employee crew and waiting-customer traffic with permission."
+      },
+      {
+        name: "Level Up Tires & Wheels",
+        category: "Auto",
+        window: "Midday",
+        distance: "0.2 mi",
+        priority: 10,
+        address: "12300 Gulf Fwy, Houston, TX 77034",
+        notes: "Exact Google Maps location next to the gym area. Ask for manager permission before working the lot."
+      },
+      {
+        name: "ClearWater Express Wash - Fuqua St",
+        category: "Auto",
+        window: "Evening",
+        distance: "2-4 mi",
+        priority: 9,
+        address: "11027 Fuqua St, Houston, TX 77089",
+        notes: "Exact Google Maps location. Best potential is waiting or vacuum traffic, with site permission."
+      },
+      {
+        name: "Urban Bird Hot Chicken - Almeda Genoa",
+        category: "Restaurant",
+        window: "Midday",
+        distance: "1-3 mi",
+        priority: 10,
+        address: "9990 Almeda Genoa Rd Ste 100, Houston, TX 77075",
+        notes: "Exact Google Maps location. Visit between rushes and ask management before approaching the crew."
+      },
+      {
+        name: "Space City Barber Studio",
+        category: "Salon",
+        window: "Midday",
+        distance: "2-4 mi",
+        priority: 9,
+        address: "8018 Almeda Genoa Rd, Houston, TX 77075",
+        notes: "Exact Google Maps location. Build a referral relationship with the owner or barbers."
+      },
+      {
+        name: "South Point Park & Ride",
+        category: "Transit",
+        window: "Morning",
+        distance: "0.3 mi",
+        priority: 8,
+        address: "12410 Kurland Dr, Houston, TX 77034",
+        notes: "Commuter traffic. Better for early morning and late afternoon."
+      },
+      {
+        name: "Walmart Supercenter - Rowlett Rd",
+        category: "Retail",
+        window: "Evening",
+        distance: "1.6 mi",
+        priority: 9,
+        address: "9598 Rowlett Rd, Houston, TX 77075",
+        notes: "High-volume retail traffic. Work the surrounding strip, not store entrances without permission."
+      },
+      {
+        name: "Fuqua Park & Ride",
+        category: "Transit",
+        window: "Morning",
+        distance: "2.0 mi",
+        priority: 8,
+        address: "11755 Sabo Rd, Houston, TX 77089",
+        notes: "Commuters and nearby apartment traffic. Good AM/PM window."
+      },
+      {
+        name: "Memorial Hermann Southeast Hospital",
+        category: "Clinic",
+        window: "Midday",
+        distance: "2.4 mi",
+        priority: 8,
+        address: "11800 Astoria Blvd, Houston, TX 77089",
+        notes: "Large staff population. Best angle is employee wellness and shift-friendly access."
+      },
+      {
+        name: "San Jacinto College South Campus",
+        category: "College",
+        window: "Midday",
+        distance: "4.3 mi",
+        priority: 7,
+        address: "13735 Beamer Rd, Houston, TX 77089",
+        notes: "Check summer classes, staff, and campus events before spending much time."
+      },
+      {
+        name: "WoodSpring Suites South Houston Hobby",
+        category: "Hotel",
+        window: "Morning",
+        distance: "3-6 mi",
+        priority: 8,
+        address: "WoodSpring Suites South Houston Hobby, Houston, TX",
+        notes: "Hotel employees, shuttle drivers, cleaning crews, front desk teams. Ask for staff wellness access."
+      },
+      {
+        name: "Ellington Airport",
+        category: "Employer",
+        window: "Morning",
+        distance: "5.3 mi",
+        priority: 8,
+        address: "11602 Aerospace Ave, Houston, TX 77034",
+        notes: "Exact Google Maps location. Focus on permitted employer or event outreach, not restricted areas."
+      },
+      {
+        name: "Texas Made Income Tax and Notary",
+        category: "Business",
+        window: "Midday",
+        distance: "0.2 mi",
+        priority: 10,
+        address: "12260 Gulf Fwy Suite B4, Houston, TX 77034",
+        notes: "Exact Google Maps location. Ask about employee wellness and referral permission."
+      },
+      {
+        name: "Take 5 Oil Change - Fuqua St",
+        category: "Auto",
+        window: "Evening",
+        distance: "2-4 mi",
+        priority: 9,
+        address: "10604 Fuqua St, Houston, TX 77089",
+        notes: "Exact Google Maps location. Ask permission before speaking with the crew or waiting customers."
+      },
+      {
+        name: "Scarsdale Plaza",
+        category: "Retail",
+        window: "Evening",
+        distance: "3-5 mi",
+        priority: 8,
+        address: "10851 Scarsdale Blvd, Houston, TX 77089",
+        notes: "Exact Google Maps location. Visit individual tenants with permission instead of treating the entire area as one stop."
+      },
+      {
+        name: "Blackhawk Town Center",
+        category: "Retail",
+        window: "Evening",
+        distance: "3-5 mi",
+        priority: 7,
+        address: "9885 Blackhawk Blvd, Houston, TX 77075",
+        notes: "Exact Google Maps location. Approach individual businesses and request permission before outreach."
+      }
+    ];
+
+    const broadPlaceMigrations = {
+      "Auto parts sweep - AutoZone / O'Reilly / NAPA": "AutoZone Auto Parts - Seaford Dr",
+      "Quick oil sweep - Jiffy Lube / Take 5 / Valvoline": "Jiffy Lube Oil Change - Fuqua St",
+      "Tire shop sweep - Discount Tire / small tire shops": "Level Up Tires & Wheels",
+      "Car wash sweep - Gulf Freeway / Almeda Genoa": "ClearWater Express Wash - Fuqua St",
+      "Restaurant employee sweep - Almeda Mall / Gulf Fwy": "Urban Bird Hot Chicken - Almeda Genoa",
+      "Barber and salon sweep - Almeda Genoa corridor": "Space City Barber Studio",
+      "South Point Park & Ride area": "South Point Park & Ride",
+      "Fuqua Park & Ride area": "Fuqua Park & Ride",
+      "Hotels near Hobby / Gulf Freeway": "WoodSpring Suites South Houston Hobby",
+      "Ellington Airport / Ellington Field area": "Ellington Airport",
+      "Almeda Genoa business corridor": "Texas Made Income Tax and Notary",
+      "Fuqua / Sabo retail and service sweep": "Take 5 Oil Change - Fuqua St",
+      "Scarsdale Blvd apartment and retail corridor": "Scarsdale Plaza",
+      "Blackhawk Blvd / Southbelt corridor": "Blackhawk Town Center"
+    };
+
+    const ideas = [
+      ["Jiffy Lube - 10605 Fuqua St", "Auto", "Morning"],
+      ["AutoZone - 10705 Seaford Dr", "Auto", "Midday"],
+      ["Level Up Tires & Wheels", "Auto", "Midday"],
+      ["ClearWater Express Wash", "Auto", "Evening"],
+      ["Urban Bird Hot Chicken", "Restaurant", "Midday"],
+      ["WoodSpring Suites South Houston Hobby", "Hotel", "Morning"],
+      ["Scarsdale Plaza", "Retail", "Evening"],
+      ["Space City Barber Studio", "Salon", "Midday"],
+      ["Memorial Hermann Southeast Hospital", "Clinic", "Midday"],
+      ["Blackhawk Town Center", "Retail", "Evening"]
+    ];
+
+    const discoveryTemplates = [
+      ["AutoZone near the gym", "Auto", "Midday", "AutoZone near 12338 Gulf Freeway Houston TX 77034"],
+      ["O'Reilly Auto Parts near the gym", "Auto", "Midday", "O'Reilly Auto Parts near 12338 Gulf Freeway Houston TX 77034"],
+      ["NAPA / Advance Auto search", "Auto", "Midday", "auto parts store near 12338 Gulf Freeway Houston TX 77034"],
+      ["Jiffy Lube near the gym", "Auto", "Morning", "Jiffy Lube near 12338 Gulf Freeway Houston TX 77034"],
+      ["Take 5 / Valvoline search", "Auto", "Morning", "oil change near 12338 Gulf Freeway Houston TX 77034"],
+      ["Tire shops near Almeda Genoa", "Auto", "Midday", "tire shop near Almeda Genoa Road Houston TX 77034"],
+      ["Car washes near Gulf Freeway", "Auto", "Evening", "car wash near 12338 Gulf Freeway Houston TX 77034"],
+      ["Mechanic shops near Fuqua", "Auto", "Midday", "mechanic shop near Fuqua Street Houston TX 77034"],
+      ["Barbershops near Almeda Mall", "Salon", "Midday", "barbershop near Almeda Mall Houston TX"],
+      ["Hair salons near Almeda Genoa", "Salon", "Midday", "hair salon near Almeda Genoa Road Houston TX"],
+      ["Nail salons near Southbelt", "Salon", "Midday", "nail salon near Southbelt Houston TX 77089"],
+      ["Restaurants near Almeda Mall", "Restaurant", "Midday", "restaurants near Almeda Mall Houston TX"],
+      ["Fast food rows near Fuqua", "Restaurant", "Evening", "fast food near Fuqua Street and I-45 Houston TX"],
+      ["Hotels near Hobby Airport", "Hotel", "Morning", "hotels near Hobby Airport and Gulf Freeway Houston TX"],
+      ["Phone stores near Gulf Freeway", "Retail", "Evening", "cell phone stores near 12338 Gulf Freeway Houston TX"],
+      ["Pawn shops near Almeda Genoa", "Retail", "Midday", "pawn shops near Almeda Genoa Houston TX"],
+      ["Laundromats near Southbelt", "Business", "Evening", "laundromat near Southbelt Houston TX 77089"],
+      ["Smoke shops near Gulf Freeway", "Retail", "Evening", "smoke shop near 12338 Gulf Freeway Houston TX"],
+      ["Dollar stores near Scarsdale", "Retail", "Evening", "dollar store near Scarsdale Blvd Houston TX"],
+      ["Apartment leasing offices near Scarsdale", "Apartment", "Evening", "apartments near Scarsdale Blvd Houston TX 77089"],
+      ["Apartment leasing offices near Beamer", "Apartment", "Evening", "apartments near Beamer Road Houston TX 77089"],
+      ["Medical clinics near Fuqua", "Clinic", "Midday", "medical clinic near Fuqua Street Houston TX"],
+      ["Dental offices near Southbelt", "Clinic", "Midday", "dental office near Southbelt Houston TX"],
+      ["Warehouses near Ellington", "Employer", "Morning", "warehouse near Ellington Airport Houston TX"],
+      ["Staff-heavy businesses near Almeda Genoa", "Business", "Morning", "business park near Almeda Genoa Road Houston TX"],
+      ["Retail strips near Rowlett", "Retail", "Evening", "shopping center near Rowlett Road Houston TX 77075"],
+      ["Sports fields this weekend", "Event", "Morning", "sports fields near Southbelt Houston TX"],
+      ["Community events nearby", "Event", "Morning", "events near Southbelt Houston TX today"]
+    ];
+
+    const eventOpportunities = [
+      {
+        name: "Deal Spotlight & Networking",
+        date: "2026-06-18",
+        dateLabel: "Thu, Jun 18",
+        time: "6:00 PM-9:00 PM",
+        window: "Evening",
+        address: "10500 Katy Fwy, Houston, TX 77043",
+        fit: "Business networking",
+        permission: "Networking only - ask before promoting",
+        url: "https://www.eventbrite.com/e/deal-spotlight-networking-tickets-1989837599826"
+      },
+      {
+        name: "ENRG HTX - June 2026",
+        date: "2026-06-19",
+        dateLabel: "Fri, Jun 19",
+        time: "8:30 AM-10:00 AM",
+        window: "Morning",
+        address: "4201 Main St, Houston, TX 77002",
+        fit: "Business relationships",
+        permission: "No sales pitches - relationship building only",
+        url: "https://www.eventbrite.com/e/enrg-htx-june-2026-tickets-1990513456331"
+      },
+      {
+        name: "La Fete de la Musique",
+        date: "2026-06-20",
+        dateLabel: "Sat, Jun 20",
+        time: "5:00 PM-8:00 PM",
+        window: "Evening",
+        address: "427 Lovett Blvd, Houston, TX 77006",
+        fit: "Community audience",
+        permission: "Contact organizer before promoting",
+        url: "https://www.eventbrite.com/e/la-fete-de-la-musique-tickets-1988417971680"
+      },
+      {
+        name: "TABB Houston Networking Luncheon",
+        date: "2026-06-25",
+        dateLabel: "Thu, Jun 25",
+        time: "11:30 AM-1:30 PM",
+        window: "Midday",
+        address: "2019 Post Oak Blvd, Houston, TX 77056",
+        fit: "Business partnerships",
+        permission: "Networking only - ask before promoting",
+        url: "https://www.eventbrite.com/e/june-2026-tabb-luncheon-networking-event-tickets-1977773312217"
+      },
+      {
+        name: "Houston Summer Outdoor Artisans Market",
+        date: "2026-06-26",
+        dateLabel: "Jun 26-28",
+        time: "10:00 AM-5:00 PM",
+        window: "Midday",
+        address: "105 Sabine St, Houston, TX 77007",
+        fit: "High-volume community event",
+        permission: "Vendor registration required",
+        url: "https://www.eventbrite.com/e/2026-houston-summer-outdoor-artisans-market-tickets-1989120942284"
+      },
+      {
+        name: "Sober & Proud Houston Zero Proof Pride Crawl",
+        date: "2026-06-27",
+        dateLabel: "Sat, Jun 27",
+        time: "4:00 PM-10:00 PM",
+        window: "Evening",
+        address: "Barcode, Houston, TX",
+        fit: "Wellness-aligned audience",
+        permission: "Contact organizer before promoting",
+        url: "https://www.eventbrite.com/e/sober-proud-houston-zero-proof-pride-crawl-tickets-1986930262903"
+      },
+      {
+        name: "Speed Networking at The Cannon",
+        date: "2026-07-28",
+        dateLabel: "Tue, Jul 28",
+        time: "4:30 PM-6:30 PM",
+        window: "Evening",
+        address: "1334 Brittmoore Rd, Houston, TX 77043",
+        fit: "Business partnerships",
+        permission: "Networking only - ask before promoting",
+        url: "https://www.eventbrite.com/e/speed-networking-to-drive-business-with-network-in-action-at-the-cannon-tickets-1979813655940"
+      }
+    ];
+
+    let state = load();
+    let appMode = localStorage.getItem(modeStoreKey) === "owner" ? "owner" : "rep";
+    let currentWindow = "all";
+    let currentFilter = "all";
+
+    function migrateBroadPlace(place) {
+      const replacementName = broadPlaceMigrations[place.name];
+      if (!replacementName) return place;
+      const replacement = starterPlaces.find(item => item.name === replacementName);
+      return replacement
+        ? { ...place, ...replacement, id: place.id, createdAt: place.createdAt || Date.now() }
+        : place;
+    }
+
+    function load() {
+      const raw = localStorage.getItem(storeKey) || localStorage.getItem(legacyStoreKey);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          const normalized = normalizeState(parsed);
+          normalized.places = normalized.places.map(migrateBroadPlace);
+          localStorage.setItem(storeKey, JSON.stringify(normalized));
+          return normalized;
+        } catch (e) {}
+      }
+      return {
+        places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
+        visits: []
+      };
+    }
+
+    function save() {
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      render();
+    }
+
+    function setDataStatus(message) {
+      document.getElementById("dataStatus").textContent = message;
+    }
+
+    function exportData() {
+      const payload = {
+        app: "Prometheus IQ",
+        version: 2,
+        exportedAt: new Date().toISOString(),
+        data: state
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `prometheus-iq-backup-${todayKey()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setDataStatus("Backup exported.");
+    }
+
+    function importData(file) {
+      if (!file) return;
+      if (file.size > MAX_BACKUP_BYTES) {
+        setDataStatus("That backup is too large. Maximum size is 2 MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const next = parsed.data || parsed;
+          state = normalizeState(next);
+          localStorage.setItem(storeKey, JSON.stringify(state));
+          render();
+          setDataStatus("Backup imported.");
+        } catch (error) {
+          setDataStatus("That backup file could not be imported.");
+        }
+      };
+      reader.onerror = () => setDataStatus("That backup file could not be read.");
+      reader.readAsText(file);
+    }
+
+    function cleanText(value, maxLength) {
+      return String(value ?? "").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").slice(0, maxLength).trim();
+    }
+
+    function cleanNumber(value, max = 100000) {
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.min(max, Math.max(0, number)) : 0;
+    }
+
+    function cleanDate(value) {
+      const text = cleanText(value, 10);
+      return /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(Date.parse(`${text}T00:00:00`)) ? text : todayKey();
+    }
+
+    function safeId(value, usedIds) {
+      const candidate = cleanText(value, 128);
+      if (/^[A-Za-z0-9_-]+$/.test(candidate) && !usedIds.has(candidate)) {
+        usedIds.add(candidate);
+        return candidate;
+      }
+      let nextId = id();
+      while (usedIds.has(nextId)) nextId = id();
+      usedIds.add(nextId);
+      return nextId;
+    }
+
+    function normalizeState(input) {
+      if (!input || typeof input !== "object" || !Array.isArray(input.places) || !Array.isArray(input.visits)) {
+        throw new Error("Invalid backup");
+      }
+      if (input.places.length > MAX_PLACES || input.visits.length > MAX_VISITS) {
+        throw new Error("Backup exceeds app limits");
+      }
+
+      const usedIds = new Set();
+      const placeIdMap = new Map();
+      const places = input.places.map(raw => {
+        if (!raw || typeof raw !== "object") throw new Error("Invalid place");
+        const originalId = cleanText(raw.id, 128);
+        const placeId = safeId(originalId, usedIds);
+        if (originalId) placeIdMap.set(originalId, placeId);
+        return {
+          id: placeId,
+          name: cleanText(raw.name, 160) || "Unnamed place",
+          category: placeCategories.includes(raw.category) ? raw.category : "Other",
+          window: visitWindows.includes(raw.window) ? raw.window : "Anytime",
+          distance: cleanText(raw.distance, 40),
+          priority: cleanNumber(raw.priority, 100),
+          address: cleanText(raw.address, 300),
+          permission: permissionValues.includes(raw.permission) ? raw.permission : "Unknown",
+          canRevisit: raw.canRevisit !== false,
+          notes: cleanText(raw.notes, 2000),
+          createdAt: cleanNumber(raw.createdAt, Date.now()) || Date.now()
+        };
+      });
+
+      const visitIds = new Set();
+      const visits = input.visits.map(raw => {
+        if (!raw || typeof raw !== "object") throw new Error("Invalid visit");
+        const originalPlaceId = cleanText(raw.placeId, 128);
+        const createdAt = cleanNumber(raw.createdAt, Date.now()) || Date.now();
+        const savedDate = cleanDate(raw.date);
+        const createdDate = new Date(createdAt);
+        const utcCreatedDate = createdDate.toISOString().slice(0, 10);
+        const localCreatedDate = localDateKey(createdDate);
+        const correctedDate = raw.quick === true && savedDate === utcCreatedDate && utcCreatedDate !== localCreatedDate
+          ? localCreatedDate
+          : savedDate;
+        return {
+          id: safeId(raw.id, visitIds),
+          placeId: placeIdMap.get(originalPlaceId) || "",
+          placeName: cleanText(raw.placeName, 160),
+          date: correctedDate,
+          window: visitWindows.includes(raw.window) ? raw.window : visitWindow(new Date().getHours()),
+          conversations: cleanNumber(raw.conversations, 10000),
+          leads: cleanNumber(raw.leads, 10000),
+          units: cleanNumber(raw.units, 10000),
+          laterUnits: cleanNumber(raw.laterUnits, 10000),
+          quality: cleanText(raw.quality, 80),
+          notes: cleanText(raw.notes, 2000),
+          quick: raw.quick === true,
+          createdAt
+        };
+      });
+
+      return { places, visits };
+    }
+
+    function resetData() {
+      if (!confirm("Reset Prometheus data on this device?")) return;
+      state = {
+        places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
+        visits: []
+      };
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      render();
+      setDataStatus("Prometheus reset.");
+    }
+
+    function fmtDate(date) {
+      return new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" }).format(date);
+    }
+
+    function visitWindow(hour) {
+      if (hour < 11) return "Morning";
+      if (hour < 16) return "Midday";
+      return "Evening";
+    }
+
+    function placeStats(placeId) {
+      const visits = state.visits.filter(v => v.placeId === placeId);
+      const sums = visits.reduce((acc, v) => {
+        acc.conversations += Number(v.conversations || 0);
+        acc.leads += Number(v.leads || 0);
+        acc.units += Number(v.units || 0);
+        acc.laterUnits += Number(v.laterUnits || 0);
+        return acc;
+      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0 });
+      return { visits: visits.length, ...sums };
+    }
+
+    function statusFor(place) {
+      const stats = placeStats(place.id);
+      if (stats.units + stats.laterUnits > 0) return "green";
+      if (stats.leads > 0) return "yellow";
+      if (stats.visits > 0) return "red";
+      return "blue";
+    }
+
+    function statusLabel(color) {
+      return { green: "Units", yellow: "Leads", red: "No production", blue: "New" }[color] || "New";
+    }
+
+    function todayVisits() {
+      const key = todayKey();
+      return state.visits.filter(v => v.date === key);
+    }
+
+    function dateOrdinal(value) {
+      const [year, month, day] = String(value || "").split("-").map(Number);
+      return year && month && day ? Math.floor(Date.UTC(year, month - 1, day) / 86400000) : null;
+    }
+
+    function daysSinceLastVisit(placeId) {
+      const today = dateOrdinal(todayKey());
+      const visitDays = state.visits
+        .filter(v => v.placeId === placeId)
+        .map(v => dateOrdinal(v.date))
+        .filter(value => value !== null && value <= today);
+      return visitDays.length ? today - Math.max(...visitDays) : Infinity;
+    }
+
+    function isRouteEligible(place) {
+      return place.canRevisit !== false && place.permission !== "No";
+    }
+
+    function routePool(places) {
+      const hitToday = new Set(todayVisits().map(v => v.placeId));
+      const eligible = places.filter(place => isRouteEligible(place) && !hitToday.has(place.id));
+      const rested = eligible.filter(place => daysSinceLastVisit(place.id) > 1);
+      return rested.length ? rested : eligible;
+    }
+
+    function sumVisits(visits) {
+      return visits.reduce((acc, v) => {
+        acc.conversations += Number(v.conversations || 0);
+        acc.leads += Number(v.leads || 0);
+        acc.units += Number(v.units || 0);
+        acc.laterUnits += Number(v.laterUnits || 0);
+        return acc;
+      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0 });
+    }
+
+    function scorePlace(place) {
+      const stats = placeStats(place.id);
+      const status = statusFor(place);
+      const windowFit = currentWindow === "all" || place.window.toLowerCase() === currentWindow ? 8 : 0;
+      const base = status === "green" ? 30 : status === "yellow" ? 18 : status === "blue" ? 12 : 2;
+      const seedPriority = Number(place.priority || 0);
+      const totalProduction = stats.units + stats.laterUnits;
+      const permissionBoost = place.permission && place.permission !== "Unknown" && place.permission !== "No" ? 4 : 0;
+      const output = totalProduction * 14 + stats.leads * 3 + stats.conversations * .2 + permissionBoost;
+      const revisit = place.canRevisit === false ? -10 : 0;
+      const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -18 : 0;
+      const daysSince = daysSinceLastVisit(place.id);
+      const recencyPenalty = daysSince === 1 ? -40 : daysSince <= 3 ? -10 : daysSince <= 6 ? -4 : 0;
+      return Math.round(base + seedPriority + output + windowFit + revisit + alreadyVisitedToday + recencyPenalty);
+    }
+
+    function routeSignal(place) {
+      const stats = placeStats(place.id);
+      const totalUnits = stats.units + stats.laterUnits;
+      const status = statusFor(place);
+      const reasons = [];
+      if (totalUnits > 0) reasons.push(`it has produced ${totalUnits} ${totalUnits === 1 ? "unit" : "units"}`);
+      if (stats.leads > 0) reasons.push(`it has created ${stats.leads} leads`);
+      if (!stats.visits) reasons.push("it is untested territory with upside");
+      if (place.permission && place.permission !== "Unknown" && place.permission !== "No") reasons.push(`${place.permission.toLowerCase()} is already noted`);
+      if (place.window === visitWindow(new Date().getHours()) || place.window === "Anytime") reasons.push("the timing fits right now");
+      if (status === "red" && !reasons.length) reasons.push("it needs a better revisit decision");
+      return reasons.slice(0, 2).join(" and ") || "it is the strongest saved option right now";
+    }
+
+    function routeConfidence(place) {
+      const stats = placeStats(place.id);
+      const totalUnits = stats.units + stats.laterUnits;
+      if (stats.visits >= 3 && (totalUnits > 0 || stats.leads >= 3)) return "High";
+      if (stats.visits > 0 || Number(place.priority || 0) >= 10) return "Medium";
+      return "Test";
+    }
+
+    function routeRecommendation() {
+      return routePool(state.places)
+        .sort((a, b) => scorePlace(b) - scorePlace(a))[0];
+    }
+
+    function render() {
+      applyMode();
+      document.getElementById("todayLabel").textContent = fmtDate(new Date());
+      renderToday();
+      renderRoute();
+      renderPlaces();
+      renderStats();
+      renderFind();
+    }
+
+    function renderToday() {
+      const visits = todayVisits();
+      const sums = sumVisits(visits);
+      const need = Math.max(0, GOAL - sums.units);
+      const actualPct = Math.round((sums.units / GOAL) * 100);
+      const progressPct = Math.min(100, actualPct);
+      document.getElementById("goalTarget").textContent = GOAL;
+      document.getElementById("unitsToday").textContent = sums.units;
+      document.getElementById("unitsNeed").textContent = need;
+      document.getElementById("visitsToday").textContent = visits.length;
+      document.getElementById("talksToday").textContent = sums.conversations;
+      document.getElementById("leadsToday").textContent = sums.leads;
+      document.getElementById("paceLabel").textContent = sums.units > GOAL
+        ? `${actualPct}% complete · ${sums.units - GOAL} over goal`
+        : `${actualPct}% complete`;
+      document.getElementById("goalProgress").style.width = `${progressPct}%`;
+      document.getElementById("todayVisitCount").textContent = `${visits.length} logged`;
+
+      const avgUnits = state.visits.length ? sumVisits(state.visits).units / state.visits.length : 0;
+      const avgTalks = state.visits.length ? sumVisits(state.visits).conversations / Math.max(1, sumVisits(state.visits).units || 1) : 0;
+      const needVisits = avgUnits > 0 ? Math.ceil(need / avgUnits) : Math.ceil(need / 2);
+      const needTalks = avgTalks > 0 ? Math.ceil(need * avgTalks) : need * 12;
+      const topCategory = bestCategoryName();
+      document.getElementById("needCalculator").innerHTML = need === 0
+        ? `<div><b>Goal hit.</b> Keep logging where the units came from so tomorrow's route gets smarter.</div>`
+        : `<div><b>${need} units left.</b> Based on your current averages, plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations.</div><div>Highest-probability category right now: <b>${topCategory}</b>.</div>`;
+
+      renderRouteIntelligence(visits, sums, need);
+      renderDailyRoute();
+
+      const list = document.getElementById("todayVisits");
+      if (!visits.length) {
+        list.innerHTML = `<div class="empty">No visits logged today. Add the first stop when you leave a location.</div>`;
+        return;
+      }
+      list.innerHTML = visits.slice().reverse().map(visitCard).join("");
+    }
+
+    function renderRouteIntelligence(visits, sums, need) {
+      const next = routeRecommendation();
+      const bestNextMove = document.getElementById("bestNextMove");
+      const bestMoveReason = document.getElementById("bestMoveReason");
+      const intelExpected = document.getElementById("intelExpected");
+      const intelWindow = document.getElementById("intelWindow");
+      const intelConfidence = document.getElementById("intelConfidence");
+      const routeRisk = document.getElementById("routeRisk");
+
+      if (!next) {
+        bestNextMove.textContent = "Add fresh territory";
+        bestMoveReason.textContent = "Every saved place has already been hit today. Add a new map search from Find before driving more.";
+        intelExpected.textContent = "New";
+        intelWindow.textContent = visitWindow(new Date().getHours());
+        intelConfidence.textContent = "Low";
+        routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
+        return;
+      }
+
+      const stats = placeStats(next.id);
+      const totalUnits = stats.units + stats.laterUnits;
+      const expected = totalUnits > 0 ? `${totalUnits} ${totalUnits === 1 ? "unit" : "units"} in history` : stats.leads > 0 ? `${stats.leads} lead signal` : "Test stop";
+      bestNextMove.textContent = next.name;
+      bestMoveReason.textContent = `Go here next because ${routeSignal(next)}.`;
+      intelExpected.textContent = expected;
+      intelWindow.textContent = next.window || "Anytime";
+      intelConfidence.textContent = routeConfidence(next);
+
+      if (need === 0) {
+        routeRisk.textContent = "Goal is hit. Log clean notes so tomorrow's route gets smarter.";
+      } else if (visits.length < 2) {
+        routeRisk.textContent = "Warning: today's route is still light. Get at least 2 outside stops logged before judging the day.";
+      } else if (sums.conversations < 25) {
+        routeRisk.textContent = "Warning: conversation volume is low. Prioritize places with staff traffic or waiting customers.";
+      } else if (!sums.leads && visits.length >= 2) {
+        routeRisk.textContent = "Warning: visits are happening, but leads are not. Switch category or time window before burning more gas.";
+      } else {
+        routeRisk.textContent = "Signal is building. Keep logging outcomes so Prometheus can separate strong stops from wasted miles.";
+      }
+    }
+
+    function renderDailyRoute() {
+      const places = routePool(state.places)
+        .sort((a, b) => scorePlace(b) - scorePlace(a))
+        .slice(0, 6);
+      document.getElementById("dailyRouteCount").textContent = `${places.length} stops`;
+      const list = document.getElementById("dailyRoute");
+      if (!places.length) {
+        list.innerHTML = `<div class="empty">You logged every saved place today. Add fresh searches from the Find screen.</div>`;
+        return;
+      }
+      list.innerHTML = places.map((p, index) => compactRouteCard(p, index)).join("");
+    }
+
+    function visitCard(v) {
+      const place = state.places.find(p => p.id === v.placeId);
+      const title = place ? place.name : v.placeName || "Unknown place";
+      return `<article class="item">
+        <div class="item-head">
+          <div>
+            <h3>${escapeHtml(title)}</h3>
+            <div class="meta">
+              ${place?.distance ? `<span>${escapeHtml(place.distance)}</span>` : ""}
+              <span>${escapeHtml(v.window)}</span>
+              <span>${Number(v.conversations || 0)} talks</span>
+              <span>${Number(v.leads || 0)} leads</span>
+              ${v.quality ? `<span>${escapeHtml(v.quality)}</span>` : ""}
+            </div>
+          </div>
+          <span class="pill green">${Number(v.units || 0) + Number(v.laterUnits || 0)} units</span>
+        </div>
+        ${Number(v.laterUnits || 0) ? `<div class="meta">${Number(v.units || 0)} same-day · ${Number(v.laterUnits || 0)} later units</div>` : ""}
+        ${v.notes ? `<div class="meta">${escapeHtml(v.notes)}</div>` : ""}
+      </article>`;
+    }
+
+    function renderRoute() {
+      let places = state.places.slice();
+      if (currentWindow !== "all") {
+        places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
+      }
+      places = routePool(places).sort((a, b) => scorePlace(b) - scorePlace(a)).slice(0, 10);
+      document.getElementById("routeCount").textContent = `${places.length} options`;
+      const list = document.getElementById("routeList");
+      if (!places.length) {
+        list.innerHTML = `<div class="empty">Add a few places in Find, then this route will rank them.</div>`;
+        return;
+      }
+      list.innerHTML = places.map((p, index) => {
+        return compactRouteCard(p, index);
+      }).join("");
+    }
+
+    function compactRouteCard(p, index) {
+      const stats = placeStats(p.id);
+      const status = statusFor(p);
+      return `<article class="item route-card">
+        <div class="rank">${index + 1}</div>
+        <div>
+          <h3>${escapeHtml(p.name)}</h3>
+          <div class="meta">
+            ${p.distance ? `<span>${escapeHtml(p.distance)}</span>` : ""}
+            <span>${escapeHtml(p.category)}</span>
+            <span>${escapeHtml(p.window)}</span>
+            <span>${stats.visits} visits</span>
+            <span>${stats.units + stats.laterUnits} units</span>
+            ${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}
+            ${p.canRevisit === false ? `<span>No revisit</span>` : ""}
+          </div>
+          ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>` : ""}
+        </div>
+        <div>
+          <div class="score">${scorePlace(p)}</div>
+          <span class="pill ${status}">${statusLabel(status)}</span>
+          <button class="pill blue" type="button" data-quick-place="${escapeAttr(p.id)}">Log</button>
+        </div>
+      </article>`;
+    }
+
+    function renderPlaces() {
+      let places = state.places.slice().sort((a, b) => {
+        const bs = placeStats(b.id);
+        const as = placeStats(a.id);
+        return bs.units - as.units || bs.leads - as.leads || b.createdAt - a.createdAt;
+      });
+      if (currentFilter !== "all") places = places.filter(p => statusFor(p) === currentFilter);
+      document.getElementById("placesCount").textContent = `${places.length} places`;
+      const list = document.getElementById("placesList");
+      if (!places.length) {
+        list.innerHTML = `<div class="empty">No places in this filter.</div>`;
+        return;
+      }
+      list.innerHTML = places.map(p => {
+        const stats = placeStats(p.id);
+        const status = statusFor(p);
+        return `<article class="item">
+          <div class="item-head">
+            <div>
+              <h3>${escapeHtml(p.name)}</h3>
+              <div class="meta">
+                ${p.distance ? `<span>${escapeHtml(p.distance)}</span>` : ""}
+                <span>${escapeHtml(p.category)}</span>
+                <span>${escapeHtml(p.window)}</span>
+                <span>${stats.visits} visits</span>
+                <span>${stats.conversations} talks</span>
+                <span>${stats.leads} leads</span>
+                ${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}
+              </div>
+              ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${mapsUrl(p)}" target="_blank" rel="noreferrer">Open map</a></div>` : ""}
+            </div>
+            <span class="pill ${status}">${stats.units + stats.laterUnits} units</span>
+          </div>
+          ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
+        </article>`;
+      }).join("");
+    }
+
+    function renderStats() {
+      const totals = sumVisits(state.visits);
+      const unitsPerVisit = state.visits.length ? totals.units / state.visits.length : 0;
+      document.getElementById("totalUnits").textContent = totals.units + totals.laterUnits;
+      document.getElementById("unitsPerVisit").textContent = unitsPerVisit.toFixed(1);
+      document.getElementById("bestCategory").textContent = bestCategoryName();
+
+      const best = state.places.slice().sort((a, b) => {
+        const bs = placeStats(b.id);
+        const as = placeStats(a.id);
+        return (bs.units + bs.laterUnits) - (as.units + as.laterUnits);
+      }).slice(0, 5);
+      document.getElementById("bestPlaces").innerHTML = best.some(p => placeStats(p.id).visits)
+        ? best.map(p => {
+            const s = placeStats(p.id);
+            return `<article class="item"><div class="item-head"><div><h3>${escapeHtml(p.name)}</h3><div class="meta"><span>${escapeHtml(p.category)}</span><span>${s.visits} visits</span><span>${s.leads} leads</span>${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}</div></div><span class="pill green">${s.units + s.laterUnits} units</span></div></article>`;
+          }).join("")
+        : `<div class="empty">Log visits to see your top-producing places.</div>`;
+
+      const windows = ["Morning", "Midday", "Evening"].map(w => {
+        const visits = state.visits.filter(v => v.window === w);
+        const sums = sumVisits(visits);
+        const units = sums.units + sums.laterUnits;
+        return { name: w, visits: visits.length, units, upv: visits.length ? units / visits.length : 0 };
+      }).sort((a, b) => b.upv - a.upv);
+      document.getElementById("bestTimes").innerHTML = windows.map(w => `<article class="item"><div class="item-head"><div><h3>${w.name}</h3><div class="meta"><span>${w.visits} visits</span><span>${w.units} units</span></div></div><span class="pill blue">${w.upv.toFixed(1)} / visit</span></div></article>`).join("");
+    }
+
+    function bestCategoryName() {
+      const map = new Map();
+      state.visits.forEach(v => {
+        const place = state.places.find(p => p.id === v.placeId);
+        const category = place ? place.category : "Other";
+        const item = map.get(category) || { units: 0, visits: 0 };
+        item.units += Number(v.units || 0);
+        item.visits += 1;
+        map.set(category, item);
+      });
+      if (!map.size) return "Auto";
+      return [...map.entries()].sort((a, b) => b[1].units - a[1].units || b[1].visits - a[1].visits)[0][0];
+    }
+
+    function renderFind() {
+      const today = todayKey();
+      const upcomingEvents = eventOpportunities.filter(item => item.date >= today);
+      document.getElementById("eventOpportunities").innerHTML = upcomingEvents.length
+        ? upcomingEvents.map((item, index) => `<article class="item">
+            <div class="item-head">
+              <div>
+                <h3>${escapeHtml(item.name)}</h3>
+                <div class="meta">
+                  <span>${escapeHtml(item.dateLabel)}</span>
+                  <span>${escapeHtml(item.time)}</span>
+                  <span>${escapeHtml(item.fit)}</span>
+                </div>
+                <div class="address-line">${escapeHtml(item.address)} · <a class="map-link" href="${searchMapsUrl(item.address)}" target="_blank" rel="noreferrer">Open map</a></div>
+                <div class="address-line"><b>Access:</b> ${escapeHtml(item.permission)} · <a class="map-link" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">View Eventbrite</a></div>
+              </div>
+              <button class="pill blue" data-add-event="${index}">Add</button>
+            </div>
+          </article>`).join("")
+        : `<div class="empty">No saved upcoming events. Search Eventbrite and add the next opportunity.</div>`;
+
+      document.getElementById("dailySearches").innerHTML = dailySearches().map((item, index) => `<article class="item">
+        <div class="item-head">
+          <div>
+            <h3>${escapeHtml(item.name)}</h3>
+            <div class="meta"><span>${escapeHtml(item.category)}</span><span>${escapeHtml(item.window)}</span><span>Fresh today</span></div>
+            <div class="address-line">${escapeHtml(item.query)} · <a class="map-link" href="${searchMapsUrl(item.query)}" target="_blank" rel="noreferrer">Open map</a></div>
+          </div>
+          <button class="pill blue" data-add-search="${index}">Add</button>
+        </div>
+      </article>`).join("");
+
+      document.getElementById("targetIdeas").innerHTML = ideas.map(([name, category, window]) => `<button class="item" data-idea="${escapeAttr(name)}" data-category="${escapeAttr(category)}" data-idea-window="${escapeAttr(window)}">
+        <div class="item-head">
+          <div>
+            <h3>${escapeHtml(name)}</h3>
+            <div class="meta"><span>${category}</span><span>${window}</span></div>
+          </div>
+          <span class="pill blue">Add</span>
+        </div>
+      </button>`).join("");
+    }
+
+    function dailySearches() {
+      const offset = dateNumber(todayKey()) % discoveryTemplates.length;
+      const rotated = discoveryTemplates.slice(offset).concat(discoveryTemplates.slice(0, offset));
+      const topCategory = bestCategoryName();
+      const unused = rotated.filter(item => !isSavedDiscovery(item));
+      const pool = unused.length >= 10 ? unused : unused.concat(rotated.filter(item => isSavedDiscovery(item)));
+      const bestFirst = pool.sort((a, b) => Number(b[1] === topCategory) - Number(a[1] === topCategory));
+      return bestFirst.slice(0, 10).map(([name, category, window, query]) => ({ name, category, window, query }));
+    }
+
+    function isSavedDiscovery([name, category, window, query]) {
+      const discoveryName = normalizeKey(name);
+      const discoveryQuery = normalizeKey(query);
+      return state.places.some(place => {
+        const placeName = normalizeKey(place.name);
+        const placeAddress = normalizeKey(place.address);
+        return placeName === discoveryName || placeAddress === discoveryQuery || placeName.includes(discoveryName);
+      });
+    }
+
+    function dateNumber(value) {
+      return value.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+    }
+
+    function normalizeKey(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    function openModal(type, preset = {}) {
+      const modal = document.getElementById("modal");
+      const title = document.getElementById("modalTitle");
+      const body = document.getElementById("modalBody");
+      if (type === "quick") {
+        title.textContent = "Quick Result";
+        const recommended = routeRecommendation();
+        const selectedPlaceId = preset.placeId || recommended?.id || state.places[0]?.id || "";
+        const options = state.places.map(p => `<option value="${escapeAttr(p.id)}" ${p.id === selectedPlaceId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("");
+        body.innerHTML = `<form id="quickForm">
+          <label>Where are you?<select name="placeId">${options}</select></label>
+          <div class="quick-outcomes" aria-label="Visit outcome">
+            <button class="quick-outcome" type="button" data-quick-outcome="none">No Contact<small>Save and move on</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="talk">Conversation<small>Spoke with someone</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="lead">Lead<small>Follow-up created</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="sale">Sale<small>Membership closed</small></button>
+          </div>
+          <div class="quick-counts" id="quickCounts">
+            <div class="grid three">
+              <label>Talks<input name="conversations" type="number" inputmode="numeric" min="0" value="1"></label>
+              <label>Leads<input name="leads" type="number" inputmode="numeric" min="0" value="0"></label>
+              <label>Units<input name="units" type="number" inputmode="numeric" min="0" value="0"></label>
+            </div>
+            <input name="outcome" type="hidden" value="talk">
+            <details>
+              <summary>Add optional note</summary>
+              <label>Note<textarea name="notes" placeholder="Only add what will help next time"></textarea></label>
+            </details>
+            <button class="btn" type="submit">Save Result</button>
+          </div>
+        </form>`;
+
+        const quickForm = body.querySelector("#quickForm");
+        const saveQuickResult = values => {
+          const place = state.places.find(p => p.id === values.placeId);
+          state.visits.push({
+            id: id(),
+            placeId: values.placeId,
+            placeName: place ? place.name : "",
+            date: todayKey(),
+            window: visitWindow(new Date().getHours()),
+            conversations: Number(values.conversations || 0),
+            leads: Number(values.leads || 0),
+            units: Number(values.units || 0),
+            laterUnits: 0,
+            quality: values.outcome === "none" ? "No contact" : values.outcome === "sale" ? "Sale" : values.outcome === "lead" ? "Lead" : "Conversation",
+            notes: String(values.notes || "").trim(),
+            quick: true,
+            createdAt: Date.now()
+          });
+          closeModal();
+          save();
+        };
+
+        body.querySelectorAll("[data-quick-outcome]").forEach(button => button.addEventListener("click", () => {
+          const outcome = button.dataset.quickOutcome;
+          const placeId = quickForm.elements.placeId.value;
+          if (outcome === "none") {
+            saveQuickResult({ placeId, outcome, conversations: 0, leads: 0, units: 0 });
+            return;
+          }
+          const defaults = outcome === "sale"
+            ? { conversations: 1, leads: 0, units: 1 }
+            : outcome === "lead"
+              ? { conversations: 1, leads: 1, units: 0 }
+              : { conversations: 1, leads: 0, units: 0 };
+          quickForm.elements.outcome.value = outcome;
+          Object.entries(defaults).forEach(([name, value]) => { quickForm.elements[name].value = value; });
+          body.querySelector("#quickCounts").classList.add("active");
+          body.querySelectorAll("[data-quick-outcome]").forEach(item => item.classList.toggle("active", item === button));
+        }));
+
+        quickForm.addEventListener("submit", event => {
+          event.preventDefault();
+          saveQuickResult(Object.fromEntries(new FormData(quickForm).entries()));
+        });
+      } else if (type === "visit") {
+        title.textContent = "Add Visit";
+        const options = state.places.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join("");
+        body.innerHTML = `<form id="visitForm">
+          <label>Place<select name="placeId">${options}</select></label>
+          <div class="grid three">
+            <label>Talks<input name="conversations" type="number" min="0" value="0"></label>
+            <label>Leads<input name="leads" type="number" min="0" value="0"></label>
+            <label>Units<input name="units" type="number" min="0" value="0"></label>
+          </div>
+          <div class="grid two">
+            <label>Later units<input name="laterUnits" type="number" min="0" value="0"></label>
+            <label>Visit quality<select name="quality"><option>Good traffic</option><option>Low traffic</option><option>Good permission</option><option>Bad timing</option><option>Try again</option></select></label>
+          </div>
+          <div class="grid two">
+            <label>Date<input name="date" type="date" value="${todayKey()}"></label>
+            <label>Window<select name="window"><option>Morning</option><option>Midday</option><option>Evening</option></select></label>
+          </div>
+          <label>Notes<textarea name="notes" placeholder="Permission, traffic, where you set up, anything useful"></textarea></label>
+          <button class="btn" type="submit">Save Visit</button>
+        </form>`;
+        body.querySelector("[name=window]").value = visitWindow(new Date().getHours());
+        body.querySelector("form").addEventListener("submit", event => {
+          event.preventDefault();
+          const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+          const place = state.places.find(p => p.id === data.placeId);
+          state.visits.push({
+            id: id(),
+            placeId: data.placeId,
+            placeName: place ? place.name : "",
+            date: data.date,
+            window: data.window,
+            conversations: Number(data.conversations || 0),
+            leads: Number(data.leads || 0),
+            units: Number(data.units || 0),
+            laterUnits: Number(data.laterUnits || 0),
+            quality: data.quality,
+            notes: data.notes.trim(),
+            createdAt: Date.now()
+          });
+          closeModal();
+          save();
+        });
+      } else {
+        title.textContent = "Add Place";
+        body.innerHTML = `<form id="placeForm">
+          <label>Place name<input name="name" value="${escapeAttr(preset.name || "")}" placeholder="Example: Oak Ridge Apartments" required></label>
+          <label>Address or map search<input name="address" value="${escapeAttr(preset.address || "")}" placeholder="Example: AutoZone near 12338 Gulf Freeway"></label>
+          <div class="grid two">
+            <label>Category<select name="category">
+              ${["Apartment","Auto","Warehouse","Restaurant","Retail","Office","School","Salon","Clinic","College","Community","Transit","Employer","Business","Hotel","Event","Other"].map(c => `<option ${preset.category === c ? "selected" : ""}>${c}</option>`).join("")}
+            </select></label>
+            <label>Best window<select name="window">
+              ${["Morning","Midday","Evening","Anytime"].map(w => `<option ${preset.window === w ? "selected" : ""}>${w}</option>`).join("")}
+            </select></label>
+          </div>
+          <div class="grid two">
+            <label>Permission<select name="permission">
+              ${["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"].map(value => `<option ${preset.permission === value ? "selected" : ""}>${value}</option>`).join("")}
+            </select></label>
+            <label>Can revisit<select name="canRevisit">
+              <option value="true" ${preset.canRevisit === false ? "" : "selected"}>Yes</option>
+              <option value="false" ${preset.canRevisit === false ? "selected" : ""}>No</option>
+            </select></label>
+          </div>
+          <label>Notes<textarea name="notes" placeholder="Gate code, manager name, setup spot, shift change, permission">${escapeHtml(preset.notes || "")}</textarea></label>
+          <button class="btn" type="submit">Save Place</button>
+        </form>`;
+        body.querySelector("form").addEventListener("submit", event => {
+          event.preventDefault();
+          const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+          state.places.push({
+            id: id(),
+            name: data.name.trim(),
+            category: data.category,
+            window: data.window,
+            address: data.address.trim(),
+            permission: data.permission,
+            canRevisit: data.canRevisit === "true",
+            notes: data.notes.trim(),
+            createdAt: Date.now()
+          });
+          closeModal();
+          save();
+        });
+      }
+      modal.classList.add("active");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.remove("active");
+    }
+
+    function setTab(name) {
+      if (appMode === "rep" && ["places", "stats", "find"].includes(name)) name = "today";
+      document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${name}`));
+      document.querySelectorAll(".tab[data-tab]").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === name));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function mapsUrl(place) {
+      const query = `${place.name} ${place.address || ""} near 12338 Gulf Freeway Houston TX 77034`;
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function directionsUrl(place) {
+      const destination = `${place.name} ${place.address || ""}`;
+      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+    }
+
+    function searchMapsUrl(query) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/"/g, "&quot;");
+    }
+
+    function applyMode() {
+      document.body.dataset.mode = appMode;
+      document.querySelectorAll("[data-mode-select]").forEach(button => button.classList.toggle("active", button.dataset.modeSelect === appMode));
+    }
+
+    function setMode(mode) {
+      appMode = mode === "owner" ? "owner" : "rep";
+      localStorage.setItem(modeStoreKey, appMode);
+      applyMode();
+      if (appMode === "rep" && document.querySelector(".view.active.owner-only")) setTab("today");
+    }
+
+    document.addEventListener("click", event => {
+      const modeSelect = event.target.closest("[data-mode-select]");
+      if (modeSelect) setMode(modeSelect.dataset.modeSelect);
+
+      const tab = event.target.closest("[data-tab]");
+      if (tab) setTab(tab.dataset.tab);
+
+      const open = event.target.closest("[data-open]");
+      if (open) openModal(open.dataset.open);
+
+      const quickPlace = event.target.closest("[data-quick-place]");
+      if (quickPlace) openModal("quick", { placeId: quickPlace.dataset.quickPlace });
+
+      if (event.target.closest("#closeModal")) closeModal();
+      if (event.target.id === "modal") closeModal();
+
+      const windowBtn = event.target.closest("[data-window]");
+      if (windowBtn) {
+        currentWindow = windowBtn.dataset.window;
+        document.querySelectorAll("[data-window]").forEach(btn => btn.classList.toggle("active", btn === windowBtn));
+        renderRoute();
+      }
+
+      const filterBtn = event.target.closest("[data-filter]");
+      if (filterBtn) {
+        currentFilter = filterBtn.dataset.filter;
+        document.querySelectorAll("[data-filter]").forEach(btn => btn.classList.toggle("active", btn === filterBtn));
+        renderPlaces();
+      }
+
+      const idea = event.target.closest("[data-idea]");
+      if (idea) {
+        openModal("location", {
+          name: idea.dataset.idea,
+          category: idea.dataset.category,
+          window: idea.dataset.ideaWindow
+        });
+      }
+
+      const searchAdd = event.target.closest("[data-add-search]");
+      if (searchAdd) {
+        const item = dailySearches()[Number(searchAdd.dataset.addSearch)];
+        if (!item) return;
+        openModal("location", {
+          name: item.name,
+          category: item.category,
+          window: item.window,
+          address: item.query,
+          notes: "Added from daily search. Rename this to the exact business after opening the map."
+        });
+      }
+
+      const eventAdd = event.target.closest("[data-add-event]");
+      if (eventAdd) {
+        const upcomingEvents = eventOpportunities.filter(item => item.date >= todayKey());
+        const item = upcomingEvents[Number(eventAdd.dataset.addEvent)];
+        if (!item) return;
+        openModal("location", {
+          name: item.name,
+          category: "Event",
+          window: item.window,
+          address: item.address,
+          permission: item.permission,
+          notes: `${item.dateLabel}, ${item.time}. ${item.fit}. Access: ${item.permission}. Eventbrite: ${item.url}`
+        });
+      }
+    });
+
+    document.getElementById("quickAddPlace").addEventListener("click", () => {
+      const name = document.getElementById("quickPlaceName").value.trim();
+      if (!name) return;
+      state.places.push({
+        id: id(),
+        name,
+        category: document.getElementById("quickPlaceCategory").value,
+        window: document.getElementById("quickPlaceWindow").value,
+        permission: "Unknown",
+        canRevisit: true,
+        notes: "",
+        createdAt: Date.now()
+      });
+      document.getElementById("quickPlaceName").value = "";
+      save();
+      setTab("places");
+    });
+
+    document.getElementById("exportData").addEventListener("click", exportData);
+    document.getElementById("importData").addEventListener("click", () => document.getElementById("importFile").click());
+    document.getElementById("importFile").addEventListener("change", event => importData(event.target.files[0]));
+    document.getElementById("resetData").addEventListener("click", resetData);
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+
+    render();
+  </script>
+</body>
+</html>
