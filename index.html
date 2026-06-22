@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Wuuzk86akhKFX55Qe70s3MSpK4rR7WBqxFOQ/Xb71Po='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-P1zXdMx7L9w/yipklvzRyqv0kgLUf5JNl25hMhc+GiQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -1047,7 +1047,7 @@
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
-    const placeCategories = ["Apartment","Auto","Warehouse","Restaurant","Retail","Office","School","Salon","Clinic","College","Community","Transit","Employer","Business","Hotel","Event","Other"];
+    const placeCategories = ["Apartment","Auto","Tire","Oil Change","Car Wash","Warehouse","Restaurant","Retail","Small Retail","Office","School","Salon","Clinic","Medical Office","Dental Office","College","Community","Transit","Employer","Business","Business Services","Hotel","Event","Other"];
     const visitWindows = ["Morning","Midday","Evening","Anytime","Afternoon"];
     const permissionValues = ["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"];
     const routeHistoryLimit = 80;
@@ -1058,7 +1058,7 @@
     const permissionRequiredPattern = /\b(mall|plaza|town center|shopping center|airport|hospital|school|college|campus|government|courthouse|city hall|event|market|large employer|park & ride)\b/i;
     const anthonyFirstRouteBlockedPattern = /\b(urban bird|autozone|seaford|seafood)\b/i;
     const storefrontCategorySet = new Set(["Auto", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
-    const qualifiedWalkInCategorySet = new Set(["Auto", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse", "Apartment"]);
+    const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
@@ -1078,6 +1078,99 @@
       cruz: { id: "cruz", name: "Cruz", role: "Founder", mode: "founder", explorationTarget: .4 },
       anthony: { id: "anthony", name: "Anthony", role: "Beta tester", mode: "new-rep", explorationTarget: .8 }
     };
+
+    const anthonyApprovedRoutePlaces = [
+      {
+        id: "anthony-big-star-honda",
+        repProfileId: "anthony",
+        seedRouteOrder: 1,
+        name: "Big Star Honda",
+        category: "Auto",
+        window: "Midday",
+        distance: "1.4 mi",
+        priority: 99,
+        address: "11200 Gulf Freeway, Houston, TX 77034",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "service lead",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      },
+      {
+        id: "anthony-discount-tire-shaver",
+        repProfileId: "anthony",
+        seedRouteOrder: 2,
+        name: "Discount Tire",
+        category: "Tire",
+        window: "Midday",
+        distance: "2.6 mi",
+        priority: 98,
+        address: "3747 South Shaver Street, Pasadena, TX 77504",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "service lead",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      },
+      {
+        id: "anthony-brewingz-gulf-freeway",
+        repProfileId: "anthony",
+        seedRouteOrder: 3,
+        name: "BreWingZ Restaurant and Bar",
+        category: "Restaurant",
+        window: "Midday",
+        distance: "0.3 mi",
+        priority: 97,
+        address: "12250 Gulf Freeway, Houston, TX",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "shift lead",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      },
+      {
+        id: "anthony-maris-hair-design",
+        repProfileId: "anthony",
+        seedRouteOrder: 4,
+        name: "Mari's Hair Design",
+        category: "Salon",
+        window: "Midday",
+        distance: "4.7 mi",
+        priority: 96,
+        address: "2110 Strawberry Road, Houston, TX",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "manager",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      },
+      {
+        id: "anthony-marconi-dental",
+        repProfileId: "anthony",
+        seedRouteOrder: 5,
+        name: "Marconi Dental Aesthetics - Pasadena, TX",
+        category: "Dental Office",
+        window: "Midday",
+        distance: "4.2 mi",
+        priority: 95,
+        address: "4557 East Sam Houston Parkway South, Pasadena, TX 77505",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "office manager",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      },
+      {
+        id: "anthony-vape-city-pearland",
+        repProfileId: "anthony",
+        seedRouteOrder: 6,
+        name: "Vape City",
+        category: "Small Retail",
+        window: "Evening",
+        distance: "3.1 mi",
+        priority: 94,
+        address: "10501 Pearland Parkway, Houston, TX 77075",
+        permission: "Unknown",
+        accessType: "Walk-in ready",
+        askFor: "manager",
+        notes: "Anthony approved first route. Walk-in ready storefront. Public map record; verify hours and permission before outreach."
+      }
+    ];
 
     const starterPlaces = [
       {
@@ -1445,7 +1538,7 @@
           return normalized;
         } catch (e) {}
       }
-      return {
+      return withAnthonyApprovedRoute({
         places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
         routeHistory: [],
@@ -1455,7 +1548,7 @@
           anthony: createRepProfile("anthony", [], [])
         },
         founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
-      };
+      });
     }
 
     function save() {
@@ -1699,6 +1792,10 @@
           address: cleanText(raw.address, 300),
           permission: permissionValues.includes(raw.permission) ? raw.permission : "Unknown",
           canRevisit: raw.canRevisit !== false,
+          repProfileId: cleanText(raw.repProfileId, 60),
+          seedRouteOrder: cleanNumber(raw.seedRouteOrder, 1000),
+          accessType: cleanText(raw.accessType, 60),
+          askFor: cleanText(raw.askFor, 80),
           notes: cleanText(raw.notes, 2000),
           createdAt: cleanNumber(raw.createdAt, Date.now()) || Date.now()
         };
@@ -1785,19 +1882,35 @@
         ? input.founderHistoricalSnapshot
         : createFounderSnapshot(repProfiles.cruz.visits, repProfiles.cruz.routeHistory, places);
 
-      return {
+      return withAnthonyApprovedRoute({
         places,
         visits: active.visits,
         routeHistory: active.routeHistory,
         activeRepId: activeId,
         repProfiles,
         founderHistoricalSnapshot
-      };
+      });
+    }
+
+    function withAnthonyApprovedRoute(nextState) {
+      const places = Array.isArray(nextState.places) ? nextState.places.slice() : [];
+      const byId = new Map(places.map(place => [place.id, place]));
+      anthonyApprovedRoutePlaces.forEach(seed => {
+        const existing = byId.get(seed.id);
+        const place = existing
+          ? { ...existing, ...seed, createdAt: existing.createdAt || Date.now(), canRevisit: existing.canRevisit !== false }
+          : { ...seed, createdAt: Date.now(), canRevisit: true };
+        byId.set(seed.id, place);
+      });
+      nextState.places = Array.from(byId.values());
+      nextState.repProfiles = nextState.repProfiles || {};
+      if (!nextState.repProfiles.anthony) nextState.repProfiles.anthony = createRepProfile("anthony", [], []);
+      return nextState;
     }
 
     function resetData() {
       if (!confirm("Reset Prometheus data on this device?")) return;
-      state = {
+      state = withAnthonyApprovedRoute({
         places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
         routeHistory: [],
@@ -1807,7 +1920,7 @@
           anthony: createRepProfile("anthony", [], [])
         },
         founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
-      };
+      });
       activeRepId = "cruz";
       localStorage.setItem(storeKey, JSON.stringify(state));
       localStorage.setItem(activeRepStoreKey, activeRepId);
@@ -1869,6 +1982,21 @@
       return state.visits.filter(v => v.date === key);
     }
 
+    function visiblePlaces() {
+      if (sessionRole === "rep") {
+        if (activeRepId === "anthony") return state.places.filter(place => place.repProfileId === "anthony");
+        return state.places.filter(place => !place.repProfileId || place.repProfileId === activeRepId);
+      }
+      return state.places;
+    }
+
+    function routeVisiblePlaces() {
+      if (activeRepId === "anthony") {
+        return state.places.filter(place => place.repProfileId === "anthony");
+      }
+      return state.places.filter(place => place.repProfileId !== "anthony");
+    }
+
     function dateOrdinal(value) {
       const [year, month, day] = String(value || "").split("-").map(Number);
       return year && month && day ? Math.floor(Date.UTC(year, month - 1, day) / 86400000) : null;
@@ -1884,7 +2012,7 @@
     }
 
     function isRouteEligible(place) {
-      return place.canRevisit !== false && place.permission !== "No" && accessType(place) !== "Do not recommend" && !isBlockedForAnthonyFirstRoute(place);
+      return place.canRevisit !== false && place.permission !== "No" && accessType(place) !== "Do not recommend" && !isBlockedForAnthonyRoute(place);
     }
 
     function isAnthonyFirstRoute() {
@@ -1898,8 +2026,8 @@
       return founderProduction > 0 || Number(founderStats.leads || 0) >= 2 || Number(founderStats.visits || 0) >= 2;
     }
 
-    function isBlockedForAnthonyFirstRoute(place) {
-      if (!isAnthonyFirstRoute()) return false;
+    function isBlockedForAnthonyRoute(place) {
+      if (activeRepId !== "anthony") return false;
       const text = `${place.name || ""} ${place.address || ""}`;
       return anthonyFirstRouteBlockedPattern.test(text) || isFounderHistoricalWinner(place);
     }
@@ -1908,6 +2036,10 @@
       const hitToday = new Set(todayVisits().map(v => v.placeId));
       const eligible = places.filter(place => isRouteEligible(place) && !hitToday.has(place.id));
       if (isAnthonyFirstRoute()) {
+        const approvedFirstRoute = eligible
+          .filter(place => place.repProfileId === "anthony" && Number(place.seedRouteOrder || 0) > 0)
+          .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999));
+        if (approvedFirstRoute.length >= 6) return approvedFirstRoute;
         const within10 = eligible.filter(place => {
           const miles = distanceMiles(place);
           return miles === null || miles <= 10;
@@ -1993,6 +2125,7 @@
     }
 
     function accessType(place) {
+      if (place.accessType) return place.accessType;
       if (place.permission === "No" || place.canRevisit === false) return "Do not recommend";
       if (place.category === "Event") return "Event-based";
       if (isRestrictedTarget(place) && !isManuallyApprovedTarget(place)) return "Do not recommend";
@@ -2034,6 +2167,7 @@
     }
 
     function decisionMakerHint(place) {
+      if (place.askFor) return place.askFor;
       if (place.category === "Apartment") return "leasing manager";
       if (place.category === "Event") return "organizer";
       if (place.category === "Restaurant") return "shift lead or manager";
@@ -2088,7 +2222,7 @@
         const place = state.places.find(p => p.id === visit.placeId);
         return place && radiusBand(place) === "0-2 mi";
       }).length;
-      const repeatedLocalRoute = buildBasicRouteScores(state.places).slice(0, 4).filter(item => item.radius === "0-2 mi").length >= 3;
+      const repeatedLocalRoute = buildBasicRouteScores(routeVisiblePlaces()).slice(0, 4).filter(item => item.radius === "0-2 mi").length >= 3;
       return need === 0 || localVisits >= 2 || repeatedLocalRoute;
     }
 
@@ -2218,6 +2352,7 @@
 
     function enforceRepRouteUniqueness(selected, scored, limit) {
       if (activeRepId === "cruz") return selected;
+      if (selected.length && selected.every(item => item.place.repProfileId === activeRepId)) return selected;
       const founderIds = founderTopPlaceIds(limit);
       if (!founderIds.size) return selected;
       const maxOverlap = Math.max(1, Math.floor(limit * .3));
@@ -2243,6 +2378,14 @@
     }
 
     function buildRouteList(places, limit = 6, context = {}) {
+      if (isAnthonyFirstRoute()) {
+        const approvedFirstRoute = routePool(places)
+          .filter(place => place.repProfileId === "anthony" && Number(place.seedRouteOrder || 0) > 0)
+          .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999))
+          .slice(0, limit)
+          .map(place => routeAnalysis(place, { discoveryPreferred: true, expandRadius: context.expandRadius }));
+        if (approvedFirstRoute.length) return approvedFirstRoute;
+      }
       const mode = routeMode(context.need || 0);
       const scored = routePool(places).map(place => routeAnalysis(place, {
         discoveryPreferred: mode.discoveryTarget >= .4,
@@ -2330,7 +2473,7 @@
     }
 
     function routeRecommendation() {
-      return buildRouteList(state.places, 1, { need: Math.max(0, GOAL - sumVisits(todayVisits()).units) })[0]?.place;
+      return buildRouteList(routeVisiblePlaces(), 1, { need: Math.max(0, GOAL - sumVisits(todayVisits()).units) })[0]?.place;
     }
 
     function render() {
@@ -2432,7 +2575,7 @@
 
     function renderDailyRoute() {
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = buildRouteList(state.places, 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
       document.getElementById("dailyRouteCount").textContent = `${routeItems.length} stops · ${routeMode(need).label}`;
       const list = document.getElementById("dailyRoute");
       if (!routeItems.length) {
@@ -2469,7 +2612,7 @@
     }
 
     function renderRoute() {
-      let places = state.places.slice();
+      let places = routeVisiblePlaces().slice();
       if (currentWindow !== "all") {
         places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
       }
@@ -2759,7 +2902,7 @@
         title.textContent = "Quick Result";
         const recommended = routeRecommendation();
         const selectedPlaceId = preset.placeId || recommended?.id || state.places[0]?.id || "";
-        const options = state.places.map(p => `<option value="${escapeAttr(p.id)}" ${p.id === selectedPlaceId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("");
+        const options = visiblePlaces().map(p => `<option value="${escapeAttr(p.id)}" ${p.id === selectedPlaceId ? "selected" : ""}>${escapeHtml(p.name)}</option>`).join("");
         body.innerHTML = `<form id="quickForm">
           <label>Where are you?<select name="placeId">${options}</select></label>
           ${visitLocationMarkup()}
@@ -2832,7 +2975,7 @@
         });
       } else if (type === "visit") {
         title.textContent = "Add Visit";
-        const options = state.places.map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join("");
+        const options = visiblePlaces().map(p => `<option value="${escapeAttr(p.id)}">${escapeHtml(p.name)}</option>`).join("");
         body.innerHTML = `<form id="visitForm">
           <label>Place<select name="placeId">${options}</select></label>
           <div class="grid three">
@@ -2883,7 +3026,7 @@
           <label>Address or map search<input name="address" value="${escapeAttr(preset.address || "")}" placeholder="Example: AutoZone near 12338 Gulf Freeway"></label>
           <div class="grid two">
             <label>Category<select name="category">
-              ${["Apartment","Auto","Warehouse","Restaurant","Retail","Office","School","Salon","Clinic","College","Community","Transit","Employer","Business","Hotel","Event","Other"].map(c => `<option ${preset.category === c ? "selected" : ""}>${c}</option>`).join("")}
+              ${placeCategories.map(c => `<option ${preset.category === c ? "selected" : ""}>${c}</option>`).join("")}
             </select></label>
             <label>Best window<select name="window">
               ${["Morning","Midday","Evening","Anytime"].map(w => `<option ${preset.window === w ? "selected" : ""}>${w}</option>`).join("")}
@@ -2912,6 +3055,7 @@
             address: data.address.trim(),
             permission: data.permission,
             canRevisit: data.canRevisit === "true",
+            repProfileId: sessionRole === "rep" ? activeRepId : "",
             notes: data.notes.trim(),
             createdAt: Date.now()
           });
