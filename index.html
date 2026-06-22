@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-7X75+whvWx87QXi3lPuMLsmHiMLskWCjtBn0M9XeGh8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -1050,7 +1050,13 @@
       return `${year}-${month}-${day}`;
     };
     const todayKey = () => localDateKey();
-    const id = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+    const id = () => {
+      if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    };
+    const capturedVisitLocations = new WeakMap();
 
     const starterPlaces = [
       {
@@ -1390,8 +1396,15 @@
     }
 
     function save() {
-      localStorage.setItem(storeKey, JSON.stringify(state));
-      render();
+      try {
+        state = normalizeState(state);
+        localStorage.setItem(storeKey, JSON.stringify(state));
+        render();
+        return true;
+      } catch (error) {
+        setDataStatus("Prometheus could not save this change. Export a backup and check available device storage.");
+        return false;
+      }
     }
 
     function setDataStatus(message) {
@@ -1399,10 +1412,15 @@
     }
 
     function exportData() {
+      if (!confirm("This backup contains sensitive field activity and may include precise GPS coordinates. Store it securely and do not send it by ordinary email. Continue?")) {
+        setDataStatus("Backup export canceled.");
+        return;
+      }
       const payload = {
         app: "Prometheus IQ",
         version: 2,
         exportedAt: new Date().toISOString(),
+        sensitiveData: ["visit.location"],
         data: state
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -1421,6 +1439,10 @@
       if (!file) return;
       if (file.size > MAX_BACKUP_BYTES) {
         setDataStatus("That backup is too large. Maximum size is 2 MB.");
+        return;
+      }
+      if (!confirm("Importing a backup replaces all Prometheus data on this device. Export the current data first. Continue?")) {
+        setDataStatus("Backup import canceled.");
         return;
       }
       const reader = new FileReader();
@@ -1476,14 +1498,8 @@
       };
     }
 
-    function locationFromValues(values) {
-      return normalizeVisitLocation({
-        lat: values.locationLat,
-        lng: values.locationLng,
-        accuracy: values.locationAccuracy,
-        capturedAt: values.locationCapturedAt,
-        source: "rep-check-in"
-      });
+    function locationFromForm(form) {
+      return capturedVisitLocations.get(form) || null;
     }
 
     function safeId(value, usedIds) {
@@ -1589,9 +1605,9 @@
         acc.leads += Number(v.leads || 0);
         acc.units += Number(v.units || 0);
         acc.laterUnits += Number(v.laterUnits || 0);
-        acc.verifiedVisits += v.location ? 1 : 0;
+        acc.locationVisits += v.location ? 1 : 0;
         return acc;
-      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, verifiedVisits: 0 });
+      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 });
       return { visits: visits.length, ...sums };
     }
 
@@ -1656,12 +1672,12 @@
       const totalProduction = stats.units + stats.laterUnits;
       const permissionBoost = place.permission && place.permission !== "Unknown" && place.permission !== "No" ? 4 : 0;
       const output = totalProduction * 14 + stats.leads * 3 + stats.conversations * .2 + permissionBoost;
-      const verifiedVisitBoost = Math.min(6, stats.verifiedVisits * 2);
+      const locationVisitBoost = Math.min(6, stats.locationVisits * 2);
       const revisit = place.canRevisit === false ? -10 : 0;
       const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -18 : 0;
       const daysSince = daysSinceLastVisit(place.id);
       const recencyPenalty = daysSince === 1 ? -40 : daysSince <= 3 ? -10 : daysSince <= 6 ? -4 : 0;
-      return Math.round(base + seedPriority + output + windowFit + verifiedVisitBoost + revisit + alreadyVisitedToday + recencyPenalty);
+      return Math.round(base + seedPriority + output + windowFit + locationVisitBoost + revisit + alreadyVisitedToday + recencyPenalty);
     }
 
     function routeSignal(place) {
@@ -1671,7 +1687,7 @@
       const reasons = [];
       if (totalUnits > 0) reasons.push(`it has produced ${totalUnits} ${totalUnits === 1 ? "unit" : "units"}`);
       if (stats.leads > 0) reasons.push(`it has created ${stats.leads} leads`);
-      if (stats.verifiedVisits > 0) reasons.push("it has verified visit history");
+      if (stats.locationVisits > 0) reasons.push("it has device-reported visit history");
       if (!stats.visits) reasons.push("it is untested territory with upside");
       if (place.permission && place.permission !== "Unknown" && place.permission !== "No") reasons.push(`${place.permission.toLowerCase()} is already noted`);
       if (place.window === visitWindow(new Date().getHours()) || place.window === "Anytime") reasons.push("the timing fits right now");
@@ -1683,7 +1699,7 @@
       const stats = placeStats(place.id);
       const totalUnits = stats.units + stats.laterUnits;
       if (stats.visits >= 3 && (totalUnits > 0 || stats.leads >= 3)) return "High";
-      if (stats.verifiedVisits >= 2) return "Medium";
+      if (stats.locationVisits >= 2) return "Medium";
       if (stats.visits > 0 || Number(place.priority || 0) >= 10) return "Medium";
       return "Test";
     }
@@ -1799,7 +1815,7 @@
       const place = state.places.find(p => p.id === v.placeId);
       const title = place ? place.name : v.placeName || "Unknown place";
       const locationLabel = v.location
-        ? `GPS verified · ±${Math.round(Number(v.location.accuracy || 0)) || "?"}m`
+        ? `GPS attached · ±${Math.round(Number(v.location.accuracy || 0)) || "?"}m`
         : "";
       return `<article class="item">
         <div class="item-head">
@@ -2017,13 +2033,9 @@
 
     function visitLocationMarkup() {
       return `<div class="visit-location">
-        <p><b>Verified Visit Location</b> attaches your current GPS location to this logged business visit only. Prometheus IQ does not track your full day or background movement.</p>
-        <input name="locationLat" type="hidden">
-        <input name="locationLng" type="hidden">
-        <input name="locationAccuracy" type="hidden">
-        <input name="locationCapturedAt" type="hidden">
+        <p><b>Device-Reported Visit Location</b> attaches your current GPS location to this logged business visit only. Prometheus IQ does not track your full day or background movement. A device location is not fraud-proof until server verification is enabled.</p>
         <button class="btn secondary" type="button" data-verify-location>Attach Current Location</button>
-        <div class="location-status" data-location-status>Optional. Tap only when you want this visit verified.</div>
+        <div class="location-status" data-location-status>Optional. Tap only when you want a location attached to this visit.</div>
       </div>`;
     }
 
@@ -2039,12 +2051,16 @@
       button.addEventListener("click", () => {
         status.textContent = "Requesting location permission for this visit only...";
         navigator.geolocation.getCurrentPosition(position => {
-          form.elements.locationLat.value = position.coords.latitude;
-          form.elements.locationLng.value = position.coords.longitude;
-          form.elements.locationAccuracy.value = Math.round(position.coords.accuracy || 0);
-          form.elements.locationCapturedAt.value = new Date().toISOString();
+          const location = normalizeVisitLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: Math.round(position.coords.accuracy || 0),
+            capturedAt: new Date().toISOString(),
+            source: "browser-geolocation"
+          });
+          capturedVisitLocations.set(form, location);
           button.textContent = "Location Attached";
-          status.textContent = `Verified visit location attached. Accuracy about ${Math.round(position.coords.accuracy || 0)} meters.`;
+          status.textContent = `Device-reported visit location attached. Accuracy about ${Math.round(position.coords.accuracy || 0)} meters.`;
         }, error => {
           const messages = {
             1: "Location permission was denied. Visit can still be saved without GPS.",
@@ -2109,7 +2125,7 @@
             laterUnits: 0,
             quality: values.outcome === "none" ? "No contact" : values.outcome === "sale" ? "Sale" : values.outcome === "lead" ? "Lead" : "Conversation",
             notes: String(values.notes || "").trim(),
-            location: locationFromValues(values),
+            location: locationFromForm(quickForm),
             quick: true,
             createdAt: Date.now()
           });
@@ -2179,7 +2195,7 @@
             laterUnits: Number(data.laterUnits || 0),
             quality: data.quality,
             notes: data.notes.trim(),
-            location: locationFromValues(data),
+            location: locationFromForm(event.currentTarget),
             createdAt: Date.now()
           });
           closeModal();

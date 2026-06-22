@@ -1,7 +1,5 @@
-const CACHE_NAME = "prometheus-v9";
+const CACHE_NAME = "prometheus-v10-public-assets";
 const APP_SHELL = [
-  "./",
-  "./index.html",
   "./manifest.webmanifest",
   "./icons/prometheus.svg"
 ];
@@ -27,22 +25,15 @@ self.addEventListener("fetch", event => {
 
   if (event.request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          if (response.ok) caches.open(CACHE_NAME).then(cache => cache.put("./index.html", response.clone()));
-          return response;
-        })
-        .catch(() => caches.match("./index.html"))
+      fetch(event.request, { cache: "no-store" }).catch(() => new Response(
+        "Prometheus IQ requires a secure connection. Reconnect and sign in again.",
+        { status: 503, headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } }
+      ))
     );
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      if (response.ok && response.type === "basic") {
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
-      }
-      return response;
-    }))
-  );
+  const cacheablePath = APP_SHELL.some(path => requestUrl.pathname.endsWith(path.replace("./", "/")));
+  if (!cacheablePath) return;
+  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
 });
