@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-7X75+whvWx87QXi3lPuMLsmHiMLskWCjtBn0M9XeGh8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Wuuzk86akhKFX55Qe70s3MSpK4rR7WBqxFOQ/Xb71Po='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -553,6 +553,9 @@
     }
 
     body[data-mode="rep"] .owner-only { display: none !important; }
+    body[data-session-role="rep"] .manager-only,
+    body[data-session-role="rep"] .admin-only,
+    body[data-session-role="manager"] .admin-only { display: none !important; }
     body[data-mode="rep"] .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
     .empty {
@@ -760,7 +763,9 @@
         </div>
         <div class="mode-switch" aria-label="App mode">
           <button class="active" data-mode-select="rep">Rep</button>
-          <button data-mode-select="owner">Owner</button>
+          <button class="manager-only" data-mode-select="owner">Owner</button>
+        </div>
+        <div class="mode-switch admin-only" id="repProfileSwitch" aria-label="Rep intelligence profile">
         </div>
         <div class="goal-chip"><span>GOAL</span><strong id="goalTarget">4</strong></div>
       </div>
@@ -1037,12 +1042,24 @@
     const storeKey = "prometheus-v1";
     const modeStoreKey = "prometheus-mode";
     const legacyStoreKey = "field-production-tracker-v3";
+    const activeRepStoreKey = "prometheus-active-rep";
+    const sessionRoleStoreKey = "prometheus-session-role";
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
     const placeCategories = ["Apartment","Auto","Warehouse","Restaurant","Retail","Office","School","Salon","Clinic","College","Community","Transit","Employer","Business","Hotel","Event","Other"];
     const visitWindows = ["Morning","Midday","Evening","Anytime","Afternoon"];
     const permissionValues = ["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"];
+    const routeHistoryLimit = 80;
+    const discoveryCategories = ["Auto", "Retail", "Restaurant", "Apartment", "Medical", "Clinic", "Business", "Business Services", "Event"];
+    const genericPlacePattern = /\b(mall|plaza|town center|shopping center|strip|corridor|area|district|airport|campus|park & ride|field|market|community events?|sports fields?)\b/i;
+    const restrictedTargetPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s|airport|hospital|school|college|campus|government|courthouse|city hall|police station|fire station|park & ride|mall|plaza|town center|shopping center)\b/i;
+    const bigBoxPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s)\b/i;
+    const permissionRequiredPattern = /\b(mall|plaza|town center|shopping center|airport|hospital|school|college|campus|government|courthouse|city hall|event|market|large employer|park & ride)\b/i;
+    const anthonyFirstRouteBlockedPattern = /\b(urban bird|autozone|seaford|seafood)\b/i;
+    const storefrontCategorySet = new Set(["Auto", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
+    const qualifiedWalkInCategorySet = new Set(["Auto", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse", "Apartment"]);
+    const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1057,16 +1074,20 @@
       return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
     };
     const capturedVisitLocations = new WeakMap();
+    const repProfileTemplates = {
+      cruz: { id: "cruz", name: "Cruz", role: "Founder", mode: "founder", explorationTarget: .4 },
+      anthony: { id: "anthony", name: "Anthony", role: "Beta tester", mode: "new-rep", explorationTarget: .8 }
+    };
 
     const starterPlaces = [
       {
-        name: "Almeda Mall",
-        category: "Retail",
+        name: "O'Reilly Auto Parts - Southbelt",
+        category: "Auto",
         window: "Midday",
-        distance: "0.2 mi",
+        distance: "2-4 mi",
         priority: 12,
-        address: "12200 Gulf Freeway, Houston, TX 77034",
-        notes: "Mall staff, food court traffic, independent shops, nearby parking-lot conversations."
+        address: "O'Reilly Auto Parts near 12338 Gulf Freeway, Houston, TX 77034",
+        notes: "Specific walk-in storefront. Ask for the store manager or shift lead before speaking with the crew."
       },
       {
         name: "AutoZone Auto Parts - Seaford Dr",
@@ -1123,49 +1144,49 @@
         notes: "Exact Google Maps location. Build a referral relationship with the owner or barbers."
       },
       {
-        name: "South Point Park & Ride",
-        category: "Transit",
+        name: "Discount Tire - Southbelt",
+        category: "Auto",
         window: "Morning",
-        distance: "0.3 mi",
+        distance: "2-5 mi",
         priority: 8,
-        address: "12410 Kurland Dr, Houston, TX 77034",
-        notes: "Commuter traffic. Better for early morning and late afternoon."
+        address: "Discount Tire near Southbelt Houston TX 77089",
+        notes: "Specific walk-in storefront. Ask for the manager or service lead before approaching employees or customers."
       },
       {
-        name: "Walmart Supercenter - Rowlett Rd",
-        category: "Retail",
+        name: "Great Clips - Southbelt",
+        category: "Salon",
         window: "Evening",
         distance: "1.6 mi",
         priority: 9,
-        address: "9598 Rowlett Rd, Houston, TX 77075",
-        notes: "High-volume retail traffic. Work the surrounding strip, not store entrances without permission."
+        address: "Great Clips near Southbelt Houston TX 77089",
+        notes: "Specific walk-in storefront. Ask for the manager or lead stylist and keep the conversation short between rushes."
       },
       {
-        name: "Fuqua Park & Ride",
-        category: "Transit",
+        name: "The UPS Store - Southbelt",
+        category: "Business",
         window: "Morning",
         distance: "2.0 mi",
         priority: 8,
-        address: "11755 Sabo Rd, Houston, TX 77089",
-        notes: "Commuters and nearby apartment traffic. Good AM/PM window."
+        address: "The UPS Store near Southbelt Houston TX 77089",
+        notes: "Specific walk-in storefront. Ask for the owner, manager, or shift lead about employee wellness and referrals."
       },
       {
-        name: "Memorial Hermann Southeast Hospital",
+        name: "Southbelt Dental Office",
         category: "Clinic",
         window: "Midday",
         distance: "2.4 mi",
         priority: 8,
-        address: "11800 Astoria Blvd, Houston, TX 77089",
-        notes: "Large staff population. Best angle is employee wellness and shift-friendly access."
+        address: "dental office near Southbelt Houston TX 77089",
+        notes: "Specific office target. Ask for the office manager and avoid patient areas."
       },
       {
-        name: "San Jacinto College South Campus",
-        category: "College",
+        name: "H&R Block - Southbelt",
+        category: "Business",
         window: "Midday",
         distance: "4.3 mi",
         priority: 7,
-        address: "13735 Beamer Rd, Houston, TX 77089",
-        notes: "Check summer classes, staff, and campus events before spending much time."
+        address: "H&R Block near Southbelt Houston TX 77089",
+        notes: "Specific walk-in storefront. Ask for the office manager about employee wellness, referrals, or approved flyer placement."
       },
       {
         name: "WoodSpring Suites South Houston Hobby",
@@ -1177,13 +1198,13 @@
         notes: "Hotel employees, shuttle drivers, cleaning crews, front desk teams. Ask for staff wellness access."
       },
       {
-        name: "Ellington Airport",
+        name: "Pro Desk Employer Outreach - Southbelt",
         category: "Employer",
         window: "Morning",
         distance: "5.3 mi",
         priority: 8,
-        address: "11602 Aerospace Ave, Houston, TX 77034",
-        notes: "Exact Google Maps location. Focus on permitted employer or event outreach, not restricted areas."
+        address: "local employer near Southbelt Houston TX 77089",
+        notes: "Employer outreach target. Ask for a manager or HR contact before discussing memberships with staff."
       },
       {
         name: "Texas Made Income Tax and Notary",
@@ -1204,40 +1225,49 @@
         notes: "Exact Google Maps location. Ask permission before speaking with the crew or waiting customers."
       },
       {
-        name: "Scarsdale Plaza",
-        category: "Retail",
+        name: "Firestone Complete Auto Care - Scarsdale",
+        category: "Auto",
         window: "Evening",
         distance: "3-5 mi",
         priority: 8,
-        address: "10851 Scarsdale Blvd, Houston, TX 77089",
-        notes: "Exact Google Maps location. Visit individual tenants with permission instead of treating the entire area as one stop."
+        address: "Firestone Complete Auto Care near Scarsdale Blvd Houston TX 77089",
+        notes: "Specific walk-in storefront. Ask for the service manager before talking with technicians or waiting customers."
       },
       {
-        name: "Blackhawk Town Center",
+        name: "T-Mobile - Blackhawk",
         category: "Retail",
         window: "Evening",
         distance: "3-5 mi",
         priority: 7,
-        address: "9885 Blackhawk Blvd, Houston, TX 77075",
-        notes: "Exact Google Maps location. Approach individual businesses and request permission before outreach."
+        address: "T-Mobile near Blackhawk Blvd Houston TX 77075",
+        notes: "Specific walk-in storefront. Ask for the store manager or shift lead about employee wellness and referrals."
       }
     ];
 
     const broadPlaceMigrations = {
+      "Almeda Mall": "O'Reilly Auto Parts - Southbelt",
       "Auto parts sweep - AutoZone / O'Reilly / NAPA": "AutoZone Auto Parts - Seaford Dr",
       "Quick oil sweep - Jiffy Lube / Take 5 / Valvoline": "Jiffy Lube Oil Change - Fuqua St",
       "Tire shop sweep - Discount Tire / small tire shops": "Level Up Tires & Wheels",
       "Car wash sweep - Gulf Freeway / Almeda Genoa": "ClearWater Express Wash - Fuqua St",
       "Restaurant employee sweep - Almeda Mall / Gulf Fwy": "Urban Bird Hot Chicken - Almeda Genoa",
       "Barber and salon sweep - Almeda Genoa corridor": "Space City Barber Studio",
-      "South Point Park & Ride area": "South Point Park & Ride",
-      "Fuqua Park & Ride area": "Fuqua Park & Ride",
+      "South Point Park & Ride": "Discount Tire - Southbelt",
+      "South Point Park & Ride area": "Discount Tire - Southbelt",
+      "Walmart Supercenter - Rowlett Rd": "Great Clips - Southbelt",
+      "Fuqua Park & Ride": "The UPS Store - Southbelt",
+      "Fuqua Park & Ride area": "The UPS Store - Southbelt",
+      "Memorial Hermann Southeast Hospital": "Southbelt Dental Office",
+      "San Jacinto College South Campus": "H&R Block - Southbelt",
       "Hotels near Hobby / Gulf Freeway": "WoodSpring Suites South Houston Hobby",
-      "Ellington Airport / Ellington Field area": "Ellington Airport",
+      "Ellington Airport": "Pro Desk Employer Outreach - Southbelt",
+      "Ellington Airport / Ellington Field area": "Pro Desk Employer Outreach - Southbelt",
       "Almeda Genoa business corridor": "Texas Made Income Tax and Notary",
       "Fuqua / Sabo retail and service sweep": "Take 5 Oil Change - Fuqua St",
-      "Scarsdale Blvd apartment and retail corridor": "Scarsdale Plaza",
-      "Blackhawk Blvd / Southbelt corridor": "Blackhawk Town Center"
+      "Scarsdale Plaza": "Firestone Complete Auto Care - Scarsdale",
+      "Scarsdale Blvd apartment and retail corridor": "Firestone Complete Auto Care - Scarsdale",
+      "Blackhawk Town Center": "T-Mobile - Blackhawk",
+      "Blackhawk Blvd / Southbelt corridor": "T-Mobile - Blackhawk"
     };
 
     const ideas = [
@@ -1247,10 +1277,10 @@
       ["ClearWater Express Wash", "Auto", "Evening"],
       ["Urban Bird Hot Chicken", "Restaurant", "Midday"],
       ["WoodSpring Suites South Houston Hobby", "Hotel", "Morning"],
-      ["Scarsdale Plaza", "Retail", "Evening"],
+      ["Firestone Complete Auto Care - Scarsdale", "Auto", "Evening"],
       ["Space City Barber Studio", "Salon", "Midday"],
-      ["Memorial Hermann Southeast Hospital", "Clinic", "Midday"],
-      ["Blackhawk Town Center", "Retail", "Evening"]
+      ["Southbelt Dental Office", "Clinic", "Midday"],
+      ["T-Mobile - Blackhawk", "Retail", "Evening"]
     ];
 
     const discoveryTemplates = [
@@ -1279,7 +1309,7 @@
       ["Dental offices near Southbelt", "Clinic", "Midday", "dental office near Southbelt Houston TX"],
       ["Warehouses near Ellington", "Employer", "Morning", "warehouse near Ellington Airport Houston TX"],
       ["Staff-heavy businesses near Almeda Genoa", "Business", "Morning", "business park near Almeda Genoa Road Houston TX"],
-      ["Retail strips near Rowlett", "Retail", "Evening", "shopping center near Rowlett Road Houston TX 77075"],
+      ["Phone repair stores near Rowlett", "Retail", "Evening", "phone repair store near Rowlett Road Houston TX 77075"],
       ["Sports fields this weekend", "Event", "Morning", "sports fields near Southbelt Houston TX"],
       ["Community events nearby", "Event", "Morning", "events near Southbelt Houston TX today"]
     ];
@@ -1364,10 +1394,36 @@
       }
     ];
 
+    const appUrlParams = new URLSearchParams(location.search);
+    const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
+    const requestedRole = safeParam(appUrlParams.get("role"));
+    const requestedRepId = safeParam(appUrlParams.get("rep") || appUrlParams.get("profile"));
+    const validSessionRoles = new Set(["rep", "manager", "owner", "founder", "admin"]);
+    let sessionRole = validSessionRoles.has(requestedRole)
+      ? requestedRole
+      : localStorage.getItem(sessionRoleStoreKey) || (isLocalPreview ? "founder" : "rep");
+    if (sessionRole === "owner") sessionRole = "manager";
+    if (!validSessionRoles.has(sessionRole)) sessionRole = "rep";
+    localStorage.setItem(sessionRoleStoreKey, sessionRole);
+
+    function canSwitchProfiles() {
+      return sessionRole === "founder" || sessionRole === "admin";
+    }
+
+    function canUseOwnerMode() {
+      return sessionRole === "founder" || sessionRole === "admin" || sessionRole === "manager";
+    }
+
     let state = load();
-    let appMode = localStorage.getItem(modeStoreKey) === "owner" ? "owner" : "rep";
+    state.repProfiles = state.repProfiles || {};
+    if (requestedRepId && !state.repProfiles[requestedRepId]) state.repProfiles[requestedRepId] = createRepProfile(requestedRepId, [], []);
+    let activeRepId = requestedRepId || localStorage.getItem(activeRepStoreKey) || state.activeRepId || "cruz";
+    let appMode = canUseOwnerMode() && localStorage.getItem(modeStoreKey) === "owner" ? "owner" : "rep";
     let currentWindow = "all";
     let currentFilter = "all";
+    if (!state.repProfiles?.[activeRepId]) activeRepId = "cruz";
+    applyActiveProfile(activeRepId);
 
     function migrateBroadPlace(place) {
       const replacementName = broadPlaceMigrations[place.name];
@@ -1391,13 +1447,22 @@
       }
       return {
         places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
-        visits: []
+        visits: [],
+        routeHistory: [],
+        activeRepId: "cruz",
+        repProfiles: {
+          cruz: createRepProfile("cruz", [], []),
+          anthony: createRepProfile("anthony", [], [])
+        },
+        founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
       };
     }
 
     function save() {
       try {
+        syncActiveProfile();
         state = normalizeState(state);
+        activeRepId = state.activeRepId || activeRepId || "cruz";
         localStorage.setItem(storeKey, JSON.stringify(state));
         render();
         return true;
@@ -1416,11 +1481,12 @@
         setDataStatus("Backup export canceled.");
         return;
       }
+      syncActiveProfile();
       const payload = {
         app: "Prometheus IQ",
-        version: 2,
+        version: 3,
         exportedAt: new Date().toISOString(),
-        sensitiveData: ["visit.location"],
+        sensitiveData: ["visit.location", "repProfiles.visits.location", "founderHistoricalSnapshot"],
         data: state
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -1451,7 +1517,9 @@
           const parsed = JSON.parse(reader.result);
           const next = parsed.data || parsed;
           state = normalizeState(next);
+          activeRepId = state.activeRepId || "cruz";
           localStorage.setItem(storeKey, JSON.stringify(state));
+          localStorage.setItem(activeRepStoreKey, activeRepId);
           render();
           setDataStatus("Backup imported.");
         } catch (error) {
@@ -1514,6 +1582,98 @@
       return nextId;
     }
 
+    function cloneData(value) {
+      return JSON.parse(JSON.stringify(value || null));
+    }
+
+    function createRepProfile(profileId, visits = [], routeHistory = []) {
+      const template = repProfileTemplates[profileId] || {
+        id: profileId,
+        name: cleanText(profileId, 60) || "Rep",
+        role: "Future rep",
+        mode: "rep",
+        explorationTarget: .8
+      };
+      return {
+        ...template,
+        visits: Array.isArray(visits) ? visits : [],
+        routeHistory: Array.isArray(routeHistory) ? routeHistory : [],
+        createdAt: Date.now()
+      };
+    }
+
+    function summarizeProfilePerformance(visits, places) {
+      const placeMap = new Map(places.map(place => [place.id, place]));
+      const placePerformance = {};
+      const categoryPerformance = {};
+      const timeWindowPerformance = {};
+      visits.forEach(visit => {
+        const place = placeMap.get(visit.placeId);
+        const category = place ? place.category : "Other";
+        const windowName = visit.window || "Anytime";
+        const units = Number(visit.units || 0) + Number(visit.laterUnits || 0);
+        const gps = visit.location ? 1 : 0;
+        const ensure = (bucket, key) => {
+          bucket[key] = bucket[key] || { visits: 0, conversations: 0, leads: 0, sales: 0, gpsVerifiedVisits: 0 };
+          return bucket[key];
+        };
+        [ensure(placePerformance, visit.placeId || "unknown"), ensure(categoryPerformance, category), ensure(timeWindowPerformance, windowName)].forEach(item => {
+          item.visits += 1;
+          item.conversations += Number(visit.conversations || 0);
+          item.leads += Number(visit.leads || 0);
+          item.sales += units;
+          item.gpsVerifiedVisits += gps;
+        });
+      });
+      return { placePerformance, categoryPerformance, timeWindowPerformance };
+    }
+
+    function createFounderSnapshot(visits, routeHistory, places) {
+      const performance = summarizeProfilePerformance(visits, places);
+      return {
+        profileId: "cruz",
+        profileName: "Cruz",
+        capturedAt: new Date().toISOString(),
+        purpose: "Founder historical baseline. Do not merge into beta tester profiles.",
+        visits: cloneData(visits) || [],
+        routeHistory: cloneData(routeHistory) || [],
+        performance
+      };
+    }
+
+    function activeProfile() {
+      state.repProfiles = state.repProfiles || {};
+      if (!state.repProfiles[activeRepId]) state.repProfiles[activeRepId] = createRepProfile(activeRepId, [], []);
+      return state.repProfiles[activeRepId];
+    }
+
+    function founderProfile() {
+      return state.repProfiles?.cruz || createRepProfile("cruz", [], []);
+    }
+
+    function syncActiveProfile() {
+      if (!state || !state.repProfiles || !activeRepId) return;
+      const profile = activeProfile();
+      profile.visits = Array.isArray(state.visits) ? state.visits : [];
+      profile.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
+      profile.updatedAt = Date.now();
+      state.activeRepId = activeRepId;
+    }
+
+    function applyActiveProfile(nextRepId) {
+      syncActiveProfile();
+      activeRepId = state.repProfiles?.[nextRepId] ? nextRepId : "cruz";
+      state.activeRepId = activeRepId;
+      const profile = activeProfile();
+      state.visits = profile.visits || [];
+      state.routeHistory = profile.routeHistory || [];
+      localStorage.setItem(activeRepStoreKey, activeRepId);
+      try {
+        localStorage.setItem(storeKey, JSON.stringify(state));
+      } catch (error) {}
+      render();
+    }
+
     function normalizeState(input) {
       if (!input || typeof input !== "object" || !Array.isArray(input.places) || !Array.isArray(input.visits)) {
         throw new Error("Invalid backup");
@@ -1544,8 +1704,9 @@
         };
       });
 
-      const visitIds = new Set();
-      const visits = input.visits.map(raw => {
+      const normalizeVisitsList = list => {
+        const visitIds = new Set();
+        return (Array.isArray(list) ? list : []).map(raw => {
         if (!raw || typeof raw !== "object") throw new Error("Invalid visit");
         const originalPlaceId = cleanText(raw.placeId, 128);
         const createdAt = cleanNumber(raw.createdAt, Date.now()) || Date.now();
@@ -1573,17 +1734,83 @@
           createdAt
         };
       });
+      };
 
-      return { places, visits };
+      const normalizeRouteHistory = list => Array.isArray(list)
+        ? list.slice(-routeHistoryLimit).map(raw => {
+            if (!raw || typeof raw !== "object") return null;
+            const originalPlaceId = cleanText(raw.placeId, 128);
+            const date = cleanDate(raw.date);
+            const createdAt = cleanNumber(raw.createdAt, Date.now()) || Date.now();
+            return {
+              placeId: placeIdMap.get(originalPlaceId) || originalPlaceId,
+              date,
+              context: cleanText(raw.context, 40) || "route-intelligence",
+              createdAt
+            };
+          }).filter(item => item && item.placeId)
+        : [];
+
+      const legacyVisits = normalizeVisitsList(input.visits);
+      const legacyRouteHistory = normalizeRouteHistory(input.routeHistory);
+      const repProfiles = {};
+
+      if (input.repProfiles && typeof input.repProfiles === "object") {
+        Object.entries(input.repProfiles).forEach(([profileId, rawProfile]) => {
+          const safeProfileId = cleanText(profileId, 60) || "future-rep";
+          const template = repProfileTemplates[safeProfileId] || {
+            id: safeProfileId,
+            name: cleanText(rawProfile?.name || safeProfileId, 60) || "Future Rep",
+            role: cleanText(rawProfile?.role || "Future rep", 80),
+            mode: cleanText(rawProfile?.mode || "rep", 40),
+            explorationTarget: cleanNumber(rawProfile?.explorationTarget ?? 80, 100) / 100
+          };
+          repProfiles[safeProfileId] = {
+            ...template,
+            visits: normalizeVisitsList(rawProfile?.visits),
+            routeHistory: normalizeRouteHistory(rawProfile?.routeHistory),
+            createdAt: cleanNumber(rawProfile?.createdAt, Date.now()) || Date.now(),
+            updatedAt: cleanNumber(rawProfile?.updatedAt, Date.now()) || undefined
+          };
+        });
+      }
+
+      if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", legacyVisits, legacyRouteHistory);
+      if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
+
+      const requestedActiveRep = cleanText(input.activeRepId || localStorage.getItem(activeRepStoreKey) || "cruz", 60);
+      const activeId = repProfiles[requestedActiveRep] ? requestedActiveRep : "cruz";
+      const active = repProfiles[activeId];
+      const founderHistoricalSnapshot = input.founderHistoricalSnapshot && typeof input.founderHistoricalSnapshot === "object"
+        ? input.founderHistoricalSnapshot
+        : createFounderSnapshot(repProfiles.cruz.visits, repProfiles.cruz.routeHistory, places);
+
+      return {
+        places,
+        visits: active.visits,
+        routeHistory: active.routeHistory,
+        activeRepId: activeId,
+        repProfiles,
+        founderHistoricalSnapshot
+      };
     }
 
     function resetData() {
       if (!confirm("Reset Prometheus data on this device?")) return;
       state = {
         places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
-        visits: []
+        visits: [],
+        routeHistory: [],
+        activeRepId: "cruz",
+        repProfiles: {
+          cruz: createRepProfile("cruz", [], []),
+          anthony: createRepProfile("anthony", [], [])
+        },
+        founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
       };
+      activeRepId = "cruz";
       localStorage.setItem(storeKey, JSON.stringify(state));
+      localStorage.setItem(activeRepStoreKey, activeRepId);
       render();
       setDataStatus("Prometheus reset.");
     }
@@ -1600,6 +1827,20 @@
 
     function placeStats(placeId) {
       const visits = state.visits.filter(v => v.placeId === placeId);
+      const sums = visits.reduce((acc, v) => {
+        acc.conversations += Number(v.conversations || 0);
+        acc.leads += Number(v.leads || 0);
+        acc.units += Number(v.units || 0);
+        acc.laterUnits += Number(v.laterUnits || 0);
+        acc.locationVisits += v.location ? 1 : 0;
+        return acc;
+      }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 });
+      return { visits: visits.length, ...sums };
+    }
+
+    function profilePlaceStats(profileId, placeId) {
+      const profile = state.repProfiles?.[profileId];
+      const visits = (profile?.visits || []).filter(v => v.placeId === placeId);
       const sums = visits.reduce((acc, v) => {
         acc.conversations += Number(v.conversations || 0);
         acc.leads += Number(v.leads || 0);
@@ -1643,14 +1884,405 @@
     }
 
     function isRouteEligible(place) {
-      return place.canRevisit !== false && place.permission !== "No";
+      return place.canRevisit !== false && place.permission !== "No" && accessType(place) !== "Do not recommend" && !isBlockedForAnthonyFirstRoute(place);
+    }
+
+    function isAnthonyFirstRoute() {
+      const profile = activeProfile();
+      return activeRepId === "anthony" && (!Array.isArray(profile.visits) || profile.visits.length === 0);
+    }
+
+    function isFounderHistoricalWinner(place) {
+      const founderStats = profilePlaceStats("cruz", place.id);
+      const founderProduction = Number(founderStats.units || 0) + Number(founderStats.laterUnits || 0);
+      return founderProduction > 0 || Number(founderStats.leads || 0) >= 2 || Number(founderStats.visits || 0) >= 2;
+    }
+
+    function isBlockedForAnthonyFirstRoute(place) {
+      if (!isAnthonyFirstRoute()) return false;
+      const text = `${place.name || ""} ${place.address || ""}`;
+      return anthonyFirstRouteBlockedPattern.test(text) || isFounderHistoricalWinner(place);
     }
 
     function routePool(places) {
       const hitToday = new Set(todayVisits().map(v => v.placeId));
       const eligible = places.filter(place => isRouteEligible(place) && !hitToday.has(place.id));
+      if (isAnthonyFirstRoute()) {
+        const within10 = eligible.filter(place => {
+          const miles = distanceMiles(place);
+          return miles === null || miles <= 10;
+        });
+        if (within10.length >= 25) return within10;
+        const within15 = eligible.filter(place => {
+          const miles = distanceMiles(place);
+          return miles === null || miles <= 15;
+        });
+        if (within15.length >= 25) return within15;
+      }
       const rested = eligible.filter(place => daysSinceLastVisit(place.id) > 1);
       return rested.length ? rested : eligible;
+    }
+
+    function routeHistoryFor(placeId) {
+      return (state.routeHistory || []).filter(item => item.placeId === placeId);
+    }
+
+    function daysSinceLastRecommendation(placeId) {
+      const today = dateOrdinal(todayKey());
+      const days = routeHistoryFor(placeId)
+        .map(item => dateOrdinal(item.date))
+        .filter(value => value !== null && value < today);
+      return days.length ? today - Math.max(...days) : Infinity;
+    }
+
+    function recommendationCount(placeId, maxDays = 7) {
+      const today = dateOrdinal(todayKey());
+      return routeHistoryFor(placeId).filter(item => {
+        const day = dateOrdinal(item.date);
+        return day !== null && today - day <= maxDays;
+      }).length;
+    }
+
+    function recordRouteRecommendation(place, context = "route-intelligence") {
+      if (!place) return;
+      const date = todayKey();
+      state.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
+      const exists = state.routeHistory.some(item => item.placeId === place.id && item.date === date && item.context === context);
+      if (exists) return;
+      state.routeHistory.push({ placeId: place.id, date, context, createdAt: Date.now() });
+      state.routeHistory = state.routeHistory.slice(-routeHistoryLimit);
+      syncActiveProfile();
+      try {
+        localStorage.setItem(storeKey, JSON.stringify(state));
+      } catch (error) {}
+    }
+
+    function distanceMiles(place) {
+      const text = String(place.distance || "");
+      const numbers = text.match(/\d+(?:\.\d+)?/g)?.map(Number).filter(Number.isFinite) || [];
+      if (!numbers.length) return null;
+      return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
+    }
+
+    function radiusBand(place) {
+      const miles = distanceMiles(place);
+      if (miles === null) return "Unknown radius";
+      if (miles <= 2) return "0-2 mi";
+      if (miles <= 5) return "2-5 mi";
+      if (miles <= 8) return "5-8 mi";
+      return "8-12 mi";
+    }
+
+    function isGenericArea(place) {
+      return genericPlacePattern.test(`${place.name || ""} ${place.notes || ""}`) && !/\b(studio|wash|lube|oil|tires|wheels|tax|notary|barber|chicken|hotel|dental|office|auto care|store)\b/i.test(place.name || "");
+    }
+
+    function hasNamedWalkInTarget(place) {
+      return Boolean(place.name && place.address && storefrontCategorySet.has(place.category) && !isGenericArea(place));
+    }
+
+    function isManuallyApprovedTarget(place) {
+      const permission = place.permission || "Unknown";
+      const text = `${place.name || ""} ${place.notes || ""} ${permission}`.toLowerCase();
+      return approvedPermissionSet.has(permission) || /\b(approved|permission granted|vendor|organizer|registered|authorized|invited)\b/i.test(text);
+    }
+
+    function isRestrictedTarget(place) {
+      const text = `${place.name || ""} ${place.category || ""} ${place.address || ""}`;
+      return restrictedTargetPattern.test(text) || bigBoxPattern.test(text);
+    }
+
+    function accessType(place) {
+      if (place.permission === "No" || place.canRevisit === false) return "Do not recommend";
+      if (place.category === "Event") return "Event-based";
+      if (isRestrictedTarget(place) && !isManuallyApprovedTarget(place)) return "Do not recommend";
+      if (isRestrictedTarget(place) || permissionRequiredPattern.test(`${place.name || ""} ${place.category || ""} ${place.notes || ""}`) || isGenericArea(place)) return "Permission required";
+      if (qualifiedWalkInCategorySet.has(place.category) && (hasNamedWalkInTarget(place) || place.category === "Apartment")) return "Walk-in ready";
+      return "Permission required";
+    }
+
+    function suitabilityScore(place) {
+      const access = accessType(place);
+      if (access === "Do not recommend") return -120;
+      let score = 0;
+      if (access === "Walk-in ready") score += 26;
+      if (access === "Event-based") score += 8;
+      if (access === "Permission required") score -= 8;
+      if (hasNamedWalkInTarget(place)) score += 12;
+      if (isGenericArea(place)) score -= 18;
+      if (isManuallyApprovedTarget(place)) score += 14;
+      if (["Auto", "Restaurant", "Salon", "Clinic", "Business", "Apartment"].includes(place.category)) score += 6;
+      return score;
+    }
+
+    function actionabilityTier(place) {
+      const access = accessType(place);
+      if (access === "Do not recommend") return { rank: 99, label: "Do not recommend", score: -120 };
+      if (hasNamedWalkInTarget(place)) return { rank: 1, label: "Tier 1 · Named business", score: 22 };
+      if (place.category === "Apartment") return { rank: 2, label: "Tier 2 · Apartment complex", score: 12 };
+      if (place.category === "Event") return { rank: 3, label: "Tier 3 · Event", score: 7 };
+      if (isGenericArea(place) || access === "Permission required") return { rank: 4, label: "Tier 4 · Permission required", score: -22 };
+      return { rank: 2, label: "Tier 2 · Specific stop", score: 8 };
+    }
+
+    function firstWalkTarget(place) {
+      if (hasNamedWalkInTarget(place)) return place.name;
+      if (place.category === "Apartment") return `${place.name} leasing office`;
+      if (place.category === "Event") return `${place.name} organizer or check-in table`;
+      if (isGenericArea(place)) return "pick one named storefront before logging this stop";
+      return place.name || "the listed decision maker";
+    }
+
+    function decisionMakerHint(place) {
+      if (place.category === "Apartment") return "leasing manager";
+      if (place.category === "Event") return "organizer";
+      if (place.category === "Restaurant") return "shift lead or manager";
+      if (place.category === "Auto") return "store manager or service lead";
+      if (place.category === "Hotel") return "front desk or operations manager";
+      if (place.category === "Clinic") return "office manager";
+      if (place.category === "Salon") return "owner or lead barber";
+      return "manager or owner";
+    }
+
+    function categoryStats() {
+      const map = new Map();
+      state.visits.forEach(visit => {
+        const place = state.places.find(p => p.id === visit.placeId);
+        const category = place ? place.category : "Other";
+        const item = map.get(category) || { visits: 0, leads: 0, units: 0 };
+        item.visits += 1;
+        item.leads += Number(visit.leads || 0);
+        item.units += Number(visit.units || 0) + Number(visit.laterUnits || 0);
+        map.set(category, item);
+      });
+      return map;
+    }
+
+    function radiusStats() {
+      const map = new Map();
+      state.visits.forEach(visit => {
+        const place = state.places.find(p => p.id === visit.placeId);
+        if (!place) return;
+        const band = radiusBand(place);
+        const item = map.get(band) || { visits: 0, units: 0, leads: 0 };
+        item.visits += 1;
+        item.units += Number(visit.units || 0) + Number(visit.laterUnits || 0);
+        item.leads += Number(visit.leads || 0);
+        map.set(band, item);
+      });
+      return map;
+    }
+
+    function routeMode(need) {
+      const profile = activeProfile();
+      if (profile.mode === "new-rep") return { label: "New Rep Discovery", discoveryTarget: Number(profile.explorationTarget || .8) };
+      const windowNow = visitWindow(new Date().getHours());
+      if (need === 0) return { label: "Discovery", discoveryTarget: .6 };
+      if (windowNow === "Evening" && need > 0) return { label: "Proven push", discoveryTarget: .2 };
+      return { label: "Balanced", discoveryTarget: .4 };
+    }
+
+    function shouldExpandRadius(need) {
+      const visits = todayVisits();
+      const localVisits = visits.filter(visit => {
+        const place = state.places.find(p => p.id === visit.placeId);
+        return place && radiusBand(place) === "0-2 mi";
+      }).length;
+      const repeatedLocalRoute = buildBasicRouteScores(state.places).slice(0, 4).filter(item => item.radius === "0-2 mi").length >= 3;
+      return need === 0 || localVisits >= 2 || repeatedLocalRoute;
+    }
+
+    function buildBasicRouteScores(places) {
+      return routePool(places).map(place => {
+        const stats = placeStats(place.id);
+        const totalProduction = stats.units + stats.laterUnits;
+        return {
+          place,
+          radius: radiusBand(place),
+          score: Number(place.priority || 0) + totalProduction * 10 + stats.leads * 3
+        };
+      }).sort((a, b) => b.score - a.score);
+    }
+
+    function routeAnalysis(place, context = {}) {
+      const stats = placeStats(place.id);
+      const founderStats = activeRepId === "cruz" ? { visits: 0, conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 } : profilePlaceStats("cruz", place.id);
+      const status = statusFor(place);
+      const totalProduction = stats.units + stats.laterUnits;
+      const founderProduction = founderStats.units + founderStats.laterUnits;
+      const daysSinceVisit = daysSinceLastVisit(place.id);
+      const daysSinceRecommendation = daysSinceLastRecommendation(place.id);
+      const categoryMap = categoryStats();
+      const radiusMap = radiusStats();
+      const categoryData = categoryMap.get(place.category) || { visits: 0, leads: 0, units: 0 };
+      const radiusData = radiusMap.get(radiusBand(place)) || { visits: 0, leads: 0, units: 0 };
+      const tier = actionabilityTier(place);
+      const access = accessType(place);
+      const suitability = suitabilityScore(place);
+      const windowNow = visitWindow(new Date().getHours());
+      const windowFit = currentWindow === "all" || place.window.toLowerCase() === currentWindow || place.window === windowNow || place.window === "Anytime" ? 8 : 0;
+      const base = status === "green" ? 28 : status === "yellow" ? 19 : status === "blue" ? 14 : 3;
+      const seedPriority = Number(place.priority || 0);
+      const permissionBoost = place.permission && place.permission !== "Unknown" && place.permission !== "No" ? 4 : 0;
+      const output = totalProduction * 11 + stats.leads * 3 + stats.conversations * .15 + permissionBoost;
+      const founderBaselineBoost = activeRepId !== "cruz" && (founderProduction > 0 || founderStats.leads > 0)
+        ? Math.min(18, founderProduction * 7 + founderStats.leads * 2)
+        : 0;
+      const locationVisitBoost = Math.min(5, stats.locationVisits * 2);
+      const revisit = place.canRevisit === false ? -10 : 0;
+      const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -22 : 0;
+      const visitRecencyPenalty = daysSinceVisit === 1 ? -34 : daysSinceVisit <= 3 ? -12 : daysSinceVisit <= 6 ? -5 : 0;
+      const freshnessScore = stats.visits === 0 ? 16 : daysSinceVisit >= 7 ? 10 : daysSinceVisit >= 4 ? 5 : daysSinceVisit >= 2 ? 1 : -12;
+      const recommendationPenalty = daysSinceRecommendation === 1 ? -18 : daysSinceRecommendation <= 3 ? -10 : daysSinceRecommendation <= 6 ? -5 : 0;
+      const repeatedRecommendationPenalty = Math.max(0, recommendationCount(place.id, 7) - 1) * -4;
+      const underTestedCategory = categoryData.visits <= 1 && discoveryCategories.includes(place.category) ? 7 : 0;
+      const underTestedRadius = radiusData.visits <= 1 && radiusBand(place) !== "0-2 mi" ? 5 : 0;
+      const successfulDiscovery = stats.visits > 0 && stats.visits <= 2 && (totalProduction > 0 || stats.leads > 0) ? 16 : 0;
+      const explorationScore = (stats.visits === 0 ? 14 : stats.visits <= 2 ? 6 : 0) + underTestedCategory + underTestedRadius + successfulDiscovery;
+      const exploitationScore = totalProduction * 7 + stats.leads * 2 + founderBaselineBoost + (status === "green" ? 12 : status === "yellow" ? 6 : 0);
+      const founderOverlapPenalty = activeRepId !== "cruz" && founderTopPlaceIds(6).has(place.id) ? -18 : 0;
+      const routeModeBoost = context.discoveryPreferred
+        ? explorationScore * 0.6
+        : context.provenPreferred
+          ? exploitationScore * 0.25
+          : 0;
+      const radiusExpansionBoost = context.expandRadius && radiusBand(place) !== "0-2 mi" ? 7 : 0;
+      const total = Math.round(base + tier.score + suitability + seedPriority + output + founderBaselineBoost + locationVisitBoost + windowFit + freshnessScore + explorationScore + routeModeBoost + radiusExpansionBoost + revisit + alreadyVisitedToday + visitRecencyPenalty + recommendationPenalty + repeatedRecommendationPenalty + founderOverlapPenalty);
+      const lane = totalProduction > 0 || stats.leads >= 2
+        ? "Proven"
+        : founderBaselineBoost > 0
+          ? "Founder baseline"
+        : stats.visits === 0
+          ? "Discovery"
+          : successfulDiscovery
+            ? "New signal"
+            : "Retest";
+      return {
+        place,
+        stats,
+        score: total,
+        lane,
+        tier: tier.label,
+        tierRank: tier.rank,
+        access,
+        walkTarget: firstWalkTarget(place),
+        decisionMaker: decisionMakerHint(place),
+        status,
+        freshness: stats.visits === 0 ? "Fresh" : daysSinceVisit >= 7 ? "Fresh" : daysSinceVisit <= 1 ? "Recent" : "Warm",
+        radius: radiusBand(place),
+        daysSinceVisit,
+        daysSinceRecommendation,
+        explorationScore,
+        exploitationScore,
+        successfulDiscovery,
+        reasons: routeReasons(place, { stats, founderStats, totalProduction, founderProduction, lane, tier, access, daysSinceVisit, daysSinceRecommendation, underTestedCategory, underTestedRadius, successfulDiscovery, windowFit, founderOverlapPenalty })
+      };
+    }
+
+    function routeReasons(place, data) {
+      const reasons = [];
+      if (data.access === "Walk-in ready") reasons.push("walk-in ready storefront");
+      if (data.access === "Permission required") reasons.push("permission required before outreach");
+      if (data.access === "Event-based") reasons.push("event-based opportunity");
+      if (data.tier.rank === 1) reasons.push(`specific walk-in target: ${firstWalkTarget(place)}`);
+      if (data.tier.rank === 4) reasons.push("lower priority because it is a broad area, not one storefront");
+      if (data.totalProduction > 0) reasons.push(`${data.totalProduction} historical ${data.totalProduction === 1 ? "unit" : "units"}`);
+      if (data.stats.leads > 0) reasons.push(`${data.stats.leads} lead signal`);
+      if (activeRepId !== "cruz" && data.founderProduction > 0) reasons.push(`founder baseline produced ${data.founderProduction} ${data.founderProduction === 1 ? "unit" : "units"}`);
+      if (activeRepId !== "cruz" && data.founderStats.leads > 0) reasons.push(`founder baseline has ${data.founderStats.leads} lead signal`);
+      if (data.successfulDiscovery) reasons.push("new discovery is showing results");
+      if (data.stats.visits === 0) reasons.push("fresh territory");
+      if (data.underTestedCategory) reasons.push(`${place.category} needs more data`);
+      if (data.underTestedRadius) reasons.push(`${radiusBand(place)} radius needs testing`);
+      if (data.daysSinceVisit >= 7 && data.stats.visits > 0) reasons.push("fresh enough to revisit");
+      if (data.daysSinceRecommendation <= 3) reasons.push("recently shown, so it is being rotated carefully");
+      if (data.founderOverlapPenalty < 0) reasons.push("rotated down so this rep gets a different route");
+      if (place.permission && place.permission !== "Unknown" && place.permission !== "No") reasons.push(`${place.permission.toLowerCase()} is noted`);
+      if (data.windowFit > 0) reasons.push("timing fits now");
+      return reasons;
+    }
+
+    function founderTopPlaceIds(limit = 6) {
+      const founderProfile = state.repProfiles?.cruz;
+      if (!founderProfile) return new Set();
+      const ranked = routePool(state.places).map(place => {
+        const stats = profilePlaceStats("cruz", place.id);
+        const production = Number(stats.units || 0) + Number(stats.laterUnits || 0);
+        return {
+          id: place.id,
+          score: Number(place.priority || 0) + production * 12 + Number(stats.leads || 0) * 4 + suitabilityScore(place)
+        };
+      }).sort((a, b) => b.score - a.score).slice(0, limit);
+      return new Set(ranked.map(item => item.id));
+    }
+
+    function enforceRepRouteUniqueness(selected, scored, limit) {
+      if (activeRepId === "cruz") return selected;
+      const founderIds = founderTopPlaceIds(limit);
+      if (!founderIds.size) return selected;
+      const maxOverlap = Math.max(1, Math.floor(limit * .3));
+      const used = new Set();
+      const result = [];
+      let overlap = 0;
+      selected.forEach(item => {
+        const isOverlap = founderIds.has(item.place.id);
+        if (isOverlap && overlap >= maxOverlap) return;
+        result.push(item);
+        used.add(item.place.id);
+        if (isOverlap) overlap += 1;
+      });
+      scored.forEach(item => {
+        if (result.length >= limit || used.has(item.place.id)) return;
+        const isOverlap = founderIds.has(item.place.id);
+        if (isOverlap && overlap >= maxOverlap) return;
+        result.push(item);
+        used.add(item.place.id);
+        if (isOverlap) overlap += 1;
+      });
+      return result;
+    }
+
+    function buildRouteList(places, limit = 6, context = {}) {
+      const mode = routeMode(context.need || 0);
+      const scored = routePool(places).map(place => routeAnalysis(place, {
+        discoveryPreferred: mode.discoveryTarget >= .4,
+        provenPreferred: mode.discoveryTarget <= .25,
+        expandRadius: context.expandRadius
+      })).sort((a, b) => a.tierRank - b.tierRank || b.score - a.score);
+      const discovery = scored.filter(item => item.lane === "Discovery" || item.lane === "New signal");
+      const proven = scored.filter(item => item.lane === "Proven" || item.lane === "Founder baseline");
+      const selected = [];
+      const categoryCounts = new Map();
+      const targetDiscoveryCount = Math.min(discovery.length, Math.max(1, Math.round(limit * mode.discoveryTarget)));
+
+      function canUse(item, allowCrowd = false) {
+        if (selected.some(existing => existing.place.id === item.place.id)) return false;
+        const count = categoryCounts.get(item.place.category) || 0;
+        return allowCrowd || count < 2 || selected.length >= Math.max(3, limit - 2);
+      }
+
+      function add(item, allowCrowd = false) {
+        if (!item || !canUse(item, allowCrowd)) return false;
+        selected.push(item);
+        categoryCounts.set(item.place.category, (categoryCounts.get(item.place.category) || 0) + 1);
+        return true;
+      }
+
+      if (mode.discoveryTarget >= .5) {
+        add(discovery[0] || scored[0], true);
+        add(proven[0]);
+      } else {
+        add(proven[0] || scored[0], true);
+        add(discovery[0]);
+      }
+      discovery.slice(1, targetDiscoveryCount).forEach(item => add(item));
+      scored.filter(item => item.tierRank < 4).forEach(item => {
+        if (selected.length < limit) add(item);
+      });
+      scored.forEach(item => {
+        if (selected.length < limit) add(item, true);
+      });
+      return enforceRepRouteUniqueness(selected, scored, limit).slice(0, limit);
     }
 
     function sumVisits(visits) {
@@ -1663,36 +2295,29 @@
       }, { conversations: 0, leads: 0, units: 0, laterUnits: 0 });
     }
 
+    function teamVisits() {
+      if (!state.repProfiles) return state.visits;
+      return Object.values(state.repProfiles).flatMap(profile => Array.isArray(profile.visits) ? profile.visits : []);
+    }
+
+    function statsForVisitSet(placeId, visits) {
+      return visits.filter(v => v.placeId === placeId).reduce((acc, v) => {
+        acc.visits += 1;
+        acc.conversations += Number(v.conversations || 0);
+        acc.leads += Number(v.leads || 0);
+        acc.units += Number(v.units || 0);
+        acc.laterUnits += Number(v.laterUnits || 0);
+        return acc;
+      }, { visits: 0, conversations: 0, leads: 0, units: 0, laterUnits: 0 });
+    }
+
     function scorePlace(place) {
-      const stats = placeStats(place.id);
-      const status = statusFor(place);
-      const windowFit = currentWindow === "all" || place.window.toLowerCase() === currentWindow ? 8 : 0;
-      const base = status === "green" ? 30 : status === "yellow" ? 18 : status === "blue" ? 12 : 2;
-      const seedPriority = Number(place.priority || 0);
-      const totalProduction = stats.units + stats.laterUnits;
-      const permissionBoost = place.permission && place.permission !== "Unknown" && place.permission !== "No" ? 4 : 0;
-      const output = totalProduction * 14 + stats.leads * 3 + stats.conversations * .2 + permissionBoost;
-      const locationVisitBoost = Math.min(6, stats.locationVisits * 2);
-      const revisit = place.canRevisit === false ? -10 : 0;
-      const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -18 : 0;
-      const daysSince = daysSinceLastVisit(place.id);
-      const recencyPenalty = daysSince === 1 ? -40 : daysSince <= 3 ? -10 : daysSince <= 6 ? -4 : 0;
-      return Math.round(base + seedPriority + output + windowFit + locationVisitBoost + revisit + alreadyVisitedToday + recencyPenalty);
+      return routeAnalysis(place).score;
     }
 
     function routeSignal(place) {
-      const stats = placeStats(place.id);
-      const totalUnits = stats.units + stats.laterUnits;
-      const status = statusFor(place);
-      const reasons = [];
-      if (totalUnits > 0) reasons.push(`it has produced ${totalUnits} ${totalUnits === 1 ? "unit" : "units"}`);
-      if (stats.leads > 0) reasons.push(`it has created ${stats.leads} leads`);
-      if (stats.locationVisits > 0) reasons.push("it has device-reported visit history");
-      if (!stats.visits) reasons.push("it is untested territory with upside");
-      if (place.permission && place.permission !== "Unknown" && place.permission !== "No") reasons.push(`${place.permission.toLowerCase()} is already noted`);
-      if (place.window === visitWindow(new Date().getHours()) || place.window === "Anytime") reasons.push("the timing fits right now");
-      if (status === "red" && !reasons.length) reasons.push("it needs a better revisit decision");
-      return reasons.slice(0, 2).join(" and ") || "it is the strongest saved option right now";
+      const analysis = routeAnalysis(place);
+      return analysis.reasons.slice(0, 2).join(" and ") || "it balances route quality with fresh learning";
     }
 
     function routeConfidence(place) {
@@ -1705,13 +2330,18 @@
     }
 
     function routeRecommendation() {
-      return routePool(state.places)
-        .sort((a, b) => scorePlace(b) - scorePlace(a))[0];
+      return buildRouteList(state.places, 1, { need: Math.max(0, GOAL - sumVisits(todayVisits()).units) })[0]?.place;
     }
 
     function render() {
       applyMode();
-      document.getElementById("todayLabel").textContent = fmtDate(new Date());
+      const profile = activeProfile();
+      renderRepProfileSwitch();
+      document.getElementById("todayLabel").textContent = sessionRole === "rep"
+        ? "Rep"
+        : sessionRole === "manager"
+          ? `${fmtDate(new Date())} · Manager`
+          : `${fmtDate(new Date())} · ${profile.name} ${profile.role}`;
       renderToday();
       renderRoute();
       renderPlaces();
@@ -1776,14 +2406,16 @@
         return;
       }
 
-      const stats = placeStats(next.id);
+      const analysis = routeAnalysis(next);
+      const stats = analysis.stats;
       const totalUnits = stats.units + stats.laterUnits;
-      const expected = totalUnits > 0 ? `${totalUnits} ${totalUnits === 1 ? "unit" : "units"} in history` : stats.leads > 0 ? `${stats.leads} lead signal` : "Test stop";
+      const expected = totalUnits > 0 ? `${totalUnits} ${totalUnits === 1 ? "unit" : "units"} in history` : stats.leads > 0 ? `${stats.leads} lead signal` : analysis.lane;
       bestNextMove.textContent = next.name;
-      bestMoveReason.textContent = `Go here next because ${routeSignal(next)}.`;
+      bestMoveReason.textContent = `Walk first to ${analysis.walkTarget}. Ask for the ${analysis.decisionMaker}. Access type: ${analysis.access}. Why this stop: ${analysis.reasons.slice(0, 3).join("; ") || "it balances proven value with fresh route learning"}.`;
       intelExpected.textContent = expected;
-      intelWindow.textContent = next.window || "Anytime";
+      intelWindow.textContent = `${next.window || "Anytime"} · ${analysis.radius}`;
       intelConfidence.textContent = routeConfidence(next);
+      recordRouteRecommendation(next);
 
       if (need === 0) {
         routeRisk.textContent = "Goal is hit. Log clean notes so tomorrow's route gets smarter.";
@@ -1799,16 +2431,15 @@
     }
 
     function renderDailyRoute() {
-      const places = routePool(state.places)
-        .sort((a, b) => scorePlace(b) - scorePlace(a))
-        .slice(0, 6);
-      document.getElementById("dailyRouteCount").textContent = `${places.length} stops`;
+      const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
+      const routeItems = buildRouteList(state.places, 6, { need, expandRadius: shouldExpandRadius(need) });
+      document.getElementById("dailyRouteCount").textContent = `${routeItems.length} stops · ${routeMode(need).label}`;
       const list = document.getElementById("dailyRoute");
-      if (!places.length) {
+      if (!routeItems.length) {
         list.innerHTML = `<div class="empty">You logged every saved place today. Add fresh searches from the Find screen.</div>`;
         return;
       }
-      list.innerHTML = places.map((p, index) => compactRouteCard(p, index)).join("");
+      list.innerHTML = routeItems.map((item, index) => compactRouteCard(item.place, index, item)).join("");
     }
 
     function visitCard(v) {
@@ -1842,21 +2473,22 @@
       if (currentWindow !== "all") {
         places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
       }
-      places = routePool(places).sort((a, b) => scorePlace(b) - scorePlace(a)).slice(0, 10);
-      document.getElementById("routeCount").textContent = `${places.length} options`;
+      const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
+      const routeItems = buildRouteList(places, 10, { need, expandRadius: shouldExpandRadius(need) });
+      document.getElementById("routeCount").textContent = `${routeItems.length} options`;
       const list = document.getElementById("routeList");
-      if (!places.length) {
+      if (!routeItems.length) {
         list.innerHTML = `<div class="empty">Add a few places in Find, then this route will rank them.</div>`;
         return;
       }
-      list.innerHTML = places.map((p, index) => {
-        return compactRouteCard(p, index);
+      list.innerHTML = routeItems.map((item, index) => {
+        return compactRouteCard(item.place, index, item);
       }).join("");
     }
 
-    function compactRouteCard(p, index) {
-      const stats = placeStats(p.id);
-      const status = statusFor(p);
+    function compactRouteCard(p, index, analysis = routeAnalysis(p)) {
+      const stats = analysis.stats;
+      const status = analysis.status;
       return `<article class="item route-card">
         <div class="rank">${index + 1}</div>
         <div>
@@ -1865,15 +2497,23 @@
             ${p.distance ? `<span>${escapeHtml(p.distance)}</span>` : ""}
             <span>${escapeHtml(p.category)}</span>
             <span>${escapeHtml(p.window)}</span>
+            <span>${escapeHtml(analysis.tier)}</span>
+            <span>${escapeHtml(analysis.lane)}</span>
+            <span>${escapeHtml(analysis.access)}</span>
+            <span>${escapeHtml(analysis.freshness)}</span>
+            <span>${escapeHtml(analysis.radius)}</span>
             <span>${stats.visits} visits</span>
             <span>${stats.units + stats.laterUnits} units</span>
             ${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}
             ${p.canRevisit === false ? `<span>No revisit</span>` : ""}
           </div>
+          <div class="address-line"><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)} · <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}</div>
+          <div class="address-line"><b>Access type:</b> ${escapeHtml(analysis.access)}</div>
+          <div class="address-line"><b>Why this stop:</b> ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "balanced route quality and fresh learning")}</div>
           ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>` : ""}
         </div>
         <div>
-          <div class="score">${scorePlace(p)}</div>
+          <div class="score">${analysis.score}</div>
           <span class="pill ${status}">${statusLabel(status)}</span>
           <button class="pill blue" type="button" data-quick-place="${escapeAttr(p.id)}">Log</button>
         </div>
@@ -1919,36 +2559,42 @@
     }
 
     function renderStats() {
-      const totals = sumVisits(state.visits);
-      const unitsPerVisit = state.visits.length ? totals.units / state.visits.length : 0;
+      const profile = activeProfile();
+      const reportVisits = appMode === "owner" && canUseOwnerMode() ? teamVisits() : state.visits;
+      const viewingTeam = reportVisits !== state.visits;
+      const totals = sumVisits(reportVisits);
+      const unitsPerVisit = reportVisits.length ? totals.units / reportVisits.length : 0;
       document.getElementById("totalUnits").textContent = totals.units + totals.laterUnits;
       document.getElementById("unitsPerVisit").textContent = unitsPerVisit.toFixed(1);
-      document.getElementById("bestCategory").textContent = bestCategoryName();
+      document.getElementById("bestCategory").textContent = bestCategoryName(reportVisits);
 
       const best = state.places.slice().sort((a, b) => {
-        const bs = placeStats(b.id);
-        const as = placeStats(a.id);
+        const bs = viewingTeam ? statsForVisitSet(b.id, reportVisits) : placeStats(b.id);
+        const as = viewingTeam ? statsForVisitSet(a.id, reportVisits) : placeStats(a.id);
         return (bs.units + bs.laterUnits) - (as.units + as.laterUnits);
       }).slice(0, 5);
-      document.getElementById("bestPlaces").innerHTML = best.some(p => placeStats(p.id).visits)
+      document.getElementById("bestPlaces").innerHTML = best.some(p => (viewingTeam ? statsForVisitSet(p.id, reportVisits) : placeStats(p.id)).visits)
         ? best.map(p => {
-            const s = placeStats(p.id);
+            const s = viewingTeam ? statsForVisitSet(p.id, reportVisits) : placeStats(p.id);
             return `<article class="item"><div class="item-head"><div><h3>${escapeHtml(p.name)}</h3><div class="meta"><span>${escapeHtml(p.category)}</span><span>${s.visits} visits</span><span>${s.leads} leads</span>${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}</div></div><span class="pill green">${s.units + s.laterUnits} units</span></div></article>`;
           }).join("")
         : `<div class="empty">Log visits to see your top-producing places.</div>`;
 
       const windows = ["Morning", "Midday", "Evening"].map(w => {
-        const visits = state.visits.filter(v => v.window === w);
+        const visits = reportVisits.filter(v => v.window === w);
         const sums = sumVisits(visits);
         const units = sums.units + sums.laterUnits;
         return { name: w, visits: visits.length, units, upv: visits.length ? units / visits.length : 0 };
       }).sort((a, b) => b.upv - a.upv);
       document.getElementById("bestTimes").innerHTML = windows.map(w => `<article class="item"><div class="item-head"><div><h3>${w.name}</h3><div class="meta"><span>${w.visits} visits</span><span>${w.units} units</span></div></div><span class="pill blue">${w.upv.toFixed(1)} / visit</span></div></article>`).join("");
+      document.getElementById("dataStatus").textContent = viewingTeam
+        ? "Owner Mode is showing team reporting without changing or impersonating an individual rep profile."
+        : `Viewing ${profile.name}'s independent intelligence profile. Founder baseline remains preserved separately.`;
     }
 
-    function bestCategoryName() {
+    function bestCategoryName(visits = state.visits) {
       const map = new Map();
-      state.visits.forEach(v => {
+      visits.forEach(v => {
         const place = state.places.find(p => p.id === v.placeId);
         const category = place ? place.category : "Other";
         const item = map.get(category) || { units: 0, visits: 0 };
@@ -2004,13 +2650,42 @@
     }
 
     function dailySearches() {
-      const offset = dateNumber(todayKey()) % discoveryTemplates.length;
-      const rotated = discoveryTemplates.slice(offset).concat(discoveryTemplates.slice(0, offset));
+      const templates = repDiscoveryTemplates(activeRepId);
+      const offset = dateNumber(`${todayKey()}-${activeRepId}`) % templates.length;
+      const rotated = templates.slice(offset).concat(templates.slice(0, offset));
       const topCategory = bestCategoryName();
       const unused = rotated.filter(item => !isSavedDiscovery(item));
       const pool = unused.length >= 10 ? unused : unused.concat(rotated.filter(item => isSavedDiscovery(item)));
       const bestFirst = pool.sort((a, b) => Number(b[1] === topCategory) - Number(a[1] === topCategory));
       return bestFirst.slice(0, 10).map(([name, category, window, query]) => ({ name, category, window, query }));
+    }
+
+    function repDiscoveryTemplates(profileId) {
+      const anthonyFirst = [
+        ["O'Reilly Auto Parts near Southbelt", "Auto", "Midday", "O'Reilly Auto Parts near Southbelt Houston TX 77089"],
+        ["Discount Tire near Southbelt", "Auto", "Midday", "Discount Tire near Southbelt Houston TX 77089"],
+        ["Great Clips near Southbelt", "Salon", "Midday", "Great Clips near Southbelt Houston TX 77089"],
+        ["Dental offices near Beamer", "Clinic", "Midday", "dental office near Beamer Road Houston TX 77089"],
+        ["The UPS Store near Southbelt", "Business", "Morning", "The UPS Store near Southbelt Houston TX 77089"],
+        ["Phone repair stores near Blackhawk", "Retail", "Evening", "phone repair store near Blackhawk Blvd Houston TX 77075"],
+        ["Apartment leasing offices near Blackhawk", "Apartment", "Evening", "apartments near Blackhawk Blvd Houston TX 77075"],
+        ["Local restaurants near Rowlett", "Restaurant", "Midday", "restaurant near Rowlett Road Houston TX 77075"]
+      ];
+      const cruzFirst = [
+        ["AutoZone near the gym", "Auto", "Midday", "AutoZone near 12338 Gulf Freeway Houston TX 77034"],
+        ["Jiffy Lube near the gym", "Auto", "Morning", "Jiffy Lube near 12338 Gulf Freeway Houston TX 77034"],
+        ["Tire shops near Almeda Genoa", "Auto", "Midday", "tire shop near Almeda Genoa Road Houston TX 77034"],
+        ["Barbershops near Almeda Mall", "Salon", "Midday", "barbershop near Almeda Mall Houston TX"],
+        ["Restaurants near Almeda Mall", "Restaurant", "Midday", "restaurants near Almeda Mall Houston TX"]
+      ];
+      const starter = profileId === "anthony" ? anthonyFirst : cruzFirst;
+      const seen = new Set(starter.map(item => normalizeKey(`${item[0]} ${item[3]}`)));
+      return starter.concat(discoveryTemplates.filter(item => {
+        const key = normalizeKey(`${item[0]} ${item[3]}`);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }));
     }
 
     function isSavedDiscovery([name, category, window, query]) {
@@ -2282,11 +2957,25 @@
 
     function applyMode() {
       document.body.dataset.mode = appMode;
+      document.body.dataset.sessionRole = sessionRole;
       document.querySelectorAll("[data-mode-select]").forEach(button => button.classList.toggle("active", button.dataset.modeSelect === appMode));
+      document.querySelectorAll("[data-rep-select]").forEach(button => button.classList.toggle("active", button.dataset.repSelect === activeRepId));
+    }
+
+    function renderRepProfileSwitch() {
+      const container = document.getElementById("repProfileSwitch");
+      if (!container) return;
+      if (!canSwitchProfiles()) {
+        container.innerHTML = "";
+        return;
+      }
+      const profiles = Object.values(state.repProfiles || {});
+      container.innerHTML = profiles.map(profile => `<button type="button" data-rep-select="${escapeAttr(profile.id)}">${escapeHtml(profile.name || profile.id)}</button>`).join("");
+      container.querySelectorAll("[data-rep-select]").forEach(button => button.classList.toggle("active", button.dataset.repSelect === activeRepId));
     }
 
     function setMode(mode) {
-      appMode = mode === "owner" ? "owner" : "rep";
+      appMode = mode === "owner" && canUseOwnerMode() ? "owner" : "rep";
       localStorage.setItem(modeStoreKey, appMode);
       applyMode();
       if (appMode === "rep" && document.querySelector(".view.active.owner-only")) setTab("today");
@@ -2295,6 +2984,9 @@
     document.addEventListener("click", event => {
       const modeSelect = event.target.closest("[data-mode-select]");
       if (modeSelect) setMode(modeSelect.dataset.modeSelect);
+
+      const repSelect = event.target.closest("[data-rep-select]");
+      if (repSelect && canSwitchProfiles()) applyActiveProfile(repSelect.dataset.repSelect);
 
       const tab = event.target.closest("[data-tab]");
       if (tab) setTab(tab.dataset.tab);

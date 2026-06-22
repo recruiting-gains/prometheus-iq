@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Prometheus IQ Qualified Prospect",
+  "type": "object",
+  "required": [
+    "business_name",
+    "full_address",
+    "category",
+    "estimated_distance_miles",
+    "access_type",
+    "ask_for",
+    "source_type",
+    "rep_status",
+    "recommendation_for_anthony"
+  ],
+  "properties": {
+    "prospect_id": { "type": "string" },
+    "business_name": { "type": "string" },
+    "full_address": { "type": "string" },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Auto",
+        "Tire",
+        "Oil Change",
+        "Car Wash",
+        "Barber",
+        "Salon",
+        "Restaurant",
+        "Small Retail",
+        "Apartment",
+        "Medical Office",
+        "Dental Office",
+        "Local Employer",
+        "Business Services",
+        "Gym Adjacent",
+        "Event",
+        "Other Storefront"
+      ]
+    },
+    "estimated_distance_miles": { "type": ["number", "string"] },
+    "access_type": {
+      "type": "string",
+      "enum": ["Walk-in ready", "Permission required", "Event-based", "Do not recommend"]
+    },
+    "ask_for": {
+      "type": "string",
+      "enum": ["manager", "owner", "shift lead", "leasing manager", "organizer", "office manager", "service lead", "HR contact"]
+    },
+    "notes": { "type": "string" },
+    "sources": { "type": "string" },
+    "source_type": {
+      "type": "string",
+      "enum": ["Google Maps", "Google Places API", "OpenStreetMap", "manual seed", "event source", "placeholder"]
+    },
+    "google_place_id": { "type": "string" },
+    "google_maps_url": { "type": "string" },
+    "latitude": { "type": ["number", "string"] },
+    "longitude": { "type": ["number", "string"] },
+    "rep_status": {
+      "type": "string",
+      "enum": ["Anthony unvisited", "Anthony visited", "Cruz historical", "Shared approved", "Unassigned"]
+    },
+    "shared_approval": {
+      "type": "string",
+      "enum": ["yes", "no", "pending"]
+    },
+    "recommendation_for_anthony": {
+      "type": "string",
+      "enum": ["yes", "no"]
+    },
+    "max_radius_miles": { "type": ["number", "string"] },
+    "is_generic_place": {
+      "type": "string",
+      "enum": ["yes", "no"]
+    },
+    "quality_status": {
+      "type": "string",
+      "enum": ["verified", "needs review", "placeholder", "rejected"]
+    }
+  },
+  "additionalProperties": false
+}

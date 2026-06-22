@@ -1,0 +1,18 @@
+[out:json][timeout:60];
+(
+  node(around:16000,29.6176,-95.2193)[shop];
+  node(around:16000,29.6176,-95.2193)[amenity=restaurant];
+  node(around:16000,29.6176,-95.2193)[amenity=fast_food];
+  node(around:16000,29.6176,-95.2193)[amenity=cafe];
+  node(around:16000,29.6176,-95.2193)[amenity=bar];
+  node(around:16000,29.6176,-95.2193)[amenity=dentist];
+  node(around:16000,29.6176,-95.2193)[amenity=doctors];
+  node(around:16000,29.6176,-95.2193)[amenity=clinic];
+  node(around:16000,29.6176,-95.2193)[amenity=pharmacy];
+  node(around:16000,29.6176,-95.2193)[amenity=bank];
+  node(around:16000,29.6176,-95.2193)[healthcare];
+  node(around:16000,29.6176,-95.2193)[office];
+  node(around:16000,29.6176,-95.2193)[craft];
+  node(around:16000,29.6176,-95.2193)[tourism=hotel];
+);
+out body 1000;

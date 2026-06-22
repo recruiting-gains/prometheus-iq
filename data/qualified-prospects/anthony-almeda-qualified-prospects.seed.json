@@ -1,0 +1,26 @@
+{
+  "seed_name": "Anthony Almeda Qualified Prospect Seed",
+  "base_location": {
+    "name": "Fitness Connection Almeda",
+    "address": "12338 Gulf Freeway, Houston, TX 77034",
+    "max_radius_miles": 20,
+    "first_route_radius_miles": 10,
+    "expansion_radius_miles": 15,
+    "reserve_radius_miles": 20
+  },
+  "data_status": "awaiting_real_google_maps_or_places_export",
+  "important_note": "This seed file intentionally contains no fake businesses. Load verified Google Maps, Google Places API, or manually verified storefront records before recommending from this file.",
+  "anthony_rules": {
+    "rep_status": "Anthony unvisited",
+    "first_route_stop_count": 6,
+    "first_route_exclusions": [
+      "Urban Bird Hot Chicken - Almeda Genoa",
+      "AutoZone Auto Parts - Seaford Dr",
+      "Any Cruz historical winner",
+      "Any broad mall/plaza/campus/airport/hospital/government location",
+      "Any big-box target without permission"
+    ],
+    "first_route_policy": "Use only Anthony-unvisited, walk-in ready or approved permission-required storefronts. Do not group prospects under a plaza or shopping center."
+  },
+  "prospects": []
+}
