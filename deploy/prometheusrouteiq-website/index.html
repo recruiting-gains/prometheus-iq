@@ -28,6 +28,7 @@
     }
 
     body {
+      position: relative;
       margin: 0;
       min-height: 520vh;
       color: var(--ink);
@@ -36,6 +37,78 @@
         radial-gradient(circle at 80% 18%, rgba(39, 224, 160, 0.16), transparent 28%),
         linear-gradient(180deg, #082017 0%, #04100c 42%, #0a2118 100%);
       overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -18vmax;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      opacity: 0.72;
+      background:
+        radial-gradient(circle at 46% 32%, rgba(255, 215, 108, 0.3) 0 1.4px, transparent 1.9px),
+        radial-gradient(circle at 54% 48%, rgba(255, 116, 56, 0.42) 0 1.2px, transparent 2px),
+        radial-gradient(circle at 64% 42%, rgba(39, 224, 160, 0.24) 0 1px, transparent 1.8px),
+        radial-gradient(circle at 52% 34%, rgba(255, 116, 56, 0.3), transparent 24%),
+        radial-gradient(circle at 70% 20%, rgba(39, 224, 160, 0.12), transparent 28%);
+      background-size:
+        22px 22px,
+        34px 34px,
+        48px 48px,
+        100% 100%,
+        100% 100%;
+      filter: blur(0.2px) saturate(1.22);
+      transform: perspective(900px) rotateX(58deg) rotateZ(-17deg) translate3d(0, 0, 0);
+      animation: fallbackFieldDrift 18s linear infinite;
+    }
+
+    body::after {
+      opacity: 0.42;
+      background:
+        linear-gradient(116deg, transparent 43%, rgba(255, 215, 108, 0.22) 43.35%, transparent 43.75%),
+        linear-gradient(58deg, transparent 52%, rgba(39, 224, 160, 0.18) 52.2%, transparent 52.58%),
+        linear-gradient(144deg, transparent 56%, rgba(255, 116, 56, 0.2) 56.25%, transparent 56.62%),
+        radial-gradient(circle at 58% 36%, rgba(255, 215, 108, 0.16), transparent 14%);
+      filter: blur(0.3px);
+      transform: translate3d(0, 0, 0) scale(1.02);
+      animation: fallbackRouteSweep 12s ease-in-out infinite;
+    }
+
+    @keyframes fallbackFieldDrift {
+      0% {
+        background-position:
+          0 0,
+          0 0,
+          0 0,
+          0 0,
+          0 0;
+      }
+
+      100% {
+        background-position:
+          160px 120px,
+          -130px 180px,
+          90px -140px,
+          0 0,
+          0 0;
+      }
+    }
+
+    @keyframes fallbackRouteSweep {
+      0%, 100% {
+        opacity: 0.28;
+        transform: translate3d(-1.2vw, 0, 0) scale(1.02) rotate(0deg);
+      }
+
+      50% {
+        opacity: 0.58;
+        transform: translate3d(1.8vw, -1vh, 0) scale(1.06) rotate(1.4deg);
+      }
     }
 
     canvas {
