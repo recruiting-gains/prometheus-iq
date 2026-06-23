@@ -447,6 +447,7 @@
     }
 
     .hero {
+      overflow: hidden;
       max-width: 760px;
       align-items: end;
       padding-bottom: 12vh;
@@ -456,6 +457,136 @@
       background:
         radial-gradient(circle at 18% 58%, rgba(3, 9, 7, 0.5), transparent 48%),
         linear-gradient(90deg, rgba(3, 9, 7, 0.48), rgba(3, 9, 7, 0.02) 62%);
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 3;
+    }
+
+    .hero-fire-core {
+      position: absolute;
+      top: clamp(94px, 12vh, 140px);
+      right: clamp(-70px, 8vw, 150px);
+      z-index: 1;
+      width: clamp(240px, 36vw, 520px);
+      aspect-ratio: 0.76;
+      pointer-events: none;
+      opacity: 0.74;
+      transform: perspective(900px) rotateX(58deg) rotateZ(-16deg) translate3d(0, 0, 0);
+      filter:
+        drop-shadow(0 0 22px rgba(255, 116, 56, 0.52))
+        drop-shadow(0 0 72px rgba(255, 215, 108, 0.22));
+      animation: heroCoreFloat 8.5s ease-in-out infinite;
+    }
+
+    .hero-fire-core::before,
+    .hero-fire-core::after,
+    .hero-flame-inner,
+    .hero-flame-core {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 58% 72% 54% 52% / 70% 62% 42% 34%;
+      clip-path: polygon(48% 0%, 68% 20%, 85% 50%, 78% 82%, 56% 100%, 22% 92%, 5% 67%, 14% 38%, 32% 22%);
+      transform-origin: 50% 82%;
+    }
+
+    .hero-fire-core::before {
+      background:
+        radial-gradient(circle at 52% 78%, rgba(255, 255, 238, 0.95), transparent 14%),
+        radial-gradient(circle at 48% 64%, rgba(255, 215, 108, 0.86), transparent 34%),
+        linear-gradient(150deg, rgba(255, 215, 108, 0.92), rgba(255, 116, 56, 0.92) 48%, rgba(185, 35, 20, 0.72));
+      box-shadow:
+        inset 0 0 46px rgba(255, 244, 200, 0.28),
+        inset -28px -18px 60px rgba(125, 15, 8, 0.34);
+      animation: heroFlameBreathe 4.8s ease-in-out infinite;
+    }
+
+    .hero-fire-core::after {
+      inset: 8% 11% 15% 14%;
+      background:
+        radial-gradient(circle at 54% 76%, rgba(255, 255, 238, 0.92), transparent 19%),
+        linear-gradient(150deg, rgba(255, 239, 138, 0.92), rgba(255, 171, 58, 0.84) 58%, rgba(255, 91, 39, 0.46));
+      opacity: 0.78;
+      animation: heroFlameBreathe 3.9s ease-in-out infinite reverse;
+    }
+
+    .hero-flame-inner {
+      inset: 18% 27% 22% 30%;
+      background: radial-gradient(circle at 50% 74%, rgba(255, 255, 246, 0.94), rgba(255, 238, 171, 0.76) 36%, transparent 62%);
+      opacity: 0.86;
+      animation: heroCorePulse 2.8s ease-in-out infinite;
+    }
+
+    .hero-flame-core {
+      inset: 62% 8% 8%;
+      clip-path: none;
+      border-radius: 999px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 246, 0.95), rgba(39, 224, 160, 0.68), rgba(255, 255, 246, 0.95)),
+        rgba(255, 255, 255, 0.78);
+      box-shadow:
+        0 0 30px rgba(39, 224, 160, 0.44),
+        0 0 70px rgba(255, 116, 56, 0.32);
+      opacity: 0.84;
+      transform: translateY(62%);
+    }
+
+    .hero-orbit-line {
+      position: absolute;
+      inset: 18% -18%;
+      border-top: 1px solid rgba(255, 215, 108, 0.4);
+      border-bottom: 1px solid rgba(39, 224, 160, 0.24);
+      border-radius: 50%;
+      transform: rotate(-16deg);
+      opacity: 0.66;
+      animation: heroOrbit 6.8s linear infinite;
+    }
+
+    .hero-orbit-line:nth-child(2) {
+      inset: 4% -28%;
+      transform: rotate(25deg);
+      opacity: 0.42;
+      animation-duration: 9.5s;
+    }
+
+    @keyframes heroCoreFloat {
+      0%, 100% {
+        transform: perspective(900px) rotateX(58deg) rotateZ(-16deg) translate3d(0, 0, 0) scale(1);
+      }
+
+      50% {
+        transform: perspective(900px) rotateX(54deg) rotateZ(-13deg) translate3d(-10px, -12px, 0) scale(1.045);
+      }
+    }
+
+    @keyframes heroFlameBreathe {
+      0%, 100% {
+        transform: rotate(-2deg) scale(0.985);
+      }
+
+      50% {
+        transform: rotate(2.4deg) scale(1.035);
+      }
+    }
+
+    @keyframes heroCorePulse {
+      0%, 100% {
+        opacity: 0.72;
+        transform: scale(0.96);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.08);
+      }
+    }
+
+    @keyframes heroOrbit {
+      to {
+        transform: rotate(344deg);
+      }
     }
 
     .eyebrow {
@@ -747,6 +878,13 @@
         padding-bottom: 10vh;
       }
 
+      .hero-fire-core {
+        top: 92px;
+        right: -58px;
+        width: min(82vw, 390px);
+        opacity: 0.55;
+      }
+
       .split {
         grid-template-columns: 1fr;
       }
@@ -804,7 +942,13 @@
 
   <main class="content">
     <section class="hero">
-      <div>
+      <div class="hero-fire-core" aria-hidden="true">
+        <span class="hero-orbit-line"></span>
+        <span class="hero-orbit-line"></span>
+        <span class="hero-flame-inner"></span>
+        <span class="hero-flame-core"></span>
+      </div>
+      <div class="hero-copy">
         <div class="eyebrow">The intelligence operating system for field sales</div>
         <h1>The Intelligence Behind Every Mile.</h1>
         <p class="lead">Prometheus IQ helps field teams know where to go, verify activity, and transform every visit into intelligence.</p>
