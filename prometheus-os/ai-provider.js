@@ -1,0 +1,222 @@
+import { companyState, promptTemplates } from "./demo-data.js";
+import { searchContext } from "./project-context.js";
+import { classifyPermission, routeCommandToTool, runAgentTool } from "./agent-actions.js";
+import { PermissionLevel, addAuditEntry, permissionLabel } from "./audit-log.js";
+import { getClarification, normalizeIntentText } from "./intent-router.js";
+
+export class AIProvider {
+  constructor({ mode = "local-demo" } = {}) {
+    this.mode = mode;
+    this.history = [];
+  }
+
+  get providerLabel() {
+    if (this.mode === "openai") return "OpenAI backend ready";
+    if (this.mode === "claude") return "Claude backend ready";
+    return "Local demo intelligence";
+  }
+
+  async ask(message) {
+    const cleanMessage = String(message || "").trim();
+    const normalized = this.normalizeFounderCommand(cleanMessage);
+    const permissionLevel = classifyPermission(normalized);
+    const toolName = routeCommandToTool(normalized);
+
+    if (permissionLevel === PermissionLevel.BLOCKED) {
+      addAuditEntry({
+        action: cleanMessage,
+        tool: "safety-router",
+        permissionLevel,
+        approved: false,
+        blocked: true,
+        result: "Blocked by Prometheus OS safety policy."
+      });
+      return this.remember(cleanMessage, {
+        title: "Blocked for safety",
+        body: "I cannot delete files, expose secrets, print credentials, disable security, change auth systems, or modify protected credentials.",
+        permission: permissionLabel(permissionLevel),
+        tone: "blocked"
+      });
+    }
+
+    if (toolName) {
+      const output = runAgentTool(toolName, cleanMessage);
+      return this.remember(cleanMessage, {
+        title: output.title,
+        body: output.body,
+        permission: permissionLabel(output.permissionLevel),
+        tone: "tool"
+      });
+    }
+
+    if (permissionLevel === PermissionLevel.APPROVAL_REQUIRED) {
+      addAuditEntry({
+        action: cleanMessage,
+        tool: "approval-router",
+        permissionLevel,
+        approved: false,
+        blocked: false,
+        result: "Approval required. Action was not executed."
+      });
+      return this.remember(cleanMessage, {
+        title: "Approval required",
+        body: "That action may affect production, deployment, GitHub history, Cloudflare, or Anthony's beta. I can draft a checklist, but I will not execute it without explicit approval.",
+        permission: permissionLabel(permissionLevel),
+        tone: "approval"
+      });
+    }
+
+    const response = this.localAnswer(normalized);
+    return this.remember(cleanMessage, response);
+  }
+
+  normalizeFounderCommand(message) {
+    return String(message || "")
+      .toLowerCase()
+      .replace(/[’‘']/g, "")
+      .replace(/^(hey\s+prometheus|good\s+morning\s+prometheus|prometheus)[,\s]+/i, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  remember(input, response) {
+    this.history.unshift({
+      input,
+      response,
+      timestamp: new Date().toISOString()
+    });
+    this.history = this.history.slice(0, 30);
+    return response;
+  }
+
+  localAnswer(command) {
+    if (!command) {
+      return {
+        title: "PROMETHEUS standing by",
+        body: "Ask me what to do next, what changed today, what is blocking the pilot, Anthony beta status, website status, GitHub status, Cloudflare status, Chris follow-up, Instagram, Codex prompts, or founder summaries.",
+        permission: "Level 0 - Read Only",
+        tone: "idle"
+      };
+    }
+
+    const clarification = getClarification(command);
+    if (clarification) {
+      return {
+        title: clarification.title,
+        body: clarification.body,
+        permission: "Level 0 - Read Only",
+        tone: "clarification"
+      };
+    }
+
+    const normalizedCommand = normalizeIntentText(command);
+    const matchedSystem = companyState.statusCards.find((card) => {
+      const label = normalizeIntentText(card.label);
+      const key = normalizeIntentText(card.key);
+      return normalizedCommand === label ||
+        normalizedCommand === key ||
+        normalizedCommand === `${label} status` ||
+        normalizedCommand === `review ${label} status`;
+    });
+    if (matchedSystem) {
+      return {
+        title: `${matchedSystem.label} status`,
+        body: `${matchedSystem.value}. ${matchedSystem.detail}`,
+        permission: "Level 0 - Read Only",
+        tone: matchedSystem.signal
+      };
+    }
+
+    if (command.includes("next") || command.includes("highest roi") || command.includes("highest leverage")) {
+      return {
+        title: "Highest ROI task",
+        body: companyState.chiefOfStaff?.highestRoiTask || "Protect the beta signal. Get Anthony through a clean first test, capture friction, verify routes are understandable, and avoid adding features until the pilot proves the workflow.",
+        permission: "Level 0 - Read Only",
+        tone: "priority"
+      };
+    }
+
+    if (/\banthony\s+beta\b/.test(command) || /\banthony\s+status\b/.test(command)) {
+      return {
+        title: "Anthony beta status",
+        body: "Anthony's beta path is ready for controlled use. He should see his own rep experience, not Cruz's history. Watch route clarity, GPS verification, visit logging, feedback, and export completion.",
+        permission: "Level 0 - Read Only",
+        tone: "beta"
+      };
+    }
+
+    if (/\bwebsite\s+status\b/.test(command) || /\bsite\s+status\b/.test(command)) {
+      return {
+        title: "Website status",
+        body: "PrometheusRouteIQ.com is live. The website should create curiosity, explain outcomes, and drive pilot requests without exposing proprietary logic.",
+        permission: "Level 0 - Read Only",
+        tone: "website"
+      };
+    }
+
+    if (command.includes("cloudflare")) {
+      return {
+        title: "Cloudflare status",
+        body: "Cloudflare is live for the public website and protected app. Prometheus OS remains local-only. If deployed later, it must be behind Cloudflare Access.",
+        permission: "Level 0 - Read Only",
+        tone: "deployment"
+      };
+    }
+
+    if (/\bgithub\s+status\b/.test(command) || /\bgit\s+status\b/.test(command)) {
+      return {
+        title: "GitHub status",
+        body: "GitHub is active as the source-code backup. Commits and pushes are approval-level actions. Continue avoiding ZIP files, temp files, secrets, tokens, and generated clutter.",
+        permission: "Level 0 - Read Only",
+        tone: "repo"
+      };
+    }
+
+    if (/\bpilot\s+readiness\b/.test(command) || command.includes("blocking")) {
+      return {
+        title: "Pilot blockers",
+        body: "The main blockers are leadership approval, HR/legal comfort, clean user consent, stable beta behavior, and proving reps will actually use the workflow daily.",
+        permission: "Level 0 - Read Only",
+        tone: "pilot"
+      };
+    }
+
+    if (command.includes("chris") || command.includes("larry") || command.includes("phil")) {
+      return {
+        title: "Leadership follow-up",
+        body: "Ask what Dallas leadership needs to feel comfortable approving a controlled 14-day pilot. Keep the ask simple: 3 approved users, GPS verification, weekly review, final report, and no proprietary details disclosed.",
+        permission: "Level 0 - Read Only",
+        tone: "executive"
+      };
+    }
+
+    if (command.includes("instagram") || command.includes("social")) {
+      return {
+        title: "Instagram guidance",
+        body: "Post the founder journey, private pilot progress, and field-sales lessons. Create curiosity without showing internal screens, route logic, scoring methods, or customer-sensitive details.",
+        permission: "Level 0 - Read Only",
+        tone: "social"
+      };
+    }
+
+    if (command.includes("codex prompt")) {
+      return {
+        title: "Codex prompt",
+        body: promptTemplates.codexBuild,
+        permission: "Level 2 - Prepare Action",
+        tone: "prompt"
+      };
+    }
+
+    const context = searchContext(command)[0];
+    return {
+      title: "Project context",
+      body: context.value.summary || "I found safe Prometheus context, but no exact command. Ask a sharper founder question and I will route it.",
+      permission: "Level 0 - Read Only",
+      tone: "context"
+    };
+  }
+}
+
+export const aiProvider = new AIProvider({ mode: "local-demo" });
