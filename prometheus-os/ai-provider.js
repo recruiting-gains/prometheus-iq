@@ -3,11 +3,14 @@ import { searchContext } from "./project-context.js";
 import { classifyPermission, routeCommandToTool, runAgentTool } from "./agent-actions.js";
 import { PermissionLevel, addAuditEntry, permissionLabel } from "./audit-log.js";
 import { getClarification, normalizeIntentText } from "./intent-router.js";
+import { createFounderFollowUpResponse, createFounderRundown, isFounderConversationCommand, isFounderFollowUp } from "./founder-conversation.js";
+import { createTopThreePriorities, createNextActionBrief } from "./daily-priority-engine.js";
 
 export class AIProvider {
   constructor({ mode = "local-demo" } = {}) {
     this.mode = mode;
     this.history = [];
+    this.currentFocus = null;
   }
 
   get providerLabel() {
@@ -37,6 +40,10 @@ export class AIProvider {
         permission: permissionLabel(permissionLevel),
         tone: "blocked"
       });
+    }
+
+    if (isFounderFollowUp(normalized)) {
+      return this.remember(cleanMessage, createFounderFollowUpResponse(normalized, this.history[0]));
     }
 
     if (toolName) {
@@ -81,6 +88,7 @@ export class AIProvider {
   }
 
   remember(input, response) {
+    this.currentFocus = response?.title || this.currentFocus;
     this.history.unshift({
       input,
       response,
@@ -130,10 +138,25 @@ export class AIProvider {
 
     if (command.includes("next") || command.includes("highest roi") || command.includes("highest leverage")) {
       return {
-        title: "Highest ROI task",
-        body: companyState.chiefOfStaff?.highestRoiTask || "Protect the beta signal. Get Anthony through a clean first test, capture friction, verify routes are understandable, and avoid adding features until the pilot proves the workflow.",
+        ...createNextActionBrief(),
         permission: "Level 0 - Read Only",
         tone: "priority"
+      };
+    }
+
+    if (command.includes("top 3") || command.includes("top three") || command.includes("priorities") || command.includes("what matters right now")) {
+      return {
+        ...createTopThreePriorities(),
+        permission: "Level 0 - Read Only",
+        tone: "priority"
+      };
+    }
+
+    if (isFounderConversationCommand(command)) {
+      return {
+        ...createFounderRundown(command),
+        permission: "Level 0 - Read Only",
+        tone: "chief-of-staff"
       };
     }
 

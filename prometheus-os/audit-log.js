@@ -1,4 +1,5 @@
 const STORAGE_KEY = "prometheus-os-audit-log";
+let memoryLog = [];
 
 export const PermissionLevel = Object.freeze({
   READ_ONLY: 0,
@@ -20,6 +21,9 @@ export function permissionLabel(level) {
 
 function readLog() {
   try {
+    if (typeof localStorage === "undefined" || typeof localStorage.getItem !== "function") {
+      return memoryLog;
+    }
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   } catch {
     return [];
@@ -27,7 +31,12 @@ function readLog() {
 }
 
 function writeLog(log) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(log.slice(0, 200)));
+  const nextLog = log.slice(0, 200);
+  if (typeof localStorage === "undefined" || typeof localStorage.setItem !== "function") {
+    memoryLog = nextLog;
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextLog));
 }
 
 export function addAuditEntry({ action, tool, permissionLevel, approved = false, blocked = false, result }) {
@@ -51,5 +60,7 @@ export function getAuditLog() {
 }
 
 export function clearAuditLog() {
+  memoryLog = [];
+  if (typeof localStorage === "undefined" || typeof localStorage.removeItem !== "function") return;
   localStorage.removeItem(STORAGE_KEY);
 }

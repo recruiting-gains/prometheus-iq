@@ -6,6 +6,16 @@ import { createCompanionProgressSummary, createProgressLogSummary } from "./prog
 import { createGithubBackupChecklist, draftChiefOfStaffCommitMessage } from "./github-backup-checklist.js";
 import { founderScorecardText } from "./founder-scorecard.js";
 import { routeCommandIntent } from "./intent-router.js";
+import { createTopThreePriorities, createNextActionBrief, createDailyPriorityEngineSummary } from "./daily-priority-engine.js";
+import { createBetaFeedbackReport } from "./beta-feedback-assistant.js";
+import { createEmailDraft } from "./email-drafting-mode.js";
+import { createFounderRundown } from "./founder-conversation.js";
+import {
+  createCommandInventory,
+  createCompanionIntelligenceRoadmap,
+  createCompanionReliabilityReport,
+  createEndOfDayDebrief
+} from "./reliability-monitor.js";
 
 const blockedPatterns = [
   /delete\s+files?/i,
@@ -55,10 +65,19 @@ export const agentTools = {
   createNextActionBrief: {
     permissionLevel: PermissionLevel.READ_ONLY,
     run() {
-      return {
-        title: "Highest ROI task",
-        body: "Protect the beta signal. Get Anthony through a clean test, capture where the workflow is confusing, verify the route feels actionable, and avoid new features until real usage proves what matters next."
-      };
+      return createNextActionBrief();
+    }
+  },
+  createTopThreePriorities: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return createTopThreePriorities();
+    }
+  },
+  createDailyPriorityEngineSummary: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return createDailyPriorityEngineSummary();
     }
   },
   summarizePrometheus: {
@@ -74,18 +93,33 @@ export const agentTools = {
     permissionLevel: PermissionLevel.READ_ONLY,
     run() {
       return {
-        title: "Pilot blockers",
-        body: "The main pilot blockers are leadership approval, HR and legal comfort, stable Companion and app behavior, clear user consent, and proof that reps will use the workflow daily. The founder move is to reduce perceived risk and collect clean beta evidence."
+        title: "Pilot Readiness",
+        body: "Pilot readiness is high, but not finished. The main blockers are leadership approval, HR and legal comfort, stable beta behavior, clear user consent, and proof that reps will use the workflow daily. The founder move is to reduce perceived risk and collect clean beta evidence."
       };
     }
   },
   createCompanionRoadmap: {
     permissionLevel: PermissionLevel.READ_ONLY,
     run() {
-      return {
-        title: "Prometheus roadmap",
-        body: "Next 7 days: stabilize Companion voice, run Anthony beta validation, and keep GitHub backups clean. Next 30 days: convert pilot feedback into proof, refine Route Intelligence, and prepare leadership follow-up. Next 90 days: prove repeatable adoption, formalize LLC operations, and turn Prometheus from a working product into a company system."
-      };
+      return createCompanionIntelligenceRoadmap();
+    }
+  },
+  createFounderRundown: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run({ command }) {
+      return createFounderRundown(command);
+    }
+  },
+  createCommandInventory: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return createCommandInventory();
+    }
+  },
+  createCompanionReliabilityReport: {
+    permissionLevel: PermissionLevel.SAFE_LOCAL_CHECK,
+    run() {
+      return createCompanionReliabilityReport();
     }
   },
   checkGitStatus: {
@@ -129,11 +163,8 @@ export const agentTools = {
   },
   createEmailAssistantClarification: {
     permissionLevel: PermissionLevel.PREPARE_ACTION,
-    run() {
-      return {
-        title: "Email Assistant",
-        body: "Email support is not connected yet. I can still help draft an email, prepare an outreach message, or create a follow-up note. What would you like me to write?"
-      };
+    run({ command }) {
+      return createEmailDraft(command);
     }
   },
   draftDeploymentChecklist: {
@@ -177,11 +208,14 @@ export const agentTools = {
   },
   createBetaFeedbackReport: {
     permissionLevel: PermissionLevel.PREPARE_ACTION,
+    run({ command }) {
+      return createBetaFeedbackReport(command);
+    }
+  },
+  createEndOfDayDebrief: {
+    permissionLevel: PermissionLevel.PREPARE_ACTION,
     run() {
-      return {
-        title: "Beta feedback report",
-        body: "Capture Anthony's route clarity, visit completion, GPS verification, logging friction, confusion points, and end-of-day export status."
-      };
+      return createEndOfDayDebrief();
     }
   }
 };
@@ -223,7 +257,7 @@ export function runAgentTool(toolName, command = "") {
     return { title: "Approval required", body: result, permissionLevel };
   }
 
-  const output = tool.run({ companyState, safeProjectContext });
+  const output = tool.run({ companyState, safeProjectContext, command });
   addAuditEntry({ action: command || toolName, tool: toolName, permissionLevel, approved: true, blocked: false, result: output.body });
   return { ...output, permissionLevel };
 }
@@ -264,8 +298,23 @@ export function routeCommandToTool(command) {
     normalized === "what should i do next" ||
     normalized === "next action" ||
     normalized === "highest roi task" ||
-    normalized === "highest leverage task"
+    normalized === "highest leverage task" ||
+    normalized.includes("whats the move") ||
+    normalized.includes("what is the move")
   ) return "createNextActionBrief";
+  if (
+    normalized.includes("top 3") ||
+    normalized.includes("top three") ||
+    normalized.includes("daily priorities") ||
+    normalized.includes("what matters right now")
+  ) return "createTopThreePriorities";
+  if (
+    normalized.includes("where are we at") ||
+    normalized.includes("give me the rundown") ||
+    normalized.includes("rundown") ||
+    normalized.includes("what did we finish") ||
+    normalized.includes("what should i tell chris")
+  ) return "createFounderRundown";
   if (
     normalized.includes("summarize prometheus companion progress") ||
     normalized.includes("companion progress") ||
@@ -292,5 +341,8 @@ export function routeCommandToTool(command) {
   if (normalized.includes("founder summary")) return "createFounderSummary";
   if (normalized.includes("beta feedback")) return "createBetaFeedbackReport";
   if (normalized.includes("anthony feedback")) return "createBetaFeedbackReport";
+  if (normalized.includes("health check") || normalized.includes("companion health") || normalized.includes("voice health")) return "createCompanionReliabilityReport";
+  if (normalized.includes("end of day") || normalized.includes("debrief") || normalized.includes("close the day")) return "createEndOfDayDebrief";
+  if (normalized.includes("command inventory") || normalized.includes("what can you do")) return "createCommandInventory";
   return null;
 }

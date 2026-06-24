@@ -87,6 +87,26 @@ Supported commands:
 - `Prometheus, draft my commit message.`
 - `Prometheus, what should I do next?`
 - `Prometheus, summarize Prometheus Companion progress.`
+- `Prometheus, what's the move?`
+- `Prometheus, what matters right now?`
+- `Prometheus, where are we at?`
+- `Prometheus, give me the rundown.`
+- `Prometheus, what did we finish?`
+- `Prometheus, what should I tell Chris?`
+- `Prometheus, capture Anthony beta feedback.`
+- `Prometheus, draft an email to Chris.`
+- `Prometheus, check Companion health.`
+- `Prometheus, end of day debrief.`
+
+Follow-up support:
+
+- After a recommendation, Cruz can ask `Why that?`, `Explain`, `Break that down`, or `Tell me more`.
+- Prometheus uses the previous answer as session memory and explains the reasoning from a founder-leverage perspective.
+
+Short ambiguous commands:
+
+- `Email`, `Chris`, `Anthony`, `Website`, `GitHub`, `Backup`, and `Pilot` ask a clarification question instead of guessing.
+- Specific commands such as `Pilot readiness`, `Draft an email to Chris`, and `Prepare GitHub backup` route directly.
 
 Daily brief covers:
 
@@ -110,6 +130,17 @@ PROMETHEUS OPERATING SYSTEM/09 Founder Operating System/Daily Progress Log.md
 ```
 
 Prometheus may prepare a GitHub backup checklist or draft commit message, but it must not commit, push, deploy, modify Anthony beta, or modify production behavior without explicit Cruz approval.
+
+## Chief Of Staff Intelligence
+
+Prometheus now includes local-only founder support modules:
+
+- Daily priority engine - ranks work by business impact, pilot value, revenue potential, risk reduction, founder energy, and urgency.
+- Beta feedback assistant - classifies Anthony feedback as bug, UX issue, route quality issue, data issue, feature request, or training issue.
+- Email drafting mode - drafts messages only; it does not connect Gmail or send email.
+- Founder conversation mode - answers direct operating questions such as what matters, what to tell Chris, and why a recommendation matters.
+- Reliability monitor - explains the health-check path for local server, backend, microphone, STT, router, TTS, playback, and listening resume.
+- End-of-day debrief - summarizes changed, fixed, learned, blocked, safe-to-commit status, and tomorrow's highest ROI task.
 
 ## Permission System
 

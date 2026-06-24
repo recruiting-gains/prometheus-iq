@@ -55,8 +55,22 @@ const toolRules = [
     intent: "next_action",
     category: "chief_of_staff",
     toolName: "createNextActionBrief",
-    exact: ["what should i do next", "next action", "highest roi task", "highest leverage task"],
-    phrases: ["what should i do next", "what is my next action", "what is the highest roi task", "what is the highest leverage task", "tell me what to do next"]
+    exact: ["what should i do next", "next action", "highest roi task", "highest leverage task", "whats the move", "what is the move"],
+    phrases: ["what should i do next", "what is my next action", "what is the highest roi task", "what is the highest leverage task", "tell me what to do next", "whats the move", "what is the move"]
+  },
+  {
+    intent: "daily_priorities",
+    category: "chief_of_staff",
+    toolName: "createTopThreePriorities",
+    exact: ["top 3 priorities", "top three priorities", "daily priorities", "what matters right now"],
+    phrases: ["show my top 3", "show top three", "rank my tasks", "what matters right now", "what are my priorities", "what should matter today"]
+  },
+  {
+    intent: "founder_rundown",
+    category: "chief_of_staff",
+    toolName: "createFounderRundown",
+    exact: ["where are we at", "give me the rundown", "rundown", "what did we finish", "what should i tell chris"],
+    phrases: ["where are we at", "give me the rundown", "what did we finish", "what should i tell chris", "tell me what to tell chris", "founder rundown"]
   },
   {
     intent: "progress_log",
@@ -76,8 +90,8 @@ const toolRules = [
     intent: "pilot_blockers",
     category: "pilot",
     toolName: "createPilotBlockerBrief",
-    exact: ["what is blocking the pilot", "pilot blockers", "what blocks the pilot"],
-    phrases: ["what is blocking the pilot", "what could block the pilot", "show pilot blockers", "pilot risks"]
+    exact: ["what is blocking the pilot", "pilot blockers", "what blocks the pilot", "pilot readiness"],
+    phrases: ["what is blocking the pilot", "what could block the pilot", "show pilot blockers", "pilot risks", "show pilot readiness", "review pilot readiness"]
   },
   {
     intent: "companion_progress",
@@ -108,11 +122,32 @@ const toolRules = [
     phrases: ["show companion roadmap", "show prometheus roadmap", "next 30 days", "next 90 days"]
   },
   {
+    intent: "companion_reliability",
+    category: "chief_of_staff",
+    toolName: "createCompanionReliabilityReport",
+    exact: ["companion health", "voice health", "health check", "check companion health"],
+    phrases: ["check companion health", "check voice health", "run health check", "is companion healthy"]
+  },
+  {
+    intent: "end_of_day_debrief",
+    category: "chief_of_staff",
+    toolName: "createEndOfDayDebrief",
+    exact: ["end of day debrief", "close the day", "daily debrief"],
+    phrases: ["give me end of day debrief", "close the day", "summarize the day", "end of day"]
+  },
+  {
+    intent: "command_inventory",
+    category: "chief_of_staff",
+    toolName: "createCommandInventory",
+    exact: ["command inventory", "what can you do"],
+    phrases: ["show command inventory", "what can you do", "what commands work", "show companion commands"]
+  },
+  {
     intent: "email_assistant",
     category: "email",
     toolName: "createEmailAssistantClarification",
-    exact: ["draft an email", "write an email"],
-    phrases: ["prepare an email", "draft email", "write email", "email to chris", "outreach email", "follow up email"]
+    exact: ["draft an email", "write an email", "draft email", "write email"],
+    phrases: ["prepare an email", "draft email", "write email", "email to chris", "outreach email", "follow up email", "prepare an email to chris", "draft an email to chris", "social caption", "pilot outreach"]
   }
 ];
 
