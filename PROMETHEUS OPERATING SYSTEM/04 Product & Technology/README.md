@@ -9,6 +9,8 @@ This folder is the product and engineering control center. It helps future build
 - `docs/product-vision.md`
 - `docs/prometheus.md`
 - `docs/cloud-beta-cost-and-response-plan.md`
+- `docs/google-places-integration-readiness-plan.md`
+- `docs/3d-website-production-route.md`
 - `docs/public-site-cloudflare-readiness.md`
 - `docs/website-cinematic-prompts.md`
 - `README.md`
@@ -30,6 +32,8 @@ This folder is the product and engineering control center. It helps future build
 - Product Vision: Use to understand the long-term product direction.
 - Prometheus Notes: Use to understand the broader product concept and founder thinking.
 - Cloud Beta Cost and Response Plan: Use when planning accounts, cloud storage, synchronization, backups, and beta costs.
+- Google Places Integration Readiness Plan: Use when preparing future server-side prospect enrichment after the beta proves the workflow.
+- 3D Website Production Route: Use when building future Spline/Codex-powered 3D websites or company-specific demo sites.
 - Public Site Cloudflare Readiness: Use before deploying the public marketing website.
 - Website Cinematic Prompts: Use when continuing the cinematic homepage direction.
 - Root README: Use for basic project orientation.

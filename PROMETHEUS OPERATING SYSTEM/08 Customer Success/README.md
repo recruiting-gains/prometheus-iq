@@ -8,6 +8,8 @@ This folder is the customer adoption and support center. It explains how Prometh
 
 - `docs/prometheus-pilot-execution-playbook.md`
 - `docs/prometheus-iq-pilot-success-metrics-framework.md`
+- `docs/pilot-support-system.md`
+- `docs/business-pilot-discovery-and-demo-dashboard-process.md`
 - `docs/beta-sharing-plan.md`
 - `docs/cloud-beta-cost-and-response-plan.md`
 
@@ -15,6 +17,8 @@ This folder is the customer adoption and support center. It explains how Prometh
 
 - Pilot Execution Playbook: Use to run a clean pilot from setup through final report.
 - Pilot Success Metrics Framework: Use to measure customer outcomes.
+- Pilot Support System: Use to capture beta issues, feedback, and founder responses during live testing.
+- Business Pilot Discovery And Demo Dashboard Process: Use to turn new business conversations into separate demo dashboards and future pilot setups.
 - Beta Sharing Plan: Use when adding testers carefully.
 - Cloud Beta Cost and Response Plan: Use when planning account setup, support load, backups, and private beta readiness.
 
@@ -41,4 +45,3 @@ This folder is the customer adoption and support center. It explains how Prometh
 ## Guardrail
 
 Customer success should reduce friction, not create new features every time a user has feedback. Track feedback, look for patterns, and only build what improves adoption or measurable outcomes.
-

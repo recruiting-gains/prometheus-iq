@@ -13,6 +13,7 @@ This folder keeps the founder strong, focused, and repeatable. It protects the c
 - `docs/investor-readiness-plan.md`
 - `docs/today-roadmap-october-1.md`
 - `docs/daily-plan-2026-06-19.md`
+- `PROMETHEUS OPERATING SYSTEM/09 Founder Operating System/Daily Progress Log.md`
 
 ## When To Use Each Document
 
@@ -23,6 +24,7 @@ This folder keeps the founder strong, focused, and repeatable. It protects the c
 - Investor Readiness Plan: Use when preparing for future investor conversations.
 - October 1 Roadmap: Use for long-range planning and milestone tracking.
 - Daily Plan: Use as a sample of daily execution discipline.
+- Daily Progress Log: Use after meaningful work sessions to preserve what changed, what moved forward, deployment status, GitHub status, and the next recommended move.
 
 ## Who Should Use This Folder
 

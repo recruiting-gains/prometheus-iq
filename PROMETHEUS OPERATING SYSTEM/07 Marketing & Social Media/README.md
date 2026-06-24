@@ -7,6 +7,7 @@ This folder is the brand, website, social media, and public messaging center. It
 ## Included Documents And Assets
 
 - `docs/website-cinematic-prompts.md`
+- `docs/3d-website-production-route.md`
 - `docs/public-site-cloudflare-readiness.md`
 - `public-assets/prometheus-command-center.png`
 - `icons/`
@@ -19,6 +20,7 @@ This folder is the brand, website, social media, and public messaging center. It
 ## When To Use Each Document Or Asset
 
 - Website Cinematic Prompts: Use when refining the cinematic homepage and launch trailer direction.
+- 3D Website Production Route: Use when creating premium 3D websites, Spline scenes, or company-specific web demos.
 - Public Site Cloudflare Readiness: Use before deploying the public website.
 - Public Assets and Icons: Use for Prometheus-branded visuals.
 - Landing / Website Files: Use for website updates.
@@ -48,4 +50,3 @@ This folder is the brand, website, social media, and public messaging center. It
 ## Guardrail
 
 Public marketing should say what Prometheus does and why it matters. It should not say how the proprietary intelligence layer works.
-
