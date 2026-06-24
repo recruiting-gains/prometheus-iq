@@ -51,6 +51,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private var nativeAudioRecorder: AVAudioRecorder?
     private var nativeRecordingURL: URL?
     private var audioPlaybackGeneration = 0
+    private var backgroundProcesses: [String: Process] = [:]
+    private var backgroundLogHandles: [String: FileHandle] = [:]
 
     private struct ChatMessage: Codable {
         let role: String
@@ -185,6 +187,15 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             process.standardOutput = handle
             process.standardError = handle
             try process.run()
+            backgroundProcesses[logName] = process
+            backgroundLogHandles[logName] = handle
+            process.terminationHandler = { [weak self] finishedProcess in
+                Task { @MainActor [weak self] in
+                    self?.log("Background service \(logName) exited with status \(finishedProcess.terminationStatus).")
+                    self?.backgroundProcesses[logName] = nil
+                    self?.backgroundLogHandles[logName] = nil
+                }
+            }
             log("Started \(logName) service with PID \(process.processIdentifier).")
         } catch {
             log("Failed to start \(logName) service: \(error.localizedDescription).")
@@ -755,7 +766,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
         let hasWakePhrase = extractWakeCommand(from: cleanTranscript) != nil
         let hasDirectCommand = directSystemCommand(for: cleanTranscript) != nil
-        guard hasWakePhrase || hasDirectCommand || conversationActive else {
+        let hasFounderReasoningQuestion = isFounderReasoningQuestion(cleanTranscript)
+        guard hasWakePhrase || hasDirectCommand || hasFounderReasoningQuestion || conversationActive else {
             scheduleNativeSttCapture(after: 0.8)
             return
         }
@@ -780,6 +792,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
                 guard let self else { return }
                 if let error {
                     self.log("Web command route failed: \(error.localizedDescription). Falling back to native route.")
+                    if self.isFounderReasoningQuestion(transcript) {
+                        self.speak("I could not reach the Prometheus reasoning engine in the WebView. Reopen Prometheus OS and try again so I do not fall back to a card answer.")
+                        self.scheduleNativeSttCapture(after: 2.0)
+                        return
+                    }
                     self.handleTranscript(transcript, isFinal: true)
                     return
                 }
@@ -866,7 +883,50 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private func isFounderReasoningQuestion(_ transcript: String) -> Bool {
+        let normalized = normalizeCommand(transcript)
+        guard !normalized.isEmpty else { return false }
+
+        let reasoningSignals = [
+            "what happened yesterday",
+            "happened yesterday",
+            "what happened this week",
+            "changed this week",
+            "what changed today",
+            "changed today",
+            "what did we finish",
+            "what should i do next",
+            "what major systems have been built",
+            "major systems have been built",
+            "what changed in prometheus over the last month",
+            "changed in prometheus over the last month",
+            "over the last month",
+            "who is anthony",
+            "why is anthony important",
+            "what is the biggest risk to prometheus today",
+            "if you were my coo",
+            "what would you tell me to do tomorrow",
+            "why is google places more important than meta",
+            "google places more important than meta",
+            "how many businesses did anthony visit today",
+            "how many businesses did anthony visit",
+            "highest roi",
+            "biggest risk",
+            "biggest blocker",
+            "why is google places blocked",
+            "google places blocked",
+            "what about anthony",
+            "what about chris"
+        ]
+
+        return reasoningSignals.contains { signal in
+            let normalizedSignal = normalizeCommand(signal)
+            return normalized == normalizedSignal || normalized.contains(normalizedSignal)
+        }
+    }
+
     private func directSystemCommand(for transcript: String) -> (nodeId: String, response: String)? {
+        guard !isFounderReasoningQuestion(transcript) else { return nil }
         let normalized = normalizeCommand(transcript)
         guard !normalized.isEmpty else { return nil }
 

@@ -5,6 +5,10 @@ import { PermissionLevel, addAuditEntry, permissionLabel } from "./audit-log.js"
 import { getClarification, normalizeIntentText } from "./intent-router.js";
 import { createFounderFollowUpResponse, createFounderRundown, isFounderConversationCommand, isFounderFollowUp } from "./founder-conversation.js";
 import { createTopThreePriorities, createNextActionBrief } from "./daily-priority-engine.js";
+import { createContextualFollowUpResponse, isContextualFollowUp } from "./conversation-context.js";
+import { createKnowledgeGraphSummary, resolveEntityKey } from "./knowledge-graph.js";
+import { createMemorySystemSummary, createTimelineAnswer, createUnfinishedWorkRecap } from "./memory-system.js";
+import { cognitiveEngine } from "./cognitive-engine.js";
 
 export class AIProvider {
   constructor({ mode = "local-demo" } = {}) {
@@ -23,7 +27,6 @@ export class AIProvider {
     const cleanMessage = String(message || "").trim();
     const normalized = this.normalizeFounderCommand(cleanMessage);
     const permissionLevel = classifyPermission(normalized);
-    const toolName = routeCommandToTool(normalized);
 
     if (permissionLevel === PermissionLevel.BLOCKED) {
       addAuditEntry({
@@ -42,10 +45,33 @@ export class AIProvider {
       });
     }
 
+    if (cognitiveEngine.shouldAnswer(normalized, this.history)) {
+      return this.remember(cleanMessage, cognitiveEngine.answer(cleanMessage, this.history));
+    }
+
+    const clarification = getClarification(normalized);
+    if (clarification) {
+      return this.remember(cleanMessage, {
+        title: clarification.title,
+        body: clarification.body,
+        permission: "Level 0 - Read Only",
+        tone: "clarification",
+        metadata: {
+          intent: clarification.intent,
+          category: clarification.category
+        }
+      });
+    }
+
+    if (isContextualFollowUp(normalized)) {
+      return this.remember(cleanMessage, createContextualFollowUpResponse(normalized, this.history[0]));
+    }
+
     if (isFounderFollowUp(normalized)) {
       return this.remember(cleanMessage, createFounderFollowUpResponse(normalized, this.history[0]));
     }
 
+    const toolName = routeCommandToTool(normalized);
     if (toolName) {
       const output = runAgentTool(toolName, cleanMessage);
       return this.remember(cleanMessage, {
@@ -106,6 +132,10 @@ export class AIProvider {
         permission: "Level 0 - Read Only",
         tone: "idle"
       };
+    }
+
+    if (cognitiveEngine.shouldAnswer(command, this.history)) {
+      return cognitiveEngine.answer(command, this.history);
     }
 
     const clarification = getClarification(command);
@@ -229,6 +259,47 @@ export class AIProvider {
         body: promptTemplates.codexBuild,
         permission: "Level 2 - Prepare Action",
         tone: "prompt"
+      };
+    }
+
+    if (command.includes("memory system") || command.includes("company memory")) {
+      return {
+        ...createMemorySystemSummary(),
+        permission: "Level 0 - Read Only",
+        tone: "memory"
+      };
+    }
+
+    if (command.includes("what happened") || command.includes("yesterday") || command.includes("this week") || command.includes("since last login")) {
+      return {
+        ...createTimelineAnswer(command),
+        permission: "Level 0 - Read Only",
+        tone: "memory"
+      };
+    }
+
+    if (command.includes("unfinished") || command.includes("what remains") || command.includes("still needs work")) {
+      return {
+        ...createUnfinishedWorkRecap(),
+        permission: "Level 0 - Read Only",
+        tone: "memory"
+      };
+    }
+
+    if (command.includes("knowledge graph") || command.includes("relationship map") || command.includes("dependency map")) {
+      return {
+        ...createKnowledgeGraphSummary(command),
+        permission: "Level 0 - Read Only",
+        tone: "memory"
+      };
+    }
+
+    const entityKey = resolveEntityKey(command);
+    if (entityKey && command.includes("memory")) {
+      return {
+        ...createKnowledgeGraphSummary(command),
+        permission: "Level 0 - Read Only",
+        tone: "memory"
       };
     }
 

@@ -12,6 +12,9 @@ deploy/*.zip
 *.pem
 *.key
 *.p12
+data/qualified-prospects/google-discovered-prospects.csv
+data/qualified-prospects/anthony-google-route-preview.json
+data/qualified-prospects/google-discovery-readiness-report.json
 ~$*
 coverage/
 .DS_Store

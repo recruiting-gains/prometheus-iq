@@ -3,7 +3,8 @@ import { aiProvider } from "./ai-provider.js";
 import { VoiceAssistant } from "./voice-assistant.js";
 import { createPrometheusScene } from "./three-scene.js";
 import { routeCommandToTool } from "./agent-actions.js";
-import { getClarification, matchNodeIntent, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
+import { getClarification, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
+import { resolveCompanionCommandRoute } from "./companion-command-router.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -48,6 +49,7 @@ let commandInFlight = false;
 let lastDebugMessage = "";
 let webAudioPlaybackGeneration = 0;
 let webAudioStallTimer = 0;
+let lastCommandResult = null;
 
 if (forceFounderVoiceDefaults) {
   localStorage.setItem("prometheus-os-tts-provider", selectedTtsProvider);
@@ -105,6 +107,21 @@ function commandFromTranscript(value) {
   const wake = voice.extractWakeCommand(cleaned);
   if (wake.woke && wake.command) return cleanSpeechCommand(wake.command);
   return cleaned;
+}
+
+function shouldAttachRouteDiagnostic(message) {
+  const normalized = normalizeIntentText(message);
+  return normalized.includes("what happened yesterday") ||
+    normalized.includes("what happened this week") ||
+    normalized.includes("what should i do next") ||
+    normalized.includes("biggest risk");
+}
+
+function routeDiagnosticText(commandRoute) {
+  const routeSelected = commandRoute.type === "cognitive" ? "intelligence_orchestrator" : commandRoute.type;
+  const cognitiveEngineUsed = commandRoute.type === "cognitive" ? "yes" : "no";
+  const cardFallbackUsed = commandRoute.type === "node" ? "yes" : "no";
+  return `Diagnostic: route selected ${routeSelected}. Cognitive engine used: ${cognitiveEngineUsed}. Card fallback used: ${cardFallbackUsed}.`;
 }
 
 function setVoiceState(state) {
@@ -312,10 +329,6 @@ function nodePhrases(node) {
   }[node.id] || [];
 
   return [base, ...aliases].map(normalizeCommandText).filter(Boolean);
-}
-
-function findNodeFromCommand(command) {
-  return matchNodeIntent(command, systemNodes(), nodePhrases);
 }
 
 function voiceSettingsMarkup() {
@@ -790,6 +803,16 @@ async function speakNodeStatus(node, { source = "node" } = {}) {
       text: `${node.value}. ${node.detail}`
     });
     await speakResponse(lastSpokenText);
+    lastCommandResult = {
+      type: "node",
+      routeSelected: "node",
+      nodeId: node.id,
+      title: node.label,
+      body: `${node.value}. ${node.detail}`,
+      cardFallbackUsed: true,
+      source
+    };
+    return lastCommandResult;
   } finally {
     commandInFlight = false;
   }
@@ -807,14 +830,22 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
   const normalized = normalizeIntentText(message);
   debugVoice("normalized transcript", normalized || "(empty)", { kind: "ok" });
 
-  const routedIntent = routeCommandIntent(message);
+  const commandRoute = resolveCompanionCommandRoute({
+    command: message,
+    history: aiProvider.history,
+    skipNodeRouting,
+    nodes: systemNodes(),
+    phrasesForNode: nodePhrases
+  });
+  const routedIntent = commandRoute.routedIntent || routeCommandIntent(message);
+  const shouldReason = commandRoute.type === "cognitive";
   debugVoice(
     "matched intent",
-    `${routedIntent.intent} confidence:${routedIntent.confidence.toFixed(2)} reason:${routedIntent.reason}`,
-    { kind: routedIntent.type === "unknown" ? "warn" : "ok" }
+    `${shouldReason ? "intelligence_orchestrator" : routedIntent.intent} confidence:${commandRoute.confidence.toFixed(2)} reason:${commandRoute.reason}`,
+    { kind: commandRoute.type !== "provider" || routedIntent.type !== "unknown" ? "ok" : "warn" }
   );
 
-  const clarification = getClarification(message);
+  const clarification = commandRoute.type === "clarification" ? commandRoute.clarification : null;
   if (clarification && !skipNodeRouting) {
     commandInFlight = true;
     try {
@@ -826,38 +857,61 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
         text: clarification.body
       });
       await speakResponse(lastSpokenText);
+      lastCommandResult = {
+        type: "clarification",
+        routeSelected: "clarification",
+        intent: clarification.intent,
+        title: clarification.title,
+        body: clarification.body,
+        cardFallbackUsed: false,
+        source
+      };
+      return lastCommandResult;
     } finally {
       commandInFlight = false;
     }
-    return;
   }
 
-  const matchedNode = skipNodeRouting ? null : findNodeFromCommand(message);
+  const matchedNode = commandRoute.type === "node" ? commandRoute.matchedNode : null;
   if (matchedNode) {
     debugVoice(
       "command route selected",
       `node:${matchedNode.nodeId} confidence:${matchedNode.confidence.toFixed(2)} reason:${matchedNode.reason}`,
       { kind: "ok" }
     );
-    await speakNodeStatus(matchedNode.node, { source });
-    return;
+    return speakNodeStatus(matchedNode.node, { source });
   }
 
   commandInFlight = true;
   try {
     setVoiceState("thinking");
-    const routedTool = routeCommandToTool(normalizeRouteCommand(message)) || "safe project context";
+    const routedTool = shouldReason
+      ? "intelligence orchestrator"
+      : routeCommandToTool(normalizeRouteCommand(message)) || "safe project context";
     debugVoice("Matched command", routedTool, { kind: "ok" });
     const response = await aiProvider.ask(message);
     debugVoice("response text generated", response.title, { kind: "ok" });
-    lastSpokenText = `${response.title}. ${response.body}`;
+    const diagnostic = shouldAttachRouteDiagnostic(message) ? `\n\n${routeDiagnosticText(commandRoute)}` : "";
+    const responseBody = `${response.body}${diagnostic}`;
+    lastSpokenText = `${response.title}. ${responseBody}`;
     openDetail({
       kicker: "Prometheus response",
       title: response.title,
-      text: response.body
+      text: responseBody
     });
 
     await speakResponse(lastSpokenText);
+    lastCommandResult = {
+      type: commandRoute.type,
+      routeSelected: response.metadata?.routeSelected || (shouldReason ? "intelligence_orchestrator" : "provider"),
+      title: response.title,
+      body: responseBody,
+      cognitive: response.metadata?.cognitive === true,
+      orchestrator: response.metadata?.orchestrator === true,
+      cardFallbackUsed: response.metadata?.cardFallbackUsed === true,
+      source
+    };
+    return lastCommandResult;
   } finally {
     commandInFlight = false;
   }
@@ -1038,7 +1092,7 @@ window.prometheusOSOpenNode = (nodeId) => {
 };
 
 window.prometheusOSSubmitCommand = (command) => {
-  submitCommand(command, { source: "companion bridge" });
+  return submitCommand(command, { source: "companion bridge" });
 };
 
 window.prometheusOSSetVoiceDebug = (stage, message = "", kind = "info") => {
@@ -1064,6 +1118,8 @@ window.prometheusOSStartBackendSTT = () => {
 window.prometheusOSDebugCommand = (command) => {
   return submitCommand(command, { source: "debug command" });
 };
+
+window.prometheusOSGetLastCommandResult = () => lastCommandResult;
 
 window.prometheusOSHealthCheck = async () => {
   const browserSpeechRecognition = Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
