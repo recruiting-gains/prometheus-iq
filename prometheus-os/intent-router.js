@@ -52,6 +52,13 @@ const toolRules = [
     phrases: ["give me todays brief", "show todays brief", "read todays brief", "daily founder brief"]
   },
   {
+    intent: "next_action",
+    category: "chief_of_staff",
+    toolName: "createNextActionBrief",
+    exact: ["what should i do next", "next action", "highest roi task", "highest leverage task"],
+    phrases: ["what should i do next", "what is my next action", "what is the highest roi task", "what is the highest leverage task", "tell me what to do next"]
+  },
+  {
     intent: "progress_log",
     category: "chief_of_staff",
     toolName: "createProgressLogEntry",
@@ -59,11 +66,46 @@ const toolRules = [
     phrases: ["what changed today", "update the daily progress log", "progress log"]
   },
   {
+    intent: "founder_scorecard",
+    category: "chief_of_staff",
+    toolName: "createFounderScorecard",
+    exact: ["founder scorecard", "scorecard"],
+    phrases: ["show founder scorecard", "read founder scorecard", "how am i doing"]
+  },
+  {
+    intent: "pilot_blockers",
+    category: "pilot",
+    toolName: "createPilotBlockerBrief",
+    exact: ["what is blocking the pilot", "pilot blockers", "what blocks the pilot"],
+    phrases: ["what is blocking the pilot", "what could block the pilot", "show pilot blockers", "pilot risks"]
+  },
+  {
+    intent: "companion_progress",
+    category: "chief_of_staff",
+    toolName: "summarizeCompanionProgress",
+    exact: ["companion progress", "prometheus companion progress"],
+    phrases: ["summarize prometheus companion progress", "show companion progress", "what changed with companion"]
+  },
+  {
     intent: "github_backup",
     category: "repository",
     toolName: "createGithubBackupChecklist",
     exact: ["prepare github backup", "github backup", "backup checklist"],
     phrases: ["prepare github backup", "safe backup", "github backup checklist"]
+  },
+  {
+    intent: "beta_feedback",
+    category: "beta",
+    toolName: "createBetaFeedbackReport",
+    exact: ["beta feedback", "anthony feedback"],
+    phrases: ["prepare beta feedback", "create beta feedback report", "anthony beta feedback", "capture beta feedback"]
+  },
+  {
+    intent: "companion_roadmap",
+    category: "chief_of_staff",
+    toolName: "createCompanionRoadmap",
+    exact: ["companion roadmap", "prometheus roadmap", "roadmap"],
+    phrases: ["show companion roadmap", "show prometheus roadmap", "next 30 days", "next 90 days"]
   },
   {
     intent: "email_assistant",

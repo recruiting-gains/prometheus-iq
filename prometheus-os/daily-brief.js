@@ -15,8 +15,8 @@ export function createDailyBrief({ voiceLength = "short" } = {}) {
   const brief = {
     date: today,
     prometheusStatus: "Prometheus OS is active as a private founder assistant. Prometheus IQ remains separate from the public website and Anthony beta.",
-    highestRoiTask: "Collect and review real beta feedback before adding new features.",
-    biggestRisk: "The biggest company risk is building beyond the validation signal before external pilot data proves adoption.",
+    highestRoiTask: "Protect the beta signal: collect real rep feedback, confirm the route is actionable, and document where the workflow creates or removes friction.",
+    biggestRisk: "The biggest company risk is mistaking internal progress for market proof before external pilot data proves adoption.",
     anthonyBetaStatus: `${anthony?.value || "Ready"}. ${anthony?.detail || ""}`,
     leadershipStatus: "Chris has the context for Dallas leadership. Keep follow-up simple: approval for a controlled 14-day pilot with three approved users.",
     websiteStatus: `${website?.value || "Live"}. ${website?.detail || ""}`,
@@ -25,7 +25,7 @@ export function createDailyBrief({ voiceLength = "short" } = {}) {
     pilotReadinessStatus: `${pilot?.value || "High"}. ${pilot?.detail || ""}`,
     socialOpportunity: `${social?.value || "@prometheus.iq"}. Post founder progress and private pilot momentum without exposing internal technology.`,
     founderScorecard: founderScorecardText(),
-    recommendedNextAction: "Run the beta workflow, capture feedback, then prepare a clean GitHub backup only after reviewing changed files and confirming no secrets."
+    recommendedNextAction: "Run one clean validation loop: test the beta workflow, capture feedback, update the daily log, then prepare a GitHub backup only after reviewing changed files and confirming no secrets."
   };
 
   if (voiceLength === "long") return brief;
@@ -42,6 +42,7 @@ export function createDailyBrief({ voiceLength = "short" } = {}) {
       `${llc?.label || "LLC setup"} remains ${llc?.value?.toLowerCase() || "pending"}.`,
       `Highest ROI task: ${brief.highestRoiTask}`,
       `Biggest risk: ${brief.biggestRisk}`,
+      "Founder rule: validation beats new features today.",
       `Recommended focus: ${brief.recommendedNextAction}`
     ].join(" ")
   };

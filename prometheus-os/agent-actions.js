@@ -52,12 +52,39 @@ export const agentTools = {
       };
     }
   },
+  createNextActionBrief: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return {
+        title: "Highest ROI task",
+        body: "Protect the beta signal. Get Anthony through a clean test, capture where the workflow is confusing, verify the route feels actionable, and avoid new features until real usage proves what matters next."
+      };
+    }
+  },
   summarizePrometheus: {
     permissionLevel: PermissionLevel.READ_ONLY,
     run() {
       return {
         title: "Prometheus summary",
         body: "Prometheus IQ has a live website, protected app, Anthony beta preparation, Route Intelligence direction, executive packet, pilot package, GitHub backup, and Cloudflare deployment. The highest-leverage move is pilot validation."
+      };
+    }
+  },
+  createPilotBlockerBrief: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return {
+        title: "Pilot blockers",
+        body: "The main pilot blockers are leadership approval, HR and legal comfort, stable Companion and app behavior, clear user consent, and proof that reps will use the workflow daily. The founder move is to reduce perceived risk and collect clean beta evidence."
+      };
+    }
+  },
+  createCompanionRoadmap: {
+    permissionLevel: PermissionLevel.READ_ONLY,
+    run() {
+      return {
+        title: "Prometheus roadmap",
+        body: "Next 7 days: stabilize Companion voice, run Anthony beta validation, and keep GitHub backups clean. Next 30 days: convert pilot feedback into proof, refine Route Intelligence, and prepare leadership follow-up. Next 90 days: prove repeatable adoption, formalize LLC operations, and turn Prometheus from a working product into a company system."
       };
     }
   },
@@ -228,11 +255,34 @@ export function routeCommandToTool(command) {
   ) return "createGithubBackupChecklist";
   if (normalized.includes("founder scorecard") || normalized.includes("scorecard")) return "createFounderScorecard";
   if (
+    normalized === "what is blocking the pilot" ||
+    normalized === "pilot blockers" ||
+    normalized === "what blocks the pilot" ||
+    normalized.includes("pilot risks")
+  ) return "createPilotBlockerBrief";
+  if (
+    normalized === "what should i do next" ||
+    normalized === "next action" ||
+    normalized === "highest roi task" ||
+    normalized === "highest leverage task"
+  ) return "createNextActionBrief";
+  if (
     normalized.includes("summarize prometheus companion progress") ||
     normalized.includes("companion progress") ||
     normalized.includes("prometheus companion progress")
   ) return "summarizeCompanionProgress";
-  if (normalized.includes("summarize") || normalized.includes("today") || normalized.includes("changed")) return "summarizePrometheus";
+  if (
+    normalized === "companion roadmap" ||
+    normalized === "prometheus roadmap" ||
+    normalized === "roadmap" ||
+    normalized.includes("next 30 days") ||
+    normalized.includes("next 90 days")
+  ) return "createCompanionRoadmap";
+  if (
+    normalized === "summarize prometheus" ||
+    normalized === "prometheus summary" ||
+    normalized === "company summary"
+  ) return "summarizePrometheus";
   if (normalized.includes("git status") || normalized.includes("github status")) return "checkGitStatus";
   if (normalized.includes("run tests") || normalized.includes("test")) return "runTests";
   if (normalized.includes("run build") || normalized.includes("build")) return "runBuild";
@@ -241,5 +291,6 @@ export function routeCommandToTool(command) {
   if (normalized.includes("codex prompt")) return "draftCodexPrompt";
   if (normalized.includes("founder summary")) return "createFounderSummary";
   if (normalized.includes("beta feedback")) return "createBetaFeedbackReport";
+  if (normalized.includes("anthony feedback")) return "createBetaFeedbackReport";
   return null;
 }

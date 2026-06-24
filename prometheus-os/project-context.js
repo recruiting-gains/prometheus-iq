@@ -25,8 +25,12 @@ export const safeProjectContext = {
     safeUse: "Use for briefing, approval conversation, pilot request, risk controls, and success metrics."
   },
   googlePlaces: {
-    summary: "Google Places integration is planned after beta. API keys must remain backend-only. It may improve qualified prospect discovery once secured and cost-monitored.",
-    status: "Planned, not implemented."
+    summary: "Google Places integration is planned for qualified prospect discovery. API keys must remain backend-only and should never be committed or printed.",
+    status: "Architecture prepared; live discovery requires valid local Google API keys and explicit approval before production use."
+  },
+  companion: {
+    summary: "Prometheus Companion is a local-only founder assistant with premium TTS support, local STT routing, Daily Chief of Staff commands, progress logging, and GitHub backup preparation.",
+    safeUse: "Use for local founder briefs, next-action guidance, status summaries, and preparation steps that do not modify production systems without approval."
   },
   blockedSources: [
     ".env",

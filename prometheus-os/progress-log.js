@@ -52,7 +52,7 @@ export function createDailyProgressLogEntry() {
 export function createProgressLogSummary() {
   return {
     title: "Daily Progress Log",
-    body: "Today’s progress log is ready. Prometheus Companion moved closer to a Daily Chief of Staff: brief, risk, scorecard, progress summary, and GitHub backup preparation. No deploy or push has been performed."
+    body: "Today’s progress log is ready. Prometheus Companion moved closer to a Daily Chief of Staff: clearer brief, better risk language, safer command routing, stronger next-action guidance, and GitHub backup preparation. No deploy, push, or production app change has been performed."
   };
 }
 

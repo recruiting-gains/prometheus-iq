@@ -15,7 +15,7 @@ export function getFounderScorecard() {
     {
       label: "Founder Execution",
       score: "8/10",
-      detail: "Website, GitHub, Cloudflare, companion, and operating documents are moving together. Keep sessions focused and end with a backup decision."
+      detail: "Website, GitHub, Cloudflare, companion, and operating documents are moving together. Keep sessions focused, write down what changed, and end with a backup decision."
     },
     {
       label: "Business Risk Control",
@@ -26,6 +26,11 @@ export function getFounderScorecard() {
       label: "Market Proof",
       score: "6/10",
       detail: "Internal progress is strong, but Prometheus needs clean beta data, rep feedback, and leadership response before the story becomes enterprise-grade proof."
+    },
+    {
+      label: "Founder Focus",
+      score: "7/10",
+      detail: "The next unlock is discipline: fewer new builds, more validation loops, cleaner feedback, and stronger proof for Chris, Dallas leadership, and future pilots."
     }
   ];
 }
