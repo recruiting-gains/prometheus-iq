@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-P1zXdMx7L9w/yipklvzRyqv0kgLUf5JNl25hMhc+GiQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-zDgK8P5SUQU5wLES27tVBsFr2BGr4lPmG4iMd5/5tyM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -220,6 +220,13 @@
       letter-spacing: .04em;
     }
 
+    .stat small {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
     .progress {
       height: 12px;
       background: #e8ece9;
@@ -423,6 +430,13 @@
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
+    }
+
+    .intel-metric small {
+      color: rgba(255,255,255,.62);
+      font-size: 10px;
+      font-weight: 700;
+      line-height: 1.25;
     }
 
     .intel-warning {
@@ -777,14 +791,17 @@
           <article class="panel pad stat">
             <span>Units Today</span>
             <b id="unitsToday">0</b>
+            <small id="unitsContext">Waiting for first outcome</small>
           </article>
           <article class="panel pad stat">
             <span>Need</span>
             <b id="unitsNeed">4</b>
+            <small id="needContext">Goal probability pending</small>
           </article>
           <article class="panel pad stat">
             <span>Visits Today</span>
             <b id="visitsToday">0</b>
+            <small id="visitsContext">Route pace pending</small>
           </article>
         </div>
 
@@ -798,10 +815,12 @@
             <div class="stat panel pad">
               <span>Conversations</span>
               <b id="talksToday">0</b>
+              <small id="talksContext">Conversation pace pending</small>
             </div>
             <div class="stat panel pad">
               <span>Leads</span>
               <b id="leadsToday">0</b>
+              <small id="leadsContext">Lead pace pending</small>
             </div>
           </div>
           <div class="action-row">
@@ -829,9 +848,9 @@
             </div>
             <div class="intel-grid">
               <div class="intel-metrics">
-                <div class="intel-metric"><span>Expected</span><b id="intelExpected">-</b></div>
+                <div class="intel-metric"><span>Expected</span><b id="intelExpected">-</b><small id="intelExpectedReason">Waiting for route signal</small></div>
                 <div class="intel-metric"><span>Window</span><b id="intelWindow">-</b></div>
-                <div class="intel-metric"><span>Confidence</span><b id="intelConfidence">-</b></div>
+                <div class="intel-metric"><span>Confidence</span><b id="intelConfidence">-</b><small id="intelConfidenceReason">Evidence pending</small></div>
               </div>
               <div class="intel-warning" id="routeRisk">Start logging visits and this gets sharper.</div>
             </div>
@@ -2464,12 +2483,222 @@
     }
 
     function routeConfidence(place) {
-      const stats = placeStats(place.id);
-      const totalUnits = stats.units + stats.laterUnits;
-      if (stats.visits >= 3 && (totalUnits > 0 || stats.leads >= 3)) return "High";
-      if (stats.locationVisits >= 2) return "Medium";
-      if (stats.visits > 0 || Number(place.priority || 0) >= 10) return "Medium";
-      return "Test";
+      return routeConfidenceDetail(place).label;
+    }
+
+    function routeIntelligenceFor(place, analysis = routeAnalysis(place), routeItems = []) {
+      const confidence = routeConfidenceDetail(place, analysis);
+      const expected = expectedUnitsFor(place, analysis);
+      const duration = expectedVisitDuration(place, analysis);
+      const alternative = routeItems.find(item => item.place.id !== place.id);
+      const alternativeName = alternative?.place?.name || "the next ranked stop";
+      const whyNow = bestWhyNow(analysis);
+      return {
+        confidence,
+        expected,
+        duration,
+        alternative,
+        alternativeReason: alternative
+          ? `${alternativeName} is the backup because ${alternative.reasons.slice(0, 2).join("; ") || "it has the next strongest route score"}.`
+          : "No strong backup is available yet, so add more verified prospects if this stop is not reachable.",
+        whyNow,
+        bestMove: [
+          `Walk first to ${analysis.walkTarget}.`,
+          `Ask for the ${analysis.decisionMaker}.`,
+          `Access type: ${analysis.access}.`,
+          `Why this stop: ${analysis.reasons.slice(0, 3).join("; ") || "it has the strongest blend of route quality, actionability, and fresh learning"}.`,
+          `Why now: ${whyNow}.`,
+          `Why not ${alternativeName}: ${alternative ? "Prometheus is holding it as the next option while this stop has the stronger current score." : "there is not enough alternate route evidence yet."}`,
+          `Expected visit length: ${duration.label}.`
+        ].join(" ")
+      };
+    }
+
+    function routeConfidenceDetail(place, analysis = routeAnalysis(place)) {
+      const stats = analysis.stats;
+      const production = stats.units + stats.laterUnits;
+      const category = categoryStats().get(place.category) || { visits: 0, leads: 0, units: 0 };
+      const hasRepEvidence = stats.visits >= 2 || production > 0 || stats.leads > 1;
+      const hasCategoryEvidence = Number(category.visits || 0) >= 3;
+      let percent = 42;
+      const reasons = [];
+
+      if (analysis.access === "Walk-in ready") {
+        percent += 12;
+        reasons.push("walk-in ready");
+      } else if (analysis.access === "Permission required") {
+        percent -= 8;
+        reasons.push("permission required");
+      }
+      if (analysis.tierRank === 1) {
+        percent += 9;
+        reasons.push("specific storefront");
+      } else if (analysis.tierRank >= 4) {
+        percent -= 12;
+        reasons.push("broad or less actionable target");
+      }
+      if (production > 0) {
+        percent += Math.min(18, production * 7);
+        reasons.push(`${production} historical ${production === 1 ? "unit" : "units"}`);
+      }
+      if (stats.leads > 0) {
+        percent += Math.min(12, stats.leads * 3);
+        reasons.push(`${stats.leads} lead ${stats.leads === 1 ? "signal" : "signals"}`);
+      }
+      if (hasCategoryEvidence && Number(category.units || 0) > 0) {
+        percent += 8;
+        reasons.push(`${place.category} has category production`);
+      }
+      if (analysis.freshness === "Fresh") {
+        percent += 5;
+        reasons.push("fresh route timing");
+      } else if (analysis.freshness === "Recent") {
+        percent -= 7;
+        reasons.push("recently touched");
+      }
+      if (analysis.score >= 95) percent += 8;
+      else if (analysis.score >= 75) percent += 5;
+      else if (analysis.score < 45) percent -= 8;
+      if (!hasRepEvidence && !hasCategoryEvidence) {
+        percent = Math.min(percent, 72);
+        reasons.push("needs field validation");
+      }
+      if (isAnthonyFirstRoute()) {
+        percent = Math.min(88, Math.max(percent, 68));
+        reasons.push("approved first-route seed");
+      }
+
+      percent = Math.max(18, Math.min(96, Math.round(percent)));
+      return {
+        percent,
+        label: percent >= 85 ? "High" : percent >= 68 ? "Medium" : percent >= 50 ? "Developing" : "Test",
+        reason: reasons.slice(0, 3).join("; ") || "based on current route score and available visit evidence"
+      };
+    }
+
+    function expectedUnitsFor(place, analysis = routeAnalysis(place)) {
+      const stats = analysis.stats;
+      const production = stats.units + stats.laterUnits;
+      const placeRate = stats.visits ? production / stats.visits : 0;
+      const category = categoryStats().get(place.category) || { visits: 0, units: 0, leads: 0 };
+      const categoryRate = category.visits ? Number(category.units || 0) / category.visits : 0;
+      const profileTotals = sumVisits(state.visits);
+      const profileProduction = profileTotals.units + profileTotals.laterUnits;
+      const profileRate = state.visits.length ? profileProduction / state.visits.length : 0;
+      let estimate = 0.25;
+      const reasons = [];
+
+      if (stats.visits >= 2) {
+        estimate = placeRate;
+        reasons.push("using this stop's verified history");
+      } else if (category.visits >= 3) {
+        estimate = categoryRate;
+        reasons.push(`using ${place.category} category history`);
+      } else if (profileRate > 0) {
+        estimate = profileRate * (analysis.score >= 80 ? 1.15 : analysis.score >= 60 ? 1 : .85);
+        reasons.push("using rep baseline adjusted by route quality");
+      } else {
+        estimate = analysis.score >= 90 ? .65 : analysis.score >= 70 ? .45 : .25;
+        reasons.push("discovery estimate until field data exists");
+      }
+
+      if (analysis.access === "Permission required") estimate *= .75;
+      if (analysis.access === "Walk-in ready") estimate *= 1.08;
+      if (analysis.tierRank === 1) estimate *= 1.08;
+      if (analysis.freshness === "Recent") estimate *= .8;
+      const rounded = Math.round(Math.max(0, Math.min(2.5, estimate)) * 10) / 10;
+      return {
+        value: rounded,
+        label: rounded > 0 ? `${rounded.toFixed(1)} units` : "Discovery",
+        reason: reasons[0] || "based on route quality and available evidence"
+      };
+    }
+
+    function expectedVisitDuration(place, analysis = routeAnalysis(place)) {
+      let low = 6;
+      let high = 10;
+      if (analysis.access === "Permission required") {
+        low = 8;
+        high = 14;
+      } else if (["Restaurant", "Retail", "Salon", "Barber", "Auto"].includes(place.category)) {
+        low = 5;
+        high = 9;
+      } else if (place.category === "Apartment" || place.category === "Medical") {
+        low = 8;
+        high = 12;
+      }
+      if (analysis.decisionMaker === "Owner" || analysis.decisionMaker === "Manager or owner") high += 2;
+      return { low, high, label: `${low}-${high} min` };
+    }
+
+    function bestWhyNow(analysis) {
+      if (analysis.stats.visits === 0) return "it gives this rep fresh learning without inheriting another rep's history";
+      if (analysis.daysSinceVisit >= 7) return "it has enough time since the last touch to retest cleanly";
+      if (analysis.successfulDiscovery) return "recent results turned this from a test stop into a live signal";
+      if (analysis.daysSinceRecommendation > 6) return "it has not been over-recommended recently";
+      return "it is the best current balance of actionability, route freshness, and expected output";
+    }
+
+    function profileDashboardBaseline() {
+      const visits = state.visits || [];
+      const totals = sumVisits(visits);
+      const activeDow = new Date().getDay();
+      const weekdayVisits = visits.filter(v => new Date(v.createdAt).getDay() === activeDow);
+      const weekdayTotals = sumVisits(weekdayVisits);
+      return {
+        all: {
+          visits: visits.length,
+          conversations: totals.conversations,
+          leads: totals.leads,
+          units: totals.units + totals.laterUnits
+        },
+        weekday: {
+          visits: weekdayVisits.length,
+          conversations: weekdayTotals.conversations,
+          leads: weekdayTotals.leads,
+          units: weekdayTotals.units + weekdayTotals.laterUnits
+        }
+      };
+    }
+
+    function dashboardPaceContext(visits, sums, need, routeItems) {
+      const totals = sums.units + sums.laterUnits;
+      const baseline = profileDashboardBaseline();
+      const routeExpectation = routeItems.slice(0, Math.min(routeItems.length, 6)).reduce((sum, item) => sum + expectedUnitsFor(item.place, item).value, 0);
+      const expectedCompletion = totals + routeExpectation;
+      const probability = need === 0
+        ? 100
+        : Math.max(8, Math.min(96, Math.round((expectedCompletion / GOAL) * 72 + Math.min(18, visits.length * 3) + Math.min(10, sums.leads * 2))));
+      const weekdayUnitsPerVisit = baseline.weekday.visits ? baseline.weekday.units / baseline.weekday.visits : 0;
+      const weekdayName = new Date().toLocaleDateString(undefined, { weekday: "long" });
+      const expectedUnitsAtPace = weekdayUnitsPerVisit * Math.max(1, visits.length);
+      const unitTrend = baseline.weekday.visits
+        ? `${totals >= expectedUnitsAtPace ? "Above" : "Below"} your ${weekdayName} pace`
+        : "Needs more same-day history";
+      const talkExpectation = baseline.all.visits ? Math.round((baseline.all.conversations / baseline.all.visits) * Math.max(1, visits.length)) : null;
+      const leadExpectation = baseline.all.visits ? Math.round((baseline.all.leads / baseline.all.visits) * Math.max(1, visits.length)) : null;
+      const talksBehind = talkExpectation === null ? 0 : Math.max(0, talkExpectation - sums.conversations);
+      const leadsBehind = leadExpectation === null ? 0 : Math.max(0, leadExpectation - sums.leads);
+      return {
+        probability,
+        routeExpectation,
+        units: totals ? `${unitTrend}.` : "No units logged yet. First outcome sets the pace.",
+        need: need === 0 ? "Goal complete." : `${probability}% estimated completion probability.`,
+        visits: visits.length ? `${routeItems.length} ranked stops still available.` : "No visits logged yet. Start with the best next stop.",
+        talks: talkExpectation === null ? "Conversation baseline pending." : talksBehind ? `${talksBehind} talks behind expected pace.` : "At or above expected talk pace.",
+        leads: leadExpectation === null ? "Lead baseline pending." : leadsBehind ? `${leadsBehind} lead signal${leadsBehind === 1 ? "" : "s"} behind pace.` : "Lead pace is healthy."
+      };
+    }
+
+    function ownerInsightFor(reportVisits, viewingTeam) {
+      const totals = sumVisits(reportVisits);
+      const gpsVerified = reportVisits.filter(v => v.location).length;
+      const gpsRate = reportVisits.length ? Math.round((gpsVerified / reportVisits.length) * 100) : 0;
+      const conversionRate = totals.leads ? Math.round(((totals.units + totals.laterUnits) / totals.leads) * 100) : 0;
+      if (viewingTeam) {
+        return `Owner Mode: ${gpsRate}% GPS-verified visits, ${totals.leads} leads, ${totals.units + totals.laterUnits} units, ${conversionRate}% lead-to-unit conversion where leads exist. Team reporting is visible without impersonating a rep.`;
+      }
+      return `Viewing ${activeProfile().name}'s independent intelligence profile. GPS verification is ${gpsRate || 0}% across this profile, and founder baseline remains preserved separately.`;
     }
 
     function routeRecommendation() {
@@ -2510,6 +2739,14 @@
       document.getElementById("goalProgress").style.width = `${progressPct}%`;
       document.getElementById("todayVisitCount").textContent = `${visits.length} logged`;
 
+      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const pace = dashboardPaceContext(visits, sums, need, routeItems);
+      document.getElementById("unitsContext").textContent = pace.units;
+      document.getElementById("needContext").textContent = pace.need;
+      document.getElementById("visitsContext").textContent = pace.visits;
+      document.getElementById("talksContext").textContent = pace.talks;
+      document.getElementById("leadsContext").textContent = pace.leads;
+
       const avgUnits = state.visits.length ? sumVisits(state.visits).units / state.visits.length : 0;
       const avgTalks = state.visits.length ? sumVisits(state.visits).conversations / Math.max(1, sumVisits(state.visits).units || 1) : 0;
       const needVisits = avgUnits > 0 ? Math.ceil(need / avgUnits) : Math.ceil(need / 2);
@@ -2517,7 +2754,7 @@
       const topCategory = bestCategoryName();
       document.getElementById("needCalculator").innerHTML = need === 0
         ? `<div><b>Goal hit.</b> Keep logging where the units came from so tomorrow's route gets smarter.</div>`
-        : `<div><b>${need} units left.</b> Based on your current averages, plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations.</div><div>Highest-probability category right now: <b>${topCategory}</b>.</div>`;
+        : `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
 
       renderRouteIntelligence(visits, sums, need);
       renderDailyRoute();
@@ -2537,6 +2774,8 @@
       const intelExpected = document.getElementById("intelExpected");
       const intelWindow = document.getElementById("intelWindow");
       const intelConfidence = document.getElementById("intelConfidence");
+      const intelExpectedReason = document.getElementById("intelExpectedReason");
+      const intelConfidenceReason = document.getElementById("intelConfidenceReason");
       const routeRisk = document.getElementById("routeRisk");
 
       if (!next) {
@@ -2545,31 +2784,35 @@
         intelExpected.textContent = "New";
         intelWindow.textContent = visitWindow(new Date().getHours());
         intelConfidence.textContent = "Low";
+        intelExpectedReason.textContent = "No ranked stop available";
+        intelConfidenceReason.textContent = "Route pool is empty";
         routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
         return;
       }
 
-      const analysis = routeAnalysis(next);
-      const stats = analysis.stats;
-      const totalUnits = stats.units + stats.laterUnits;
-      const expected = totalUnits > 0 ? `${totalUnits} ${totalUnits === 1 ? "unit" : "units"} in history` : stats.leads > 0 ? `${stats.leads} lead signal` : analysis.lane;
+      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const analysis = routeItems.find(item => item.place.id === next.id) || routeAnalysis(next);
+      const intelligence = routeIntelligenceFor(next, analysis, routeItems);
+      const pace = dashboardPaceContext(visits, sums, need, routeItems);
       bestNextMove.textContent = next.name;
-      bestMoveReason.textContent = `Walk first to ${analysis.walkTarget}. Ask for the ${analysis.decisionMaker}. Access type: ${analysis.access}. Why this stop: ${analysis.reasons.slice(0, 3).join("; ") || "it balances proven value with fresh route learning"}.`;
-      intelExpected.textContent = expected;
+      bestMoveReason.textContent = intelligence.bestMove;
+      intelExpected.textContent = intelligence.expected.label;
+      intelExpectedReason.textContent = intelligence.expected.reason;
       intelWindow.textContent = `${next.window || "Anytime"} · ${analysis.radius}`;
-      intelConfidence.textContent = routeConfidence(next);
+      intelConfidence.textContent = `${intelligence.confidence.percent}%`;
+      intelConfidenceReason.textContent = intelligence.confidence.reason;
       recordRouteRecommendation(next);
 
       if (need === 0) {
         routeRisk.textContent = "Goal is hit. Log clean notes so tomorrow's route gets smarter.";
       } else if (visits.length < 2) {
-        routeRisk.textContent = "Warning: today's route is still light. Get at least 2 outside stops logged before judging the day.";
+        routeRisk.textContent = `Warning: today's route is still light. ${pace.probability}% completion probability. Get at least 2 outside stops logged before judging the day.`;
       } else if (sums.conversations < 25) {
-        routeRisk.textContent = "Warning: conversation volume is low. Prioritize places with staff traffic or waiting customers.";
+        routeRisk.textContent = `Warning: conversation volume is low. ${intelligence.alternativeReason}`;
       } else if (!sums.leads && visits.length >= 2) {
         routeRisk.textContent = "Warning: visits are happening, but leads are not. Switch category or time window before burning more gas.";
       } else {
-        routeRisk.textContent = "Signal is building. Keep logging outcomes so Prometheus can separate strong stops from wasted miles.";
+        routeRisk.textContent = `Signal is building. ${pace.probability}% completion probability. Keep logging outcomes so Prometheus can separate strong stops from wasted miles.`;
       }
     }
 
@@ -2632,6 +2875,7 @@
     function compactRouteCard(p, index, analysis = routeAnalysis(p)) {
       const stats = analysis.stats;
       const status = analysis.status;
+      const intelligence = routeIntelligenceFor(p, analysis);
       return `<article class="item route-card">
         <div class="rank">${index + 1}</div>
         <div>
@@ -2645,6 +2889,9 @@
             <span>${escapeHtml(analysis.access)}</span>
             <span>${escapeHtml(analysis.freshness)}</span>
             <span>${escapeHtml(analysis.radius)}</span>
+            <span>${intelligence.confidence.percent}% confidence</span>
+            <span>Expected ${escapeHtml(intelligence.expected.label)}</span>
+            <span>${escapeHtml(intelligence.duration.label)}</span>
             <span>${stats.visits} visits</span>
             <span>${stats.units + stats.laterUnits} units</span>
             ${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}
@@ -2653,6 +2900,9 @@
           <div class="address-line"><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)} · <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}</div>
           <div class="address-line"><b>Access type:</b> ${escapeHtml(analysis.access)}</div>
           <div class="address-line"><b>Why this stop:</b> ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "balanced route quality and fresh learning")}</div>
+          <div class="address-line"><b>Confidence:</b> ${intelligence.confidence.percent}% · ${escapeHtml(intelligence.confidence.reason)}</div>
+          <div class="address-line"><b>Expected ROI:</b> ${escapeHtml(intelligence.expected.label)} · ${escapeHtml(intelligence.expected.reason)} · <b>Visit length:</b> ${escapeHtml(intelligence.duration.label)}</div>
+          <div class="address-line"><b>Best next move:</b> ${escapeHtml(intelligence.whyNow)}</div>
           ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>` : ""}
         </div>
         <div>
@@ -2730,9 +2980,7 @@
         return { name: w, visits: visits.length, units, upv: visits.length ? units / visits.length : 0 };
       }).sort((a, b) => b.upv - a.upv);
       document.getElementById("bestTimes").innerHTML = windows.map(w => `<article class="item"><div class="item-head"><div><h3>${w.name}</h3><div class="meta"><span>${w.visits} visits</span><span>${w.units} units</span></div></div><span class="pill blue">${w.upv.toFixed(1)} / visit</span></div></article>`).join("");
-      document.getElementById("dataStatus").textContent = viewingTeam
-        ? "Owner Mode is showing team reporting without changing or impersonating an individual rep profile."
-        : `Viewing ${profile.name}'s independent intelligence profile. Founder baseline remains preserved separately.`;
+      document.getElementById("dataStatus").textContent = ownerInsightFor(reportVisits, viewingTeam);
     }
 
     function bestCategoryName(visits = state.visits) {
