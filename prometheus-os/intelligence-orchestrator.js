@@ -32,15 +32,28 @@ function inferOrchestratorIntent(question = "") {
   const normalized = normalizeText(question);
   if (normalized.includes("how many") && normalized.includes("anthony") && normalized.includes("visit")) return "anthony_visit_count";
   if (normalized.includes("anthony")) return normalized.includes("why") ? "anthony_importance" : "anthony";
+  if (
+    normalized.includes("executive") ||
+    normalized.includes("leadership") ||
+    normalized.includes("larry") ||
+    normalized.includes("phil") ||
+    normalized.includes("dallas") ||
+    normalized.includes("pilot approval") ||
+    (normalized.includes("chris") && (normalized.includes("ready") || normalized.includes("readiness") || normalized.includes("status") || normalized.includes("tell") || normalized.includes("ask")))
+  ) return "executive_readiness";
   if (normalized.includes("chris")) return "chris";
+  if (normalized.includes("pilot readiness")) return "pilot_readiness";
   if (normalized.includes("google places") && normalized.includes("meta")) return "strategic_comparison";
   if (normalized.includes("google places")) return "google_places";
   if (normalized.includes("risk") || normalized.includes("blocker")) return "risk";
   if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("coo") || normalized.includes("tomorrow")) return "priority";
+  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at")) return "company_rundown";
   if (normalized.includes("major systems")) return "major_systems";
   if (normalized.includes("week")) return "weekly_recap";
   if (normalized.includes("yesterday")) return "yesterday_recap";
+  if (normalized.includes("today")) return "today_recap";
   if (normalized.includes("month")) return "month_recap";
+  if (normalized.includes("daily brief") || normalized.includes("founder brief") || normalized.includes("brief")) return "founder_brief";
   return "founder_reasoning";
 }
 
