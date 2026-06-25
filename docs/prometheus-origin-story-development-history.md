@@ -239,6 +239,23 @@ Related files:
 - `deploy/cloudflare-pages/sw.js`
 - `deploy/Prometheus_IQ_Cloudflare_Upload.zip`
 
+### June 24, 2026: Prometheus Intelligence Orchestrator v1 Founder Certified
+
+Milestone: Prometheus Companion stopped routing founder reasoning questions through dashboard cards and began routing them through the Intelligence Orchestrator.
+
+Why it mattered: This changed Prometheus Companion from a visual command surface into the beginning of a reasoning-based founder operating system. Cruz's real Companion acceptance test passed for the question "Prometheus, what happened yesterday?", confirming that the actual app used the Orchestrator response path instead of reading the Pilot Readiness or Project Context card.
+
+Impact on Prometheus: Prometheus can now preserve and explain company context more like a Chief of Staff. Founder questions about company history, Anthony, Chris, blockers, risk, and next actions have a dedicated reasoning path, while explicit card commands still work when Cruz asks to open or show a card.
+
+Related files:
+
+- `prometheus-os/companion-command-router.js`
+- `prometheus-os/app.js`
+- `prometheus-os/reasoning-pipeline.js`
+- `mac-companion/PrometheusCompanion.swift`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+- `prometheus-intelligence-orchestrator-routing-fix-report.md`
+
 ### June 20, 2026: Cloudflare Access Protection Added
 
 Milestone: Protected Cloudflare access was set up for the live app.
@@ -657,4 +674,3 @@ Prometheus now has:
 - A master operating system.
 
 The next stage is not more noise. The next stage is proof.
-

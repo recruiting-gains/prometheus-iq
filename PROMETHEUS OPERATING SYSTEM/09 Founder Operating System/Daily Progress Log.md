@@ -85,3 +85,55 @@ Commit and push require explicit Cruz approval.
 ### Next Recommended Move
 
 Test the Daily Founder Brief voice command, review changed files, then decide whether to prepare a GitHub backup.
+
+---
+
+## 2026-06-24 - Founder Certified Intelligence Orchestrator Routing
+
+### What Changed
+
+- Prometheus Companion's founder reasoning path was certified in the real Companion UI.
+- The test phrase "Prometheus, what happened yesterday?" no longer routed through dashboard cards.
+- Founder reasoning questions now route through the Intelligence Orchestrator before answer generation.
+- Card/node responses are blocked unless Cruz explicitly asks to open or show a card.
+
+### Files Changed
+
+- `mac-companion/PrometheusCompanion.swift`
+- `prometheus-os/app.js`
+- `prometheus-os/companion-command-router.js`
+- `prometheus-os/reasoning-pipeline.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+- `prometheus-intelligence-orchestrator-routing-fix-report.md`
+
+### Product Progress
+
+No production Prometheus IQ behavior was modified.
+
+### Website Progress
+
+No public website behavior was modified.
+
+### Companion Progress
+
+Prometheus Companion moved from card-first command behavior to certified reasoning-first behavior for founder questions.
+
+### Beta Progress
+
+Anthony beta was not modified.
+
+### Business Progress
+
+This milestone improves founder continuity because Prometheus can now answer company-history questions from memory and reasoning instead of reading a visible card.
+
+### Deployment Status
+
+No public deployment was performed.
+
+### GitHub Commit Status
+
+Ready for a focused backup commit after security verification.
+
+### Next Recommended Move
+
+Back up this certified Companion routing milestone, then return to Google Places API integration for Route Intelligence and Anthony's Friday beta.

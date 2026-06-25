@@ -42,8 +42,16 @@ function recapPeriod(question, evidence) {
   if (normalized.includes("yesterday")) {
     return response(
       "Yesterday in Prometheus",
-      `Boss, yesterday was mainly about making Prometheus feel real as a company system, not just an app. ${sentenceList(timeline, 4)} The practical takeaway is that the public presence and Companion foundation moved forward, but the next proof still has to come from real beta usage, not more polish.`,
+      `Boss, yesterday was mainly about making Prometheus feel real as a company system, not just an app. ${sentenceList(timeline, 4)} The practical takeaway is that the public presence and Companion foundation moved forward, but validation is still the next proof point. Real beta usage matters more now than more polish.`,
       { intent: "yesterday_recap", entities: ["Prometheus Companion", "Website"] }
+    );
+  }
+
+  if (normalized.includes("today")) {
+    return response(
+      "Today in Prometheus",
+      `Boss, today the verified record points to Companion intelligence work, memory, and operating-system reliability. ${sentenceList(timeline, 6)} The important theme today is turning Prometheus from a command tool into a Chief of Staff: memory, context, safer routing, and better founder prioritization. The next useful move is to preserve the daily log and keep validation work ahead of new features.`,
+      { intent: "today_recap", entities: ["Prometheus Companion", "Memory System", "Founder Operating System"] }
     );
   }
 
@@ -106,7 +114,7 @@ function anthonyAnswer(question, evidence) {
   }
   return response(
     "Anthony in Prometheus",
-    `Anthony is the controlled beta tester for Prometheus IQ. ${anthony?.summary || "His role is to validate a private rep-mode experience separate from Cruz founder data."} The key things to watch are route clarity, walk-in readiness, GPS verification, visit logging, and honest feedback.`,
+    `Anthony is the controlled beta tester for Prometheus IQ. ${anthony?.summary || "His role is to validate a private rep-mode experience separate from Cruz founder data."} The key things to watch are route clarity, walk-in readiness, GPS verification, visit logging, route quality, and honest feedback.`,
     { intent: "anthony", entities: ["Anthony"] }
   );
 }
@@ -130,7 +138,7 @@ function googlePlacesVsMeta() {
 function googlePlacesBlocked() {
   return response(
     "Google Places blocker",
-    "Boss, Google Places is blocked only at the live-integration layer. The safe architecture is prepared, but real discovery requires valid local Google API credentials, backend-only storage, and explicit approval before touching production or Anthony's live beta. Until that is configured and verified, Prometheus should not pretend it has live Google business data.",
+    "Boss, Google Places is blocked only at the live-integration layer. The safe architecture is prepared, but real discovery requires a valid local Google API key, backend-only storage, and explicit approval before touching production or Anthony's live beta. Until that key is configured and verified, Prometheus should not pretend it has live Google business data.",
     { intent: "google_places_blocked", entities: ["Google Places", "Route Intelligence"], truth: "verified" }
   );
 }
@@ -138,8 +146,16 @@ function googlePlacesBlocked() {
 function riskAnswer(evidence) {
   return response(
     "Biggest Prometheus risk",
-    "Boss, the biggest risk today is confusing internal progress with external validation. A better Companion, a better website, and cleaner documents all help, but they do not prove reps will use Prometheus or that leadership will approve a pilot. The risk-reduction move is simple: capture real beta feedback, verified visits, route quality notes, and any objections from Anthony or leadership.",
+    "Boss, the biggest risk today is confusing internal progress with external validation. A better Companion, a better website, and cleaner documents all help, but they do not prove reps will use Prometheus or that leadership will approve a pilot. The external data still missing is real beta usage: verified visits, route quality notes, objections, and Anthony feedback. The risk-reduction move is to capture that proof before building more.",
     { intent: "risk", entities: ["Pilot", "Anthony", "Prometheus IQ"] }
+  );
+}
+
+function pilotReadinessAnswer() {
+  return response(
+    "Pilot readiness",
+    "Boss, pilot readiness is high on preparation but not complete on proof. The approval packet, executive materials, risk controls, success metrics, and pilot structure are ready. The missing piece is external proof: Anthony feedback, verified visits, route-quality evidence, and leadership confirmation. That is why the next move is validation, not adding more internal features.",
+    { intent: "pilot_readiness", entities: ["Pilot", "Anthony", "Chris"], truth: "verified" }
   );
 }
 
@@ -150,7 +166,7 @@ function priorityAnswer(question) {
   const tomorrow = normalized.includes("tomorrow") || normalized.includes("coo");
   const intro = tomorrow
     ? "If I were your COO, I would tell you tomorrow is not a feature-building day. It is a validation day."
-    : "Boss, the highest ROI move is validation, not another feature.";
+    : "Boss, the highest ROI move is validation, not more features.";
   return response(
     tomorrow ? "COO recommendation for tomorrow" : "Highest ROI next move",
     `${intro} Top three: ${top.map((task, index) => `${index + 1}. ${task.title}: ${task.description} Why: ${task.reason}`).join(" ")} The first move is ${top[0].title}, because it turns Prometheus from something impressive into something proven.`,
@@ -163,7 +179,7 @@ function followUpAnswer(question, context, evidence) {
   if (normalized === "why" || normalized.startsWith("why")) {
     return response(
       "Why that matters",
-      `Boss, the reason is that ${context.lastTitle || "the last answer"} connects directly to pilot proof. Prometheus has built a lot of infrastructure, but the company only gets stronger when the next action produces evidence: usage, feedback, visits, objections, or leadership clarity.`,
+      `Boss, the reason is that the previous answer, ${context.lastTitle || "the last answer"}, connects directly to pilot proof, validation, and company leverage. Prometheus has built a lot of infrastructure, but the company only gets stronger when the next action produces evidence: usage, feedback, visits, objections, or leadership clarity. That is what moves Prometheus closer to a real operating company instead of just a polished build.`,
       { intent: "follow_up", entities: context.focusEntities || [] }
     );
   }
@@ -192,15 +208,16 @@ function generalAnswer(question, evidence) {
 export function runReasoningPipeline({ question = "", context = {}, rankedEvidence = [], llmContext = {} } = {}) {
   const normalized = normalizeText(question);
 
-  if (context.isFollowUp) return followUpAnswer(question, context, rankedEvidence);
-  if (normalized.includes("what happened") || normalized.includes("what changed") || normalized.includes("this week") || normalized.includes("yesterday") || normalized.includes("last month")) return recapPeriod(question, rankedEvidence);
-  if (normalized.includes("major systems") || normalized.includes("systems have been built")) return majorSystems(rankedEvidence);
   if (normalized.includes("anthony")) return anthonyAnswer(question, rankedEvidence);
   if (normalized.includes("chris")) return chrisAnswer(rankedEvidence);
   if (normalized.includes("google places") && (normalized.includes("meta") || normalized.includes("more important"))) return googlePlacesVsMeta();
   if (normalized.includes("google places") && (normalized.includes("blocked") || normalized.includes("blocker") || normalized.includes("why"))) return googlePlacesBlocked();
+  if (normalized.includes("pilot readiness")) return pilotReadinessAnswer();
   if (normalized.includes("risk") || normalized.includes("blocker")) return riskAnswer(rankedEvidence);
-  if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("what matters") || normalized.includes("coo") || normalized.includes("tomorrow")) return priorityAnswer(question);
+  if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("what matters") || normalized.includes("focus on") || normalized.includes("coo") || normalized.includes("tomorrow")) return priorityAnswer(question);
+  if (context.isFollowUp) return followUpAnswer(question, context, rankedEvidence);
+  if (normalized.includes("what happened") || normalized.includes("what changed") || normalized.includes("this week") || normalized.includes("yesterday") || normalized.includes("today") || normalized.includes("last month")) return recapPeriod(question, rankedEvidence);
+  if (normalized.includes("major systems") || normalized.includes("systems have been built")) return majorSystems(rankedEvidence);
 
   return generalAnswer(question, rankedEvidence, llmContext);
 }

@@ -786,6 +786,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         conversationActive = true
         nativePauseUntil = Date().addingTimeInterval(8)
 
+        if isFounderReasoningQuestion(transcript) {
+            let suppressScript = "window.prometheusOSSuppressCardsForIntelligence && window.prometheusOSSuppressCardsForIntelligence('native intelligence route selected')"
+            prometheusWebView?.evaluateJavaScript(suppressScript)
+        }
+
         let script = "window.prometheusOSSubmitCommand && window.prometheusOSSubmitCommand(\(Self.javascriptStringLiteral(transcript)))"
         prometheusWebView?.evaluateJavaScript(script) { [weak self] result, error in
             Task { @MainActor [weak self] in
@@ -925,8 +930,36 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
     }
 
+    private func isExplicitNodeRequest(_ transcript: String) -> Bool {
+        let normalized = transcript.lowercased()
+            .replacingOccurrences(of: "[^a-z0-9 ]+", with: " ", options: .regularExpression)
+            .replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !normalized.isEmpty else { return false }
+
+        let explicitSignals = [
+            "open",
+            "display",
+            "pull up",
+            "bring up",
+            "configure",
+            "show card",
+            "show node",
+            "show dashboard",
+            "show settings",
+            "view card",
+            "view node",
+            "view dashboard",
+            "view settings"
+        ]
+
+        return explicitSignals.contains { normalized.contains($0) }
+    }
+
     private func directSystemCommand(for transcript: String) -> (nodeId: String, response: String)? {
         guard !isFounderReasoningQuestion(transcript) else { return nil }
+        guard isExplicitNodeRequest(transcript) else { return nil }
         let normalized = normalizeCommand(transcript)
         guard !normalized.isEmpty else { return nil }
 

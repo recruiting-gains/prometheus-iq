@@ -99,6 +99,19 @@ for (const phrase of reasoningCases) {
     continue;
   }
 
+  if (
+    route.decision?.routeType !== "intelligence_orchestrator" ||
+    route.decision?.allowCards !== false ||
+    route.decision?.allowNodes !== false ||
+    route.decision?.allowTTSFromCards !== false
+  ) {
+    fail("exclusive-intelligence-decision", {
+      phrase,
+      decision: route.decision
+    });
+    continue;
+  }
+
   const response = await provider.ask(phrase);
   const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
   const bannedHit = bannedResponseText.find((item) => text.includes(item));
@@ -155,6 +168,18 @@ for (const phrase of explicitNodeCases) {
       normalized: route.normalized,
       reason: route.reason,
       routedIntent: route.routedIntent
+    });
+    continue;
+  }
+
+  if (
+    route.decision?.allowCards === false ||
+    route.decision?.allowNodes === false ||
+    route.decision?.allowTTSFromCards === false
+  ) {
+    fail("explicit-node-decision", {
+      phrase,
+      decision: route.decision
     });
     continue;
   }

@@ -50,6 +50,9 @@ let lastDebugMessage = "";
 let webAudioPlaybackGeneration = 0;
 let webAudioStallTimer = 0;
 let lastCommandResult = null;
+let activeRouteDecision = null;
+let suppressCardRoutesUntil = 0;
+let suppressCardRoutesReason = "";
 
 if (forceFounderVoiceDefaults) {
   localStorage.setItem("prometheus-os-tts-provider", selectedTtsProvider);
@@ -118,10 +121,50 @@ function shouldAttachRouteDiagnostic(message) {
 }
 
 function routeDiagnosticText(commandRoute) {
-  const routeSelected = commandRoute.type === "cognitive" ? "intelligence_orchestrator" : commandRoute.type;
+  const routeSelected = commandRoute.decision?.routeType || (commandRoute.type === "cognitive" ? "intelligence_orchestrator" : commandRoute.type);
   const cognitiveEngineUsed = commandRoute.type === "cognitive" ? "yes" : "no";
-  const cardFallbackUsed = commandRoute.type === "node" ? "yes" : "no";
+  const cardFallbackUsed = commandRoute.decision?.allowCards === false ? "no" : (commandRoute.type === "node" ? "yes" : "no");
   return `Diagnostic: route selected ${routeSelected}. Cognitive engine used: ${cognitiveEngineUsed}. Card fallback used: ${cardFallbackUsed}.`;
+}
+
+function isIntelligenceDecision(decision) {
+  return decision?.routeType === "intelligence_orchestrator";
+}
+
+function suppressCardRoutes(reason = "intelligence route selected", duration = 7000) {
+  suppressCardRoutesUntil = Date.now() + duration;
+  suppressCardRoutesReason = reason;
+  debugVoice("card route blocked", reason, { kind: "ok" });
+}
+
+function clearCardSuppression() {
+  suppressCardRoutesUntil = 0;
+  suppressCardRoutesReason = "";
+}
+
+function cardRoutesSuppressed() {
+  const activeBlocksCards = isIntelligenceDecision(activeRouteDecision) && activeRouteDecision.allowCards === false;
+  return activeBlocksCards || Date.now() < suppressCardRoutesUntil;
+}
+
+function applyRouteDecision(decision) {
+  activeRouteDecision = decision || null;
+  if (isIntelligenceDecision(decision)) {
+    suppressCardRoutes(decision.reason || "intelligence route selected");
+    stopActiveAudio();
+    closeDetail();
+  }
+}
+
+function blockedCardRouteResult(type, nodeId, source) {
+  return {
+    type,
+    routeSelected: activeRouteDecision?.routeType || "blocked",
+    nodeId,
+    cardFallbackUsed: false,
+    reason: suppressCardRoutesReason || "intelligence route is exclusive",
+    source
+  };
 }
 
 function setVoiceState(state) {
@@ -735,11 +778,6 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
 
     lastBackendTranscript = transcript;
     lastBackendTranscriptAt = now;
-    openDetail({
-      kicker: `Speech captured from ${source}`,
-      title: "Prometheus heard",
-      text: transcript
-    });
     await submitCommand(transcript, { source: "backend STT" });
     scheduleBackendSttLoop(900);
     return true;
@@ -762,6 +800,12 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
 function openNode(nodeId, { autoAsk = true } = {}) {
   const node = systemNodes().find((item) => item.id === nodeId);
   if (!node) return;
+
+  if (cardRoutesSuppressed()) {
+    debugVoice("card route blocked", `node:${nodeId} ${suppressCardRoutesReason}`.trim(), { kind: "warn" });
+    lastCommandResult = blockedCardRouteResult("blocked_node", nodeId, "openNode");
+    return lastCommandResult;
+  }
 
   if (node.id === "voice-settings") {
     openDetail({
@@ -791,6 +835,11 @@ function nodeResponseText(node) {
 
 async function speakNodeStatus(node, { source = "node" } = {}) {
   if (!node || commandInFlight) return;
+  if (cardRoutesSuppressed()) {
+    debugVoice("card TTS blocked", `node:${node.id} ${suppressCardRoutesReason}`.trim(), { kind: "warn" });
+    lastCommandResult = blockedCardRouteResult("blocked_node_tts", node.id, source);
+    return lastCommandResult;
+  }
   commandInFlight = true;
   try {
     const text = nodeResponseText(node);
@@ -839,6 +888,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
   });
   const routedIntent = commandRoute.routedIntent || routeCommandIntent(message);
   const shouldReason = commandRoute.type === "cognitive";
+  applyRouteDecision(commandRoute.decision);
   debugVoice(
     "matched intent",
     `${shouldReason ? "intelligence_orchestrator" : routedIntent.intent} confidence:${commandRoute.confidence.toFixed(2)} reason:${commandRoute.reason}`,
@@ -847,6 +897,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
 
   const clarification = commandRoute.type === "clarification" ? commandRoute.clarification : null;
   if (clarification && !skipNodeRouting) {
+    if (!isIntelligenceDecision(commandRoute.decision)) clearCardSuppression();
     commandInFlight = true;
     try {
       debugVoice("command route selected", `clarification:${clarification.intent}`, { kind: "ok" });
@@ -874,6 +925,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
 
   const matchedNode = commandRoute.type === "node" ? commandRoute.matchedNode : null;
   if (matchedNode) {
+    clearCardSuppression();
     debugVoice(
       "command route selected",
       `node:${matchedNode.nodeId} confidence:${matchedNode.confidence.toFixed(2)} reason:${matchedNode.reason}`,
@@ -914,6 +966,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     return lastCommandResult;
   } finally {
     commandInFlight = false;
+    if (!shouldReason) activeRouteDecision = null;
   }
 }
 
@@ -1071,8 +1124,12 @@ function initVoice() {
   setVoiceState("idle");
   if (continuousListeningEnabled) {
     window.setTimeout(() => {
-      if (!companionShell) voice.startAlwaysListening();
-      startBackendSttLoop();
+      if (!companionShell) {
+        voice.startAlwaysListening();
+        startBackendSttLoop();
+      } else {
+        debugVoice("Listening", "Native Companion microphone capture owns STT in shell mode.", { kind: "ok" });
+      }
     }, 600);
   }
   if (clapDetectionEnabled) {
@@ -1099,15 +1156,43 @@ window.prometheusOSSetVoiceDebug = (stage, message = "", kind = "info") => {
   debugVoice(stage, message, { kind });
 };
 
+window.prometheusOSSuppressCardsForIntelligence = (reason = "native intelligence route selected") => {
+  activeRouteDecision = {
+    routeType: "intelligence_orchestrator",
+    allowCards: false,
+    allowNodes: false,
+    allowTTSFromCards: false,
+    cancelPendingCardUpdates: true,
+    reason
+  };
+  suppressCardRoutes(reason);
+  stopActiveAudio();
+  closeDetail();
+  return activeRouteDecision;
+};
+
 window.prometheusOSStartListening = (options = {}) => {
   continuousListeningEnabled = true;
   localStorage.setItem("prometheus-os-continuous-voice", "true");
   backendSttEnabled = true;
-  if (!companionShell) voice.startAlwaysListening();
-  startBackendSttLoop();
-  startBackendSttCapture({
-    source: options.companionShell ? "companion webview" : "companion",
-    silentNoInput: true
+  if (!companionShell) {
+    voice.startAlwaysListening();
+    startBackendSttLoop();
+    startBackendSttCapture({
+      source: options.companionShell ? "companion webview" : "companion",
+      silentNoInput: true
+    });
+    return;
+  }
+  debugVoice("Listening", "Native Companion microphone capture owns STT in shell mode.", { kind: "ok" });
+};
+
+window.prometheusOSResolveRoute = (command) => {
+  return resolveCompanionCommandRoute({
+    command,
+    history: aiProvider.history,
+    nodes: systemNodes(),
+    phrasesForNode: nodePhrases
   });
 };
 

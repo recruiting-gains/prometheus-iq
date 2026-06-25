@@ -86,6 +86,19 @@ Prometheus currently has operating materials for:
 - Company origin and development history.
 - Product / website direction.
 - Competitive differentiation.
+- Founder-certified Prometheus Companion Intelligence Orchestrator routing.
+
+## Latest Certified Milestone
+
+June 24, 2026: Prometheus Intelligence Orchestrator v1 was Founder Certified.
+
+The real Prometheus Companion passed Cruz's acceptance test for:
+
+```text
+Prometheus, what happened yesterday?
+```
+
+Founder reasoning questions now route through the Intelligence Orchestrator before answer generation. Dashboard cards and node responses remain available only when explicitly requested.
 
 ## Missing Operating Systems To Create Later
 
