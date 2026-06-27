@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-CIKWgfmZaiWcxqvgjRfP064XbuRyFx5183qzzGI4Ctg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-YIYA2b8R0Rpc69a2Ge5OHOfqbQW9Xu2B3WOHgNwxSAM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -767,7 +767,7 @@
     }
   </style>
 </head>
-<body data-mode="rep">
+<body data-mode="rep" data-session-role="rep">
   <div class="app">
     <header>
       <div class="topline">
@@ -872,6 +872,14 @@
         <div class="section-title">
           <h2>Today’s Visits</h2>
           <small id="todayVisitCount">0 logged</small>
+        </div>
+        <div class="panel pad grid" id="repHandoffPanel">
+          <div class="status-line">Beta handoff: copy or export today’s results before ending the day.</div>
+          <div class="action-row">
+            <button class="btn secondary" id="copyTodaySummary" type="button">Copy Today’s Summary</button>
+            <button class="btn secondary" id="exportTodayReport" type="button">Export Today’s Report</button>
+          </div>
+          <div class="status-line" id="handoffStatus">No visits logged today yet.</div>
         </div>
         <div class="list" id="todayVisits"></div>
       </section>
@@ -1736,6 +1744,128 @@
 
     function setDataStatus(message) {
       document.getElementById("dataStatus").textContent = message;
+    }
+
+    function setHandoffStatus(message) {
+      const el = document.getElementById("handoffStatus");
+      if (el) el.textContent = message;
+    }
+
+    function todayReportPayload() {
+      syncActiveProfile();
+      const visits = todayVisits().slice().sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+      const totals = sumVisits(visits);
+      const profile = activeProfile();
+      return {
+        app: "Prometheus IQ",
+        reportType: "beta-daily-rep-report",
+        generatedAt: new Date().toISOString(),
+        date: todayKey(),
+        rep: {
+          id: activeRepId,
+          name: profile.name || activeRepId
+        },
+        totals: {
+          visits: visits.length,
+          conversations: totals.conversations,
+          leads: totals.leads,
+          units: totals.units,
+          laterUnits: totals.laterUnits
+        },
+        visits: visits.map(visit => {
+          const place = state.places.find(item => item.id === visit.placeId);
+          return {
+            placeName: place?.name || visit.placeName || "Unknown place",
+            placeId: visit.placeId || "",
+            timestamp: visit.createdAt ? new Date(visit.createdAt).toISOString() : "",
+            date: visit.date || todayKey(),
+            timeWindow: visit.window || place?.window || "",
+            outcome: visit.quality || "",
+            conversations: Number(visit.conversations || 0),
+            leads: Number(visit.leads || 0),
+            units: Number(visit.units || 0),
+            laterUnits: Number(visit.laterUnits || 0),
+            notes: visit.notes || "",
+            gpsAttached: Boolean(visit.location)
+          };
+        })
+      };
+    }
+
+    function formatTodaySummary(report) {
+      const lines = [
+        `Prometheus IQ Daily Rep Summary`,
+        `Rep: ${report.rep.name}`,
+        `Date: ${report.date}`,
+        `Generated: ${report.generatedAt}`,
+        ``,
+        `Totals`,
+        `- Visits: ${report.totals.visits}`,
+        `- Conversations: ${report.totals.conversations}`,
+        `- Leads: ${report.totals.leads}`,
+        `- Units: ${report.totals.units}`,
+        `- Later Units: ${report.totals.laterUnits}`,
+        ``,
+        `Visits`
+      ];
+      if (!report.visits.length) {
+        lines.push("- No visits logged today.");
+      } else {
+        report.visits.forEach((visit, index) => {
+          lines.push(`${index + 1}. ${visit.placeName}`);
+          lines.push(`   Time: ${visit.timestamp || "Not recorded"}`);
+          lines.push(`   Outcome: ${visit.outcome || "Not specified"}`);
+          lines.push(`   Conversations: ${visit.conversations} | Leads: ${visit.leads} | Units: ${visit.units} | Later Units: ${visit.laterUnits}`);
+          if (visit.notes) lines.push(`   Notes: ${visit.notes}`);
+          lines.push(`   GPS attached: ${visit.gpsAttached ? "yes" : "no"}`);
+        });
+      }
+      return lines.join("\n");
+    }
+
+    function fallbackCopyText(text) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "");
+      area.style.position = "fixed";
+      area.style.left = "-9999px";
+      document.body.appendChild(area);
+      area.select();
+      const copied = document.execCommand("copy");
+      area.remove();
+      return copied;
+    }
+
+    async function copyTodaySummary() {
+      const text = formatTodaySummary(todayReportPayload());
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else if (!fallbackCopyText(text)) {
+          throw new Error("Clipboard fallback failed");
+        }
+        setHandoffStatus("Today’s summary copied. Send it to Cruz by text or email.");
+      } catch (error) {
+        if (fallbackCopyText(text)) {
+          setHandoffStatus("Today’s summary copied. Send it to Cruz by text or email.");
+        } else {
+          setHandoffStatus("Copy failed. Use Export Today’s Report instead.");
+        }
+      }
+    }
+
+    function exportTodayReport() {
+      const report = todayReportPayload();
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `prometheus-iq-${report.rep.id}-daily-report-${report.date}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setHandoffStatus("Today’s report exported. Send the JSON file to Cruz.");
     }
 
     function exportData() {
@@ -2911,6 +3041,9 @@
         : `${actualPct}% complete`;
       document.getElementById("goalProgress").style.width = `${progressPct}%`;
       document.getElementById("todayVisitCount").textContent = `${visits.length} logged`;
+      setHandoffStatus(visits.length
+        ? "Today’s report is ready to copy or export."
+        : "No visits logged today yet.");
 
       const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
@@ -3639,6 +3772,8 @@
     document.getElementById("importData").addEventListener("click", () => document.getElementById("importFile").click());
     document.getElementById("importFile").addEventListener("change", event => importData(event.target.files[0]));
     document.getElementById("resetData").addEventListener("click", resetData);
+    document.getElementById("copyTodaySummary").addEventListener("click", copyTodaySummary);
+    document.getElementById("exportTodayReport").addEventListener("click", exportTodayReport);
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js").catch(() => {});
