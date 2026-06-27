@@ -62,7 +62,83 @@ data/qualified-prospects/anthony-almeda-route-output.json
 
 ## Google Maps / Places Refresh Workflow
 
-When a Google Places API key is available:
+When a Google Places API key is available locally, use the backend-only discovery pipeline. Do not put the key in frontend code, do not commit it, and do not paste it into any public file.
+
+Setup:
+
+```bash
+cp .env.example .env
+```
+
+Then add the key locally inside `.env`:
+
+```text
+GOOGLE_MAPS_API_KEY=your_real_key_here
+```
+
+Run a readiness check:
+
+```bash
+node scripts/discover-google-qualified-prospects.mjs --dry-run
+```
+
+Run live Google discovery:
+
+```bash
+node scripts/discover-google-qualified-prospects.mjs
+```
+
+Default outputs:
+
+```text
+data/qualified-prospects/google-discovered-prospects.csv
+data/qualified-prospects/anthony-google-route-preview.json
+data/qualified-prospects/google-discovery-readiness-report.json
+```
+
+This pipeline uses Google Geocoding API to verify the base address and Google Places Text Search to collect individual business candidates by category. The API key is read server-side/local-only from `.env`.
+
+## Google Deployment Verification Notes
+
+Before sending a Google-powered route to a tester:
+
+- Verify the local `.env` exists and is ignored by Git.
+- Verify Google Geocoding works for the base address.
+- Verify Google Places returns real individual businesses, not only generic areas or broad campuses.
+- Verify the generated route output is the same data source used by the dashboard package being tested.
+- Verify the live beta URL displays the Google-qualified route, not an older static/manual route.
+- Verify no Google API key, request URL containing a key, `.env` value, or credential appears in committed files, screenshots, browser code, or deployment output.
+
+## Territory And ZIP Planning
+
+For future multi-location pilots:
+
+- Define a base address per location.
+- Define a primary ZIP code cluster and reserve radius per location.
+- Keep discovery pools separate by rep and territory.
+- Avoid merging one rep's route history into another rep's learning profile.
+- Re-run Google discovery when a territory changes or when the route pool becomes stale.
+- Review manager-accessibility and walk-in suitability before approving a territory route.
+
+## Route Intelligence Review Notes
+
+Current strengths:
+
+- Discovery can start from real Google Places data.
+- Filtering separates walk-in-ready locations from restricted or generic targets.
+- Anthony can receive a route that does not inherit Cruz's historical route as his own.
+
+Current weaknesses:
+
+- Google data alone does not prove decision-maker availability, parking quality, or likelihood of conversation.
+- Category quality still needs field feedback to become truly personalized.
+- The first route can be intelligently ranked, but confidence should remain conservative until Anthony records visits, conversations, leads, and outcomes.
+
+Highest-ROI improvement using the existing architecture:
+
+- Capture Anthony's feedback after every visit and update category confidence, visit quality, and route freshness from verified outcomes instead of relying only on Google business metadata.
+
+Manual Google workflow, if needed:
 
 1. Search around `12338 Gulf Freeway, Houston, TX 77034`.
 2. Pull specific storefront results, not plazas or broad areas.

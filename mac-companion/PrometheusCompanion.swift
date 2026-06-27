@@ -13,6 +13,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private let assistantEndpoint = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_ASSISTANT_ENDPOINT"] ?? "http://127.0.0.1:8792/api/assistant")!
     private let ttsProvider = ProcessInfo.processInfo.environment["PROMETHEUS_TTS_PROVIDER"] ?? "elevenlabs"
     private let ttsPreferredVoice = ProcessInfo.processInfo.environment["PROMETHEUS_TTS_VOICE"] ?? ""
+    private let nativeSttFallbackEnabled = ProcessInfo.processInfo.environment["PROMETHEUS_NATIVE_STT_FALLBACK"] == "1"
     private let wakePhrases = ["prometheus", "good morning prometheus", "hey prometheus"]
     private let appSupportURL = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Application Support/PrometheusCompanion")
@@ -477,6 +478,10 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func scheduleNativeSttCapture(after delay: TimeInterval = 0.9) {
+        guard nativeSttFallbackEnabled else {
+            log("Legacy native STT fallback ignored. WebView MediaRecorder plus local backend STT is the active capture path.")
+            return
+        }
         nativeSttTimer?.invalidate()
         nativeSttTimer = nil
         nativeSttWorkItem?.cancel()
@@ -491,6 +496,10 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func captureNativeCommandAudio(duration: TimeInterval = 4.2) {
+        guard nativeSttFallbackEnabled else {
+            log("Legacy native STT capture blocked. Set PROMETHEUS_NATIVE_STT_FALLBACK=1 only for deliberate diagnostics.")
+            return
+        }
         log("Native STT capture tick entered.")
         guard nativeSttLoopEnabled else { return }
 
@@ -507,6 +516,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             let permissionLabel = audioRecordPermissionLabel()
             log("Native STT capture blocked until microphone recording is authorized: \(permissionLabel).")
             prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Mic permission issue', \(Self.javascriptStringLiteral("Microphone recording authorization is \(permissionLabel).")), 'error')")
+            nativeSttLoopEnabled = false
             requestPermissionsAndStart()
             return
         }

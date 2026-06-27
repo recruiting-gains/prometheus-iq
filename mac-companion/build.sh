@@ -19,7 +19,6 @@ swiftc \
   -framework AVFAudio \
   -framework AVFoundation \
   -framework WebKit \
-  -framework Speech \
   -framework Foundation
 
 chmod +x "$MACOS_DIR/PrometheusCompanion"

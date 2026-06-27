@@ -58,11 +58,13 @@ const bannedResponseText = [
 ];
 
 const reasoningCases = [
+  "Prometheus, what happened today?",
   "Prometheus, what happened yesterday?",
   "Prometheus, what happened this week?",
   "Prometheus, what major systems have been built?",
   "Prometheus, what changed in Prometheus over the last month?",
   "Prometheus, who is Anthony?",
+  "Prometheus, what about Anthony?",
   "Prometheus, why is Anthony important?",
   "Prometheus, what is the biggest risk to Prometheus today?",
   "Prometheus, what should I do next?",
@@ -147,6 +149,8 @@ for (const phrase of reasoningCases) {
 }
 
 const explicitNodeCases = [
+  "Prometheus, open founder notes",
+  "Prometheus, open route intelligence",
   "Prometheus, open voice settings",
   "Prometheus, display website status",
   "Prometheus, show pilot readiness card"

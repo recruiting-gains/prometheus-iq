@@ -2,7 +2,7 @@
 
 Private native macOS companion for Prometheus OS.
 
-This is not a customer feature. It is a local founder-only companion that opens Prometheus OS when Cruz launches it from the Dock, asks macOS for microphone and speech-recognition permission, listens for wake phrases while the Mac is awake, and speaks through either the local premium TTS backend or the built-in macOS voice fallback.
+This is not a customer feature. It is a local founder-only companion that opens Prometheus OS when Cruz launches it from the Dock, loads the private WebView runtime, uses WebView MediaRecorder audio capture with local backend STT, and speaks through either the local premium TTS backend or the built-in browser/macOS voice fallback.
 
 Current operating mode: manual Dock launch. Prometheus Companion should not auto-open at login unless Cruz explicitly reinstalls launch-at-login later.
 
@@ -23,7 +23,7 @@ Current operating mode: manual Dock launch. Prometheus Companion should not auto
 
 - Listening while the Mac is fully asleep.
 - Listening before macOS unlocks.
-- Bypassing macOS microphone or speech-recognition permissions.
+- Bypassing macOS microphone permissions.
 - Guaranteeing wake-word behavior when macOS suspends the app, the microphone, or the audio engine.
 
 macOS intentionally blocks those behaviors for privacy and battery safety.
@@ -77,18 +77,24 @@ mac-companion/.build/PrometheusCompanion.app
 The first run may ask for:
 
 - Microphone permission.
-- Speech Recognition permission.
 
-Approve both for wake phrases to work.
+Approve microphone access for wake phrases to work. Companion no longer depends on Apple Speech Recognition for normal command capture.
 
 If permissions do not appear, open:
 
 ```text
 System Settings > Privacy & Security > Microphone
-System Settings > Privacy & Security > Speech Recognition
 ```
 
 Then enable Prometheus Companion.
+
+If a Speech Recognition permission dialog appears, it usually means an old runtime or diagnostic build is still active. The current source of truth is:
+
+```text
+Companion WebView microphone capture -> local /api/stt backend -> Intelligence Orchestrator -> local /api/tts backend
+```
+
+Close the stale Companion instance, rebuild from this folder, and relaunch the Dock app.
 
 ## Optional Launch At Login
 
@@ -184,7 +190,15 @@ Never paste the key into Codex chat. Never commit it to GitHub. The companion in
 
 ## Wake Phrase Behavior
 
-The companion listens through Apple Speech Recognition while the Mac is awake and the app is running.
+The companion listens through the Prometheus OS WebView while the Mac is awake and the app is running. Browser/WebView MediaRecorder captures short audio windows and sends them to the local backend STT endpoint.
+
+Legacy native Swift STT capture is disabled by default so it cannot compete with the WebView/backend path. It can be enabled only for deliberate diagnostics by launching with:
+
+```bash
+PROMETHEUS_NATIVE_STT_FALLBACK=1 ./mac-companion/start-prometheus-os.sh
+```
+
+Do not enable that fallback during normal Founder Acceptance.
 
 When it hears a wake phrase, it responds locally. Current built-in responses cover:
 

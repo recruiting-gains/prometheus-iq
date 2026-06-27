@@ -13,6 +13,7 @@ loadLocalEnv();
 const PORT = Number(process.env.PROMETHEUS_OS_PORT || 8792);
 const HOST = process.env.PROMETHEUS_OS_HOST || "127.0.0.1";
 const ROOT = normalize(join(fileURLToPath(new URL("../", import.meta.url))));
+const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -244,6 +245,17 @@ const server = http.createServer(async (req, res) => {
   res.end("Method not allowed");
 });
 
+server.on("error", (error) => {
+  if (error?.code === "EADDRINUSE") {
+    console.log(`Prometheus OS local backend already running at http://${HOST}:${PORT}`);
+    if (isDirectRun) process.exit(0);
+    return;
+  }
+
+  console.error("Prometheus OS local backend failed to start.");
+  console.error(error?.message || error);
+  if (isDirectRun) process.exit(1);
+});
 server.listen(PORT, HOST, () => {
   console.log(`Prometheus OS local backend running at http://${HOST}:${PORT}`);
 });

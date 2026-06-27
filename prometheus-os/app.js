@@ -41,6 +41,8 @@ let backendSttRecorder = null;
 let backendSttBusy = false;
 let backendSttLoopEnabled = false;
 let backendSttLoopTimer = 0;
+let backendSttPermissionRecoveryTimer = 0;
+let microphonePermissionMonitorInstalled = false;
 let lastBackendTranscript = "";
 let lastBackendTranscriptAt = 0;
 let currentPremiumAudio = null;
@@ -80,6 +82,15 @@ function debugVoice(stage, message = "", { kind = "info" } = {}) {
   if (readable === lastDebugMessage) return;
   lastDebugMessage = readable;
   console.info(`[Prometheus Voice] ${readable}`);
+  try {
+    window.webkit?.messageHandlers?.prometheusLog?.postMessage({
+      stage,
+      message: String(message || "").slice(0, 500),
+      kind
+    });
+  } catch {
+    // Native logging is available only inside Prometheus Companion.
+  }
   if (voiceDebug) {
     voiceDebug.textContent = readable;
     voiceDebug.dataset.kind = kind;
@@ -243,9 +254,11 @@ function startBackendSttLoop() {
   scheduleBackendSttLoop(900);
 }
 
-function stopBackendSttLoop() {
+function stopBackendSttLoop(reason = "") {
   backendSttLoopEnabled = false;
   window.clearTimeout(backendSttLoopTimer);
+  backendSttLoopTimer = 0;
+  if (reason) debugVoice("Listening paused", reason, { kind: "ok" });
 }
 
 function systemNodes() {
@@ -529,6 +542,83 @@ async function getBackendSttStream() {
   return backendSttStream;
 }
 
+function isMicrophonePermissionError(errorOrMessage) {
+  const value = String(errorOrMessage?.name || errorOrMessage?.message || errorOrMessage || "").toLowerCase();
+  return value.includes("notallowed") ||
+    value.includes("permission") ||
+    value.includes("denied") ||
+    value.includes("authorization") ||
+    value.includes("not authorized");
+}
+
+async function readMicrophonePermissionState() {
+  try {
+    if (!navigator.permissions?.query) return "not detectable";
+    const permission = await navigator.permissions.query({ name: "microphone" });
+    return permission.state || "unknown";
+  } catch {
+    return "not detectable";
+  }
+}
+
+function retryBackendSttAfterPermissionChange(reason = "microphone permission recovery") {
+  if (!continuousListeningEnabled || isPrometheusSpeaking || commandInFlight) return;
+  backendSttStream = null;
+  debugVoice("microphone recovery", reason, { kind: "ok" });
+  startBackendSttLoop();
+  startBackendSttCapture({
+    source: reason,
+    silentNoInput: true
+  });
+}
+
+function scheduleMicrophonePermissionRecovery(reason = "microphone permission unavailable") {
+  window.clearTimeout(backendSttPermissionRecoveryTimer);
+  backendSttPermissionRecoveryTimer = window.setTimeout(async () => {
+    if (!continuousListeningEnabled || isPrometheusSpeaking || commandInFlight) return;
+
+    const state = await readMicrophonePermissionState();
+    debugVoice("microphone permission check", state, {
+      kind: state === "denied" ? "warn" : "info"
+    });
+
+    if (state === "granted" || state === "prompt" || state === "not detectable" || state === "unknown") {
+      retryBackendSttAfterPermissionChange(reason);
+      return;
+    }
+
+    scheduleBackendSttLoop(2500);
+  }, 1200);
+}
+
+async function installMicrophonePermissionMonitor() {
+  if (microphonePermissionMonitorInstalled) return;
+  microphonePermissionMonitorInstalled = true;
+
+  try {
+    if (navigator.permissions?.query) {
+      const permission = await navigator.permissions.query({ name: "microphone" });
+      permission.onchange = () => {
+        debugVoice("microphone permission changed", permission.state || "unknown", {
+          kind: permission.state === "granted" ? "ok" : "warn"
+        });
+        if (permission.state === "granted") {
+          retryBackendSttAfterPermissionChange("microphone permission granted");
+        }
+      };
+    }
+  } catch {
+    debugVoice("microphone permission monitor", "permission API unavailable in this WebView", { kind: "warn" });
+  }
+
+  window.addEventListener("focus", () => {
+    scheduleMicrophonePermissionRecovery("window focus microphone recovery");
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) scheduleMicrophonePermissionRecovery("visibility microphone recovery");
+  });
+}
+
 function stopBackendSttCapture() {
   if (backendSttRecorder?.state === "recording") {
     try {
@@ -778,8 +868,9 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
 
     lastBackendTranscript = transcript;
     lastBackendTranscriptAt = now;
+    stopBackendSttLoop("accepted command transcript");
     await submitCommand(transcript, { source: "backend STT" });
-    scheduleBackendSttLoop(900);
+    if (continuousListeningEnabled) startBackendSttLoop();
     return true;
   } catch (error) {
     backendSttBusy = false;
@@ -792,6 +883,9 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
       title: "Browser speech capture unavailable",
       text: `${reason} Prometheus Companion uses the local WebView microphone recorder and sends audio to the local STT backend.`
     });
+    if (isMicrophonePermissionError(error || reason)) {
+      scheduleMicrophonePermissionRecovery(reason);
+    }
     scheduleBackendSttLoop(2500);
     return false;
   }
@@ -1121,6 +1215,7 @@ function initVoice() {
   voice.loadVoices();
   ensureBestVoiceSelected();
   setTimeout(ensureBestVoiceSelected, 500);
+  installMicrophonePermissionMonitor();
   setVoiceState("idle");
   if (continuousListeningEnabled) {
     window.setTimeout(() => {
@@ -1128,7 +1223,12 @@ function initVoice() {
         voice.startAlwaysListening();
         startBackendSttLoop();
       } else {
-        debugVoice("Listening", "Native Companion microphone capture owns STT in shell mode.", { kind: "ok" });
+        debugVoice("Listening", "Companion WebView microphone capture owns STT in shell mode.", { kind: "ok" });
+        startBackendSttLoop();
+        startBackendSttCapture({
+          source: "companion webview",
+          silentNoInput: true
+        });
       }
     }, 600);
   }
@@ -1175,16 +1275,22 @@ window.prometheusOSStartListening = (options = {}) => {
   continuousListeningEnabled = true;
   localStorage.setItem("prometheus-os-continuous-voice", "true");
   backendSttEnabled = true;
+  installMicrophonePermissionMonitor();
   if (!companionShell) {
     voice.startAlwaysListening();
-    startBackendSttLoop();
-    startBackendSttCapture({
-      source: options.companionShell ? "companion webview" : "companion",
-      silentNoInput: true
-    });
-    return;
   }
-  debugVoice("Listening", "Native Companion microphone capture owns STT in shell mode.", { kind: "ok" });
+  startBackendSttLoop();
+  startBackendSttCapture({
+    source: options.companionShell ? "companion webview" : "companion",
+    silentNoInput: true
+  });
+  debugVoice(
+    "Listening",
+    companionShell
+      ? "Companion WebView microphone capture owns STT in shell mode."
+      : "Browser microphone capture owns STT.",
+    { kind: "ok" }
+  );
 };
 
 window.prometheusOSResolveRoute = (command) => {
