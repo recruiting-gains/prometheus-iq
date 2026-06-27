@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-YIYA2b8R0Rpc69a2Ge5OHOfqbQW9Xu2B3WOHgNwxSAM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-9Filb/w69ZISQoCLR2Jd+zcKKdNaxk1H6uKC9DD5W9Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -1088,7 +1088,7 @@
     const vagueAnthonyDestinationPattern = /\b(near|corridor|area|district|sweep|search)\b/i;
     const genericAnthonyBusinessNamePattern = /\b(pro desk|employer outreach|employee outreach|business corridor|route intelligence|discovery placeholder|placeholder|sweep|corridor|area|district|mall|plaza|town center|shopping center|airport|campus|park\s*&\s*ride|park and ride)\b/i;
     const googleMapsUrlPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
-    const anthonyLearningResetVersion = "2026-06-27-google-qualified-day-1";
+    const anthonyLearningResetVersion = "2026-06-27-anthony-startup-sync-reset-v2";
     const anthonyDisplayCategories = new Set(["Apartment", "Auto", "Tire", "Oil Change", "Car Wash", "Restaurant", "Retail", "Small Retail", "Barber", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Office", "Other"]);
     const storefrontCategorySet = new Set(["Auto", "Barber", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
@@ -1654,7 +1654,7 @@
     let currentWindow = "all";
     let currentFilter = "all";
     if (!state.repProfiles?.[activeRepId]) activeRepId = "cruz";
-    applyActiveProfile(activeRepId);
+    applyActiveProfile(activeRepId, { syncBeforeSwitch: false });
 
     function migrateBroadPlace(place) {
       const replacementName = broadPlaceMigrations[place.name];
@@ -2042,8 +2042,9 @@
       profile.updatedAt = Date.now();
     }
 
-    function applyActiveProfile(nextRepId) {
-      syncActiveProfile();
+    function applyActiveProfile(nextRepId, options = {}) {
+      const { syncBeforeSwitch = true } = options;
+      if (syncBeforeSwitch) syncActiveProfile();
       activeRepId = state.repProfiles?.[nextRepId] ? nextRepId : "cruz";
       state.activeRepId = activeRepId;
       const profile = activeProfile();
