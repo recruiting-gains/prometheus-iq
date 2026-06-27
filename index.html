@@ -1083,10 +1083,13 @@
     const restrictedTargetPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s|airport|hospital|school|college|campus|government|courthouse|city hall|police station|fire station|park & ride|mall|plaza|town center|shopping center)\b/i;
     const bigBoxPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s)\b/i;
     const permissionRequiredPattern = /\b(mall|plaza|town center|shopping center|airport|hospital|school|college|campus|government|courthouse|city hall|event|market|large employer|park & ride)\b/i;
-    const invalidAnthonyRouteTargetPattern = /\b(urban bird|texas made income tax|southbelt dental office|t-mobile\s*-\s*blackhawk)\b/i;
+    const invalidAnthonyRouteTargetPattern = /\b(urban bird|texas made income tax|southbelt dental office|t-mobile\s*-\s*blackhawk|pro desk|employer outreach|discovery placeholder|placeholder)\b/i;
     const anthonyFirstRouteBlockedPattern = /\b(urban bird|autozone|seaford|seafood|texas made income tax|southbelt dental office|t-mobile\s*-\s*blackhawk)\b/i;
     const vagueAnthonyDestinationPattern = /\b(near|corridor|area|district|sweep|search)\b/i;
+    const genericAnthonyBusinessNamePattern = /\b(pro desk|employer outreach|employee outreach|business corridor|route intelligence|discovery placeholder|placeholder|sweep|corridor|area|district|mall|plaza|town center|shopping center|airport|campus|park\s*&\s*ride|park and ride)\b/i;
     const googleMapsUrlPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
+    const anthonyLearningResetVersion = "2026-06-27-google-qualified-day-1";
+    const anthonyDisplayCategories = new Set(["Apartment", "Auto", "Tire", "Oil Change", "Car Wash", "Restaurant", "Retail", "Small Retail", "Barber", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Office", "Other"]);
     const storefrontCategorySet = new Set(["Auto", "Barber", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
@@ -1453,15 +1456,6 @@
         notes: "Hotel employees, shuttle drivers, cleaning crews, front desk teams. Ask for staff wellness access."
       },
       {
-        name: "Pro Desk Employer Outreach - Southbelt",
-        category: "Employer",
-        window: "Morning",
-        distance: "5.3 mi",
-        priority: 8,
-        address: "local employer near Southbelt Houston TX 77089",
-        notes: "Employer outreach target. Ask for a manager or HR contact before discussing memberships with staff."
-      },
-      {
         name: "Take 5 Oil Change - Fuqua St",
         category: "Auto",
         window: "Evening",
@@ -1497,8 +1491,8 @@
       "Memorial Hermann Southeast Hospital": "Glam Beauty Studio",
       "San Jacinto College South Campus": "H&R Block - Southbelt",
       "Hotels near Hobby / Gulf Freeway": "WoodSpring Suites South Houston Hobby",
-      "Ellington Airport": "Pro Desk Employer Outreach - Southbelt",
-      "Ellington Airport / Ellington Field area": "Pro Desk Employer Outreach - Southbelt",
+      "Ellington Airport": "Level Up tires & Wheels",
+      "Ellington Airport / Ellington Field area": "Level Up tires & Wheels",
       "Almeda Genoa business corridor": "Level Up Tires & Wheels",
       "Fuqua / Sabo retail and service sweep": "Take 5 Oil Change - Fuqua St",
       "Scarsdale Plaza": "Firestone Complete Auto Care - Scarsdale",
@@ -1955,12 +1949,23 @@
         mode: "rep",
         explorationTarget: .8
       };
-      return {
+      const profile = {
         ...template,
         visits: Array.isArray(visits) ? visits : [],
         routeHistory: Array.isArray(routeHistory) ? routeHistory : [],
         createdAt: Date.now()
       };
+      if (profileId === "anthony") {
+        profile.recommendationHistory = [];
+        profile.placePerformance = {};
+        profile.categoryPerformance = {};
+        profile.timeWindowPerformance = {};
+        profile.learnedPreferences = {};
+        profile.confidenceAdjustments = {};
+        profile.learningResetVersion = anthonyLearningResetVersion;
+        profile.learningResetAt = new Date().toISOString();
+      }
+      return profile;
     }
 
     function summarizeProfilePerformance(visits, places) {
@@ -2019,6 +2024,22 @@
       profile.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
       profile.updatedAt = Date.now();
       state.activeRepId = activeRepId;
+    }
+
+    function resetAnthonyLearningProfile(repProfiles) {
+      const profile = repProfiles?.anthony;
+      if (!profile || profile.learningResetVersion === anthonyLearningResetVersion) return;
+      profile.visits = [];
+      profile.routeHistory = [];
+      profile.recommendationHistory = [];
+      profile.placePerformance = {};
+      profile.categoryPerformance = {};
+      profile.timeWindowPerformance = {};
+      profile.learnedPreferences = {};
+      profile.confidenceAdjustments = {};
+      profile.learningResetVersion = anthonyLearningResetVersion;
+      profile.learningResetAt = new Date().toISOString();
+      profile.updatedAt = Date.now();
     }
 
     function applyActiveProfile(nextRepId) {
@@ -2134,6 +2155,14 @@
             ...template,
             visits: normalizeVisitsList(rawProfile?.visits),
             routeHistory: normalizeRouteHistory(rawProfile?.routeHistory),
+            recommendationHistory: Array.isArray(rawProfile?.recommendationHistory) ? rawProfile.recommendationHistory.slice(-routeHistoryLimit) : [],
+            placePerformance: rawProfile?.placePerformance && typeof rawProfile.placePerformance === "object" ? cloneData(rawProfile.placePerformance) : {},
+            categoryPerformance: rawProfile?.categoryPerformance && typeof rawProfile.categoryPerformance === "object" ? cloneData(rawProfile.categoryPerformance) : {},
+            timeWindowPerformance: rawProfile?.timeWindowPerformance && typeof rawProfile.timeWindowPerformance === "object" ? cloneData(rawProfile.timeWindowPerformance) : {},
+            learnedPreferences: rawProfile?.learnedPreferences && typeof rawProfile.learnedPreferences === "object" ? cloneData(rawProfile.learnedPreferences) : {},
+            confidenceAdjustments: rawProfile?.confidenceAdjustments && typeof rawProfile.confidenceAdjustments === "object" ? cloneData(rawProfile.confidenceAdjustments) : {},
+            learningResetVersion: cleanText(rawProfile?.learningResetVersion, 80),
+            learningResetAt: cleanText(rawProfile?.learningResetAt, 80),
             createdAt: cleanNumber(rawProfile?.createdAt, Date.now()) || Date.now(),
             updatedAt: cleanNumber(rawProfile?.updatedAt, Date.now()) || undefined
           };
@@ -2142,6 +2171,7 @@
 
       if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", legacyVisits, legacyRouteHistory);
       if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
+      resetAnthonyLearningProfile(repProfiles);
 
       const requestedActiveRep = cleanText(input.activeRepId || localStorage.getItem(activeRepStoreKey) || "cruz", 60);
       const activeId = repProfiles[requestedActiveRep] ? requestedActiveRep : "cruz";
@@ -2270,6 +2300,18 @@
       return !vagueAnthonyDestinationPattern.test(address);
     }
 
+    function hasVerifiedBusinessName(place) {
+      const name = cleanText(place?.name, 160);
+      return Boolean(name)
+        && !genericAnthonyBusinessNamePattern.test(name)
+        && !invalidAnthonyRouteTargetPattern.test(name);
+    }
+
+    function hasRepresentativeCategory(place) {
+      const category = cleanText(place?.category, 80);
+      return anthonyDisplayCategories.has(category) && category !== "Employer";
+    }
+
     function isGoogleMapsSafeUrl(url) {
       return googleMapsUrlPattern.test(cleanText(url, 500));
     }
@@ -2282,6 +2324,8 @@
       if (place?.repProfileId !== "anthony") return true;
       return place.sourceType === "Google Places API"
         && Boolean(cleanText(place.googlePlaceId, 180))
+        && hasVerifiedBusinessName(place)
+        && hasRepresentativeCategory(place)
         && isGoogleMapsSafeUrl(place.googleMapsUrl)
         && hasUsableRouteAddress(place)
         && !isQuarantinedAnthonyTarget(place);
