@@ -21,6 +21,119 @@ Minimum checklist:
 - App language is simple and not too specific to only one person.
 - The coworker can start with a clean copy, not your personal data.
 
+## Friday Beta Release Checklist
+
+Use this checklist before sending a live beta link to an approved tester.
+
+- Confirm the live deployment matches the approved local dashboard source.
+- Confirm the exact tester URL opens the current dashboard, not an old file preview or stale Cloudflare version.
+- Confirm the tester opens in Rep mode only.
+- Confirm Owner or admin controls are not visible to the tester.
+- Confirm Google-qualified Route Intelligence appears on the live tester URL.
+- Confirm direction links open from the route cards.
+- Confirm Cloudflare Access still protects the app.
+- Confirm the tester email is included in the existing Cloudflare Access policy.
+- Confirm no `.env`, API keys, tokens, screenshots, or internal Founder Companion files are included in anything sent externally.
+
+## Cloudflare Access Email Approval
+
+For a private beta user, use the existing Cloudflare Access application and policy. Do not create a duplicate Access app for each tester.
+
+Process:
+
+1. Add the tester's email address to the approved beta policy.
+2. Save the existing policy.
+3. Open the exact protected beta URL.
+4. Have the tester request an email One-Time PIN from Cloudflare Access.
+5. The tester must use the newest PIN from the newest email in the same login session.
+6. Verify the dashboard opens in Rep mode after the PIN is accepted.
+
+One-Time PIN behavior:
+
+- PINs are single-use.
+- PINs can expire.
+- Requesting multiple PINs can make older emails invalid.
+- Using a PIN from a different browser tab, old challenge, or stale login page can trigger an "already used" or invalid-code experience.
+
+If a tester sees "This one-time PIN has already been used":
+
+1. Close old Cloudflare login tabs.
+2. Reopen the exact protected beta link.
+3. Request a fresh PIN.
+4. Use the newest email only.
+5. Do not request another PIN unless the first fresh attempt fails.
+6. If it still fails, review Cloudflare Access logs for the tester email and confirm the policy still includes the tester.
+
+## Google Maps / Places Verification
+
+Google Maps and Places must be verified on the exact live user URL, not only on the local file.
+
+Before beta:
+
+- Confirm the approved local dashboard contains Google-qualified businesses.
+- Confirm `deploy/cloudflare-pages/index.html` matches the approved dashboard source.
+- Confirm Cloudflare serves that same deployed source.
+- Confirm the tester route uses qualified storefronts instead of stale manual seed locations.
+- Confirm blocked or poor targets are not primary route recommendations.
+
+## 2026-06-26 Anthony Beta Stabilization Note
+
+Verified live beta URL:
+
+`https://prometheus-iq.prometheusrouteiq.workers.dev/?role=rep&rep=Anthony&verify=20260626-beta`
+
+Live deployment verification:
+
+- The approved local dashboard source was synced to `deploy/cloudflare-pages/index.html`.
+- The Cloudflare deployment package was updated from the approved source.
+- The existing Prometheus IQ Worker was manually redeployed through Cloudflare.
+- Verified live deployment ID: `ea14d08a`.
+- The live Anthony URL opened in Rep mode.
+- Owner/admin controls were not visible.
+- The live route used Google-qualified Anthony recommendations, starting with Adolfo's Barber Shop, Universal Barbering Of Houston, Estetica Unisex Zaleta, Glam Beauty Studio, ClearWater Express Wash, and Kruzzers Auto Care LLC.
+- Route cards included directions links and walk-in/ask-for guidance.
+
+Cloudflare Access verification:
+
+- The existing `Prometheus IQ Private Beta` Access app was reused.
+- Email One-Time PIN was the selected login method for the app.
+- `Anthony.garza719@gmail.com` was included in the existing allow policy.
+- The old Cloudflare identity provider exists globally but was not selected for this app.
+
+Remaining login truth:
+
+Anthony's fresh PIN flow must still be validated on Anthony's own device and email session. If he sees an "already used" PIN message, use the recovery steps above before changing Access configuration.
+
+## Companion Founder Acceptance Note
+
+Prometheus Companion is a founder-only operating system and should not be sent to beta testers.
+
+Before Founder Acceptance:
+
+- Confirm the installed Companion runtime is synced with the repository version.
+- Confirm the local backend is running.
+- Confirm the Prometheus OS server is running.
+- Confirm voice, routing, and premium TTS are working before Cruz tests.
+
+## Codex / Browser Recovery Note
+
+If Codex, ChatGPT, Cloudflare, or Google requires authentication, Cruz should complete sign-in, two-factor authentication, payment, or approval manually. API keys, tokens, passwords, billing details, and private credentials should never be pasted into chat or committed to GitHub.
+
+## Anthony Feedback Questions
+
+Ask Anthony these after his first beta use:
+
+- Were you able to log in without help?
+- Did the route open in Rep mode only?
+- Did the route recommendations look like real places you could walk into?
+- Did any recommendation feel like a poor sales target?
+- Did directions open correctly?
+- Did Prometheus help you decide where to go first?
+- What was confusing on the first screen?
+- What would make you trust the route more?
+- What did you actually visit?
+- What happened at each visit: conversation, lead, follow-up, sale, or no opportunity?
+
 ## Best First Sharing Method
 
 For the first coworker test, keep it simple:
@@ -122,4 +235,3 @@ In two weeks, do not jump straight to selling.
 The next step should be:
 
 Give one coworker a clean beta version, have them use it for 7-14 days, collect their exported results, and compare whether Prometheus helped them plan better routes, save gas, and find better-producing locations faster.
-
