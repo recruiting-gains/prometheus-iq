@@ -1074,7 +1074,7 @@
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
-    const placeCategories = ["Apartment","Auto","Tire","Oil Change","Car Wash","Warehouse","Restaurant","Retail","Small Retail","Office","School","Salon","Clinic","Medical Office","Dental Office","College","Community","Transit","Employer","Business","Business Services","Hotel","Event","Other"];
+    const placeCategories = ["Apartment","Auto","Tire","Oil Change","Car Wash","Warehouse","Restaurant","Retail","Small Retail","Office","School","Barber","Salon","Clinic","Medical Office","Dental Office","College","Community","Transit","Employer","Business","Business Services","Hotel","Event","Other"];
     const visitWindows = ["Morning","Midday","Evening","Anytime","Afternoon"];
     const permissionValues = ["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"];
     const routeHistoryLimit = 80;
@@ -1083,9 +1083,12 @@
     const restrictedTargetPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s|airport|hospital|school|college|campus|government|courthouse|city hall|police station|fire station|park & ride|mall|plaza|town center|shopping center)\b/i;
     const bigBoxPattern = /\b(walmart|target|costco|sam'?s club|kroger|h-?e-?b|aldi|fiesta|whole foods|trader joe'?s)\b/i;
     const permissionRequiredPattern = /\b(mall|plaza|town center|shopping center|airport|hospital|school|college|campus|government|courthouse|city hall|event|market|large employer|park & ride)\b/i;
-    const anthonyFirstRouteBlockedPattern = /\b(urban bird|autozone|seaford|seafood)\b/i;
-    const storefrontCategorySet = new Set(["Auto", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
-    const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
+    const invalidAnthonyRouteTargetPattern = /\b(urban bird|texas made income tax|southbelt dental office|t-mobile\s*-\s*blackhawk)\b/i;
+    const anthonyFirstRouteBlockedPattern = /\b(urban bird|autozone|seaford|seafood|texas made income tax|southbelt dental office|t-mobile\s*-\s*blackhawk)\b/i;
+    const vagueAnthonyDestinationPattern = /\b(near|corridor|area|district|sweep|search)\b/i;
+    const googleMapsUrlPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
+    const storefrontCategorySet = new Set(["Auto", "Barber", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
+    const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
@@ -1396,15 +1399,6 @@
         notes: "Exact Google Maps location. Best potential is waiting or vacuum traffic, with site permission."
       },
       {
-        name: "Urban Bird Hot Chicken - Almeda Genoa",
-        category: "Restaurant",
-        window: "Midday",
-        distance: "1-3 mi",
-        priority: 10,
-        address: "9990 Almeda Genoa Rd Ste 100, Houston, TX 77075",
-        notes: "Exact Google Maps location. Visit between rushes and ask management before approaching the crew."
-      },
-      {
         name: "Space City Barber Studio",
         category: "Salon",
         window: "Midday",
@@ -1441,15 +1435,6 @@
         notes: "Specific walk-in storefront. Ask for the owner, manager, or shift lead about employee wellness and referrals."
       },
       {
-        name: "Southbelt Dental Office",
-        category: "Clinic",
-        window: "Midday",
-        distance: "2.4 mi",
-        priority: 8,
-        address: "dental office near Southbelt Houston TX 77089",
-        notes: "Specific office target. Ask for the office manager and avoid patient areas."
-      },
-      {
         name: "H&R Block - Southbelt",
         category: "Business",
         window: "Midday",
@@ -1477,15 +1462,6 @@
         notes: "Employer outreach target. Ask for a manager or HR contact before discussing memberships with staff."
       },
       {
-        name: "Texas Made Income Tax and Notary",
-        category: "Business",
-        window: "Midday",
-        distance: "0.2 mi",
-        priority: 10,
-        address: "12260 Gulf Fwy Suite B4, Houston, TX 77034",
-        notes: "Exact Google Maps location. Ask about employee wellness and referral permission."
-      },
-      {
         name: "Take 5 Oil Change - Fuqua St",
         category: "Auto",
         window: "Evening",
@@ -1502,15 +1478,6 @@
         priority: 8,
         address: "Firestone Complete Auto Care near Scarsdale Blvd Houston TX 77089",
         notes: "Specific walk-in storefront. Ask for the service manager before talking with technicians or waiting customers."
-      },
-      {
-        name: "T-Mobile - Blackhawk",
-        category: "Retail",
-        window: "Evening",
-        distance: "3-5 mi",
-        priority: 7,
-        address: "T-Mobile near Blackhawk Blvd Houston TX 77075",
-        notes: "Specific walk-in storefront. Ask for the store manager or shift lead about employee wellness and referrals."
       }
     ];
 
@@ -1520,24 +1487,24 @@
       "Quick oil sweep - Jiffy Lube / Take 5 / Valvoline": "Jiffy Lube Oil Change - Fuqua St",
       "Tire shop sweep - Discount Tire / small tire shops": "Level Up Tires & Wheels",
       "Car wash sweep - Gulf Freeway / Almeda Genoa": "ClearWater Express Wash - Fuqua St",
-      "Restaurant employee sweep - Almeda Mall / Gulf Fwy": "Urban Bird Hot Chicken - Almeda Genoa",
+      "Restaurant employee sweep - Almeda Mall / Gulf Fwy": "888 Chinese Restaurant",
       "Barber and salon sweep - Almeda Genoa corridor": "Space City Barber Studio",
       "South Point Park & Ride": "Discount Tire - Southbelt",
       "South Point Park & Ride area": "Discount Tire - Southbelt",
       "Walmart Supercenter - Rowlett Rd": "Great Clips - Southbelt",
       "Fuqua Park & Ride": "The UPS Store - Southbelt",
       "Fuqua Park & Ride area": "The UPS Store - Southbelt",
-      "Memorial Hermann Southeast Hospital": "Southbelt Dental Office",
+      "Memorial Hermann Southeast Hospital": "Glam Beauty Studio",
       "San Jacinto College South Campus": "H&R Block - Southbelt",
       "Hotels near Hobby / Gulf Freeway": "WoodSpring Suites South Houston Hobby",
       "Ellington Airport": "Pro Desk Employer Outreach - Southbelt",
       "Ellington Airport / Ellington Field area": "Pro Desk Employer Outreach - Southbelt",
-      "Almeda Genoa business corridor": "Texas Made Income Tax and Notary",
+      "Almeda Genoa business corridor": "Level Up Tires & Wheels",
       "Fuqua / Sabo retail and service sweep": "Take 5 Oil Change - Fuqua St",
       "Scarsdale Plaza": "Firestone Complete Auto Care - Scarsdale",
       "Scarsdale Blvd apartment and retail corridor": "Firestone Complete Auto Care - Scarsdale",
-      "Blackhawk Town Center": "T-Mobile - Blackhawk",
-      "Blackhawk Blvd / Southbelt corridor": "T-Mobile - Blackhawk"
+      "Blackhawk Town Center": "Universal Barbering Of Houston",
+      "Blackhawk Blvd / Southbelt corridor": "Adolfo's Barber Shop"
     };
 
     const ideas = [
@@ -1545,12 +1512,12 @@
       ["AutoZone - 10705 Seaford Dr", "Auto", "Midday"],
       ["Level Up Tires & Wheels", "Auto", "Midday"],
       ["ClearWater Express Wash", "Auto", "Evening"],
-      ["Urban Bird Hot Chicken", "Restaurant", "Midday"],
+      ["888 Chinese Restaurant", "Restaurant", "Midday"],
       ["WoodSpring Suites South Houston Hobby", "Hotel", "Morning"],
       ["Firestone Complete Auto Care - Scarsdale", "Auto", "Evening"],
       ["Space City Barber Studio", "Salon", "Midday"],
-      ["Southbelt Dental Office", "Clinic", "Midday"],
-      ["T-Mobile - Blackhawk", "Retail", "Evening"]
+      ["Glam Beauty Studio", "Salon", "Midday"],
+      ["Brown Sugar's Bar B Que - The Original", "Restaurant", "Midday"]
     ];
 
     const discoveryTemplates = [
@@ -1698,7 +1665,9 @@
     function migrateBroadPlace(place) {
       const replacementName = broadPlaceMigrations[place.name];
       if (!replacementName) return place;
-      const replacement = starterPlaces.find(item => item.name === replacementName);
+      const replacement = starterPlaces
+        .concat(anthonyApprovedRoutePlaces)
+        .find(item => item.name === replacementName);
       return replacement
         ? { ...place, ...replacement, id: place.id, createdAt: place.createdAt || Date.now() }
         : place;
@@ -2289,19 +2258,58 @@
       return state.places;
     }
 
+    function routeIdentityKey(place) {
+      const googlePlaceId = cleanText(place?.googlePlaceId, 180);
+      if (googlePlaceId) return `google:${googlePlaceId}`;
+      return normalizeKey(`${place?.name || ""} ${place?.address || ""}`);
+    }
+
+    function hasUsableRouteAddress(place) {
+      const address = cleanText(place?.address, 240);
+      if (!address || !/\d/.test(address)) return false;
+      return !vagueAnthonyDestinationPattern.test(address);
+    }
+
+    function isGoogleMapsSafeUrl(url) {
+      return googleMapsUrlPattern.test(cleanText(url, 500));
+    }
+
+    function isQuarantinedAnthonyTarget(place) {
+      return invalidAnthonyRouteTargetPattern.test(`${place?.name || ""} ${place?.address || ""}`);
+    }
+
+    function isDirectionSafeAnthonyPlace(place) {
+      if (place?.repProfileId !== "anthony") return true;
+      return place.sourceType === "Google Places API"
+        && Boolean(cleanText(place.googlePlaceId, 180))
+        && isGoogleMapsSafeUrl(place.googleMapsUrl)
+        && hasUsableRouteAddress(place)
+        && !isQuarantinedAnthonyTarget(place);
+    }
+
+    function uniqueDirectionSafePlaces(places) {
+      const seen = new Set();
+      return (Array.isArray(places) ? places : []).filter(place => {
+        if (!place || !isDirectionSafeAnthonyPlace(place) || isQuarantinedAnthonyTarget(place)) return false;
+        const key = routeIdentityKey(place);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
     function isAnthonyGoogleApprovedPlace(place) {
       return place?.repProfileId === "anthony"
         && place.sourceType === "Google Places API"
-        && Number(place.seedRouteOrder || 0) > 0;
+        && Number(place.seedRouteOrder || 0) > 0
+        && isDirectionSafeAnthonyPlace(place);
     }
 
     function anthonyApprovedRoutePool(places) {
       const source = Array.isArray(places) ? places : [];
-      const googleApproved = source
+      return uniqueDirectionSafePlaces(source
         .filter(isAnthonyGoogleApprovedPlace)
-        .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999));
-      if (googleApproved.length >= 6) return googleApproved;
-      return source.filter(place => place.repProfileId === "anthony");
+        .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999)));
     }
 
     function routeVisiblePlaces() {
@@ -2326,7 +2334,11 @@
     }
 
     function isRouteEligible(place) {
-      return place.canRevisit !== false && place.permission !== "No" && accessType(place) !== "Do not recommend" && !isBlockedForAnthonyRoute(place);
+      return place.canRevisit !== false
+        && place.permission !== "No"
+        && accessType(place) !== "Do not recommend"
+        && !isBlockedForAnthonyRoute(place)
+        && (activeRepId !== "anthony" || isDirectionSafeAnthonyPlace(place));
     }
 
     function isAnthonyFirstRoute() {
@@ -2343,7 +2355,7 @@
     function isBlockedForAnthonyRoute(place) {
       if (activeRepId !== "anthony") return false;
       const text = `${place.name || ""} ${place.address || ""}`;
-      return anthonyFirstRouteBlockedPattern.test(text) || isFounderHistoricalWinner(place);
+      return anthonyFirstRouteBlockedPattern.test(text) || isQuarantinedAnthonyTarget(place) || isFounderHistoricalWinner(place);
     }
 
     function routePool(places) {
@@ -2359,7 +2371,7 @@
       const eligible = places.filter(place => isRouteEligible(place) && !hitToday.has(place.id));
       if (isAnthonyFirstRoute()) {
         const approvedFirstRoute = eligible
-          .filter(place => place.repProfileId === "anthony" && Number(place.seedRouteOrder || 0) > 0)
+          .filter(isAnthonyGoogleApprovedPlace)
           .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999));
         if (approvedFirstRoute.length >= 6) return approvedFirstRoute;
         const within10 = eligible.filter(place => {
@@ -2702,7 +2714,7 @@
     function buildRouteList(places, limit = 6, context = {}) {
       if (isAnthonyFirstRoute()) {
         const approvedFirstRoute = routePool(places)
-          .filter(place => place.repProfileId === "anthony" && Number(place.seedRouteOrder || 0) > 0)
+          .filter(isAnthonyGoogleApprovedPlace)
           .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999))
           .slice(0, limit)
           .map(place => routeAnalysis(place, { discoveryPreferred: true, expandRadius: context.expandRadius }));
@@ -2748,6 +2760,15 @@
         if (selected.length < limit) add(item, true);
       });
       return enforceRepRouteUniqueness(selected, scored, limit).slice(0, limit);
+    }
+
+    function routeListExcludingBestNext(places, limit = 6, context = {}) {
+      const bestNext = routeRecommendation();
+      const routeItems = buildRouteList(places, limit + 1, context);
+      if (!bestNext) return routeItems.slice(0, limit);
+      const bestKey = routeIdentityKey(bestNext);
+      const filtered = routeItems.filter(item => routeIdentityKey(item.place) !== bestKey);
+      return (filtered.length ? filtered : routeItems).slice(0, limit);
     }
 
     function sumVisits(visits) {
@@ -3124,7 +3145,7 @@
 
     function renderDailyRoute() {
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = routeListExcludingBestNext(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
       document.getElementById("dailyRouteCount").textContent = `${routeItems.length} stops · ${routeMode(need).label}`;
       const list = document.getElementById("dailyRoute");
       if (!routeItems.length) {
@@ -3166,7 +3187,7 @@
         places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
       }
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = buildRouteList(places, 10, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = routeListExcludingBestNext(places, 10, { need, expandRadius: shouldExpandRadius(need) });
       document.getElementById("routeCount").textContent = `${routeItems.length} options`;
       const list = document.getElementById("routeList");
       if (!routeItems.length) {
@@ -3364,8 +3385,8 @@
         ["Great Clips near Southbelt", "Salon", "Midday", "Great Clips near Southbelt Houston TX 77089"],
         ["Dental offices near Beamer", "Clinic", "Midday", "dental office near Beamer Road Houston TX 77089"],
         ["The UPS Store near Southbelt", "Business", "Morning", "The UPS Store near Southbelt Houston TX 77089"],
-        ["Phone repair stores near Blackhawk", "Retail", "Evening", "phone repair store near Blackhawk Blvd Houston TX 77075"],
-        ["Apartment leasing offices near Blackhawk", "Apartment", "Evening", "apartments near Blackhawk Blvd Houston TX 77075"],
+        ["Cell phone stores near Gulf Freeway", "Retail", "Evening", "cell phone store near 12338 Gulf Freeway Houston TX 77034"],
+        ["Apartment leasing offices near Fuqua", "Apartment", "Evening", "apartments near Fuqua Street Houston TX 77089"],
         ["Local restaurants near Rowlett", "Restaurant", "Midday", "restaurant near Rowlett Road Houston TX 77075"]
       ];
       const cruzFirst = [
@@ -3636,13 +3657,18 @@
     }
 
     function mapsUrl(place) {
+      if (place?.repProfileId === "anthony" && isDirectionSafeAnthonyPlace(place)) return place.googleMapsUrl;
       const query = `${place.name} ${place.address || ""} near 12338 Gulf Freeway Houston TX 77034`;
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     }
 
     function directionsUrl(place) {
-      const destination = `${place.name} ${place.address || ""}`;
-      return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+      const destination = `${place.name}, ${place.address || ""}`.trim();
+      const placeId = cleanText(place?.googlePlaceId, 180);
+      const base = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
+      return place?.repProfileId === "anthony" && placeId && isDirectionSafeAnthonyPlace(place)
+        ? `${base}&destination_place_id=${encodeURIComponent(placeId)}`
+        : base;
     }
 
     function searchMapsUrl(query) {
