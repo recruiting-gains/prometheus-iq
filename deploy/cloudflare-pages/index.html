@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-z2G1knFYwx26tHusvEHDzAhJI+HcjmkgIucHyuZcIBk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mwT4zLTpCKRCmS+v+Ov0rpB3/VjXrPfV2bBqf7RAkAU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -977,25 +977,23 @@
                 <span class="decision-chip" id="intelExpectedChip">Potential pending</span>
                 <span class="decision-chip" id="intelCategoryChip">Category pending</span>
                 <span class="decision-chip nearby" id="intelNearbyChip">Nearby pending</span>
+                <span class="decision-chip" id="intelVisitTimeChip">Visit time pending</span>
               </div>
-              <p id="bestMoveReason">Prometheus IQ is checking today's activity and saved territory.</p>
               <div class="intel-actions">
                 <a class="btn bright" id="bestMoveDirections" href="#" target="_blank" rel="noreferrer">Directions</a>
                 <button class="btn secondary" data-open="quick">Log Result</button>
-                <button class="btn secondary" data-tab="route">Open Route</button>
               </div>
               <details class="route-details">
-                <summary>Why this stop</summary>
+                <summary>Why?</summary>
+                <p id="bestMoveReason">Prometheus IQ is checking today's activity and saved territory.</p>
                 <p id="bestMoveDetails">Detailed reasoning appears when a route signal is ready.</p>
+                <div class="quick-facts route-detail-facts">
+                  <div class="quick-fact"><span>Potential</span><b id="intelExpected">-</b><small id="intelExpectedReason">Waiting for route signal</small></div>
+                  <div class="quick-fact"><span>Window</span><b id="intelWindow">-</b></div>
+                  <div class="quick-fact"><span>Confidence</span><b id="intelConfidence">-</b><small id="intelConfidenceReason">Evidence pending</small></div>
+                </div>
+                <div class="intel-warning" id="routeRisk">Start logging visits and this gets sharper.</div>
               </details>
-            </div>
-            <div class="intel-grid">
-              <div class="quick-facts">
-                <div class="quick-fact"><span>Potential</span><b id="intelExpected">-</b><small id="intelExpectedReason">Waiting for route signal</small></div>
-                <div class="quick-fact"><span>Window</span><b id="intelWindow">-</b></div>
-                <div class="quick-fact"><span>Confidence</span><b id="intelConfidence">-</b><small id="intelConfidenceReason">Evidence pending</small></div>
-              </div>
-              <div class="intel-warning" id="routeRisk">Start logging visits and this gets sharper.</div>
             </div>
           </div>
         </div>
@@ -1065,12 +1063,12 @@
       <section class="view owner-only" id="view-stats">
         <div class="grid two desktop-three">
           <article class="panel pad stat">
-            <span>Total Units</span>
+            <span>Verified Units</span>
             <b id="totalUnits">0</b>
           </article>
           <article class="panel pad stat">
-            <span>Units / Visit</span>
-            <b id="unitsPerVisit">0.0</b>
+            <span>Learning Confidence</span>
+            <b id="learningConfidence">Low</b>
           </article>
           <article class="panel pad stat">
             <span>Best Category</span>
@@ -1078,13 +1076,23 @@
           </article>
         </div>
         <div class="section-title">
-          <h2>Best Places</h2>
-          <small>Ranked by units</small>
+          <h2>Executive Insight</h2>
+          <small>What Prometheus has learned</small>
+        </div>
+        <div class="panel pad insight" id="insightsSummary"></div>
+        <div class="section-title">
+          <h2>Sales Weight Distribution</h2>
+          <small>Where evidence is forming</small>
+        </div>
+        <div class="list" id="salesWeightDistribution"></div>
+        <div class="section-title">
+          <h2>Top Performing Businesses</h2>
+          <small>Verified field outcomes</small>
         </div>
         <div class="list" id="bestPlaces"></div>
         <div class="section-title">
           <h2>Best Time Windows</h2>
-          <small>Units per visit</small>
+          <small>When field activity converts</small>
         </div>
         <div class="list" id="bestTimes"></div>
 
@@ -1189,9 +1197,9 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s7-5.1 7-12a7 7 0 1 0-14 0c0 6.9 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
           Places
         </button>
-        <button class="tab owner-only" data-tab="stats" aria-label="Stats">
+        <button class="tab owner-only" data-tab="stats" aria-label="Insights">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19V5"/><path d="M8 17V9"/><path d="M13 17V5"/><path d="M18 17v-4"/><path d="M4 19h17"/></svg>
-          Stats
+          Insights
         </button>
         <button class="tab owner-only" data-tab="find" aria-label="Find">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m21 21-4.3-4.3"/><circle cx="11" cy="11" r="7"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
@@ -1220,7 +1228,7 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-28-product-experience-v2";
+    const appBuildVersion = "2026-06-28-executive-demo-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
@@ -3320,7 +3328,7 @@
       return {
         value: rounded,
         label: opportunityPotentialLabel(rounded),
-        preciseLabel: rounded > 0 ? `${rounded.toFixed(1)} expected units` : "Discovery estimate",
+        preciseLabel: opportunityPotentialLabel(rounded),
         reason: reasons[0] || "based on route quality and available evidence"
       };
     }
@@ -3498,6 +3506,7 @@
       const intelExpectedChip = document.getElementById("intelExpectedChip");
       const intelCategoryChip = document.getElementById("intelCategoryChip");
       const intelNearbyChip = document.getElementById("intelNearbyChip");
+      const intelVisitTimeChip = document.getElementById("intelVisitTimeChip");
       const routeRisk = document.getElementById("routeRisk");
 
       if (!next) {
@@ -3515,6 +3524,7 @@
         intelExpectedChip.textContent = "Potential pending";
         intelCategoryChip.textContent = "Category pending";
         intelNearbyChip.textContent = "Nearby pending";
+        intelVisitTimeChip.textContent = "Visit time pending";
         routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
         return;
       }
@@ -3540,6 +3550,7 @@
       intelNearbyChip.textContent = nearbyPreview.length
         ? `${nearbyPreview.length} nearby`
         : "Nearby clear";
+      intelVisitTimeChip.textContent = intelligence.duration.label;
       recordRouteRecommendation(next);
 
       if (need === 0) {
@@ -3586,7 +3597,6 @@
       list.innerHTML = items.map(item => {
         const p = item.place;
         const analysis = routeAnalysis(p);
-        const confidence = routeConfidenceDetail(p, analysis);
         const expected = expectedUnitsFor(p, analysis);
         return `<article class="item route-card nearby-card">
           <div class="rank nearby-rank">+</div>
@@ -3595,7 +3605,6 @@
             <div class="address-line">${escapeHtml(p.address)}</div>
             <div class="decision-line">
               <span class="decision-chip primary">${escapeHtml(walkingDistanceLabel(item.feet))}</span>
-              <span class="decision-chip">${confidence.percent}% Confidence</span>
               <span class="decision-chip">${escapeHtml(expected.label)}</span>
               <span class="decision-chip">${escapeHtml(p.category)}</span>
             </div>
@@ -3683,7 +3692,7 @@
             <button class="btn secondary" type="button" data-quick-place="${escapeAttr(p.id)}">Log Result</button>
           </div>
           <details class="compact-details">
-            <summary>Why this stop</summary>
+            <summary>Why?</summary>
             <p><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)}. <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}. ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "Balanced route quality and fresh learning")}. ${escapeHtml(intelligence.whyNow)}.</p>
             <p><b>Evidence:</b> ${escapeHtml(intelligence.confidence.reason)}. Opportunity is shown as ${escapeHtml(intelligence.expected.label)}. ${stats.visits} prior visits, ${stats.units + stats.laterUnits} units.</p>
             <p><b>Nearby Opportunities:</b> ${escapeHtml(nearbyDetail)}</p>
@@ -3736,31 +3745,106 @@
       const reportVisits = appMode === "owner" && canUseOwnerMode() ? teamVisits() : state.visits;
       const viewingTeam = reportVisits !== state.visits;
       const totals = sumVisits(reportVisits);
-      const unitsPerVisit = reportVisits.length ? totals.units / reportVisits.length : 0;
+      const totalUnits = totals.units + totals.laterUnits;
+      const confidence = learningConfidenceFor(reportVisits);
+      const bestCategory = bestCategoryName(reportVisits);
       document.getElementById("totalUnits").textContent = totals.units + totals.laterUnits;
-      document.getElementById("unitsPerVisit").textContent = unitsPerVisit.toFixed(1);
-      document.getElementById("bestCategory").textContent = bestCategoryName(reportVisits);
+      document.getElementById("learningConfidence").textContent = confidence.label;
+      document.getElementById("bestCategory").textContent = bestCategory;
+      document.getElementById("insightsSummary").innerHTML = executiveInsightSummary(reportVisits, totals, confidence, bestCategory, viewingTeam);
+      document.getElementById("salesWeightDistribution").innerHTML = salesWeightDistribution(reportVisits);
 
       const best = state.places.slice().sort((a, b) => {
         const bs = viewingTeam ? statsForVisitSet(b.id, reportVisits) : placeStats(b.id);
         const as = viewingTeam ? statsForVisitSet(a.id, reportVisits) : placeStats(a.id);
-        return (bs.units + bs.laterUnits) - (as.units + as.laterUnits);
+        return (bs.units + bs.laterUnits) - (as.units + as.laterUnits)
+          || bs.leads - as.leads
+          || bs.conversations - as.conversations
+          || bs.visits - as.visits;
       }).slice(0, 5);
       document.getElementById("bestPlaces").innerHTML = best.some(p => (viewingTeam ? statsForVisitSet(p.id, reportVisits) : placeStats(p.id)).visits)
         ? best.map(p => {
             const s = viewingTeam ? statsForVisitSet(p.id, reportVisits) : placeStats(p.id);
             return `<article class="item"><div class="item-head"><div><h3>${escapeHtml(p.name)}</h3><div class="meta"><span>${escapeHtml(p.category)}</span><span>${s.visits} visits</span><span>${s.leads} leads</span>${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}</div></div><span class="pill green">${s.units + s.laterUnits} units</span></div></article>`;
           }).join("")
-        : `<div class="empty">Log visits to see your top-producing places.</div>`;
+        : `<div class="empty">More field data required before Prometheus can identify top-performing businesses.</div>`;
 
       const windows = ["Morning", "Midday", "Evening"].map(w => {
         const visits = reportVisits.filter(v => v.window === w);
         const sums = sumVisits(visits);
         const units = sums.units + sums.laterUnits;
-        return { name: w, visits: visits.length, units, upv: visits.length ? units / visits.length : 0 };
-      }).sort((a, b) => b.upv - a.upv);
-      document.getElementById("bestTimes").innerHTML = windows.map(w => `<article class="item"><div class="item-head"><div><h3>${w.name}</h3><div class="meta"><span>${w.visits} visits</span><span>${w.units} units</span></div></div><span class="pill blue">${w.upv.toFixed(1)} / visit</span></div></article>`).join("");
+        const leads = sums.leads;
+        const score = units * 5 + leads * 2 + visits.length;
+        return { name: w, visits: visits.length, leads, units, score };
+      }).sort((a, b) => b.score - a.score);
+      document.getElementById("bestTimes").innerHTML = windows.map(w => `<article class="item"><div class="item-head"><div><h3>${w.name}</h3><div class="meta"><span>${w.visits} visits</span><span>${w.leads} leads</span><span>${w.units} units</span></div></div><span class="pill blue">${timeWindowSignal(w)}</span></div></article>`).join("");
       document.getElementById("dataStatus").textContent = ownerInsightFor(reportVisits, viewingTeam);
+    }
+
+    function learningConfidenceFor(visits) {
+      const totals = sumVisits(visits);
+      const verifiedVisits = visits.filter(v => v.location).length;
+      const outcomeSignals = totals.leads + totals.units + totals.laterUnits;
+      if (visits.length >= 20 && outcomeSignals >= 8) return { label: "High", reason: "Enough visits and outcomes exist for stronger pattern confidence." };
+      if (visits.length >= 8 && outcomeSignals >= 3) return { label: "Medium", reason: "Prometheus has early route evidence, but needs more repeated outcomes." };
+      if (visits.length >= 3 || outcomeSignals > 0 || verifiedVisits > 0) return { label: "Early", reason: "Signals are forming. More verified field data is required." };
+      return { label: "Low", reason: "More field data is required before Prometheus should claim strong learning." };
+    }
+
+    function salesWeightDistribution(visits) {
+      const rows = categoryInsightRows(visits);
+      if (!rows.length) return `<div class="empty">More field data required before Prometheus can show a reliable sales weight distribution.</div>`;
+      const totalWeight = rows.reduce((sum, row) => sum + row.weight, 0) || 1;
+      return rows.slice(0, 6).map(row => {
+        const percent = Math.max(1, Math.round((row.weight / totalWeight) * 100));
+        return `<article class="item">
+          <div class="item-head">
+            <div>
+              <h3>${escapeHtml(row.category)}</h3>
+              <div class="meta"><span>${row.visits} visits</span><span>${row.leads} leads</span><span>${row.units} units</span></div>
+            </div>
+            <span class="pill blue">${percent}% weight</span>
+          </div>
+        </article>`;
+      }).join("");
+    }
+
+    function categoryInsightRows(visits) {
+      const map = new Map();
+      visits.forEach(v => {
+        const place = state.places.find(p => p.id === v.placeId);
+        const category = place ? place.category : "Other";
+        const item = map.get(category) || { category, visits: 0, conversations: 0, leads: 0, units: 0, weight: 0 };
+        item.visits += 1;
+        item.conversations += Number(v.conversations || 0);
+        item.leads += Number(v.leads || 0);
+        item.units += Number(v.units || 0) + Number(v.laterUnits || 0);
+        item.weight = item.units * 8 + item.leads * 4 + item.conversations * .25 + item.visits;
+        map.set(category, item);
+      });
+      return [...map.values()].filter(row => row.visits > 0).sort((a, b) => b.weight - a.weight || b.units - a.units || b.leads - a.leads);
+    }
+
+    function executiveInsightSummary(visits, totals, confidence, bestCategory, viewingTeam) {
+      const totalUnits = totals.units + totals.laterUnits;
+      const rows = categoryInsightRows(visits);
+      const windows = ["Morning", "Midday", "Evening"].map(w => {
+        const windowVisits = visits.filter(v => v.window === w);
+        const sums = sumVisits(windowVisits);
+        return { name: w, visits: windowVisits.length, units: sums.units + sums.laterUnits, leads: sums.leads, score: (sums.units + sums.laterUnits) * 5 + sums.leads * 2 + windowVisits.length };
+      }).sort((a, b) => b.score - a.score);
+      const strongestWindow = windows.find(w => w.visits || w.units || w.leads);
+      if (!visits.length) {
+        return `<strong>More field data required.</strong><span>No verified visits have been logged for this view yet. Once reps log outcomes, Prometheus will identify category strength, time-window patterns, and confidence level.</span>`;
+      }
+      return `<strong>${viewingTeam ? "Team" : "Profile"} intelligence is ${confidence.label.toLowerCase()} confidence.</strong><span>${visits.length} visits, ${totals.leads} leads, and ${totalUnits} units are shaping the route model. Best category: ${escapeHtml(bestCategory)}. Strongest time window: ${escapeHtml(strongestWindow ? strongestWindow.name : "still pending")}. ${escapeHtml(confidence.reason)}</span>`;
+    }
+
+    function timeWindowSignal(windowRow) {
+      if (!windowRow.visits) return "Needs data";
+      if (windowRow.units > 0) return `${windowRow.units} units`;
+      if (windowRow.leads > 0) return `${windowRow.leads} leads`;
+      return "Learning";
     }
 
     function bestCategoryName(visits = state.visits) {
