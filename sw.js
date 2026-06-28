@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v14-executive-demo-assets";
+const CACHE_NAME = "prometheus-v16-executive-demo-territory-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/prometheus.svg"

@@ -259,6 +259,56 @@ Medium term:
 - Version the learning model so migrations are explicit and reversible.
 - Preserve reset controls for Founder and Anthony profiles.
 
+## Territory Intelligence Phase 1
+
+Prometheus Route Intelligence now treats territory assignment as part of the existing route scoring path, not as a separate engine.
+
+Current radius configuration:
+
+- Founder / Cruz: Fitness Connection home base, 15-mile assigned territory radius.
+- Anthony: Fitness Connection home base, 25-mile assigned territory radius.
+
+Route recommendations must remain Google-qualified and direction-safe before territory scoring matters. Territory never overrides the Google quality gates, quarantine rules, duplicate protection, or representative profile rules.
+
+## Bullseye Expansion Strategy
+
+Prometheus should work territory like a bullseye:
+
+1. Start with the closest verified businesses around the representative's home base.
+2. Build confidence in the nearest active ring.
+3. Expand outward only when the current ring has enough coverage, freshness pressure, or route-quality need.
+4. Keep discovery active so the representative does not get trapped in one category or one micro-area forever.
+
+Phase 1 uses 5-mile rings inside the representative's assigned radius. Each recommendation receives a bounded territory score based on whether it is inside the assigned radius, whether it belongs to the current active ring, and whether it is still fresh for that representative.
+
+## Representative Territory Assignment
+
+The territory model is representative-specific:
+
+- Cruz and Anthony may share the same home base today.
+- Their route recommendations still remain separated by profile, visit history, reset state, and overlap controls.
+- Overlap is reduced through existing profile isolation, founder historical winner protection, duplicate protection, and route uniqueness limits.
+- Phase 1 also uses lightweight representative lane scoring so Cruz and Anthony do not receive the same default Google-qualified route when the shared territory has enough verified alternatives.
+- Lane scoring is bounded and secondary. It can separate routes, but it cannot override Google qualification, valid addresses, direction safety, quarantine rules, or route quality.
+- When the live verified pool is small, Route Intelligence first prefers each representative's strongest field-sales categories before falling back to the full verified pool. This keeps Founder and rep demos from showing the same route by default while still refusing to invent or recommend unverified businesses.
+- Overlap is allowed only when the available verified territory is thin or when a place is high-quality enough to justify shared learning.
+
+Future representatives should receive an explicit home base, maximum radius, and profile-specific learning state instead of inheriting another representative's territory behavior.
+
+## Radius Configuration
+
+Radius limits are product controls, not visual decoration:
+
+- Businesses outside a representative's assigned radius should not enter the active route pool.
+- Businesses inside the radius still must pass Google Places verification, address validation, direction safety, category usefulness, and quarantine checks.
+- Founder mode should expose assigned radius, current ring, coverage progress, and representative radius so Cruz can verify territory behavior before beta use.
+
+## Coverage Philosophy
+
+Coverage does not mean visiting every business. Coverage means Prometheus has enough verified field evidence to understand which parts of the territory are worth reinforcing, which parts need exploration, and which parts should be avoided.
+
+The current implementation tracks ring-level coverage from verified route places and logged visits. It is intentionally conservative: route quality and business validity matter more than raw geographic coverage.
+
 Long term:
 
 - Move synchronized learning to approved backend storage only after cloud sync is intentionally designed.
