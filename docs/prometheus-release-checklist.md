@@ -10,6 +10,7 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 - Confirm syntax checks pass.
 - Confirm no unrelated local work is mixed into the release.
 - Confirm `.env` remains local and ignored.
+- Confirm reset-version migrations run after localStorage rehydration and cannot be overwritten by stale top-level profile data.
 
 ## 2. GitHub Verification
 
@@ -49,6 +50,7 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 - Confirm beta users open in Rep mode only.
 - Confirm owner/admin controls are not visible in Rep mode.
 - Confirm the exact beta URL opens the current approved dashboard.
+- Confirm any scheduled representative learning reset clears only that representative's learning data and preserves access, permissions, and route availability.
 - Confirm Google-qualified Route Intelligence is visible on the live beta URL when Google route intelligence is part of the test.
 - Confirm directions links open usable Google Maps destinations.
 - Confirm the beta user can log results.
