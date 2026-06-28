@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v12-product-experience-assets";
+const CACHE_NAME = "prometheus-v13-product-experience-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/prometheus.svg"

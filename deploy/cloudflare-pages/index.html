@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-TZEo+6TSFCtnyETzT+IpKXAshR/XmrVgz/EyK21iSHU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-z2G1knFYwx26tHusvEHDzAhJI+HcjmkgIucHyuZcIBk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -690,15 +690,14 @@
 
     .route-card {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto 1fr;
       gap: 10px;
       align-items: start;
     }
 
-    .route-card > div:last-child {
+    .route-card-body {
       display: grid;
-      justify-items: end;
-      gap: 5px;
+      gap: 6px;
     }
 
     .rank {
@@ -736,6 +735,25 @@
       padding: 5px 8px;
       font-size: 11px;
       font-weight: 900;
+    }
+
+    .decision-chip.nearby {
+      border-color: rgba(21, 163, 161, .42);
+      background: rgba(21, 163, 161, .12);
+      color: var(--command);
+    }
+
+    .compact-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 2px;
+    }
+
+    .compact-actions .btn {
+      min-height: 38px;
+      padding: 10px 12px;
+      flex: 1 1 120px;
     }
 
     .decision-chip.primary {
@@ -954,6 +972,12 @@
               <div class="intel-label">Prometheus IQ read</div>
               <h3 id="bestNextMove">Loading route signal</h3>
               <p class="intel-address" id="bestMoveAddress">Verified address pending</p>
+              <div class="decision-line intel-decision-line">
+                <span class="decision-chip primary" id="intelConfidenceChip">Confidence pending</span>
+                <span class="decision-chip" id="intelExpectedChip">Potential pending</span>
+                <span class="decision-chip" id="intelCategoryChip">Category pending</span>
+                <span class="decision-chip nearby" id="intelNearbyChip">Nearby pending</span>
+              </div>
               <p id="bestMoveReason">Prometheus IQ is checking today's activity and saved territory.</p>
               <div class="intel-actions">
                 <a class="btn bright" id="bestMoveDirections" href="#" target="_blank" rel="noreferrer">Directions</a>
@@ -1196,7 +1220,7 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-28-product-experience-v1";
+    const appBuildVersion = "2026-06-28-product-experience-v2";
     const appBuildStoreKey = "prometheus-app-build-version";
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
@@ -2631,16 +2655,21 @@
     function nearbyOpportunitiesForLatestVisit(limit = 4) {
       const latest = latestVisitWithVerifiedPlace();
       if (!latest) return { latest: null, items: [] };
+      return { latest, items: nearbyOpportunitiesForPlace(latest.place, limit) };
+    }
+
+    function nearbyOpportunitiesForPlace(basePlace, limit = 4) {
+      if (!basePlace || !isGoogleQualifiedRoutePlace(basePlace) || placeCoordinate(basePlace, "latitude") === null || placeCoordinate(basePlace, "longitude") === null) return [];
       const visitedKeys = new Set(todayVisits()
         .map(visit => state.places.find(place => place.id === visit.placeId))
         .filter(Boolean)
         .map(routeIdentityKey));
-      const currentKey = routeIdentityKey(latest.place);
+      const currentKey = routeIdentityKey(basePlace);
       const seen = new Set([currentKey]);
       const items = uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces())
         .filter(place => routeIdentityKey(place) !== currentKey)
         .map(place => {
-          const item = { place, feet: distanceFeetBetweenPlaces(latest.place, place) };
+          const item = { place, feet: distanceFeetBetweenPlaces(basePlace, place) };
           item.nearbyScore = nearbyOpportunityScore(item);
           return item;
         })
@@ -2654,7 +2683,7 @@
         })
         .sort((a, b) => b.nearbyScore - a.nearbyScore || a.feet - b.feet)
         .slice(0, limit);
-      return { latest, items };
+      return items;
     }
 
     function dateOrdinal(value) {
@@ -3465,6 +3494,10 @@
       const intelConfidence = document.getElementById("intelConfidence");
       const intelExpectedReason = document.getElementById("intelExpectedReason");
       const intelConfidenceReason = document.getElementById("intelConfidenceReason");
+      const intelConfidenceChip = document.getElementById("intelConfidenceChip");
+      const intelExpectedChip = document.getElementById("intelExpectedChip");
+      const intelCategoryChip = document.getElementById("intelCategoryChip");
+      const intelNearbyChip = document.getElementById("intelNearbyChip");
       const routeRisk = document.getElementById("routeRisk");
 
       if (!next) {
@@ -3478,6 +3511,10 @@
         intelConfidence.textContent = "Low";
         intelExpectedReason.textContent = "No ranked stop available";
         intelConfidenceReason.textContent = "Route pool is empty";
+        intelConfidenceChip.textContent = "Confidence pending";
+        intelExpectedChip.textContent = "Potential pending";
+        intelCategoryChip.textContent = "Category pending";
+        intelNearbyChip.textContent = "Nearby pending";
         routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
         return;
       }
@@ -3486,6 +3523,7 @@
       const analysis = routeItems.find(item => item.place.id === next.id) || routeAnalysis(next);
       const intelligence = routeIntelligenceFor(next, analysis, routeItems);
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
+      const nearbyPreview = nearbyOpportunitiesForPlace(next, 2);
       bestNextMove.textContent = next.name;
       bestMoveAddress.textContent = next.address || "Verified address pending";
       bestMoveReason.textContent = intelligence.quickReason;
@@ -3496,6 +3534,12 @@
       intelWindow.textContent = `${next.window || "Anytime"} · ${analysis.radius}`;
       intelConfidence.textContent = `${intelligence.confidence.percent}%`;
       intelConfidenceReason.textContent = intelligence.confidence.reason;
+      intelConfidenceChip.textContent = `${intelligence.confidence.percent}% Confidence`;
+      intelExpectedChip.textContent = intelligence.expected.label;
+      intelCategoryChip.textContent = next.category || "Google-qualified";
+      intelNearbyChip.textContent = nearbyPreview.length
+        ? `${nearbyPreview.length} nearby`
+        : "Nearby clear";
       recordRouteRecommendation(next);
 
       if (need === 0) {
@@ -3546,27 +3590,24 @@
         const expected = expectedUnitsFor(p, analysis);
         return `<article class="item route-card nearby-card">
           <div class="rank nearby-rank">+</div>
-          <div>
+          <div class="route-card-body">
             <h3>${escapeHtml(p.name)}</h3>
+            <div class="address-line">${escapeHtml(p.address)}</div>
             <div class="decision-line">
               <span class="decision-chip primary">${escapeHtml(walkingDistanceLabel(item.feet))}</span>
-              <span class="decision-chip">${escapeHtml(p.category)}</span>
-              <span class="decision-chip">${confidence.percent}% confidence</span>
+              <span class="decision-chip">${confidence.percent}% Confidence</span>
               <span class="decision-chip">${escapeHtml(expected.label)}</span>
+              <span class="decision-chip">${escapeHtml(p.category)}</span>
             </div>
-            <div class="meta">
-              <span>Walkable from ${escapeHtml(latest.place.name)}</span>
-              <span>${escapeHtml(analysis.access)}</span>
-              <span>${escapeHtml(p.qualityClass || "Google-qualified")}</span>
+            <div class="compact-actions">
+              <a class="btn bright" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a>
+              <button class="btn secondary" type="button" data-quick-place="${escapeAttr(p.id)}">Log Result</button>
             </div>
-            <div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>
             <details class="compact-details">
               <summary>Why nearby</summary>
-              <p>${escapeHtml(analysis.reasons.slice(0, 2).join("; ") || "verified walkable option with enough quality to visit before driving away")}.</p>
+              <p><b>Walkable from:</b> ${escapeHtml(latest.place.name)}. ${escapeHtml(analysis.reasons.slice(0, 2).join("; ") || "verified walkable option with enough quality to visit before driving away")}.</p>
+              <p><b>Google quality:</b> ${escapeHtml(p.qualityClass || "Google-qualified")}. <b>Access:</b> ${escapeHtml(analysis.access)}.</p>
             </details>
-          </div>
-          <div>
-            <button class="pill blue" type="button" data-quick-place="${escapeAttr(p.id)}">Log</button>
           </div>
         </article>`;
       }).join("");
@@ -3618,35 +3659,36 @@
 
     function compactRouteCard(p, index, analysis = routeAnalysis(p)) {
       const stats = analysis.stats;
-      const status = analysis.status;
       const intelligence = routeIntelligenceFor(p, analysis);
+      const nearbyPreview = nearbyOpportunitiesForPlace(p, 2);
+      const nearbyLabel = nearbyPreview.length
+        ? `${nearbyPreview.length} nearby`
+        : "Nearby clear";
+      const nearbyDetail = nearbyPreview.length
+        ? nearbyPreview.map(item => `${item.place.name} (${walkingDistanceLabel(item.feet)})`).join("; ")
+        : "No verified walkable add-on stops inside the current radius.";
       return `<article class="item route-card">
         <div class="rank">${index + 1}</div>
-        <div>
+        <div class="route-card-body">
           <h3>${escapeHtml(p.name)}</h3>
+          ${p.address ? `<div class="address-line">${escapeHtml(p.address)}</div>` : ""}
           <div class="decision-line">
-            <span class="decision-chip primary">${escapeHtml(intelligence.expected.label)}</span>
-            <span class="decision-chip">${intelligence.confidence.percent}% confidence</span>
+            <span class="decision-chip primary">${intelligence.confidence.percent}% Confidence</span>
+            <span class="decision-chip">${escapeHtml(intelligence.expected.label)}</span>
             <span class="decision-chip">${escapeHtml(p.category)}</span>
-            <span class="decision-chip">${escapeHtml(intelligence.duration.label)}</span>
+            <span class="decision-chip nearby">${escapeHtml(nearbyLabel)}</span>
           </div>
-          <div class="meta">
-            ${p.distance ? `<span>${escapeHtml(p.distance)}</span>` : ""}
-            <span>${escapeHtml(p.window)}</span>
-            <span>${escapeHtml(analysis.access)}</span>
-            <span>${escapeHtml(analysis.freshness)}</span>
+          <div class="compact-actions">
+            <a class="btn bright" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a>
+            <button class="btn secondary" type="button" data-quick-place="${escapeAttr(p.id)}">Log Result</button>
           </div>
-          ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>` : ""}
           <details class="compact-details">
             <summary>Why this stop</summary>
             <p><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)}. <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}. ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "Balanced route quality and fresh learning")}. ${escapeHtml(intelligence.whyNow)}.</p>
             <p><b>Evidence:</b> ${escapeHtml(intelligence.confidence.reason)}. Opportunity is shown as ${escapeHtml(intelligence.expected.label)}. ${stats.visits} prior visits, ${stats.units + stats.laterUnits} units.</p>
+            <p><b>Nearby Opportunities:</b> ${escapeHtml(nearbyDetail)}</p>
+            <p><b>Visit length:</b> ${escapeHtml(intelligence.duration.label)}. <b>Window:</b> ${escapeHtml(p.window)}. ${p.distance ? `<b>Distance:</b> ${escapeHtml(p.distance)}.` : ""}</p>
           </details>
-        </div>
-        <div>
-          <div class="score">${analysis.score}</div>
-          <span class="pill ${status}">${statusLabel(status)}</span>
-          <button class="pill blue" type="button" data-quick-place="${escapeAttr(p.id)}">Log</button>
         </div>
       </article>`;
     }
