@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-9Filb/w69ZISQoCLR2Jd+zcKKdNaxk1H6uKC9DD5W9Y='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mOK8Ik0KyU74/heVPQwZsbOS8PL8ApEDOXpz64qFJro='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -1089,6 +1089,7 @@
     const genericAnthonyBusinessNamePattern = /\b(pro desk|employer outreach|employee outreach|business corridor|route intelligence|discovery placeholder|placeholder|sweep|corridor|area|district|mall|plaza|town center|shopping center|airport|campus|park\s*&\s*ride|park and ride)\b/i;
     const googleMapsUrlPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
     const anthonyLearningResetVersion = "2026-06-27-anthony-startup-sync-reset-v2";
+    const founderLearningResetVersion = "2026-06-27-founder-day-1-reset-v1";
     const anthonyDisplayCategories = new Set(["Apartment", "Auto", "Tire", "Oil Change", "Car Wash", "Restaurant", "Retail", "Small Retail", "Barber", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Office", "Other"]);
     const storefrontCategorySet = new Set(["Auto", "Barber", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
@@ -2042,6 +2043,22 @@
       profile.updatedAt = Date.now();
     }
 
+    function resetFounderLearningProfile(repProfiles) {
+      const profile = repProfiles?.cruz;
+      if (!profile || profile.learningResetVersion === founderLearningResetVersion) return;
+      profile.visits = [];
+      profile.routeHistory = [];
+      profile.recommendationHistory = [];
+      profile.placePerformance = {};
+      profile.categoryPerformance = {};
+      profile.timeWindowPerformance = {};
+      profile.learnedPreferences = {};
+      profile.confidenceAdjustments = {};
+      profile.learningResetVersion = founderLearningResetVersion;
+      profile.learningResetAt = new Date().toISOString();
+      profile.updatedAt = Date.now();
+    }
+
     function applyActiveProfile(nextRepId, options = {}) {
       const { syncBeforeSwitch = true } = options;
       if (syncBeforeSwitch) syncActiveProfile();
@@ -2172,6 +2189,7 @@
 
       if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", legacyVisits, legacyRouteHistory);
       if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
+      resetFounderLearningProfile(repProfiles);
       resetAnthonyLearningProfile(repProfiles);
 
       const requestedActiveRep = cleanText(input.activeRepId || localStorage.getItem(activeRepStoreKey) || "cruz", 60);
@@ -2321,9 +2339,8 @@
       return invalidAnthonyRouteTargetPattern.test(`${place?.name || ""} ${place?.address || ""}`);
     }
 
-    function isDirectionSafeAnthonyPlace(place) {
-      if (place?.repProfileId !== "anthony") return true;
-      return place.sourceType === "Google Places API"
+    function isGoogleQualifiedRoutePlace(place) {
+      return place?.sourceType === "Google Places API"
         && Boolean(cleanText(place.googlePlaceId, 180))
         && hasVerifiedBusinessName(place)
         && hasRepresentativeCategory(place)
@@ -2332,10 +2349,26 @@
         && !isQuarantinedAnthonyTarget(place);
     }
 
+    function isDirectionSafeAnthonyPlace(place) {
+      if (place?.repProfileId !== "anthony") return true;
+      return isGoogleQualifiedRoutePlace(place);
+    }
+
     function uniqueDirectionSafePlaces(places) {
       const seen = new Set();
       return (Array.isArray(places) ? places : []).filter(place => {
         if (!place || !isDirectionSafeAnthonyPlace(place) || isQuarantinedAnthonyTarget(place)) return false;
+        const key = routeIdentityKey(place);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function uniqueGoogleQualifiedRoutePlaces(places) {
+      const seen = new Set();
+      return (Array.isArray(places) ? places : []).filter(place => {
+        if (!place || !isGoogleQualifiedRoutePlace(place)) return false;
         const key = routeIdentityKey(place);
         if (!key || seen.has(key)) return false;
         seen.add(key);
@@ -2357,9 +2390,22 @@
         .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999)));
     }
 
+    function founderGoogleRoutePool(places) {
+      return uniqueGoogleQualifiedRoutePlaces(places)
+        .sort((a, b) => {
+          const orderDelta = Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999);
+          if (orderDelta !== 0) return orderDelta;
+          return Number(b.qualityScore || b.priority || 0) - Number(a.qualityScore || a.priority || 0);
+        });
+    }
+
     function routeVisiblePlaces() {
       if (activeRepId === "anthony") {
         return anthonyApprovedRoutePool(state.places);
+      }
+      if (activeRepId === "cruz") {
+        const verifiedGooglePlaces = founderGoogleRoutePool(state.places);
+        if (verifiedGooglePlaces.length) return verifiedGooglePlaces;
       }
       return state.places.filter(place => place.repProfileId !== "anthony");
     }
@@ -2412,6 +2458,14 @@
         const approvedFallback = anthonyApprovedRoutePool(places)
           .filter(place => isRouteEligible(place));
         if (approvedFallback.length >= 6) return approvedFallback;
+      }
+      if (activeRepId === "cruz") {
+        const verifiedGoogleRoute = founderGoogleRoutePool(places)
+          .filter(place => isRouteEligible(place) && !hitToday.has(place.id));
+        if (verifiedGoogleRoute.length >= 6) return verifiedGoogleRoute;
+        const verifiedGoogleFallback = founderGoogleRoutePool(places)
+          .filter(place => isRouteEligible(place));
+        if (verifiedGoogleFallback.length >= 6) return verifiedGoogleFallback;
       }
       const eligible = places.filter(place => isRouteEligible(place) && !hitToday.has(place.id));
       if (isAnthonyFirstRoute()) {
@@ -3702,7 +3756,7 @@
     }
 
     function mapsUrl(place) {
-      if (place?.repProfileId === "anthony" && isDirectionSafeAnthonyPlace(place)) return place.googleMapsUrl;
+      if (isGoogleQualifiedRoutePlace(place)) return place.googleMapsUrl;
       const query = `${place.name} ${place.address || ""} near 12338 Gulf Freeway Houston TX 77034`;
       return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
     }
@@ -3711,7 +3765,7 @@
       const destination = `${place.name}, ${place.address || ""}`.trim();
       const placeId = cleanText(place?.googlePlaceId, 180);
       const base = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}`;
-      return place?.repProfileId === "anthony" && placeId && isDirectionSafeAnthonyPlace(place)
+      return placeId && isGoogleQualifiedRoutePlace(place)
         ? `${base}&destination_place_id=${encodeURIComponent(placeId)}`
         : base;
     }
