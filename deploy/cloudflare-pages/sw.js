@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v10-public-assets";
+const CACHE_NAME = "prometheus-v11-public-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/prometheus.svg"
@@ -16,6 +16,10 @@ self.addEventListener("activate", event => {
     ))
   );
   self.clients.claim();
+});
+
+self.addEventListener("message", event => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("fetch", event => {

@@ -23,6 +23,9 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 
 - Confirm the Cloudflare deployment package matches the approved local source.
 - Confirm the live URL serves the same approved dashboard.
+- If the live authenticated URL is still missing current behavior after `deploy/cloudflare-pages` is synced, treat production as stale until the existing Cloudflare Worker is redeployed and rechecked. A synced package alone is not live production verification.
+- Confirm installed Home Screen/PWA sessions have received the current service worker and app build version before Founder or beta acceptance.
+- If a Home Screen app is missing current route, Copy Summary, or Export Report behavior, close and reopen it after deployment so the new service worker can claim the session.
 - Confirm Cloudflare Access still protects private beta URLs.
 - Confirm approved beta emails are present in the existing Access policy.
 - Confirm Email One-Time PIN testers request and use the newest code in the same browser session.
@@ -32,6 +35,7 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 - Confirm Google Places and Geocoding are configured only through secure local or backend environment variables.
 - Confirm no Google API key appears in frontend code, Git, logs, screenshots, or documentation.
 - Confirm route recommendations include Google source, Google Place ID, verified business name, verified numbered address, and Google Maps-safe directions.
+- Confirm Google verification metadata survives localStorage save, refresh, profile switching, export, and import.
 - Confirm quarantined, generic, duplicate, or unverified destinations do not appear in route recommendations.
 
 ## 5. Founder Acceptance
@@ -78,8 +82,23 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 - Confirm every recommended stop opens Google Maps correctly.
 - Confirm no route has duplicate businesses.
 - Confirm no generic labels, placeholders, internal marketing descriptions, malls, campuses, airports, broad hospitals, schools, government buildings, park-and-rides, or unverified locations appear.
+- After logging a verified stop, confirm Nearby Opportunities shows only Google-qualified businesses within walking range and excludes the current or already-visited business.
 
-## 10. Performance Baseline
+## 10. Production Synchronization Notes
+
+- Root cause pattern to watch: if localStorage normalization drops Google metadata such as `googlePlaceId`, `googleMapsUrl`, `sourceType`, or coordinates, production routes can degrade into stale or non-qualified local places after save/refresh.
+- Permanent procedure: every release that changes the dashboard must sync `index.html`, `sw.js`, manifest, headers, and deployment package before Cloudflare verification.
+- Permanent deployment procedure: after package sync, redeploy the existing protected Cloudflare Worker or Pages asset deployment, then inspect the authenticated live URL for the current app build and release behavior. Do not claim production synchronization from local/package verification alone.
+- Permanent PWA procedure: after deployment, verify both browser and Home Screen installs so service-worker caching cannot hide the latest production dashboard.
+
+## 11. Nearby Opportunities Verification
+
+- Log a clearly labeled test visit on a Google-qualified route stop.
+- Confirm Nearby Opportunities appears below Today's Route.
+- Confirm every nearby recommendation has a Google Place ID, verified business name, verified numbered address, representative-facing category, walking distance, and Directions link.
+- Confirm the current stop, already visited stops, duplicates, quarantined businesses, placeholders, and generic categories do not appear.
+
+## 12. Performance Baseline
 
 Record the baseline for each release:
 

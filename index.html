@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-mOK8Ik0KyU74/heVPQwZsbOS8PL8ApEDOXpz64qFJro='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-4Kpay5Fm1QwmGgUokoGe62S7rpDX9go700e7TdDgnCo='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -870,6 +870,12 @@
         <div class="list" id="dailyRoute"></div>
 
         <div class="section-title">
+          <h2>Nearby Opportunities</h2>
+          <small id="nearbyOpportunitiesCount">After a logged stop</small>
+        </div>
+        <div class="list" id="nearbyOpportunities"></div>
+
+        <div class="section-title">
           <h2>Today’s Visits</h2>
           <small id="todayVisitCount">0 logged</small>
         </div>
@@ -1071,6 +1077,8 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
+    const appBuildVersion = "2026-06-28-nearby-opportunities-v1";
+    const appBuildStoreKey = "prometheus-app-build-version";
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
@@ -1094,6 +1102,7 @@
     const storefrontCategorySet = new Set(["Auto", "Barber", "Restaurant", "Salon", "Clinic", "Business", "Hotel", "Retail", "Office", "Employer", "Warehouse"]);
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
+    const nearbyOpportunityRadiusFeet = 500;
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1124,6 +1133,8 @@
         distance: "0.1 mi",
         priority: 95,
         address: "11030 Kingspoint Rd #3C, Houston, TX 77075, USA",
+        latitude: 29.61952,
+        longitude: -95.221809,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "manager",
@@ -1148,6 +1159,8 @@
         distance: "0.1 mi",
         priority: 95,
         address: "12344 Gulf Fwy Ste - C3, Houston, TX 77034, USA",
+        latitude: 29.617947,
+        longitude: -95.221855,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "manager",
@@ -1172,6 +1185,8 @@
         distance: "0 mi",
         priority: 90,
         address: "12336 Gulf Fwy, Houston, TX 77034, USA",
+        latitude: 29.6188,
+        longitude: -95.221441,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "manager",
@@ -1196,6 +1211,8 @@
         distance: "0.1 mi",
         priority: 90,
         address: "11030 Kingspoint Rd, Houston, TX 77075, USA",
+        latitude: 29.61952,
+        longitude: -95.221809,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "manager",
@@ -1220,6 +1237,8 @@
         distance: "0.4 mi",
         priority: 88,
         address: "11027 Fuqua St, Houston, TX 77089, USA",
+        latitude: 29.613457,
+        longitude: -95.22063,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "service lead",
@@ -1244,6 +1263,8 @@
         distance: "0.4 mi",
         priority: 88,
         address: "10617 Fuqua St, Houston, TX 77089, USA",
+        latitude: 29.612855,
+        longitude: -95.225036,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "service lead",
@@ -1268,6 +1289,8 @@
         distance: "0.1 mi",
         priority: 87,
         address: "12300 Gulf Fwy, Houston, TX 77034, USA",
+        latitude: 29.620085,
+        longitude: -95.221579,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "service lead",
@@ -1292,6 +1315,8 @@
         distance: "0.1 mi",
         priority: 87,
         address: "11043 Kingspoint Rd #2/3, Houston, TX 77089, USA",
+        latitude: 29.620559,
+        longitude: -95.221811,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "service lead",
@@ -1316,6 +1341,8 @@
         distance: "0.1 mi",
         priority: 80,
         address: "12346 Gulf Fwy, Houston, TX 77034, USA",
+        latitude: 29.618563,
+        longitude: -95.219746,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "shift lead",
@@ -1340,6 +1367,8 @@
         distance: "0.1 mi",
         priority: 80,
         address: "11030 Kingspoint Rd Ste 2, Houston, TX 77075, USA",
+        latitude: 29.61952,
+        longitude: -95.221809,
         permission: "Unknown",
         accessType: "Walk-in ready",
         askFor: "shift lead",
@@ -1638,6 +1667,7 @@
     if (sessionRole === "owner") sessionRole = "manager";
     if (!validSessionRoles.has(sessionRole)) sessionRole = "rep";
     localStorage.setItem(sessionRoleStoreKey, sessionRole);
+    localStorage.setItem(appBuildStoreKey, appBuildVersion);
 
     function canSwitchProfiles() {
       return sessionRole === "founder" || sessionRole === "admin";
@@ -1679,6 +1709,10 @@
           return normalized;
         } catch (e) {}
       }
+      return normalizeState(createInitialState());
+    }
+
+    function createInitialState() {
       return withAnthonyApprovedRoute({
         places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
@@ -2103,6 +2137,21 @@
           seedRouteOrder: cleanNumber(raw.seedRouteOrder, 1000),
           accessType: cleanText(raw.accessType, 60),
           askFor: cleanText(raw.askFor, 80),
+          googlePlaceId: cleanText(raw.googlePlaceId, 180),
+          googleMapsUrl: cleanText(raw.googleMapsUrl, 500),
+          sourceType: cleanText(raw.sourceType, 80),
+          qualityClass: cleanText(raw.qualityClass, 60),
+          qualityScore: cleanNumber(raw.qualityScore, 1000),
+          confidence: cleanText(raw.confidence, 80),
+          expectedVisitDuration: cleanText(raw.expectedVisitDuration, 80),
+          expectedRoi: cleanText(raw.expectedRoi, 500),
+          decisionMakerAvailability: cleanText(raw.decisionMakerAvailability, 500),
+          expectedConversationOpportunity: cleanText(raw.expectedConversationOpportunity, 500),
+          qualityReason: cleanText(raw.qualityReason, 1000),
+          truthBasis: cleanText(raw.truthBasis, 1000),
+          latitude: cleanCoordinate(raw.latitude ?? raw.lat, 90),
+          longitude: cleanCoordinate(raw.longitude ?? raw.lng, 180),
+          sharedProductionRoute: raw.sharedProductionRoute === true,
           notes: cleanText(raw.notes, 2000),
           createdAt: cleanNumber(raw.createdAt, Date.now()) || Date.now()
         };
@@ -2408,6 +2457,64 @@
         if (verifiedGooglePlaces.length) return verifiedGooglePlaces;
       }
       return state.places.filter(place => place.repProfileId !== "anthony");
+    }
+
+    function placeCoordinate(place, key) {
+      const number = Number(place?.[key]);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function distanceFeetBetweenPlaces(origin, candidate) {
+      const lat1 = placeCoordinate(origin, "latitude");
+      const lon1 = placeCoordinate(origin, "longitude");
+      const lat2 = placeCoordinate(candidate, "latitude");
+      const lon2 = placeCoordinate(candidate, "longitude");
+      if ([lat1, lon1, lat2, lon2].some(value => value === null)) return Infinity;
+      const toRadians = value => value * Math.PI / 180;
+      const earthRadiusFeet = 20902231;
+      const dLat = toRadians(lat2 - lat1);
+      const dLon = toRadians(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+      return earthRadiusFeet * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function walkingDistanceLabel(feet) {
+      if (!Number.isFinite(feet)) return "Walking distance pending";
+      const rounded = Math.max(30, Math.round(feet / 10) * 10);
+      return `${rounded} ft walk`;
+    }
+
+    function latestVisitWithVerifiedPlace() {
+      const byId = new Map(state.places.map(place => [place.id, place]));
+      return todayVisits().slice().sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
+        .map(visit => ({ visit, place: byId.get(visit.placeId) }))
+        .find(item => item.place && isGoogleQualifiedRoutePlace(item.place) && placeCoordinate(item.place, "latitude") !== null && placeCoordinate(item.place, "longitude") !== null) || null;
+    }
+
+    function nearbyOpportunitiesForLatestVisit(limit = 4) {
+      const latest = latestVisitWithVerifiedPlace();
+      if (!latest) return { latest: null, items: [] };
+      const visitedKeys = new Set(todayVisits()
+        .map(visit => state.places.find(place => place.id === visit.placeId))
+        .filter(Boolean)
+        .map(routeIdentityKey));
+      const currentKey = routeIdentityKey(latest.place);
+      const seen = new Set([currentKey]);
+      const items = uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces())
+        .filter(place => routeIdentityKey(place) !== currentKey)
+        .map(place => ({ place, feet: distanceFeetBetweenPlaces(latest.place, place) }))
+        .filter(item => Number.isFinite(item.feet) && item.feet > 0 && item.feet <= nearbyOpportunityRadiusFeet)
+        .filter(item => !visitedKeys.has(routeIdentityKey(item.place)))
+        .filter(item => {
+          const key = routeIdentityKey(item.place);
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        })
+        .sort((a, b) => a.feet - b.feet || Number(b.place.qualityScore || b.place.priority || 0) - Number(a.place.qualityScore || a.place.priority || 0))
+        .slice(0, limit);
+      return { latest, items };
     }
 
     function dateOrdinal(value) {
@@ -3184,6 +3291,7 @@
 
       renderRouteIntelligence(visits, sums, need);
       renderDailyRoute();
+      renderNearbyOpportunities();
 
       const list = document.getElementById("todayVisits");
       if (!visits.length) {
@@ -3252,6 +3360,43 @@
         return;
       }
       list.innerHTML = routeItems.map((item, index) => compactRouteCard(item.place, index, item)).join("");
+    }
+
+    function renderNearbyOpportunities() {
+      const count = document.getElementById("nearbyOpportunitiesCount");
+      const list = document.getElementById("nearbyOpportunities");
+      const { latest, items } = nearbyOpportunitiesForLatestVisit();
+      if (!latest) {
+        count.textContent = "After a logged Google stop";
+        list.innerHTML = `<div class="empty">Log a verified route stop, then Prometheus will show walkable businesses nearby before you drive away.</div>`;
+        return;
+      }
+      count.textContent = items.length
+        ? `${items.length} within ${nearbyOpportunityRadiusFeet} ft of ${latest.place.name}`
+        : `0 within ${nearbyOpportunityRadiusFeet} ft of ${latest.place.name}`;
+      if (!items.length) {
+        list.innerHTML = `<div class="empty">No verified Google-qualified walkable businesses found near ${escapeHtml(latest.place.name)}. Move to the next route stop.</div>`;
+        return;
+      }
+      list.innerHTML = items.map(item => {
+        const p = item.place;
+        return `<article class="item route-card">
+          <div class="rank">+</div>
+          <div>
+            <h3>${escapeHtml(p.name)}</h3>
+            <div class="meta">
+              <span>${escapeHtml(p.category)}</span>
+              <span>${escapeHtml(walkingDistanceLabel(item.feet))}</span>
+              <span>${escapeHtml(p.confidence || "Verified")}</span>
+              <span>${escapeHtml(p.qualityClass || "Google-qualified")}</span>
+            </div>
+            <div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${directionsUrl(p)}" target="_blank" rel="noreferrer">Directions</a></div>
+          </div>
+          <div>
+            <button class="pill blue" type="button" data-quick-place="${escapeAttr(p.id)}">Log</button>
+          </div>
+        </article>`;
+      }).join("");
     }
 
     function visitCard(v) {
@@ -3901,7 +4046,26 @@
     document.getElementById("exportTodayReport").addEventListener("click", exportTodayReport);
 
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("sw.js").catch(() => {});
+      navigator.serviceWorker.register("sw.js").then(registration => {
+        const activateUpdate = worker => {
+          if (worker) worker.postMessage({ type: "SKIP_WAITING" });
+        };
+        if (registration.waiting) activateUpdate(registration.waiting);
+        registration.addEventListener("updatefound", () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener("statechange", () => {
+            if (installing.state === "installed" && navigator.serviceWorker.controller) {
+              activateUpdate(installing);
+            }
+          });
+        });
+      }).catch(() => {});
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (sessionStorage.getItem("prometheus-sw-refresh") === appBuildVersion) return;
+        sessionStorage.setItem("prometheus-sw-refresh", appBuildVersion);
+        location.reload();
+      });
     }
 
     render();
