@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-HE+fQ7+ZGVVc/1c28o4qsrkS7Wy2kWx4oJuxMS4UEeA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-3YUH3ictqMPZEbmTdDp/tOyzB5/M9PPyK0lPuFGoATg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -1003,6 +1003,47 @@
 
     .icon-btn svg { width: 20px; height: 20px; }
 
+    .debug-panel {
+      border-color: rgba(255, 184, 77, .45);
+      background: rgba(16, 28, 24, .96);
+    }
+
+    .debug-panel h2 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .debug-grid {
+      display: grid;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .debug-row {
+      display: grid;
+      grid-template-columns: minmax(112px, .8fr) minmax(0, 1.2fr);
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      padding-bottom: 7px;
+    }
+
+    .debug-row span {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-size: 10px;
+    }
+
+    .debug-row b {
+      color: var(--text);
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
     @media (min-width: 760px) {
       main { padding-bottom: 112px; }
       .grid.desktop-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1123,6 +1164,11 @@
             </div>
           </div>
         </div>
+
+        <article class="panel pad debug-panel" id="founderDebugPanel" hidden>
+          <h2>Founder Debug</h2>
+          <div class="debug-grid" id="founderDebugRows"></div>
+        </article>
 
         <div class="section-title">
           <h2>Fastest Path To Goal</h2>
@@ -1375,6 +1421,34 @@
     const sessionRoleStoreKey = "prometheus-session-role";
     const appBuildVersion = "2026-06-28-expanded-google-pool-v2";
     const appBuildStoreKey = "prometheus-app-build-version";
+    const serviceWorkerCacheVersion = "prometheus-v18-expanded-google-pool-assets";
+    const appUrlParams = new URLSearchParams(location.search);
+    const founderDebugEnabled = appUrlParams.get("debug") === "1";
+    window.prometheusDebugState = {
+      appScriptExecuted: true,
+      startupCompleted: false,
+      renderRouteIntelligenceReceivedRecommendation: false,
+      lastError: "",
+      lastUnhandledRejection: "",
+      lastStage: "script-start",
+      cspStatus: "App script executed under configured CSP"
+    };
+    const captureDebugError = (error, fallback = "Unknown runtime error") => {
+      const message = error?.message || error?.reason?.message || String(error?.reason || error || fallback);
+      window.prometheusDebugState.lastError = message;
+      window.prometheusDebugState.lastStage = "runtime-error";
+      return message;
+    };
+    window.addEventListener("error", event => {
+      captureDebugError(event.error || event.message, "Window error");
+      updateFounderDebugPanel();
+    });
+    window.addEventListener("unhandledrejection", event => {
+      const message = event.reason?.message || String(event.reason || "Unhandled promise rejection");
+      window.prometheusDebugState.lastUnhandledRejection = message;
+      window.prometheusDebugState.lastStage = "unhandled-rejection";
+      updateFounderDebugPanel();
+    });
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
@@ -11399,7 +11473,6 @@
       }
     ];
 
-    const appUrlParams = new URLSearchParams(location.search);
     const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
     const requestedRole = safeParam(appUrlParams.get("role"));
@@ -13181,6 +13254,85 @@
       return buildRouteList(routeVisiblePlaces(), 1, { need: Math.max(0, GOAL - sumVisits(todayVisits()).units) })[0]?.place;
     }
 
+    function debugValue(value) {
+      if (value === true) return "Yes";
+      if (value === false) return "No";
+      if (value === null || value === undefined || value === "") return "None";
+      return String(value);
+    }
+
+    function debugRouteCandidate() {
+      try {
+        const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
+        return buildRouteList(routeVisiblePlaces(), 1, { need, expandRadius: shouldExpandRadius(need) })[0]?.place || null;
+      } catch (error) {
+        captureDebugError(error, "Debug route candidate failed");
+        return null;
+      }
+    }
+
+    function updateFounderDebugPanel(extra = {}) {
+      if (!founderDebugEnabled) return;
+      const panel = document.getElementById("founderDebugPanel");
+      const rows = document.getElementById("founderDebugRows");
+      if (!panel || !rows) return;
+      try {
+        const currentState = typeof state === "object" && state ? state : {};
+        const profile = typeof activeProfile === "function" ? activeProfile() : null;
+        const first = debugRouteCandidate();
+        const routeAnalysisAvailable = typeof routeAnalysis === "function";
+        const storedState = (() => {
+          try {
+            const value = localStorage.getItem(storeKey);
+            return value ? `${storeKey} (${value.length} chars)` : "No";
+          } catch (error) {
+            return `Unreadable: ${error.message}`;
+          }
+        })();
+        const diagnostics = {
+          "Build marker": appBuildVersion,
+          "Service worker/cache": serviceWorkerCacheVersion,
+          "App script executed": window.prometheusDebugState.appScriptExecuted,
+          "Startup completed": window.prometheusDebugState.startupCompleted,
+          "Active role": sessionRole,
+          "Active rep": activeRepId,
+          "Selected profile": profile ? `${profile.name || profile.id || "Unknown"} (${profile.role || "No role"})` : "No profile",
+          "localStorage key": storedState,
+          "Cruz pool count": founderGoogleRoutePool(currentState.places || []).length,
+          "Anthony pool count": anthonyApprovedRoutePool(currentState.places || []).length,
+          "First candidate": first?.name || "None",
+          "First address": first?.address || "None",
+          "routeAnalysis exists": routeAnalysisAvailable,
+          "Renderer received": window.prometheusDebugState.renderRouteIntelligenceReceivedRecommendation,
+          "Last JS error": window.prometheusDebugState.lastError || "None",
+          "Unhandled rejection": window.prometheusDebugState.lastUnhandledRejection || "None",
+          "CSP status": window.prometheusDebugState.cspStatus,
+          "Last stage": extra.stage || window.prometheusDebugState.lastStage || "Unknown"
+        };
+        rows.replaceChildren(...Object.entries(diagnostics).map(([label, value]) => {
+          const row = document.createElement("div");
+          row.className = "debug-row";
+          const key = document.createElement("span");
+          key.textContent = label;
+          const val = document.createElement("b");
+          val.textContent = debugValue(value);
+          row.append(key, val);
+          return row;
+        }));
+        panel.hidden = false;
+      } catch (error) {
+        const row = document.createElement("div");
+        row.className = "debug-row";
+        const key = document.createElement("span");
+        key.textContent = "Debug panel error";
+        const val = document.createElement("b");
+        val.textContent = captureDebugError(error, "Debug panel render failed");
+        row.append(key, val);
+        rows.replaceChildren(row);
+        panel.hidden = false;
+      }
+    }
+
     function render() {
       applyMode();
       const profile = activeProfile();
@@ -13195,6 +13347,7 @@
       renderPlaces();
       renderStats();
       renderFind();
+      updateFounderDebugPanel({ stage: "render-complete" });
     }
 
     function renderToday() {
@@ -13250,6 +13403,8 @@
 
     function renderRouteIntelligence(visits, sums, need) {
       const next = routeRecommendation();
+      window.prometheusDebugState.renderRouteIntelligenceReceivedRecommendation = Boolean(next);
+      window.prometheusDebugState.lastStage = next ? "route-recommendation-ready" : "route-recommendation-missing";
       const bestNextMove = document.getElementById("bestNextMove");
       const bestMoveAddress = document.getElementById("bestMoveAddress");
       const bestMoveReason = document.getElementById("bestMoveReason");
@@ -13284,6 +13439,7 @@
         intelNearbyChip.textContent = "Nearby pending";
         intelVisitTimeChip.textContent = "Visit time pending";
         routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
+        updateFounderDebugPanel({ stage: "route-placeholder-rendered" });
         return;
       }
 
@@ -13310,6 +13466,7 @@
         : "Nearby clear";
       intelVisitTimeChip.textContent = intelligence.duration.label;
       recordRouteRecommendation(next);
+      updateFounderDebugPanel({ stage: "route-recommendation-rendered" });
 
       if (need === 0) {
         routeRisk.textContent = "Goal is hit. Log clean notes so tomorrow's route gets smarter.";
@@ -14211,7 +14368,16 @@
       });
     }
 
-    render();
+    try {
+      render();
+      window.prometheusDebugState.startupCompleted = true;
+      window.prometheusDebugState.lastStage = "startup-complete";
+      updateFounderDebugPanel({ stage: "startup-complete" });
+    } catch (error) {
+      captureDebugError(error, "Startup render failed");
+      updateFounderDebugPanel({ stage: "startup-error" });
+      throw error;
+    }
   </script>
 </body>
 </html>
