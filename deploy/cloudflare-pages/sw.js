@@ -1,6 +1,7 @@
-const CACHE_NAME = "prometheus-v19-founder-startup-diversity-assets";
+const CACHE_NAME = "prometheus-v20-founder-pwa-launch-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
+  "./manifest-founder.webmanifest",
   "./icons/prometheus.svg"
 ];
 
