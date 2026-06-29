@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-3YUH3ictqMPZEbmTdDp/tOyzB5/M9PPyK0lPuFGoATg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-F/WM/HE6vQ6S7DRt5lPJS15dFIzY3lbGxMYrtHW4WzM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest">
@@ -637,6 +637,10 @@
     body[data-session-role="rep"] .admin-only,
     body[data-session-role="manager"] .admin-only { display: none !important; }
     body[data-mode="rep"] .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    body.booting .owner-only,
+    body.booting .manager-only,
+    body.booting .admin-only,
+    body.booting .mode-switch { visibility: hidden; }
 
     .empty {
       padding: 18px 14px;
@@ -659,7 +663,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      z-index: 5;
+      z-index: 30;
       border-top: 1px solid var(--line);
       background: rgba(255,255,255,.97);
       backdrop-filter: blur(16px);
@@ -1065,7 +1069,7 @@
     }
   </style>
 </head>
-<body data-mode="rep" data-session-role="rep">
+<body class="booting" data-mode="owner" data-session-role="founder">
   <div class="app">
     <header>
       <div class="topline">
@@ -1074,8 +1078,8 @@
           <p id="todayLabel">Command center</p>
         </div>
         <div class="mode-switch" aria-label="App mode">
-          <button class="active" data-mode-select="rep">Rep</button>
-          <button class="manager-only" data-mode-select="owner">Owner</button>
+          <button data-mode-select="rep">Rep</button>
+          <button class="active manager-only" data-mode-select="owner">Owner</button>
         </div>
         <div class="mode-switch admin-only" id="repProfileSwitch" aria-label="Rep intelligence profile">
         </div>
@@ -1361,14 +1365,14 @@
         </div>
 
         <div class="section-title">
-          <h2>New Locations Today</h2>
-          <small>Refreshes daily</small>
+          <h2>Search Ideas</h2>
+          <small>Manual map searches only</small>
         </div>
         <div class="list" id="dailySearches"></div>
 
         <div class="section-title">
-          <h2>High-Volume Targets</h2>
-          <small>Tap to add</small>
+          <h2>Verified Targets</h2>
+          <small>Google-qualified businesses</small>
         </div>
         <div class="list" id="targetIdeas"></div>
       </section>
@@ -1419,9 +1423,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-28-expanded-google-pool-v2";
+    const appBuildVersion = "2026-06-29-founder-startup-diversity-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v18-expanded-google-pool-assets";
+    const serviceWorkerCacheVersion = "prometheus-v19-founder-startup-diversity-assets";
     const appUrlParams = new URLSearchParams(location.search);
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
@@ -12193,6 +12197,7 @@
     function representativeLaneScore(place, profileId = activeRepId) {
       const profile = territoryProfiles[profileId];
       if (!profile) return { score: 0, reason: "" };
+      if (isThinEvidenceDiscovery(profileId)) return { score: 0, reason: "" };
       const category = cleanText(place?.category, 80);
       const identity = routeIdentityKey(place);
       const targetLane = Number(profile.laneIndex);
@@ -12220,6 +12225,7 @@
       const source = Array.isArray(places) ? places : [];
       const profile = territoryProfiles[profileId];
       if (!profile || !Array.isArray(profile.preferredCategories)) return source;
+      if (isThinEvidenceDiscovery(profileId)) return source;
       const preferred = source.filter(place => profile.preferredCategories.includes(cleanText(place?.category, 80)));
       return preferred.length >= minimum ? preferred : source;
     }
@@ -12302,11 +12308,14 @@
     }
 
     function founderGoogleRoutePool(places) {
+      const thinEvidence = isThinEvidenceDiscovery("cruz");
       return uniqueGoogleQualifiedRoutePlaces(places)
         .filter(place => !place.repProfileId || place.repProfileId === "cruz" || place.sharedProductionRoute === true)
         .sort((a, b) => {
-          const laneDelta = representativeLaneScore(b, "cruz").score - representativeLaneScore(a, "cruz").score;
-          if (laneDelta !== 0) return laneDelta;
+          if (!thinEvidence) {
+            const laneDelta = representativeLaneScore(b, "cruz").score - representativeLaneScore(a, "cruz").score;
+            if (laneDelta !== 0) return laneDelta;
+          }
           const orderDelta = Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999);
           if (orderDelta !== 0) return orderDelta;
           return Number(b.qualityScore || b.priority || 0) - Number(a.qualityScore || a.priority || 0);
@@ -12727,6 +12736,28 @@
       return map;
     }
 
+    function representativeEvidenceSummary(profileId = activeRepId) {
+      const profile = state.repProfiles?.[profileId];
+      const visits = Array.isArray(profile?.visits) ? profile.visits : [];
+      const totals = sumVisits(visits);
+      return {
+        visits: visits.length,
+        conversations: totals.conversations,
+        leads: totals.leads,
+        units: totals.units + totals.laterUnits
+      };
+    }
+
+    function hasMatureRouteEvidence(profileId = activeRepId) {
+      const evidence = representativeEvidenceSummary(profileId);
+      return evidence.visits >= 8
+        && (evidence.leads >= 3 || evidence.units >= 2);
+    }
+
+    function isThinEvidenceDiscovery(profileId = activeRepId) {
+      return profileId === "cruz" && !hasMatureRouteEvidence(profileId);
+    }
+
     function radiusStats() {
       const map = new Map();
       state.visits.forEach(visit => {
@@ -12744,6 +12775,7 @@
 
     function routeMode(need) {
       const profile = activeProfile();
+      if (isThinEvidenceDiscovery(activeRepId)) return { label: "Discovery Mode", discoveryTarget: .85, thinEvidence: true };
       if (profile.mode === "new-rep") return { label: "New Rep Discovery", discoveryTarget: Number(profile.explorationTarget || .8) };
       const windowNow = visitWindow(new Date().getHours());
       if (need === 0) return { label: "Discovery", discoveryTarget: .6 };
@@ -12944,11 +12976,14 @@
       const selected = [];
       const categoryCounts = new Map();
       const targetDiscoveryCount = Math.min(discovery.length, Math.max(1, Math.round(limit * mode.discoveryTarget)));
+      const thinEvidence = Boolean(mode.thinEvidence);
+      const categoryLimit = thinEvidence ? 1 : 2;
 
       function canUse(item, allowCrowd = false) {
         if (selected.some(existing => existing.place.id === item.place.id)) return false;
         const count = categoryCounts.get(item.place.category) || 0;
-        return allowCrowd || count < 2 || selected.length >= Math.max(3, limit - 2);
+        if (thinEvidence && count >= categoryLimit) return false;
+        return allowCrowd || count < categoryLimit || selected.length >= Math.max(3, limit - 2);
       }
 
       function add(item, allowCrowd = false) {
@@ -12956,6 +12991,16 @@
         selected.push(item);
         categoryCounts.set(item.place.category, (categoryCounts.get(item.place.category) || 0) + 1);
         return true;
+      }
+
+      if (thinEvidence) {
+        scored.filter(item => item.tierRank < 4).forEach(item => {
+          if (selected.length < limit) add(item);
+        });
+        scored.forEach(item => {
+          if (selected.length < limit) add(item, true);
+        });
+        return enforceRepRouteUniqueness(selected, scored, limit).slice(0, limit);
       }
 
       if (mode.discoveryTarget >= .5) {
@@ -13335,6 +13380,7 @@
 
     function render() {
       applyMode();
+      document.body.classList.remove("booting");
       const profile = activeProfile();
       renderRepProfileSwitch();
       document.getElementById("todayLabel").textContent = sessionRole === "rep"
@@ -13386,7 +13432,9 @@
       const topCategory = bestCategoryName();
       document.getElementById("needCalculator").innerHTML = need === 0
         ? `<div><b>Goal hit.</b> Keep logging where the units came from so tomorrow's route gets smarter.</div>`
-        : `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
+        : isThinEvidenceDiscovery(activeRepId)
+          ? `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using verified route quality and early field evidence.</div><div><b>Discovery Mode:</b> Prometheus is testing varied verified categories before declaring a best lane.</div>`
+          : `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
 
       renderRouteIntelligence(visits, sums, need);
       renderDailyRoute();
@@ -13463,12 +13511,14 @@
       intelCategoryChip.textContent = next.category || "Google-qualified";
       intelNearbyChip.textContent = nearbyPreview.length
         ? `${nearbyPreview.length} nearby`
-        : "Nearby clear";
+        : "No nearby";
       intelVisitTimeChip.textContent = intelligence.duration.label;
       recordRouteRecommendation(next);
       updateFounderDebugPanel({ stage: "route-recommendation-rendered" });
 
-      if (need === 0) {
+      if (isThinEvidenceDiscovery(activeRepId)) {
+        routeRisk.textContent = "Discovery Mode: Prometheus is intentionally rotating verified categories because Founder field evidence is not mature yet.";
+      } else if (need === 0) {
         routeRisk.textContent = "Goal is hit. Log clean notes so tomorrow's route gets smarter.";
       } else if (visits.length < 2) {
         routeRisk.textContent = `Warning: today's route is still light. ${pace.probability}% completion probability. Get at least 2 outside stops logged before judging the day.`;
@@ -13619,7 +13669,7 @@
       const nearbyPreview = nearbyOpportunitiesForPlace(p, 2);
       const nearbyLabel = nearbyPreview.length
         ? `${nearbyPreview.length} nearby`
-        : "Nearby clear";
+        : "No nearby";
       const nearbyDetail = nearbyPreview.length
         ? nearbyPreview.map(item => `${item.place.name} (${walkingDistanceLabel(item.feet)})`).join("; ")
         : "No verified walkable add-on stops inside the current radius.";
@@ -13856,6 +13906,8 @@
 
     function bestCategoryName(visits = state.visits) {
       const map = new Map();
+      const totals = sumVisits(visits);
+      if (visits.length < 3 && totals.leads + totals.units + totals.laterUnits < 2) return "Discovery Mode";
       visits.forEach(v => {
         const place = state.places.find(p => p.id === v.placeId);
         const category = place ? place.category : "Other";
@@ -13893,22 +13945,39 @@
         <div class="item-head">
           <div>
             <h3>${escapeHtml(item.name)}</h3>
-            <div class="meta"><span>${escapeHtml(item.category)}</span><span>${escapeHtml(item.window)}</span><span>Fresh today</span></div>
+            <div class="meta"><span>${escapeHtml(item.category)}</span><span>${escapeHtml(item.window)}</span><span>${item.verified ? "Verified business" : "Search idea"}</span></div>
             <div class="address-line">${escapeHtml(item.query)} · <a class="map-link" href="${searchMapsUrl(item.query)}" target="_blank" rel="noreferrer">Open map</a></div>
           </div>
           <button class="pill blue" data-add-search="${index}">Add</button>
         </div>
       </article>`).join("");
 
-      document.getElementById("targetIdeas").innerHTML = ideas.map(([name, category, window]) => `<button class="item" data-idea="${escapeAttr(name)}" data-category="${escapeAttr(category)}" data-idea-window="${escapeAttr(window)}">
+      document.getElementById("targetIdeas").innerHTML = verifiedTargetIdeas().map(place => `<button class="item" data-idea="${escapeAttr(place.name)}" data-category="${escapeAttr(place.category)}" data-idea-window="${escapeAttr(place.window)}" data-idea-address="${escapeAttr(place.address)}">
         <div class="item-head">
           <div>
-            <h3>${escapeHtml(name)}</h3>
-            <div class="meta"><span>${category}</span><span>${window}</span></div>
+            <h3>${escapeHtml(place.name)}</h3>
+            <div class="meta"><span>${escapeHtml(place.category)}</span><span>${escapeHtml(place.window)}</span><span>Verified business</span></div>
+            <div class="address-line">${escapeHtml(place.address)} · <a class="map-link" href="${directionsUrl(place)}" target="_blank" rel="noreferrer">Open map</a></div>
           </div>
           <span class="pill blue">Add</span>
         </div>
       </button>`).join("");
+    }
+
+    function verifiedTargetIdeas() {
+      return uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces())
+        .filter(place => isGoogleQualifiedRoutePlace(place))
+        .slice(0, 10)
+        .map(place => ({
+          id: place.id,
+          name: place.name,
+          category: place.category || "Google-qualified",
+          window: place.window || "Anytime",
+          address: place.address,
+          googlePlaceId: place.googlePlaceId,
+          googleMapsUrl: place.googleMapsUrl,
+          sourceType: place.sourceType
+        }));
     }
 
     function dailySearches() {
@@ -13916,10 +13985,24 @@
       const offset = dateNumber(`${todayKey()}-${activeRepId}`) % templates.length;
       const rotated = templates.slice(offset).concat(templates.slice(0, offset));
       const topCategory = bestCategoryName();
-      const unused = rotated.filter(item => !isSavedDiscovery(item));
-      const pool = unused.length >= 10 ? unused : unused.concat(rotated.filter(item => isSavedDiscovery(item)));
+      const verifiedKeys = new Set(uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces()).map(place => normalizeKey(place.name)));
+      const cleanRotated = rotated.filter(item => {
+        const [name,, , query] = item;
+        const generic = /\bnear\b|\bsearch\b|\bshops?\b|\boffices?\b|\bstores?\b|\brestaurants?\b|\bbarbershops?\b|\bapartments?\b|\bgym\b/i.test(`${name} ${query}`);
+        return !generic || verifiedKeys.has(normalizeKey(name));
+      });
+      const verifiedFallback = uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces()).slice(0, 10).map(place => [
+        place.name,
+        place.category || "Google-qualified",
+        place.window || "Anytime",
+        place.address || place.name,
+        true
+      ]);
+      const source = cleanRotated.length ? cleanRotated : verifiedFallback;
+      const unused = source.filter(item => !isSavedDiscovery(item));
+      const pool = unused.length >= 10 ? unused : unused.concat(source.filter(item => isSavedDiscovery(item)));
       const bestFirst = pool.sort((a, b) => Number(b[1] === topCategory) - Number(a[1] === topCategory));
-      return bestFirst.slice(0, 10).map(([name, category, window, query]) => ({ name, category, window, query }));
+      return bestFirst.slice(0, 10).map(([name, category, window, query, verified]) => ({ name, category, window, query, verified: Boolean(verified) }));
     }
 
     function repDiscoveryTemplates(profileId) {
@@ -14287,7 +14370,9 @@
         openModal("location", {
           name: idea.dataset.idea,
           category: idea.dataset.category,
-          window: idea.dataset.ideaWindow
+          window: idea.dataset.ideaWindow,
+          address: idea.dataset.ideaAddress || "",
+          notes: idea.dataset.ideaAddress ? "Added from verified Google-qualified targets." : ""
         });
       }
 
