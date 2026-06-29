@@ -1,6 +1,6 @@
 /*
   Cache-Control: no-store
-  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-386A/rs6gygf6h6Y0XfGbvt3Ku8aQlJ+HvKOKas4EDw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'none'; script-src 'self' 'sha256-lQtRvB5q0rxgm3S7HwlfMTd+8yAH/h+RVuHdJeuP50I='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY

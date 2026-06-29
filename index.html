@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-386A/rs6gygf6h6Y0XfGbvt3Ku8aQlJ+HvKOKas4EDw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-lQtRvB5q0rxgm3S7HwlfMTd+8yAH/h+RVuHdJeuP50I='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest" id="prometheusManifest">
@@ -1423,9 +1423,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-29-founder-pwa-launch-v2";
+    const appBuildVersion = "2026-06-29-founder-pwa-launch-v3";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v21-founder-pwa-launch-assets";
+    const serviceWorkerCacheVersion = "prometheus-v22-founder-pwa-launch-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const appUrlParams = new URLSearchParams(location.search);
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
@@ -11519,7 +11519,7 @@
     const shouldUseFounderPwaLaunch = isStandalonePwa
       && !requestedRole
       && !requestedRepId
-      && ["1", "true", "founder"].includes(requestedPwaLaunch);
+      && requestedPwaLaunch !== "rep";
     const shouldUseStoredLaunchContext = isStandalonePwa
       && !shouldUseFounderPwaLaunch
       && !requestedRole
