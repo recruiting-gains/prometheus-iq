@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v17-expanded-google-pool-assets";
+const CACHE_NAME = "prometheus-v18-expanded-google-pool-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./icons/prometheus.svg"
