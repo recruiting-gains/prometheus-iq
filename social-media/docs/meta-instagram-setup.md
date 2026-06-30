@@ -34,6 +34,14 @@ https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/cal
 
 This route is the backend-owned OAuth callback reserved for Infrastructure deployment. Integrations now provides the backend workflow functions for authorization URL creation, signed state validation, authorization-code exchange, long-lived token exchange, long-lived token refresh, and token verification. Infrastructure still owns production route protection and secret storage.
 
+Infrastructure callback route:
+
+```text
+GET /api/oauth/meta/instagram/callback
+```
+
+The callback route validates signed OAuth `state`, exchanges the authorization code server-side, stores returned token material through backend token storage, and returns only redacted status metadata or a safe confirmation page to the browser.
+
 ## Initial Permissions
 
 Start with read-only analytics permissions:
@@ -68,6 +76,49 @@ META_GRAPH_API_VERSION=v21.0
 These values must not be committed, logged, printed in health checks, pasted into Codex chat, or exposed to frontend JavaScript.
 
 `META_INSTAGRAM_ACCESS_TOKEN` is supported as a backend-only fallback token variable, but `INSTAGRAM_ACCESS_TOKEN` is the preferred canonical variable for Instagram analytics v1.
+
+## Cloudflare Runtime Secrets and Bindings
+
+Configure these through Cloudflare/Wrangler only. Do not commit their values.
+
+Required Worker secrets:
+
+```text
+META_APP_ID
+META_APP_SECRET
+META_OAUTH_STATE_SECRET
+META_INSTAGRAM_TOKEN_ENCRYPTION_KEY
+INSTAGRAM_BUSINESS_ACCOUNT_ID
+```
+
+Required non-secret Worker vars:
+
+```text
+META_OAUTH_CALLBACK_URL=https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
+META_GRAPH_API_VERSION=v21.0
+```
+
+Required backend token storage binding:
+
+```text
+META_INSTAGRAM_TOKEN_STORE
+```
+
+Create it after Wrangler is authenticated:
+
+```bash
+npx wrangler kv namespace create meta-instagram-token-store --binding META_INSTAGRAM_TOKEN_STORE --update-config
+```
+
+If Cloudflare API authentication is unavailable, leave the binding unconfigured. The production callback route fails closed before exchanging the authorization code.
+
+The callback route stores encrypted token material at backend key:
+
+```text
+meta-instagram/oauth/runtime-env-patch
+```
+
+Returned OAuth token material must never be displayed in the browser. If `META_INSTAGRAM_TOKEN_STORE` or `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` is missing, the callback route refuses to exchange the authorization code.
 
 ## OAuth Workflow v1
 
@@ -130,8 +181,10 @@ It does not:
 - `getInstagramBusinessProviderStatus()` reports `not_configured`, `token_missing`, `permission_required`, `token_expired`, or `verification_pending` until backend verification is complete.
 - `fetchInstagramBusinessSnapshot()` returns mock/sample analytics for every non-`connected` runtime state.
 - Only `connected` runtime state can call Meta Graph API.
+- `/api/oauth/meta/instagram/callback` refuses token exchange until backend token storage is configured.
+- `/api/oauth/meta/instagram/status` exposes only safe runtime/storage metadata.
 - Provider errors are sanitized.
-- No token appears in response payloads.
-- No token appears in request URLs; backend requests use the `Authorization: Bearer` header.
+- No token appears in frontend/browser response payloads.
+- Provider exchange URLs and provider errors must be sanitized before any status is returned.
 - No frontend code imports or calls provider adapters directly.
 - Infrastructure confirms production secrets and route protection before live provider use.

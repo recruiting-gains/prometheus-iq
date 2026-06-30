@@ -1021,6 +1021,77 @@ Next recommended subsystem:
 
 Prometheus Infrastructure for production OAuth callback route and secret storage.
 
+### Work Lane: Meta Instagram Production OAuth Callback + Secret Storage v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Integrations
+- Prometheus Social Media
+
+Task:
+
+Meta Instagram Production OAuth Callback + Secret Storage v1.
+
+Status:
+
+Implementation complete and fail-closed; live Cloudflare token store provisioning remains blocked by Wrangler API authentication.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+Recorded in the Infrastructure handoff for this task.
+
+Deploy:
+
+Not run. `npx wrangler deploy --dry-run --keep-vars` passed, but live Cloudflare deploy/provisioning was not performed.
+
+Files changed:
+
+- `workers/prometheus-iq-worker.js`
+- `wrangler.jsonc`
+- `tests/meta-instagram-worker-callback.test.mjs`
+- `package.json`
+- `social-media/docs/meta-instagram-setup.md`
+- `deploy/cloudflare-pages/README-DO-NOT-UPLOAD.txt`
+- `docs/prometheus-release-checklist.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Verified outcome:
+
+- Added production Worker entry point for `prometheus-iq`.
+- Preserved existing static dashboard assets through the `ASSETS` binding.
+- Routed `/api/*` through the Worker first.
+- Added `GET /api/oauth/meta/instagram/callback`.
+- Added `GET /api/oauth/meta/instagram/status`.
+- Callback validates required `code` and signed OAuth `state`.
+- Callback refuses token exchange until backend token storage binding and encryption key are configured.
+- Callback exchanges code server-side through the existing Integrations workflow only after storage preflight passes.
+- Returned token material is encrypted with `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` and written only to backend binding `META_INSTAGRAM_TOKEN_STORE` at key `meta-instagram/oauth/runtime-env-patch`.
+- Browser responses return only safe status metadata or safe HTML confirmation; no token, app secret, or encryption secret is returned.
+- Existing send/post/message/DM/comment automation remains disabled.
+- No Social Media analytics logic changed.
+
+Infrastructure contracts created:
+
+- Worker callback route: `GET /api/oauth/meta/instagram/callback`.
+- Worker status route: `GET /api/oauth/meta/instagram/status`.
+- Required backend binding: `META_INSTAGRAM_TOKEN_STORE`.
+- Required backend secret: `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`.
+- Wrangler deploy path: `npx wrangler deploy --keep-vars`.
+
+Remaining blocker:
+
+Wrangler Cloudflare API authentication failed locally with Cloudflare API code `10000`, so the real `META_INSTAGRAM_TOKEN_STORE` namespace could not be listed or created. Live OAuth verification remains blocked until Cloudflare auth is restored and founder-approved Meta app credentials exist.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure after Cloudflare Wrangler authentication is restored, to create/bind `META_INSTAGRAM_TOKEN_STORE`, set secrets, deploy, and run live callback verification.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2697,6 +2768,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
+- Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
@@ -2708,7 +2780,7 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Production Meta Instagram OAuth callback route and secret storage.
+Cloudflare Meta Instagram token-store provisioning and live callback verification.
 
 Primary subsystem: Prometheus Infrastructure.
 
@@ -2719,7 +2791,7 @@ Secondary subsystems:
 
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, and Integrations implemented the Meta OAuth connection/token refresh workflow. The next dependency is Infrastructure-owned: wire the production OAuth callback route, protect it, and store returned token material through backend secret controls. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, Integrations implemented the Meta OAuth connection/token refresh workflow, and Infrastructure added the production Worker callback route. The remaining dependency is Infrastructure-owned Cloudflare provisioning: restore Wrangler API authentication, create/bind `META_INSTAGRAM_TOKEN_STORE`, set required secrets, deploy with `npx wrangler deploy --keep-vars`, and run live callback verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 

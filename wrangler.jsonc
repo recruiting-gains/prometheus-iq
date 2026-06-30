@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "prometheus-iq",
+  "main": "workers/prometheus-iq-worker.js",
+  "compatibility_date": "2026-06-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "assets": {
+    "directory": "./deploy/cloudflare-pages",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ],
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "META_OAUTH_CALLBACK_URL": "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+    "META_GRAPH_API_VERSION": "v21.0"
+  }
+  // After Cloudflare authentication is available, create and bind the production
+  // token namespace:
+  // npx wrangler kv namespace create meta-instagram-token-store --binding META_INSTAGRAM_TOKEN_STORE --update-config
+  //
+  // The Worker intentionally fails closed until META_INSTAGRAM_TOKEN_STORE and
+  // META_INSTAGRAM_TOKEN_ENCRYPTION_KEY are configured.
+}
