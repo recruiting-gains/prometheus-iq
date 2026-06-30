@@ -20,11 +20,13 @@
   "vars": {
     "META_OAUTH_CALLBACK_URL": "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
     "META_GRAPH_API_VERSION": "v21.0"
-  }
-  // After Cloudflare authentication is available, create and bind the production
-  // token namespace:
-  // npx wrangler kv namespace create meta-instagram-token-store --binding META_INSTAGRAM_TOKEN_STORE --update-config
-  //
-  // The Worker intentionally fails closed until META_INSTAGRAM_TOKEN_STORE and
-  // META_INSTAGRAM_TOKEN_ENCRYPTION_KEY are configured.
+  },
+  "kv_namespaces": [
+    {
+      "binding": "META_INSTAGRAM_TOKEN_STORE",
+      "id": "9bc431ce712544bfa18dae1b6d59e19b"
+    }
+  ]
+  // The Worker intentionally fails closed until required Meta/Instagram secrets
+  // and META_INSTAGRAM_TOKEN_ENCRYPTION_KEY are configured through Cloudflare.
 }
