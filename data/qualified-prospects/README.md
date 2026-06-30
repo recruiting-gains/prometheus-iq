@@ -98,6 +98,56 @@ data/qualified-prospects/google-discovery-readiness-report.json
 
 This pipeline uses Google Geocoding API to verify the base address and Google Places Text Search to collect individual business candidates by category. The API key is read server-side/local-only from `.env`.
 
+## Versioned Google Places Refresh Engine
+
+Use the refresh engine for production-ready offline datasets. It refreshes existing Google Place IDs, discovers new businesses, removes permanently closed businesses, applies strict route-quality gates, and writes a versioned dataset without overwriting historical files.
+
+Dry run:
+
+```bash
+npm run data:refresh-google:dry-run
+```
+
+Generate the v2 dataset:
+
+```bash
+npm run data:refresh-google
+```
+
+Default versioned outputs:
+
+```text
+data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.csv
+data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json
+data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json
+data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json
+data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json
+data/qualified-prospects/google-qualified-businesses-v2/quality-report.json
+data/qualified-prospects/google-qualified-businesses-v2/audit-summary.md
+```
+
+If v2 already exists and must be regenerated intentionally:
+
+```bash
+node scripts/refresh-google-qualified-businesses.mjs --force
+```
+
+Quality gates enforced by the versioned refresh:
+
+- Google Place ID required.
+- Numbered street address required.
+- Verified business name required.
+- Safe Google Maps directions URL required.
+- Generic/restricted locations excluded.
+- Permanently closed businesses removed.
+
+Verify that normal app runtime still makes zero live Google API calls:
+
+```bash
+npm run verify:zero-google-api
+```
+
 ## Google Deployment Verification Notes
 
 Before sending a Google-powered route to a tester:

@@ -1,0 +1,76 @@
+{
+  "base_location": {
+    "name": "Fitness Connection Almeda",
+    "address": "12338 Gulf Freeway, Houston, TX 77034",
+    "latitude": 29.6176,
+    "longitude": -95.2193,
+    "max_radius_miles": 25,
+    "preferred_first_route_radius_miles": 10,
+    "expanded_route_radius_miles": 15
+  },
+  "rep": {
+    "name": "Anthony",
+    "status": "Anthony unvisited",
+    "top_route_limit": 10,
+    "backup_route_limit": 25,
+    "discovery_mix": {
+      "discovery": 0.8,
+      "proven": 0.2
+    }
+  },
+  "blocked_names": [
+    "Urban Bird Hot Chicken",
+    "Urban Bird",
+    "AutoZone Auto Parts",
+    "AutoZone",
+    "Fitness Connection",
+    "Fitness Connection Almeda",
+    "Walmart",
+    "Target",
+    "Costco",
+    "Sam's Club",
+    "Sams Club"
+  ],
+  "blocked_exact_names": [
+    "Car Wash",
+    "Auto Repair",
+    "Tire Shop",
+    "Oil Change"
+  ],
+  "blocked_generic_terms": [
+    "airport",
+    "business park",
+    "campus",
+    "city hall",
+    "courthouse",
+    "government",
+    "hospital",
+    "mall",
+    "park and ride",
+    "park & ride",
+    "plaza",
+    "school",
+    "shopping center",
+    "town center",
+    "university"
+  ],
+  "queries": [
+    { "category": "Auto", "text": "auto repair near 12338 Gulf Freeway Houston TX 77034", "ask_for": "service lead" },
+    { "category": "Tire", "text": "tire shop near 12338 Gulf Freeway Houston TX 77034", "ask_for": "service lead" },
+    { "category": "Oil Change", "text": "oil change near 12338 Gulf Freeway Houston TX 77034", "ask_for": "service lead" },
+    { "category": "Car Wash", "text": "car wash near 12338 Gulf Freeway Houston TX 77034", "ask_for": "service lead" },
+    { "category": "Restaurant", "text": "restaurant near 12338 Gulf Freeway Houston TX 77034", "ask_for": "shift lead" },
+    { "category": "Apartment", "text": "apartments near 12338 Gulf Freeway Houston TX 77034", "ask_for": "leasing manager" },
+    { "category": "Medical Office", "text": "medical office near 12338 Gulf Freeway Houston TX 77034", "ask_for": "office manager" },
+    { "category": "Dental Office", "text": "dental office near 12338 Gulf Freeway Houston TX 77034", "ask_for": "office manager" },
+    { "category": "Business Services", "text": "tax office near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Barber", "text": "barber shop near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Salon", "text": "hair salon near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Small Retail", "text": "retail storefront near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Small Retail", "text": "vape shop near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Small Retail", "text": "smoke shop near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Small Retail", "text": "electronics store near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Small Retail", "text": "pawn shop near 12338 Gulf Freeway Houston TX 77034", "ask_for": "manager" },
+    { "category": "Other Storefront", "text": "small business near Almeda Genoa Gulf Freeway Houston TX", "ask_for": "manager" }
+  ]
+}
