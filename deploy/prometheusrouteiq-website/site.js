@@ -746,7 +746,7 @@ const buildPilotDashboard = () => {
   const metrics = getMetrics(data.primaryGoal);
 
   document.querySelector("#dashboardCompany").textContent = `${data.companyName || "Your company"} is pilot-ready.`;
-  document.querySelector("#dashboardSummary").textContent = `Based on a ${territorySize.toLowerCase()} team focused on ${data.primaryGoal || "field growth"}, Prometheus recommends a controlled pilot that measures activity, route quality, and outcomes without adding unnecessary admin work.`;
+  document.querySelector("#dashboardSummary").textContent = `Based on a ${territorySize.toLowerCase()} team focused on ${data.primaryGoal || "field growth"}, Prometheus recommends a controlled Prometheus IQ pilot that measures AI Route Intelligence, activity quality, and outcomes without adding unnecessary admin work.`;
   document.querySelector("#dashRepCount").textContent = `${reps}`;
   document.querySelector("#dashTerritory").textContent = territorySize;
   document.querySelector("#dashOpportunity").textContent = opportunityAreas;
@@ -796,10 +796,10 @@ const demoScenes = [
     signals: [["1", "The problem", "No appointment, limited time, and no clear place to go."]]
   },
   {
-    kicker: "Route Intelligence",
+    kicker: "AI Route Intelligence",
     stageTitle: "Prometheus identifies the next field move.",
-    title: "Route Intelligence activates",
-    copy: "The system turns territory, timing, and field context into a specific next-stop plan.",
+    title: "AI Route Intelligence activates",
+    copy: "The flagship Prometheus IQ system turns territory, timing, and field context into a specific next-stop plan.",
     signals: [["1", "Best next move", "The rep sees where to walk first."], ["2", "Specific targets", "Businesses appear as qualified opportunities."]]
   },
   {
@@ -827,14 +827,14 @@ const demoScenes = [
     kicker: "Manager Visibility",
     stageTitle: "Leadership can see the field clearly.",
     title: "Manager Visibility",
-    copy: "Managers review verified visits, outcomes, and adoption signals without slowing the rep down.",
+    copy: "Managers review verified visits, outcomes, and adoption signals through an enterprise-ready operating picture without slowing the rep down.",
     signals: [["1", "Verified activity", "Know what happened in the field."], ["2", "Route quality", "See whether recommendations were usable."], ["3", "Rep adoption", "Know whether the workflow is being used."]]
   },
   {
     kicker: "Learning Loop",
     stageTitle: "Every visit improves the next move.",
     title: "The loop gets smarter",
-    copy: "Prometheus turns field activity into better field direction while keeping the internal intelligence protected.",
+    copy: "Prometheus turns field activity into better field direction while keeping the internal intelligence protected for enterprise review.",
     signals: [["1", "Visit", "A rep goes into the field."], ["2", "Result", "The outcome is captured."], ["3", "Intelligence", "The next route improves."]]
   }
 ];

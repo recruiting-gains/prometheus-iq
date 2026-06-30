@@ -46,22 +46,25 @@ function App() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.56]);
 
   const features = [
-    ["Route Intelligence", "Prioritize the field day around places that deserve attention."],
+    ["AI Route Intelligence", "Prioritize the field day around places that deserve attention before miles are wasted."],
     ["GPS Verification", "Attach verified visit context to business activity without tracking a rep's whole day."],
     ["Visit Logging", "Capture the outcome of each stop quickly so the rep stays in motion."],
     ["Manager Visibility", "Give leaders a clearer picture of field effort, activity, and results."],
     ["Follow-Up Tracking", "Keep opportunities from disappearing after the first conversation."],
-    ["Intelligence Layer", "Turn repeated field activity into sharper next steps over time."]
+    ["Enterprise Intelligence Layer", "Turn repeated field activity into governed operating intelligence over time."]
   ];
 
-  const loop = ["Visit", "Result", "Intelligence", "Recommendation"];
+  const loop = ["Route", "Visit", "Result", "Recommendation"];
 
   return (
     <main>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Prometheus IQ home">
+        <a className="brand" href="#top" aria-label="Prometheus home">
           <FlameMark scale={0.35} />
-          <span>Prometheus IQ</span>
+          <span className="brand-lockup">
+            <strong>Prometheus</strong>
+            <small>Prometheus IQ</small>
+          </span>
         </a>
         <nav aria-label="Primary navigation">
           <a href="#core">Core</a>
@@ -85,15 +88,22 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <SectionLabel>The intelligence operating system for field sales</SectionLabel>
-            <h1>The Intelligence Behind Every Mile.</h1>
+            <SectionLabel>Prometheus IQ, the flagship product from Prometheus</SectionLabel>
+            <h1>The AI Operating System for Outside Sales.</h1>
             <p>
-              Prometheus IQ guides field sales teams to the right locations, verifies activity,
-              and transforms every visit into intelligence.
+              Prometheus is building an enterprise-ready intelligence layer for the field.
+              Prometheus IQ brings AI Route Intelligence, verified activity, and learning loops
+              into one operating system for outside sales teams.
             </p>
             <div className="hero-actions">
               <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Pilot%20Request`}>Request Pilot</a>
               <a className="button secondary" href="#core">View Demo</a>
+            </div>
+            <div className="identity-strip" aria-label="Prometheus identity pillars">
+              <span>Prometheus</span>
+              <span>Prometheus IQ</span>
+              <span>AI Route Intelligence</span>
+              <span>Enterprise Ready</span>
             </div>
           </motion.div>
           <motion.aside
@@ -108,7 +118,7 @@ function App() {
             </div>
             <div className="metric-line">
               <b>Where to go</b>
-              <span>Prioritized field direction</span>
+              <span>AI Route Intelligence</span>
             </div>
             <div className="metric-line">
               <b>What happened</b>
@@ -116,7 +126,7 @@ function App() {
             </div>
             <div className="metric-line">
               <b>What improves</b>
-              <span>Performance over time</span>
+              <span>Enterprise operating intelligence</span>
             </div>
           </motion.aside>
         </div>
@@ -126,11 +136,12 @@ function App() {
         <div className="shell split">
           <div>
             <SectionLabel>The Intelligence Core</SectionLabel>
-            <h2>Prometheus learns where human selling works.</h2>
+            <h2>Prometheus is bigger than a single-feature sales app.</h2>
           </div>
           <p>
-            GPS pins, opportunity zones, route paths, and field outcomes converge into a clearer operating picture.
-            The public story is simple: better activity, better direction, better performance.
+            Prometheus IQ is the flagship product inside a broader outside-sales operating system.
+            AI Route Intelligence, GPS-verified activity, opportunity context, follow-up signals,
+            and field outcomes converge into one governed operating picture.
           </p>
         </div>
         <div className="shell core-window">
@@ -171,7 +182,7 @@ function App() {
       <section id="features" className="section features-section">
         <div className="shell section-head">
           <SectionLabel>Platform Capabilities</SectionLabel>
-          <h2>Built for sales teams who still win in the physical world.</h2>
+          <h2>Built as an operating system for teams who still win in the physical world.</h2>
         </div>
         <div className="shell feature-grid">
           {features.map(([title, body], index) => <FeatureCard key={title} title={title} body={body} index={index} />)}
@@ -181,7 +192,7 @@ function App() {
       <section className="section loop-section">
         <div className="shell">
           <SectionLabel>The Learning Loop</SectionLabel>
-          <h2>Every field day becomes a sharper next field day.</h2>
+          <h2>AI Route Intelligence improves as the field produces evidence.</h2>
           <div className="loop-track">
             {loop.map((item, index) => (
               <motion.div
@@ -204,7 +215,7 @@ function App() {
         <div className="shell founder-grid">
           <div>
             <SectionLabel>Founder Story</SectionLabel>
-            <h2>Built from the road, not from a boardroom.</h2>
+            <h2>Founder-led innovation, built from the road.</h2>
           </div>
           <div className="founder-copy">
             <p>
@@ -212,8 +223,9 @@ function App() {
               dead zones, inefficient routes, and a lack of real intelligence for the person doing the work outside.
             </p>
             <p>
-              The mission is to give road warriors a stronger path: less guessing, more verified activity,
-              and a field system that grows from real results.
+              The mission is to give road warriors a stronger path through Prometheus IQ:
+              less guessing, more verified activity, enterprise-grade controls, and a field system
+              that grows from real results.
             </p>
           </div>
         </div>
@@ -222,11 +234,12 @@ function App() {
       <section id="pilot" className="section pilot-section">
         <div className="shell pilot-card">
           <div>
-            <SectionLabel>Private Beta</SectionLabel>
-            <h2>Now Accepting Pilot Partners</h2>
+            <SectionLabel>Enterprise Readiness</SectionLabel>
+            <h2>Now Accepting Prometheus IQ Pilot Partners</h2>
             <p>
-              Pilot partners can explore GPS verified activity, route insights, sales intelligence,
-              and productivity metrics through a controlled private evaluation.
+              Pilot partners can evaluate AI Route Intelligence, GPS verified activity,
+              sales intelligence, and productivity metrics through a controlled private program
+              designed for founder-led implementation and enterprise review.
             </p>
           </div>
           <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Pilot%20Partner`}>Request Pilot</a>
@@ -237,8 +250,8 @@ function App() {
         <div className="shell footer-grid">
           <div>
             <FlameMark scale={0.42} />
-            <h2>Prometheus IQ</h2>
-            <p>The intelligence layer behind the future of outside sales.</p>
+            <h2>Prometheus</h2>
+            <p>Building Prometheus IQ and the AI operating system for outside sales.</p>
           </div>
           <div className="footer-links">
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>

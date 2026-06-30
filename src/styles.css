@@ -50,7 +50,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
   backdrop-filter: blur(18px);
 }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 850; letter-spacing: .03em; }
-.brand span { font-size: 17px; }
+.brand-lockup { display: grid; gap: 2px; line-height: 1; }
+.brand-lockup strong { font-size: 17px; }
+.brand-lockup small { color: var(--teal-soft); font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
 nav { display: flex; align-items: center; gap: 28px; color: #d2dcd8; font-size: 14px; }
 nav a:hover { color: white; }
 
@@ -177,6 +179,24 @@ h3 { margin: 0; font-size: 22px; }
   line-height: 1.52;
 }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+.identity-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+.identity-strip span {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid rgba(139,219,199,.28);
+  border-radius: 8px;
+  background: rgba(255,255,255,.045);
+  color: #dbeee8;
+  font-size: 12px;
+  font-weight: 850;
+}
 .button {
   min-height: 52px;
   display: inline-flex;
@@ -381,7 +401,9 @@ h3 { margin: 0; font-size: 22px; }
 
 @media (max-width: 560px) {
   .shell { width: min(100% - 28px, 1180px); }
-  .brand span { font-size: 15px; }
+  .brand-lockup strong { font-size: 15px; }
+  .brand-lockup small { font-size: 9px; }
+  .identity-strip span { flex: 1 1 calc(50% - 8px); justify-content: center; text-align: center; }
   .hero-actions .button { width: 100%; }
   .signal-panel { padding: 18px; }
   .feature-card, .problem-grid article, .loop-step { min-height: auto; }
