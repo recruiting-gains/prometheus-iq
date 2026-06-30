@@ -21,6 +21,20 @@ This checklist is the permanent release procedure for Prometheus IQ beta and pro
 
 ## 3. Cloudflare Verification
 
+- Run the automated production release gate before any production handoff:
+
+```bash
+npm run verify:production-release -- --expected-worker-version <CURRENT_WORKER_VERSION> --cdp http://127.0.0.1:<AUTHENTICATED_CHROME_DEBUG_PORT>
+```
+
+- Use the local-only gate before commit or when Cloudflare authentication is not available yet:
+
+```bash
+npm run verify:production-release:local
+```
+
+- The full gate reuses the existing local security, runtime-pool, and zero-live-Google checks, then verifies Wrangler deployment metadata, Cloudflare Access protection, authenticated production headers/assets, build marker, service worker version, active runtime pool, PWA manifest, browser startup health, and production console/network health.
+- For authenticated production checks, provide either `--cdp http://127.0.0.1:<port>` for an already-authenticated Chrome session or a private `PROMETHEUS_ACCESS_COOKIE`/`CF_AUTHORIZATION` + `CF_APPSESSION` environment value. Do not commit or print those values.
 - Confirm the Cloudflare deployment package matches the approved local source.
 - Confirm the live URL serves the same approved dashboard.
 - If the live authenticated URL is still missing current behavior after `deploy/cloudflare-pages` is synced, treat production as stale until the existing Cloudflare Worker is redeployed and rechecked. A synced package alone is not live production verification.
