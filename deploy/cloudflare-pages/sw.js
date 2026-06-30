@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v22-founder-pwa-launch-assets";
+const CACHE_NAME = "prometheus-v23-runtime-data-integration-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

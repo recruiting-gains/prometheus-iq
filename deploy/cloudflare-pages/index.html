@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-lQtRvB5q0rxgm3S7HwlfMTd+8yAH/h+RVuHdJeuP50I='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-E+KaEGzPtyFEzkKMKCSoCtSvMCNyTnhyw31mxckRa28='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest" id="prometheusManifest">
@@ -1423,16 +1423,20 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-29-founder-pwa-launch-v3";
+    const appBuildVersion = "2026-06-30-runtime-data-integration-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v22-founder-pwa-launch-assets";
+    const serviceWorkerCacheVersion = "prometheus-v23-runtime-data-integration-assets";
     const launchContextStoreKey = "prometheus-launch-context";
+    const runtimeDatasetPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+    const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const appUrlParams = new URLSearchParams(location.search);
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
       appScriptExecuted: true,
       startupCompleted: false,
       renderRouteIntelligenceReceivedRecommendation: false,
+      runtimeDataSource: "embedded-fallback",
+      runtimeDataStatus: "pending",
       lastError: "",
       lastUnhandledRejection: "",
       lastStage: "script-start",
@@ -11327,6 +11331,20 @@
 ];
 
     const starterPlaces = cruzApprovedRoutePlaces;
+    let runtimeDatasetPlaces = [];
+    let runtimeDatasetSource = {
+      label: "embedded-fallback",
+      status: "embedded",
+      version: "embedded"
+    };
+
+    function embeddedProductionPlaces() {
+      return starterPlaces.concat(anthonyApprovedRoutePlaces);
+    }
+
+    function productionSeedPlaces() {
+      return runtimeDatasetPlaces.length ? runtimeDatasetPlaces : embeddedProductionPlaces();
+    }
 
     const broadPlaceMigrations = {
       "Almeda Mall": "O'Reilly Auto Parts - Southbelt",
@@ -11578,9 +11596,7 @@
     function migrateBroadPlace(place) {
       const replacementName = broadPlaceMigrations[place.name];
       if (!replacementName) return place;
-      const replacement = starterPlaces
-        .concat(cruzApprovedRoutePlaces, anthonyApprovedRoutePlaces)
-        .find(item => item.name === replacementName);
+      const replacement = productionSeedPlaces().find(item => item.name === replacementName);
       return replacement
         ? { ...place, ...replacement, id: place.id, createdAt: place.createdAt || Date.now() }
         : place;
@@ -11601,8 +11617,9 @@
     }
 
     function createInitialState() {
+      const productionPlaces = productionSeedPlaces();
       return withAnthonyApprovedRoute({
-        places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
+        places: productionPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
         routeHistory: [],
         activeRepId: "cruz",
@@ -11610,7 +11627,7 @@
           cruz: createRepProfile("cruz", [], []),
           anthony: createRepProfile("anthony", [], [])
         },
-        founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
+        founderHistoricalSnapshot: createFounderSnapshot([], [], productionPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
       });
     }
 
@@ -12146,26 +12163,201 @@
       });
     }
 
+    function isManagedProductionPlace(place) {
+      const sourceType = cleanText(place?.sourceType, 80);
+      const placeId = cleanText(place?.id, 128);
+      return sourceType === "Google Places API" && /^(cruz|anthony)-google-/i.test(placeId);
+    }
+
+    function productionPlaceKey(place) {
+      const repProfileId = cleanText(place?.repProfileId, 60) || "shared";
+      const googlePlaceId = cleanText(place?.googlePlaceId, 180);
+      if (googlePlaceId) return `${repProfileId}|google:${googlePlaceId}`;
+      return `${repProfileId}|${normalizeKey(`${place?.name || ""} ${place?.address || ""}`)}`;
+    }
+
+    function placeReferenceIds(nextState) {
+      const ids = new Set();
+      const collect = list => (Array.isArray(list) ? list : []).forEach(item => {
+        const placeId = cleanText(item?.placeId, 128);
+        if (placeId) ids.add(placeId);
+      });
+      collect(nextState?.visits);
+      collect(nextState?.routeHistory);
+      Object.values(nextState?.repProfiles || {}).forEach(profile => {
+        collect(profile?.visits);
+        collect(profile?.routeHistory);
+      });
+      return ids;
+    }
+
+    function remapPlaceReferences(list, idMap) {
+      return (Array.isArray(list) ? list : []).map(item => {
+        if (!item || typeof item !== "object") return item;
+        const nextPlaceId = idMap.get(item.placeId);
+        return nextPlaceId ? { ...item, placeId: nextPlaceId } : item;
+      });
+    }
+
+    function remapStatePlaceReferences(nextState, idMap) {
+      if (!idMap.size) return nextState;
+      nextState.visits = remapPlaceReferences(nextState.visits, idMap);
+      nextState.routeHistory = remapPlaceReferences(nextState.routeHistory, idMap);
+      Object.values(nextState.repProfiles || {}).forEach(profile => {
+        profile.visits = remapPlaceReferences(profile.visits, idMap);
+        profile.routeHistory = remapPlaceReferences(profile.routeHistory, idMap);
+      });
+      return nextState;
+    }
+
     function withAnthonyApprovedRoute(nextState) {
       const places = Array.isArray(nextState.places) ? nextState.places.slice() : [];
-      const byId = new Map(places.map(place => [place.id, place]));
-      [...cruzApprovedRoutePlaces, ...anthonyApprovedRoutePlaces].forEach(seed => {
-        const existing = byId.get(seed.id);
+      const seedPlaces = productionSeedPlaces();
+      const existingById = new Map(places.map(place => [place.id, place]));
+      const seedById = new Map(seedPlaces.map(place => [place.id, place]));
+      const seedByKey = new Map(seedPlaces.map(place => [productionPlaceKey(place), place]));
+      const referencedIds = placeReferenceIds(nextState);
+      const placeIdRemaps = new Map();
+      const byId = new Map();
+
+      places.forEach(place => {
+        if (!place || typeof place !== "object") return;
+        if (seedById.has(place.id)) return;
+        if (isManagedProductionPlace(place)) {
+          const replacement = seedByKey.get(productionPlaceKey(place));
+          if (replacement) {
+            placeIdRemaps.set(place.id, replacement.id);
+            return;
+          }
+          if (!referencedIds.has(place.id)) return;
+          byId.set(place.id, { ...place, canRevisit: false });
+          return;
+        }
+        byId.set(place.id, place);
+      });
+
+      seedPlaces.forEach(seed => {
+        const existing = existingById.get(seed.id);
         const place = existing
           ? { ...existing, ...seed, createdAt: existing.createdAt || Date.now(), canRevisit: existing.canRevisit !== false }
           : { ...seed, createdAt: Date.now(), canRevisit: true };
         byId.set(seed.id, place);
       });
       nextState.places = Array.from(byId.values());
+      remapStatePlaceReferences(nextState, placeIdRemaps);
       nextState.repProfiles = nextState.repProfiles || {};
       if (!nextState.repProfiles.anthony) nextState.repProfiles.anthony = createRepProfile("anthony", [], []);
       return nextState;
     }
 
+    function normalizeRuntimeDatasetPlace(raw) {
+      if (!raw || typeof raw !== "object") return null;
+      const place = {
+        id: cleanText(raw.id, 128),
+        name: cleanText(raw.name, 160),
+        category: placeCategories.includes(raw.category) ? raw.category : "Other",
+        window: visitWindows.includes(raw.window) ? raw.window : "Anytime",
+        distance: cleanText(raw.distance, 40),
+        priority: cleanNumber(raw.priority, 100),
+        address: cleanText(raw.address, 300),
+        latitude: cleanCoordinate(raw.latitude ?? raw.lat, 90),
+        longitude: cleanCoordinate(raw.longitude ?? raw.lng, 180),
+        permission: permissionValues.includes(raw.permission) ? raw.permission : "Unknown",
+        accessType: cleanText(raw.accessType, 60),
+        askFor: cleanText(raw.askFor, 80),
+        googlePlaceId: cleanText(raw.googlePlaceId, 180),
+        googleMapsUrl: cleanText(raw.googleMapsUrl, 500),
+        sourceType: cleanText(raw.sourceType, 80),
+        qualityClass: cleanText(raw.qualityClass, 60),
+        qualityScore: cleanNumber(raw.qualityScore, 1000),
+        confidence: cleanText(raw.confidence, 80),
+        expectedVisitDuration: cleanText(raw.expectedVisitDuration, 80),
+        expectedRoi: cleanText(raw.expectedRoi, 500),
+        decisionMakerAvailability: cleanText(raw.decisionMakerAvailability, 500),
+        expectedConversationOpportunity: cleanText(raw.expectedConversationOpportunity, 500),
+        qualityReason: cleanText(raw.qualityReason, 1000),
+        truthBasis: cleanText(raw.truthBasis, 1000),
+        notes: cleanText(raw.notes, 2000),
+        repProfileId: cleanText(raw.repProfileId, 60),
+        seedRouteOrder: cleanNumber(raw.seedRouteOrder, 1000),
+        sharedProductionRoute: raw.sharedProductionRoute === true,
+        canRevisit: raw.canRevisit !== false,
+        createdAt: Date.now()
+      };
+      if (!place.id || !place.name || !place.address || !place.googlePlaceId || !isGoogleMapsSafeUrl(place.googleMapsUrl)) return null;
+      return place;
+    }
+
+    function normalizeRuntimeDataset(payload) {
+      if (!payload || typeof payload !== "object") throw new Error("Runtime dataset is not valid JSON.");
+      if (payload.dataset_version !== runtimeDatasetExpectedVersion) {
+        throw new Error(`Runtime dataset version mismatch: ${payload.dataset_version || "unknown"}.`);
+      }
+      const rows = []
+        .concat(Array.isArray(payload.cruz) ? payload.cruz : [])
+        .concat(Array.isArray(payload.anthony) ? payload.anthony : []);
+      const seenIds = new Set();
+      const places = [];
+      rows.forEach(raw => {
+        const place = normalizeRuntimeDatasetPlace(raw);
+        if (!place || seenIds.has(place.id)) return;
+        seenIds.add(place.id);
+        places.push(place);
+      });
+      if (!places.length) throw new Error("Runtime dataset has no usable production places.");
+      return places;
+    }
+
+    function applyRuntimeProductionDataset(payload) {
+      const places = normalizeRuntimeDataset(payload);
+      runtimeDatasetPlaces = places;
+      runtimeDatasetSource = {
+        label: `${payload.dataset_version} (${places.length} route records)`,
+        status: "loaded",
+        version: payload.dataset_version,
+        generatedAt: cleanText(payload.generated_at, 80)
+      };
+      window.prometheusDebugState.runtimeDataSource = runtimeDatasetSource.label;
+      window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
+      state = withAnthonyApprovedRoute(state);
+      try {
+        localStorage.setItem(storeKey, JSON.stringify(state));
+      } catch (error) {}
+      render();
+      updateFounderDebugPanel({ stage: "runtime-dataset-loaded" });
+      return true;
+    }
+
+    async function loadRuntimeProductionDataset() {
+      if (typeof fetch !== "function") {
+        runtimeDatasetSource = { label: "embedded-fallback", status: "fetch-unavailable", version: "embedded" };
+        window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
+        return false;
+      }
+      try {
+        const response = await fetch(runtimeDatasetPath, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Runtime dataset request failed with ${response.status}.`);
+        const payload = await response.json();
+        return applyRuntimeProductionDataset(payload);
+      } catch (error) {
+        runtimeDatasetSource = {
+          label: "embedded-fallback",
+          status: "fallback",
+          version: "embedded",
+          error: error?.message || String(error || "Runtime dataset unavailable")
+        };
+        window.prometheusDebugState.runtimeDataSource = runtimeDatasetSource.label;
+        window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
+        updateFounderDebugPanel({ stage: "runtime-dataset-fallback" });
+        return false;
+      }
+    }
+
     function resetData() {
       if (!confirm("Reset Prometheus data on this device?")) return;
+      const productionPlaces = productionSeedPlaces();
       state = withAnthonyApprovedRoute({
-        places: starterPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
+        places: productionPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
         routeHistory: [],
         activeRepId: "cruz",
@@ -12173,7 +12365,7 @@
           cruz: createRepProfile("cruz", [], []),
           anthony: createRepProfile("anthony", [], [])
         },
-        founderHistoricalSnapshot: createFounderSnapshot([], [], starterPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
+        founderHistoricalSnapshot: createFounderSnapshot([], [], productionPlaces.map(place => ({ id: "", notes: "", createdAt: Date.now(), ...place })))
       });
       activeRepId = "cruz";
       localStorage.setItem(storeKey, JSON.stringify(state));
@@ -13408,6 +13600,8 @@
           "Active rep": activeRepId,
           "Selected profile": profile ? `${profile.name || profile.id || "Unknown"} (${profile.role || "No role"})` : "No profile",
           "localStorage key": storedState,
+          "Runtime data source": window.prometheusDebugState.runtimeDataSource || runtimeDatasetSource.label,
+          "Runtime data status": window.prometheusDebugState.runtimeDataStatus || runtimeDatasetSource.status,
           "Cruz pool count": founderGoogleRoutePool(currentState.places || []).length,
           "Anthony pool count": anthonyApprovedRoutePool(currentState.places || []).length,
           "First candidate": first?.name || "None",
@@ -14523,6 +14717,7 @@
       window.prometheusDebugState.startupCompleted = true;
       window.prometheusDebugState.lastStage = "startup-complete";
       updateFounderDebugPanel({ stage: "startup-complete" });
+      loadRuntimeProductionDataset();
     } catch (error) {
       captureDebugError(error, "Startup render failed");
       updateFounderDebugPanel({ stage: "startup-error" });
