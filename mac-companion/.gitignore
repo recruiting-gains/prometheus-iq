@@ -1,5 +1,7 @@
 .build/
 logs/
 run/
+reports/
+companion-version.json
 *.local
 *.env

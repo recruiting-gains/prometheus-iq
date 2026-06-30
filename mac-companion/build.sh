@@ -10,6 +10,9 @@ RESOURCES_DIR="$CONTENTS_DIR/Resources"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 cp "$COMPANION_DIR/Info.plist" "$CONTENTS_DIR/Info.plist"
 cp "$COMPANION_DIR/PrometheusCompanion.icns" "$RESOURCES_DIR/PrometheusCompanion.icns"
+if [[ -f "$COMPANION_DIR/companion-version.json" ]]; then
+  cp "$COMPANION_DIR/companion-version.json" "$RESOURCES_DIR/companion-version.json"
+fi
 
 swiftc \
   -parse-as-library \

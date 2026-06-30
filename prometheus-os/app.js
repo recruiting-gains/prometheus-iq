@@ -11,6 +11,7 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
 const voiceStatus = $("#voiceStatus");
 const voiceDebug = $("#voiceDebug");
+const buildMarker = $("#buildMarker");
 const coreState = $("#coreState");
 const detailPanel = $("#detailPanel");
 const detailKicker = $("#detailKicker");
@@ -55,6 +56,7 @@ let lastCommandResult = null;
 let activeRouteDecision = null;
 let suppressCardRoutesUntil = 0;
 let suppressCardRoutesReason = "";
+let companionVersion = null;
 
 if (forceFounderVoiceDefaults) {
   localStorage.setItem("prometheus-os-tts-provider", selectedTtsProvider);
@@ -136,6 +138,51 @@ function routeDiagnosticText(commandRoute) {
   const cognitiveEngineUsed = commandRoute.type === "cognitive" ? "yes" : "no";
   const cardFallbackUsed = commandRoute.decision?.allowCards === false ? "no" : (commandRoute.type === "node" ? "yes" : "no");
   return `Diagnostic: route selected ${routeSelected}. Cognitive engine used: ${cognitiveEngineUsed}. Card fallback used: ${cardFallbackUsed}.`;
+}
+
+async function loadCompanionVersion() {
+  try {
+    const response = await fetch("./companion-runtime-version.json", { cache: "no-store" });
+    companionVersion = await response.json();
+  } catch {
+    companionVersion = {
+      sourceVersion: "missing",
+      installedVersion: "missing",
+      runtimeVersion: "missing",
+      sync: {
+        inSync: false,
+        outOfSync: [
+          {
+            area: "runtime",
+            expected: "companion-runtime-version.json",
+            actual: "missing",
+            detail: "Companion runtime version manifest could not be loaded."
+          }
+        ]
+      }
+    };
+  }
+
+  if (!buildMarker) return companionVersion;
+
+  const outOfSync = companionVersion.sync?.outOfSync || [];
+  if (outOfSync.length) {
+    buildMarker.textContent = `Companion out of sync: ${outOfSync.map((item) => item.area).join(", ")}`;
+    buildMarker.title = outOfSync
+      .map((item) => `${item.area}: expected ${item.expected}; actual ${item.actual}; ${item.detail}`)
+      .join("\n");
+    buildMarker.dataset.sync = "out-of-sync";
+    return companionVersion;
+  }
+
+  buildMarker.textContent = `Companion synced ${companionVersion.runtimeVersion || companionVersion.buildId || "unknown"}`;
+  buildMarker.title = [
+    `Source version: ${companionVersion.sourceVersion || "missing"}`,
+    `Installed version: ${companionVersion.installedVersion || "missing"}`,
+    `Runtime version: ${companionVersion.runtimeVersion || "missing"}`
+  ].join("\n");
+  buildMarker.dataset.sync = "in-sync";
+  return companionVersion;
 }
 
 function isIntelligenceDecision(decision) {
@@ -1353,8 +1400,10 @@ window.prometheusOSHealthCheck = async () => {
       backendConfigured: Boolean(backend?.tts?.elevenlabsConfigured || backend?.tts?.openaiConfigured),
       browserAudioAvailable: typeof Audio !== "undefined"
     },
+    version: companionVersion || backend?.version || null,
     backend
   };
 };
 
+loadCompanionVersion();
 init();

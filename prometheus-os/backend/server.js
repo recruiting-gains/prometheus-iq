@@ -71,6 +71,31 @@ function readBinaryBody(req, maxBytes = 8_000_000) {
   });
 }
 
+async function readCompanionVersion() {
+  try {
+    const raw = await readFile(join(ROOT, "companion-runtime-version.json"), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return {
+      component: "Prometheus Companion",
+      sourceVersion: "missing",
+      installedVersion: "missing",
+      runtimeVersion: "missing",
+      sync: {
+        inSync: false,
+        outOfSync: [
+          {
+            area: "runtime",
+            expected: "companion-runtime-version.json",
+            actual: "missing",
+            detail: "Installed runtime version manifest was not found."
+          }
+        ]
+      }
+    };
+  }
+}
+
 async function handleTts(req, res) {
   try {
     const raw = await readBody(req);
@@ -157,7 +182,13 @@ async function handleAssistant(req, res) {
   }
 }
 
-function handleHealth(_req, res) {
+async function handleVersion(_req, res) {
+  const version = await readCompanionVersion();
+  sendJson(res, 200, version);
+}
+
+async function handleHealth(_req, res) {
+  const version = await readCompanionVersion();
   sendJson(res, 200, {
     ok: true,
     server: {
@@ -177,7 +208,8 @@ function handleHealth(_req, res) {
     assistant: {
       localDemoFallback: true,
       openaiConfigured: Boolean(process.env.OPENAI_API_KEY)
-    }
+    },
+    version
   });
 }
 
@@ -232,7 +264,12 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && req.url === "/api/health") {
-    handleHealth(req, res);
+    await handleHealth(req, res);
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/version") {
+    await handleVersion(req, res);
     return;
   }
 

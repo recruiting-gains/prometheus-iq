@@ -68,6 +68,42 @@ The app bundle is created at:
 mac-companion/.build/PrometheusCompanion.app
 ```
 
+## Sync / Install / Verify
+
+Use this as the source-of-truth Companion workflow:
+
+```bash
+./mac-companion/sync-install-verify.sh
+```
+
+This command replaces the previous manual sequence:
+
+- stop stale local Companion services on ports `8791` and `8792`
+- preserve the installed backend `.env`
+- generate a Companion source version manifest
+- build `PrometheusCompanion.app`
+- clean the installed runtime in `~/Library/Application Support/PrometheusCompanion`
+- synchronize `prometheus-os` runtime files and Companion assets
+- install the latest native app bundle
+- write installed/runtime version manifests
+- start the installed static runtime and backend
+- verify startup, routing, memory, voice paths, diagnostics, and synchronization
+- generate `mac-companion/reports/latest-companion-verification-report.md`
+
+By default, the verified local services remain running after the command so founder testing uses the installed runtime that was just verified. For a transient verification run that stops services on exit:
+
+```bash
+PROMETHEUS_COMPANION_KEEP_RUNNING=0 ./mac-companion/sync-install-verify.sh
+```
+
+The installed Companion can display:
+
+- source version
+- installed version
+- runtime version
+
+If versions drift, the runtime manifest and backend `/api/version` endpoint report the exact out-of-sync areas.
+
 ## Run Once
 
 ```bash
