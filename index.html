@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-MR/gN/VSzG6aFM+6jXbzVQUNlhrfEHTtrGMWj5/0SAE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-jXgpHFES2zTTNDk/3gfQkD9LOnocWtJ1OG6ajqfwDmU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -34,9 +34,21 @@
 
     * { box-sizing: border-box; }
 
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
+      min-height: 100svh;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
       background:
         linear-gradient(180deg, rgba(20, 33, 30, .08), rgba(243, 245, 239, 0) 260px),
         var(--paper);
@@ -54,6 +66,10 @@
 
     .app {
       min-height: 100vh;
+      min-height: 100svh;
+      width: 100%;
+      min-width: 0;
+      overflow-x: clip;
       display: grid;
       grid-template-rows: auto 1fr auto;
     }
@@ -65,7 +81,7 @@
       background: rgba(20, 33, 30, .96);
       border-bottom: 1px solid rgba(255,255,255,.11);
       backdrop-filter: blur(14px);
-      padding: max(14px, env(safe-area-inset-top)) 16px 12px;
+      padding: max(14px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 12px max(12px, env(safe-area-inset-left));
       color: white;
     }
 
@@ -74,6 +90,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      min-width: 0;
       max-width: 1080px;
       margin: 0 auto;
     }
@@ -122,16 +139,20 @@
       border: 1px solid rgba(255,255,255,.14);
       border-radius: var(--radius);
       background: rgba(255,255,255,.08);
+      min-width: 0;
     }
 
     .mode-switch button {
-      min-width: 56px;
+      min-width: 0;
       min-height: 36px;
       border-radius: 5px;
       background: transparent;
       color: rgba(255,255,255,.68);
       font-size: 12px;
       font-weight: 900;
+      padding: 0 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .mode-switch button.active {
@@ -142,8 +163,9 @@
     main {
       width: 100%;
       max-width: 1080px;
+      min-width: 0;
       margin: 0 auto;
-      padding: 18px 16px 92px;
+      padding: 18px max(12px, env(safe-area-inset-right)) calc(92px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     }
 
     .view { display: none; }
@@ -167,6 +189,7 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: 0 2px 14px rgba(17, 24, 22, .05);
+      min-width: 0;
     }
 
     .pad { padding: 14px; }
@@ -177,17 +200,22 @@
       justify-content: space-between;
       gap: 12px;
       margin: 18px 0 10px;
+      min-width: 0;
     }
 
     .section-title h2 {
       margin: 0;
       font-size: 15px;
       letter-spacing: 0;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .section-title small {
       color: var(--muted);
       font-weight: 700;
+      text-align: right;
+      overflow-wrap: anywhere;
     }
 
     .stat {
@@ -246,8 +274,9 @@
 
     .action-row {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
-      overflow-x: auto;
+      overflow-x: visible;
       padding: 2px 0 8px;
       scrollbar-width: none;
     }
@@ -265,8 +294,15 @@
       background: linear-gradient(135deg, var(--command), #203b35);
       color: white;
       font-weight: 800;
-      white-space: nowrap;
+      max-width: 100%;
+      min-width: 0;
+      text-align: center;
+      white-space: normal;
       box-shadow: 0 10px 22px rgba(17, 24, 22, .12);
+    }
+
+    .action-row .btn {
+      flex: 1 1 138px;
     }
 
     .btn.secondary {
@@ -292,6 +328,8 @@
       border-radius: var(--radius);
       border: 1px solid var(--line);
       background: white;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
 
     .item-head {
@@ -299,6 +337,11 @@
       justify-content: space-between;
       gap: 12px;
       align-items: start;
+      min-width: 0;
+    }
+
+    .item-head > div {
+      min-width: 0;
     }
 
     .item h3 {
@@ -327,6 +370,7 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.35;
+      overflow-wrap: anywhere;
     }
 
     .pill {
@@ -339,7 +383,9 @@
       color: var(--ink);
       font-size: 12px;
       font-weight: 800;
-      white-space: nowrap;
+      max-width: 100%;
+      white-space: normal;
+      text-align: center;
     }
 
     .pill.green { background: #dff1e8; color: #0f6f50; }
@@ -397,6 +443,7 @@
       font-size: clamp(24px, 5.4vw, 38px);
       line-height: 1;
       max-width: 15ch;
+      overflow-wrap: anywhere;
     }
 
     .intel-main p {
@@ -498,6 +545,7 @@
       color: white;
       font-size: 15px;
       line-height: 1.1;
+      overflow-wrap: anywhere;
     }
 
     .route-details {
@@ -668,11 +716,12 @@
       border-top: 1px solid var(--line);
       background: rgba(255,255,255,.97);
       backdrop-filter: blur(16px);
-      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+      padding: 8px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
     }
 
     .tabs {
       max-width: 680px;
+      width: 100%;
       margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -689,6 +738,8 @@
       gap: 2px;
       font-size: 11px;
       font-weight: 800;
+      min-width: 0;
+      overflow: hidden;
     }
 
     .tab svg {
@@ -717,6 +768,7 @@
     }
 
     .rank {
+      flex: 0 0 auto;
       width: 32px;
       height: 32px;
       border-radius: 999px;
@@ -743,6 +795,7 @@
       flex-wrap: wrap;
       gap: 7px;
       margin: 2px 0;
+      min-width: 0;
     }
 
     .decision-chip {
@@ -754,6 +807,8 @@
       font-size: 11px;
       font-weight: 900;
       line-height: 1;
+      max-width: 100%;
+      overflow-wrap: anywhere;
     }
 
     .decision-chip.nearby {
@@ -816,6 +871,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 12px;
+      min-width: 0;
     }
 
     .seg {
@@ -826,6 +882,8 @@
       color: var(--ink);
       border: 1px solid var(--line);
       font-weight: 800;
+      min-width: 0;
+      max-width: 100%;
     }
 
     .seg.active {
@@ -974,7 +1032,7 @@
 
     .sheet {
       width: min(680px, 100%);
-      max-height: calc(100vh - 36px);
+      max-height: calc(100svh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
       overflow: auto;
       margin: 0 auto;
       background: white;
@@ -1065,8 +1123,50 @@
       .brand h1 { font-size: 18px; }
       .stat b { font-size: 24px; }
       .tab { font-size: 10px; }
-      .mode-switch button { min-width: 48px; }
       .goal-chip { min-width: 60px; }
+    }
+
+    @media (max-width: 520px) {
+      header {
+        padding-top: max(12px, env(safe-area-inset-top));
+      }
+
+      .topline {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .goal-chip {
+        min-width: 58px;
+        height: 42px;
+      }
+
+      .mode-switch {
+        width: 100%;
+      }
+
+      .mode-switch:not(#repProfileSwitch) {
+        grid-column: 1 / 2;
+      }
+
+      #repProfileSwitch {
+        grid-column: 2 / 3;
+      }
+
+      .grid.two,
+      .form-actions,
+      .territory-kpis {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-facts {
+        grid-template-columns: 1fr;
+      }
+
+      .item-head {
+        flex-wrap: wrap;
+      }
     }
   </style>
 </head>
@@ -1424,9 +1524,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-30-runtime-active-pool-v1";
+    const appBuildVersion = "2026-06-30-mobile-pwa-fit-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v24-runtime-active-pool-assets";
+    const serviceWorkerCacheVersion = "prometheus-v25-mobile-pwa-fit-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";

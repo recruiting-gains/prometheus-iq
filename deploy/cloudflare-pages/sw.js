@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v24-runtime-active-pool-assets";
+const CACHE_NAME = "prometheus-v25-mobile-pwa-fit-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

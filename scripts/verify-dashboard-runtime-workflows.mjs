@@ -328,6 +328,20 @@ async function navigateAndWait(cdp, url, timeoutMs = 10000) {
   await wait(Math.min(250, timeoutMs));
 }
 
+async function setViewport(cdp, viewport) {
+  if (!viewport) return;
+  await cdp.send("Emulation.setDeviceMetricsOverride", {
+    width: viewport.width,
+    height: viewport.height,
+    deviceScaleFactor: viewport.deviceScaleFactor || 1,
+    mobile: Boolean(viewport.mobile)
+  });
+  await cdp.send("Emulation.setTouchEmulationEnabled", {
+    enabled: Boolean(viewport.mobile),
+    maxTouchPoints: viewport.mobile ? 5 : 0
+  });
+}
+
 async function waitForDashboardReady(cdp, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
@@ -381,6 +395,12 @@ async function snapshot(cdp) {
     return {
       mode: document.body.dataset.mode,
       sessionRole: document.body.dataset.sessionRole,
+      activeRepId: typeof activeRepId === "string" ? activeRepId : "",
+      appBuildVersion: typeof appBuildVersion === "string" ? appBuildVersion : "",
+      serviceWorkerCacheVersion: typeof serviceWorkerCacheVersion === "string" ? serviceWorkerCacheVersion : "",
+      storedAppBuildVersion: localStorage.getItem("prometheus-app-build-version") || "",
+      anthonyProfileExists: Boolean(state?.repProfiles?.anthony),
+      anthonyPoolCount: typeof anthonyApprovedRoutePool === "function" ? anthonyApprovedRoutePool(state?.places || []).length : 0,
       activeView: document.querySelector(".view.active")?.id || "",
       visibleTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
       bestNextMove: text(document.getElementById("bestNextMove")),
@@ -416,6 +436,67 @@ async function snapshot(cdp) {
   })()`);
 }
 
+async function mobileFitSnapshot(cdp) {
+  return cdp.evaluate(`(() => {
+    const viewportWidth = document.documentElement.clientWidth;
+    const visible = element => {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+    };
+    const rectFor = selector => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const rect = element.getBoundingClientRect();
+      return {
+        left: Math.round(rect.left),
+        right: Math.round(rect.right),
+        width: Math.round(rect.width),
+        visible: visible(element)
+      };
+    };
+    const offenders = [...document.body.querySelectorAll("*")]
+      .filter(visible)
+      .map(element => {
+        const rect = element.getBoundingClientRect();
+        return {
+          tag: element.tagName.toLowerCase(),
+          id: element.id || "",
+          className: typeof element.className === "string" ? element.className : "",
+          text: (element.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 80),
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          width: Math.round(rect.width)
+        };
+      })
+      .filter(item => item.left < -1 || item.right > viewportWidth + 1)
+      .slice(0, 12);
+    return {
+      viewportWidth,
+      docScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      bodyOverflowX: getComputedStyle(document.body).overflowX,
+      htmlOverflowX: getComputedStyle(document.documentElement).overflowX,
+      activeView: document.querySelector(".view.active")?.id || "",
+      ownerTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
+      modeButtonLabels: [...document.querySelectorAll('[data-mode-select]')].filter(visible).map(button => button.textContent.trim()),
+      profileButtonLabels: [...document.querySelectorAll('[data-rep-select]')].filter(visible).map(button => button.textContent.trim()),
+      rects: {
+        header: rectFor("header"),
+        topLine: rectFor(".topline"),
+        modeSwitch: rectFor(".mode-switch:not(#repProfileSwitch)"),
+        repProfileSwitch: rectFor("#repProfileSwitch"),
+        goalChip: rectFor(".goal-chip"),
+        main: rectFor("main"),
+        nav: rectFor("nav"),
+        tabs: rectFor(".tabs")
+      },
+      offenders
+    };
+  })()`);
+}
+
 async function clickTab(cdp, tab) {
   await cdp.evaluate(`(() => {
     const target = document.querySelector('[data-tab="${tab}"]');
@@ -426,19 +507,27 @@ async function clickTab(cdp, tab) {
   await wait(150);
 }
 
-async function runPageScenario(chrome, server, path, name) {
+async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
   try {
+    await setViewport(cdp, options.viewport);
     const url = `${server.origin}${path}`;
     await navigateAndWait(cdp, url);
-    const routeLoadMs = await waitForDashboardReady(cdp, 20000);
+    const routeLoadMs = await waitForDashboardReady(cdp, 60000);
     const initial = await snapshot(cdp);
     return { name, cdp, eventLog, routeLoadMs, initial };
   } catch (error) {
     cdp.close();
     throw new Error(`${error.message}; network=${JSON.stringify(eventLog.network)}`);
   }
+}
+
+function verifyMobileFit(label, fit) {
+  const scrollFits = fit.docScrollWidth <= fit.viewportWidth + 1 && fit.bodyScrollWidth <= fit.viewportWidth + 1;
+  const controlsFit = Object.values(fit.rects).every(rect => !rect?.visible || (rect.left >= -1 && rect.right <= fit.viewportWidth + 1));
+  const detail = `${fit.activeView}: viewport ${fit.viewportWidth}px, doc ${fit.docScrollWidth}px, body ${fit.bodyScrollWidth}px`;
+  assertWorkflow(label, scrollFits && controlsFit && fit.offenders.length === 0, detail, JSON.stringify(fit));
 }
 
 function verifyNoErrors(label, eventLog, snap, { allow = [] } = {}) {
@@ -497,6 +586,22 @@ async function runHarness() {
     const findSnap = await snapshot(founder.cdp);
     assertWorkflow("Find/Search functionality", findSnap.activeView === "view-find" && findSnap.findText.includes("Find Places") && (findSnap.searchItems > 0 || findSnap.targetIdeas > 0), `${findSnap.searchItems} searches and ${findSnap.targetIdeas} target ideas rendered`, JSON.stringify({ activeView: findSnap.activeView, searchItems: findSnap.searchItems, targetIdeas: findSnap.targetIdeas }));
 
+    const mobileFounder = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const mobileFounderSnap = mobileFounder.initial;
+    assertWorkflow("Mobile Founder Owner controls", mobileFounderSnap.sessionRole === "founder" && mobileFounderSnap.mode === "owner" && mobileFounderSnap.activeRepId === "cruz" && mobileFounderSnap.visibleTabs.length === 5, `role ${mobileFounderSnap.sessionRole}, mode ${mobileFounderSnap.mode}, rep ${mobileFounderSnap.activeRepId}, tabs ${mobileFounderSnap.visibleTabs.join(", ")}`, JSON.stringify(mobileFounderSnap));
+    verifyMobileFit("Mobile PWA Today no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
+    await clickTab(mobileFounder.cdp, "route");
+    verifyMobileFit("Mobile PWA Route no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
+    await clickTab(mobileFounder.cdp, "places");
+    verifyMobileFit("Mobile PWA Places no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
+    await clickTab(mobileFounder.cdp, "stats");
+    verifyMobileFit("Mobile PWA Insights no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
+    await clickTab(mobileFounder.cdp, "find");
+    verifyMobileFit("Mobile PWA Find no-horizontal-scroll", await mobileFitSnapshot(mobileFounder.cdp));
+    verifyNoErrors("Mobile Founder", mobileFounder.eventLog, await snapshot(mobileFounder.cdp));
+
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
@@ -504,6 +609,7 @@ async function runHarness() {
     const repAfterOwnerTab = await snapshot(rep.cdp);
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
+    assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
 
     const full = await runPageScenario(chrome, server, "/?role=founder&debug=1&runtimePool=full&harness=runtime-workflows-full", "full");
@@ -521,6 +627,7 @@ async function runHarness() {
     verifyRuntimePerformance(founderSnap, founder.routeLoadMs);
 
     founder.cdp.close();
+    mobileFounder.cdp.close();
     rep.cdp.close();
     full.cdp.close();
     fallback.cdp.close();
