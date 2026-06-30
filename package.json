@@ -7,17 +7,20 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
+    "lint": "node scripts/lint-crm.mjs",
+    "typecheck": "node scripts/typecheck-crm.mjs",
     "security:check": "node scripts/security-check.mjs",
     "dashboard:runtime-pool:check": "node scripts/verify-dashboard-runtime-pool-consumption.mjs",
     "dashboard:runtime-workflows:check": "node scripts/verify-dashboard-runtime-workflows.mjs",
     "intelligence:route-quality:check": "node scripts/verify-route-intelligence-quality-gate.mjs",
     "test:intelligence:route-quality": "node --test tests/route-intelligence-quality-gate.test.mjs",
+    "test:crm": "node --test tests/crm-foundation.test.mjs",
     "data:refresh-google": "node scripts/refresh-google-qualified-businesses.mjs",
     "data:refresh-google:dry-run": "node scripts/refresh-google-qualified-businesses.mjs --dry-run",
     "verify:zero-google-api": "node scripts/verify-zero-live-google-api-calls.mjs",
     "verify:production-release": "node scripts/verify-production-release.mjs",
     "verify:production-release:local": "node scripts/verify-production-release.mjs --local-only",
-    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run intelligence:route-quality:check && npm run test:intelligence:route-quality && npm run build"
+    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run intelligence:route-quality:check && npm run test:intelligence:route-quality && npm run test:crm && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
