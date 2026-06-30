@@ -1,0 +1,209 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {
+  SOCIAL_CONNECTION_STATES,
+  SOCIAL_DATA_SOURCES,
+  SOCIAL_ERROR_CODES,
+  SOCIAL_MEDIA_CONTRACT_VERSION,
+  SOCIAL_PROVIDER_IDS,
+  createAttributionEvent,
+  createCampaignDescriptor,
+  createMarketingAnalyticsSnapshot,
+  createSocialIntegrationError,
+  createSocialProviderStatus
+} from "../social-media/contracts/social-media-contract.js";
+import {
+  createInstagramSampleSnapshot,
+  fetchInstagramBusinessSnapshot,
+  getInstagramBusinessProviderStatus
+} from "../social-media/providers/instagram-business-provider.js";
+import {
+  getSupportedSocialProvider,
+  listSupportedSocialProviders
+} from "../social-media/providers/social-provider-registry.js";
+import {
+  createMockFounderMarketingAnalytics,
+  createSocialMediaMarketingAnalytics
+} from "../social-media/social-media-analytics-service.js";
+
+test("social media provider status uses versioned contract and default false capabilities", () => {
+  const status = createSocialProviderStatus({
+    provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+    state: SOCIAL_CONNECTION_STATES.MOCK_SAMPLE,
+    source: SOCIAL_DATA_SOURCES.MOCK_SAMPLE,
+    accountHandle: "@prometheus.iq",
+    checkedAt: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(status.contractVersion, SOCIAL_MEDIA_CONTRACT_VERSION);
+  assert.equal(status.provider, SOCIAL_PROVIDER_IDS.INSTAGRAM);
+  assert.equal(status.capabilities.read_account_insights, false);
+  assert.equal(status.accountHandle, "@prometheus.iq");
+});
+
+test("social media errors redact credential-like fields recursively", () => {
+  const error = createSocialIntegrationError({
+    code: SOCIAL_ERROR_CODES.PROVIDER_ERROR,
+    message: "Provider failed.",
+    details: {
+      accessToken: "must-not-leak",
+      nested: {
+        app_secret: "also-secret",
+        safe: "visible"
+      }
+    }
+  });
+
+  assert.equal(error.details.accessToken, "[redacted]");
+  assert.equal(error.details.nested.app_secret, "[redacted]");
+  assert.equal(error.details.nested.safe, "visible");
+});
+
+test("campaigns and attribution events normalize Website, CRM, beta, founder, and campaign targets", () => {
+  const campaign = createCampaignDescriptor({
+    id: "beta-route-iq-awareness-v1",
+    name: "Route IQ Beta Awareness",
+    startsAt: "2026-06-01T00:00:00-05:00",
+    utm: {
+      source: "instagram",
+      medium: "social"
+    }
+  });
+  const event = createAttributionEvent({
+    id: "evt_1",
+    type: "crm_lead_created",
+    target: "crm_lead",
+    source: SOCIAL_DATA_SOURCES.MOCK_SAMPLE,
+    campaignId: campaign.id,
+    occurredAt: "2026-06-30T10:00:00-05:00",
+    confidence: 2
+  });
+
+  assert.equal(campaign.utm.campaign, "beta-route-iq-awareness-v1");
+  assert.equal(event.target, "crm_lead");
+  assert.equal(event.confidence, 1);
+});
+
+test("marketing analytics snapshot labels samples and keeps normalized records together", () => {
+  const snapshot = createMarketingAnalyticsSnapshot({
+    id: "snapshot_1",
+    generatedAt: "2026-06-30T12:00:00.000Z",
+    providers: [{
+      provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+      checkedAt: "2026-06-30T12:00:00.000Z"
+    }],
+    campaigns: [{
+      id: "campaign_1",
+      name: "Campaign 1"
+    }],
+    metrics: [{
+      name: "reach",
+      value: "5",
+      observedAt: "2026-06-30T12:00:00.000Z"
+    }]
+  });
+
+  assert.equal(snapshot.contractVersion, SOCIAL_MEDIA_CONTRACT_VERSION);
+  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.DISCONNECTED);
+  assert.equal(snapshot.metrics[0].value, 5);
+});
+
+test("provider registry includes every planned provider and rejects unsupported rebuilding paths", () => {
+  const providers = listSupportedSocialProviders();
+  const ids = providers.map(provider => provider.id).sort();
+
+  assert.deepEqual(ids, ["facebook", "instagram", "linkedin", "tiktok", "x", "youtube"]);
+  assert.equal(getSupportedSocialProvider("instagram").unsupported.includes("scraping"), true);
+  assert.equal(getSupportedSocialProvider("instagram").unsupported.includes("live_posting"), true);
+});
+
+test("Instagram Business provider returns mock sample state without credentials", () => {
+  const status = getInstagramBusinessProviderStatus({
+    env: {},
+    checkedAt: "2026-06-30T12:00:00.000Z"
+  });
+  const snapshot = createInstagramSampleSnapshot({
+    generatedAt: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(status.state, SOCIAL_CONNECTION_STATES.MOCK_SAMPLE);
+  assert.equal(status.errors[0].details.missing.includes("INSTAGRAM_ACCESS_TOKEN"), true);
+  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.MOCK_SAMPLE);
+  assert.equal(snapshot.metrics[0].source, SOCIAL_DATA_SOURCES.MOCK_SAMPLE);
+});
+
+test("Instagram Business provider maps mocked Meta API responses without exposing tokens", async () => {
+  const fetchCalls = [];
+  const fetchImpl = async url => {
+    fetchCalls.push(String(url));
+    const path = String(url);
+    if (path.includes("/insights")) {
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          data: [
+            { name: "reach", values: [{ value: 12 }] },
+            { name: "profile_views", values: [{ value: 4 }] },
+            { name: "website_clicks", values: [{ value: 2 }] }
+          ]
+        })
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        username: "prometheus.iq",
+        followers_count: 50,
+        media_count: 7
+      })
+    };
+  };
+
+  const snapshot = await fetchInstagramBusinessSnapshot({
+    env: {
+      INSTAGRAM_ACCESS_TOKEN: "test-token-not-returned",
+      INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
+      META_GRAPH_API_VERSION: "v21.0"
+    },
+    fetchImpl,
+    generatedAt: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.CONNECTED);
+  assert.equal(snapshot.providers[0].accountHandle, "@prometheus.iq");
+  assert.equal(snapshot.metrics.find(metric => metric.name === "reach").value, 12);
+  assert.equal(JSON.stringify(snapshot).includes("test-token-not-returned"), false);
+  assert.equal(fetchCalls.length, 2);
+});
+
+test("Social Media analytics service aggregates attribution summary without downstream code changes", () => {
+  const snapshot = createSocialMediaMarketingAnalytics({
+    generatedAt: "2026-06-30T12:00:00.000Z",
+    campaigns: [{
+      id: "campaign_1",
+      name: "Campaign 1"
+    }],
+    metrics: [{
+      name: "website_clicks",
+      value: 3,
+      observedAt: "2026-06-30T12:00:00.000Z"
+    }],
+    attributionEvents: [{
+      id: "event_1",
+      type: "website_visit",
+      target: "website_traffic",
+      source: SOCIAL_DATA_SOURCES.MOCK_SAMPLE,
+      occurredAt: "2026-06-30T12:00:00.000Z"
+    }]
+  });
+  const founderSample = createMockFounderMarketingAnalytics({
+    generatedAt: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(snapshot.summary.websiteVisitsAttributed, 1);
+  assert.equal(snapshot.summary.totalWebsiteClicks, 3);
+  assert.equal(founderSample.summary.crmLeadsAttributed, 1);
+  assert.equal(founderSample.summary.betaEventsAttributed, 1);
+});

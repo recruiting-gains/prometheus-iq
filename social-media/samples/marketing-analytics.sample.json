@@ -1,0 +1,81 @@
+{
+  "contractVersion": "social-media-marketing-analytics-contract.v1",
+  "sampleOnly": true,
+  "generatedAt": "2026-06-30T12:00:00.000Z",
+  "providers": [
+    {
+      "provider": "instagram",
+      "state": "mock_sample",
+      "source": "mock_sample",
+      "accountHandle": "@prometheus.iq"
+    }
+  ],
+  "campaigns": [
+    {
+      "id": "founder-build-in-public-v1",
+      "name": "Founder Build In Public",
+      "platform": "instagram",
+      "objective": "founder_marketing_analytics",
+      "utm": {
+        "source": "instagram",
+        "medium": "social",
+        "campaign": "founder-build-in-public-v1"
+      }
+    },
+    {
+      "id": "beta-route-iq-awareness-v1",
+      "name": "Route IQ Beta Awareness",
+      "platform": "multi_platform",
+      "objective": "beta_attribution",
+      "utm": {
+        "source": "social",
+        "medium": "organic",
+        "campaign": "beta-route-iq-awareness-v1"
+      }
+    }
+  ],
+  "metrics": [
+    {
+      "name": "reach",
+      "value": 0,
+      "source": "mock_sample",
+      "provider": "instagram",
+      "campaignId": "founder-build-in-public-v1"
+    },
+    {
+      "name": "website_clicks",
+      "value": 0,
+      "source": "mock_sample",
+      "provider": "instagram",
+      "campaignId": "beta-route-iq-awareness-v1"
+    }
+  ],
+  "attributionEvents": [
+    {
+      "id": "sample-website-contract-event-1",
+      "type": "website_visit",
+      "target": "website_traffic",
+      "source": "mock_sample",
+      "provider": "instagram",
+      "campaignId": "beta-route-iq-awareness-v1",
+      "confidence": 0
+    },
+    {
+      "id": "sample-crm-contract-event-1",
+      "type": "crm_lead_created",
+      "target": "crm_lead",
+      "source": "mock_sample",
+      "campaignId": "beta-route-iq-awareness-v1",
+      "confidence": 0
+    },
+    {
+      "id": "sample-beta-contract-event-1",
+      "type": "beta_signup",
+      "target": "beta_signup",
+      "source": "mock_sample",
+      "campaignId": "beta-route-iq-awareness-v1",
+      "confidence": 0
+    }
+  ],
+  "note": "Mock/sample analytics only. Do not report these values as live provider performance."
+}
