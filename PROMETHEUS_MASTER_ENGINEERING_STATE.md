@@ -884,6 +884,74 @@ Next recommended subsystem:
 
 Prometheus Infrastructure, then Prometheus Integrations. Infrastructure should establish safe secret/OAuth runtime controls before Integrations connects Meta live data.
 
+### Completed Work Lane: Instagram OAuth / Secret Runtime Controls v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Social Media
+- Prometheus Integrations
+
+Task:
+
+Instagram OAuth / Secret Runtime Controls v1.
+
+Status:
+
+Complete and committed.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+Recorded in the Infrastructure handoff for this task.
+
+Deploy:
+
+Not run. No production deploy or live OAuth verification was required.
+
+Files changed:
+
+- `social-media/infrastructure/instagram-runtime-controls.js`
+- `social-media/providers/instagram-business-provider.js`
+- `social-media/contracts/social-media-contract.js`
+- `social-media/docs/meta-instagram-setup.md`
+- `social-media/docs/social-media-marketing-analytics-architecture-v1.md`
+- `social-media/README.md`
+- `tests/social-media-contract.test.mjs`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Verified outcome:
+
+- Added Instagram-only backend runtime controls for Meta app setup validation, backend token presence, permission validation, expiration metadata, and verification status.
+- Added safe runtime states: `not_configured`, `configured`, `permission_required`, `token_missing`, `token_expired`, `verification_pending`, `connected`, and `error`.
+- Blocked live Meta Graph API calls unless runtime state is `connected`.
+- Switched provider requests away from token-in-query URLs to backend `Authorization: Bearer` headers.
+- Preserved mock/sample analytics for every non-`connected` state.
+- Documented the production OAuth callback URL, minimum read-only Instagram scopes, required backend environment variables, token handling, and unsupported behaviors.
+- Added frontend exposure tests for Instagram/Meta token variable names and backend runtime-control imports.
+- No live OAuth login, token exchange, token refresh, provider verification, live Instagram data pull, posting, messaging, DMs, comments automation, or password storage was implemented.
+
+Future subsystem handoffs:
+
+- Prometheus Integrations may implement the Meta OAuth connection and token refresh workflow after founder-approved Meta app credentials exist.
+- Prometheus Social Media may consume `connected` Instagram provider snapshots after Infrastructure/Integrations complete live verification.
+
+Duplicate-prevention update:
+
+Do not create a second Instagram/Meta secret validator, token status mapper, or runtime-state contract. Reuse `social-media/infrastructure/instagram-runtime-controls.js` and the Social Media contract.
+
+Remaining blocker:
+
+Live Instagram analytics remains blocked until founder-approved Meta app credentials, OAuth callback route handling, permissions/App Review if required, backend secret storage, token refresh, and live provider verification are completed.
+
+Next recommended subsystem:
+
+Prometheus Integrations, only after founder-approved Meta app credentials and callback route ownership are available.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2558,6 +2626,7 @@ Current duplicate-prevention sources:
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
+- Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
@@ -2569,18 +2638,18 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Social Media OAuth/secret runtime controls.
+Meta Instagram OAuth connection and token refresh workflow.
 
-Primary subsystem: Prometheus Infrastructure.
+Primary subsystem: Prometheus Integrations.
 
 Secondary subsystems:
 
+- Prometheus Infrastructure
 - Prometheus Social Media
-- Prometheus Integrations
 
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`. The next dependency is Infrastructure-owned: production secret storage, OAuth redirect protection, token rotation, backend route protection, and a green checkpoint before Integrations connects live Meta data. Do not implement scraping, password storage, frontend secrets, live posting, or unsupported platform behavior.
+Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, and Infrastructure added Instagram-only OAuth/secret runtime controls. The next dependency is Integrations-owned: implement the Meta OAuth connection, callback handling, token exchange, token refresh, and live provider verification only after founder-approved Meta app credentials exist. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 

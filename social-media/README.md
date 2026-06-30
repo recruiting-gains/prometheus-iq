@@ -17,13 +17,14 @@ This subsystem connects marketing activity to:
 
 Social Media / Marketing Analytics Architecture v1 is implemented as a provider-neutral foundation with Instagram Business as the first concrete provider adapter.
 
-Live provider calls are intentionally not enabled by default. When Meta credentials are missing, the subsystem returns clearly labeled mock/sample analytics and disconnected provider status.
+Live provider calls are intentionally not enabled by default. Instagram/Meta analytics now pass through Infrastructure-owned runtime controls, and live Meta Graph API calls are blocked unless backend setup, token, permissions, and verification metadata are all present.
 
 ## Source Files
 
 - `contracts/social-media-contract.js`: official Social Media analytics and attribution contract.
 - `providers/social-provider-registry.js`: supported provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
 - `providers/instagram-business-provider.js`: backend-only Instagram Business analytics provider adapter.
+- `infrastructure/instagram-runtime-controls.js`: backend-only Instagram/Meta secret and runtime state validation.
 - `social-media-analytics-service.js`: normalized marketing analytics snapshot service.
 - `samples/marketing-analytics.sample.json`: explicit mock/sample analytics fixture.
 - `docs/social-media-marketing-analytics-architecture-v1.md`: architecture and subsystem contracts.
@@ -38,6 +39,19 @@ Live provider calls are intentionally not enabled by default. When Meta credenti
 - Do not implement live posting.
 - Do not report mock/sample analytics as live analytics.
 - Keep secrets backend-only through environment variables or Infrastructure-owned secret storage.
+- Do not configure non-Instagram providers until their owning subsystem explicitly requests that work.
+- Do not call Meta unless the Instagram runtime state is `connected`.
+
+## Instagram Runtime States
+
+- `not_configured`
+- `configured`
+- `permission_required`
+- `token_missing`
+- `token_expired`
+- `verification_pending`
+- `connected`
+- `error`
 
 ## Contract Consumers
 

@@ -1,37 +1,21 @@
 import {
   SOCIAL_CONNECTION_STATES,
   SOCIAL_DATA_SOURCES,
-  SOCIAL_ERROR_CODES,
   SOCIAL_PROVIDER_CAPABILITIES,
   SOCIAL_PROVIDER_IDS,
   createMarketingAnalyticsSnapshot,
   createSocialIntegrationError,
   createSocialProviderStatus
 } from "../contracts/social-media-contract.js";
-
-const DEFAULT_GRAPH_VERSION = "v21.0";
-
-const INSTAGRAM_REQUIRED_PERMISSIONS = Object.freeze([
-  "instagram_basic",
-  "instagram_manage_insights",
-  "pages_show_list",
-  "pages_read_engagement"
-]);
+import {
+  INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS,
+  publicInstagramRuntimeStatus,
+  resolveInstagramRuntimeConfig,
+  validateInstagramRuntimeEnvironment
+} from "../infrastructure/instagram-runtime-controls.js";
 
 function getInstagramConfig(env = process.env) {
-  return {
-    accessToken: env.INSTAGRAM_ACCESS_TOKEN || env.META_INSTAGRAM_ACCESS_TOKEN || "",
-    businessAccountId: env.INSTAGRAM_BUSINESS_ACCOUNT_ID || "",
-    graphVersion: env.META_GRAPH_API_VERSION || DEFAULT_GRAPH_VERSION,
-    accountHandle: env.INSTAGRAM_ACCOUNT_HANDLE || "@prometheus.iq"
-  };
-}
-
-function missingInstagramConfig(config) {
-  const missing = [];
-  if (!config.accessToken) missing.push("INSTAGRAM_ACCESS_TOKEN");
-  if (!config.businessAccountId) missing.push("INSTAGRAM_BUSINESS_ACCOUNT_ID");
-  return missing;
+  return resolveInstagramRuntimeConfig(env);
 }
 
 function buildGraphUrl(config, path, params = {}) {
@@ -40,12 +24,15 @@ function buildGraphUrl(config, path, params = {}) {
     if (value === undefined || value === null || value === "") continue;
     url.searchParams.set(key, String(value));
   }
-  url.searchParams.set("access_token", config.accessToken);
   return url;
 }
 
-async function fetchJson(fetchImpl, url) {
-  const response = await fetchImpl(url);
+async function fetchJson(fetchImpl, url, accessToken) {
+  const response = await fetchImpl(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
   const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -67,24 +54,20 @@ function metricValue(insights, name) {
 }
 
 export function getInstagramBusinessProviderStatus({ env = process.env, checkedAt } = {}) {
-  const config = getInstagramConfig(env);
-  const missing = missingInstagramConfig(config);
+  const runtime = validateInstagramRuntimeEnvironment({ env, now: checkedAt ? new Date(checkedAt) : new Date() });
+  const config = runtime.config;
 
-  if (missing.length) {
+  if (runtime.state !== SOCIAL_CONNECTION_STATES.CONNECTED) {
     return createSocialProviderStatus({
       provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
-      state: SOCIAL_CONNECTION_STATES.MOCK_SAMPLE,
+      state: runtime.state,
       source: SOCIAL_DATA_SOURCES.MOCK_SAMPLE,
       accountHandle: config.accountHandle,
+      accountId: config.businessAccountId || null,
       checkedAt,
-      requiredPermissions: [...INSTAGRAM_REQUIRED_PERMISSIONS],
-      errors: [
-        createSocialIntegrationError({
-          code: SOCIAL_ERROR_CODES.NOT_CONNECTED,
-          message: "Instagram Business analytics are using mock/sample data until Meta credentials are configured.",
-          details: { missing }
-        })
-      ]
+      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      grantedPermissions: [...config.grantedPermissions],
+      errors: runtime.errors
     });
   }
 
@@ -95,7 +78,8 @@ export function getInstagramBusinessProviderStatus({ env = process.env, checkedA
     accountId: config.businessAccountId,
     accountHandle: config.accountHandle,
     checkedAt,
-    requiredPermissions: [...INSTAGRAM_REQUIRED_PERMISSIONS],
+    requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+    grantedPermissions: [...config.grantedPermissions],
     capabilities: {
       [SOCIAL_PROVIDER_CAPABILITIES.READ_ACCOUNT_INSIGHTS]: true,
       [SOCIAL_PROVIDER_CAPABILITIES.READ_CONTENT_INSIGHTS]: true,
@@ -108,7 +92,8 @@ export function getInstagramBusinessProviderStatus({ env = process.env, checkedA
 
 export function createInstagramSampleSnapshot({
   generatedAt = "2026-06-30T12:00:00.000Z",
-  checkedAt = generatedAt
+  checkedAt = generatedAt,
+  env = {}
 } = {}) {
   return createMarketingAnalyticsSnapshot({
     id: "social-media-instagram-sample-v1",
@@ -118,7 +103,7 @@ export function createInstagramSampleSnapshot({
       endsAt: "2026-06-30T23:59:59.000Z",
       timezone: "America/Chicago"
     },
-    providers: [getInstagramBusinessProviderStatus({ env: {}, checkedAt })],
+    providers: [getInstagramBusinessProviderStatus({ env, checkedAt })],
     campaigns: [{
       id: "founder-build-in-public-v1",
       name: "Founder Build In Public",
@@ -179,14 +164,14 @@ export async function fetchInstagramBusinessSnapshot({
   generatedAt = new Date().toISOString()
 } = {}) {
   const config = getInstagramConfig(env);
-  const missing = missingInstagramConfig(config);
+  const runtime = validateInstagramRuntimeEnvironment({ env, now: new Date(generatedAt) });
 
-  if (missing.length) {
-    return createInstagramSampleSnapshot({ generatedAt });
+  if (runtime.state !== SOCIAL_CONNECTION_STATES.CONNECTED) {
+    return createInstagramSampleSnapshot({ generatedAt, env });
   }
 
   if (typeof fetchImpl !== "function") {
-    return createInstagramSampleSnapshot({ generatedAt });
+    return createInstagramSampleSnapshot({ generatedAt, env });
   }
 
   const accountUrl = buildGraphUrl(config, config.businessAccountId, {
@@ -198,8 +183,8 @@ export async function fetchInstagramBusinessSnapshot({
   });
 
   const [accountResult, insightsResult] = await Promise.all([
-    fetchJson(fetchImpl, accountUrl),
-    fetchJson(fetchImpl, insightsUrl)
+    fetchJson(fetchImpl, accountUrl, config.accessToken),
+    fetchJson(fetchImpl, insightsUrl, config.accessToken)
   ]);
 
   if (!accountResult.ok || !insightsResult.ok) {
@@ -210,7 +195,8 @@ export async function fetchInstagramBusinessSnapshot({
       accountId: config.businessAccountId,
       accountHandle: config.accountHandle,
       checkedAt: generatedAt,
-      requiredPermissions: [...INSTAGRAM_REQUIRED_PERMISSIONS],
+      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      grantedPermissions: [...config.grantedPermissions],
       errors: [
         createSocialIntegrationError({
           code: SOCIAL_ERROR_CODES.PROVIDER_ERROR,
@@ -245,8 +231,8 @@ export async function fetchInstagramBusinessSnapshot({
         accountId: config.businessAccountId,
         accountHandle: handle,
         checkedAt: generatedAt,
-        requiredPermissions: [...INSTAGRAM_REQUIRED_PERMISSIONS],
-        grantedPermissions: [...INSTAGRAM_REQUIRED_PERMISSIONS],
+        requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+        grantedPermissions: [...config.grantedPermissions],
         capabilities: {
           [SOCIAL_PROVIDER_CAPABILITIES.READ_ACCOUNT_INSIGHTS]: true,
           [SOCIAL_PROVIDER_CAPABILITIES.READ_CONTENT_INSIGHTS]: true,
@@ -286,4 +272,8 @@ export async function fetchInstagramBusinessSnapshot({
     ],
     notes: ["Live provider data is account-level only until content-level and downstream attribution contracts are connected."]
   });
+}
+
+export function getInstagramRuntimeStatus({ env = process.env, now = new Date() } = {}) {
+  return publicInstagramRuntimeStatus(validateInstagramRuntimeEnvironment({ env, now }));
 }

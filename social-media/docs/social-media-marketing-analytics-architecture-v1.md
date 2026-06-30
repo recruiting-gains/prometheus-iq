@@ -40,9 +40,12 @@ flowchart LR
 
 Provider adapters must use supported APIs only.
 
-Supported provider targets:
+Active provider target:
 
 - Instagram: Meta Graph API with Instagram Business or Professional account analytics.
+
+Future provider targets, not configured in Instagram Runtime Controls v1:
+
 - Facebook: Meta Graph API Page insights.
 - LinkedIn: LinkedIn Marketing API and Organization analytics.
 - X: X API analytics where the account tier and API product allow it.
@@ -128,6 +131,7 @@ Infrastructure should own:
 - token rotation
 - backend route protection
 - deployment environment configuration
+- Instagram runtime state validation before any live provider call
 
 Integrations should own:
 
@@ -142,6 +146,7 @@ Implemented:
 - Provider-neutral contract.
 - Provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
 - Instagram Business provider adapter.
+- Instagram-only backend runtime controls for environment validation and safe connection states.
 - Explicit mock/sample fallback.
 - Founder marketing sample analytics service.
 - Tests for contract validation, secret redaction, provider registry, Instagram fallback, and mocked provider fetch.
@@ -153,6 +158,7 @@ Not implemented:
 - Scraping.
 - Live posting.
 - Downstream Website, CRM, Dashboard, beta, Infrastructure, or Integrations code changes.
+- Facebook posting, X, YouTube, TikTok, LinkedIn, messaging, comments automation, DMs, or password storage.
 
 ## Duplicate Prevention
 

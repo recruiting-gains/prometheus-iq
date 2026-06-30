@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   SOCIAL_CONNECTION_STATES,
   SOCIAL_DATA_SOURCES,
@@ -15,8 +16,15 @@ import {
 import {
   createInstagramSampleSnapshot,
   fetchInstagramBusinessSnapshot,
-  getInstagramBusinessProviderStatus
+  getInstagramBusinessProviderStatus,
+  getInstagramRuntimeStatus
 } from "../social-media/providers/instagram-business-provider.js";
+import {
+  INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS,
+  INSTAGRAM_RUNTIME_ENVIRONMENT,
+  publicInstagramRuntimeStatus,
+  validateInstagramRuntimeEnvironment
+} from "../social-media/infrastructure/instagram-runtime-controls.js";
 import {
   getSupportedSocialProvider,
   listSupportedSocialProviders
@@ -39,6 +47,37 @@ test("social media provider status uses versioned contract and default false cap
   assert.equal(status.provider, SOCIAL_PROVIDER_IDS.INSTAGRAM);
   assert.equal(status.capabilities.read_account_insights, false);
   assert.equal(status.accountHandle, "@prometheus.iq");
+});
+
+test("social media contract exposes required safe Instagram runtime states", () => {
+  const states = Object.values(SOCIAL_CONNECTION_STATES);
+
+  assert.equal(states.includes("not_configured"), true);
+  assert.equal(states.includes("configured"), true);
+  assert.equal(states.includes("permission_required"), true);
+  assert.equal(states.includes("token_missing"), true);
+  assert.equal(states.includes("token_expired"), true);
+  assert.equal(states.includes("verification_pending"), true);
+  assert.equal(states.includes("connected"), true);
+  assert.equal(states.includes("error"), true);
+});
+
+test("frontend code does not import backend Instagram runtime controls or token env names", () => {
+  const frontendFiles = ["index.html", "deploy/cloudflare-pages/index.html", "src/main.jsx", "landing.html"];
+  const forbidden = [
+    "instagram-runtime-controls",
+    "INSTAGRAM_ACCESS_TOKEN",
+    "META_INSTAGRAM_ACCESS_TOKEN",
+    "META_APP_SECRET",
+    "INSTAGRAM_GRANTED_SCOPES"
+  ];
+
+  for (const file of frontendFiles) {
+    const content = readFileSync(file, "utf8");
+    for (const pattern of forbidden) {
+      assert.equal(content.includes(pattern), false, `${file} must not expose ${pattern}`);
+    }
+  }
 });
 
 test("social media errors redact credential-like fields recursively", () => {
@@ -126,16 +165,72 @@ test("Instagram Business provider returns mock sample state without credentials"
     generatedAt: "2026-06-30T12:00:00.000Z"
   });
 
-  assert.equal(status.state, SOCIAL_CONNECTION_STATES.MOCK_SAMPLE);
-  assert.equal(status.errors[0].details.missing.includes("INSTAGRAM_ACCESS_TOKEN"), true);
-  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.MOCK_SAMPLE);
+  assert.equal(status.state, SOCIAL_CONNECTION_STATES.NOT_CONFIGURED);
+  assert.equal(status.errors[0].details.missingSetup.includes("META_APP_ID"), true);
+  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.NOT_CONFIGURED);
   assert.equal(snapshot.metrics[0].source, SOCIAL_DATA_SOURCES.MOCK_SAMPLE);
+});
+
+test("Instagram runtime controls classify safe placeholder states", () => {
+  const setupEnv = {
+    META_APP_ID: "app-id",
+    META_APP_SECRET: "app-secret-not-returned",
+    META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+    INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
+    META_GRAPH_API_VERSION: "v21.0"
+  };
+  const scopedEnv = {
+    ...setupEnv,
+    INSTAGRAM_ACCESS_TOKEN: "token-not-returned",
+    INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(",")
+  };
+
+  assert.equal(validateInstagramRuntimeEnvironment({ env: {} }).state, SOCIAL_CONNECTION_STATES.NOT_CONFIGURED);
+  assert.equal(validateInstagramRuntimeEnvironment({ env: setupEnv }).state, SOCIAL_CONNECTION_STATES.TOKEN_MISSING);
+  assert.equal(validateInstagramRuntimeEnvironment({
+    env: {
+      ...setupEnv,
+      INSTAGRAM_ACCESS_TOKEN: "token-not-returned",
+      INSTAGRAM_TOKEN_EXPIRES_AT: "2026-06-29T00:00:00.000Z"
+    },
+    now: new Date("2026-06-30T00:00:00.000Z")
+  }).state, SOCIAL_CONNECTION_STATES.TOKEN_EXPIRED);
+  assert.equal(validateInstagramRuntimeEnvironment({
+    env: {
+      ...setupEnv,
+      INSTAGRAM_ACCESS_TOKEN: "token-not-returned",
+      INSTAGRAM_GRANTED_SCOPES: "instagram_basic"
+    }
+  }).state, SOCIAL_CONNECTION_STATES.PERMISSION_REQUIRED);
+  assert.equal(validateInstagramRuntimeEnvironment({ env: scopedEnv }).state, SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING);
+  assert.equal(validateInstagramRuntimeEnvironment({
+    env: {
+      ...scopedEnv,
+      INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-06-30T12:00:00.000Z"
+    }
+  }).state, SOCIAL_CONNECTION_STATES.CONNECTED);
+
+  const invalid = validateInstagramRuntimeEnvironment({
+    env: {
+      ...setupEnv,
+      META_OAUTH_CALLBACK_URL: "http://localhost/callback"
+    }
+  });
+  assert.equal(invalid.state, SOCIAL_CONNECTION_STATES.ERROR);
+
+  const publicStatus = publicInstagramRuntimeStatus(validateInstagramRuntimeEnvironment({ env: scopedEnv }));
+  assert.equal(JSON.stringify(publicStatus).includes("token-not-returned"), false);
+  assert.equal(JSON.stringify(publicStatus).includes("app-secret-not-returned"), false);
+  assert.equal(getInstagramRuntimeStatus({ env: scopedEnv }).state, SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING);
+  assert.equal(INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_SECRET, "META_APP_SECRET");
 });
 
 test("Instagram Business provider maps mocked Meta API responses without exposing tokens", async () => {
   const fetchCalls = [];
-  const fetchImpl = async url => {
+  const authHeaders = [];
+  const fetchImpl = async (url, init = {}) => {
     fetchCalls.push(String(url));
+    authHeaders.push(init.headers?.Authorization || "");
     const path = String(url);
     if (path.includes("/insights")) {
       return {
@@ -165,7 +260,12 @@ test("Instagram Business provider maps mocked Meta API responses without exposin
     env: {
       INSTAGRAM_ACCESS_TOKEN: "test-token-not-returned",
       INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
-      META_GRAPH_API_VERSION: "v21.0"
+      META_APP_ID: "app-id",
+      META_APP_SECRET: "app-secret-not-returned",
+      META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+      META_GRAPH_API_VERSION: "v21.0",
+      INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
+      INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-06-30T12:00:00.000Z"
     },
     fetchImpl,
     generatedAt: "2026-06-30T12:00:00.000Z"
@@ -175,6 +275,9 @@ test("Instagram Business provider maps mocked Meta API responses without exposin
   assert.equal(snapshot.providers[0].accountHandle, "@prometheus.iq");
   assert.equal(snapshot.metrics.find(metric => metric.name === "reach").value, 12);
   assert.equal(JSON.stringify(snapshot).includes("test-token-not-returned"), false);
+  assert.equal(JSON.stringify(snapshot).includes("app-secret-not-returned"), false);
+  assert.equal(fetchCalls.some(url => url.includes("test-token-not-returned")), false);
+  assert.equal(authHeaders.every(header => header === "Bearer test-token-not-returned"), true);
   assert.equal(fetchCalls.length, 2);
 });
 

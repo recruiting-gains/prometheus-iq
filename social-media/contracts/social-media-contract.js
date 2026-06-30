@@ -10,9 +10,14 @@ export const SOCIAL_PROVIDER_IDS = Object.freeze({
 });
 
 export const SOCIAL_CONNECTION_STATES = Object.freeze({
+  NOT_CONFIGURED: "not_configured",
+  CONFIGURED: "configured",
   CONNECTED: "connected",
   DISCONNECTED: "disconnected",
   PERMISSION_REQUIRED: "permission_required",
+  TOKEN_MISSING: "token_missing",
+  TOKEN_EXPIRED: "token_expired",
+  VERIFICATION_PENDING: "verification_pending",
   MOCK_SAMPLE: "mock_sample",
   ERROR: "error"
 });
@@ -55,8 +60,12 @@ export const SOCIAL_ATTRIBUTION_EVENT_TYPES = Object.freeze({
 });
 
 export const SOCIAL_ERROR_CODES = Object.freeze({
+  NOT_CONFIGURED: "not_configured",
   NOT_CONNECTED: "not_connected",
   PERMISSION_REQUIRED: "permission_required",
+  TOKEN_MISSING: "token_missing",
+  TOKEN_EXPIRED: "token_expired",
+  VERIFICATION_PENDING: "verification_pending",
   PROVIDER_UNAVAILABLE: "provider_unavailable",
   PROVIDER_ERROR: "provider_error",
   UNSUPPORTED_PROVIDER: "unsupported_provider",
