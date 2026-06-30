@@ -25,6 +25,7 @@ Live provider calls are intentionally not enabled by default. Instagram/Meta ana
 - `providers/social-provider-registry.js`: supported provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
 - `providers/instagram-business-provider.js`: backend-only Instagram Business analytics provider adapter.
 - `infrastructure/instagram-runtime-controls.js`: backend-only Instagram/Meta secret and runtime state validation.
+- `infrastructure/meta-instagram-oauth-workflow.js`: backend-only Meta Instagram OAuth connection, long-lived token exchange, token verification, and refresh workflow.
 - `social-media-analytics-service.js`: normalized marketing analytics snapshot service.
 - `samples/marketing-analytics.sample.json`: explicit mock/sample analytics fixture.
 - `docs/social-media-marketing-analytics-architecture-v1.md`: architecture and subsystem contracts.
@@ -41,6 +42,7 @@ Live provider calls are intentionally not enabled by default. Instagram/Meta ana
 - Keep secrets backend-only through environment variables or Infrastructure-owned secret storage.
 - Do not configure non-Instagram providers until their owning subsystem explicitly requests that work.
 - Do not call Meta unless the Instagram runtime state is `connected`.
+- Do not enable posting, messaging, DMs, comment automation, browser automation, or password storage through the OAuth workflow.
 
 ## Instagram Runtime States
 

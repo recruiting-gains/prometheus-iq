@@ -7,6 +7,7 @@ Owner: Prometheus Social Media
 
 - Meta Instagram Platform: https://developers.facebook.com/docs/instagram-platform/
 - Instagram API with Facebook Login: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/
+- Instagram API with Instagram Login: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/
 - Instagram insights API reference: https://developers.facebook.com/docs/instagram-platform/instagram-api-with-facebook-login/reference/ig-user/insights
 - Meta permissions reference: https://developers.facebook.com/docs/permissions/
 - Meta Graph API versioning: https://developers.facebook.com/docs/graph-api/overview/versioning/
@@ -31,7 +32,7 @@ Reserve this production callback URL for the Meta app:
 https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
 ```
 
-This route is an Infrastructure/Integrations contract placeholder only in v1. This task does not implement live OAuth login, callback handling, token exchange, token refresh, or live provider verification.
+This route is the backend-owned OAuth callback reserved for Infrastructure deployment. Integrations now provides the backend workflow functions for authorization URL creation, signed state validation, authorization-code exchange, long-lived token exchange, long-lived token refresh, and token verification. Infrastructure still owns production route protection and secret storage.
 
 ## Initial Permissions
 
@@ -51,9 +52,12 @@ Use placeholders only in documentation:
 ```text
 META_APP_ID=replace-in-backend-secret-store
 META_APP_SECRET=replace-in-backend-secret-store
+META_OAUTH_STATE_SECRET=replace-in-backend-secret-store
 META_OAUTH_CALLBACK_URL=https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
 INSTAGRAM_BUSINESS_ACCOUNT_ID=replace-in-backend-secret-store
+INSTAGRAM_USER_ID=replace-after-oauth-verification
 INSTAGRAM_ACCOUNT_HANDLE=@prometheus.iq
+INSTAGRAM_OAUTH_SCOPES=instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement
 INSTAGRAM_ACCESS_TOKEN=replace-in-backend-secret-store
 INSTAGRAM_GRANTED_SCOPES=instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement
 INSTAGRAM_TOKEN_EXPIRES_AT=replace-with-iso-expiration-if-known
@@ -64,6 +68,27 @@ META_GRAPH_API_VERSION=v21.0
 These values must not be committed, logged, printed in health checks, pasted into Codex chat, or exposed to frontend JavaScript.
 
 `META_INSTAGRAM_ACCESS_TOKEN` is supported as a backend-only fallback token variable, but `INSTAGRAM_ACCESS_TOKEN` is the preferred canonical variable for Instagram analytics v1.
+
+## OAuth Workflow v1
+
+Backend-only implementation:
+
+```text
+social-media/infrastructure/meta-instagram-oauth-workflow.js
+```
+
+Workflow:
+
+1. Create a signed OAuth state with `createMetaInstagramOAuthState()`.
+2. Build the official Instagram authorization URL with `createMetaInstagramAuthorizationUrl()`.
+3. Validate callback `state` with `verifyMetaInstagramOAuthState()`.
+4. Exchange authorization `code` for a short-lived token through `https://api.instagram.com/oauth/access_token`.
+5. Exchange the short-lived token for a long-lived token through `https://graph.instagram.com/access_token`.
+6. Verify the token identity through `https://graph.instagram.com/me`.
+7. Store the returned `envPatch` only through backend or Infrastructure secret controls.
+8. Refresh long-lived tokens through `https://graph.instagram.com/refresh_access_token` before expiration.
+
+The workflow does not create posts, send DMs, reply to comments, automate comments, automate browsers, or store passwords.
 
 ## Runtime States
 

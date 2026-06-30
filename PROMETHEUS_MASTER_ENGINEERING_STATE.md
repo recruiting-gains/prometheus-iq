@@ -952,6 +952,75 @@ Next recommended subsystem:
 
 Prometheus Integrations, only after founder-approved Meta app credentials and callback route ownership are available.
 
+### Work Lane: Meta Instagram OAuth Connection and Token Refresh Workflow v1
+
+Primary subsystem: Prometheus Integrations
+
+Secondary subsystems:
+
+- Prometheus Infrastructure
+- Prometheus Social Media
+
+Task:
+
+Meta Instagram OAuth Connection and Token Refresh Workflow v1.
+
+Status:
+
+Complete. Repository completion task is committing and pushing the accepted Integrations work.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+Committed in the repository completion cycle.
+
+Deploy:
+
+Not run. No production deploy or live OAuth verification required.
+
+Files changed:
+
+- `social-media/infrastructure/meta-instagram-oauth-workflow.js`
+- `social-media/infrastructure/instagram-runtime-controls.js`
+- `tests/social-media-contract.test.mjs`
+- `social-media/docs/meta-instagram-setup.md`
+- `social-media/README.md`
+- `prometheus-os/backend/.env.example`
+
+Verified outcome:
+
+- Added backend-only Meta Instagram OAuth workflow.
+- Added signed OAuth state creation and validation.
+- Added Instagram authorization URL generation.
+- Added authorization-code exchange.
+- Added short-lived to long-lived token exchange.
+- Added long-lived token refresh workflow.
+- Added token identity verification.
+- Added refresh-window planning.
+- Extended existing Instagram runtime controls with OAuth-specific backend env fields.
+- Updated docs and backend `.env.example` placeholders.
+- Explicitly did not enable posting, messaging, DM automation, comment automation, browser automation, or password storage.
+- Official Meta sources used: Meta Instagram Platform, Instagram API with Instagram Login, and Meta Graph API versioning.
+- `node --check social-media/infrastructure/meta-instagram-oauth-workflow.js`: passed.
+- `node --check social-media/infrastructure/instagram-runtime-controls.js`: passed.
+- `npm run test:social-media`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run security:check`: passed.
+- `npm run build`: passed with existing Vite/framer-motion module directive warnings and chunk-size warnings.
+- `npm test`: passed.
+
+Remaining blocker:
+
+Infrastructure still needs to wire the production OAuth callback route and store returned `envPatch` values in backend secret storage after this Integrations checkpoint lands on `origin/main`. Live verification requires founder-approved Meta app credentials and Instagram account authorization.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for production OAuth callback route and secret storage.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2627,6 +2696,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
+- Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
@@ -2638,18 +2708,18 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Meta Instagram OAuth connection and token refresh workflow.
+Production Meta Instagram OAuth callback route and secret storage.
 
-Primary subsystem: Prometheus Integrations.
+Primary subsystem: Prometheus Infrastructure.
 
 Secondary subsystems:
 
-- Prometheus Infrastructure
+- Prometheus Integrations
 - Prometheus Social Media
 
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, and Infrastructure added Instagram-only OAuth/secret runtime controls. The next dependency is Integrations-owned: implement the Meta OAuth connection, callback handling, token exchange, token refresh, and live provider verification only after founder-approved Meta app credentials exist. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, and Integrations implemented the Meta OAuth connection/token refresh workflow. The next dependency is Infrastructure-owned: wire the production OAuth callback route, protect it, and store returned token material through backend secret controls. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 

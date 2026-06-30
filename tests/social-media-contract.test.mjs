@@ -26,6 +26,18 @@ import {
   validateInstagramRuntimeEnvironment
 } from "../social-media/infrastructure/instagram-runtime-controls.js";
 import {
+  META_INSTAGRAM_OAUTH_ENDPOINTS,
+  completeMetaInstagramOAuthConnection,
+  createMetaInstagramAuthorizationUrl,
+  createMetaInstagramOAuthState,
+  exchangeMetaInstagramAuthorizationCode,
+  exchangeMetaInstagramLongLivedToken,
+  refreshMetaInstagramLongLivedToken,
+  shouldRefreshMetaInstagramToken,
+  verifyMetaInstagramOAuthState,
+  verifyMetaInstagramToken
+} from "../social-media/infrastructure/meta-instagram-oauth-workflow.js";
+import {
   getSupportedSocialProvider,
   listSupportedSocialProviders
 } from "../social-media/providers/social-provider-registry.js";
@@ -223,6 +235,230 @@ test("Instagram runtime controls classify safe placeholder states", () => {
   assert.equal(JSON.stringify(publicStatus).includes("app-secret-not-returned"), false);
   assert.equal(getInstagramRuntimeStatus({ env: scopedEnv }).state, SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING);
   assert.equal(INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_SECRET, "META_APP_SECRET");
+});
+
+function jsonResponse(status, body) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    async json() {
+      return body;
+    }
+  };
+}
+
+function createOrderedFetch(responses) {
+  const calls = [];
+  const fetchImpl = async (input, init = {}) => {
+    calls.push({ url: String(input), init });
+    const next = responses.shift();
+    assert.ok(next, `unexpected fetch call: ${String(input)}`);
+    if (typeof next.assert === "function") next.assert(String(input), init);
+    return jsonResponse(next.status || 200, next.body || {});
+  };
+  fetchImpl.calls = calls;
+  return fetchImpl;
+}
+
+const metaOAuthEnv = {
+  META_APP_ID: "meta-app-id",
+  META_APP_SECRET: "meta-app-secret-not-returned",
+  META_OAUTH_STATE_SECRET: "oauth-state-secret-not-returned",
+  META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+  INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
+  INSTAGRAM_OAUTH_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
+  META_GRAPH_API_VERSION: "v21.0"
+};
+
+test("Meta Instagram OAuth workflow creates signed authorization URLs without exposing secrets", () => {
+  const state = createMetaInstagramOAuthState({
+    env: metaOAuthEnv,
+    now: "2026-06-30T12:00:00.000Z",
+    nonce: "nonce-1"
+  });
+  const verified = verifyMetaInstagramOAuthState({
+    env: metaOAuthEnv,
+    state: state.state,
+    now: "2026-06-30T12:01:00.000Z"
+  });
+  const authorization = createMetaInstagramAuthorizationUrl({
+    env: metaOAuthEnv,
+    state: state.state
+  });
+  const tampered = verifyMetaInstagramOAuthState({
+    env: metaOAuthEnv,
+    state: `${state.state}x`,
+    now: "2026-06-30T12:01:00.000Z"
+  });
+
+  assert.equal(state.ok, true);
+  assert.equal(verified.ok, true);
+  assert.equal(verified.payload.nonce, "nonce-1");
+  assert.equal(authorization.ok, true);
+  assert.equal(authorization.url.startsWith(META_INSTAGRAM_OAUTH_ENDPOINTS.AUTHORIZE), true);
+  assert.equal(authorization.url.includes("meta-app-secret-not-returned"), false);
+  assert.equal(tampered.ok, false);
+});
+
+test("Meta Instagram OAuth exchanges authorization code for short and long lived tokens through official endpoints", async () => {
+  const fetchImpl = createOrderedFetch([
+    {
+      assert: (url, init) => {
+        assert.equal(url, META_INSTAGRAM_OAUTH_ENDPOINTS.SHORT_LIVED_TOKEN);
+        assert.equal(init.method, "POST");
+        assert.equal(String(init.body).includes("authorization_code"), true);
+      },
+      body: {
+        access_token: "short-lived-token-not-public",
+        user_id: "ig-user-1",
+        permissions: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
+      }
+    },
+    {
+      assert: url => {
+        assert.ok(url.startsWith(META_INSTAGRAM_OAUTH_ENDPOINTS.LONG_LIVED_TOKEN));
+        assert.ok(url.includes("ig_exchange_token"));
+      },
+      body: {
+        access_token: "long-lived-token-not-public",
+        token_type: "bearer",
+        expires_in: 5184000
+      }
+    }
+  ]);
+
+  const shortToken = await exchangeMetaInstagramAuthorizationCode({
+    env: metaOAuthEnv,
+    fetchImpl,
+    code: "oauth-code"
+  });
+  const longToken = await exchangeMetaInstagramLongLivedToken({
+    env: metaOAuthEnv,
+    fetchImpl,
+    shortLivedAccessToken: shortToken.accessToken,
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(shortToken.ok, true);
+  assert.equal(shortToken.accessToken, "short-lived-token-not-public");
+  assert.equal(JSON.stringify(shortToken.providerResponse).includes("short-lived-token-not-public"), false);
+  assert.equal(longToken.ok, true);
+  assert.equal(longToken.expiresAt, "2026-08-29T12:00:00.000Z");
+});
+
+test("Meta Instagram OAuth refreshes long-lived tokens and verifies account identity", async () => {
+  const fetchImpl = createOrderedFetch([
+    {
+      assert: url => {
+        assert.ok(url.startsWith(META_INSTAGRAM_OAUTH_ENDPOINTS.REFRESH_LONG_LIVED_TOKEN));
+        assert.ok(url.includes("ig_refresh_token"));
+      },
+      body: {
+        access_token: "refreshed-token-not-public",
+        token_type: "bearer",
+        expires_in: 5184000
+      }
+    },
+    {
+      assert: url => {
+        assert.ok(url.startsWith(META_INSTAGRAM_OAUTH_ENDPOINTS.ME));
+        assert.ok(url.includes("fields=user_id"));
+      },
+      body: {
+        user_id: "ig-user-1",
+        username: "prometheus.iq",
+        account_type: "BUSINESS"
+      }
+    }
+  ]);
+
+  const refreshed = await refreshMetaInstagramLongLivedToken({
+    env: {
+      ...metaOAuthEnv,
+      INSTAGRAM_ACCESS_TOKEN: "existing-token-not-public"
+    },
+    fetchImpl,
+    now: "2026-06-30T12:00:00.000Z"
+  });
+  const verified = await verifyMetaInstagramToken({
+    env: metaOAuthEnv,
+    fetchImpl,
+    accessToken: refreshed.accessToken,
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(refreshed.ok, true);
+  assert.equal(refreshed.expiresAt, "2026-08-29T12:00:00.000Z");
+  assert.equal(verified.ok, true);
+  assert.equal(verified.instagramUser.username, "prometheus.iq");
+});
+
+test("Meta Instagram OAuth connection workflow returns backend env patch and redacted public status", async () => {
+  const state = createMetaInstagramOAuthState({
+    env: metaOAuthEnv,
+    now: "2026-06-30T12:00:00.000Z",
+    nonce: "nonce-2"
+  });
+  const fetchImpl = createOrderedFetch([
+    {
+      body: {
+        access_token: "short-lived-token-not-public",
+        user_id: "ig-user-1",
+        permissions: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
+      }
+    },
+    {
+      body: {
+        access_token: "long-lived-token-not-public",
+        token_type: "bearer",
+        expires_in: 5184000
+      }
+    },
+    {
+      body: {
+        user_id: "ig-user-1",
+        username: "prometheus.iq",
+        account_type: "BUSINESS"
+      }
+    }
+  ]);
+
+  const result = await completeMetaInstagramOAuthConnection({
+    env: metaOAuthEnv,
+    fetchImpl,
+    code: "oauth-code",
+    state: state.state,
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.envPatch.INSTAGRAM_ACCESS_TOKEN, "long-lived-token-not-public");
+  assert.equal(result.envPatch.INSTAGRAM_CONNECTION_VERIFIED_AT, "2026-06-30T12:00:00.000Z");
+  assert.equal(result.envPatch.INSTAGRAM_ACCOUNT_HANDLE, "@prometheus.iq");
+  assert.equal(JSON.stringify(result.safeStatus).includes("long-lived-token-not-public"), false);
+  assert.equal(JSON.stringify(result.safeStatus).includes("meta-app-secret-not-returned"), false);
+});
+
+test("Meta Instagram token refresh planning uses runtime expiration metadata", () => {
+  const outsideWindow = shouldRefreshMetaInstagramToken({
+    env: {
+      ...metaOAuthEnv,
+      INSTAGRAM_ACCESS_TOKEN: "existing-token-not-public",
+      INSTAGRAM_TOKEN_EXPIRES_AT: "2026-08-29T12:00:00.000Z"
+    },
+    now: "2026-06-30T12:00:00.000Z"
+  });
+  const insideWindow = shouldRefreshMetaInstagramToken({
+    env: {
+      ...metaOAuthEnv,
+      INSTAGRAM_ACCESS_TOKEN: "existing-token-not-public",
+      INSTAGRAM_TOKEN_EXPIRES_AT: "2026-07-02T12:00:00.000Z"
+    },
+    now: "2026-06-30T12:00:00.000Z"
+  });
+
+  assert.equal(outsideWindow.shouldRefresh, false);
+  assert.equal(insideWindow.shouldRefresh, true);
 });
 
 test("Instagram Business provider maps mocked Meta API responses without exposing tokens", async () => {
