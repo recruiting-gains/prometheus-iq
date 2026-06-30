@@ -160,3 +160,74 @@ Do not include Google discovery files, wallpapers, screenshots, previews, `.env`
 ```text
 feat: improve Prometheus Companion chief of staff intelligence
 ```
+
+---
+
+## 2026-06-25 Intelligence Quality Improvements
+
+### What Improved
+
+- Memory recency is now based on the current Prometheus date instead of a hardcoded June 24, 2026 reference.
+- Today, yesterday, and this-week recaps now filter timeline evidence by the correct date window.
+- Prometheus memory now includes verified June 25 milestones:
+  - Prometheus Constitution established.
+  - Intelligence Orchestrator routing founder-certified.
+  - Google Places local discovery verified with 249 discovered businesses and 202 Anthony-ready businesses after filtering.
+- Google Places reasoning no longer says the integration is blocked when verified local discovery evidence exists.
+- Follow-up reasoning now changes based on the previous executive topic instead of returning a generic "why that matters" answer.
+- Daily Founder Brief now uses the existing `daily-brief.js` module through the Intelligence Orchestrator instead of falling back to a generic summary.
+- Daily Founder Brief date is now generated dynamically for the Prometheus timezone instead of being hardcoded to Wednesday, June 24, 2026.
+
+### Why It Was Improved
+
+Prometheus Companion is supposed to operate like a founder Chief of Staff, not a static command reader. Stale dates and generic follow-up answers made the system less trustworthy because it could confuse yesterday, today, and current blockers. These changes make Prometheus more aware of current company state and better at explaining why an answer matters.
+
+### Founder Benefit
+
+Cruz can ask:
+
+- "What happened yesterday?"
+- "What changed today?"
+- "What about Google Places?"
+- "Why?"
+- "What about Chris?"
+
+and Prometheus gives context-aware answers tied to company priorities, Anthony validation, leadership approval, and route quality.
+
+Cruz can also ask:
+
+- "Prometheus, daily brief"
+- "Prometheus, give me the brief"
+- "Prometheus, founder brief"
+
+and Prometheus returns the real Daily Founder Brief with the current date and current company memory.
+
+### Verification Performed
+
+- `node --check prometheus-os/memory-system.js`
+- `node --check prometheus-os/memory-ranking.js`
+- `node --check prometheus-os/evidence-ranker.js`
+- `node --check prometheus-os/reasoning-pipeline.js`
+- `node --check prometheus-os/daily-brief.js`
+- `node --check scripts/verify-prometheus-cognitive-engine.mjs`
+- `node --check scripts/verify-prometheus-reasoning-engine.mjs`
+- `PROMETHEUS_MEMORY_TODAY=2026-06-25 node scripts/verify-prometheus-cognitive-engine.mjs`
+- `PROMETHEUS_MEMORY_TODAY=2026-06-25 node scripts/verify-prometheus-reasoning-engine.mjs`
+
+Manual multi-turn provider test passed for:
+
+- "Prometheus, what should I do next?"
+- "Why?"
+- "What about Google Places?"
+- "Why?"
+- "What about Chris?"
+- "Why?"
+- "Prometheus, daily brief"
+- "Prometheus, give me the brief"
+- "Prometheus, founder brief"
+
+### Remaining Opportunities
+
+- Run a real Companion UI voice test after Cruz opens the app.
+- Continue improving long-term memory retrieval so future daily logs and GitHub history are indexed automatically.
+- Improve answer calibration so Prometheus clearly separates verified facts, inferences, and unknowns in every longer response.
