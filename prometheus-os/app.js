@@ -329,17 +329,17 @@ function systemNodes() {
     {
       id: "calendar",
       label: "Calendar",
-      value: "Placeholder",
+      value: "Contract",
       signal: "pending",
-      detail: "Calendar-style planning is available from memory, but live calendar integration is not connected yet.",
+      detail: "Calendar, meetings, reminders, and daily agenda consume the shared Founder Calendar & Message Integration Contract.",
       command: "Prometheus, remind me what meetings I have."
     },
     {
       id: "messages",
       label: "Messages",
-      value: "Draft",
+      value: "Contract",
       signal: "ready",
-      detail: "Draft founder messages, leadership follow-ups, pilot asks, and operating updates without sending anything.",
+      detail: "Message summaries and draft requests consume the shared Founder Calendar & Message Integration Contract. Companion never sends without explicit approved send capability.",
       command: "Prometheus, help me draft a message."
     },
     {

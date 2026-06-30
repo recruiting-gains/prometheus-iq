@@ -234,11 +234,13 @@ async function verify() {
     join(runtimeRoot, "index.html"),
     join(runtimeRoot, "app.js"),
     join(runtimeRoot, "voice-assistant.js"),
-    join(runtimeRoot, "vendor/three.module.js")
+    join(runtimeRoot, "vendor/three.module.js"),
+    join(supportDir, "integrations/founder-communications-contract.js"),
+    join(supportDir, "integrations/founder-communications-service.js")
   ].every((path) => existsSync(path));
   record("assets", assetsOk, assetsOk
-    ? "native app resources and runtime assets are installed"
-    : "one or more native app resources or runtime assets are missing");
+    ? "native app resources, runtime assets, and shared integration contract are installed"
+    : "one or more native app resources, runtime assets, or shared integration contract files are missing");
 
   const versionOk = Boolean(sourceManifest && installedManifest && runtimeManifest) &&
     sourceManifest.buildId === installedManifest.buildId &&

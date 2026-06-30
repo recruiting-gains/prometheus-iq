@@ -12,10 +12,11 @@ import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
 
 export class AIProvider {
-  constructor({ mode = "local-demo" } = {}) {
+  constructor({ mode = "local-demo", communicationsService = null } = {}) {
     this.mode = mode;
     this.history = [];
     this.currentFocus = null;
+    this.communicationsService = communicationsService;
   }
 
   get providerLabel() {
@@ -46,7 +47,9 @@ export class AIProvider {
       });
     }
 
-    const founderAssistantResponse = createFounderAssistantResponse(normalized);
+    const founderAssistantResponse = await createFounderAssistantResponse(normalized, {
+      communicationsService: this.communicationsService || undefined
+    });
     if (founderAssistantResponse) {
       return this.remember(cleanMessage, founderAssistantResponse);
     }
@@ -105,7 +108,7 @@ export class AIProvider {
       });
     }
 
-    const response = this.localAnswer(normalized);
+    const response = await this.localAnswer(normalized);
     return this.remember(cleanMessage, response);
   }
 
@@ -130,7 +133,7 @@ export class AIProvider {
     return response;
   }
 
-  localAnswer(command) {
+  async localAnswer(command) {
     if (!command) {
       return {
         title: "PROMETHEUS standing by",
@@ -140,7 +143,9 @@ export class AIProvider {
       };
     }
 
-    const founderAssistantResponse = createFounderAssistantResponse(command);
+    const founderAssistantResponse = await createFounderAssistantResponse(command, {
+      communicationsService: this.communicationsService || undefined
+    });
     if (founderAssistantResponse) return founderAssistantResponse;
 
     if (cognitiveEngine.shouldAnswer(command, this.history)) {

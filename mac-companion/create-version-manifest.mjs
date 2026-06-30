@@ -128,23 +128,32 @@ function readJson(path) {
 
 const companionRoot = join(projectRoot, "mac-companion");
 const runtimeSourceRoot = join(projectRoot, "prometheus-os");
+const integrationsSourceRoot = join(projectRoot, "integrations");
 const installedAppPath = join(supportDir, "PrometheusCompanion.app");
 const installedRuntimeRoot = join(supportDir, "prometheus-os");
+const installedIntegrationsRoot = join(supportDir, "integrations");
 
 const companionSource = fingerprint(projectRoot, [
   ...listFiles(companionRoot),
-  ...listFiles(runtimeSourceRoot)
+  ...listFiles(runtimeSourceRoot),
+  ...listFiles(integrationsSourceRoot)
 ]);
-const runtimeSource = fingerprint(runtimeSourceRoot, listFiles(runtimeSourceRoot));
+const runtimeSource = fingerprint(projectRoot, [
+  ...listFiles(runtimeSourceRoot),
+  ...listFiles(integrationsSourceRoot)
+]);
 const sourceManifest = readJson(sourceManifestPath);
 const gitCommit = gitValue(["rev-parse", "--short=12", "HEAD"]);
 const gitBranch = gitValue(["branch", "--show-current"]);
-const sourceStatus = gitValue(["status", "--short", "--", "mac-companion", "prometheus-os"]);
+const sourceStatus = gitValue(["status", "--short", "--", "mac-companion", "prometheus-os", "integrations"]);
 const buildId = sourceManifest?.buildId ||
   `${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")}-${gitCommit}-${companionSource.sha256.slice(0, 12)}`;
 
 const installedApp = pathFingerprint(installedAppPath);
-const installedRuntime = pathFingerprint(installedRuntimeRoot);
+const installedRuntime = fingerprint(supportDir, [
+  ...listFiles(installedRuntimeRoot, { includeAll: true }),
+  ...listFiles(installedIntegrationsRoot, { includeAll: true })
+]);
 const outOfSync = [];
 
 if (scope !== "source") {
@@ -162,7 +171,7 @@ if (scope !== "source") {
       area: "runtime",
       expected: runtimeSource.sha256,
       actual: installedRuntime.sha256,
-      detail: "Installed prometheus-os runtime differs from current source."
+      detail: "Installed Companion web runtime or shared integrations contract differs from current source."
     });
   }
 }
@@ -188,9 +197,11 @@ const manifest = {
     projectRoot,
     companionRoot,
     runtimeSourceRoot,
+    integrationsSourceRoot,
     supportDir,
     installedAppPath,
-    installedRuntimeRoot
+    installedRuntimeRoot,
+    installedIntegrationsRoot
   },
   source: {
     companionFingerprint: companionSource.sha256,

@@ -1,6 +1,16 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
+import {
+  FOUNDER_COMMUNICATIONS_CONTRACT_VERSION,
+  FOUNDER_CONNECTION_STATES,
+  createDailyAgendaResponse,
+  createDraftMessageRequest,
+  createFounderIntegrationStatus,
+  createMessageSummariesResponse,
+  createUpcomingMeetingsResponse
+} from "../integrations/founder-communications-contract.js";
+import { createFounderCommunicationsService } from "../integrations/founder-communications-service.js";
 
 function nodesForHarness() {
   return [
@@ -19,14 +29,14 @@ function nodesForHarness() {
     {
       id: "calendar",
       label: "Calendar",
-      value: "Placeholder",
-      detail: "Calendar-style planning is available from memory, but live calendar integration is not connected yet."
+      value: "Contract",
+      detail: "Calendar, meetings, reminders, and daily agenda consume the shared Founder Calendar & Message Integration Contract."
     },
     {
       id: "messages",
       label: "Messages",
-      value: "Draft",
-      detail: "Draft founder messages, leadership follow-ups, pilot asks, and operating updates without sending anything."
+      value: "Contract",
+      detail: "Message summaries and draft requests consume the shared Founder Calendar & Message Integration Contract."
     },
     {
       id: "prometheus-iq",
@@ -106,6 +116,52 @@ const reasoningCases = [
 
 const provider = new AIProvider();
 let failures = 0;
+
+function communicationsServiceForStatus(status) {
+  return createFounderCommunicationsService({
+    provider: status.provider || "test-provider",
+    adapter: {
+      async getConnectionStatus() {
+        return status;
+      },
+      async getUpcomingMeetings({ window = {} } = {}) {
+        return createUpcomingMeetingsResponse({
+          status,
+          window,
+          meetings: []
+        });
+      },
+      async getDailyAgenda({ date = "2026-06-30", timezone = "America/Chicago" } = {}) {
+        return createDailyAgendaResponse({
+          date,
+          timezone,
+          status,
+          events: []
+        });
+      },
+      async listMessageSummaries() {
+        return createMessageSummariesResponse({
+          status,
+          messages: []
+        });
+      },
+      async createDraftMessageRequest(payload = {}) {
+        return {
+          contractVersion: FOUNDER_COMMUNICATIONS_CONTRACT_VERSION,
+          ok: status.state !== FOUNDER_CONNECTION_STATES.PERMISSION_REQUIRED,
+          status,
+          draftRequest: createDraftMessageRequest({
+            id: payload.id || "draft_test",
+            channel: payload.channel,
+            subject: payload.subject,
+            body: payload.body,
+            requestedBy: "companion"
+          })
+        };
+      }
+    }
+  });
+}
 
 function fail(label, payload) {
   failures += 1;
@@ -226,10 +282,10 @@ const founderAcceptanceCases = [
   ["Good morning, Companion.", ["good morning", "highest roi"]],
   ["Catch me up on where we left off.", ["where we left off", "latest verified memory"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "validation mode"]],
-  ["Help me draft a message.", ["message draft", "founder message draft"]],
-  ["Remind me what meetings I have.", ["calendar access", "missing integration"]],
+  ["Help me draft a message.", ["message draft", "shared integration contract", "no message was sent"]],
+  ["Remind me what meetings I have.", ["founder meetings", "integration state: disconnected", "shared integration contract"]],
   ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
-  ["Help me plan my day.", ["founder day plan", "calendar note"]],
+  ["Help me plan my day.", ["founder day plan", "integration state: disconnected", "shared integration contract"]],
   ["How should we price this feature?", ["pricing direction", "operational value"]],
   ["What did we decide about Active Pool?", ["active pool decision", "active pool"]],
   ["What are weaknesses in my current strategy?", ["strategy weaknesses", "overbuilding"]],
@@ -252,6 +308,60 @@ for (const [phrase, expected] of founderAcceptanceCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> founder-assistant:${response.title}`);
+}
+
+const disconnectedProvider = new AIProvider();
+const disconnectedCases = [
+  ["Remind me what meetings I have.", ["integration state: disconnected", FOUNDER_COMMUNICATIONS_CONTRACT_VERSION]],
+  ["Help me draft a message.", ["integration state: disconnected", "draft_only_until_explicit_send_capability_is_connected"]],
+  ["Help me plan my day.", ["integration state: disconnected", "no synced agenda events"]]
+];
+
+for (const [phrase, expected] of disconnectedCases) {
+  const response = await disconnectedProvider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.map((item) => item.toLowerCase()).filter((item) => !text.includes(item));
+  if (response.metadata?.integrationState !== "Disconnected" || missing.length) {
+    fail("disconnected-integration-state", {
+      phrase,
+      title: response.title,
+      integrationState: response.metadata?.integrationState,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> disconnected:${response.title}`);
+}
+
+const permissionRequiredStatus = createFounderIntegrationStatus({
+  state: FOUNDER_CONNECTION_STATES.PERMISSION_REQUIRED,
+  provider: "test-calendar-message-provider",
+  requiredPermissions: ["calendar.read", "messages.read", "messages.draft"],
+  grantedPermissions: [],
+  checkedAt: "2026-06-30T16:00:00.000Z"
+});
+const permissionProvider = new AIProvider({
+  communicationsService: communicationsServiceForStatus(permissionRequiredStatus)
+});
+
+for (const phrase of [
+  "Remind me what meetings I have.",
+  "Help me draft a message.",
+  "Help me plan my day."
+]) {
+  const response = await permissionProvider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  if (response.metadata?.integrationState !== "Permission Required" || !text.includes("permission required") || !text.includes("calendar.read")) {
+    fail("permission-required-integration-state", {
+      phrase,
+      title: response.title,
+      integrationState: response.metadata?.integrationState,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> permission-required:${response.title}`);
 }
 
 const protectedPassingCases = [

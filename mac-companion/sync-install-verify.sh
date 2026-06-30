@@ -8,6 +8,7 @@ RUN_DIR="$SUPPORT_DIR/run"
 LOG_DIR="$SUPPORT_DIR/logs"
 APP_PATH="$SUPPORT_DIR/PrometheusCompanion.app"
 RUNTIME_DIR="$SUPPORT_DIR/prometheus-os"
+INTEGRATIONS_DIR="$SUPPORT_DIR/integrations"
 SOURCE_MANIFEST="$COMPANION_DIR/companion-version.json"
 INSTALLED_MANIFEST="$SUPPORT_DIR/companion-version.json"
 RUNTIME_MANIFEST="$RUNTIME_DIR/companion-runtime-version.json"
@@ -117,7 +118,7 @@ echo "== Build Companion =="
 "$COMPANION_DIR/build.sh"
 
 echo "== Clean installed runtime =="
-rm -rf "$RUNTIME_DIR" "$APP_PATH" "$INSTALLED_MANIFEST"
+rm -rf "$RUNTIME_DIR" "$INTEGRATIONS_DIR" "$APP_PATH" "$INSTALLED_MANIFEST"
 mkdir -p "$SUPPORT_DIR" "$RUN_DIR" "$LOG_DIR"
 
 echo "== Synchronize runtime files and assets =="
@@ -126,6 +127,9 @@ rsync -a --delete \
   --exclude 'companion-runtime-version.json' \
   "$PROJECT_ROOT/prometheus-os/" \
   "$RUNTIME_DIR/"
+rsync -a --delete \
+  "$PROJECT_ROOT/integrations/" \
+  "$INTEGRATIONS_DIR/"
 
 cp -R "$COMPANION_DIR/.build/PrometheusCompanion.app" "$APP_PATH"
 cp "$COMPANION_DIR/start-prometheus-os.sh" "$SUPPORT_DIR/start-prometheus-os.source.sh"
@@ -207,6 +211,7 @@ cat > "$SYNC_SUMMARY" <<JSON
   "synced": {
     "macCompanionApp": "$APP_PATH",
     "prometheusOsRuntime": "$RUNTIME_DIR",
+    "founderCommunicationsContract": "$INTEGRATIONS_DIR",
     "versionManifest": "$INSTALLED_MANIFEST",
     "runtimeVersionManifest": "$RUNTIME_MANIFEST",
     "startupScript": "$SUPPORT_DIR/start-prometheus-os.sh"

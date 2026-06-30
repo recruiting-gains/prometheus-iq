@@ -1,6 +1,13 @@
 import { companyState, promptTemplates } from "./demo-data.js";
 import { createTopThreePriorities, createNextActionBrief } from "./daily-priority-engine.js";
 import { createTimelineAnswer, createUnfinishedWorkRecap, getLatestMemoryEvent } from "./memory-system.js";
+import {
+  createFounderAgendaBrief,
+  createFounderDraftMessageBrief,
+  createFounderMeetingsBrief,
+  createFounderMessageSummaryBrief,
+  getDefaultFounderCommunicationsService
+} from "./founder-communications-consumer.js";
 
 const permission = "Level 0 - Read Only";
 
@@ -65,38 +72,62 @@ function catchUp() {
   );
 }
 
-function draftMessage(command) {
-  const toChris = command.includes("chris") || command.includes("leadership") || command.includes("pilot");
-  const draft = toChris
-    ? "Chris, quick update: Prometheus is ready for a controlled pilot conversation. The ask is intentionally simple: a limited 14-day test, approved users only, GPS-verified activity, weekly review, and a final results report. I can keep proprietary routing logic out of the conversation unless leadership wants a deeper review under the right approval path. What would Dallas leadership need from me next to evaluate this cleanly?"
-    : "Here is a clean founder message draft: Quick update from Prometheus: the product foundation is real, the next priority is validation, and I am keeping the ask focused on measurable field-sales proof instead of extra features. The next step is to collect useful feedback, confirm the blocker, and decide the smallest action that moves the pilot forward.";
-
+async function draftMessage(command, communicationsService) {
+  const brief = await createFounderDraftMessageBrief({
+    service: communicationsService,
+    command
+  });
   return response(
-    "Message Draft",
-    draft,
-    { intent: "message_drafting", entities: toChris ? ["Chris", "Pilot"] : ["Cruz", "Prometheus"] }
+    brief.title,
+    brief.body,
+    {
+      ...brief.metadata,
+      intent: "message_drafting",
+      entities: ["Cruz", "Messages", "Prometheus"]
+    }
   );
 }
 
-function meetings() {
+async function meetings(communicationsService) {
+  const brief = await createFounderMeetingsBrief({ service: communicationsService });
   return response(
-    "Meeting View",
-    "I do not have live calendar access connected in Companion yet, so I cannot truthfully list Cruz's actual meetings. Safe placeholder: review leadership follow-up, Anthony beta feedback, Companion voice acceptance, and daily operating log. Missing integration: calendar connector or local calendar import needs to be added before I can show real meetings.",
-    { intent: "calendar_placeholder", truth: "missing_integration", entities: ["Calendar", "Cruz"] }
+    brief.title,
+    brief.body,
+    {
+      ...brief.metadata,
+      intent: "calendar_meetings",
+      entities: ["Calendar", "Cruz"]
+    }
   );
 }
 
-function planDay() {
+async function messageSummaries(communicationsService) {
+  const brief = await createFounderMessageSummaryBrief({ service: communicationsService });
+  return response(
+    brief.title,
+    brief.body,
+    {
+      ...brief.metadata,
+      intent: "message_summaries",
+      entities: ["Messages", "Cruz"]
+    }
+  );
+}
+
+async function planDay(command, communicationsService) {
+  const agenda = await createFounderAgendaBrief({
+    service: communicationsService,
+    command
+  });
   const top = createTopThreePriorities();
   return response(
-    "Founder Day Plan",
-    [
-      "Plan the day around proof, not activity.",
-      top.body,
-      "Suggested rhythm: morning review of blockers and messages, midday Anthony/beta validation work, afternoon leadership or customer-facing follow-up, evening memory log and backup review.",
-      "Calendar note: live calendar data is not connected yet, so this plan is based on Prometheus memory and priorities rather than Cruz's actual meeting schedule."
-    ].join(" "),
-    { intent: "day_planning", truth: "calendar_placeholder", entities: ["Cruz", "Pilot", "Anthony"] }
+    agenda.title,
+    `${agenda.body} ${top.body}`,
+    {
+      ...agenda.metadata,
+      intent: "day_planning",
+      entities: ["Cruz", "Pilot", "Anthony", "Calendar"]
+    }
   );
 }
 
@@ -174,17 +205,18 @@ function morningGreeting() {
   );
 }
 
-export function createFounderAssistantResponse(command = "") {
+export async function createFounderAssistantResponse(command = "", { communicationsService = getDefaultFounderCommunicationsService() } = {}) {
   const normalized = String(command || "").toLowerCase().trim();
   if (!normalized) return null;
 
   if (/^(good morning|morning companion|good morning companion|hello companion|hey companion)\b/.test(normalized)) return morningGreeting();
   if (includesAny(normalized, ["catch me up", "where we left off", "resume context", "left off"])) return catchUp();
   if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status"])) return engineeringStatus();
-  if (includesAny(normalized, ["draft a message", "write a message", "help me draft", "draft an email", "write an email"])) return draftMessage(normalized);
-  if (includesAny(normalized, ["meetings i have", "my meetings", "calendar", "schedule today"])) return meetings();
+  if (includesAny(normalized, ["message summary", "message summaries", "summarize messages", "summarise messages", "inbox summary", "what messages"])) return messageSummaries(communicationsService);
+  if (includesAny(normalized, ["draft a message", "write a message", "help me draft", "draft an email", "write an email", "compose a message", "compose message"])) return draftMessage(normalized, communicationsService);
+  if (includesAny(normalized, ["meetings i have", "my meetings", "calendar reminders", "calendar reminder", "calendar", "schedule today"])) return meetings(communicationsService);
   if (includesAny(normalized, ["long term goals", "long-term goals", "founder goals", "my goals"])) return longTermGoals();
-  if (includesAny(normalized, ["plan my day", "plan today", "day plan"])) return planDay();
+  if (includesAny(normalized, ["plan my day", "daily agenda", "todays agenda", "today agenda", "plan today", "day plan"])) return planDay(normalized, communicationsService);
   if (includesAny(normalized, ["price this feature", "pricing", "how should we price"])) return pricing();
   if (includesAny(normalized, ["active pool"])) return response(activePoolDecision.title, activePoolDecision.body, { intent: "active_pool_decision", entities: ["Active Pool", "Route Intelligence", "Data"] });
   if (includesAny(normalized, ["weaknesses in my current strategy", "weakness in my strategy", "critique my strategy", "strategy weaknesses"])) return strategyCritique();
