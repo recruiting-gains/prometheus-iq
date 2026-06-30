@@ -1,0 +1,2290 @@
+# Prometheus Master Engineering State
+
+Purpose: maintain the cross-subsystem engineering source of truth for Prometheus, record completed work, prevent duplicate engineering, and route follow-up work to the correct subsystem.
+
+Governing sources:
+
+- `PROMETHEUS_CONSTITUTION.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md`
+- `PROMETHEUS_MASTER_CONTEXT.md`
+
+## Master Coordination Rule
+
+This workspace owns platform-level coordination, architecture consistency, dependency tracking, roadmap updates, and completed-work records.
+
+This workspace does not own normal subsystem implementation. Code changes should stay inside the owning subsystem unless the change affects multiple subsystems or a shared architecture contract.
+
+Before every engineering task, identify:
+
+1. Primary subsystem.
+2. Secondary subsystems, if any.
+3. Existing files, systems, reports, and commits that already cover the work.
+4. What must not be duplicated.
+5. Required verification before the task can be considered complete.
+
+## Required Subsystem Completion Format
+
+Every engineering subsystem must end with:
+
+```text
+OVERWATCH HANDOFF
+
+Subsystem:
+Task:
+Commit:
+Deploy:
+Status:
+Files changed:
+What changed:
+Remaining blockers:
+Next recommended subsystem:
+```
+
+## Overwatch Intake Procedure
+
+When an `OVERWATCH HANDOFF` is received:
+
+1. Validate the handoff has all required fields.
+2. Identify the owning subsystem and any cross-subsystem dependencies.
+3. Update this master engineering state.
+4. Record completed work in the completed work log.
+5. Mark duplicate-prone areas so future sessions reuse existing work.
+6. Determine whether another subsystem must continue the work.
+7. If another subsystem is needed, create a clear next task for that subsystem.
+8. If no dependency exists, recommend the highest-priority engineering task.
+
+## Active Dependency Tracker
+
+### Completed Work Lane: Google Places Refresh Engine v1
+
+Primary subsystem: Prometheus Data
+
+Secondary subsystems:
+
+- Prometheus Integrations
+- Prometheus Dashboard
+- Prometheus Infrastructure
+
+Status: Complete and pushed.
+
+Commit:
+
+`b00649135a82bb3e34e02b87d868c10c2fd9c9d8`
+
+Deploy:
+
+Not run.
+
+Verified outcome:
+
+- Existing records loaded/refreshed: 245 / 245.
+- Existing business IDs preserved: 245.
+- New businesses added: 222.
+- Total discovered: 518.
+- Verified production candidates: 398.
+- Rejected: 52.
+- Duplicates removed: 313.
+- Missing addresses: 4.
+- Missing Place IDs: 0.
+- Founder 15-mile pool: 397.
+- Anthony 25-mile pool: 398.
+- Strict production gate check: 0 failures across production candidates.
+- `npm run data:refresh-google:dry-run`: passed.
+- `npm run data:refresh-google`: passed.
+- `npm run verify:zero-google-api`: passed with 0 live Google API endpoint/key references in runtime app files.
+- `npm run security:check`: passed.
+- `npm test`: passed with existing Vite dependency/chunk-size warnings only.
+
+Files changed:
+
+13 committed files, including:
+
+- `scripts/refresh-google-qualified-businesses.mjs`
+- `scripts/verify-zero-live-google-api-calls.mjs`
+- `data/qualified-prospects/google-discovery-config.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/`
+- `package.json`
+- `data/qualified-prospects/README.md`
+
+Remaining blocker:
+
+Historical at Data handoff time: the normal app still consumed embedded data because no runtime dataset ingestion change was made by design. Superseded by Dashboard Runtime Data Integration v1 commit `15b7359`.
+
+### Completed Work Lane: Runtime Pool Segmentation v1
+
+Primary subsystem: Prometheus Data
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Intelligence Engine
+
+Status: Complete and pushed.
+
+Commit:
+
+`e0f45ef02b8e00abe426434ff1c666df50e65fa8`
+
+Deploy:
+
+Not run.
+
+Verified outcome:
+
+- Active pool: 300.
+- Reserve pool: 44.
+- Quarantine pool: 106.
+- Audited production records: 398.
+- Audited rejected records: 52.
+- Runtime profile records read: 795.
+- Runtime unique Place IDs: 398.
+- Duplicate production Place IDs: 0.
+- Active duplicate Place IDs: 0.
+- Reserve duplicate Place IDs: 0.
+- Quarantine duplicate Place IDs: 0.
+- Invalid active records: 0.
+- Active/reserve overlap: 0.
+- Runtime behavior changed: false.
+- Scoring changed: false.
+- Existing `runtime-pools.json` modified: false.
+- `npm run verify:zero-google-api`: passed.
+- `npm run security:check`: passed.
+- `npm test`: passed.
+
+Files changed:
+
+7 committed files, including:
+
+- `scripts/segment-google-runtime-pools.mjs`
+- `data/qualified-prospects/README.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md`
+
+Remaining blocker:
+
+Historical at Data handoff time: Runtime Data Integration still needed to decide when to consume the Active pool. Superseded by Dashboard commit `4e7a28a` and Infrastructure production deploy/hotfix commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+### Completed Work Lane: Runtime Pool Refresh Governance v1
+
+Primary subsystem: Prometheus Data
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Infrastructure
+
+Status:
+
+Complete and committed.
+
+Commit:
+
+`545bd67968ff660210671b0b2c5a3bbae5ea923f`
+
+Deploy:
+
+Not run by Data.
+
+Verified outcome:
+
+- Added fail-closed runtime pool governance gate for Active, Reserve, and Quarantine pool artifacts.
+- Reused/exported existing segmentation gate helpers from `scripts/segment-google-runtime-pools.mjs` instead of duplicating segmentation or scoring rules.
+- Validates pool contracts, duplicate Google Place IDs, numbered addresses, coordinates, Google Maps links, required runtime fields, runtime profile schema, stable runtime/scoring flags, pool overlap, quarantine reasons, scoring changes, and membership changes.
+- Governance status: passed.
+- Promotion allowed: true.
+- Active: 300.
+- Reserve: 44.
+- Quarantine: 106.
+- Added since baseline: 0.
+- Removed since baseline: 0.
+- Moved pools since baseline: 0.
+- Scoring changes since baseline: 0.
+- Failures: 0.
+- `node scripts/test-runtime-pool-governance.mjs`: passed.
+- `node scripts/segment-google-runtime-pools.mjs`: passed.
+- `node scripts/govern-runtime-pool-refresh.mjs --update-baseline`: passed.
+- `node scripts/govern-runtime-pool-refresh.mjs`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run security:check`: passed.
+- `npm run build`: passed.
+
+Files changed:
+
+- `data/qualified-prospects/README.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json`
+- `scripts/segment-google-runtime-pools.mjs`
+- `scripts/govern-runtime-pool-refresh.mjs`
+- `scripts/test-runtime-pool-governance.mjs`
+
+Remaining blocker:
+
+None for Data governance. Historical `npm test` blocker from deploy Active pool mismatch was downstream of Data and later superseded by Infrastructure commit `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`, which synced the deploy Active pool artifact timestamp to the Data export.
+
+### Completed Work Lane: Runtime Data Integration v1
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Infrastructure
+
+Task:
+
+Runtime Data Integration v1.
+
+Dependencies:
+
+- Completed Data commit `b00649135a82bb3e34e02b87d868c10c2fd9c9d8`.
+- Existing embedded-data behavior in the runtime app.
+- Existing Route Intelligence and production candidate gates.
+- Zero-live-Google runtime constraint.
+- Cloudflare/Wrangler deployment workflow.
+
+Status:
+
+Committed, pushed, and deployed.
+
+Commit:
+
+`15b7359 Integrate runtime route data`
+
+Deploy:
+
+Deployed via Wrangler to `prometheus-iq`.
+
+Production URL:
+
+`https://prometheus-iq.prometheusrouteiq.workers.dev`
+
+Deployment ID:
+
+`799db19b-2e3f-4792-8154-c27c35ad623b`
+
+Version ID:
+
+`658f1834-e622-4f3a-b821-9cdc76937b90`
+
+Rollout:
+
+100%.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `sw.js`
+
+Verified outcome:
+
+- Runtime dataset added with 795 records: 397 Cruz, 398 Anthony.
+- Dashboard startup fetch/normalization/migration wired in root and deploy Dashboard copies.
+- Embedded fallback route seeds migrate into runtime records without duplicate carryover.
+- Referenced legacy place IDs are preserved through remapping.
+- Runtime source/status is exposed in debug output.
+- CSP hashes were updated.
+- Service worker cache version was bumped to `prometheus-v23-runtime-data-integration-assets`.
+- `npm test`: passed.
+- Wrangler dry-run: passed.
+- Wrangler deploy: passed.
+- Wrangler deployment status shows version `658f1834-e622-4f3a-b821-9cdc76937b90` at 100%.
+- Version metadata confirms deployed CSP hash and `Cache-Control: no-store`.
+- Production unauthenticated smoke confirms Cloudflare Access 302 protection for `/`, `/sw.js`, and `/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`.
+- Dataset integrity check: passed.
+- Dataset verified as `google-qualified-businesses-v2`: Cruz 397, Anthony 398, total 795.
+
+Remaining blocker:
+
+None for Runtime Data Integration v1 production verification. Superseded by completed Cloudflare Access Authenticated Production Verification v1.
+
+### Completed Work Lane: Runtime Data Integration - Active Pool Consumption Decision
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Infrastructure
+
+Task:
+
+Runtime Data Integration - Active Pool Consumption Decision.
+
+Decision:
+
+Pool-selectable default Active.
+
+Status:
+
+Complete. Dashboard committed the Active pool consumption decision, and Infrastructure later deployed and production-smoke-verified the behavior.
+
+Commit:
+
+`4e7a28a Consume active runtime pool by default`
+
+Deploy:
+
+Production deploy completed by Prometheus Infrastructure via commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+Current production Worker version:
+
+`75de4004-8575-4a40-ab82-5a3092881054`
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `package.json`
+- `scripts/verify-dashboard-runtime-pool-consumption.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Dashboard defaults runtime data loading to Data's exported Active pool.
+- Dashboard expands exported `runtimeProfiles[]` into existing Dashboard route records.
+- Internal selection supports `runtimePool=full` for the existing Runtime Data Integration v1 full-pool path.
+- If Active is missing, invalid, or contract flags indicate behavior/scoring changed, Dashboard falls back to the full `runtime-pools.json`.
+- If both runtime sources fail, embedded fallback remains intact.
+- No Data-owned segmentation logic was duplicated.
+- `npm test`: passed.
+- `npm run dashboard:runtime-pool:check`: passed.
+- `npm run verify:zero-google-api`: passed.
+- Inline Dashboard script syntax check: passed.
+- Source/deploy sync checks: passed.
+
+Remaining blocker:
+
+None. Historical blocker was production deployment and authenticated production verification; superseded by Prometheus Infrastructure handoff for deploying Dashboard commit `4e7a28a` and hotfix commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+### Completed Work Lane: Founder Dashboard Mobile PWA Fit + Anthony Beta Readiness Verification v1
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Infrastructure
+- Prometheus CRM
+
+Task:
+
+Founder Dashboard Mobile PWA Fit + Anthony Beta Readiness Verification v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`d3056f3 Fix mobile PWA dashboard fit`
+
+Deploy:
+
+Deployed to Cloudflare Worker `prometheus-iq`.
+
+Production Worker version:
+
+`1b06aea9-2794-4d4b-b63c-90c4ad67cf18`
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Fixed mobile Dashboard horizontal overflow in Founder/Owner PWA layout.
+- Added iPhone viewport regression coverage to the Dashboard runtime workflow harness.
+- Added Anthony beta readiness assertion for rep mode, profile, Active pool, approved route targets, and current build marker.
+- Bumped PWA build/cache markers for installed-app refresh.
+- iPhone viewport checks pass for Today, Route, Places, Insights, and Find.
+- Verified 390px viewport: document/body scroll width remains 390px.
+- Owner controls, Cruz/Anthony selector, top nav, bottom tabs, cards, buttons, and route content stay inside viewport.
+- Anthony Rep flow verified locally through Dashboard harness.
+- Anthony profile exists.
+- Anthony receives Rep mode by `?role=rep&rep=anthony`.
+- Active runtime pool loads by default.
+- Anthony has 338 approved route targets.
+- Current build marker: `2026-06-30-mobile-pwa-fit-v1`.
+- Cloudflare Access protection verified.
+- `npm run dashboard:runtime-workflows:check`: passed, 27/27.
+- `npm test`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:production-release -- --skip-existing-gates --expected-worker-version 1b06aea9-2794-4d4b-b63c-90c4ad67cf18`: partially passed; blocked only on authenticated Access cookie/CDP checks.
+
+Remaining blocker:
+
+Authenticated production browser smoke could not be completed without Access cookie/CDP session. Auth/Admin support is needed only if authenticated production sign-in smoke is required: provide `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION`/`CF_APPSESSION`, or a CDP endpoint for a signed-in Cloudflare Access browser session.
+
+Next recommended subsystem:
+
+Prometheus Administration/Auth for authenticated production sign-in smoke, if required.
+
+### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Infrastructure
+
+Task:
+
+Automated Runtime Workflow Regression Harness v1.
+
+Status:
+
+Complete and committed.
+
+Commit:
+
+`464aa050a37fda3579111c923d5ace741f59fef1`
+
+Deploy:
+
+No production deployment. Test harness only.
+
+Files changed:
+
+- `package.json`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+
+Verified outcome:
+
+- Added reusable headless Chrome/CDP regression harness for Dashboard runtime workflows.
+- Wired the harness into `npm test`.
+- Covered Founder Mode, Rep Mode, Discovery Mode, Route Intelligence, Build Route, Directions links, Places, Insights, Find/Search, Active Pool consumption, Full Pool fallback, runtime pool selection, JavaScript console/runtime errors, and route loading performance.
+- `node --check scripts/verify-dashboard-runtime-workflows.mjs`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed, 19/19.
+- `npm test`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+
+Remaining blocker:
+
+None for the Dashboard regression harness. No Dashboard runtime behavior or deployed artifact changed.
+
+### Completed Work Lane: Active Pool Production Deploy and Authenticated Smoke
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Data
+
+Task:
+
+Deploy Dashboard commit `4e7a28a` and complete authenticated production smoke test.
+
+Dependencies:
+
+- Dashboard Active Pool Consumption Decision commit `4e7a28a`.
+- Data Runtime Pool Segmentation v1 commit `e0f45ef02b8e00abe426434ff1c666df50e65fa8`.
+- Cloudflare Access authentication.
+- Wrangler deployment workflow for `prometheus-iq`.
+
+Status:
+
+Complete. Active Pool behavior is deployed and authenticated production-smoke-verified.
+
+Commit:
+
+`c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`
+
+Deploy:
+
+Current production Worker version `75de4004-8575-4a40-ab82-5a3092881054` at `https://prometheus-iq.prometheusrouteiq.workers.dev`.
+
+Files changed:
+
+- `index.html`
+- `deploy/cloudflare-pages/index.html`
+
+Verified outcome:
+
+- Dashboard commit `4e7a28a` was deployed first.
+- Infrastructure CSP console warning from meta CSP was found and fixed.
+- Cloudflare Access authentication completed.
+- Founder render verified.
+- Rep render verified.
+- Dashboard loaded successfully behind Cloudflare Access.
+- Build marker verified: `2026-06-30-runtime-active-pool-v1`.
+- Service worker version verified: `prometheus-v24-runtime-active-pool-assets`.
+- Active runtime path verified: `runtime-pool-segmentation-v1/active-pool.json`.
+- Active pool verified: `pool: active`, `sourceDatasetVersion: google-qualified-businesses-v2`, 300 records.
+- Route initialization, Route Intelligence, Build Route, Directions, Discovery Mode, and PWA manifest passed.
+- PWA manifest display verified as `standalone`.
+- Zero live Google API calls passed.
+- Final console/CSP/network pass had no exceptions, console errors, CSP log entries, failed requests, or bad responses.
+
+What changed:
+
+- Removed `frame-ancestors 'none'` from meta CSP, where browsers ignore it.
+- Preserved `frame-ancestors 'none'` in production `_headers` CSP.
+- Added `mobile-web-app-capable` meta for PWA console health.
+- No Dashboard logic changed.
+
+Remaining blocker:
+
+None.
+
+### Completed Work Lane: Automated Production Release Verification v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Data
+
+Task:
+
+Automated Production Release Verification v1.
+
+Status:
+
+Complete and committed. Framework complete, and the current release package was later deployed and production-verified by Prometheus Infrastructure.
+
+Commit:
+
+`ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`
+
+Deploy:
+
+Completed via Wrangler `--keep-vars`.
+
+Production Worker version:
+
+`5a90fd06-45a9-4aba-9e8b-5b6d9fdc1677`
+
+Files changed:
+
+- `scripts/verify-production-release.mjs`
+- `package.json`
+- `docs/prometheus-release-checklist.md`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+
+Verified outcome:
+
+- Added reusable production release verifier.
+- Wired verifier into npm scripts.
+- Updated release checklist.
+- Synced deploy Active pool artifact timestamp to source Data export so local release parity gates pass.
+- Reuses existing security gate.
+- Reuses existing runtime pool gate.
+- Reuses existing zero-live-Google API gate.
+- Verifies source/deploy artifact parity, build marker parity, service worker version parity, Wrangler deployment/version consistency, Cloudflare Access unauthenticated protection, authenticated production route/header checks, required HTTP security headers and CSP, `Cache-Control: no-store`, live asset hash parity, Active runtime pool validation, PWA manifest validation, CDP-based Founder/Rep runtime startup smoke, and console/runtime/network/Google API failure detection.
+- `node --check scripts/verify-production-release.mjs`: passed.
+- `npm run verify:production-release:local -- --json`: passed from clean worktree.
+- `npm run verify:zero-google-api`: passed.
+- `npm test`: passed from clean worktree.
+- Full production gate with CDP initially passed all checks except live Active pool hash parity because commit `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3` had not yet been deployed to Cloudflare.
+- Superseding deployment verified current release package at commit `464aa050a37fda3579111c923d5ace741f59fef1`.
+- Expected commits included: `545bd67`, `ce88f36`, and `464aa05`.
+- Production uploaded the updated Active pool asset.
+- Production verifier passed against Worker version `5a90fd06-45a9-4aba-9e8b-5b6d9fdc1677` using an authenticated CDP session.
+- Wrangler deployment/version consistency: passed.
+- Cloudflare Access protection: passed.
+- Authenticated route availability: passed.
+- Required headers/cache behavior: passed.
+- Build marker verified: `2026-06-30-runtime-active-pool-v1`.
+- Service worker verified: `prometheus-v24-runtime-active-pool-assets`.
+- Active pool verified: `pool=active`, 300 records.
+- PWA manifest verified: `standalone`.
+- Founder/Rep runtime startup: passed.
+- Console/runtime/network/Google API failures: none.
+
+Remaining blocker:
+
+None. Current committed release package is deployed and production-verified.
+
+### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+
+Task:
+
+Cloudflare Access Authenticated Production Verification v1.
+
+Dependencies:
+
+- Completed Dashboard commit `15b7359`.
+- Deployed Workers version `658f1834-e622-4f3a-b821-9cdc76937b90`.
+- Cloudflare Access policy/session behavior.
+- Production URL `https://prometheus-iq.prometheusrouteiq.workers.dev`.
+
+Required smoke coverage:
+
+- Authenticated render loads without JavaScript errors.
+- Runtime dataset source/status reports `google-qualified-businesses-v2`.
+- Founder mode, Rep mode, Discovery Mode, Route Intelligence, Build Route, Places, Insights, and Find render against the refreshed runtime data.
+
+Coordination rule:
+
+Do not modify Dashboard ingestion, Route Intelligence scoring, Google Places Refresh Engine, or Companion while resolving the Access/session smoke blocker.
+
+Status:
+
+Complete. Production authenticated verification passed. No Infrastructure issue found.
+
+Verified facts:
+
+- Constitution read by Infrastructure subsystem.
+- Git state: `main` matches `origin/main` at `15b7359` during initial smoke; later repo HEAD is `fd79170020df1eeb6c4f4e46a930e35a1fca1216` after Companion work. No Infrastructure commit was made.
+- Deployment package parity passed:
+  - `index.html` matches `deploy/cloudflare-pages/index.html`.
+  - `sw.js` matches `deploy/cloudflare-pages/sw.js`.
+  - `_headers` matches `deploy/cloudflare-pages/_headers`.
+- Build marker present locally and in deploy package: `2026-06-30-runtime-data-integration-v1`.
+- Service worker version present locally and in deploy package: `prometheus-v23-runtime-data-integration-assets`.
+- Runtime dataset present: `google-qualified-businesses-v2`, generated `2026-06-30T03:02:47.838Z`, 795 records total: 397 Cruz, 398 Anthony.
+- Runtime pool package counts: Cruz 397, Anthony 398, total 795.
+- `npm run security:check`: passed.
+- `npm run verify:zero-google-api`: passed with zero live Google API endpoint/key references.
+- `npm run build`: passed.
+- Wrangler version: `4.105.0`.
+- Wrangler deployment list confirms Worker version `658f1834-e622-4f3a-b821-9cdc76937b90` deployed at 100% with message `Deploy Runtime Data Integration v1`.
+- Unauthenticated production requests to `/`, `/sw.js`, and `/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json` return Cloudflare Access 302 redirects with no-store/no-cache behavior.
+
+Authenticated verification:
+
+- Cloudflare Access flow completed with Cruz OTP.
+- Authenticated production dashboard loaded.
+- Rep render verified at `https://prometheus-iq.prometheusrouteiq.workers.dev/`.
+- Rep body mode: `rep`.
+- Rep session role: `rep`.
+- Route Intelligence rendered.
+- New Rep Discovery / Discovery Mode rendered.
+- Directions links present and valid Google Maps directions URLs.
+- Founder render verified at `?role=founder&rep=cruz&verify=20260626-beta`.
+- Founder body mode: `owner`.
+- Founder session role: `founder`.
+- Cruz profile active.
+- Owner controls visible: Detailed Visit, + Add Place.
+- Territory Intelligence visible.
+- Active runtime pool use verified; visible route stops match live runtime dataset records.
+- Build Route verified with 6 route options.
+- Insights tab renders production analytics state.
+- Copy Today's Summary verified status and clipboard content.
+- Export Today's Report verified in-app export success status.
+- Production manifest and `sw.js` verified.
+- Service worker does not cache authenticated `index.html` offline.
+- CSP status: local/package security passed; live app executed under configured CSP.
+- Console/JavaScript status: no live error, warning, or warn console entries observed during Rep, Founder, Route, Insights, Copy, or Export checks.
+- Zero live Google API calls: passed.
+
+Final verification metadata:
+
+- Worker version: `658f1834-e622-4f3a-b821-9cdc76937b90`.
+- Wrangler deployment: 100%, message `Deploy Runtime Data Integration v1`.
+- Build marker: `2026-06-30-runtime-data-integration-v1`.
+- Service worker version: `prometheus-v23-runtime-data-integration-assets`.
+- Runtime dataset: `google-qualified-businesses-v2`.
+- Runtime dataset generated: `2026-06-30T03:02:47.838Z`.
+- Cruz pool: 397.
+- Anthony pool: 398.
+- Total runtime records: 795.
+- Current repo HEAD: `fd79170020df1eeb6c4f4e46a930e35a1fca1216`.
+- Files changed by this task: none.
+- Push status: not performed.
+- Wrangler deploy status: existing production deploy verified; no redeploy performed.
+
+Remaining blocker:
+
+None for this Infrastructure verification.
+
+### Completed Work Lane: Companion Founder Acceptance Voice Test
+
+Primary subsystem: Prometheus Companion
+
+Task:
+
+Founder Acceptance Voice Test.
+
+Dependencies:
+
+- Existing `mac-companion/` app bundle.
+- Existing `prometheus-os/` runtime.
+- Installed runtime path at `/Users/cruzgarza/Library/Application Support/PrometheusCompanion/prometheus-os`.
+- Companion verification checklist in `docs/prometheus-release-checklist.md`.
+
+Status:
+
+PASS. Founder Acceptance Voice Test passed 18/18. Changes committed and pushed.
+
+Commit:
+
+`fd79170020df1eeb6c4f4e46a930e35a1fca1216`
+
+Deploy:
+
+Pushed to `origin/main`; local installed runtime synced at `/Users/cruzgarza/Library/Application Support/PrometheusCompanion`.
+
+Files changed:
+
+- `mac-companion/.gitignore`
+- `mac-companion/README.md`
+- `mac-companion/build.sh`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/app.js`
+- `prometheus-os/backend/server.js`
+
+Verified outcome:
+
+- Source version = installed version = runtime version: `20260630T045245Z-fd79170020df-68aafd255183`.
+- Hardened Companion verification for startup, memory, reasoning, routing, conversation flow, founder briefing, voice paths, live TTS, live STT, diagnostics, version manifests, and runtime/source sync.
+- No secrets committed.
+- Push status: pushed successfully to `origin/main`.
+- Latest report generated: `mac-companion/reports/latest-companion-verification-report.md`.
+
+Remaining blocker:
+
+None for automated Founder Acceptance. Unrelated pre-existing local worktree changes remain outside this commit.
+
+Next recommended Companion task:
+
+Companion live founder microphone/use test.
+
+### Completed Work Lane: Companion Live Founder Microphone and Voice Use Test
+
+Primary subsystem: Prometheus Companion
+
+Task:
+
+Live Founder Microphone and Voice Use Test.
+
+Dependencies:
+
+- Companion Founder Acceptance Voice Test commit `fd79170020df1eeb6c4f4e46a930e35a1fca1216`.
+- Installed native Companion runtime.
+- Mac microphone permission for the local WebView.
+- Cruz directly speaking into the Mac for final human acceptance.
+
+Status:
+
+Partial pass / founder speech blocker.
+
+Commit:
+
+`fec508b329477ddfcc732932e61d0804425c8cf6`
+
+Deploy:
+
+Native installed Companion launched locally. No production deploy.
+
+Files changed:
+
+- `mac-companion/PrometheusCompanion.swift`
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/app.js`
+
+Verified outcome:
+
+- Native installed Companion launched successfully.
+- WebView microphone permission was granted for `127.0.0.1`.
+- Companion entered Listening state.
+- Automated installed-runtime voice stack passed 18/18.
+- TTS passed.
+- STT passed with generated speech sample.
+- Assistant conversation passed.
+- Final verification report remained PASS 18/18 at `mac-companion/reports/latest-companion-verification-report.md`.
+
+What changed:
+
+- Added native `prometheusLog` WebView bridge to `companion.log`.
+- Added STT/assistant retry hardening.
+- Added no-command/no-audio diagnostics.
+- Added capture timeout/reset for WebView STT capture.
+
+Remaining blocker:
+
+Cruz must perform the final live spoken command test directly. Speaker-to-microphone simulated commands did not produce a recognized transcript or response, so true founder microphone acceptance remains unverified.
+
+### Completed Work Lane: Companion Founder Assistant Repair + 3D Node Interface v1
+
+Primary subsystem: Prometheus Companion
+
+Secondary subsystems:
+
+- Prometheus Integrations
+
+Task:
+
+Companion Founder Assistant Repair + 3D Node Interface v1.
+
+Status:
+
+PASS. Companion rebuilt, installed, synchronized, and verified.
+
+Commit:
+
+`779c066ac36af765fc30cc51bdb9ef53f25496b1`
+
+Deploy:
+
+Local commit only; not pushed. Installed Companion runtime synchronized locally.
+
+Runtime version:
+
+`20260630T145847Z-779c066ac36a-b1e42b9c7573`
+
+Files changed:
+
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `prometheus-os/style.css`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+Verified outcome:
+
+- Added Companion-only Founder Assistant response layer for Cruz-specific commands.
+- Hooked Founder Assistant into the existing AI provider before generic fallback.
+- Hardened acceptance coverage.
+- Converted primary Companion interface nodes to founder command-center areas.
+- Fixed greeting, catch-up context, engineering status, message drafting, meetings placeholder, day planning, long-term goals, pricing, Active Pool recall, strategy critique, and Dashboard/Data architecture explanation commands.
+- Replaced flat status-card orbit set with central 3D command-center nodes: Memory, Tasks, Calendar, Messages, Prometheus IQ, Overwatch, Analytics, Strategy, Voice.
+- Preserved and strengthened black/orange/teal Prometheus-core styling.
+- `node --check` on touched Companion JS files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `node scripts/security-check.mjs`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed 18/18.
+
+Remaining blocker:
+
+Historical at this handoff: real calendar meeting lookup was blocked because no live calendar integration was connected, and Companion used safe planning placeholders. Superseded by Companion contract-consumption commit `9c855f9690f4dcf52f6edf7a31e34b7efaf5086e`, which consumes the shared founder communications contract. True browser visual screenshot verification was blocked because the in-app browser backend was unavailable. Existing unrelated dirty worktree files remain outside this commit.
+
+Next recommended subsystem:
+
+Superseded by Prometheus Integrations contract commit `fbb11b4f2cccd3351870e25d6f7be2604cee46ed` and Companion consumer commit `9c855f9690f4dcf52f6edf7a31e34b7efaf5086e`.
+
+### Completed Work Lane: Founder Calendar & Message Integration Contract v1
+
+Primary subsystem: Prometheus Integrations
+
+Secondary subsystems:
+
+- Prometheus Companion
+- Prometheus CRM
+
+Task:
+
+Founder Calendar & Message Integration Contract v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`fbb11b4f2cccd3351870e25d6f7be2604cee46ed`
+
+Deploy:
+
+No deploy reported.
+
+Files changed:
+
+- `integrations/README.md`
+- `integrations/founder-communications-contract.js`
+- `integrations/founder-communications-service.js`
+- `tests/founder-communications-contract.test.mjs`
+
+Verified outcome:
+
+- Added provider-neutral founder calendar/message integration contract.
+- Added backend-safe service wrapper with disconnected default adapter.
+- Added contract documentation.
+- Added contract validation tests.
+- No Google Calendar, Gmail, Outlook, or provider-specific integration was implemented.
+- Implemented founder connection/status, calendar event, upcoming meetings response, daily agenda response, message summary, draft message request, and future-ready message send request/unsupported response contracts.
+- Added shared data models: `FOUNDER_CONNECTION_STATES`, `FOUNDER_INTEGRATION_ERROR_CODES`, `FOUNDER_INTEGRATION_CAPABILITIES`, `FOUNDER_MESSAGE_CHANNELS`, `FOUNDER_EVENT_STATUSES`, `createFounderCalendarEvent`, `createUpcomingMeetingsResponse`, `createDailyAgendaResponse`, `createFounderMessageSummary`, `createDraftMessageRequest`, and `createMessageSendRequest`.
+- `node --check integrations/founder-communications-contract.js`: passed.
+- `node --check integrations/founder-communications-service.js`: passed.
+- `node --test tests/founder-communications-contract.test.mjs`: passed.
+- `npm run security:check`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blocker:
+
+Historical at this handoff: no live calendar/message provider adapter was connected yet. Superseded by Prometheus Integrations provider adapter commit `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`. Live provider verification still requires founder-approved OAuth clients, refresh tokens, and scopes configured in backend environment variables.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for backend environment variable setup and live provider verification when founder-approved OAuth credentials are available.
+
+### Completed Work Lane: Consume Founder Calendar & Message Integration Contract v1
+
+Primary subsystem: Prometheus Companion
+
+Secondary subsystems:
+
+- Prometheus Integrations
+
+Task:
+
+Consume Founder Calendar & Message Integration Contract v1.
+
+Status:
+
+PASS. Companion now consumes the shared Founder Calendar & Message Integration Contract and full sync/install/verify passed 18/18.
+
+Commit:
+
+`9c855f9690f4dcf52f6edf7a31e34b7efaf5086e`
+
+Deploy:
+
+Local Companion runtime synced and verified.
+
+Files changed:
+
+- `prometheus-os/founder-communications-consumer.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/verify-runtime.mjs`
+
+Verified outcome:
+
+- Added Companion consumer for shared `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
+- Replaced local calendar/message placeholders with contract-backed meetings, daily agenda, message summaries, and draft-message flows.
+- Preserved draft-only behavior; no real email/SMS/external message sending was added.
+- Updated Companion sync/install/version workflow to install and drift-check the shared `integrations/` contract with the runtime.
+- Consumed `founder-calendar-message-contract.v1`.
+- Referenced Integrations commit `fbb11b4f2cccd3351870e25d6f7be2604cee46ed`.
+- Meetings placeholder replaced with `getUpcomingMeetings`.
+- Day planning calendar placeholder replaced with `getDailyAgenda`.
+- Draft message placeholder replaced with `createDraftMessageRequest`.
+- Message summaries now use `listMessageSummaries`.
+- Fixed commands for meetings, draft message, day planning, disconnected integration state, permission-required integration state, message summaries, and compose-message support.
+- `node --check` on touched Companion/integration files: passed.
+- `node --test tests/founder-communications-contract.test.mjs`: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `node scripts/security-check.mjs`: passed.
+- `npm run build`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed 18/18.
+
+Remaining blocker:
+
+Historical at this handoff: no live Google Calendar/Gmail/Outlook provider adapter was connected yet. Superseded by Prometheus Integrations provider adapter commit `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`. Companion correctly reports Disconnected or Permission Required through the shared contract until backend environment variables and OAuth credentials are configured.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for backend environment variable setup and live provider verification when founder-approved OAuth credentials are available.
+
+### Completed Work Lane: Founder Calendar & Message Provider Adapter v1
+
+Primary subsystem: Prometheus Integrations
+
+Secondary subsystems:
+
+- Prometheus Infrastructure
+- Prometheus Companion
+
+Task:
+
+Founder Calendar & Message Provider Adapter v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`
+
+Deploy:
+
+No deploy reported.
+
+Files changed:
+
+- `integrations/README.md`
+- `integrations/founder-communications-contract.js`
+- `integrations/founder-communications-service.js`
+- `integrations/oauth-provider-auth.js`
+- `integrations/google-founder-communications-adapter.js`
+- `integrations/microsoft-founder-communications-adapter.js`
+- `tests/founder-communications-contract.test.mjs`
+- `tests/founder-communications-provider-adapters.test.mjs`
+- `package.json`
+
+Verified outcome:
+
+- Added provider adapters that fulfill the Founder Calendar & Message Integration Contract.
+- Added shared OAuth refresh, permission validation, safe provider error handling, and token redaction.
+- Added error connection state and draft retrieval response support.
+- Added environment-based adapter selection without changing Companion logic.
+- Added integration tests to `npm test`.
+- Implemented Google Calendar + Gmail adapter.
+- Implemented Microsoft Outlook / Microsoft 365 adapter via Microsoft Graph.
+- Added refresh-token OAuth flow for Google and Microsoft.
+- Added required scope validation.
+- Added missing config detection.
+- Added permission-required status reporting.
+- No tokens are printed or returned to consumers.
+- Synchronization states include connected, disconnected, permission_required, sync_pending, sync_complete, and error.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:integrations`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blocker:
+
+Live provider verification requires founder-approved OAuth clients, refresh tokens, and scopes configured in backend environment variables. Send operations remain intentionally disabled.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure.
+
+### Completed Work Lane: Runtime Dataset Route-Quality Audit
+
+Primary subsystem: Prometheus Intelligence Engine
+
+Secondary subsystems:
+
+- Prometheus Data
+
+Task:
+
+Runtime Dataset Route-Quality Audit.
+
+Dependencies:
+
+- Dashboard commit `15b7359`.
+- Data commit `b00649135a82bb3e34e02b87d868c10c2fd9c9d8`.
+- Deployed repo artifact under `deploy/cloudflare-pages`.
+
+Status:
+
+Complete, report only. No files changed.
+
+Verified outcome:
+
+- Dashboard and Data dependencies verified in git log.
+- No deploy performed.
+- Audit inspected repo deployment asset under `deploy/cloudflare-pages`.
+- Live Cloudflare URL was not fetched.
+- Deployed artifact in repo matches the source runtime dataset byte-for-byte.
+
+Remaining blocker:
+
+None for the read-only Intelligence audit.
+
+Next recommended subsystem:
+
+Prometheus Data for runtime pool segmentation into active / reserve / quarantine records without changing scoring.
+
+### Completed Work Lane: Beta CRM Contact + Follow-up Queue v1
+
+Primary subsystem: Prometheus CRM
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Data
+- Prometheus Sales
+
+Task:
+
+Beta CRM Contact + Follow-up Queue v1.
+
+Status:
+
+Completed and committed.
+
+Commit:
+
+`90608f478321ddffcb7cf2b4274efe5470bf0138`
+
+Deploy:
+
+No deploy reported.
+
+Files changed:
+
+- `crm/README.md`
+- `crm/crm-foundation.mjs`
+- `package.json`
+- `scripts/lint-crm.mjs`
+- `scripts/typecheck-crm.mjs`
+- `tests/crm-foundation.test.mjs`
+
+Verified outcome:
+
+- Added local CRM foundation under `crm/`.
+- Added Runtime Data to CRM contact/lead adapter.
+- Added CRM lint/typecheck scripts.
+- Added CRM automated test suite.
+- Wired CRM tests into `npm test`.
+- Implemented contact records, lead records, prospect status pipeline, visit history, follow-up queue, founder task queue, rep task queue, due dates and priority, contact notes, route visit outcomes, sales activity history, and reporting for follow-ups, overdue items, pipeline counts, and task completion.
+- Anthony runtime activity converts into CRM contacts/leads.
+- Anthony beta activity is founder-visible.
+- Founder reports include all visible beta CRM activity.
+- No Gmail, SMS, Outlook, or external messaging providers added.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed.
+
+Remaining blocker:
+
+None for CRM v1. Repo still has unrelated pre-existing dirty files outside CRM scope.
+
+Next recommended subsystem:
+
+Prometheus Dashboard for CRM surfacing only when Dashboard ownership is available.
+
+### Completed Work Lane: Route Intelligence Golden Route Quality Gate v1
+
+Primary subsystem: Prometheus Intelligence Engine
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Dashboard
+
+Task:
+
+Route Intelligence Golden Route Quality Gate v1.
+
+Status:
+
+Complete and committed.
+
+Commit:
+
+`97c232c0dc9495e0af7d6f1d30985c843221b660`
+
+Deploy:
+
+No deploy reported.
+
+Files changed:
+
+- `package.json`
+- `scripts/lib/route-intelligence-quality-gate.mjs`
+- `scripts/verify-route-intelligence-quality-gate.mjs`
+- `tests/route-intelligence-quality-gate.test.mjs`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-baseline.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+
+Verified outcome:
+
+- Added automated Route Intelligence quality gate.
+- Added golden route baseline and generated quality report.
+- Added regression tests.
+- Wired quality gate into `npm test`.
+- Checks route stability across identical inputs.
+- Validates Active Pool candidates.
+- Verifies deterministic route ordering baseline.
+- Excludes duplicate businesses.
+- Excludes quarantine/reserve records.
+- Handles incomplete runtime profiles.
+- Verifies founder-review route explanations.
+- Verifies zero-live-Google behavior.
+- Validates Dashboard-compatible output.
+- `npm run intelligence:route-quality:check`: passed.
+- `npm run test:intelligence:route-quality`: passed, 5/5.
+- `npm run build`: passed.
+- `npm test`: passed, including Dashboard harness 27/27.
+
+Remaining blocker:
+
+None for this task. Worktree still contains unrelated pre-existing modified/untracked files outside this commit.
+
+Next recommended subsystem:
+
+Prometheus Data, only when the next Active Pool refresh needs route-quality baseline review.
+
+## Completed Work Log
+
+### 2026-06-30: Prometheus Data - Google Places Refresh Engine v1
+
+Subsystem: Prometheus Data
+
+Task: Google Places Refresh Engine v1
+
+Commit: `b00649135a82bb3e34e02b87d868c10c2fd9c9d8`
+
+Deploy: Not run
+
+Status: Complete and pushed to `origin/main`
+
+Files changed: 13 committed files
+
+What changed:
+
+Prometheus Data added an offline batch refresh engine, strict quality reporting, Google-qualified v2 production dataset, Founder and Anthony production pools, and a zero-live-Google runtime verifier.
+
+Remaining blockers:
+
+Historical at Data handoff time: runtime dataset ingestion was intentionally not changed in the Data task. Superseded by Dashboard Runtime Data Integration v1 commit `15b7359`.
+
+Next recommended subsystem:
+
+Prometheus Dashboard for Route Intelligence data handoff/import review, with Prometheus Intelligence Engine and Prometheus Data as secondary dependencies.
+
+### 2026-06-30: Prometheus Data - Runtime Pool Segmentation v1
+
+Subsystem: Prometheus Data
+
+Task: Runtime Pool Segmentation v1
+
+Commit: `e0f45ef02b8e00abe426434ff1c666df50e65fa8`
+
+Deploy: Not run
+
+Status: Complete and pushed to `origin/main`
+
+Files changed: 7 committed files
+
+What changed:
+
+Added deterministic runtime segmentation into Active, Reserve, and Quarantine manifests without changing runtime behavior or scoring.
+
+Remaining blockers:
+
+Historical at Data handoff time: Runtime Data Integration still needed to decide when to consume the Active pool. Superseded by Dashboard Active Pool Consumption Decision commit `4e7a28a` and Infrastructure production deploy/hotfix commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+Next recommended subsystem:
+
+Prometheus Dashboard for Runtime Data Integration Active pool consumption decision.
+
+### 2026-06-30: Prometheus Dashboard - Runtime Data Integration v1 Validation Handoff
+
+Subsystem: Prometheus Dashboard
+
+Task: Runtime Data Integration v1 validation and continuation check
+
+Commit: Not committed
+
+Deploy: Not deployed
+
+Status: Incomplete release handoff. Staged implementation was validated, but Dashboard still owns commit, push, Wrangler deployment, and final completed handoff.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `sw.js`
+
+What changed:
+
+Runtime Data Integration v1 adds a versioned Google-qualified runtime pool with 795 records, wires Dashboard startup to fetch and normalize that dataset, migrates embedded fallback route seeds into runtime records without duplicate carryover, preserves referenced legacy place IDs through remapping, exposes runtime source/status in debug output, updates CSP hashes, and bumps the service worker cache version.
+
+Remaining blockers:
+
+Dashboard has not committed, pushed, run Wrangler deployment, or returned a final completion handoff with commit hash and deployment status.
+
+Next recommended subsystem:
+
+Superseded by the final Runtime Data Integration v1 Dashboard handoff below.
+
+### 2026-06-30: Prometheus Dashboard - Runtime Data Integration v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Runtime Data Integration v1
+
+Commit: `15b7359 Integrate runtime route data`
+
+Deploy: Deployed via Wrangler to `prometheus-iq`
+
+Status: Committed, pushed, deployed. Production deploy state verified through Wrangler. Production HTTP smoke verified Cloudflare Access gate and no-store behavior.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `sw.js`
+
+What changed:
+
+Runtime Data Integration v1 loads the versioned Google-qualified runtime pool from `runtime-pools.json`, normalizes 795 production route records, migrates embedded fallback Google route seeds into runtime-managed records without duplicate carryover, preserves referenced legacy place IDs through remapping, exposes runtime data source/status in debug output, updates CSP hashes, and bumps the service worker cache version to `prometheus-v23-runtime-data-integration-assets`.
+
+Remaining blockers:
+
+Fresh authenticated production render smoke requires Cloudflare Access re-authentication in Chrome; the current Access login page is blank/expired.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for Cloudflare Access session verification / authenticated production render smoke.
+
+### 2026-06-30: Prometheus Dashboard - Runtime Data Integration Active Pool Consumption Decision
+
+Subsystem: Prometheus Dashboard
+
+Task: Runtime Data Integration - Active Pool Consumption Decision
+
+Commit: `4e7a28a Consume active runtime pool by default`
+
+Deploy: Not performed
+
+Status: Complete. Production deployment and authenticated verification were later completed by Prometheus Infrastructure.
+
+Decision made: Pool-selectable default Active
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `package.json`
+- `scripts/verify-dashboard-runtime-pool-consumption.mjs`
+- `sw.js`
+
+What changed:
+
+Dashboard now defaults runtime data loading to Data's exported Active pool and expands the exported `runtimeProfiles[]` into existing Dashboard route records. Internal selection supports `runtimePool=full` for the existing Runtime Data Integration v1 full-pool path. If Active is missing, invalid, or contract flags indicate behavior/scoring changed, Dashboard falls back to the full `runtime-pools.json`; if both fail, embedded fallback remains intact. No Data-owned segmentation logic was duplicated.
+
+Verification:
+
+- `npm test`: passed.
+- `npm run dashboard:runtime-pool:check`: passed.
+- `npm run verify:zero-google-api`: passed.
+- Inline Dashboard script syntax check: passed.
+- Source/deploy sync checks: passed.
+
+Remaining blockers:
+
+None now. Historical blocker was production verification; superseded by Prometheus Infrastructure production deployment and authenticated smoke test for commit `4e7a28a`, with hotfix commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+Next recommended subsystem:
+
+Superseded by completed Prometheus Infrastructure deployment and production smoke test.
+
+### 2026-06-30: Prometheus Dashboard - Active Pool Production Behavior Review
+
+Subsystem: Prometheus Dashboard
+
+Task: Review production behavior after deployment of Active Pool Consumption `4e7a28a`
+
+Commit: No new commit. Reviewed commit `4e7a28a`
+
+Deploy: Not performed by Dashboard
+
+Status: Blocked at handoff time because production was still running Worker version `658f1834-e622-4f3a-b821-9cdc76937b90`. Superseded by Prometheus Infrastructure deployment and hotfix commit `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`.
+
+Files changed: None by this review task
+
+What changed:
+
+No Dashboard changes. The review verified the committed bundle locally and confirmed production had not yet been updated.
+
+Verified:
+
+- Production HTTP behavior remained Cloudflare Access-protected for `/`, `/sw.js`, Active pool JSON, and full runtime JSON.
+- Local deployed-bundle review of `4e7a28a` confirmed Active default loads `runtime-pool-segmentation-v1/active-pool.json`.
+- `runtimePool=full` loads `google-qualified-businesses-v2`.
+- Active default yields 600 Dashboard route records from 300 Active business records, split 300 Cruz / 300 Anthony.
+- Active quality classes were only Excellent and Good.
+- Active asset measured 775,842 bytes and parsed in about 5.777 ms.
+- Full runtime asset measured 1,348,097 bytes and parsed in about 10.563 ms.
+- Local rendered DOM was smaller with Active default than full pool.
+- Fallback simulation verified Active 404 then full `runtime-pools.json` 200.
+- No local regression found in the committed Dashboard bundle.
+- Zero live Google API check passed.
+
+Remaining blockers:
+
+Superseded. The handoff blocker was to deploy `4e7a28a` to `prometheus-iq`; this was completed by Infrastructure.
+
+Next recommended subsystem:
+
+Superseded by Prometheus Infrastructure deploy and production smoke test.
+
+### 2026-06-30: Prometheus Infrastructure - Deploy Active Pool Consumption and Production Smoke
+
+Subsystem: Prometheus Infrastructure
+
+Task: Deploy Dashboard commit `4e7a28a` and complete authenticated production smoke test
+
+Commit: `c18e5e7ed1a16fff5622ead4d6e7e2fd9ead0d43`
+
+Deploy: Current production Worker version `75de4004-8575-4a40-ab82-5a3092881054`, deployed with `--keep-vars`
+
+Status: Complete
+
+Files changed:
+
+- `index.html`
+- `deploy/cloudflare-pages/index.html`
+
+What changed:
+
+Infrastructure deployed Dashboard commit `4e7a28a`, found and fixed one production CSP console warning by removing `frame-ancestors 'none'` from the meta CSP while preserving it in production `_headers`, and added `mobile-web-app-capable` meta for PWA console health. No Dashboard logic changed.
+
+Verified:
+
+- Cloudflare Access authentication completed.
+- Founder render verified.
+- Rep render verified.
+- Build marker verified: `2026-06-30-runtime-active-pool-v1`.
+- Service worker version verified: `prometheus-v24-runtime-active-pool-assets`.
+- Active runtime path verified: `runtime-pool-segmentation-v1/active-pool.json`.
+- Active pool verified: pool `active`, source dataset `google-qualified-businesses-v2`, 300 records.
+- Route initialization, Route Intelligence, Build Route, Directions, Discovery Mode, and PWA manifest passed.
+- Zero live Google API calls passed.
+- Final console/CSP/network pass had no exceptions, console errors, CSP log entries, failed requests, or bad responses.
+
+Remaining blockers:
+
+None.
+
+Next recommended subsystem:
+
+Founder/Rep acceptance if human production sign-off is required.
+
+### 2026-06-30: Prometheus Infrastructure - Cloudflare Access Authenticated Production Smoke Test
+
+Subsystem: Prometheus Infrastructure
+
+Task: Cloudflare Access Authenticated Production Smoke Test
+
+Commit: `15b7359`
+
+Deploy: Worker version `658f1834-e622-4f3a-b821-9cdc76937b90`, 100% rollout
+
+Status: Blocked on authenticated browser access; production not verified
+
+Files changed: None
+
+What changed:
+
+No changes made; verification only.
+
+Remaining blockers:
+
+Codex needs an authenticated Cloudflare Access browser session for live render, console, route, mode, and PWA checks.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure.
+
+### 2026-06-30: Prometheus Infrastructure - Cloudflare Access Authenticated Production Verification v1
+
+Subsystem: Prometheus Infrastructure
+
+Task: Cloudflare Access Authenticated Production Verification v1
+
+Commit: None for this task. Current repo HEAD at time of report: `fd79170020df1eeb6c4f4e46a930e35a1fca1216`
+
+Deploy: Existing Worker `658f1834-e622-4f3a-b821-9cdc76937b90`, 100% rollout
+
+Status: Superseded by completed authenticated production verification below.
+
+Files changed: None
+
+What changed:
+
+Nothing; Infrastructure-only verification.
+
+Verified:
+
+- Cloudflare Access unauthenticated protection verified for `/`, `/sw.js`, and runtime dataset path.
+- Wrangler deployment status verified at 100%.
+- Build marker verified: `2026-06-30-runtime-data-integration-v1`.
+- Service worker version verified: `prometheus-v23-runtime-data-integration-assets`.
+- Runtime dataset package verified: `google-qualified-businesses-v2`.
+- Runtime pool package counts verified: Cruz 397, Anthony 398, total 795.
+- `npm run security:check`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run build`: passed.
+- Local/deploy package parity verified for `index.html`, `sw.js`, and `_headers`.
+
+Not verified:
+
+- Authenticated Cloudflare Access login flow.
+- Authenticated Founder session.
+- Authenticated Rep session.
+- Live Route initialization.
+- Live runtime dataset consumption.
+- Discovery Mode, Route Intelligence, Build Route, Directions, Copy Summary, Export Report, Insights.
+- PWA/Home Screen.
+- Live browser CSP status.
+- Live JavaScript/console/runtime errors.
+
+Remaining blockers:
+
+Superseded by completed authenticated production verification below.
+
+Next recommended subsystem:
+
+Superseded by completed authenticated production verification below.
+
+### 2026-06-30: Prometheus Infrastructure - Cloudflare Access Authenticated Production Verification v1 Complete
+
+Subsystem: Prometheus Infrastructure
+
+Task: Cloudflare Access Authenticated Production Verification v1
+
+Commit: No new commit; current HEAD `fd79170020df1eeb6c4f4e46a930e35a1fca1216`
+
+Deploy: Existing Worker `658f1834-e622-4f3a-b821-9cdc76937b90`, 100%
+
+Status: Complete
+
+Files changed: None
+
+What changed:
+
+No changes; authenticated production verification completed.
+
+Verified:
+
+- Cloudflare Access flow completed with Cruz OTP.
+- Authenticated production dashboard loaded.
+- Authenticated Rep render verified.
+- Authenticated Founder render verified.
+- Runtime dataset verified as `google-qualified-businesses-v2`, generated `2026-06-30T03:02:47.838Z`.
+- Runtime pool counts verified: Cruz 397, Anthony 398, total 795.
+- Active runtime pool use verified against visible route stops.
+- Build Route rendered 6 route options.
+- Insights rendered production analytics state.
+- Copy Today's Summary verified status and clipboard content.
+- Export Today's Report verified in-app export success status.
+- Production manifest and `sw.js` verified.
+- Service worker does not cache authenticated `index.html` offline.
+- Live app executed under configured CSP.
+- No live error, warning, or warn console entries observed during Rep, Founder, Route, Insights, Copy, or Export checks.
+- Zero live Google API calls passed.
+- Wrangler deployment verified at 100%, message `Deploy Runtime Data Integration v1`.
+
+Remaining blockers:
+
+None for this Infrastructure verification.
+
+Next recommended subsystem:
+
+None; production blocker cleared.
+
+### 2026-06-30: Prometheus Intelligence Engine - Runtime Dataset Route-Quality Audit
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Runtime Dataset Route-Quality Audit
+
+Commit: `15b7359` Dashboard / `b006491` Data dependency verified in git log
+
+Deploy: No deploy performed; inspected repo deployment asset under `deploy/cloudflare-pages`
+
+Status: Complete, report only
+
+Files changed: None
+
+What changed:
+
+Nothing. Read-only audit performed.
+
+Remaining blockers:
+
+Live Cloudflare URL was not fetched; audit used the deployed artifact in repo, which matches the source runtime dataset byte-for-byte.
+
+Next recommended subsystem:
+
+Prometheus Data for runtime pool segmentation into active / reserve / quarantine records without changing scoring.
+
+### 2026-06-30: Prometheus Companion - Companion Build / Install / Sync Reliability
+
+Subsystem: Prometheus Companion
+
+Task: Companion Build / Install / Sync Reliability
+
+Commit: No new commit created. Changes exist only in the local worktree.
+
+Deploy: Local Companion runtime installed to `/Users/cruzgarza/Library/Application Support/PrometheusCompanion`
+
+Status: PASS. `./mac-companion/sync-install-verify.sh` completed successfully with PASS (12/12). Superseded by the committed Founder Acceptance Voice Test handoff below.
+
+Files changed:
+
+- `mac-companion/.gitignore`
+- `mac-companion/README.md`
+- `mac-companion/build.sh`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/app.js`
+- `prometheus-os/backend/server.js`
+
+What changed:
+
+Hardened the existing one-command Companion sync/install/verify workflow, added explicit `.env` preservation verification without printing secrets, added sync summary metadata for installed runtime, added checks for version manifests, app/runtime assets, startup, routing, memory, voice, diagnostics, and backend version endpoint, verified installed runtime matches source runtime, and generated `mac-companion/reports/latest-companion-verification-report.md`.
+
+Remaining blockers:
+
+Superseded by Companion commit `fd79170020df1eeb6c4f4e46a930e35a1fca1216`.
+
+Next recommended subsystem:
+
+Superseded by the committed Founder Acceptance Voice Test handoff below.
+
+### 2026-06-30: Prometheus Companion - Founder Acceptance Voice Test
+
+Subsystem: Prometheus Companion
+
+Task: Founder Acceptance Voice Test
+
+Commit: `fd79170020df1eeb6c4f4e46a930e35a1fca1216`
+
+Deploy: Pushed to `origin/main`; local installed runtime synced at `/Users/cruzgarza/Library/Application Support/PrometheusCompanion`
+
+Status: PASS. Source version = installed version = runtime version: `20260630T045245Z-fd79170020df-68aafd255183`
+
+Files changed:
+
+- `mac-companion/.gitignore`
+- `mac-companion/README.md`
+- `mac-companion/build.sh`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/app.js`
+- `prometheus-os/backend/server.js`
+
+What changed:
+
+Hardened Companion verification for startup, memory, reasoning, routing, conversation flow, founder briefing, voice paths, live TTS, live STT, diagnostics, version manifests, and runtime/source sync. No secrets committed.
+
+Remaining blockers:
+
+None for automated Founder Acceptance. Unrelated pre-existing local worktree changes remain outside this commit.
+
+Next recommended subsystem:
+
+Prometheus Companion for live founder microphone/use test.
+
+### 2026-06-30: Prometheus Companion - Live Founder Microphone and Voice Use Test
+
+Subsystem: Prometheus Companion
+
+Task: Live Founder Microphone and Voice Use Test
+
+Commit: `fec508b329477ddfcc732932e61d0804425c8cf6`
+
+Deploy: Native installed Companion launched locally; no production deploy
+
+Status: Partial pass / founder speech blocker
+
+Files changed:
+
+- `mac-companion/PrometheusCompanion.swift`
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/app.js`
+
+What changed:
+
+Companion added native `prometheusLog` WebView logging to `companion.log`, STT/assistant retry hardening, no-command/no-audio diagnostics, and capture timeout/reset for WebView STT capture.
+
+Verified:
+
+- Native installed Companion launched successfully.
+- WebView microphone permission was granted for `127.0.0.1`.
+- Companion entered Listening state.
+- Automated installed-runtime voice stack passed 18/18.
+- TTS passed.
+- STT passed with generated speech sample.
+- Assistant conversation passed.
+- Final verification report remained PASS 18/18 at `mac-companion/reports/latest-companion-verification-report.md`.
+- Native Swift compile check passed.
+- Installed app launch passed.
+- WebView microphone grant/log verification passed.
+
+Remaining blockers:
+
+Cruz must perform the final live spoken command test directly. Speaker-to-microphone simulated commands did not produce a recognized transcript or response, so true founder microphone acceptance remains unverified.
+
+Next recommended subsystem:
+
+Prometheus Companion for final direct founder spoken-command acceptance.
+
+### 2026-06-30: Prometheus Companion - Founder Assistant Repair + 3D Node Interface v1
+
+Subsystem: Prometheus Companion
+
+Task: Companion Founder Assistant Repair + 3D Node Interface v1
+
+Commit: `779c066ac36af765fc30cc51bdb9ef53f25496b1`
+
+Deploy: Local commit only; not pushed. Installed Companion runtime synchronized locally.
+
+Status: PASS. Companion rebuilt, installed, synchronized, and verified.
+
+Files changed:
+
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `prometheus-os/style.css`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion added a Companion-only Founder Assistant response layer for Cruz-specific commands, routed it through the existing AI provider before generic fallback, hardened acceptance coverage, and converted the primary Companion interface to 3D founder command-center nodes for Memory, Tasks, Calendar, Messages, Prometheus IQ, Overwatch, Analytics, Strategy, and Voice.
+
+Verification:
+
+- Source version = installed version = runtime version: `20260630T145847Z-779c066ac36a-b1e42b9c7573`.
+- Failed commands fixed: greeting, catch-up context, engineering status, message drafting, meetings placeholder, day planning, long-term goals, pricing, Active Pool recall, strategy critique, and Dashboard/Data architecture explanation.
+- `node --check` on touched Companion JS files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `node scripts/security-check.mjs`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed 18/18.
+
+Remaining blockers:
+
+Real calendar meeting lookup remains blocked because no live calendar integration is connected. True browser visual screenshot verification was blocked because the in-app browser backend was unavailable. Existing unrelated dirty worktree files remain outside this commit.
+
+Next recommended subsystem:
+
+Prometheus Integrations for live founder calendar/message integration contract.
+
+### 2026-06-30: Prometheus Integrations - Founder Calendar & Message Integration Contract v1
+
+Subsystem: Prometheus Integrations
+
+Task: Founder Calendar & Message Integration Contract v1
+
+Commit: `fbb11b4f2cccd3351870e25d6f7be2604cee46ed`
+
+Deploy: No deploy reported
+
+Status: Complete
+
+Files changed:
+
+- `integrations/README.md`
+- `integrations/founder-communications-contract.js`
+- `integrations/founder-communications-service.js`
+- `tests/founder-communications-contract.test.mjs`
+
+What changed:
+
+Integrations added a provider-neutral founder calendar/message integration contract, backend-safe service wrapper with disconnected default adapter, contract documentation, and validation tests. No Google Calendar, Gmail, Outlook, or provider-specific integration was implemented.
+
+Verification:
+
+- Founder connection/status contract: implemented.
+- Calendar event contract: implemented.
+- Upcoming meetings response contract: implemented.
+- Daily agenda response contract: implemented.
+- Message summary contract: implemented.
+- Draft message request contract: implemented.
+- Future-ready message send request/unsupported response contract: implemented.
+- `node --check integrations/founder-communications-contract.js`: passed.
+- `node --check integrations/founder-communications-service.js`: passed.
+- `node --test tests/founder-communications-contract.test.mjs`: passed.
+- `npm run security:check`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+Historical at this handoff: no live calendar/message provider adapter was connected yet. Superseded by Prometheus Integrations provider adapter commit `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`. Live provider verification still requires founder-approved OAuth clients, refresh tokens, and scopes configured in backend environment variables.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for backend environment variable setup and live provider verification when founder-approved OAuth credentials are available.
+
+### 2026-06-30: Prometheus Companion - Consume Founder Calendar & Message Integration Contract v1
+
+Subsystem: Prometheus Companion
+
+Task: Consume Founder Calendar & Message Integration Contract v1
+
+Commit: `9c855f9690f4dcf52f6edf7a31e34b7efaf5086e`
+
+Deploy: Local Companion runtime synced and verified
+
+Status: PASS. Companion now consumes the shared Founder Calendar & Message Integration Contract and full sync/install/verify passed 18/18.
+
+Files changed:
+
+- `prometheus-os/founder-communications-consumer.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/verify-runtime.mjs`
+
+What changed:
+
+Companion added a consumer for the shared founder communications contract and service, replaced local calendar/message placeholders with contract-backed meetings, daily agenda, message summaries, and draft-message flows, preserved draft-only behavior, and updated sync/install/version workflow to install and drift-check the shared `integrations/` contract with the runtime.
+
+Verification:
+
+- Contract consumed: `founder-calendar-message-contract.v1`.
+- Integrations commit referenced: `fbb11b4f2cccd3351870e25d6f7be2604cee46ed`.
+- Meetings placeholder replaced with `getUpcomingMeetings`.
+- Day planning calendar placeholder replaced with `getDailyAgenda`.
+- Draft message placeholder replaced with `createDraftMessageRequest`.
+- Message summaries now use `listMessageSummaries`.
+- Fixed commands for meetings, message drafting, day planning, disconnected integration state, permission-required integration state, message summaries, and compose-message support.
+- `node --check` on touched Companion/integration files: passed.
+- `node --test tests/founder-communications-contract.test.mjs`: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `node scripts/security-check.mjs`: passed.
+- `npm run build`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed 18/18.
+
+Remaining blockers:
+
+Historical at this handoff: no live Google Calendar/Gmail/Outlook provider adapter was connected yet. Superseded by Prometheus Integrations provider adapter commit `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`. Companion correctly reports Disconnected or Permission Required through the shared contract until backend environment variables and OAuth credentials are configured.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for backend environment variable setup and live provider verification when founder-approved OAuth credentials are available.
+
+### 2026-06-30: Prometheus Integrations - Founder Calendar & Message Provider Adapter v1
+
+Subsystem: Prometheus Integrations
+
+Task: Founder Calendar & Message Provider Adapter v1
+
+Commit: `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23`
+
+Deploy: No deploy reported
+
+Status: Complete
+
+Files changed:
+
+- `integrations/README.md`
+- `integrations/founder-communications-contract.js`
+- `integrations/founder-communications-service.js`
+- `integrations/oauth-provider-auth.js`
+- `integrations/google-founder-communications-adapter.js`
+- `integrations/microsoft-founder-communications-adapter.js`
+- `tests/founder-communications-contract.test.mjs`
+- `tests/founder-communications-provider-adapters.test.mjs`
+- `package.json`
+
+What changed:
+
+Integrations added Google Calendar/Gmail and Microsoft Outlook/Microsoft 365 provider adapters behind the existing founder communications contract, with shared OAuth refresh, scope validation, missing config detection, safe provider error handling, token redaction, error connection state, draft retrieval response support, and environment-based adapter selection. Companion logic was not changed by this task.
+
+Verification:
+
+- Provider adapters fulfill the Founder Calendar & Message Integration Contract.
+- Google Calendar + Gmail adapter: implemented.
+- Microsoft Outlook / Microsoft 365 adapter via Microsoft Graph: implemented.
+- Refresh-token OAuth flow for Google and Microsoft: implemented.
+- Required scope validation: implemented.
+- Permission-required status reporting: implemented.
+- Tokens are not printed or returned to consumers.
+- Synchronization states include connected, disconnected, permission_required, sync_pending, sync_complete, and error.
+- Send operations remain intentionally disabled.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:integrations`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+Live provider verification requires founder-approved OAuth clients, refresh tokens, and scopes configured in backend environment variables. Send operations remain intentionally disabled.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure.
+
+### 2026-06-30: Prometheus Dashboard - Founder Dashboard Mobile PWA Fit + Anthony Beta Readiness Verification v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Founder Dashboard Mobile PWA Fit + Anthony Beta Readiness Verification v1
+
+Commit: `d3056f3 Fix mobile PWA dashboard fit`
+
+Deploy: Deployed to Cloudflare Worker `prometheus-iq`; production Worker version `1b06aea9-2794-4d4b-b63c-90c4ad67cf18`
+
+Status: Complete
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+What changed:
+
+Dashboard fixed mobile horizontal overflow in Founder/Owner PWA layout, added iPhone viewport regression coverage, added Anthony beta readiness assertions, and bumped PWA build/cache markers for installed-app refresh.
+
+Verification:
+
+- iPhone viewport checks pass for Today, Route, Places, Insights, and Find.
+- 390px viewport document/body scroll width remains 390px.
+- Anthony Rep flow verified locally through Dashboard harness.
+- Anthony receives Rep mode by `?role=rep&rep=anthony`.
+- Active runtime pool loads by default.
+- Anthony has 338 approved route targets.
+- Current build marker: `2026-06-30-mobile-pwa-fit-v1`.
+- Cloudflare Access protection verified.
+- `npm run dashboard:runtime-workflows:check`: passed, 27/27.
+- `npm test`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- Production release verification partially passed and was blocked only on authenticated Access cookie/CDP checks.
+
+Remaining blockers:
+
+Authenticated production browser smoke requires `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION`/`CF_APPSESSION`, or a CDP endpoint for a signed-in Cloudflare Access browser session.
+
+Next recommended subsystem:
+
+Prometheus Administration/Auth for authenticated production sign-in smoke, if required.
+
+### 2026-06-30: Prometheus Data - Runtime Pool Refresh Governance v1
+
+Subsystem: Prometheus Data
+
+Task: Runtime Pool Refresh Governance v1
+
+Commit: `545bd67968ff660210671b0b2c5a3bbae5ea923f`
+
+Deploy: Not run
+
+Status: Complete
+
+Files changed:
+
+- `data/qualified-prospects/README.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json`
+- `scripts/segment-google-runtime-pools.mjs`
+- `scripts/govern-runtime-pool-refresh.mjs`
+- `scripts/test-runtime-pool-governance.mjs`
+
+What changed:
+
+Data added a fail-closed governance gate for Active, Reserve, and Quarantine pool promotion, using existing segmentation helpers rather than duplicating scoring or segmentation rules.
+
+Remaining blockers:
+
+None for Data governance. The reported full `npm test` blocker was a downstream Dashboard deploy Active pool mismatch and was later superseded by Infrastructure commit `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`.
+
+Next recommended subsystem:
+
+Superseded by completed Infrastructure deployment and production release verification.
+
+### 2026-06-30: Prometheus Infrastructure - Automated Production Release Verification v1
+
+Subsystem: Prometheus Infrastructure
+
+Task: Automated Production Release Verification v1
+
+Commit: `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`
+
+Deploy: Not run
+
+Status: Complete for verification framework. Historical deployment gap superseded by the current release package deployment handoff below.
+
+Files changed:
+
+- `scripts/verify-production-release.mjs`
+- `package.json`
+- `docs/prometheus-release-checklist.md`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+
+What changed:
+
+Infrastructure added a reusable production release verifier, wired it into npm scripts, updated the release checklist, and synced the deploy Active pool artifact timestamp to the Data export so local release parity gates pass.
+
+Remaining blockers:
+
+None for the framework. Before treating `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3` or later commits as live production artifacts, Infrastructure must deploy the current release package and rerun `npm run verify:production-release -- --expected-worker-version <new_worker_version> --cdp <authenticated_chrome_debug_port>`.
+
+Next recommended subsystem:
+
+Superseded by the current release package deployment handoff below.
+
+### 2026-06-30: Prometheus Infrastructure - Current Release Package Deployment and Automated Production Release Verification v1
+
+Subsystem: Prometheus Infrastructure
+
+Task: Current release package deployment and Automated Production Release Verification v1
+
+Commit: `464aa050a37fda3579111c923d5ace741f59fef1`
+
+Deploy: Complete via Wrangler `--keep-vars`; Worker version `5a90fd06-45a9-4aba-9e8b-5b6d9fdc1677`
+
+Status: Complete
+
+Files changed: None during this task. Deployed the already-committed release package.
+
+What changed:
+
+Prometheus Infrastructure pushed the current committed release package to `origin/main`, deployed the current `deploy/cloudflare-pages` package to production, uploaded the updated Active pool asset, and preserved existing Cloudflare/Worker configuration.
+
+Verification:
+
+- Expected commits included: `545bd67`, `ce88f36`, `464aa05`.
+- `npm run verify:production-release:local -- --json`: passed.
+- `npm run verify:zero-google-api`: passed.
+- Dashboard workflow harness: 19/19 passed.
+- `npm run build`: passed.
+- Wrangler dry-run: passed.
+- Wrangler deploy: passed.
+- Production verifier passed against Worker version `5a90fd06-45a9-4aba-9e8b-5b6d9fdc1677` using authenticated CDP session.
+- Wrangler deployment/version consistency: passed.
+- Cloudflare Access protection: passed.
+- Authenticated route availability: passed.
+- Required headers/cache behavior: passed.
+- Build marker verified: `2026-06-30-runtime-active-pool-v1`.
+- Service worker verified: `prometheus-v24-runtime-active-pool-assets`.
+- Active pool verified: `pool=active`, 300 records.
+- PWA manifest verified: `standalone`.
+- Founder/Rep runtime startup: passed.
+- Console/runtime/network/Google API failures: none.
+
+Remaining blockers:
+
+None.
+
+Next recommended subsystem:
+
+None. No further autonomous production-readiness engineering is currently identified in the master state.
+
+### 2026-06-30: Prometheus Intelligence Engine - Route Intelligence Golden Route Quality Gate v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Route Intelligence Golden Route Quality Gate v1
+
+Commit: `97c232c0dc9495e0af7d6f1d30985c843221b660`
+
+Deploy: No deploy reported
+
+Status: Complete and committed
+
+Files changed:
+
+- `package.json`
+- `scripts/lib/route-intelligence-quality-gate.mjs`
+- `scripts/verify-route-intelligence-quality-gate.mjs`
+- `tests/route-intelligence-quality-gate.test.mjs`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-baseline.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+
+What changed:
+
+Intelligence Engine added an automated Route Intelligence quality gate, golden route baseline, generated quality report, regression tests, and `npm test` integration.
+
+Verification:
+
+- Route stability across identical inputs: covered.
+- Active Pool candidate validation: covered.
+- Deterministic route ordering baseline: covered.
+- Duplicate business exclusion: covered.
+- Quarantine/reserve exclusion: covered.
+- Incomplete runtime profile handling: covered.
+- Founder-review route explanations: covered.
+- Zero-live-Google verification: covered.
+- Dashboard-compatible output validation: covered.
+- `npm run intelligence:route-quality:check`: passed.
+- `npm run test:intelligence:route-quality`: passed, 5/5.
+- `npm run build`: passed.
+- `npm test`: passed, including Dashboard harness 27/27.
+
+Remaining blockers:
+
+None for this task. Worktree still contains unrelated pre-existing modified/untracked files outside this commit.
+
+Next recommended subsystem:
+
+Prometheus Data, only when the next Active Pool refresh needs route-quality baseline review.
+
+### 2026-06-30: Prometheus CRM - Beta CRM Contact + Follow-up Queue v1
+
+Subsystem: Prometheus CRM
+
+Task: Beta CRM Contact + Follow-up Queue v1
+
+Commit: `90608f478321ddffcb7cf2b4274efe5470bf0138`
+
+Deploy: No deploy reported
+
+Status: Completed and committed
+
+Files changed:
+
+- `crm/README.md`
+- `crm/crm-foundation.mjs`
+- `package.json`
+- `scripts/lint-crm.mjs`
+- `scripts/typecheck-crm.mjs`
+- `tests/crm-foundation.test.mjs`
+
+What changed:
+
+CRM added a local CRM foundation, Runtime Data to CRM contact/lead adapter, CRM lint/typecheck scripts, automated tests, and `npm test` integration.
+
+Verification:
+
+- Contact records: implemented.
+- Lead records: implemented.
+- Prospect status pipeline: implemented.
+- Visit history: implemented.
+- Follow-up queue: implemented.
+- Founder task queue: implemented.
+- Rep task queue: implemented.
+- Due dates and priority: implemented.
+- Contact notes: implemented.
+- Route visit outcomes: implemented.
+- Sales activity history: implemented.
+- Follow-up, overdue item, pipeline count, and task completion reporting: implemented.
+- Anthony runtime activity converts into CRM contacts/leads.
+- Anthony beta activity is founder-visible.
+- Founder reports include all visible beta CRM activity.
+- No Gmail, SMS, Outlook, or external messaging providers added.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+None for CRM v1. Repo still has unrelated pre-existing dirty files outside CRM scope.
+
+Next recommended subsystem:
+
+Prometheus Dashboard for CRM surfacing only when Dashboard ownership is available.
+
+### 2026-06-30: Prometheus Dashboard - Automated Runtime Workflow Regression Harness v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Automated Runtime Workflow Regression Harness v1
+
+Commit: `464aa050a37fda3579111c923d5ace741f59fef1`
+
+Deploy: Not run
+
+Status: Complete
+
+Files changed:
+
+- `package.json`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+
+What changed:
+
+Dashboard added a reusable headless Chrome/CDP regression harness for runtime workflows and wired it into `npm test`.
+
+Remaining blockers:
+
+None. Test harness only; no Dashboard runtime behavior or deployed artifact changed.
+
+Next recommended subsystem:
+
+Superseded by completed Infrastructure deployment and production release verification.
+
+## Duplicate Prevention Register
+
+Current duplicate-prevention sources:
+
+- Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
+- Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
+- Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
+- Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
+- Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
+- Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
+- Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
+- Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
+- Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
+- Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
+- Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
+- Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
+
+## Next Recommended Engineering Task
+
+Current active highest-priority task:
+
+Founder communications provider environment setup and live verification.
+
+Primary subsystem: Prometheus Infrastructure.
+
+Secondary subsystems:
+
+- Prometheus Companion
+- Prometheus Integrations
+
+Reason:
+
+Data governance commit `545bd67968ff660210671b0b2c5a3bbae5ea923f`, Infrastructure release verification commit `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`, Dashboard workflow harness commit `464aa050a37fda3579111c923d5ace741f59fef1`, Integrations founder communications contract commit `fbb11b4f2cccd3351870e25d6f7be2604cee46ed`, CRM foundation commit `90608f478321ddffcb7cf2b4274efe5470bf0138`, Companion consumer commit `9c855f9690f4dcf52f6edf7a31e34b7efaf5086e`, and Integrations provider adapter commit `3346d52f2c56ab7f84c3a9f8897cb6dee0589a23` are complete. The remaining capability gap is backend environment variable setup and live provider verification with founder-approved OAuth clients, refresh tokens, and scopes. Do not add real email/SMS/external message sending without explicit approval.
+
+Known non-autonomous pending task:
+
+Final live founder spoken-command acceptance.
+
+Primary subsystem: Prometheus Companion.
+
+Reason:
+
+Companion automated verification is production-ready, but true live founder microphone acceptance still requires Cruz directly speaking into the Mac. Do not assign this while the founder is unavailable.
