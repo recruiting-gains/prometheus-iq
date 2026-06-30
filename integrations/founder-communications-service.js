@@ -6,16 +6,21 @@ import {
   createDailyAgendaResponse,
   createDisconnectedFounderIntegrationStatus,
   createDraftMessageRequest,
+  createDraftMessageRequestsResponse,
   createFounderIntegrationError,
   createFounderIntegrationStatus,
   createMessageSummariesResponse,
   createUnsupportedMessageSendResponse,
   createUpcomingMeetingsResponse
 } from "./founder-communications-contract.js";
+import { createGoogleFounderCommunicationsAdapter } from "./google-founder-communications-adapter.js";
+import { createMicrosoftFounderCommunicationsAdapter } from "./microsoft-founder-communications-adapter.js";
 
 function integrationFailureStatus({ code, message, provider = "unconfigured", retryable = false, details = {} }) {
   const state = code === FOUNDER_INTEGRATION_ERROR_CODES.PERMISSION_REQUIRED
     ? FOUNDER_CONNECTION_STATES.PERMISSION_REQUIRED
+    : code === FOUNDER_INTEGRATION_ERROR_CODES.PROVIDER_ERROR || code === FOUNDER_INTEGRATION_ERROR_CODES.PROVIDER_UNAVAILABLE || code === FOUNDER_INTEGRATION_ERROR_CODES.SYNC_FAILED
+      ? FOUNDER_CONNECTION_STATES.ERROR
     : FOUNDER_CONNECTION_STATES.DISCONNECTED;
 
   return createFounderIntegrationStatus({
@@ -77,15 +82,39 @@ export function createDisconnectedFounderCommunicationsAdapter() {
       };
     },
 
+    async listDraftMessageRequests() {
+      return createDraftMessageRequestsResponse({
+        status,
+        drafts: []
+      });
+    },
+
     async sendMessage() {
       return createUnsupportedMessageSendResponse();
     }
   };
 }
 
+export function createFounderCommunicationsAdapterFromEnv({
+  env = globalThis.process?.env || {},
+  fetchImpl = globalThis.fetch
+} = {}) {
+  const provider = String(env.PROMETHEUS_FOUNDER_COMMUNICATIONS_PROVIDER || "").toLowerCase();
+
+  if (provider === "google") {
+    return createGoogleFounderCommunicationsAdapter({ env, fetchImpl });
+  }
+
+  if (provider === "microsoft" || provider === "outlook" || provider === "m365" || provider === "office365") {
+    return createMicrosoftFounderCommunicationsAdapter({ env, fetchImpl });
+  }
+
+  return createDisconnectedFounderCommunicationsAdapter();
+}
+
 export function createFounderCommunicationsService({
-  adapter = createDisconnectedFounderCommunicationsAdapter(),
-  provider = "unconfigured"
+  adapter = createFounderCommunicationsAdapterFromEnv(),
+  provider = adapter.provider || "unconfigured"
 } = {}) {
   async function callAdapter(method, args, fallback) {
     try {
@@ -147,6 +176,14 @@ export function createFounderCommunicationsService({
         ok: false,
         status,
         draftRequest: null
+      }));
+    },
+
+    async listDraftMessageRequests({ cursor = null, limit = 20 } = {}) {
+      return callAdapter("listDraftMessageRequests", { cursor, limit }, (status) => createDraftMessageRequestsResponse({
+        status,
+        drafts: [],
+        cursor
       }));
     },
 

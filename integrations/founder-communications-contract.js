@@ -5,7 +5,8 @@ export const FOUNDER_CONNECTION_STATES = Object.freeze({
   DISCONNECTED: "disconnected",
   PERMISSION_REQUIRED: "permission_required",
   SYNC_PENDING: "sync_pending",
-  SYNC_COMPLETE: "sync_complete"
+  SYNC_COMPLETE: "sync_complete",
+  ERROR: "error"
 });
 
 export const FOUNDER_INTEGRATION_ERROR_CODES = Object.freeze({
@@ -262,6 +263,21 @@ export function createMessageSummariesResponse({
     status,
     cursor,
     messages: messages.map(createFounderMessageSummary)
+  };
+}
+
+export function createDraftMessageRequestsResponse({
+  status = createDisconnectedFounderIntegrationStatus(),
+  drafts = [],
+  generatedAt = nowIso(),
+  cursor = null
+} = {}) {
+  return {
+    contractVersion: FOUNDER_COMMUNICATIONS_CONTRACT_VERSION,
+    generatedAt: normalizeIso(generatedAt, "draftMessageRequests.generatedAt"),
+    status,
+    cursor,
+    drafts: drafts.map(createDraftMessageRequest)
   };
 }
 

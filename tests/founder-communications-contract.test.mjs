@@ -8,6 +8,7 @@ import {
   FOUNDER_MESSAGE_CHANNELS,
   createDailyAgendaResponse,
   createDraftMessageRequest,
+  createDraftMessageRequestsResponse,
   createFounderCalendarEvent,
   createFounderIntegrationError,
   createFounderIntegrationStatus,
@@ -44,6 +45,7 @@ test("connection states include all required founder integration states", () => 
   assert.deepEqual(Object.values(FOUNDER_CONNECTION_STATES).sort(), [
     "connected",
     "disconnected",
+    "error",
     "permission_required",
     "sync_complete",
     "sync_pending"
@@ -109,6 +111,23 @@ test("message summaries and draft requests share provider-neutral data models", 
   assert.equal(summary.threadId, "msg_1");
   assert.equal(response.messages[0].channel, FOUNDER_MESSAGE_CHANNELS.EMAIL);
   assert.equal(draft.sendPolicy, "draft_only_until_explicit_send_capability_is_connected");
+});
+
+test("draft message retrieval response shares the draft request model", () => {
+  const response = createDraftMessageRequestsResponse({
+    drafts: [{
+      id: "provider_draft_1",
+      channel: FOUNDER_MESSAGE_CHANNELS.EMAIL,
+      to: sampleMessage.to,
+      subject: "Provider draft",
+      body: "Provider draft preview.",
+      createdAt: "2026-06-30T16:00:00.000Z"
+    }],
+    generatedAt: "2026-06-30T16:00:00.000Z"
+  });
+
+  assert.equal(response.drafts[0].id, "provider_draft_1");
+  assert.equal(response.drafts[0].sendPolicy, "draft_only_until_explicit_send_capability_is_connected");
 });
 
 test("standard errors redact secret-like metadata before reaching consumers", () => {
