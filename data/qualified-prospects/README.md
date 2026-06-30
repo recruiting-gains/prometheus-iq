@@ -148,6 +148,30 @@ Verify that normal app runtime still makes zero live Google API calls:
 npm run verify:zero-google-api
 ```
 
+## Runtime Pool Segmentation
+
+After a verified refresh exists, segment the runtime dataset without changing Route Intelligence scoring or Dashboard behavior:
+
+```bash
+node scripts/segment-google-runtime-pools.mjs
+```
+
+Default segmentation outputs:
+
+```text
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md
+```
+
+Segmentation rules:
+
+- Active: production-safe verified businesses with existing runtime quality class `Excellent` or `Good`.
+- Reserve: production-safe verified businesses with existing runtime quality class `Average` or `Poor`.
+- Quarantine: failed gates, duplicate Place IDs, generic businesses, missing numbered addresses, invalid directions, closed businesses, corrupt/unverified records, or existing runtime quality class `Never Visit`.
+
 ## Google Deployment Verification Notes
 
 Before sending a Google-powered route to a tester:

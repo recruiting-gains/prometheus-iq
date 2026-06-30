@@ -1,0 +1,49 @@
+{
+  "generatedAt": "2026-06-30T04:48:30.259Z",
+  "sourceDatasetVersion": "google-qualified-businesses-v2",
+  "segmentationVersion": "runtime-pool-segmentation-v1",
+  "sourceFiles": {
+    "production": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+    "rejected": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json",
+    "runtime": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+  },
+  "runtimeBehaviorChanged": false,
+  "scoringChanged": false,
+  "counts": {
+    "active": 300,
+    "reserve": 44,
+    "quarantine": 106
+  },
+  "audit": {
+    "productionRecordsAudited": 398,
+    "rejectedRecordsAudited": 52,
+    "closedRecordsAudited": 0,
+    "runtimeProfileRecordsRead": 795,
+    "runtimeUniquePlaceIds": 398,
+    "duplicateProductionPlaceIds": 0,
+    "quarantineReasonCounts": {
+      "runtime_quality_never_visit": 54,
+      "do_not_recommend": 37,
+      "generic_or_restricted": 37,
+      "missing_numbered_address": 4,
+      "invalid_business_name": 12
+    }
+  },
+  "verification": {
+    "activeDuplicatePlaceIds": 0,
+    "reserveDuplicatePlaceIds": 0,
+    "quarantineDuplicatePlaceIds": 0,
+    "activeInvalidRecords": 0,
+    "activeReserveOverlap": 0,
+    "runtimeBehaviorChanged": false,
+    "scoringChanged": false,
+    "existingRuntimePoolsModified": false
+  },
+  "files": {
+    "active": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "reserve": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+    "quarantine": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+    "manifest": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json",
+    "report": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md"
+  }
+}
