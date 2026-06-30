@@ -1086,11 +1086,95 @@ Infrastructure contracts created:
 
 Remaining blocker:
 
-Wrangler Cloudflare API authentication failed locally with Cloudflare API code `10000`, so the real `META_INSTAGRAM_TOKEN_STORE` namespace could not be listed or created. Live OAuth verification remains blocked until Cloudflare auth is restored and founder-approved Meta app credentials exist.
+Historical at this handoff: Wrangler Cloudflare API authentication failed locally with Cloudflare API code `10000`, so the real `META_INSTAGRAM_TOKEN_STORE` namespace could not be listed or created. Superseded in part by Infrastructure commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`, which provisioned and bound the production KV namespace and deployed the callback/status Worker routes. Live OAuth verification remains blocked until Cloudflare secrets, Meta credentials, Instagram Business account ID, and founder-approved Instagram authorization exist.
 
 Next recommended subsystem:
 
-Prometheus Infrastructure after Cloudflare Wrangler authentication is restored, to create/bind `META_INSTAGRAM_TOKEN_STORE`, set secrets, deploy, and run live callback verification.
+Prometheus Infrastructure after Cruz completes Meta app and Cloudflare secret setup, to run live authorization and callback verification.
+
+### Completed Work Lane: Live Meta Instagram Production Provisioning + OAuth Callback Verification v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Integrations
+- Prometheus Social Media
+
+Task:
+
+Live Meta Instagram Production Provisioning + OAuth Callback Verification v1.
+
+Status:
+
+Blocked for live Instagram authorization. Production callback route and KV token-store binding are deployed and verified; required Cloudflare secrets and Meta credentials are not configured yet.
+
+Implementation type:
+
+Implementation.
+
+Commit:
+
+`243bdbdaa2ea1a461a3e6100d9b659429ea107c8`
+
+Deploy:
+
+Deployed to Cloudflare Worker `prometheus-iq`; production Worker version `aaaa6325-1448-487a-95b3-60e4b64bd539`.
+
+Files changed:
+
+- `wrangler.jsonc`
+
+What changed:
+
+Infrastructure provisioned and bound production KV namespace `META_INSTAGRAM_TOKEN_STORE` for backend-only Meta Instagram token storage, preserved existing Worker/assets configuration, and deployed the existing callback/status Worker route.
+
+Infrastructure contracts created:
+
+- Production callback URL: `https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback`
+- Production status URL: `https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/status`
+- Token store binding: `META_INSTAGRAM_TOKEN_STORE`
+- Required Cloudflare secrets: `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`
+- Required backend setup value: `INSTAGRAM_BUSINESS_ACCOUNT_ID`
+
+Verified outcome:
+
+- Wrangler auth verified.
+- Current production deployment audited.
+- KV namespace created and visible.
+- Dry-run confirmed Worker binding access.
+- Cloudflare secrets list verified empty, with no values exposed.
+- Production deploy completed at 100%.
+- Unauthenticated callback/status routes redirect through Cloudflare Access with `no-store` / `no-cache`.
+- Authenticated `/status` route returned `not_configured`, `tokenStoreBinding: true`, `encryptionKeyConfigured: false`, and no token material.
+- Authenticated callback without `code` / `state` fails closed.
+- KV token store contains no keys.
+- Backend-only encrypted storage and invalid-state protections covered by tests.
+- No posting, messaging, comments, or DMs enabled.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm test`: passed.
+- `npx wrangler deploy --dry-run --keep-vars`: passed.
+- `npx wrangler deployments list --name prometheus-iq`: passed.
+- `npx wrangler secret list --name prometheus-iq`: passed and showed required secrets not configured.
+- `npx wrangler kv key list --binding META_INSTAGRAM_TOKEN_STORE`: passed and showed no keys.
+
+Founder actions required:
+
+- Configure the Meta app redirect URI to the exact production callback URL.
+- Provide/set founder-approved Meta App ID and App Secret in Cloudflare secrets.
+- Set `META_OAUTH_STATE_SECRET` and `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` through Cloudflare only.
+- Provide/set `INSTAGRAM_BUSINESS_ACCOUNT_ID`.
+- Approve/connect the Instagram Business/Professional account with minimum analytics permissions: `instagram_basic`, `instagram_manage_insights`, `pages_show_list`, `pages_read_engagement`.
+- Run the real Meta OAuth authorization flow after secrets are configured.
+
+Remaining blockers:
+
+Missing Cloudflare secrets, backend setup values, and founder-approved live Meta Instagram authorization. Do not mark live Instagram analytics connected until these are complete and verified.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure after Cruz completes Meta app and Cloudflare secret setup; then Prometheus Integrations for live analytics consumption verification.
 
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
@@ -2769,6 +2853,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
 - Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
+- Do not duplicate the production Meta Instagram token-store binding; reuse Cloudflare binding `META_INSTAGRAM_TOKEN_STORE` in `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
@@ -2780,7 +2865,7 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Cloudflare Meta Instagram token-store provisioning and live callback verification.
+Meta Instagram Cloudflare secret setup and live OAuth authorization verification.
 
 Primary subsystem: Prometheus Infrastructure.
 
@@ -2791,7 +2876,7 @@ Secondary subsystems:
 
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, Integrations implemented the Meta OAuth connection/token refresh workflow, and Infrastructure added the production Worker callback route. The remaining dependency is Infrastructure-owned Cloudflare provisioning: restore Wrangler API authentication, create/bind `META_INSTAGRAM_TOKEN_STORE`, set required secrets, deploy with `npx wrangler deploy --keep-vars`, and run live callback verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the production Worker callback route, and Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`. The remaining dependency is founder-gated configuration: set Cloudflare secrets `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, provide `INSTAGRAM_BUSINESS_ACCOUNT_ID`, configure the Meta redirect URI, and run live Instagram authorization. After Cruz completes those actions, Prometheus Infrastructure owns live callback verification, then Prometheus Integrations owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 
