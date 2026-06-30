@@ -739,6 +739,67 @@ Next recommended subsystem:
 
 Founder / Overwatch optional review of `.founder-review/final-green-repository-checkpoint-v1/` artifacts.
 
+### Completed Work Lane: Public Website Founder Marketing + Conversion Readiness v1
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystems:
+
+- Prometheus Sales
+- Prometheus Social Media
+
+Task:
+
+Public Website Founder Marketing + Conversion Readiness v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`f33b5bfa6e4e24d8ffbb7df57895fec42fca946d`
+
+Deploy:
+
+Complete. Live at `https://prometheusrouteiq.com` and `https://www.prometheusrouteiq.com`.
+
+Cloudflare Worker version:
+
+`88d97844-11e3-468c-9ec4-c78a3b313df5`
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/site.js`
+- `landing.html`
+- `src/main.jsx`
+- `src/styles.css`
+
+Verified outcome:
+
+- Updated public founder marketing.
+- Updated Prometheus / Prometheus IQ positioning.
+- Updated AI Route Intelligence messaging.
+- Updated enterprise-readiness conversion copy.
+- Updated pilot CTA language.
+- Updated mobile identity strip.
+- `npm run security:check`: passed.
+- `npm run build`: passed.
+- Live deployment content verified.
+- Security headers verified.
+- Mobile and desktop responsiveness verified.
+- No horizontal overflow verified.
+- No live console errors verified.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+Prometheus Social Media.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2406,6 +2467,7 @@ Superseded by completed Infrastructure deployment and production release verific
 Current duplicate-prevention sources:
 
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
+- Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
@@ -2422,21 +2484,18 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Founder / Overwatch optional review of preserved checkpoint artifacts.
+Social Media / Marketing readiness after Website conversion pass.
 
-Primary subsystem: Founder / Overwatch.
+Primary subsystem: Prometheus Social Media.
 
 Secondary subsystems:
 
-- Prometheus Companion
-- Prometheus Data
-- Prometheus Social Media
-- Prometheus Research
 - Prometheus Sales
+- Prometheus Website
 
 Reason:
 
-Infrastructure completed the final green repository checkpoint at commit `ed52350be794dcd468b9e82676dfde0b50e81791`. `main` and `origin/main` are synchronized, no local-only commits remain, and the working tree is clean. Optional founder review remains available through `.founder-review/final-green-repository-checkpoint-v1/`. Live OAuth/provider verification still requires founder-approved OAuth clients, refresh tokens, scopes, and backend environment variables. Do not add real email/SMS/external message sending without explicit approval.
+Website completed Public Website Founder Marketing + Conversion Readiness v1 at commit `f33b5bfa6e4e24d8ffbb7df57895fec42fca946d` and deployed it to `prometheusrouteiq.com`. The next highest-value external-growth task is Social Media / Marketing readiness that supports the updated public positioning without scraping, storing passwords, or pretending live analytics exist before supported APIs are connected.
 
 Known non-autonomous pending task:
 
