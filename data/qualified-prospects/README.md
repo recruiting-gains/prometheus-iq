@@ -172,6 +172,37 @@ Segmentation rules:
 - Reserve: production-safe verified businesses with existing runtime quality class `Average` or `Poor`.
 - Quarantine: failed gates, duplicate Place IDs, generic businesses, missing numbered addresses, invalid directions, closed businesses, corrupt/unverified records, or existing runtime quality class `Never Visit`.
 
+## Runtime Pool Refresh Governance
+
+Before any refreshed runtime pool is released for Dashboard consumption, run the governance gate:
+
+```bash
+node scripts/govern-runtime-pool-refresh.mjs
+```
+
+The first approved baseline for a new segmentation version is created explicitly:
+
+```bash
+node scripts/govern-runtime-pool-refresh.mjs --update-baseline
+```
+
+Default governance outputs:
+
+```text
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md
+data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json
+```
+
+Governance fails closed. If validation fails, `promotion-gate.json` sets `promotionAllowed` to `false` and the dataset must not be promoted through the Dashboard data export path.
+
+Governance tests:
+
+```bash
+node scripts/test-runtime-pool-governance.mjs
+```
+
 ## Google Deployment Verification Notes
 
 Before sending a Google-powered route to a tester:

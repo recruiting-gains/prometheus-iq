@@ -1,6 +1,6 @@
 # Runtime Pool Segmentation v1
 
-Generated: 2026-06-30T04:48:30.259Z
+Generated: 2026-06-30T07:42:12.464Z
 Source dataset: google-qualified-businesses-v2
 Segmentation version: runtime-pool-segmentation-v1
 

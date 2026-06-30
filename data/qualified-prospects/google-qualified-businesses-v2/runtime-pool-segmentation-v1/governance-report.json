@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-06-30T07:44:57.414Z",
+  "status": "passed",
+  "promotionAllowed": true,
+  "segmentationDir": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1",
+  "baseline": {
+    "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json",
+    "available": true,
+    "updated": false
+  },
+  "stats": {
+    "active": {
+      "count": 300,
+      "categories": {
+        "Auto": 89,
+        "Car Wash": 31,
+        "Restaurant": 54,
+        "Barber": 43,
+        "Salon": 35,
+        "Small Retail": 22,
+        "Other Storefront": 26
+      },
+      "qualityClasses": {
+        "Excellent": 198,
+        "Good": 102
+      },
+      "assignmentReasons": {
+        "highest_quality_verified_runtime_candidate": 300
+      }
+    },
+    "reserve": {
+      "count": 44,
+      "categories": {
+        "Apartment": 13,
+        "Business Services": 16,
+        "Other Storefront": 15
+      },
+      "qualityClasses": {
+        "Poor": 14,
+        "Average": 30
+      },
+      "assignmentReasons": {
+        "production_safe_but_not_active_quality_band": 44
+      }
+    },
+    "quarantine": {
+      "count": 106,
+      "categories": {
+        "Medical Office": 23,
+        "Dental Office": 33,
+        "Auto": 11,
+        "Tire": 1,
+        "Car Wash": 3,
+        "Restaurant": 6,
+        "Apartment": 7,
+        "Business Services": 3,
+        "Barber": 1,
+        "Small Retail": 4,
+        "Other Storefront": 13,
+        "Salon": 1
+      },
+      "qualityClasses": {
+        "Never Visit": 54,
+        "Unscored": 52
+      },
+      "assignmentReasons": {
+        "runtime_quality_never_visit": 54,
+        "do_not_recommend": 37,
+        "generic_or_restricted": 37,
+        "missing_numbered_address": 4,
+        "invalid_business_name": 12
+      }
+    }
+  },
+  "changeSummary": {
+    "added": [],
+    "removed": [],
+    "moved": [],
+    "scoringChanged": []
+  },
+  "failures": []
+}

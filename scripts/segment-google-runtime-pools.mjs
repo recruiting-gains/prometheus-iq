@@ -19,29 +19,29 @@ const outputFiles = {
   report: path.join(OUTPUT_DIR, "segmentation-report.md")
 };
 
-const genericNamePattern = /\b(mall|plaza|town center|shopping center|airport|campus|park\s*&\s*ride|park and ride|government|city hall|courthouse|police station|fire station|placeholder|corridor|sweep|area|district)\b/i;
-const safeMapsPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
+export const genericNamePattern = /\b(mall|plaza|town center|shopping center|airport|campus|park\s*&\s*ride|park and ride|government|city hall|courthouse|police station|fire station|placeholder|corridor|sweep|area|district)\b/i;
+export const safeMapsPattern = /^https:\/\/((www\.)?google\.[^/]+\/maps\/|maps\.google\.[^/]+\/|maps\.app\.goo\.gl\/)/i;
 const activeQualityClasses = new Set(["Excellent", "Good"]);
 const reserveQualityClasses = new Set(["Average", "Poor"]);
 
-function readJson(filePath) {
+export function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-function writeJson(filePath, value) {
+export function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2) + "\n");
 }
 
-function normalize(value) {
+export function normalize(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
 
-function numberedAddress(address) {
+export function numberedAddress(address) {
   return /(?:^|,\s*)\d+[a-z]?\s+[a-z0-9]/i.test(String(address || ""));
 }
 
-function runtimeMap(runtime) {
+export function runtimeMap(runtime) {
   const byPlaceId = new Map();
   for (const profileId of ["cruz", "anthony"]) {
     for (const place of runtime[profileId] || []) {
@@ -71,7 +71,7 @@ function runtimeMap(runtime) {
   return byPlaceId;
 }
 
-function gateFailures(record) {
+export function gateFailures(record) {
   const failures = [];
   if (!record.google_place_id) failures.push("missing_place_id");
   if (!record.business_name || /^\d+[a-z]?\s+/i.test(record.business_name)) failures.push("invalid_business_name");
@@ -85,7 +85,7 @@ function gateFailures(record) {
   return failures;
 }
 
-function runtimeMetadataFor(record, runtimeByPlaceId) {
+export function runtimeMetadataFor(record, runtimeByPlaceId) {
   const runtime = runtimeByPlaceId.get(record.google_place_id);
   return {
     runtimeProfiles: runtime?.profiles || [],
@@ -95,7 +95,7 @@ function runtimeMetadataFor(record, runtimeByPlaceId) {
   };
 }
 
-function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds) {
+export function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds) {
   const runtime = runtimeMetadataFor(record, runtimeByPlaceId);
   const failures = gateFailures(record);
   if (duplicatePlaceIds.has(record.google_place_id)) failures.push("duplicate_place_id");
@@ -112,7 +112,7 @@ function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds) {
   return { pool: "quarantine", reasons: ["missing_runtime_quality_class"], runtime };
 }
 
-function toSegmentRecord(record, segment, source) {
+export function toSegmentRecord(record, segment, source) {
   return {
     googlePlaceId: record.google_place_id,
     businessName: record.business_name,
@@ -138,7 +138,7 @@ function toSegmentRecord(record, segment, source) {
   };
 }
 
-function countReasons(records) {
+export function countReasons(records) {
   return records.reduce((acc, record) => {
     for (const reason of record.poolAssignmentReasons || []) {
       acc[reason] = (acc[reason] || 0) + 1;
@@ -147,7 +147,7 @@ function countReasons(records) {
   }, {});
 }
 
-function assertUnique(records, label) {
+export function assertUnique(records, label) {
   const seen = new Set();
   const duplicates = [];
   for (const record of records) {
@@ -198,7 +198,7 @@ Segmentation version: ${manifest.segmentationVersion}
 - ${outputFiles.manifest}`;
 }
 
-function main() {
+export function main() {
   const productionPayload = readJson(sourceFiles.production);
   const rejectedPayload = readJson(sourceFiles.rejected);
   const runtimePayload = readJson(sourceFiles.runtime);
@@ -333,4 +333,6 @@ function main() {
   }, null, 2));
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main();
+}
