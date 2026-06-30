@@ -81,6 +81,7 @@ Prometheus currently has operating materials for:
 - Pilot success measurement.
 - Security review.
 - Pricing strategy.
+- Enterprise sales methodology, discovery, qualification, demos, pilots, onboarding, ROI, objections, expansion, and renewal.
 - LLC launch.
 - Founder weekly rhythm.
 - Company origin and development history.
@@ -112,7 +113,6 @@ The following systems should eventually be built:
 - Data retention and deletion system.
 - Product release management system.
 - QA testing system.
-- Sales pipeline system.
 - Investor data room system.
 - Monthly finance close system.
 - Hiring and delegation system.

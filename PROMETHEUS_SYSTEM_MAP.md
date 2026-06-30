@@ -168,18 +168,41 @@ Primary rule: social media integrations must not store passwords, expose tokens,
 
 ### 11. Prometheus Sales
 
-Scope: sales enablement, demos, pilots, feedback, and investor/customer communication.
+Scope: go-to-market strategy, enterprise sales process, industry positioning, pilots, demos, customer acquisition, customer success workflow, expansion, renewal, and sales enablement for organizations that rely on outside sales representatives.
 
 Areas:
 
+- Go-To-Market Strategy
+- Enterprise Sales Methodology
+- Discovery
+- Qualification
 - Demo Preparation
+- Pilot Program Structure
+- Customer Onboarding
+- Customer Success Workflow
+- Objection Handling
+- ROI And Business Case
+- Industry Positioning
 - Investor Pitch
 - Customer Feedback
 - Beta Testing
 - Feature Requests
 - Sales Scripts
 
-Primary rule: sales artifacts should be send-ready, accurate, and separated from internal-only Founder Companion files.
+Primary rule: Sales owns reusable go-to-market systems and customer-facing sales documentation. Sales does not own Dashboard, Companion, CRM implementation, Infrastructure, Integrations, or Intelligence Engine implementation. Sales artifacts should be accurate, send-ready when marked sendable, and separated from internal-only Founder Companion files.
+
+Current foundation:
+
+- `sales/README.md`
+- `sales/enterprise-sales-methodology.md`
+- `sales/discovery-and-qualification.md`
+- `sales/demo-pilot-onboarding.md`
+- `sales/customer-success-lifecycle.md`
+- `sales/objection-library.md`
+- `sales/roi-calculator-framework.md`
+- `sales/industry-positioning.md`
+- `sales/founder-pitch-and-executive-presentation.md`
+- `sales/documentation-architecture.md`
 
 ### 12. Prometheus Research
 
