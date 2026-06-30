@@ -8,10 +8,11 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "security:check": "node scripts/security-check.mjs",
+    "dashboard:runtime-pool:check": "node scripts/verify-dashboard-runtime-pool-consumption.mjs",
     "data:refresh-google": "node scripts/refresh-google-qualified-businesses.mjs",
     "data:refresh-google:dry-run": "node scripts/refresh-google-qualified-businesses.mjs --dry-run",
     "verify:zero-google-api": "node scripts/verify-zero-live-google-api-calls.mjs",
-    "test": "npm run security:check && npm run build"
+    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

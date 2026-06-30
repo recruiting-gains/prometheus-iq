@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-E+KaEGzPtyFEzkKMKCSoCtSvMCNyTnhyw31mxckRa28='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-MR/gN/VSzG6aFM+6jXbzVQUNlhrfEHTtrGMWj5/0SAE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
   <link rel="manifest" href="manifest.webmanifest" id="prometheusManifest">
@@ -1423,13 +1423,16 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-30-runtime-data-integration-v1";
+    const appBuildVersion = "2026-06-30-runtime-active-pool-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v23-runtime-data-integration-assets";
+    const serviceWorkerCacheVersion = "prometheus-v24-runtime-active-pool-assets";
     const launchContextStoreKey = "prometheus-launch-context";
-    const runtimeDatasetPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+    const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+    const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
+    const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
     const appUrlParams = new URLSearchParams(location.search);
+    const requestedRuntimePool = appUrlParams.get("runtimePool") === "full" ? "full" : "active";
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
       appScriptExecuted: true,
@@ -1437,6 +1440,7 @@
       renderRouteIntelligenceReceivedRecommendation: false,
       runtimeDataSource: "embedded-fallback",
       runtimeDataStatus: "pending",
+      runtimeDataPool: requestedRuntimePool,
       lastError: "",
       lastUnhandledRejection: "",
       lastStage: "script-start",
@@ -12288,8 +12292,77 @@
       return place;
     }
 
+    function runtimeDistanceLabel(value) {
+      const distance = Number(value);
+      return Number.isFinite(distance) ? `${distance.toFixed(1)} mi` : "";
+    }
+
+    function runtimeProfileToPlace(raw, profile) {
+      if (!raw || typeof raw !== "object" || !profile || typeof profile !== "object") return null;
+      return normalizeRuntimeDatasetPlace({
+        id: profile.runtimeId,
+        name: raw.businessName,
+        category: raw.category,
+        window: raw.window || "Midday",
+        distance: runtimeDistanceLabel(raw.estimatedDistanceMiles),
+        priority: profile.priority ?? raw.priority,
+        address: raw.address,
+        latitude: raw.latitude,
+        longitude: raw.longitude,
+        permission: raw.permission,
+        accessType: raw.accessType,
+        askFor: raw.askFor,
+        googlePlaceId: raw.googlePlaceId,
+        googleMapsUrl: raw.googleMapsUrl,
+        sourceType: raw.sourceType,
+        qualityClass: profile.qualityClass || raw.qualityClass,
+        qualityScore: profile.qualityScore ?? raw.qualityScore,
+        confidence: raw.confidence,
+        expectedVisitDuration: raw.expectedVisitDuration,
+        expectedRoi: raw.expectedRoi,
+        decisionMakerAvailability: raw.decisionMakerAvailability,
+        expectedConversationOpportunity: raw.expectedConversationOpportunity,
+        qualityReason: raw.qualityReason,
+        truthBasis: raw.truthBasis,
+        notes: raw.notes,
+        repProfileId: profile.repProfileId,
+        seedRouteOrder: profile.seedRouteOrder,
+        sharedProductionRoute: true,
+        canRevisit: true
+      });
+    }
+
+    function normalizeSegmentedRuntimeDataset(payload) {
+      if (!payload || typeof payload !== "object") throw new Error("Runtime pool payload is not valid JSON.");
+      if (payload.sourceDatasetVersion !== runtimeDatasetExpectedVersion) {
+        throw new Error(`Runtime pool source version mismatch: ${payload.sourceDatasetVersion || "unknown"}.`);
+      }
+      if (payload.segmentationVersion !== runtimeDatasetExpectedSegmentationVersion) {
+        throw new Error(`Runtime pool segmentation version mismatch: ${payload.segmentationVersion || "unknown"}.`);
+      }
+      if (payload.pool !== "active") throw new Error(`Unsupported runtime pool: ${payload.pool || "unknown"}.`);
+      if (payload.runtimeBehaviorChanged !== false || payload.scoringChanged !== false) {
+        throw new Error("Runtime pool contract changed behavior or scoring.");
+      }
+      const records = Array.isArray(payload.records) ? payload.records : [];
+      if (Number(payload.count || 0) !== records.length) throw new Error("Runtime pool count does not match records.");
+      const seenIds = new Set();
+      const places = [];
+      records.forEach(raw => {
+        (Array.isArray(raw.runtimeProfiles) ? raw.runtimeProfiles : []).forEach(profile => {
+          const place = runtimeProfileToPlace(raw, profile);
+          if (!place || seenIds.has(place.id)) return;
+          seenIds.add(place.id);
+          places.push(place);
+        });
+      });
+      if (!places.length) throw new Error("Runtime active pool has no usable route records.");
+      return places;
+    }
+
     function normalizeRuntimeDataset(payload) {
       if (!payload || typeof payload !== "object") throw new Error("Runtime dataset is not valid JSON.");
+      if (payload.pool) return normalizeSegmentedRuntimeDataset(payload);
       if (payload.dataset_version !== runtimeDatasetExpectedVersion) {
         throw new Error(`Runtime dataset version mismatch: ${payload.dataset_version || "unknown"}.`);
       }
@@ -12308,17 +12381,33 @@
       return places;
     }
 
-    function applyRuntimeProductionDataset(payload) {
+    function runtimeDatasetLabel(payload, places) {
+      if (payload?.pool) return `${payload.segmentationVersion} ${payload.pool} (${places.length} route records)`;
+      return `${payload.dataset_version} (${places.length} route records)`;
+    }
+
+    function runtimeDatasetVersion(payload) {
+      return payload?.segmentationVersion || payload?.dataset_version || "unknown";
+    }
+
+    function runtimeDatasetPool(payload) {
+      return payload?.pool || "full";
+    }
+
+    function applyRuntimeProductionDataset(payload, sourcePath) {
       const places = normalizeRuntimeDataset(payload);
       runtimeDatasetPlaces = places;
       runtimeDatasetSource = {
-        label: `${payload.dataset_version} (${places.length} route records)`,
+        label: runtimeDatasetLabel(payload, places),
         status: "loaded",
-        version: payload.dataset_version,
-        generatedAt: cleanText(payload.generated_at, 80)
+        version: runtimeDatasetVersion(payload),
+        pool: runtimeDatasetPool(payload),
+        path: cleanText(sourcePath, 300),
+        generatedAt: cleanText(payload.generated_at || payload.generatedAt, 80)
       };
       window.prometheusDebugState.runtimeDataSource = runtimeDatasetSource.label;
       window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
+      window.prometheusDebugState.runtimeDataPool = runtimeDatasetSource.pool;
       state = withAnthonyApprovedRoute(state);
       try {
         localStorage.setItem(storeKey, JSON.stringify(state));
@@ -12328,26 +12417,42 @@
       return true;
     }
 
+    function runtimeDatasetCandidates() {
+      if (requestedRuntimePool === "full") return [{ pool: "full", path: runtimeDatasetFullPath }];
+      return [
+        { pool: "active", path: runtimeDatasetActivePath },
+        { pool: "full", path: runtimeDatasetFullPath }
+      ];
+    }
+
     async function loadRuntimeProductionDataset() {
       if (typeof fetch !== "function") {
         runtimeDatasetSource = { label: "embedded-fallback", status: "fetch-unavailable", version: "embedded" };
         window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
         return false;
       }
-      try {
-        const response = await fetch(runtimeDatasetPath, { cache: "no-store" });
-        if (!response.ok) throw new Error(`Runtime dataset request failed with ${response.status}.`);
-        const payload = await response.json();
-        return applyRuntimeProductionDataset(payload);
-      } catch (error) {
+      const errors = [];
+      for (const candidate of runtimeDatasetCandidates()) {
+        try {
+          const response = await fetch(candidate.path, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Runtime ${candidate.pool} dataset request failed with ${response.status}.`);
+          const payload = await response.json();
+          return applyRuntimeProductionDataset(payload, candidate.path);
+        } catch (error) {
+          errors.push(`${candidate.pool}: ${error?.message || String(error || "unavailable")}`);
+        }
+      }
+      {
         runtimeDatasetSource = {
           label: "embedded-fallback",
           status: "fallback",
           version: "embedded",
-          error: error?.message || String(error || "Runtime dataset unavailable")
+          pool: "embedded",
+          error: errors.join(" | ") || "Runtime dataset unavailable"
         };
         window.prometheusDebugState.runtimeDataSource = runtimeDatasetSource.label;
         window.prometheusDebugState.runtimeDataStatus = runtimeDatasetSource.status;
+        window.prometheusDebugState.runtimeDataPool = runtimeDatasetSource.pool;
         updateFounderDebugPanel({ stage: "runtime-dataset-fallback" });
         return false;
       }
@@ -13602,6 +13707,7 @@
           "localStorage key": storedState,
           "Runtime data source": window.prometheusDebugState.runtimeDataSource || runtimeDatasetSource.label,
           "Runtime data status": window.prometheusDebugState.runtimeDataStatus || runtimeDatasetSource.status,
+          "Runtime data pool": window.prometheusDebugState.runtimeDataPool || runtimeDatasetSource.pool || "unknown",
           "Cruz pool count": founderGoogleRoutePool(currentState.places || []).length,
           "Anthony pool count": anthonyApprovedRoutePool(currentState.places || []).length,
           "First candidate": first?.name || "None",
