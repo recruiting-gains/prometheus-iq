@@ -1,27 +1,61 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
-import { companyState } from "../prometheus-os/demo-data.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
 
 function nodesForHarness() {
   return [
-    ...companyState.statusCards.map((card) => ({
-      id: card.key,
-      label: card.label,
-      value: card.value,
-      detail: card.detail,
-      signal: card.signal
-    })),
     {
-      id: "founder-notes",
-      label: "Founder Notes",
+      id: "memory",
+      label: "Memory",
+      value: "Context",
+      detail: "Founder timeline, long-term goals, Active Pool decision recall, and where-we-left-off context."
+    },
+    {
+      id: "tasks",
+      label: "Tasks",
+      value: "Priority",
+      detail: "Highest ROI task, production blockers, day planning, and engineering versus sales focus."
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      value: "Placeholder",
+      detail: "Calendar-style planning is available from memory, but live calendar integration is not connected yet."
+    },
+    {
+      id: "messages",
+      label: "Messages",
+      value: "Draft",
+      detail: "Draft founder messages, leadership follow-ups, pilot asks, and operating updates without sending anything."
+    },
+    {
+      id: "prometheus-iq",
+      label: "Prometheus IQ",
+      value: "Product",
+      detail: "Product state, Dashboard/Data boundary, Route Intelligence relationship, and pilot readiness context."
+    },
+    {
+      id: "overwatch",
+      label: "Overwatch",
+      value: "Assignments",
+      detail: "Next subsystem assignment, blocker awareness, verification discipline, and engineering handoff support."
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
       value: "Signals",
-      detail: "Founder notes and current company signals."
+      detail: "Strategy critique, pricing direction, and proof metrics."
+    },
+    {
+      id: "strategy",
+      label: "Strategy",
+      value: "Founder",
+      detail: "Long-term goals, pricing, executive positioning, validation focus, and pilot proof logic."
     },
     {
       id: "voice-settings",
-      label: "Voice Settings",
-      value: "Configure",
+      label: "Voice",
+      value: "Live",
       detail: "Voice provider, always-listening, and premium TTS settings."
     }
   ];
@@ -29,21 +63,18 @@ function nodesForHarness() {
 
 function phrasesForNode(node) {
   const aliases = {
-    pilot: ["pilot readiness", "pilot ready"],
-    executive: ["executive readiness", "leadership packet", "executive packet", "packet"],
-    anthony: ["anthony beta", "anthony status", "beta status"],
-    route: ["route intelligence", "route status", "v4 1"],
-    github: ["github status", "git hub status", "repo status", "repository status"],
-    cloudflare: ["cloudflare", "deployment", "deployed"],
-    domain: ["domain email", "domain status", "email status"],
-    social: ["social media", "instagram", "prometheus iq"],
-    llc: ["llc", "business setup", "company setup"],
-    website: ["website status", "site status", "homepage status"],
-    "founder-notes": ["founder notes", "notes", "signals", "what should i do next"],
-    "voice-settings": ["voice settings", "voice", "settings"]
+    memory: ["open memory node", "founder memory", "company memory", "where we left off", "active pool", "long term goals"],
+    tasks: ["show tasks node", "open tasks node", "priority", "priorities", "what should i focus on today", "highest priority"],
+    calendar: ["calendar", "meetings", "schedule", "plan my day"],
+    messages: ["messages", "message", "draft message", "email", "write a message"],
+    "prometheus-iq": ["open prometheus iq node", "prometheus iq", "dashboard data", "dashboard and data", "route intelligence", "product status"],
+    overwatch: ["overwatch", "assign next", "next subsystem", "handoff"],
+    analytics: ["analytics", "metrics", "strategy critique", "weaknesses", "pricing"],
+    strategy: ["strategy", "founder strategy", "long term goals", "pricing direction"],
+    "voice-settings": ["voice settings", "voice", "settings", "tts", "stt"]
   }[node.id] || [];
 
-  return [node.label, node.key, ...aliases].map(normalizeIntentText).filter(Boolean);
+  return [node.label, node.id, node.key, ...aliases].map(normalizeIntentText).filter(Boolean);
 }
 
 const bannedResponseText = [
@@ -149,11 +180,11 @@ for (const phrase of reasoningCases) {
 }
 
 const explicitNodeCases = [
-  "Prometheus, open founder notes",
-  "Prometheus, open route intelligence",
+  "Prometheus, open memory node",
+  "Prometheus, open Prometheus IQ node",
   "Prometheus, open voice settings",
-  "Prometheus, display website status",
-  "Prometheus, show pilot readiness card"
+  "Prometheus, display calendar node",
+  "Prometheus, show tasks node"
 ];
 
 for (const phrase of explicitNodeCases) {
@@ -189,6 +220,64 @@ for (const phrase of explicitNodeCases) {
   }
 
   console.log(`PASS ${phrase} -> route:${route.type} node:${route.matchedNode.nodeId}`);
+}
+
+const founderAcceptanceCases = [
+  ["Good morning, Companion.", ["good morning", "highest roi"]],
+  ["Catch me up on where we left off.", ["where we left off", "latest verified memory"]],
+  ["What’s the current engineering status of Prometheus?", ["engineering status", "validation mode"]],
+  ["Help me draft a message.", ["message draft", "founder message draft"]],
+  ["Remind me what meetings I have.", ["calendar access", "missing integration"]],
+  ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
+  ["Help me plan my day.", ["founder day plan", "calendar note"]],
+  ["How should we price this feature?", ["pricing direction", "operational value"]],
+  ["What did we decide about Active Pool?", ["active pool decision", "active pool"]],
+  ["What are weaknesses in my current strategy?", ["strategy weaknesses", "overbuilding"]],
+  ["How does the Dashboard interact with the Data subsystem?", ["dashboard and data boundary", "data supplies governed records"]]
+];
+
+for (const [phrase, expected] of founderAcceptanceCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.filter((item) => !text.includes(item));
+  if (response.metadata?.founderAssistant !== true || response.metadata?.routeSelected !== "founder_assistant" || missing.length) {
+    fail("founder-acceptance-command", {
+      phrase,
+      title: response.title,
+      founderAssistant: response.metadata?.founderAssistant === true,
+      routeSelected: response.metadata?.routeSelected,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> founder-assistant:${response.title}`);
+}
+
+const protectedPassingCases = [
+  ["What should I focus on today?", ["highest roi", "validation"]],
+  ["What’s the next highest-priority task?", ["highest roi", "anthony"]],
+  ["What production blockers remain?", ["production blockers", "anthony"]],
+  ["Should I focus on engineering or sales today?", ["highest roi", "validation"]],
+  ["What should Overwatch assign next?", ["overwatch next assignment", "founder acceptance"]]
+];
+
+for (const [phrase, expected] of protectedPassingCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const bannedHit = bannedResponseText.find((item) => text.includes(item));
+  const missing = expected.filter((item) => !text.includes(item));
+  if (bannedHit || missing.length) {
+    fail("protected-passing-command", {
+      phrase,
+      title: response.title,
+      bannedHit,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> protected:${response.title}`);
 }
 
 if (failures) {

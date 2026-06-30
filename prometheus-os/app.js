@@ -310,26 +310,74 @@ function stopBackendSttLoop(reason = "") {
 
 function systemNodes() {
   return [
-    ...companyState.statusCards.map((card) => ({
-      id: card.key,
-      label: card.label,
-      value: card.value,
-      signal: card.signal,
-      detail: card.detail,
-      command: `Prometheus, review ${card.label} status.`
-    })),
     {
-      id: "founder-notes",
-      label: "Founder Notes",
-      value: "Signals",
+      id: "memory",
+      label: "Memory",
+      value: "Context",
       signal: "ready",
-      detail: "Highest-leverage founder notes, daily priorities, and next moves orbit Prometheus as company intelligence.",
-      command: "Prometheus, what should I do next?"
+      detail: "Founder timeline, long-term goals, Active Pool decision recall, and where-we-left-off context.",
+      command: "Prometheus, catch me up on where we left off."
+    },
+    {
+      id: "tasks",
+      label: "Tasks",
+      value: "Priority",
+      signal: "ready",
+      detail: "Highest ROI task, production blockers, day planning, and engineering versus sales focus.",
+      command: "Prometheus, what should I focus on today?"
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      value: "Placeholder",
+      signal: "pending",
+      detail: "Calendar-style planning is available from memory, but live calendar integration is not connected yet.",
+      command: "Prometheus, remind me what meetings I have."
+    },
+    {
+      id: "messages",
+      label: "Messages",
+      value: "Draft",
+      signal: "ready",
+      detail: "Draft founder messages, leadership follow-ups, pilot asks, and operating updates without sending anything.",
+      command: "Prometheus, help me draft a message."
+    },
+    {
+      id: "prometheus-iq",
+      label: "Prometheus IQ",
+      value: "Product",
+      signal: "ready",
+      detail: "Product state, Dashboard/Data boundary, Route Intelligence relationship, and pilot readiness context.",
+      command: "Prometheus, how does the Dashboard interact with the Data subsystem?"
+    },
+    {
+      id: "overwatch",
+      label: "Overwatch",
+      value: "Assignments",
+      signal: "ready",
+      detail: "Next subsystem assignment, blocker awareness, verification discipline, and engineering handoff support.",
+      command: "Prometheus, what should Overwatch assign next?"
+    },
+    {
+      id: "analytics",
+      label: "Analytics",
+      value: "Signals",
+      signal: "pending",
+      detail: "Strategy critique, pricing direction, and proof metrics. Live customer analytics are not connected to Companion.",
+      command: "Prometheus, what are weaknesses in my current strategy?"
+    },
+    {
+      id: "strategy",
+      label: "Strategy",
+      value: "Founder",
+      signal: "ready",
+      detail: "Long-term goals, pricing, executive positioning, validation focus, and pilot proof logic.",
+      command: "Prometheus, what are my long-term goals?"
     },
     {
       id: "voice-settings",
-      label: "Voice Settings",
-      value: "Configure",
+      label: "Voice",
+      value: "Live",
       signal: "pending",
       detail: "Configure always-listening mode, browser voice selection, and future premium voice provider options.",
       command: "Prometheus, open voice settings."
@@ -346,7 +394,7 @@ function renderNetwork() {
     const radius = index % 2 === 0 ? "clamp(205px, 23vw, 330px)" : "clamp(158px, 18vw, 270px)";
     return `
       <button
-        class="status-card system-node"
+        class="system-node command-node"
         type="button"
         data-node-id="${node.id}"
         data-signal="${node.signal}"
@@ -417,18 +465,15 @@ function normalizeCommandText(value) {
 function nodePhrases(node) {
   const base = normalizeCommandText(`${node.label} ${node.value} ${node.id}`);
   const aliases = {
-    pilot: ["pilot readiness", "pilot ready"],
-    executive: ["executive readiness", "leadership packet", "executive packet", "packet"],
-    anthony: ["anthony beta", "anthony status", "beta status"],
-    route: ["route intelligence", "route status", "v4 1"],
-    github: ["github status", "git hub status", "repo status", "repository status"],
-    cloudflare: ["cloudflare", "deployment", "deployed"],
-    domain: ["domain email", "domain status", "email status"],
-    social: ["social media", "instagram", "prometheus iq"],
-    llc: ["llc", "business setup", "company setup"],
-    website: ["website status", "site status", "homepage status"],
-    "founder-notes": ["founder notes", "notes", "signals", "what should i do next"],
-    "voice-settings": ["voice settings", "voice", "settings"]
+    memory: ["open memory node", "founder memory", "company memory", "where we left off", "active pool", "long term goals"],
+    tasks: ["show tasks node", "open tasks node", "priority", "priorities", "what should i focus on today", "highest priority"],
+    calendar: ["calendar", "meetings", "schedule", "plan my day"],
+    messages: ["messages", "message", "draft message", "email", "write a message"],
+    "prometheus-iq": ["open prometheus iq node", "prometheus iq", "dashboard data", "dashboard and data", "route intelligence", "product status"],
+    overwatch: ["overwatch", "assign next", "next subsystem", "handoff"],
+    analytics: ["analytics", "metrics", "strategy critique", "weaknesses", "pricing"],
+    strategy: ["strategy", "founder strategy", "long term goals", "pricing direction"],
+    "voice-settings": ["voice settings", "voice", "settings", "tts", "stt"]
   }[node.id] || [];
 
   return [base, ...aliases].map(normalizeCommandText).filter(Boolean);

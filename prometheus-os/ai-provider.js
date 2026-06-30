@@ -9,6 +9,7 @@ import { createContextualFollowUpResponse, isContextualFollowUp } from "./conver
 import { createKnowledgeGraphSummary, resolveEntityKey } from "./knowledge-graph.js";
 import { createMemorySystemSummary, createTimelineAnswer, createUnfinishedWorkRecap } from "./memory-system.js";
 import { cognitiveEngine } from "./cognitive-engine.js";
+import { createFounderAssistantResponse } from "./founder-assistant.js";
 
 export class AIProvider {
   constructor({ mode = "local-demo" } = {}) {
@@ -43,6 +44,11 @@ export class AIProvider {
         permission: permissionLabel(permissionLevel),
         tone: "blocked"
       });
+    }
+
+    const founderAssistantResponse = createFounderAssistantResponse(normalized);
+    if (founderAssistantResponse) {
+      return this.remember(cleanMessage, founderAssistantResponse);
     }
 
     if (cognitiveEngine.shouldAnswer(normalized, this.history)) {
@@ -133,6 +139,9 @@ export class AIProvider {
         tone: "idle"
       };
     }
+
+    const founderAssistantResponse = createFounderAssistantResponse(command);
+    if (founderAssistantResponse) return founderAssistantResponse;
 
     if (cognitiveEngine.shouldAnswer(command, this.history)) {
       return cognitiveEngine.answer(command, this.history);
