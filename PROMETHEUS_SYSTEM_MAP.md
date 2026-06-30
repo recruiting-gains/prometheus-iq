@@ -183,18 +183,34 @@ Primary rule: sales artifacts should be send-ready, accurate, and separated from
 
 ### 12. Prometheus Research
 
-Scope: future strategy, ideas, competitive research, patents, and architecture exploration.
+Scope: strategic intelligence, future strategy, ideas, competitive research, patents, market monitoring, and architecture exploration.
 
 Areas:
 
 - Competitive Analysis
 - AI Research
+- Founder Intelligence Briefs
+- Startup Funding
+- Outside Sales Best Practices
+- Industry Research
+- Regulation Watch
 - Product Ideas
 - Future Features
 - Patents
 - Architecture
 
-Primary rule: research should be labeled as research. Do not treat research ideas as implemented features or production commitments.
+Primary rule: research should be labeled as research. Do not treat research ideas as implemented features or production commitments. Research must not directly modify Dashboard, Companion, CRM, Infrastructure, Website, or Intelligence Engine; future integrations require approved subsystem handoffs.
+
+Current foundation:
+
+- `research/README.md`
+- `research/architecture.md`
+- `research/source-policy.md`
+- `research/templates/founder-intelligence-brief.md`
+- `research/schemas/founder-intelligence-brief.schema.json`
+- `research/taxonomy/research-taxonomy.json`
+- `research/registers/source-register.json`
+- `research/registers/intelligence-backlog.json`
 
 ## Workstream Routing Checklist
 

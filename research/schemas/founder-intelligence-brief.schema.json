@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/research/founder-intelligence-brief.schema.json",
+  "title": "Prometheus Founder Intelligence Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "briefId",
+    "date",
+    "window",
+    "status",
+    "executiveReadout",
+    "categoryCoverage",
+    "intelligenceItems",
+    "evidenceLedger",
+    "boundaryConfirmation"
+  ],
+  "properties": {
+    "briefId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "window": {
+      "type": "string",
+      "enum": ["daily", "weekly", "monthly", "event-triggered"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "reviewed", "approved-for-handoff", "archived"]
+    },
+    "executiveReadout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verifiedFacts", "hypotheses", "founderDecisionPoints"],
+      "properties": {
+        "verifiedFacts": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "hypotheses": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "founderDecisionPoints": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "categoryCoverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "AI",
+        "Competition",
+        "Funding",
+        "Sales",
+        "Industries",
+        "Technology",
+        "Customer Pain Points",
+        "Enterprise",
+        "Regulations",
+        "Opportunities",
+        "Risks"
+      ],
+      "properties": {
+        "AI": { "$ref": "#/$defs/categorySummary" },
+        "Competition": { "$ref": "#/$defs/categorySummary" },
+        "Funding": { "$ref": "#/$defs/categorySummary" },
+        "Sales": { "$ref": "#/$defs/categorySummary" },
+        "Industries": { "$ref": "#/$defs/categorySummary" },
+        "Technology": { "$ref": "#/$defs/categorySummary" },
+        "Customer Pain Points": { "$ref": "#/$defs/categorySummary" },
+        "Enterprise": { "$ref": "#/$defs/categorySummary" },
+        "Regulations": { "$ref": "#/$defs/categorySummary" },
+        "Opportunities": { "$ref": "#/$defs/categorySummary" },
+        "Risks": { "$ref": "#/$defs/categorySummary" }
+      }
+    },
+    "intelligenceItems": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/intelligenceItem" }
+    },
+    "evidenceLedger": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "handoffRecommendations": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Companion": { "type": "array", "items": { "$ref": "#/$defs/handoff" } },
+        "Founder Dashboard": { "type": "array", "items": { "$ref": "#/$defs/handoff" } },
+        "Website": { "type": "array", "items": { "$ref": "#/$defs/handoff" } },
+        "Social Media": { "type": "array", "items": { "$ref": "#/$defs/handoff" } },
+        "Intelligence Engine": { "type": "array", "items": { "$ref": "#/$defs/handoff" } }
+      }
+    },
+    "boundaryConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "productionDataModified",
+        "productionSubsystemModified",
+        "unsupportedScrapingUsed",
+        "factsAndHypothesesSeparated"
+      ],
+      "properties": {
+        "productionDataModified": { "type": "boolean", "const": false },
+        "productionSubsystemModified": { "type": "boolean", "const": false },
+        "unsupportedScrapingUsed": { "type": "boolean", "const": false },
+        "factsAndHypothesesSeparated": { "type": "boolean", "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "categorySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["covered", "summary"],
+      "properties": {
+        "covered": { "type": "boolean" },
+        "summary": { "type": "string" }
+      }
+    },
+    "intelligenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "category",
+        "industryLens",
+        "sourceTier",
+        "confidence",
+        "verifiedFacts",
+        "hypotheses",
+        "prometheusImplication",
+        "recommendedAction"
+      ],
+      "properties": {
+        "title": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "AI",
+            "Competition",
+            "Funding",
+            "Sales",
+            "Industries",
+            "Technology",
+            "Customer Pain Points",
+            "Enterprise",
+            "Regulations",
+            "Opportunities",
+            "Risks"
+          ]
+        },
+        "industryLens": { "type": "array", "items": { "type": "string" } },
+        "sourceTier": { "type": "string", "enum": ["Tier 1", "Tier 2", "Tier 3", "Mixed"] },
+        "confidence": { "type": "string", "enum": ["high", "medium", "low"] },
+        "verifiedFacts": { "type": "array", "items": { "type": "string" } },
+        "hypotheses": { "type": "array", "items": { "type": "string" } },
+        "prometheusImplication": { "type": "string" },
+        "recommendedAction": { "type": "string" },
+        "futureSubsystemHandoff": { "$ref": "#/$defs/handoff" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "sourceTitle", "publisher", "sourceRef", "date", "trustTier", "limitation"],
+      "properties": {
+        "claim": { "type": "string" },
+        "sourceTitle": { "type": "string" },
+        "publisher": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "date": { "type": "string" },
+        "trustTier": { "type": "string", "enum": ["Tier 1", "Tier 2", "Tier 3"] },
+        "limitation": { "type": "string" }
+      }
+    },
+    "handoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["targetSubsystem", "recommendation", "approvalRequired"],
+      "properties": {
+        "targetSubsystem": {
+          "type": "string",
+          "enum": ["Companion", "Founder Dashboard", "Website", "Social Media", "Intelligence Engine"]
+        },
+        "recommendation": { "type": "string" },
+        "approvalRequired": { "type": "boolean", "const": true }
+      }
+    }
+  }
+}

@@ -56,6 +56,48 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### Completed Work Lane: Research Intelligence Foundation v1
+
+Primary subsystem: Prometheus Research
+
+Secondary subsystems:
+
+- None. Future handoff targets are advisory only and not integrated.
+
+Status:
+
+Complete. See repository history and the originating Overwatch handoff for the commit hash.
+
+Verified outcome:
+
+- Created isolated Research foundation under `research/`.
+- Established Research mission, operating rules, architecture, source policy, taxonomy, source register, backlog, Founder Intelligence Brief template, and machine-readable brief schema.
+- Added validation gate `npm run research:validate`.
+- Added Research test coverage `npm run test:research`.
+- Updated Research system-map entry to prevent duplicate future Research structures.
+- Did not modify production data.
+- Did not implement Dashboard, Companion, CRM, Infrastructure, Website, or Intelligence Engine integrations.
+
+Files changed:
+
+- `research/README.md`
+- `research/architecture.md`
+- `research/source-policy.md`
+- `research/templates/founder-intelligence-brief.md`
+- `research/schemas/founder-intelligence-brief.schema.json`
+- `research/taxonomy/research-taxonomy.json`
+- `research/registers/source-register.json`
+- `research/registers/intelligence-backlog.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+- `package.json`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Remaining blocker:
+
+`COMPANY_IDENTITY.md` was requested but is not present in the repository. `docs/prometheus-company-manual.md` was used as the closest available company identity source.
+
 ### Completed Work Lane: Google Places Refresh Engine v1
 
 Primary subsystem: Prometheus Data

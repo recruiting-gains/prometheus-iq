@@ -1,0 +1,81 @@
+{
+  "version": "research-intelligence-foundation-v1",
+  "mission": "Strategic intelligence for Prometheus as an AI operating system for outside sales organizations.",
+  "primaryCategories": [
+    "AI",
+    "Competition",
+    "Funding",
+    "Sales",
+    "Industries",
+    "Technology",
+    "Customer Pain Points",
+    "Enterprise",
+    "Regulations",
+    "Opportunities",
+    "Risks"
+  ],
+  "responsibilityAreas": [
+    "AI industry developments",
+    "Startup funding activity",
+    "Competitor intelligence",
+    "Outside sales best practices",
+    "Route optimization research",
+    "Customer acquisition trends",
+    "Sales psychology",
+    "Enterprise software trends",
+    "Healthcare field sales",
+    "Medical device sales",
+    "Solar",
+    "Roofing",
+    "Pest control",
+    "Security",
+    "Telecom",
+    "Commercial services",
+    "Industrial sales",
+    "Logistics",
+    "Emerging technologies",
+    "Patent activity",
+    "Government and regulatory changes affecting field sales",
+    "Market opportunities",
+    "Founder education",
+    "Venture capital trends"
+  ],
+  "industryLenses": [
+    "Fitness and gyms",
+    "Healthcare field sales",
+    "Medical device sales",
+    "Solar",
+    "Roofing",
+    "Pest control",
+    "Security",
+    "Telecom",
+    "Commercial services",
+    "Industrial sales",
+    "Logistics"
+  ],
+  "standardQuestions": [
+    "What changed externally?",
+    "What evidence supports the claim?",
+    "What is verified fact versus hypothesis?",
+    "Which outside-sales industries are affected?",
+    "Does this strengthen or weaken the Prometheus thesis?",
+    "What should the founder know now?",
+    "What should engineering avoid until the evidence improves?",
+    "Which subsystem might need a future approved handoff?"
+  ],
+  "futureHandoffTargets": [
+    "Companion",
+    "Founder Dashboard",
+    "Website",
+    "Social Media",
+    "Intelligence Engine"
+  ],
+  "prohibitedTargetsForDirectModification": [
+    "Dashboard",
+    "Companion",
+    "CRM",
+    "Infrastructure",
+    "Website",
+    "Intelligence Engine"
+  ]
+}

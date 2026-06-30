@@ -1,0 +1,87 @@
+{
+  "version": "research-source-register-v1",
+  "lastUpdated": "2026-06-30",
+  "sourcePolicy": "../source-policy.md",
+  "sources": [
+    {
+      "id": "internal-product-vision",
+      "title": "Prometheus IQ Product Vision",
+      "publisher": "Prometheus",
+      "sourceRef": "docs/product-vision.md",
+      "trustTier": "Tier 1",
+      "categories": ["Sales", "Industries", "Opportunities"],
+      "usage": "Internal product thesis and horizontal industry direction.",
+      "limitations": "Internal strategy source; external market claims still need external evidence."
+    },
+    {
+      "id": "internal-company-manual",
+      "title": "Prometheus Company Manual",
+      "publisher": "Prometheus",
+      "sourceRef": "docs/prometheus-company-manual.md",
+      "trustTier": "Tier 1",
+      "categories": ["Enterprise", "Risks"],
+      "usage": "Company operating context and certified milestone reference.",
+      "limitations": "Used as company identity substitute because COMPANY_IDENTITY.md is not present."
+    },
+    {
+      "id": "internal-competitor-research",
+      "title": "Prometheus Competitor Research",
+      "publisher": "Prometheus",
+      "sourceRef": "docs/competitor-research.md",
+      "trustTier": "Tier 1",
+      "categories": ["Competition", "Sales", "Risks"],
+      "usage": "Existing competitive-positioning baseline to prevent duplicate research documents.",
+      "limitations": "External competitor facts should be refreshed from primary sources before public use."
+    },
+    {
+      "id": "internal-competitor-pricing",
+      "title": "Competitor Pricing And Revenue Snapshot",
+      "publisher": "Prometheus",
+      "sourceRef": "docs/competitor-pricing-revenue.md",
+      "trustTier": "Tier 1",
+      "categories": ["Competition", "Funding", "Enterprise"],
+      "usage": "Existing pricing and revenue baseline to reuse during future competitor refreshes.",
+      "limitations": "Private-company revenue estimates are directional, not audited facts."
+    },
+    {
+      "id": "uspto-patents",
+      "title": "USPTO Patent Public Search",
+      "publisher": "United States Patent and Trademark Office",
+      "sourceRef": "https://ppubs.uspto.gov/pubwebapp/",
+      "trustTier": "Tier 1",
+      "categories": ["Technology", "Risks", "Opportunities"],
+      "usage": "Patent activity checks for route optimization, field sales AI, territory intelligence, and related claims.",
+      "limitations": "Patent interpretation requires qualified legal review."
+    },
+    {
+      "id": "sec-edgar",
+      "title": "SEC EDGAR",
+      "publisher": "U.S. Securities and Exchange Commission",
+      "sourceRef": "https://www.sec.gov/edgar/search/",
+      "trustTier": "Tier 1",
+      "categories": ["Funding", "Enterprise", "Risks"],
+      "usage": "Funding, public-company filings, risk factors, and market signals.",
+      "limitations": "Many direct competitors are private and may not appear in EDGAR."
+    },
+    {
+      "id": "federal-register",
+      "title": "Federal Register",
+      "publisher": "National Archives",
+      "sourceRef": "https://www.federalregister.gov/",
+      "trustTier": "Tier 1",
+      "categories": ["Regulations", "Risks", "Enterprise"],
+      "usage": "Regulatory monitoring for employment, telecommunications, healthcare, privacy, and field-sales compliance.",
+      "limitations": "Regulatory impact should be reviewed with qualified counsel."
+    },
+    {
+      "id": "openai-docs",
+      "title": "OpenAI Documentation",
+      "publisher": "OpenAI",
+      "sourceRef": "https://platform.openai.com/docs",
+      "trustTier": "Tier 1",
+      "categories": ["AI", "Technology"],
+      "usage": "AI product capability and integration research from official documentation.",
+      "limitations": "Documentation changes frequently and should be checked before implementation recommendations."
+    }
+  ]
+}

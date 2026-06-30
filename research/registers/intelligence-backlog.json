@@ -1,0 +1,60 @@
+{
+  "version": "research-intelligence-backlog-v1",
+  "lastUpdated": "2026-06-30",
+  "items": [
+    {
+      "id": "brief-cadence-foundation",
+      "category": "Enterprise",
+      "industryLens": ["Fitness and gyms", "All outside sales"],
+      "question": "What cadence should Founder Intelligence Briefs follow during early beta validation?",
+      "status": "open",
+      "recommendedCadence": "weekly",
+      "handoffTarget": null
+    },
+    {
+      "id": "competitor-refresh-field-sales-ai",
+      "category": "Competition",
+      "industryLens": ["Solar", "Roofing", "Pest control", "Telecom", "Security"],
+      "question": "Which field-sales platforms are adding AI copilots, buyer scoring, or route intelligence?",
+      "status": "open",
+      "recommendedCadence": "monthly",
+      "handoffTarget": null
+    },
+    {
+      "id": "funding-activity-field-sales-ai",
+      "category": "Funding",
+      "industryLens": ["All outside sales"],
+      "question": "Are investors funding vertical AI, field service, route optimization, or sales execution companies?",
+      "status": "open",
+      "recommendedCadence": "monthly",
+      "handoffTarget": null
+    },
+    {
+      "id": "patent-watch-route-intelligence",
+      "category": "Technology",
+      "industryLens": ["All outside sales"],
+      "question": "What patent activity exists around route optimization, territory intelligence, and AI-guided field sales?",
+      "status": "open",
+      "recommendedCadence": "quarterly",
+      "handoffTarget": null
+    },
+    {
+      "id": "regulatory-watch-field-reps",
+      "category": "Regulations",
+      "industryLens": ["Healthcare field sales", "Medical device sales", "Telecom"],
+      "question": "Which regulatory changes could affect field representatives, outreach, privacy, location tracking, or healthcare sales?",
+      "status": "open",
+      "recommendedCadence": "monthly",
+      "handoffTarget": null
+    },
+    {
+      "id": "customer-pain-point-library",
+      "category": "Customer Pain Points",
+      "industryLens": ["Fitness and gyms", "Solar", "Roofing", "Pest control", "Security", "Telecom"],
+      "question": "Which pains repeat across outside-sales teams before leads enter a CRM?",
+      "status": "open",
+      "recommendedCadence": "weekly during discovery",
+      "handoffTarget": null
+    }
+  ]
+}
