@@ -83,6 +83,10 @@ function fileContains(path, needles) {
   return needles.every((needle) => text.includes(needle));
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function generateSpeechSample(text) {
   const base = join(tmpdir(), `prometheus-founder-stt-${process.pid}`);
   const aiffPath = `${base}.aiff`;
@@ -96,6 +100,53 @@ function generateSpeechSample(text) {
   if (!convertResult.ok) return { ok: false, error: convertResult.stderr || "afconvert command failed" };
 
   return { ok: existsSync(wavPath), wavPath };
+}
+
+async function postAudioWithRetry({ url, audio, headers, attempts = 3 }) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: audio
+      });
+      return { response, attempt };
+    } catch (error) {
+      lastError = error;
+      await fetchJson("http://127.0.0.1:8792/api/health").catch(() => null);
+      if (attempt < attempts) await sleep(900 * attempt);
+    }
+  }
+
+  throw lastError || new Error("Audio POST failed.");
+}
+
+async function postJsonWithRetry(url, payload, attempts = 3) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return { ...(await postJson(url, payload)), attempt };
+    } catch (error) {
+      lastError = error;
+      await fetchJson("http://127.0.0.1:8792/api/health").catch(() => null);
+      if (attempt < attempts) await sleep(900 * attempt);
+    }
+  }
+
+  throw lastError || new Error("JSON POST failed.");
+}
+
+async function generateSpeechSampleWithRetry(text, attempts = 3) {
+  let lastResult = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const result = generateSpeechSample(text);
+    if (result.ok) return { ...result, attempt };
+    lastResult = result;
+    if (attempt < attempts) await sleep(700 * attempt);
+  }
+
+  return { ...(lastResult || { ok: false, error: "speech sample generation failed" }), attempt: attempts };
 }
 
 async function verify() {
@@ -335,18 +386,18 @@ async function verify() {
   }
 
   try {
-    const sample = generateSpeechSample("Prometheus founder acceptance speech test");
+    const sample = await generateSpeechSampleWithRetry("Prometheus founder acceptance speech test");
     if (!sample.ok) {
-      record("stt", false, `STT sample generation failed: ${sample.error || "unknown error"}`);
+      record("stt", false, `STT sample generation failed after ${sample.attempt} attempts: ${sample.error || "unknown error"}`);
     } else {
       const audio = readFileSync(sample.wavPath);
-      const response = await fetch("http://127.0.0.1:8792/api/stt", {
-        method: "POST",
+      const { response, attempt } = await postAudioWithRetry({
+        url: "http://127.0.0.1:8792/api/stt",
+        audio,
         headers: {
           "Content-Type": "audio/wav",
           "X-Prometheus-STT-Provider": "openai"
-        },
-        body: audio
+        }
       });
       const body = await response.json().catch(() => ({}));
       const text = String(body.text || "").toLowerCase();
@@ -356,9 +407,10 @@ async function verify() {
         text.includes("founder") &&
         text.includes("test");
       record("stt", ok, ok
-        ? `OpenAI STT transcribed generated speech sample: ${body.text}`
+        ? `OpenAI STT transcribed generated speech sample on attempt ${attempt}: ${body.text}`
         : `OpenAI STT failed or returned unexpected transcript with HTTP ${response.status}`, {
           status: response.status,
+          attempt,
           provider: body.provider,
           text: body.text,
           error: body.error
@@ -369,15 +421,16 @@ async function verify() {
   }
 
   try {
-    const assistant = await postJson("http://127.0.0.1:8792/api/assistant", {
+    const assistant = await postJsonWithRetry("http://127.0.0.1:8792/api/assistant", {
       message: "Give me a concise founder readiness check for Prometheus Companion."
     });
     const text = String(assistant.json?.text || "");
     const ok = assistant.ok && text.length >= 40;
     record("assistant-conversation", ok, ok
-      ? "backend assistant returned founder readiness response"
+      ? `backend assistant returned founder readiness response on attempt ${assistant.attempt}`
       : `backend assistant failed with HTTP ${assistant.status}`, {
         status: assistant.status,
+        attempt: assistant.attempt,
         chars: text.length,
         error: assistant.json?.error
       });

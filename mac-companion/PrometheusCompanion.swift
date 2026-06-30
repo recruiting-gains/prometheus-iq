@@ -5,7 +5,7 @@ import Foundation
 import WebKit
 
 @MainActor
-final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate, WKNavigationDelegate, WKUIDelegate {
+final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private let founderGreeting = "Hey Boss lets get to work im here for any update you need"
     private let osURL = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_OS_URL"] ?? "http://127.0.0.1:8791/prometheus-os/")!
     private let ttsEndpoint = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_TTS_ENDPOINT"] ?? "http://127.0.0.1:8792/api/tts")!
@@ -263,6 +263,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
                 forMainFrameOnly: true
             )
             configuration.userContentController.addUserScript(nativeCaptureScript)
+            configuration.userContentController.add(self, name: "prometheusLog")
             webView = WKWebView(frame: screenFrame, configuration: configuration)
             webView.wantsLayer = true
             webView.layer?.backgroundColor = NSColor.black.cgColor
@@ -401,6 +402,20 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         log("Prometheus OS WebView process terminated. Reloading.")
         webView.loadHTMLString(Self.loadingHTML, baseURL: nil)
         loadPrometheusOSWhenReady()
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "prometheusLog" else { return }
+
+        if let payload = message.body as? [String: Any] {
+            let stage = String(describing: payload["stage"] ?? "WebView voice")
+            let detail = String(describing: payload["message"] ?? "")
+            let kind = String(describing: payload["kind"] ?? "info")
+            log("WebView voice \(kind): \(stage)\(detail.isEmpty ? "" : ": \(detail)")")
+            return
+        }
+
+        log("WebView voice info: \(String(describing: message.body))")
     }
 
     @available(macOS 12.0, *)

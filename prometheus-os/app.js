@@ -846,6 +846,7 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
         try {
           const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
           if (blob.size < 1200) {
+            debugVoice("no command audio", `captured ${blob.size} bytes from ${source}`, { kind: "warn" });
             resolve({ ok: false, error: "No usable command audio was captured." });
             return;
           }
@@ -882,12 +883,25 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
       if (recorder.state === "recording") recorder.stop();
     }, duration);
 
-    const result = await transcriptPromise;
+    const result = await Promise.race([
+      transcriptPromise,
+      new Promise((resolve) => {
+        window.setTimeout(() => {
+          try {
+            if (recorder.state === "recording") recorder.stop();
+          } catch {
+            // Recorder may already be stopped by the normal capture timer.
+          }
+          resolve({ ok: false, error: "Speech capture timed out." });
+        }, duration + 5000);
+      })
+    ]);
     backendSttBusy = false;
     backendSttRecorder = null;
 
     if (!result.ok) {
       setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
+      debugVoice("no command detected", result.error || "No command was detected.", { kind: "warn" });
       if (!silentNoInput) {
         openDetail({
           kicker: "Speech capture",
