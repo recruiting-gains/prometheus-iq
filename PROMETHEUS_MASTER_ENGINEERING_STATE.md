@@ -800,6 +800,90 @@ Next recommended subsystem:
 
 Prometheus Social Media.
 
+### Completed Work Lane: Social Media / Marketing Analytics Architecture v1
+
+Primary subsystem: Prometheus Social Media
+
+Secondary subsystems:
+
+- Prometheus Infrastructure
+- Prometheus Integrations
+- Prometheus Website
+- Prometheus CRM
+- Prometheus Dashboard
+
+Task:
+
+Social Media / Marketing Analytics Architecture v1.
+
+Status:
+
+Complete, committed, pushed.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+`da7db931d1387463fc52c92e93104d175c5ea2e2`
+
+Deploy:
+
+Not run. No live provider deployment was required.
+
+Files changed:
+
+- `social-media/README.md`
+- `social-media/contracts/social-media-contract.js`
+- `social-media/providers/social-provider-registry.js`
+- `social-media/providers/instagram-business-provider.js`
+- `social-media/social-media-analytics-service.js`
+- `social-media/samples/marketing-analytics.sample.json`
+- `social-media/docs/social-media-marketing-analytics-architecture-v1.md`
+- `social-media/docs/meta-instagram-setup.md`
+- `tests/social-media-contract.test.mjs`
+- `package.json`
+
+Verified outcome:
+
+- Added official Social Media analytics contract v1 for provider status, campaigns, metrics, attribution events, and marketing analytics snapshots.
+- Added provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube using supported APIs only.
+- Added backend-only Instagram Business provider foundation with mock/sample fallback when Meta credentials are unavailable.
+- Added founder marketing analytics sample service and explicit sample fixture.
+- Documented Meta setup, OAuth/permission expectations, backend-only secrets, and official Meta documentation references.
+- No scraping, browser automation, password storage, frontend secrets, or live posting implemented.
+- Created contract `social-media-marketing-analytics-contract.v1`.
+- Created attribution targets: `website_traffic`, `crm_lead`, `beta_signup`, `founder_analytics`, and `campaign_performance`.
+- `npm run test:social-media`: passed, 8/8.
+- `npm run security:check`: passed.
+- `npm run build`: passed with existing Vite/framer-motion and chunk-size warnings.
+- `npm test`: passed, including Dashboard runtime workflows, Intelligence quality gate, CRM, Integrations, Social Media, and build.
+
+Future subsystem handoffs:
+
+- Prometheus Infrastructure owns production secret storage, OAuth redirect protection, token rotation, and backend route protection.
+- Prometheus Integrations owns Meta OAuth connection and token refresh workflow.
+- Prometheus Website should emit UTM and landing-page attribution events into this contract.
+- Prometheus CRM should consume campaign/source attribution for leads.
+- Prometheus Dashboard/Beta should consume beta attribution events if beta intake becomes productized.
+
+Duplicate-prevention update:
+
+Do not rebuild Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots in Website, CRM, Dashboard, Companion, Infrastructure, Integrations, Intelligence Engine, or Data. Consume the Social Media contract instead.
+
+Remaining blocker:
+
+Live Instagram analytics remains blocked until Meta app, permissions, OAuth, account linkage, and backend secret storage are configured. No downstream Website, CRM, Beta, Infrastructure, or Integrations implementation was changed in this task by subsystem boundary.
+
+Green checkpoint recommendation:
+
+Recommended. Main is clean, pushed, and verified. Record a green checkpoint before starting live OAuth/provider setup.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure, then Prometheus Integrations. Infrastructure should establish safe secret/OAuth runtime controls before Integrations connects Meta live data.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2473,6 +2557,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
+- Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
@@ -2484,18 +2569,18 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Social Media / Marketing readiness after Website conversion pass.
+Social Media OAuth/secret runtime controls.
 
-Primary subsystem: Prometheus Social Media.
+Primary subsystem: Prometheus Infrastructure.
 
 Secondary subsystems:
 
-- Prometheus Sales
-- Prometheus Website
+- Prometheus Social Media
+- Prometheus Integrations
 
 Reason:
 
-Website completed Public Website Founder Marketing + Conversion Readiness v1 at commit `f33b5bfa6e4e24d8ffbb7df57895fec42fca946d` and deployed it to `prometheusrouteiq.com`. The next highest-value external-growth task is Social Media / Marketing readiness that supports the updated public positioning without scraping, storing passwords, or pretending live analytics exist before supported APIs are connected.
+Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`. The next dependency is Infrastructure-owned: production secret storage, OAuth redirect protection, token rotation, backend route protection, and a green checkpoint before Integrations connects live Meta data. Do not implement scraping, password storage, frontend secrets, live posting, or unsupported platform behavior.
 
 Known non-autonomous pending task:
 
