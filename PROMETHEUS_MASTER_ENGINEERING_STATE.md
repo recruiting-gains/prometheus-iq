@@ -242,6 +242,88 @@ Next recommended subsystem:
 
 Prometheus Administration for beta intake triage and tester record verification; Prometheus Infrastructure/Auth only if authenticated production tester access or device-session verification is required.
 
+### Completed Work Lane: Private Beta Stabilization Intake System v1
+
+Primary subsystem: Prometheus Administration
+
+Secondary subsystems:
+
+- Prometheus Dashboard, for tester-facing runtime/app behavior issues
+- Prometheus Data, for route candidate quality and residential/non-business recommendations
+- Prometheus Infrastructure, for Cloudflare Access, deployment, authentication, and production verification
+- Other subsystems only when intake category and evidence justify ownership
+
+Task:
+
+Private Beta Stabilization Intake System v1.
+
+Status:
+
+Complete and committed.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+`e7265e1`
+
+Deploy:
+
+Not run. Administration-only operational process; no production deployment required.
+
+Files changed:
+
+- `administration/README.md`
+- `administration/architecture.md`
+- `administration/operating-model.md`
+- `administration/registers/*.json`
+- `administration/schemas/register-contracts.md`
+- `administration/templates/*.md`
+- `administration/workflows/*.md`
+- `scripts/validate-administration-foundation.mjs`
+- `tests/administration-foundation.test.mjs`
+
+Verified outcome:
+
+- Created the permanent private beta stabilization intake system.
+- Added tester profiles.
+- Added company profiles.
+- Added device profiles.
+- Added test session history.
+- Added unified issue intake.
+- Added feature requests.
+- Added positive feedback.
+- Added workflow observations.
+- Added route quality observations.
+- Added performance observations.
+- Added release verification.
+- Added severity classification.
+- Added subsystem routing.
+- Added regression verification.
+- Added tester sign-off.
+- Created workflows for private beta stabilization intake, subsystem routing, and release/regression/tester sign-off.
+- Updated bug intake and feature request workflows to use the unified issue intake source of truth.
+- Extended the existing Administration foundation instead of creating a parallel system.
+- `registers/stabilization-issues.json` is now the unified beta issue source of truth.
+- Legacy bug/feature registers remain lightweight and must not become duplicate operational systems.
+- `node scripts/validate-administration-foundation.mjs`: passed.
+- `node --test tests/administration-foundation.test.mjs`: passed.
+- `git diff --check`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+- Anthony current device/browser/PWA profile still requires direct verification.
+- Anthony tester sign-off is pending for Beta Stabilization Sprint 1 closeout.
+- Signed NDA status is still not verified in the repository.
+- Enterprise pilot backend/admin dashboard migration is intentionally not implemented.
+
+Next recommended subsystem:
+
+Prometheus Administration for Anthony tester sign-off and current device/session verification.
+
 ### Completed Work Lane: Google Places Refresh Engine v1
 
 Primary subsystem: Prometheus Data
@@ -3805,25 +3887,25 @@ Current duplicate-prevention sources:
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate the Administration beta operations foundation; reuse `administration/README.md`, `administration/architecture.md`, registers, workflows, templates, schema contracts, validator, and tests.
+- Do not duplicate the Administration private beta stabilization intake system; use `administration/registers/stabilization-issues.json` as the unified beta issue source of truth and keep legacy bug/feature registers lightweight.
 - Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
 
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Private beta stabilization intake and remaining confirmed issue routing.
+Anthony tester sign-off and current device/session verification.
 
 Primary subsystem: Prometheus Administration.
 
 Secondary subsystems:
 
-- Prometheus Dashboard, for confirmed beta product defects only
-- Prometheus Infrastructure/Auth, for authenticated access, session, device, Cloudflare Access, or requested production deployment/release verification only
-- Prometheus CRM, for beta feedback/follow-up workflow consumption only
+- Prometheus Infrastructure/Auth, only if authenticated access, session, device, or Cloudflare Access verification requires platform changes
+- Prometheus Dashboard, only if tester sign-off identifies confirmed product defects
 
 Reason:
 
-Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems. The Active Pool deploy asset sync blocker was resolved by Dashboard commit `2dcc8ac`.
+Prometheus Administration completed Private Beta Stabilization Intake System v1 at commit `e7265e1`, creating the unified beta intake and routing system. The remaining Administration-owned blockers are Anthony current device/browser/PWA profile verification, Anthony tester sign-off for Beta Stabilization Sprint 1 closeout, and repository verification of signed NDA status. During active beta, continue routing bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates.
 
 Known founder-gated task:
 
