@@ -1,8 +1,18 @@
 {
   "version": "research-source-register-v1",
-  "lastUpdated": "2026-06-30",
+  "lastUpdated": "2026-07-01",
   "sourcePolicy": "../source-policy.md",
   "sources": [
+    {
+      "id": "internal-company-identity",
+      "title": "Prometheus Company Identity v1",
+      "publisher": "Prometheus",
+      "sourceRef": "COMPANY_IDENTITY.md",
+      "trustTier": "Tier 1",
+      "categories": ["Enterprise", "Sales", "Opportunities"],
+      "usage": "Canonical company mission, vision, values, positioning, and permanent identity decisions.",
+      "limitations": "Internal identity source; external market claims still need external evidence."
+    },
     {
       "id": "internal-product-vision",
       "title": "Prometheus IQ Product Vision",
@@ -21,7 +31,27 @@
       "trustTier": "Tier 1",
       "categories": ["Enterprise", "Risks"],
       "usage": "Company operating context and certified milestone reference.",
-      "limitations": "Used as company identity substitute because COMPANY_IDENTITY.md is not present."
+      "limitations": "Operational context source; company identity is now governed by COMPANY_IDENTITY.md."
+    },
+    {
+      "id": "internal-research-foundation",
+      "title": "Prometheus Research Foundation",
+      "publisher": "Prometheus",
+      "sourceRef": "RESEARCH_FOUNDATION.md",
+      "trustTier": "Tier 1",
+      "categories": ["Enterprise", "Opportunities", "Risks"],
+      "usage": "Canonical Research entrypoint for foundation, briefing-system, source-policy, and handoff references.",
+      "limitations": "Internal architecture source; not external market evidence."
+    },
+    {
+      "id": "internal-adaptive-intelligence-architecture",
+      "title": "Adaptive Outside Sales Intelligence Engine",
+      "publisher": "Prometheus",
+      "sourceRef": "intelligence/adaptive-outside-sales-intelligence-engine.md",
+      "trustTier": "Tier 1",
+      "categories": ["AI", "Technology", "Enterprise"],
+      "usage": "Internal Intelligence Engine architecture that defines how approved Research context may become future contextual evidence.",
+      "limitations": "Architecture-only source; does not authorize production integration."
     },
     {
       "id": "internal-competitor-research",

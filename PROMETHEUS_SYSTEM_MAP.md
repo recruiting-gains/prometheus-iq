@@ -253,6 +253,16 @@ Areas:
 - Competitive Analysis
 - AI Research
 - Founder Intelligence Briefs
+- Daily Founder Brief
+- Weekly AI Brief
+- Weekly Competitor Brief
+- Weekly Startup Funding Brief
+- Weekly Outside Sales Brief
+- Weekly Industry Brief
+- Weekly Healthcare Brief
+- Weekly Enterprise Technology Brief
+- Weekly Customer Pain Point Brief
+- Monthly Strategic Review
 - Startup Funding
 - Outside Sales Best Practices
 - Industry Research
@@ -269,11 +279,16 @@ Current foundation:
 - `research/README.md`
 - `research/architecture.md`
 - `research/source-policy.md`
+- `research/briefing-system.md`
+- `research/future-briefing-handoffs.md`
 - `research/templates/founder-intelligence-brief.md`
+- `research/templates/strategic-intelligence-brief.md`
 - `research/schemas/founder-intelligence-brief.schema.json`
+- `research/schemas/strategic-intelligence-brief.schema.json`
 - `research/taxonomy/research-taxonomy.json`
 - `research/registers/source-register.json`
 - `research/registers/intelligence-backlog.json`
+- `research/registers/briefing-catalog.json`
 
 ## Workstream Routing Checklist
 

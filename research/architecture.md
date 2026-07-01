@@ -173,6 +173,31 @@ Handoff constraints:
 8. Run the Research validation gate.
 9. Store the brief under a dated Research brief location.
 
+## Strategic Briefing System
+
+Founder Strategic Intelligence Briefing System v1 extends this foundation with recurring executive brief products:
+
+- Daily Founder Brief.
+- Weekly AI Brief.
+- Weekly Competitor Brief.
+- Weekly Startup Funding Brief.
+- Weekly Outside Sales Brief.
+- Weekly Industry Brief.
+- Weekly Healthcare Brief.
+- Weekly Enterprise Technology Brief.
+- Weekly Customer Pain Point Brief.
+- Monthly Strategic Review.
+
+Every strategic briefing must include Summary, Why it matters, Impact on Prometheus, Opportunities, Risks, Recommended founder actions, and Source references.
+
+The briefing system is defined by:
+
+- `research/briefing-system.md`
+- `research/registers/briefing-catalog.json`
+- `research/schemas/strategic-intelligence-brief.schema.json`
+- `research/templates/strategic-intelligence-brief.md`
+- `research/future-briefing-handoffs.md`
+
 ## Duplicate Prevention
 
 Existing research-related documents must be reused:
@@ -180,9 +205,12 @@ Existing research-related documents must be reused:
 - `docs/competitor-research.md`
 - `docs/competitor-pricing-revenue.md`
 - `docs/prometheus-iq-competitive-differentiation.md`
+- `RESEARCH_FOUNDATION.md`
 - `COMPANY_IDENTITY.md`
 - `docs/product-vision.md`
 - `docs/prometheus-company-manual.md`
+- `research/briefing-system.md`
+- `research/registers/briefing-catalog.json`
 
 Do not create replacement competitive-positioning documents when an update to the existing Research structure or existing docs is sufficient.
 
@@ -194,5 +222,6 @@ Do not create replacement competitive-positioning documents when an update to th
 - No Companion memory writes.
 - No CRM data access.
 - No Intelligence Engine training.
+- No Intelligence Engine evidence writes.
 - No public publishing pipeline.
 - No private customer-data ingestion.

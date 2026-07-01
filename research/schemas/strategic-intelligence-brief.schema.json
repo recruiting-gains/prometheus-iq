@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/research/strategic-intelligence-brief.schema.json",
+  "title": "Prometheus Strategic Intelligence Brief",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "briefId",
+    "briefingType",
+    "cadence",
+    "reportingWindow",
+    "status",
+    "sections",
+    "sourceReferences",
+    "futureHandoffCandidates",
+    "boundaryConfirmation"
+  ],
+  "properties": {
+    "briefId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "briefingType": {
+      "type": "string",
+      "enum": [
+        "daily-founder-brief",
+        "weekly-ai-brief",
+        "weekly-competitor-brief",
+        "weekly-startup-funding-brief",
+        "weekly-outside-sales-brief",
+        "weekly-industry-brief",
+        "weekly-healthcare-brief",
+        "weekly-enterprise-technology-brief",
+        "weekly-customer-pain-point-brief",
+        "monthly-strategic-review"
+      ]
+    },
+    "cadence": {
+      "type": "string",
+      "enum": ["daily", "weekly", "monthly"]
+    },
+    "reportingWindow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startDate", "endDate"],
+      "properties": {
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "reviewed", "approved-for-handoff", "archived"]
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "whyItMatters",
+        "impactOnPrometheus",
+        "opportunities",
+        "risks",
+        "recommendedFounderActions"
+      ],
+      "properties": {
+        "summary": { "$ref": "#/$defs/textItems" },
+        "whyItMatters": { "$ref": "#/$defs/textItems" },
+        "impactOnPrometheus": { "$ref": "#/$defs/textItems" },
+        "opportunities": { "$ref": "#/$defs/textItems" },
+        "risks": { "$ref": "#/$defs/textItems" },
+        "recommendedFounderActions": { "$ref": "#/$defs/textItems" },
+        "verifiedFacts": { "$ref": "#/$defs/textItems" },
+        "hypotheses": { "$ref": "#/$defs/textItems" },
+        "unknowns": { "$ref": "#/$defs/textItems" }
+      }
+    },
+    "sourceReferences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sourceReference" }
+    },
+    "futureHandoffCandidates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Companion", "Intelligence Engine", "Website", "Sales"],
+      "properties": {
+        "Companion": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Intelligence Engine": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Website": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Sales": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } }
+      }
+    },
+    "boundaryConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unsupportedScrapingUsed",
+        "productionDataModified",
+        "productionSubsystemModified",
+        "factsHypothesesUnknownsSeparated"
+      ],
+      "properties": {
+        "unsupportedScrapingUsed": { "type": "boolean", "const": false },
+        "productionDataModified": { "type": "boolean", "const": false },
+        "productionSubsystemModified": { "type": "boolean", "const": false },
+        "factsHypothesesUnknownsSeparated": { "type": "boolean", "const": true }
+      }
+    }
+  },
+  "$defs": {
+    "textItems": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claim", "sourceTitle", "publisher", "sourceRef", "date", "trustTier", "limitation"],
+      "properties": {
+        "claim": { "type": "string" },
+        "sourceTitle": { "type": "string" },
+        "publisher": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "date": { "type": "string" },
+        "trustTier": { "type": "string", "enum": ["Tier 1", "Tier 2", "Tier 3"] },
+        "limitation": { "type": "string" }
+      }
+    },
+    "handoffCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendation", "approvalRequired", "status"],
+      "properties": {
+        "recommendation": { "type": "string" },
+        "approvalRequired": { "type": "boolean", "const": true },
+        "status": { "type": "string", "enum": ["candidate", "deferred", "approved"] }
+      }
+    }
+  }
+}
