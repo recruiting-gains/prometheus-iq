@@ -4,10 +4,12 @@ import worker, {
   CALLBACK_PATH,
   CALLBACK_PATHS,
   FACEBOOK_BUSINESS_CALLBACK_PATH,
+  INSTAGRAM_SNAPSHOT_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY
 } from "../workers/prometheus-iq-worker.js";
 import {
+  INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS,
   INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
 } from "../social-media/infrastructure/instagram-runtime-controls.js";
 import {
@@ -28,6 +30,17 @@ const baseEnv = {
       headers: { "Content-Type": "text/plain" }
     })
   }
+};
+
+const instagramLoginEnv = {
+  ...baseEnv,
+  INSTAGRAM_ACCESS_TOKEN: "instagram-token-not-public",
+  INSTAGRAM_API_MODE: "instagram_login",
+  INSTAGRAM_BUSINESS_ACCOUNT_ID: "17841421929598004",
+  INSTAGRAM_USER_ID: "17841421929598004",
+  INSTAGRAM_ACCOUNT_HANDLE: "@prometheus.iq",
+  INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS.join(","),
+  INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-07-01T23:47:12.472Z"
 };
 
 function createTokenStore() {
@@ -221,6 +234,53 @@ test("Meta Instagram callback stores returned token material only in encrypted b
     assert.equal(tokenStore.writes[0].value.includes("meta-app-secret-not-returned"), false);
     assert.equal(serialized.includes("long-lived-token-not-public"), false);
     assert.equal(serialized.includes("short-lived-token-not-public"), false);
+    assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Meta Instagram snapshot route returns provider data without exposing secrets", async () => {
+  const fetchImpl = createOrderedFetch([
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004?fields=user_id%2Cusername%2Caccount_type");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        user_id: "17841421929598004",
+        username: "prometheus.iq",
+        account_type: "BUSINESS"
+      }
+    },
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004/insights?metric=reach%2Cprofile_views%2Cwebsite_clicks&period=day");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        data: [
+          { name: "reach", values: [{ value: 14 }] },
+          { name: "profile_views", values: [{ value: 3 }] }
+        ]
+      }
+    }
+  ]);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
+  try {
+    const response = await request(INSTAGRAM_SNAPSHOT_PATH, instagramLoginEnv);
+    const body = await response.json();
+    const serialized = JSON.stringify(body);
+
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.snapshot.providers[0].state, "connected");
+    assert.equal(body.snapshot.providers[0].source, "provider_api");
+    assert.equal(body.snapshot.providers[0].accountHandle, "@prometheus.iq");
+    assert.equal(body.snapshot.metrics.find(metric => metric.name === "reach").value, 14);
+    assert.equal(fetchImpl.calls.length, 2);
+    assert.equal(serialized.includes("instagram-token-not-public"), false);
     assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
   } finally {
     globalThis.fetch = originalFetch;

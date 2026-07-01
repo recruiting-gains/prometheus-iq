@@ -7,10 +7,14 @@ import {
   publicInstagramRuntimeStatus,
   validateInstagramRuntimeEnvironment
 } from "../social-media/infrastructure/instagram-runtime-controls.js";
+import {
+  fetchInstagramBusinessSnapshot
+} from "../social-media/providers/instagram-business-provider.js";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
 const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
 const STATUS_PATH = "/api/oauth/meta/instagram/status";
+const INSTAGRAM_SNAPSHOT_PATH = "/api/social/instagram/snapshot";
 const CALLBACK_PATHS = Object.freeze([
   CALLBACK_PATH,
   FACEBOOK_BUSINESS_CALLBACK_PATH
@@ -221,6 +225,24 @@ async function handleMetaInstagramStatus(env) {
   });
 }
 
+async function handleMetaInstagramSnapshot(request, env) {
+  if (request.method !== "GET") {
+    return jsonResponse({ ok: false, message: "Method not allowed." }, 405);
+  }
+
+  const snapshot = await fetchInstagramBusinessSnapshot({
+    env,
+    fetchImpl: fetch,
+    generatedAt: new Date().toISOString()
+  });
+
+  return jsonResponse({
+    ok: true,
+    provider: "instagram",
+    snapshot
+  });
+}
+
 async function handleMetaInstagramCallback(request, env) {
   if (request.method !== "GET") {
     return jsonResponse({ ok: false, message: "Method not allowed." }, 405);
@@ -313,6 +335,7 @@ async function handleApiRequest(request, env) {
   const url = new URL(request.url);
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
+  if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
@@ -337,6 +360,7 @@ export {
   CALLBACK_PATH,
   CALLBACK_PATHS,
   FACEBOOK_BUSINESS_CALLBACK_PATH,
+  INSTAGRAM_SNAPSHOT_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   persistMetaInstagramTokenPatch,
