@@ -1,21 +1,17 @@
 import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, useScroll, useTransform } from "framer-motion";
+import prometheusLogoUrl from "../icons/prometheus.svg";
 import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
 const instagramUrl = "https://www.instagram.com/prometheus.IQ";
 const IntelligenceScene = React.lazy(() => import("./IntelligenceScene.jsx"));
 
-function FlameMark({ scale = 1 }) {
+function LogoMark({ scale = 1 }) {
   return (
-    <div className="flame-mark" style={{ "--scale": scale }}>
-      <div className="flame-outer" />
-      <div className="flame-inner" />
-      <div className="flame-core" />
-      <div className="flame-base">
-        <span />
-      </div>
+    <div className="logo-mark" style={{ "--scale": scale }}>
+      <img src={prometheusLogoUrl} alt="" width="512" height="512" />
     </div>
   );
 }
@@ -67,7 +63,7 @@ function App() {
       <a className="skip-link" href="#core">Skip to product overview</a>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Prometheus home">
-          <FlameMark scale={0.35} />
+          <LogoMark scale={0.35} />
           <span className="brand-lockup">
             <strong>Prometheus</strong>
             <small>Prometheus IQ</small>
@@ -83,7 +79,7 @@ function App() {
 
       <section id="top" className="hero-section">
         <motion.div className="hero-scene" style={{ scale: heroScale, opacity: heroOpacity }}>
-          <Suspense fallback={<div className="scene-fallback"><FlameMark scale={1.15} /></div>}>
+          <Suspense fallback={<div className="scene-fallback"><LogoMark scale={1.15} /></div>}>
             <IntelligenceScene />
           </Suspense>
         </motion.div>
@@ -95,7 +91,7 @@ function App() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <SectionLabel>Prometheus IQ, the flagship product from Prometheus</SectionLabel>
+            <SectionLabel>Prometheus IQ by Prometheus</SectionLabel>
             <h1>AI Route Intelligence for Outside Sales Teams.</h1>
             <p>
               Prometheus IQ helps field teams decide where to go next, verify what happened,
@@ -121,7 +117,7 @@ function App() {
             transition={{ duration: 0.8, delay: 0.18, ease: "easeOut" }}
           >
             <div className="panel-header">
-              <FlameMark scale={0.24} />
+              <LogoMark scale={0.24} />
               <span>LIVE FIELD READ</span>
             </div>
             <div className="metric-line">
@@ -286,7 +282,7 @@ function App() {
       <footer id="contact" className="site-footer">
         <div className="shell footer-grid">
           <div>
-            <FlameMark scale={0.42} />
+            <LogoMark scale={0.42} />
             <h2>Prometheus</h2>
             <p>Building Prometheus IQ and the AI operating system for outside sales.</p>
           </div>

@@ -10,7 +10,11 @@
   <meta property="og:description" content="Founder-led AI Route Intelligence for teams that win through face-to-face field activity.">
   <meta property="og:url" content="https://prometheusrouteiq.com/">
   <meta property="og:type" content="website">
-  <link rel="icon" href="./public-assets/prometheus-flame-logo.jpg" type="image/jpeg">
+  <meta property="og:image" content="https://prometheusrouteiq.com/public-assets/prometheus.svg?v=20260701-brand-v1">
+  <meta property="og:image:alt" content="Prometheus official logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://prometheusrouteiq.com/public-assets/prometheus.svg?v=20260701-brand-v1">
+  <link rel="icon" href="./public-assets/prometheus.svg?v=20260701-brand-v1" type="image/svg+xml">
   <style>
     :root {
       color-scheme: dark;
@@ -379,35 +383,22 @@
       display: grid;
       place-items: center;
       overflow: hidden;
-      border: 1px solid rgba(255, 215, 108, 0.28);
-      border-radius: 15px;
-      background:
-        radial-gradient(circle at 50% 36%, rgba(255, 215, 108, 0.3), transparent 38%),
-        rgba(4, 19, 14, 0.76);
-      box-shadow:
-        0 0 30px rgba(255, 116, 56, 0.58),
-        0 12px 28px rgba(0, 0, 0, 0.38),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      transform: perspective(180px) rotateX(10deg) rotateY(-12deg);
-      animation: logoEmber 4.2s ease-in-out infinite;
+      border-radius: 12px;
+      background: rgba(4, 19, 14, 0.76);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
     }
 
     .mark::before {
-      content: "";
-      position: absolute;
-      inset: -42%;
-      background: conic-gradient(from 160deg, transparent, rgba(255, 116, 56, 0.64), rgba(255, 215, 108, 0.38), transparent 62%);
-      animation: logoOrbit 5.4s linear infinite;
+      display: none;
     }
 
     .mark img {
       position: relative;
       z-index: 1;
-      width: 104%;
-      height: 104%;
-      object-fit: cover;
-      filter: saturate(1.18) contrast(1.08) drop-shadow(0 0 12px rgba(255, 116, 56, 0.66));
-      transform: scale(1.08);
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.28));
     }
 
     @keyframes logoEmber {
@@ -1781,6 +1772,7 @@
         margin-bottom: 18px;
         padding: 10px 12px;
         font-size: clamp(12px, 3.2vw, 15px);
+        white-space: normal;
       }
 
       h1 {
@@ -1891,7 +1883,7 @@
 
   <nav class="nav">
     <div class="brand">
-      <div class="mark" aria-hidden="true"><img src="./public-assets/prometheus-flame-logo.jpg" alt=""></div>
+      <div class="mark" aria-hidden="true"><img src="./public-assets/prometheus.svg?v=20260701-brand-v1" alt=""></div>
       <div>Prometheus</div>
     </div>
     <a href="#pilot" data-open-pilot>Apply for Beta Pilot</a>
@@ -1906,7 +1898,7 @@
         <span class="hero-flame-core"></span>
       </div>
       <div class="hero-copy">
-        <div class="eyebrow">Prometheus IQ, the flagship product from Prometheus</div>
+        <div class="eyebrow">Prometheus IQ by Prometheus</div>
         <h1>AI Route Intelligence for Outside Sales Teams.</h1>
         <p class="lead">Prometheus IQ helps field teams decide where to go next, verify what happened, and turn every visit into clearer territory intelligence across the industries that still grow through face-to-face selling.</p>
         <div class="buttons">
