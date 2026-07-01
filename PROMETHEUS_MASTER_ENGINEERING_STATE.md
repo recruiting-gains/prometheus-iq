@@ -2559,6 +2559,73 @@ Next recommended subsystem:
 
 Prometheus Infrastructure after Cruz completes Meta app and Cloudflare secret setup; then Prometheus Integrations for live analytics consumption verification.
 
+### Completed Work Lane: Public Meta Instagram OAuth Callback Deployment
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Social Media, for Meta app review and social analytics readiness
+- Prometheus Integrations, for live OAuth/token exchange workflow consumption after secrets exist
+- Prometheus Website, because the public website Worker is the deployed callback surface
+
+Task:
+
+Public Meta Instagram OAuth Callback Deployment.
+
+Status:
+
+Complete for fail-closed public callback deployment. Live token exchange remains blocked until required Cloudflare secrets and founder-approved Meta credentials are configured.
+
+Implementation type:
+
+Implementation.
+
+Commit:
+
+`94ee92d32a8b29dc864204466dab75d7b11bd76d`
+
+Deploy:
+
+Deployed to Cloudflare Worker `prometheusrouteiq-website`. Version ID `4512ac4c-0bca-48a5-85dc-6a70c03d490e`.
+
+Exact Meta Developer redirect URI:
+
+`https://prometheusrouteiq.com/api/oauth/meta/instagram/callback`
+
+Files changed:
+
+- `social-media/docs/meta-instagram-setup.md`
+- `tests/meta-instagram-worker-callback.test.mjs`
+- `tests/social-media-contract.test.mjs`
+- `workers/prometheus-iq-worker.js`
+- `wrangler.jsonc`
+- `wrangler.prometheusrouteiq-website.jsonc`
+
+Verified outcome:
+
+- Public callback route is reachable at `https://prometheusrouteiq.com/api/oauth/meta/instagram/callback`.
+- Callback without `code` / `state` returns controlled HTTP 400.
+- Browser behavior returns safe HTML "Instagram connection blocked" response.
+- JSON behavior returns safe OAuth error response.
+- Facebook Login for Business-compatible alias deployed at `https://prometheusrouteiq.com/api/oauth/facebook-business/instagram/callback`.
+- Status route live at `https://prometheusrouteiq.com/api/oauth/meta/instagram/status`.
+- Overwatch verified status route returns HTTP 200 JSON and current runtime state `not_configured`.
+- Public website routes still serve normally.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm run test:social-media`: passed.
+- `npm test`: passed.
+- `npx wrangler deploy --config wrangler.prometheusrouteiq-website.jsonc --dry-run`: passed.
+
+Remaining blockers:
+
+Live token exchange remains fail-closed until Cloudflare secrets are configured: `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, and `INSTAGRAM_BUSINESS_ACCOUNT_ID`.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure after Cruz configures the Meta app redirect URI and Cloudflare secrets, then Prometheus Integrations for live authorization/token exchange verification and Prometheus Social Media for live analytics consumption verification.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -4520,6 +4587,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
 - Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
+- Do not duplicate the public Meta Instagram OAuth callback deployment; reuse `wrangler.prometheusrouteiq-website.jsonc`, `https://prometheusrouteiq.com/api/oauth/meta/instagram/callback`, `https://prometheusrouteiq.com/api/oauth/facebook-business/instagram/callback`, and `https://prometheusrouteiq.com/api/oauth/meta/instagram/status` for Meta Developer redirect URI, Facebook Login for Business aliasing, and public fail-closed status/callback behavior.
 - Do not duplicate the production Meta Instagram token-store binding; reuse Cloudflare binding `META_INSTAGRAM_TOKEN_STORE` in `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
@@ -4563,7 +4631,7 @@ Primary subsystem: Prometheus Infrastructure.
 
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the production Worker callback route, and Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`. The remaining dependency is founder-gated configuration: set Cloudflare secrets `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, provide `INSTAGRAM_BUSINESS_ACCOUNT_ID`, configure the Meta redirect URI, and run live Instagram authorization. After Cruz completes those actions, Prometheus Infrastructure owns live callback verification, then Prometheus Integrations owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Social Media completed Marketing Analytics Architecture v1, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the Worker callback route, Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`, and Infrastructure deployed the public-domain callback to `prometheusrouteiq.com` at commit `94ee92d32a8b29dc864204466dab75d7b11bd76d`. The remaining dependency is founder-gated configuration: paste exact Meta Developer redirect URI `https://prometheusrouteiq.com/api/oauth/meta/instagram/callback`, set Cloudflare secrets `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, provide `INSTAGRAM_BUSINESS_ACCOUNT_ID`, and run live Instagram authorization. After Cruz completes those actions, Prometheus Infrastructure owns live callback verification, then Prometheus Integrations owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 
