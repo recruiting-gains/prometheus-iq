@@ -760,6 +760,65 @@ Next recommended subsystem:
 
 Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks.
 
+### Completed Work Lane: Beta Stabilization Sprint 1 - Nearby Opportunities Runtime Behavior Fix
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data, only if future beta feedback identifies bad or invalid nearby records
+
+Task:
+
+Beta Stabilization Sprint 1 - Nearby Opportunities Runtime Behavior Fix.
+
+Status:
+
+Complete.
+
+Commit:
+
+`29ad70e`
+
+Deploy:
+
+Not performed; not requested for this task.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Nearby Opportunities now anchors to attached visit GPS coordinates when available.
+- Falls back to verified place coordinates when visit GPS coordinates are not available.
+- Includes same-coordinate nearby businesses as walkable opportunities.
+- Preserves Active Pool filtering.
+- Adds runtime debug state for verification.
+- Added regression harness coverage for empty state, location acquisition, Active Pool query, rendering, Rep behavior, and console/runtime errors.
+- `node --check scripts/verify-dashboard-runtime-workflows.mjs`: passed.
+- `git diff --check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed, 38/38.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm test`: passed, including build.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks. Deployment remains a separate Infrastructure/Dashboard release decision because this task was not deployed.
+
 ### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
 
 Primary subsystem: Prometheus Dashboard
@@ -3286,6 +3345,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
 - Do not duplicate the Dashboard Rep-only role/session enforcement fix; reuse the `?pwa=rep` launch path, stored Rep launch context override, Rep `appMode` guard, Founder manifest separation, and Dashboard runtime workflow regression coverage.
 - Do not duplicate the Dashboard mobile pin-drop logging scroll fix; preserve the iOS/PWA-safe modal-body scroll container, safe-area padding, reachable quick logging submit action, automatic scroll-to-counts behavior, and Anthony mobile reachability regression coverage.
+- Do not duplicate the Dashboard Nearby Opportunities runtime behavior fix; preserve visit GPS anchoring, verified-place coordinate fallback, same-coordinate walkable opportunities, Active Pool filtering, runtime debug state, and workflow regression coverage.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
