@@ -2754,6 +2754,42 @@ Duplicate-prevention update:
 
 Do not reintroduce legacy Facebook Login permissions for Instagram Business Login mode. Use `INSTAGRAM_API_MODE=instagram_login`, `instagram_business_basic`, `instagram_business_manage_insights`, `graph.instagram.com`, and the existing runtime controls. Legacy permissions `instagram_basic`, `instagram_manage_insights`, `pages_show_list`, and `pages_read_engagement` remain valid only when `INSTAGRAM_API_MODE=facebook_login` is explicitly configured.
 
+### Work Lane: Instagram Business Login End-to-End Production Verification
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Social Media, after production secrets are present and live data verification can complete
+
+Task:
+
+Instagram Business Login end-to-end production verification.
+
+Status:
+
+Failed / blocked. Production public callback Worker `prometheusrouteiq-website` does not have required Cloudflare secrets, so live profile and insights fetches cannot be verified from production runtime.
+
+Verification completed:
+
+- `git status --short --branch`: clean, `main` matches `origin/main`.
+- `npx wrangler secret list --config wrangler.prometheusrouteiq-website.jsonc`: returned `[]`.
+- `npx wrangler deploy --config wrangler.prometheusrouteiq-website.jsonc --dry-run --keep-vars`: local config includes `META_OAUTH_CALLBACK_URL`, `INSTAGRAM_BUSINESS_ACCOUNT_ID`, `INSTAGRAM_USER_ID`, `INSTAGRAM_CONNECTION_VERIFIED_AT`, `INSTAGRAM_API_MODE=instagram_login`, and `INSTAGRAM_GRANTED_SCOPES=instagram_business_basic,instagram_business_manage_insights`.
+- `npx wrangler deployments list --name prometheusrouteiq-website | tail -n 24`: production remains on version `9a1a0b0c-8042-4bd0-bd10-3352fe7d8afb` from `d4a513c`.
+- `curl -sS https://prometheusrouteiq.com/api/oauth/meta/instagram/status`: production runtime returns `state=token_missing`, `tokenPresent=false`, `apiMode=instagram_login`, `requiredPermissions=[instagram_business_basic, instagram_business_manage_insights]`, `missingPermissions=[]`, and `missingSetup=[]`.
+- `npx wrangler secret list --name prometheus-iq`: private Dashboard Worker has `INSTAGRAM_ACCESS_TOKEN`, but this is not the public production callback/social runtime path.
+
+Result:
+
+End-to-end production verification did not pass. Production confirms the legacy Facebook Login scope mismatch is resolved, but production cannot fetch `@prometheus.iq` profile or insights until secrets are configured on `prometheusrouteiq-website`.
+
+Remaining blockers:
+
+- Configure `INSTAGRAM_ACCESS_TOKEN` on Cloudflare Worker `prometheusrouteiq-website`.
+- Configure `META_APP_ID` and `META_APP_SECRET` on Cloudflare Worker `prometheusrouteiq-website`.
+- Deploy current `origin/main` alignment to `prometheusrouteiq-website` after required secrets are present.
+- Re-run production status/profile/insights verification from the public runtime path.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
