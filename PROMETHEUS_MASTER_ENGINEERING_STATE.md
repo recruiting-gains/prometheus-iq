@@ -903,7 +903,7 @@ Beta Startup and Places Loading Performance Stabilization.
 
 Status:
 
-Complete for Dashboard implementation. Full release test suite is blocked by existing Data/Deploy Active Pool parity mismatch.
+Complete for Dashboard implementation. Historical full release test suite blocker from Data/Deploy Active Pool parity mismatch is resolved by Dashboard commit `2dcc8ac`.
 
 Commit:
 
@@ -940,11 +940,79 @@ Verified outcome:
 
 Remaining blocker:
 
-`npm test` failed at `dashboard:runtime-pool:check` because the Data source Active Pool has 297 records after residential-house quarantine while the Dashboard/deploy asset still has 300 records and the gate expects 300 / 600 expanded route records.
+Resolved by Active Pool Asset Synchronization v1 commit `2dcc8ac`.
 
 Next recommended subsystem:
 
-Prometheus Dashboard / Infrastructure for Active Pool deploy asset sync, runtime-pool gate update, and production-equivalent verification.
+Superseded by Active Pool Asset Synchronization v1 commit `2dcc8ac`.
+
+### Completed Work Lane: Active Pool Asset Synchronization v1
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Infrastructure
+
+Task:
+
+Active Pool Asset Synchronization v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`2dcc8ac`
+
+Deploy:
+
+Not performed; task required commit and push only.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-pool-consumption.mjs`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `scripts/verify-production-release.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Synchronized Dashboard deploy Active Pool to 297 records / 594 runtime route records.
+- Regenerated embedded Dashboard runtime fallback from the clean Active Pool.
+- Sanitized Dashboard deploy full fallback to remove the three quarantined residential place IDs.
+- Dashboard deploy full fallback now contains 789 route records.
+- Updated Dashboard runtime guards.
+- Updated CSP hashes.
+- Updated service worker cache marker.
+- Updated build marker.
+- Updated verification gates.
+- `npm run security:check`: passed.
+- `npm run dashboard:runtime-pool:check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm test`: passed.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+None for this sync task. Infrastructure deployment/release verification is required only when production deployment is requested.
 
 ### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
 
@@ -3716,6 +3784,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Dashboard Nearby Opportunities runtime behavior fix; preserve visit GPS anchoring, verified-place coordinate fallback, same-coordinate walkable opportunities, Active Pool filtering, runtime debug state, and workflow regression coverage.
 - Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
+- Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
@@ -3742,22 +3811,19 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Active Pool deploy asset sync after residential-house quarantine.
+Private beta stabilization intake and remaining confirmed issue routing.
 
-Primary subsystem: Prometheus Dashboard.
+Primary subsystem: Prometheus Administration.
 
 Secondary subsystems:
 
-- Prometheus Data, as source-of-truth owner for the 297-record Active Pool export
-- Prometheus Infrastructure, for production deployment and release verification
+- Prometheus Dashboard, for confirmed beta product defects only
+- Prometheus Infrastructure/Auth, for authenticated access, session, device, Cloudflare Access, or requested production deployment/release verification only
+- Prometheus CRM, for beta feedback/follow-up workflow consumption only
 
 Reason:
 
-Prometheus Data quarantined the residential-house barber-shop cluster and exported a 297-record Active Pool at commit `e6a8ef4`. Dashboard Beta Startup and Places Loading Performance Stabilization completed at commit `fa05bdf`, but full `npm test` is blocked because Dashboard/deploy runtime assets still expect the old 300 Active records / 600 expanded route records. Dashboard owns consuming the refreshed Data export in deployed runtime assets and updating the runtime-pool gate expectations without changing Data governance or Route Intelligence scoring. Infrastructure owns production deploy and release verification after Dashboard sync is complete.
-
-Standing beta-stabilization routing:
-
-Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
+Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems. The Active Pool deploy asset sync blocker was resolved by Dashboard commit `2dcc8ac`.
 
 Known founder-gated task:
 
