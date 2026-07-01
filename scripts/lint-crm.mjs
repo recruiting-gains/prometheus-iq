@@ -4,8 +4,10 @@ import { readFileSync } from "node:fs";
 const files = [
   "crm/crm-foundation.mjs",
   "tests/crm-foundation.test.mjs",
+  "tests/crm-enterprise-foundation.test.mjs",
   "scripts/lint-crm.mjs",
-  "scripts/typecheck-crm.mjs"
+  "scripts/typecheck-crm.mjs",
+  "scripts/validate-crm-enterprise-foundation.mjs"
 ];
 const providerBoundaryFiles = [
   "crm/crm-foundation.mjs",

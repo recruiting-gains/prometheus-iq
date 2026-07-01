@@ -1,0 +1,439 @@
+{
+  "version": "customer-success-enterprise-pipeline-foundation-v2",
+  "implementationType": "architecture",
+  "productionBetaSystemsModified": false,
+  "externalCommunicationProvidersConnected": false,
+  "sourceFallbacks": {
+    "PRODUCT_VISION.md": "docs/product-vision.md",
+    "SALES_FOUNDATION.md": "sales/"
+  },
+  "protectedSubsystems": [
+    "Dashboard",
+    "Companion",
+    "Infrastructure",
+    "Data",
+    "Intelligence Engine"
+  ],
+  "scaleTargets": [
+    "1 company",
+    "10 companies",
+    "100 companies",
+    "enterprise deployments"
+  ],
+  "entities": [
+    {
+      "id": "company_account",
+      "label": "Company Account",
+      "purpose": "Parent organization record for beta, pilot, customer, enterprise, expansion, and renewal management.",
+      "requiredFields": [
+        "account_id",
+        "account_name",
+        "account_type",
+        "lifecycle_stage",
+        "industry",
+        "account_owner",
+        "customer_success_owner",
+        "health_band",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    {
+      "id": "contact",
+      "label": "Contact",
+      "purpose": "Person associated with an account, location, opportunity, or CRM activity.",
+      "requiredFields": [
+        "contact_id",
+        "account_id",
+        "name",
+        "role",
+        "relationship_status",
+        "founder_visible"
+      ]
+    },
+    {
+      "id": "decision_maker",
+      "label": "Decision Maker",
+      "purpose": "Contact with budget, executive, pilot, procurement, legal, security, technical, or field influence.",
+      "requiredFields": [
+        "contact_id",
+        "decision_role",
+        "influence_level",
+        "relationship_strength",
+        "next_action"
+      ]
+    },
+    {
+      "id": "pilot_company",
+      "label": "Pilot Company",
+      "purpose": "Account participating in a controlled pilot with success criteria, pilot owner, timeline, and review cadence.",
+      "requiredFields": [
+        "account_id",
+        "pilot_owner",
+        "pilot_start_at",
+        "pilot_end_at",
+        "success_criteria",
+        "pilot_status"
+      ]
+    },
+    {
+      "id": "enterprise_opportunity",
+      "label": "Enterprise Opportunity",
+      "purpose": "Commercial opportunity for paid deployment, regional rollout, expansion, or enterprise renewal.",
+      "requiredFields": [
+        "opportunity_id",
+        "account_id",
+        "opportunity_type",
+        "stage",
+        "amount_band",
+        "target_close_at",
+        "owner",
+        "next_step"
+      ]
+    },
+    {
+      "id": "beta_company",
+      "label": "Beta Company",
+      "purpose": "Company participating in beta validation before formal pilot or paid customer status.",
+      "requiredFields": [
+        "account_id",
+        "beta_owner",
+        "beta_status",
+        "tester_count",
+        "evidence_summary"
+      ]
+    },
+    {
+      "id": "customer_onboarding",
+      "label": "Customer Onboarding",
+      "purpose": "Implementation checklist for customer setup, users, locations, success criteria, and launch readiness.",
+      "requiredFields": [
+        "onboarding_id",
+        "account_id",
+        "owner",
+        "status",
+        "launch_target_at",
+        "required_steps",
+        "blockers"
+      ]
+    },
+    {
+      "id": "customer_success_record",
+      "label": "Customer Success Record",
+      "purpose": "Ongoing account record for adoption, outcomes, friction, health, risk, expansion readiness, and next action.",
+      "requiredFields": [
+        "success_id",
+        "account_id",
+        "health_score",
+        "health_band",
+        "adoption_summary",
+        "outcome_summary",
+        "risk_summary",
+        "next_action"
+      ]
+    },
+    {
+      "id": "expansion_opportunity",
+      "label": "Expansion Opportunity",
+      "purpose": "Additional market, region, team, location, user group, or product expansion attached to an existing account.",
+      "requiredFields": [
+        "expansion_id",
+        "account_id",
+        "source_signal",
+        "scope",
+        "stage",
+        "owner",
+        "next_step"
+      ]
+    },
+    {
+      "id": "renewal_lifecycle",
+      "label": "Renewal Lifecycle",
+      "purpose": "Renewal timeline and risk management record for active customer accounts.",
+      "requiredFields": [
+        "renewal_id",
+        "account_id",
+        "renewal_date",
+        "renewal_stage",
+        "renewal_confidence",
+        "executive_review_at",
+        "commercial_proposal_at"
+      ]
+    },
+    {
+      "id": "executive_relationship",
+      "label": "Executive Relationship",
+      "purpose": "Executive sponsor, buyer, senior champion, or leadership stakeholder relationship record.",
+      "requiredFields": [
+        "relationship_id",
+        "account_id",
+        "contact_id",
+        "executive_role",
+        "relationship_strength",
+        "last_touch_at",
+        "next_touch_due_at"
+      ]
+    },
+    {
+      "id": "customer_health_score",
+      "label": "Customer Health Score",
+      "purpose": "Transparent CRM operations score based on adoption, field activity, outcomes, alignment, risk, support load, and data completeness.",
+      "requiredFields": [
+        "account_id",
+        "score",
+        "band",
+        "dimension_scores",
+        "calculated_at",
+        "evidence"
+      ]
+    },
+    {
+      "id": "account_timeline_event",
+      "label": "Account Timeline Event",
+      "purpose": "Chronological event history for account creation, meetings, adoption, milestones, risks, expansion, and renewal.",
+      "requiredFields": [
+        "event_id",
+        "account_id",
+        "event_type",
+        "occurred_at",
+        "actor_id",
+        "summary"
+      ]
+    },
+    {
+      "id": "meeting_history",
+      "label": "Meeting History",
+      "purpose": "Structured meeting record with participants, decisions, objections, commitments, next steps, and linked tasks.",
+      "requiredFields": [
+        "meeting_id",
+        "account_id",
+        "meeting_type",
+        "held_at",
+        "participants",
+        "decisions",
+        "next_steps"
+      ]
+    },
+    {
+      "id": "product_adoption_snapshot",
+      "label": "Product Adoption Snapshot",
+      "purpose": "Periodic account-level adoption evidence without duplicating Dashboard or Intelligence Engine logic.",
+      "requiredFields": [
+        "snapshot_id",
+        "account_id",
+        "captured_at",
+        "active_users",
+        "active_locations",
+        "visits_logged",
+        "follow_ups_created",
+        "tasks_completed",
+        "friction_notes"
+      ]
+    },
+    {
+      "id": "success_milestone",
+      "label": "Success Milestone",
+      "purpose": "Named proof point for beta, pilot, onboarding, customer success, expansion, or renewal value.",
+      "requiredFields": [
+        "milestone_id",
+        "account_id",
+        "category",
+        "owner",
+        "due_at",
+        "completed_at",
+        "evidence_note",
+        "account_impact"
+      ]
+    },
+    {
+      "id": "organization_location",
+      "label": "Organization Location",
+      "purpose": "Physical operating location attached to a company, district, region, market, or team.",
+      "requiredFields": [
+        "location_id",
+        "account_id",
+        "parent_hierarchy_node_id",
+        "name",
+        "address",
+        "status",
+        "adoption_summary"
+      ]
+    },
+    {
+      "id": "organization_hierarchy_node",
+      "label": "Organization Hierarchy Node",
+      "purpose": "Company, region, district, market, location, team, or rep node for enterprise account structure.",
+      "requiredFields": [
+        "node_id",
+        "account_id",
+        "parent_node_id",
+        "hierarchy_level",
+        "owner",
+        "status",
+        "rollup_summary"
+      ]
+    }
+  ],
+  "accountTypes": [
+    "beta_company",
+    "pilot_company",
+    "customer",
+    "enterprise_customer",
+    "partner",
+    "closed_lost_account"
+  ],
+  "lifecycleStages": [
+    "identified",
+    "beta_active",
+    "pilot_scoping",
+    "pilot_active",
+    "implementation",
+    "active_customer",
+    "expansion",
+    "renewal",
+    "at_risk",
+    "closed_lost"
+  ],
+  "opportunityStages": [
+    "discovery",
+    "qualified",
+    "pilot_proposed",
+    "pilot_approved",
+    "pilot_active",
+    "business_review",
+    "proposal",
+    "procurement",
+    "won",
+    "lost"
+  ],
+  "decisionMakerRoles": [
+    "economic_buyer",
+    "executive_sponsor",
+    "pilot_owner",
+    "field_manager",
+    "rep_champion",
+    "procurement",
+    "legal_security",
+    "technical_owner"
+  ],
+  "hierarchyLevels": [
+    "company",
+    "region",
+    "district",
+    "market",
+    "location",
+    "team",
+    "rep"
+  ],
+  "healthScoring": {
+    "bands": [
+      "healthy",
+      "watch",
+      "at_risk"
+    ],
+    "dimensions": [
+      {
+        "id": "adoption",
+        "weight": 25
+      },
+      {
+        "id": "field_activity",
+        "weight": 20
+      },
+      {
+        "id": "outcome_proof",
+        "weight": 20
+      },
+      {
+        "id": "executive_alignment",
+        "weight": 15
+      },
+      {
+        "id": "renewal_risk",
+        "weight": 10
+      },
+      {
+        "id": "support_load",
+        "weight": 5
+      },
+      {
+        "id": "data_completeness",
+        "weight": 5
+      }
+    ]
+  },
+  "workflows": [
+    {
+      "id": "beta_to_pilot",
+      "stages": [
+        "beta_active",
+        "pilot_scoping",
+        "pilot_active"
+      ]
+    },
+    {
+      "id": "pilot_to_customer",
+      "stages": [
+        "pilot_active",
+        "business_review",
+        "proposal",
+        "implementation",
+        "active_customer"
+      ]
+    },
+    {
+      "id": "customer_onboarding",
+      "stages": [
+        "implementation",
+        "active_customer"
+      ]
+    },
+    {
+      "id": "customer_success_review",
+      "cadence": [
+        "weekly",
+        "monthly"
+      ]
+    },
+    {
+      "id": "expansion",
+      "stages": [
+        "active_customer",
+        "expansion",
+        "proposal",
+        "won"
+      ]
+    },
+    {
+      "id": "renewal",
+      "cadenceDaysBeforeRenewal": [
+        120,
+        90,
+        60,
+        45,
+        30
+      ]
+    }
+  ],
+  "reports": [
+    "active_beta_companies",
+    "active_pilot_companies",
+    "enterprise_opportunities_by_stage",
+    "accounts_by_health_band",
+    "at_risk_accounts",
+    "upcoming_renewals",
+    "expansion_opportunities",
+    "executive_relationships_needing_attention",
+    "meetings_without_next_steps",
+    "success_milestones_due",
+    "adoption_by_company_region_district_location"
+  ],
+  "futureSubsystemHandoffs": [
+    "Dashboard",
+    "Infrastructure",
+    "Data",
+    "Intelligence Engine",
+    "Sales",
+    "Administration"
+  ]
+}

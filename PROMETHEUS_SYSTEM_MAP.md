@@ -82,19 +82,33 @@ Primary rule: infrastructure changes must protect production, avoid secrets expo
 
 ### 5. Prometheus CRM
 
-Scope: future customer and lead communication workflows.
+Scope: customer/account system of record, lead and contact lifecycle, follow-up/task queues, beta and pilot account tracking, enterprise opportunity pipeline, customer onboarding, customer success tracking, expansion, renewal, executive relationships, account health, and account timeline.
 
 Areas:
 
-- Calls
-- SMS
-- Email
+- Company accounts
 - Contacts
+- Decision makers
+- Leads
+- Pilot companies
+- Beta companies
+- Enterprise opportunities
+- Customer onboarding
+- Customer success
+- Expansion opportunities
+- Renewal lifecycle
+- Executive relationships
+- Customer health scoring
+- Account timeline
+- Meeting history
+- Product adoption snapshots
+- Success milestones
+- Multi-location account hierarchy
 - Follow-up
 - Tasks
 - Calendar
 
-Primary rule: do not connect external communication systems or send messages without explicit Cruz approval.
+Primary rule: CRM owns the internal account/customer lifecycle model but must not duplicate Dashboard UI/runtime logic, Companion behavior, Infrastructure/auth/storage, Data route/prospect governance, Intelligence Engine scoring, or Sales-owned go-to-market narrative. Do not connect external communication systems or send messages without explicit Cruz approval.
 
 ### 6. Prometheus Data
 

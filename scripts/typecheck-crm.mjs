@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   buildCrmReports,
   buildFollowUpQueue,
@@ -11,6 +13,8 @@ import {
   recordRouteVisit
 } from "../crm/crm-foundation.mjs";
 
+const root = resolve(import.meta.dirname, "..");
+const enterpriseModel = JSON.parse(readFileSync(resolve(root, "crm/enterprise-lifecycle-model.json"), "utf8"));
 const activePool = loadRuntimeActivePool();
 const runtimeRecords = dashboardRuntimeRecordsFromActivePool(activePool, { repId: "anthony" });
 const state = createCrmState({ now: "2026-06-30T09:00:00.000Z" });
@@ -42,5 +46,9 @@ assert.equal(typeof state.leads[0].status, "string");
 assert.equal(typeof queue[0].dueAt, "string");
 assert.equal(typeof reports.founderActivitySummary.visibleContacts, "number");
 assert.equal(reports.anthonyBetaActivity.every(activity => activity.founderVisible), true);
+assert.equal(enterpriseModel.implementationType, "architecture");
+assert.equal(enterpriseModel.productionBetaSystemsModified, false);
+assert.equal(Array.isArray(enterpriseModel.entities), true);
+assert.equal(enterpriseModel.entities.some(entity => entity.id === "company_account"), true);
 
 console.log("CRM typecheck passed: exported API and runtime adapter contracts are valid.");
