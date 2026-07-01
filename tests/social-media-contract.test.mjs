@@ -562,7 +562,8 @@ test("Instagram Business provider maps mocked Meta API responses without exposin
   assert.equal(JSON.stringify(snapshot).includes("app-secret-not-returned"), false);
   assert.equal(fetchCalls.some(url => url.includes("test-token-not-returned")), false);
   assert.equal(authHeaders.every(header => header === "Bearer test-token-not-returned"), true);
-  assert.equal(fetchCalls.length, 2);
+  assert.equal(fetchCalls.length, 3);
+  assert.equal(fetchCalls.some(url => url.includes("/media?")), true);
 });
 
 test("Instagram Business provider uses graph.instagram.com for Instagram Login tokens", async () => {
@@ -595,9 +596,100 @@ test("Instagram Business provider uses graph.instagram.com for Instagram Login t
   });
 
   assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.CONNECTED);
-  assert.equal(fetchCalls.length, 2);
+  assert.equal(fetchCalls.length, 3);
   assert.equal(fetchCalls.every(url => url.startsWith("https://graph.instagram.com/v21.0/17890000000000000")), true);
   assert.equal(fetchCalls.some(url => url.includes("test-token-not-returned")), false);
+});
+
+test("Instagram Business provider normalizes available content-level insights", async () => {
+  const fetchImpl = createOrderedFetch([
+    {
+      assert: url => {
+        assert.equal(url.includes("fields=username%2Cfollowers_count%2Cmedia_count"), true);
+      },
+      body: {
+        username: "prometheus.iq",
+        followers_count: 50,
+        media_count: 7
+      }
+    },
+    {
+      assert: url => {
+        assert.equal(url.includes("/insights?"), true);
+        assert.equal(url.includes("metric=reach%2Cprofile_views%2Cwebsite_clicks"), true);
+      },
+      body: {
+        data: [
+          { name: "reach", values: [{ value: 20 }] },
+          { name: "profile_views", values: [{ value: 8 }] },
+          { name: "website_clicks", values: [{ value: 3 }] }
+        ]
+      }
+    },
+    {
+      assert: url => {
+        assert.equal(url.includes("/media?"), true);
+        assert.equal(url.includes("limit=2"), true);
+      },
+      body: {
+        data: [
+          {
+            id: "ig-media-1",
+            caption: "Outside sales needs intelligence before activity.",
+            media_type: "REEL",
+            permalink: "https://instagram.com/p/example",
+            timestamp: "2026-07-01T20:00:00+0000"
+          }
+        ]
+      }
+    },
+    {
+      assert: url => {
+        assert.equal(url.includes("ig-media-1/insights"), true);
+        assert.equal(url.includes("metric=reach%2Cviews%2Clikes%2Ccomments%2Cshares%2Csaved%2Ctotal_interactions"), true);
+      },
+      body: {
+        data: [
+          { name: "reach", values: [{ value: 11 }] },
+          { name: "views", values: [{ value: 30 }] },
+          { name: "likes", values: [{ value: 5 }] },
+          { name: "comments", values: [{ value: 2 }] },
+          { name: "shares", values: [{ value: 1 }] },
+          { name: "saved", values: [{ value: 4 }] },
+          { name: "total_interactions", values: [{ value: 12 }] }
+        ]
+      }
+    }
+  ]);
+
+  const snapshot = await fetchInstagramBusinessSnapshot({
+    env: {
+      INSTAGRAM_ACCESS_TOKEN: "test-token-not-returned",
+      INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
+      META_APP_ID: "app-id",
+      META_APP_SECRET: "app-secret-not-returned",
+      META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
+      META_GRAPH_API_VERSION: "v21.0",
+      INSTAGRAM_API_MODE: "facebook_login",
+      INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
+      INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-07-01T22:30:00.000Z"
+    },
+    fetchImpl,
+    generatedAt: "2026-07-01T22:30:00.000Z",
+    maxContentItems: 2
+  });
+
+  const contentViews = snapshot.metrics.find(metric => metric.name === "content_views");
+  const contentComments = snapshot.metrics.find(metric => metric.name === "content_comments");
+
+  assert.equal(snapshot.id, "instagram-business-live-provider-api");
+  assert.equal(contentViews.value, 30);
+  assert.equal(contentViews.metadata.scope, "content");
+  assert.equal(contentViews.metadata.mediaId, "ig-media-1");
+  assert.equal(contentComments.value, 2);
+  assert.equal(snapshot.attributionEvents.length, 0);
+  assert.equal(JSON.stringify(snapshot).includes("test-token-not-returned"), false);
+  assert.equal(fetchImpl.calls.length, 4);
 });
 
 test("Social Media analytics service aggregates attribution summary without downstream code changes", () => {

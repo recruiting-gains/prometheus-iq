@@ -14,6 +14,22 @@ import {
   validateInstagramRuntimeEnvironment
 } from "../infrastructure/instagram-runtime-controls.js";
 
+const ACCOUNT_INSIGHT_METRICS = Object.freeze([
+  "reach",
+  "profile_views",
+  "website_clicks"
+]);
+
+const CONTENT_INSIGHT_METRICS = Object.freeze([
+  "reach",
+  "views",
+  "likes",
+  "comments",
+  "shares",
+  "saved",
+  "total_interactions"
+]);
+
 function getInstagramConfig(env = process.env) {
   return resolveInstagramRuntimeConfig(env);
 }
@@ -36,6 +52,10 @@ function accountFields(config) {
   return config.apiMode === "instagram_login"
     ? "user_id,username,account_type"
     : "username,followers_count,media_count";
+}
+
+function mediaFields() {
+  return "id,caption,media_type,permalink,timestamp,username";
 }
 
 async function fetchJson(fetchImpl, url, accessToken) {
@@ -62,6 +82,140 @@ function metricValue(insights, name) {
   const value = metric?.values?.[0]?.value;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function profileMetrics(account, config, generatedAt) {
+  return [
+    account?.followers_count === undefined ? null : {
+      name: "followers_count",
+      value: account.followers_count,
+      source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+      provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+      observedAt: generatedAt,
+      metadata: {
+        scope: "account",
+        accountId: config.businessAccountId || config.instagramUserId || null,
+        apiMode: config.apiMode
+      }
+    },
+    account?.media_count === undefined ? null : {
+      name: "media_count",
+      value: account.media_count,
+      source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+      provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+      observedAt: generatedAt,
+      metadata: {
+        scope: "account",
+        accountId: config.businessAccountId || config.instagramUserId || null,
+        apiMode: config.apiMode
+      }
+    }
+  ].filter(Boolean);
+}
+
+function accountInsightMetrics(insights, config, generatedAt) {
+  return ACCOUNT_INSIGHT_METRICS.map(name => ({
+    name,
+    value: metricValue(insights, name),
+    source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+    provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+    observedAt: generatedAt,
+    metadata: {
+      scope: "account",
+      accountId: config.businessAccountId || config.instagramUserId || null,
+      apiMode: config.apiMode
+    }
+  }));
+}
+
+function mediaCaptionPreview(media) {
+  return typeof media?.caption === "string" ? media.caption.slice(0, 140) : "";
+}
+
+function contentInsightMetrics({ media, insights, config, generatedAt }) {
+  return CONTENT_INSIGHT_METRICS.map(name => ({
+    name: `content_${name}`,
+    value: metricValue(insights, name),
+    source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+    provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+    observedAt: generatedAt,
+    metadata: {
+      scope: "content",
+      accountId: config.businessAccountId || config.instagramUserId || null,
+      apiMode: config.apiMode,
+      mediaId: media.id,
+      mediaType: media.media_type || "unknown",
+      permalink: media.permalink || null,
+      publishedAt: media.timestamp || null,
+      captionPreview: mediaCaptionPreview(media)
+    }
+  }));
+}
+
+async function fetchInstagramContentMetrics({
+  fetchImpl,
+  config,
+  accountPath,
+  generatedAt,
+  maxContentItems
+}) {
+  const mediaUrl = buildGraphUrl(config, `${accountPath}/media`, {
+    fields: mediaFields(),
+    limit: maxContentItems
+  });
+  const mediaResult = await fetchJson(fetchImpl, mediaUrl, config.accessToken);
+
+  if (!mediaResult.ok) {
+    return {
+      metrics: [],
+      notes: [
+        `Content-level media list was unavailable from Meta: ${mediaResult.error || "provider error"}.`
+      ]
+    };
+  }
+
+  const mediaItems = Array.isArray(mediaResult.data?.data) ? mediaResult.data.data : [];
+  const insightResults = await Promise.all(mediaItems.map(async media => {
+    if (!media?.id) {
+      return {
+        ok: false,
+        media,
+        error: "Media item did not include an id."
+      };
+    }
+
+    const insightsUrl = buildGraphUrl(config, `${media.id}/insights`, {
+      metric: CONTENT_INSIGHT_METRICS.join(",")
+    });
+    const result = await fetchJson(fetchImpl, insightsUrl, config.accessToken);
+    return {
+      ...result,
+      media
+    };
+  }));
+
+  const metrics = insightResults
+    .filter(result => result.ok)
+    .flatMap(result => contentInsightMetrics({
+      media: result.media,
+      insights: result.data,
+      config,
+      generatedAt
+    }));
+  const unavailableCount = insightResults.filter(result => !result.ok).length;
+
+  return {
+    metrics,
+    notes: [
+      `Content-level insight support requested ${mediaItems.length} recent Instagram media item(s).`,
+      metrics.length
+        ? "Available content-level insights were normalized as provider_api metrics with content metadata."
+        : "No content-level insights were available from Meta for the requested media items.",
+      unavailableCount
+        ? `${unavailableCount} media item(s) did not return content-level insights.`
+        : ""
+    ].filter(Boolean)
+  };
 }
 
 export function getInstagramBusinessProviderStatus({ env = process.env, checkedAt } = {}) {
@@ -172,7 +326,8 @@ export function createInstagramSampleSnapshot({
 export async function fetchInstagramBusinessSnapshot({
   env = process.env,
   fetchImpl = globalThis.fetch,
-  generatedAt = new Date().toISOString()
+  generatedAt = new Date().toISOString(),
+  maxContentItems = 10
 } = {}) {
   const config = getInstagramConfig(env);
   const runtime = validateInstagramRuntimeEnvironment({ env, now: new Date(generatedAt) });
@@ -190,7 +345,7 @@ export async function fetchInstagramBusinessSnapshot({
     fields: accountFields(config)
   });
   const insightsUrl = buildGraphUrl(config, `${accountPath}/insights`, {
-    metric: "reach,profile_views,website_clicks",
+    metric: ACCOUNT_INSIGHT_METRICS.join(","),
     period: "day"
   });
 
@@ -231,9 +386,16 @@ export async function fetchInstagramBusinessSnapshot({
   }
 
   const handle = accountResult.data?.username ? `@${accountResult.data.username}` : config.accountHandle;
+  const content = await fetchInstagramContentMetrics({
+    fetchImpl,
+    config,
+    accountPath,
+    generatedAt,
+    maxContentItems
+  });
 
   return createMarketingAnalyticsSnapshot({
-    id: "instagram-business-provider-api",
+    id: "instagram-business-live-provider-api",
     generatedAt,
     providers: [
       createSocialProviderStatus({
@@ -248,41 +410,22 @@ export async function fetchInstagramBusinessSnapshot({
         capabilities: {
           [SOCIAL_PROVIDER_CAPABILITIES.READ_ACCOUNT_INSIGHTS]: true,
           [SOCIAL_PROVIDER_CAPABILITIES.READ_CONTENT_INSIGHTS]: true,
-          [SOCIAL_PROVIDER_CAPABILITIES.READ_AUDIENCE_INSIGHTS]: true
+          [SOCIAL_PROVIDER_CAPABILITIES.READ_AUDIENCE_INSIGHTS]: true,
+          [SOCIAL_PROVIDER_CAPABILITIES.READ_COMMENT_SUMMARY]: false,
+          [SOCIAL_PROVIDER_CAPABILITIES.READ_CAMPAIGN_INSIGHTS]: false
         }
       })
     ],
     metrics: [
-      {
-        name: "reach",
-        value: metricValue(insightsResult.data, "reach"),
-        source: SOCIAL_DATA_SOURCES.PROVIDER_API,
-        provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
-        observedAt: generatedAt
-      },
-      {
-        name: "profile_views",
-        value: metricValue(insightsResult.data, "profile_views"),
-        source: SOCIAL_DATA_SOURCES.PROVIDER_API,
-        provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
-        observedAt: generatedAt
-      },
-      {
-        name: "website_clicks",
-        value: metricValue(insightsResult.data, "website_clicks"),
-        source: SOCIAL_DATA_SOURCES.PROVIDER_API,
-        provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
-        observedAt: generatedAt
-      },
-      {
-        name: "followers_count",
-        value: accountResult.data?.followers_count,
-        source: SOCIAL_DATA_SOURCES.PROVIDER_API,
-        provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
-        observedAt: generatedAt
-      }
+      ...accountInsightMetrics(insightsResult.data, config, generatedAt),
+      ...profileMetrics(accountResult.data, config, generatedAt),
+      ...content.metrics
     ],
-    notes: ["Live provider data is account-level only until content-level and downstream attribution contracts are connected."]
+    notes: [
+      "Live Instagram Business analytics were consumed through the verified production runtime path.",
+      "Website and CRM attribution boundaries are preserved; no downstream attribution events are created by provider ingestion.",
+      ...content.notes
+    ]
   });
 }
 

@@ -264,6 +264,15 @@ test("Meta Instagram snapshot route returns provider data without exposing secre
           { name: "profile_views", values: [{ value: 3 }] }
         ]
       }
+    },
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004/media?fields=id%2Ccaption%2Cmedia_type%2Cpermalink%2Ctimestamp%2Cusername&limit=10");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        data: []
+      }
     }
   ]);
   const originalFetch = globalThis.fetch;
@@ -279,7 +288,7 @@ test("Meta Instagram snapshot route returns provider data without exposing secre
     assert.equal(body.snapshot.providers[0].source, "provider_api");
     assert.equal(body.snapshot.providers[0].accountHandle, "@prometheus.iq");
     assert.equal(body.snapshot.metrics.find(metric => metric.name === "reach").value, 14);
-    assert.equal(fetchImpl.calls.length, 2);
+    assert.equal(fetchImpl.calls.length, 3);
     assert.equal(serialized.includes("instagram-token-not-public"), false);
     assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
   } finally {

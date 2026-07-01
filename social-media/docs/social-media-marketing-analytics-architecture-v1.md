@@ -147,13 +147,14 @@ Implemented:
 - Provider registry for Instagram, Facebook, LinkedIn, X, TikTok, and YouTube.
 - Instagram Business provider adapter.
 - Instagram-only backend runtime controls for environment validation and safe connection states.
+- Live Instagram Business account/profile analytics consumption through the verified runtime path.
+- Available content-level Instagram insights normalized as provider API metrics with content metadata.
 - Explicit mock/sample fallback.
 - Founder marketing sample analytics service.
 - Tests for contract validation, secret redaction, provider registry, Instagram fallback, and mocked provider fetch.
 
 Not implemented:
 
-- Live OAuth connection flow.
 - Browser automation.
 - Scraping.
 - Live posting.

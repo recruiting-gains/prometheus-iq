@@ -17,7 +17,7 @@ This subsystem connects marketing activity to:
 
 Social Media / Marketing Analytics Architecture v1 is implemented as a provider-neutral foundation with Instagram Business as the first concrete provider adapter.
 
-Live provider calls are intentionally not enabled by default. Instagram/Meta analytics now pass through Infrastructure-owned runtime controls, and live Meta Graph API calls are blocked unless backend setup, token, permissions, and verification metadata are all present.
+Live provider calls pass through the verified Instagram runtime controls. Meta Graph API reads are blocked unless backend setup, token, permissions, and verification metadata are all present. When connected, the Instagram provider consumes account/profile data, account insights, and available content-level insights without enabling posting, DMs, comment automation, scraping, or token exposure.
 
 ## Source Files
 
