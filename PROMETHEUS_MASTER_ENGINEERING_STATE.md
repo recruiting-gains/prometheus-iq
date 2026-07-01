@@ -2790,6 +2790,64 @@ Remaining blockers:
 - Deploy current `origin/main` alignment to `prometheusrouteiq-website` after required secrets are present.
 - Re-run production status/profile/insights verification from the public runtime path.
 
+### Completed Work Lane: Instagram Business Login End-to-End Production Verification
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Social Media
+
+Task:
+
+Instagram Business Login end-to-end production verification.
+
+Status:
+
+Complete. Production `prometheusrouteiq-website` is configured, deployed, and verified for Instagram Business Login runtime status plus live provider API snapshot retrieval for `@prometheus.iq`.
+
+Commit:
+
+`f9c1071dce988181a4c9384a04987ad0a688a163`
+
+Deploy:
+
+Cloudflare Worker `prometheusrouteiq-website` version `58410ffc-f02d-4896-a720-2cc2c42cc617`.
+
+Files changed:
+
+- `workers/prometheus-iq-worker.js`
+- `tests/meta-instagram-worker-callback.test.mjs`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Verified outcome:
+
+- Cloudflare secret names verified on `prometheusrouteiq-website`: `INSTAGRAM_ACCESS_TOKEN`, `META_APP_ID`, `META_APP_SECRET`.
+- Production runtime status route returned `state=connected`, `tokenPresent=true`, `apiMode=instagram_login`, `accountId=17841421929598004`, `accountHandle=@prometheus.iq`, `missingPermissions=[]`, and `missingSetup=[]`.
+- Production snapshot route returned provider API data for `@prometheus.iq`.
+- Production snapshot metrics returned: `reach`, `profile_views`, `website_clicks`, and `followers_count`.
+- Legacy Facebook Login scope mismatch is resolved; required/granted permissions are `instagram_business_basic` and `instagram_business_manage_insights`.
+- Response verification found no token/secret-like material in production snapshot output.
+
+Verification commands:
+
+- `npx wrangler secret list --config wrangler.prometheusrouteiq-website.jsonc`
+- `npx wrangler deploy --config wrangler.prometheusrouteiq-website.jsonc --dry-run --keep-vars`
+- `npm run instagram:verify-token`
+- `npm run test:social-media`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run security:check`
+- `npm run build`
+- `npx wrangler deploy --config wrangler.prometheusrouteiq-website.jsonc --keep-vars --message "Deploy safe Instagram snapshot endpoint f9c1071"`
+- `curl -sS https://prometheusrouteiq.com/api/oauth/meta/instagram/status`
+- `curl -sS https://prometheusrouteiq.com/api/social/instagram/snapshot`
+- `npx wrangler deployments list --name prometheusrouteiq-website | tail -n 16`
+
+Remaining blockers:
+
+None for Infrastructure production runtime verification. Content-level insights and downstream attribution remain future Social Media/Analytics expansion.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
