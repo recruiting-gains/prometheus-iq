@@ -418,6 +418,75 @@ Remaining blocker:
 
 None for Data governance. Historical `npm test` blocker from deploy Active pool mismatch was downstream of Data and later superseded by Infrastructure commit `ce88f3697d9f5e5bb088279faef1eed70ff9f8e3`, which synced the deploy Active pool artifact timestamp to the Data export.
 
+### Completed Work Lane: Remove or Quarantine Residential-House Barber Shop Recommendation
+
+Primary subsystem: Prometheus Data
+
+Secondary subsystems:
+
+- Prometheus Dashboard
+- Prometheus Infrastructure
+
+Task:
+
+Remove or Quarantine Residential-House Barber Shop Recommendation.
+
+Status:
+
+Complete.
+
+Commit:
+
+`e6a8ef4`
+
+Deploy:
+
+Not run by Data.
+
+Files changed:
+
+15 Data-owned files, including:
+
+- `data/qualified-prospects/README.md`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md`
+- `scripts/govern-runtime-pool-refresh.mjs`
+- `scripts/segment-google-runtime-pools.mjs`
+- `scripts/test-runtime-pool-governance.mjs`
+
+Verified outcome:
+
+- Located the reported barber-shop cluster at `10820 Hughes Rd, Houston, TX 77089, USA`: David's Barber Shop, Jorgitin-Barbershop, and BARBER SHOP YSA.
+- Google Places still reports the records as operational `barber_shop` places, while geocoding classifies the address as `street_address` / `subpremise` with ROOFTOP precision.
+- Added Data governance override support for field-verified residential-house blocks by Place ID and normalized address.
+- Quarantined all three reported records without changing Dashboard, Route Intelligence scoring, Companion, CRM, or Infrastructure.
+- Segmentation and governance now emit `residential_house_reported_place_id` / `residential_house_reported_address` failures and prevent affected records from Active or Reserve promotion.
+- Added regression validation that governance fails if a quarantined residential override is reintroduced into Active.
+- Active Pool: 297.
+- Reserve Pool: 44.
+- Quarantine Pool: 109.
+- Governance passed with `promotionAllowed: true` and `failureCount: 0`.
+- Zero live Google API verification passed with `live_google_api_calls: 0`.
+- `node scripts/test-runtime-pool-governance.mjs`: passed.
+- `node scripts/govern-runtime-pool-refresh.mjs`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run security:check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing bundle-size / module directive warnings.
+
+Remaining blocker:
+
+Dashboard/deploy runtime assets still contain the previous 300-record Active Pool and may continue showing stale recommendations until a downstream sync consumes the refreshed 297-record Data export. `npm test` failed at Dashboard runtime-pool check because Dashboard/deploy assets still expect 300 Active records / 600 expanded route records.
+
+Next recommended subsystem:
+
+Prometheus Dashboard / Infrastructure for deployed runtime data asset sync and production verification.
+
 ### Completed Work Lane: Runtime Data Integration v1
 
 Primary subsystem: Prometheus Dashboard
@@ -818,6 +887,64 @@ None.
 Next recommended subsystem:
 
 Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks. Deployment remains a separate Infrastructure/Dashboard release decision because this task was not deployed.
+
+### Completed Work Lane: Beta Startup and Places Loading Performance Stabilization
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Data
+- Prometheus Infrastructure
+
+Task:
+
+Beta Startup and Places Loading Performance Stabilization.
+
+Status:
+
+Complete for Dashboard implementation. Full release test suite is blocked by existing Data/Deploy Active Pool parity mismatch.
+
+Commit:
+
+`fa05bdf`
+
+Deploy:
+
+Not performed; not requested.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Reduced startup blocking by deferring owner-only Places, Stats, and Find rendering during Rep startup.
+- Added per-render memoization for Dashboard selectors used repeatedly during route rendering.
+- Added progressive Places rendering.
+- Added render timing diagnostics.
+- Preserved Active Pool behavior.
+- Preserved Rep workflow.
+- Preserved Founder workflow.
+- Preserved Route Intelligence logic.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed, 41/41.
+- `npm run build`: passed.
+
+Remaining blocker:
+
+`npm test` failed at `dashboard:runtime-pool:check` because the Data source Active Pool has 297 records after residential-house quarantine while the Dashboard/deploy asset still has 300 records and the gate expects 300 / 600 expanded route records.
+
+Next recommended subsystem:
+
+Prometheus Dashboard / Infrastructure for Active Pool deploy asset sync, runtime-pool gate update, and production-equivalent verification.
 
 ### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
 
@@ -1495,6 +1622,77 @@ Next recommended subsystem:
 
 Prometheus Infrastructure, then Prometheus Integrations. Infrastructure should establish safe secret/OAuth runtime controls before Integrations connects Meta live data.
 
+### Completed Work Lane: Founder Marketing Operating System v1
+
+Primary subsystem: Prometheus Social Media
+
+Secondary subsystems:
+
+- Prometheus Website, only when attribution implementation is explicitly approved
+- Prometheus CRM, only when lead attribution implementation is explicitly approved
+- Prometheus Infrastructure, before any production OAuth, live provider token storage, or backend analytics connection
+- Prometheus Integrations, only after Infrastructure is ready for live Meta or other provider connections
+
+Task:
+
+Founder Marketing Operating System v1.
+
+Status:
+
+Complete, committed, and pushed. Social Media validation passed. Repository-wide security validation was blocked at handoff time by unrelated dirty Website/Dashboard parity changes.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+`1e8b6e45eefb63dd89662b843827bb6322a8a0fb`
+
+Deploy:
+
+Not run. No production integration, OAuth, live Meta API, live posting, Website, Dashboard, CRM, or Anthony beta deployment was part of this task.
+
+Files changed:
+
+- `package.json`
+- `social-media/founder-marketing-operating-system/README.md`
+- `social-media/founder-marketing-operating-system/content-calendar.md`
+- `social-media/founder-marketing-operating-system/founder-content-workflow.md`
+- `social-media/founder-marketing-operating-system/platform-strategy-and-cadence.md`
+- `social-media/founder-marketing-operating-system/campaign-kpi-attribution-framework.md`
+- `social-media/founder-marketing-operating-system/brand-and-growth-strategy.md`
+- `social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json`
+- `social-media/founder-marketing-operating-system/templates/campaign-brief.template.md`
+- `tests/founder-marketing-operating-system.test.mjs`
+
+Verified outcome:
+
+- Built Founder Marketing Operating System v1 under Social Media ownership.
+- Added reusable systems for content calendar, founder content workflow, weekly cadence, platform strategy, campaign planning, KPI framework, brand consistency, website attribution planning, CRM attribution planning, and founder growth strategy.
+- Covered Instagram, LinkedIn, X, YouTube, and TikTok.
+- Added machine-readable operating-system model with explicit guardrails.
+- Added validation coverage to `npm run test:social-media`.
+- Preserved Anthony beta boundary.
+- Did not connect live Meta APIs.
+- Did not implement OAuth.
+- Did not implement live posting.
+- Did not modify Website, Dashboard, CRM, Infrastructure, Integrations, or Anthony beta code.
+- Created operating model `founder-marketing-operating-system.v1`.
+- Created Website attribution planning fields: `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`, `landing_path`, `referrer`, `occurred_at`.
+- Created CRM attribution planning fields: `lead_id`, `lead_source`, `campaign_id`, `campaign_platform`, `first_touch_at`, `last_touch_at`, `qualified_status`, `manual_notes`.
+- Added campaign brief template for reusable Social Media campaign planning.
+- `npm run test:social-media`: passed, 26/26.
+- `npm run build`: passed with existing Vite/framer-motion `use client` and chunk-size warnings.
+
+Remaining blockers:
+
+Root `PRODUCT_VISION.md` is absent; Social Media used `docs/product-vision.md` as the approved fallback. Repository-wide security check was blocked at handoff time by unrelated dirty Website/Dashboard parity issues. Live provider analytics remain intentionally unconnected. Website and CRM attribution remain planning contracts only.
+
+Next recommended subsystem:
+
+Website, only after explicit approval, for attribution implementation. Otherwise continue within Prometheus Social Media by using this operating system to run the first manual founder campaign.
+
 ### Completed Work Lane: Instagram OAuth / Secret Runtime Controls v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -2171,6 +2369,60 @@ Historical at this handoff: no live Google Calendar/Gmail/Outlook provider adapt
 Next recommended subsystem:
 
 Prometheus Infrastructure for backend environment variable setup and live provider verification when founder-approved OAuth credentials are available.
+
+### Completed Work Lane: Founder Executive Command Center v1
+
+Primary subsystem: Prometheus Companion
+
+Secondary subsystems:
+
+- Prometheus Integrations, for future live calendar/message provider connectivity
+- Prometheus Research, for future dated Founder Intelligence Brief feed
+
+Task:
+
+Founder Executive Command Center v1.
+
+Status:
+
+PASS for Companion. Installed runtime matches source: `20260701T060438Z-3042b185f0ce-ee16ab4b6de2`.
+
+Commit:
+
+`3042b185f0ce8b18fff2cf59fcc0bf79a8820fbf`
+
+Deploy:
+
+Local Companion sync/install/verify completed. No production deploy.
+
+Files changed:
+
+- `prometheus-os/executive-command-center.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/memory-ranking.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+Verified outcome:
+
+- Added Executive Command Center response layer.
+- Added Founder Morning Brief covering engineering, beta, research, sales, website, social media, calendar, and priorities.
+- Added Executive Dashboard summary mode.
+- Added Daily Decision Support for engineering, marketing, sales, and product prioritization.
+- Added Founder Memory recall for company decisions, product decisions, engineering milestones, beta findings, and investor conversations.
+- Added executive strategy meeting style conversation flow.
+- Preserved existing 3D UI and voice infrastructure.
+- `node --check` on touched Companion files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `npm run build`: passed with existing Vite warnings.
+- `./mac-companion/sync-install-verify.sh`: passed 18/18.
+
+Remaining blockers:
+
+Root `PRODUCT_VISION.md` is absent; Companion used `docs/product-vision.md`. Live research, investor, and provider-backed calendar/message feeds are not connected beyond existing contracts. `node scripts/security-check.mjs` failed at handoff time due out-of-scope Dashboard/deploy hash drift that Companion did not own.
+
+Next recommended subsystem:
+
+Prometheus Integrations for live calendar/message provider connection and verification, or Prometheus Research for dated Founder Intelligence Brief feed.
 
 ### Completed Work Lane: Founder Calendar & Message Provider Adapter v1
 
@@ -3462,12 +3714,16 @@ Current duplicate-prevention sources:
 - Do not duplicate the Dashboard Rep-only role/session enforcement fix; reuse the `?pwa=rep` launch path, stored Rep launch context override, Rep `appMode` guard, Founder manifest separation, and Dashboard runtime workflow regression coverage.
 - Do not duplicate the Dashboard mobile pin-drop logging scroll fix; preserve the iOS/PWA-safe modal-body scroll container, safe-area padding, reachable quick logging submit action, automatic scroll-to-counts behavior, and Anthony mobile reachability regression coverage.
 - Do not duplicate the Dashboard Nearby Opportunities runtime behavior fix; preserve visit GPS anchoring, verified-place coordinate fallback, same-coordinate walkable opportunities, Active Pool filtering, runtime debug state, and workflow regression coverage.
+- Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
+- Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
+- Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
+- Do not duplicate the Founder Marketing Operating System; reuse `social-media/founder-marketing-operating-system/`, its machine-readable model, campaign brief template, cadence, platform strategy, KPI framework, and attribution planning fields.
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
 - Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
@@ -3486,17 +3742,20 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Private beta stabilization intake and remaining confirmed issue routing.
+Active Pool deploy asset sync after residential-house quarantine.
 
-Primary subsystem: Prometheus Administration.
+Primary subsystem: Prometheus Dashboard.
 
 Secondary subsystems:
 
-- Prometheus Dashboard, for confirmed beta product defects only
-- Prometheus Infrastructure/Auth, for authenticated access, session, device, or Cloudflare Access issues only
-- Prometheus CRM, for beta feedback/follow-up workflow consumption only
+- Prometheus Data, as source-of-truth owner for the 297-record Active Pool export
+- Prometheus Infrastructure, for production deployment and release verification
 
 Reason:
+
+Prometheus Data quarantined the residential-house barber-shop cluster and exported a 297-record Active Pool at commit `e6a8ef4`. Dashboard Beta Startup and Places Loading Performance Stabilization completed at commit `fa05bdf`, but full `npm test` is blocked because Dashboard/deploy runtime assets still expect the old 300 Active records / 600 expanded route records. Dashboard owns consuming the refreshed Data export in deployed runtime assets and updating the runtime-pool gate expectations without changing Data governance or Route Intelligence scoring. Infrastructure owns production deploy and release verification after Dashboard sync is complete.
+
+Standing beta-stabilization routing:
 
 Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
 
