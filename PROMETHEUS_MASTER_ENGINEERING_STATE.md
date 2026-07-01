@@ -66,7 +66,19 @@ Secondary subsystems:
 
 Status:
 
-Complete. See repository history and the originating Overwatch handoff for the commit hash.
+Complete.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+`c22d788`
+
+Deploy:
+
+Not run. No production deploy required.
 
 Verified outcome:
 
@@ -97,6 +109,138 @@ Files changed:
 Remaining blocker:
 
 `COMPANY_IDENTITY.md` was requested but is not present in the repository. `docs/prometheus-company-manual.md` was used as the closest available company identity source.
+
+Next recommended subsystem:
+
+Prometheus Research for the first dated Founder Intelligence Brief using this structure, not production integration.
+
+### Completed Work Lane: Enterprise Sales Operating System Foundation v1
+
+Primary subsystem: Prometheus Sales
+
+Secondary subsystems:
+
+- Prometheus Website
+- Legal/Security, if external enterprise language is used
+- Prometheus Dashboard, only if approved demos require product changes
+- Prometheus CRM, only if validated customer workflow requires CRM implementation
+
+Task:
+
+Enterprise Sales Operating System Foundation v1.
+
+Status:
+
+Complete.
+
+Implementation type:
+
+Architecture only.
+
+Commit:
+
+`c55d855`
+
+Deploy:
+
+Not run. Documentation/architecture-only change.
+
+Verified outcome:
+
+- Created reusable Prometheus Sales operating-system foundation under `sales/`.
+- Covered enterprise GTM, discovery, qualification, demos, pilots, onboarding, customer success, expansion, renewal, objections, ROI, industry positioning, founder pitch, executive presentation, and documentation architecture.
+- Positioned Prometheus horizontally across outside-sales industries, with gym sales treated as the first validation environment only.
+- Updated `PROMETHEUS_SYSTEM_MAP.md` so Sales owns reusable GTM systems and customer-facing sales documentation.
+- Explicitly blocked Sales from owning Dashboard, Companion, CRM implementation, Infrastructure, Integrations, or Intelligence Engine implementation.
+- `node scripts/validate-sales-foundation.mjs`: passed.
+- `node --test tests/sales-foundation.test.mjs`: passed.
+- `npm test`: passed with existing Vite/Framer Motion `use client` and chunk-size warnings.
+
+Files changed:
+
+- `sales/README.md`
+- `sales/enterprise-sales-methodology.md`
+- `sales/discovery-and-qualification.md`
+- `sales/demo-pilot-onboarding.md`
+- `sales/customer-success-lifecycle.md`
+- `sales/objection-library.md`
+- `sales/roi-calculator-framework.md`
+- `sales/industry-positioning.md`
+- `sales/founder-pitch-and-executive-presentation.md`
+- `sales/documentation-architecture.md`
+- `scripts/validate-sales-foundation.mjs`
+- `tests/sales-foundation.test.mjs`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `PROMETHEUS OPERATING SYSTEM/PROMETHEUS_OPERATING_SYSTEM_README.md`
+
+Remaining blockers:
+
+Root `PRODUCT_VISION.md` and `COMPANY_IDENTITY.md` were not present. Sales used `docs/product-vision.md` and `docs/prometheus-company-manual.md` as the closest approved sources.
+
+Next recommended subsystem:
+
+Prometheus Website when public positioning should be aligned to the horizontal outside-sales operating-system narrative.
+
+### Completed Work Lane: Beta Operations Foundation v1
+
+Primary subsystem: Prometheus Administration
+
+Secondary subsystems:
+
+- Prometheus Infrastructure/Auth, only if authenticated tester access or device-session changes are required
+- Prometheus Dashboard, only for confirmed product bugs from beta intake
+- Prometheus CRM, only if beta feedback needs CRM workflow implementation
+
+Task:
+
+Beta Operations Foundation v1.
+
+Status:
+
+Complete and committed.
+
+Implementation type:
+
+Architecture and operational foundation.
+
+Commit:
+
+`f85be48`
+
+Deploy:
+
+Not run. Administration-only operational foundation; no runtime deployment required.
+
+Verified outcome:
+
+- Created isolated Administration subsystem under `administration/`.
+- Added beta tester registry, NDA tracking status, onboarding, device inventory, tester permissions, release/version history, bug intake, feature request intake, pilot company management, founder admin dashboard requirements, beta documentation index, internal procedures, and validation coverage.
+- Did not modify Dashboard, Companion, CRM, Infrastructure, or Integrations files.
+- `node scripts/validate-administration-foundation.mjs`: passed.
+- `node --test tests/administration-foundation.test.mjs`: passed.
+- `npm test`: passed.
+
+Files changed:
+
+- `administration/README.md`
+- `administration/architecture.md`
+- `administration/operating-model.md`
+- `administration/registers/*.json`
+- `administration/workflows/*.md`
+- `administration/templates/*.md`
+- `administration/schemas/register-contracts.md`
+- `scripts/validate-administration-foundation.mjs`
+- `tests/administration-foundation.test.mjs`
+
+Remaining blockers:
+
+- Anthony signed NDA status is not verified in the repository.
+- Anthony device/browser/PWA details still require current device verification.
+- Future Cloudflare Access changes remain Infrastructure-owned.
+
+Next recommended subsystem:
+
+Prometheus Administration for beta intake triage and tester record verification; Prometheus Infrastructure/Auth only if authenticated production tester access or device-session verification is required.
 
 ### Completed Work Lane: Google Places Refresh Engine v1
 
@@ -2901,24 +3045,38 @@ Current duplicate-prevention sources:
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
+- Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
+- Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
+- Do not duplicate the Administration beta operations foundation; reuse `administration/README.md`, `administration/architecture.md`, registers, workflows, templates, schema contracts, validator, and tests.
 - Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
 
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
+Private beta stabilization intake and tester verification.
+
+Primary subsystem: Prometheus Administration.
+
+Secondary subsystems:
+
+- Prometheus Dashboard, for confirmed beta product defects only
+- Prometheus Infrastructure/Auth, for authenticated access, session, device, or Cloudflare Access issues only
+- Prometheus CRM, for beta feedback/follow-up workflow consumption only
+
+Reason:
+
+Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, stabilize the tester experience first: route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
+
+Known founder-gated task:
+
 Meta Instagram Cloudflare secret setup and live OAuth authorization verification.
 
 Primary subsystem: Prometheus Infrastructure.
 
-Secondary subsystems:
-
-- Prometheus Integrations
-- Prometheus Social Media
-
 Reason:
 
-Social Media completed Marketing Analytics Architecture v1 at commit `da7db931d1387463fc52c92e93104d175c5ea2e2`, Infrastructure added Instagram-only OAuth/secret runtime controls, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the production Worker callback route, and Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`. The remaining dependency is founder-gated configuration: set Cloudflare secrets `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, provide `INSTAGRAM_BUSINESS_ACCOUNT_ID`, configure the Meta redirect URI, and run live Instagram authorization. After Cruz completes those actions, Prometheus Infrastructure owns live callback verification, then Prometheus Integrations owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Social Media completed Marketing Analytics Architecture v1, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the production Worker callback route, and Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`. The remaining dependency is founder-gated configuration: set Cloudflare secrets `META_APP_ID`, `META_APP_SECRET`, `META_OAUTH_STATE_SECRET`, `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY`, provide `INSTAGRAM_BUSINESS_ACCOUNT_ID`, configure the Meta redirect URI, and run live Instagram authorization. After Cruz completes those actions, Prometheus Infrastructure owns live callback verification, then Prometheus Integrations owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
 
 Known non-autonomous pending task:
 
