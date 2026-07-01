@@ -1756,6 +1756,65 @@ Next recommended subsystem:
 
 Prometheus Infrastructure for public Website deployment verification only if this Website update should go live before Saturday. Otherwise preserve Saturday beta focus.
 
+### Completed Work Lane: Public Website Canonical Branding Asset Audit + Hero Messaging Completion
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystem:
+
+- Prometheus Infrastructure, only if CDN/cache policy review or future public deployment verification is requested
+
+Task:
+
+Public Website Canonical Branding Asset Audit + Hero Messaging Completion.
+
+Status:
+
+Complete.
+
+Commit:
+
+`d1768d2201cc9bd763d0abad875bd50e9d2f224c`
+
+Deploy:
+
+Complete. Deployed to public website Worker `prometheusrouteiq-website`; Version ID `e21cdb4d-9da3-4422-8c5b-6d5627ba90c5`; live verified.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/public-assets/`
+- `deploy/prometheusrouteiq-website/site.webmanifest`
+- `icons/prometheus-company-*`
+- `landing.html`
+- `public-site-static/`
+- `src/main.jsx`
+
+Verified outcome:
+
+- Replaced public Website branding with canonical Company Identity logo assets from the provided image.
+- Updated rendered header logo.
+- Updated React logo import.
+- Updated favicon / browser tab icon.
+- Updated Apple touch icon.
+- Updated manifest icon.
+- Updated Open Graph image.
+- Updated Twitter image.
+- Updated public deploy assets.
+- Removed legacy public deploy logo assets `prometheus-flame-logo.jpg` and `prometheus.svg`.
+- Added cache invalidation through versioned `20260701-brand-v2` filenames.
+- Replaced "Route. Visit. Result. Better recommendation." with "Make outside sales intelligent, directed, accountable, and compounding."
+- Live checks confirmed canonical assets return HTTP 200.
+- Live checks confirmed no legacy public-site references remain.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for CDN/cache policy review only if longer-lived immutable asset caching is desired. Otherwise no follow-up dependency exists from this Website handoff.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -4111,6 +4170,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.
 - Do not duplicate Brand Identity Synchronization v1; reuse `deploy/prometheusrouteiq-website/public-assets/prometheus.svg` and the existing public Website header/nav, favicon, Open Graph/Twitter image, React logo mark, and cache-busted asset wiring.
 - Do not duplicate Enterprise & Investor Readiness v1; extend the existing public Website enterprise, industry, investor, founder story, customer success, trust, beta conversion, SEO, and mobile readability work.
+- Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
