@@ -459,7 +459,10 @@ async function snapshot(cdp) {
         lastError: debug.lastError || "",
         lastUnhandledRejection: debug.lastUnhandledRejection || "",
         routeRecommendation: debug.routeRecommendation || null,
-        rendererReceived: Boolean(debug.renderRouteIntelligenceReceivedRecommendation)
+        rendererReceived: Boolean(debug.renderRouteIntelligenceReceivedRecommendation),
+        renderTimings: debug.renderTimings || {},
+        deferredOwnerViews: debug.deferredOwnerViews || {},
+        placesRender: debug.placesRender || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -539,6 +542,28 @@ async function clickTab(cdp, tab) {
     return true;
   })()`);
   await wait(150);
+}
+
+async function waitForPlacesRenderComplete(cdp, timeoutMs = 8000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const state = await cdp.evaluate(`(() => {
+      const debug = window.prometheusDebugState?.placesRender || {};
+      return {
+        complete: Boolean(debug.complete),
+        rendered: Number(debug.rendered || 0),
+        total: Number(debug.total || 0),
+        initialMs: Number(debug.initialMs || 0),
+        durationMs: Number(debug.durationMs || debug.initialMs || 0),
+        visibleCards: document.querySelectorAll("#placesList .item").length,
+        loading: Boolean(document.querySelector("#placesList [data-places-loading]"))
+      };
+    })()`);
+    if (state.complete && state.total && state.visibleCards === state.total) return state;
+    await wait(100);
+  }
+  const diagnostic = await cdp.evaluate(`(() => window.prometheusDebugState?.placesRender || {})()`);
+  throw new Error(`Places render did not complete: ${JSON.stringify(diagnostic)}`);
 }
 
 async function verifyMobileQuickLogging(cdp) {
@@ -757,7 +782,9 @@ async function runHarness() {
 
     await clickTab(founder.cdp, "places");
     const placesSnap = await snapshot(founder.cdp);
-    assertWorkflow("Places rendering", placesSnap.activeView === "view-places" && placesSnap.placesItems > 0 && placesSnap.placesText.includes("Production Map"), `${placesSnap.placesItems} places rendered`, JSON.stringify({ activeView: placesSnap.activeView, placesItems: placesSnap.placesItems }));
+    assertWorkflow("Places initial loading perception", placesSnap.activeView === "view-places" && placesSnap.placesItems > 0 && placesSnap.placesText.includes("Production Map") && Number(placesSnap.debug.placesRender.initialMs || 0) < 1000, `${placesSnap.placesItems}/${placesSnap.debug.placesRender.total || "?"} places visible in ${placesSnap.debug.placesRender.initialMs || 0}ms`, JSON.stringify({ activeView: placesSnap.activeView, placesItems: placesSnap.placesItems, placesRender: placesSnap.debug.placesRender }));
+    const placesComplete = await waitForPlacesRenderComplete(founder.cdp);
+    assertWorkflow("Places full loading completion", placesComplete.complete && placesComplete.visibleCards === placesComplete.total && placesComplete.durationMs < 8000, `${placesComplete.visibleCards}/${placesComplete.total} places rendered in ${placesComplete.durationMs}ms`, JSON.stringify(placesComplete));
 
     await clickTab(founder.cdp, "stats");
     const statsSnap = await snapshot(founder.cdp);
@@ -786,6 +813,7 @@ async function runHarness() {
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
+    assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await clickTab(rep.cdp, "places");
     const repAfterOwnerTab = await snapshot(rep.cdp);
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
@@ -812,6 +840,7 @@ async function runHarness() {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     verifyRepOnly("Anthony PWA first launch Rep-only", anthonyPwa.initial);
+    assertWorkflow("Anthony mobile startup performance", Number(anthonyPwa.initial.debug.renderTimings.total || 0) < 5000 && Number(anthonyPwa.initial.performance.activeResourceDuration || 0) < 5000, `render ${anthonyPwa.initial.debug.renderTimings.total || 0}ms, active fetch ${anthonyPwa.initial.performance.activeResourceDuration || 0}ms`, JSON.stringify({ renderTimings: anthonyPwa.initial.debug.renderTimings, performance: anthonyPwa.initial.performance }));
     const anthonyReopen = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-reopen");
     verifyRepOnly("Anthony PWA reopen preserves Rep-only", anthonyReopen);
     const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");

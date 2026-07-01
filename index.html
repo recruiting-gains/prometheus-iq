@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hTwUClIKTOWc/iYNi37UH9AyH6nsJXhMbB1X82GHl6M='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-sMFsPG9My/HugW9A9+nUoDDaJGmyAPS5URIsPURlJpY='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1554,9 +1554,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-01-nearby-opportunities-runtime-v1";
+    const appBuildVersion = "2026-07-01-beta-performance-stabilization-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v28-nearby-opportunities-assets";
+    const serviceWorkerCacheVersion = "prometheus-v29-beta-performance-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -11730,6 +11730,17 @@
     if (canUseOwnerMode() && ["founder", "admin", "manager"].includes(requestedRole)) appMode = "owner";
     let currentWindow = "all";
     let currentFilter = "all";
+    let placesRenderToken = 0;
+    const placesInitialRenderLimit = 96;
+    const placesRenderChunkSize = 160;
+    const viewRenderState = {
+      today: false,
+      route: false,
+      places: false,
+      stats: false,
+      find: false
+    };
+    let dashboardComputationCache = {};
     if (!state.repProfiles?.[activeRepId]) activeRepId = sessionRole === "rep" ? "anthony" : "cruz";
     if (!state.repProfiles?.[activeRepId]) state.repProfiles[activeRepId] = createRepProfile(activeRepId, [], []);
     localStorage.setItem(activeRepStoreKey, activeRepId);
@@ -12632,6 +12643,8 @@
     }
 
     function placeStats(placeId) {
+      dashboardComputationCache.placeStats = dashboardComputationCache.placeStats || new Map();
+      if (dashboardComputationCache.placeStats.has(placeId)) return dashboardComputationCache.placeStats.get(placeId);
       const visits = state.visits.filter(v => v.placeId === placeId);
       const sums = visits.reduce((acc, v) => {
         acc.conversations += Number(v.conversations || 0);
@@ -12641,10 +12654,15 @@
         acc.locationVisits += v.location ? 1 : 0;
         return acc;
       }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 });
-      return { visits: visits.length, ...sums };
+      const result = { visits: visits.length, ...sums };
+      dashboardComputationCache.placeStats.set(placeId, result);
+      return result;
     }
 
     function profilePlaceStats(profileId, placeId) {
+      const cacheKey = `${profileId}:${placeId}`;
+      dashboardComputationCache.profilePlaceStats = dashboardComputationCache.profilePlaceStats || new Map();
+      if (dashboardComputationCache.profilePlaceStats.has(cacheKey)) return dashboardComputationCache.profilePlaceStats.get(cacheKey);
       const profile = state.repProfiles?.[profileId];
       const visits = (profile?.visits || []).filter(v => v.placeId === placeId);
       const sums = visits.reduce((acc, v) => {
@@ -12655,7 +12673,9 @@
         acc.locationVisits += v.location ? 1 : 0;
         return acc;
       }, { conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 });
-      return { visits: visits.length, ...sums };
+      const result = { visits: visits.length, ...sums };
+      dashboardComputationCache.profilePlaceStats.set(cacheKey, result);
+      return result;
     }
 
     function statusFor(place) {
@@ -12672,7 +12692,13 @@
 
     function todayVisits() {
       const key = todayKey();
-      return state.visits.filter(v => v.date === key);
+      if (dashboardComputationCache.todayVisitsKey === key && Array.isArray(dashboardComputationCache.todayVisits)) {
+        return dashboardComputationCache.todayVisits;
+      }
+      const visits = state.visits.filter(v => v.date === key);
+      dashboardComputationCache.todayVisitsKey = key;
+      dashboardComputationCache.todayVisits = visits;
+      return visits;
     }
 
     function visiblePlaces() {
@@ -12827,14 +12853,21 @@
     }
 
     function routeVisiblePlaces() {
+      if (dashboardComputationCache.routeVisibleRepId === activeRepId && Array.isArray(dashboardComputationCache.routeVisiblePlaces)) {
+        return dashboardComputationCache.routeVisiblePlaces;
+      }
+      let places;
       if (activeRepId === "anthony") {
-        return anthonyApprovedRoutePool(state.places);
-      }
-      if (activeRepId === "cruz") {
+        places = anthonyApprovedRoutePool(state.places);
+      } else if (activeRepId === "cruz") {
         const verifiedGooglePlaces = founderGoogleRoutePool(state.places);
-        if (verifiedGooglePlaces.length) return verifiedGooglePlaces;
+        places = verifiedGooglePlaces.length ? verifiedGooglePlaces : state.places.filter(place => place.repProfileId !== "anthony");
+      } else {
+        places = state.places.filter(place => place.repProfileId !== "anthony");
       }
-      return state.places.filter(place => place.repProfileId !== "anthony");
+      dashboardComputationCache.routeVisibleRepId = activeRepId;
+      dashboardComputationCache.routeVisiblePlaces = places;
+      return places;
     }
 
     function placeCoordinate(place, key) {
@@ -12987,44 +13020,70 @@
     }
 
     function routePool(places) {
+      dashboardComputationCache.routePool = dashboardComputationCache.routePool || new WeakMap();
+      const cached = dashboardComputationCache.routePool.get(places);
+      if (cached) return cached;
       const hitToday = new Set(todayVisits().map(v => v.placeId));
       if (activeRepId === "anthony") {
         const anthonySource = representativePrimaryRoutePlaces(anthonyApprovedRoutePool(places), "anthony", 6);
         const approvedGoogleRoute = anthonySource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
-        if (approvedGoogleRoute.length >= 6) return approvedGoogleRoute;
+        if (approvedGoogleRoute.length >= 6) {
+          dashboardComputationCache.routePool.set(places, approvedGoogleRoute);
+          return approvedGoogleRoute;
+        }
         const approvedFallback = anthonySource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place));
-        if (approvedFallback.length >= 6) return approvedFallback;
+        if (approvedFallback.length >= 6) {
+          dashboardComputationCache.routePool.set(places, approvedFallback);
+          return approvedFallback;
+        }
       }
       if (activeRepId === "cruz") {
         const founderSource = representativePrimaryRoutePlaces(founderGoogleRoutePool(places), "cruz", 6);
         const verifiedGoogleRoute = founderSource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
-        if (verifiedGoogleRoute.length >= 6) return verifiedGoogleRoute;
+        if (verifiedGoogleRoute.length >= 6) {
+          dashboardComputationCache.routePool.set(places, verifiedGoogleRoute);
+          return verifiedGoogleRoute;
+        }
         const verifiedGoogleFallback = founderSource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place));
-        if (verifiedGoogleFallback.length >= 6) return verifiedGoogleFallback;
+        if (verifiedGoogleFallback.length >= 6) {
+          dashboardComputationCache.routePool.set(places, verifiedGoogleFallback);
+          return verifiedGoogleFallback;
+        }
       }
       const eligible = places.filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
       if (isAnthonyFirstRoute()) {
         const approvedFirstRoute = eligible
           .filter(isAnthonyGoogleApprovedPlace)
           .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999));
-        if (approvedFirstRoute.length >= 6) return approvedFirstRoute;
+        if (approvedFirstRoute.length >= 6) {
+          dashboardComputationCache.routePool.set(places, approvedFirstRoute);
+          return approvedFirstRoute;
+        }
         const within10 = eligible.filter(place => {
           const miles = distanceMiles(place);
           return miles === null || miles <= 10;
         });
-        if (within10.length >= 25) return within10;
+        if (within10.length >= 25) {
+          dashboardComputationCache.routePool.set(places, within10);
+          return within10;
+        }
         const within15 = eligible.filter(place => {
           const miles = distanceMiles(place);
           return miles === null || miles <= 15;
         });
-        if (within15.length >= 25) return within15;
+        if (within15.length >= 25) {
+          dashboardComputationCache.routePool.set(places, within15);
+          return within15;
+        }
       }
       const rested = eligible.filter(place => daysSinceLastVisit(place.id) > 1);
-      return rested.length ? rested : eligible;
+      const result = rested.length ? rested : eligible;
+      dashboardComputationCache.routePool.set(places, result);
+      return result;
     }
 
     function routeHistoryFor(placeId) {
@@ -13097,11 +13156,17 @@
     }
 
     function visitedPlaceIdsForProfile(profileId = activeRepId) {
+      dashboardComputationCache.visitedPlaceIds = dashboardComputationCache.visitedPlaceIds || new Map();
+      if (dashboardComputationCache.visitedPlaceIds.has(profileId)) return dashboardComputationCache.visitedPlaceIds.get(profileId);
       const profile = state.repProfiles?.[profileId] || activeProfile();
-      return new Set((profile.visits || []).map(visit => visit.placeId).filter(Boolean));
+      const visited = new Set((profile.visits || []).map(visit => visit.placeId).filter(Boolean));
+      dashboardComputationCache.visitedPlaceIds.set(profileId, visited);
+      return visited;
     }
 
     function territoryRingRows(profileId = activeRepId) {
+      dashboardComputationCache.territoryRingRows = dashboardComputationCache.territoryRingRows || new Map();
+      if (dashboardComputationCache.territoryRingRows.has(profileId)) return dashboardComputationCache.territoryRingRows.get(profileId);
       const visited = visitedPlaceIdsForProfile(profileId);
       const rows = Array.from({ length: territoryRingCount(profileId) }, (_, index) => ({
         index: index + 1,
@@ -13119,15 +13184,20 @@
       rows.forEach(row => {
         row.coverage = row.total ? Math.round((row.visited / row.total) * 100) : 0;
       });
+      dashboardComputationCache.territoryRingRows.set(profileId, rows);
       return rows;
     }
 
     function currentTerritoryRing(profileId = activeRepId) {
+      dashboardComputationCache.currentTerritoryRing = dashboardComputationCache.currentTerritoryRing || new Map();
+      if (dashboardComputationCache.currentTerritoryRing.has(profileId)) return dashboardComputationCache.currentTerritoryRing.get(profileId);
       const rows = territoryRingRows(profileId);
-      return rows.find(row => row.total > 0 && row.coverage < 35)
+      const current = rows.find(row => row.total > 0 && row.coverage < 35)
         || rows.find(row => row.total > 0)
         || rows[0]
         || { index: 1, total: 0, visited: 0, coverage: 0 };
+      dashboardComputationCache.currentTerritoryRing.set(profileId, current);
+      return current;
     }
 
     function territoryCoverage(profileId = activeRepId) {
@@ -13255,6 +13325,7 @@
     }
 
     function categoryStats() {
+      if (dashboardComputationCache.categoryStats) return dashboardComputationCache.categoryStats;
       const map = new Map();
       state.visits.forEach(visit => {
         const place = state.places.find(p => p.id === visit.placeId);
@@ -13265,6 +13336,7 @@
         item.units += Number(visit.units || 0) + Number(visit.laterUnits || 0);
         map.set(category, item);
       });
+      dashboardComputationCache.categoryStats = map;
       return map;
     }
 
@@ -13291,6 +13363,7 @@
     }
 
     function radiusStats() {
+      if (dashboardComputationCache.radiusStats) return dashboardComputationCache.radiusStats;
       const map = new Map();
       state.visits.forEach(visit => {
         const place = state.places.find(p => p.id === visit.placeId);
@@ -13302,6 +13375,7 @@
         item.leads += Number(visit.leads || 0);
         map.set(band, item);
       });
+      dashboardComputationCache.radiusStats = map;
       return map;
     }
 
@@ -13443,8 +13517,14 @@
     }
 
     function founderTopPlaceIds(limit = 6) {
+      dashboardComputationCache.founderTopPlaceIds = dashboardComputationCache.founderTopPlaceIds || new Map();
+      if (dashboardComputationCache.founderTopPlaceIds.has(limit)) return dashboardComputationCache.founderTopPlaceIds.get(limit);
       const founderProfile = state.repProfiles?.cruz;
-      if (!founderProfile) return new Set();
+      if (!founderProfile) {
+        const empty = new Set();
+        dashboardComputationCache.founderTopPlaceIds.set(limit, empty);
+        return empty;
+      }
       const ranked = founderGoogleRoutePool(state.places).filter(place => isInsideAssignedTerritory(place, "cruz")).map(place => {
         const stats = profilePlaceStats("cruz", place.id);
         const production = Number(stats.units || 0) + Number(stats.laterUnits || 0);
@@ -13453,7 +13533,9 @@
           score: Number(place.priority || 0) + production * 12 + Number(stats.leads || 0) * 4 + suitabilityScore(place)
         };
       }).sort((a, b) => b.score - a.score).slice(0, limit);
-      return new Set(ranked.map(item => item.id));
+      const result = new Set(ranked.map(item => item.id));
+      dashboardComputationCache.founderTopPlaceIds.set(limit, result);
+      return result;
     }
 
     function enforceRepRouteUniqueness(selected, scored, limit) {
@@ -13838,6 +13920,41 @@
       return String(value);
     }
 
+    function scheduleDashboardIdle(callback) {
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(callback, { timeout: 500 });
+      } else {
+        setTimeout(callback, 16);
+      }
+    }
+
+    function markDeferredViewsDirty() {
+      viewRenderState.places = false;
+      viewRenderState.stats = false;
+      viewRenderState.find = false;
+      placesRenderToken += 1;
+    }
+
+    function activeTabName() {
+      return (document.querySelector(".view.active")?.id || "view-today").replace(/^view-/, "");
+    }
+
+    function measureDashboardRender(name, callback) {
+      const startedAt = performance.now();
+      const result = callback();
+      window.prometheusDebugState.renderTimings = window.prometheusDebugState.renderTimings || {};
+      window.prometheusDebugState.renderTimings[name] = Math.round(performance.now() - startedAt);
+      return result;
+    }
+
+    function renderActiveDeferredView(name = activeTabName()) {
+      if (name === "places" && canUseOwnerMode()) renderPlaces();
+      else if (name === "stats" && canUseOwnerMode()) renderStats();
+      else if (name === "find" && canUseOwnerMode()) renderFind();
+      else if (name === "route") renderRoute();
+      else if (name === "today") renderToday();
+    }
+
     function debugRouteCandidate() {
       try {
         const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
@@ -13914,6 +14031,8 @@
     }
 
     function render() {
+      const renderStartedAt = performance.now();
+      dashboardComputationCache = {};
       applyMode();
       document.body.classList.remove("booting");
       const profile = activeProfile();
@@ -13923,11 +14042,20 @@
         : sessionRole === "manager"
           ? `${fmtDate(new Date())} · Manager`
           : `${fmtDate(new Date())} · ${profile.name} ${profile.role}`;
-      renderToday();
-      renderRoute();
-      renderPlaces();
-      renderStats();
-      renderFind();
+      markDeferredViewsDirty();
+      measureDashboardRender("today", renderToday);
+      measureDashboardRender("route", renderRoute);
+      const activeView = activeTabName();
+      if (canUseOwnerMode() && ["places", "stats", "find"].includes(activeView)) {
+        renderActiveDeferredView(activeView);
+      }
+      window.prometheusDebugState.renderTimings = window.prometheusDebugState.renderTimings || {};
+      window.prometheusDebugState.renderTimings.total = Math.round(performance.now() - renderStartedAt);
+      window.prometheusDebugState.deferredOwnerViews = {
+        places: viewRenderState.places,
+        stats: viewRenderState.stats,
+        find: viewRenderState.find
+      };
       updateFounderDebugPanel({ stage: "render-complete" });
     }
 
@@ -13979,9 +14107,11 @@
       const list = document.getElementById("todayVisits");
       if (!visits.length) {
         list.innerHTML = `<div class="empty">No visits logged today. Add the first stop when you leave a location.</div>`;
+        viewRenderState.today = true;
         return;
       }
       list.innerHTML = visits.slice().reverse().map(visitCard).join("");
+      viewRenderState.today = true;
     }
 
     function renderRouteIntelligence(visits, sums, need) {
@@ -14198,11 +14328,13 @@
       const list = document.getElementById("routeList");
       if (!routeItems.length) {
         list.innerHTML = `<div class="empty">Add a few places in Find, then this route will rank them.</div>`;
+        viewRenderState.route = true;
         return;
       }
       list.innerHTML = routeItems.map((item, index) => {
         return compactRouteCard(item.place, index, item);
       }).join("");
+      viewRenderState.route = true;
     }
 
     function compactRouteCard(p, index, analysis = routeAnalysis(p)) {
@@ -14243,21 +14375,22 @@
     }
 
     function renderPlaces() {
-      let places = state.places.slice().sort((a, b) => {
-        const bs = placeStats(b.id);
-        const as = placeStats(a.id);
-        return bs.units - as.units || bs.leads - as.leads || b.createdAt - a.createdAt;
-      });
-      if (currentFilter !== "all") places = places.filter(p => statusFor(p) === currentFilter);
-      document.getElementById("placesCount").textContent = `${places.length} places`;
-      const list = document.getElementById("placesList");
-      if (!places.length) {
-        list.innerHTML = `<div class="empty">No places in this filter.</div>`;
-        return;
-      }
-      list.innerHTML = places.map(p => {
-        const stats = placeStats(p.id);
-        const status = statusFor(p);
+      const renderToken = ++placesRenderToken;
+      const startedAt = performance.now();
+      const statsCache = new Map();
+      const getStats = place => {
+        if (!statsCache.has(place.id)) statsCache.set(place.id, placeStats(place.id));
+        return statsCache.get(place.id);
+      };
+      const statusFromStats = stats => {
+        if (stats.units + stats.laterUnits > 0) return "green";
+        if (stats.leads > 0) return "yellow";
+        if (stats.visits > 0) return "red";
+        return "blue";
+      };
+      const placeCard = p => {
+        const stats = getStats(p);
+        const status = statusFromStats(stats);
         return `<article class="item">
           <div class="item-head">
             <div>
@@ -14277,7 +14410,62 @@
           </div>
           ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
         </article>`;
-      }).join("");
+      };
+      let places = state.places.slice().sort((a, b) => {
+        const bs = getStats(b);
+        const as = getStats(a);
+        return bs.units - as.units || bs.leads - as.leads || b.createdAt - a.createdAt;
+      });
+      if (currentFilter !== "all") places = places.filter(p => statusFromStats(getStats(p)) === currentFilter);
+      const total = places.length;
+      const count = document.getElementById("placesCount");
+      const list = document.getElementById("placesList");
+      if (!places.length) {
+        count.textContent = "0 places";
+        list.innerHTML = `<div class="empty">No places in this filter.</div>`;
+        viewRenderState.places = true;
+        window.prometheusDebugState.placesRender = { total: 0, rendered: 0, complete: true, durationMs: Math.round(performance.now() - startedAt) };
+        return;
+      }
+      const initial = places.slice(0, placesInitialRenderLimit);
+      const hasMore = initial.length < total;
+      count.textContent = hasMore ? `${total} places · loading list` : `${total} places`;
+      list.innerHTML = initial.map(placeCard).join("") + (hasMore ? `<div class="empty" data-places-loading>Loading more places...</div>` : "");
+      window.prometheusDebugState.placesRender = {
+        total,
+        rendered: initial.length,
+        complete: !hasMore,
+        initialMs: Math.round(performance.now() - startedAt)
+      };
+      if (!hasMore) {
+        viewRenderState.places = true;
+        return;
+      }
+      viewRenderState.places = false;
+      let cursor = initial.length;
+      const renderNextChunk = () => {
+        if (renderToken !== placesRenderToken) return;
+        const marker = list.querySelector("[data-places-loading]");
+        if (marker) marker.remove();
+        const chunk = places.slice(cursor, cursor + placesRenderChunkSize);
+        if (chunk.length) list.insertAdjacentHTML("beforeend", chunk.map(placeCard).join(""));
+        cursor += chunk.length;
+        window.prometheusDebugState.placesRender = {
+          total,
+          rendered: Math.min(cursor, total),
+          complete: cursor >= total,
+          initialMs: window.prometheusDebugState.placesRender?.initialMs || 0,
+          durationMs: Math.round(performance.now() - startedAt)
+        };
+        if (cursor < total) {
+          list.insertAdjacentHTML("beforeend", `<div class="empty" data-places-loading>Loading more places...</div>`);
+          scheduleDashboardIdle(renderNextChunk);
+        } else {
+          count.textContent = `${total} places`;
+          viewRenderState.places = true;
+        }
+      };
+      scheduleDashboardIdle(renderNextChunk);
     }
 
     function renderStats() {
@@ -14349,6 +14537,7 @@
         </article>`;
       }).join("");
       document.getElementById("dataStatus").textContent = ownerInsightFor(reportVisits, viewingTeam);
+      viewRenderState.stats = true;
     }
 
     function representativeProgressInsight(visits, totals, viewingTeam) {
@@ -14504,6 +14693,7 @@
           <span class="pill blue">Add</span>
         </div>
       </button>`).join("");
+      viewRenderState.find = true;
     }
 
     function verifiedTargetIdeas() {
@@ -14820,6 +15010,7 @@
       if (appMode === "rep" && ["places", "stats", "find"].includes(name)) name = "today";
       document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${name}`));
       document.querySelectorAll(".tab[data-tab]").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === name));
+      renderActiveDeferredView(name);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -14899,6 +15090,7 @@
       if (windowBtn) {
         currentWindow = windowBtn.dataset.window;
         document.querySelectorAll("[data-window]").forEach(btn => btn.classList.toggle("active", btn === windowBtn));
+        viewRenderState.route = false;
         renderRoute();
       }
 
@@ -14906,6 +15098,7 @@
       if (filterBtn) {
         currentFilter = filterBtn.dataset.filter;
         document.querySelectorAll("[data-filter]").forEach(btn => btn.classList.toggle("active", btn === filterBtn));
+        viewRenderState.places = false;
         renderPlaces();
       }
 
