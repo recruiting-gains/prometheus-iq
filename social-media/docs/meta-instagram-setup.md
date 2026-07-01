@@ -29,7 +29,7 @@ Owner: Prometheus Social Media
 Reserve this production callback URL for the Meta app:
 
 ```text
-https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
+https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
 ```
 
 This route is the backend-owned OAuth callback reserved for Infrastructure deployment. Integrations now provides the backend workflow functions for authorization URL creation, signed state validation, authorization-code exchange, long-lived token exchange, long-lived token refresh, and token verification. Infrastructure still owns production route protection and secret storage.
@@ -41,6 +41,12 @@ GET /api/oauth/meta/instagram/callback
 ```
 
 The callback route validates signed OAuth `state`, exchanges the authorization code server-side, stores returned token material through backend token storage, and returns only redacted status metadata or a safe confirmation page to the browser.
+
+The public website Worker also accepts this compatibility alias for Facebook Login for Business routing. Use the canonical URL above in Meta unless Meta explicitly asks for the Facebook Business alias.
+
+```text
+GET /api/oauth/facebook-business/instagram/callback
+```
 
 ## Initial Permissions
 
@@ -61,7 +67,7 @@ Use placeholders only in documentation:
 META_APP_ID=replace-in-backend-secret-store
 META_APP_SECRET=replace-in-backend-secret-store
 META_OAUTH_STATE_SECRET=replace-in-backend-secret-store
-META_OAUTH_CALLBACK_URL=https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
+META_OAUTH_CALLBACK_URL=https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
 INSTAGRAM_BUSINESS_ACCOUNT_ID=replace-in-backend-secret-store
 INSTAGRAM_USER_ID=replace-after-oauth-verification
 INSTAGRAM_ACCOUNT_HANDLE=@prometheus.iq
@@ -94,7 +100,7 @@ INSTAGRAM_BUSINESS_ACCOUNT_ID
 Required non-secret Worker vars:
 
 ```text
-META_OAUTH_CALLBACK_URL=https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback
+META_OAUTH_CALLBACK_URL=https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
 META_GRAPH_API_VERSION=v21.0
 ```
 

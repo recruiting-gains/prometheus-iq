@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import worker, {
   CALLBACK_PATH,
+  CALLBACK_PATHS,
+  FACEBOOK_BUSINESS_CALLBACK_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY
 } from "../workers/prometheus-iq-worker.js";
@@ -17,7 +19,7 @@ const baseEnv = {
   META_APP_ID: "meta-app-id",
   META_APP_SECRET: "meta-app-secret-not-returned",
   META_OAUTH_STATE_SECRET: "oauth-state-secret-not-returned",
-  META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+  META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
   META_GRAPH_API_VERSION: "v21.0",
   INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
   INSTAGRAM_OAUTH_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
@@ -71,7 +73,7 @@ function signedState(env = baseEnv) {
 }
 
 async function request(path, env, init = {}) {
-  return worker.fetch(new Request(`https://prometheus-iq.prometheusrouteiq.workers.dev${path}`, {
+  return worker.fetch(new Request(`https://prometheusrouteiq.com${path}`, {
     headers: { Accept: "application/json", ...(init.headers || {}) },
     method: init.method || "GET"
   }), env);
@@ -93,6 +95,26 @@ test("Meta Instagram callback status exposes only safe runtime and storage metad
   assert.equal(body.storage.encryptionKeyConfigured, true);
   assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
   assert.equal(serialized.includes("test-encryption-secret"), false);
+});
+
+test("Meta Instagram callback exposes Facebook Login for Business compatible alias", async () => {
+  assert.equal(CALLBACK_PATHS.includes(CALLBACK_PATH), true);
+  assert.equal(CALLBACK_PATHS.includes(FACEBOOK_BUSINESS_CALLBACK_PATH), true);
+
+  const originalFetch = globalThis.fetch;
+  const fetchImpl = createOrderedFetch([]);
+  globalThis.fetch = fetchImpl;
+  try {
+    const response = await request(`${FACEBOOK_BUSINESS_CALLBACK_PATH}?code=oauth-code&state=${encodeURIComponent(signedState())}`, baseEnv);
+    const body = await response.json();
+
+    assert.equal(response.status, 503);
+    assert.equal(body.ok, false);
+    assert.equal(body.message.includes("not configured"), true);
+    assert.equal(fetchImpl.calls.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("Meta Instagram callback refuses to exchange code when token storage is missing", async () => {

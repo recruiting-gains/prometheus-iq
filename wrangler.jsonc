@@ -18,7 +18,7 @@
     "enabled": true
   },
   "vars": {
-    "META_OAUTH_CALLBACK_URL": "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+    "META_OAUTH_CALLBACK_URL": "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
     "META_GRAPH_API_VERSION": "v21.0"
   },
   "kv_namespaces": [

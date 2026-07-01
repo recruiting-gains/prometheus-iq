@@ -187,7 +187,7 @@ test("Instagram runtime controls classify safe placeholder states", () => {
   const setupEnv = {
     META_APP_ID: "app-id",
     META_APP_SECRET: "app-secret-not-returned",
-    META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+    META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
     INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
     META_GRAPH_API_VERSION: "v21.0"
   };
@@ -264,7 +264,7 @@ const metaOAuthEnv = {
   META_APP_ID: "meta-app-id",
   META_APP_SECRET: "meta-app-secret-not-returned",
   META_OAUTH_STATE_SECRET: "oauth-state-secret-not-returned",
-  META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+  META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
   INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
   INSTAGRAM_OAUTH_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
   META_GRAPH_API_VERSION: "v21.0"
@@ -498,7 +498,7 @@ test("Instagram Business provider maps mocked Meta API responses without exposin
       INSTAGRAM_BUSINESS_ACCOUNT_ID: "17890000000000000",
       META_APP_ID: "app-id",
       META_APP_SECRET: "app-secret-not-returned",
-      META_OAUTH_CALLBACK_URL: "https://prometheus-iq.prometheusrouteiq.workers.dev/api/oauth/meta/instagram/callback",
+      META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
       META_GRAPH_API_VERSION: "v21.0",
       INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS.join(","),
       INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-06-30T12:00:00.000Z"

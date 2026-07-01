@@ -9,7 +9,12 @@ import {
 } from "../social-media/infrastructure/instagram-runtime-controls.js";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
+const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
 const STATUS_PATH = "/api/oauth/meta/instagram/status";
+const CALLBACK_PATHS = Object.freeze([
+  CALLBACK_PATH,
+  FACEBOOK_BUSINESS_CALLBACK_PATH
+]);
 const TOKEN_STORE_KEY = "meta-instagram/oauth/runtime-env-patch";
 const TOKEN_STORE_VERSION = "meta-instagram-token-store.v1";
 const REQUIRED_TOKEN_PATCH_KEYS = Object.freeze([
@@ -306,7 +311,7 @@ async function handleMetaInstagramCallback(request, env) {
 
 async function handleApiRequest(request, env) {
   const url = new URL(request.url);
-  if (url.pathname === CALLBACK_PATH) return handleMetaInstagramCallback(request, env);
+  if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
@@ -330,6 +335,8 @@ export default {
 
 export {
   CALLBACK_PATH,
+  CALLBACK_PATHS,
+  FACEBOOK_BUSINESS_CALLBACK_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   persistMetaInstagramTokenPatch,
