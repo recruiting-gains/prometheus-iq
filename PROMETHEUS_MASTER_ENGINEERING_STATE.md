@@ -986,6 +986,128 @@ Next recommended subsystem:
 
 Prometheus Social Media.
 
+### Completed Work Lane: Website Conversion Optimization v2
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystems:
+
+- Prometheus Sales
+- Prometheus Social Media
+
+Task:
+
+Website Conversion Optimization v2.
+
+Status:
+
+Complete.
+
+Commit:
+
+`0016b0a046478cd181810f46991f40979ba4e5a6`
+
+Deploy:
+
+Complete. Cloudflare Worker version `6c8642d0-e4e6-48e7-aeb0-dc27bc089717` is live on `prometheusrouteiq.com` and `www.prometheusrouteiq.com`.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/site.js`
+- `landing.html`
+- `src/main.jsx`
+- `src/styles.css`
+
+Verified outcome:
+
+- Improved public hero messaging.
+- Improved SEO metadata.
+- Clarified beta CTA and beta request flow copy.
+- Improved founder/product positioning.
+- Added or improved public trust signals.
+- Improved investor positioning.
+- Broadened industry positioning beyond gyms.
+- Added testimonial placeholder.
+- Added accessibility skip link.
+- Added favicon.
+- Improved mobile readability.
+- `npm run security:check`: passed.
+- Production build passed.
+- Wrangler dry run passed.
+- Wrangler deploy passed.
+- Live headers verified.
+- Live content verified.
+- Mobile and desktop responsiveness verified.
+- No horizontal overflow verified.
+- No live console errors verified.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+Marketing & Social Media.
+
+### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
+
+Primary subsystem: Prometheus Mobile
+
+Secondary subsystems:
+
+- Prometheus Dashboard, protected from non-critical changes during active beta
+- Prometheus Infrastructure, protected from non-critical changes during active beta
+
+Task:
+
+Mobile Experience Audit + Native Roadmap v1.
+
+Status:
+
+Complete.
+
+Production PWA modified:
+
+No.
+
+Commit:
+
+No commit reported for this Mobile audit handoff.
+
+Deploy:
+
+Not run. Audit and roadmap only; no production deployment required.
+
+Verified outcome:
+
+- Reviewed current mobile PWA source: `index.html`, `sw.js`, manifests, headers, release docs, and system map.
+- Confirmed root PWA files match `deploy/cloudflare-pages`.
+- `npm run dashboard:runtime-workflows:check`: passed, 27/27.
+- Existing 390px mobile assertions pass for Today, Route, Places, Insights, and Find.
+- Local harness reported active pool size of 775,908 bytes, full pool size of 1,348,319 bytes, route ready around 12.2 seconds, and navigation around 4.2 seconds.
+- PWA install experience is functional but beta-grade.
+- Startup is secure and stable but heavy for native-grade field speed.
+- Loading states exist but need a more polished startup, route-pool progress, update, offline, and retry surface.
+- Offline behavior remains intentionally restrictive because `sw.js` does not cache authenticated `index.html`.
+- Safe-area handling is mostly correct.
+- Mobile UX consistency is strong for private beta PWA usage.
+
+Native roadmap recommendations:
+
+- P0: keep PWA as private beta field surface, add complete install assets, add app version/update status, add a real secure reconnect/offline screen, and preserve no authenticated shell caching until account/sync architecture is ready.
+- P1: split mobile app logic from giant inline HTML into shared app/domain modules, create shared route/visit/rep-profile/sync/notification contracts, add native-ready local persistence model, define notification taxonomy and permission copy, and build native prototype around Today, Route, Log Result, and Export Summary only.
+- P2: launch iOS and Android native clients with shared core logic, encrypted offline queue, conflict-safe sync, manager/team views after rep workflow is stable, and app-store-grade support/privacy/review assets.
+- Recommended long-term architecture: `prometheus-core`, `prometheus-sync`, `prometheus-notifications`, `prometheus-mobile-ios`, `prometheus-mobile-android`, plus authenticated backend APIs and audit logs.
+
+Remaining blockers:
+
+None for the audit. Future native work should not begin until active beta stability is protected and the P0/P1 scope is approved.
+
+Next recommended subsystem:
+
+Prometheus Administration remains the active beta-stabilization owner. Prometheus Mobile may continue roadmap-only work without modifying the Dashboard PWA during Anthony's active beta.
+
 ### Completed Work Lane: Social Media / Marketing Analytics Architecture v1
 
 Primary subsystem: Prometheus Social Media
@@ -3030,6 +3152,8 @@ Current duplicate-prevention sources:
 
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
+- Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.
+- Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
