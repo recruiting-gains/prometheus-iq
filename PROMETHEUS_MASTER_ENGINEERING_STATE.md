@@ -699,6 +699,67 @@ Next recommended subsystem:
 
 Prometheus Administration/Auth for authenticated production smoke credentials/session. Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks.
 
+### Completed Work Lane: Beta Stabilization Sprint 1 - Mobile Pin-Drop Logging Scroll Fix
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Infrastructure, for deployment verification only
+
+Task:
+
+Beta Stabilization Sprint 1 - Mobile Pin-Drop Logging Scroll Fix.
+
+Status:
+
+Complete.
+
+Commit:
+
+`ff5b1428c1ac7e807249d34506fea03097f1148d`
+
+Deploy:
+
+Complete. Cloudflare Worker `prometheus-iq` deployed version `dbda8c6e-a353-40e6-b27e-a03c52aeb3e3`.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Fixed mobile quick pin-drop / unit logging modal scrolling.
+- Modal body is now the iOS/PWA-safe scroll container.
+- Safe-area padding preserved.
+- Horizontal overflow prevented.
+- Quick logging submit action remains reachable.
+- Added automatic scroll-to-counts behavior after Anthony selects a quick outcome.
+- Added Dashboard workflow regression coverage for Anthony mobile pin-drop logging reachability.
+- `node --check scripts/verify-dashboard-runtime-workflows.mjs`: passed.
+- `git diff --check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed, 33/33 workflows.
+- `npm test`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:production-release -- --skip-existing-gates --expected-worker-version dbda8c6e-a353-40e6-b27e-a03c52aeb3e3 --cdp http://127.0.0.1:9225`: passed.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks.
+
 ### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
 
 Primary subsystem: Prometheus Dashboard
@@ -3224,6 +3285,7 @@ Current duplicate-prevention sources:
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
 - Do not duplicate the Dashboard Rep-only role/session enforcement fix; reuse the `?pwa=rep` launch path, stored Rep launch context override, Rep `appMode` guard, Founder manifest separation, and Dashboard runtime workflow regression coverage.
+- Do not duplicate the Dashboard mobile pin-drop logging scroll fix; preserve the iOS/PWA-safe modal-body scroll container, safe-area padding, reachable quick logging submit action, automatic scroll-to-counts behavior, and Anthony mobile reachability regression coverage.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
