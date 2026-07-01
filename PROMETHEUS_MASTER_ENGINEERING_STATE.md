@@ -2700,7 +2700,7 @@ Next recommended subsystem:
 
 Prometheus Infrastructure after Cruz securely sets `INSTAGRAM_ACCESS_TOKEN`, then Prometheus Social Media for live analytics consumption verification.
 
-### Work Lane: Instagram Business Login Runtime Configuration Alignment
+### Completed Work Lane: Instagram Business Login Runtime Configuration Alignment
 
 Primary subsystem: Prometheus Infrastructure
 
@@ -2714,7 +2714,15 @@ Instagram Business Login runtime configuration and permission validation alignme
 
 Status:
 
-Code/config alignment complete locally. Cloudflare secret configuration and live token-backed verification remain blocked until Cruz completes secure local entry for Meta App ID, Meta App Secret, and the Instagram access token for the public callback Worker.
+Code/config alignment complete, committed, and pushed. Cloudflare secret configuration and live token-backed runtime verification remain blocked until Cruz completes secure local entry for Meta App ID, Meta App Secret, and the Instagram access token for the public callback Worker.
+
+Commit:
+
+`015629b8d854f52ee0b15e6bcf430d072468b25f`
+
+Deploy:
+
+Not deployed in this alignment task. Wrangler dry-runs passed.
 
 Files changed:
 
@@ -2726,17 +2734,21 @@ Files changed:
 - `wrangler.prometheusrouteiq-website.jsonc`
 - `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
 
-Verification plan:
+Verification:
 
 - `npm run test:social-media`: passed
-- `npm run instagram:verify-token` with token supplied only through hidden local input
-- Cloudflare `secret list` name-only verification
-- Public callback Worker `/api/oauth/meta/instagram/status` runtime status verification after deploy
+- `npm run lint`: passed
+- `npm run typecheck`: passed
+- `npm run build`: passed
+- `git diff --check`: passed
+- Wrangler dry-runs: passed
+- Runtime validation now defaults to Instagram Business Login scopes.
+- Legacy scopes are preserved only for explicit `INSTAGRAM_API_MODE=facebook_login`.
 
 Remaining blockers:
 
 - Secure local credential entry was not completed for `META_APP_ID`, `META_APP_SECRET`, and public Worker `INSTAGRAM_ACCESS_TOKEN`.
-- Production deploy/verification must wait until the required secrets are configured without exposing values.
+- Cloudflare secret configuration and live token-backed runtime verification must wait until the required secrets are configured without exposing values.
 
 Duplicate-prevention update:
 
@@ -4705,6 +4717,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
 - Do not duplicate the public Meta Instagram OAuth callback deployment; reuse `wrangler.prometheusrouteiq-website.jsonc`, `https://prometheusrouteiq.com/api/oauth/meta/instagram/callback`, `https://prometheusrouteiq.com/api/oauth/facebook-business/instagram/callback`, and `https://prometheusrouteiq.com/api/oauth/meta/instagram/status` for Meta Developer redirect URI, Facebook Login for Business aliasing, and public fail-closed status/callback behavior.
 - Do not duplicate Instagram Business Login token consumption support; reuse `social-media/infrastructure/instagram-runtime-controls.js`, `social-media/providers/instagram-business-provider.js`, `scripts/verify-instagram-business-token.mjs`, `npm run instagram:verify-token`, Cloudflare secret `INSTAGRAM_ACCESS_TOKEN`, and `wrangler.prometheusrouteiq-website.jsonc` Instagram Login mode vars for `graph.instagram.com`, `instagram_business_basic`, and `instagram_business_manage_insights`.
+- Do not duplicate Instagram Business Login runtime configuration alignment; default permission validation to `instagram_business_basic` and `instagram_business_manage_insights` when `INSTAGRAM_API_MODE=instagram_login`, and preserve legacy `instagram_basic`, `instagram_manage_insights`, `pages_show_list`, and `pages_read_engagement` checks only when `INSTAGRAM_API_MODE=facebook_login` is explicitly configured.
 - Do not duplicate the production Meta Instagram token-store binding; reuse Cloudflare binding `META_INSTAGRAM_TOKEN_STORE` in `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
