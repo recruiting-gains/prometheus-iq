@@ -1,0 +1,136 @@
+{
+  "schemaVersion": "administration.stabilization-issues.v1",
+  "description": "Unified private beta issue intake register. Every issue supports issue ID, date, tester, device, version, description, expected behavior, actual behavior, subsystem owner, status, regression verification, resolved version, and tester verification.",
+  "issues": [
+    {
+      "issueId": "issue-dashboard-rep-session-enforcement-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-2026-06-30-rep-session-enforcement-v1",
+      "category": "Dashboard",
+      "severity": "Critical",
+      "description": "Rep-only role/session enforcement required stabilization for Anthony beta use.",
+      "expectedBehavior": "Anthony opens Prometheus IQ in Rep mode only, without owner/admin controls.",
+      "actualBehavior": "Rep PWA launch and persisted state could require enforcement hardening.",
+      "subsystemOwner": "Prometheus Dashboard",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Dashboard workflow coverage added for Anthony first launch, PWA reopen, and refresh preserving Rep-only UI."
+      },
+      "resolvedVersion": "2026-06-30-rep-session-enforcement-v1",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Administration still needs current tester device sign-off record."
+      }
+    },
+    {
+      "issueId": "issue-dashboard-mobile-pin-drop-scroll-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-mobile-pin-drop-scroll-fix",
+      "category": "Dashboard",
+      "severity": "High",
+      "description": "Mobile quick pin-drop and unit logging modal scrolling needed stabilization.",
+      "expectedBehavior": "Anthony can reach and submit mobile quick logging controls.",
+      "actualBehavior": "Mobile modal scrolling made the logging action difficult to reach.",
+      "subsystemOwner": "Prometheus Dashboard",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Dashboard regression coverage passed for Anthony mobile pin-drop logging reachability."
+      },
+      "resolvedVersion": "dbda8c6e-a353-40e6-b27e-a03c52aeb3e3",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Administration still needs current tester device sign-off record."
+      }
+    },
+    {
+      "issueId": "issue-dashboard-nearby-runtime-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-nearby-runtime-behavior-fix",
+      "category": "Dashboard",
+      "severity": "High",
+      "description": "Nearby Opportunities runtime behavior needed stabilization.",
+      "expectedBehavior": "Nearby Opportunities anchor to attached visit GPS coordinates when available and preserve Active Pool filtering.",
+      "actualBehavior": "Nearby Opportunities did not reliably use the intended runtime coordinate source.",
+      "subsystemOwner": "Prometheus Dashboard",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Regression harness coverage passed for empty state, location acquisition, Active Pool query, rendering, Rep behavior, and console/runtime errors."
+      },
+      "resolvedVersion": "29ad70e",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Administration still needs current tester device sign-off record."
+      }
+    },
+    {
+      "issueId": "issue-dashboard-startup-places-performance-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-startup-places-performance-stabilization",
+      "category": "Dashboard",
+      "severity": "High",
+      "description": "App startup and Places loading was too slow for beta readiness.",
+      "expectedBehavior": "Rep startup should avoid unnecessary owner-only rendering and Places should render progressively.",
+      "actualBehavior": "Startup and Places loading were too slow during beta review.",
+      "subsystemOwner": "Prometheus Dashboard",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Dashboard workflow, lint, typecheck, and build passed for performance stabilization."
+      },
+      "resolvedVersion": "fa05bdf",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Administration still needs current tester device sign-off record."
+      }
+    },
+    {
+      "issueId": "issue-data-residential-barber-route-quality-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-residential-barber-quarantine",
+      "category": "Data",
+      "severity": "Critical",
+      "description": "One recommended barber shop was actually a residential house.",
+      "expectedBehavior": "Route recommendations should contain verified walk-in business locations, not residential houses.",
+      "actualBehavior": "A residential-house barber recommendation reached beta review.",
+      "subsystemOwner": "Prometheus Data",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Residential-house barber shop recommendation was assigned to Data and completed as a quarantine/removal task."
+      },
+      "resolvedVersion": "data-route-quality-quarantine-completed",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Administration still needs current tester route-quality sign-off record."
+      }
+    }
+  ]
+}

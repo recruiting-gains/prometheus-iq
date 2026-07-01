@@ -6,6 +6,11 @@
       "companyId": "company-fitness-connection-almeda-001",
       "name": "Fitness Connection Almeda",
       "status": "discussion",
+      "profile": {
+        "companyType": "first_validation_environment",
+        "marketBoundary": "Gym sales is the first production validation environment, not the market definition.",
+        "administrationUse": "Pilot company context for tester records, agreement status, data restrictions, and success metric tracking."
+      },
       "pilotType": "field_sales_lsm",
       "approvedUsersCount": 0,
       "agreement": {

@@ -6,11 +6,11 @@ Capture beta problems consistently and decide whether they require immediate eng
 
 ## Intake Fields
 
-Use `templates/bug-report.md` and record the issue in `registers/bug-intake.json`.
+Use `templates/bug-report.md` and record the issue in `registers/stabilization-issues.json`. `registers/bug-intake.json` remains as the legacy bug-only register and should not become a duplicate system.
 
 Required fields:
 
-- Bug ID.
+- Issue ID.
 - Reporter/tester ID.
 - Date reported.
 - Device ID when known.
@@ -24,13 +24,17 @@ Required fields:
 - Pilot blocker flag.
 - Owner.
 - Status.
+- Regression verified.
+- Resolved version.
+- Tester verification.
 
 ## Severity
 
-- `critical`: app cannot open, data loss, security issue, owner/rep separation failure, export unavailable during required handoff.
-- `major`: core route, logging, or beta access workflow materially broken.
-- `minor`: tester can continue but meaningful friction exists.
-- `trivial`: cosmetic, copy, or polish.
+- `Critical`: app cannot open, data loss, security issue, owner/rep separation failure, export unavailable during required handoff, or route quality issue that could send a tester to an unsafe or non-business destination.
+- `High`: core route, logging, beta access, performance, or mobile workflow materially affected.
+- `Medium`: tester can continue, but friction is meaningful or evidence is incomplete.
+- `Low`: annoying, cosmetic, wording, or operational cleanup.
+- `Feature Request`: requested capability that is not a confirmed defect.
 
 ## Triage Decision
 

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": "administration.intake-classification.v1",
+  "description": "Permanent beta intake categories, severity levels, statuses, and subsystem routing rules.",
+  "issueCategories": [
+    "Dashboard",
+    "Data",
+    "Intelligence Engine",
+    "Infrastructure",
+    "CRM",
+    "Companion",
+    "Mobile",
+    "Website",
+    "Social Media",
+    "Research",
+    "Sales",
+    "Administration"
+  ],
+  "severityLevels": [
+    "Critical",
+    "High",
+    "Medium",
+    "Low",
+    "Feature Request"
+  ],
+  "issueStatuses": [
+    "new",
+    "classified",
+    "routed",
+    "subsystem_in_progress",
+    "subsystem_handoff_received",
+    "regression_pending",
+    "tester_verification_pending",
+    "closed",
+    "deferred"
+  ],
+  "observationTypes": [
+    "positive_feedback",
+    "workflow_observation",
+    "route_quality_observation",
+    "performance_observation"
+  ],
+  "subsystemRouting": [
+    {
+      "category": "Dashboard",
+      "owner": "Prometheus Dashboard",
+      "owns": "Tester-facing app behavior, Rep/Owner UI, field logging UI, runtime loading behavior, route rendering, Nearby Opportunities behavior."
+    },
+    {
+      "category": "Data",
+      "owner": "Prometheus Data",
+      "owns": "Prospect records, pool membership, route candidate quality, quarantine, and invalid or residential recommendations."
+    },
+    {
+      "category": "Intelligence Engine",
+      "owner": "Prometheus Intelligence Engine",
+      "owns": "Scoring, recommendation reasoning, ordering, learning behavior, and explanations."
+    },
+    {
+      "category": "Infrastructure",
+      "owner": "Prometheus Infrastructure",
+      "owns": "Cloudflare Access, deployment, authentication, production verification, and hosting reliability."
+    },
+    {
+      "category": "CRM",
+      "owner": "Prometheus CRM",
+      "owns": "Contacts, follow-ups, leads, tasks, and future communication workflow implementation."
+    },
+    {
+      "category": "Companion",
+      "owner": "Prometheus Companion",
+      "owns": "Founder-only Companion behavior."
+    },
+    {
+      "category": "Mobile",
+      "owner": "Prometheus Mobile",
+      "owns": "Device-specific PWA, iPhone, Android, offline, notification, and installed-app behavior."
+    },
+    {
+      "category": "Website",
+      "owner": "Prometheus Website",
+      "owns": "Public website, brand identity, landing pages, and conversion surfaces."
+    },
+    {
+      "category": "Social Media",
+      "owner": "Prometheus Social Media",
+      "owns": "Brand channel operations and future social analytics."
+    },
+    {
+      "category": "Research",
+      "owner": "Prometheus Research",
+      "owns": "Strategic research, market intelligence, and non-production intelligence briefs."
+    },
+    {
+      "category": "Sales",
+      "owner": "Prometheus Sales",
+      "owns": "Pilot sales process, discovery, demos, ROI, customer success, and sales enablement."
+    },
+    {
+      "category": "Administration",
+      "owner": "Prometheus Administration",
+      "owns": "Beta intake, tester records, device records, issue status, routing, verification records, and tester sign-off."
+    }
+  ]
+}

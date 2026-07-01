@@ -1,9 +1,13 @@
 # Feature Request Template
 
 Request ID:
+Issue ID:
 Date reported:
 Reporter/tester ID:
 Related pilot/company:
+Device ID:
+Version:
+Subsystem owner:
 
 ## Problem
 
@@ -24,3 +28,6 @@ Product rule supported:
 Owning subsystem if accepted:
 Status:
 Decision:
+Regression verified:
+Resolved version:
+Tester verification:

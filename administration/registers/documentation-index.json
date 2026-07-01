@@ -26,6 +26,16 @@
       "documentId": "legal-index",
       "path": "legal/README.md",
       "purpose": "Legal document index for business pilot agreement and individual tester NDA drafts."
+    },
+    {
+      "documentId": "company-identity",
+      "path": "COMPANY_IDENTITY.md",
+      "purpose": "Canonical Prometheus mission, values, outside-sales operating-system identity, and non-surveillance principle."
+    },
+    {
+      "documentId": "administration-private-beta-stabilization-intake",
+      "path": "administration/workflows/private-beta-stabilization-intake.md",
+      "purpose": "Permanent Administration-owned intake workflow for private beta stabilization findings."
     }
   ]
 }

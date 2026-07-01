@@ -1,14 +1,19 @@
 # Bug Report Template
 
 Bug ID:
+Issue ID:
 Date reported:
 Reporter/tester ID:
 Device ID:
 App version/release:
 Severity:
 Category:
+Subsystem owner:
 Blocks beta? Yes/No
 Data or security risk? Yes/No
+Regression verified: Yes/No
+Resolved version:
+Tester verification:
 
 ## What Happened
 

@@ -23,6 +23,28 @@
         "Signed NDA status for Anthony is not verified in this repository.",
         "Anthony device/browser/PWA details require current device verification."
       ]
+    },
+    {
+      "releaseId": "release-private-beta-stabilization-intake-v1",
+      "date": "2026-07-01",
+      "type": "administration_operations",
+      "status": "created",
+      "engineeringCommit": null,
+      "deployment": "not_applicable",
+      "appBuildMarker": "not_applicable",
+      "affectedTesters": [
+        "tester-anthony-001"
+      ],
+      "whatChanged": [
+        "Created permanent private beta stabilization intake system for tester profiles, company profiles, device profiles, test sessions, unified issue intake, observations, release/regression verification, subsystem routing, and tester sign-off."
+      ],
+      "verification": [
+        "No production system, Dashboard, Data, Infrastructure, or CRM implementation change is required for this Administration release."
+      ],
+      "unknowns": [
+        "Current Anthony tester sign-off still requires direct device/session verification.",
+        "Enterprise pilot backend migration is intentionally not implemented."
+      ]
     }
   ]
 }

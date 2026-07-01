@@ -7,6 +7,12 @@
       "testerId": "tester-anthony-001",
       "label": "Anthony primary phone",
       "status": "needs_current_verification",
+      "profile": {
+        "deviceType": "mobile_phone",
+        "ownership": "tester_owned",
+        "intendedUse": "private beta field testing",
+        "supportedScaleStage": "one_tester_to_ten_testers"
+      },
       "platform": "unknown",
       "browserOrInstall": "unknown",
       "lastVerifiedDate": null,

@@ -14,11 +14,17 @@ const requiredMarkdown = [
   'administration/workflows/release-notes-version-history.md',
   'administration/workflows/pilot-company-management.md',
   'administration/workflows/founder-admin-dashboard-requirements.md',
+  'administration/workflows/private-beta-stabilization-intake.md',
+  'administration/workflows/subsystem-routing.md',
+  'administration/workflows/release-regression-tester-signoff.md',
   'administration/templates/beta-tester-onboarding-checklist.md',
   'administration/templates/bug-report.md',
   'administration/templates/feature-request.md',
   'administration/templates/release-note.md',
   'administration/templates/internal-procedure.md',
+  'administration/templates/stabilization-issue.md',
+  'administration/templates/test-session.md',
+  'administration/templates/observation.md',
   'administration/schemas/register-contracts.md'
 ];
 
@@ -30,7 +36,12 @@ const requiredJson = [
   'administration/registers/bug-intake.json',
   'administration/registers/feature-requests.json',
   'administration/registers/release-history.json',
-  'administration/registers/documentation-index.json'
+  'administration/registers/documentation-index.json',
+  'administration/registers/intake-classification.json',
+  'administration/registers/test-session-history.json',
+  'administration/registers/stabilization-issues.json',
+  'administration/registers/beta-observations.json',
+  'administration/registers/regression-verification.json'
 ];
 
 const failures = [];
@@ -79,6 +90,9 @@ if (betaTesters) {
     for (const key of ['status', 'agreement', 'onboarding', 'permissions', 'devices']) {
       if (!anthony[key]) failures.push(`Anthony tester record is missing ${key}`);
     }
+    if (!anthony.profile?.companyId) {
+      failures.push('Anthony tester record must include beta tester profile company context');
+    }
     if (anthony.permissions?.ownerAdminControlsAllowed !== false) {
       failures.push('Anthony tester record must not allow owner/admin controls');
     }
@@ -88,6 +102,11 @@ if (betaTesters) {
 const devices = jsonByPath.get('administration/registers/device-inventory.json');
 if (devices && !Array.isArray(devices.devices)) {
   failures.push('device-inventory.json must include devices array');
+} else if (devices) {
+  const anthonyDevice = devices.devices.find((device) => device.deviceId === 'device-anthony-primary-phone');
+  if (!anthonyDevice?.profile?.deviceType) {
+    failures.push('Anthony device record must include a device profile');
+  }
 }
 
 const permissions = jsonByPath.get('administration/registers/permissions-matrix.json');
@@ -104,6 +123,9 @@ const releases = jsonByPath.get('administration/registers/release-history.json')
 if (releases && !releases.releases?.some((release) => release.releaseId === 'release-administration-foundation-v1')) {
   failures.push('release-history.json must include release-administration-foundation-v1');
 }
+if (releases && !releases.releases?.some((release) => release.releaseId === 'release-private-beta-stabilization-intake-v1')) {
+  failures.push('release-history.json must include release-private-beta-stabilization-intake-v1');
+}
 
 const documentation = jsonByPath.get('administration/registers/documentation-index.json');
 if (documentation) {
@@ -114,10 +136,144 @@ if (documentation) {
   }
 }
 
+const expectedCategories = [
+  'Dashboard',
+  'Data',
+  'Intelligence Engine',
+  'Infrastructure',
+  'CRM',
+  'Companion',
+  'Mobile',
+  'Website',
+  'Social Media',
+  'Research',
+  'Sales',
+  'Administration'
+];
+const expectedSeverities = ['Critical', 'High', 'Medium', 'Low', 'Feature Request'];
+const expectedObservationTypes = [
+  'positive_feedback',
+  'workflow_observation',
+  'route_quality_observation',
+  'performance_observation'
+];
+
+const classification = jsonByPath.get('administration/registers/intake-classification.json');
+if (classification) {
+  for (const category of expectedCategories) {
+    if (!classification.issueCategories?.includes(category)) {
+      failures.push(`intake-classification.json is missing category: ${category}`);
+    }
+  }
+  for (const severity of expectedSeverities) {
+    if (!classification.severityLevels?.includes(severity)) {
+      failures.push(`intake-classification.json is missing severity: ${severity}`);
+    }
+  }
+  for (const type of expectedObservationTypes) {
+    if (!classification.observationTypes?.includes(type)) {
+      failures.push(`intake-classification.json is missing observation type: ${type}`);
+    }
+  }
+}
+
+const stabilizationIssues = jsonByPath.get('administration/registers/stabilization-issues.json');
+if (stabilizationIssues) {
+  if (!Array.isArray(stabilizationIssues.issues)) {
+    failures.push('stabilization-issues.json must include issues array');
+  }
+  const requiredIssueFields = [
+    'issueId',
+    'date',
+    'testerId',
+    'deviceId',
+    'version',
+    'category',
+    'severity',
+    'description',
+    'expectedBehavior',
+    'actualBehavior',
+    'subsystemOwner',
+    'status',
+    'regressionVerified',
+    'resolvedVersion',
+    'testerVerification'
+  ];
+  for (const issue of stabilizationIssues.issues ?? []) {
+    for (const field of requiredIssueFields) {
+      if (!(field in issue)) failures.push(`${issue.issueId ?? 'Unknown issue'} is missing ${field}`);
+    }
+    if (issue.issueId && !issue.issueId.startsWith('issue-')) {
+      failures.push(`${issue.issueId} must use issue- prefix`);
+    }
+    if (!expectedCategories.includes(issue.category)) {
+      failures.push(`${issue.issueId} has invalid category: ${issue.category}`);
+    }
+    if (!expectedSeverities.includes(issue.severity)) {
+      failures.push(`${issue.issueId} has invalid severity: ${issue.severity}`);
+    }
+    if (!issue.regressionVerified?.status) {
+      failures.push(`${issue.issueId} must include regressionVerified.status`);
+    }
+    if (!issue.testerVerification?.status) {
+      failures.push(`${issue.issueId} must include testerVerification.status`);
+    }
+  }
+  const requiredSprintIssues = [
+    'issue-dashboard-startup-places-performance-2026-06-30',
+    'issue-data-residential-barber-route-quality-2026-06-30'
+  ];
+  for (const issueId of requiredSprintIssues) {
+    if (!stabilizationIssues.issues?.some((issue) => issue.issueId === issueId)) {
+      failures.push(`stabilization-issues.json must preserve Beta Stabilization Sprint 1 finding: ${issueId}`);
+    }
+  }
+}
+
+const observations = jsonByPath.get('administration/registers/beta-observations.json');
+if (observations) {
+  if (!Array.isArray(observations.observations)) {
+    failures.push('beta-observations.json must include observations array');
+  }
+  for (const observation of observations.observations ?? []) {
+    if (!observation.observationId?.startsWith('observation-')) {
+      failures.push(`${observation.observationId ?? 'Unknown observation'} must use observation- prefix`);
+    }
+    if (!expectedObservationTypes.includes(observation.observationType)) {
+      failures.push(`${observation.observationId} has invalid observationType: ${observation.observationType}`);
+    }
+  }
+}
+
+const sessions = jsonByPath.get('administration/registers/test-session-history.json');
+if (sessions) {
+  if (!Array.isArray(sessions.sessions)) {
+    failures.push('test-session-history.json must include sessions array');
+  }
+  if (!sessions.sessions?.some((session) => session.sessionId === 'session-anthony-beta-stabilization-sprint-1')) {
+    failures.push('test-session-history.json must include Anthony Beta Stabilization Sprint 1 session');
+  }
+}
+
+const regression = jsonByPath.get('administration/registers/regression-verification.json');
+if (regression) {
+  if (!Array.isArray(regression.verifications)) {
+    failures.push('regression-verification.json must include verifications array');
+  }
+  if (!regression.verifications?.some((verification) => verification.verificationId === 'verification-beta-stabilization-sprint-1')) {
+    failures.push('regression-verification.json must include Beta Stabilization Sprint 1 verification record');
+  }
+}
+
 const readme = readRequired('administration/README.md') ?? '';
 for (const phrase of ['Dashboard', 'Companion', 'CRM', 'Infrastructure', 'Integrations']) {
   if (!readme.includes(phrase)) {
     failures.push(`Administration README must document boundary with ${phrase}`);
+  }
+}
+for (const phrase of ['Private Beta Stabilization Intake', 'stabilization-issues.json', 'tester sign-off']) {
+  if (!readme.includes(phrase)) {
+    failures.push(`Administration README must document ${phrase}`);
   }
 }
 

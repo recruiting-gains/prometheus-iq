@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "administration.beta-observations.v1",
+  "description": "Private beta observations for positive feedback, workflow observations, route quality observations, and performance observations.",
+  "observations": [
+    {
+      "observationId": "observation-performance-startup-places-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-startup-places-performance-stabilization",
+      "observationType": "performance_observation",
+      "relatedSubsystem": "Prometheus Dashboard",
+      "summary": "App startup and Places loading were too slow.",
+      "convertedToIssueId": "issue-dashboard-startup-places-performance-2026-06-30",
+      "status": "converted_to_issue"
+    },
+    {
+      "observationId": "observation-route-quality-residential-barber-2026-06-30",
+      "date": "2026-06-30",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-residential-barber-quarantine",
+      "observationType": "route_quality_observation",
+      "relatedSubsystem": "Prometheus Data",
+      "summary": "One recommended barber shop was actually a residential house.",
+      "convertedToIssueId": "issue-data-residential-barber-route-quality-2026-06-30",
+      "status": "converted_to_issue"
+    }
+  ]
+}

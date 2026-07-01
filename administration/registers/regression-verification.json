@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "administration.regression-verification.v1",
+  "description": "Administration-owned regression verification and tester sign-off tracking for beta-impacting issues.",
+  "verifications": [
+    {
+      "verificationId": "verification-beta-stabilization-sprint-1",
+      "date": "2026-07-01",
+      "scope": "Beta Stabilization Sprint 1",
+      "linkedIssues": [
+        "issue-dashboard-rep-session-enforcement-2026-06-30",
+        "issue-dashboard-mobile-pin-drop-scroll-2026-06-30",
+        "issue-dashboard-nearby-runtime-2026-06-30",
+        "issue-dashboard-startup-places-performance-2026-06-30",
+        "issue-data-residential-barber-route-quality-2026-06-30"
+      ],
+      "regressionStatus": "engineering_handoffs_recorded",
+      "testerSignOffStatus": "pending",
+      "notes": "Subsystem fixes are recorded from handoffs. Administration still needs current tester device sign-off before closing the sprint operationally."
+    }
+  ]
+}

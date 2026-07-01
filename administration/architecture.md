@@ -17,6 +17,9 @@ Administration owns the operational state around beta activity:
 - Which permissions a tester should receive.
 - Which release a tester is on.
 - Which bugs and requests have been reported.
+- Which test sessions produced beta findings.
+- Which positive feedback, workflow observations, route quality observations, and performance observations were captured.
+- Which release, regression, and tester sign-off records support closure.
 - Which pilot companies are active or being evaluated.
 - Which dashboard requirements a future admin surface must satisfy.
 
@@ -37,8 +40,12 @@ Other subsystems continue to own implementation:
 5. Tester onboarding is completed using the Administration checklist.
 6. Device inventory is recorded before first field use.
 7. Release/version assignment is recorded.
-8. Bugs and feature requests are triaged through Administration workflows.
-9. Founder review uses the registers to decide whether to continue, pause, expand, or stop the beta.
+8. Test session history is recorded when a tester uses Prometheus IQ in the field.
+9. Bugs, feature requests, positive feedback, workflow observations, route quality observations, and performance observations are triaged through Administration workflows.
+10. Confirmed engineering work is routed to the owning subsystem.
+11. Release verification and regression verification are recorded after subsystem handoff.
+12. Tester sign-off is recorded before closing beta-impacting issues.
+13. Founder review uses the registers to decide whether to continue, pause, expand, or stop the beta.
 
 ## Scaling Model
 
@@ -47,9 +54,9 @@ The registers use stable IDs so future tooling can import them into a database o
 Recommended scale stages:
 
 - Stage 1: one tester, manual registers.
-- Stage 2: up to 10 testers, weekly register review and strict device tracking.
-- Stage 3: up to 50 testers, required intake owner, release assignment, and weekly bug/request triage.
-- Stage 4: up to 100+ testers, migrate these registers into a secure backend admin surface before adding live centralized beta data.
+- Stage 2: up to 10 testers, weekly register review, strict device tracking, and issue routing discipline.
+- Stage 3: up to 100 testers, required intake owner, release assignment, session history, regression verification, and weekly bug/request triage.
+- Stage 4: enterprise pilots, controlled company profiles, approved user rosters, manager review cadence, legal/agreement tracking, and secure backend migration planning before adding live centralized beta data.
 
 ## Founder Admin Dashboard Requirements
 
@@ -61,8 +68,12 @@ The future founder administrative dashboard should read from Administration-owne
 - Device/browser inventory.
 - App version assigned and last verified.
 - Permission role assigned.
+- Test session history.
 - Open critical bugs.
 - Open high-value feature requests.
+- Positive feedback and workflow observations.
+- Route quality and performance observations.
+- Regression verification and tester sign-off status.
 - Pilot company status.
 - Release notes and beta-impact summaries.
 

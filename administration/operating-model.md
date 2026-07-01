@@ -6,9 +6,11 @@ Daily during active beta:
 
 - Confirm active testers can access the app.
 - Review incoming bugs and feature requests.
+- Review positive feedback, workflow observations, route quality observations, and performance observations.
 - Confirm no critical issue blocks field use.
 - Record any device or browser issues.
 - Record release/version friction.
+- Record session history for meaningful tester activity.
 
 Weekly during active beta:
 
@@ -17,6 +19,8 @@ Weekly during active beta:
 - Review onboarding completion.
 - Review open bugs by severity.
 - Review feature requests by impact and frequency.
+- Review route quality and performance observations by owner subsystem.
+- Review regression verification and tester sign-off status for recently resolved issues.
 - Decide whether beta scope should continue, pause, expand, or narrow.
 
 Before adding any tester:
@@ -52,6 +56,26 @@ Bug statuses:
 - `deferred`
 - `closed`
 
+Stabilization issue statuses:
+
+- `new`
+- `classified`
+- `routed`
+- `subsystem_in_progress`
+- `subsystem_handoff_received`
+- `regression_pending`
+- `tester_verification_pending`
+- `closed`
+- `deferred`
+
+Tester sign-off statuses:
+
+- `not_required`
+- `pending`
+- `passed`
+- `failed`
+- `blocked`
+
 Feature request statuses:
 
 - `captured`
@@ -69,6 +93,31 @@ During private beta, Administration should separate operational issues from engi
 - Major bugs can become engineering tasks after reproduction is clear.
 - Minor bugs and feature requests should be batched for review.
 - New product features should not be added during a live pilot unless the pilot cannot continue.
+
+## Intake Categories
+
+Every issue must be classified into one of the permanent subsystem categories:
+
+- Dashboard
+- Data
+- Intelligence Engine
+- Infrastructure
+- CRM
+- Companion
+- Mobile
+- Website
+- Social Media
+- Research
+- Sales
+- Administration
+
+Every issue must use one of the permanent severities:
+
+- Critical
+- High
+- Medium
+- Low
+- Feature Request
 
 ## Escalation
 

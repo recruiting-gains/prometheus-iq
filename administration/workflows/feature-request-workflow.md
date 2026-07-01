@@ -6,7 +6,7 @@ Capture tester requests without allowing live beta feedback to become uncontroll
 
 ## Intake
 
-Use `templates/feature-request.md` and record the request in `registers/feature-requests.json`.
+Use `templates/feature-request.md` and record the request in `registers/stabilization-issues.json` when the request needs subsystem review. `registers/feature-requests.json` remains a lightweight request-only backlog and should not become a duplicate operational source of truth.
 
 Required fields:
 

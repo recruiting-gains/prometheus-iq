@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "administration.test-session-history.v1",
+  "description": "Private beta test session history. Records session context and links issues or observations without storing secrets or private customer data.",
+  "sessions": [
+    {
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "date": "2026-07-01",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "version": "multiple-beta-stabilization-sprint-1-versions",
+      "sessionType": "private_beta_stabilization",
+      "environment": "production_private_beta",
+      "workflowsCovered": [
+        "Rep-only role/session behavior",
+        "Mobile pin-drop logging",
+        "Nearby Opportunities behavior",
+        "Startup and Places loading",
+        "Route quality"
+      ],
+      "linkedIssues": [
+        "issue-dashboard-rep-session-enforcement-2026-06-30",
+        "issue-dashboard-mobile-pin-drop-scroll-2026-06-30",
+        "issue-dashboard-nearby-runtime-2026-06-30",
+        "issue-dashboard-startup-places-performance-2026-06-30",
+        "issue-data-residential-barber-route-quality-2026-06-30"
+      ],
+      "linkedObservations": [
+        "observation-performance-startup-places-2026-06-30",
+        "observation-route-quality-residential-barber-2026-06-30"
+      ],
+      "status": "engineering_completed_pending_admin_closeout",
+      "notes": "Session record summarizes Beta Stabilization Sprint 1 intake context. Exact tester device details still require current verification."
+    }
+  ]
+}

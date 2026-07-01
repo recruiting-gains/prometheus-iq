@@ -7,6 +7,13 @@
       "displayName": "Anthony",
       "context": "First production field tester for Prometheus IQ private beta.",
       "status": "active",
+      "profile": {
+        "testerType": "individual_private_beta_tester",
+        "companyId": "company-fitness-connection-almeda-001",
+        "betaStage": "one_tester",
+        "primaryUseCase": "outside sales field testing",
+        "approvedDataBoundary": "Prometheus IQ beta activity only; no employer-confidential or private customer data unless written permission exists."
+      },
       "agreement": {
         "path": "individual_tester_nda",
         "status": "documented_draft_available",
@@ -33,6 +40,9 @@
         "currentReleaseId": "release-administration-foundation-v1",
         "notes": "Administration tracking release only; no product runtime change."
       },
+      "sessionHistory": [
+        "session-anthony-beta-stabilization-sprint-1"
+      ],
       "evidence": [
         "docs/beta-sharing-plan.md",
         "docs/pilot-support-system.md",

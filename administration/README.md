@@ -12,9 +12,12 @@ Administration may create and maintain:
 - NDA tracking references.
 - Tester onboarding procedure.
 - Device inventory records.
+- Test session history.
 - Tester permission model.
 - Release notes and version history.
 - Bug intake and feature request workflow.
+- Positive feedback, workflow observations, route quality observations, and performance observations.
+- Release verification, regression verification, subsystem routing, and tester sign-off records.
 - Pilot company records.
 - Founder administrative dashboard requirements.
 - Beta documentation and internal procedures.
@@ -35,6 +38,20 @@ Administration must not modify:
 - `workflows/`: reusable procedures for beta operations.
 - `templates/`: reusable intake and operating templates.
 - `schemas/`: lightweight register contract documentation.
+
+## Private Beta Stabilization Intake
+
+Private beta stabilization intake is Administration-owned. Engineering fixes are routed to the owning subsystem after intake classification.
+
+The permanent intake path is:
+
+1. Record tester, company, device, and session context.
+2. Classify the issue or observation.
+3. Route confirmed engineering work to the subsystem owner.
+4. Record release and regression verification after subsystem handoff.
+5. Capture tester sign-off before closing beta-impacting issues.
+
+The unified issue record lives in `registers/stabilization-issues.json`. Observation records live in `registers/beta-observations.json`. Classification and routing rules live in `registers/intake-classification.json`.
 
 ## Required Gate
 
