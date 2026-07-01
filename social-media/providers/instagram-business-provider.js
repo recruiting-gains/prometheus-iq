@@ -9,7 +9,6 @@ import {
   createSocialProviderStatus
 } from "../contracts/social-media-contract.js";
 import {
-  INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS,
   publicInstagramRuntimeStatus,
   resolveInstagramRuntimeConfig,
   validateInstagramRuntimeEnvironment
@@ -77,7 +76,7 @@ export function getInstagramBusinessProviderStatus({ env = process.env, checkedA
       accountHandle: config.accountHandle,
       accountId: config.businessAccountId || null,
       checkedAt,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       grantedPermissions: [...config.grantedPermissions],
       errors: runtime.errors
     });
@@ -90,7 +89,7 @@ export function getInstagramBusinessProviderStatus({ env = process.env, checkedA
     accountId: config.businessAccountId,
     accountHandle: config.accountHandle,
     checkedAt,
-    requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+    requiredPermissions: [...config.requiredPermissions],
     grantedPermissions: [...config.grantedPermissions],
     capabilities: {
       [SOCIAL_PROVIDER_CAPABILITIES.READ_ACCOUNT_INSIGHTS]: true,
@@ -208,7 +207,7 @@ export async function fetchInstagramBusinessSnapshot({
       accountId: config.businessAccountId,
       accountHandle: config.accountHandle,
       checkedAt: generatedAt,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       grantedPermissions: [...config.grantedPermissions],
       errors: [
         createSocialIntegrationError({
@@ -244,7 +243,7 @@ export async function fetchInstagramBusinessSnapshot({
         accountId: config.businessAccountId,
         accountHandle: handle,
         checkedAt: generatedAt,
-        requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+        requiredPermissions: [...config.requiredPermissions],
         grantedPermissions: [...config.grantedPermissions],
         capabilities: {
           [SOCIAL_PROVIDER_CAPABILITIES.READ_ACCOUNT_INSIGHTS]: true,

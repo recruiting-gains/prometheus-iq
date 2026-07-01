@@ -48,7 +48,10 @@ const REQUIRED_SETUP_VARS = Object.freeze([
 ]);
 
 const INSTAGRAM_LOGIN_SETUP_VARS = Object.freeze([
-  INSTAGRAM_RUNTIME_ENVIRONMENT.META_OAUTH_CALLBACK_URL
+  INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_ID,
+  INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_SECRET,
+  INSTAGRAM_RUNTIME_ENVIRONMENT.META_OAUTH_CALLBACK_URL,
+  INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_BUSINESS_ACCOUNT_ID
 ]);
 
 const TOKEN_VARS = Object.freeze([
@@ -104,10 +107,19 @@ function normalizeApiMode(value) {
 }
 
 function resolvePermissionMode(grantedPermissions, requestedApiMode = "") {
-  if (
-    requestedApiMode === INSTAGRAM_API_MODES.INSTAGRAM_LOGIN ||
-    hasAllPermissions(grantedPermissions, INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS)
-  ) {
+  if (requestedApiMode === INSTAGRAM_API_MODES.FACEBOOK_LOGIN) {
+    const facebookMissing = INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
+      .filter(permission => !grantedPermissions.includes(permission));
+
+    return {
+      apiMode: INSTAGRAM_API_MODES.FACEBOOK_LOGIN,
+      graphHost: "graph.facebook.com",
+      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      missingPermissions: facebookMissing
+    };
+  }
+
+  {
     const missingPermissions = INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS
       .filter(permission => !grantedPermissions.includes(permission));
 
@@ -118,16 +130,6 @@ function resolvePermissionMode(grantedPermissions, requestedApiMode = "") {
       missingPermissions
     };
   }
-
-  const facebookMissing = INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
-    .filter(permission => !grantedPermissions.includes(permission));
-
-  return {
-    apiMode: INSTAGRAM_API_MODES.FACEBOOK_LOGIN,
-    graphHost: "graph.facebook.com",
-    requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
-    missingPermissions: facebookMissing
-  };
 }
 
 function requiredSetupVarsForConfig(config) {

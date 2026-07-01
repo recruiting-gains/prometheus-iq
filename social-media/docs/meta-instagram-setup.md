@@ -68,12 +68,12 @@ META_APP_ID=replace-in-backend-secret-store
 META_APP_SECRET=replace-in-backend-secret-store
 META_OAUTH_STATE_SECRET=replace-in-backend-secret-store
 META_OAUTH_CALLBACK_URL=https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
-INSTAGRAM_BUSINESS_ACCOUNT_ID=replace-in-backend-secret-store
+INSTAGRAM_BUSINESS_ACCOUNT_ID=replace-with-instagram-business-user-id
 INSTAGRAM_USER_ID=replace-after-oauth-verification
 INSTAGRAM_ACCOUNT_HANDLE=@prometheus.iq
-INSTAGRAM_OAUTH_SCOPES=instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement
 INSTAGRAM_ACCESS_TOKEN=replace-in-backend-secret-store
-INSTAGRAM_GRANTED_SCOPES=instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement
+INSTAGRAM_API_MODE=instagram_login
+INSTAGRAM_GRANTED_SCOPES=instagram_business_basic,instagram_business_manage_insights
 INSTAGRAM_TOKEN_EXPIRES_AT=replace-with-iso-expiration-if-known
 INSTAGRAM_CONNECTION_VERIFIED_AT=replace-after-backend-verification
 META_GRAPH_API_VERSION=v21.0
@@ -94,7 +94,7 @@ META_APP_ID
 META_APP_SECRET
 META_OAUTH_STATE_SECRET
 META_INSTAGRAM_TOKEN_ENCRYPTION_KEY
-INSTAGRAM_BUSINESS_ACCOUNT_ID
+INSTAGRAM_ACCESS_TOKEN
 ```
 
 Required non-secret Worker vars:
@@ -103,8 +103,11 @@ Required non-secret Worker vars:
 META_OAUTH_CALLBACK_URL=https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
 META_GRAPH_API_VERSION=v21.0
 INSTAGRAM_API_MODE=instagram_login
+INSTAGRAM_BUSINESS_ACCOUNT_ID=17841421929598004
+INSTAGRAM_USER_ID=17841421929598004
 INSTAGRAM_GRANTED_SCOPES=instagram_business_basic,instagram_business_manage_insights
 INSTAGRAM_ACCOUNT_HANDLE=@prometheus.iq
+INSTAGRAM_CONNECTION_VERIFIED_AT=replace-after-backend-verification
 ```
 
 Required backend token storage binding:

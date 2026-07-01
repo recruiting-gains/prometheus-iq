@@ -2700,6 +2700,48 @@ Next recommended subsystem:
 
 Prometheus Infrastructure after Cruz securely sets `INSTAGRAM_ACCESS_TOKEN`, then Prometheus Social Media for live analytics consumption verification.
 
+### Work Lane: Instagram Business Login Runtime Configuration Alignment
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystems:
+
+- Prometheus Social Media, for live Instagram analytics consumption after Infrastructure verification
+
+Task:
+
+Instagram Business Login runtime configuration and permission validation alignment.
+
+Status:
+
+Code/config alignment complete locally. Cloudflare secret configuration and live token-backed verification remain blocked until Cruz completes secure local entry for Meta App ID, Meta App Secret, and the Instagram access token for the public callback Worker.
+
+Files changed:
+
+- `social-media/infrastructure/instagram-runtime-controls.js`
+- `social-media/providers/instagram-business-provider.js`
+- `tests/social-media-contract.test.mjs`
+- `social-media/docs/meta-instagram-setup.md`
+- `wrangler.jsonc`
+- `wrangler.prometheusrouteiq-website.jsonc`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Verification plan:
+
+- `npm run test:social-media`: passed
+- `npm run instagram:verify-token` with token supplied only through hidden local input
+- Cloudflare `secret list` name-only verification
+- Public callback Worker `/api/oauth/meta/instagram/status` runtime status verification after deploy
+
+Remaining blockers:
+
+- Secure local credential entry was not completed for `META_APP_ID`, `META_APP_SECRET`, and public Worker `INSTAGRAM_ACCESS_TOKEN`.
+- Production deploy/verification must wait until the required secrets are configured without exposing values.
+
+Duplicate-prevention update:
+
+Do not reintroduce legacy Facebook Login permissions for Instagram Business Login mode. Use `INSTAGRAM_API_MODE=instagram_login`, `instagram_business_basic`, `instagram_business_manage_insights`, `graph.instagram.com`, and the existing runtime controls. Legacy permissions `instagram_basic`, `instagram_manage_insights`, `pages_show_list`, and `pages_read_engagement` remain valid only when `INSTAGRAM_API_MODE=facebook_login` is explicitly configured.
+
 ### Completed Work Lane: Cloudflare Access Authenticated Production Verification v1
 
 Primary subsystem: Prometheus Infrastructure
