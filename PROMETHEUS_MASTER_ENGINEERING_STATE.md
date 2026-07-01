@@ -631,6 +631,74 @@ Next recommended subsystem:
 
 Prometheus Administration/Auth for authenticated production sign-in smoke, if required.
 
+### Completed Work Lane: Beta Stabilization Sprint 1 - Rep-only Role/Session Enforcement Fix
+
+Primary subsystem: Prometheus Dashboard
+
+Secondary subsystems:
+
+- Prometheus Infrastructure/Auth, for authenticated production smoke credentials/session only
+- Prometheus Administration, for beta tester verification records only
+
+Task:
+
+Beta Stabilization Sprint 1 - Rep-only Role/Session Enforcement Fix.
+
+Status:
+
+Complete. Production authenticated browser smoke remains blocked by missing Cloudflare Access cookie/CDP session.
+
+Commit:
+
+`984257adae73906e942e42210be0ef0546706eb7`
+
+Deploy:
+
+Deployed to Cloudflare Worker `prometheus-iq`.
+
+Production Worker version:
+
+`8b399e55-8efc-4215-af7b-b166574b7f8a`
+
+Production URL:
+
+`https://prometheus-iq.prometheusrouteiq.workers.dev`
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/manifest.webmanifest`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `manifest.webmanifest`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Verified outcome:
+
+- Rep PWA launch now defaults to Anthony Rep mode.
+- Stored Rep launch context now overrides Founder PWA fallback on standalone reopen/refresh.
+- Rep sessions force `appMode = "rep"` even if prior owner mode was persisted.
+- Generic PWA manifest now starts with `?pwa=rep`.
+- Explicit Founder manifest still preserves Cruz Founder/Owner access.
+- Build/cache markers bumped to `2026-06-30-rep-session-enforcement-v1` / `prometheus-v26-rep-session-enforcement-assets`.
+- Regression coverage added for Anthony first launch, PWA reopen, and refresh preserving Rep-only UI.
+- `npm run dashboard:runtime-workflows:check`: passed, 31/31.
+- `npm test`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:production-release -- --skip-existing-gates --expected-worker-version 8b399e55-8efc-4215-af7b-b166574b7f8a`: partially passed; deployment/version and Access protection passed, authenticated route/runtime checks blocked by missing Access cookie/CDP.
+
+Remaining blocker:
+
+Authenticated production route/runtime smoke requires `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or a signed-in Chrome CDP endpoint.
+
+Next recommended subsystem:
+
+Prometheus Administration/Auth for authenticated production smoke credentials/session. Continue Beta Stabilization Sprint 1 confirmed issues as separate subsystem-owned tasks.
+
 ### Completed Work Lane: Automated Runtime Workflow Regression Harness v1
 
 Primary subsystem: Prometheus Dashboard
@@ -3155,6 +3223,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
+- Do not duplicate the Dashboard Rep-only role/session enforcement fix; reuse the `?pwa=rep` launch path, stored Rep launch context override, Rep `appMode` guard, Founder manifest separation, and Dashboard runtime workflow regression coverage.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
