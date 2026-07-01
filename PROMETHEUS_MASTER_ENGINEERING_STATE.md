@@ -2267,6 +2267,69 @@ Next recommended subsystem:
 
 Website, only after explicit approval, for attribution implementation. Otherwise continue within Prometheus Social Media by using this operating system to run the first manual founder campaign.
 
+### Completed Work Lane: Live Instagram Analytics Consumption v1
+
+Primary subsystem: Prometheus Social Media
+
+Secondary subsystems:
+
+- Prometheus Website, only if future UTM/session attribution implementation is approved
+- Prometheus CRM, only if future campaign/source lead attribution implementation is approved
+
+Task:
+
+Live Instagram Analytics Consumption v1.
+
+Status:
+
+Complete, committed, pushed, and verified.
+
+Implementation type:
+
+Both.
+
+Commit:
+
+`d871d6e6d7ac67a48c68b2e01efaa371cd741942`
+
+Deploy:
+
+Not run by Social Media. No production deployment was required from this subsystem; it consumes the already verified Infrastructure runtime path.
+
+Files changed:
+
+- `social-media/providers/instagram-business-provider.js`
+- `social-media/README.md`
+- `social-media/docs/social-media-marketing-analytics-architecture-v1.md`
+- `tests/social-media-contract.test.mjs`
+- `tests/meta-instagram-worker-callback.test.mjs`
+
+Verified outcome:
+
+- Extended the existing verified Instagram runtime path to consume live provider data only when runtime state is connected.
+- Fetches Instagram account/profile data through backend bearer-token requests.
+- Fetches account-level insights: `reach`, `profile_views`, `website_clicks`.
+- Adds recent media fetch support.
+- Adds content-level insight normalization when Meta returns media insights.
+- Normalizes content metrics as `provider_api` Social Media metrics with content metadata including media ID, media type, permalink, publish timestamp, and caption preview.
+- Extends existing `social-media-marketing-analytics-contract.v1` usage with content-scoped Instagram metrics: `content_reach`, `content_views`, `content_likes`, `content_comments`, `content_shares`, `content_saved`, and `content_total_interactions`.
+- Preserves token safety: tokens are sent only in backend Authorization headers and never returned in snapshots, notes, errors, or tests.
+- Preserves Website and CRM attribution boundaries: provider ingestion creates no Website or CRM attribution events.
+- Did not modify Infrastructure.
+- Did not enable posting, DMs, comment automation, scraping, or browser automation.
+- `npm run test:social-media`: passed, 31/31.
+- `npm run security:check`: passed.
+- `npm run build`: passed with existing Vite/framer-motion `use client` and chunk-size warnings.
+- `npm test`: passed, including Dashboard, Intelligence, Research, CRM, Integrations, Social Media, security, and build checks.
+
+Remaining blockers:
+
+None for Social Media implementation. Live production runtime execution depends on the already verified backend environment remaining configured with valid Instagram credentials.
+
+Next recommended subsystem:
+
+Prometheus Social Media for a read-only founder analytics/reporting view over normalized Instagram metrics. Website or CRM should wait until explicit attribution implementation is approved.
+
 ### Completed Work Lane: Instagram OAuth / Secret Runtime Controls v1
 
 Primary subsystem: Prometheus Infrastructure
@@ -4805,6 +4868,7 @@ Current duplicate-prevention sources:
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
+- Do not duplicate Live Instagram Analytics Consumption v1; reuse `social-media/providers/instagram-business-provider.js` and existing `social-media-marketing-analytics-contract.v1` normalized metrics for account/profile data, `reach`, `profile_views`, `website_clicks`, recent media, content metadata, and content-scoped metrics `content_reach`, `content_views`, `content_likes`, `content_comments`, `content_shares`, `content_saved`, and `content_total_interactions`. Other subsystems must consume normalized Social Media outputs instead of calling Instagram directly.
 - Do not duplicate the Founder Marketing Operating System; reuse `social-media/founder-marketing-operating-system/`, its machine-readable model, campaign brief template, cadence, platform strategy, KPI framework, and attribution planning fields.
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
