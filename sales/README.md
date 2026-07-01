@@ -18,6 +18,7 @@ Every Sales artifact must answer four questions:
 ## Current Foundation
 
 - `sales/enterprise-sales-methodology.md`
+- `sales/enterprise-industry-playbooks.md`
 - `sales/discovery-and-qualification.md`
 - `sales/demo-pilot-onboarding.md`
 - `sales/customer-success-lifecycle.md`
@@ -44,16 +45,15 @@ Every Sales artifact must answer four questions:
 Prometheus Sales should develop repeatable systems for:
 
 - Healthcare
-- Medical devices
+- Medical Devices
 - Solar
 - Roofing
-- Pest control
+- Security
 - Payroll
 - Telecom
-- Commercial cleaning
-- Security
-- Uniforms
-- Industrial equipment
+- Commercial Cleaning
+- HVAC
+- Industrial Equipment
 - Manufacturing
 - Logistics
 - Insurance

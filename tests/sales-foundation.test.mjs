@@ -9,7 +9,7 @@ test("Sales foundation defines reusable enterprise scope", () => {
 
   assert.match(readme, /not the market boundary/);
   assert.match(readme, /Healthcare/);
-  assert.match(readme, /Medical devices/);
+  assert.match(readme, /Medical Devices/);
   assert.match(readme, /B2B SaaS/);
   assert.match(readme, /Any organization using outside sales/);
 });
@@ -28,6 +28,7 @@ test("Sales foundation keeps implementation ownership out of Sales", () => {
 test("Sales foundation covers required operating-system artifacts", () => {
   const files = [
     read("sales/enterprise-sales-methodology.md"),
+    read("sales/enterprise-industry-playbooks.md"),
     read("sales/discovery-and-qualification.md"),
     read("sales/demo-pilot-onboarding.md"),
     read("sales/customer-success-lifecycle.md"),
@@ -40,6 +41,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
 
   for (const phrase of [
     "Sales Process",
+    "Enterprise Industry Playbooks",
     "Discovery Framework",
     "Qualification Framework",
     "Standard Demo Flow",
@@ -56,5 +58,50 @@ test("Sales foundation covers required operating-system artifacts", () => {
     "Sales Documentation Architecture",
   ]) {
     assert.match(files, new RegExp(phrase));
+  }
+});
+
+test("Enterprise industry playbooks cover required industries and sales sections", () => {
+  const playbooks = read("sales/enterprise-industry-playbooks.md");
+  const industries = [
+    "Healthcare",
+    "Medical Devices",
+    "Solar",
+    "Roofing",
+    "Security",
+    "Telecom",
+    "Payroll",
+    "Commercial Cleaning",
+    "HVAC",
+    "Insurance",
+    "Industrial Equipment",
+    "Manufacturing",
+    "Logistics",
+    "B2B SaaS",
+  ];
+  const requiredSections = [
+    "Customer Profile",
+    "Pain Points",
+    "Sales Process",
+    "Decision Makers",
+    "Buying Triggers",
+    "Prometheus IQ Value Proposition",
+    "Pilot Strategy",
+    "Enterprise Rollout Strategy",
+    "ROI Discussion",
+    "Objection Handling",
+    "Success Metrics",
+  ];
+
+  for (const industry of industries) {
+    const start = playbooks.indexOf(`## ${industry}`);
+    assert.notEqual(start, -1, `${industry} playbook is missing`);
+
+    const next = playbooks.indexOf("\n## ", start + 1);
+    const section = playbooks.slice(start, next === -1 ? playbooks.length : next);
+
+    for (const requiredSection of requiredSections) {
+      assert.match(section, new RegExp(`### ${requiredSection}`));
+    }
   }
 });

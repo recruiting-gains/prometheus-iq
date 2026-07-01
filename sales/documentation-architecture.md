@@ -21,6 +21,7 @@ Purpose:
 
 - Sales process.
 - Positioning.
+- Industry playbooks.
 - Qualification.
 - ROI.
 - Pricing strategy.
@@ -93,6 +94,7 @@ Sendability:
 Use lowercase hyphenated filenames for Sales foundation files:
 
 - `enterprise-sales-methodology.md`
+- `enterprise-industry-playbooks.md`
 - `discovery-and-qualification.md`
 - `demo-pilot-onboarding.md`
 
@@ -117,6 +119,7 @@ Discovery:
 Demo:
 
 - Value hypothesis.
+- Industry playbook section.
 - Demo flow.
 - Customer language map.
 - Pilot ask.

@@ -6,6 +6,7 @@ const root = process.cwd();
 const requiredFiles = [
   "sales/README.md",
   "sales/enterprise-sales-methodology.md",
+  "sales/enterprise-industry-playbooks.md",
   "sales/discovery-and-qualification.md",
   "sales/demo-pilot-onboarding.md",
   "sales/customer-success-lifecycle.md",
@@ -19,6 +20,7 @@ const requiredFiles = [
 const requiredPhrases = new Map([
   ["sales/README.md", ["Prometheus IQ is an AI operating system", "Sales does not own Dashboard"]],
   ["sales/enterprise-sales-methodology.md", ["Do not sell Prometheus as a CRM replacement", "Enterprise"]],
+  ["sales/enterprise-industry-playbooks.md", ["Healthcare", "Medical Devices", "B2B SaaS", "Cross-Industry Qualification Rule"]],
   ["sales/discovery-and-qualification.md", ["Qualification Framework", "Field motion"]],
   ["sales/demo-pilot-onboarding.md", ["Standard Demo Flow", "Pilot Structure", "Customer Onboarding"]],
   ["sales/customer-success-lifecycle.md", ["Expansion Strategy", "Renewal Strategy", "Success Metrics"]],
@@ -30,6 +32,37 @@ const requiredPhrases = new Map([
 ]);
 
 const failures = [];
+
+const requiredIndustries = [
+  "Healthcare",
+  "Medical Devices",
+  "Solar",
+  "Roofing",
+  "Security",
+  "Telecom",
+  "Payroll",
+  "Commercial Cleaning",
+  "HVAC",
+  "Insurance",
+  "Industrial Equipment",
+  "Manufacturing",
+  "Logistics",
+  "B2B SaaS",
+];
+
+const requiredIndustrySections = [
+  "Customer Profile",
+  "Pain Points",
+  "Sales Process",
+  "Decision Makers",
+  "Buying Triggers",
+  "Prometheus IQ Value Proposition",
+  "Pilot Strategy",
+  "Enterprise Rollout Strategy",
+  "ROI Discussion",
+  "Objection Handling",
+  "Success Metrics",
+];
 
 for (const file of requiredFiles) {
   const path = join(root, file);
@@ -44,6 +77,31 @@ for (const file of requiredFiles) {
   for (const phrase of phrases) {
     if (!content.includes(phrase)) {
       failures.push(`Missing phrase in ${file}: ${phrase}`);
+    }
+  }
+}
+
+const playbookPath = join(root, "sales/enterprise-industry-playbooks.md");
+if (existsSync(playbookPath)) {
+  const playbook = readFileSync(playbookPath, "utf8");
+
+  for (const industry of requiredIndustries) {
+    if (!playbook.includes(`## ${industry}`)) {
+      failures.push(`Missing industry playbook: ${industry}`);
+      continue;
+    }
+
+    const industryStart = playbook.indexOf(`## ${industry}`);
+    const nextIndustryStart = playbook.indexOf("\n## ", industryStart + 1);
+    const section = playbook.slice(
+      industryStart,
+      nextIndustryStart === -1 ? playbook.length : nextIndustryStart,
+    );
+
+    for (const requiredSection of requiredIndustrySections) {
+      if (!section.includes(`### ${requiredSection}`)) {
+        failures.push(`Missing ${requiredSection} in ${industry} playbook`);
+      }
     }
   }
 }
