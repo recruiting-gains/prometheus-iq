@@ -608,6 +608,68 @@ async function verifyMobileQuickLogging(cdp) {
   })()`);
 }
 
+async function verifyNearbyOpportunitiesFlow(cdp) {
+  return cdp.evaluate(`(async () => {
+    const waitFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+    const emptyBefore = document.querySelector("#nearbyOpportunities .empty")?.textContent?.trim() || "";
+    const target = (typeof routeVisiblePlaces === "function" ? routeVisiblePlaces() : [])
+      .find(place => typeof nearbyOpportunitiesForPlace === "function" && nearbyOpportunitiesForPlace(place, 4).length > 0);
+    if (!target) throw new Error("No Anthony Active Pool target has nearby opportunities.");
+    Object.defineProperty(navigator, "geolocation", {
+      configurable: true,
+      value: {
+        getCurrentPosition(success) {
+          success({
+            coords: {
+              latitude: Number(target.latitude),
+              longitude: Number(target.longitude),
+              accuracy: 9
+            }
+          });
+        }
+      }
+    });
+    const beforeRuntimePool = window.prometheusDebugState?.runtimeDataPool || "";
+    document.querySelector('[data-open="quick"]')?.click();
+    await waitFrame();
+    const form = document.getElementById("quickForm");
+    if (!form) throw new Error("Quick logging form did not open.");
+    form.elements.placeId.value = target.id;
+    form.querySelector("[data-verify-location]")?.click();
+    await waitFrame();
+    const locationButtonLabel = form.querySelector("[data-verify-location]")?.textContent?.trim() || "";
+    const locationStatus = form.querySelector("[data-location-status]")?.textContent?.trim() || "";
+    form.querySelector('[data-quick-outcome="talk"]')?.click();
+    await waitFrame();
+    form.querySelector("#quickCounts .btn[type='submit']")?.click();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const cards = [...document.querySelectorAll("#nearbyOpportunities .nearby-card")].map(card => card.textContent.trim().replace(/\\s+/g, " "));
+    const countLabel = document.getElementById("nearbyOpportunitiesCount")?.textContent?.trim() || "";
+    const debug = window.prometheusDebugState?.nearbyOpportunities || {};
+    const latestVisit = state.visits.slice().sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0] || {};
+    return {
+      emptyBefore,
+      target: {
+        id: target.id,
+        name: target.name,
+        latitude: target.latitude,
+        longitude: target.longitude
+      },
+      locationStatus,
+      locationButtonLabel,
+      latestVisitHasLocation: Boolean(latestVisit.location),
+      latestVisitPlaceId: latestVisit.placeId || "",
+      beforeRuntimePool,
+      runtimePool: window.prometheusDebugState?.runtimeDataPool || "",
+      nearbyDebug: debug,
+      countLabel,
+      cardCount: cards.length,
+      firstCard: cards[0] || "",
+      noEmptyAfter: !document.querySelector("#nearbyOpportunities .empty")
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -730,6 +792,12 @@ async function runHarness() {
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
+    const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
+    assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a verified route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));
+    assertWorkflow("Nearby Opportunities location acquisition", nearbyFlow.latestVisitHasLocation && nearbyFlow.locationButtonLabel === "Location Attached" && nearbyFlow.locationStatus.includes("Device-reported visit location attached"), nearbyFlow.locationStatus, JSON.stringify(nearbyFlow));
+    assertWorkflow("Nearby Opportunities Active Pool query", nearbyFlow.beforeRuntimePool === "active" && nearbyFlow.runtimePool === "active" && nearbyFlow.nearbyDebug.originSource === "visit-location", `${nearbyFlow.nearbyDebug.count} nearby from ${nearbyFlow.nearbyDebug.originSource}`, JSON.stringify(nearbyFlow));
+    assertWorkflow("Nearby Opportunities rendering", nearbyFlow.cardCount > 0 && nearbyFlow.noEmptyAfter && nearbyFlow.countLabel.includes("within") && nearbyFlow.firstCard.includes("Directions"), `${nearbyFlow.cardCount} nearby cards for ${nearbyFlow.target.name}`, JSON.stringify(nearbyFlow));
+    verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
 
     const anthonyLog = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=anthony-mobile-quick-log", "anthony-mobile-log", {
       standalone: true,

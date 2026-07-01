@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v27-mobile-logging-scroll-assets";
+const CACHE_NAME = "prometheus-v28-nearby-opportunities-assets";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

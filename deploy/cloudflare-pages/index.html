@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-2ufoELEYy50B67r0LsMTaY/sAY5EQCP2gMUHddmIqHc='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-hTwUClIKTOWc/iYNi37UH9AyH6nsJXhMbB1X82GHl6M='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1554,9 +1554,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-01-mobile-logging-scroll-v1";
+    const appBuildVersion = "2026-07-01-nearby-opportunities-runtime-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v27-mobile-logging-scroll-assets";
+    const serviceWorkerCacheVersion = "prometheus-v28-nearby-opportunities-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -12878,21 +12878,49 @@
       return Math.round(score);
     }
 
+    function visitLocationOrigin(visit, place) {
+      const lat = cleanCoordinate(visit?.location?.lat, 90);
+      const lng = cleanCoordinate(visit?.location?.lng, 180);
+      if (lat === null || lng === null) return null;
+      return {
+        latitude: lat,
+        longitude: lng,
+        label: place?.name ? `GPS check-in at ${place.name}` : "GPS check-in",
+        source: "visit-location"
+      };
+    }
+
+    function nearbyOriginForVisit(visit, place) {
+      const locationOrigin = visitLocationOrigin(visit, place);
+      if (locationOrigin) return locationOrigin;
+      if (placeCoordinate(place, "latitude") === null || placeCoordinate(place, "longitude") === null) return null;
+      return {
+        latitude: placeCoordinate(place, "latitude"),
+        longitude: placeCoordinate(place, "longitude"),
+        label: place.name,
+        source: "place-coordinate"
+      };
+    }
+
     function latestVisitWithVerifiedPlace() {
       const byId = new Map(state.places.map(place => [place.id, place]));
       return todayVisits().slice().sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))
-        .map(visit => ({ visit, place: byId.get(visit.placeId) }))
-        .find(item => item.place && isGoogleQualifiedRoutePlace(item.place) && placeCoordinate(item.place, "latitude") !== null && placeCoordinate(item.place, "longitude") !== null) || null;
+        .map(visit => {
+          const place = byId.get(visit.placeId);
+          return { visit, place, origin: nearbyOriginForVisit(visit, place) };
+        })
+        .find(item => item.place && item.origin && isGoogleQualifiedRoutePlace(item.place)) || null;
     }
 
     function nearbyOpportunitiesForLatestVisit(limit = 4) {
       const latest = latestVisitWithVerifiedPlace();
       if (!latest) return { latest: null, items: [] };
-      return { latest, items: nearbyOpportunitiesForPlace(latest.place, limit) };
+      return { latest, items: nearbyOpportunitiesForPlace(latest.place, limit, latest.origin) };
     }
 
-    function nearbyOpportunitiesForPlace(basePlace, limit = 4) {
+    function nearbyOpportunitiesForPlace(basePlace, limit = 4, origin = basePlace) {
       if (!basePlace || !isGoogleQualifiedRoutePlace(basePlace) || placeCoordinate(basePlace, "latitude") === null || placeCoordinate(basePlace, "longitude") === null) return [];
+      if (!origin || placeCoordinate(origin, "latitude") === null || placeCoordinate(origin, "longitude") === null) return [];
       const visitedKeys = new Set(todayVisits()
         .map(visit => state.places.find(place => place.id === visit.placeId))
         .filter(Boolean)
@@ -12902,11 +12930,11 @@
       const items = uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces())
         .filter(place => routeIdentityKey(place) !== currentKey)
         .map(place => {
-          const item = { place, feet: distanceFeetBetweenPlaces(basePlace, place) };
+          const item = { place, feet: distanceFeetBetweenPlaces(origin, place) };
           item.nearbyScore = nearbyOpportunityScore(item);
           return item;
         })
-        .filter(item => Number.isFinite(item.feet) && item.feet > 0 && item.feet <= nearbyOpportunityRadiusFeet)
+        .filter(item => Number.isFinite(item.feet) && item.feet >= 0 && item.feet <= nearbyOpportunityRadiusFeet)
         .filter(item => !visitedKeys.has(routeIdentityKey(item.place)))
         .filter(item => {
           const key = routeIdentityKey(item.place);
@@ -14054,16 +14082,23 @@
       const count = document.getElementById("nearbyOpportunitiesCount");
       const list = document.getElementById("nearbyOpportunities");
       const { latest, items } = nearbyOpportunitiesForLatestVisit();
+      window.prometheusDebugState.nearbyOpportunities = {
+        latestPlaceName: latest?.place?.name || "",
+        originSource: latest?.origin?.source || "",
+        count: items.length,
+        radiusFeet: nearbyOpportunityRadiusFeet
+      };
       if (!latest) {
         count.textContent = "After a logged Google stop";
         list.innerHTML = `<div class="empty">Log a verified route stop, then Prometheus will show walkable businesses nearby before you drive away.</div>`;
         return;
       }
+      const originLabel = latest.origin?.source === "visit-location" ? latest.origin.label : latest.place.name;
       count.textContent = items.length
-        ? `${items.length} within ${nearbyOpportunityRadiusFeet} ft of ${latest.place.name}`
-        : `0 within ${nearbyOpportunityRadiusFeet} ft of ${latest.place.name}`;
+        ? `${items.length} within ${nearbyOpportunityRadiusFeet} ft of ${originLabel}`
+        : `0 within ${nearbyOpportunityRadiusFeet} ft of ${originLabel}`;
       if (!items.length) {
-        list.innerHTML = `<div class="empty">No verified Google-qualified walkable businesses found near ${escapeHtml(latest.place.name)}. Move to the next route stop.</div>`;
+        list.innerHTML = `<div class="empty">No verified Google-qualified walkable businesses found near ${escapeHtml(originLabel)}. Move to the next route stop.</div>`;
         return;
       }
       list.innerHTML = items.map(item => {
