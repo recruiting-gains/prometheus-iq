@@ -8,6 +8,12 @@ This document is a reference map only. It does not move folders, redesign archit
 
 Every future Prometheus task should identify its primary workstream before work begins. If a request touches multiple workstreams, the session should name the boundaries clearly and avoid mixing unrelated changes in one commit.
 
+## Governing Identity Sources
+
+- `COMPANY_IDENTITY.md`: canonical company mission, vision, values, positioning, and permanent company identity decisions.
+- `docs/product-vision.md`: product vision and long-term product direction.
+- `docs/prometheus-company-manual.md`: company operating context and certified company milestones.
+
 ## Workstreams
 
 ### 1. Prometheus Dashboard

@@ -1675,6 +1675,7 @@ Low.
 | `prometheus-worktree-audit-report.md` | Prior worktree inventory/security audit. | Complete. | Repository hygiene reference. |
 | `docs/prometheus-disaster-recovery-plan.md` | Disaster recovery guidance. | Documentation. | Continuity support. |
 | `docs/prometheus-founder-continuity.md` | Founder continuity guidance. | Documentation. | Continuity support. |
+| `COMPANY_IDENTITY.md` | Canonical company mission, vision, values, positioning, and permanent identity decisions. | Active identity source. | Must be reused by Website, Sales, Research, Social Media, and investor/customer-facing work. |
 | `docs/prometheus-company-manual.md` | Company operating manual. | Documentation. | Business continuity. |
 | `docs/prometheus-founder-operating-system.md` | Founder operating system concept. | Documentation. | Companion/OS context. |
 | `docs/prometheus-origin-story-development-history.md` | Origin story/development history. | Documentation. | Memory and founder context. |

@@ -180,6 +180,7 @@ Existing research-related documents must be reused:
 - `docs/competitor-research.md`
 - `docs/competitor-pricing-revenue.md`
 - `docs/prometheus-iq-competitive-differentiation.md`
+- `COMPANY_IDENTITY.md`
 - `docs/product-vision.md`
 - `docs/prometheus-company-manual.md`
 

@@ -108,7 +108,7 @@ Files changed:
 
 Remaining blocker:
 
-`COMPANY_IDENTITY.md` was requested but is not present in the repository. `docs/prometheus-company-manual.md` was used as the closest available company identity source.
+Resolved after this handoff: root `COMPANY_IDENTITY.md` now exists as the canonical company identity source. Research originally used `docs/prometheus-company-manual.md` as the closest available source before this identity file was created.
 
 Next recommended subsystem:
 
@@ -175,7 +175,7 @@ Files changed:
 
 Remaining blockers:
 
-Root `PRODUCT_VISION.md` and `COMPANY_IDENTITY.md` were not present. Sales used `docs/product-vision.md` and `docs/prometheus-company-manual.md` as the closest approved sources.
+Root `COMPANY_IDENTITY.md` is now present as the canonical company identity source. Root `PRODUCT_VISION.md` remains absent; Sales used `docs/product-vision.md` as the closest approved product vision source.
 
 Next recommended subsystem:
 
@@ -3030,6 +3030,7 @@ Current duplicate-prevention sources:
 
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
+- Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
