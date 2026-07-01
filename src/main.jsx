@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, useScroll, useTransform } from "framer-motion";
-import prometheusLogoUrl from "../icons/prometheus.svg";
+import prometheusLogoUrl from "../icons/prometheus-company-icon-512.png";
 import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
@@ -268,7 +268,8 @@ function App() {
       <section className="section loop-section">
         <div className="shell">
           <SectionLabel>The Learning Loop</SectionLabel>
-          <h2>AI Route Intelligence improves as the field produces evidence.</h2>
+          <h2>Make outside sales intelligent, directed, accountable, and compounding.</h2>
+          <p className="section-copy">Every route, visit, and outcome should make tomorrow's field decision smarter.</p>
           <div className="loop-track">
             {loop.map((item, index) => (
               <motion.div
