@@ -1938,6 +1938,61 @@ Next recommended subsystem:
 
 Prometheus Infrastructure for CDN/cache policy review only if longer-lived immutable asset caching is desired. Otherwise no follow-up dependency exists from this Website handoff.
 
+### Completed Work Lane: Public Meta Compliance Pages
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystems:
+
+- Prometheus Social Media, for Meta app review and social analytics compliance references
+- Prometheus Infrastructure, for public website deployment verification only
+
+Task:
+
+Public Meta Compliance Pages.
+
+Status:
+
+Complete.
+
+Commit:
+
+`4c0451776b9aac1d129415f7db04ee118955b4be`
+
+Deploy:
+
+Complete. Deployed to `https://prometheusrouteiq.com` via Cloudflare Workers. Version ID `c455f342-2537-46cd-826e-037f9eaeb7b6`.
+
+Live URLs:
+
+- `https://prometheusrouteiq.com/privacy`
+- `https://prometheusrouteiq.com/terms`
+- `https://prometheusrouteiq.com/data-deletion`
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/privacy/index.html`
+- `deploy/prometheusrouteiq-website/terms/index.html`
+- `deploy/prometheusrouteiq-website/data-deletion/index.html`
+
+Verified outcome:
+
+- Added public Privacy page.
+- Added public Terms page.
+- Added public Data Deletion page.
+- Updated public website package to expose Meta compliance routes.
+- Overwatch verified all three live URLs return HTTP 200 with `text/html`.
+- No private Dashboard, Companion, CRM, Data, Intelligence Engine, or Infrastructure runtime behavior changed.
+
+Remaining blocker:
+
+None for public Website compliance pages.
+
+Next recommended subsystem:
+
+Prometheus Social Media / Infrastructure only when continuing Meta app review, OAuth, or live analytics setup. Otherwise no immediate follow-up dependency exists.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -4443,6 +4498,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Brand Identity Synchronization v1; reuse `deploy/prometheusrouteiq-website/public-assets/prometheus.svg` and the existing public Website header/nav, favicon, Open Graph/Twitter image, React logo mark, and cache-busted asset wiring.
 - Do not duplicate Enterprise & Investor Readiness v1; extend the existing public Website enterprise, industry, investor, founder story, customer success, trust, beta conversion, SEO, and mobile readability work.
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
+- Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
