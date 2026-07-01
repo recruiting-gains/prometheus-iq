@@ -715,7 +715,7 @@ pilotNext.addEventListener("click", () => {
 
 const getOpportunityAreas = (goal, industry) => {
   const lowerIndustry = (industry || "").toLowerCase();
-  if (goal === "Better Event Discovery") return "Events, partner sites, local traffic pockets";
+  if (goal === "Better Market Discovery") return "Events, partner sites, local traffic pockets";
   if (goal === "Better Accountability") return "Verified visits, route completion, rep adoption";
   if (goal === "Better Routing") return "Route density, qualified storefronts, territory coverage";
   if (goal === "More Leads") return "Conversation zones, follow-up paths, lead sources";
@@ -729,7 +729,7 @@ const getMetrics = (goal) => {
     "More Leads": "Leads, conversations, follow-ups",
     "Better Accountability": "GPS verification, visit completion",
     "Better Routing": "Route quality, stops completed",
-    "Better Event Discovery": "Events found, visits, outcomes"
+    "Better Market Discovery": "Market opportunities, visits, outcomes"
   };
   return map[goal] || "Visits, leads, outcomes";
 };
@@ -745,8 +745,8 @@ const buildPilotDashboard = () => {
   const opportunityAreas = getOpportunityAreas(data.primaryGoal, data.industry);
   const metrics = getMetrics(data.primaryGoal);
 
-  document.querySelector("#dashboardCompany").textContent = `${data.companyName || "Your company"} is pilot-ready.`;
-  document.querySelector("#dashboardSummary").textContent = `Based on a ${territorySize.toLowerCase()} team focused on ${data.primaryGoal || "field growth"}, Prometheus recommends a controlled Prometheus IQ pilot that measures AI Route Intelligence, activity quality, and outcomes without adding unnecessary admin work.`;
+  document.querySelector("#dashboardCompany").textContent = `${data.companyName || "Your company"} is beta-pilot ready.`;
+  document.querySelector("#dashboardSummary").textContent = `Based on a ${territorySize.toLowerCase()} team focused on ${data.primaryGoal || "field growth"}, Prometheus recommends a controlled Prometheus IQ beta pilot that measures AI Route Intelligence, activity quality, and outcomes without adding unnecessary admin work.`;
   document.querySelector("#dashRepCount").textContent = `${reps}`;
   document.querySelector("#dashTerritory").textContent = territorySize;
   document.querySelector("#dashOpportunity").textContent = opportunityAreas;
@@ -755,7 +755,7 @@ const buildPilotDashboard = () => {
   document.querySelector("#dashMetrics").textContent = metrics;
 
   const emailBody = [
-    "Prometheus IQ pilot request",
+    "Prometheus IQ beta pilot request",
     "",
     `Company: ${data.companyName || ""}`,
     `Industry: ${data.industry || ""}`,
@@ -774,7 +774,7 @@ const buildPilotDashboard = () => {
     `Email / Phone: ${data.contactMethod || ""}`
   ].join("\n");
 
-  document.querySelector("#pilotEmail").href = `mailto:prometheusrouteiq@gmail.com?subject=${encodeURIComponent("Prometheus IQ Pilot Request")}&body=${encodeURIComponent(emailBody)}`;
+  document.querySelector("#pilotEmail").href = `mailto:prometheusrouteiq@gmail.com?subject=${encodeURIComponent("Prometheus IQ Beta Pilot Request")}&body=${encodeURIComponent(emailBody)}`;
   pilotDashboard.classList.add("is-visible");
   pilotDashboard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 };
@@ -799,14 +799,14 @@ const demoScenes = [
     kicker: "AI Route Intelligence",
     stageTitle: "Prometheus identifies the next field move.",
     title: "AI Route Intelligence activates",
-    copy: "The flagship Prometheus IQ system turns territory, timing, and field context into a specific next-stop plan.",
+    copy: "The flagship Prometheus IQ system turns territory, timing, and field context into a specific next-stop plan across outside-sales markets.",
     signals: [["1", "Best next move", "The rep sees where to walk first."], ["2", "Specific targets", "Businesses appear as qualified opportunities."]]
   },
   {
     kicker: "Opportunity Discovery",
     stageTitle: "Qualified storefronts appear across the territory.",
     title: "Opportunity Discovery",
-    copy: "Prometheus highlights practical walk-in opportunities: businesses, apartments, offices, and events.",
+    copy: "Prometheus highlights practical walk-in opportunities: storefronts, businesses, apartments, offices, events, and local market targets.",
     signals: [["1", "Walk first", "Start with the highest-priority stop."], ["2", "Ask for", "Know who the rep should request."], ["3", "Access type", "Understand whether the visit is walk-in ready."]]
   },
   {
