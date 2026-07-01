@@ -281,7 +281,7 @@ for (const phrase of explicitNodeCases) {
 const founderAcceptanceCases = [
   ["Good morning, Companion.", ["good morning", "highest roi"]],
   ["Catch me up on where we left off.", ["where we left off", "latest verified memory"]],
-  ["What’s the current engineering status of Prometheus?", ["engineering status", "validation mode"]],
+  ["What’s the current engineering status of Prometheus?", ["engineering status", "executive operating-system layer", "boundary:"]],
   ["Help me draft a message.", ["message draft", "shared integration contract", "no message was sent"]],
   ["Remind me what meetings I have.", ["founder meetings", "integration state: disconnected", "shared integration contract"]],
   ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
@@ -397,11 +397,39 @@ const executiveCommandCenterCases = [
   ],
   [
     "Give me the executive dashboard.",
-    ["executive dashboard", "company:", "product:", "beta:", "sales:", "research:", "website/social:"]
+    ["executive dashboard", "company:", "product:", "beta:", "sales:", "research:", "website:", "social media:"]
   ],
   [
     "Help me decide what to prioritize today.",
-    ["daily decision support", "engineering:", "marketing:", "sales:", "product:", "recommendation:"]
+    ["daily decision support", "engineering:", "marketing:", "sales:", "product:", "research:", "recommendation:"]
+  ],
+  [
+    "What is the company status?",
+    ["company status", "outside sales", "not the gym vertical", "founder decision:"]
+  ],
+  [
+    "Give me engineering status.",
+    ["engineering status", "companion:", "boundary:", "recent engineering memory:"]
+  ],
+  [
+    "Give me research summary.",
+    ["research summary", "strategic intelligence division", "founder intelligence briefs", "boundary:"]
+  ],
+  [
+    "Give me sales summary.",
+    ["sales summary", "go-to-market", "controlled pilots", "crm workflows"]
+  ],
+  [
+    "Give me website summary.",
+    ["website summary", "public website", "without exposing", "boundary:"]
+  ],
+  [
+    "Give me social media summary.",
+    ["social media summary", "manual-operations ready", "no oauth", "manual"]
+  ],
+  [
+    "Give me beta summary.",
+    ["beta summary", "anthony", "must not modify anthony beta", "route clarity"]
   ],
   [
     "What company decisions do you remember?",

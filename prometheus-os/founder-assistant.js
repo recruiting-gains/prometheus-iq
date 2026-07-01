@@ -9,11 +9,18 @@ import {
   getDefaultFounderCommunicationsService
 } from "./founder-communications-consumer.js";
 import {
+  createBetaSummary,
+  createCompanyStatusSummary,
   createDailyDecisionSupport,
+  createEngineeringStatusSummary,
   createExecutiveDashboardSummary,
   createExecutiveStrategyMeeting,
   createFounderMemoryRecall,
-  createFounderMorningBrief
+  createFounderMorningBrief,
+  createResearchSummary,
+  createSalesSummary,
+  createSocialMediaSummary,
+  createWebsiteSummary
 } from "./executive-command-center.js";
 
 const permission = "Level 0 - Read Only";
@@ -47,19 +54,15 @@ function includesAny(command, phrases) {
 }
 
 function engineeringStatus() {
-  const cards = companyState.statusCards
-    .filter((card) => ["website", "anthony", "route", "github", "cloudflare", "pilot", "executive"].includes(card.key))
-    .map((card) => `${card.label}: ${card.value} - ${card.detail}`);
-
+  const summary = createEngineeringStatusSummary();
   return response(
-    "Prometheus Engineering Status",
-    [
-      "Current status: Prometheus is in validation mode, not public-dashboard expansion mode.",
-      ...cards,
-      "Companion status: private founder assistant, voice path, local memory, and reasoning are active but long-term automated ingestion still needs hardening.",
-      "Main engineering standard: protect beta stability, keep Dashboard/Data/Infrastructure boundaries clean, and only build features that improve pilot proof."
-    ].join(" "),
-    { intent: "engineering_status", entities: ["Prometheus IQ", "Prometheus Companion", "Route Intelligence"] }
+    summary.title,
+    summary.body,
+    {
+      ...summary.metadata,
+      intent: "engineering_status",
+      entities: ["Prometheus IQ", "Prometheus Companion", "Route Intelligence"]
+    }
   );
 }
 
@@ -233,12 +236,60 @@ export async function createFounderAssistantResponse(command = "", { communicati
       entities: ["Prometheus", "Prometheus IQ", "Prometheus Companion"]
     });
   }
+  if (includesAny(normalized, ["company status", "prometheus status", "where does the company stand"])) {
+    const company = createCompanyStatusSummary();
+    return response(company.title, company.body, {
+      ...company.metadata,
+      intent: "company_status",
+      entities: ["Prometheus", "Prometheus IQ", "Cruz"]
+    });
+  }
   if (includesAny(normalized, ["daily decision support", "help me decide", "prioritize engineering marketing sales product", "prioritize today"])) {
     const decision = createDailyDecisionSupport();
     return response(decision.title, decision.body, {
       ...decision.metadata,
       intent: "daily_decision_support",
       entities: ["Engineering", "Marketing", "Sales", "Product"]
+    });
+  }
+  if (includesAny(normalized, ["research summary", "summarize research", "research status"])) {
+    const research = createResearchSummary();
+    return response(research.title, research.body, {
+      ...research.metadata,
+      intent: "research_summary",
+      entities: ["Research", "Founder Intelligence Brief"]
+    });
+  }
+  if (includesAny(normalized, ["sales summary", "summarize sales", "sales status"])) {
+    const sales = createSalesSummary();
+    return response(sales.title, sales.body, {
+      ...sales.metadata,
+      intent: "sales_summary",
+      entities: ["Sales", "Pilot", "Customers"]
+    });
+  }
+  if (includesAny(normalized, ["website summary", "summarize website", "website status"])) {
+    const website = createWebsiteSummary();
+    return response(website.title, website.body, {
+      ...website.metadata,
+      intent: "website_summary",
+      entities: ["Website", "PrometheusRouteIQ.com"]
+    });
+  }
+  if (includesAny(normalized, ["social media summary", "summarize social", "social status", "marketing summary"])) {
+    const social = createSocialMediaSummary();
+    return response(social.title, social.body, {
+      ...social.metadata,
+      intent: "social_media_summary",
+      entities: ["Social Media", "Founder Marketing"]
+    });
+  }
+  if (includesAny(normalized, ["beta summary", "anthony beta summary", "beta status"])) {
+    const beta = createBetaSummary();
+    return response(beta.title, beta.body, {
+      ...beta.metadata,
+      intent: "beta_summary",
+      entities: ["Anthony", "Beta", "Prometheus IQ"]
     });
   }
   if (includesAny(normalized, ["executive strategy meeting", "strategy meeting", "run strategy meeting"])) {
@@ -268,7 +319,7 @@ export async function createFounderAssistantResponse(command = "", { communicati
     });
   }
   if (includesAny(normalized, ["catch me up", "where we left off", "resume context", "left off"])) return catchUp();
-  if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status"])) return engineeringStatus();
+  if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status", "engineering status"])) return engineeringStatus();
   if (includesAny(normalized, ["message summary", "message summaries", "summarize messages", "summarise messages", "inbox summary", "what messages"])) return messageSummaries(communicationsService);
   if (includesAny(normalized, ["draft a message", "write a message", "help me draft", "draft an email", "write an email", "compose a message", "compose message"])) return draftMessage(normalized, communicationsService);
   if (includesAny(normalized, ["meetings i have", "my meetings", "calendar reminders", "calendar reminder", "calendar", "schedule today"])) return meetings(communicationsService);
