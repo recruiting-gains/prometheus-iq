@@ -1260,7 +1260,7 @@ Commit:
 
 Deploy:
 
-Not deployed.
+Complete. Public website Worker `prometheusrouteiq-website` deployed version `fbb12e59-bb84-4445-a44b-a1e9e5a5873a`.
 
 Files changed:
 
@@ -1290,7 +1290,68 @@ None.
 
 Next recommended subsystem:
 
-Prometheus Infrastructure for deployment verification.
+None for this Website brand identity lane.
+
+### Completed Work Lane: Public Website Deployment Verification - Brand Identity Synchronization v1
+
+Primary subsystem: Prometheus Infrastructure
+
+Secondary subsystem:
+
+- Prometheus Website, for public artifact/content verification only
+
+Task:
+
+Public Website Deployment Verification - Brand Identity Synchronization v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`d346521979c94e3a8f54bb27e8479d6bfdb79f9b`
+
+Deploy:
+
+Complete. Deployed public website Worker `prometheusrouteiq-website` version `fbb12e59-bb84-4445-a44b-a1e9e5a5873a`.
+
+Files changed:
+
+None.
+
+Verified outcome:
+
+- `prometheusrouteiq.com`: HTTP 200.
+- `www.prometheusrouteiq.com`: HTTP 200.
+- Public Worker URL: HTTP 200.
+- Initial live deployment was stale; Infrastructure deployed the already-committed public website package.
+- New Prometheus SVG logo is live at `/public-assets/prometheus.svg?v=20260701-brand-v1`.
+- Live HTML references the new SVG for header logo, favicon, Open Graph image, and Twitter image.
+- Legacy `prometheus-flame-logo` reference is absent from live HTML.
+- SVG asset returns `content-type: image/svg+xml`.
+- Cache behavior verified: `cache-control: public, max-age=0, must-revalidate`.
+- New ETag observed after deployment.
+- Desktop browser render verified: logo rendered, no horizontal overflow, no console errors.
+- Mobile browser render verified at 390px width: logo rendered, no horizontal overflow, no console errors.
+- Public `site.js` route verified: HTTP 200.
+- Private Dashboard Worker remains Cloudflare Access-protected.
+- No Dashboard/private beta deployment was performed.
+- Public website deploy was isolated from root private Worker config and had no private bindings.
+- `npx wrangler deployments list --name prometheusrouteiq-website`: run.
+- `npx wrangler deploy /Users/cruzgarza/Documents/Prometheus/deploy/prometheusrouteiq-website --cwd /tmp --name prometheusrouteiq-website --compatibility-date 2026-07-01 --dry-run`: passed.
+- `npx wrangler deploy /Users/cruzgarza/Documents/Prometheus/deploy/prometheusrouteiq-website --cwd /tmp --name prometheusrouteiq-website --compatibility-date 2026-07-01 --message "Website Brand Identity Synchronization v1 d346521"`: passed.
+- `curl` verification covered apex, `www`, SVG asset, `site.js`, public Worker URL, and private Dashboard Access route.
+- Browser desktop/mobile render and console checks passed.
+- `npm run security:check`: passed.
+
+Remaining blocker:
+
+None.
+
+Next recommended subsystem:
+
+None for this deployment verification lane.
 
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
@@ -3425,19 +3486,17 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Website Brand Identity Synchronization v1 deployment verification.
+Private beta stabilization intake and remaining confirmed issue routing.
 
-Primary subsystem: Prometheus Infrastructure.
+Primary subsystem: Prometheus Administration.
 
 Secondary subsystems:
 
-- Prometheus Website, only for deployment artifact/content verification
+- Prometheus Dashboard, for confirmed beta product defects only
+- Prometheus Infrastructure/Auth, for authenticated access, session, device, or Cloudflare Access issues only
+- Prometheus CRM, for beta feedback/follow-up workflow consumption only
 
 Reason:
-
-Website finalized Brand Identity Synchronization v1 at commit `de3feab4bbb48b332bd6f4cab0f2a4923b0b5c51` and pushed it to `origin/main` with a clean working tree. The remaining handoff recommendation is Infrastructure-owned deployment verification for the public website. Do not modify Dashboard, Data, Intelligence Engine, Companion, Infrastructure auth, or Integrations for this Website deployment verification.
-
-Standing beta-stabilization routing:
 
 Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
 
