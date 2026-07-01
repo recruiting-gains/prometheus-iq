@@ -1238,6 +1238,57 @@ Next recommended subsystem:
 
 Marketing & Social Media.
 
+### Partial Work Lane: Brand Identity Synchronization v1
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystem:
+
+- Prometheus Dashboard, for the aggregate `npm test` Dashboard runtime workflow harness hang only
+
+Task:
+
+Brand Identity Synchronization v1.
+
+Status:
+
+Partial. Website-owned blockers were not identified, but completion commit, push, and deploy were not performed because aggregate `npm test` hung in the Dashboard-owned runtime workflow harness after passing visible desktop/mobile Dashboard workflow checks.
+
+Commit:
+
+No new task commit. Current HEAD at handoff time was `b1813db520b66b0578bc4624bb60405a63b133ac`; `main` was aligned with `origin/main`.
+
+Deploy:
+
+Not deployed; blocked by incomplete aggregate test exit.
+
+Files changed in local worktree:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/public-assets/prometheus.svg`
+- `landing.html`
+- `src/main.jsx`
+- `src/styles.css`
+
+What changed:
+
+- Official Prometheus SVG wired into the public header/nav.
+- Official Prometheus SVG wired into favicon metadata.
+- Official Prometheus SVG wired into Open Graph / Twitter image metadata.
+- React logo mark updated.
+- Deploy website asset path added with cache-busting version query.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm run security:check`: passed inside `npm test`.
+
+Remaining blocker:
+
+Cross-subsystem blocker: aggregate `npm test` hangs in Dashboard-owned `scripts/verify-dashboard-runtime-workflows.mjs`. Website completion commit, push, and deploy should wait until the Dashboard harness hang is resolved or an approved Website-only verification path is accepted.
+
+Next recommended subsystem:
+
+Prometheus Dashboard for Dashboard runtime workflow harness hang investigation.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -3370,19 +3421,21 @@ Current duplicate-prevention sources:
 
 Current active highest-priority task:
 
-Private beta stabilization intake and tester verification.
+Dashboard runtime workflow harness hang investigation.
 
-Primary subsystem: Prometheus Administration.
+Primary subsystem: Prometheus Dashboard.
 
 Secondary subsystems:
 
-- Prometheus Dashboard, for confirmed beta product defects only
-- Prometheus Infrastructure/Auth, for authenticated access, session, device, or Cloudflare Access issues only
-- Prometheus CRM, for beta feedback/follow-up workflow consumption only
+- Prometheus Website, only to unblock Brand Identity Synchronization v1 completion after Dashboard verification is reliable
 
 Reason:
 
-Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, stabilize the tester experience first: route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
+Website Brand Identity Synchronization v1 is partially complete in the local worktree, but commit/push/deploy were blocked because aggregate `npm test` hung in Dashboard-owned `scripts/verify-dashboard-runtime-workflows.mjs` after passing visible desktop/mobile Dashboard workflow checks. Dashboard owns the runtime workflow harness, so this must be resolved without changing Website scope or weakening beta production gates.
+
+Standing beta-stabilization routing:
+
+Prometheus IQ is now in active private beta with a field tester. Administration completed Beta Operations Foundation v1 at commit `f85be48`, but Anthony signed NDA status and current device/browser/PWA details are not verified in the repository. During active beta, route bugs through Administration intake, assign confirmed product defects to Dashboard, assign access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates. Do not broaden production behavior or duplicate Dashboard, CRM, Infrastructure, or Administration systems.
 
 Known founder-gated task:
 
