@@ -9,10 +9,25 @@ const rankingWeights = {
 
 const currentDate = new Date("2026-06-24T12:00:00-05:00");
 
-function daysSince(date) {
+export function getPrometheusToday() {
+  return currentDate.toISOString().slice(0, 10);
+}
+
+export function addDaysToIsoDate(date, days) {
+  const parsed = new Date(`${date}T12:00:00-05:00`);
+  if (Number.isNaN(parsed.getTime())) return getPrometheusToday();
+  parsed.setDate(parsed.getDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+export function daysSinceDate(date) {
   const parsed = new Date(`${date}T12:00:00-05:00`);
   if (Number.isNaN(parsed.getTime())) return 30;
   return Math.max(0, Math.round((currentDate - parsed) / 86400000));
+}
+
+function daysSince(date) {
+  return daysSinceDate(date);
 }
 
 function includesAny(haystack, needles) {

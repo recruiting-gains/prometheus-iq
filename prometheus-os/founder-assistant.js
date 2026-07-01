@@ -8,6 +8,13 @@ import {
   createFounderMessageSummaryBrief,
   getDefaultFounderCommunicationsService
 } from "./founder-communications-consumer.js";
+import {
+  createDailyDecisionSupport,
+  createExecutiveDashboardSummary,
+  createExecutiveStrategyMeeting,
+  createFounderMemoryRecall,
+  createFounderMorningBrief
+} from "./executive-command-center.js";
 
 const permission = "Level 0 - Read Only";
 
@@ -210,6 +217,56 @@ export async function createFounderAssistantResponse(command = "", { communicati
   if (!normalized) return null;
 
   if (/^(good morning|morning companion|good morning companion|hello companion|hey companion)\b/.test(normalized)) return morningGreeting();
+  if (includesAny(normalized, ["founder morning brief", "morning brief", "executive morning brief", "start my morning"])) {
+    const brief = await createFounderMorningBrief({ communicationsService });
+    return response(brief.title, brief.body, {
+      ...brief.metadata,
+      intent: "founder_morning_brief",
+      entities: ["Cruz", "Prometheus Companion", "Calendar", "Priorities"]
+    });
+  }
+  if (includesAny(normalized, ["executive dashboard", "executive command center", "command center summary"])) {
+    const dashboard = createExecutiveDashboardSummary();
+    return response(dashboard.title, dashboard.body, {
+      ...dashboard.metadata,
+      intent: "executive_dashboard",
+      entities: ["Prometheus", "Prometheus IQ", "Prometheus Companion"]
+    });
+  }
+  if (includesAny(normalized, ["daily decision support", "help me decide", "prioritize engineering marketing sales product", "prioritize today"])) {
+    const decision = createDailyDecisionSupport();
+    return response(decision.title, decision.body, {
+      ...decision.metadata,
+      intent: "daily_decision_support",
+      entities: ["Engineering", "Marketing", "Sales", "Product"]
+    });
+  }
+  if (includesAny(normalized, ["executive strategy meeting", "strategy meeting", "run strategy meeting"])) {
+    const meeting = createExecutiveStrategyMeeting();
+    return response(meeting.title, meeting.body, {
+      ...meeting.metadata,
+      intent: "executive_strategy_meeting",
+      entities: ["Cruz", "Prometheus"]
+    });
+  }
+  if (
+    includesAny(normalized, [
+      "company decisions",
+      "product decisions",
+      "engineering milestones",
+      "beta findings",
+      "investor conversations",
+      "founder memory",
+      "what do you remember"
+    ])
+  ) {
+    const memory = createFounderMemoryRecall(normalized);
+    return response(memory.title, memory.body, {
+      ...memory.metadata,
+      intent: "founder_memory_recall",
+      entities: ["Founder Memory", "Prometheus"]
+    });
+  }
   if (includesAny(normalized, ["catch me up", "where we left off", "resume context", "left off"])) return catchUp();
   if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status"])) return engineeringStatus();
   if (includesAny(normalized, ["message summary", "message summaries", "summarize messages", "summarise messages", "inbox summary", "what messages"])) return messageSummaries(communicationsService);

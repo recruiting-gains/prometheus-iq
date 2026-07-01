@@ -390,6 +390,62 @@ for (const [phrase, expected] of protectedPassingCases) {
   console.log(`PASS ${phrase} -> protected:${response.title}`);
 }
 
+const executiveCommandCenterCases = [
+  [
+    "Give me my Founder Morning Brief.",
+    ["founder morning brief", "engineering:", "beta:", "research:", "sales:", "website:", "social media:", "calendar:", "priorities:"]
+  ],
+  [
+    "Give me the executive dashboard.",
+    ["executive dashboard", "company:", "product:", "beta:", "sales:", "research:", "website/social:"]
+  ],
+  [
+    "Help me decide what to prioritize today.",
+    ["daily decision support", "engineering:", "marketing:", "sales:", "product:", "recommendation:"]
+  ],
+  [
+    "What company decisions do you remember?",
+    ["company decision memory", "prometheus is the company", "gym sales is the first production validation environment"]
+  ],
+  [
+    "What product decisions do you remember?",
+    ["product decision memory", "sell more", "route intelligence"]
+  ],
+  [
+    "What engineering milestones do you remember?",
+    ["engineering milestone memory", "prometheus companion", "founder communications"]
+  ],
+  [
+    "What beta findings do you remember?",
+    ["beta finding memory", "anthony", "real usage feedback"]
+  ],
+  [
+    "What investor conversations do you remember?",
+    ["investor conversation memory", "no verified investor conversation records", "truth rule"]
+  ],
+  [
+    "Run an executive strategy meeting.",
+    ["executive strategy meeting", "agenda:", "evidence needed:", "decision:"]
+  ]
+];
+
+for (const [phrase, expected] of executiveCommandCenterCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.filter((item) => !text.includes(item));
+  if (response.metadata?.executiveCommandCenter !== true || missing.length) {
+    fail("executive-command-center", {
+      phrase,
+      title: response.title,
+      executiveCommandCenter: response.metadata?.executiveCommandCenter === true,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> executive:${response.title}`);
+}
+
 if (failures) {
   process.exitCode = 1;
 }
