@@ -3049,6 +3049,72 @@ Next recommended subsystem:
 
 Prometheus Dashboard for CRM surfacing only when Dashboard ownership is available.
 
+### Completed Work Lane: Customer Success & Enterprise Pipeline Foundation v2
+
+Primary subsystem: Prometheus CRM
+
+Secondary subsystems:
+
+- Prometheus Infrastructure/Auth, for secure CRM persistence, tenant isolation, and account roles
+- Prometheus Dashboard, only after a Dashboard-owned task to surface CRM reporting
+- Prometheus Data, only if governed CRM import/export or sync is approved
+- Prometheus Intelligence Engine, only after explicit handoff for CRM/adoption signals
+- Prometheus Sales, for customer-facing lifecycle language only
+
+Task:
+
+Customer Success & Enterprise Pipeline Foundation v2.
+
+Status:
+
+Complete and committed.
+
+Implementation type:
+
+Architecture only with CRM-owned validation/test wiring.
+
+Commit:
+
+`998f6965646b0066f54234ddf3e9c891c5f7cb26`
+
+Deploy:
+
+Not run. Architecture/CRM validation only; no production deploy required.
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `crm/README.md`
+- `crm/enterprise-lifecycle-architecture.md`
+- `crm/enterprise-lifecycle-model.json`
+- `package.json`
+- `scripts/lint-crm.mjs`
+- `scripts/typecheck-crm.mjs`
+- `scripts/validate-crm-enterprise-foundation.mjs`
+- `tests/crm-enterprise-foundation.test.mjs`
+
+Verified outcome:
+
+- Added CRM v2 enterprise lifecycle architecture.
+- Added machine-readable account/customer-success model.
+- Covered company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
+- Added CRM enterprise validator and tests.
+- Updated CRM/system-map ownership to prevent duplicate account/customer-success systems.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run crm:validate`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+- Root `PRODUCT_VISION.md` and `SALES_FOUNDATION.md` are absent; approved fallbacks were recorded as `docs/product-vision.md` and `sales/`.
+- Production CRM persistence, auth, and tenant isolation remain unimplemented by design.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure/Auth for secure CRM persistence, tenant isolation, and account roles only when approved. During active beta, do not modify Dashboard, Data, Infrastructure, or Intelligence Engine unless required for beta stability.
+
 ### Completed Work Lane: Route Intelligence Golden Route Quality Gate v1
 
 Primary subsystem: Prometheus Intelligence Engine
@@ -4194,6 +4260,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Meta Instagram production callback Worker route; reuse `workers/prometheus-iq-worker.js` and `wrangler.jsonc`.
 - Do not duplicate the production Meta Instagram token-store binding; reuse Cloudflare binding `META_INSTAGRAM_TOKEN_STORE` in `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
+- Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
