@@ -19,7 +19,10 @@
   },
   "vars": {
     "META_OAUTH_CALLBACK_URL": "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
-    "META_GRAPH_API_VERSION": "v21.0"
+    "META_GRAPH_API_VERSION": "v21.0",
+    "INSTAGRAM_API_MODE": "instagram_login",
+    "INSTAGRAM_GRANTED_SCOPES": "instagram_business_basic,instagram_business_manage_insights",
+    "INSTAGRAM_ACCOUNT_HANDLE": "@prometheus.iq"
   },
   "kv_namespaces": [
     {

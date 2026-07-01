@@ -20,6 +20,7 @@ import {
   getInstagramRuntimeStatus
 } from "../social-media/providers/instagram-business-provider.js";
 import {
+  INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS,
   INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS,
   INSTAGRAM_RUNTIME_ENVIRONMENT,
   publicInstagramRuntimeStatus,
@@ -235,6 +236,32 @@ test("Instagram runtime controls classify safe placeholder states", () => {
   assert.equal(JSON.stringify(publicStatus).includes("app-secret-not-returned"), false);
   assert.equal(getInstagramRuntimeStatus({ env: scopedEnv }).state, SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING);
   assert.equal(INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_SECRET, "META_APP_SECRET");
+});
+
+test("Instagram runtime controls accept current Instagram Login analytics permissions", () => {
+  const setupEnv = {
+    META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
+    META_GRAPH_API_VERSION: "v21.0",
+    INSTAGRAM_API_MODE: "instagram_login",
+    INSTAGRAM_ACCESS_TOKEN: "token-not-returned",
+    INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS.join(",")
+  };
+
+  const pending = validateInstagramRuntimeEnvironment({ env: setupEnv });
+  const connected = validateInstagramRuntimeEnvironment({
+    env: {
+      ...setupEnv,
+      INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-07-01T22:30:00.000Z"
+    }
+  });
+
+  assert.equal(pending.state, SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING);
+  assert.equal(pending.config.apiMode, "instagram_login");
+  assert.equal(pending.config.graphHost, "graph.instagram.com");
+  assert.deepEqual(pending.missingPermissions, []);
+  assert.deepEqual(pending.missingSetup, []);
+  assert.equal(connected.state, SOCIAL_CONNECTION_STATES.CONNECTED);
+  assert.deepEqual(connected.requiredPermissions, [...INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS]);
 });
 
 function jsonResponse(status, body) {
@@ -515,6 +542,38 @@ test("Instagram Business provider maps mocked Meta API responses without exposin
   assert.equal(fetchCalls.some(url => url.includes("test-token-not-returned")), false);
   assert.equal(authHeaders.every(header => header === "Bearer test-token-not-returned"), true);
   assert.equal(fetchCalls.length, 2);
+});
+
+test("Instagram Business provider uses graph.instagram.com for Instagram Login tokens", async () => {
+  const fetchCalls = [];
+  const fetchImpl = async (url) => {
+    fetchCalls.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => String(url).includes("/insights")
+        ? { data: [{ name: "reach", values: [{ value: 1 }] }] }
+        : { username: "prometheus.iq", followers_count: 50, media_count: 7 }
+    };
+  };
+
+  const snapshot = await fetchInstagramBusinessSnapshot({
+    env: {
+      INSTAGRAM_ACCESS_TOKEN: "test-token-not-returned",
+      META_OAUTH_CALLBACK_URL: "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
+      META_GRAPH_API_VERSION: "v21.0",
+      INSTAGRAM_API_MODE: "instagram_login",
+      INSTAGRAM_GRANTED_SCOPES: INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS.join(","),
+      INSTAGRAM_CONNECTION_VERIFIED_AT: "2026-07-01T22:30:00.000Z"
+    },
+    fetchImpl,
+    generatedAt: "2026-07-01T22:30:00.000Z"
+  });
+
+  assert.equal(snapshot.providers[0].state, SOCIAL_CONNECTION_STATES.CONNECTED);
+  assert.equal(fetchCalls.length, 2);
+  assert.equal(fetchCalls.every(url => url.startsWith("https://graph.instagram.com/v21.0/me")), true);
+  assert.equal(fetchCalls.some(url => url.includes("test-token-not-returned")), false);
 });
 
 test("Social Media analytics service aggregates attribution summary without downstream code changes", () => {

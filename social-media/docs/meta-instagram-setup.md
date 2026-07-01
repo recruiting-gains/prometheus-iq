@@ -102,6 +102,9 @@ Required non-secret Worker vars:
 ```text
 META_OAUTH_CALLBACK_URL=https://prometheusrouteiq.com/api/oauth/meta/instagram/callback
 META_GRAPH_API_VERSION=v21.0
+INSTAGRAM_API_MODE=instagram_login
+INSTAGRAM_GRANTED_SCOPES=instagram_business_basic,instagram_business_manage_insights
+INSTAGRAM_ACCOUNT_HANDLE=@prometheus.iq
 ```
 
 Required backend token storage binding:
@@ -125,6 +128,26 @@ meta-instagram/oauth/runtime-env-patch
 ```
 
 Returned OAuth token material must never be displayed in the browser. If `META_INSTAGRAM_TOKEN_STORE` or `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` is missing, the callback route refuses to exchange the authorization code.
+
+## Consuming a Meta-Generated Instagram Business Login Token
+
+If Meta Developer has generated the Instagram Business Login access token directly, store it only as a Cloudflare Worker secret. Do not commit it, paste it into chat, add it to `.env`, pass it as a command-line argument, or include it in a URL.
+
+```bash
+npx wrangler secret put INSTAGRAM_ACCESS_TOKEN --config wrangler.prometheusrouteiq-website.jsonc
+```
+
+Then verify it locally from an interactive shell without writing the token to shell history:
+
+```bash
+read -rsp "Instagram token: " INSTAGRAM_ACCESS_TOKEN
+echo
+export INSTAGRAM_ACCESS_TOKEN
+npm run instagram:verify-token
+unset INSTAGRAM_ACCESS_TOKEN
+```
+
+If verification succeeds, copy only the non-secret `recommendedRuntimePatch` values into Cloudflare Worker vars or `wrangler.prometheusrouteiq-website.jsonc`, then redeploy. Never copy the access token into source control.
 
 ## OAuth Workflow v1
 

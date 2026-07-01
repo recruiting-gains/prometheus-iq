@@ -1,6 +1,7 @@
 import {
   SOCIAL_CONNECTION_STATES,
   SOCIAL_DATA_SOURCES,
+  SOCIAL_ERROR_CODES,
   SOCIAL_PROVIDER_CAPABILITIES,
   SOCIAL_PROVIDER_IDS,
   createMarketingAnalyticsSnapshot,
@@ -19,12 +20,23 @@ function getInstagramConfig(env = process.env) {
 }
 
 function buildGraphUrl(config, path, params = {}) {
-  const url = new URL(`https://graph.facebook.com/${config.graphVersion}/${path}`);
+  const host = config.graphHost || "graph.facebook.com";
+  const url = new URL(`https://${host}/${config.graphVersion}/${path}`);
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === "") continue;
     url.searchParams.set(key, String(value));
   }
   return url;
+}
+
+function accountResourcePath(config) {
+  return config.businessAccountId || config.instagramUserId || "me";
+}
+
+function accountFields(config) {
+  return config.apiMode === "instagram_login"
+    ? "user_id,username,account_type"
+    : "username,followers_count,media_count";
 }
 
 async function fetchJson(fetchImpl, url, accessToken) {
@@ -174,10 +186,11 @@ export async function fetchInstagramBusinessSnapshot({
     return createInstagramSampleSnapshot({ generatedAt, env });
   }
 
-  const accountUrl = buildGraphUrl(config, config.businessAccountId, {
-    fields: "username,followers_count,media_count"
+  const accountPath = accountResourcePath(config);
+  const accountUrl = buildGraphUrl(config, accountPath, {
+    fields: accountFields(config)
   });
-  const insightsUrl = buildGraphUrl(config, `${config.businessAccountId}/insights`, {
+  const insightsUrl = buildGraphUrl(config, `${accountPath}/insights`, {
     metric: "reach,profile_views,website_clicks",
     period: "day"
   });

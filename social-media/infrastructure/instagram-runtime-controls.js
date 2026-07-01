@@ -13,6 +13,11 @@ export const INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS = Object.freeze([
   "pages_read_engagement"
 ]);
 
+export const INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS = Object.freeze([
+  "instagram_business_basic",
+  "instagram_business_manage_insights"
+]);
+
 export const INSTAGRAM_RUNTIME_ENVIRONMENT = Object.freeze({
   META_APP_ID: "META_APP_ID",
   META_APP_SECRET: "META_APP_SECRET",
@@ -25,6 +30,7 @@ export const INSTAGRAM_RUNTIME_ENVIRONMENT = Object.freeze({
   INSTAGRAM_ACCOUNT_HANDLE: "INSTAGRAM_ACCOUNT_HANDLE",
   INSTAGRAM_ACCESS_TOKEN: "INSTAGRAM_ACCESS_TOKEN",
   META_INSTAGRAM_ACCESS_TOKEN: "META_INSTAGRAM_ACCESS_TOKEN",
+  INSTAGRAM_API_MODE: "INSTAGRAM_API_MODE",
   INSTAGRAM_OAUTH_SCOPES: "INSTAGRAM_OAUTH_SCOPES",
   INSTAGRAM_GRANTED_SCOPES: "INSTAGRAM_GRANTED_SCOPES",
   INSTAGRAM_TOKEN_EXPIRES_AT: "INSTAGRAM_TOKEN_EXPIRES_AT",
@@ -41,10 +47,19 @@ const REQUIRED_SETUP_VARS = Object.freeze([
   INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_BUSINESS_ACCOUNT_ID
 ]);
 
+const INSTAGRAM_LOGIN_SETUP_VARS = Object.freeze([
+  INSTAGRAM_RUNTIME_ENVIRONMENT.META_OAUTH_CALLBACK_URL
+]);
+
 const TOKEN_VARS = Object.freeze([
   INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_ACCESS_TOKEN,
   INSTAGRAM_RUNTIME_ENVIRONMENT.META_INSTAGRAM_ACCESS_TOKEN
 ]);
+
+const INSTAGRAM_API_MODES = Object.freeze({
+  FACEBOOK_LOGIN: "facebook_login",
+  INSTAGRAM_LOGIN: "instagram_login"
+});
 
 function envValue(env, key) {
   return typeof env?.[key] === "string" ? env[key].trim() : "";
@@ -80,6 +95,47 @@ function normalizeIso(value) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function hasAllPermissions(grantedPermissions, requiredPermissions) {
+  return requiredPermissions.every(permission => grantedPermissions.includes(permission));
+}
+
+function normalizeApiMode(value) {
+  return Object.values(INSTAGRAM_API_MODES).includes(value) ? value : "";
+}
+
+function resolvePermissionMode(grantedPermissions, requestedApiMode = "") {
+  if (
+    requestedApiMode === INSTAGRAM_API_MODES.INSTAGRAM_LOGIN ||
+    hasAllPermissions(grantedPermissions, INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS)
+  ) {
+    const missingPermissions = INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS
+      .filter(permission => !grantedPermissions.includes(permission));
+
+    return {
+      apiMode: INSTAGRAM_API_MODES.INSTAGRAM_LOGIN,
+      graphHost: "graph.instagram.com",
+      requiredPermissions: [...INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS],
+      missingPermissions
+    };
+  }
+
+  const facebookMissing = INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
+    .filter(permission => !grantedPermissions.includes(permission));
+
+  return {
+    apiMode: INSTAGRAM_API_MODES.FACEBOOK_LOGIN,
+    graphHost: "graph.facebook.com",
+    requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+    missingPermissions: facebookMissing
+  };
+}
+
+function requiredSetupVarsForConfig(config) {
+  return config.apiMode === INSTAGRAM_API_MODES.INSTAGRAM_LOGIN
+    ? [...INSTAGRAM_LOGIN_SETUP_VARS]
+    : [...REQUIRED_SETUP_VARS];
+}
+
 function createRuntimeError(code, message, details = {}) {
   return createSocialIntegrationError({
     code,
@@ -91,6 +147,9 @@ function createRuntimeError(code, message, details = {}) {
 export function resolveInstagramRuntimeConfig(env = process.env) {
   const accessToken = envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_ACCESS_TOKEN)
     || envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.META_INSTAGRAM_ACCESS_TOKEN);
+  const grantedPermissions = parseList(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_GRANTED_SCOPES));
+  const requestedApiMode = normalizeApiMode(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_API_MODE));
+  const permissionMode = resolvePermissionMode(grantedPermissions, requestedApiMode);
 
   return {
     appIdPresent: Boolean(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.META_APP_ID)),
@@ -100,13 +159,17 @@ export function resolveInstagramRuntimeConfig(env = process.env) {
     businessAccountId: envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_BUSINESS_ACCOUNT_ID),
     instagramUserId: envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_USER_ID),
     accountHandle: envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_ACCOUNT_HANDLE) || DEFAULT_ACCOUNT_HANDLE,
+    apiMode: permissionMode.apiMode,
+    graphHost: permissionMode.graphHost,
     accessToken,
     accessTokenPresent: Boolean(accessToken),
     oauthScopes: parseList(
       envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_OAUTH_SCOPES) ||
       envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.META_INSTAGRAM_OAUTH_SCOPES)
     ),
-    grantedPermissions: parseList(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_GRANTED_SCOPES)),
+    grantedPermissions,
+    requiredPermissions: permissionMode.requiredPermissions,
+    missingPermissions: permissionMode.missingPermissions,
     tokenExpiresAt: normalizeIso(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_TOKEN_EXPIRES_AT)),
     tokenExpiresAtRaw: envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_TOKEN_EXPIRES_AT),
     connectionVerifiedAt: normalizeIso(envValue(env, INSTAGRAM_RUNTIME_ENVIRONMENT.INSTAGRAM_CONNECTION_VERIFIED_AT)),
@@ -119,10 +182,10 @@ export function validateInstagramRuntimeEnvironment({
   now = new Date()
 } = {}) {
   const config = resolveInstagramRuntimeConfig(env);
-  const missingSetup = missingVars(env, REQUIRED_SETUP_VARS);
+  const requiredSetupVars = requiredSetupVarsForConfig(config);
+  const missingSetup = missingVars(env, requiredSetupVars);
   const missingToken = TOKEN_VARS.every(key => !envValue(env, key));
-  const missingPermissions = INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
-    .filter(permission => !config.grantedPermissions.includes(permission));
+  const missingPermissions = config.missingPermissions;
   const errors = [];
 
   if (config.callbackUrl && !isValidHttpsUrl(config.callbackUrl)) {
@@ -163,10 +226,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.ERROR,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors
     };
@@ -178,10 +241,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.NOT_CONFIGURED,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors: [
         createRuntimeError(
@@ -199,10 +262,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.TOKEN_MISSING,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors: [
         createRuntimeError(
@@ -220,10 +283,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.TOKEN_EXPIRED,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors: [
         createRuntimeError(
@@ -241,10 +304,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.PERMISSION_REQUIRED,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors: [
         createRuntimeError(
@@ -262,10 +325,10 @@ export function validateInstagramRuntimeEnvironment({
       provider: "instagram",
       state: SOCIAL_CONNECTION_STATES.VERIFICATION_PENDING,
       config,
-      requiredSetupVars: [...REQUIRED_SETUP_VARS],
+      requiredSetupVars,
       missingSetup,
       missingToken,
-      requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+      requiredPermissions: [...config.requiredPermissions],
       missingPermissions,
       errors: [
         createRuntimeError(
@@ -282,10 +345,10 @@ export function validateInstagramRuntimeEnvironment({
     provider: "instagram",
     state: SOCIAL_CONNECTION_STATES.CONNECTED,
     config,
-    requiredSetupVars: [...REQUIRED_SETUP_VARS],
+    requiredSetupVars,
     missingSetup,
     missingToken,
-    requiredPermissions: [...INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS],
+    requiredPermissions: [...config.requiredPermissions],
     missingPermissions,
     errors: []
   };
@@ -301,6 +364,7 @@ export function publicInstagramRuntimeStatus(runtime) {
     tokenExpiresAt: runtime.config.tokenExpiresAt,
     connectionVerifiedAt: runtime.config.connectionVerifiedAt,
     graphVersion: runtime.config.graphVersion,
+    apiMode: runtime.config.apiMode,
     accountId: runtime.config.businessAccountId || null,
     accountHandle: runtime.config.accountHandle,
     requiredPermissions: [...runtime.requiredPermissions],
