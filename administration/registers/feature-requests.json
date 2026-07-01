@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "administration.feature-requests.v1",
+  "description": "Operational feature request register. Requests are evidence records, not implementation commitments.",
+  "requests": []
+}

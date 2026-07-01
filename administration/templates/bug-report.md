@@ -1,0 +1,35 @@
+# Bug Report Template
+
+Bug ID:
+Date reported:
+Reporter/tester ID:
+Device ID:
+App version/release:
+Severity:
+Category:
+Blocks beta? Yes/No
+Data or security risk? Yes/No
+
+## What Happened
+
+
+## What Should Have Happened
+
+
+## Steps To Repeat
+
+1.
+2.
+3.
+
+## Evidence
+
+Screenshot/log location:
+Notes:
+
+## Triage
+
+Owner:
+Status:
+Decision:
+Engineering handoff required? Yes/No

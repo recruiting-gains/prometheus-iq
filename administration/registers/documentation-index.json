@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "administration.documentation-index.v1",
+  "description": "Index of source documents Administration relies on.",
+  "documents": [
+    {
+      "documentId": "beta-sharing-plan",
+      "path": "docs/beta-sharing-plan.md",
+      "purpose": "Private beta sharing, Cloudflare Access tester flow, Anthony beta stabilization notes, and beta feedback questions."
+    },
+    {
+      "documentId": "release-checklist",
+      "path": "docs/prometheus-release-checklist.md",
+      "purpose": "Permanent Prometheus IQ beta and production release verification procedure."
+    },
+    {
+      "documentId": "pilot-support-system",
+      "path": "docs/pilot-support-system.md",
+      "purpose": "Bug severity, beta support rules, daily beta review, and founder response process."
+    },
+    {
+      "documentId": "pilot-execution-playbook",
+      "path": "docs/prometheus-pilot-execution-playbook.md",
+      "purpose": "Day 0 setup, onboarding, daily responsibilities, weekly review, and final report preparation."
+    },
+    {
+      "documentId": "legal-index",
+      "path": "legal/README.md",
+      "purpose": "Legal document index for business pilot agreement and individual tester NDA drafts."
+    }
+  ]
+}

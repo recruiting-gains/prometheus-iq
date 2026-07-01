@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "administration.permissions.v1",
+  "description": "Operational permission roles for beta administration. Product enforcement remains Dashboard/Infrastructure-owned.",
+  "roles": [
+    {
+      "roleId": "founder_admin",
+      "description": "Founder operational administrator.",
+      "canUseOwnerControls": true,
+      "canReviewTesterRegisters": true,
+      "canApproveTesterStatus": true,
+      "canRequestInfrastructureAccess": true,
+      "canModifyInfrastructure": false
+    },
+    {
+      "roleId": "rep_beta_tester",
+      "description": "Approved private beta field tester.",
+      "canUseOwnerControls": false,
+      "canReviewTesterRegisters": false,
+      "canApproveTesterStatus": false,
+      "canRequestInfrastructureAccess": false,
+      "canModifyInfrastructure": false
+    },
+    {
+      "roleId": "pilot_manager_observer",
+      "description": "Future approved pilot reviewer or manager observer.",
+      "canUseOwnerControls": false,
+      "canReviewTesterRegisters": false,
+      "canApproveTesterStatus": false,
+      "canRequestInfrastructureAccess": false,
+      "canModifyInfrastructure": false
+    }
+  ]
+}

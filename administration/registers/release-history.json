@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "administration.release-history.v1",
+  "description": "Administration-facing beta release and version history.",
+  "releases": [
+    {
+      "releaseId": "release-administration-foundation-v1",
+      "date": "2026-06-30",
+      "type": "administration_operations",
+      "status": "created",
+      "engineeringCommit": null,
+      "deployment": "not_applicable",
+      "appBuildMarker": "not_applicable",
+      "affectedTesters": [
+        "tester-anthony-001"
+      ],
+      "whatChanged": [
+        "Created Administration operational foundation for beta registry, onboarding, NDA tracking, device inventory, permissions, releases, bug intake, feature requests, pilot companies, founder admin requirements, documentation, and internal procedures."
+      ],
+      "verification": [
+        "No Dashboard, Companion, CRM, Infrastructure, or Integrations runtime changes are required for this Administration release."
+      ],
+      "unknowns": [
+        "Signed NDA status for Anthony is not verified in this repository.",
+        "Anthony device/browser/PWA details require current device verification."
+      ]
+    }
+  ]
+}

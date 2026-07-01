@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "administration.beta-testers.v1",
+  "description": "Administration-owned beta tester registry. Do not store secrets, one-time PINs, or unnecessary personal data.",
+  "testers": [
+    {
+      "testerId": "tester-anthony-001",
+      "displayName": "Anthony",
+      "context": "First production field tester for Prometheus IQ private beta.",
+      "status": "active",
+      "agreement": {
+        "path": "individual_tester_nda",
+        "status": "documented_draft_available",
+        "source": "legal/README.md",
+        "notes": "Existing legal draft exists. Signed status is not verified in this repository."
+      },
+      "onboarding": {
+        "status": "partially_verified",
+        "source": "docs/beta-sharing-plan.md",
+        "remaining": [
+          "Verify Anthony's own device and email session after each production-impacting beta release.",
+          "Record device inventory with exact browser/PWA context."
+        ]
+      },
+      "permissions": {
+        "roleId": "rep_beta_tester",
+        "mustOpenInRepMode": true,
+        "ownerAdminControlsAllowed": false
+      },
+      "devices": [
+        "device-anthony-primary-phone"
+      ],
+      "releaseAssignment": {
+        "currentReleaseId": "release-administration-foundation-v1",
+        "notes": "Administration tracking release only; no product runtime change."
+      },
+      "evidence": [
+        "docs/beta-sharing-plan.md",
+        "docs/pilot-support-system.md",
+        "PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md"
+      ]
+    }
+  ]
+}

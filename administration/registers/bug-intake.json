@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "administration.bug-intake.v1",
+  "description": "Operational bug intake register. Engineering tasks should cite bug IDs when work is approved.",
+  "bugs": []
+}

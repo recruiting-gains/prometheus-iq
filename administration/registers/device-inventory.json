@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "administration.device-inventory.v1",
+  "description": "Device and browser inventory for approved testers. Do not store passwords, cookies, PINs, or device secrets.",
+  "devices": [
+    {
+      "deviceId": "device-anthony-primary-phone",
+      "testerId": "tester-anthony-001",
+      "label": "Anthony primary phone",
+      "status": "needs_current_verification",
+      "platform": "unknown",
+      "browserOrInstall": "unknown",
+      "lastVerifiedDate": null,
+      "verificationNotes": [
+        "Existing docs require Anthony's own device and email session to be validated.",
+        "Record whether usage is browser or Home Screen/PWA after verification."
+      ]
+    }
+  ]
+}
