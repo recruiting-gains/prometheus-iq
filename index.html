@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-jXgpHFES2zTTNDk/3gfQkD9LOnocWtJ1OG6ajqfwDmU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-IZTbTvAlrVSZ8RiS4535nmn6cBGp485QsXAVi0ipJqA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1524,9 +1524,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-30-mobile-pwa-fit-v1";
+    const appBuildVersion = "2026-06-30-rep-session-enforcement-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v25-mobile-pwa-fit-assets";
+    const serviceWorkerCacheVersion = "prometheus-v26-rep-session-enforcement-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -11639,22 +11639,30 @@
     }
 
     const storedLaunchContext = readLaunchContext();
-    const shouldUseFounderPwaLaunch = isStandalonePwa
+    const shouldUseAnthonyRepPwaLaunch = isStandalonePwa
       && !requestedRole
       && !requestedRepId
-      && requestedPwaLaunch !== "rep";
+      && requestedPwaLaunch === "rep";
     const shouldUseStoredLaunchContext = isStandalonePwa
-      && !shouldUseFounderPwaLaunch
+      && !shouldUseAnthonyRepPwaLaunch
       && !requestedRole
       && !requestedRepId
       && !!storedLaunchContext.role;
+    const shouldUseFounderPwaLaunch = isStandalonePwa
+      && !shouldUseAnthonyRepPwaLaunch
+      && !shouldUseStoredLaunchContext
+      && !requestedRole
+      && !requestedRepId
+      && requestedPwaLaunch !== "rep";
     if (shouldUseFounderPwaLaunch || (requestedRole === "founder" && (requestedRepId === "cruz" || !requestedRepId))) {
       const manifestLink = document.getElementById("prometheusManifest");
       if (manifestLink) manifestLink.setAttribute("href", "manifest-founder.webmanifest");
     }
     let sessionRole = validSessionRoles.has(requestedRole)
       ? requestedRole
-      : shouldUseFounderPwaLaunch
+      : shouldUseAnthonyRepPwaLaunch
+        ? "rep"
+        : shouldUseFounderPwaLaunch
         ? "founder"
         : shouldUseStoredLaunchContext
         ? storedLaunchContext.role
@@ -11674,8 +11682,10 @@
 
     let state = load();
     state.repProfiles = state.repProfiles || {};
-    if (requestedRepId && !state.repProfiles[requestedRepId]) state.repProfiles[requestedRepId] = createRepProfile(requestedRepId, [], []);
+    const launchRepId = shouldUseAnthonyRepPwaLaunch ? "anthony" : requestedRepId;
+    if (launchRepId && !state.repProfiles[launchRepId]) state.repProfiles[launchRepId] = createRepProfile(launchRepId, [], []);
     let activeRepId = requestedRepId
+      || (shouldUseAnthonyRepPwaLaunch ? "anthony" : "")
       || (shouldUseFounderPwaLaunch ? "cruz" : "")
       || (shouldUseStoredLaunchContext ? storedLaunchContext.repId : "")
       || localStorage.getItem(activeRepStoreKey)
@@ -11686,11 +11696,12 @@
       || (shouldUseStoredLaunchContext && storedLaunchContext.mode === "owner")
       || localStorage.getItem(modeStoreKey) === "owner"
     ) ? "owner" : "rep";
-    if (requestedRole === "rep") appMode = "rep";
+    if (requestedRole === "rep" || sessionRole === "rep") appMode = "rep";
     if (canUseOwnerMode() && ["founder", "admin", "manager"].includes(requestedRole)) appMode = "owner";
     let currentWindow = "all";
     let currentFilter = "all";
-    if (!state.repProfiles?.[activeRepId]) activeRepId = "cruz";
+    if (!state.repProfiles?.[activeRepId]) activeRepId = sessionRole === "rep" ? "anthony" : "cruz";
+    if (!state.repProfiles?.[activeRepId]) state.repProfiles[activeRepId] = createRepProfile(activeRepId, [], []);
     localStorage.setItem(activeRepStoreKey, activeRepId);
     localStorage.setItem(modeStoreKey, appMode);
     applyActiveProfile(activeRepId, { syncBeforeSwitch: false });

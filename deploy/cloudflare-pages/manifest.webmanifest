@@ -2,7 +2,7 @@
   "name": "Prometheus IQ",
   "short_name": "Prometheus IQ",
   "description": "A command center for field sales routes, visits, places, and daily unit production.",
-  "start_url": "./index.html?pwa=founder",
+  "start_url": "./index.html?pwa=rep",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f7f8f5",

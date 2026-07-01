@@ -342,6 +342,31 @@ async function setViewport(cdp, viewport) {
   });
 }
 
+async function setStandaloneMode(cdp, enabled) {
+  if (!enabled) return;
+  await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: `(() => {
+      Object.defineProperty(window.navigator, "standalone", { value: true, configurable: true });
+      const nativeMatchMedia = window.matchMedia.bind(window);
+      window.matchMedia = query => {
+        if (String(query).includes("display-mode: standalone")) {
+          return {
+            matches: true,
+            media: query,
+            onchange: null,
+            addListener: () => {},
+            removeListener: () => {},
+            addEventListener: () => {},
+            removeEventListener: () => {},
+            dispatchEvent: () => false
+          };
+        }
+        return nativeMatchMedia(query);
+      };
+    })();`
+  });
+}
+
 async function waitForDashboardReady(cdp, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
@@ -401,6 +426,15 @@ async function snapshot(cdp) {
       storedAppBuildVersion: localStorage.getItem("prometheus-app-build-version") || "",
       anthonyProfileExists: Boolean(state?.repProfiles?.anthony),
       anthonyPoolCount: typeof anthonyApprovedRoutePool === "function" ? anthonyApprovedRoutePool(state?.places || []).length : 0,
+      visibleOwnerControls: [...document.querySelectorAll(".owner-only, .manager-only, .admin-only")]
+        .filter(visible)
+        .map(element => ({
+          tag: element.tagName.toLowerCase(),
+          id: element.id || "",
+          text: element.textContent.trim().replace(/\\s+/g, " ").slice(0, 80)
+        })),
+      modeButtonLabels: [...document.querySelectorAll("[data-mode-select]")].filter(visible).map(button => button.textContent.trim()),
+      profileButtonLabels: [...document.querySelectorAll("[data-rep-select]")].filter(visible).map(button => button.textContent.trim()),
       activeView: document.querySelector(".view.active")?.id || "",
       visibleTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
       bestNextMove: text(document.getElementById("bestNextMove")),
@@ -512,6 +546,7 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
   const cdp = await attachPage(chrome, eventLog);
   try {
     await setViewport(cdp, options.viewport);
+    await setStandaloneMode(cdp, options.standalone);
     const url = `${server.origin}${path}`;
     await navigateAndWait(cdp, url);
     const routeLoadMs = await waitForDashboardReady(cdp, 60000);
@@ -523,11 +558,28 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
   }
 }
 
+async function navigateExistingScenario(cdp, server, path) {
+  await navigateAndWait(cdp, `${server.origin}${path}`);
+  await waitForDashboardReady(cdp, 60000);
+  return snapshot(cdp);
+}
+
 function verifyMobileFit(label, fit) {
   const scrollFits = fit.docScrollWidth <= fit.viewportWidth + 1 && fit.bodyScrollWidth <= fit.viewportWidth + 1;
   const controlsFit = Object.values(fit.rects).every(rect => !rect?.visible || (rect.left >= -1 && rect.right <= fit.viewportWidth + 1));
   const detail = `${fit.activeView}: viewport ${fit.viewportWidth}px, doc ${fit.docScrollWidth}px, body ${fit.bodyScrollWidth}px`;
   assertWorkflow(label, scrollFits && controlsFit && fit.offenders.length === 0, detail, JSON.stringify(fit));
+}
+
+function verifyRepOnly(label, snap) {
+  const repOnly = snap.sessionRole === "rep"
+    && snap.mode === "rep"
+    && snap.activeRepId === "anthony"
+    && snap.visibleTabs.join(",") === "today,route"
+    && snap.visibleOwnerControls.length === 0
+    && snap.profileButtonLabels.length === 0
+    && !snap.modeButtonLabels.includes("Owner");
+  assertWorkflow(label, repOnly, `role ${snap.sessionRole}, mode ${snap.mode}, rep ${snap.activeRepId}, tabs ${snap.visibleTabs.join(", ")}`, JSON.stringify(snap));
 }
 
 function verifyNoErrors(label, eventLog, snap, { allow = [] } = {}) {
@@ -612,6 +664,17 @@ async function runHarness() {
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
 
+    const anthonyPwa = await runPageScenario(chrome, server, "/?pwa=rep&debug=1&harness=anthony-pwa-signin", "anthony-pwa", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    verifyRepOnly("Anthony PWA first launch Rep-only", anthonyPwa.initial);
+    const anthonyReopen = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-reopen");
+    verifyRepOnly("Anthony PWA reopen preserves Rep-only", anthonyReopen);
+    const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");
+    verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
+    verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
+
     const full = await runPageScenario(chrome, server, "/?role=founder&debug=1&runtimePool=full&harness=runtime-workflows-full", "full");
     const fullSnap = full.initial;
     assertWorkflow("Runtime pool selection logic", fullSnap.debug.runtimeDataPool === "full" && fullSnap.debug.runtimeDataSource.includes("795 route records"), fullSnap.debug.runtimeDataSource, JSON.stringify(fullSnap.debug));
@@ -629,6 +692,7 @@ async function runHarness() {
     founder.cdp.close();
     mobileFounder.cdp.close();
     rep.cdp.close();
+    anthonyPwa.cdp.close();
     full.cdp.close();
     fallback.cdp.close();
   } finally {
