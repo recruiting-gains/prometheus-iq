@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-IZTbTvAlrVSZ8RiS4535nmn6cBGp485QsXAVi0ipJqA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-2ufoELEYy50B67r0LsMTaY/sAY5EQCP2gMUHddmIqHc='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1021,8 +1021,8 @@
       z-index: 10;
       display: none;
       background: rgba(22,32,31,.44);
-      padding: 18px;
-      overflow: auto;
+      padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+      overflow: hidden;
     }
 
     .modal.active {
@@ -1032,13 +1032,18 @@
 
     .sheet {
       width: min(680px, 100%);
-      max-height: calc(100svh - 36px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-      overflow: auto;
+      max-height: calc(100vh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(100svh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      min-height: 0;
+      overflow: hidden;
       margin: 0 auto;
       background: white;
       border-radius: 12px 12px var(--radius) var(--radius);
       box-shadow: var(--shadow);
       padding: 14px;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
     }
 
     .sheet-head {
@@ -1052,6 +1057,31 @@
     .sheet h2 {
       margin: 0;
       font-size: 18px;
+    }
+
+    #modalBody {
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+    }
+
+    #modalBody form {
+      min-width: 0;
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+
+    #modalBody form > .btn[type="submit"] {
+      width: 100%;
+    }
+
+    #modalBody .quick-counts .btn[type="submit"] {
+      position: sticky;
+      bottom: max(6px, env(safe-area-inset-bottom));
+      width: 100%;
+      z-index: 2;
     }
 
     .icon-btn {
@@ -1524,9 +1554,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-06-30-rep-session-enforcement-v1";
+    const appBuildVersion = "2026-07-01-mobile-logging-scroll-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v26-rep-session-enforcement-assets";
+    const serviceWorkerCacheVersion = "prometheus-v27-mobile-logging-scroll-assets";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -14644,8 +14674,10 @@
               : { conversations: 1, leads: 0, units: 0 };
           quickForm.elements.outcome.value = outcome;
           Object.entries(defaults).forEach(([name, value]) => { quickForm.elements[name].value = value; });
-          body.querySelector("#quickCounts").classList.add("active");
+          const quickCounts = body.querySelector("#quickCounts");
+          quickCounts.classList.add("active");
           body.querySelectorAll("[data-quick-outcome]").forEach(item => item.classList.toggle("active", item === button));
+          requestAnimationFrame(() => quickCounts.scrollIntoView({ block: "nearest" }));
         }));
 
         quickForm.addEventListener("submit", event => {

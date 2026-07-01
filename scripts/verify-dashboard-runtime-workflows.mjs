@@ -541,6 +541,73 @@ async function clickTab(cdp, tab) {
   await wait(150);
 }
 
+async function verifyMobileQuickLogging(cdp) {
+  return cdp.evaluate(`(async () => {
+    const visible = element => {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+    };
+    const openButton = document.querySelector('[data-open="quick"]');
+    if (!openButton) throw new Error("Missing quick logging entry point.");
+    openButton.click();
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const modal = document.getElementById("modal");
+    const modalBody = document.getElementById("modalBody");
+    const saleButton = document.querySelector('[data-quick-outcome="sale"]');
+    if (!modal?.classList.contains("active")) throw new Error("Quick logging modal did not open.");
+    if (!saleButton) throw new Error("Missing Sale quick outcome.");
+    saleButton.click();
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const saveButton = document.querySelector("#quickCounts .btn[type='submit']");
+    const unitsInput = document.querySelector("#quickForm [name='units']");
+    if (!saveButton || !unitsInput) throw new Error("Quick logging submit controls are missing.");
+    modalBody.scrollTop = modalBody.scrollHeight;
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = window.innerHeight;
+    const modalBodyRect = modalBody.getBoundingClientRect();
+    const saveRect = saveButton.getBoundingClientRect();
+    const modalBodyClientHeight = Math.round(modalBody.clientHeight);
+    const modalBodyScrollHeight = Math.round(modalBody.scrollHeight);
+    const beforeUnits = Number(document.getElementById("unitsToday")?.textContent || 0);
+    const reachable = visible(saveButton)
+      && saveRect.top >= -1
+      && saveRect.left >= -1
+      && saveRect.right <= viewportWidth + 1
+      && saveRect.bottom <= viewportHeight + 1;
+    saveButton.click();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const afterUnits = Number(document.getElementById("unitsToday")?.textContent || 0);
+    return {
+      modalActiveAfterSubmit: modal.classList.contains("active"),
+      viewportWidth,
+      viewportHeight,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      modalBodyClientHeight,
+      modalBodyScrollHeight,
+      modalBodyRect: {
+        top: Math.round(modalBodyRect.top),
+        bottom: Math.round(modalBodyRect.bottom),
+        height: Math.round(modalBodyRect.height)
+      },
+      saveButtonRect: {
+        top: Math.round(saveRect.top),
+        bottom: Math.round(saveRect.bottom),
+        left: Math.round(saveRect.left),
+        right: Math.round(saveRect.right),
+        height: Math.round(saveRect.height)
+      },
+      reachable,
+      beforeUnits,
+      afterUnits,
+      unitsInputValue: unitsInput.value
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -664,6 +731,14 @@ async function runHarness() {
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
 
+    const anthonyLog = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=anthony-mobile-quick-log", "anthony-mobile-log", {
+      standalone: true,
+      viewport: { width: 390, height: 667, deviceScaleFactor: 3, mobile: true }
+    });
+    const quickLog = await verifyMobileQuickLogging(anthonyLog.cdp);
+    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify(quickLog));
+    verifyNoErrors("Anthony mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
+
     const anthonyPwa = await runPageScenario(chrome, server, "/?pwa=rep&debug=1&harness=anthony-pwa-signin", "anthony-pwa", {
       standalone: true,
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -692,6 +767,7 @@ async function runHarness() {
     founder.cdp.close();
     mobileFounder.cdp.close();
     rep.cdp.close();
+    anthonyLog.cdp.close();
     anthonyPwa.cdp.close();
     full.cdp.close();
     fallback.cdp.close();
