@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy | Prometheus IQ</title>
+  <meta name="description" content="Privacy policy for Prometheus IQ, the Prometheus field sales command center for outside-sales organizations.">
+  <link rel="canonical" href="https://prometheusrouteiq.com/privacy">
+  <meta property="og:title" content="Privacy Policy | Prometheus IQ">
+  <meta property="og:description" content="How Prometheus handles information for Prometheus IQ, public website visitors, beta requests, analytics, and authorized Meta integrations.">
+  <meta property="og:url" content="https://prometheusrouteiq.com/privacy">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://prometheusrouteiq.com/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg">
+  <meta property="og:image:alt" content="Prometheus official logo">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:image" content="https://prometheusrouteiq.com/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg">
+  <link rel="manifest" href="/site-20260701-brand-v2.webmanifest">
+  <link rel="apple-touch-icon" href="/public-assets/prometheus-company-apple-touch-20260701-brand-v2.png">
+  <link rel="icon" href="/public-assets/prometheus-company-icon-512-20260701-brand-v2.png" type="image/png" sizes="512x512">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #030907;
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.1);
+      --ink: #f5fff8;
+      --muted: #a7bbb3;
+      --teal: #27e0a0;
+      --gold: #ffd76c;
+      --orange: #ff7438;
+      --line: rgba(255, 255, 255, 0.14);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 116, 56, 0.28), transparent 32%),
+        radial-gradient(circle at 85% 20%, rgba(39, 224, 160, 0.16), transparent 28%),
+        linear-gradient(180deg, #082017 0%, #04100c 45%, #0a2118 100%);
+    }
+
+    a {
+      color: var(--gold);
+    }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 12px;
+      z-index: 20;
+      transform: translateY(-140%);
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: #06120d;
+      background: var(--gold);
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--line);
+      background: rgba(3, 9, 7, 0.82);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 950;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      object-fit: contain;
+      background: #052011;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px 16px;
+      font-size: 14px;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    .nav-links a[aria-current="page"],
+    .nav-links a:hover,
+    .nav-links a:focus {
+      color: var(--gold);
+      outline: none;
+    }
+
+    main {
+      width: min(1000px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: clamp(44px, 7vw, 84px) 0 64px;
+    }
+
+    .hero {
+      max-width: 820px;
+      margin-bottom: 34px;
+    }
+
+    .eyebrow {
+      color: var(--teal);
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 16px;
+      font-size: clamp(34px, 8vw, 70px);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.55;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+    }
+
+    section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(20px, 4vw, 32px);
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: clamp(22px, 3vw, 32px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    p,
+    li {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    strong {
+      color: var(--ink);
+    }
+
+    .contact {
+      background: var(--panel-strong);
+    }
+
+    footer {
+      width: min(1000px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 0 0 38px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 680px) {
+      .nav {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 14px 0;
+      }
+
+      .nav-links {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav" aria-label="Primary navigation">
+      <a class="brand" href="/">
+        <img src="/public-assets/prometheus-company-icon-512-20260701-brand-v2.png" alt="Prometheus logo" width="42" height="42">
+        <span>Prometheus IQ</span>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/privacy" aria-current="page">Privacy</a>
+        <a href="/terms">Terms</a>
+        <a href="/data-deletion">Data Deletion</a>
+        <a href="mailto:prometheusrouteiq@gmail.com">Contact</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <div class="hero">
+      <div class="eyebrow">Prometheus Privacy Policy</div>
+      <h1>Privacy Policy</h1>
+      <p class="lead">Prometheus is the company building the AI operating system for outside sales. Prometheus IQ is the flagship product: a field sales command center that helps teams decide where to go, track what happened, and improve routes over time.</p>
+      <div class="meta">
+        <span class="pill">Effective date: July 1, 2026</span>
+        <span class="pill">Contact: prometheusrouteiq@gmail.com</span>
+      </div>
+    </div>
+
+    <div class="content">
+      <section>
+        <h2>Information We Collect</h2>
+        <p>Prometheus collects information needed to operate the public website, evaluate beta requests, support Prometheus IQ, and protect the integrity of authorized field-sales workflows.</p>
+        <ul>
+          <li><strong>Contact and beta request information:</strong> name, email address, company, role, industry, territory context, and any message you submit.</li>
+          <li><strong>Product and field activity information:</strong> account setup details, saved places, visit records, route preferences, outcomes, notes, and related workflow data entered or authorized by a user or organization.</li>
+          <li><strong>Device, log, and website information:</strong> browser type, device type, IP address, approximate location derived from technical logs, pages viewed, referral source, timestamps, and security diagnostics.</li>
+          <li><strong>Support communications:</strong> emails, feedback, issue reports, and operational correspondence.</li>
+          <li><strong>Meta, Instagram, or Facebook information where applicable:</strong> if an authorized user connects a Meta-owned service for a supported workflow, Prometheus may receive account identifiers, page or profile identifiers, permissions, connection status, content metadata, insights, or other API data required to deliver the requested functionality.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>How We Use Information</h2>
+        <ul>
+          <li>Respond to inquiries, beta requests, and support messages.</li>
+          <li>Operate and improve Prometheus IQ for outside-sales organizations.</li>
+          <li>Provide route intelligence, visit tracking, account setup, customer success review, and product support.</li>
+          <li>Measure website performance, product reliability, and security.</li>
+          <li>Detect misuse, protect systems, enforce terms, and comply with legal obligations.</li>
+          <li>Develop aggregate insights that improve the product without exposing unnecessary personal details.</li>
+        </ul>
+        <p>Prometheus does not sell personal information. Prometheus also does not build Prometheus IQ as a background surveillance product; the product is designed around intentional field-sales workflows and proof without unnecessary tracking.</p>
+      </section>
+
+      <section>
+        <h2>Analytics</h2>
+        <p>The website and product may use analytics, logs, and operational measurements to understand traffic, performance, conversion, reliability, security, and product usage. Analytics are used to improve Prometheus IQ and the public website. Where feasible, analytics are aggregated or minimized so they support operational decisions without exposing more personal information than necessary.</p>
+      </section>
+
+      <section>
+        <h2>Instagram and Facebook API Usage</h2>
+        <p>Prometheus may use Instagram, Facebook, or other Meta APIs only when a user, admin, or organization authorizes that connection for a supported Prometheus IQ or public communication workflow. API access may be used to verify connection status, display authorized account or page information, support approved content or messaging workflows, retrieve permitted insights, or maintain an integration requested by the user.</p>
+        <p>Prometheus uses Meta API data only for the authorized purpose, follows applicable Meta platform requirements, and does not sell Meta API data. Users can revoke platform permissions through their Meta account settings or request removal of stored integration data by contacting <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>.</p>
+      </section>
+
+      <section>
+        <h2>Sharing and Retention</h2>
+        <p>Prometheus may share information with service providers that help host, secure, analyze, or operate the website and product. These providers are used for business operations and are not permitted to use information for unrelated purposes. Prometheus may also disclose information when required by law, to protect rights and safety, or in connection with a business transaction.</p>
+        <p>Information is retained for as long as needed to provide services, support beta evaluation, maintain records, comply with legal obligations, resolve disputes, protect security, and improve Prometheus IQ. Deletion requests are handled through the process described on the Data Deletion page.</p>
+      </section>
+
+      <section>
+        <h2>User Rights</h2>
+        <p>Depending on location and relationship with Prometheus, users may request access to personal information, correction of inaccurate information, deletion of eligible information, withdrawal of consent, revocation of Meta integration permissions, or opt out of non-essential communications.</p>
+        <p>To exercise these rights, contact <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>. Prometheus may need to verify identity or authority before acting on a request.</p>
+      </section>
+
+      <section class="contact">
+        <h2>Contact</h2>
+        <p>Questions about this Privacy Policy or Prometheus IQ data practices can be sent to <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>Prometheus is the company. Prometheus IQ is the flagship product for outside-sales intelligence.</p>
+  </footer>
+</body>
+</html>
