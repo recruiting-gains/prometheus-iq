@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-06-30T15:59:48.538Z",
+  "generatedAt": "2026-07-01T05:47:06.682Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "dataset": {
     "sourceDatasetVersion": "google-qualified-businesses-v2",
     "segmentationVersion": "runtime-pool-segmentation-v1",
-    "activePoolRecords": 300,
-    "expandedDashboardRouteRecords": 600,
+    "activePoolRecords": 297,
+    "expandedDashboardRouteRecords": 594,
     "reserveRecords": 44,
-    "quarantineRecords": 106
+    "quarantineRecords": 109
   },
   "routeStability": {
     "status": "passed",
@@ -16,7 +16,7 @@
   },
   "candidateValidation": {
     "status": "passed",
-    "activeCandidates": 300,
+    "activeCandidates": 297,
     "activeReserveOverlap": 0,
     "activeQuarantineOverlap": 0
   },
@@ -646,12 +646,12 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 21,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 16,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": ""
   },
   "dashboardCompatibility": {
     "status": "passed",
-    "checkedRecords": 600,
+    "checkedRecords": 594,
     "failures": []
   },
   "incompleteDataHandling": {

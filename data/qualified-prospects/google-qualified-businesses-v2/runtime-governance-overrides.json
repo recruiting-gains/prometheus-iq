@@ -1,0 +1,30 @@
+{
+  "generatedAt": "2026-07-01T00:00:00.000Z",
+  "purpose": "Prometheus Data governance overrides for verified unsafe runtime recommendations that Google still classifies as operational businesses.",
+  "residentialHouseAddressBlocks": [
+    {
+      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
+      "googlePlaceIds": [
+        "ChIJw_j5DXK9QIYRfEFiOYffXt0",
+        "ChIJ9TRCKYubQIYR8psjkD8AVl8",
+        "ChIJJR7e8XCbQIYRN_WV8sQpn5E"
+      ],
+      "businessNames": [
+        "David's Barber Shop",
+        "Jorgitin-Barbershop",
+        "BARBER SHOP YSA"
+      ],
+      "reason": "Anthony field report identified this recommendation cluster as a residential house, not a production-safe storefront stop.",
+      "googleValidation": {
+        "placesPrimaryType": "barber_shop",
+        "placesBusinessStatus": "OPERATIONAL",
+        "geocodeTypes": [
+          "street_address",
+          "subpremise"
+        ],
+        "geocodeLocationType": "ROOFTOP"
+      },
+      "governanceAction": "quarantine"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-30T07:44:57.414Z",
+  "generatedAt": "2026-07-01T05:58:46.228Z",
   "status": "passed",
   "promotionAllowed": true,
   "segmentationDir": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1",
@@ -10,22 +10,22 @@
   },
   "stats": {
     "active": {
-      "count": 300,
+      "count": 297,
       "categories": {
         "Auto": 89,
         "Car Wash": 31,
         "Restaurant": 54,
-        "Barber": 43,
+        "Barber": 40,
         "Salon": 35,
         "Small Retail": 22,
         "Other Storefront": 26
       },
       "qualityClasses": {
-        "Excellent": 198,
+        "Excellent": 195,
         "Good": 102
       },
       "assignmentReasons": {
-        "highest_quality_verified_runtime_candidate": 300
+        "highest_quality_verified_runtime_candidate": 297
       }
     },
     "reserve": {
@@ -44,27 +44,30 @@
       }
     },
     "quarantine": {
-      "count": 106,
+      "count": 109,
       "categories": {
         "Medical Office": 23,
         "Dental Office": 33,
+        "Barber": 4,
         "Auto": 11,
         "Tire": 1,
         "Car Wash": 3,
         "Restaurant": 6,
         "Apartment": 7,
         "Business Services": 3,
-        "Barber": 1,
         "Small Retail": 4,
         "Other Storefront": 13,
         "Salon": 1
       },
       "qualityClasses": {
         "Never Visit": 54,
+        "Excellent": 3,
         "Unscored": 52
       },
       "assignmentReasons": {
         "runtime_quality_never_visit": 54,
+        "residential_house_reported_place_id": 3,
+        "residential_house_reported_address": 3,
         "do_not_recommend": 37,
         "generic_or_restricted": 37,
         "missing_numbered_address": 4,

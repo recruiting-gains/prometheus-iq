@@ -42,9 +42,13 @@ withFixture((dir, baseline) => {
   const report = runGovernance({ segmentationDir: dir, baselinePath: baseline });
   assert.equal(report.status, "passed");
   assert.equal(report.promotionAllowed, true);
-  assert.equal(report.stats.active.count, 300);
+  assert.equal(report.stats.active.count, 297);
   assert.equal(report.stats.reserve.count, 44);
-  assert.equal(report.stats.quarantine.count, 106);
+  assert.equal(report.stats.quarantine.count, 109);
+  const quarantine = readPool(dir, "quarantine");
+  assert.equal(quarantine.records.filter(record => record.address === "10820 Hughes Rd, Houston, TX 77089, USA").length, 3);
+  const active = readPool(dir, "active");
+  assert.equal(active.records.filter(record => record.address === "10820 Hughes Rd, Houston, TX 77089, USA").length, 0);
 });
 
 withFixture((dir, baseline) => {
@@ -60,6 +64,23 @@ withFixture((dir, baseline) => {
   active.records[0].originalRecord.full_address = "Houston, TX";
   writePool(dir, "active", active);
   assertFailsWith(dir, baseline, "active_address");
+});
+
+withFixture((dir, baseline) => {
+  const active = readPool(dir, "active");
+  const quarantine = readPool(dir, "quarantine");
+  const residentialRecord = quarantine.records.find(record => record.address === "10820 Hughes Rd, Houston, TX 77089, USA");
+  assert(residentialRecord, "Expected residential-house barber override record in quarantine.");
+  active.records.unshift({
+    ...residentialRecord,
+    qualityClass: "Excellent",
+    qualityScore: 93.7,
+    priority: 94,
+    poolAssignmentReasons: ["highest_quality_verified_runtime_candidate"]
+  });
+  active.count = active.records.length;
+  writePool(dir, "active", active);
+  assertFailsWith(dir, baseline, "active_integrity");
 });
 
 withFixture((dir, baseline) => {

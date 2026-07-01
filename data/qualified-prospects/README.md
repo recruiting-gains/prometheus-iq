@@ -189,6 +189,7 @@ node scripts/govern-runtime-pool-refresh.mjs --update-baseline
 Default governance outputs:
 
 ```text
+data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json
 data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json
 data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json
 data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md
@@ -196,6 +197,8 @@ data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentatio
 ```
 
 Governance fails closed. If validation fails, `promotion-gate.json` sets `promotionAllowed` to `false` and the dataset must not be promoted through the Dashboard data export path.
+
+`runtime-governance-overrides.json` is reserved for field-verified unsafe records that Google may still classify as valid operational businesses. The current override quarantines the `10820 Hughes Rd` barber-shop cluster after Anthony reported it as a residential house instead of a production-safe storefront stop.
 
 Governance tests:
 

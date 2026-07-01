@@ -1,11 +1,12 @@
 {
-  "generatedAt": "2026-06-30T07:42:12.464Z",
+  "generatedAt": "2026-07-01T05:45:13.022Z",
   "sourceDatasetVersion": "google-qualified-businesses-v2",
   "segmentationVersion": "runtime-pool-segmentation-v1",
   "sourceFiles": {
     "production": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
     "rejected": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json",
-    "runtime": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+    "runtime": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "overrides": "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json"
   },
   "runtimeBehaviorChanged": false,
   "scoringChanged": false,

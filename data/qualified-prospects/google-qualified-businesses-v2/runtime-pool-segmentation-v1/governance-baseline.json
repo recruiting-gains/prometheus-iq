@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-06-30T07:42:18.784Z",
+  "generatedAt": "2026-07-01T05:45:49.093Z",
   "sourceDatasetVersion": "google-qualified-businesses-v2",
   "segmentationVersion": "runtime-pool-segmentation-v1",
   "counts": {
-    "active": 300,
+    "active": 297,
     "reserve": 44,
-    "quarantine": 106
+    "quarantine": 109
   },
   "entries": {
     "ChIJeX6hkOGZQIYR3wYTYOv4eO8": {
@@ -862,15 +862,6 @@
       "qualityClass": "Excellent",
       "qualityScore": 89.8,
       "priority": 90
-    },
-    "ChIJw_j5DXK9QIYRfEFiOYffXt0": {
-      "pool": "active",
-      "businessName": "David's Barber Shop",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94
     },
     "ChIJ9dTEO06ZQIYRakUuEVrnAGk": {
       "pool": "active",
@@ -2159,15 +2150,6 @@
       "qualityScore": 92,
       "priority": 92
     },
-    "ChIJ9TRCKYubQIYR8psjkD8AVl8": {
-      "pool": "active",
-      "businessName": "Jorgitin-Barbershop",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94
-    },
     "ChIJxW4MMACXQIYRyF5nM67hml0": {
       "pool": "active",
       "businessName": "Hamza’s Barbershop",
@@ -2211,15 +2193,6 @@
       "category": "Barber",
       "qualityClass": "Excellent",
       "qualityScore": 93.8,
-      "priority": 94
-    },
-    "ChIJJR7e8XCbQIYRN_WV8sQpn5E": {
-      "pool": "active",
-      "businessName": "BARBER SHOP YSA🙏",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
       "priority": 94
     },
     "ChIJw-mwaEOXQIYRFZQ7tWUt-mA": {
@@ -3437,6 +3410,15 @@
       "qualityScore": 41.4,
       "priority": 41
     },
+    "ChIJw_j5DXK9QIYRfEFiOYffXt0": {
+      "pool": "quarantine",
+      "businessName": "David's Barber Shop",
+      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.7,
+      "priority": 94
+    },
     "ChIJdz_Z28OXQIYRp6I2Hu9GWOQ": {
       "pool": "quarantine",
       "businessName": "DOT Physical $60 - Gulf Freeway",
@@ -3589,6 +3571,24 @@
       "qualityClass": "Never Visit",
       "qualityScore": 37.6,
       "priority": 38
+    },
+    "ChIJ9TRCKYubQIYR8psjkD8AVl8": {
+      "pool": "quarantine",
+      "businessName": "Jorgitin-Barbershop",
+      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.7,
+      "priority": 94
+    },
+    "ChIJJR7e8XCbQIYRN_WV8sQpn5E": {
+      "pool": "quarantine",
+      "businessName": "BARBER SHOP YSA🙏",
+      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
+      "category": "Barber",
+      "qualityClass": "Excellent",
+      "qualityScore": 93.7,
+      "priority": 94
     },
     "ChIJQUwrEGKXQIYRFcbd2HiSHyg": {
       "pool": "quarantine",

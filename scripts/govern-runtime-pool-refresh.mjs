@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   gateFailures,
+  loadGovernanceOverrides,
   numberedAddress,
   readJson,
   safeMapsPattern,
@@ -237,7 +238,7 @@ function validatePoolManifests(pools, failures) {
   }
 }
 
-function validateRecords(pools, failures) {
+function validateRecords(pools, failures, overrides) {
   const allRecords = [];
   for (const pool of POOLS) {
     for (const record of pools[pool].records || []) allRecords.push({ ...record, pool });
@@ -283,7 +284,7 @@ function validateRecords(pools, failures) {
   }
 
   const invalidActive = activeRecords.filter(record => {
-    const originalFailures = gateFailures(record.originalRecord || {});
+    const originalFailures = gateFailures(record.originalRecord || {}, { overrides });
     return originalFailures.length ||
       !["Excellent", "Good"].includes(record.qualityClass) ||
       record.qualityStatus !== "verified" ||
@@ -292,7 +293,7 @@ function validateRecords(pools, failures) {
   if (invalidActive.length) addFailure(failures, "active_integrity", "Active pool contains invalid or non-active-quality records", invalidActive);
 
   const invalidReserve = reserveRecords.filter(record => {
-    const originalFailures = gateFailures(record.originalRecord || {});
+    const originalFailures = gateFailures(record.originalRecord || {}, { overrides });
     return originalFailures.length ||
       !["Average", "Poor"].includes(record.qualityClass) ||
       record.qualityStatus !== "verified" ||
@@ -387,9 +388,11 @@ export function runGovernance(options = {}) {
   const writeReports = options.writeReports !== false;
 
   const pools = loadPools(files);
+  const overridesPath = pools.manifest.sourceFiles?.overrides || path.join(path.dirname(segmentationDir), "runtime-governance-overrides.json");
+  const overrides = loadGovernanceOverrides(overridesPath);
   const failures = [];
   validatePoolManifests(pools, failures);
-  validateRecords(pools, failures);
+  validateRecords(pools, failures, overrides);
   validateManifestStats(pools, failures);
 
   const currentSnapshot = snapshotFromPools(pools);

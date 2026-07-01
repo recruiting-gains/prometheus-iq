@@ -1,14 +1,14 @@
 # Runtime Pool Refresh Governance v1
 
-Generated: 2026-06-30T07:44:57.414Z
+Generated: 2026-07-01T05:58:46.228Z
 Status: passed
 Promotion allowed: true
 
 ## Counts
 
-- Active: 300
+- Active: 297
 - Reserve: 44
-- Quarantine: 106
+- Quarantine: 109
 
 ## Change Summary
 

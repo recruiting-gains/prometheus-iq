@@ -8,7 +8,8 @@ const OUTPUT_DIR = path.join(SOURCE_DIR, SEGMENTATION_VERSION);
 const sourceFiles = {
   production: path.join(SOURCE_DIR, "google-qualified-businesses-v2.json"),
   rejected: path.join(SOURCE_DIR, "rejected-records.json"),
-  runtime: path.join(SOURCE_DIR, "runtime-pools.json")
+  runtime: path.join(SOURCE_DIR, "runtime-pools.json"),
+  overrides: path.join(SOURCE_DIR, "runtime-governance-overrides.json")
 };
 
 const outputFiles = {
@@ -41,6 +42,35 @@ export function numberedAddress(address) {
   return /(?:^|,\s*)\d+[a-z]?\s+[a-z0-9]/i.test(String(address || ""));
 }
 
+export function normalizeAddress(address) {
+  return normalize(address).replace(/\broad\b/g, "rd").replace(/\bstreet\b/g, "st").replace(/\bavenue\b/g, "ave");
+}
+
+export function loadGovernanceOverrides(filePath = sourceFiles.overrides) {
+  if (!fs.existsSync(filePath)) {
+    return {
+      residentialHouseAddressBlocks: [],
+      blockedPlaceIds: new Set(),
+      blockedAddresses: new Map()
+    };
+  }
+  const payload = readJson(filePath);
+  const residentialHouseAddressBlocks = payload.residentialHouseAddressBlocks || [];
+  return {
+    ...payload,
+    residentialHouseAddressBlocks,
+    blockedPlaceIds: new Set(residentialHouseAddressBlocks.flatMap(block => block.googlePlaceIds || [])),
+    blockedAddresses: new Map(residentialHouseAddressBlocks.map(block => [normalizeAddress(block.address), block]))
+  };
+}
+
+function governanceOverrideFailures(record, overrides) {
+  const failures = [];
+  if (overrides?.blockedPlaceIds?.has(record.google_place_id)) failures.push("residential_house_reported_place_id");
+  if (overrides?.blockedAddresses?.has(normalizeAddress(record.full_address))) failures.push("residential_house_reported_address");
+  return failures;
+}
+
 export function runtimeMap(runtime) {
   const byPlaceId = new Map();
   for (const profileId of ["cruz", "anthony"]) {
@@ -71,7 +101,7 @@ export function runtimeMap(runtime) {
   return byPlaceId;
 }
 
-export function gateFailures(record) {
+export function gateFailures(record, options = {}) {
   const failures = [];
   if (!record.google_place_id) failures.push("missing_place_id");
   if (!record.business_name || /^\d+[a-z]?\s+/i.test(record.business_name)) failures.push("invalid_business_name");
@@ -82,6 +112,7 @@ export function gateFailures(record) {
   if (record.access_type === "Do not recommend") failures.push("do_not_recommend");
   if (record.is_generic_place === "yes" || genericNamePattern.test(`${record.business_name} ${record.full_address}`)) failures.push("generic_business");
   if (record.business_status === "CLOSED_PERMANENTLY") failures.push("closed_business");
+  failures.push(...governanceOverrideFailures(record, options.overrides));
   return failures;
 }
 
@@ -95,9 +126,9 @@ export function runtimeMetadataFor(record, runtimeByPlaceId) {
   };
 }
 
-export function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds) {
+export function segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds, options = {}) {
   const runtime = runtimeMetadataFor(record, runtimeByPlaceId);
-  const failures = gateFailures(record);
+  const failures = gateFailures(record, options);
   if (duplicatePlaceIds.has(record.google_place_id)) failures.push("duplicate_place_id");
   if (runtime.qualityClass === "Never Visit") failures.push("runtime_quality_never_visit");
   if (failures.length) {
@@ -206,6 +237,7 @@ export function main() {
   const rejected = rejectedPayload.rejected || [];
   const closed = rejectedPayload.closed_removed || [];
   const runtimeByPlaceId = runtimeMap(runtimePayload);
+  const overrides = loadGovernanceOverrides(sourceFiles.overrides);
 
   const placeIdCounts = production.reduce((acc, record) => {
     const key = record.google_place_id || normalize(`${record.business_name} ${record.full_address}`);
@@ -219,7 +251,7 @@ export function main() {
   const quarantine = [];
 
   for (const record of production) {
-    const segment = segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds);
+    const segment = segmentRecord(record, runtimeByPlaceId, duplicatePlaceIds, { overrides });
     const outputRecord = toSegmentRecord(record, segment, "production_candidates");
     if (segment.pool === "active") active.push(outputRecord);
     else if (segment.pool === "reserve") reserve.push(outputRecord);
@@ -247,7 +279,7 @@ export function main() {
   const activeIds = new Set(active.map(record => record.googlePlaceId));
   const reserveIds = new Set(reserve.map(record => record.googlePlaceId));
   const activeReserveOverlap = [...activeIds].filter(id => reserveIds.has(id)).length;
-  const activeInvalidRecords = active.filter(record => gateFailures(record.originalRecord).length).length;
+  const activeInvalidRecords = active.filter(record => gateFailures(record.originalRecord, { overrides }).length).length;
 
   const generatedAt = new Date().toISOString();
   const shared = {
