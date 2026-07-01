@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Prometheus IQ | AI Route Intelligence for Outside Sales Teams</title>
-  <meta name="description" content="Prometheus IQ helps outside sales teams decide where to go next, verify field activity, and turn visits into measurable route intelligence across fitness, home services, healthcare, B2B, and local market teams.">
+  <title>Prometheus IQ | Enterprise AI Route Intelligence for Outside Sales</title>
+  <meta name="description" content="Prometheus IQ is enterprise AI Route Intelligence for outside sales organizations: field routing, verified activity, customer success discipline, and investor-ready operating intelligence across every field-sales vertical.">
   <link rel="canonical" href="https://prometheusrouteiq.com/">
-  <meta property="og:title" content="Prometheus IQ | AI Route Intelligence for Outside Sales">
-  <meta property="og:description" content="Founder-led AI Route Intelligence for teams that win through face-to-face field activity.">
+  <meta property="og:title" content="Prometheus IQ | Enterprise AI Route Intelligence for Outside Sales">
+  <meta property="og:description" content="Founder-led AI Route Intelligence for enterprise outside-sales teams, controlled beta pilots, and field execution intelligence.">
   <meta property="og:url" content="https://prometheusrouteiq.com/">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://prometheusrouteiq.com/public-assets/prometheus.svg?v=20260701-brand-v1">
@@ -435,6 +435,13 @@
       backdrop-filter: blur(16px);
     }
 
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
     .content {
       position: relative;
       z-index: 2;
@@ -489,6 +496,7 @@
       z-index: 1;
       width: clamp(240px, 36vw, 520px);
       aspect-ratio: 0.76;
+      overflow: hidden;
       pointer-events: none;
       opacity: 0.74;
       transform: translateX(-50%) perspective(900px) rotateX(5deg) rotateY(0deg) rotateZ(-3deg) translate3d(0, 0, 0);
@@ -770,7 +778,11 @@
     }
 
     .industry-strip,
+    .industry-pages,
     .trust-grid,
+    .enterprise-grid,
+    .investor-grid,
+    .success-grid,
     .beta-flow {
       display: grid;
       gap: 12px;
@@ -779,6 +791,13 @@
 
     .industry-strip {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .industry-pages,
+    .enterprise-grid,
+    .investor-grid,
+    .success-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .industry-strip span,
@@ -796,8 +815,54 @@
       text-align: center;
     }
 
+    .industry-pages article,
+    .enterprise-card,
+    .investor-card,
+    .success-card {
+      min-height: 190px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .industry-pages h3,
+    .enterprise-card h3,
+    .investor-card h3,
+    .success-card h3 {
+      font-size: 20px;
+      line-height: 1.05;
+    }
+
+    .industry-pages p,
+    .enterprise-card p,
+    .investor-card p,
+    .success-card p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .success-card span {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      margin-bottom: 24px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #06120d;
+      font-weight: 950;
+    }
+
+    .copy-block .enterprise-grid,
+    .panel .investor-grid,
+    .panel .success-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .trust-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .trust-card {
@@ -890,7 +955,7 @@
     }
 
     .beta-flow {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .investor-note,
@@ -1814,7 +1879,11 @@
       .proof-strip,
       .executive-grid,
       .industry-strip,
+      .industry-pages,
       .trust-grid,
+      .enterprise-grid,
+      .investor-grid,
+      .success-grid,
       .beta-flow {
         grid-template-columns: 1fr;
       }
@@ -1886,6 +1955,11 @@
       <div class="mark" aria-hidden="true"><img src="./public-assets/prometheus.svg?v=20260701-brand-v1" alt=""></div>
       <div>Prometheus</div>
     </div>
+    <div class="nav-links" aria-label="Primary navigation">
+      <a href="#enterprise">Enterprise</a>
+      <a href="#industries">Industries</a>
+      <a href="#investors">Investors</a>
+    </div>
     <a href="#pilot" data-open-pilot>Apply for Beta Pilot</a>
   </nav>
 
@@ -1900,12 +1974,12 @@
       <div class="hero-copy">
         <div class="eyebrow">Prometheus IQ by Prometheus</div>
         <h1>AI Route Intelligence for Outside Sales Teams.</h1>
-        <p class="lead">Prometheus IQ helps field teams decide where to go next, verify what happened, and turn every visit into clearer territory intelligence across the industries that still grow through face-to-face selling.</p>
+        <p class="lead">Prometheus IQ helps outside-sales organizations decide where to go next, verify what happened, and turn field visits into governed operating intelligence across every industry where face-to-face selling still wins.</p>
         <div class="buttons">
           <a class="button" href="#pilot" data-open-pilot>Apply for Beta Pilot</a>
-          <a class="button secondary" href="#how" data-open-demo>See How It Works</a>
+          <a class="button secondary" href="#enterprise">Enterprise Readiness</a>
         </div>
-        <p class="cta-note">Built for fitness, home services, healthcare, franchise growth, B2B services, and any local market where real visits still matter.</p>
+        <p class="cta-note">Built for healthcare, home services, franchise growth, telecom, insurance, B2B services, and any team where revenue depends on intelligent field execution.</p>
       </div>
     </section>
 
@@ -1938,23 +2012,22 @@
         <div class="trust-grid">
           <div class="trust-card"><strong>Founder-built</strong><span>Designed from real outside-sales work, not a generic CRM dashboard.</span></div>
           <div class="trust-card"><strong>Controlled beta</strong><span>Beta fit, team scope, and review path are clarified before access.</span></div>
+          <div class="trust-card"><strong>Enterprise-ready posture</strong><span>Security, pilot governance, and customer success discipline are treated as product requirements.</span></div>
           <div class="trust-card"><strong>Outcome-focused</strong><span>The pilot asks whether route quality, verified activity, and field outcomes improved.</span></div>
         </div>
       </div>
     </section>
 
-    <section class="split">
+    <section id="industries" class="split">
       <div class="copy-block">
-        <div class="eyebrow">The Problem</div>
-        <h2>Field teams lose time before the CRM ever sees the lead.</h2>
-        <p class="lead">Outside reps are still expected to create demand in the real world, but most systems focus on pipeline records after the activity has already happened. Prometheus IQ is built for every field-sales organization, not just gyms.</p>
-        <div class="industry-strip" aria-label="Industries Prometheus IQ can support">
-          <span>Fitness</span>
-          <span>Roofing</span>
-          <span>Medical Sales</span>
-          <span>Franchise Teams</span>
-          <span>B2B Services</span>
-          <span>Local Market Growth</span>
+        <div class="eyebrow">Industry Pages</div>
+        <h2>Prometheus is horizontal outside-sales infrastructure, not a single-market tool.</h2>
+        <p class="lead">Gym sales remains the first production validation environment. The company category is broader: any organization that creates revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
+        <div class="industry-pages" aria-label="Industries Prometheus IQ can support">
+          <article><h3>Home Services</h3><p>Roofing, HVAC, pest control, solar, security, and teams that sell by territory.</p></article>
+          <article><h3>Healthcare & Medical</h3><p>Medical devices, clinics, dental, wellness, and referral-growth teams.</p></article>
+          <article><h3>Franchise & Local Growth</h3><p>Multi-location operators, membership teams, events, and community outreach.</p></article>
+          <article><h3>B2B Field Sales</h3><p>Payroll, telecom, commercial cleaning, uniforms, logistics, and industrial sales.</p></article>
         </div>
         <div class="proof-strip">
           <div class="proof"><b>Gas</b><span>Unplanned routes turn selling time into windshield time.</span></div>
@@ -1988,10 +2061,28 @@
 
     <section class="split">
       <div class="copy-block">
-        <div class="eyebrow">Enterprise Readiness</div>
-        <h2>A pilot should answer one question clearly: did field activity improve?</h2>
-        <p class="lead">Prometheus gives leadership a clean view of locations visited, verified activity, conversations, leads, outcomes, and route usefulness through a controlled enterprise review path.</p>
-        <p class="investor-note">Investor signal: Prometheus IQ is being positioned as a repeatable field-intelligence layer across multiple outside-sales verticals.</p>
+        <div class="eyebrow">Founder Story</div>
+        <h2>Founder-led, field-tested, and built for enterprise trust.</h2>
+        <p class="lead">Prometheus was created from lived outside-sales reality: wasted miles, dead zones, unclear priorities, inconsistent follow-up, and the pressure to create demand in the physical world without intelligent direction.</p>
+      </div>
+      <div class="panel">
+        <h2>Why it exists</h2>
+        <p class="lead">Prometheus IQ is the first product in an AI operating system for outside sales, built to make field work directed, accountable, measurable, and compounding without becoming a surveillance product.</p>
+        <p class="testimonial-placeholder">Pilot testimonial placeholder: reserved for an approved customer quote after controlled beta results are reviewed.</p>
+      </div>
+    </section>
+
+    <section id="enterprise" class="split">
+      <div class="copy-block">
+        <div class="eyebrow">Enterprise Page</div>
+        <h2>Built for controlled pilots, executive review, and field operating discipline.</h2>
+        <p class="lead">Enterprise buyers need more than a route map. Prometheus frames pilot success around route quality, verified activity, adoption, conversion path, and leadership visibility while keeping private beta systems and internal intelligence logic protected.</p>
+        <div class="enterprise-grid">
+          <div class="enterprise-card"><h3>Governed pilots</h3><p>Defined scope, success metrics, review cadence, and executive evaluation before expansion.</p></div>
+          <div class="enterprise-card"><h3>Security posture</h3><p>Public marketing remains separate from beta systems, internal logic, and private operating data.</p></div>
+          <div class="enterprise-card"><h3>Manager visibility</h3><p>Leadership sees field execution, route usefulness, and outcomes without turning Prometheus into surveillance.</p></div>
+          <div class="enterprise-card"><h3>CRM-adjacent adoption</h3><p>Prometheus strengthens the work before clean pipeline data exists, then informs downstream systems.</p></div>
+        </div>
       </div>
       <div class="panel">
         <h2>Pilot Signals</h2>
@@ -2004,15 +2095,50 @@
       </div>
     </section>
 
+    <section id="investors" class="split">
+      <div class="copy-block">
+        <div class="eyebrow">Investor Page</div>
+        <h2>Prometheus is building the intelligence layer for outside sales.</h2>
+        <p class="lead">The investor story is not routing software. It is a repeatable operating layer for where reps go, what happened, what the team learned, and how field execution improves across broad outside-sales markets.</p>
+      </div>
+      <div class="panel">
+        <h2>Investor Signals</h2>
+        <div class="investor-grid">
+          <div class="investor-card"><h3>Horizontal market</h3><p>Outside sales spans healthcare, home services, insurance, telecom, franchise growth, and B2B services.</p></div>
+          <div class="investor-card"><h3>Compounding data</h3><p>Every verified visit and outcome can improve territory intelligence, coaching, and next-best-action quality.</p></div>
+          <div class="investor-card"><h3>Founder-market fit</h3><p>Prometheus began in real field-sales pressure, with gym sales as validation rather than category definition.</p></div>
+          <div class="investor-card"><h3>Enterprise path</h3><p>The operating model supports controlled pilots, customer success reviews, renewal discipline, and expansion.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="split">
+      <div class="copy-block">
+        <div class="eyebrow">Customer Success Framework</div>
+        <h2>From beta request to expansion-ready operating review.</h2>
+        <p class="lead">Prometheus pilots are designed to create evidence: cleaner route decisions, verified work, useful outcomes, and a clear executive path for renewal or expansion.</p>
+      </div>
+      <div class="panel">
+        <h2>Success Path</h2>
+        <div class="success-grid">
+          <div class="success-card"><span>1</span><h3>Baseline</h3><p>Document current routing, visit volume, follow-up discipline, and manager visibility.</p></div>
+          <div class="success-card"><span>2</span><h3>Pilot</h3><p>Run a focused team workflow against route quality, activity proof, conversion path, and adoption.</p></div>
+          <div class="success-card"><span>3</span><h3>Review</h3><p>Translate field evidence into executive readouts, success gaps, and expansion criteria.</p></div>
+          <div class="success-card"><span>4</span><h3>Scale</h3><p>Move from founder-led setup to repeatable onboarding, governance, and customer success rhythm.</p></div>
+        </div>
+      </div>
+    </section>
+
     <section id="pilot" class="footer">
       <div>
         <div class="eyebrow">Beta Request Flow</div>
-        <h2>Founder-led innovation, built from the road.</h2>
-        <p class="lead">Prometheus IQ is now preparing controlled pilot programs for outside-sales teams that rely on face-to-face activity and need clearer route intelligence before they scale field operations.</p>
+        <h2>Apply for a controlled Prometheus IQ beta pilot.</h2>
+        <p class="lead">Pilot partners can evaluate AI Route Intelligence, verified activity, sales intelligence, customer success cadence, and productivity metrics through a controlled private program designed for founder-led implementation and executive review.</p>
         <div class="beta-flow" aria-label="Beta request steps">
           <span>1. Apply</span>
           <span>2. Founder review</span>
           <span>3. Pilot scope</span>
+          <span>4. Success review</span>
         </div>
         <p class="testimonial-placeholder">Pilot testimonial placeholder: reserved for an approved customer quote after controlled beta results are reviewed.</p>
         <div class="buttons" style="justify-content:center">
