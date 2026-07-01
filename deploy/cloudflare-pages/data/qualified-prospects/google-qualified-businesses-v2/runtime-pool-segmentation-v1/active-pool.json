@@ -1,17 +1,18 @@
 {
-  "generatedAt": "2026-06-30T07:42:12.464Z",
+  "generatedAt": "2026-07-01T05:45:13.022Z",
   "sourceDatasetVersion": "google-qualified-businesses-v2",
   "segmentationVersion": "runtime-pool-segmentation-v1",
   "sourceFiles": {
     "production": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
     "rejected": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json",
-    "runtime": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+    "runtime": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "overrides": "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json"
   },
   "runtimeBehaviorChanged": false,
   "scoringChanged": false,
   "pool": "active",
   "criteria": "Production-safe Google Places records with existing runtime quality class Excellent or Good.",
-  "count": 300,
+  "count": 297,
   "records": [
     {
       "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8",
@@ -6083,70 +6084,6 @@
         "google_maps_url": "https://maps.google.com/?cid=13753888066096112260&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
         "latitude": 29.640002900000002,
         "longitude": -95.2400703,
-        "rep_status": "Anthony unvisited",
-        "shared_approval": "pending",
-        "recommendation_for_anthony": "yes",
-        "max_radius_miles": 25,
-        "is_generic_place": "no",
-        "quality_status": "verified",
-        "business_status": "OPERATIONAL"
-      },
-      "source": "production_candidates"
-    },
-    {
-      "googlePlaceId": "ChIJw_j5DXK9QIYRfEFiOYffXt0",
-      "businessName": "David's Barber Shop",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "estimatedDistanceMiles": 1.9,
-      "sourceType": "Google Places API",
-      "googleMapsUrl": "https://maps.google.com/?cid=15951432702069195132&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-      "latitude": 29.5915081,
-      "longitude": -95.2221782,
-      "accessType": "Walk-in ready",
-      "askFor": "manager",
-      "qualityStatus": "verified",
-      "businessStatus": "OPERATIONAL",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94,
-      "runtimeProfiles": [
-        {
-          "runtimeId": "cruz-google-217-chijw j5dxk9qiyrfefioyffxt0",
-          "repProfileId": "cruz",
-          "seedRouteOrder": 217,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        },
-        {
-          "runtimeId": "anthony-google-214-chijw j5dxk9qiyrfefioyffxt0",
-          "repProfileId": "anthony",
-          "seedRouteOrder": 214,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        }
-      ],
-      "poolAssignmentReasons": [
-        "highest_quality_verified_runtime_candidate"
-      ],
-      "originalProspectId": "GOOGLE-ChIJw_j5DXK9QIYRfEFiOYffXt0",
-      "originalRecord": {
-        "prospect_id": "GOOGLE-ChIJw_j5DXK9QIYRfEFiOYffXt0",
-        "business_name": "David's Barber Shop",
-        "full_address": "10820 Hughes Rd, Houston, TX 77089, USA",
-        "category": "Barber",
-        "estimated_distance_miles": 1.9,
-        "access_type": "Walk-in ready",
-        "ask_for": "manager",
-        "notes": "Google Places verified storefront candidate. Verify hours and site rules before outreach.",
-        "sources": "Google Places API Refresh Engine",
-        "source_type": "Google Places API",
-        "google_place_id": "ChIJw_j5DXK9QIYRfEFiOYffXt0",
-        "google_maps_url": "https://maps.google.com/?cid=15951432702069195132&g_mp=CiVnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLkdldFBsYWNlEAIYBCAA",
-        "latitude": 29.5915081,
-        "longitude": -95.2221782,
         "rep_status": "Anthony unvisited",
         "shared_approval": "pending",
         "recommendation_for_anthony": "yes",
@@ -15310,70 +15247,6 @@
       "source": "production_candidates"
     },
     {
-      "googlePlaceId": "ChIJ9TRCKYubQIYR8psjkD8AVl8",
-      "businessName": "Jorgitin-Barbershop",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "estimatedDistanceMiles": 1.9,
-      "sourceType": "Google Places API",
-      "googleMapsUrl": "https://maps.google.com/?cid=6869678554601462770&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
-      "latitude": 29.5911017,
-      "longitude": -95.2226335,
-      "accessType": "Walk-in ready",
-      "askFor": "manager",
-      "qualityStatus": "verified",
-      "businessStatus": "OPERATIONAL",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94,
-      "runtimeProfiles": [
-        {
-          "runtimeId": "cruz-google-223-chij9trckyubqiyr8psjkd8avl8",
-          "repProfileId": "cruz",
-          "seedRouteOrder": 223,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        },
-        {
-          "runtimeId": "anthony-google-220-chij9trckyubqiyr8psjkd8avl8",
-          "repProfileId": "anthony",
-          "seedRouteOrder": 220,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        }
-      ],
-      "poolAssignmentReasons": [
-        "highest_quality_verified_runtime_candidate"
-      ],
-      "originalProspectId": "GOOGLE-ChIJ9TRCKYubQIYR8psjkD8AVl8",
-      "originalRecord": {
-        "prospect_id": "GOOGLE-ChIJ9TRCKYubQIYR8psjkD8AVl8",
-        "business_name": "Jorgitin-Barbershop",
-        "full_address": "10820 Hughes Rd, Houston, TX 77089, USA",
-        "category": "Barber",
-        "estimated_distance_miles": 1.9,
-        "access_type": "Walk-in ready",
-        "ask_for": "manager",
-        "notes": "Google Places verified storefront candidate. Verify hours and site rules before outreach.",
-        "sources": "Google Places API Refresh Engine",
-        "source_type": "Google Places API",
-        "google_place_id": "ChIJ9TRCKYubQIYR8psjkD8AVl8",
-        "google_maps_url": "https://maps.google.com/?cid=6869678554601462770&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
-        "latitude": 29.5911017,
-        "longitude": -95.2226335,
-        "rep_status": "Anthony unvisited",
-        "shared_approval": "pending",
-        "recommendation_for_anthony": "yes",
-        "max_radius_miles": 25,
-        "is_generic_place": "no",
-        "quality_status": "verified",
-        "business_status": "OPERATIONAL"
-      },
-      "source": "production_candidates"
-    },
-    {
       "googlePlaceId": "ChIJxW4MMACXQIYRyF5nM67hml0",
       "businessName": "Hamza’s Barbershop",
       "address": "8902 Durham Manor Ln, Houston, TX 77075, USA",
@@ -15683,70 +15556,6 @@
         "google_maps_url": "https://maps.google.com/?cid=11156083347974960923&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
         "latitude": 29.610260699999998,
         "longitude": -95.2508297,
-        "rep_status": "Anthony unvisited",
-        "shared_approval": "pending",
-        "recommendation_for_anthony": "yes",
-        "max_radius_miles": 25,
-        "is_generic_place": "no",
-        "quality_status": "verified",
-        "business_status": "OPERATIONAL"
-      },
-      "source": "production_candidates"
-    },
-    {
-      "googlePlaceId": "ChIJJR7e8XCbQIYRN_WV8sQpn5E",
-      "businessName": "BARBER SHOP YSA🙏",
-      "address": "10820 Hughes Rd, Houston, TX 77089, USA",
-      "category": "Barber",
-      "estimatedDistanceMiles": 1.9,
-      "sourceType": "Google Places API",
-      "googleMapsUrl": "https://maps.google.com/?cid=10493151582656787767&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
-      "latitude": 29.5911017,
-      "longitude": -95.2226335,
-      "accessType": "Walk-in ready",
-      "askFor": "manager",
-      "qualityStatus": "verified",
-      "businessStatus": "OPERATIONAL",
-      "qualityClass": "Excellent",
-      "qualityScore": 93.7,
-      "priority": 94,
-      "runtimeProfiles": [
-        {
-          "runtimeId": "cruz-google-235-chijjr7e8xcbqiyrn wv8sqpn5e",
-          "repProfileId": "cruz",
-          "seedRouteOrder": 235,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        },
-        {
-          "runtimeId": "anthony-google-232-chijjr7e8xcbqiyrn wv8sqpn5e",
-          "repProfileId": "anthony",
-          "seedRouteOrder": 232,
-          "qualityClass": "Excellent",
-          "qualityScore": 93.7,
-          "priority": 94
-        }
-      ],
-      "poolAssignmentReasons": [
-        "highest_quality_verified_runtime_candidate"
-      ],
-      "originalProspectId": "GOOGLE-ChIJJR7e8XCbQIYRN_WV8sQpn5E",
-      "originalRecord": {
-        "prospect_id": "GOOGLE-ChIJJR7e8XCbQIYRN_WV8sQpn5E",
-        "business_name": "BARBER SHOP YSA🙏",
-        "full_address": "10820 Hughes Rd, Houston, TX 77089, USA",
-        "category": "Barber",
-        "estimated_distance_miles": 1.9,
-        "access_type": "Walk-in ready",
-        "ask_for": "manager",
-        "notes": "Google Places verified storefront candidate. Verify hours and site rules before outreach.",
-        "sources": "Google Places API Refresh Engine",
-        "source_type": "Google Places API",
-        "google_place_id": "ChIJJR7e8XCbQIYRN_WV8sQpn5E",
-        "google_maps_url": "https://maps.google.com/?cid=10493151582656787767&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
-        "latitude": 29.5911017,
-        "longitude": -95.2226335,
         "rep_status": "Anthony unvisited",
         "shared_approval": "pending",
         "recommendation_for_anthony": "yes",

@@ -9,6 +9,7 @@ const productionUrlDefault = "https://prometheus-iq.prometheusrouteiq.workers.de
 const workerNameDefault = "prometheus-iq";
 const activePoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
 const fullPoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+const blockedRuntimePlaceIds = new Set(["ChIJw_j5DXK9QIYRfEFiOYffXt0", "ChIJ9TRCKYubQIYR8psjkD8AVl8", "ChIJJR7e8XCbQIYRN_WV8sQpn5E"]);
 
 const args = parseArgs(process.argv.slice(2));
 const productionUrl = normalizeOrigin(args.productionUrl || process.env.PROMETHEUS_PRODUCTION_URL || productionUrlDefault);
@@ -135,6 +136,12 @@ function assertLocalArtifacts() {
   const deployActivePool = read(`deploy/cloudflare-pages${activePoolPath}`);
   const fullPool = read(`.${fullPoolPath}`);
   const deployFullPool = read(`deploy/cloudflare-pages${fullPoolPath}`);
+  const sourceFullPayload = JSON.parse(fullPool);
+  const expectedDeployFullPool = JSON.stringify({
+    ...sourceFullPayload,
+    cruz: (sourceFullPayload.cruz || []).filter(record => !blockedRuntimePlaceIds.has(record.googlePlaceId)),
+    anthony: (sourceFullPayload.anthony || []).filter(record => !blockedRuntimePlaceIds.has(record.googlePlaceId))
+  }, null, 2) + "\n";
   const manifest = JSON.parse(read("deploy/cloudflare-pages/manifest.webmanifest"));
   const { scripts, script } = getInlineScript(index);
   const deployScript = getInlineScript(deployIndex).script;
@@ -152,7 +159,7 @@ function assertLocalArtifacts() {
   if (serviceWorker !== deployServiceWorker) failures.push("sw.js and deploy/cloudflare-pages/sw.js differ.");
   if (headers !== deployHeaders) failures.push("_headers and deploy/cloudflare-pages/_headers differ.");
   if (activePool !== deployActivePool) failures.push("Active pool source and deploy asset differ.");
-  if (fullPool !== deployFullPool) failures.push("Full runtime pool source and deploy asset differ.");
+  if (expectedDeployFullPool !== deployFullPool) failures.push("Full runtime pool deploy asset does not match the quarantined-record sanitized source full pool.");
   if (scripts.length !== 1) failures.push(`Expected exactly one inline app script; found ${scripts.length}.`);
   if (script !== deployScript) failures.push("Source and deploy inline app scripts differ.");
   if (script) {
