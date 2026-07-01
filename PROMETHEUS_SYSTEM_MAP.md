@@ -61,8 +61,27 @@ Areas:
 - Bullseye Territory
 - Discovery Logic
 - Analytics
+- Confidence Engine
+- Recommendation Explanation Engine
+- Pattern Detection
+- Knowledge Graph Contracts
+- Human Override Contracts
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
+
+Current foundation:
+
+- `docs/route-intelligence-v2-architecture.md`
+- `docs/continuous-learning-framework.md`
+- `scripts/verify-route-intelligence-quality-gate.mjs`
+- `scripts/lib/route-intelligence-quality-gate.mjs`
+- `intelligence/README.md`
+- `intelligence/adaptive-outside-sales-intelligence-engine.md`
+- `intelligence/subsystem-contracts.md`
+- `intelligence/future-subsystem-handoffs.md`
+- `intelligence/contracts/adaptive-intelligence-contracts.json`
+
+Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
 
 ### 4. Prometheus Infrastructure
 

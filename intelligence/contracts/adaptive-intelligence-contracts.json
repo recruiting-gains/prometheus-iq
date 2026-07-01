@@ -1,0 +1,224 @@
+{
+  "version": "adaptive-outside-sales-intelligence-contracts-v1",
+  "status": "architecture_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Define reusable contracts for future outside-sales learning, confidence, explanation, pattern detection, human override, and subsystem handoff work.",
+  "productionBehaviorChanged": false,
+  "scoringChanged": false,
+  "dashboardRuntimeChanged": false,
+  "activePoolChanged": false,
+  "dataGovernanceChanged": false,
+  "requiredSourceFallbacks": {
+    "productVision": "docs/product-vision.md",
+    "researchFoundation": "research/README.md",
+    "salesFoundation": "sales/README.md",
+    "crmFoundation": "crm/README.md"
+  },
+  "capabilityDomains": [
+    "visit_outcome_learning",
+    "confidence_engine",
+    "recommendation_explanation_engine",
+    "industry_intelligence",
+    "territory_intelligence",
+    "rep_intelligence",
+    "organization_intelligence",
+    "continuous_learning_pipeline",
+    "opportunity_ranking",
+    "pattern_detection",
+    "recommendation_confidence",
+    "explainable_ai",
+    "human_override",
+    "knowledge_graph",
+    "learning_contracts"
+  ],
+  "truthLevels": [
+    "verified",
+    "inferred",
+    "estimated",
+    "unknown"
+  ],
+  "contracts": {
+    "EvidenceEvent": {
+      "requiredFields": [
+        "eventId",
+        "sourceSubsystem",
+        "sourceRecordId",
+        "eventType",
+        "truthLevel",
+        "scope",
+        "payload",
+        "sensitivity",
+        "occurredAt",
+        "receivedAt"
+      ],
+      "allowedSourceSubsystems": [
+        "Dashboard",
+        "CRM",
+        "Research",
+        "Sales",
+        "Data",
+        "Companion",
+        "Administration"
+      ]
+    },
+    "LearningSignal": {
+      "requiredFields": [
+        "signalId",
+        "sourceEventIds",
+        "signalFamily",
+        "entityRefs",
+        "measurements",
+        "confidenceWeight",
+        "truthLevel",
+        "admissionPolicy"
+      ],
+      "signalFamilies": [
+        "visit_outcome",
+        "account_outcome",
+        "opportunity_stage",
+        "territory_context",
+        "rep_behavior",
+        "route_behavior",
+        "industry_context",
+        "organization_trend",
+        "research_insight",
+        "human_override"
+      ]
+    },
+    "ConfidenceAssessment": {
+      "requiredFields": [
+        "assessmentId",
+        "targetRef",
+        "confidenceBand",
+        "confidenceScore",
+        "maturityLevel",
+        "supportingEvidence",
+        "limitingFactors",
+        "allowedInfluence",
+        "policyVersion"
+      ],
+      "confidenceBands": [
+        "test",
+        "developing",
+        "medium",
+        "high",
+        "blocked"
+      ],
+      "maturityLevels": [
+        "thin_evidence",
+        "candidate_pattern",
+        "validated_pattern",
+        "mature_pattern"
+      ]
+    },
+    "RecommendationExplanation": {
+      "requiredFields": [
+        "explanationId",
+        "recommendationRef",
+        "summary",
+        "why",
+        "evidence",
+        "confidence",
+        "whatChanged",
+        "whatWasLearned",
+        "nextRepBehavior",
+        "uncertainties",
+        "overrideState"
+      ]
+    },
+    "PatternFinding": {
+      "requiredFields": [
+        "patternId",
+        "patternType",
+        "scope",
+        "status",
+        "supportingSignals",
+        "negativeEvidence",
+        "sampleSize",
+        "promotionCriteria",
+        "reviewState"
+      ],
+      "statuses": [
+        "observed",
+        "candidate",
+        "validated",
+        "promoted",
+        "deprecated",
+        "suppressed"
+      ]
+    },
+    "HumanOverride": {
+      "requiredFields": [
+        "overrideId",
+        "targetRef",
+        "overrideType",
+        "reason",
+        "createdByRole",
+        "createdAt",
+        "expiresAt",
+        "reviewRequired"
+      ],
+      "overrideTypes": [
+        "suppress_recommendation",
+        "boost_recommendation",
+        "quarantine_candidate",
+        "mark_bad_evidence",
+        "mark_strong_evidence",
+        "annotate_customer_context",
+        "force_exploration",
+        "freeze_learning_impact",
+        "approve_pattern_promotion"
+      ]
+    },
+    "KnowledgeGraphFact": {
+      "requiredFields": [
+        "factId",
+        "subject",
+        "predicate",
+        "object",
+        "sourceEvidenceIds",
+        "truthLevel",
+        "validFrom",
+        "validUntil",
+        "sensitivity"
+      ]
+    },
+    "OpportunityRankingResult": {
+      "requiredFields": [
+        "rankingId",
+        "scope",
+        "candidateRefs",
+        "rankedResults",
+        "confidenceAssessmentIds",
+        "explanationIds",
+        "policyVersion",
+        "determinismKey"
+      ]
+    }
+  },
+  "futureSubsystemHandoffs": [
+    "Dashboard",
+    "CRM",
+    "Research",
+    "Companion",
+    "Data",
+    "Sales"
+  ],
+  "prohibitions": [
+    "no_production_scoring_changes",
+    "no_dashboard_runtime_changes",
+    "no_active_pool_modifications",
+    "no_data_governance_changes",
+    "no_anthony_beta_changes",
+    "no_crm_modifications",
+    "no_research_ingestion_automation",
+    "no_companion_memory_integration"
+  ],
+  "requiredExistingGates": [
+    "scripts/verify-route-intelligence-quality-gate.mjs",
+    "scripts/govern-runtime-pool-refresh.mjs",
+    "scripts/verify-dashboard-runtime-workflows.mjs",
+    "scripts/verify-zero-live-google-api-calls.mjs"
+  ]
+}
+
