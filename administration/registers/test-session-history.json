@@ -31,6 +31,40 @@
       ],
       "status": "engineering_completed_pending_admin_closeout",
       "notes": "Session record summarizes Beta Stabilization Sprint 1 intake context. Exact tester device details still require current verification."
+    },
+    {
+      "sessionId": "session-anthony-saturday-field-test-2026-07-04",
+      "date": "2026-07-04",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "version": "2026-07-01-active-pool-asset-sync-v1",
+      "sessionType": "second_field_verification",
+      "environment": "production_private_beta",
+      "workflowsCovered": [
+        "Startup",
+        "Login",
+        "Rep mode",
+        "Build Route",
+        "Nearby Opportunities",
+        "Places",
+        "Unit logging",
+        "Route quality",
+        "Performance",
+        "End-of-day summary",
+        "Active Pool corrections"
+      ],
+      "linkedIssues": [
+        "issue-dashboard-rep-session-enforcement-2026-06-30",
+        "issue-dashboard-mobile-pin-drop-scroll-2026-06-30",
+        "issue-dashboard-nearby-runtime-2026-06-30",
+        "issue-dashboard-startup-places-performance-2026-06-30",
+        "issue-data-residential-barber-route-quality-2026-06-30",
+        "issue-dashboard-active-pool-corrections-2026-07-01"
+      ],
+      "linkedObservations": [],
+      "status": "prepared_not_completed",
+      "notes": "Prepared session record only. Do not mark complete or signed off until Anthony's Saturday field verification is performed."
     }
   ]
 }

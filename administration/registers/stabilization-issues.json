@@ -131,6 +131,32 @@
         "status": "pending",
         "notes": "Administration still needs current tester route-quality sign-off record."
       }
+    },
+    {
+      "issueId": "issue-dashboard-active-pool-corrections-2026-07-01",
+      "date": "2026-07-01",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-stabilization-sprint-1",
+      "version": "pre-active-pool-asset-sync-v1",
+      "category": "Dashboard",
+      "severity": "High",
+      "description": "Active Pool corrections needed clean deploy/runtime alignment after Data residential-house quarantine.",
+      "expectedBehavior": "Dashboard runtime and deploy fallback use the corrected Active Pool and exclude quarantined residential-house barber-shop records.",
+      "actualBehavior": "Data quarantine and Dashboard deploy/runtime assets required synchronization before Saturday verification.",
+      "subsystemOwner": "Prometheus Dashboard / Prometheus Data",
+      "status": "subsystem_handoff_received",
+      "regressionVerified": {
+        "status": "passed",
+        "source": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+        "notes": "Active Pool Asset Synchronization v1 synchronized deploy Active Pool to 297 records / 594 route records and sanitized full fallback to remove the three quarantined residential place IDs."
+      },
+      "resolvedVersion": "2026-07-01-active-pool-asset-sync-v1",
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Saturday field test must verify route quality and Active Pool correction behavior before sign-off."
+      }
     }
   ]
 }

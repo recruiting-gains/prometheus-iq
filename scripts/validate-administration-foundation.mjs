@@ -25,7 +25,15 @@ const requiredMarkdown = [
   'administration/templates/stabilization-issue.md',
   'administration/templates/test-session.md',
   'administration/templates/observation.md',
-  'administration/schemas/register-contracts.md'
+  'administration/schemas/register-contracts.md',
+  'administration/verification/beta-stabilization-sprint-1/README.md',
+  'administration/verification/beta-stabilization-sprint-1/anthony-verification-checklist.md',
+  'administration/verification/beta-stabilization-sprint-1/device-verification-checklist.md',
+  'administration/verification/beta-stabilization-sprint-1/session-verification-checklist.md',
+  'administration/verification/beta-stabilization-sprint-1/beta-acceptance-criteria.md',
+  'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.md',
+  'administration/verification/beta-stabilization-sprint-1/saturday-field-test-guide.md',
+  'administration/verification/beta-stabilization-sprint-1/sign-off-packet.md'
 ];
 
 const requiredJson = [
@@ -41,7 +49,9 @@ const requiredJson = [
   'administration/registers/test-session-history.json',
   'administration/registers/stabilization-issues.json',
   'administration/registers/beta-observations.json',
-  'administration/registers/regression-verification.json'
+  'administration/registers/regression-verification.json',
+  'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json',
+  'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json'
 ];
 
 const failures = [];
@@ -221,7 +231,8 @@ if (stabilizationIssues) {
   }
   const requiredSprintIssues = [
     'issue-dashboard-startup-places-performance-2026-06-30',
-    'issue-data-residential-barber-route-quality-2026-06-30'
+    'issue-data-residential-barber-route-quality-2026-06-30',
+    'issue-dashboard-active-pool-corrections-2026-07-01'
   ];
   for (const issueId of requiredSprintIssues) {
     if (!stabilizationIssues.issues?.some((issue) => issue.issueId === issueId)) {
@@ -253,6 +264,12 @@ if (sessions) {
   if (!sessions.sessions?.some((session) => session.sessionId === 'session-anthony-beta-stabilization-sprint-1')) {
     failures.push('test-session-history.json must include Anthony Beta Stabilization Sprint 1 session');
   }
+  const saturdaySession = sessions.sessions?.find((session) => session.sessionId === 'session-anthony-saturday-field-test-2026-07-04');
+  if (!saturdaySession) {
+    failures.push('test-session-history.json must include Anthony Saturday field-test session');
+  } else if (saturdaySession.status !== 'prepared_not_completed') {
+    failures.push('Anthony Saturday field-test session must remain prepared_not_completed before field verification');
+  }
 }
 
 const regression = jsonByPath.get('administration/registers/regression-verification.json');
@@ -262,6 +279,78 @@ if (regression) {
   }
   if (!regression.verifications?.some((verification) => verification.verificationId === 'verification-beta-stabilization-sprint-1')) {
     failures.push('regression-verification.json must include Beta Stabilization Sprint 1 verification record');
+  }
+  const saturdayVerification = regression.verifications?.find((verification) => verification.verificationId === 'verification-anthony-saturday-field-test-2026-07-04');
+  if (!saturdayVerification) {
+    failures.push('regression-verification.json must include Anthony Saturday field-test verification record');
+  } else {
+    if (saturdayVerification.regressionStatus !== 'prepared_pending_field_test') {
+      failures.push('Anthony Saturday verification must remain prepared_pending_field_test before field verification');
+    }
+    if (saturdayVerification.testerSignOffStatus !== 'pending') {
+      failures.push('Anthony Saturday tester sign-off must remain pending before field verification');
+    }
+  }
+}
+
+const readiness = jsonByPath.get('administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json');
+if (readiness) {
+  if (readiness.status !== 'prepared_not_signed_off') {
+    failures.push('Saturday readiness packet must remain prepared_not_signed_off');
+  }
+  if (readiness.signOffAllowedBeforeFieldTest !== false) {
+    failures.push('Saturday readiness packet must not allow sign-off before field test');
+  }
+  const requiredAreas = [
+    'startup',
+    'login',
+    'rep_mode',
+    'build_route',
+    'nearby_opportunities',
+    'places',
+    'unit_logging',
+    'route_quality',
+    'performance',
+    'end_of_day_summary',
+    'active_pool_corrections'
+  ];
+  for (const area of requiredAreas) {
+    if (!readiness.verificationAreas?.includes(area)) {
+      failures.push(`Saturday readiness packet is missing verification area: ${area}`);
+    }
+  }
+  for (const filePath of readiness.packetFiles ?? []) {
+    if (!existsSync(path.join(repoRoot, filePath))) {
+      failures.push(`Saturday readiness packet references missing file: ${filePath}`);
+    }
+  }
+}
+
+const issueMatrix = jsonByPath.get('administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json');
+if (issueMatrix) {
+  if (issueMatrix.signOffStatus !== 'pending') {
+    failures.push('Issue verification matrix signOffStatus must remain pending before field verification');
+  }
+  const requiredMatrixIssues = [
+    'issue-dashboard-rep-session-enforcement-2026-06-30',
+    'issue-dashboard-mobile-pin-drop-scroll-2026-06-30',
+    'issue-dashboard-nearby-runtime-2026-06-30',
+    'issue-dashboard-startup-places-performance-2026-06-30',
+    'issue-data-residential-barber-route-quality-2026-06-30',
+    'issue-dashboard-active-pool-corrections-2026-07-01'
+  ];
+  for (const issueId of requiredMatrixIssues) {
+    const issue = issueMatrix.issues?.find((item) => item.issueId === issueId);
+    if (!issue) {
+      failures.push(`Issue verification matrix is missing ${issueId}`);
+      continue;
+    }
+    for (const field of ['originalIssue', 'owningSubsystem', 'commits', 'expectedBehavior', 'testerVerification', 'passFail', 'notes']) {
+      if (!(field in issue)) failures.push(`Issue verification matrix ${issueId} is missing ${field}`);
+    }
+    if (issue.passFail !== 'pending') {
+      failures.push(`Issue verification matrix ${issueId} must remain pending before field verification`);
+    }
   }
 }
 

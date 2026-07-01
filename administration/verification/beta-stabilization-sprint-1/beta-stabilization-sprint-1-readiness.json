@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "administration.beta-stabilization-sprint-1-readiness.v1",
+  "description": "Machine-readable readiness record for Anthony's Saturday, July 4, 2026 second field-test verification packet.",
+  "packetId": "packet-beta-stabilization-sprint-1-readiness-2026-07-04",
+  "status": "prepared_not_signed_off",
+  "testerId": "tester-anthony-001",
+  "deviceId": "device-anthony-primary-phone",
+  "sessionId": "session-anthony-saturday-field-test-2026-07-04",
+  "fieldTestDate": "2026-07-04",
+  "verificationAreas": [
+    "startup",
+    "login",
+    "rep_mode",
+    "build_route",
+    "nearby_opportunities",
+    "places",
+    "unit_logging",
+    "route_quality",
+    "performance",
+    "end_of_day_summary",
+    "active_pool_corrections"
+  ],
+  "packetFiles": [
+    "administration/verification/beta-stabilization-sprint-1/anthony-verification-checklist.md",
+    "administration/verification/beta-stabilization-sprint-1/device-verification-checklist.md",
+    "administration/verification/beta-stabilization-sprint-1/session-verification-checklist.md",
+    "administration/verification/beta-stabilization-sprint-1/beta-acceptance-criteria.md",
+    "administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.md",
+    "administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json",
+    "administration/verification/beta-stabilization-sprint-1/saturday-field-test-guide.md",
+    "administration/verification/beta-stabilization-sprint-1/sign-off-packet.md"
+  ],
+  "signOffAllowedBeforeFieldTest": false,
+  "testerSignOffStatus": "pending",
+  "founderReviewStatus": "pending"
+}

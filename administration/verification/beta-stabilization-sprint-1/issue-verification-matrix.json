@@ -1,0 +1,86 @@
+{
+  "schemaVersion": "administration.issue-verification-matrix.v1",
+  "description": "Prepared issue verification matrix for Anthony's Saturday, July 4, 2026 second field test. Pass/fail and sign-off remain pending until field verification is complete.",
+  "packetId": "packet-beta-stabilization-sprint-1-readiness-2026-07-04",
+  "testerId": "tester-anthony-001",
+  "deviceId": "device-anthony-primary-phone",
+  "sessionId": "session-anthony-saturday-field-test-2026-07-04",
+  "signOffStatus": "pending",
+  "issues": [
+    {
+      "issueId": "issue-dashboard-rep-session-enforcement-2026-06-30",
+      "originalIssue": "Rep-only session enforcement required stabilization for Anthony PWA/session use.",
+      "owningSubsystem": "Prometheus Dashboard",
+      "commits": [
+        "984257adae73906e942e42210be0ef0546706eb7"
+      ],
+      "expectedBehavior": "Anthony opens in Rep mode only and owner/admin controls are not visible after first launch, reopen, and refresh.",
+      "testerVerification": "Anthony opens the exact beta URL/PWA and confirms Rep-only tabs with no owner/admin controls.",
+      "passFail": "pending",
+      "notes": "Do not sign off until verified on Anthony's current device/session."
+    },
+    {
+      "issueId": "issue-dashboard-mobile-pin-drop-scroll-2026-06-30",
+      "originalIssue": "Mobile pin-drop / unit logging modal scrolling made the submit action difficult to reach.",
+      "owningSubsystem": "Prometheus Dashboard",
+      "commits": [
+        "ff5b1428c1ac7e807249d34506fea03097f1148d"
+      ],
+      "expectedBehavior": "Pin-drop/logging modal scrolls correctly and submit action remains reachable on mobile.",
+      "testerVerification": "Anthony logs a field result or controlled test result and confirms submit action is reachable.",
+      "passFail": "pending",
+      "notes": "Verify in real device context."
+    },
+    {
+      "issueId": "issue-dashboard-nearby-runtime-2026-06-30",
+      "originalIssue": "Nearby Opportunities runtime behavior did not reliably use intended visit/location context.",
+      "owningSubsystem": "Prometheus Dashboard",
+      "commits": [
+        "29ad70e"
+      ],
+      "expectedBehavior": "Nearby Opportunities anchors to attached visit GPS coordinates when available, falls back safely, preserves Active Pool filtering, and renders walkable businesses.",
+      "testerVerification": "Anthony logs a verified stop, then confirms Nearby Opportunities appears and recommendations are business-like.",
+      "passFail": "pending",
+      "notes": "If no nearby results appear, record location context and classify."
+    },
+    {
+      "issueId": "issue-dashboard-startup-places-performance-2026-06-30",
+      "originalIssue": "App startup and Places loading were too slow for beta readiness.",
+      "owningSubsystem": "Prometheus Dashboard",
+      "commits": [
+        "fa05bdf",
+        "2dcc8ac"
+      ],
+      "expectedBehavior": "Rep startup defers owner-only rendering; Places renders progressively; route readiness and Places loading feel field-usable.",
+      "testerVerification": "Anthony reports startup and Places loading as usable during normal field conditions.",
+      "passFail": "pending",
+      "notes": "Record startup/Places friction separately if still slow."
+    },
+    {
+      "issueId": "issue-data-residential-barber-route-quality-2026-06-30",
+      "originalIssue": "Residential-house barber-shop recommendation appeared as a route candidate.",
+      "owningSubsystem": "Prometheus Data",
+      "commits": [
+        "e6a8ef4",
+        "2dcc8ac"
+      ],
+      "expectedBehavior": "Known residential-house barber-shop cluster at 10820 Hughes Rd, Houston, TX 77089, USA is quarantined/removed from Active Pool and deploy fallback.",
+      "testerVerification": "Anthony samples route cards and confirms the known residential-house barber-shop cluster does not appear.",
+      "passFail": "pending",
+      "notes": "If any residential/non-business recommendation appears, create new Data issue."
+    },
+    {
+      "issueId": "issue-dashboard-active-pool-corrections-2026-07-01",
+      "originalIssue": "Active Pool corrections needed clean deploy/runtime alignment after Data quarantine.",
+      "owningSubsystem": "Prometheus Dashboard / Prometheus Data",
+      "commits": [
+        "e6a8ef4",
+        "2dcc8ac"
+      ],
+      "expectedBehavior": "Active Pool shows corrected 297 business records / 594 Dashboard route records, deploy fallback excludes quarantined residential IDs, and route quality remains stable.",
+      "testerVerification": "Founder/Admin verifies runtime route quality during Anthony session and records whether Active Pool correction behavior is visible.",
+      "passFail": "pending",
+      "notes": "Production deployment verification remains Infrastructure-owned if requested."
+    }
+  ]
+}

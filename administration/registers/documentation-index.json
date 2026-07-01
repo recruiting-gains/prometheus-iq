@@ -36,6 +36,11 @@
       "documentId": "administration-private-beta-stabilization-intake",
       "path": "administration/workflows/private-beta-stabilization-intake.md",
       "purpose": "Permanent Administration-owned intake workflow for private beta stabilization findings."
+    },
+    {
+      "documentId": "beta-stabilization-sprint-1-readiness-packet",
+      "path": "administration/verification/beta-stabilization-sprint-1/README.md",
+      "purpose": "Prepared verification and sign-off package for Anthony's second field test."
     }
   ]
 }

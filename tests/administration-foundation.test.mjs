@@ -91,3 +91,35 @@ test('Beta Stabilization Sprint 1 findings are routed to owning engineering subs
   assert.equal(routeQuality.subsystemOwner, 'Prometheus Data');
   assert.equal(routeQuality.severity, 'Critical');
 });
+
+test('Anthony Saturday verification readiness packet exists but does not sign off', () => {
+  const readiness = JSON.parse(
+    readFileSync(
+      'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json',
+      'utf8'
+    )
+  );
+
+  assert.equal(readiness.packetId, 'packet-beta-stabilization-sprint-1-readiness-2026-07-04');
+  assert.equal(readiness.status, 'prepared_not_signed_off');
+  assert.equal(readiness.signOffAllowedBeforeFieldTest, false);
+  assert.equal(readiness.testerSignOffStatus, 'pending');
+  assert.ok(readiness.verificationAreas.includes('active_pool_corrections'));
+});
+
+test('Sprint 1 issue verification matrix keeps every verification pending', () => {
+  const matrix = JSON.parse(
+    readFileSync('administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json', 'utf8')
+  );
+
+  assert.equal(matrix.signOffStatus, 'pending');
+  assert.equal(matrix.issues.length, 6);
+  for (const issue of matrix.issues) {
+    assert.equal(issue.passFail, 'pending', `${issue.issueId} should not be signed off before field test`);
+    assert.ok(issue.originalIssue);
+    assert.ok(issue.owningSubsystem);
+    assert.ok(issue.commits.length >= 1);
+    assert.ok(issue.expectedBehavior);
+    assert.ok(issue.testerVerification);
+  }
+});
