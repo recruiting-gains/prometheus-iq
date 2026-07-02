@@ -6546,6 +6546,65 @@ Next recommended subsystem:
 
 Overwatch / Master Engineering State, then explicit Dashboard, CRM, Mobile, and Companion profile-consumer handoffs. Companion profile-consumer work should wait until Founder acceptance clears the active Companion visual review.
 
+### 2026-07-02: Prometheus Intelligence Engine - Customer Intelligence Graph v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Customer Intelligence Graph v1
+
+Commit: `2885ca6215f8d5e9354bed3dbf7565a19ed4360d`
+
+Deploy: Deployed to Cloudflare Worker `prometheus-iq`
+
+Worker version: `df41a196-5a97-4e50-8ee3-5e1a299d939d`
+
+Status: Complete and deployed. Architecture-only. Authenticated production route/browser checks remain blocked by missing Cloudflare Access cookie or CDP session. Local artifact verification passed.
+
+Implementation type: Architecture and validation
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `intelligence/README.md`
+- `intelligence/contracts/customer-intelligence-graph-contracts.json`
+- `intelligence/customer-intelligence-graph.md`
+- `intelligence/customer-intelligence-graph.mjs`
+- `intelligence/subsystem-contracts.md`
+- `package.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-customer-intelligence-graph.mjs`
+- `tests/customer-intelligence-graph.test.mjs`
+
+Customer Intelligence Graph architecture created:
+
+Intelligence Engine created Customer Intelligence Graph v1 for per-customer `Business`, `Visit`, `Lead`, `Outcome`, `Rep`, `Territory`, `Operating Profile`, `Customer`, and `Learning Signal` nodes with `Visited`, `Recommended`, `Converted`, `Follow-up`, `Nearby`, `Similar`, `Repeated`, `Successful`, and `Inactive` relationships.
+
+Contracts created:
+
+Future contracts for Dashboard, CRM, Mobile, Companion, Research, and Sales. No consumer implementation was added.
+
+Production verification:
+
+Artifact/build parity passed. Wrangler deployment/version consistency passed. Cloudflare Access protection passed. Authenticated production route and browser runtime checks remain blocked by missing `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp`. Local artifact verification passed.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- `npm run intelligence:customer-graph:check`: passed.
+- `npm run test:intelligence:customer-graph`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+
+Remaining blockers:
+
+Authenticated production browser verification requires `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp`. Existing unrelated Companion/Mac local edits remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Overwatch / Master Engineering State, then CRM or Dashboard graph-consumer planning by explicit handoff only.
+
 ### 2026-07-02: Prometheus Dashboard - Operating Profile Consumer v1
 
 Subsystem: Prometheus Dashboard
@@ -6804,6 +6863,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Adaptive Field Learning Offline Evidence Harness v1; reuse `intelligence/field-learning-offline-evidence-harness.mjs`, `intelligence/fixtures/field-visit-evidence-fixtures.json`, `scripts/verify-field-learning-offline-evidence-harness.mjs`, `tests/field-learning-offline-evidence-harness.test.mjs`, and the existing no-production-change safety flags for simulated evidence ingestion, learning signals, confidence snapshots, explanations, and human override enforcement.
 - Do not duplicate Recommendation Explainability Engine v1; reuse `intelligence/recommendation-explainability-engine.mjs`, `intelligence/contracts/recommendation-explainability-contracts.json`, `scripts/verify-recommendation-explainability-engine.mjs`, `tests/recommendation-explainability-engine.test.mjs`, and the no-formula/no-weight-disclosure safeguards for Mobile, Dashboard, and Companion explanation consumers.
 - Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
+- Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
