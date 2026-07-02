@@ -1879,6 +1879,54 @@ Next recommended subsystem:
 
 Prometheus Infrastructure for public Website deployment verification only if this Website update should go live before Saturday. Otherwise preserve Saturday beta focus.
 
+### Completed Work Lane: Enterprise Landing Page Refinement v1
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystems:
+
+- Prometheus Social Media, for future campaign messaging only
+- Prometheus Infrastructure, only if public website deployment is later requested
+
+Task:
+
+Enterprise Landing Page Refinement v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`ac266de769646f414ca81c276982253d2d0ea628`
+
+Deploy:
+
+Not requested; not deployed.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `src/main.jsx`
+- `src/styles.css`
+
+Verified outcome:
+
+- Replaced restricted pilot-access messaging with managed enterprise deployment positioning.
+- Simplified trust cards around Founder Built, Controlled Beta, Enterprise Ready, and Outcome Focused.
+- Reworked industry section for Home Services, Healthcare, Commercial Services, Retail & Franchise, B2B Sales, and Field Operations.
+- Replaced Gas / Time / Proof cards with Reduce Drive Time, Recover Selling Time, and Verify Field Activity.
+- Improved card padding, section spacing, equal-height card behavior, typography, and desktop/mobile wrapping.
+- Did not change colors, branding, navigation, or animations.
+
+Remaining blockers:
+
+None for Website implementation. Public deployment was not requested.
+
+Next recommended subsystem:
+
+Prometheus Social Media for campaign messaging alignment only if founder approves extending the refined enterprise landing narrative into campaign content.
+
 ### Completed Work Lane: Public Website Canonical Branding Asset Audit + Hero Messaging Completion
 
 Primary subsystem: Prometheus Website
@@ -5032,6 +5080,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.
 - Do not duplicate Brand Identity Synchronization v1; reuse `deploy/prometheusrouteiq-website/public-assets/prometheus.svg` and the existing public Website header/nav, favicon, Open Graph/Twitter image, React logo mark, and cache-busted asset wiring.
 - Do not duplicate Enterprise & Investor Readiness v1; extend the existing public Website enterprise, industry, investor, founder story, customer success, trust, beta conversion, SEO, and mobile readability work.
+- Do not duplicate Enterprise Landing Page Refinement v1; reuse the managed enterprise deployment positioning, Founder Built / Controlled Beta / Enterprise Ready / Outcome Focused trust card structure, refined industry categories, Reduce Drive Time / Recover Selling Time / Verify Field Activity value cards, and improved card spacing/typography/wrapping in `src/main.jsx`, `src/styles.css`, and `deploy/prometheusrouteiq-website/index.html`.
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
