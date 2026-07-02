@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-byWGXyc3CGfvd+x8kJco2vZCw9tjaT5BUhsmjOfFHYg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-N7HokYAe4ho6JFQJj4k+Pwv9kIAOrwroJMRoJWb1zjA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1330,11 +1330,11 @@
         </div>
         <div class="list" id="nearbyOpportunities"></div>
 
-        <div class="section-title owner-only">
+        <div class="section-title">
           <h2>Territory Intelligence</h2>
           <small id="territoryProfileLabel">Assigned radius</small>
         </div>
-        <div class="panel pad territory-panel owner-only" id="territoryOverview">
+        <div class="panel pad territory-panel" id="territoryOverview">
           <div class="territory-kpis">
             <div class="mini-kpi"><span>Assigned Territory Radius</span><b id="territoryAssignedRadius">-</b></div>
             <div class="mini-kpi"><span>Current Ring</span><b id="territoryCurrentRing">-</b></div>
@@ -1561,9 +1561,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-01-nearby-badge-passive-v1";
+    const appBuildVersion = "2026-07-02-beta-stability-sprint-2-mobile-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v31-nearby-badge-passive";
+    const serviceWorkerCacheVersion = "prometheus-v32-beta-stability-sprint-2-mobile";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -19173,6 +19173,9 @@
       find: false
     };
     let dashboardComputationCache = {};
+    function invalidateDashboardComputationCache() {
+      dashboardComputationCache = {};
+    }
     if (!state.repProfiles?.[activeRepId]) activeRepId = sessionRole === "rep" ? "anthony" : "cruz";
     if (!state.repProfiles?.[activeRepId]) state.repProfiles[activeRepId] = createRepProfile(activeRepId, [], []);
     localStorage.setItem(activeRepStoreKey, activeRepId);
@@ -19225,6 +19228,7 @@
         syncActiveProfile();
         state = normalizeState(state);
         activeRepId = state.activeRepId || activeRepId || "cruz";
+        invalidateDashboardComputationCache();
         localStorage.setItem(storeKey, JSON.stringify(state));
         render();
         return true;
@@ -19595,6 +19599,7 @@
       const profile = activeProfile();
       state.visits = profile.visits || [];
       state.routeHistory = profile.routeHistory || [];
+      invalidateDashboardComputationCache();
       localStorage.setItem(activeRepStoreKey, activeRepId);
       try {
         localStorage.setItem(storeKey, JSON.stringify(state));
@@ -20149,6 +20154,11 @@
       return normalizeKey(`${place?.name || ""} ${place?.address || ""}`);
     }
 
+    function placeById(placeId) {
+      dashboardComputationCache.placeById = dashboardComputationCache.placeById || new Map(state.places.map(place => [place.id, place]));
+      return dashboardComputationCache.placeById.get(placeId);
+    }
+
     function stableRouteHash(value) {
       const text = String(value || "");
       let hash = 0;
@@ -20453,48 +20463,78 @@
       return anthonyFirstRouteBlockedPattern.test(text) || isQuarantinedAnthonyTarget(place) || isFounderHistoricalWinner(place);
     }
 
+    function todayVisitedRouteKeys() {
+      dashboardComputationCache.todayVisitedRouteKeys = dashboardComputationCache.todayVisitedRouteKeys || {};
+      const key = todayKey();
+      if (dashboardComputationCache.todayVisitedRouteKeys.date === key) return dashboardComputationCache.todayVisitedRouteKeys.keys;
+      const keys = new Set(todayVisits()
+        .map(visit => placeById(visit.placeId) || { id: visit.placeId, name: visit.placeName || "" })
+        .map(routeIdentityKey)
+        .filter(Boolean));
+      dashboardComputationCache.todayVisitedRouteKeys = { date: key, keys };
+      return keys;
+    }
+
+    function routeStateCacheSignature(places) {
+      const placeSignature = Array.isArray(places)
+        ? `${places.length}:${places[0]?.id || ""}:${places[places.length - 1]?.id || ""}`
+        : "0";
+      const visitSignature = todayVisits()
+        .map(visit => `${visit.placeId || ""}:${visit.date || ""}:${visit.createdAt || ""}`)
+        .join("|");
+      const historySignature = (state.routeHistory || [])
+        .slice(-20)
+        .map(item => `${item.placeId || ""}:${item.routeKey || ""}:${item.date || ""}:${item.context || ""}`)
+        .join("|");
+      return `${activeRepId}::${todayKey()}::${placeSignature}::${visitSignature}::${historySignature}`;
+    }
+
+    function wasVisitedToday(place) {
+      return todayVisitedRouteKeys().has(routeIdentityKey(place));
+    }
+
     function routePool(places) {
-      dashboardComputationCache.routePool = dashboardComputationCache.routePool || new WeakMap();
-      const cached = dashboardComputationCache.routePool.get(places);
+      dashboardComputationCache.routePool = dashboardComputationCache.routePool || new Map();
+      const cacheKey = routeStateCacheSignature(places);
+      const cached = dashboardComputationCache.routePool.get(cacheKey);
       if (cached) return cached;
-      const hitToday = new Set(todayVisits().map(v => v.placeId));
       if (activeRepId === "anthony") {
-        const anthonySource = representativePrimaryRoutePlaces(anthonyApprovedRoutePool(places), "anthony", 6);
+        const anthonySource = representativePrimaryRoutePlaces(anthonyApprovedRoutePool(places), "anthony", 10);
         const approvedGoogleRoute = anthonySource
-          .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
+          .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !wasVisitedToday(place));
         if (approvedGoogleRoute.length >= 6) {
-          dashboardComputationCache.routePool.set(places, approvedGoogleRoute);
+          dashboardComputationCache.routePool.set(cacheKey, approvedGoogleRoute);
           return approvedGoogleRoute;
         }
         const approvedFallback = anthonySource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place));
         if (approvedFallback.length >= 6) {
-          dashboardComputationCache.routePool.set(places, approvedFallback);
+          dashboardComputationCache.routePool.set(cacheKey, approvedFallback);
           return approvedFallback;
         }
       }
       if (activeRepId === "cruz") {
-        const founderSource = representativePrimaryRoutePlaces(founderGoogleRoutePool(places), "cruz", 6);
+        const founderSource = representativePrimaryRoutePlaces(founderGoogleRoutePool(places), "cruz", 10);
         const verifiedGoogleRoute = founderSource
-          .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
+          .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !wasVisitedToday(place));
         if (verifiedGoogleRoute.length >= 6) {
-          dashboardComputationCache.routePool.set(places, verifiedGoogleRoute);
+          dashboardComputationCache.routePool.set(cacheKey, verifiedGoogleRoute);
           return verifiedGoogleRoute;
         }
         const verifiedGoogleFallback = founderSource
           .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place));
         if (verifiedGoogleFallback.length >= 6) {
-          dashboardComputationCache.routePool.set(places, verifiedGoogleFallback);
+          dashboardComputationCache.routePool.set(cacheKey, verifiedGoogleFallback);
           return verifiedGoogleFallback;
         }
       }
-      const eligible = places.filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !hitToday.has(place.id));
+      const eligible = places.filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place) && !wasVisitedToday(place));
       if (isAnthonyFirstRoute()) {
         const approvedFirstRoute = eligible
           .filter(isAnthonyGoogleApprovedPlace)
           .sort((a, b) => Number(a.seedRouteOrder || 999) - Number(b.seedRouteOrder || 999));
         if (approvedFirstRoute.length >= 6) {
-          dashboardComputationCache.routePool.set(places, approvedFirstRoute);
+          dashboardComputationCache.routePool.set(cacheKey, approvedFirstRoute);
           return approvedFirstRoute;
         }
         const within10 = eligible.filter(place => {
@@ -20502,7 +20542,7 @@
           return miles === null || miles <= 10;
         });
         if (within10.length >= 25) {
-          dashboardComputationCache.routePool.set(places, within10);
+          dashboardComputationCache.routePool.set(cacheKey, within10);
           return within10;
         }
         const within15 = eligible.filter(place => {
@@ -20510,25 +20550,27 @@
           return miles === null || miles <= 15;
         });
         if (within15.length >= 25) {
-          dashboardComputationCache.routePool.set(places, within15);
+          dashboardComputationCache.routePool.set(cacheKey, within15);
           return within15;
         }
       }
       const rested = eligible.filter(place => daysSinceLastVisit(place.id) > 1);
       const result = rested.length ? rested : eligible;
-      dashboardComputationCache.routePool.set(places, result);
+      dashboardComputationCache.routePool.set(cacheKey, result);
       return result;
     }
 
     function routeHistoryFor(placeId) {
-      return (state.routeHistory || []).filter(item => item.placeId === placeId);
+      const place = placeById(placeId);
+      const key = place ? routeIdentityKey(place) : "";
+      return (state.routeHistory || []).filter(item => item.placeId === placeId || Boolean(key && item.routeKey === key));
     }
 
     function daysSinceLastRecommendation(placeId) {
       const today = dateOrdinal(todayKey());
       const days = routeHistoryFor(placeId)
         .map(item => dateOrdinal(item.date))
-        .filter(value => value !== null && value < today);
+        .filter(value => value !== null && value <= today);
       return days.length ? today - Math.max(...days) : Infinity;
     }
 
@@ -20543,11 +20585,13 @@
     function recordRouteRecommendation(place, context = "route-intelligence") {
       if (!place) return;
       const date = todayKey();
+      const routeKey = routeIdentityKey(place);
       state.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
-      const exists = state.routeHistory.some(item => item.placeId === place.id && item.date === date && item.context === context);
+      const exists = state.routeHistory.some(item => (item.placeId === place.id || item.routeKey === routeKey) && item.date === date && item.context === context);
       if (exists) return;
-      state.routeHistory.push({ placeId: place.id, date, context, createdAt: Date.now() });
+      state.routeHistory.push({ placeId: place.id, routeKey, placeName: place.name || "", date, context, createdAt: Date.now() });
       state.routeHistory = state.routeHistory.slice(-routeHistoryLimit);
+      invalidateDashboardComputationCache();
       syncActiveProfile();
       try {
         localStorage.setItem(storeKey, JSON.stringify(state));
@@ -20873,10 +20917,10 @@
         : 0;
       const locationVisitBoost = Math.min(5, stats.locationVisits * 2);
       const revisit = place.canRevisit === false ? -10 : 0;
-      const alreadyVisitedToday = todayVisits().some(v => v.placeId === place.id) ? -22 : 0;
+      const alreadyVisitedToday = wasVisitedToday(place) ? -22 : 0;
       const visitRecencyPenalty = daysSinceVisit === 1 ? -34 : daysSinceVisit <= 3 ? -12 : daysSinceVisit <= 6 ? -5 : 0;
       const freshnessScore = stats.visits === 0 ? 16 : daysSinceVisit >= 7 ? 10 : daysSinceVisit >= 4 ? 5 : daysSinceVisit >= 2 ? 1 : -12;
-      const recommendationPenalty = daysSinceRecommendation === 1 ? -18 : daysSinceRecommendation <= 3 ? -10 : daysSinceRecommendation <= 6 ? -5 : 0;
+      const recommendationPenalty = daysSinceRecommendation === 0 ? -42 : daysSinceRecommendation === 1 ? -18 : daysSinceRecommendation <= 3 ? -10 : daysSinceRecommendation <= 6 ? -5 : 0;
       const repeatedRecommendationPenalty = Math.max(0, recommendationCount(place.id, 7) - 1) * -4;
       const underTestedCategory = categoryData.visits <= 1 && discoveryCategories.includes(place.category) ? 7 : 0;
       const underTestedRadius = radiusData.visits <= 1 && radiusBand(place) !== "0-2 mi" ? 5 : 0;
@@ -21028,7 +21072,8 @@
       const categoryLimit = thinEvidence ? 1 : 2;
 
       function canUse(item, allowCrowd = false) {
-        if (selected.some(existing => existing.place.id === item.place.id)) return false;
+        const itemKey = routeIdentityKey(item.place);
+        if (selected.some(existing => routeIdentityKey(existing.place) === itemKey)) return false;
         const count = categoryCounts.get(item.place.category) || 0;
         if (thinEvidence && count >= categoryLimit) return false;
         return allowCrowd || count < categoryLimit || selected.length >= Math.max(3, limit - 2);
@@ -21075,6 +21120,12 @@
       const bestKey = routeIdentityKey(bestNext);
       const filtered = routeItems.filter(item => routeIdentityKey(item.place) !== bestKey);
       return (filtered.length ? filtered : routeItems).slice(0, limit);
+    }
+
+    function routeDisplayLimitForPlaces(places) {
+      const available = routePool(places).length;
+      if (available >= 10) return 10;
+      return available > 6 ? available : 6;
     }
 
     function sumVisits(visits) {
@@ -21514,7 +21565,7 @@
         ? "Today’s report is ready to copy or export."
         : "No visits logged today yet.");
 
-      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = buildRouteList(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
       document.getElementById("unitsContext").textContent = pace.units;
       document.getElementById("needContext").textContent = pace.need;
@@ -21590,7 +21641,7 @@
         return;
       }
 
-      const routeItems = buildRouteList(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = buildRouteList(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
       const analysis = routeItems.find(item => item.place.id === next.id) || routeAnalysis(next);
       const intelligence = routeIntelligenceFor(next, analysis, routeItems);
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
@@ -21632,7 +21683,7 @@
 
     function renderDailyRoute() {
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = routeListExcludingBestNext(routeVisiblePlaces(), 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = routeListExcludingBestNext(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
       document.getElementById("dailyRouteCount").textContent = `${routeItems.length} stops · ${routeMode(need).label}`;
       const list = document.getElementById("dailyRoute");
       if (!routeItems.length) {
@@ -21757,7 +21808,7 @@
         places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
       }
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = routeListExcludingBestNext(places, 6, { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = routeListExcludingBestNext(places, routeDisplayLimitForPlaces(places), { need, expandRadius: shouldExpandRadius(need) });
       document.getElementById("routeCount").textContent = `${routeItems.length} options`;
       const list = document.getElementById("routeList");
       if (!routeItems.length) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v31-nearby-badge-passive";
+const CACHE_NAME = "prometheus-v32-beta-stability-sprint-2-mobile";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

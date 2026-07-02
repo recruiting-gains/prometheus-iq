@@ -441,6 +441,11 @@ async function snapshot(cdp) {
       bestMoveAddress: text(document.getElementById("bestMoveAddress")),
       bestMoveDirections: document.getElementById("bestMoveDirections")?.href || "",
       routeRisk: text(document.getElementById("routeRisk")),
+      routeCountLabel: text(document.getElementById("routeCount")),
+      dailyRouteCountLabel: text(document.getElementById("dailyRouteCount")),
+      territoryText: text(document.getElementById("territoryOverview")),
+      territoryVisible: visible(document.getElementById("territoryOverview")),
+      territoryRingCount: document.querySelectorAll("#territoryRingList .territory-ring").length,
       routeText: text(document.getElementById("view-route")),
       todayText: text(document.getElementById("view-today")),
       placesText: text(document.getElementById("view-places")),
@@ -731,6 +736,65 @@ async function verifyRouteNearbyBadgePassive(cdp) {
   })()`);
 }
 
+async function verifyRouteStateSynchronization(cdp) {
+  return cdp.evaluate(`(() => {
+    const latestVisit = state.visits.slice().sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0))[0] || {};
+    const place = state.places.find(item => item.id === latestVisit.placeId);
+    if (!place || typeof routeIdentityKey !== "function") throw new Error("No logged route place available for synchronization check.");
+    const key = routeIdentityKey(place);
+    render();
+    const routeCards = [...document.querySelectorAll("#routeList .route-card")].map(card => card.textContent.trim().replace(/\\s+/g, " "));
+    const dailyCards = [...document.querySelectorAll("#dailyRoute .route-card")].map(card => card.textContent.trim().replace(/\\s+/g, " "));
+    const listedRouteKeys = typeof routePool === "function" && typeof routeVisiblePlaces === "function"
+      ? routePool(routeVisiblePlaces()).map(routeIdentityKey)
+      : [];
+    const bestNext = typeof routeRecommendation === "function" ? routeRecommendation() : null;
+    return {
+      loggedPlaceId: place.id,
+      loggedName: place.name,
+      routeKey: key,
+      latestVisitPlaceId: latestVisit.placeId || "",
+      routeCardCount: routeCards.length,
+      dailyCardCount: dailyCards.length,
+      routeCards: routeCards.slice(0, 12),
+      dailyCards: dailyCards.slice(0, 12),
+      routePoolStillContainsLogged: listedRouteKeys.includes(key),
+      routeListStillContainsLogged: routeCards.some(text => text.includes(place.name)),
+      dailyRouteStillContainsLogged: dailyCards.some(text => text.includes(place.name)),
+      bestNextStillLogged: bestNext ? routeIdentityKey(bestNext) === key : false,
+      bestNextName: bestNext?.name || ""
+    };
+  })()`);
+}
+
+async function verifyHamzaRepeatRecommendation(cdp) {
+  return cdp.evaluate(`(() => {
+    if (typeof routeVisiblePlaces !== "function" || typeof buildRouteList !== "function") throw new Error("Route engine is unavailable.");
+    const hamza = routeVisiblePlaces().find(place => /Hamza/i.test(place.name || ""));
+    if (!hamza) throw new Error("Hamza's Barbershop is not visible in the active route pool.");
+    const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
+    const beforeRoute = buildRouteList(routeVisiblePlaces(), 10, { need, expandRadius: shouldExpandRadius(need) });
+    const beforeIndex = beforeRoute.findIndex(item => routeIdentityKey(item.place) === routeIdentityKey(hamza));
+    recordRouteRecommendation(hamza, "beta-sprint-2-hamza-regression");
+    const afterRoute = buildRouteList(routeVisiblePlaces(), 10, { need, expandRadius: shouldExpandRadius(need) });
+    const afterIndex = afterRoute.findIndex(item => routeIdentityKey(item.place) === routeIdentityKey(hamza));
+    const afterAnalysis = routeAnalysis(hamza);
+    const bestNext = routeRecommendation();
+    return {
+      hamzaId: hamza.id,
+      hamzaName: hamza.name,
+      routeKey: routeIdentityKey(hamza),
+      beforeIndex,
+      afterIndex,
+      daysSinceRecommendation: afterAnalysis.daysSinceRecommendation,
+      reasons: afterAnalysis.reasons,
+      bestNextName: bestNext?.name || "",
+      bestNextIsHamza: bestNext ? routeIdentityKey(bestNext) === routeIdentityKey(hamza) : false,
+      routeHistoryEvidence: (state.routeHistory || []).filter(item => item.routeKey === routeIdentityKey(hamza)).slice(-3)
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -815,6 +879,7 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && routeSnap.routeText.includes("Route Builder"), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
+    assertWorkflow("Beta Stability Sprint 2 route generation expands beyond six", routeSnap.routeCards > 6 && /(?:[7-9]|10) options/.test(routeSnap.routeCountLabel), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const ownerNearbyBadge = await verifyRouteNearbyBadgePassive(founder.cdp);
     assertWorkflow("Beta Stability Sprint 2 Owner route nearby badge passive", ownerNearbyBadge.tagName === "span" && ownerNearbyBadge.className.includes("passive") && ownerNearbyBadge.pointerEvents === "none" && !ownerNearbyBadge.role && !ownerNearbyBadge.dataOpen && !ownerNearbyBadge.dataTab && !ownerNearbyBadge.dataQuickPlace && ownerNearbyBadge.before.activeView === ownerNearbyBadge.after.activeView && ownerNearbyBadge.before.modalActive === ownerNearbyBadge.after.modalActive && ownerNearbyBadge.before.detailsOpen === ownerNearbyBadge.after.detailsOpen && ownerNearbyBadge.whyText.includes("Nearby Opportunities"), `${ownerNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(ownerNearbyBadge));
 
@@ -851,14 +916,20 @@ async function runHarness() {
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
+    assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await clickTab(rep.cdp, "places");
     const repAfterOwnerTab = await snapshot(rep.cdp);
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
+    assertWorkflow("Beta Stability Sprint 2 dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
+    const repRouteSnap = await snapshot(rep.cdp);
+    assertWorkflow("Beta Stability Sprint 2 Anthony route generation expands beyond six", repRouteSnap.routeCards > 6 && /(?:[7-9]|10) options/.test(repRouteSnap.routeCountLabel), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
+    const hamzaRouting = await verifyHamzaRepeatRecommendation(rep.cdp);
+    assertWorkflow("Beta Stability Sprint 2 Hamza repeat recommendation evidence routing", hamzaRouting.daysSinceRecommendation === 0 && !hamzaRouting.bestNextIsHamza && hamzaRouting.reasons.some(reason => reason.includes("recently shown")), `${hamzaRouting.hamzaName} rotated off best-next after same-day route history; best next ${hamzaRouting.bestNextName}`, JSON.stringify(hamzaRouting));
     const repNearbyBadge = await verifyRouteNearbyBadgePassive(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 Anthony Rep route nearby badge passive", repNearbyBadge.tagName === "span" && repNearbyBadge.className.includes("passive") && repNearbyBadge.pointerEvents === "none" && !repNearbyBadge.role && !repNearbyBadge.dataOpen && !repNearbyBadge.dataTab && !repNearbyBadge.dataQuickPlace && repNearbyBadge.before.activeView === repNearbyBadge.after.activeView && repNearbyBadge.before.modalActive === repNearbyBadge.after.modalActive && repNearbyBadge.before.detailsOpen === repNearbyBadge.after.detailsOpen && repNearbyBadge.whyText.includes("Nearby Opportunities"), `${repNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(repNearbyBadge));
     await clickTab(rep.cdp, "today");
@@ -867,6 +938,8 @@ async function runHarness() {
     assertWorkflow("Nearby Opportunities location acquisition", nearbyFlow.latestVisitHasLocation && nearbyFlow.locationButtonLabel === "Location Attached" && nearbyFlow.locationStatus.includes("Device-reported visit location attached"), nearbyFlow.locationStatus, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities Active Pool query", nearbyFlow.beforeRuntimePool === "active" && nearbyFlow.runtimePool === "active" && nearbyFlow.nearbyDebug.originSource === "visit-location", `${nearbyFlow.nearbyDebug.count} nearby from ${nearbyFlow.nearbyDebug.originSource}`, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities rendering", nearbyFlow.cardCount > 0 && nearbyFlow.noEmptyAfter && nearbyFlow.countLabel.includes("within") && nearbyFlow.firstCard.includes("Directions"), `${nearbyFlow.cardCount} nearby cards for ${nearbyFlow.target.name}`, JSON.stringify(nearbyFlow));
+    const routeSync = await verifyRouteStateSynchronization(rep.cdp);
+    assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
 
     const anthonyLog = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=anthony-mobile-quick-log", "anthony-mobile-log", {
