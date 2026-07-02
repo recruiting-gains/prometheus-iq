@@ -10,6 +10,7 @@ import {
 } from "./founder-communications-consumer.js";
 import {
   createFounderInstagramDirectAnswer,
+  isDeveloperModeRequest,
   isFounderInstagramAnalyticsCommand
 } from "./founder-instagram-analytics-consumer.js";
 import {
@@ -32,9 +33,9 @@ const permission = "Level 0 - Read Only";
 const activePoolDecision = {
   title: "Active Pool Decision",
   body: [
-    "The Active Pool decision was to keep runtime route data separated into an active, founder-safe pool instead of mixing every known prospect into the live recommendation surface.",
-    "The point is quality control: the runtime should favor approved, current, walk-in-relevant records and avoid stale, restricted, generic, or founder-biased locations.",
-    "For Anthony, that means his route should be isolated from Cruz history and should only consume the reviewed active pool when the data quality is verified."
+    "The Active Pool decision was about quality control.",
+    "Prometheus should recommend from approved, current, walk-in-relevant locations instead of mixing every known prospect into the live experience.",
+    "For Anthony, that means his route stays separate from Cruz history and only uses reviewed active-pool records when the data quality is verified."
   ].join(" ")
 };
 
@@ -77,7 +78,7 @@ function catchUp() {
   return response(
     "Where We Left Off",
     [
-      latest ? `Latest verified memory: ${latest.date}: ${latest.title}. ${latest.summary}` : "No verified latest memory event is available.",
+      latest ? `Last recorded point: ${latest.date}: ${latest.title}. ${latest.summary}` : "I do not have a newly recorded memory event yet.",
       "The operating thread is clear: Prometheus has product, website, executive materials, Route Intelligence, GitHub backup discipline, and Companion founder support.",
       unfinished.body,
       "Next move: keep validation ahead of new features, capture Anthony beta proof, and keep leadership communication simple."
@@ -149,11 +150,12 @@ function longTermGoals() {
   return response(
     "Long-Term Founder Goals",
     [
-      "1. Prove Prometheus IQ creates measurable field-sales value before scaling features.",
-      "2. Turn Anthony beta and controlled pilot usage into credible external proof.",
-      "3. Win a clean leadership-approved pilot without exposing proprietary route logic.",
-      "4. Build Prometheus as a recoverable company system with memory, security, source control, and founder continuity.",
-      "5. Convert Route Intelligence into the durable product advantage: where to go, why it matters, verified activity, and learning from outcomes."
+      "Your long-term goals are clear.",
+      "First, prove Prometheus IQ creates measurable field-sales value before scaling features.",
+      "Second, turn Anthony beta and controlled pilot usage into credible external proof.",
+      "Third, win a clean leadership-approved pilot without exposing proprietary route logic.",
+      "Fourth, build Prometheus as a recoverable company system with memory, security, source control, and founder continuity.",
+      "Fifth, make Route Intelligence the durable advantage: where to go, why it matters, verified activity, and learning from outcomes."
     ].join(" "),
     { intent: "long_term_goals", entities: ["Cruz", "Prometheus IQ", "Pilot"] }
   );
@@ -172,9 +174,9 @@ function strategyCritique() {
     "Strategy Weaknesses",
     [
       "The main weakness is overbuilding before external validation catches up.",
-      "Second weakness: relying too heavily on founder intuition instead of recorded Anthony feedback and verified visit data.",
-      "Third weakness: letting public polish, social, or Companion UI improvements outrank pilot proof.",
-      "Fourth weakness: pricing or executive claims could get ahead of evidence if real beta outcomes are not captured.",
+      "The second weakness is relying too heavily on founder intuition instead of recorded Anthony feedback and verified visit data.",
+      "The third is letting public polish, social, or Companion improvements outrank pilot proof.",
+      "The fourth is pricing or executive claims getting ahead of evidence.",
       "Correction: keep every week tied to one proof loop: route quality, usage, feedback, leadership clarity, and clean memory."
     ].join(" "),
     { intent: "strategy_critique", entities: ["Cruz", "Pilot", "Anthony"] }
@@ -185,10 +187,10 @@ function dashboardDataArchitecture() {
   return response(
     "Dashboard and Data Boundary",
     [
-      "The Dashboard should be the Prometheus IQ product UI: it displays approved runtime state, route recommendations, rep activity, manager views, and user-facing outcomes.",
-      "The Data subsystem should prepare and govern the underlying business records, route pools, import/export state, and versioned runtime data.",
-      "Companion must not own that runtime UI. Companion can explain status, summarize decisions, and verify drift, but it should not modify Dashboard-owned Prometheus IQ screens or Data-owned source records.",
-      "The correct boundary is: Data supplies governed records, Route Intelligence scores and selects usable routes, Dashboard presents them to users, and Companion briefs Cruz on state and decisions."
+      "The Dashboard is the Prometheus IQ product surface. It shows approved route recommendations, rep activity, manager views, and user-facing outcomes.",
+      "Data prepares and governs the underlying business records, route pools, imports, exports, and runtime data.",
+      "Companion should not own that product surface. Companion can explain status and summarize decisions, but it should not change Dashboard screens or Data records.",
+      "The clean boundary is this: Data supplies governed records, Route Intelligence selects usable routes, Dashboard presents them to users, and Companion briefs Cruz on state and decisions."
     ].join(" "),
     { intent: "dashboard_data_architecture", entities: ["Dashboard", "Data", "Route Intelligence", "Prometheus Companion"] }
   );
@@ -197,7 +199,7 @@ function dashboardDataArchitecture() {
 function overwatchAssignment() {
   return response(
     "Overwatch Next Assignment",
-    "Overwatch should assign the next task to whatever most directly improves founder acceptance and pilot proof. Current recommendation: validate Companion voice and founder-command reliability, then move back to Anthony beta evidence and leadership-ready reporting. Do not assign Dashboard, Data, or Infrastructure work unless a verified Companion blocker depends on that subsystem.",
+    "Overwatch should assign the next task to whatever most directly improves founder acceptance and pilot proof. Current recommendation: validate Companion voice and founder-command reliability, then move back to Anthony beta evidence and leadership-ready reporting. Do not assign Dashboard, Data, or Infrastructure work unless a verified Companion blocker depends on it.",
     { intent: "overwatch_assignment", entities: ["Overwatch", "Prometheus Companion", "Anthony"] }
   );
 }
@@ -216,6 +218,19 @@ function morningGreeting() {
     "Good Morning, Cruz",
     `Good morning, Cruz. Companion is online. Highest ROI: ${next.body} I can catch you up, plan the day, draft a message, review memory, or brief Prometheus engineering status.`,
     { intent: "greeting", entities: ["Cruz", "Prometheus Companion"] }
+  );
+}
+
+function developerMode() {
+  return response(
+    "Developer Mode",
+    "Developer Mode is available when you ask for a specific technical view. By default, I will stay in Founder Mode and keep answers concise, strategic, and spoken for executive use.",
+    {
+      intent: "developer_mode",
+      developerMode: true,
+      founderMode: false,
+      entities: ["Prometheus Companion"]
+    }
   );
 }
 
@@ -245,6 +260,7 @@ export async function createFounderAssistantResponse(command = "", {
       entities: ["Instagram", "Prometheus Social Media", "Prometheus Companion"]
     });
   }
+  if (isDeveloperModeRequest(normalized)) return developerMode();
   if (includesAny(normalized, ["executive dashboard", "executive command center", "command center summary"])) {
     const dashboard = createExecutiveDashboardSummary();
     return response(dashboard.title, dashboard.body, {

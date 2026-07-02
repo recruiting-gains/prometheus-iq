@@ -104,7 +104,8 @@ export function createTopThreePriorities() {
     title: "Top 3 Prometheus Priorities",
     body: topThree
       .map((task, index) => {
-        return `${index + 1}. ${task.label}. Score ${task.score}/10. ${task.reason} Next: ${task.nextStep}`;
+        const lead = index === 0 ? "Top priority" : index === 1 ? "Second" : "Third";
+        return `${lead}: ${task.label}. ${task.reason} Next move: ${task.nextStep}`;
       })
       .join(" ")
   };

@@ -338,8 +338,8 @@ for (const phrase of explicitNodeCases) {
 
 const founderAcceptanceCases = [
   ["Good morning, Companion.", ["good morning", "highest roi"]],
-  ["Catch me up on where we left off.", ["where we left off", "latest verified memory"]],
-  ["What’s the current engineering status of Prometheus?", ["engineering status", "executive operating-system layer", "stay untouched"]],
+  ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
+  ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
   ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
   ["Remind me what meetings I have.", ["founder meetings", "do not have your live calendar", "next 24 hours"]],
   ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
@@ -459,7 +459,7 @@ const executiveCommandCenterCases = [
   ],
   [
     "Help me decide what to prioritize today.",
-    ["daily decision support", "engineering:", "marketing:", "sales:", "product:", "research:", "recommendation:"]
+    ["daily decision support", "external proof first", "engineering should", "marketing should", "sales should", "product should", "research should", "recommendation:"]
   ],
   [
     "What is the company status?",
@@ -467,23 +467,23 @@ const executiveCommandCenterCases = [
   ],
   [
     "Give me engineering status.",
-    ["engineering status", "companion:", "stay untouched", "recent engineering memory:"]
+    ["engineering status", "founder command layer", "stay untouched", "recent engineering memory:"]
   ],
   [
     "Give me research summary.",
-    ["research summary", "strategic intelligence division", "founder intelligence briefs", "advisory"]
+    ["research summary", "outside evidence", "dated research brief", "strategic uncertainty"]
   ],
   [
     "Give me sales summary.",
-    ["sales summary", "go-to-market", "controlled pilots", "customer workflows"]
+    ["sales summary", "pilot-first", "controlled pilot", "customer workflows"]
   ],
   [
     "Give me website summary.",
-    ["website summary", "public website", "without exposing", "readout"]
+    ["website summary", "public website", "should not reveal", "readout"]
   ],
   [
     "Give me social media summary.",
-    ["social media summary", "instagram performance reporting", "manually controlled", "no automatic posting"]
+    ["social media summary", "instagram should support", "publish manually", "will not auto-post"]
   ],
   [
     "Give me beta summary.",
@@ -511,7 +511,7 @@ const executiveCommandCenterCases = [
   ],
   [
     "Run an executive strategy meeting.",
-    ["executive strategy meeting", "agenda:", "evidence needed:", "decision:"]
+    ["executive strategy meeting", "meeting frame", "evidence needed:", "decision:"]
   ]
 ];
 
@@ -530,6 +530,36 @@ for (const [phrase, expected] of executiveCommandCenterCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> executive:${response.title}`);
+}
+
+const founderStyleCases = [
+  "Give me my Founder Morning Brief.",
+  "Give me the executive dashboard.",
+  "Help me decide what to prioritize today.",
+  "Give me engineering status.",
+  "Give me research summary.",
+  "Give me sales summary.",
+  "Give me website summary.",
+  "Give me social media summary.",
+  "Give me beta summary.",
+  "Show technical details."
+];
+
+for (const phrase of founderStyleCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const developerMode = response.metadata?.developerMode === true;
+  const bannedHit = developerMode ? null : founderModeBannedText.find((item) => text.includes(item));
+  if (bannedHit) {
+    fail("founder-mode-natural-language", {
+      phrase,
+      title: response.title,
+      bannedHit,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> founder-style:${developerMode ? "developer-mode" : response.title}`);
 }
 
 const instagramAnalyticsProvider = new AIProvider({

@@ -135,10 +135,10 @@ export function createCompanyStatusSummary() {
   return {
     title: "Company Status",
     body: [
-      `Identity: ${sourceSummaries.company.join(" ")}`,
-      "Operating stage: founder-led validation moving from internal build progress toward external proof.",
-      "Current constraint: credible beta and pilot evidence matter more than additional surface polish.",
-      "Company rule: do not narrow Prometheus into a gym app, route planner, CRM clone, or surveillance product.",
+      `${sourceSummaries.company.join(" ")}`,
+      "Right now the company is moving from internal build progress toward external proof.",
+      "The constraint is not more polish. It is credible beta and pilot evidence.",
+      "Keep the category clear: Prometheus is not a gym app, route planner, CRM clone, or surveillance product.",
       `Founder decision: ${next.body}`
     ].join(" "),
     metadata: {
@@ -152,11 +152,11 @@ export function createEngineeringStatusSummary() {
   return {
     title: "Engineering Status",
     body: [
-      `Companion: Executive operating-system layer, memory, reasoning, voice verification, and sync/install drift checks are active.`,
-      `Prometheus IQ: ${signal("route", { value: "Route Intelligence", detail: "Route logic remains product-owned." }).detail}`,
-      "I’m keeping this as a readout only, so the product, data, infrastructure, CRM, and Anthony beta stay untouched.",
+      "Companion is operating as your founder command layer for briefings, memory, voice, and decision support.",
+      `Prometheus IQ remains focused on route quality and verified field activity. ${signal("route", { value: "Route Intelligence", detail: "Route logic remains product-owned." }).detail}`,
+      "I am keeping this as a readout only, so the product, data, infrastructure, CRM, and Anthony beta stay untouched.",
       `Recent engineering memory: ${recentEngineeringSummary()}`,
-      "Engineering recommendation: fix verified blockers only; avoid new feature work that does not improve beta proof or founder operating leverage."
+      "Recommendation: fix verified blockers only. Avoid feature work that does not improve beta proof or founder leverage."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -169,10 +169,10 @@ export function createResearchSummary() {
   return {
     title: "Research Summary",
     body: [
-      sourceSummaries.research.join(" "),
-      "Current read: Research is ready as a structured intelligence foundation, but Companion does not yet consume live dated research briefs.",
-      "Founder action: request a dated Founder Intelligence Brief when strategic uncertainty needs external evidence.",
-      "I’ll keep treating Research as advisory until a dated brief is handed over for execution."
+      "Research is ready to support founder decisions when outside evidence matters.",
+      "Use it for market movement, competitor pressure, investor framing, customer pain, and strategic uncertainty.",
+      "Current read: Companion does not yet have a live dated research brief to present.",
+      "Founder action: ask for a dated research brief when the decision needs evidence, not when it only needs execution."
     ].join(" "),
     metadata: {
       ...sourceMetadata("research"),
@@ -185,10 +185,10 @@ export function createSalesSummary() {
   return {
     title: "Sales Summary",
     body: [
-      sourceSummaries.sales.join(" "),
-      "Current founder read: keep the sales motion pilot-first and evidence-led.",
-      "Best next sales move: clarify the buyer problem, define a value hypothesis, then ask for a controlled pilot only when success criteria are clear.",
-      "I’ll keep Sales guidance separate from CRM records and customer workflows."
+      "Sales should stay pilot-first and evidence-led.",
+      "The thesis is simple: Prometheus is the operating layer before and during CRM activity, where field decisions actually happen.",
+      "Best next move: clarify the buyer problem, define the value hypothesis, then ask for a controlled pilot only when success criteria are clear.",
+      "I will keep sales guidance separate from CRM records and customer workflows."
     ].join(" "),
     metadata: {
       ...sourceMetadata("sales"),
@@ -203,9 +203,10 @@ export function createWebsiteSummary() {
     title: "Website Summary",
     body: [
       `${website.value}. ${website.detail}`,
-      sourceSummaries.website.join(" "),
-      "Founder action: use the website for credibility and pilot interest, not to reveal internal mechanics.",
-      "I’m treating the website as a readout here, not changing the public site."
+      "The public website should create confidence, explain outcomes, and support pilot interest.",
+      "It should not reveal route scoring, private customer data, GPS records, source code, prompts, or secrets.",
+      "Founder action: use the site for credibility and conversion, not internal mechanics.",
+      "I am treating the website as a readout here, not changing the public site."
     ].join(" "),
     metadata: {
       ...sourceMetadata("website"),
@@ -218,8 +219,8 @@ export function createCrmSummary() {
   return {
     title: "CRM Summary",
     body: [
-      sourceSummaries.crm.join(" "),
-      "Current founder read: CRM is ready to represent beta contacts and follow-up queues, but social campaign lead attribution remains a future CRM-owned handoff.",
+      "CRM can represent contacts, leads, follow-up queues, founder tasks, rep tasks, and enterprise lifecycle records.",
+      "Current founder read: CRM is ready to support beta contacts and follow-up, but social campaign lead attribution remains future CRM-owned work.",
       "I can summarize CRM state, but I will not create records or send outreach from Companion."
     ].join(" "),
     metadata: {
@@ -235,9 +236,10 @@ export function createSocialMediaSummary() {
     title: "Social Media Summary",
     body: [
       `${social.value}. ${social.detail}`,
-      sourceSummaries.socialMedia.join(" "),
-      "Founder action: publish field reality, product intelligence, and enterprise-trust lessons manually.",
-      "I’ll keep this advisory: no automatic posting, private beta exposure, or public claims beyond what the social read supports."
+      "Instagram should support founder credibility without exposing private beta details, internal screens, customer data, or proprietary route logic.",
+      "Content should stay anchored in field reality, product intelligence, enterprise trust, and outside-sales education.",
+      "Founder action: publish manually and keep claims tied to what the social read actually supports.",
+      "I will not auto-post or expose private product mechanics."
     ].join(" "),
     metadata: {
       ...sourceMetadata("socialMedia"),
@@ -253,8 +255,8 @@ export function createBetaSummary() {
     body: [
       `${beta.value}. ${beta.detail}`,
       executiveMemory.betaFindings.join(" "),
-      "Founder action: collect route clarity, walk-in readiness, GPS verification, visit logging, feedback, and export/report usefulness.",
-      "Boundary: Companion must not modify Anthony beta, Dashboard behavior, production route data, or beta access controls."
+      "Founder action: collect route clarity, walk-in readiness, GPS verification, visit logging, feedback, and export usefulness.",
+      "Companion must not modify Anthony beta, Dashboard behavior, production route data, or beta access controls."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -285,8 +287,9 @@ export async function createFounderMorningBrief({
   return {
     title: "Founder Morning Brief",
     body: [
+      "Here is the founder read.",
       `Engineering: ${recentEngineeringSummary()}`,
-      instagram.body,
+      `Instagram: ${instagram.body}`,
       `Research: ${research.body}`,
       `Sales: ${sales.body}`,
       `Website: ${website.value}. ${website.detail}`,
@@ -294,7 +297,7 @@ export async function createFounderMorningBrief({
       `Beta: ${beta.value}. ${beta.detail}`,
       `Calendar: ${agenda.body}`,
       `Daily Priorities: ${priorities.body}`,
-      "Executive read: protect Anthony beta, preserve founder focus, and turn internal progress into external proof."
+      "My recommendation: protect Anthony beta, preserve founder focus, and turn internal progress into external proof."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -330,12 +333,12 @@ export function createExecutiveDashboardSummary() {
     title: "Executive Dashboard",
     body: [
       `Company: ${sourceSummaries.company.join(" ")}`,
-      "Product: Route Intelligence and verified field activity are the durable advantage.",
-      "Beta: Anthony validation remains the main proof gap; do not disturb the beta runtime.",
-      `Research: ${sourceSummaries.research[0]} ${sourceSummaries.research[3]}`,
-      `Sales: ${sourceSummaries.sales[0]} ${sourceSummaries.sales[3]}`,
-      `Website: ${sourceSummaries.website[1]}`,
-      `Social Media: ${sourceSummaries.socialMedia[0]} ${sourceSummaries.socialMedia[1]}`,
+      "Product: Route Intelligence and verified field activity remain the durable advantage.",
+      "Beta: Anthony validation is still the main proof gap; leave the beta runtime undisturbed.",
+      "Research: use outside evidence when strategy is uncertain.",
+      "Sales: keep the motion controlled, pilot-first, and tied to measurable field value.",
+      "Website: use the site for credibility without revealing internal mechanics.",
+      "Social Media: use Instagram to build trust around field reality and product intelligence.",
       `Memory: ${memory.body}`,
       `Decision: ${next.body}`
     ].join(" "),
@@ -351,13 +354,13 @@ export function createDailyDecisionSupport() {
   return {
     title: "Daily Decision Support",
     body: [
-      "Decision frame: rank work by external proof, revenue path, risk reduction, and founder leverage.",
-      "Engineering: fix only defects that block Companion acceptance, beta validation, or reliable recovery.",
-      "Product: prioritize Anthony beta evidence, route quality, visit logging, and proof that tomorrow's route gets smarter.",
-      "Sales: prepare leadership follow-up only after the proof loop is clear enough to defend.",
-      "Marketing: publish safe founder progress and field-sales lessons without showing internal screens, route scoring, customer data, or proprietary logic.",
-      "Research: use Founder Intelligence Briefs when a decision needs external evidence, not when it only needs execution.",
-      "Recommendation: product/beta validation first, sales follow-up second, marketing third, engineering only for verified blockers."
+      "Use this frame: external proof first, revenue path second, risk reduction third, founder leverage always.",
+      "Engineering should fix only defects that block Companion acceptance, beta validation, or recovery.",
+      "Product should prioritize Anthony beta evidence, route quality, visit logging, and proof that tomorrow's route gets smarter.",
+      "Sales should wait until the proof loop is clear enough to defend, then move into a controlled leadership follow-up.",
+      "Marketing should publish safe founder progress and field-sales lessons without showing internal screens, route scoring, customer data, or proprietary logic.",
+      "Research should come in when a decision needs outside evidence, not when it only needs execution.",
+      "Recommendation: product and beta validation first, sales follow-up second, marketing third, engineering only for verified blockers."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -393,7 +396,7 @@ export function createFounderMemoryRecall(command = "") {
     body: [
       sentenceList(executiveMemory[key]),
       `Verified memory events available: ${memoryEvents.length}.`,
-      "Truth rule: Companion only states investor, beta, and customer facts that have been recorded."
+      "Truth rule: I will only state investor, beta, and customer facts that have been recorded."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -406,7 +409,7 @@ export function createExecutiveStrategyMeeting() {
   return {
     title: "Executive Strategy Meeting",
     body: [
-      "Agenda: decide the single highest-leverage proof loop, identify the evidence, name the risk, then choose the next action.",
+      "Here is the meeting frame: decide the single highest-leverage proof loop, identify the evidence, name the risk, then choose the next action.",
       "Current strategic read: Prometheus has enough internal build progress. The operating constraint is external validation.",
       "Evidence needed: Anthony beta feedback, verified visits, route-quality notes, leadership response, and clean daily memory.",
       "Risk: polishing systems can feel productive while delaying market proof.",
