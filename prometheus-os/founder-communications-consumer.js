@@ -29,12 +29,12 @@ export function displayFounderConnectionState(status = {}) {
 
 function integrationLine(status = {}) {
   const state = displayFounderConnectionState(status);
-  const provider = status.provider || "unconfigured";
-  const permissions = status.requiredPermissions?.length
-    ? ` Required permissions: ${status.requiredPermissions.join(", ")}.`
-    : "";
   const error = status.errors?.[0]?.message ? ` ${status.errors[0].message}` : "";
-  return `Integration state: ${state}. Provider: ${provider}. Contract: ${FOUNDER_COMMUNICATIONS_CONTRACT_VERSION}.${permissions}${error}`.trim();
+  if (state === "Connected" || state === "Sync Complete") return "Your calendar and messages are connected.";
+  if (state === "Sync Pending") return "Your calendar and messages are still syncing, so I may only have a partial read.";
+  if (state === "Permission Required") return "I need calendar or message permission before I can give you the live read.";
+  if (state === "Disconnected") return "I do not have your live calendar or messages connected yet.";
+  return `I could not read the calendar or message connection cleanly.${error}`.trim();
 }
 
 function formatEvent(event) {
@@ -86,7 +86,7 @@ export async function createFounderMeetingsBrief({ service = defaultService, now
   const state = integrationLine(result.status);
   const meetings = result.meetings?.length
     ? result.meetings.map(formatEvent).join(" ")
-    : "No synced meetings were returned by the shared integration contract for this window.";
+    : "I do not see any synced meetings for the next 24 hours yet.";
 
   return {
     title: "Founder Meetings",
@@ -109,7 +109,7 @@ export async function createFounderAgendaBrief({ service = defaultService, comma
   const state = integrationLine(result.status);
   const events = result.events?.length
     ? result.events.map(formatEvent).join(" ")
-    : "No synced agenda events were returned by the shared integration contract for today.";
+    : "I do not see synced agenda events for today yet.";
 
   return {
     title: "Founder Day Plan",
@@ -134,7 +134,7 @@ export async function createFounderMessageSummaryBrief({ service = defaultServic
   const state = integrationLine(result.status);
   const messages = result.messages?.length
     ? result.messages.map(formatMessage).join(" ")
-    : "No synced message summaries were returned by the shared integration contract.";
+    : "I do not see synced message summaries yet.";
 
   return {
     title: "Founder Message Summary",
@@ -165,12 +165,12 @@ export async function createFounderDraftMessageBrief({ service = defaultService,
   const request = result.draftRequest || fallbackRequest;
   const state = integrationLine(result.status);
   const okText = result.ok
-    ? "Draft request accepted by the shared integration contract."
-    : "Draft request could not be accepted by the shared integration contract.";
+    ? "I prepared the draft for review."
+    : "I prepared the draft locally for review, but the message connection did not accept it yet.";
 
   return {
     title: "Message Draft",
-    body: `${state} ${okText} Send policy: ${request.sendPolicy}. No message was sent. Subject: ${request.subject}. Draft: ${request.body}`,
+    body: `${state} ${okText} I did not send anything. Subject: ${request.subject}. Draft: ${request.body}`,
     metadata: {
       integrationContract: result.contractVersion,
       integrationState: displayFounderConnectionState(result.status),

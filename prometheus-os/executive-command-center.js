@@ -56,10 +56,10 @@ const sourceSummaries = Object.freeze({
     "Companion can summarize CRM state but must not create a parallel CRM or mutate CRM records."
   ],
   socialMedia: [
-    "Social Media owns live Instagram Business analytics consumption and normalized marketing analytics contracts.",
+    "Social Media owns Instagram performance reporting and founder marketing signals.",
     "Content pillars are Field Reality, Product Intelligence, Founder Build In Public, Enterprise Trust, and Outside Sales Education.",
-    "Publishing remains manual; analytics consumption does not enable live posting, DMs, comments automation, scraping, or token exposure.",
-    "Social Media must not expose Anthony beta details, private dashboards, proprietary route logic, customer data, or live provider claims."
+    "Publishing remains intentional and manually controlled.",
+    "Social Media should protect Anthony beta details, private dashboards, proprietary route logic, customer data, and unverified claims."
   ]
 });
 
@@ -154,7 +154,7 @@ export function createEngineeringStatusSummary() {
     body: [
       `Companion: Executive operating-system layer, memory, reasoning, voice verification, and sync/install drift checks are active.`,
       `Prometheus IQ: ${signal("route", { value: "Route Intelligence", detail: "Route logic remains product-owned." }).detail}`,
-      "Boundary: this Companion summary does not modify Dashboard, Data, Infrastructure, CRM, or Anthony beta behavior.",
+      "I’m keeping this as a readout only, so the product, data, infrastructure, CRM, and Anthony beta stay untouched.",
       `Recent engineering memory: ${recentEngineeringSummary()}`,
       "Engineering recommendation: fix verified blockers only; avoid new feature work that does not improve beta proof or founder operating leverage."
     ].join(" "),
@@ -172,7 +172,7 @@ export function createResearchSummary() {
       sourceSummaries.research.join(" "),
       "Current read: Research is ready as a structured intelligence foundation, but Companion does not yet consume live dated research briefs.",
       "Founder action: request a dated Founder Intelligence Brief when strategic uncertainty needs external evidence.",
-      "Boundary: no production research integration or automated external-source ingestion was added."
+      "I’ll keep treating Research as advisory until a dated brief is handed over for execution."
     ].join(" "),
     metadata: {
       ...sourceMetadata("research"),
@@ -188,7 +188,7 @@ export function createSalesSummary() {
       sourceSummaries.sales.join(" "),
       "Current founder read: keep the sales motion pilot-first and evidence-led.",
       "Best next sales move: clarify the buyer problem, define a value hypothesis, then ask for a controlled pilot only when success criteria are clear.",
-      "Boundary: Companion summarizes Sales sources only; CRM workflows and customer records remain out of scope."
+      "I’ll keep Sales guidance separate from CRM records and customer workflows."
     ].join(" "),
     metadata: {
       ...sourceMetadata("sales"),
@@ -205,7 +205,7 @@ export function createWebsiteSummary() {
       `${website.value}. ${website.detail}`,
       sourceSummaries.website.join(" "),
       "Founder action: use the website for credibility and pilot interest, not to reveal internal mechanics.",
-      "Boundary: no Website files or deployment systems are modified by Companion."
+      "I’m treating the website as a readout here, not changing the public site."
     ].join(" "),
     metadata: {
       ...sourceMetadata("website"),
@@ -220,7 +220,7 @@ export function createCrmSummary() {
     body: [
       sourceSummaries.crm.join(" "),
       "Current founder read: CRM is ready to represent beta contacts and follow-up queues, but social campaign lead attribution remains a future CRM-owned handoff.",
-      "Boundary: Companion does not create CRM records, send outreach, or own CRM pipeline logic."
+      "I can summarize CRM state, but I will not create records or send outreach from Companion."
     ].join(" "),
     metadata: {
       ...sourceMetadata("crm"),
@@ -237,7 +237,7 @@ export function createSocialMediaSummary() {
       `${social.value}. ${social.detail}`,
       sourceSummaries.socialMedia.join(" "),
       "Founder action: publish field reality, product intelligence, and enterprise-trust lessons manually.",
-      "Boundary: Companion does not own OAuth, scraping, browser automation, automated posting, DMs, comments automation, token handling, or Social Media normalization."
+      "I’ll keep this advisory: no automatic posting, private beta exposure, or public claims beyond what the social read supports."
     ].join(" "),
     metadata: {
       ...sourceMetadata("socialMedia"),
@@ -285,15 +285,15 @@ export async function createFounderMorningBrief({
   return {
     title: "Founder Morning Brief",
     body: [
-      `Engineering (Source: Overwatch): ${recentEngineeringSummary()}`,
+      `Engineering: ${recentEngineeringSummary()}`,
       instagram.body,
-      `Research (Source: Prometheus Research): ${research.body}`,
-      `Sales (Source: Prometheus Sales): ${sales.body}`,
-      `Website (Source: Prometheus Website): ${website.value}. ${website.detail}`,
-      `CRM (Source: Prometheus CRM): ${crm.body}`,
-      `Beta (Source: Prometheus Administration): ${beta.value}. ${beta.detail}`,
-      `Calendar (Source: Prometheus Integrations): ${agenda.body}`,
-      `Daily Priorities (Source: Prometheus Companion Priority Engine): ${priorities.body}`,
+      `Research: ${research.body}`,
+      `Sales: ${sales.body}`,
+      `Website: ${website.value}. ${website.detail}`,
+      `CRM: ${crm.body}`,
+      `Beta: ${beta.value}. ${beta.detail}`,
+      `Calendar: ${agenda.body}`,
+      `Daily Priorities: ${priorities.body}`,
       "Executive read: protect Anthony beta, preserve founder focus, and turn internal progress into external proof."
     ].join(" "),
     metadata: {

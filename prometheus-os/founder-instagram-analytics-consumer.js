@@ -78,8 +78,12 @@ function sumMetric(metrics, name) {
 }
 
 function formatCount(value) {
-  if (value === null || value === undefined) return "unavailable";
+  if (value === null || value === undefined) return "not in the latest read";
   return new Intl.NumberFormat("en-US").format(Number(value || 0));
+}
+
+function hasValue(value) {
+  return value !== null && value !== undefined;
 }
 
 function providerStatus(snapshot) {
@@ -125,7 +129,7 @@ function topContentText(metrics) {
     .map(group => ({ ...group, score: contentScore(group) }))
     .sort((a, b) => b.score - a.score)[0];
 
-  if (!top) return "Top performing content: no content-level metrics are available in the normalized Social Media snapshot.";
+  if (!top) return "I do not have a clear top post yet from today's social read.";
 
   const caption = top.captionPreview ? ` "${top.captionPreview}"` : "";
   const details = [
@@ -134,7 +138,7 @@ function topContentText(metrics) {
     top.metrics.content_reach !== undefined ? `${formatCount(top.metrics.content_reach)} reach` : ""
   ].filter(Boolean).join(", ");
 
-  return `Top performing content: ${String(top.mediaType || "content").toUpperCase()}${caption} with ${details}.`;
+  return `Best post so far: ${String(top.mediaType || "content").toUpperCase()}${caption} with ${details}.`;
 }
 
 function normalizedCommand(command = "") {
@@ -149,6 +153,7 @@ function normalizedCommand(command = "") {
 export function isFounderInstagramAnalyticsCommand(command = "") {
   const normalized = normalizedCommand(command);
   if (!normalized) return false;
+  if (isDeveloperModeRequest(normalized) && normalized.includes("instagram")) return true;
   if (["instagram", "instagram analytics", "show instagram analytics", "show me my instagram analytics"].includes(normalized)) return true;
   if (normalized.includes("instagram") && (
     normalized.includes("doing") ||
@@ -173,59 +178,167 @@ export function isFounderInstagramAnalyticsCommand(command = "") {
   ].some(phrase => normalized.includes(phrase));
 }
 
+export function isDeveloperModeRequest(command = "") {
+  const normalized = normalizedCommand(command);
+  return [
+    "show technical details",
+    "developer mode",
+    "show raw data",
+    "raw data",
+    "technical details"
+  ].some(phrase => normalized.includes(phrase));
+}
+
 function growthTrendText(snapshot, metrics) {
   const direct = ["followers_growth", "follower_growth", "followers_delta", "growth_rate", "profile_growth", "reach_growth"]
     .map(name => latestMetricValue(metrics, name))
     .find(value => value !== null);
 
-  if (direct !== undefined) return `Growth trend: ${formatCount(direct)} from normalized Social Media trend metrics.`;
+  if (direct !== undefined) return `Growth trend: up ${formatCount(direct)} on the latest trend read.`;
   if (snapshot?.summary?.growthTrend) return `Growth trend: ${snapshot.summary.growthTrend}.`;
-  return "Growth trend: pending historical comparison from Prometheus Social Media; current snapshot has no trend metric.";
+  return "Growth trend: I need one more comparable history point before I can call the trend confidently.";
 }
 
 function sourceLabel(snapshot, status) {
-  if (!snapshot) return "normalized snapshot unavailable";
-  if (status?.state === SOCIAL_CONNECTION_STATES.CONNECTED) return "normalized provider_api snapshot";
-  if (status?.source === SOCIAL_DATA_SOURCES.MOCK_SAMPLE) return "mock/sample normalized snapshot";
-  return "normalized Social Media snapshot";
+  if (!snapshot) return "I could not reach today's social read yet";
+  if (status?.state === SOCIAL_CONNECTION_STATES.CONNECTED) return "the live social read is connected";
+  if (status?.source === SOCIAL_DATA_SOURCES.MOCK_SAMPLE) return "I only have sample social data right now";
+  return "the social read is partially available";
+}
+
+function missingMetricsText(metrics = {}) {
+  const missing = [
+    ["followers", metrics.followers],
+    ["reach", metrics.reach],
+    ["impressions", metrics.impressions],
+    ["profile visits", metrics.profileVisits],
+    ["website clicks", metrics.websiteClicks],
+    ["engagement", metrics.engagement]
+  ].filter(([, value]) => !hasValue(value)).map(([label]) => label);
+
+  if (!missing.length) return "";
+  if (missing.length === 1) return `I could not retrieve the latest ${missing[0]} number yet.`;
+  return `I could not retrieve the latest ${missing.slice(0, -1).join(", ")} or ${missing.at(-1)} numbers yet.`;
+}
+
+function founderMetricsText(metrics = {}) {
+  const available = [
+    hasValue(metrics.followers) ? `${formatCount(metrics.followers)} followers` : "",
+    hasValue(metrics.reach) ? `${formatCount(metrics.reach)} reach` : "",
+    hasValue(metrics.impressions) ? `${formatCount(metrics.impressions)} impressions` : "",
+    hasValue(metrics.profileVisits) ? `${formatCount(metrics.profileVisits)} profile visits` : "",
+    hasValue(metrics.websiteClicks) ? `${formatCount(metrics.websiteClicks)} website clicks` : "",
+    hasValue(metrics.engagement) ? `${formatCount(metrics.engagement)} engagement` : ""
+  ].filter(Boolean);
+
+  if (!available.length) return "I could not retrieve today's Instagram numbers yet.";
+  return `Today's Instagram read shows ${available.join(", ")}.`;
+}
+
+function createFounderBody({ account, status, metrics, topContent, growthTrend }) {
+  const missing = missingMetricsText(metrics);
+  return [
+    `Instagram is ${status?.state === SOCIAL_CONNECTION_STATES.CONNECTED ? "connected" : "not fully connected"} for ${account}, and I’m reading it through Prometheus Social Media.`,
+    founderMetricsText(metrics),
+    topContent,
+    growthTrend,
+    missing,
+    "My recommendation: keep the next post focused on field reality, pilot proof, and why outside sales needs better direction before more activity."
+  ].filter(Boolean).join(" ");
+}
+
+function createDeveloperBody({
+  analyticsSnapshot,
+  account,
+  state,
+  status,
+  source,
+  contractVersion,
+  contractOk,
+  followers,
+  reach,
+  impressions,
+  profileVisits,
+  websiteClicks,
+  engagement,
+  topContent,
+  growthTrend
+}) {
+  return [
+    `Instagram (Source: Prometheus Social Media): ${account}; state ${state}; ${source}; contract ${contractVersion}${contractOk ? "" : " (unexpected contract version)"}.`,
+    `Followers: ${formatCount(followers)}.`,
+    `Reach: ${formatCount(reach)}.`,
+    `Impressions: ${formatCount(impressions)}.`,
+    `Profile visits: ${formatCount(profileVisits)}.`,
+    `Website clicks: ${formatCount(websiteClicks)}.`,
+    `Engagement: ${formatCount(engagement)}.`,
+    topContent,
+    growthTrend,
+    `Raw provider state: ${JSON.stringify(status || {})}.`,
+    `Raw snapshot id: ${analyticsSnapshot?.id || "missing"}.`,
+    "Companion role: presentation only; no Instagram API calls, tokens, Meta credentials, or Social Media normalization logic are owned here."
+  ].join(" ");
 }
 
 export async function createFounderInstagramAnalyticsBrief({
   snapshot = null,
-  service = getDefaultFounderSocialAnalyticsService()
+  service = getDefaultFounderSocialAnalyticsService(),
+  developerMode = false
 } = {}) {
   const analyticsSnapshot = snapshot || await service.getInstagramAnalyticsSnapshot();
   const status = providerStatus(analyticsSnapshot);
-  const metrics = Array.isArray(analyticsSnapshot?.metrics) ? analyticsSnapshot.metrics : [];
-  const reach = latestMetricValue(metrics, "reach");
-  const impressions = latestMetricValue(metrics, "impressions");
-  const profileVisits = latestMetricValue(metrics, "profile_views");
-  const websiteClicks = latestMetricValue(metrics, "website_clicks");
-  const followers = latestMetricValue(metrics, "followers_count");
-  const engagement = sumMetric(metrics, "content_total_interactions") ??
-    ["content_likes", "content_comments", "content_shares", "content_saved"].reduce((total, name) => total + Number(sumMetric(metrics, name) || 0), 0);
-  const topContent = topContentText(metrics);
-  const growthTrend = growthTrendText(analyticsSnapshot, metrics);
+  const metricRecords = Array.isArray(analyticsSnapshot?.metrics) ? analyticsSnapshot.metrics : [];
+  const reach = latestMetricValue(metricRecords, "reach");
+  const impressions = latestMetricValue(metricRecords, "impressions");
+  const profileVisits = latestMetricValue(metricRecords, "profile_views");
+  const websiteClicks = latestMetricValue(metricRecords, "website_clicks");
+  const followers = latestMetricValue(metricRecords, "followers_count");
+  const engagement = sumMetric(metricRecords, "content_total_interactions") ??
+    ["content_likes", "content_comments", "content_shares", "content_saved"].reduce((total, name) => total + Number(sumMetric(metricRecords, name) || 0), 0);
+  const topContent = topContentText(metricRecords);
+  const growthTrend = growthTrendText(analyticsSnapshot, metricRecords);
 
   const contractVersion = analyticsSnapshot?.contractVersion || "unavailable";
   const contractOk = contractVersion === SOCIAL_MEDIA_CONTRACT_VERSION;
   const state = status?.state || "unavailable";
   const account = status?.accountHandle || "@prometheus.iq";
+  const metrics = {
+    followers,
+    reach,
+    impressions,
+    profileVisits,
+    websiteClicks,
+    engagement
+  };
+  const source = sourceLabel(analyticsSnapshot, status);
+  const founderBody = createFounderBody({
+    account,
+    status,
+    metrics,
+    topContent,
+    growthTrend
+  });
+  const developerBody = createDeveloperBody({
+    analyticsSnapshot,
+    account,
+    state,
+    status,
+    source,
+    contractVersion,
+    contractOk,
+    followers,
+    reach,
+    impressions,
+    profileVisits,
+    websiteClicks,
+    engagement,
+    topContent,
+    growthTrend
+  });
 
   return {
     title: "Instagram Analytics",
-    body: [
-      `Instagram (Source: Prometheus Social Media): ${account}; state ${state}; ${sourceLabel(analyticsSnapshot, status)}; contract ${contractVersion}${contractOk ? "" : " (unexpected contract version)"}.`,
-      `Followers: ${formatCount(followers)}.`,
-      `Reach: ${formatCount(reach)}.`,
-      `Impressions: ${formatCount(impressions)}.`,
-      `Profile visits: ${formatCount(profileVisits)}.`,
-      `Website clicks: ${formatCount(websiteClicks)}.`,
-      `Engagement: ${formatCount(engagement)}.`,
-      topContent,
-      growthTrend,
-      "Companion role: presentation only; no Instagram API calls, tokens, Meta credentials, or Social Media normalization logic are owned here."
-    ].join(" "),
+    body: developerMode ? developerBody : founderBody,
     metadata: {
       sourceSubsystem: "Prometheus Social Media",
       consumedContract: SOCIAL_MEDIA_CONTRACT_VERSION,
@@ -233,50 +346,53 @@ export async function createFounderInstagramAnalyticsBrief({
       provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
       providerState: state,
       metricSource: status?.source || "unavailable",
-      metrics: {
-        followers,
-        reach,
-        impressions,
-        profileVisits,
-        websiteClicks,
-        engagement
-      },
+      metrics,
       topContentText: topContent,
       growthTrendText: growthTrend,
+      founderMode: !developerMode,
+      developerMode,
+      developerBody,
       presentationOnly: true,
       directInstagramApiCalls: false
     }
   };
 }
 
-function directLeadForCommand(command, analytics) {
+function directLeadForCommand(command, analytics, { developerMode = false } = {}) {
   const normalized = normalizedCommand(command);
   const metrics = analytics.metadata.metrics || {};
+  if (developerMode) return "Developer mode requested. Here are the technical details behind the Instagram answer.";
 
   if (normalized.includes("followers")) {
-    return `Direct answer: Followers: ${formatCount(metrics.followers)}. Source: Prometheus Social Media.`;
+    return hasValue(metrics.followers)
+      ? `We have ${formatCount(metrics.followers)} Instagram followers right now. I’m reading that through Prometheus Social Media.`
+      : "I could not retrieve the latest follower count yet, but I can still review the rest of today's Instagram read.";
   }
   if (normalized.includes("reach")) {
-    return `Direct answer: Reach: ${formatCount(metrics.reach)}. Source: Prometheus Social Media.`;
+    return hasValue(metrics.reach)
+      ? `Instagram reach is ${formatCount(metrics.reach)} on the latest read. I’m reading that through Prometheus Social Media.`
+      : "I could not retrieve the latest reach number yet, but the rest of the Instagram read is still available.";
   }
   if (normalized.includes("website click")) {
-    return `Direct answer: Website clicks from Instagram: ${formatCount(metrics.websiteClicks)}. Source: Prometheus Social Media.`;
+    return hasValue(metrics.websiteClicks)
+      ? `Instagram sent ${formatCount(metrics.websiteClicks)} website clicks on the latest read. I’m reading that through Prometheus Social Media.`
+      : "I could not retrieve the latest Instagram website-click count yet.";
   }
   if (normalized.includes("performed best") || normalized.includes("best performing") || normalized.includes("top performing")) {
-    return `Direct answer: ${analytics.metadata.topContentText} Source: Prometheus Social Media.`;
+    return `${analytics.metadata.topContentText} I’m reading that through Prometheus Social Media.`;
   }
   if (normalized.includes("post next")) {
     return [
-      `Direct answer: use the strongest normalized Instagram signal. ${analytics.metadata.topContentText}`,
+      `I would build the next post from the strongest Instagram signal I can see. ${analytics.metadata.topContentText}`,
       "Recommendation: post a concise founder lesson about field-sales intelligence, pilot proof, or why outside sales needs direction before activity.",
       "Keep it public-safe: do not show private dashboards, route scoring, customer data, Anthony beta details, or proprietary mechanics.",
-      "Source: Prometheus Social Media."
+      "I’m reading the performance signal through Prometheus Social Media."
     ].join(" ");
   }
 
   return [
-    `Direct answer: Instagram has ${formatCount(metrics.followers)} followers, ${formatCount(metrics.reach)} reach, ${formatCount(metrics.impressions)} impressions, ${formatCount(metrics.profileVisits)} profile visits, ${formatCount(metrics.websiteClicks)} website clicks, and ${formatCount(metrics.engagement)} engagement.`,
-    "Source: Prometheus Social Media."
+    founderMetricsText(metrics),
+    "I’m reading that through Prometheus Social Media."
   ].join(" ");
 }
 
@@ -284,12 +400,13 @@ export async function createFounderInstagramDirectAnswer({
   command = "",
   service = getDefaultFounderSocialAnalyticsService()
 } = {}) {
-  const analytics = await createFounderInstagramAnalyticsBrief({ service });
+  const developerMode = isDeveloperModeRequest(command);
+  const analytics = await createFounderInstagramAnalyticsBrief({ service, developerMode });
 
   return {
     title: "Instagram Analytics",
     body: [
-      directLeadForCommand(command, analytics),
+      directLeadForCommand(command, analytics, { developerMode }),
       analytics.body
     ].join(" "),
     metadata: {

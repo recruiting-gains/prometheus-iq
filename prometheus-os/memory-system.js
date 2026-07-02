@@ -84,7 +84,7 @@ export const memoryEvents = [
     id: "daily-chief-of-staff",
     date: "2026-06-24",
     title: "Daily Chief of Staff layer added",
-    summary: "Prometheus Companion gained daily brief, founder scorecard, priority engine, GitHub backup coach, email drafting mode, social media readiness, and safer intent routing.",
+    summary: "Prometheus Companion gained daily brief, founder scorecard, priority engine, GitHub backup coach, email drafting mode, social media readiness, and safer command handling.",
     entities: ["Prometheus Companion", "Prometheus OS", "GitHub", "Social Media"],
     tags: ["companion", "chief-of-staff", "routing", "operations"],
     status: "completed",

@@ -106,6 +106,20 @@ const bannedResponseText = [
   "i found safe prometheus context"
 ];
 
+const founderModeBannedText = [
+  "contract",
+  "normalized",
+  "provider_api",
+  "provider:",
+  "source:",
+  "api calls",
+  "meta credentials",
+  "route selected",
+  "intent routing",
+  "snapshot",
+  "unavailable"
+];
+
 const reasoningCases = [
   "Prometheus, what happened today?",
   "Prometheus, what happened yesterday?",
@@ -325,11 +339,11 @@ for (const phrase of explicitNodeCases) {
 const founderAcceptanceCases = [
   ["Good morning, Companion.", ["good morning", "highest roi"]],
   ["Catch me up on where we left off.", ["where we left off", "latest verified memory"]],
-  ["What’s the current engineering status of Prometheus?", ["engineering status", "executive operating-system layer", "boundary:"]],
-  ["Help me draft a message.", ["message draft", "shared integration contract", "no message was sent"]],
-  ["Remind me what meetings I have.", ["founder meetings", "integration state: disconnected", "shared integration contract"]],
+  ["What’s the current engineering status of Prometheus?", ["engineering status", "executive operating-system layer", "stay untouched"]],
+  ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
+  ["Remind me what meetings I have.", ["founder meetings", "do not have your live calendar", "next 24 hours"]],
   ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
-  ["Help me plan my day.", ["founder day plan", "integration state: disconnected", "shared integration contract"]],
+  ["Help me plan my day.", ["founder day plan", "do not have your live calendar", "proof, not activity"]],
   ["How should we price this feature?", ["pricing direction", "operational value"]],
   ["What did we decide about Active Pool?", ["active pool decision", "active pool"]],
   ["What are weaknesses in my current strategy?", ["strategy weaknesses", "overbuilding"]],
@@ -356,9 +370,9 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 
 const disconnectedProvider = new AIProvider();
 const disconnectedCases = [
-  ["Remind me what meetings I have.", ["integration state: disconnected", FOUNDER_COMMUNICATIONS_CONTRACT_VERSION]],
-  ["Help me draft a message.", ["integration state: disconnected", "draft_only_until_explicit_send_capability_is_connected"]],
-  ["Help me plan my day.", ["integration state: disconnected", "no synced agenda events"]]
+  ["Remind me what meetings I have.", ["do not have your live calendar", "next 24 hours"]],
+  ["Help me draft a message.", ["i prepared the draft", "i did not send anything"]],
+  ["Help me plan my day.", ["do not see synced agenda events", "proof, not activity"]]
 ];
 
 for (const [phrase, expected] of disconnectedCases) {
@@ -396,7 +410,7 @@ for (const phrase of [
 ]) {
   const response = await permissionProvider.ask(phrase);
   const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
-  if (response.metadata?.integrationState !== "Permission Required" || !text.includes("permission required") || !text.includes("calendar.read")) {
+  if (response.metadata?.integrationState !== "Permission Required" || !text.includes("need calendar or message permission")) {
     fail("permission-required-integration-state", {
       phrase,
       title: response.title,
@@ -437,7 +451,7 @@ for (const [phrase, expected] of protectedPassingCases) {
 const executiveCommandCenterCases = [
   [
     "Give me my Founder Morning Brief.",
-    ["founder morning brief", "engineering (source: overwatch)", "instagram (source: prometheus social media)", "research (source: prometheus research)", "sales (source: prometheus sales)", "website (source: prometheus website)", "crm (source: prometheus crm)", "beta (source: prometheus administration)", "daily priorities (source: prometheus companion priority engine)"]
+    ["founder morning brief", "engineering:", "instagram is not fully connected", "prometheus social media", "research:", "sales:", "website:", "crm:", "beta:", "daily priorities:"]
   ],
   [
     "Give me the executive dashboard.",
@@ -453,23 +467,23 @@ const executiveCommandCenterCases = [
   ],
   [
     "Give me engineering status.",
-    ["engineering status", "companion:", "boundary:", "recent engineering memory:"]
+    ["engineering status", "companion:", "stay untouched", "recent engineering memory:"]
   ],
   [
     "Give me research summary.",
-    ["research summary", "strategic intelligence division", "founder intelligence briefs", "boundary:"]
+    ["research summary", "strategic intelligence division", "founder intelligence briefs", "advisory"]
   ],
   [
     "Give me sales summary.",
-    ["sales summary", "go-to-market", "controlled pilots", "crm workflows"]
+    ["sales summary", "go-to-market", "controlled pilots", "customer workflows"]
   ],
   [
     "Give me website summary.",
-    ["website summary", "public website", "without exposing", "boundary:"]
+    ["website summary", "public website", "without exposing", "readout"]
   ],
   [
     "Give me social media summary.",
-    ["social media summary", "live instagram business analytics", "automated posting", "social media normalization"]
+    ["social media summary", "instagram performance reporting", "manually controlled", "no automatic posting"]
   ],
   [
     "Give me beta summary.",
@@ -523,14 +537,14 @@ const instagramAnalyticsProvider = new AIProvider({
 });
 
 const instagramDirectCases = [
-  ["How is Instagram doing?", ["instagram analytics", "direct answer:", "followers", "reach", "source: prometheus social media"]],
-  ["Instagram", ["instagram analytics", "direct answer:", "source: prometheus social media"]],
-  ["Show me my Instagram analytics.", ["instagram analytics", "followers: 50", "reach: 20", "website clicks: 3"]],
-  ["How many followers do we have?", ["followers: 50", "source: prometheus social media"]],
-  ["How much reach did we get?", ["reach: 20", "source: prometheus social media"]],
-  ["Which post performed best?", ["top performing content: reel", "outside sales needs intelligence", "source: prometheus social media"]],
-  ["How many website clicks came from Instagram?", ["website clicks from instagram: 3", "source: prometheus social media"]],
-  ["What should I post next?", ["recommendation:", "public-safe", "source: prometheus social media"]]
+  ["How is Instagram doing?", ["instagram analytics", "today's instagram read shows", "followers", "reach", "prometheus social media"]],
+  ["Instagram", ["instagram analytics", "today's instagram read shows", "prometheus social media"]],
+  ["Show me my Instagram analytics.", ["instagram analytics", "50 followers", "20 reach", "3 website clicks"]],
+  ["How many followers do we have?", ["we have 50 instagram followers", "prometheus social media"]],
+  ["How much reach did we get?", ["instagram reach is 20", "prometheus social media"]],
+  ["Which post performed best?", ["best post so far: reel", "outside sales needs intelligence", "prometheus social media"]],
+  ["How many website clicks came from Instagram?", ["instagram sent 3 website clicks", "prometheus social media"]],
+  ["What should I post next?", ["recommendation:", "public-safe", "prometheus social media"]]
 ];
 
 for (const [phrase, expected] of instagramDirectCases) {
@@ -543,6 +557,7 @@ for (const [phrase, expected] of instagramDirectCases) {
     response.metadata?.intent !== "instagram_analytics_direct_query" ||
     response.metadata?.directInstagramApiCalls !== false ||
     text.includes("project context") ||
+    founderModeBannedText.some((item) => text.includes(item)) ||
     missing.length
   ) {
     fail("instagram-direct-query", {
@@ -552,6 +567,7 @@ for (const [phrase, expected] of instagramDirectCases) {
       routeSelected: response.metadata?.routeSelected,
       intent: response.metadata?.intent,
       directInstagramApiCalls: response.metadata?.directInstagramApiCalls,
+      founderModeBannedHit: founderModeBannedText.find((item) => text.includes(item)),
       missing,
       body: response.body
     });
@@ -563,35 +579,52 @@ for (const [phrase, expected] of instagramDirectCases) {
 const instagramBrief = await instagramAnalyticsProvider.ask("Give me my Founder Morning Brief.");
 const instagramBriefText = `${instagramBrief.title || ""} ${instagramBrief.body || ""}`.toLowerCase();
 const instagramExpected = [
-  "instagram (source: prometheus social media)",
-  SOCIAL_MEDIA_CONTRACT_VERSION,
-  "followers: 50",
-  "reach: 20",
-  "impressions: 44",
-  "profile visits: 8",
-  "website clicks: 3",
-  "engagement: 12",
-  "top performing content: reel",
-  "growth trend: 4",
-  "presentation only",
-  "no instagram api calls",
-  "crm (source: prometheus crm)"
+  "instagram is connected",
+  "prometheus social media",
+  "50 followers",
+  "20 reach",
+  "44 impressions",
+  "8 profile visits",
+  "3 website clicks",
+  "12 engagement",
+  "best post so far: reel",
+  "growth trend: up 4",
+  "crm:"
 ];
 const instagramMissing = instagramExpected.filter((item) => !instagramBriefText.includes(item.toLowerCase()));
 if (
   instagramBrief.metadata?.executiveCommandCenter !== true ||
   instagramBrief.metadata?.instagramState !== SOCIAL_CONNECTION_STATES.CONNECTED ||
+  founderModeBannedText.some((item) => instagramBriefText.includes(item)) ||
   instagramMissing.length
 ) {
   fail("founder-morning-brief-instagram-analytics", {
     title: instagramBrief.title,
     executiveCommandCenter: instagramBrief.metadata?.executiveCommandCenter === true,
     instagramState: instagramBrief.metadata?.instagramState,
+    founderModeBannedHit: founderModeBannedText.find((item) => instagramBriefText.includes(item)),
     missing: instagramMissing,
     body: instagramBrief.body
   });
 } else {
-  console.log(`PASS Founder Morning Brief consumes normalized Instagram analytics -> ${instagramBrief.title}`);
+  console.log(`PASS Founder Morning Brief presents Instagram analytics conversationally -> ${instagramBrief.title}`);
+}
+
+const developerModeResponse = await instagramAnalyticsProvider.ask("Developer mode: show raw data for Instagram.");
+const developerModeText = `${developerModeResponse.title || ""} ${developerModeResponse.body || ""}`.toLowerCase();
+if (
+  developerModeResponse.metadata?.developerMode !== true ||
+  !developerModeText.includes(SOCIAL_MEDIA_CONTRACT_VERSION) ||
+  !developerModeText.includes("raw provider state") ||
+  !developerModeText.includes("raw snapshot id")
+) {
+  fail("instagram-developer-mode", {
+    title: developerModeResponse.title,
+    developerMode: developerModeResponse.metadata?.developerMode,
+    body: developerModeResponse.body
+  });
+} else {
+  console.log(`PASS Developer Mode exposes Instagram technical details only on request -> ${developerModeResponse.title}`);
 }
 
 if (failures) {
