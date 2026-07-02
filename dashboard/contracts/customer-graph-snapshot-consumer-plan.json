@@ -1,0 +1,188 @@
+{
+  "version": "dashboard-customer-graph-snapshot-consumer-plan-v1",
+  "status": "planning_only",
+  "sourceIntelligenceContractVersion": "customer-intelligence-graph-v1",
+  "sourceSnapshotContract": "CustomerGraphSnapshot",
+  "sourceQueryContract": "DashboardCustomerGraphQueryContract",
+  "consumer": "Dashboard",
+  "readOnly": true,
+  "queryable": true,
+  "runtimeConsumptionAuthorized": false,
+  "dashboardRuntimeChanged": false,
+  "productionBehaviorChanged": false,
+  "productionScoringChanged": false,
+  "productionRecommendationsChanged": false,
+  "activePoolChanged": false,
+  "crmChanged": false,
+  "mobileChanged": false,
+  "websiteChanged": false,
+  "companionTouched": false,
+  "intelligenceEngineChanged": false,
+  "customerIsolationRequired": true,
+  "allowedSnapshotContent": [
+    "businesses",
+    "visits",
+    "outcomes",
+    "leads",
+    "opportunities",
+    "rep_activity",
+    "manager_activity",
+    "territories",
+    "opportunity_relationships",
+    "evidence_history",
+    "confidence",
+    "operating_profile",
+    "learning_provenance"
+  ],
+  "allowedQueryTypes": [
+    "snapshot_summary",
+    "by_node_type",
+    "by_relationship_type",
+    "by_business",
+    "by_territory",
+    "by_rep",
+    "by_opportunity",
+    "by_evidence",
+    "by_confidence",
+    "by_operating_profile"
+  ],
+  "futureDashboardSurfaces": [
+    {
+      "surface": "Customer Intelligence Overview",
+      "audience": [
+        "Founder",
+        "Owner"
+      ],
+      "snapshotUse": "Read-only summary of customer-scoped businesses, territories, opportunities, confidence, operating profile context, and provenance.",
+      "queryTypes": [
+        "snapshot_summary",
+        "by_confidence",
+        "by_operating_profile"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Territory History",
+      "audience": [
+        "Founder",
+        "Owner"
+      ],
+      "snapshotUse": "Historical view of territory nodes, business relationships, inactive areas, repeated visits, and territory-level evidence.",
+      "queryTypes": [
+        "by_territory",
+        "by_relationship_type",
+        "by_evidence"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Visit Outcome Patterns",
+      "audience": [
+        "Founder",
+        "Owner",
+        "Rep"
+      ],
+      "snapshotUse": "Read-only pattern display for visits, outcomes, leads, follow-ups, successful evidence, and repeated behavior.",
+      "queryTypes": [
+        "by_node_type",
+        "by_relationship_type",
+        "by_evidence"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Rep Activity Relationships",
+      "audience": [
+        "Founder",
+        "Owner"
+      ],
+      "snapshotUse": "Relationship view connecting reps, visits, territories, outcomes, and learning provenance without changing assignments or CRM.",
+      "queryTypes": [
+        "by_rep",
+        "by_territory",
+        "by_evidence"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Opportunity Clusters",
+      "audience": [
+        "Founder",
+        "Owner",
+        "Rep"
+      ],
+      "snapshotUse": "Read-only clusters of related businesses and opportunities using nearby, similar, recommended, converted, and successful relationships.",
+      "queryTypes": [
+        "by_opportunity",
+        "by_business",
+        "by_relationship_type"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Confidence Provenance Summaries",
+      "audience": [
+        "Founder",
+        "Owner"
+      ],
+      "snapshotUse": "Display confidence band, evidence counts, source evidence, learned-at range, and human override state without activating confidence propagation.",
+      "queryTypes": [
+        "by_confidence",
+        "by_evidence",
+        "snapshot_summary"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Operating Profile Insights",
+      "audience": [
+        "Founder",
+        "Owner"
+      ],
+      "snapshotUse": "Read-only operating-profile context for industry vocabulary, outcomes, evidence categories, and customer-specific learning provenance.",
+      "queryTypes": [
+        "by_operating_profile",
+        "snapshot_summary"
+      ],
+      "activationStatus": "future_only"
+    }
+  ],
+  "readOnlyDisplayPolicies": [
+    "Display CustomerGraphSnapshot data as historical/read-only intelligence, never as an editable source of truth.",
+    "Do not mutate Dashboard state, CRM records, Active Pool records, route scoring, recommendations, assignments, or operating-profile definitions from snapshot displays.",
+    "Render confidence as explanation/provenance only; confidence propagation remains inactive until Intelligence explicitly authorizes it.",
+    "Show stale, missing, rejected, or cross-customer snapshot data as unavailable instead of synthesizing replacement graph facts.",
+    "Hide or summarize sensitive source evidence when the active user role does not need full provenance detail.",
+    "Preserve human override state and review state in every future detail view that presents graph-derived conclusions."
+  ],
+  "customerTenantIsolationRequirements": [
+    "Every future Dashboard query must include active customerId and reject results whose customerId differs from the active tenant.",
+    "Every rendered node and relationship must carry the same customerId as the active Dashboard customer context.",
+    "Cached snapshots must be partitioned by customerId, operatingProfileId, snapshotVersion, and contractVersion.",
+    "No cross-customer rollups, comparisons, or cluster displays may be rendered from raw CustomerGraphSnapshots.",
+    "If tenant context is missing or ambiguous, Dashboard must render no graph data and surface an unavailable state.",
+    "Rep-facing views must remain scoped to authorized customer and role context even when Founder/Owner summaries exist."
+  ],
+  "explainabilityRequirements": [
+    "Every future snapshot surface must answer why the insight is shown, what evidence supports it, how confident the system is, what changed, and what should happen next.",
+    "Dashboard must display source evidence counts, learned-at range, generatedBy, generatedAt, confidence band, and review/human override state where applicable.",
+    "Dashboard must distinguish verified evidence, reviewable evidence, stale evidence, missing evidence, and unavailable evidence.",
+    "Explanations must not expose proprietary scoring weights or imply that read-only snapshot confidence changed live recommendations.",
+    "Operating profile insights must name the active operatingProfileId and avoid hardcoded industry vocabulary when snapshot profile context exists."
+  ],
+  "futureActivationRequirements": [
+    "Intelligence must authorize DashboardCustomerGraphQueryContract.runtimeConsumptionAuthorized=true.",
+    "Dashboard must receive CustomerGraphSnapshots with readOnly=true, queryIndex.readOnly=true, and matching contractVersion.",
+    "Dashboard must add runtime tests for customer isolation, read-only rendering, provenance display, confidence display, stale snapshot fallback, and route-scoring non-regression.",
+    "Dashboard must keep route scoring, Active Pool selection, CRM mutation, Mobile behavior, Website behavior, Companion behavior, Infrastructure, and Intelligence Engine behavior unchanged.",
+    "Dashboard must pass production release gates before any CustomerGraphSnapshot surface becomes visible."
+  ],
+  "blockedUntil": [
+    "authorized_dashboard_snapshot_query_contract",
+    "customer_scoped_snapshot_delivery_path",
+    "tenant_context_contract",
+    "role_based_provenance_display_policy",
+    "confidence_propagation_activation_policy",
+    "dashboard_runtime_snapshot_tests"
+  ]
+}

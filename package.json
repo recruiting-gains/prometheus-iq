@@ -13,6 +13,7 @@
     "dashboard:runtime-pool:check": "node scripts/verify-dashboard-runtime-pool-consumption.mjs",
     "dashboard:runtime-workflows:check": "node scripts/verify-dashboard-runtime-workflows.mjs",
     "dashboard:customer-graph-plan:check": "node scripts/verify-dashboard-customer-graph-consumer-plan.mjs",
+    "dashboard:customer-graph-snapshot-plan:check": "node scripts/verify-dashboard-customer-graph-snapshot-plan.mjs",
     "intelligence:route-quality:check": "node scripts/verify-route-intelligence-quality-gate.mjs",
     "intelligence:architecture:validate": "node scripts/validate-intelligence-architecture.mjs",
     "intelligence:field-learning:harness": "node scripts/verify-field-learning-offline-evidence-harness.mjs",
