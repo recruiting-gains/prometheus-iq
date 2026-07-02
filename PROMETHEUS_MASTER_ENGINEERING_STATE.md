@@ -1993,6 +1993,61 @@ Next recommended subsystem:
 
 Prometheus Social Media / Infrastructure only when continuing Meta app review, OAuth, or live analytics setup. Otherwise no immediate follow-up dependency exists.
 
+### Completed Work Lane: Website/Social Attribution Path v1
+
+Primary subsystem: Prometheus Website
+
+Secondary subsystems:
+
+- Prometheus Social Media, owner of the attribution contract shape
+- Prometheus CRM, future consumer after approved CRM lead attribution task
+
+Task:
+
+Website/Social Attribution Path v1.
+
+Status:
+
+Complete.
+
+Commit:
+
+`ab4e6157ac393b1440fb414dcf1c92a82ef47946`
+
+Deploy:
+
+Deployed to Cloudflare Worker `prometheusrouteiq-website`, version `c90342e6-5f1a-41a5-ab0f-4471a1125426`.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/site.js`
+- `deploy/prometheusrouteiq-website/website-attribution.js`
+- `package.json`
+- `tests/website-social-attribution.test.mjs`
+
+Verified outcome:
+
+- Added website-side attribution capture for UTM, campaign, referrer, landing path, visitor ID, and session ID.
+- Uses existing Social Media attribution contract shape: `website_visit`, `website_traffic`, `website_contract`.
+- Stores attribution locally only.
+- Creates no CRM leads.
+- Makes no Instagram API calls.
+- Performs no backend submission.
+- Added validation tests for Instagram/social UTM capture, first-touch/session tracking, and credential-param sanitization.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm run test:website`: passed.
+- `npm test`: passed.
+- Live asset verification: passed.
+
+Remaining blockers:
+
+None Website-owned.
+
+Next recommended subsystem:
+
+Prometheus CRM for CRM Lead Attribution from Social Campaigns v1, consuming Website/Social attribution outputs and preserving CRM ownership.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -4922,6 +4977,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Enterprise & Investor Readiness v1; extend the existing public Website enterprise, industry, investor, founder story, customer success, trust, beta conversion, SEO, and mobile readability work.
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
+- Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
