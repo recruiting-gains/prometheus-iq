@@ -522,19 +522,26 @@ function closeDetail() {
 }
 
 function installTopChromeReveal() {
+  let hideTimer = 0;
   const reveal = (active) => {
     document.body.classList.toggle("top-chrome-visible", Boolean(active));
+    window.clearTimeout(hideTimer);
+    if (active) {
+      hideTimer = window.setTimeout(() => {
+        document.body.classList.remove("top-chrome-visible");
+      }, 1800);
+    }
   };
 
   document.addEventListener("mousemove", (event) => {
-    reveal(event.clientY <= 28);
+    if (event.clientY <= 14) reveal(true);
   });
   document.addEventListener("mouseleave", () => reveal(false));
   document.addEventListener("touchstart", (event) => {
     reveal((event.touches?.[0]?.clientY || 999) <= 42);
   }, { passive: true });
   document.addEventListener("scroll", () => {
-    reveal(window.scrollY <= 4);
+    if (window.scrollY <= 4) reveal(true);
   }, { passive: true });
 }
 

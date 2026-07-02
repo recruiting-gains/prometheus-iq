@@ -1,193 +1,166 @@
 import * as THREE from "./vendor/three.module.js";
 
-function seededRandom(seed) {
-  let state = seed >>> 0;
-  return () => {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
+const vertexShader = `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`;
+
+const fragmentShader = `
+  precision highp float;
+
+  varying vec2 vUv;
+  uniform vec2 uResolution;
+  uniform float uTime;
+  uniform vec3 uStateColor;
+  uniform float uStatePower;
+
+  float hash(vec2 p) {
+    p = fract(p * vec2(443.8975, 397.2973));
+    p += dot(p, p + 19.19);
+    return fract(p.x * p.y);
+  }
+
+  float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+      mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x),
+      u.y
+    );
+  }
+
+  float fbm(vec2 p) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    for (int i = 0; i < 5; i++) {
+      value += amplitude * noise(p);
+      p = mat2(1.62, 1.18, -1.18, 1.62) * p + 0.17;
+      amplitude *= 0.48;
+    }
+    return value;
+  }
+
+  float starLayer(vec2 uv, float scale, float threshold, float size) {
+    vec2 grid = uv * scale;
+    vec2 cell = floor(grid);
+    vec2 local = fract(grid) - 0.5;
+    float h = hash(cell);
+    vec2 offset = vec2(hash(cell + 11.7), hash(cell + 27.3)) - 0.5;
+    float d = length(local - offset * 0.72);
+    float star = smoothstep(size, 0.0, d) * step(threshold, h);
+    return star * (0.35 + h * 0.65);
+  }
+
+  vec3 blackbody(float t) {
+    return mix(vec3(0.82, 0.37, 0.16), vec3(1.0, 0.78, 0.52), clamp(t, 0.0, 1.0));
+  }
+
+  void main() {
+    vec2 aspect = vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
+    vec2 uv = (vUv - 0.5) * aspect;
+    vec2 center = vec2(0.0, -0.035);
+    vec2 p = uv - center;
+    float r = length(p);
+    float angle = atan(p.y, p.x);
+    float slow = uTime * 0.018;
+
+    float gravity = 1.0 / max(r * r, 0.045);
+    vec2 bent = p + normalize(p + 0.0001) * gravity * 0.018;
+    vec2 skyUv = bent / aspect + 0.5;
+
+    vec3 color = vec3(0.0);
+    float stars = starLayer(skyUv + vec2(slow * 0.02, 0.0), 86.0, 0.974, 0.052);
+    stars += starLayer(skyUv * 1.13 - vec2(0.08, slow * 0.018), 156.0, 0.987, 0.043);
+    stars *= smoothstep(0.16, 0.72, r);
+    color += vec3(0.65, 0.76, 0.88) * stars * 0.7;
+
+    float hazeNoise = fbm(vec2(angle * 0.42, r * 2.2 - slow));
+    float nebula = smoothstep(0.22, 0.0, abs(p.y + 0.04)) * smoothstep(1.1, 0.12, r) * hazeNoise;
+    color += vec3(0.18, 0.10, 0.07) * nebula * 0.38;
+
+    float diskY = p.y + sin(angle * 2.0 + slow) * 0.012;
+    float diskCore = exp(-pow(abs(diskY) / 0.022, 1.35));
+    float diskWidth = smoothstep(1.55, 0.18, abs(p.x)) * smoothstep(0.42, 1.34, abs(p.x));
+    float shear = fbm(vec2(abs(p.x) * 2.6 - slow * 2.2, p.y * 28.0 + angle));
+    float disk = diskCore * diskWidth * (0.55 + shear * 0.7);
+    color += blackbody(shear) * disk * 1.05;
+
+    float upperLens = exp(-pow(abs(length(vec2(p.x * 0.76, p.y - 0.12)) - 0.54) / 0.036, 1.55));
+    upperLens *= smoothstep(0.04, 0.48, p.y) * smoothstep(1.2, 0.1, abs(p.x));
+    float lowerLens = exp(-pow(abs(length(vec2(p.x * 0.8, p.y + 0.18)) - 0.5) / 0.05, 1.4));
+    lowerLens *= smoothstep(-0.02, -0.42, p.y) * smoothstep(1.1, 0.08, abs(p.x));
+    color += vec3(0.74, 0.42, 0.24) * (upperLens * 0.78 + lowerLens * 0.28);
+
+    float photon = exp(-pow(abs(r - 0.242) / 0.012, 1.65));
+    float rimMask = smoothstep(0.0, 0.08, abs(sin(angle)));
+    color += mix(vec3(0.95, 0.58, 0.31), uStateColor, uStatePower * 0.45) * photon * rimMask * 0.72;
+
+    float stateFlow = exp(-pow(abs(r - (0.34 + sin(angle * 2.0 - uTime * 0.055) * 0.014)) / 0.018, 1.35));
+    stateFlow *= smoothstep(0.08, 0.7, abs(p.x)) * smoothstep(0.9, 0.2, r);
+    color += uStateColor * stateFlow * (0.06 + uStatePower * 0.22);
+
+    float shadow = smoothstep(0.254, 0.214, r);
+    float innerAbsorb = smoothstep(0.42, 0.12, r);
+    color = mix(color, vec3(0.0), shadow);
+    color *= 1.0 - innerAbsorb * 0.2;
+
+    float vignette = smoothstep(1.12, 0.32, length(uv * vec2(0.82, 1.08)));
+    color *= 0.1 + vignette * 0.95;
+    color = pow(color, vec3(0.92));
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
 
 function stateColor(voiceState) {
-  return {
-    listening: 0x5f9fd8,
-    thinking: 0xd88a3d,
-    speaking: 0x54d69f
-  }[voiceState] || 0xa66a37;
+  if (voiceState === "listening") return new THREE.Color(0x5f9fd8);
+  if (voiceState === "thinking") return new THREE.Color(0xd88a3d);
+  if (voiceState === "speaking") return new THREE.Color(0x54d69f);
+  return new THREE.Color(0xa66a37);
 }
 
-function stateIntensity(voiceState) {
-  return {
-    listening: 0.78,
-    thinking: 0.9,
-    speaking: 0.96
-  }[voiceState] || 0.62;
-}
-
-function makeStarField({ count, radius, seed, size, opacity }) {
-  const random = seededRandom(seed);
-  const positions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-
-  for (let index = 0; index < count; index += 1) {
-    const r = radius * Math.cbrt(random());
-    const theta = random() * Math.PI * 2;
-    const phi = Math.acos((random() * 2) - 1);
-    const x = r * Math.sin(phi) * Math.cos(theta);
-    const y = r * Math.cos(phi) * 0.62;
-    const z = -Math.abs(r * Math.sin(phi) * Math.sin(theta)) - 2.5;
-    positions[index * 3] = x;
-    positions[index * 3 + 1] = y;
-    positions[index * 3 + 2] = z;
-
-    const warmth = random();
-    const brightness = 0.46 + random() * 0.44;
-    colors[index * 3] = brightness * (warmth > 0.78 ? 1 : 0.72);
-    colors[index * 3 + 1] = brightness * (warmth > 0.78 ? 0.78 : 0.9);
-    colors[index * 3 + 2] = brightness * (warmth > 0.78 ? 0.56 : 1);
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  return new THREE.Points(geometry, new THREE.PointsMaterial({
-    size,
-    vertexColors: true,
-    transparent: true,
-    opacity,
-    depthWrite: false
-  }));
-}
-
-function makeUnifiedDust({ count, seed }) {
-  const random = seededRandom(seed);
-  const positions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-  const gold = new THREE.Color(0xc47a3e);
-  const ember = new THREE.Color(0xffb06a);
-  const deep = new THREE.Color(0x36504a);
-
-  for (let index = 0; index < count; index += 1) {
-    const side = random() > 0.5 ? 1 : -1;
-    const angle = (random() - 0.5) * Math.PI * 0.54;
-    const radius = 1.05 + random() * 5.4;
-    const pull = Math.pow(random(), 2.2);
-    const x = Math.cos(angle) * radius * side;
-    const y = (random() - 0.5) * (0.05 + pull * 0.42);
-    const z = Math.sin(angle) * radius * 0.28 - pull * 1.2;
-    positions[index * 3] = x;
-    positions[index * 3 + 1] = y;
-    positions[index * 3 + 2] = z;
-
-    const mix = random();
-    const color = mix > 0.7 ? ember : mix > 0.18 ? gold : deep;
-    const brightness = 0.16 + random() * 0.36;
-    colors[index * 3] = color.r * brightness;
-    colors[index * 3 + 1] = color.g * brightness;
-    colors[index * 3 + 2] = color.b * brightness;
-  }
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  return new THREE.Points(geometry, new THREE.PointsMaterial({
-    size: 0.014,
-    vertexColors: true,
-    transparent: true,
-    opacity: 0.58,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending
-  }));
-}
-
-function makeAccretionBand({ radius, tube, color, opacity, tilt, scaleY = 0.16 }) {
-  const mesh = new THREE.Mesh(
-    new THREE.TorusGeometry(radius, tube, 18, 260),
-    new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending
-    })
-  );
-  mesh.rotation.x = tilt;
-  mesh.scale.y = scaleY;
-  return mesh;
-}
-
-function makeSoftDisc({ radius, color, opacity }) {
-  const mesh = new THREE.Mesh(
-    new THREE.CircleGeometry(radius, 128),
-    new THREE.MeshBasicMaterial({
-      color,
-      transparent: true,
-      opacity,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending
-    })
-  );
-  return mesh;
+function statePower(voiceState) {
+  if (voiceState === "listening") return 0.42;
+  if (voiceState === "thinking") return 0.58;
+  if (voiceState === "speaking") return 0.72;
+  return 0.16;
 }
 
 export function createPrometheusScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.6));
   renderer.setClearColor(0x000000, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x000000, 0.048);
-
-  const camera = new THREE.PerspectiveCamera(39, 1, 0.1, 90);
-  camera.position.set(0, 0.14, 8.7);
-
-  const cosmos = new THREE.Group();
-  const gravityWell = new THREE.Group();
-  const lens = new THREE.Group();
-  scene.add(cosmos, gravityWell, lens);
-
-  const farStars = makeStarField({ count: 2200, radius: 34, seed: 1309, size: 0.012, opacity: 0.58 });
-  const nearStars = makeStarField({ count: 720, radius: 22, seed: 2603, size: 0.018, opacity: 0.72 });
-  cosmos.add(farStars, nearStars);
-
-  const nebula = makeSoftDisc({ radius: 9.8, color: 0x2a1710, opacity: 0.1 });
-  nebula.position.set(0, -0.08, -1.8);
-  nebula.scale.set(1.9, 0.42, 1);
-  cosmos.add(nebula);
-
-  const dust = makeUnifiedDust({ count: 3200, seed: 8117 });
-  gravityWell.add(dust);
-
-  const horizonShadow = new THREE.Mesh(
-    new THREE.SphereGeometry(1.02, 128, 128),
-    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 1 })
-  );
-  horizonShadow.scale.set(1, 1, 0.42);
-  gravityWell.add(horizonShadow);
-
-  const photonRim = makeAccretionBand({ radius: 1.14, tube: 0.012, color: 0xf2bd8a, opacity: 0.34, tilt: 1.37, scaleY: 0.22 });
-  const innerBand = makeAccretionBand({ radius: 1.92, tube: 0.03, color: 0xd7894c, opacity: 0.28, tilt: 1.35 });
-  const outerBand = makeAccretionBand({ radius: 3.02, tube: 0.055, color: 0xc07038, opacity: 0.22, tilt: 1.34, scaleY: 0.12 });
-  const extendedPlane = makeAccretionBand({ radius: 4.58, tube: 0.046, color: 0xa96236, opacity: 0.18, tilt: 1.33, scaleY: 0.075 });
-  gravityWell.add(extendedPlane, outerBand, innerBand, photonRim);
-
-  const verticalLens = makeAccretionBand({ radius: 1.88, tube: 0.018, color: 0xb8794a, opacity: 0.14, tilt: 0.03, scaleY: 0.54 });
-  verticalLens.rotation.z = Math.PI / 2;
-  lens.add(verticalLens);
-
-  const volumetricGlow = makeSoftDisc({ radius: 4.4, color: 0x8d542e, opacity: 0.12 });
-  volumetricGlow.position.z = -0.22;
-  volumetricGlow.scale.set(1.65, 0.34, 1);
-  gravityWell.add(volumetricGlow);
-
-  const stateWave = makeAccretionBand({ radius: 2.28, tube: 0.018, color: 0xa66a37, opacity: 0.1, tilt: 1.31, scaleY: 0.13 });
-  gravityWell.add(stateWave);
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const uniforms = {
+    uResolution: { value: new THREE.Vector2(1, 1) },
+    uTime: { value: 0 },
+    uStateColor: { value: stateColor("idle") },
+    uStatePower: { value: 0.16 }
+  };
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader,
+    fragmentShader,
+    depthTest: false,
+    depthWrite: false
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  scene.add(mesh);
 
   const resize = () => {
     const box = canvas.getBoundingClientRect();
-    renderer.setSize(Math.max(box.width, 1), Math.max(box.height, 1), false);
-    camera.aspect = Math.max(box.width, 1) / Math.max(box.height, 1);
-    camera.updateProjectionMatrix();
+    const width = Math.max(box.width, 1);
+    const height = Math.max(box.height, 1);
+    renderer.setSize(width, height, false);
+    uniforms.uResolution.value.set(width * renderer.getPixelRatio(), height * renderer.getPixelRatio());
   };
 
   window.addEventListener("resize", resize);
@@ -197,45 +170,10 @@ export function createPrometheusScene(canvas) {
   let raf = 0;
 
   const animate = () => {
-    const time = clock.getElapsedTime();
     const voiceState = document.body.dataset.voice || "idle";
-    const color = stateColor(voiceState);
-    const intensity = stateIntensity(voiceState);
-    const breath = 1 + Math.sin(time * 0.22) * 0.006;
-
-    cosmos.rotation.y = time * 0.0018;
-    farStars.material.opacity = 0.48 + Math.sin(time * 0.11) * 0.03;
-    nearStars.material.opacity = 0.62 + Math.sin(time * 0.15) * 0.025;
-    nebula.material.opacity = 0.08 + Math.sin(time * 0.09) * 0.018;
-
-    gravityWell.scale.set(breath, breath, breath);
-    gravityWell.rotation.z = Math.sin(time * 0.036) * 0.012;
-    dust.rotation.z = time * 0.006;
-    dust.rotation.y = time * 0.012;
-
-    extendedPlane.rotation.z = time * 0.01;
-    outerBand.rotation.z = time * 0.014;
-    innerBand.rotation.z = -time * 0.018;
-    photonRim.rotation.z = time * 0.012;
-    verticalLens.rotation.y = Math.sin(time * 0.08) * 0.025;
-
-    stateWave.material.color.setHex(color);
-    stateWave.material.opacity = 0.08 + intensity * 0.12;
-    stateWave.rotation.z = time * (voiceState === "speaking" ? 0.03 : 0.015);
-    volumetricGlow.material.color.setHex(color);
-    volumetricGlow.material.opacity = voiceState === "idle" || voiceState === "standby" ? 0.08 : 0.12 + intensity * 0.06;
-
-    const speakingGreen = voiceState === "speaking";
-    const thinkingAmber = voiceState === "thinking";
-    const listeningBlue = voiceState === "listening";
-    photonRim.material.color.setHex(speakingGreen ? 0x72dca7 : thinkingAmber ? 0xe19a4b : listeningBlue ? 0x80b7e5 : 0xf0b476);
-    innerBand.material.color.setHex(speakingGreen ? 0x58c891 : thinkingAmber ? 0xd6813e : listeningBlue ? 0x5d94c5 : 0xc6763d);
-    outerBand.material.opacity = 0.18 + intensity * 0.04;
-    innerBand.material.opacity = 0.22 + intensity * 0.07;
-    photonRim.material.opacity = 0.28 + intensity * 0.08;
-
-    camera.position.y = 0.14 + Math.sin(time * 0.055) * 0.026;
-    camera.lookAt(0, 0, 0);
+    uniforms.uTime.value = clock.getElapsedTime();
+    uniforms.uStateColor.value.copy(stateColor(voiceState));
+    uniforms.uStatePower.value = statePower(voiceState);
     renderer.render(scene, camera);
     raf = requestAnimationFrame(animate);
   };
@@ -246,11 +184,9 @@ export function createPrometheusScene(canvas) {
     destroy() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      mesh.geometry.dispose();
+      material.dispose();
       renderer.dispose();
-      scene.traverse((object) => {
-        object.geometry?.dispose?.();
-        object.material?.dispose?.();
-      });
     }
   };
 }

@@ -1726,3 +1726,82 @@ body.developer-mode .prometheus-core strong,
 body.developer-mode .prometheus-core i {
   opacity: 0;
 }
+
+/* Companion Visual Identity Reset v1 */
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+body::before,
+body::after {
+  display: none;
+}
+
+.os-shell,
+.core-experience,
+.network-stage,
+.core-stage,
+.holo-card {
+  width: 100vw;
+  max-width: none;
+  min-height: 100vh;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #000;
+  box-shadow: none;
+  backdrop-filter: none;
+  transform: none;
+}
+
+#holoCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+}
+
+.build-marker,
+.voice-debug {
+  top: 12px;
+  bottom: auto;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-18px);
+}
+
+.voice-debug {
+  left: 18px;
+}
+
+body.top-chrome-visible .build-marker,
+body.top-chrome-visible .voice-debug,
+body.developer-mode .build-marker,
+body.developer-mode .voice-debug {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.voice-debug[data-kind="warn"],
+.voice-debug[data-kind="error"] {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-18px);
+}
+
+body.top-chrome-visible .voice-debug[data-kind="warn"],
+body.top-chrome-visible .voice-debug[data-kind="error"],
+body.developer-mode .voice-debug[data-kind="warn"],
+body.developer-mode .voice-debug[data-kind="error"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
