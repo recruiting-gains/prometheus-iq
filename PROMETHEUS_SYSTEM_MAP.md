@@ -265,6 +265,7 @@ Current foundation:
 
 - `sales/README.md`
 - `sales/enterprise-sales-methodology.md`
+- `sales/multi-industry-enterprise-sales-playbook.md`
 - `sales/enterprise-industry-playbooks.md`
 - `sales/enterprise-pilot-sales-package.md`
 - `sales/roofing-discovery-and-pilot-targeting.md`

@@ -28,6 +28,7 @@ test("Sales foundation keeps implementation ownership out of Sales", () => {
 test("Sales foundation covers required operating-system artifacts", () => {
   const files = [
     read("sales/enterprise-sales-methodology.md"),
+    read("sales/multi-industry-enterprise-sales-playbook.md"),
     read("sales/enterprise-industry-playbooks.md"),
     read("sales/enterprise-pilot-sales-package.md"),
     read("sales/roofing-discovery-and-pilot-targeting.md"),
@@ -43,6 +44,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
 
   for (const phrase of [
     "Sales Process",
+    "Multi-Industry Enterprise Sales Playbook",
     "Enterprise Industry Playbooks",
     "Enterprise Pilot Sales Package",
     "Roofing Discovery And Pilot Targeting",
@@ -62,6 +64,66 @@ test("Sales foundation covers required operating-system artifacts", () => {
     "Sales Documentation Architecture",
   ]) {
     assert.match(files, new RegExp(phrase));
+  }
+});
+
+test("Multi-industry enterprise sales playbook standardizes supported Operating Profiles", () => {
+  const playbook = read("sales/multi-industry-enterprise-sales-playbook.md");
+
+  for (const phrase of [
+    "Universal Sales Framework",
+    "Repeatable Founder Sales Motion",
+    "What Changes By Industry",
+    "Standard Pilot Proposal Template",
+    "Standard Closing Language",
+    "Remaining Industries Requiring Research",
+  ]) {
+    assert.match(playbook, new RegExp(phrase));
+  }
+
+  for (const universalElement of [
+    "Territory Intelligence",
+    "Field Accountability",
+    "Route Optimization",
+    "Activity Verification",
+    "AI Recommendations",
+    "Manager Visibility",
+    "CRM Integration",
+  ]) {
+    assert.match(playbook, new RegExp(`### ${universalElement}`));
+  }
+
+  const profiles = [
+    "Fitness",
+    "Roofing",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Solar",
+    "Home Services",
+    "General Outside Sales",
+  ];
+  const sections = [
+    "Buyer Personas",
+    "Discovery Questions",
+    "Business Pain Points",
+    "ROI Framework",
+    "Success Metrics",
+    "Pilot Structure",
+    "Objection Handling",
+    "Closing Strategy",
+    "Expansion Strategy",
+  ];
+
+  for (const profile of profiles) {
+    const start = playbook.indexOf(`## ${profile}`);
+    assert.notEqual(start, -1, `${profile} section is missing`);
+    const next = playbook.indexOf("\n## ", start + 1);
+    const profileSection = playbook.slice(start, next === -1 ? playbook.length : next);
+
+    for (const section of sections) {
+      assert.match(profileSection, new RegExp(`### ${section}`));
+    }
   }
 });
 

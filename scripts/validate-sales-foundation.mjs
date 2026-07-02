@@ -6,6 +6,7 @@ const root = process.cwd();
 const requiredFiles = [
   "sales/README.md",
   "sales/enterprise-sales-methodology.md",
+  "sales/multi-industry-enterprise-sales-playbook.md",
   "sales/enterprise-industry-playbooks.md",
   "sales/enterprise-pilot-sales-package.md",
   "sales/roofing-discovery-and-pilot-targeting.md",
@@ -22,6 +23,7 @@ const requiredFiles = [
 const requiredPhrases = new Map([
   ["sales/README.md", ["Prometheus IQ is an AI operating system", "Sales does not own Dashboard"]],
   ["sales/enterprise-sales-methodology.md", ["Do not sell Prometheus as a CRM replacement", "Enterprise"]],
+  ["sales/multi-industry-enterprise-sales-playbook.md", ["Universal Sales Framework", "Repeatable Founder Sales Motion", "Operating Profiles Covered", "Remaining Industries Requiring Research"]],
   ["sales/enterprise-industry-playbooks.md", ["Healthcare", "Medical Devices", "B2B SaaS", "Cross-Industry Qualification Rule"]],
   ["sales/enterprise-pilot-sales-package.md", ["Enterprise Pilot Positioning", "Discovery Call Script", "Operating Profile Explanation", "Post-Pilot Expansion Path"]],
   ["sales/roofing-discovery-and-pilot-targeting.md", ["Roofing Discovery Questions", "Roofing Pilot Qualification Criteria", "First-Call Script", "Follow-Up Email"]],
@@ -118,6 +120,39 @@ const requiredRoofingOutcomes = [
   "Canvasser accountability",
 ];
 
+const requiredOperatingProfiles = [
+  "Fitness",
+  "Roofing",
+  "Security",
+  "Medical",
+  "Insurance",
+  "Solar",
+  "Home Services",
+  "General Outside Sales",
+];
+
+const requiredOperatingProfileSections = [
+  "Buyer Personas",
+  "Discovery Questions",
+  "Business Pain Points",
+  "ROI Framework",
+  "Success Metrics",
+  "Pilot Structure",
+  "Objection Handling",
+  "Closing Strategy",
+  "Expansion Strategy",
+];
+
+const requiredUniversalSalesElements = [
+  "Territory Intelligence",
+  "Field Accountability",
+  "Route Optimization",
+  "Activity Verification",
+  "AI Recommendations",
+  "Manager Visibility",
+  "CRM Integration",
+];
+
 for (const file of requiredFiles) {
   const path = join(root, file);
   if (!existsSync(path)) {
@@ -155,6 +190,37 @@ if (existsSync(playbookPath)) {
     for (const requiredSection of requiredIndustrySections) {
       if (!section.includes(`### ${requiredSection}`)) {
         failures.push(`Missing ${requiredSection} in ${industry} playbook`);
+      }
+    }
+  }
+}
+
+const multiIndustryPlaybookPath = join(root, "sales/multi-industry-enterprise-sales-playbook.md");
+if (existsSync(multiIndustryPlaybookPath)) {
+  const playbook = readFileSync(multiIndustryPlaybookPath, "utf8");
+
+  for (const element of requiredUniversalSalesElements) {
+    if (!playbook.includes(`### ${element}`)) {
+      failures.push(`Missing universal sales framework element: ${element}`);
+    }
+  }
+
+  for (const profile of requiredOperatingProfiles) {
+    if (!playbook.includes(`## ${profile}`)) {
+      failures.push(`Missing Operating Profile playbook: ${profile}`);
+      continue;
+    }
+
+    const profileStart = playbook.indexOf(`## ${profile}`);
+    const nextProfileStart = playbook.indexOf("\n## ", profileStart + 1);
+    const profileSection = playbook.slice(
+      profileStart,
+      nextProfileStart === -1 ? playbook.length : nextProfileStart,
+    );
+
+    for (const section of requiredOperatingProfileSections) {
+      if (!profileSection.includes(`### ${section}`)) {
+        failures.push(`Missing ${section} in ${profile} Operating Profile playbook`);
       }
     }
   }

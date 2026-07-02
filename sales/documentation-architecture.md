@@ -24,6 +24,7 @@ Purpose:
 - Industry playbooks.
 - Enterprise pilot sales package.
 - Vertical-specific discovery and pilot targeting.
+- Multi-industry enterprise sales playbook.
 - Qualification.
 - ROI.
 - Pricing strategy.
@@ -96,6 +97,7 @@ Sendability:
 Use lowercase hyphenated filenames for Sales foundation files:
 
 - `enterprise-sales-methodology.md`
+- `multi-industry-enterprise-sales-playbook.md`
 - `enterprise-industry-playbooks.md`
 - `enterprise-pilot-sales-package.md`
 - `roofing-discovery-and-pilot-targeting.md`
