@@ -622,6 +622,75 @@ Next recommended subsystem:
 
 Prometheus Sales.
 
+### Completed Work Lane: Multi-Industry Enterprise Sales Playbook v1
+
+Primary subsystem: Prometheus Sales
+
+Secondary subsystems:
+
+- None required.
+- Future Companion, Website, CRM runtime, Mobile, Dashboard, Infrastructure, or Intelligence Engine changes should be separate subsystem handoffs only if approved by validated customer need.
+
+Task:
+
+Multi-Industry Enterprise Sales Playbook v1.
+
+Status:
+
+Complete.
+
+Implementation type:
+
+Architecture only.
+
+Commit:
+
+`2813826`
+
+Deploy:
+
+Not run. Sales has no production surface for this package.
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `sales/README.md`
+- `sales/documentation-architecture.md`
+- `sales/multi-industry-enterprise-sales-playbook.md`
+- `scripts/validate-sales-foundation.mjs`
+- `tests/sales-foundation.test.mjs`
+
+Operating Profiles covered:
+
+- Fitness.
+- Roofing.
+- Security.
+- Medical.
+- Insurance.
+- Solar.
+- Home Services.
+- General Outside Sales.
+
+Verified outcome:
+
+- Created `sales/multi-industry-enterprise-sales-playbook.md`.
+- Added a repeatable Founder sales motion and universal framework.
+- Covered territory intelligence, field accountability, route optimization, activity verification, AI recommendations, manager visibility, and CRM integration.
+- `node scripts/validate-sales-foundation.mjs`: passed.
+- `node --test tests/sales-foundation.test.mjs`: passed.
+
+Remaining industries requiring research:
+
+Pest Control, Commercial Cleaning, Telecom, Payroll, Industrial Equipment, Manufacturing, Logistics, Medical Devices, B2B SaaS, Construction, and Merchant Services.
+
+Remaining blockers:
+
+None for Sales. Pre-existing Companion/Prometheus OS visual-review changes remain unstaged and were not touched.
+
+Next recommended subsystem:
+
+Prometheus Sales.
+
 ### Completed Work Lane: Beta Operations Foundation v1
 
 Primary subsystem: Prometheus Administration
@@ -7119,6 +7188,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.
 - Do not duplicate Roofing-Focused Discovery and Pilot Targeting v1; reuse `sales/roofing-discovery-and-pilot-targeting.md` and the Sales validation/test gates for roofing discovery questions, pilot qualification, buyer personas, roofing value proposition, feature-to-outcome mapping, objections, pilot metrics, first-call script, follow-up email, target customer profile, inspections, estimates, signed contracts, territory coverage, and canvasser accountability.
+- Do not duplicate Multi-Industry Enterprise Sales Playbook v1; reuse `sales/multi-industry-enterprise-sales-playbook.md` and the Sales validation/test gates for the repeatable Founder sales motion across Fitness, Roofing, Security, Medical, Insurance, Solar, Home Services, and General Outside Sales, including territory intelligence, field accountability, route optimization, activity verification, AI recommendations, manager visibility, and CRM integration.
 - Do not duplicate the Administration beta operations foundation; reuse `administration/README.md`, `administration/architecture.md`, registers, workflows, templates, schema contracts, validator, and tests.
 - Do not duplicate the Administration private beta stabilization intake system; use `administration/registers/stabilization-issues.json` as the unified beta issue source of truth and keep legacy bug/feature registers lightweight.
 - Do not duplicate the Beta Stabilization Sprint 1 sign-off packet; reuse `administration/verification/beta-stabilization-sprint-1/` and keep sign-off pending until field results are recorded.
