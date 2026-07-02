@@ -5651,6 +5651,57 @@ Next recommended subsystem:
 
 Prometheus Companion live founder voice QA for short-prompt conversational flow when founder interaction is available.
 
+### 2026-07-02: Prometheus Companion - Founder Conversation System v1
+
+Subsystem: Prometheus Companion
+
+Strategic initiative: Founder Conversation System v1
+
+Commit: `e2785e9d65c15b6150d77a70f33b0834bb48769b`
+
+Deploy: Completed via local Companion sync/install/verify
+
+Status: PASS / Complete
+
+Files changed:
+
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `prometheus-os/context-resolver.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/intelligence-orchestrator.js`
+- `prometheus-os/reasoning-pipeline.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion removed Project Context as the default fallback and added Founder Conversation fallback for unknown prompts. Greetings are short, natural, and non-repetitive. Executive questions like "How are we doing?", "What's slowing Prometheus down?", and "What should I work on today?" now route into reasoning. Standard conversation no longer shows normal Prometheus response cards; panels are limited to explicit reports, charts, exports, long-form analysis, or Developer Mode. Clap/wake notification cards were removed during normal voice interaction, visible debug-style UI was reduced, and speech output now speaks the executive response directly instead of reading card titles first. Explicit node panels and Developer Mode remain preserved.
+
+Runtime sync:
+
+- Source version = Installed version = Runtime version.
+- Version: `20260702T060006Z-e2785e9d65c1-f5c721632b7d`.
+- Drift: none detected.
+
+Verification:
+
+- `node --check` on changed Companion files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run security:check`: passed.
+- `npm run test:social-media`: passed.
+- `npm run build`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed.
+
+Remaining blockers:
+
+None for this Companion task.
+
+Next recommended subsystem:
+
+Prometheus Companion live founder voice QA for natural multi-turn executive conversation.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -5880,6 +5931,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Conversational Response Layer v1; preserve Founder Mode as the default natural executive-assistant response style, keep raw contracts/provider internals behind explicit Developer Mode, and extend `prometheus-os/executive-command-center.js`, `prometheus-os/founder-communications-consumer.js`, `prometheus-os/founder-instagram-analytics-consumer.js`, and `prometheus-os/memory-system.js` rather than creating a parallel response layer.
 - Do not duplicate Founder-Only Conversational Intelligence Layer v2; preserve Founder Mode as the default concise, natural, voice-friendly executive style, keep score-style narration and technical language out of default Founder Mode, keep Developer Mode explicit, and extend `prometheus-os/daily-priority-engine.js`, `prometheus-os/executive-command-center.js`, `prometheus-os/founder-assistant.js`, and `scripts/verify-prometheus-companion-ui-path.mjs` rather than creating another Companion response layer.
 - Do not duplicate Founder Conversation Intelligence Router v1; preserve short-prompt intent handling in `prometheus-os/founder-assistant.js`, keep natural greetings/status/marketing/beta/website/CRM/company-brief routing ahead of generic subsystem context, and keep direct Instagram analytics routing only for explicit analytics questions.
+- Do not duplicate Founder Conversation System v1; preserve Founder Conversation fallback instead of Project Context fallback, natural greeting behavior, reasoning-routed executive questions, card/panel suppression during normal conversation, reduced debug-style UI, direct speech output, and explicit Developer Mode / node panel escape hatches across `prometheus-os/ai-provider.js`, `prometheus-os/app.js`, `prometheus-os/context-resolver.js`, `prometheus-os/founder-assistant.js`, `prometheus-os/intelligence-orchestrator.js`, `prometheus-os/reasoning-pipeline.js`, and `scripts/verify-prometheus-companion-ui-path.mjs`.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
@@ -5974,7 +6026,7 @@ Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation
 
 Known completed Instagram analytics lane:
 
-Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, and Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, and voice-friendly by default and expose raw implementation details only in explicit Developer Mode.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, and Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, panel-light by default, and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
