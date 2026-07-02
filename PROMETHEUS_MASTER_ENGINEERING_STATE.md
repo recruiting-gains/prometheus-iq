@@ -6925,6 +6925,65 @@ Next recommended subsystem:
 
 Overwatch / Master Engineering State, then CRM or Dashboard read-only CustomerGraphSnapshot consumer planning by explicit handoff.
 
+### 2026-07-02: Prometheus Dashboard - Read-Only CustomerGraphSnapshot Consumer Planning v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Read-Only CustomerGraphSnapshot Consumer Planning v1
+
+Commit: `d97880940a926110ad83d0c2a1ea7c484d3438c0`
+
+Deploy: Not run. Planning/contracts only; no production runtime change.
+
+Status: Complete.
+
+Implementation type: Planning and validation
+
+Files changed:
+
+- `dashboard/contracts/customer-graph-snapshot-consumer-plan.json`
+- `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`
+- `docs/dashboard-customer-graph-snapshot-consumer-plan.md`
+- `scripts/verify-dashboard-customer-graph-snapshot-plan.mjs`
+- `package.json`
+
+What changed:
+
+Dashboard added a planning contract for future read-only `CustomerGraphSnapshot` consumption.
+
+Future Dashboard surfaces defined:
+
+- Customer intelligence overview.
+- Territory history.
+- Visit/outcome patterns.
+- Rep activity relationships.
+- Opportunity clusters.
+- Confidence/provenance summaries.
+- Operating profile insights.
+
+Runtime boundary:
+
+The plan defines read-only display policies, tenant/customer isolation requirements, and explainability requirements. Prior Dashboard graph planning was updated to stay aligned with Living Customer Intelligence node types `Opportunity` and `Manager`. No Dashboard runtime, UI, scoring, Active Pool, CRM, Mobile, Website, Companion, Infrastructure, or Intelligence Engine behavior changed.
+
+Verification:
+
+- `node --check scripts/verify-dashboard-customer-graph-consumer-plan.mjs`: passed.
+- `node --check scripts/verify-dashboard-customer-graph-snapshot-plan.mjs`: passed.
+- `npm run dashboard:customer-graph-plan:check`: passed.
+- `npm run dashboard:customer-graph-snapshot-plan:check`: passed.
+- `npm run intelligence:customer-graph:check`: passed.
+- `npm run test:intelligence:customer-graph`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `git diff --cached --check`: passed.
+
+Remaining blockers:
+
+Future runtime consumption remains blocked until Intelligence authorizes `DashboardCustomerGraphQueryContract.runtimeConsumptionAuthorized=true`, a customer-scoped snapshot delivery path exists, tenant context and role-based provenance display policy are approved, and Dashboard runtime snapshot tests are implemented.
+
+Next recommended subsystem:
+
+None.
+
 ### 2026-07-02: Prometheus Dashboard - Customer Intelligence Graph Consumer Planning v1
 
 Subsystem: Prometheus Dashboard
@@ -7239,6 +7298,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
 - Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
 - Do not duplicate Living Customer Intelligence v1; reuse the read-only `CustomerGraphSnapshot` implementation in `intelligence/customer-intelligence-graph.mjs`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, and `tests/customer-intelligence-graph.test.mjs` for versioned, customer-scoped, explainable, queryable snapshots with businesses, visits, outcomes, leads, opportunities, rep activity, manager activity, territories, evidence history, confidence, operating profile, and learning provenance. Consumers must use the prepared read-only query contracts and must not activate scoring changes, automatic learning, Active Pool changes, or cross-customer graph access.
+- Do not duplicate Dashboard Read-Only CustomerGraphSnapshot Consumer Planning v1; reuse `dashboard/contracts/customer-graph-snapshot-consumer-plan.json`, `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-graph-snapshot-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-snapshot-plan.mjs`, and `npm run dashboard:customer-graph-snapshot-plan:check` for future customer intelligence overview, territory history, visit/outcome patterns, rep activity relationships, opportunity clusters, confidence/provenance summaries, operating profile insights, tenant/customer isolation policy, and explainability requirements. Runtime consumption remains blocked until Intelligence authorizes it and a customer-scoped snapshot delivery path exists.
 - Do not duplicate Dashboard Customer Intelligence Graph Consumer Planning v1; reuse `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-intelligence-graph-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`, and `npm run dashboard:customer-graph-plan:check` for future Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, Find/Search, territory relationships, business relationships, visit/outcome history, rep patterns, opportunity clusters, and confidence propagation planning. Runtime graph consumption remains blocked until Intelligence explicitly authorizes it.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
