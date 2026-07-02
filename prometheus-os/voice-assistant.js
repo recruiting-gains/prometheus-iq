@@ -267,7 +267,7 @@ export class VoiceAssistant {
   }
 
   isInterruptCommand(value) {
-    return ["stop", "stop talking", "quiet", "pause"].includes(this.normalizeSpeech(value));
+    return ["stop", "stop talking", "quiet", "pause", "actually stop", "stop please", "pause please"].includes(this.normalizeSpeech(value));
   }
 
   debug(stage, message = "") {

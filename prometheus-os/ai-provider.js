@@ -9,6 +9,7 @@ import { createKnowledgeGraphSummary, resolveEntityKey } from "./knowledge-graph
 import { createMemorySystemSummary, createTimelineAnswer, createUnfinishedWorkRecap } from "./memory-system.js";
 import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
+import { FounderConversationEngine } from "./founder-conversation-engine.js";
 
 export class AIProvider {
   constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null, founderTimeline = null } = {}) {
@@ -18,6 +19,7 @@ export class AIProvider {
     this.communicationsService = communicationsService;
     this.socialMediaAnalyticsService = socialMediaAnalyticsService;
     this.founderTimeline = founderTimeline;
+    this.founderConversationEngine = new FounderConversationEngine({ founderTimeline });
   }
 
   get providerLabel() {
@@ -28,12 +30,15 @@ export class AIProvider {
 
   setFounderTimeline(timeline) {
     this.founderTimeline = timeline || null;
+    this.founderConversationEngine.setFounderTimeline(timeline);
   }
 
-  async ask(message) {
+  async ask(message, { signal } = {}) {
     const cleanMessage = String(message || "").trim();
     const normalized = this.normalizeFounderCommand(cleanMessage);
     const permissionLevel = classifyPermission(normalized);
+
+    if (signal?.aborted) return this.stoppedResponse();
 
     if (permissionLevel === PermissionLevel.BLOCKED) {
       addAuditEntry({
@@ -52,6 +57,14 @@ export class AIProvider {
       });
     }
 
+    if (this.founderConversationEngine.shouldAnswer(normalized)) {
+      return this.remember(cleanMessage, this.founderConversationEngine.answer(normalized, {
+        history: this.history
+      }));
+    }
+
+    if (signal?.aborted) return this.stoppedResponse();
+
     const founderAssistantResponse = await createFounderAssistantResponse(normalized, {
       communicationsService: this.communicationsService || undefined,
       socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined,
@@ -60,6 +73,8 @@ export class AIProvider {
     if (founderAssistantResponse) {
       return this.remember(cleanMessage, founderAssistantResponse);
     }
+
+    if (signal?.aborted) return this.stoppedResponse();
 
     if (cognitiveEngine.shouldAnswer(normalized, this.history)) {
       return this.remember(cleanMessage, cognitiveEngine.answer(cleanMessage, this.history));
@@ -119,6 +134,20 @@ export class AIProvider {
     return this.remember(cleanMessage, response);
   }
 
+  stoppedResponse() {
+    return {
+      title: "Stopped",
+      body: "Stopped.",
+      permission: "Level 0 - Read Only",
+      tone: "voice_interrupt",
+      metadata: {
+        routeSelected: "voice_interrupt",
+        cardFallbackUsed: false,
+        showCard: false
+      }
+    };
+  }
+
   normalizeFounderCommand(message) {
     return String(message || "")
       .toLowerCase()
@@ -131,6 +160,7 @@ export class AIProvider {
 
   remember(input, response) {
     this.currentFocus = response?.title || this.currentFocus;
+    this.founderConversationEngine.remember(input, response);
     this.history.unshift({
       input,
       response,
@@ -148,6 +178,12 @@ export class AIProvider {
         permission: "Level 0 - Read Only",
         tone: "idle"
       };
+    }
+
+    if (this.founderConversationEngine.shouldAnswer(command)) {
+      return this.founderConversationEngine.answer(command, {
+        history: this.history
+      });
     }
 
     const founderAssistantResponse = await createFounderAssistantResponse(command, {

@@ -177,6 +177,9 @@ async function founderTimeline() {
       { area: "CRM", status: extractStatus(masterState, "CRM") || "No current local status marker found." },
       { area: "Social", status: extractStatus(masterState, "Social") || "No current local status marker found." },
       { area: "Research", status: extractStatus(masterState, "Research") || "No current local status marker found." },
+      { area: "Infrastructure", status: extractStatus(masterState, "Infrastructure") || "No current local status marker found." },
+      { area: "Administration", status: extractStatus(masterState, "Administration") || "No current local status marker found." },
+      { area: "Companion", status: extractStatus(masterState, "Companion") || `Runtime synchronized at ${version.runtimeVersion || version.buildId || "unknown version"}.` },
       { area: "Company", status: extractStatus(companyIdentity, "Prometheus") || "No current local status marker found." }
     ],
     safety: {

@@ -230,6 +230,11 @@ function fail(label, payload) {
   console.error(`FAIL ${label}`, JSON.stringify(payload, null, 2));
 }
 
+function isFounderConversationRoute(response) {
+  return response.metadata?.routeSelected === "founder_assistant" ||
+    response.metadata?.routeSelected === "founder_conversation_engine";
+}
+
 for (const phrase of reasoningCases) {
   const route = resolveCompanionCommandRoute({
     command: phrase,
@@ -266,11 +271,13 @@ for (const phrase of reasoningCases) {
   const response = await provider.ask(phrase);
   const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
   const bannedHit = bannedResponseText.find((item) => text.includes(item));
+  const answeredByConversationEngine = response.metadata?.routeSelected === "founder_conversation_engine" &&
+    response.metadata?.founderConversationEngine === true;
   if (
-    response.metadata?.cognitive !== true ||
-    response.metadata?.orchestrator !== true ||
+    (!answeredByConversationEngine && response.metadata?.cognitive !== true) ||
+    (!answeredByConversationEngine && response.metadata?.orchestrator !== true) ||
     response.metadata?.cardFallbackUsed === true ||
-    response.metadata?.routeSelected !== "intelligence_orchestrator" ||
+    !["intelligence_orchestrator", "founder_conversation_engine"].includes(response.metadata?.routeSelected) ||
     bannedHit
   ) {
     fail("provider-response", {
@@ -359,7 +366,7 @@ for (const [phrase, expected] of founderAcceptanceCases) {
   const response = await provider.ask(phrase);
   const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
   const missing = expected.filter((item) => !text.includes(item));
-  if (response.metadata?.founderAssistant !== true || response.metadata?.routeSelected !== "founder_assistant" || missing.length) {
+  if (response.metadata?.founderAssistant !== true || !isFounderConversationRoute(response) || missing.length) {
     fail("founder-acceptance-command", {
       phrase,
       title: response.title,
@@ -375,7 +382,7 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 
 const conversationalIntentCases = [
   ["Hello", ["i'm here", "what are we working on"], "natural_greeting"],
-  ["Good morning", ["good morning", "everything is ready"], "greeting"],
+  ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
   ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
   ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
   ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
@@ -392,7 +399,7 @@ for (const [phrase, expected, intent] of conversationalIntentCases) {
     founderModeBannedText.find((item) => text.includes(item));
   if (
     response.metadata?.founderAssistant !== true ||
-    response.metadata?.routeSelected !== "founder_assistant" ||
+    !isFounderConversationRoute(response) ||
     response.metadata?.intent !== intent ||
     bannedHit ||
     missing.length
@@ -414,10 +421,10 @@ for (const [phrase, expected, intent] of conversationalIntentCases) {
 }
 
 const executiveReasoningCases = [
-  ["How are we doing?", ["strong build position", "not yet a strong proof position", "recommendation"], "company_rundown"],
+  ["How are we doing?", ["strong build position", "not a strong proof position", "recommendation"], "company_rundown"],
   ["What's slowing Prometheus down?", ["slowdown is proof", "beta validation", "next move"], "risk"],
-  ["What should I do next?", ["do not start with another feature", "validation", "recommendation"], "priority"],
-  ["What should I work on today?", ["do not start with another feature", "validation", "recommendation"], "priority"]
+  ["What should I do next?", ["would not start with another feature", "validate", "recommendation"], "priority"],
+  ["What should I work on today?", ["would not start with another feature", "validate", "recommendation"], "priority"]
 ];
 
 for (const [phrase, expected, intent] of executiveReasoningCases) {
@@ -434,8 +441,8 @@ for (const [phrase, expected, intent] of executiveReasoningCases) {
     founderModeBannedText.find((item) => text.includes(item));
   if (
     route.type !== "cognitive" ||
-    response.metadata?.routeSelected !== "intelligence_orchestrator" ||
-    response.metadata?.orchestratorIntent !== intent ||
+    !["intelligence_orchestrator", "founder_conversation_engine"].includes(response.metadata?.routeSelected) ||
+    ![intent, response.metadata?.intent].includes(response.metadata?.orchestratorIntent || response.metadata?.intent) ||
     bannedHit ||
     missing.length
   ) {
@@ -445,6 +452,7 @@ for (const [phrase, expected, intent] of executiveReasoningCases) {
       title: response.title,
       routeSelected: response.metadata?.routeSelected,
       orchestratorIntent: response.metadata?.orchestratorIntent,
+      engineIntent: response.metadata?.intent,
       expectedIntent: intent,
       bannedHit,
       missing,
@@ -453,6 +461,42 @@ for (const [phrase, expected, intent] of executiveReasoningCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> executive-reasoning:${response.title}`);
+}
+
+const founderConversationEngineCases = [
+  ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
+  ["How are we doing?", ["strong build position", "not a strong proof position", "recommendation"], "company_rundown"],
+  ["What's slowing Prometheus down?", ["slowdown is proof", "beta validation", "next move"], "risk"],
+  ["What should I work on first?", ["would not start with another feature", "validate mobile", "recommendation"], "priority"]
+];
+
+for (const [phrase, expected, intent] of founderConversationEngineCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.map((item) => item.toLowerCase()).filter((item) => !text.includes(item));
+  const bannedHit = bannedResponseText.find((item) => text.includes(item)) ||
+    founderModeBannedText.find((item) => text.includes(item));
+  if (
+    response.metadata?.founderConversationEngine !== true ||
+    response.metadata?.routeSelected !== "founder_conversation_engine" ||
+    response.metadata?.intent !== intent ||
+    bannedHit ||
+    missing.length
+  ) {
+    fail("founder-conversation-engine-v1", {
+      phrase,
+      title: response.title,
+      routeSelected: response.metadata?.routeSelected,
+      founderConversationEngine: response.metadata?.founderConversationEngine === true,
+      intent: response.metadata?.intent,
+      expectedIntent: intent,
+      bannedHit,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> founder-conversation-engine:${response.title}`);
 }
 
 const unknownResponse = await provider.ask("Pineapple status");
@@ -761,6 +805,7 @@ if (
 }
 
 const appSource = readFileSync(new URL("../prometheus-os/app.js", import.meta.url), "utf8");
+const providerSource = readFileSync(new URL("../prometheus-os/ai-provider.js", import.meta.url), "utf8");
 const indexSource = readFileSync(new URL("../prometheus-os/index.html", import.meta.url), "utf8");
 const styleSource = readFileSync(new URL("../prometheus-os/style.css", import.meta.url), "utf8");
 const uiPolicyFailures = [
@@ -775,15 +820,21 @@ const uiPolicyFailures = [
   !appSource.includes("window.prometheusOSInterruptSpeech") ? "native interrupt bridge missing" : "",
   !appSource.includes("interruptOnly") ? "interrupt-only listening path missing" : "",
   !appSource.includes("commandGeneration") ? "pending response cancellation token missing" : "",
+  !appSource.includes("currentCommandAbortController") ? "pending command abort controller missing" : "",
+  !appSource.includes("currentCommandAbortController.abort") ? "pending reply abort missing for stop command" : "",
+  !appSource.includes("scheduleListeningAfterPlayback(0)") ? "stop command does not return to listening immediately" : "",
+  !appSource.includes("\"actually stop\"") ? "actually stop interrupt phrase missing" : "",
   !appSource.includes("AbortController") ? "pending TTS abort controller missing" : "",
   !appSource.includes("voice.setInterruptOnly(true)") ? "browser interim interrupt mode missing for Companion shell" : "",
   !appSource.includes("installTopChromeReveal") ? "top chrome reveal behavior missing" : "",
   !appSource.includes("refreshFounderTimeline") ? "founder timeline refresh missing from Companion runtime" : "",
   !appSource.includes("/api/founder/timeline") ? "founder timeline backend consumption missing" : "",
   !appSource.includes("setFounderTimeline") ? "founder timeline is not passed into assistant provider" : "",
+  !providerSource.includes("FounderConversationEngine") ? "Founder Conversation Engine is not wired into provider" : "",
   indexSource.includes('id="statusGrid"') ? "floating subsystem tile container still exists in normal view" : "",
   indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
-  !indexSource.includes("event-horizon-core") ? "event-horizon core markup missing" : "",
+  indexSource.includes("event-horizon-core") ? "DOM event-horizon overlay still exists" : "",
+  indexSource.includes("accretion-ring") ? "DOM accretion ring overlay still exists" : "",
   !styleSource.includes("body.top-chrome-visible .build-marker") ? "status chrome top-edge reveal CSS missing" : "",
   !styleSource.includes("body.developer-mode .build-marker") ? "developer mode chrome reveal CSS missing" : "",
   !styleSource.includes("body[data-voice=\"thinking\"] .prometheus-core") ? "thinking amber state missing" : "",

@@ -304,12 +304,13 @@ async function verify() {
     const phrase = "Prometheus, what should I do next?";
     const route = resolveCompanionCommandRoute({ command: phrase, history: provider.history });
     const response = await provider.ask(phrase);
+    const executiveRoute = ["intelligence_orchestrator", "founder_conversation_engine"].includes(response.metadata?.routeSelected);
     const ok = route.type === "cognitive" &&
-      response.metadata?.routeSelected === "intelligence_orchestrator" &&
+      executiveRoute &&
       Boolean(response.title && response.body);
     record("reasoning", ok, ok
-      ? "founder reasoning routes to Intelligence Orchestrator"
-      : "founder reasoning did not route through Intelligence Orchestrator", {
+      ? `founder reasoning routes to ${response.metadata?.routeSelected}`
+      : "founder reasoning did not route through an executive reasoning path", {
         routeType: route.type,
         routeSelected: response.metadata?.routeSelected,
         title: response.title
@@ -458,7 +459,7 @@ async function verify() {
   try {
     const timeline = await fetchJson("http://127.0.0.1:8792/api/founder/timeline");
     const checkpointAreas = new Set((timeline.json?.checkpoints || []).map((item) => item.area));
-    const requiredAreas = ["Overwatch", "Mobile", "Website", "Intelligence", "CRM", "Social", "Research"];
+    const requiredAreas = ["Overwatch", "Mobile", "Website", "Intelligence", "CRM", "Social", "Research", "Infrastructure", "Administration", "Companion"];
     const missingAreas = requiredAreas.filter((area) => !checkpointAreas.has(area));
     const ok = timeline.ok &&
       timeline.json?.ok === true &&

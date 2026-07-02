@@ -55,6 +55,7 @@ let lastDebugMessage = "";
 let webAudioPlaybackGeneration = 0;
 let webAudioStallTimer = 0;
 let currentTtsAbortController = null;
+let currentCommandAbortController = null;
 let lastCommandResult = null;
 let activeRouteDecision = null;
 let suppressCardRoutesUntil = 0;
@@ -150,13 +151,22 @@ function commandFromTranscript(value) {
 
 function isStopCommand(value = "") {
   const normalized = normalizeRouteCommand(value);
-  return ["stop", "stop talking", "quiet", "pause"].includes(normalized);
+  return ["stop", "stop talking", "quiet", "pause", "actually stop", "stop please", "pause please"].includes(normalized);
 }
 
 function interruptSpeech(source = "command") {
   commandGeneration += 1;
+  if (currentCommandAbortController) {
+    try {
+      currentCommandAbortController.abort();
+    } catch {
+      // The current command may already be settled.
+    }
+    currentCommandAbortController = null;
+  }
   stopActiveAudio();
   stopBackendSttCapture();
+  stopBackendSttLoop("voice interrupt");
   closeDetail();
   commandInFlight = false;
   lastCommandResult = {
@@ -168,7 +178,7 @@ function interruptSpeech(source = "command") {
     source
   };
   debugVoice("Stopped", "speech interrupted", { kind: "ok" });
-  scheduleListeningAfterPlayback(200);
+  scheduleListeningAfterPlayback(0);
   return lastCommandResult;
 }
 
@@ -1221,14 +1231,17 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
 
   commandInFlight = true;
   const generation = ++commandGeneration;
+  const commandAbortController = new AbortController();
+  currentCommandAbortController = commandAbortController;
   try {
     setVoiceState("thinking");
     const routedTool = shouldReason
       ? "intelligence orchestrator"
       : routeCommandToTool(normalizeRouteCommand(message)) || "founder conversation";
     debugVoice("Matched command", routedTool, { kind: "ok" });
-    const response = await aiProvider.ask(message);
+    const response = await aiProvider.ask(message, { signal: commandAbortController.signal });
     if (generation !== commandGeneration) return lastCommandResult;
+    if (commandAbortController.signal.aborted) return lastCommandResult;
     debugVoice("response text generated", response.title, { kind: "ok" });
     const diagnostic = shouldAttachRouteDiagnostic(message) ? `\n\n${routeDiagnosticText(commandRoute)}` : "";
     const responseBody = `${response.body}${diagnostic}`;
@@ -1248,6 +1261,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
 
     await speakResponse(lastSpokenText);
     if (generation !== commandGeneration) return lastCommandResult;
+    if (commandAbortController.signal.aborted) return lastCommandResult;
     if (cardDisplayed && response.metadata?.developerMode !== true) {
       window.setTimeout(() => closeDetail(), 4200);
     }
@@ -1264,6 +1278,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     };
     return lastCommandResult;
   } finally {
+    if (currentCommandAbortController === commandAbortController) currentCommandAbortController = null;
     commandInFlight = false;
     if (!shouldReason) activeRouteDecision = null;
   }

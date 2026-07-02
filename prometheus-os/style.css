@@ -1735,3 +1735,31 @@ body[data-voice="speaking"] .ring-two {
     bottom: -48px;
   }
 }
+
+/* Founder Conversation Engine v1: the WebGL environment is the interface. */
+.prometheus-core,
+body[data-voice="listening"] .prometheus-core,
+body[data-voice="thinking"] .prometheus-core,
+body[data-voice="speaking"] .prometheus-core {
+  width: clamp(220px, 26vw, 360px);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.prometheus-core::before,
+.prometheus-core::after,
+.event-horizon-core,
+.accretion-ring,
+.gravity-lens,
+.singularity {
+  display: none;
+}
+
+body.top-chrome-visible .prometheus-core strong,
+body.top-chrome-visible .prometheus-core i,
+body.developer-mode .prometheus-core strong,
+body.developer-mode .prometheus-core i {
+  opacity: 0;
+}
