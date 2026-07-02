@@ -3771,6 +3771,63 @@ Next recommended subsystem:
 
 Prometheus Infrastructure/Auth for secure CRM persistence, tenant isolation, and account roles only when approved. During active beta, do not modify Dashboard, Data, Infrastructure, or Intelligence Engine unless required for beta stability.
 
+### Completed Work Lane: CRM Lead Attribution from Social Campaigns v1
+
+Primary subsystem: Prometheus CRM
+
+Secondary subsystems:
+
+- Prometheus Website, source of Website/Social attribution output
+- Prometheus Social Media, owner of attribution contract shape
+
+Task:
+
+CRM Lead Attribution from Social Campaigns v1.
+
+Status:
+
+Complete, committed, and pushed to `origin/main`.
+
+Implementation type:
+
+CRM-owned implementation using existing Website attribution output and Social Media attribution contract.
+
+Commit:
+
+`cee5ddbc534440c291f0dfc594c2bedb7edaa345`
+
+Deploy:
+
+Not run. No deploy required for CRM library/test change.
+
+Files changed:
+
+- `crm/README.md`
+- `crm/crm-foundation.mjs`
+- `scripts/typecheck-crm.mjs`
+- `tests/crm-foundation.test.mjs`
+
+Verified outcome:
+
+- Added `attachWebsiteAttributionToLead`.
+- CRM now attaches `lead_source`, `campaign_id`, `campaign_platform`, first touch, last touch, qualified status, and manual notes to lead records.
+- CRM creates normalized `crm_lead_created` attribution events through `social-media/contracts/social-media-contract.js`.
+- Preserved CRM ownership of lead/contact records.
+- Did not modify Website, Social Media ingestion, Dashboard, Data, Infrastructure, Companion, or Intelligence Engine.
+- Did not call Instagram APIs.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+None for CRM Lead Attribution v1.
+
+Next recommended subsystem:
+
+Prometheus Website or Prometheus Dashboard only if attribution needs UI surfacing.
+
 ### Completed Work Lane: Route Intelligence Golden Route Quality Gate v1
 
 Primary subsystem: Prometheus Intelligence Engine
@@ -5007,6 +5064,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the production Meta Instagram token-store binding; reuse Cloudflare binding `META_INSTAGRAM_TOKEN_STORE` in `wrangler.jsonc`.
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
+- Do not duplicate CRM Lead Attribution from Social Campaigns v1; reuse `attachWebsiteAttributionToLead` in `crm/crm-foundation.mjs`, the existing Website/Social attribution output, and normalized `crm_lead_created` attribution events through `social-media/contracts/social-media-contract.js`. CRM owns lead/contact records and must not call Instagram APIs or rebuild Website/Social attribution capture.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.
