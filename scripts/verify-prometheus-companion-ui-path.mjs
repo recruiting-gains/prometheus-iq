@@ -772,10 +772,18 @@ const uiPolicyFailures = [
   !appSource.includes("function interruptSpeech") ? "voice interrupt helper missing" : "",
   !appSource.includes("window.prometheusOSInterruptSpeech") ? "native interrupt bridge missing" : "",
   !appSource.includes("interruptOnly") ? "interrupt-only listening path missing" : "",
+  !appSource.includes("commandGeneration") ? "pending response cancellation token missing" : "",
+  !appSource.includes("AbortController") ? "pending TTS abort controller missing" : "",
+  !appSource.includes("voice.setInterruptOnly(true)") ? "browser interim interrupt mode missing for Companion shell" : "",
+  !appSource.includes("installTopChromeReveal") ? "top chrome reveal behavior missing" : "",
   indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
   !indexSource.includes("event-horizon-core") ? "event-horizon core markup missing" : "",
+  !styleSource.includes("body.top-chrome-visible .build-marker") ? "status chrome top-edge reveal CSS missing" : "",
+  !styleSource.includes("body.developer-mode .build-marker") ? "developer mode chrome reveal CSS missing" : "",
+  !styleSource.includes("body[data-voice=\"thinking\"] .prometheus-core") ? "thinking amber state missing" : "",
   !styleSource.includes("body[data-voice=\"speaking\"] .prometheus-core") ? "speaking green glow state missing" : "",
-  !styleSource.includes("body[data-voice=\"listening\"] .prometheus-core") ? "listening green pulse state missing" : ""
+  !styleSource.includes("body[data-voice=\"listening\"] .prometheus-core") ? "listening soft-blue pulse state missing" : "",
+  !styleSource.includes("@keyframes holoPanelFloat") ? "holographic panel float missing" : ""
 ].filter(Boolean);
 
 if (uiPolicyFailures.length) {

@@ -1,5 +1,5 @@
 export class VoiceAssistant {
-  constructor({ onTranscript, onWake, onClap, onStateChange, onDebug } = {}) {
+  constructor({ onTranscript, onWake, onClap, onStateChange, onDebug, onInterrupt } = {}) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     this.recognition = SpeechRecognition ? new SpeechRecognition() : null;
     this.onTranscript = onTranscript;
@@ -7,7 +7,9 @@ export class VoiceAssistant {
     this.onClap = onClap;
     this.onStateChange = onStateChange;
     this.onDebug = onDebug;
+    this.onInterrupt = onInterrupt;
     this.autoRead = true;
+    this.interruptOnly = false;
     this.selectedVoiceName = "";
     this.voices = [];
     this.keepListening = false;
@@ -63,6 +65,12 @@ export class VoiceAssistant {
         const heard = finalTranscript || transcript;
         if (!heard) return;
         this.debug("speech recognition transcript", heard);
+        if (this.isInterruptCommand(heard)) {
+          this.debug("interrupt detected", heard);
+          this.onInterrupt?.(heard);
+          return;
+        }
+        if (this.interruptOnly) return;
         const wake = this.extractWakeCommand(heard);
         if (wake.woke) {
           this.debug("wake phrase detected", wake.phrase);
@@ -98,6 +106,10 @@ export class VoiceAssistant {
 
   setVoice(name) {
     this.selectedVoiceName = name;
+  }
+
+  setInterruptOnly(enabled) {
+    this.interruptOnly = Boolean(enabled);
   }
 
   extractWakeCommand(transcript) {
@@ -249,8 +261,13 @@ export class VoiceAssistant {
     return String(value || "")
       .toLowerCase()
       .replace(/[’‘]/g, "'")
+      .replace(/[^a-z0-9']+/g, " ")
       .replace(/\s+/g, " ")
       .trim();
+  }
+
+  isInterruptCommand(value) {
+    return ["stop", "stop talking", "quiet", "pause"].includes(this.normalizeSpeech(value));
   }
 
   debug(stage, message = "") {

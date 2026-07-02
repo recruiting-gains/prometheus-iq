@@ -49,9 +49,11 @@ let lastBackendTranscriptAt = 0;
 let currentPremiumAudio = null;
 let isPrometheusSpeaking = false;
 let commandInFlight = false;
+let commandGeneration = 0;
 let lastDebugMessage = "";
 let webAudioPlaybackGeneration = 0;
 let webAudioStallTimer = 0;
+let currentTtsAbortController = null;
 let lastCommandResult = null;
 let activeRouteDecision = null;
 let suppressCardRoutesUntil = 0;
@@ -77,6 +79,7 @@ const voice = new VoiceAssistant({
   },
   onWake: (text, wake) => handleWake(text, wake),
   onClap: () => handleClap(),
+  onInterrupt: () => interruptSpeech("browser interrupt"),
   onStateChange: (state) => {
     setVoiceState(state);
   },
@@ -149,6 +152,7 @@ function isStopCommand(value = "") {
 }
 
 function interruptSpeech(source = "command") {
+  commandGeneration += 1;
   stopActiveAudio();
   stopBackendSttCapture();
   closeDetail();
@@ -500,11 +504,30 @@ function openDetail({ kicker = "Prometheus signal", title, text, actions = "" })
   detailActions.innerHTML = actions;
   detailPanel.classList.add("is-open");
   detailPanel.setAttribute("aria-hidden", "false");
+  document.body.classList.toggle("developer-mode", kicker === "Developer Mode");
 }
 
 function closeDetail() {
   detailPanel.classList.remove("is-open");
   detailPanel.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("developer-mode");
+}
+
+function installTopChromeReveal() {
+  const reveal = (active) => {
+    document.body.classList.toggle("top-chrome-visible", Boolean(active));
+  };
+
+  document.addEventListener("mousemove", (event) => {
+    reveal(event.clientY <= 28);
+  });
+  document.addEventListener("mouseleave", () => reveal(false));
+  document.addEventListener("touchstart", (event) => {
+    reveal((event.touches?.[0]?.clientY || 999) <= 42);
+  }, { passive: true });
+  document.addEventListener("scroll", () => {
+    reveal(window.scrollY <= 4);
+  }, { passive: true });
 }
 
 function normalizeCommandText(value) {
@@ -778,6 +801,14 @@ function stopBackendSttCapture() {
 function stopActiveAudio() {
   webAudioPlaybackGeneration += 1;
   window.clearInterval(webAudioStallTimer);
+  if (currentTtsAbortController) {
+    try {
+      currentTtsAbortController.abort();
+    } catch {
+      // The request may already be settled.
+    }
+    currentTtsAbortController = null;
+  }
   if (currentPremiumAudio) {
     try {
       currentPremiumAudio.pause();
@@ -1203,6 +1234,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
   }
 
   commandInFlight = true;
+  const generation = ++commandGeneration;
   try {
     setVoiceState("thinking");
     const routedTool = shouldReason
@@ -1210,6 +1242,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
       : routeCommandToTool(normalizeRouteCommand(message)) || "founder conversation";
     debugVoice("Matched command", routedTool, { kind: "ok" });
     const response = await aiProvider.ask(message);
+    if (generation !== commandGeneration) return lastCommandResult;
     debugVoice("response text generated", response.title, { kind: "ok" });
     const diagnostic = shouldAttachRouteDiagnostic(message) ? `\n\n${routeDiagnosticText(commandRoute)}` : "";
     const responseBody = `${response.body}${diagnostic}`;
@@ -1228,6 +1261,10 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     }
 
     await speakResponse(lastSpokenText);
+    if (generation !== commandGeneration) return lastCommandResult;
+    if (cardDisplayed && response.metadata?.developerMode !== true) {
+      window.setTimeout(() => closeDetail(), 4200);
+    }
     lastCommandResult = {
       type: commandRoute.type,
       routeSelected: response.metadata?.routeSelected || (shouldReason ? "intelligence_orchestrator" : "provider"),
@@ -1302,6 +1339,8 @@ async function speakResponse(text) {
   if (!text) return false;
   stopActiveAudio();
   stopBackendSttCapture();
+  const ttsAbortController = new AbortController();
+  currentTtsAbortController = ttsAbortController;
 
   if (selectedTtsProvider !== "browser") {
     try {
@@ -1319,8 +1358,10 @@ async function speakResponse(text) {
       const response = await fetch("http://127.0.0.1:8792/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: ttsAbortController.signal
       });
+      if (currentTtsAbortController === ttsAbortController) currentTtsAbortController = null;
 
       if (response.ok) {
         const providerHeader = response.headers.get("X-Prometheus-Voice-Provider") || selectedTtsProvider;
@@ -1340,6 +1381,10 @@ async function speakResponse(text) {
       debugVoice("Premium voice fallback", errorText, { kind: "warn" });
       bindDetailActions();
     } catch (error) {
+      if (error?.name === "AbortError") {
+        if (currentTtsAbortController === ttsAbortController) currentTtsAbortController = null;
+        return false;
+      }
       const errorText = error?.message || "Local premium voice backend unavailable.";
       openDetail({
         kicker: "Premium voice fallback",
@@ -1351,6 +1396,7 @@ async function speakResponse(text) {
       bindDetailActions();
     }
   }
+  if (currentTtsAbortController === ttsAbortController) currentTtsAbortController = null;
 
   debugVoice("TTS request started", "browser fallback", { kind: "warn" });
   const spoken = await speakBrowserFallback(text);
@@ -1410,9 +1456,12 @@ function initVoice() {
   if (continuousListeningEnabled) {
     window.setTimeout(() => {
       if (!companionShell) {
+        voice.setInterruptOnly(false);
         voice.startAlwaysListening();
         startBackendSttLoop();
       } else {
+        voice.setInterruptOnly(true);
+        voice.startAlwaysListening();
         debugVoice("Listening", "Companion WebView microphone capture owns STT in shell mode.", { kind: "ok" });
         startBackendSttLoop();
         startBackendSttCapture({
@@ -1430,6 +1479,7 @@ function initVoice() {
 function init() {
   renderNetwork();
   bindNetwork();
+  installTopChromeReveal();
   initVoice();
   createPrometheusScene($("#holoCanvas"));
 }
