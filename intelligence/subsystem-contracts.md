@@ -541,6 +541,7 @@ Required fields:
 - `customerId`
 - `sourceRefs`
 - `attributes`
+- `provenance`
 - `reviewState`
 - `sensitivity`
 - `validFrom`
@@ -551,7 +552,9 @@ Supported node types:
 - Visit
 - Lead
 - Outcome
+- Opportunity
 - Rep
+- Manager
 - Territory
 - Operating Profile
 - Customer
@@ -570,6 +573,7 @@ Required fields:
 - `customerId`
 - `sourceEvidenceIds`
 - `confidenceSeed`
+- `provenance`
 - `reviewState`
 - `validFrom`
 - `validUntil`
@@ -593,12 +597,71 @@ Purpose: hold a deterministic architecture-only graph snapshot for one customer 
 Required fields:
 
 - `graphId`
+- `snapshotVersion`
 - `contractVersion`
 - `customerId`
 - `operatingProfileId`
+- `readOnly`
+- `generatedAt`
 - `nodes`
 - `relationships`
+- `content`
+- `queryIndex`
+- `provenance`
+- `explainability`
+- `confidence`
 - `objectives`
+- `safety`
+
+Snapshot content:
+
+- businesses
+- visits
+- outcomes
+- leads
+- opportunities
+- rep activity
+- manager activity
+- territories
+- opportunity relationships
+- evidence history
+- confidence
+- operating profile
+- learning provenance
+
+### CustomerGraphQueryRequest
+
+Purpose: request a safe read-only graph query.
+
+Required fields:
+
+- `contractVersion`
+- `queryId`
+- `consumer`
+- `customerId`
+- `queryType`
+- `filters`
+- `readOnly`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `maxResults`
+- `safety`
+
+### CustomerGraphQueryResult
+
+Purpose: return read-only graph nodes, relationships, provenance, and explanation.
+
+Required fields:
+
+- `contractVersion`
+- `queryId`
+- `customerId`
+- `queryType`
+- `nodes`
+- `relationships`
+- `provenance`
+- `explanation`
+- `readOnly`
 - `safety`
 
 ### DashboardCustomerGraphContract
@@ -640,6 +703,19 @@ Required fields:
 - `allowedRelationshipTypes`
 - `mobileRuntimeChanged`
 
+### WebsiteCustomerGraphContract
+
+Purpose: future Website graph context contract without changing Website runtime.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `websiteRuntimeChanged`
+
 ### CompanionCustomerGraphContract
 
 Purpose: future Companion graph reasoning contract after Founder review.
@@ -677,6 +753,97 @@ Required fields:
 - `customerId`
 - `allowedNodeTypes`
 - `allowedRelationshipTypes`
+- `runtimeConsumptionAuthorized`
+
+### DashboardCustomerGraphQueryContract
+
+Purpose: future Dashboard read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `runtimeConsumptionAuthorized`
+
+### CRMCustomerGraphQueryContract
+
+Purpose: future CRM read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `runtimeMutationAuthorized`
+
+### MobileCustomerGraphQueryContract
+
+Purpose: future Mobile read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `mobileRuntimeChanged`
+
+### WebsiteCustomerGraphQueryContract
+
+Purpose: future Website read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `websiteRuntimeChanged`
+
+### CompanionCustomerGraphQueryContract
+
+Purpose: future Companion read-only graph query contract after Founder review.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `companionRuntimeChanged`
+
+### ResearchCustomerGraphQueryContract
+
+Purpose: future Research read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
+- `runtimeConsumptionAuthorized`
+
+### SalesCustomerGraphQueryContract
+
+Purpose: future Sales read-only graph query contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `queryTypes`
+- `readOnly`
 - `runtimeConsumptionAuthorized`
 
 ## Producer Boundaries

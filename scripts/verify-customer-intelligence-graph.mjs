@@ -1,10 +1,13 @@
 import {
   buildCustomerGraphConsumerContract,
   buildCustomerGraphNode,
+  buildCustomerGraphQueryContract,
   buildCustomerGraphRelationship,
   buildCustomerGraphSnapshot,
   loadCustomerIntelligenceGraphContracts,
+  queryCustomerGraphSnapshot,
   validateCustomerGraphContracts,
+  validateCustomerGraphQueryContract,
   validateCustomerGraphSnapshot
 } from "../intelligence/customer-intelligence-graph.mjs";
 
@@ -51,15 +54,35 @@ const snapshot = buildCustomerGraphSnapshot({
 });
 failures.push(...validateCustomerGraphSnapshot(snapshot, contracts));
 
-const consumers = ["Dashboard", "CRM", "Mobile", "Companion", "Research", "Sales"];
+const consumers = ["Dashboard", "CRM", "Mobile", "Website", "Companion", "Research", "Sales"];
 const consumerContracts = consumers.map(consumer => buildCustomerGraphConsumerContract(customerId, consumer, { contracts }));
 for (const contract of consumerContracts) {
   if (contract.status !== "architecture_only") failures.push(`${contract.consumer} contract is not architecture_only`);
   if (contract.runtimeConsumptionAuthorized === true) failures.push(`${contract.consumer} contract authorizes runtime consumption`);
   if (contract.runtimeMutationAuthorized === true) failures.push(`${contract.consumer} contract authorizes runtime mutation`);
   if (contract.mobileRuntimeChanged === true) failures.push(`${contract.consumer} contract changes Mobile runtime`);
+  if (contract.websiteRuntimeChanged === true) failures.push(`${contract.consumer} contract changes Website runtime`);
   if (contract.companionRuntimeChanged === true) failures.push(`${contract.consumer} contract changes Companion runtime`);
 }
+
+const queryContracts = consumers.map(consumer => buildCustomerGraphQueryContract(customerId, consumer, {
+  contracts,
+  queryType: "by_node_type",
+  filters: { nodeType: "Business" }
+}));
+for (const contract of queryContracts) {
+  failures.push(...validateCustomerGraphQueryContract(contract, contracts));
+}
+
+const dashboardBusinessQuery = {
+  ...queryContracts.find(contract => contract.consumer === "Dashboard"),
+  queryType: "by_node_type",
+  filters: { nodeType: "Business" }
+};
+const queryResult = queryCustomerGraphSnapshot(snapshot, dashboardBusinessQuery, { contracts });
+if (queryResult.failureReasons.length) failures.push(...queryResult.failureReasons);
+if (queryResult.readOnly !== true) failures.push("Customer graph query result must remain readOnly");
+if (queryResult.safety.productionRecommendationsChanged !== false) failures.push("Customer graph query result changes recommendations");
 
 const summary = {
   status: failures.length ? "failed" : "passed",
@@ -73,14 +96,30 @@ const summary = {
     operatingProfileId: snapshot.operatingProfileId,
     nodeCount: snapshot.nodes.length,
     relationshipCount: snapshot.relationships.length,
+    readOnly: snapshot.readOnly,
+    queryable: snapshot.queryIndex.queryable,
+    evidenceHistoryCount: snapshot.content.evidenceHistory.length,
+    provenanceSources: snapshot.provenance.sourceRefs.length,
     productionRecommendationsChanged: snapshot.safety.productionRecommendationsChanged,
     confidencePropagationActive: snapshot.safety.confidencePropagationActive
   },
+  sampleQuery: {
+    consumer: dashboardBusinessQuery.consumer,
+    queryType: dashboardBusinessQuery.queryType,
+    resultNodes: queryResult.nodes.length,
+    readOnly: queryResult.readOnly,
+    productionRecommendationsChanged: queryResult.safety.productionRecommendationsChanged
+  },
   productionSafety: {
     consumerImplementationActive: contracts.consumerImplementationActive,
+    readOnly: contracts.readOnly,
+    automaticLearningActive: contracts.automaticLearningActive,
+    automaticScoringActive: contracts.automaticScoringActive,
     productionScoringChanged: contracts.productionScoringChanged,
     productionRecommendationsChanged: contracts.productionRecommendationsChanged,
+    activePoolChanged: contracts.activePoolChanged,
     dashboardRuntimeChanged: contracts.dashboardRuntimeChanged,
+    websiteRuntimeChanged: contracts.websiteRuntimeChanged,
     mobileRuntimeChanged: contracts.mobileRuntimeChanged,
     companionRuntimeChanged: contracts.companionRuntimeChanged,
     crmRuntimeChanged: contracts.crmRuntimeChanged,

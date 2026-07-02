@@ -73,6 +73,7 @@ Areas:
 - Operating Profile Engine
 - Field Evidence Activation Foundation
 - Customer Intelligence Graph
+- Living Customer Intelligence Snapshots
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
 
@@ -112,7 +113,7 @@ Recommendation explainability rule: explanation work must extend `intelligence/r
 
 Operating Profile rule: industry adaptation and field-evidence activation work must extend `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, and `intelligence/contracts/operating-profile-contracts.json`. Do not create a parallel industry-profile engine, duplicate normalized outcome model, production learning activation path, or separate Dashboard/CRM/Companion/Mobile/Website profile contract without approved Intelligence handoff.
 
-Customer Intelligence Graph rule: customer graph work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, or Dashboard/CRM/Mobile/Companion/Research/Sales graph consumer without approved Intelligence handoff.
+Customer Intelligence Graph rule: customer graph and Living Customer Intelligence snapshot work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, automatic learning path, scoring path, or Dashboard/CRM/Mobile/Website/Companion/Research/Sales graph consumer without approved Intelligence handoff.
 
 ### 4. Prometheus Infrastructure
 

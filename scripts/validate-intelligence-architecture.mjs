@@ -250,9 +250,12 @@ const requiredCustomerGraphExports = [
   "buildCustomerGraphNode",
   "buildCustomerGraphRelationship",
   "buildCustomerGraphSnapshot",
+  "buildCustomerGraphQueryContract",
+  "queryCustomerGraphSnapshot",
   "validateCustomerGraphContracts",
   "validateCustomerGraphSnapshot",
-  "buildCustomerGraphConsumerContract"
+  "buildCustomerGraphConsumerContract",
+  "validateCustomerGraphQueryContract"
 ];
 for (const exportName of requiredCustomerGraphExports) {
   assert(customerIntelligenceGraph.includes(`export function ${exportName}`), `Customer Intelligence Graph missing export ${exportName}`);
@@ -263,7 +266,9 @@ const requiredCustomerGraphNodeTypes = [
   "Visit",
   "Lead",
   "Outcome",
+  "Opportunity",
   "Rep",
+  "Manager",
   "Territory",
   "Operating Profile",
   "Customer",
@@ -309,9 +314,19 @@ const requiredCustomerGraphContracts = [
   "DashboardCustomerGraphContract",
   "CRMCustomerGraphContract",
   "MobileCustomerGraphContract",
+  "WebsiteCustomerGraphContract",
   "CompanionCustomerGraphContract",
   "ResearchCustomerGraphContract",
-  "SalesCustomerGraphContract"
+  "SalesCustomerGraphContract",
+  "CustomerGraphQueryRequest",
+  "CustomerGraphQueryResult",
+  "DashboardCustomerGraphQueryContract",
+  "CRMCustomerGraphQueryContract",
+  "MobileCustomerGraphQueryContract",
+  "WebsiteCustomerGraphQueryContract",
+  "CompanionCustomerGraphQueryContract",
+  "ResearchCustomerGraphQueryContract",
+  "SalesCustomerGraphQueryContract"
 ];
 for (const contractName of requiredCustomerGraphContracts) {
   assert(contractsDoc.includes(contractName), `Contracts doc missing ${contractName}`);
@@ -480,14 +495,34 @@ assert(operatingProfileContracts.prohibitions.includes("no_live_recommendation_s
 assert(fieldEvidenceActivation.includes("Visit -> Outcome -> Evidence -> Learning Signal -> Confidence -> Recommendation"), "Field Evidence Activation foundation must document the normalized outcome model.");
 assert(fieldEvidenceActivation.includes("Dashboard") && fieldEvidenceActivation.includes("CRM") && fieldEvidenceActivation.includes("Companion") && fieldEvidenceActivation.includes("Mobile") && fieldEvidenceActivation.includes("Website") && fieldEvidenceActivation.includes("Research") && fieldEvidenceActivation.includes("Sales") && fieldEvidenceActivation.includes("Social Media"), "Field Evidence Activation foundation must include profile consumer contracts.");
 assert(customerGraphContracts.status === "architecture_only", "Customer Intelligence Graph contracts must remain architecture_only.");
+assert(customerGraphContracts.activationMode === "read_only_customer_scoped_snapshots", "Customer Intelligence Graph must declare read-only snapshot activation.");
+assert(customerGraphContracts.readOnly === true, "Customer Intelligence Graph contracts must remain readOnly.");
+assert(customerGraphContracts.queryable === true, "Customer Intelligence Graph contracts must remain queryable.");
+assert(customerGraphContracts.automaticLearningActive === false, "Customer Intelligence Graph must not activate automatic learning.");
+assert(customerGraphContracts.automaticScoringActive === false, "Customer Intelligence Graph must not activate automatic scoring.");
+assert(customerGraphContracts.activePoolChanged === false, "Customer Intelligence Graph must not change Active Pool.");
+assert(customerGraphContracts.humanOverridePreserved === true, "Customer Intelligence Graph must preserve human override.");
+assert(customerGraphContracts.customerIsolationRequired === true, "Customer Intelligence Graph must require customer isolation.");
 assert(customerGraphContracts.consumerImplementationActive === false, "Customer Intelligence Graph must not activate consumers.");
 assert(customerGraphContracts.productionScoringChanged === false, "Customer Intelligence Graph must not change production scoring.");
 assert(customerGraphContracts.productionRecommendationsChanged === false, "Customer Intelligence Graph must not change production recommendations.");
 assert(customerGraphContracts.dashboardRuntimeChanged === false, "Customer Intelligence Graph must not change Dashboard runtime.");
 assert(customerGraphContracts.mobileRuntimeChanged === false, "Customer Intelligence Graph must not change Mobile runtime.");
+assert(customerGraphContracts.websiteRuntimeChanged === false, "Customer Intelligence Graph must not change Website runtime.");
 assert(customerGraphContracts.companionRuntimeChanged === false, "Customer Intelligence Graph must not change Companion runtime.");
 assert(customerGraphContracts.prohibitions.includes("no_cross_customer_graph_bleed"), "Customer Intelligence Graph must prohibit cross-customer graph bleed.");
 assert(customerGraphContracts.prohibitions.includes("no_confidence_propagation_activation"), "Customer Intelligence Graph must prohibit confidence propagation activation.");
+assert(customerGraphContracts.prohibitions.includes("no_production_scoring"), "Customer Intelligence Graph must prohibit production scoring.");
+assert(customerIntelligenceGraphDoc.includes("CustomerGraphSnapshots"), "Customer Intelligence Graph doc must describe CustomerGraphSnapshots.");
+assert(customerIntelligenceGraphDoc.includes("Where did this come from?"), "Customer Intelligence Graph doc must describe provenance questions.");
+assert(customerIntelligenceGraphDoc.includes("WebsiteCustomerGraphQueryContract"), "Customer Intelligence Graph doc must include Website query contract.");
+assert(customerIntelligenceGraphDoc.includes("no automatic learning"), "Customer Intelligence Graph doc must prohibit automatic learning.");
+for (const contentKey of ["businesses", "visits", "outcomes", "leads", "opportunities", "rep_activity", "manager_activity", "territories", "opportunity_relationships", "evidence_history", "confidence", "operating_profile", "learning_provenance"]) {
+  assert(customerGraphContracts.snapshotContent.includes(contentKey), `Customer Intelligence Graph contracts missing snapshot content ${contentKey}`);
+}
+for (const queryType of ["snapshot_summary", "by_node_type", "by_relationship_type", "by_business", "by_territory", "by_rep", "by_opportunity", "by_evidence", "by_confidence", "by_operating_profile"]) {
+  assert(customerGraphContracts.queryTypes.includes(queryType), `Customer Intelligence Graph contracts missing query type ${queryType}`);
+}
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");

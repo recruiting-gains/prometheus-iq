@@ -1,10 +1,19 @@
 {
   "version": "customer-intelligence-graph-v1",
   "status": "architecture_only",
+  "activationMode": "read_only_customer_scoped_snapshots",
+  "readOnly": true,
+  "queryable": true,
+  "automaticLearningActive": false,
+  "automaticScoringActive": false,
+  "activePoolChanged": false,
+  "humanOverridePreserved": true,
+  "customerIsolationRequired": true,
   "consumerImplementationActive": false,
   "productionScoringChanged": false,
   "productionRecommendationsChanged": false,
   "dashboardRuntimeChanged": false,
+  "websiteRuntimeChanged": false,
   "mobileRuntimeChanged": false,
   "companionRuntimeChanged": false,
   "crmRuntimeChanged": false,
@@ -16,7 +25,9 @@
     "Visit",
     "Lead",
     "Outcome",
+    "Opportunity",
     "Rep",
+    "Manager",
     "Territory",
     "Operating Profile",
     "Customer",
@@ -45,9 +56,46 @@
     "DashboardCustomerGraphContract",
     "CRMCustomerGraphContract",
     "MobileCustomerGraphContract",
+    "WebsiteCustomerGraphContract",
     "CompanionCustomerGraphContract",
     "ResearchCustomerGraphContract",
     "SalesCustomerGraphContract"
+  ],
+  "futureQueryContracts": [
+    "DashboardCustomerGraphQueryContract",
+    "CRMCustomerGraphQueryContract",
+    "MobileCustomerGraphQueryContract",
+    "WebsiteCustomerGraphQueryContract",
+    "CompanionCustomerGraphQueryContract",
+    "ResearchCustomerGraphQueryContract",
+    "SalesCustomerGraphQueryContract"
+  ],
+  "snapshotContent": [
+    "businesses",
+    "visits",
+    "outcomes",
+    "leads",
+    "opportunities",
+    "rep_activity",
+    "manager_activity",
+    "territories",
+    "opportunity_relationships",
+    "evidence_history",
+    "confidence",
+    "operating_profile",
+    "learning_provenance"
+  ],
+  "queryTypes": [
+    "snapshot_summary",
+    "by_node_type",
+    "by_relationship_type",
+    "by_business",
+    "by_territory",
+    "by_rep",
+    "by_opportunity",
+    "by_evidence",
+    "by_confidence",
+    "by_operating_profile"
   ],
   "contracts": {
     "CustomerGraphNode": {
@@ -57,6 +105,7 @@
         "customerId",
         "sourceRefs",
         "attributes",
+        "provenance",
         "reviewState",
         "sensitivity",
         "validFrom"
@@ -71,6 +120,7 @@
         "customerId",
         "sourceEvidenceIds",
         "confidenceSeed",
+        "provenance",
         "reviewState",
         "validFrom",
         "validUntil"
@@ -79,12 +129,49 @@
     "CustomerGraphSnapshot": {
       "requiredFields": [
         "graphId",
+        "snapshotVersion",
         "contractVersion",
         "customerId",
         "operatingProfileId",
+        "readOnly",
+        "generatedAt",
         "nodes",
         "relationships",
+        "content",
+        "queryIndex",
+        "provenance",
+        "explainability",
+        "confidence",
         "objectives",
+        "safety"
+      ]
+    },
+    "CustomerGraphQueryRequest": {
+      "requiredFields": [
+        "contractVersion",
+        "queryId",
+        "consumer",
+        "customerId",
+        "queryType",
+        "filters",
+        "readOnly",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "maxResults",
+        "safety"
+      ]
+    },
+    "CustomerGraphQueryResult": {
+      "requiredFields": [
+        "contractVersion",
+        "queryId",
+        "customerId",
+        "queryType",
+        "nodes",
+        "relationships",
+        "provenance",
+        "explanation",
+        "readOnly",
         "safety"
       ]
     },
@@ -118,6 +205,16 @@
         "mobileRuntimeChanged"
       ]
     },
+    "WebsiteCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "websiteRuntimeChanged"
+      ]
+    },
     "CompanionCustomerGraphContract": {
       "requiredFields": [
         "contractVersion",
@@ -147,6 +244,27 @@
         "allowedRelationshipTypes",
         "runtimeConsumptionAuthorized"
       ]
+    },
+    "DashboardCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "runtimeConsumptionAuthorized"]
+    },
+    "CRMCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "runtimeMutationAuthorized"]
+    },
+    "MobileCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "mobileRuntimeChanged"]
+    },
+    "WebsiteCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "websiteRuntimeChanged"]
+    },
+    "CompanionCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "companionRuntimeChanged"]
+    },
+    "ResearchCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "runtimeConsumptionAuthorized"]
+    },
+    "SalesCustomerGraphQueryContract": {
+      "requiredFields": ["contractVersion", "consumer", "customerId", "queryTypes", "readOnly", "runtimeConsumptionAuthorized"]
     }
   },
   "prohibitions": [

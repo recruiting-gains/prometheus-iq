@@ -15,13 +15,13 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `recommendation-explainability-engine.mjs`: explanation-only engine that converts recommendation context into natural-language why, confidence, evidence, change, and next-action answers.
 - `operating-profile-engine.mjs`: configuration-driven profile engine that maps industry-specific field outcomes into normalized evidence without changing production scoring, Dashboard runtime behavior, Mobile beta behavior, CRM runtime behavior, Website behavior, Companion behavior, or Infrastructure.
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
-- `customer-intelligence-graph.mjs`: architecture-only graph engine for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal relationships.
-- `customer-intelligence-graph.md`: Customer Intelligence Graph architecture, customer isolation rules, graph objectives, and future consumer boundaries.
+- `customer-intelligence-graph.mjs`: read-only graph snapshot engine for per-customer Business, Visit, Lead, Outcome, Opportunity, Rep, Manager, Territory, Operating Profile, Customer, and Learning Signal relationships.
+- `customer-intelligence-graph.md`: Customer Intelligence Graph architecture, CustomerGraphSnapshots, provenance, safe query contracts, customer isolation rules, graph objectives, and future consumer boundaries.
 - `contracts/adaptive-intelligence-contracts.json`: machine-readable contract registry for validation and future implementation planning.
 - `contracts/field-learning-loop-contracts.json`: machine-readable Field Learning Loop contract registry for completed-visit evidence, normalized signals, confidence, explainability, and human override review.
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
-- `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, Dashboard, CRM, Mobile, Companion, Research, and Sales contracts.
+- `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, read-only query, Dashboard, CRM, Mobile, Website, Companion, Research, and Sales contracts.
 - `profiles/operating-profiles.json`: initial General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, and Home Services operating profiles.
 - `fixtures/field-visit-evidence-fixtures.json`: simulated field visit evidence fixtures for regression testing before live beta evidence is admitted.
 
