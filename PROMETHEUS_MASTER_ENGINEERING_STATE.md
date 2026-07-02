@@ -5515,6 +5515,68 @@ Next recommended subsystem:
 
 Prometheus Infrastructure/Auth for authenticated production verification of Worker `c6da1f87-4627-43c4-90ae-4752ed69b412`; then Prometheus Administration for field-test evidence and tester sign-off updates.
 
+### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Offline Evidence Harness v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Adaptive Field Learning Offline Evidence Harness v1
+
+Commit: `58205491b378271816723a7f3ce99d28e9f8efeb`
+
+Deploy: Deployed via `npx wrangler deploy` to Worker `prometheus-iq`
+
+Production URL: `https://prometheus-iq.prometheusrouteiq.workers.dev`
+
+Worker version: `e2e5e155-a4fa-44a4-bf13-6febc8242488`
+
+Status: Complete, committed, and deployed. Production recommendations, Dashboard behavior, Active Pool scoring, Route Intelligence scoring, CRM records, and Data governance were not changed.
+
+Implementation type: Architecture and validation
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `intelligence/README.md`
+- `intelligence/adaptive-field-learning-loop-foundation.md`
+- `intelligence/field-learning-offline-evidence-harness.mjs`
+- `intelligence/fixtures/field-visit-evidence-fixtures.json`
+- `package.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-field-learning-offline-evidence-harness.mjs`
+- `tests/field-learning-offline-evidence-harness.test.mjs`
+
+Validation harness created:
+
+Intelligence Engine added an offline-only harness for simulated field visit ingestion, evidence admission, normalized learning signals, before/after confidence snapshots, future recommendation explanations, and human override enforcement. Harness result: 11 fixtures, 11 evidence records, 43 signals, 22 confidence snapshots, 11 explanations, and 1 override scenario blocked from learning influence.
+
+Regression suite created:
+
+Seven-test Field Learning Offline Evidence Harness regression suite covering fixtures, ingestion, signals, confidence, explanations, human override behavior, and no-production-change safety flags.
+
+Deployment verification:
+
+Wrangler deploy passed. Production verifier passed existing gates, artifact/build parity, Wrangler deployment/version consistency, and Cloudflare Access protection. Authenticated production route/header and browser runtime checks remain blocked because no `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp` endpoint was available. Local production release verification passed.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- `npm run intelligence:field-learning:harness`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `npm run test:intelligence:field-learning`: passed.
+- `npm run verify:production-release -- --expected-worker-version e2e5e155-a4fa-44a4-bf13-6febc8242488`: partially blocked by missing auth/CDP.
+- `npm run verify:production-release:local`: passed.
+
+Remaining blockers:
+
+Authenticated production route/header verification and JavaScript runtime startup verification require Cloudflare Access credentials or a CDP browser endpoint.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure/Auth for authenticated production verification of Worker `e2e5e155-a4fa-44a4-bf13-6febc8242488`; then Prometheus Dashboard only after an explicit future evidence-producer handoff is approved.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -5567,6 +5629,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.
 - Do not duplicate Adaptive Field Learning Loop Foundation v1; reuse `intelligence/adaptive-field-learning-loop-foundation.md`, `intelligence/contracts/field-learning-loop-contracts.json`, `intelligence/field-learning-loop-handoffs.md`, updated `intelligence/subsystem-contracts.md`, and the Intelligence validation/test gates for completed-visit evidence capture, evidence admission, learning signals, confidence snapshots, recommendation explanations, and human override review.
+- Do not duplicate Adaptive Field Learning Offline Evidence Harness v1; reuse `intelligence/field-learning-offline-evidence-harness.mjs`, `intelligence/fixtures/field-visit-evidence-fixtures.json`, `scripts/verify-field-learning-offline-evidence-harness.mjs`, `tests/field-learning-offline-evidence-harness.test.mjs`, and the existing no-production-change safety flags for simulated evidence ingestion, learning signals, confidence snapshots, explanations, and human override enforcement.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
@@ -5634,7 +5697,7 @@ Secondary subsystems:
 
 Reason:
 
-Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784` and deployed Cloudflare Worker version `79aa78e2-5556-44f7-9469-2f98c521d658`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88` and deployed Worker version `c6da1f87-4627-43c4-90ae-4752ed69b412`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
+Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784` and deployed Cloudflare Worker version `79aa78e2-5556-44f7-9469-2f98c521d658`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, then completed Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb` and deployed Worker version `e2e5e155-a4fa-44a4-bf13-6febc8242488`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
 
 Known completed Instagram analytics lane:
 
