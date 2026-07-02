@@ -6863,6 +6863,68 @@ Next recommended subsystem:
 
 Overwatch / Master Engineering State, then CRM or Dashboard graph-consumer planning by explicit handoff only.
 
+### 2026-07-02: Prometheus Intelligence Engine - Living Customer Intelligence v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Living Customer Intelligence v1
+
+Commit: `501f64ad0693d2d5c4226971abd903d2caff1fa1`
+
+Deploy: Deployed to Cloudflare Worker `prometheus-iq`
+
+Worker version: `61cd67f9-b364-49d4-98c1-8982b5364a70`
+
+Status: Complete and deployed. Authenticated production route/browser checks remain blocked by missing Cloudflare Access cookie or CDP session. Local artifact verification passed.
+
+Implementation type: Product capability and validation
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `intelligence/README.md`
+- `intelligence/contracts/customer-intelligence-graph-contracts.json`
+- `intelligence/customer-intelligence-graph.md`
+- `intelligence/customer-intelligence-graph.mjs`
+- `intelligence/subsystem-contracts.md`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-customer-intelligence-graph.mjs`
+- `tests/customer-intelligence-graph.test.mjs`
+
+CustomerGraphSnapshots implemented:
+
+Intelligence Engine added read-only, versioned, customer-scoped, explainable, queryable snapshots with businesses, visits, outcomes, leads, opportunities, rep activity, manager activity, territories, evidence history, confidence, operating profile, and learning provenance.
+
+Query contracts prepared:
+
+Dashboard, CRM, Mobile, Website, Companion, Research, and Sales read-only query contracts were prepared. No consumer implementation was activated.
+
+Production verification:
+
+Artifact/build parity passed. Wrangler deployment/version consistency passed. Cloudflare Access protection passed. Authenticated production route/browser checks remain blocked by missing `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp`. Local artifact verification passed.
+
+Validation:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- `npm run intelligence:customer-graph:check`: passed.
+- `npm run test:intelligence:customer-graph`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+
+Validation guarantees:
+
+Validation proves no scoring changes, no automatic learning, no Active Pool changes, no cross-customer leakage, no Operating Profile regressions, and no runtime regressions.
+
+Remaining blockers:
+
+Authenticated production browser verification requires `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp`. Existing unrelated Companion/Mac local edits remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Overwatch / Master Engineering State, then CRM or Dashboard read-only CustomerGraphSnapshot consumer planning by explicit handoff.
+
 ### 2026-07-02: Prometheus Dashboard - Customer Intelligence Graph Consumer Planning v1
 
 Subsystem: Prometheus Dashboard
@@ -7176,6 +7238,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Recommendation Explainability Engine v1; reuse `intelligence/recommendation-explainability-engine.mjs`, `intelligence/contracts/recommendation-explainability-contracts.json`, `scripts/verify-recommendation-explainability-engine.mjs`, `tests/recommendation-explainability-engine.test.mjs`, and the no-formula/no-weight-disclosure safeguards for Mobile, Dashboard, and Companion explanation consumers.
 - Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
 - Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
+- Do not duplicate Living Customer Intelligence v1; reuse the read-only `CustomerGraphSnapshot` implementation in `intelligence/customer-intelligence-graph.mjs`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, and `tests/customer-intelligence-graph.test.mjs` for versioned, customer-scoped, explainable, queryable snapshots with businesses, visits, outcomes, leads, opportunities, rep activity, manager activity, territories, evidence history, confidence, operating profile, and learning provenance. Consumers must use the prepared read-only query contracts and must not activate scoring changes, automatic learning, Active Pool changes, or cross-customer graph access.
 - Do not duplicate Dashboard Customer Intelligence Graph Consumer Planning v1; reuse `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-intelligence-graph-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`, and `npm run dashboard:customer-graph-plan:check` for future Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, Find/Search, territory relationships, business relationships, visit/outcome history, rep patterns, opportunity clusters, and confidence propagation planning. Runtime graph consumption remains blocked until Intelligence explicitly authorizes it.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
