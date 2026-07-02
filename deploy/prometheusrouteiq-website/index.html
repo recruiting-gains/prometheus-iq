@@ -935,6 +935,98 @@
       margin-inline: auto;
     }
 
+    .trust-layout {
+      width: min(100%, 1280px);
+      grid-template-columns: minmax(420px, 0.85fr) minmax(560px, 680px);
+      gap: clamp(42px, 5vw, 72px);
+    }
+
+    .trust-layout .panel {
+      width: min(100%, 680px);
+    }
+
+    .trust-layout .panel h2 {
+      max-width: 100%;
+      font-size: clamp(26px, 2.7vw, 38px);
+      line-height: 1.12;
+    }
+
+    .trust-layout .trust-grid {
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .trust-layout .trust-card {
+      min-height: 150px;
+      padding: 24px;
+    }
+
+    .industries-layout {
+      width: min(100%, 1320px);
+      grid-template-columns: minmax(720px, 1.3fr) minmax(320px, 420px);
+      gap: clamp(42px, 5vw, 64px);
+    }
+
+    .industries-layout .copy-block {
+      max-width: 100%;
+    }
+
+    .industries-layout .copy-block h2 {
+      max-width: 900px;
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 1.08;
+    }
+
+    .industries-layout .copy-block .lead {
+      max-width: 860px;
+      font-size: clamp(16px, 1.55vw, 20px);
+      line-height: 1.42;
+    }
+
+    .industries-layout .industry-pages {
+      grid-template-columns: repeat(3, minmax(210px, 1fr));
+      gap: 18px;
+    }
+
+    .industries-layout .industry-pages article {
+      min-height: 156px;
+      padding: 22px;
+    }
+
+    .industries-layout .industry-pages p {
+      line-height: 1.45;
+    }
+
+    .industries-layout .proof {
+      min-height: 126px;
+    }
+
+    .intelligence-loop-layout {
+      width: min(100%, 1240px);
+      grid-template-columns: minmax(520px, 0.95fr) minmax(430px, 0.75fr);
+      gap: clamp(42px, 6vw, 80px);
+    }
+
+    .intelligence-loop-layout .copy-block {
+      max-width: 760px;
+    }
+
+    .intelligence-loop-layout .copy-block h2 {
+      max-width: 720px;
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 1.08;
+    }
+
+    .intelligence-loop-layout .copy-block .lead {
+      max-width: 680px;
+      font-size: clamp(16px, 1.55vw, 20px);
+      line-height: 1.42;
+    }
+
+    .intelligence-loop-layout .sequence {
+      margin-top: 0;
+    }
+
     .sequence {
       display: grid;
       gap: 12px;
@@ -1829,6 +1921,23 @@
       h1 {
         max-width: min(720px, 92vw);
       }
+
+      .trust-layout,
+      .industries-layout,
+      .intelligence-loop-layout {
+        width: min(100%, 900px);
+        grid-template-columns: 1fr;
+      }
+
+      .trust-layout .panel,
+      .industries-layout .panel {
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .intelligence-loop-layout .sequence {
+        margin-top: 24px;
+      }
     }
 
     @media (max-width: 760px) {
@@ -1901,6 +2010,19 @@
       }
 
       .split {
+        grid-template-columns: 1fr;
+      }
+
+      .trust-layout,
+      .industries-layout,
+      .intelligence-loop-layout {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .trust-layout .trust-grid,
+      .industries-layout .industry-pages,
+      .industries-layout .proof-strip {
         grid-template-columns: 1fr;
       }
 
@@ -2037,7 +2159,7 @@
       </div>
     </section>
 
-    <section class="split" aria-labelledby="trustTitle">
+    <section class="split trust-layout" aria-labelledby="trustTitle">
       <div class="copy-block">
         <div class="eyebrow">Public Trust Signals</div>
         <h2 id="trustTitle">Managed enterprise deployments for teams that need field intelligence with control.</h2>
@@ -2054,23 +2176,23 @@
       </div>
     </section>
 
-    <section id="industries" class="split">
+    <section id="industries" class="split industries-layout">
       <div class="copy-block">
         <div class="eyebrow">Industry Pages</div>
         <h2>Prometheus is horizontal outside-sales infrastructure, not a single-market tool.</h2>
         <p class="lead">Gym sales remains the first production validation environment. The company category is broader: any organization that creates revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
         <div class="industry-pages" aria-label="Industries Prometheus IQ can support">
-          <article><h3>Home Services</h3><p>Roofing, HVAC, pest control, solar, security, and territory-based crews.</p></article>
-          <article><h3>Healthcare</h3><p>Medical devices, referral growth, provider outreach, and market development teams.</p></article>
-          <article><h3>Commercial Services</h3><p>Cleaning, facilities, uniforms, logistics, and service providers selling in the field.</p></article>
-          <article><h3>Retail & Franchise</h3><p>Multi-location growth, membership programs, local partnerships, and event outreach.</p></article>
-          <article><h3>B2B Sales</h3><p>Payroll, telecom, insurance, industrial, and territory-based account acquisition.</p></article>
-          <article><h3>Field Operations</h3><p>Canvassing, territory coverage, appointment setting, and distributed field execution.</p></article>
+          <article><h3>Home Services</h3><p>Roofing, HVAC, pest, solar, and security teams.</p></article>
+          <article><h3>Healthcare</h3><p>Medical device, referral, and provider outreach teams.</p></article>
+          <article><h3>Commercial Services</h3><p>Facilities, cleaning, logistics, uniforms, and B2B service sellers.</p></article>
+          <article><h3>Retail & Franchise</h3><p>Multi-location growth, memberships, partnerships, and events.</p></article>
+          <article><h3>B2B Sales</h3><p>Payroll, telecom, insurance, industrial, and territory acquisition.</p></article>
+          <article><h3>Field Operations</h3><p>Canvassing, appointment setting, coverage, and distributed execution.</p></article>
         </div>
         <div class="proof-strip">
-          <div class="proof"><b>Reduce Drive Time</b><span>Direct reps toward higher-priority territory moves before miles are wasted.</span></div>
-          <div class="proof"><b>Recover Selling Time</b><span>Convert unclear field days into focused routes, visits, and follow-up opportunities.</span></div>
-          <div class="proof"><b>Verify Field Activity</b><span>Give managers proof of intentional work without continuous surveillance.</span></div>
+          <div class="proof"><b>Reduce Drive Time</b><span>Prioritize territory moves before miles are wasted.</span></div>
+          <div class="proof"><b>Recover Selling Time</b><span>Turn unclear field days into focused visits and follow-up.</span></div>
+          <div class="proof"><b>Verify Field Activity</b><span>Give managers proof of intentional work without surveillance.</span></div>
         </div>
       </div>
       <div class="panel">
@@ -2083,7 +2205,7 @@
       </div>
     </section>
 
-    <section class="split">
+    <section class="split intelligence-loop-layout">
       <div class="copy-block">
         <div class="eyebrow">AI Route Intelligence Loop</div>
         <h2>Make outside sales intelligent, directed, accountable, and compounding.</h2>

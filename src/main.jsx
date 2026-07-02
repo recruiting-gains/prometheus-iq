@@ -52,12 +52,12 @@ function App() {
 
   const loop = ["Route", "Visit", "Result", "Recommendation"];
   const industries = [
-    ["Home Services", "Roofing, HVAC, pest control, solar, security, and territory-based crews."],
-    ["Healthcare", "Medical devices, referral growth, provider outreach, and market development teams."],
-    ["Commercial Services", "Cleaning, facilities, uniforms, logistics, and service providers selling in the field."],
-    ["Retail & Franchise", "Multi-location growth, membership programs, local partnerships, and event outreach."],
-    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory-based account acquisition."],
-    ["Field Operations", "Canvassing, territory coverage, appointment setting, and distributed field execution."]
+    ["Home Services", "Roofing, HVAC, pest, solar, and security teams."],
+    ["Healthcare", "Medical device, referral, and provider outreach teams."],
+    ["Commercial Services", "Facilities, cleaning, logistics, uniforms, and B2B service sellers."],
+    ["Retail & Franchise", "Multi-location growth, memberships, partnerships, and events."],
+    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory acquisition."],
+    ["Field Operations", "Canvassing, appointment setting, coverage, and distributed execution."]
   ];
   const enterpriseSignals = [
     ["Governed pilots", "Defined scope, success metrics, review cadence, and executive evaluation before expansion."],
@@ -221,9 +221,9 @@ function App() {
           </div>
           <div className="problem-grid">
             {[
-              ["Reduce Drive Time", "Direct reps toward higher-priority territory moves before miles are wasted."],
-              ["Recover Selling Time", "Convert unclear field days into focused routes, visits, and follow-up opportunities."],
-              ["Verify Field Activity", "Give managers proof of intentional work without continuous surveillance."]
+              ["Reduce Drive Time", "Prioritize territory moves before miles are wasted."],
+              ["Recover Selling Time", "Turn unclear field days into focused visits and follow-up."],
+              ["Verify Field Activity", "Give managers proof of intentional work without surveillance."]
             ].map(([item, body]) => (
               <article key={item}>
                 <span />

@@ -316,6 +316,11 @@ h3 { margin: 0; font-size: 22px; }
 .problem-section { background: #f3f1e9; color: #101916; }
 .problem-section .eyebrow { color: var(--ember); }
 .problem-section .section-copy { color: #5d6a64; }
+.problem-section h2 {
+  max-width: 980px;
+  font-size: clamp(34px, 4vw, 54px);
+  line-height: 1.08;
+}
 .industry-strip,
 .industry-pages {
   display: flex;
@@ -337,20 +342,20 @@ h3 { margin: 0; font-size: 22px; }
 }
 .industry-pages {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
   margin-top: 36px;
 }
 .industry-pages article {
-  min-height: 210px;
+  min-height: 156px;
   height: 100%;
-  padding: 24px;
+  padding: 22px;
   border: 1px solid rgba(16,25,22,.16);
   border-radius: 8px;
   background: #f8f7ef;
 }
 .industry-pages h3 { font-size: 21px; }
-.industry-pages p { color: #5d6a64; line-height: 1.6; }
+.industry-pages p { color: #5d6a64; line-height: 1.45; }
 .problem-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -415,13 +420,13 @@ h3 { margin: 0; font-size: 22px; }
 }
 .trust-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 18px;
   margin-top: 52px;
 }
 .trust-grid article {
-  min-height: 190px;
-  padding: 26px;
+  min-height: 158px;
+  padding: 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255,255,255,.055);
