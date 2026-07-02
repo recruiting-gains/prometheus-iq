@@ -5765,6 +5765,74 @@ Next recommended subsystem:
 
 Founder live voice QA session against the installed Companion runtime when founder interaction is available.
 
+### 2026-07-02: Prometheus Companion - Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade
+
+Subsystem: Prometheus Companion
+
+Task: Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade
+
+Commit: `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`
+
+Deploy: Local Companion sync/install/verify completed
+
+Status: PASS
+
+Files changed:
+
+- `mac-companion/PrometheusCompanion.swift`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `prometheus-os/backend/openai-assistant.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/founder-instagram-analytics-consumer.js`
+- `prometheus-os/index.html`
+- `prometheus-os/reasoning-pipeline.js`
+- `prometheus-os/style.css`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion added "stop," "stop talking," "quiet," and "pause" speech interruption. It removed "not enough signal" fallback behavior from Founder Mode responses, hardened executive answers for "How are we doing?", "What's slowing Prometheus down?", and "What should I do next?", shortened Good Morning, Advice, Instagram, and executive response wording, updated Instagram response to status first then one recommendation, added spoken "Prometheus I Q" handling for Instagram founder responses, and added deterministic backend assistant replies for critical founder prompts. The visual atmosphere replaced the center wordmark with an event-horizon black-hole core, added a deep-space background, stars, subtle motion, and idle/listening/speaking glow states.
+
+Acceptance tests:
+
+- "Good morning.": PASS.
+- "How are we doing?": PASS.
+- "Instagram.": PASS.
+- "What's slowing Prometheus down?": PASS.
+- "What should I do next?": PASS.
+- "Stop talking" interrupt hook: PASS.
+
+Runtime verification:
+
+- Source version: `20260702T064022Z-3d6d1ef9e5f6-8ac03005eaaf`.
+- Installed version: `20260702T064022Z-3d6d1ef9e5f6-8ac03005eaaf`.
+- Runtime version: `20260702T064022Z-3d6d1ef9e5f6-8ac03005eaaf`.
+- Out of sync: none detected.
+- ElevenLabs TTS: PASS, 34316 audio bytes.
+- STT: PASS.
+- Startup/routing/memory/diagnostics/version display: PASS.
+
+Verification:
+
+- `node --check` changed JS/MJS files: PASS.
+- `swiftc -parse mac-companion/PrometheusCompanion.swift`: PASS.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `npm run lint`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run security:check`: PASS.
+- `npm run test:social-media`: PASS.
+- `npm run build`: PASS.
+- `./mac-companion/sync-install-verify.sh`: PASS 18/18.
+
+Remaining blockers:
+
+Automated screenshot verification was not run because Playwright is not installed in the repo. Source visual guards and production build passed.
+
+Next recommended subsystem:
+
+Founder live voice QA against installed Companion runtime when founder interaction is available.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -5996,6 +6064,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Conversation Intelligence Router v1; preserve short-prompt intent handling in `prometheus-os/founder-assistant.js`, keep natural greetings/status/marketing/beta/website/CRM/company-brief routing ahead of generic subsystem context, and keep direct Instagram analytics routing only for explicit analytics questions.
 - Do not duplicate Founder Conversation System v1; preserve Founder Conversation fallback instead of Project Context fallback, natural greeting behavior, reasoning-routed executive questions, card/panel suppression during normal conversation, reduced debug-style UI, direct speech output, and explicit Developer Mode / node panel escape hatches across `prometheus-os/ai-provider.js`, `prometheus-os/app.js`, `prometheus-os/context-resolver.js`, `prometheus-os/founder-assistant.js`, `prometheus-os/intelligence-orchestrator.js`, `prometheus-os/reasoning-pipeline.js`, and `scripts/verify-prometheus-companion-ui-path.mjs`.
 - Do not duplicate Founder Voice QA Fix Pack v1; preserve ElevenLabs as the default Founder Mode premium voice path, founder-visible premium/fallback status, ElevenLabs-required runtime verification, spoken Founder greeting for "Hello", single-word executive prompt routing, Instagram status-first routing, deterministic advice response, and direct "What's slowing Prometheus down?" diagnosis across `mac-companion/PrometheusCompanion.swift`, `mac-companion/verify-runtime.mjs`, `prometheus-os/app.js`, `prometheus-os/backend/server.js`, `prometheus-os/backend/tts-provider.js`, `prometheus-os/founder-assistant.js`, and `scripts/verify-prometheus-companion-ui-path.mjs`.
+- Do not duplicate Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade; preserve stop/quiet/pause speech interruption, removal of "not enough signal" Founder fallback, hardened executive answers, status-first Instagram response, spoken "Prometheus I Q" handling, deterministic backend assistant replies, event-horizon black-hole core, deep-space background, stars, subtle motion, and idle/listening/speaking glow states across the Companion files recorded in commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
@@ -6090,7 +6159,7 @@ Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation
 
 Known completed Instagram analytics lane:
 
-Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, and Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, panel-light by default, ElevenLabs-backed by default, and expose raw implementation details only in explicit Developer Mode.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, and Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade at commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, interruptible, panel-light by default, ElevenLabs-backed by default, visually atmospheric, and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
