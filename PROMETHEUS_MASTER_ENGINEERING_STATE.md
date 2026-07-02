@@ -5943,6 +5943,70 @@ Next recommended subsystem:
 
 Companion Founder Timeline enrichment using approved normalized subsystem state only.
 
+### 2026-07-02: Prometheus Companion - Founder Conversation Engine v1
+
+Subsystem: Prometheus Companion
+
+Task: Founder Conversation Engine v1
+
+Commit: `20e77671b682168774e16bf9238fba787bc44a05`
+
+Deploy: Local Companion sync/install/verify completed; pushed to `origin/main`
+
+Status: PASS
+
+Files changed:
+
+- `mac-companion/verify-runtime.mjs`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/app.js`
+- `prometheus-os/backend/server.js`
+- `prometheus-os/founder-conversation-engine.js`
+- `prometheus-os/index.html`
+- `prometheus-os/style.css`
+- `prometheus-os/voice-assistant.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion added the stateful Founder Conversation Engine v1. The conversation engine now owns greetings, executive status, bottleneck diagnosis, priority judgment, and continuation. Executive questions no longer fall into clarification or failure language. The stop command now aborts pending reply generation, TTS, active audio, STT capture, and speech queue, then returns to listening immediately. Founder Timeline now covers Overwatch, Website, Mobile, CRM, Research, Social, Infrastructure, Intelligence, Administration, Companion, commits, deployments, and version state. The DOM-rendered black-hole overlay was removed so the WebGL scene is the single cinematic environment layer. Instagram, Overwatch, Calendar, Messages, Executive Brief, and Developer Mode behavior were preserved.
+
+Acceptance tests:
+
+- Good morning: PASS.
+- How are we doing?: PASS.
+- What's slowing Prometheus down?: PASS.
+- Stop: PASS via abort/source guard and runtime path.
+- What should I work on first?: PASS.
+
+Runtime verification:
+
+- Source version: `20260702T075310Z-20e77671b682-aecb8ed65458`.
+- Installed version: `20260702T075310Z-20e77671b682-aecb8ed65458`.
+- Runtime version: `20260702T075310Z-20e77671b682-aecb8ed65458`.
+- Drift: none detected.
+
+Verification:
+
+- Node syntax checks: PASS.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `npm run lint`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run security:check`: PASS.
+- `swiftc -parse mac-companion/PrometheusCompanion.swift`: PASS.
+- `npm run test:social-media`: PASS.
+- `npm run build`: PASS.
+- `./mac-companion/sync-install-verify.sh`: PASS 19/19.
+- Installed runtime visual verification desktop/mobile: PASS.
+
+Remaining blockers:
+
+None.
+
+Next recommended subsystem:
+
+Prometheus Companion live Founder Timeline enrichment from normalized subsystem state.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -6177,6 +6241,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade; preserve stop/quiet/pause speech interruption, removal of "not enough signal" Founder fallback, hardened executive answers, status-first Instagram response, spoken "Prometheus I Q" handling, deterministic backend assistant replies, event-horizon black-hole core, deep-space background, stars, subtle motion, and idle/listening/speaking glow states across the Companion files recorded in commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`.
 - Do not duplicate Founder Voice QA Fix Pack v3 - Conversation Polish + Presence Upgrade; preserve interrupt-only browser speech recognition, stop-command cancellation of active audio, pending TTS, pending response generation, and visible panels, hidden status/debug chrome with top-edge and Developer Mode reveal, holographic auto-fading panels, and refined black-hole state colors across `prometheus-os/app.js`, `prometheus-os/style.css`, `prometheus-os/voice-assistant.js`, and `scripts/verify-prometheus-companion-ui-path.mjs`.
 - Do not duplicate Founder Executive Presence v2 - Cinematic Operating System; preserve the cinematic deep-space event-horizon Three.js scene, hidden normal conversation panels, removed subsystem tiles and automatic speech-capture/no-input panels, gated reports/charts/exports/nodes/voice settings/Developer Mode, read-only Founder Timeline backend endpoint, timeline-backed catch-up and Overwatch responses, and the 19/19 Companion sync/install/verify guardrails recorded in commit `d75090a2fe82397789b0c7daa34e49711fd98777`.
+- Do not duplicate Founder Conversation Engine v1; preserve `prometheus-os/founder-conversation-engine.js` as the stateful owner of greetings, executive status, bottleneck diagnosis, priority judgment, continuation, failure-language avoidance for executive prompts, full stop-command abort behavior, expanded Founder Timeline coverage, single WebGL cinematic environment layer, and the preserved Instagram/Overwatch/Calendar/Messages/Executive Brief/Developer Mode routes recorded in commit `20e77671b682168774e16bf9238fba787bc44a05`.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
@@ -6271,7 +6336,7 @@ Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation
 
 Known completed Instagram analytics lane:
 
-Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade at commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`, Founder Voice QA Fix Pack v3 - Conversation Polish + Presence Upgrade at commit `0d9d3a56cc60d39ac0ddfa8b7230cc35175ad5c0`, and Founder Executive Presence v2 - Cinematic Operating System at commit `d75090a2fe82397789b0c7daa34e49711fd98777`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, stop-interruptible, panel-light by default, ElevenLabs-backed by default, visually cinematic, timeline-aware for engineering catch-up, and expose raw implementation details only in explicit Developer Mode.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade at commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`, Founder Voice QA Fix Pack v3 - Conversation Polish + Presence Upgrade at commit `0d9d3a56cc60d39ac0ddfa8b7230cc35175ad5c0`, Founder Executive Presence v2 - Cinematic Operating System at commit `d75090a2fe82397789b0c7daa34e49711fd98777`, and Founder Conversation Engine v1 at commit `20e77671b682168774e16bf9238fba787bc44a05`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, stop-interruptible, panel-light by default, ElevenLabs-backed by default, visually cinematic, timeline-aware for engineering catch-up, stateful across continuation, and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
