@@ -452,6 +452,8 @@ async function snapshot(cdp) {
       territoryRepRadiusDisabled: document.getElementById("territoryRepRadiusInput")?.disabled ?? null,
       territoryPolicyStatus: text(document.getElementById("territoryPolicyStatus")),
       territoryRepRadiusStatus: text(document.getElementById("territoryRepRadiusStatus")),
+      eventCards: document.querySelectorAll("#eventOpportunities .item").length,
+      eventText: text(document.getElementById("eventOpportunities")),
       routeText: text(document.getElementById("view-route")),
       todayText: text(document.getElementById("view-today")),
       placesText: text(document.getElementById("view-places")),
@@ -474,7 +476,8 @@ async function snapshot(cdp) {
         renderTimings: debug.renderTimings || {},
         deferredOwnerViews: debug.deferredOwnerViews || {},
         placesRender: debug.placesRender || {},
-        territoryCoverage: debug.territoryCoverage || {}
+        territoryCoverage: debug.territoryCoverage || {},
+        routeWindowFallback: debug.routeWindowFallback || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -707,7 +710,7 @@ async function verifyNearbyOpportunitiesFlow(cdp) {
   })()`);
 }
 
-async function verifyRouteNearbyBadgePassive(cdp) {
+async function verifyRouteNearbyInteraction(cdp) {
   return cdp.evaluate(`(() => {
     const badge = document.querySelector("#routeList .decision-chip.nearby");
     const card = badge?.closest(".route-card");
@@ -719,15 +722,19 @@ async function verifyRouteNearbyBadgePassive(cdp) {
     };
     badge.click();
     const style = getComputedStyle(badge);
+    const modal = document.getElementById("modal");
+    const modalText = document.getElementById("modalBody")?.textContent?.trim().replace(/\\s+/g, " ") || "";
     const after = {
       activeView: document.querySelector(".view.active")?.id || "",
-      modalActive: document.getElementById("modal")?.classList.contains("active") || false,
+      modalActive: modal?.classList.contains("active") || false,
       detailsOpen: card.querySelector(".compact-details")?.hasAttribute("open") || false
     };
+    document.getElementById("closeModal")?.click();
     return {
       tagName: badge.tagName.toLowerCase(),
       text: badge.textContent.trim(),
       className: badge.className,
+      nearbyPlace: badge.getAttribute("data-nearby-place") || "",
       role: badge.getAttribute("role") || "",
       dataOpen: badge.getAttribute("data-open") || "",
       dataTab: badge.getAttribute("data-tab") || "",
@@ -739,6 +746,8 @@ async function verifyRouteNearbyBadgePassive(cdp) {
       borderStyle: style.borderStyle,
       backgroundColor: style.backgroundColor,
       color: style.color,
+      modalTitle: document.getElementById("modalTitle")?.textContent?.trim() || "",
+      modalText,
       whyText: card.querySelector(".compact-details")?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 1000) || "",
       before,
       after
@@ -782,6 +791,26 @@ async function verifyTerritoryPermissionModel(cdp) {
         : null
     };
   })()`);
+}
+
+async function verifyRouteWindowOptions(cdp) {
+  const result = {};
+  for (const windowName of ["morning", "evening"]) {
+    await cdp.evaluate(`(() => {
+      const button = document.querySelector('[data-window="${windowName}"]');
+      if (!button) throw new Error("Missing ${windowName} route window button.");
+      button.click();
+    })()`);
+    await wait(100);
+    result[windowName] = await cdp.evaluate(`(() => ({
+      activeView: document.querySelector(".view.active")?.id || "",
+      routeCards: document.querySelectorAll("#routeList .route-card").length,
+      routeCountLabel: document.getElementById("routeCount")?.textContent?.trim() || "",
+      routeText: document.getElementById("routeList")?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 800) || "",
+      fallback: window.prometheusDebugState?.routeWindowFallback || {}
+    }))()`);
+  }
+  return result;
 }
 
 async function verifyRouteStateSynchronization(cdp) {
@@ -927,9 +956,9 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && routeSnap.routeText.includes("Route Builder"), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
-    assertWorkflow("Beta Stability Sprint 2 Owner route minimum preserved", routeSnap.routeCards >= 6 && /(?:6|[7-9]|10) options/.test(routeSnap.routeCountLabel), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
-    const ownerNearbyBadge = await verifyRouteNearbyBadgePassive(founder.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Owner route nearby badge passive", ownerNearbyBadge.tagName === "span" && ownerNearbyBadge.className.includes("passive") && ownerNearbyBadge.pointerEvents === "none" && ownerNearbyBadge.borderStyle === "dashed" && ownerNearbyBadge.text.includes("Nearby context") && !ownerNearbyBadge.role && !ownerNearbyBadge.dataOpen && !ownerNearbyBadge.dataTab && !ownerNearbyBadge.dataQuickPlace && ownerNearbyBadge.before.activeView === ownerNearbyBadge.after.activeView && ownerNearbyBadge.before.modalActive === ownerNearbyBadge.after.modalActive && ownerNearbyBadge.before.detailsOpen === ownerNearbyBadge.after.detailsOpen && ownerNearbyBadge.whyText.includes("Nearby Opportunities"), `${ownerNearbyBadge.text} is passive metadata; nearby context remains in Why details`, JSON.stringify(ownerNearbyBadge));
+    assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 options"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
+    const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
+    assertWorkflow("Beta Route Controls Owner Nearby opens context", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
 
     await clickTab(founder.cdp, "today");
     const territoryPolicy = await verifyTerritoryPermissionModel(founder.cdp);
@@ -949,6 +978,7 @@ async function runHarness() {
     await clickTab(founder.cdp, "find");
     const findSnap = await snapshot(founder.cdp);
     assertWorkflow("Find/Search functionality", findSnap.activeView === "view-find" && findSnap.findText.includes("Find Places") && (findSnap.searchItems > 0 || findSnap.targetIdeas > 0), `${findSnap.searchItems} searches and ${findSnap.targetIdeas} target ideas rendered`, JSON.stringify({ activeView: findSnap.activeView, searchItems: findSnap.searchItems, targetIdeas: findSnap.targetIdeas }));
+    assertWorkflow("Beta Route Controls Eventbrite expansion", findSnap.eventCards >= 6 && findSnap.eventText.includes("Access:") && findSnap.eventText.includes("Open map") && findSnap.eventText.includes("Add"), `${findSnap.eventCards} event cards rendered`, JSON.stringify({ eventCards: findSnap.eventCards, eventText: findSnap.eventText.slice(0, 800) }));
 
     const mobileFounder = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -970,8 +1000,8 @@ async function runHarness() {
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
-    assertWorkflow("Beta Stability Sprint 2 Rep radius locked by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === true && repSnap.territoryRepRadiusStatus.includes("locked"), repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus }));
-    assertWorkflow("Beta Stability Sprint 2 ring population evidence", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.ringTotals.slice(1).every(total => total === 0) && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Active Pool") && repSnap.territoryRingTexts.some(text => text.includes("not indexed in Active Pool")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
+    assertWorkflow("Beta Route Controls Rep radius adjustable by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === false && repSnap.territoryRepRadiusStatus.includes("Rep adjustment allowed") && repSnap.debug.territoryCoverage.assignedRadiusMiles === 25 && repSnap.debug.territoryCoverage.allowedRadiusMiles === 25 && repSnap.debug.territoryCoverage.repCanAdjust === true, repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus, coverage: repSnap.debug.territoryCoverage }));
+    assertWorkflow("Beta Route Controls ring explanation", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Populate outer rings") && repSnap.territoryRingTexts.some(text => text.includes("Add verified Google-qualified businesses")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await clickTab(rep.cdp, "places");
     const repAfterOwnerTab = await snapshot(rep.cdp);
@@ -982,11 +1012,14 @@ async function runHarness() {
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
     const repRouteSnap = await snapshot(rep.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Anthony route generation expands beyond six", repRouteSnap.routeCards > 6 && /(?:[7-9]|10) options/.test(repRouteSnap.routeCountLabel), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
+    assertWorkflow("Beta Route Controls Anthony 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 options"), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
+    const routeWindows = await verifyRouteWindowOptions(rep.cdp);
+    assertWorkflow("Beta Route Controls Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("options"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
+    assertWorkflow("Beta Route Controls Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("options"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
     const hamzaRouting = await verifyHamzaRepeatRecommendation(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 Hamza repeat recommendation evidence routing", hamzaRouting.daysSinceRecommendation === 0 && !hamzaRouting.bestNextIsHamza && hamzaRouting.reasons.some(reason => reason.includes("recently shown")), `${hamzaRouting.hamzaName} rotated off best-next after same-day route history; best next ${hamzaRouting.bestNextName}`, JSON.stringify(hamzaRouting));
-    const repNearbyBadge = await verifyRouteNearbyBadgePassive(rep.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Anthony Rep route nearby badge passive", repNearbyBadge.tagName === "span" && repNearbyBadge.className.includes("passive") && repNearbyBadge.pointerEvents === "none" && repNearbyBadge.borderStyle === "dashed" && repNearbyBadge.text.includes("Nearby context") && !repNearbyBadge.role && !repNearbyBadge.dataOpen && !repNearbyBadge.dataTab && !repNearbyBadge.dataQuickPlace && repNearbyBadge.before.activeView === repNearbyBadge.after.activeView && repNearbyBadge.before.modalActive === repNearbyBadge.after.modalActive && repNearbyBadge.before.detailsOpen === repNearbyBadge.after.detailsOpen && repNearbyBadge.whyText.includes("Nearby Opportunities"), `${repNearbyBadge.text} is passive metadata; nearby context remains in Why details`, JSON.stringify(repNearbyBadge));
+    const repNearbyBadge = await verifyRouteNearbyInteraction(rep.cdp);
+    assertWorkflow("Beta Route Controls Anthony Rep Nearby opens context", repNearbyBadge.tagName === "button" && repNearbyBadge.nearbyPlace && repNearbyBadge.after.modalActive && repNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(repNearbyBadge.modalText), `${repNearbyBadge.text} opened ${repNearbyBadge.modalTitle}`, JSON.stringify(repNearbyBadge));
     await clickTab(rep.cdp, "today");
     const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
     assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a verified route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));

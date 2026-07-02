@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v33-beta-stability-sprint-2-mobile-final-ux";
+const CACHE_NAME = "prometheus-v34-beta-route-controls-events";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

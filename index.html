@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-m97yY5otjWSy/Xg+OS9ATIHHPLS4nOoEFZ563UWbuXE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-wodGEf/8Yv/FJqluLxYdQjd+uSoGDOWbmbNki91YsXg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -832,6 +832,25 @@
       box-shadow: none;
     }
 
+    button.decision-chip {
+      appearance: none;
+      cursor: pointer;
+      min-height: 26px;
+    }
+
+    button.decision-chip.nearby {
+      border-color: rgba(21, 163, 161, .58);
+      border-style: solid;
+      background: rgba(21, 163, 161, .12);
+      color: var(--command);
+      box-shadow: 0 1px 0 rgba(17, 24, 22, .04);
+    }
+
+    .nearby-context-list {
+      display: grid;
+      gap: 10px;
+    }
+
     .compact-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1320,7 +1339,7 @@
                 <span class="decision-chip primary" id="intelConfidenceChip">Confidence pending</span>
                 <span class="decision-chip" id="intelExpectedChip">Potential pending</span>
                 <span class="decision-chip" id="intelCategoryChip">Category pending</span>
-                <span class="decision-chip nearby passive" id="intelNearbyChip">Nearby context pending</span>
+                <button class="decision-chip nearby" id="intelNearbyChip" type="button" data-nearby-place="">Nearby context pending</button>
                 <span class="decision-chip" id="intelVisitTimeChip">Visit time pending</span>
               </div>
               <div class="intel-actions">
@@ -1609,9 +1628,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-02-beta-stability-sprint-2-mobile-final-ux-v1";
+    const appBuildVersion = "2026-07-02-beta-route-controls-events-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v33-beta-stability-sprint-2-mobile-final-ux";
+    const serviceWorkerCacheVersion = "prometheus-v34-beta-route-controls-events";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -1673,6 +1692,7 @@
     const qualifiedWalkInCategorySet = new Set(["Auto", "Tire", "Oil Change", "Car Wash", "Barber", "Restaurant", "Salon", "Clinic", "Medical Office", "Dental Office", "Business", "Business Services", "Hotel", "Retail", "Small Retail", "Office", "Employer", "Warehouse", "Apartment"]);
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const nearbyOpportunityRadiusFeet = 500;
+    const betaRouteTargetSize = 15;
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1714,24 +1734,35 @@
       }
     };
 
+    const territoryPolicyVersion = "2026-07-02-beta-route-controls-v1";
+
     function defaultTerritoryPolicy(profileId) {
       const profile = territoryProfiles[profileId] || territoryProfiles.cruz;
+      const betaRepDefault = profileId === "anthony";
       return {
+        policyVersion: territoryPolicyVersion,
         assignedRadiusMiles: profile.maxRadiusMiles,
         allowedRadiusMiles: profile.maxRadiusMiles,
-        allowRepRadiusChanges: false,
-        lockAssignedRadius: true
+        allowRepRadiusChanges: betaRepDefault,
+        lockAssignedRadius: !betaRepDefault
       };
     }
 
     function normalizeTerritoryPolicy(profileId, raw = {}) {
       const defaults = defaultTerritoryPolicy(profileId);
+      const rawPolicy = raw && typeof raw === "object" ? raw : {};
+      const shouldPromoteAnthonyBetaDefault = profileId === "anthony"
+        && rawPolicy.policyVersion !== territoryPolicyVersion
+        && rawPolicy.allowRepRadiusChanges !== true
+        && rawPolicy.lockAssignedRadius !== false;
+      if (shouldPromoteAnthonyBetaDefault) raw = defaults;
       const maxOption = Math.max(...territoryRadiusOptionsMiles);
       const allowedRaw = cleanNumber(raw?.allowedRadiusMiles ?? defaults.allowedRadiusMiles, maxOption);
       const assignedRaw = cleanNumber(raw?.assignedRadiusMiles ?? defaults.assignedRadiusMiles, maxOption);
       const allowed = territoryRadiusOptionsMiles.includes(allowedRaw) ? allowedRaw : defaults.allowedRadiusMiles;
       const assignedCandidate = territoryRadiusOptionsMiles.includes(assignedRaw) ? assignedRaw : defaults.assignedRadiusMiles;
       return {
+        policyVersion: territoryPolicyVersion,
         assignedRadiusMiles: Math.min(assignedCandidate, allowed),
         allowedRadiusMiles: allowed,
         allowRepRadiusChanges: raw?.allowRepRadiusChanges === true,
@@ -19133,6 +19164,61 @@
         url: "https://www.eventbrite.com/e/sober-proud-houston-zero-proof-pride-crawl-tickets-1986930262903"
       },
       {
+        name: "Black Health Connect Houston Q3 Mixer",
+        date: "2026-07-10",
+        dateLabel: "Fri, Jul 10",
+        time: "5:00 PM",
+        window: "Evening",
+        address: "Pour Behavior, Houston, TX",
+        fit: "Health and wellness networking",
+        permission: "Networking only - confirm organizer permission before promoting",
+        url: "https://www.eventbrite.com/b/tx--houston/health/"
+      },
+      {
+        name: "Braeswood Church Community Health Fair",
+        date: "2026-07-11",
+        dateLabel: "Sat, Jul 11",
+        time: "8:00 AM",
+        window: "Morning",
+        address: "Braeswood Church, Greater Fondren S.W., Houston, TX",
+        fit: "Community health audience",
+        permission: "Health fair access - confirm booth/table rules before promoting",
+        url: "https://www.eventbrite.com/d/tx--houston/free--health--events/community-events/"
+      },
+      {
+        name: "Women in Business Networking",
+        date: "2026-07-16",
+        dateLabel: "Thu, Jul 16",
+        time: "6:30 PM",
+        window: "Evening",
+        address: "Wash n Chill, Briarmeadow, Houston, TX",
+        fit: "Professional networking",
+        permission: "Networking only - ask before distributing cards or offers",
+        url: "https://www.eventbrite.com/d/tx--houston/networking-events-in-houston/"
+      },
+      {
+        name: "Houston Biggest Business, Tech & Entrepreneur Networking Soiree",
+        date: "2026-07-19",
+        dateLabel: "Sun, Jul 19",
+        time: "Evening",
+        window: "Evening",
+        address: "Bungalow Heights, Houston, TX",
+        fit: "Business and entrepreneur audience",
+        permission: "Networking only - confirm organizer permission before promoting",
+        url: "https://www.eventbrite.com/e/houston-biggest-business-tech-entrepreneur-networking-soiree-tickets-1334406819719"
+      },
+      {
+        name: "Houston Networking Expo",
+        date: "2026-07-28",
+        dateLabel: "Tue, Jul 28",
+        time: "4:00 PM",
+        window: "Evening",
+        address: "Wyndham Houston, South Main, Houston, TX",
+        fit: "Business networking expo",
+        permission: "Expo/networking access - verify exhibitor or attendee promotion rules",
+        url: "https://www.eventbrite.com/d/tx--houston/networking-events-in-houston/"
+      },
+      {
         name: "Speed Networking at The Cannon",
         date: "2026-07-28",
         dateLabel: "Tue, Jul 28",
@@ -19142,6 +19228,39 @@
         fit: "Business partnerships",
         permission: "Networking only - ask before promoting",
         url: "https://www.eventbrite.com/e/speed-networking-to-drive-business-with-network-in-action-at-the-cannon-tickets-1979813655940"
+      },
+      {
+        name: "BFUSA Houston Mixer 2026",
+        date: "2026-07-28",
+        dateLabel: "Tue, Jul 28",
+        time: "8:30 PM",
+        window: "Evening",
+        address: "Dome Nightclub, Midtown, Houston, TX",
+        fit: "Business mixer",
+        permission: "Networking only - confirm venue and organizer permission before promoting",
+        url: "https://www.eventbrite.com/d/tx--houston/networking/"
+      },
+      {
+        name: "Healthcare and Business Networking",
+        date: "2026-07-29",
+        dateLabel: "Wed, Jul 29",
+        time: "8:00 PM",
+        window: "Evening",
+        address: "Houston, TX - verify venue on Eventbrite",
+        fit: "Healthcare and business networking",
+        permission: "21+ networking event - verify venue and promotion permission",
+        url: "https://www.eventbrite.com/e/healthcare-and-business-networking-elevating-your-potential-houston-tickets-1988256249966"
+      },
+      {
+        name: "Health, Fitness, Beauty & Wellness Business Networking Mixer",
+        date: "2026-08-03",
+        dateLabel: "Mon, Aug 3",
+        time: "Evening",
+        window: "Evening",
+        address: "807 W 19th St, Houston, TX",
+        fit: "Health, fitness, beauty, and wellness businesses",
+        permission: "Networking only - confirm organizer permission before promoting",
+        url: "https://www.eventbrite.com/e/health-fitness-beauty-wellness-business-networking-mixer-houston-tickets-1992480279151"
       }
     ];
 
@@ -21181,7 +21300,7 @@
         const itemKey = routeIdentityKey(item.place);
         if (selected.some(existing => routeIdentityKey(existing.place) === itemKey)) return false;
         const count = categoryCounts.get(item.place.category) || 0;
-        if (thinEvidence && count >= categoryLimit) return false;
+        if (thinEvidence && count >= categoryLimit && !allowCrowd) return false;
         return allowCrowd || count < categoryLimit || selected.length >= Math.max(3, limit - 2);
       }
 
@@ -21230,8 +21349,27 @@
 
     function routeDisplayLimitForPlaces(places) {
       const available = routePool(places).length;
-      if (available >= 10) return 10;
+      if (available >= betaRouteTargetSize) return betaRouteTargetSize;
       return available > 6 ? available : 6;
+    }
+
+    function routePlacesForWindow(sourcePlaces, windowName = currentWindow) {
+      const places = Array.isArray(sourcePlaces) ? sourcePlaces : [];
+      if (windowName === "all") return { places, fallback: false };
+      const normalizedWindow = String(windowName || "").toLowerCase();
+      const direct = places.filter(p => p.window.toLowerCase() === normalizedWindow || p.window === "Anytime" || p.window === "Afternoon" && normalizedWindow === "evening");
+      if (direct.length >= 6) return { places: direct, fallback: false };
+      const withWindowBoost = places
+        .filter(place => isRouteEligible(place) && isInsideAssignedTerritory(place))
+        .map(place => ({
+          ...place,
+          routeWindowFallback: direct.some(item => item.id === place.id) ? "" : `${windowLabel(windowName)} fallback from verified route pool`
+        }));
+      return { places: withWindowBoost, fallback: true, directCount: direct.length };
+    }
+
+    function windowLabel(value) {
+      return { morning: "Morning", midday: "Midday", evening: "Evening", all: "All day" }[String(value || "").toLowerCase()] || "Selected window";
     }
 
     function sumVisits(visits) {
@@ -21741,6 +21879,7 @@
         intelExpectedChip.textContent = "Potential pending";
         intelCategoryChip.textContent = "Category pending";
         intelNearbyChip.textContent = "Nearby pending";
+        intelNearbyChip.dataset.nearbyPlace = "";
         intelVisitTimeChip.textContent = "Visit time pending";
         routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
         updateFounderDebugPanel({ stage: "route-placeholder-rendered" });
@@ -21768,6 +21907,7 @@
       intelNearbyChip.textContent = nearbyPreview.length
         ? `Nearby context: ${nearbyPreview.length}`
         : "Nearby context: none";
+      intelNearbyChip.dataset.nearbyPlace = next.id;
       intelVisitTimeChip.textContent = intelligence.duration.label;
       recordRouteRecommendation(next);
       updateFounderDebugPanel({ stage: "route-recommendation-rendered" });
@@ -21850,6 +21990,44 @@
       }).join("");
     }
 
+    function nearbyContextMarkup(basePlace) {
+      if (!basePlace) {
+        return `<div class="empty">No route stop selected. Open Route Builder and tap Nearby on a route card.</div>`;
+      }
+      const items = nearbyOpportunitiesForPlace(basePlace, 6);
+      const analysis = routeAnalysis(basePlace);
+      const header = `<div class="insight">
+        <div><b>${escapeHtml(basePlace.name)}</b></div>
+        <div class="address-line">${escapeHtml(basePlace.address || "Verified address pending")}</div>
+        <div class="meta"><span>${escapeHtml(basePlace.category || "Google-qualified")}</span><span>${escapeHtml(analysis.radius)}</span><span>${nearbyOpportunityRadiusFeet} ft nearby scan</span></div>
+      </div>`;
+      if (!items.length) {
+        return `${header}<div class="empty">No verified walkable add-on businesses are inside ${nearbyOpportunityRadiusFeet} ft of this stop. Use Directions for this route stop, then move to the next ranked business.</div>`;
+      }
+      return `${header}<div class="nearby-context-list">${items.map(item => {
+        const place = item.place;
+        const itemAnalysis = routeAnalysis(place);
+        const expected = expectedUnitsFor(place, itemAnalysis);
+        return `<article class="item route-card nearby-card">
+          <div class="rank nearby-rank">+</div>
+          <div class="route-card-body">
+            <h3>${escapeHtml(place.name)}</h3>
+            <div class="address-line">${escapeHtml(place.address)}</div>
+            <div class="decision-line">
+              <span class="decision-chip primary">${escapeHtml(walkingDistanceLabel(item.feet))}</span>
+              <span class="decision-chip">${escapeHtml(expected.label)}</span>
+              <span class="decision-chip">${escapeHtml(place.category)}</span>
+            </div>
+            <p class="address-line"><b>Why nearby:</b> ${escapeHtml(itemAnalysis.reasons.slice(0, 2).join("; ") || "verified walkable option near the selected route stop")}.</p>
+            <div class="compact-actions">
+              <a class="btn bright" href="${directionsUrl(place)}" target="_blank" rel="noreferrer">Directions</a>
+              <button class="btn secondary" type="button" data-quick-place="${escapeAttr(place.id)}">Log Result</button>
+            </div>
+          </div>
+        </article>`;
+      }).join("")}</div>`;
+    }
+
     function renderTerritoryOverview() {
       const panel = document.getElementById("territoryOverview");
       if (!panel) return;
@@ -21893,7 +22071,7 @@
     function territoryEmptyRingLabel(row, innerMiles) {
       const usingActivePool = runtimeDatasetSource.pool === "active";
       if (usingActivePool && innerMiles >= territoryRingSizeMiles) {
-        return "Outer ring not indexed in Active Pool yet";
+        return "Outer ring not indexed in Active Pool yet. Add verified Google-qualified businesses from this distance band or switch to the full runtime pool to review limited outer-ring candidates.";
       }
       return "No verified businesses in this ring yet";
     }
@@ -21931,7 +22109,8 @@
         repCanAdjust: canRepAdjustTerritoryRadius(activeRepId),
         runtimePool: runtimeDatasetSource.pool || "unknown",
         ringTotals: coverage.rows.map(row => row.total),
-        outerRingEmptyReason: runtimeDatasetSource.pool === "active" ? "Active Pool currently indexes Ring 1 only; full runtime pool contains limited outer-ring records." : ""
+        routeUsesOnlyRingOne: coverage.rows[0]?.total > 0 && coverage.rows.slice(1).every(row => row.total === 0),
+        outerRingEmptyReason: runtimeDatasetSource.pool === "active" ? "Active Pool currently indexes Ring 1 only; full runtime pool contains limited outer-ring records. Populate outer rings by adding verified Google-qualified businesses with distances above 5 miles, then refreshing Active Pool segmentation." : ""
       };
     }
 
@@ -21962,19 +22141,25 @@
     }
 
     function renderRoute() {
-      let places = routeVisiblePlaces().slice();
-      if (currentWindow !== "all") {
-        places = places.filter(p => p.window.toLowerCase() === currentWindow || p.window === "Anytime" || p.window === "Afternoon" && currentWindow === "evening");
-      }
+      const windowRoute = routePlacesForWindow(routeVisiblePlaces().slice(), currentWindow);
+      const places = windowRoute.places;
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
       const routeItems = routeListExcludingBestNext(places, routeDisplayLimitForPlaces(places), { need, expandRadius: shouldExpandRadius(need) });
-      document.getElementById("routeCount").textContent = `${routeItems.length} options`;
+      document.getElementById("routeCount").textContent = windowRoute.fallback
+        ? `${routeItems.length} options · ${windowLabel(currentWindow)} fallback`
+        : `${routeItems.length} options`;
       const list = document.getElementById("routeList");
       if (!routeItems.length) {
         list.innerHTML = `<div class="empty">Add a few places in Find, then this route will rank them.</div>`;
         viewRenderState.route = true;
         return;
       }
+      window.prometheusDebugState.routeWindowFallback = {
+        window: currentWindow,
+        fallback: Boolean(windowRoute.fallback),
+        directCount: windowRoute.directCount ?? routeItems.length,
+        routeCards: routeItems.length
+      };
       list.innerHTML = routeItems.map((item, index) => {
         return compactRouteCard(item.place, index, item);
       }).join("");
@@ -22003,7 +22188,7 @@
             <span class="decision-chip primary">${intelligence.confidence.percent}% Confidence</span>
             <span class="decision-chip">${escapeHtml(intelligence.expected.label)}</span>
             <span class="decision-chip">${escapeHtml(p.category)}</span>
-            <span class="decision-chip nearby passive" title="${escapeAttr(nearbyTitle)}" aria-label="${escapeAttr(nearbyTitle)}">${escapeHtml(nearbyLabel)}</span>
+            <button class="decision-chip nearby" type="button" data-nearby-place="${escapeAttr(p.id)}" title="${escapeAttr(nearbyTitle)}" aria-label="${escapeAttr(nearbyTitle)}">${escapeHtml(nearbyLabel)}</button>
             <span class="decision-chip">${escapeHtml(intelligence.duration.label)}</span>
           </div>
           <div class="compact-actions">
@@ -22479,7 +22664,11 @@
       const modal = document.getElementById("modal");
       const title = document.getElementById("modalTitle");
       const body = document.getElementById("modalBody");
-      if (type === "quick") {
+      if (type === "nearby") {
+        const place = state.places.find(item => item.id === preset.placeId) || routeVisiblePlaces().find(item => item.id === preset.placeId);
+        title.textContent = "Nearby Context";
+        body.innerHTML = nearbyContextMarkup(place);
+      } else if (type === "quick") {
         title.textContent = "Quick Result";
         const recommended = routeRecommendation();
         const selectedPlaceId = preset.placeId || recommended?.id || state.places[0]?.id || "";
@@ -22760,6 +22949,9 @@
 
       const quickPlace = event.target.closest("[data-quick-place]");
       if (quickPlace) openModal("quick", { placeId: quickPlace.dataset.quickPlace });
+
+      const nearbyPlace = event.target.closest("[data-nearby-place]");
+      if (nearbyPlace && nearbyPlace.dataset.nearbyPlace) openModal("nearby", { placeId: nearbyPlace.dataset.nearbyPlace });
 
       if (event.target.closest("#closeModal")) closeModal();
       if (event.target.id === "modal") closeModal();
