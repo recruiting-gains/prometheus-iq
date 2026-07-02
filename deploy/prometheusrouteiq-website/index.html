@@ -1407,6 +1407,14 @@
       grid-column: 1 / -1;
     }
 
+    .honeypot {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
     .goal-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1619,6 +1627,13 @@
       color: var(--ink);
       font-size: clamp(20px, 2.4vw, 28px);
       line-height: 1.05;
+    }
+
+    .intake-status {
+      margin-top: 18px;
+      color: #b8f5df;
+      font-size: 14px;
+      line-height: 1.45;
     }
 
     .demo-layout {
@@ -2118,7 +2133,7 @@
       <a href="#industries">Industries</a>
       <a href="#investors">Investors</a>
     </div>
-    <a href="#pilot" data-open-pilot>Apply for Beta Pilot</a>
+    <a href="#pilot" data-open-pilot>Start Enterprise Intake</a>
   </nav>
 
   <main class="content">
@@ -2134,7 +2149,7 @@
         <h1>AI Route Intelligence for Outside Sales Teams.</h1>
         <p class="lead">Prometheus IQ helps outside-sales organizations decide where to go next, verify what happened, and turn field visits into governed operating intelligence across every industry where face-to-face selling still wins.</p>
         <div class="buttons">
-          <a class="button" href="#pilot" data-open-pilot>Apply for Beta Pilot</a>
+          <a class="button" href="#pilot" data-open-pilot>Start Enterprise Intake</a>
           <a class="button secondary" href="#enterprise">Enterprise Readiness</a>
         </div>
         <p class="cta-note">Built for healthcare, home services, franchise growth, telecom, insurance, B2B services, and any team where revenue depends on intelligent field execution.</p>
@@ -2291,18 +2306,18 @@
 
     <section id="pilot" class="footer">
       <div>
-        <div class="eyebrow">Beta Request Flow</div>
-        <h2>Apply for a controlled Prometheus IQ beta pilot.</h2>
-        <p class="lead">Pilot partners can evaluate AI Route Intelligence, verified activity, sales intelligence, customer success cadence, and productivity metrics through a controlled private program designed for founder-led implementation and executive review.</p>
+        <div class="eyebrow">Enterprise Lead Intake</div>
+        <h2>Start a private Prometheus IQ enterprise conversation.</h2>
+        <p class="lead">Request a demo, apply for a beta pilot, ask for enterprise pricing, or schedule discovery. Prometheus captures the operating profile, team shape, current workflow, attribution, and CRM-ready pipeline stage before founder review.</p>
         <div class="beta-flow" aria-label="Beta request steps">
-          <span>1. Apply</span>
-          <span>2. Founder review</span>
-          <span>3. Pilot scope</span>
-          <span>4. Success review</span>
+          <span>1. Request</span>
+          <span>2. Operating profile</span>
+          <span>3. CRM packet</span>
+          <span>4. Founder review</span>
         </div>
         <p class="testimonial-placeholder">Pilot testimonial placeholder: reserved for an approved customer quote after controlled beta results are reviewed.</p>
         <div class="buttons" style="justify-content:center">
-          <a class="button" href="mailto:prometheusrouteiq@gmail.com" data-open-pilot>Apply for Beta Pilot</a>
+          <a class="button" href="mailto:prometheusrouteiq@gmail.com" data-open-pilot>Start Enterprise Intake</a>
           <a class="button secondary" href="https://www.instagram.com/prometheus.iq/">Instagram</a>
         </div>
         <nav class="legal-links" aria-label="Legal pages">
@@ -2320,9 +2335,9 @@
       <div class="experience-inner">
         <div class="experience-header">
           <div>
-            <div class="experience-kicker">Pilot Readiness Assessment</div>
-            <h2 class="experience-title" id="pilotExperienceTitle">Apply for a controlled beta pilot.</h2>
-            <p class="experience-subtitle">Answer a few questions and Prometheus will generate a readiness snapshot for your outside-sales team without connecting to private systems or exposing internal intelligence logic.</p>
+            <div class="experience-kicker">Enterprise Lead Intake</div>
+            <h2 class="experience-title" id="pilotExperienceTitle">Tell Prometheus how your outside-sales operation works.</h2>
+            <p class="experience-subtitle">Create a founder-ready lead packet for demo requests, beta pilots, enterprise pricing, or discovery calls without connecting to private systems or exposing internal intelligence logic.</p>
           </div>
           <div class="modal-core" aria-hidden="true"></div>
         </div>
@@ -2335,32 +2350,70 @@
             </div>
 
             <div class="pilot-step is-active" data-pilot-step="0">
-              <h3>Company profile</h3>
-              <p>Start with the company and market you want Prometheus to understand.</p>
-              <div class="field-grid">
-                <label class="field">Company Name <input name="companyName" required placeholder="Example: Acme Home Services"></label>
-                <label class="field">Industry <input name="industry" required placeholder="Fitness, roofing, medical, franchise, B2B..."></label>
+              <h3>What do you want to do?</h3>
+              <p>Select the request type so the founder can route the lead into the right pipeline stage.</p>
+              <div class="goal-grid request-grid">
+                <label class="goal-option"><input type="radio" name="requestType" value="private_demo" required><strong>Request a private demo</strong><span>See how Prometheus IQ fits your field team.</span></label>
+                <label class="goal-option"><input type="radio" name="requestType" value="beta_pilot"><strong>Apply for a beta pilot</strong><span>Evaluate a controlled rollout with success criteria.</span></label>
+                <label class="goal-option"><input type="radio" name="requestType" value="enterprise_pricing"><strong>Request enterprise pricing</strong><span>Discuss scope, seats, governance, and rollout path.</span></label>
+                <label class="goal-option"><input type="radio" name="requestType" value="discovery_call"><strong>Schedule discovery</strong><span>Share workflow context and determine fit.</span></label>
               </div>
             </div>
 
             <div class="pilot-step" data-pilot-step="1">
-              <h3>Field team size</h3>
-              <p>This helps shape the pilot around real adoption instead of unnecessary complexity.</p>
+              <h3>Company profile</h3>
+              <p>Describe the company and buyer context the founder should review.</p>
               <div class="field-grid">
-                <label class="field">Number of Field Reps <input name="fieldRepCount" required type="number" min="1" value="3"></label>
-                <label class="field">Number of Locations <input name="locationCount" required type="number" min="1" value="1"></label>
+                <label class="field">Company Name <input name="companyName" required placeholder="Example: Acme Home Services"></label>
+                <label class="field">Company Website <input name="companyWebsite" inputmode="url" placeholder="https://example.com"></label>
+                <label class="field">Your Role <input name="requesterRole" required placeholder="Founder, VP Sales, Regional Manager..."></label>
+                <label class="field honeypot" aria-hidden="true">Website <input name="websiteUrl" tabindex="-1" autocomplete="off"></label>
               </div>
             </div>
 
             <div class="pilot-step" data-pilot-step="2">
-              <h3>Territory</h3>
-              <p>Prometheus thinks in territories, routes, activity, and outcomes.</p>
+              <h3>Operating profile</h3>
+              <p>What best describes your outside-sales operation?</p>
               <div class="field-grid">
-                <label class="field full">Geographic Territory <input name="geographicTerritory" required placeholder="South Houston, DFW, Houston market..."></label>
+                <label class="field full">Outside-sales operation
+                  <select name="operatingProfileId" required>
+                    <option value="">Select operating profile</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="roofing">Roofing</option>
+                    <option value="security">Security</option>
+                    <option value="medical">Medical</option>
+                    <option value="insurance">Insurance</option>
+                    <option value="solar">Solar</option>
+                    <option value="home_services">Home Services</option>
+                    <option value="general_outside_sales">General Outside Sales</option>
+                    <option value="future_profile">Other / future operating profile</option>
+                  </select>
+                </label>
+                <label class="field full">If other, describe it <input name="otherOperatingProfile" placeholder="Example: commercial cleaning, telecom, franchise growth..."></label>
               </div>
             </div>
 
             <div class="pilot-step" data-pilot-step="3">
+              <h3>Team and territory</h3>
+              <p>This sizes the request without forcing a full procurement process upfront.</p>
+              <div class="field-grid">
+                <label class="field">Estimated Team Size
+                  <select name="teamSize" required>
+                    <option value="">Select team size</option>
+                    <option value="1-5 field sellers">1-5 field sellers</option>
+                    <option value="6-20 field sellers">6-20 field sellers</option>
+                    <option value="21-50 field sellers">21-50 field sellers</option>
+                    <option value="51-200 field sellers">51-200 field sellers</option>
+                    <option value="200+ field sellers">200+ field sellers</option>
+                  </select>
+                </label>
+                <label class="field">Number of Field Reps <input name="fieldRepCount" required type="number" min="1" value="3"></label>
+                <label class="field">Number of Locations <input name="locationCount" required type="number" min="1" value="1"></label>
+                <label class="field full">Geographic Territory <input name="geographicTerritory" required placeholder="South Houston, DFW, Houston market..."></label>
+              </div>
+            </div>
+
+            <div class="pilot-step" data-pilot-step="4">
               <h3>Primary goal</h3>
               <p>Pick the executive outcome the pilot should prove first.</p>
               <div class="goal-grid">
@@ -2372,21 +2425,23 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="4">
-              <h3>Current system</h3>
+            <div class="pilot-step" data-pilot-step="5">
+              <h3>Current sales workflow</h3>
               <p>This positions Prometheus around the gap before activity reaches the CRM.</p>
               <div class="field-grid">
                 <label class="field">Current CRM <input name="currentCrm" required placeholder="HubSpot, Salesforce, spreadsheet, none..."></label>
-                <label class="field full">Biggest Field Sales Challenge <textarea name="biggestChallenge" required placeholder="What slows the team down before a lead enters the system?"></textarea></label>
+                <label class="field full">Describe current sales workflow <textarea name="currentWorkflow" required placeholder="How do reps decide where to go, verify visits, capture outcomes, and hand off leads today?"></textarea></label>
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="5">
-              <h3>Contact</h3>
-              <p>Your readiness snapshot will be generated instantly. Sending it stays under your control.</p>
+            <div class="pilot-step" data-pilot-step="6">
+              <h3>Contact and scheduling</h3>
+              <p>Your enterprise lead packet will be generated instantly. Sending it stays under your control.</p>
               <div class="field-grid">
                 <label class="field">Name <input name="contactName" required autocomplete="name" placeholder="Your name"></label>
                 <label class="field">Email / Phone <input name="contactMethod" required autocomplete="email" placeholder="name@company.com or phone"></label>
+                <label class="field full">Preferred call window <input name="preferredCallWindow" placeholder="Example: Tuesday morning, Thursday after 2 PM CT"></label>
+                <label class="field full">Additional context <textarea name="additionalContext" placeholder="Anything else the founder should know before review?"></textarea></label>
               </div>
             </div>
 
@@ -2407,28 +2462,29 @@
               <div class="map-node"></div>
             </div>
             <div class="preview-readout">
-              <div class="readout-line"><span>Field profile</span><strong id="previewReps">Awaiting rep count</strong></div>
-              <div class="readout-line"><span>Territory signal</span><strong id="previewTerritory">Not mapped yet</strong></div>
+              <div class="readout-line"><span>Request</span><strong id="previewRequest">Select request</strong></div>
+              <div class="readout-line"><span>Operating profile</span><strong id="previewProfile">Select profile</strong></div>
               <div class="readout-line"><span>Pilot target</span><strong id="previewGoal">Select primary goal</strong></div>
             </div>
           </div>
         </div>
 
         <div class="pilot-dashboard" id="pilotDashboard">
-          <div class="experience-kicker">Prometheus Beta Pilot Readiness Snapshot</div>
-          <h3 id="dashboardCompany">Pilot snapshot generated.</h3>
-          <p id="dashboardSummary">Prometheus has created a suggested pilot structure based on your team profile.</p>
+          <div class="experience-kicker">Prometheus Enterprise Lead Packet</div>
+          <h3 id="dashboardCompany">Lead packet generated.</h3>
+          <p id="dashboardSummary">Prometheus has created a founder-ready CRM intake packet based on the request type, operating profile, attribution, and current workflow.</p>
           <div class="dashboard-grid">
-            <div class="dashboard-card"><span>Estimated Rep Count</span><strong id="dashRepCount">-</strong></div>
-            <div class="dashboard-card"><span>Territory Size</span><strong id="dashTerritory">-</strong></div>
-            <div class="dashboard-card"><span>Opportunity Areas</span><strong id="dashOpportunity">-</strong></div>
-            <div class="dashboard-card"><span>Suggested Duration</span><strong id="dashDuration">-</strong></div>
-            <div class="dashboard-card"><span>Suggested Pilot Users</span><strong id="dashUsers">-</strong></div>
-            <div class="dashboard-card"><span>Key Metrics</span><strong id="dashMetrics">-</strong></div>
+            <div class="dashboard-card"><span>Pipeline Stage</span><strong id="dashPipelineStage">-</strong></div>
+            <div class="dashboard-card"><span>Operating Profile</span><strong id="dashOperatingProfile">-</strong></div>
+            <div class="dashboard-card"><span>Team Size</span><strong id="dashTeamSize">-</strong></div>
+            <div class="dashboard-card"><span>Primary Goal</span><strong id="dashGoal">-</strong></div>
+            <div class="dashboard-card"><span>CRM Path</span><strong id="dashCrmPath">-</strong></div>
+            <div class="dashboard-card"><span>Lead Source</span><strong id="dashLeadSource">-</strong></div>
           </div>
+          <p class="intake-status" id="intakeStatus" role="status"></p>
           <div class="pilot-actions">
             <button class="mini-button" type="button" id="pilotReset">Review Answers</button>
-            <a class="mini-button primary" id="pilotEmail" href="mailto:prometheusrouteiq@gmail.com">Send Beta Request</a>
+            <a class="mini-button primary" id="pilotEmail" href="mailto:prometheusrouteiq@gmail.com">Send to Founder</a>
           </div>
         </div>
       </div>
@@ -2484,7 +2540,7 @@
             <div class="demo-actions">
               <button class="mini-button" type="button" id="demoBack">Back</button>
               <button class="mini-button primary" type="button" id="demoNext">Next Scene</button>
-              <button class="mini-button" type="button" data-open-pilot>Apply for Beta Pilot</button>
+              <button class="mini-button" type="button" data-open-pilot>Start Enterprise Intake</button>
             </div>
           </div>
         </div>

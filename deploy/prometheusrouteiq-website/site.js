@@ -1,10 +1,38 @@
 import * as THREE from "./vendor/three.module.js";
 import { initializeWebsiteAttribution } from "./website-attribution.js";
+import {
+  buildEnterpriseLeadMailto,
+  createEnterpriseLeadIntake,
+  OPERATING_PROFILE_OPTIONS
+} from "./enterprise-lead-intake.js";
 
-initializeWebsiteAttribution();
+const websiteAttributionSession = initializeWebsiteAttribution();
 
 const canvas = document.querySelector("#core");
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+let renderer;
+const supportsWebGl = (() => {
+  try {
+    return Boolean(canvas?.getContext("webgl2") || canvas?.getContext("webgl") || canvas?.getContext("experimental-webgl"));
+  } catch {
+    return false;
+  }
+})();
+if (supportsWebGl) {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch {
+    renderer = null;
+  }
+}
+
+if (!renderer) {
+  document.body.classList.add("webgl-unavailable");
+  renderer = {
+    setPixelRatio() {},
+    setSize() {},
+    render() {}
+  };
+}
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
 
 const scene = new THREE.Scene();
@@ -615,6 +643,7 @@ const modalMap = {
   pilot: document.querySelector("#pilotExperience"),
   demo: document.querySelector("#demoExperience")
 };
+let enterpriseIntakeOpenedAt = null;
 
 const openModal = (modal) => {
   Object.values(modalMap).forEach((item) => {
@@ -639,6 +668,7 @@ const closeModals = () => {
 document.querySelectorAll("[data-open-pilot]").forEach((trigger) => {
   trigger.addEventListener("click", (event) => {
     event.preventDefault();
+    enterpriseIntakeOpenedAt = new Date().toISOString();
     openModal(modalMap.pilot);
   });
 });
@@ -673,12 +703,25 @@ const pilotBack = document.querySelector("#pilotBack");
 const pilotNext = document.querySelector("#pilotNext");
 const pilotGenerate = document.querySelector("#pilotGenerate");
 const pilotDashboard = document.querySelector("#pilotDashboard");
-const pilotPreviewReps = document.querySelector("#previewReps");
-const pilotPreviewTerritory = document.querySelector("#previewTerritory");
+const pilotPreviewRequest = document.querySelector("#previewRequest");
+const pilotPreviewProfile = document.querySelector("#previewProfile");
 const pilotPreviewGoal = document.querySelector("#previewGoal");
+const intakeStatus = document.querySelector("#intakeStatus");
 let pilotStepIndex = 0;
 
 const getPilotData = () => Object.fromEntries(new FormData(pilotForm).entries());
+
+const requestTypeLabel = (requestType) => ({
+  private_demo: "Private demo",
+  beta_pilot: "Beta pilot",
+  enterprise_pricing: "Enterprise pricing",
+  discovery_call: "Discovery call"
+})[requestType] || "Select request";
+
+const profileLabel = (profileId, otherProfile = "") => {
+  if (profileId === "future_profile") return otherProfile || "Future profile";
+  return OPERATING_PROFILE_OPTIONS.find(profile => profile.profileId === profileId)?.label || "Select profile";
+};
 
 const setPilotStep = (index) => {
   pilotStepIndex = Math.max(0, Math.min(index, pilotSteps.length - 1));
@@ -701,10 +744,8 @@ const validatePilotStep = () => {
 
 const updatePilotPreview = () => {
   const data = getPilotData();
-  const reps = Number(data.fieldRepCount || 0);
-  const locations = Number(data.locationCount || 0);
-  pilotPreviewReps.textContent = reps ? `${reps} field rep${reps === 1 ? "" : "s"}` : "Awaiting rep count";
-  pilotPreviewTerritory.textContent = data.geographicTerritory || (locations ? `${locations} location${locations === 1 ? "" : "s"}` : "Not mapped yet");
+  pilotPreviewRequest.textContent = requestTypeLabel(data.requestType);
+  pilotPreviewProfile.textContent = profileLabel(data.operatingProfileId, data.otherOperatingProfile);
   pilotPreviewGoal.textContent = data.primaryGoal || "Select primary goal";
 };
 
@@ -740,44 +781,33 @@ const getMetrics = (goal) => {
 const buildPilotDashboard = () => {
   if (!validatePilotStep()) return;
   const data = getPilotData();
-  const reps = Math.max(1, Number(data.fieldRepCount || 1));
-  const locations = Math.max(1, Number(data.locationCount || 1));
-  const pilotUsers = reps <= 3 ? reps : Math.min(5, Math.ceil(reps * 0.2));
-  const duration = reps <= 10 && locations <= 3 ? "14 days" : "21-30 days";
-  const territorySize = locations === 1 ? "Single-location" : locations <= 5 ? "Controlled market" : "Regional market";
-  const opportunityAreas = getOpportunityAreas(data.primaryGoal, data.industry);
-  const metrics = getMetrics(data.primaryGoal);
+  const packet = createEnterpriseLeadIntake({
+    formData: data,
+    attributionSession: window.prometheusWebsiteAttribution?.getSession?.() || websiteAttributionSession,
+    duplicateStorage: window.localStorage,
+    openedAt: enterpriseIntakeOpenedAt
+  });
 
-  document.querySelector("#dashboardCompany").textContent = `${data.companyName || "Your company"} is beta-pilot ready.`;
-  document.querySelector("#dashboardSummary").textContent = `Based on a ${territorySize.toLowerCase()} team focused on ${data.primaryGoal || "field growth"}, Prometheus recommends a controlled Prometheus IQ beta pilot that measures AI Route Intelligence, activity quality, and outcomes without adding unnecessary admin work.`;
-  document.querySelector("#dashRepCount").textContent = `${reps}`;
-  document.querySelector("#dashTerritory").textContent = territorySize;
-  document.querySelector("#dashOpportunity").textContent = opportunityAreas;
-  document.querySelector("#dashDuration").textContent = duration;
-  document.querySelector("#dashUsers").textContent = `${pilotUsers} user${pilotUsers === 1 ? "" : "s"}`;
-  document.querySelector("#dashMetrics").textContent = metrics;
+  if (!packet.ok) {
+    intakeStatus.textContent = packet.errors.join(" ");
+    return;
+  }
 
-  const emailBody = [
-    "Prometheus IQ beta pilot request",
-    "",
-    `Company: ${data.companyName || ""}`,
-    `Industry: ${data.industry || ""}`,
-    `Field reps: ${reps}`,
-    `Locations: ${locations}`,
-    `Territory: ${data.geographicTerritory || ""}`,
-    `Primary goal: ${data.primaryGoal || ""}`,
-    `Current CRM: ${data.currentCrm || ""}`,
-    `Biggest challenge: ${data.biggestChallenge || ""}`,
-    "",
-    `Suggested pilot duration: ${duration}`,
-    `Suggested pilot users: ${pilotUsers}`,
-    `Key metrics: ${metrics}`,
-    "",
-    `Contact: ${data.contactName || ""}`,
-    `Email / Phone: ${data.contactMethod || ""}`
-  ].join("\n");
+  document.querySelector("#dashboardCompany").textContent = `${packet.lead.companyName} is ready for founder review.`;
+  document.querySelector("#dashboardSummary").textContent = `${packet.lead.requestLabel} captured as ${packet.lead.pipelineStage}. Founder can review ${packet.lead.requesterName}, ${packet.lead.companyName}, ${packet.lead.operatingProfile.profileLabel}, ${packet.lead.teamSize}, and ${packet.lead.primaryGoal} immediately.`;
+  document.querySelector("#dashPipelineStage").textContent = packet.lead.pipelineStage;
+  document.querySelector("#dashOperatingProfile").textContent = packet.lead.operatingProfile.futureProfileRequested
+    ? `${packet.lead.operatingProfile.requestedProfile} -> General Outside Sales`
+    : packet.lead.operatingProfile.profileLabel;
+  document.querySelector("#dashTeamSize").textContent = packet.lead.teamSize;
+  document.querySelector("#dashGoal").textContent = packet.lead.primaryGoal;
+  document.querySelector("#dashCrmPath").textContent = packet.crmIntegration.path;
+  document.querySelector("#dashLeadSource").textContent = packet.crmIntegration.attributionEvent.metadata.lead_source || "website";
+  intakeStatus.textContent = packet.duplicate
+    ? "Duplicate request detected locally. The founder packet is still available for review."
+    : "Lead packet stored locally with Website/Social attribution and CRM attribution event metadata.";
 
-  document.querySelector("#pilotEmail").href = `mailto:prometheusrouteiq@gmail.com?subject=${encodeURIComponent("Prometheus IQ Beta Pilot Request")}&body=${encodeURIComponent(emailBody)}`;
+  document.querySelector("#pilotEmail").href = buildEnterpriseLeadMailto(packet);
   pilotDashboard.classList.add("is-visible");
   pilotDashboard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 };
@@ -785,6 +815,7 @@ const buildPilotDashboard = () => {
 pilotGenerate.addEventListener("click", buildPilotDashboard);
 document.querySelector("#pilotReset").addEventListener("click", () => {
   pilotDashboard.classList.remove("is-visible");
+  intakeStatus.textContent = "";
   setPilotStep(0);
 });
 

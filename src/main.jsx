@@ -126,7 +126,7 @@ function App() {
               intelligence across every industry where face-to-face selling still wins.
             </p>
             <div className="hero-actions">
-              <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Beta%20Pilot%20Request`}>Apply for Beta Pilot</a>
+              <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
               <a className="button secondary" href="#enterprise">Enterprise Readiness</a>
             </div>
             <div className="identity-strip" aria-label="Prometheus identity pillars">
@@ -357,22 +357,22 @@ function App() {
       <section id="pilot" className="section pilot-section">
         <div className="shell pilot-card">
           <div>
-            <SectionLabel>Beta Request Flow</SectionLabel>
-            <h2>Apply for a controlled Prometheus IQ beta pilot.</h2>
+            <SectionLabel>Enterprise Lead Intake</SectionLabel>
+            <h2>Start a private Prometheus IQ enterprise conversation.</h2>
             <p>
-              Pilot partners can evaluate AI Route Intelligence, verified activity,
-              sales intelligence, customer success cadence, and productivity metrics through a
-              controlled private program designed for founder-led implementation and executive review.
+              Request a private demo, apply for a beta pilot, request enterprise pricing, or
+              schedule discovery. Prometheus captures operating profile, team size, current
+              workflow, Website attribution, and CRM-ready pipeline context before founder review.
             </p>
             <div className="beta-steps" aria-label="Beta request steps">
-              <span>1. Apply</span>
-              <span>2. Founder review</span>
-              <span>3. Pilot scope</span>
-              <span>4. Success review</span>
+              <span>1. Request</span>
+              <span>2. Operating profile</span>
+              <span>3. CRM packet</span>
+              <span>4. Founder review</span>
             </div>
             <p className="investor-note">Investor signal: Prometheus IQ is positioned as repeatable field-intelligence infrastructure across multiple outside-sales verticals.</p>
           </div>
-          <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Beta%20Pilot%20Request`}>Apply for Beta Pilot</a>
+          <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
         </div>
       </section>
 
@@ -386,7 +386,7 @@ function App() {
           <div className="footer-links">
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
             <a href={instagramUrl}>@prometheus.IQ</a>
-            <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Beta%20Pilot%20Request`}>Apply for Beta Pilot</a>
+            <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
           </div>
         </div>
       </footer>

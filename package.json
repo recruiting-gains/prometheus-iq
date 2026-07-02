@@ -28,7 +28,7 @@
     "test:integrations": "node --test tests/founder-communications-contract.test.mjs tests/founder-communications-provider-adapters.test.mjs",
     "test:research": "node --test tests/research-foundation.test.mjs",
     "test:social-media": "node --test tests/social-media-contract.test.mjs tests/meta-instagram-worker-callback.test.mjs tests/founder-marketing-operating-system.test.mjs tests/founder-instagram-analytics-reporting-view.test.mjs",
-    "test:website": "node --test tests/website-social-attribution.test.mjs",
+    "test:website": "node --test tests/website-social-attribution.test.mjs tests/website-enterprise-lead-intake.test.mjs",
     "data:refresh-google": "node scripts/refresh-google-qualified-businesses.mjs",
     "data:refresh-google:dry-run": "node scripts/refresh-google-qualified-businesses.mjs --dry-run",
     "verify:zero-google-api": "node scripts/verify-zero-live-google-api-calls.mjs",
