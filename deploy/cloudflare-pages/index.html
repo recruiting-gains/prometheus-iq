@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-wodGEf/8Yv/FJqluLxYdQjd+uSoGDOWbmbNki91YsXg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pTMdy0yVFC5fR0FsmdJxMe/j/3NmGuV+YJ/J5f21rEM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1283,7 +1283,7 @@
       <section class="view active" id="view-today">
         <div class="grid three desktop-three">
           <article class="panel pad stat">
-            <span>Units Today</span>
+            <span id="unitsTodayLabel">Units Today</span>
             <b id="unitsToday">0</b>
             <small id="unitsContext">Waiting for first outcome</small>
           </article>
@@ -1307,12 +1307,12 @@
           <div class="progress" aria-label="Daily unit progress"><i id="goalProgress"></i></div>
           <div class="grid two">
             <div class="stat panel pad">
-              <span>Conversations</span>
+              <span id="talksTodayLabel">Conversations</span>
               <b id="talksToday">0</b>
               <small id="talksContext">Conversation pace pending</small>
             </div>
             <div class="stat panel pad">
-              <span>Leads</span>
+              <span id="leadsTodayLabel">Leads</span>
               <b id="leadsToday">0</b>
               <small id="leadsContext">Lead pace pending</small>
             </div>
@@ -1367,7 +1367,7 @@
         </article>
 
         <div class="section-title">
-          <h2>Fastest Path To Goal</h2>
+          <h2 id="fastestPathTitle">Fastest Path To Goal</h2>
           <small>Based on your data</small>
         </div>
         <div class="panel pad insight" id="needCalculator"></div>
@@ -1429,7 +1429,7 @@
 
       <section class="view" id="view-route">
         <div class="section-title">
-          <h2>Route Builder</h2>
+          <h2 id="routeBuilderTitle">Route Builder</h2>
           <small id="routeCount">0 options</small>
         </div>
         <div class="toolbar">
@@ -1448,8 +1448,8 @@
         </div>
         <div class="toolbar">
           <button class="seg active" data-filter="all">All</button>
-          <button class="seg" data-filter="green">Units</button>
-          <button class="seg" data-filter="yellow">Leads</button>
+          <button class="seg" data-filter="green" id="placesUnitsFilter">Units</button>
+          <button class="seg" data-filter="yellow" id="placesLeadsFilter">Leads</button>
           <button class="seg" data-filter="blue">New</button>
           <button class="seg" data-filter="red">Dead</button>
         </div>
@@ -1459,7 +1459,7 @@
       <section class="view owner-only" id="view-stats">
         <div class="grid two desktop-three">
           <article class="panel pad stat">
-            <span>Verified Units</span>
+            <span id="totalUnitsLabel">Verified Units</span>
             <b id="totalUnits">0</b>
           </article>
           <article class="panel pad stat">
@@ -1628,12 +1628,14 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-02-beta-route-controls-events-v1";
+    const appBuildVersion = "2026-07-02-operating-profile-consumer-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v34-beta-route-controls-events";
+    const serviceWorkerCacheVersion = "prometheus-v35-operating-profile-consumer";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
+    const operatingProfileRegistryPath = "./intelligence/profiles/operating-profiles.json";
+    const operatingProfileContractsPath = "./intelligence/contracts/operating-profile-contracts.json";
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
     const appUrlParams = new URLSearchParams(location.search);
@@ -19266,12 +19268,126 @@
 
     const isLocalPreview = location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
     const safeParam = value => String(value || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 60);
+    const requestedOperatingProfileId = safeParam(appUrlParams.get("operatingProfile")) || "fitness";
     const requestedRole = safeParam(appUrlParams.get("role"));
     const requestedRepId = safeParam(appUrlParams.get("rep") || appUrlParams.get("profile"));
     const requestedPwaLaunch = safeParam(appUrlParams.get("pwa"));
     const validSessionRoles = new Set(["rep", "manager", "owner", "founder", "admin"]);
     const isStandalonePwa = window.navigator.standalone === true
       || (typeof window.matchMedia === "function" && window.matchMedia("(display-mode: standalone)").matches);
+    const embeddedOperatingProfile = {
+      profileId: "fitness",
+      label: "Fitness",
+      industry: "fitness",
+      terminology: {
+        customer: "member",
+        target: "gym prospect",
+        visit: "gym visit",
+        success: "membership opportunity"
+      },
+      kpis: ["gyms_visited", "managers_reached", "tours_booked", "trial_passes", "memberships_sold"],
+      successEvents: ["conversation", "lead", "appointment", "sale", "referral"],
+      outcomeVocabulary: ["Visited", "Manager reached", "Tour", "Trial pass", "Membership", "Referral", "No manager"],
+      dashboardLabels: {
+        routeTitle: "Fitness Route",
+        primarySuccess: "Membership",
+        followUp: "Tour Follow-up"
+      }
+    };
+    let operatingProfileRegistry = null;
+    let operatingProfileContracts = null;
+    let activeOperatingProfile = embeddedOperatingProfile;
+    let operatingProfileSource = "embedded-fitness";
+
+    function titleCaseWords(value) {
+      return String(value || "").replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().replace(/\b[a-z]/g, char => char.toUpperCase());
+    }
+
+    function pluralizeLabel(value) {
+      const text = titleCaseWords(value);
+      if (!text) return "";
+      if (/s$/i.test(text)) return text;
+      if (/[^aeiou]y$/i.test(text)) return `${text.slice(0, -1)}ies`;
+      return `${text}s`;
+    }
+
+    function singularLabel(value) {
+      const text = titleCaseWords(value);
+      if (/ies$/i.test(text)) return `${text.slice(0, -3)}y`;
+      if (/s$/i.test(text) && !/ss$/i.test(text)) return text.slice(0, -1);
+      return text;
+    }
+
+    function profileHasTerm(profile, pattern) {
+      return (profile.outcomeVocabulary || []).find(term => pattern.test(term));
+    }
+
+    function operatingVocabularyFor(profile = activeOperatingProfile) {
+      const id = profile?.profileId || "fitness";
+      const dashboardLabels = profile?.dashboardLabels || embeddedOperatingProfile.dashboardLabels;
+      const terminology = profile?.terminology || embeddedOperatingProfile.terminology;
+      const primarySuccess = dashboardLabels.primarySuccess || terminology.success || "Unit";
+      const followUp = dashboardLabels.followUp || "Follow-up";
+      const targetPlural = pluralizeLabel(terminology.target || "prospect");
+      const specific = {
+        fitness: {
+          progressPlural: "Units",
+          progressSingular: "unit",
+          activityPlural: "Conversations",
+          pipelinePlural: "Leads",
+          deferredPlural: "Later Units",
+          quickSuccess: "Membership",
+          quickSuccessDetail: "Membership closed"
+        },
+        roofing: {
+          progressPlural: "Contracts",
+          progressSingular: "contract",
+          activityPlural: pluralizeLabel(profileHasTerm(profile, /inspection/i) || "Inspection"),
+          pipelinePlural: "Leads",
+          deferredPlural: pluralizeLabel(profileHasTerm(profile, /estimate/i) || "Estimate"),
+          quickSuccess: "Contract",
+          quickSuccessDetail: "Contract signed"
+        },
+        security: {
+          progressPlural: "Contracts",
+          progressSingular: "contract",
+          activityPlural: pluralizeLabel(profileHasTerm(profile, /site survey/i) || "Site Survey"),
+          pipelinePlural: targetPlural || "Prospects",
+          deferredPlural: "Consultations",
+          quickSuccess: "Contract",
+          quickSuccessDetail: "Contract signed"
+        },
+        medical: {
+          progressPlural: "Partnerships",
+          progressSingular: "partnership",
+          activityPlural: "Meetings",
+          pipelinePlural: pluralizeLabel(profileHasTerm(profile, /referral/i) || "Referral"),
+          deferredPlural: pluralizeLabel(followUp.replace(/\s*follow-up\s*/i, "Follow-up") || "Follow-up"),
+          quickSuccess: "Partnership",
+          quickSuccessDetail: "Partnership advanced"
+        }
+      }[id] || {};
+      const defaultProgress = pluralizeLabel(primarySuccess.split(/\s+or\s+/i).pop());
+      return {
+        profileId: id,
+        profileLabel: profile?.label || "Fitness",
+        routeTitle: dashboardLabels.routeTitle || "Route Builder",
+        primarySuccess,
+        followUp,
+        progressPlural: specific.progressPlural || defaultProgress || "Units",
+        progressSingular: specific.progressSingular || singularLabel(specific.progressPlural || defaultProgress || "unit").toLowerCase(),
+        activityPlural: specific.activityPlural || pluralizeLabel(profileHasTerm(profile, /conversation|reached|appointment/i) || "Conversation"),
+        pipelinePlural: specific.pipelinePlural || pluralizeLabel(profileHasTerm(profile, /lead|referral|quote/i) || "Lead"),
+        deferredPlural: specific.deferredPlural || "Later Units",
+        quickSuccess: specific.quickSuccess || singularLabel(primarySuccess.split(/\s+or\s+/i).pop()),
+        quickSuccessDetail: specific.quickSuccessDetail || `${singularLabel(primarySuccess.split(/\s+or\s+/i).pop())} recorded`,
+        targetPlural
+      };
+    }
+
+    function activeOperatingVocabulary() {
+      return operatingVocabularyFor(activeOperatingProfile);
+    }
 
     function readLaunchContext() {
       try {
@@ -19299,6 +19415,64 @@
         mode: mode === "owner" ? "owner" : "rep",
         updatedAt: Date.now()
       }));
+    }
+
+    function validateDashboardOperatingProfileContracts(registry, contracts) {
+      const failures = [];
+      if (registry?.version !== "operating-profile-engine-v1") failures.push("profile registry version mismatch");
+      if (contracts?.version !== "operating-profile-contracts-v1") failures.push("profile contract version mismatch");
+      if (registry?.productionLearningActive !== false || registry?.productionRecommendationChanged !== false || registry?.scoringChanged !== false || registry?.activePoolChanged !== false) {
+        failures.push("operating profile registry is not production-safe for Dashboard consumption");
+      }
+      if (!Array.isArray(registry?.profiles) || !registry.profiles.length) failures.push("operating profile registry has no profiles");
+      if (!contracts?.contracts?.DashboardOperatingProfileContract?.requiredFields?.includes("dashboardLabels")) failures.push("Dashboard operating profile contract is missing dashboardLabels");
+      return failures;
+    }
+
+    async function loadOperatingProfileDefinitions() {
+      if (typeof fetch !== "function") {
+        operatingProfileSource = "embedded-fitness-fetch-unavailable";
+        return false;
+      }
+      try {
+        const [profileResponse, contractResponse] = await Promise.all([
+          fetch(operatingProfileRegistryPath, { cache: "no-store" }),
+          fetch(operatingProfileContractsPath, { cache: "no-store" })
+        ]);
+        if (!profileResponse.ok) throw new Error(`Operating profile registry request failed with ${profileResponse.status}.`);
+        if (!contractResponse.ok) throw new Error(`Operating profile contract request failed with ${contractResponse.status}.`);
+        const registry = await profileResponse.json();
+        const contracts = await contractResponse.json();
+        const failures = validateDashboardOperatingProfileContracts(registry, contracts);
+        if (failures.length) throw new Error(failures.join(" | "));
+        operatingProfileRegistry = registry;
+        operatingProfileContracts = contracts;
+        activeOperatingProfile = registry.profiles.find(profile => profile.profileId === requestedOperatingProfileId)
+          || registry.profiles.find(profile => profile.profileId === "fitness")
+          || embeddedOperatingProfile;
+        operatingProfileSource = `${registry.version}:${activeOperatingProfile.profileId}`;
+        window.prometheusDebugState.operatingProfile = {
+          profileId: activeOperatingProfile.profileId,
+          label: activeOperatingProfile.label,
+          source: operatingProfileSource,
+          contractVersion: contracts.version,
+          scoringChanged: registry.scoringChanged,
+          activePoolChanged: registry.activePoolChanged
+        };
+        return true;
+      } catch (error) {
+        activeOperatingProfile = embeddedOperatingProfile;
+        operatingProfileSource = `embedded-fitness-fallback:${error?.message || "unavailable"}`;
+        window.prometheusDebugState.operatingProfile = {
+          profileId: activeOperatingProfile.profileId,
+          label: activeOperatingProfile.label,
+          source: operatingProfileSource,
+          contractVersion: "embedded",
+          scoringChanged: false,
+          activePoolChanged: false
+        };
+        return false;
+      }
     }
 
     const storedLaunchContext = readLaunchContext();
@@ -19491,6 +19665,7 @@
     }
 
     function formatTodaySummary(report) {
+      const vocabulary = activeOperatingVocabulary();
       const lines = [
         `Prometheus IQ Daily Rep Summary`,
         `Rep: ${report.rep.name}`,
@@ -19499,10 +19674,10 @@
         ``,
         `Totals`,
         `- Visits: ${report.totals.visits}`,
-        `- Conversations: ${report.totals.conversations}`,
-        `- Leads: ${report.totals.leads}`,
-        `- Units: ${report.totals.units}`,
-        `- Later Units: ${report.totals.laterUnits}`,
+        `- ${vocabulary.activityPlural}: ${report.totals.conversations}`,
+        `- ${vocabulary.pipelinePlural}: ${report.totals.leads}`,
+        `- ${vocabulary.progressPlural}: ${report.totals.units}`,
+        `- ${vocabulary.deferredPlural}: ${report.totals.laterUnits}`,
         ``,
         `Visits`
       ];
@@ -19513,7 +19688,7 @@
           lines.push(`${index + 1}. ${visit.placeName}`);
           lines.push(`   Time: ${visit.timestamp || "Not recorded"}`);
           lines.push(`   Outcome: ${visit.outcome || "Not specified"}`);
-          lines.push(`   Conversations: ${visit.conversations} | Leads: ${visit.leads} | Units: ${visit.units} | Later Units: ${visit.laterUnits}`);
+          lines.push(`   ${vocabulary.activityPlural}: ${visit.conversations} | ${vocabulary.pipelinePlural}: ${visit.leads} | ${vocabulary.progressPlural}: ${visit.units} | ${vocabulary.deferredPlural}: ${visit.laterUnits}`);
           if (visit.notes) lines.push(`   Notes: ${visit.notes}`);
           lines.push(`   GPS attached: ${visit.gpsAttached ? "yes" : "no"}`);
         });
@@ -21195,16 +21370,17 @@
     }
 
     function routeReasons(place, data) {
+      const vocabulary = activeOperatingVocabulary();
       const reasons = [];
       if (data.access === "Walk-in ready") reasons.push("walk-in ready storefront");
       if (data.access === "Permission required") reasons.push("permission required before outreach");
       if (data.access === "Event-based") reasons.push("event-based opportunity");
       if (data.tier.rank === 1) reasons.push(`specific walk-in target: ${firstWalkTarget(place)}`);
       if (data.tier.rank === 4) reasons.push("lower priority because it is a broad area, not one storefront");
-      if (data.totalProduction > 0) reasons.push(`${data.totalProduction} historical ${data.totalProduction === 1 ? "unit" : "units"}`);
-      if (data.stats.leads > 0) reasons.push(`${data.stats.leads} lead signal`);
-      if (activeRepId !== "cruz" && data.founderProduction > 0) reasons.push(`founder baseline produced ${data.founderProduction} ${data.founderProduction === 1 ? "unit" : "units"}`);
-      if (activeRepId !== "cruz" && data.founderStats.leads > 0) reasons.push(`founder baseline has ${data.founderStats.leads} lead signal`);
+      if (data.totalProduction > 0) reasons.push(`${data.totalProduction} historical ${data.totalProduction === 1 ? vocabulary.progressSingular : vocabulary.progressPlural.toLowerCase()}`);
+      if (data.stats.leads > 0) reasons.push(`${data.stats.leads} ${singularLabel(vocabulary.pipelinePlural).toLowerCase()} signal`);
+      if (activeRepId !== "cruz" && data.founderProduction > 0) reasons.push(`founder baseline produced ${data.founderProduction} ${data.founderProduction === 1 ? vocabulary.progressSingular : vocabulary.progressPlural.toLowerCase()}`);
+      if (activeRepId !== "cruz" && data.founderStats.leads > 0) reasons.push(`founder baseline has ${data.founderStats.leads} ${singularLabel(vocabulary.pipelinePlural).toLowerCase()} signal`);
       if (data.successfulDiscovery) reasons.push("new discovery is showing results");
       if (data.stats.visits === 0) reasons.push("fresh territory");
       if (data.underTestedCategory) reasons.push(`${place.category} needs more data`);
@@ -21443,6 +21619,7 @@
     }
 
     function routeConfidenceDetail(place, analysis = routeAnalysis(place)) {
+      const vocabulary = activeOperatingVocabulary();
       const stats = analysis.stats;
       const production = stats.units + stats.laterUnits;
       const category = categoryStats().get(place.category) || { visits: 0, leads: 0, units: 0 };
@@ -21467,11 +21644,11 @@
       }
       if (production > 0) {
         percent += Math.min(18, production * 7);
-        reasons.push(`${production} historical ${production === 1 ? "unit" : "units"}`);
+        reasons.push(`${production} historical ${production === 1 ? vocabulary.progressSingular : vocabulary.progressPlural.toLowerCase()}`);
       }
       if (stats.leads > 0) {
         percent += Math.min(12, stats.leads * 3);
-        reasons.push(`${stats.leads} lead ${stats.leads === 1 ? "signal" : "signals"}`);
+        reasons.push(`${stats.leads} ${singularLabel(vocabulary.pipelinePlural).toLowerCase()} ${stats.leads === 1 ? "signal" : "signals"}`);
       }
       if (hasCategoryEvidence && Number(category.units || 0) > 0) {
         percent += 8;
@@ -21599,6 +21776,7 @@
     }
 
     function dashboardPaceContext(visits, sums, need, routeItems) {
+      const vocabulary = activeOperatingVocabulary();
       const totals = sums.units + sums.laterUnits;
       const baseline = profileDashboardBaseline();
       const routeExpectation = routeItems.slice(0, Math.min(routeItems.length, 6)).reduce((sum, item) => sum + expectedUnitsFor(item.place, item).value, 0);
@@ -21619,21 +21797,22 @@
       return {
         probability,
         routeExpectation,
-        units: totals ? `${unitTrend}.` : "No units logged yet. First outcome sets the pace.",
+        units: totals ? `${unitTrend}.` : `No ${vocabulary.progressPlural.toLowerCase()} logged yet. First outcome sets the pace.`,
         need: need === 0 ? "Goal complete." : `${probability}% estimated completion probability.`,
         visits: visits.length ? `${routeItems.length} ranked stops still available.` : "No visits logged yet. Start with the best next stop.",
-        talks: talkExpectation === null ? "Conversation baseline pending." : talksBehind ? `${talksBehind} talks behind expected pace.` : "At or above expected talk pace.",
-        leads: leadExpectation === null ? "Lead baseline pending." : leadsBehind ? `${leadsBehind} lead signal${leadsBehind === 1 ? "" : "s"} behind pace.` : "Lead pace is healthy."
+        talks: talkExpectation === null ? `${singularLabel(vocabulary.activityPlural)} baseline pending.` : talksBehind ? `${talksBehind} ${vocabulary.activityPlural.toLowerCase()} behind expected pace.` : `At or above expected ${vocabulary.activityPlural.toLowerCase()} pace.`,
+        leads: leadExpectation === null ? `${singularLabel(vocabulary.pipelinePlural)} baseline pending.` : leadsBehind ? `${leadsBehind} ${singularLabel(vocabulary.pipelinePlural).toLowerCase()} signal${leadsBehind === 1 ? "" : "s"} behind pace.` : `${singularLabel(vocabulary.pipelinePlural)} pace is healthy.`
       };
     }
 
     function ownerInsightFor(reportVisits, viewingTeam) {
+      const vocabulary = activeOperatingVocabulary();
       const totals = sumVisits(reportVisits);
       const gpsVerified = reportVisits.filter(v => v.location).length;
       const gpsRate = reportVisits.length ? Math.round((gpsVerified / reportVisits.length) * 100) : 0;
       const conversionRate = totals.leads ? Math.round(((totals.units + totals.laterUnits) / totals.leads) * 100) : 0;
       if (viewingTeam) {
-        return `Owner Mode: ${gpsRate}% GPS-verified visits, ${totals.leads} leads, ${totals.units + totals.laterUnits} units, ${conversionRate}% lead-to-unit conversion where leads exist. Team reporting is visible without impersonating a rep.`;
+        return `Owner Mode: ${gpsRate}% GPS-verified visits, ${totals.leads} ${vocabulary.pipelinePlural.toLowerCase()}, ${totals.units + totals.laterUnits} ${vocabulary.progressPlural.toLowerCase()}, ${conversionRate}% ${singularLabel(vocabulary.pipelinePlural).toLowerCase()}-to-${vocabulary.progressSingular} conversion where ${vocabulary.pipelinePlural.toLowerCase()} exist. Team reporting is visible without impersonating a rep.`;
       }
       return `Viewing ${activeProfile().name}'s independent intelligence profile. GPS verification is ${gpsRate || 0}% across this profile, and founder baseline remains preserved separately.`;
     }
@@ -21724,6 +21903,8 @@
           "Runtime data source": window.prometheusDebugState.runtimeDataSource || runtimeDatasetSource.label,
           "Runtime data status": window.prometheusDebugState.runtimeDataStatus || runtimeDatasetSource.status,
           "Runtime data pool": window.prometheusDebugState.runtimeDataPool || runtimeDatasetSource.pool || "unknown",
+          "Operating profile": `${activeOperatingVocabulary().profileLabel} (${activeOperatingVocabulary().profileId})`,
+          "Operating profile source": window.prometheusDebugState.operatingProfile?.source || operatingProfileSource,
           "Cruz pool count": founderGoogleRoutePool(currentState.places || []).length,
           "Anthony pool count": anthonyApprovedRoutePool(currentState.places || []).length,
           "First candidate": first?.name || "None",
@@ -21763,6 +21944,7 @@
       const renderStartedAt = performance.now();
       dashboardComputationCache = {};
       applyMode();
+      applyOperatingProfileLabels();
       document.body.classList.remove("booting");
       const profile = activeProfile();
       renderRepProfileSwitch();
@@ -21788,7 +21970,26 @@
       updateFounderDebugPanel({ stage: "render-complete" });
     }
 
+    function setTextById(elementId, value) {
+      const element = document.getElementById(elementId);
+      if (element) element.textContent = value;
+    }
+
+    function applyOperatingProfileLabels() {
+      const vocabulary = activeOperatingVocabulary();
+      document.body.dataset.operatingProfile = vocabulary.profileId;
+      setTextById("unitsTodayLabel", `${vocabulary.progressPlural} Today`);
+      setTextById("talksTodayLabel", vocabulary.activityPlural);
+      setTextById("leadsTodayLabel", vocabulary.pipelinePlural);
+      setTextById("fastestPathTitle", `Fastest Path To ${vocabulary.progressSingular === "unit" ? "Goal" : vocabulary.progressPlural}`);
+      setTextById("routeBuilderTitle", vocabulary.routeTitle || "Route Builder");
+      setTextById("placesUnitsFilter", vocabulary.progressPlural);
+      setTextById("placesLeadsFilter", vocabulary.pipelinePlural);
+      setTextById("totalUnitsLabel", `Verified ${vocabulary.progressPlural}`);
+    }
+
     function renderToday() {
+      const vocabulary = activeOperatingVocabulary();
       const visits = todayVisits();
       const sums = sumVisits(visits);
       const need = Math.max(0, GOAL - sums.units);
@@ -21823,10 +22024,10 @@
       const needTalks = avgTalks > 0 ? Math.ceil(need * avgTalks) : need * 12;
       const topCategory = bestCategoryName();
       document.getElementById("needCalculator").innerHTML = need === 0
-        ? `<div><b>Goal hit.</b> Keep logging where the units came from so tomorrow's route gets smarter.</div>`
+        ? `<div><b>Goal hit.</b> Keep logging where the ${escapeHtml(vocabulary.progressPlural.toLowerCase())} came from so tomorrow's route gets smarter.</div>`
         : isThinEvidenceDiscovery(activeRepId)
-          ? `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using verified route quality and early field evidence.</div><div><b>Discovery Mode:</b> Prometheus is testing varied verified categories before declaring a best lane.</div>`
-          : `<div><b>${need} units left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more conversations. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
+          ? `<div><b>${need} ${escapeHtml(vocabulary.progressPlural.toLowerCase())} left.</b> Estimated completion probability is <b>${pace.probability}%</b> using verified route quality and early field evidence.</div><div><b>Discovery Mode:</b> Prometheus is testing varied verified categories before declaring a best lane.</div>`
+          : `<div><b>${need} ${escapeHtml(vocabulary.progressPlural.toLowerCase())} left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more ${escapeHtml(vocabulary.activityPlural.toLowerCase())}. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
 
       renderRouteIntelligence(visits, sums, need);
       renderDailyRoute();
@@ -22115,6 +22316,7 @@
     }
 
     function visitCard(v) {
+      const vocabulary = activeOperatingVocabulary();
       const place = state.places.find(p => p.id === v.placeId);
       const title = place ? place.name : v.placeName || "Unknown place";
       const locationLabel = v.location
@@ -22127,15 +22329,15 @@
             <div class="meta">
               ${place?.distance ? `<span>${escapeHtml(place.distance)}</span>` : ""}
               <span>${escapeHtml(v.window)}</span>
-              <span>${Number(v.conversations || 0)} talks</span>
-              <span>${Number(v.leads || 0)} leads</span>
+              <span>${Number(v.conversations || 0)} ${escapeHtml(vocabulary.activityPlural.toLowerCase())}</span>
+              <span>${Number(v.leads || 0)} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span>
               ${v.quality ? `<span>${escapeHtml(v.quality)}</span>` : ""}
               ${locationLabel ? `<span>${escapeHtml(locationLabel)}</span>` : ""}
             </div>
           </div>
-          <span class="pill green">${Number(v.units || 0) + Number(v.laterUnits || 0)} units</span>
+          <span class="pill green">${Number(v.units || 0) + Number(v.laterUnits || 0)} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
         </div>
-        ${Number(v.laterUnits || 0) ? `<div class="meta">${Number(v.units || 0)} same-day · ${Number(v.laterUnits || 0)} later units</div>` : ""}
+        ${Number(v.laterUnits || 0) ? `<div class="meta">${Number(v.units || 0)} same-day · ${Number(v.laterUnits || 0)} ${escapeHtml(vocabulary.deferredPlural.toLowerCase())}</div>` : ""}
         ${v.notes ? `<div class="meta">${escapeHtml(v.notes)}</div>` : ""}
       </article>`;
     }
@@ -22167,6 +22369,7 @@
     }
 
     function compactRouteCard(p, index, analysis = routeAnalysis(p)) {
+      const vocabulary = activeOperatingVocabulary();
       const stats = analysis.stats;
       const intelligence = routeIntelligenceFor(p, analysis);
       const nearbyPreview = nearbyOpportunitiesForPlace(p, 2);
@@ -22198,7 +22401,7 @@
           <details class="compact-details">
             <summary>Why?</summary>
             <p><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)}. <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}. ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "Balanced route quality and fresh learning")}. ${escapeHtml(intelligence.whyNow)}.</p>
-            <p><b>Evidence:</b> ${escapeHtml(intelligence.confidence.reason)}. Opportunity is shown as ${escapeHtml(intelligence.expected.label)}. ${stats.visits} prior visits, ${stats.units + stats.laterUnits} units.</p>
+            <p><b>Evidence:</b> ${escapeHtml(intelligence.confidence.reason)}. Opportunity is shown as ${escapeHtml(intelligence.expected.label)}. ${stats.visits} prior visits, ${stats.units + stats.laterUnits} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}.</p>
             <p><b>Nearby Opportunities:</b> ${escapeHtml(nearbyDetail)}</p>
             <p><b>Visit length:</b> ${escapeHtml(intelligence.duration.label)}. <b>Window:</b> ${escapeHtml(p.window)}. ${p.distance ? `<b>Distance:</b> ${escapeHtml(p.distance)}.` : ""}</p>
           </details>
@@ -22207,6 +22410,7 @@
     }
 
     function renderPlaces() {
+      const vocabulary = activeOperatingVocabulary();
       const renderToken = ++placesRenderToken;
       const startedAt = performance.now();
       const statsCache = new Map();
@@ -22232,13 +22436,13 @@
                 <span>${escapeHtml(p.category)}</span>
                 <span>${escapeHtml(p.window)}</span>
                 <span>${stats.visits} visits</span>
-                <span>${stats.conversations} talks</span>
-                <span>${stats.leads} leads</span>
+                <span>${stats.conversations} ${escapeHtml(vocabulary.activityPlural.toLowerCase())}</span>
+                <span>${stats.leads} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span>
                 ${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}
               </div>
               ${p.address ? `<div class="address-line">${escapeHtml(p.address)} · <a class="map-link" href="${mapsUrl(p)}" target="_blank" rel="noreferrer">Open map</a></div>` : ""}
             </div>
-            <span class="pill ${status}">${stats.units + stats.laterUnits} units</span>
+            <span class="pill ${status}">${stats.units + stats.laterUnits} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
           </div>
           ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
         </article>`;
@@ -22301,6 +22505,7 @@
     }
 
     function renderStats() {
+      const vocabulary = activeOperatingVocabulary();
       const profile = activeProfile();
       const reportVisits = appMode === "owner" && canUseOwnerMode() ? teamVisits() : state.visits;
       const viewingTeam = reportVisits !== state.visits;
@@ -22337,9 +22542,9 @@
               <div class="item-head">
                 <div>
                   <h3>${escapeHtml(p.name)}</h3>
-                  <div class="meta"><span>${escapeHtml(p.category)}</span><span>${s.visits} visits</span><span>${s.leads} leads</span>${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}</div>
+                  <div class="meta"><span>${escapeHtml(p.category)}</span><span>${s.visits} visits</span><span>${s.leads} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span>${p.permission ? `<span>${escapeHtml(p.permission)}</span>` : ""}</div>
                 </div>
-                <span class="pill green">${units} units</span>
+                <span class="pill green">${units} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
               </div>
               <div class="insight-bar"><div class="bar-track"><i style="width:${percent}%"></i></div></div>
             </article>`;
@@ -22361,7 +22566,7 @@
           <div class="item-head">
             <div>
               <h3>${w.name}</h3>
-              <div class="meta"><span>${w.visits} visits</span><span>${w.leads} leads</span><span>${w.units} units</span></div>
+              <div class="meta"><span>${w.visits} visits</span><span>${w.leads} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span><span>${w.units} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span></div>
             </div>
             <span class="pill blue">${timeWindowSignal(w)}</span>
           </div>
@@ -22373,20 +22578,22 @@
     }
 
     function representativeProgressInsight(visits, totals, viewingTeam) {
+      const vocabulary = activeOperatingVocabulary();
       const totalUnits = totals.units + totals.laterUnits;
       const visitTarget = Math.max(8, visits.length);
       const leadRate = visits.length ? Math.round((totals.leads / visits.length) * 100) : 0;
       const unitRate = visits.length ? Math.round((totalUnits / visits.length) * 100) : 0;
       return `<h3>${viewingTeam ? "Team Progress" : `${escapeHtml(activeProfile().name)} Progress`}</h3>
-        <p>${visits.length ? `${visits.length} verified field stops are teaching Prometheus where activity turns into leads and units.` : "No field stops logged yet. Prometheus needs verified visits before it can judge progress."}</p>
+        <p>${visits.length ? `${visits.length} verified field stops are teaching Prometheus where activity turns into ${vocabulary.pipelinePlural.toLowerCase()} and ${vocabulary.progressPlural.toLowerCase()}.` : "No field stops logged yet. Prometheus needs verified visits before it can judge progress."}</p>
         <div class="insight-bar">
           <div class="insight-bar-head"><span>Field evidence</span><span>${visits.length}/${visitTarget}</span></div>
           <div class="bar-track"><i style="width:${Math.min(100, Math.round((visits.length / visitTarget) * 100))}%"></i></div>
         </div>
-        <div class="meta"><span>${leadRate}% lead rate per visit</span><span>${unitRate}% unit rate per visit</span></div>`;
+        <div class="meta"><span>${leadRate}% ${singularLabel(vocabulary.pipelinePlural).toLowerCase()} rate per visit</span><span>${unitRate}% ${vocabulary.progressSingular} rate per visit</span></div>`;
     }
 
     function learningStatusInsight(visits, confidence) {
+      const vocabulary = activeOperatingVocabulary();
       const totals = sumVisits(visits);
       const evidence = visits.length + totals.leads * 2 + (totals.units + totals.laterUnits) * 3;
       const evidenceTarget = confidence.label === "High" ? evidence : 42;
@@ -22397,7 +22604,7 @@
           <div class="insight-bar-head"><span>${escapeHtml(confidence.label)} confidence</span><span>${progress}% evidence</span></div>
           <div class="bar-track"><i style="width:${progress}%"></i></div>
         </div>
-        <div class="meta"><span>${visits.length} visits</span><span>${totals.leads} leads</span><span>${totals.units + totals.laterUnits} units</span></div>`;
+        <div class="meta"><span>${visits.length} visits</span><span>${totals.leads} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span><span>${totals.units + totals.laterUnits} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span></div>`;
     }
 
     function learningConfidenceFor(visits) {
@@ -22411,6 +22618,7 @@
     }
 
     function salesWeightDistribution(visits) {
+      const vocabulary = activeOperatingVocabulary();
       const rows = categoryInsightRows(visits);
       if (!rows.length) return `<div class="empty">More field data required before Prometheus can show a reliable sales weight distribution.</div>`;
       const totalWeight = rows.reduce((sum, row) => sum + row.weight, 0) || 1;
@@ -22420,7 +22628,7 @@
           <div class="item-head">
             <div>
               <h3>${escapeHtml(row.category)}</h3>
-              <div class="meta"><span>${row.visits} visits</span><span>${row.leads} leads</span><span>${row.units} units</span></div>
+              <div class="meta"><span>${row.visits} visits</span><span>${row.leads} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span><span>${row.units} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span></div>
             </div>
             <span class="pill blue">${percent}% weight</span>
           </div>
@@ -22446,6 +22654,7 @@
     }
 
     function executiveInsightSummary(visits, totals, confidence, bestCategory, viewingTeam) {
+      const vocabulary = activeOperatingVocabulary();
       const totalUnits = totals.units + totals.laterUnits;
       const rows = categoryInsightRows(visits);
       const windows = ["Morning", "Midday", "Evening"].map(w => {
@@ -22457,13 +22666,14 @@
       if (!visits.length) {
         return `<strong>More field data required.</strong><span>No verified visits have been logged for this view yet. Once reps log outcomes, Prometheus will identify category strength, time-window patterns, and confidence level.</span>`;
       }
-      return `<strong>${viewingTeam ? "Team" : "Profile"} intelligence is ${confidence.label.toLowerCase()} confidence.</strong><span>${visits.length} visits, ${totals.leads} leads, and ${totalUnits} units are shaping the route model. Best category: ${escapeHtml(bestCategory)}. Strongest time window: ${escapeHtml(strongestWindow ? strongestWindow.name : "still pending")}. ${escapeHtml(confidence.reason)}</span>`;
+      return `<strong>${viewingTeam ? "Team" : "Profile"} intelligence is ${confidence.label.toLowerCase()} confidence.</strong><span>${visits.length} visits, ${totals.leads} ${vocabulary.pipelinePlural.toLowerCase()}, and ${totalUnits} ${vocabulary.progressPlural.toLowerCase()} are shaping the route model. Best category: ${escapeHtml(bestCategory)}. Strongest time window: ${escapeHtml(strongestWindow ? strongestWindow.name : "still pending")}. ${escapeHtml(confidence.reason)}</span>`;
     }
 
     function timeWindowSignal(windowRow) {
+      const vocabulary = activeOperatingVocabulary();
       if (!windowRow.visits) return "Needs data";
-      if (windowRow.units > 0) return `${windowRow.units} units`;
-      if (windowRow.leads > 0) return `${windowRow.leads} leads`;
+      if (windowRow.units > 0) return `${windowRow.units} ${vocabulary.progressPlural.toLowerCase()}`;
+      if (windowRow.leads > 0) return `${windowRow.leads} ${vocabulary.pipelinePlural.toLowerCase()}`;
       return "Learning";
     }
 
@@ -22661,6 +22871,7 @@
     }
 
     function openModal(type, preset = {}) {
+      const vocabulary = activeOperatingVocabulary();
       const modal = document.getElementById("modal");
       const title = document.getElementById("modalTitle");
       const body = document.getElementById("modalBody");
@@ -22678,15 +22889,15 @@
           ${visitLocationMarkup()}
           <div class="quick-outcomes" aria-label="Visit outcome">
             <button class="quick-outcome" type="button" data-quick-outcome="none">No Contact<small>Save and move on</small></button>
-            <button class="quick-outcome" type="button" data-quick-outcome="talk">Conversation<small>Spoke with someone</small></button>
-            <button class="quick-outcome" type="button" data-quick-outcome="lead">Lead<small>Follow-up created</small></button>
-            <button class="quick-outcome" type="button" data-quick-outcome="sale">Sale<small>Membership closed</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="talk">${escapeHtml(singularLabel(vocabulary.activityPlural))}<small>Spoke with someone</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="lead">${escapeHtml(singularLabel(vocabulary.pipelinePlural))}<small>${escapeHtml(vocabulary.followUp)} created</small></button>
+            <button class="quick-outcome" type="button" data-quick-outcome="sale">${escapeHtml(vocabulary.quickSuccess)}<small>${escapeHtml(vocabulary.quickSuccessDetail)}</small></button>
           </div>
           <div class="quick-counts" id="quickCounts">
             <div class="grid three">
-              <label>Talks<input name="conversations" type="number" inputmode="numeric" min="0" value="1"></label>
-              <label>Leads<input name="leads" type="number" inputmode="numeric" min="0" value="0"></label>
-              <label>Units<input name="units" type="number" inputmode="numeric" min="0" value="0"></label>
+              <label>${escapeHtml(vocabulary.activityPlural)}<input name="conversations" type="number" inputmode="numeric" min="0" value="1"></label>
+              <label>${escapeHtml(vocabulary.pipelinePlural)}<input name="leads" type="number" inputmode="numeric" min="0" value="0"></label>
+              <label>${escapeHtml(vocabulary.progressPlural)}<input name="units" type="number" inputmode="numeric" min="0" value="0"></label>
             </div>
             <input name="outcome" type="hidden" value="talk">
             <details>
@@ -22711,7 +22922,7 @@
             leads: Number(values.leads || 0),
             units: Number(values.units || 0),
             laterUnits: 0,
-            quality: values.outcome === "none" ? "No contact" : values.outcome === "sale" ? "Sale" : values.outcome === "lead" ? "Lead" : "Conversation",
+            quality: values.outcome === "none" ? "No contact" : values.outcome === "sale" ? vocabulary.quickSuccess : values.outcome === "lead" ? singularLabel(vocabulary.pipelinePlural) : singularLabel(vocabulary.activityPlural),
             notes: String(values.notes || "").trim(),
             location: locationFromForm(quickForm),
             quick: true,
@@ -22751,12 +22962,12 @@
         body.innerHTML = `<form id="visitForm">
           <label>Place<select name="placeId">${options}</select></label>
           <div class="grid three">
-            <label>Talks<input name="conversations" type="number" min="0" value="0"></label>
-            <label>Leads<input name="leads" type="number" min="0" value="0"></label>
-            <label>Units<input name="units" type="number" min="0" value="0"></label>
+            <label>${escapeHtml(vocabulary.activityPlural)}<input name="conversations" type="number" min="0" value="0"></label>
+            <label>${escapeHtml(vocabulary.pipelinePlural)}<input name="leads" type="number" min="0" value="0"></label>
+            <label>${escapeHtml(vocabulary.progressPlural)}<input name="units" type="number" min="0" value="0"></label>
           </div>
           <div class="grid two">
-            <label>Later units<input name="laterUnits" type="number" min="0" value="0"></label>
+            <label>${escapeHtml(vocabulary.deferredPlural)}<input name="laterUnits" type="number" min="0" value="0"></label>
             <label>Visit quality<select name="quality"><option>Good traffic</option><option>Low traffic</option><option>Good permission</option><option>Bad timing</option><option>Try again</option></select></label>
           </div>
           <div class="grid two">
@@ -23070,17 +23281,20 @@
       });
     }
 
-    try {
-      render();
-      window.prometheusDebugState.startupCompleted = true;
-      window.prometheusDebugState.lastStage = "startup-complete";
-      updateFounderDebugPanel({ stage: "startup-complete" });
-      loadRuntimeProductionDataset();
-    } catch (error) {
-      captureDebugError(error, "Startup render failed");
-      updateFounderDebugPanel({ stage: "startup-error" });
-      throw error;
-    }
+    (async () => {
+      try {
+        await loadOperatingProfileDefinitions();
+        render();
+        window.prometheusDebugState.startupCompleted = true;
+        window.prometheusDebugState.lastStage = "startup-complete";
+        updateFounderDebugPanel({ stage: "startup-complete" });
+        loadRuntimeProductionDataset();
+      } catch (error) {
+        captureDebugError(error, "Startup render failed");
+        updateFounderDebugPanel({ stage: "startup-error" });
+        throw error;
+      }
+    })();
   </script>
 </body>
 </html>

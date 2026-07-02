@@ -1,0 +1,102 @@
+{
+  "version": "operating-profile-contracts-v1",
+  "status": "architecture_only",
+  "productionLearningActive": false,
+  "productionRecommendationChanged": false,
+  "dashboardRuntimeChanged": false,
+  "mobileBetaChanged": false,
+  "scoringChanged": false,
+  "activePoolChanged": false,
+  "crmRuntimeChanged": false,
+  "websiteChanged": false,
+  "companionRuntimeChanged": false,
+  "infrastructureChanged": false,
+  "requiredProfiles": [
+    "general_outside_sales",
+    "fitness",
+    "roofing",
+    "security",
+    "medical",
+    "insurance",
+    "solar",
+    "home_services"
+  ],
+  "normalizedOutcomeModel": [
+    "Visit",
+    "Outcome",
+    "Evidence",
+    "Learning Signal",
+    "Confidence",
+    "Recommendation"
+  ],
+  "requiredProfileFields": [
+    "profileId",
+    "label",
+    "industry",
+    "terminology",
+    "kpis",
+    "successEvents",
+    "outcomeVocabulary",
+    "dashboardLabels",
+    "crmStages",
+    "companionWording",
+    "reportingLanguage",
+    "outcomeMappings"
+  ],
+  "requiredConsumerContracts": [
+    "DashboardOperatingProfileContract",
+    "CRMOperatingProfileContract",
+    "CompanionOperatingProfileContract",
+    "MobileOperatingProfileContract",
+    "WebsiteOperatingProfileContract",
+    "ResearchOperatingProfileContract",
+    "SalesOperatingProfileContract",
+    "SocialMediaOperatingProfileContract"
+  ],
+  "contracts": {
+    "OperatingProfile": {
+      "requiredFields": ["profileId", "label", "industry", "terminology", "kpis", "successEvents", "outcomeVocabulary", "dashboardLabels", "crmStages", "companionWording", "reportingLanguage", "outcomeMappings"]
+    },
+    "OperatingProfileOutcomeMapping": {
+      "requiredFields": ["terms", "normalizedOutcome"]
+    },
+    "NormalizedOutcomeEvent": {
+      "requiredFields": ["normalizedOutcomeId", "profileId", "rawOutcome", "normalizedOutcome", "stageSequence", "evidence", "learningSignalSeed", "confidenceSeed", "recommendationEligibility", "explanationSeed"]
+    },
+    "DashboardOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "dashboardLabels", "terminology", "outcomeVocabulary", "runtimeConsumptionAuthorized"]
+    },
+    "CRMOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "crmStages", "outcomeVocabulary", "runtimeMutationAuthorized"]
+    },
+    "CompanionOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "companionWording", "runtimeConsumptionAuthorized"]
+    },
+    "MobileOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "terminology", "dashboardLabels", "mobileBetaChanged"]
+    },
+    "WebsiteOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "reportingLanguage", "websiteChanged"]
+    },
+    "ResearchOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "industry", "terminology", "outcomeVocabulary", "runtimeConsumptionAuthorized"]
+    },
+    "SalesOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "terminology", "kpis", "successEvents", "runtimeConsumptionAuthorized"]
+    },
+    "SocialMediaOperatingProfileContract": {
+      "requiredFields": ["contractVersion", "consumer", "profileId", "terminology", "reportingLanguage", "runtimeConsumptionAuthorized"]
+    }
+  },
+  "prohibitions": [
+    "no_production_learning_activation",
+    "no_live_recommendation_scoring_changes",
+    "no_dashboard_runtime_changes",
+    "no_mobile_beta_behavior_changes",
+    "no_crm_runtime_changes",
+    "no_website_changes",
+    "no_companion_runtime_changes",
+    "no_infrastructure_changes",
+    "no_active_pool_changes"
+  ]
+}

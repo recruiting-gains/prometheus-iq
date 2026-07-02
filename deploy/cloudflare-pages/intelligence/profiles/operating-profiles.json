@@ -1,0 +1,331 @@
+{
+  "version": "operating-profile-engine-v1",
+  "status": "architecture_only",
+  "profileSelectionMode": "configuration_driven",
+  "productionLearningActive": false,
+  "productionRecommendationChanged": false,
+  "dashboardRuntimeChanged": false,
+  "mobileBetaChanged": false,
+  "scoringChanged": false,
+  "activePoolChanged": false,
+  "crmRuntimeChanged": false,
+  "websiteChanged": false,
+  "companionRuntimeChanged": false,
+  "infrastructureChanged": false,
+  "normalizedOutcomeModel": {
+    "sequence": [
+      "Visit",
+      "Outcome",
+      "Evidence",
+      "Learning Signal",
+      "Confidence",
+      "Recommendation"
+    ],
+    "productionInfluence": "none_until_future_activation_handoff"
+  },
+  "normalizedOutcomeVocabulary": [
+    "visited",
+    "decision_maker_reached",
+    "conversation",
+    "sale",
+    "lead",
+    "inspection",
+    "estimate",
+    "referral",
+    "contract",
+    "appointment",
+    "no_decision_maker",
+    "closed_business",
+    "duplicate",
+    "wrong_business",
+    "competitor",
+    "follow_up"
+  ],
+  "profiles": [
+    {
+      "profileId": "general_outside_sales",
+      "label": "General Outside Sales",
+      "industry": "general_outside_sales",
+      "terminology": {
+        "customer": "customer",
+        "target": "prospect",
+        "visit": "field visit",
+        "success": "qualified opportunity"
+      },
+      "kpis": ["visits_completed", "decision_makers_reached", "conversations", "qualified_opportunities", "closed_won"],
+      "successEvents": ["conversation", "lead", "appointment", "contract", "sale"],
+      "outcomeVocabulary": ["Visited", "Decision maker reached", "Conversation", "Lead", "Appointment", "Contract", "Sale", "Follow-up"],
+      "dashboardLabels": {
+        "routeTitle": "Outside Sales Route",
+        "primarySuccess": "Qualified Opportunity",
+        "followUp": "Follow-up Needed"
+      },
+      "crmStages": ["Prospect", "Contacted", "Qualified", "Proposal", "Closed Won", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Review field evidence before changing recommendations.",
+        "successPhrase": "qualified opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "opportunity",
+        "executiveSummary": "outside-sales performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["visited", "field visit"], "normalizedOutcome": "visited" },
+        { "terms": ["decision maker reached", "dm reached"], "normalizedOutcome": "decision_maker_reached" },
+        { "terms": ["conversation", "sales conversation"], "normalizedOutcome": "conversation" },
+        { "terms": ["lead", "qualified lead"], "normalizedOutcome": "lead" },
+        { "terms": ["appointment", "meeting booked"], "normalizedOutcome": "appointment" },
+        { "terms": ["contract", "closed won"], "normalizedOutcome": "contract" },
+        { "terms": ["sale"], "normalizedOutcome": "sale" },
+        { "terms": ["follow-up", "follow up"], "normalizedOutcome": "follow_up" }
+      ]
+    },
+    {
+      "profileId": "fitness",
+      "label": "Fitness",
+      "industry": "fitness",
+      "terminology": {
+        "customer": "member",
+        "target": "gym prospect",
+        "visit": "gym visit",
+        "success": "membership opportunity"
+      },
+      "kpis": ["gyms_visited", "managers_reached", "tours_booked", "trial_passes", "memberships_sold"],
+      "successEvents": ["conversation", "lead", "appointment", "sale", "referral"],
+      "outcomeVocabulary": ["Visited", "Manager reached", "Tour", "Trial pass", "Membership", "Referral", "No manager"],
+      "dashboardLabels": {
+        "routeTitle": "Fitness Route",
+        "primarySuccess": "Membership",
+        "followUp": "Tour Follow-up"
+      },
+      "crmStages": ["Gym Prospect", "Visited", "Manager Reached", "Trial/Tour", "Membership Sold", "Not Fit"],
+      "companionWording": {
+        "nextBestAction": "Prioritize manager confirmation before treating this as learned.",
+        "successPhrase": "membership opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "membership opportunity",
+        "executiveSummary": "fitness territory performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["membership", "membership sold", "sale"], "normalizedOutcome": "sale" },
+        { "terms": ["trial pass", "trial"], "normalizedOutcome": "lead" },
+        { "terms": ["tour", "tour booked"], "normalizedOutcome": "appointment" },
+        { "terms": ["manager reached", "decision maker reached"], "normalizedOutcome": "decision_maker_reached" },
+        { "terms": ["no manager", "no decision maker"], "normalizedOutcome": "no_decision_maker" },
+        { "terms": ["referral"], "normalizedOutcome": "referral" }
+      ]
+    },
+    {
+      "profileId": "roofing",
+      "label": "Roofing",
+      "industry": "roofing",
+      "terminology": {
+        "customer": "property owner",
+        "target": "property lead",
+        "visit": "door knock",
+        "success": "roofing opportunity"
+      },
+      "kpis": ["doors_knocked", "homeowners_reached", "inspections_booked", "estimates_sent", "contracts_signed"],
+      "successEvents": ["inspection", "estimate", "contract", "referral", "lead"],
+      "outcomeVocabulary": ["Visited", "Homeowner reached", "Inspection", "Estimate", "Contract signed", "Claim lead", "Referral"],
+      "dashboardLabels": {
+        "routeTitle": "Roofing Route",
+        "primarySuccess": "Inspection or Contract",
+        "followUp": "Estimate Follow-up"
+      },
+      "crmStages": ["Property Lead", "Contacted", "Inspection Scheduled", "Estimate Sent", "Contract Signed", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Review inspection and estimate evidence before learning from this stop.",
+        "successPhrase": "roofing opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "roofing opportunity",
+        "executiveSummary": "roofing territory performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["inspection", "roof inspection"], "normalizedOutcome": "inspection" },
+        { "terms": ["estimate", "quote"], "normalizedOutcome": "estimate" },
+        { "terms": ["contract", "contract signed"], "normalizedOutcome": "contract" },
+        { "terms": ["claim", "claim lead"], "normalizedOutcome": "lead" },
+        { "terms": ["homeowner reached", "decision maker reached"], "normalizedOutcome": "decision_maker_reached" },
+        { "terms": ["referral"], "normalizedOutcome": "referral" }
+      ]
+    },
+    {
+      "profileId": "security",
+      "label": "Security",
+      "industry": "security",
+      "terminology": {
+        "customer": "site owner",
+        "target": "security prospect",
+        "visit": "site visit",
+        "success": "security opportunity"
+      },
+      "kpis": ["sites_visited", "decision_makers_reached", "site_surveys", "quotes_sent", "contracts_signed"],
+      "successEvents": ["inspection", "estimate", "contract", "lead", "conversation"],
+      "outcomeVocabulary": ["Visited", "Decision maker reached", "Site survey", "Quote", "Contract", "Lead"],
+      "dashboardLabels": {
+        "routeTitle": "Security Route",
+        "primarySuccess": "Site Survey",
+        "followUp": "Quote Follow-up"
+      },
+      "crmStages": ["Target Site", "Contacted", "Survey Scheduled", "Quote Sent", "Contracted", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Treat surveys and contracts as reviewable evidence, not automatic scoring input.",
+        "successPhrase": "security opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "security opportunity",
+        "executiveSummary": "security sales performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["site survey", "survey"], "normalizedOutcome": "inspection" },
+        { "terms": ["quote", "proposal"], "normalizedOutcome": "estimate" },
+        { "terms": ["contract", "agreement signed"], "normalizedOutcome": "contract" },
+        { "terms": ["lead"], "normalizedOutcome": "lead" },
+        { "terms": ["conversation"], "normalizedOutcome": "conversation" }
+      ]
+    },
+    {
+      "profileId": "medical",
+      "label": "Medical",
+      "industry": "medical",
+      "terminology": {
+        "customer": "practice",
+        "target": "provider prospect",
+        "visit": "practice visit",
+        "success": "provider opportunity"
+      },
+      "kpis": ["practices_visited", "providers_reached", "appointments_booked", "referrals_created", "contracts_signed"],
+      "successEvents": ["decision_maker_reached", "appointment", "referral", "contract"],
+      "outcomeVocabulary": ["Visited", "Provider reached", "Appointment", "Referral", "Contract", "No provider"],
+      "dashboardLabels": {
+        "routeTitle": "Medical Route",
+        "primarySuccess": "Provider Appointment",
+        "followUp": "Practice Follow-up"
+      },
+      "crmStages": ["Practice Prospect", "Visited", "Provider Reached", "Appointment", "Agreement", "Not Fit"],
+      "companionWording": {
+        "nextBestAction": "Keep provider outcomes reviewable before promotion into learning.",
+        "successPhrase": "provider opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "provider opportunity",
+        "executiveSummary": "medical field-sales performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["provider reached", "doctor reached", "decision maker reached"], "normalizedOutcome": "decision_maker_reached" },
+        { "terms": ["appointment", "appointment booked"], "normalizedOutcome": "appointment" },
+        { "terms": ["referral"], "normalizedOutcome": "referral" },
+        { "terms": ["contract", "agreement"], "normalizedOutcome": "contract" },
+        { "terms": ["no provider", "no decision maker"], "normalizedOutcome": "no_decision_maker" }
+      ]
+    },
+    {
+      "profileId": "insurance",
+      "label": "Insurance",
+      "industry": "insurance",
+      "terminology": {
+        "customer": "policyholder",
+        "target": "insurance prospect",
+        "visit": "prospecting visit",
+        "success": "policy opportunity"
+      },
+      "kpis": ["prospects_visited", "decision_makers_reached", "quotes_created", "policies_bound", "referrals_created"],
+      "successEvents": ["lead", "estimate", "contract", "sale", "referral"],
+      "outcomeVocabulary": ["Visited", "Lead", "Quote", "Policy", "Referral", "Follow-up"],
+      "dashboardLabels": {
+        "routeTitle": "Insurance Route",
+        "primarySuccess": "Policy or Quote",
+        "followUp": "Quote Follow-up"
+      },
+      "crmStages": ["Prospect", "Contacted", "Quoted", "Policy Bound", "Renewal", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Review quote and policy evidence before it influences future recommendations.",
+        "successPhrase": "policy opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "policy opportunity",
+        "executiveSummary": "insurance territory performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["quote", "quoted"], "normalizedOutcome": "estimate" },
+        { "terms": ["policy", "policy bound"], "normalizedOutcome": "contract" },
+        { "terms": ["sale"], "normalizedOutcome": "sale" },
+        { "terms": ["referral"], "normalizedOutcome": "referral" },
+        { "terms": ["lead"], "normalizedOutcome": "lead" }
+      ]
+    },
+    {
+      "profileId": "solar",
+      "label": "Solar",
+      "industry": "solar",
+      "terminology": {
+        "customer": "homeowner",
+        "target": "solar prospect",
+        "visit": "solar canvass",
+        "success": "solar opportunity"
+      },
+      "kpis": ["doors_knocked", "homeowners_reached", "site_surveys", "proposals_sent", "contracts_signed"],
+      "successEvents": ["inspection", "estimate", "contract", "lead", "appointment"],
+      "outcomeVocabulary": ["Visited", "Homeowner reached", "Site survey", "Proposal", "Contract", "Appointment"],
+      "dashboardLabels": {
+        "routeTitle": "Solar Route",
+        "primarySuccess": "Survey or Contract",
+        "followUp": "Proposal Follow-up"
+      },
+      "crmStages": ["Canvass Lead", "Contacted", "Survey Scheduled", "Proposal Sent", "Contract Signed", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Keep survey and proposal evidence separate from production scoring until activation.",
+        "successPhrase": "solar opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "solar opportunity",
+        "executiveSummary": "solar field-sales performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["site survey", "survey", "inspection"], "normalizedOutcome": "inspection" },
+        { "terms": ["proposal", "estimate"], "normalizedOutcome": "estimate" },
+        { "terms": ["contract", "contract signed"], "normalizedOutcome": "contract" },
+        { "terms": ["appointment"], "normalizedOutcome": "appointment" },
+        { "terms": ["homeowner reached", "decision maker reached"], "normalizedOutcome": "decision_maker_reached" }
+      ]
+    },
+    {
+      "profileId": "home_services",
+      "label": "Home Services",
+      "industry": "home_services",
+      "terminology": {
+        "customer": "homeowner",
+        "target": "service prospect",
+        "visit": "service visit",
+        "success": "booked job"
+      },
+      "kpis": ["homes_visited", "decision_makers_reached", "estimates_created", "jobs_booked", "referrals_created"],
+      "successEvents": ["estimate", "contract", "referral", "lead", "follow_up"],
+      "outcomeVocabulary": ["Visited", "Estimate", "Job booked", "Referral", "Lead", "Follow-up"],
+      "dashboardLabels": {
+        "routeTitle": "Home Services Route",
+        "primarySuccess": "Booked Job",
+        "followUp": "Estimate Follow-up"
+      },
+      "crmStages": ["Service Prospect", "Contacted", "Estimate", "Job Booked", "Completed", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Review estimate and booking outcomes before learning promotion.",
+        "successPhrase": "booked job opportunity"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "service opportunity",
+        "executiveSummary": "home-services territory performance"
+      },
+      "outcomeMappings": [
+        { "terms": ["estimate", "quote"], "normalizedOutcome": "estimate" },
+        { "terms": ["job booked", "booking", "contract"], "normalizedOutcome": "contract" },
+        { "terms": ["referral"], "normalizedOutcome": "referral" },
+        { "terms": ["lead"], "normalizedOutcome": "lead" },
+        { "terms": ["follow-up", "follow up"], "normalizedOutcome": "follow_up" }
+      ]
+    }
+  ]
+}

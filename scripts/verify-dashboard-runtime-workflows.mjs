@@ -226,7 +226,13 @@ class CdpSession {
   }
 
   close() {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) this.socket.close();
+    if (!this.socket || this.socket.readyState === WebSocket.CLOSED) return;
+    this.socket.onmessage = null;
+    this.socket.onerror = null;
+    this.socket.onclose = null;
+    try {
+      this.socket.close();
+    } catch (error) {}
   }
 }
 
@@ -459,6 +465,7 @@ async function snapshot(cdp) {
       placesText: text(document.getElementById("view-places")),
       statsText: text(document.getElementById("view-stats")),
       findText: text(document.getElementById("view-find")),
+      operatingProfileId: document.body.dataset.operatingProfile || "",
       routeCards: document.querySelectorAll("#routeList .route-card").length,
       dailyRouteCards: document.querySelectorAll("#dailyRoute .route-card").length,
       placesItems: document.querySelectorAll("#placesList .item").length,
@@ -477,7 +484,8 @@ async function snapshot(cdp) {
         deferredOwnerViews: debug.deferredOwnerViews || {},
         placesRender: debug.placesRender || {},
         territoryCoverage: debug.territoryCoverage || {},
-        routeWindowFallback: debug.routeWindowFallback || {}
+        routeWindowFallback: debug.routeWindowFallback || {},
+        operatingProfile: debug.operatingProfile || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -913,6 +921,30 @@ function verifyRepOnly(label, snap) {
   assertWorkflow(label, repOnly, `role ${snap.sessionRole}, mode ${snap.mode}, rep ${snap.activeRepId}, tabs ${snap.visibleTabs.join(", ")}`, JSON.stringify(snap));
 }
 
+function verifyOperatingProfileVocabulary(label, snap, expected) {
+  const combinedText = `${snap.todayText} ${snap.routeText} ${snap.placesText} ${snap.statsText}`;
+  const hasExpectedTerms = expected.terms.every(term => combinedText.includes(term));
+  const detail = `${snap.operatingProfileId}: ${expected.terms.join(", ")}`;
+  assertWorkflow(
+    label,
+    snap.operatingProfileId === expected.profileId
+      && snap.debug.operatingProfile?.profileId === expected.profileId
+      && snap.debug.operatingProfile?.source?.includes(expected.profileId)
+      && hasExpectedTerms
+      && snap.debug.operatingProfile?.scoringChanged === false
+      && snap.debug.operatingProfile?.activePoolChanged === false,
+    detail,
+    JSON.stringify({
+      expected,
+      operatingProfileId: snap.operatingProfileId,
+      operatingProfile: snap.debug.operatingProfile,
+      todayText: snap.todayText.slice(0, 500),
+      routeText: snap.routeText.slice(0, 500),
+      statsText: snap.statsText.slice(0, 500)
+    })
+  );
+}
+
 function verifyNoErrors(label, eventLog, snap, { allow = [] } = {}) {
   const allErrors = [
     ...eventLog.runtimeExceptions,
@@ -947,15 +979,27 @@ async function runHarness() {
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
     assertWorkflow("Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `owner tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));
+    verifyOperatingProfileVocabulary("Operating Profile Fitness default preserved", founderSnap, { profileId: "fitness", terms: ["Units Today", "Conversations", "Leads", "Fitness Route", "Verified Units"] });
     assertWorkflow("Active Pool consumption", founderSnap.debug.runtimeDataPool === "active" && founderSnap.debug.runtimeDataSource.includes("runtime-pool-segmentation-v1 active") && founderSnap.debug.runtimeDataSource.includes("594 route records"), founderSnap.debug.runtimeDataSource, JSON.stringify(founderSnap.debug));
     assertWorkflow("Route Intelligence rendering", founderSnap.debug.rendererReceived && founderSnap.bestNextMove && founderSnap.bestNextMove !== "Loading route signal" && founderSnap.dailyRouteCards > 0, `${founderSnap.bestNextMove} with ${founderSnap.dailyRouteCards} daily route cards`, JSON.stringify({ bestNextMove: founderSnap.bestNextMove, dailyRouteCards: founderSnap.dailyRouteCards, debug: founderSnap.debug }));
     assertWorkflow("Directions link generation", founderSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination=") && founderSnap.bestMoveDirections.includes("destination_place_id="), founderSnap.bestMoveDirections, founderSnap.bestMoveDirections);
     assertWorkflow("Discovery Mode", founderSnap.todayText.includes("Discovery Mode") || founderSnap.routeRisk.includes("Discovery Mode") || founderSnap.statsText.includes("Discovery Mode"), founderSnap.routeRisk || "Discovery Mode visible in runtime text", JSON.stringify({ routeRisk: founderSnap.routeRisk, todayText: founderSnap.todayText.slice(0, 300) }));
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
 
+    for (const expected of [
+      { profileId: "roofing", terms: ["Contracts Today", "Inspections", "Leads", "Roofing Route", "Verified Contracts"] },
+      { profileId: "security", terms: ["Contracts Today", "Site Surveys", "Security Prospects", "Security Route", "Verified Contracts"] },
+      { profileId: "medical", terms: ["Partnerships Today", "Meetings", "Referrals", "Medical Route", "Verified Partnerships"] }
+    ]) {
+      const profileScenario = await runPageScenario(chrome, server, `/?role=founder&debug=1&operatingProfile=${expected.profileId}&harness=operating-profile-${expected.profileId}`, `operating-profile-${expected.profileId}`);
+      verifyOperatingProfileVocabulary(`Operating Profile ${expected.profileId} vocabulary`, profileScenario.initial, expected);
+      verifyNoErrors(`Operating Profile ${expected.profileId}`, profileScenario.eventLog, profileScenario.initial);
+      profileScenario.cdp.close();
+    }
+
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
-    assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && routeSnap.routeText.includes("Route Builder"), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
+    assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && /Route/.test(routeSnap.routeText), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
     assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 options"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
     assertWorkflow("Beta Route Controls Owner Nearby opens context", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
@@ -1090,8 +1134,9 @@ try {
     const finalFailures = results.filter(result => result.status === "FAIL");
     console.log(`Dashboard runtime workflow regression harness complete: ${results.length - finalFailures.length}/${results.length} passed.`);
     if (failed.length || errors.length) process.exitCode = 1;
+    process.exit(process.exitCode || 0);
   }
 } catch (error) {
   console.error(`FAIL Harness infrastructure: ${error.stack || error.message || error}`);
-  process.exitCode = 1;
+  process.exit(1);
 }
