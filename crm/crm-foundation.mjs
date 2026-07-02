@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  createAttributionEvent,
+  SOCIAL_ATTRIBUTION_EVENT_TYPES,
+  SOCIAL_ATTRIBUTION_TARGETS,
+  SOCIAL_DATA_SOURCES
+} from "../social-media/contracts/social-media-contract.js";
 
 export const crmVersion = "beta-crm-contact-follow-up-queue-v1";
 
@@ -133,6 +139,50 @@ function addBetaActivity(state, input) {
   return activity;
 }
 
+function emptyLeadAttribution() {
+  return {
+    leadSource: "",
+    campaignId: "",
+    campaignPlatform: "",
+    provider: "",
+    firstTouchAt: "",
+    lastTouchAt: "",
+    qualifiedStatus: "",
+    manualNotes: "",
+    websiteVisitorId: "",
+    firstTouchEventId: "",
+    lastTouchEventId: "",
+    attributionEventId: ""
+  };
+}
+
+function attributionTouch(input = {}) {
+  if (input.currentTouch || input.firstTouch) {
+    return {
+      firstTouch: input.firstTouch || input.currentTouch,
+      lastTouch: input.currentTouch || input.firstTouch,
+      visitorId: input.visitorId || input.currentTouch?.visitorId || input.firstTouch?.visitorId || ""
+    };
+  }
+  return {
+    firstTouch: input,
+    lastTouch: input,
+    visitorId: input.visitorId || ""
+  };
+}
+
+function normalizeWebsiteTouchEvent(event, label) {
+  if (!event?.id) throw new Error(`CRM attribution requires a Website ${label} event id.`);
+  if (event.target !== SOCIAL_ATTRIBUTION_TARGETS.WEBSITE_TRAFFIC) {
+    throw new Error(`CRM attribution requires Website attribution target ${SOCIAL_ATTRIBUTION_TARGETS.WEBSITE_TRAFFIC}.`);
+  }
+  return event;
+}
+
+function leadSourceFromTouch(touch) {
+  return touch.metadata?.utm_source || touch.metadata?.campaign_platform || touch.provider || "website";
+}
+
 export function createCrmState(options = {}) {
   const now = iso(options.now || new Date());
   return {
@@ -144,7 +194,8 @@ export function createCrmState(options = {}) {
     followUps: [],
     tasks: [],
     salesActivities: [],
-    betaActivity: []
+    betaActivity: [],
+    attributionEvents: []
   };
 }
 
@@ -251,7 +302,15 @@ export function createContactFromRuntimeRecord(state, runtimeRecord, options = {
 export function createLeadForContact(state, contactId, options = {}) {
   const contact = findById(state.contacts, contactId, "contact");
   const existing = state.leads.find(lead => lead.contactId === contactId && !["Customer", "Closed Lost"].includes(lead.status));
-  if (existing) return existing;
+  if (existing) {
+    if (options.attribution && !existing.attribution?.attributionEventId) {
+      attachWebsiteAttributionToLead(state, existing.id, options.attribution, {
+        occurredAt: options.createdAt || state.clock,
+        manualNotes: options.attributionManualNotes || ""
+      });
+    }
+    return existing;
+  }
 
   const now = iso(options.createdAt || state.clock);
   const ownerRepId = options.ownerRepId || contact.ownerRepId || anthonyRepId;
@@ -270,6 +329,7 @@ export function createLeadForContact(state, contactId, options = {}) {
     updatedAt: now,
     founderVisible: true,
     dueAt: options.dueAt ? iso(options.dueAt) : "",
+    attribution: emptyLeadAttribution(),
     notes: [],
     visitHistory: [],
     statusHistory: [{
@@ -298,12 +358,95 @@ export function createLeadForContact(state, contactId, options = {}) {
     type: "lead_created",
     summary: `${contact.businessName} entered Anthony beta CRM pipeline.`
   });
+  if (options.attribution) {
+    attachWebsiteAttributionToLead(state, lead.id, options.attribution, {
+      occurredAt: now,
+      manualNotes: options.attributionManualNotes || ""
+    });
+  }
   return lead;
 }
 
 export function createLeadFromRuntimeRecord(state, runtimeRecord, options = {}) {
   const contact = createContactFromRuntimeRecord(state, runtimeRecord, options);
   return createLeadForContact(state, contact.id, options);
+}
+
+export function attachWebsiteAttributionToLead(state, leadId, websiteAttribution, options = {}) {
+  const lead = findById(state.leads, leadId, "lead");
+  const contact = findById(state.contacts, lead.contactId, "contact");
+  const { firstTouch, lastTouch, visitorId } = attributionTouch(websiteAttribution);
+  const normalizedFirstTouch = normalizeWebsiteTouchEvent(firstTouch, "first touch");
+  const normalizedLastTouch = normalizeWebsiteTouchEvent(lastTouch, "last touch");
+  const occurredAt = iso(options.occurredAt || normalizedLastTouch.occurredAt || state.clock);
+  const leadSource = options.leadSource || leadSourceFromTouch(normalizedLastTouch);
+  const campaignId = options.campaignId || normalizedLastTouch.campaignId || normalizedLastTouch.metadata?.campaign_id || "";
+  const campaignPlatform = options.campaignPlatform || normalizedLastTouch.metadata?.campaign_platform || normalizedLastTouch.provider || leadSource || "";
+  const attributionEvent = createAttributionEvent({
+    id: stableId("crm_attr", [lead.id, normalizedFirstTouch.id, normalizedLastTouch.id, campaignId, occurredAt]),
+    type: SOCIAL_ATTRIBUTION_EVENT_TYPES.CRM_LEAD_CREATED,
+    target: SOCIAL_ATTRIBUTION_TARGETS.CRM_LEAD,
+    source: SOCIAL_DATA_SOURCES.CRM_CONTRACT,
+    provider: normalizedLastTouch.provider || normalizedFirstTouch.provider || null,
+    campaignId: campaignId || null,
+    occurredAt,
+    visitorId: visitorId || normalizedLastTouch.visitorId || normalizedFirstTouch.visitorId || null,
+    leadId: lead.id,
+    confidence: Number(normalizedLastTouch.confidence ?? normalizedFirstTouch.confidence ?? 0),
+    metadata: {
+      lead_source: leadSource,
+      campaign_platform: campaignPlatform,
+      first_touch_at: normalizedFirstTouch.occurredAt,
+      last_touch_at: normalizedLastTouch.occurredAt,
+      qualified_status: lead.status,
+      manual_notes: options.manualNotes || "",
+      website_first_touch_event_id: normalizedFirstTouch.id,
+      website_last_touch_event_id: normalizedLastTouch.id,
+      website_attribution_version: normalizedLastTouch.metadata?.attribution_version || normalizedFirstTouch.metadata?.attribution_version || "",
+      utm_source: normalizedLastTouch.metadata?.utm_source || "",
+      utm_medium: normalizedLastTouch.metadata?.utm_medium || "",
+      utm_campaign: normalizedLastTouch.metadata?.utm_campaign || "",
+      utm_content: normalizedLastTouch.metadata?.utm_content || "",
+      utm_term: normalizedLastTouch.metadata?.utm_term || "",
+      landing_path: normalizedLastTouch.metadata?.landing_path || "",
+      referrer: normalizedLastTouch.metadata?.referrer || ""
+    }
+  });
+
+  lead.attribution = {
+    leadSource,
+    campaignId: campaignId || "",
+    campaignPlatform,
+    provider: attributionEvent.provider || "",
+    firstTouchAt: normalizedFirstTouch.occurredAt,
+    lastTouchAt: normalizedLastTouch.occurredAt,
+    qualifiedStatus: lead.status,
+    manualNotes: options.manualNotes || "",
+    websiteVisitorId: attributionEvent.visitorId || "",
+    firstTouchEventId: normalizedFirstTouch.id,
+    lastTouchEventId: normalizedLastTouch.id,
+    attributionEventId: attributionEvent.id
+  };
+  lead.updatedAt = occurredAt;
+  contact.updatedAt = occurredAt;
+  state.attributionEvents.push(attributionEvent);
+
+  addSalesActivity(state, {
+    leadId,
+    contactId: contact.id,
+    actorId: options.actorId || lead.ownerRepId,
+    type: "lead_attribution_attached",
+    occurredAt,
+    summary: `Website/Social attribution attached to ${contact.businessName}.`,
+    metadata: {
+      attributionEventId: attributionEvent.id,
+      leadSource,
+      campaignId: campaignId || "",
+      campaignPlatform
+    }
+  });
+
+  return attributionEvent;
 }
 
 export function addContactNote(state, contactId, input) {

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   addContactNote,
+  attachWebsiteAttributionToLead,
   buildCrmReports,
   buildFollowUpQueue,
   buildTaskQueue,
@@ -14,6 +15,21 @@ import {
   recordRouteVisit,
   transitionLead
 } from "../crm/crm-foundation.mjs";
+import { createWebsiteAttributionSession } from "../deploy/prometheusrouteiq-website/website-attribution.js";
+import {
+  SOCIAL_ATTRIBUTION_EVENT_TYPES,
+  SOCIAL_ATTRIBUTION_TARGETS,
+  SOCIAL_DATA_SOURCES
+} from "../social-media/contracts/social-media-contract.js";
+
+function memoryStorage() {
+  const items = new Map();
+  return {
+    getItem: key => items.has(key) ? items.get(key) : null,
+    setItem: (key, value) => items.set(key, String(value)),
+    removeItem: key => items.delete(key)
+  };
+}
 
 function anthonyRuntimeRecord(index = 0) {
   const activePool = loadRuntimeActivePool();
@@ -241,4 +257,84 @@ test("CRM reports expose today's follow-ups, overdue follow-ups, Anthony activit
   assert.equal(reports.founderActivitySummary.pendingFollowUps, 2);
   assert.equal(reports.contactPipelineCounts.Contacted, 1);
   assert.equal(reports.contactPipelineCounts["New Lead"], 1);
+});
+
+test("CRM attaches Website/Social attribution output to lead records", () => {
+  const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+  const localStorage = memoryStorage();
+  const sessionStorage = memoryStorage();
+  const websiteSession = createWebsiteAttributionSession({
+    locationHref: "https://prometheusrouteiq.com/?utm_source=instagram&utm_medium=social&utm_campaign=beta-route-iq-awareness-v1&utm_content=route-proof",
+    referrer: "https://l.instagram.com/",
+    localStorage,
+    sessionStorage,
+    now: "2026-07-01T08:30:00.000Z"
+  });
+
+  const event = attachWebsiteAttributionToLead(state, lead.id, websiteSession, {
+    occurredAt: "2026-07-01T09:05:00.000Z",
+    manualNotes: "Website request pilot attribution."
+  });
+
+  assert.equal(lead.attribution.leadSource, "instagram");
+  assert.equal(lead.attribution.campaignId, "beta-route-iq-awareness-v1");
+  assert.equal(lead.attribution.campaignPlatform, "instagram");
+  assert.equal(lead.attribution.firstTouchAt, "2026-07-01T08:30:00.000Z");
+  assert.equal(lead.attribution.lastTouchAt, "2026-07-01T08:30:00.000Z");
+  assert.equal(lead.attribution.qualifiedStatus, "New Lead");
+  assert.equal(lead.attribution.manualNotes, "Website request pilot attribution.");
+  assert.equal(event.type, SOCIAL_ATTRIBUTION_EVENT_TYPES.CRM_LEAD_CREATED);
+  assert.equal(event.target, SOCIAL_ATTRIBUTION_TARGETS.CRM_LEAD);
+  assert.equal(event.source, SOCIAL_DATA_SOURCES.CRM_CONTRACT);
+  assert.equal(event.leadId, lead.id);
+  assert.equal(event.metadata.utm_source, "instagram");
+  assert.equal(event.metadata.landing_path, "/");
+  assert.equal(state.attributionEvents.length, 1);
+  assert.ok(state.salesActivities.some(activity => activity.type === "lead_attribution_attached"));
+});
+
+test("CRM preserves first-touch and last-touch attribution from Website sessions", () => {
+  const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
+  const localStorage = memoryStorage();
+  const sessionStorage = memoryStorage();
+  createWebsiteAttributionSession({
+    locationHref: "https://prometheusrouteiq.com/?utm_source=instagram&utm_medium=social&utm_campaign=first-campaign",
+    localStorage,
+    sessionStorage,
+    now: "2026-07-01T08:00:00.000Z"
+  });
+  const secondSession = createWebsiteAttributionSession({
+    locationHref: "https://prometheusrouteiq.com/pilot?utm_source=linkedin&utm_medium=social&utm_campaign=second-campaign",
+    localStorage,
+    sessionStorage,
+    now: "2026-07-01T09:00:00.000Z"
+  });
+
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(1), {
+    attribution: secondSession,
+    attributionManualNotes: "Lead created after second campaign touch."
+  });
+
+  assert.equal(lead.attribution.leadSource, "linkedin");
+  assert.equal(lead.attribution.campaignId, "second-campaign");
+  assert.equal(lead.attribution.firstTouchAt, "2026-07-01T08:00:00.000Z");
+  assert.equal(lead.attribution.lastTouchAt, "2026-07-01T09:00:00.000Z");
+  assert.equal(lead.attribution.firstTouchEventId, secondSession.firstTouch.id);
+  assert.equal(lead.attribution.lastTouchEventId, secondSession.currentTouch.id);
+  assert.equal(state.attributionEvents[0].metadata.manual_notes, "Lead created after second campaign touch.");
+});
+
+test("CRM rejects non-Website attribution targets instead of creating a parallel attribution model", () => {
+  const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+
+  assert.throws(() => attachWebsiteAttributionToLead(state, lead.id, {
+    id: "not_website",
+    type: "crm_lead_created",
+    target: "crm_lead",
+    source: "crm_contract",
+    occurredAt: "2026-07-01T09:00:00.000Z",
+    metadata: {}
+  }), /requires Website attribution target website_traffic/);
 });

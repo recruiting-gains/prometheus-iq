@@ -14,6 +14,10 @@ CRM also owns the operating architecture for company accounts, pilot companies, 
 - `enterprise-lifecycle-architecture.md`: account/customer-success architecture for 1 company, 10 companies, 100 companies, and enterprise deployments.
 - `enterprise-lifecycle-model.json`: machine-readable CRM operating model for validation and future implementation.
 
+## Attribution
+
+CRM consumes Website attribution output and normalizes CRM lead attribution through the Social Media attribution contract. Use `attachWebsiteAttributionToLead` to attach `lead_source`, `campaign_id`, `campaign_platform`, first touch, last touch, qualified status, and manual notes to lead records. Do not create a separate CRM attribution model and do not call social provider APIs from CRM.
+
 ## v1 Workflow
 
 Supported lead states:

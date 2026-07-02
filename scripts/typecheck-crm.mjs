@@ -10,7 +10,8 @@ import {
   dashboardRuntimeRecordsFromActivePool,
   leadStatuses,
   loadRuntimeActivePool,
-  recordRouteVisit
+  recordRouteVisit,
+  attachWebsiteAttributionToLead
 } from "../crm/crm-foundation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -32,6 +33,24 @@ recordRouteVisit(state, {
   followUpDueAt: "2026-06-30T15:00:00.000Z",
   followUpPriority: "high"
 });
+attachWebsiteAttributionToLead(state, lead.id, {
+  id: "website_visit_typecheck",
+  type: "website_visit",
+  target: "website_traffic",
+  source: "website_contract",
+  provider: "instagram",
+  campaignId: "typecheck-campaign",
+  occurredAt: "2026-06-30T08:30:00.000Z",
+  visitorId: "web_visitor_typecheck",
+  confidence: 1,
+  metadata: {
+    utm_source: "instagram",
+    campaign_platform: "instagram",
+    landing_path: "/"
+  }
+}, {
+  occurredAt: "2026-06-30T09:30:00.000Z"
+});
 
 const reports = buildCrmReports(state, { asOf: "2026-06-30T12:00:00.000Z" });
 const queue = buildFollowUpQueue(state, { asOf: "2026-06-30T12:00:00.000Z" });
@@ -46,6 +65,8 @@ assert.equal(typeof state.leads[0].status, "string");
 assert.equal(typeof queue[0].dueAt, "string");
 assert.equal(typeof reports.founderActivitySummary.visibleContacts, "number");
 assert.equal(reports.anthonyBetaActivity.every(activity => activity.founderVisible), true);
+assert.equal(state.attributionEvents[0].target, "crm_lead");
+assert.equal(state.leads[0].attribution.campaignId, "typecheck-campaign");
 assert.equal(enterpriseModel.implementationType, "architecture");
 assert.equal(enterpriseModel.productionBetaSystemsModified, false);
 assert.equal(Array.isArray(enterpriseModel.entities), true);
