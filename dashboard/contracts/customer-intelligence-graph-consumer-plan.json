@@ -1,0 +1,241 @@
+{
+  "version": "dashboard-customer-intelligence-graph-consumer-plan-v1",
+  "status": "planning_only",
+  "sourceIntelligenceContractVersion": "customer-intelligence-graph-v1",
+  "sourceConsumerContract": "DashboardCustomerGraphContract",
+  "consumer": "Dashboard",
+  "runtimeConsumptionAuthorized": false,
+  "dashboardRuntimeChanged": false,
+  "productionBehaviorChanged": false,
+  "productionScoringChanged": false,
+  "productionRecommendationsChanged": false,
+  "activePoolChanged": false,
+  "companionTouched": false,
+  "allowedSourceNodeTypes": [
+    "Business",
+    "Visit",
+    "Lead",
+    "Outcome",
+    "Rep",
+    "Territory",
+    "Operating Profile",
+    "Customer",
+    "Learning Signal"
+  ],
+  "allowedSourceRelationshipTypes": [
+    "Visited",
+    "Recommended",
+    "Converted",
+    "Follow-up",
+    "Nearby",
+    "Similar",
+    "Repeated",
+    "Successful",
+    "Inactive"
+  ],
+  "futureDashboardSurfaces": [
+    {
+      "surface": "Founder Insights",
+      "graphUse": "Executive summaries of territory relationships, opportunity clusters, confidence movement, and rep activity patterns.",
+      "requiredGraphAreas": [
+        "territory_relationships",
+        "opportunity_clusters",
+        "confidence_propagation",
+        "rep_activity_patterns"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Owner Territory Intelligence",
+      "graphUse": "Territory-level relationship map for business density, repeated outcomes, inactive pockets, and nearby/similar business groupings.",
+      "requiredGraphAreas": [
+        "territory_relationships",
+        "business_relationships",
+        "opportunity_clusters"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Places",
+      "graphUse": "Business relationship context including previous visits, follow-up state, similar businesses, and nearby opportunity context.",
+      "requiredGraphAreas": [
+        "business_relationships",
+        "visit_outcome_history",
+        "opportunity_clusters"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Route Intelligence",
+      "graphUse": "Read-only explanation context for why businesses belong together on a route without changing live route scoring.",
+      "requiredGraphAreas": [
+        "business_relationships",
+        "territory_relationships",
+        "confidence_propagation"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Rep Today",
+      "graphUse": "Rep-facing context for prior visits, outstanding follow-ups, nearby related businesses, and recent outcome patterns.",
+      "requiredGraphAreas": [
+        "visit_outcome_history",
+        "rep_activity_patterns",
+        "business_relationships"
+      ],
+      "activationStatus": "future_only"
+    },
+    {
+      "surface": "Find/Search",
+      "graphUse": "Graph-aware discovery filters for clusters, similar businesses, follow-up opportunities, and relationship-backed search results.",
+      "requiredGraphAreas": [
+        "business_relationships",
+        "opportunity_clusters",
+        "visit_outcome_history"
+      ],
+      "activationStatus": "future_only"
+    }
+  ],
+  "futureViews": [
+    {
+      "view": "territory_relationships",
+      "dashboardAudience": [
+        "Founder",
+        "Owner"
+      ],
+      "requiredNodeTypes": [
+        "Territory",
+        "Business",
+        "Rep",
+        "Customer"
+      ],
+      "requiredRelationshipTypes": [
+        "Nearby",
+        "Similar",
+        "Recommended",
+        "Inactive"
+      ],
+      "runtimeGate": "requires authorized DashboardCustomerGraphContract with customer-scoped graph snapshot"
+    },
+    {
+      "view": "business_relationships",
+      "dashboardAudience": [
+        "Founder",
+        "Owner",
+        "Rep"
+      ],
+      "requiredNodeTypes": [
+        "Business",
+        "Visit",
+        "Lead",
+        "Outcome"
+      ],
+      "requiredRelationshipTypes": [
+        "Visited",
+        "Converted",
+        "Follow-up",
+        "Nearby",
+        "Similar"
+      ],
+      "runtimeGate": "requires reviewed relationship evidence and no cross-customer graph bleed"
+    },
+    {
+      "view": "visit_outcome_history",
+      "dashboardAudience": [
+        "Founder",
+        "Owner",
+        "Rep"
+      ],
+      "requiredNodeTypes": [
+        "Visit",
+        "Outcome",
+        "Lead",
+        "Learning Signal"
+      ],
+      "requiredRelationshipTypes": [
+        "Visited",
+        "Converted",
+        "Follow-up",
+        "Successful",
+        "Repeated"
+      ],
+      "runtimeGate": "requires source evidence IDs and review state for each rendered history item"
+    },
+    {
+      "view": "rep_activity_patterns",
+      "dashboardAudience": [
+        "Founder",
+        "Owner"
+      ],
+      "requiredNodeTypes": [
+        "Rep",
+        "Visit",
+        "Outcome",
+        "Territory",
+        "Learning Signal"
+      ],
+      "requiredRelationshipTypes": [
+        "Visited",
+        "Repeated",
+        "Successful",
+        "Inactive"
+      ],
+      "runtimeGate": "requires aggregation that preserves rep/customer isolation and does not mutate CRM"
+    },
+    {
+      "view": "opportunity_clusters",
+      "dashboardAudience": [
+        "Founder",
+        "Owner",
+        "Rep"
+      ],
+      "requiredNodeTypes": [
+        "Business",
+        "Territory",
+        "Operating Profile",
+        "Learning Signal"
+      ],
+      "requiredRelationshipTypes": [
+        "Nearby",
+        "Similar",
+        "Recommended",
+        "Successful"
+      ],
+      "runtimeGate": "requires read-only cluster output and no live route-scoring changes"
+    },
+    {
+      "view": "confidence_propagation",
+      "dashboardAudience": [
+        "Founder",
+        "Owner"
+      ],
+      "requiredNodeTypes": [
+        "Business",
+        "Outcome",
+        "Learning Signal",
+        "Operating Profile"
+      ],
+      "requiredRelationshipTypes": [
+        "Recommended",
+        "Converted",
+        "Successful",
+        "Similar"
+      ],
+      "runtimeGate": "requires Intelligence authorization because confidence propagation is not active in v1"
+    }
+  ],
+  "futureActivationRequirements": [
+    "Intelligence must authorize DashboardCustomerGraphContract.runtimeConsumptionAuthorized=true.",
+    "Dashboard must receive a customer-scoped CustomerGraphSnapshot with matching contractVersion.",
+    "Every rendered node and relationship must include customerId matching the active customer context.",
+    "Dashboard must treat confidence propagation as explanation-only until Intelligence explicitly authorizes active propagation.",
+    "Dashboard must not change route scoring, Active Pool selection, CRM records, Mobile behavior, Companion behavior, Website behavior, or Infrastructure.",
+    "Dashboard must add runtime tests before any live graph consumption is enabled."
+  ],
+  "blockedUntil": [
+    "authorized_dashboard_runtime_consumption_contract",
+    "customer_scoped_graph_snapshot_export",
+    "reviewed_evidence_display_policy",
+    "confidence_propagation_activation_policy"
+  ]
+}
