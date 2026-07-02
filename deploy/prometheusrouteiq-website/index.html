@@ -454,7 +454,7 @@
       min-height: 100vh;
       display: grid;
       align-items: center;
-      padding: 118px clamp(18px, 6vw, 86px) 96px;
+      padding: 132px clamp(18px, 6vw, 86px) 118px;
       isolation: isolate;
       scroll-snap-align: start;
       scroll-snap-stop: always;
@@ -684,7 +684,7 @@
       max-width: 660px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 28px;
-      padding: clamp(22px, 3.4vw, 34px);
+      padding: clamp(26px, 3.8vw, 42px);
       background:
         linear-gradient(150deg, rgba(3, 15, 11, 0.8), rgba(5, 24, 18, 0.46)),
         radial-gradient(circle at 14% 0%, rgba(255, 116, 56, 0.14), transparent 34%);
@@ -743,7 +743,7 @@
       margin-left: auto;
       border: 1px solid var(--line);
       border-radius: 24px;
-      padding: clamp(22px, 3.3vw, 34px);
+      padding: clamp(26px, 3.8vw, 42px);
       background: rgba(6, 23, 17, 0.58);
       backdrop-filter: blur(22px);
       box-shadow:
@@ -754,29 +754,31 @@
     .proof-strip {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 24px;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 32px;
     }
 
     .proof {
-      min-height: 116px;
+      min-height: 136px;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 18px;
-      padding: 16px;
+      padding: 22px;
       background: rgba(255, 255, 255, 0.055);
     }
 
     .proof b {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       color: var(--teal);
-      font-size: 22px;
+      font-size: clamp(18px, 2vw, 24px);
+      line-height: 1.08;
     }
 
     .proof span {
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.35;
+      font-size: 14px;
+      line-height: 1.45;
     }
 
     .industry-strip,
@@ -787,8 +789,9 @@
     .success-grid,
     .beta-flow {
       display: grid;
-      gap: 12px;
-      margin-top: 24px;
+      align-items: stretch;
+      gap: 16px;
+      margin-top: 32px;
     }
 
     .industry-strip {
@@ -800,6 +803,10 @@
     .investor-grid,
     .success-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .industry-pages {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .industry-strip span,
@@ -821,10 +828,13 @@
     .enterprise-card,
     .investor-card,
     .success-card {
-      min-height: 190px;
+      min-height: 210px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 18px;
-      padding: 18px;
+      padding: 24px;
       background: rgba(255, 255, 255, 0.055);
     }
 
@@ -833,7 +843,7 @@
     .investor-card h3,
     .success-card h3 {
       font-size: 20px;
-      line-height: 1.05;
+      line-height: 1.12;
     }
 
     .industry-pages p,
@@ -842,7 +852,7 @@
     .success-card p {
       color: var(--muted);
       font-size: 14px;
-      line-height: 1.45;
+      line-height: 1.55;
     }
 
     .success-card span {
@@ -868,10 +878,11 @@
     }
 
     .trust-card {
-      min-height: 144px;
+      min-height: 128px;
+      height: 100%;
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 18px;
-      padding: 16px;
+      padding: 22px;
       background: rgba(255, 255, 255, 0.055);
     }
 
@@ -884,7 +895,7 @@
     .trust-card span {
       color: var(--muted);
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
     .grid {
@@ -918,7 +929,7 @@
     .split {
       display: grid;
       grid-template-columns: minmax(0, 0.95fr) minmax(300px, 500px);
-      gap: clamp(28px, 6vw, 72px);
+      gap: clamp(36px, 7vw, 92px);
       align-items: center;
       width: min(100%, 1180px);
       margin-inline: auto;
@@ -2029,16 +2040,16 @@
     <section class="split" aria-labelledby="trustTitle">
       <div class="copy-block">
         <div class="eyebrow">Public Trust Signals</div>
-        <h2 id="trustTitle">Built for serious pilots, not anonymous signups.</h2>
-        <p class="lead">The public site stays separate from private beta systems. Pilot requests are reviewed before implementation details, access, or internal workflows are discussed.</p>
+        <h2 id="trustTitle">Managed enterprise deployments for teams that need field intelligence with control.</h2>
+        <p class="lead">Prometheus IQ is evaluated through defined rollout scope, executive success criteria, and founder-led implementation discipline before broader deployment.</p>
       </div>
       <div class="panel">
         <h2>Why teams can evaluate it safely</h2>
         <div class="trust-grid">
-          <div class="trust-card"><strong>Founder-built</strong><span>Designed from real outside-sales work, not a generic CRM dashboard.</span></div>
-          <div class="trust-card"><strong>Controlled beta</strong><span>Beta fit, team scope, and review path are clarified before access.</span></div>
-          <div class="trust-card"><strong>Enterprise-ready posture</strong><span>Security, pilot governance, and customer success discipline are treated as product requirements.</span></div>
-          <div class="trust-card"><strong>Outcome-focused</strong><span>The pilot asks whether route quality, verified activity, and field outcomes improved.</span></div>
+          <div class="trust-card"><strong>Founder Built</strong><span>Built from real outside-sales pressure and field execution gaps.</span></div>
+          <div class="trust-card"><strong>Controlled Beta</strong><span>Scoped rollout, defined users, and clear evaluation cadence.</span></div>
+          <div class="trust-card"><strong>Enterprise Ready</strong><span>Governance, separation, and success discipline from day one.</span></div>
+          <div class="trust-card"><strong>Outcome Focused</strong><span>Evaluation centers on routes, activity proof, and field results.</span></div>
         </div>
       </div>
     </section>
@@ -2049,15 +2060,17 @@
         <h2>Prometheus is horizontal outside-sales infrastructure, not a single-market tool.</h2>
         <p class="lead">Gym sales remains the first production validation environment. The company category is broader: any organization that creates revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
         <div class="industry-pages" aria-label="Industries Prometheus IQ can support">
-          <article><h3>Home Services</h3><p>Roofing, HVAC, pest control, solar, security, and teams that sell by territory.</p></article>
-          <article><h3>Healthcare & Medical</h3><p>Medical devices, clinics, dental, wellness, and referral-growth teams.</p></article>
-          <article><h3>Franchise & Local Growth</h3><p>Multi-location operators, membership teams, events, and community outreach.</p></article>
-          <article><h3>B2B Field Sales</h3><p>Payroll, telecom, commercial cleaning, uniforms, logistics, and industrial sales.</p></article>
+          <article><h3>Home Services</h3><p>Roofing, HVAC, pest control, solar, security, and territory-based crews.</p></article>
+          <article><h3>Healthcare</h3><p>Medical devices, referral growth, provider outreach, and market development teams.</p></article>
+          <article><h3>Commercial Services</h3><p>Cleaning, facilities, uniforms, logistics, and service providers selling in the field.</p></article>
+          <article><h3>Retail & Franchise</h3><p>Multi-location growth, membership programs, local partnerships, and event outreach.</p></article>
+          <article><h3>B2B Sales</h3><p>Payroll, telecom, insurance, industrial, and territory-based account acquisition.</p></article>
+          <article><h3>Field Operations</h3><p>Canvassing, territory coverage, appointment setting, and distributed field execution.</p></article>
         </div>
         <div class="proof-strip">
-          <div class="proof"><b>Gas</b><span>Unplanned routes turn selling time into windshield time.</span></div>
-          <div class="proof"><b>Time</b><span>Reps need direction before the day disappears.</span></div>
-          <div class="proof"><b>Proof</b><span>Managers need activity they can verify without micromanaging.</span></div>
+          <div class="proof"><b>Reduce Drive Time</b><span>Direct reps toward higher-priority territory moves before miles are wasted.</span></div>
+          <div class="proof"><b>Recover Selling Time</b><span>Convert unclear field days into focused routes, visits, and follow-up opportunities.</span></div>
+          <div class="proof"><b>Verify Field Activity</b><span>Give managers proof of intentional work without continuous surveillance.</span></div>
         </div>
       </div>
       <div class="panel">

@@ -52,10 +52,12 @@ function App() {
 
   const loop = ["Route", "Visit", "Result", "Recommendation"];
   const industries = [
-    ["Home Services", "Roofing, HVAC, pest control, solar, security, and teams that sell by territory."],
-    ["Healthcare & Medical", "Medical devices, clinics, dental, wellness, and referral-growth teams."],
-    ["Franchise & Local Growth", "Multi-location operators, membership teams, events, and community outreach."],
-    ["B2B Field Sales", "Payroll, telecom, commercial cleaning, uniforms, logistics, and industrial sales."]
+    ["Home Services", "Roofing, HVAC, pest control, solar, security, and territory-based crews."],
+    ["Healthcare", "Medical devices, referral growth, provider outreach, and market development teams."],
+    ["Commercial Services", "Cleaning, facilities, uniforms, logistics, and service providers selling in the field."],
+    ["Retail & Franchise", "Multi-location growth, membership programs, local partnerships, and event outreach."],
+    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory-based account acquisition."],
+    ["Field Operations", "Canvassing, territory coverage, appointment setting, and distributed field execution."]
   ];
   const enterpriseSignals = [
     ["Governed pilots", "Defined scope, success metrics, review cadence, and executive evaluation before expansion."],
@@ -76,10 +78,10 @@ function App() {
     ["Scale", "Move from founder-led setup to repeatable onboarding, governance, and customer success rhythm."]
   ];
   const trustSignals = [
-    ["Founder-built", "Designed from real outside-sales work, not a generic CRM dashboard."],
-    ["Public/private separation", "The marketing site remains separate from authenticated beta systems."],
-    ["Enterprise-ready posture", "Security, pilot governance, and customer success discipline are treated as product requirements."],
-    ["Controlled beta", "Pilot requests are reviewed before access, scope, or implementation is discussed."]
+    ["Founder Built", "Built from real outside-sales pressure and field execution gaps."],
+    ["Controlled Beta", "Scoped rollout, defined users, and clear evaluation cadence."],
+    ["Enterprise Ready", "Governance, separation, and success discipline from day one."],
+    ["Outcome Focused", "Evaluation centers on routes, activity proof, and field results."]
   ];
 
   return (
@@ -191,7 +193,8 @@ function App() {
       <section className="section trust-section" aria-labelledby="trust-title">
         <div className="shell section-head">
           <SectionLabel>Public Trust Signals</SectionLabel>
-          <h2 id="trust-title">Built for serious pilots, not anonymous signups.</h2>
+          <h2 id="trust-title">Managed enterprise deployments for teams that need field intelligence with control.</h2>
+          <p className="section-copy">Prometheus IQ is evaluated through defined rollout scope, executive success criteria, and founder-led implementation discipline before broader deployment.</p>
         </div>
         <div className="shell trust-grid">
           {trustSignals.map(([title, body]) => (
@@ -218,9 +221,9 @@ function App() {
           </div>
           <div className="problem-grid">
             {[
-              ["Where to go.", "Field teams need a sharper starting point before they burn time and fuel."],
-              ["When to go.", "Timing matters when the goal is to turn real conversations into measurable outcomes."],
-              ["What opportunities matter.", "Not every stop deserves the same attention. Prometheus helps focus the day."]
+              ["Reduce Drive Time", "Direct reps toward higher-priority territory moves before miles are wasted."],
+              ["Recover Selling Time", "Convert unclear field days into focused routes, visits, and follow-up opportunities."],
+              ["Verify Field Activity", "Give managers proof of intentional work without continuous surveillance."]
             ].map(([item, body]) => (
               <article key={item}>
                 <span />
