@@ -1,4 +1,6 @@
 import http from "node:http";
+import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +15,7 @@ loadLocalEnv();
 const PORT = Number(process.env.PROMETHEUS_OS_PORT || 8792);
 const HOST = process.env.PROMETHEUS_OS_HOST || "127.0.0.1";
 const ROOT = normalize(join(fileURLToPath(new URL("../", import.meta.url))));
+const PROJECT_ROOT = normalize(join(ROOT, ".."));
 const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
 const SOCIAL_MEDIA_INSTAGRAM_SNAPSHOT_URL = process.env.PROMETHEUS_SOCIAL_MEDIA_SNAPSHOT_URL ||
   "https://prometheusrouteiq.com/api/social/instagram/snapshot";
@@ -96,6 +99,92 @@ async function readCompanionVersion() {
       }
     };
   }
+}
+
+function runGit(args) {
+  try {
+    return execFileSync("git", ["-C", PROJECT_ROOT, ...args], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 5000
+    }).trim();
+  } catch {
+    return "";
+  }
+}
+
+function recentCommits() {
+  const output = runGit(["log", "-6", "--date=iso-strict", "--pretty=format:%h%x09%H%x09%ad%x09%s"]);
+  if (!output) return [];
+  return output.split(/\r?\n/).map((line) => {
+    const [shortHash, hash, date, ...subjectParts] = line.split("\t");
+    return {
+      shortHash,
+      hash,
+      date,
+      subject: subjectParts.join("\t")
+    };
+  }).filter((item) => item.shortHash && item.subject);
+}
+
+async function readTextIfPresent(path) {
+  try {
+    if (!existsSync(path)) return "";
+    return await readFile(path, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+function extractStatus(text = "", label = "") {
+  if (!text) return null;
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const match = lines.find((line) => line.toLowerCase().includes(label.toLowerCase()));
+  if (!match) return null;
+  return match.replace(/^[-*#\s]+/, "").slice(0, 220);
+}
+
+async function founderTimeline() {
+  const version = await readCompanionVersion();
+  const report = await readTextIfPresent(join(PROJECT_ROOT, "mac-companion/reports/latest-companion-verification-report.md"));
+  const masterState = await readTextIfPresent(join(PROJECT_ROOT, "PROMETHEUS_MASTER_ENGINEERING_STATE.md"));
+  const productVision = await readTextIfPresent(join(PROJECT_ROOT, "PRODUCT_VISION.md"));
+  const companyIdentity = await readTextIfPresent(join(PROJECT_ROOT, "COMPANY_IDENTITY.md"));
+  const resultMatch = /^Result:\s*(.+)$/m.exec(report);
+
+  return {
+    ok: true,
+    source: "Prometheus Companion local founder timeline",
+    generatedAt: new Date().toISOString(),
+    version: {
+      sourceVersion: version.sourceVersion || "missing",
+      installedVersion: version.installedVersion || "missing",
+      runtimeVersion: version.runtimeVersion || "missing",
+      gitCommit: version.git?.commit || "missing"
+    },
+    commits: recentCommits(),
+    verification: {
+      result: resultMatch?.[1] || "unknown",
+      reportPath: existsSync(join(PROJECT_ROOT, "mac-companion/reports/latest-companion-verification-report.md"))
+        ? "mac-companion/reports/latest-companion-verification-report.md"
+        : "unavailable"
+    },
+    checkpoints: [
+      { area: "Overwatch", status: extractStatus(masterState, "Overwatch") || "Read-only state source not present in installed runtime." },
+      { area: "Mobile", status: extractStatus(masterState, "Mobile") || "No current local status marker found." },
+      { area: "Website", status: extractStatus(masterState, "Website") || extractStatus(productVision, "Website") || "No current local status marker found." },
+      { area: "Intelligence", status: extractStatus(masterState, "Intelligence") || "No current local status marker found." },
+      { area: "CRM", status: extractStatus(masterState, "CRM") || "No current local status marker found." },
+      { area: "Social", status: extractStatus(masterState, "Social") || "No current local status marker found." },
+      { area: "Research", status: extractStatus(masterState, "Research") || "No current local status marker found." },
+      { area: "Company", status: extractStatus(companyIdentity, "Prometheus") || "No current local status marker found." }
+    ],
+    safety: {
+      presentationOnly: true,
+      noExternalApiCalls: true,
+      secretsIncluded: false
+    }
+  };
 }
 
 async function handleTts(req, res) {
@@ -187,6 +276,10 @@ async function handleAssistant(req, res) {
 async function handleVersion(_req, res) {
   const version = await readCompanionVersion();
   sendJson(res, 200, version);
+}
+
+async function handleFounderTimeline(_req, res) {
+  sendJson(res, 200, await founderTimeline());
 }
 
 async function handleSocialInstagramSnapshot(_req, res) {
@@ -311,6 +404,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && req.url === "/api/version") {
     await handleVersion(req, res);
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/founder/timeline") {
+    await handleFounderTimeline(req, res);
     return;
   }
 

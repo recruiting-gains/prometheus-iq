@@ -1629,6 +1629,8 @@ body::after {
   font-size: 0.72rem;
   line-height: 1.25;
   text-transform: uppercase;
+  opacity: 0;
+  transition: opacity 220ms ease;
 }
 
 .prometheus-core i {
@@ -1637,6 +1639,15 @@ body::after {
   border-color: rgba(74, 255, 190, 0.24);
   color: rgba(226, 255, 247, 0.9);
   background: rgba(0, 8, 7, 0.72);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+body.top-chrome-visible .prometheus-core strong,
+body.top-chrome-visible .prometheus-core i,
+body.developer-mode .prometheus-core strong,
+body.developer-mode .prometheus-core i {
+  opacity: 1;
 }
 
 body[data-voice="listening"] .prometheus-core {

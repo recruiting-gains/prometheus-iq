@@ -1,114 +1,150 @@
 import * as THREE from "./vendor/three.module.js";
 
+function makeStarField(count, radius, color, size) {
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const base = new THREE.Color(color);
+
+  for (let index = 0; index < count; index += 1) {
+    const r = radius * Math.cbrt(Math.random());
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos((Math.random() * 2) - 1);
+    positions[index * 3] = r * Math.sin(phi) * Math.cos(theta);
+    positions[index * 3 + 1] = r * Math.cos(phi) * 0.58;
+    positions[index * 3 + 2] = -Math.abs(r * Math.sin(phi) * Math.sin(theta)) - 3;
+
+    const brightness = 0.58 + Math.random() * 0.42;
+    colors[index * 3] = base.r * brightness;
+    colors[index * 3 + 1] = base.g * brightness;
+    colors[index * 3 + 2] = base.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({
+    size,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.86,
+    depthWrite: false
+  });
+  return new THREE.Points(geometry, material);
+}
+
+function makeDustBand(count) {
+  const positions = new Float32Array(count * 3);
+  const colors = new Float32Array(count * 3);
+  const gold = new THREE.Color(0xd99b55);
+  const blue = new THREE.Color(0x5d9fff);
+
+  for (let index = 0; index < count; index += 1) {
+    const angle = Math.random() * Math.PI * 2;
+    const radius = 1.2 + Math.random() * 5.9;
+    const drift = (Math.random() - 0.5) * 0.28;
+    positions[index * 3] = Math.cos(angle) * radius;
+    positions[index * 3 + 1] = drift;
+    positions[index * 3 + 2] = Math.sin(angle) * radius * 0.12;
+
+    const color = Math.random() > 0.18 ? gold : blue;
+    const brightness = 0.32 + Math.random() * 0.34;
+    colors[index * 3] = color.r * brightness;
+    colors[index * 3 + 1] = color.g * brightness;
+    colors[index * 3 + 2] = color.b * brightness;
+  }
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const material = new THREE.PointsMaterial({
+    size: 0.018,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.54,
+    depthWrite: false
+  });
+  return new THREE.Points(geometry, material);
+}
+
+function makeRing({ radius, tube, color, opacity, tilt = 1.34 }) {
+  const mesh = new THREE.Mesh(
+    new THREE.TorusGeometry(radius, tube, 24, 220),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    })
+  );
+  mesh.rotation.x = tilt;
+  return mesh;
+}
+
 export function createPrometheusScene(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.7));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
+  renderer.setClearColor(0x000000, 0);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 100);
-  camera.position.set(0, 1.2, 8);
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 80);
+  camera.position.set(0, 0.18, 8.2);
 
   const root = new THREE.Group();
-  const globeGroup = new THREE.Group();
-  const routesGroup = new THREE.Group();
-  const nodesGroup = new THREE.Group();
-  root.add(globeGroup, routesGroup, nodesGroup);
-  scene.add(root);
+  const horizon = new THREE.Group();
+  const environment = new THREE.Group();
+  scene.add(environment, root);
+  root.add(horizon);
 
-  scene.add(new THREE.AmbientLight(0x41f2ff, 0.5));
-  const orangeLight = new THREE.PointLight(0xff8a1f, 3.7, 18);
-  orangeLight.position.set(2.5, 2.5, 4.5);
-  scene.add(orangeLight);
-  const cyanLight = new THREE.PointLight(0x36e8ff, 2.2, 16);
-  cyanLight.position.set(-3.5, 1.8, 3.2);
-  scene.add(cyanLight);
+  environment.add(makeStarField(1500, 25, 0xdff8ff, 0.017));
+  environment.add(makeStarField(600, 18, 0x9edfff, 0.012));
 
-  const globe = new THREE.Mesh(
-    new THREE.SphereGeometry(1.92, 72, 72),
-    new THREE.MeshStandardMaterial({
-      color: 0x0d332e,
-      emissive: 0x0a3b3d,
-      emissiveIntensity: 0.85,
-      metalness: 0.28,
-      roughness: 0.22,
+  const dust = makeDustBand(1800);
+  horizon.add(dust);
+
+  const outerGold = makeRing({ radius: 2.55, tube: 0.045, color: 0xd79a54, opacity: 0.32 });
+  const innerGold = makeRing({ radius: 1.82, tube: 0.032, color: 0xf1bd78, opacity: 0.26, tilt: 1.38 });
+  const lensBlue = makeRing({ radius: 2.08, tube: 0.018, color: 0x68b9ff, opacity: 0.12, tilt: 1.31 });
+  horizon.add(outerGold, innerGold, lensBlue);
+
+  const shadow = new THREE.Mesh(
+    new THREE.SphereGeometry(0.98, 96, 96),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.96 })
+  );
+  shadow.scale.set(1.0, 1.0, 0.5);
+  horizon.add(shadow);
+
+  const lensGlow = new THREE.Mesh(
+    new THREE.SphereGeometry(1.3, 96, 96),
+    new THREE.MeshBasicMaterial({
+      color: 0x1b342b,
       transparent: true,
-      opacity: 0.34,
-      wireframe: true
+      opacity: 0.22,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
     })
   );
-  globeGroup.add(globe);
+  lensGlow.scale.set(1.1, 1.1, 0.4);
+  horizon.add(lensGlow);
 
-  const core = new THREE.Mesh(
-    new THREE.ConeGeometry(0.58, 1.38, 5, 1, false),
-    new THREE.MeshStandardMaterial({
-      color: 0xff8a1f,
-      emissive: 0xff4c1a,
-      emissiveIntensity: 2.25,
-      roughness: 0.2,
-      metalness: 0.16
-    })
-  );
-  core.rotation.z = Math.PI;
-  core.position.set(0, 0.12, 0);
-  root.add(core);
-
-  const innerCore = new THREE.Mesh(
-    new THREE.SphereGeometry(0.22, 24, 24),
-    new THREE.MeshStandardMaterial({
-      color: 0xffffff,
-      emissive: 0xfff0cf,
-      emissiveIntensity: 2,
-      roughness: 0.08
-    })
-  );
-  innerCore.position.set(0, -0.24, 0.06);
-  root.add(innerCore);
-
-  const ringMaterial = new THREE.LineBasicMaterial({ color: 0x43f0ff, transparent: true, opacity: 0.58 });
-  for (let i = 0; i < 5; i += 1) {
-    const points = [];
-    const radius = 2.25 + i * 0.34;
-    for (let j = 0; j <= 160; j += 1) {
-      const angle = (j / 160) * Math.PI * 2;
-      points.push(new THREE.Vector3(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.12, Math.sin(angle) * 0.1));
-    }
-    const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), ringMaterial);
-    ring.rotation.x = Math.PI / 2 + i * 0.17;
-    ring.rotation.z = i * 0.42;
-    globeGroup.add(ring);
-  }
-
-  const nodeGeometry = new THREE.SphereGeometry(0.045, 12, 12);
-  const nodeMaterials = [
-    new THREE.MeshStandardMaterial({ color: 0x43f0ff, emissive: 0x18d6ff, emissiveIntensity: 1.3 }),
-    new THREE.MeshStandardMaterial({ color: 0xffb13b, emissive: 0xff781f, emissiveIntensity: 1.4 }),
-    new THREE.MeshStandardMaterial({ color: 0x2bd3b2, emissive: 0x18b69d, emissiveIntensity: 1.1 })
-  ];
-  const nodes = [];
-  for (let i = 0; i < 64; i += 1) {
-    const node = new THREE.Mesh(nodeGeometry, nodeMaterials[i % nodeMaterials.length]);
-    const angle = i * 2.399;
-    const y = ((i % 17) - 8) * 0.17;
-    const radius = 2.35 + (i % 9) * 0.13;
-    node.position.set(Math.cos(angle) * radius, y, Math.sin(angle) * radius * 0.48);
-    nodes.push(node);
-    nodesGroup.add(node);
-  }
-
-  const routeMaterials = [
-    new THREE.LineBasicMaterial({ color: 0xffc247, transparent: true, opacity: 0.78 }),
-    new THREE.LineBasicMaterial({ color: 0x43f0ff, transparent: true, opacity: 0.46 })
-  ];
-
-  for (let i = 0; i < 20; i += 1) {
-    const start = nodes[(i * 2) % nodes.length].position;
-    const end = nodes[(i * 5 + 11) % nodes.length].position;
-    const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-    mid.y += 0.35 + (i % 4) * 0.18;
-    mid.z += 0.26;
-    const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(curve.getPoints(42)), routeMaterials[i % 2]);
-    routesGroup.add(line);
+  const particleGeometry = new THREE.SphereGeometry(0.018, 8, 8);
+  const particleMaterial = new THREE.MeshBasicMaterial({
+    color: 0xf0b766,
+    transparent: true,
+    opacity: 0.65,
+    blending: THREE.AdditiveBlending
+  });
+  const particles = [];
+  for (let index = 0; index < 54; index += 1) {
+    const particle = new THREE.Mesh(particleGeometry, particleMaterial.clone());
+    particle.userData = {
+      angle: Math.random() * Math.PI * 2,
+      radius: 1.45 + Math.random() * 2.7,
+      speed: 0.045 + Math.random() * 0.075,
+      lift: (Math.random() - 0.5) * 0.18
+    };
+    particles.push(particle);
+    horizon.add(particle);
   }
 
   const resize = () => {
@@ -126,16 +162,43 @@ export function createPrometheusScene(canvas) {
 
   const animate = () => {
     const time = clock.getElapsedTime();
-    root.rotation.y = time * 0.13;
-    globeGroup.rotation.y = time * 0.18;
-    routesGroup.rotation.z = Math.sin(time * 0.28) * 0.08;
-    nodesGroup.rotation.y = -time * 0.05;
-    core.rotation.y = time * 0.95;
-    core.scale.setScalar(1 + Math.sin(time * 2.3) * 0.07);
-    innerCore.scale.setScalar(1 + Math.sin(time * 3.2) * 0.1);
-    nodes.forEach((node, index) => {
-      node.scale.setScalar(1 + Math.sin(time * 2.4 + index * 0.7) * 0.34);
-    });
+    const voiceState = document.body.dataset.voice || "idle";
+    const stateColor = {
+      listening: 0x6dbdff,
+      thinking: 0xf2aa4c,
+      speaking: 0x59ffc0
+    }[voiceState] || 0xd49a52;
+
+    horizon.rotation.z = Math.sin(time * 0.07) * 0.018;
+    dust.rotation.y = time * 0.025;
+    dust.rotation.z = time * 0.018;
+    outerGold.rotation.z = time * 0.045;
+    innerGold.rotation.z = -time * 0.036;
+    lensBlue.rotation.z = time * 0.028;
+    lensBlue.material.color.setHex(stateColor);
+    lensBlue.material.opacity = voiceState === "speaking" ? 0.22 : voiceState === "listening" ? 0.16 : 0.1;
+    lensGlow.material.color.setHex(stateColor);
+    lensGlow.material.opacity = voiceState === "speaking" ? 0.3 : voiceState === "thinking" ? 0.24 : 0.18;
+
+    const breathe = 1 + Math.sin(time * 0.52) * 0.012;
+    horizon.scale.setScalar(breathe);
+
+    for (const particle of particles) {
+      particle.userData.angle += particle.userData.speed * 0.01;
+      const angle = particle.userData.angle + time * particle.userData.speed;
+      const radius = particle.userData.radius;
+      particle.position.set(
+        Math.cos(angle) * radius,
+        particle.userData.lift + Math.sin(angle * 2.1 + time * 0.15) * 0.025,
+        Math.sin(angle) * radius * 0.12
+      );
+      particle.material.color.setHex(stateColor);
+      particle.material.opacity = voiceState === "speaking" ? 0.78 : 0.45;
+    }
+
+    environment.rotation.y = time * 0.004;
+    camera.position.y = 0.18 + Math.sin(time * 0.12) * 0.035;
+    camera.lookAt(0, 0, 0);
     renderer.render(scene, camera);
     raf = requestAnimationFrame(animate);
   };

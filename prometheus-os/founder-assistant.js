@@ -63,11 +63,23 @@ function isExact(command, phrases) {
   return phrases.some((phrase) => command === phrase);
 }
 
-function engineeringStatus() {
+function timelineBrief(founderTimeline) {
+  if (!founderTimeline?.ok) return "";
+  const latestCommit = founderTimeline.commits?.[0];
+  const verification = founderTimeline.verification?.result ? `Latest Companion verification: ${founderTimeline.verification.result}.` : "";
+  const commit = latestCommit ? `Latest commit: ${latestCommit.shortHash} ${latestCommit.subject}.` : "";
+  const checkpoints = Array.isArray(founderTimeline.checkpoints)
+    ? founderTimeline.checkpoints.slice(0, 3).map((item) => `${item.area}: ${item.status}`).join(". ")
+    : "";
+  return [commit, verification, checkpoints].filter(Boolean).join(" ");
+}
+
+function engineeringStatus(founderTimeline) {
   const summary = createEngineeringStatusSummary();
+  const timeline = timelineBrief(founderTimeline);
   return response(
     summary.title,
-    summary.body,
+    timeline ? `${summary.body} ${timeline}` : summary.body,
     {
       ...summary.metadata,
       intent: "engineering_status",
@@ -76,13 +88,15 @@ function engineeringStatus() {
   );
 }
 
-function catchUp() {
+function catchUp(founderTimeline) {
   const latest = getLatestMemoryEvent();
   const unfinished = createUnfinishedWorkRecap();
+  const timeline = timelineBrief(founderTimeline);
 
   return response(
     "Where We Left Off",
     [
+      timeline ? `Live operating signal: ${timeline}` : "",
       latest ? `Last recorded point: ${latest.date}: ${latest.title}. ${latest.summary}` : "I do not have a newly recorded memory event yet.",
       "The operating thread is clear: Prometheus has product, website, executive materials, Route Intelligence, GitHub backup discipline, and Companion founder support.",
       unfinished.body,
@@ -302,11 +316,11 @@ function companyBriefing() {
   );
 }
 
-async function conversationalIntentResponse(normalized, { socialMediaAnalyticsService } = {}) {
+async function conversationalIntentResponse(normalized, { socialMediaAnalyticsService, founderTimeline } = {}) {
   if (isExact(normalized, ["hello", "hi", "hey"])) return naturalGreeting();
   if (isExact(normalized, ["good morning", "morning"])) return morningGreeting();
   if (isExact(normalized, ["how are you", "how are you doing", "how are things"])) return healthGreeting();
-  if (isExact(normalized, ["overwatch"])) return engineeringStatus();
+  if (isExact(normalized, ["overwatch"])) return engineeringStatus(founderTimeline);
   if (isExact(normalized, ["instagram", "social", "social media"])) {
     const instagram = await createFounderInstagramDirectAnswer({
       command: "instagram",
@@ -344,13 +358,15 @@ async function conversationalIntentResponse(normalized, { socialMediaAnalyticsSe
 
 export async function createFounderAssistantResponse(command = "", {
   communicationsService = getDefaultFounderCommunicationsService(),
-  socialMediaAnalyticsService
+  socialMediaAnalyticsService,
+  founderTimeline
 } = {}) {
   const normalized = String(command || "").toLowerCase().trim();
   if (!normalized) return null;
 
   const conversationalResponse = await conversationalIntentResponse(normalized, {
-    socialMediaAnalyticsService
+    socialMediaAnalyticsService,
+    founderTimeline
   });
   if (conversationalResponse) return conversationalResponse;
 
@@ -464,8 +480,8 @@ export async function createFounderAssistantResponse(command = "", {
       entities: ["Founder Memory", "Prometheus"]
     });
   }
-  if (includesAny(normalized, ["catch me up", "where we left off", "resume context", "left off"])) return catchUp();
-  if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status", "engineering status"])) return engineeringStatus();
+  if (includesAny(normalized, ["catch me up", "where we left off", "resume context", "left off"])) return catchUp(founderTimeline);
+  if (includesAny(normalized, ["current engineering status", "engineering status of prometheus", "prometheus engineering status", "engineering status"])) return engineeringStatus(founderTimeline);
   if (includesAny(normalized, ["message summary", "message summaries", "summarize messages", "summarise messages", "inbox summary", "what messages"])) return messageSummaries(communicationsService);
   if (includesAny(normalized, ["draft a message", "write a message", "help me draft", "draft an email", "write an email", "compose a message", "compose message"])) return draftMessage(normalized, communicationsService);
   if (includesAny(normalized, ["meetings i have", "my meetings", "calendar reminders", "calendar reminder", "calendar", "schedule today"])) return meetings(communicationsService);

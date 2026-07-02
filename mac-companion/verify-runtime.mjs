@@ -455,6 +455,31 @@ async function verify() {
     record("version-display", false, `backend version endpoint is not reachable: ${error?.message || error}`);
   }
 
+  try {
+    const timeline = await fetchJson("http://127.0.0.1:8792/api/founder/timeline");
+    const checkpointAreas = new Set((timeline.json?.checkpoints || []).map((item) => item.area));
+    const requiredAreas = ["Overwatch", "Mobile", "Website", "Intelligence", "CRM", "Social", "Research"];
+    const missingAreas = requiredAreas.filter((area) => !checkpointAreas.has(area));
+    const ok = timeline.ok &&
+      timeline.json?.ok === true &&
+      timeline.json?.version?.runtimeVersion === runtimeManifest?.runtimeVersion &&
+      timeline.json?.safety?.presentationOnly === true &&
+      timeline.json?.safety?.noExternalApiCalls === true &&
+      timeline.json?.safety?.secretsIncluded === false &&
+      missingAreas.length === 0;
+    record("founder-timeline", ok, ok
+      ? "backend exposes a read-only founder timeline without external API calls or secrets"
+      : "backend founder timeline is missing required read-only operating signals", {
+        status: timeline.status,
+        version: timeline.json?.version,
+        missingAreas,
+        safety: timeline.json?.safety,
+        error: timeline.json?.error
+      });
+  } catch (error) {
+    record("founder-timeline", false, `founder timeline endpoint is not reachable: ${error?.message || error}`);
+  }
+
   const passed = results.filter((item) => item.ok).length;
   const failed = results.length - passed;
   mkdirSync(dirname(reportPath), { recursive: true });

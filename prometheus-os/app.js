@@ -18,6 +18,7 @@ const detailKicker = $("#detailKicker");
 const detailTitle = $("#detailTitle");
 const detailText = $("#detailText");
 const detailActions = $("#detailActions");
+const statusGrid = $("#statusGrid");
 
 const forceFounderVoiceDefaults = true;
 const defaultPremiumTtsProvider = "elevenlabs";
@@ -59,6 +60,7 @@ let activeRouteDecision = null;
 let suppressCardRoutesUntil = 0;
 let suppressCardRoutesReason = "";
 let companionVersion = null;
+let founderTimeline = null;
 
 if (forceFounderVoiceDefaults) {
   localStorage.setItem("prometheus-os-tts-provider", selectedTtsProvider);
@@ -189,6 +191,23 @@ function explicitPanelRequest(message = "", response = {}) {
 
 function shouldDisplayConversationPanel(message = "", response = {}) {
   return explicitPanelRequest(message, response) || response.metadata?.showCard === true;
+}
+
+async function refreshFounderTimeline() {
+  try {
+    const response = await fetch("http://127.0.0.1:8792/api/founder/timeline", { cache: "no-store" });
+    if (!response.ok) return null;
+    founderTimeline = await response.json();
+    aiProvider.setFounderTimeline?.(founderTimeline);
+    return founderTimeline;
+  } catch {
+    return null;
+  }
+}
+
+function startFounderTimelineRefresh() {
+  refreshFounderTimeline();
+  window.setInterval(refreshFounderTimeline, 60_000);
 }
 
 async function loadCompanionVersion() {
@@ -442,28 +461,7 @@ function systemNodes() {
 }
 
 function renderNetwork() {
-  const nodes = systemNodes();
-  const total = nodes.length;
-
-  $("#statusGrid").innerHTML = nodes.map((node, index) => {
-    const angle = -90 + (360 / total) * index;
-    const radius = index % 2 === 0 ? "clamp(205px, 23vw, 330px)" : "clamp(158px, 18vw, 270px)";
-    return `
-      <button
-        class="system-node command-node"
-        type="button"
-        data-node-id="${node.id}"
-        data-signal="${node.signal}"
-        style="--angle: ${angle}deg; --radius: ${radius}; --delay: ${index * 0.16}s;"
-      >
-        <div class="status-meta">
-          <span>${node.label}</span>
-          <i>${node.signal}</i>
-        </div>
-        <strong>${node.value}</strong>
-      </button>
-    `;
-  }).join("");
+  if (statusGrid) statusGrid.remove();
 }
 
 function scoreVoice(voiceItem) {
@@ -1041,13 +1039,6 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
     if (!result.ok) {
       if (!interruptOnly) setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
       debugVoice("no command detected", result.error || "No command was detected.", { kind: "warn" });
-      if (!silentNoInput) {
-        openDetail({
-          kicker: "Speech capture",
-          title: "I did not catch that",
-          text: `${result.error || "No command was detected."} Try saying a short command like “pilot readiness.”`
-        });
-      }
       scheduleBackendSttLoop(700);
       return false;
     }
@@ -1086,11 +1077,6 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
     setVoiceState("voice recognition unavailable");
     const reason = error?.message || "Prometheus could not access the browser microphone recorder.";
     debugVoice("Error", reason, { kind: "error" });
-    openDetail({
-      kicker: "Speech capture",
-      title: "Browser speech capture unavailable",
-      text: `${reason} Prometheus Companion uses the local WebView microphone recorder and sends audio to the local STT backend.`
-    });
     if (isMicrophonePermissionError(error || reason)) {
       scheduleMicrophonePermissionRecovery(reason);
     }
@@ -1415,7 +1401,7 @@ async function speakResponse(text) {
 function bindNetwork() {
   $("#detailClose").addEventListener("click", closeDetail);
 
-  $("#statusGrid").addEventListener("click", (event) => {
+  statusGrid?.addEventListener("click", (event) => {
     const node = event.target.closest("[data-node-id]");
     if (node) openNode(node.dataset.nodeId);
   });
@@ -1480,6 +1466,7 @@ function init() {
   renderNetwork();
   bindNetwork();
   installTopChromeReveal();
+  startFounderTimelineRefresh();
   initVoice();
   createPrometheusScene($("#holoCanvas"));
 }

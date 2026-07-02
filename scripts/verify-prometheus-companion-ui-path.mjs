@@ -766,6 +766,8 @@ const styleSource = readFileSync(new URL("../prometheus-os/style.css", import.me
 const uiPolicyFailures = [
   appSource.includes('kicker: "Prometheus response"') ? "normal response panel still uses Prometheus response card" : "",
   appSource.includes('kicker: "Clap detected"') ? "clap detection notification panel still exists" : "",
+  appSource.includes('kicker: "Speech capture"') ? "automatic speech-capture panel still exists" : "",
+  appSource.includes("I did not catch that") ? "normal no-input prompt card still exists" : "",
   !appSource.includes("function shouldDisplayConversationPanel") ? "conversation panel policy helper missing" : "",
   !appSource.includes("explicitPanelRequest") ? "explicit panel request gate missing" : "",
   !appSource.includes("cardDisplayed") ? "last command result does not report card display state" : "",
@@ -776,6 +778,10 @@ const uiPolicyFailures = [
   !appSource.includes("AbortController") ? "pending TTS abort controller missing" : "",
   !appSource.includes("voice.setInterruptOnly(true)") ? "browser interim interrupt mode missing for Companion shell" : "",
   !appSource.includes("installTopChromeReveal") ? "top chrome reveal behavior missing" : "",
+  !appSource.includes("refreshFounderTimeline") ? "founder timeline refresh missing from Companion runtime" : "",
+  !appSource.includes("/api/founder/timeline") ? "founder timeline backend consumption missing" : "",
+  !appSource.includes("setFounderTimeline") ? "founder timeline is not passed into assistant provider" : "",
+  indexSource.includes('id="statusGrid"') ? "floating subsystem tile container still exists in normal view" : "",
   indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
   !indexSource.includes("event-horizon-core") ? "event-horizon core markup missing" : "",
   !styleSource.includes("body.top-chrome-visible .build-marker") ? "status chrome top-edge reveal CSS missing" : "",
@@ -792,6 +798,26 @@ if (uiPolicyFailures.length) {
   });
 } else {
   console.log("PASS Voice-first UI policy removes normal response cards and clap notification cards");
+}
+
+const sceneSource = readFileSync(new URL("../prometheus-os/three-scene.js", import.meta.url), "utf8");
+const scenePolicyFailures = [
+  !sceneSource.includes("makeStarField") ? "deep-space star field missing" : "",
+  !sceneSource.includes("makeDustBand") ? "cosmic dust band missing" : "",
+  !sceneSource.includes("horizon") ? "event-horizon scene structure missing" : "",
+  !sceneSource.includes("voiceState") ? "voice-state driven cinematic colors missing" : "",
+  sceneSource.includes("globeGroup") ? "old dashboard globe group still present" : "",
+  sceneSource.includes("routesGroup") ? "old route visualization group still present" : "",
+  sceneSource.includes("nodesGroup") ? "old node visualization group still present" : "",
+  sceneSource.includes("SphereGeometry(1.92") ? "old wireframe globe geometry still present" : ""
+].filter(Boolean);
+
+if (scenePolicyFailures.length) {
+  fail("cinematic-operating-scene", {
+    issues: scenePolicyFailures
+  });
+} else {
+  console.log("PASS Cinematic operating scene replaces dashboard globe and subsystem-node visuals");
 }
 
 if (failures) {

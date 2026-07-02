@@ -11,18 +11,23 @@ import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
 
 export class AIProvider {
-  constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null } = {}) {
+  constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null, founderTimeline = null } = {}) {
     this.mode = mode;
     this.history = [];
     this.currentFocus = null;
     this.communicationsService = communicationsService;
     this.socialMediaAnalyticsService = socialMediaAnalyticsService;
+    this.founderTimeline = founderTimeline;
   }
 
   get providerLabel() {
     if (this.mode === "openai") return "OpenAI backend ready";
     if (this.mode === "claude") return "Claude backend ready";
     return "Local demo intelligence";
+  }
+
+  setFounderTimeline(timeline) {
+    this.founderTimeline = timeline || null;
   }
 
   async ask(message) {
@@ -49,7 +54,8 @@ export class AIProvider {
 
     const founderAssistantResponse = await createFounderAssistantResponse(normalized, {
       communicationsService: this.communicationsService || undefined,
-      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined
+      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined,
+      founderTimeline: this.founderTimeline || undefined
     });
     if (founderAssistantResponse) {
       return this.remember(cleanMessage, founderAssistantResponse);
@@ -146,7 +152,8 @@ export class AIProvider {
 
     const founderAssistantResponse = await createFounderAssistantResponse(command, {
       communicationsService: this.communicationsService || undefined,
-      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined
+      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined,
+      founderTimeline: this.founderTimeline || undefined
     });
     if (founderAssistantResponse) return founderAssistantResponse;
 
