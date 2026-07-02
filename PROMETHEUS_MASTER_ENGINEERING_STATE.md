@@ -6434,6 +6434,79 @@ Next recommended subsystem:
 
 Overwatch / Master Engineering State, then explicit Dashboard, CRM, Mobile, and Companion profile-consumer handoffs. Companion profile-consumer work should wait until Founder acceptance clears the active Companion visual review.
 
+### 2026-07-02: Prometheus Dashboard - Operating Profile Consumer v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Operating Profile Consumer v1
+
+Commit: `99a11802c37d2453628bd941958e0685cc49304a`
+
+Deploy: Deployed with `npx wrangler deploy --keep-vars` to Worker `prometheus-iq`
+
+Production URL: `https://prometheus-iq.prometheusrouteiq.workers.dev`
+
+Worker version: `0bff8cba-4364-4b44-a997-fdcf9c413d99`
+
+Status: Complete and deployed. Production browser smoke verification is blocked by Cloudflare Access authentication, not by Dashboard implementation.
+
+Profile contracts consumed:
+
+- `intelligence/profiles/operating-profiles.json`
+- `intelligence/contracts/operating-profile-contracts.json`
+
+Deploy assets added:
+
+- `deploy/cloudflare-pages/intelligence/profiles/operating-profiles.json`
+- `deploy/cloudflare-pages/intelligence/contracts/operating-profile-contracts.json`
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/intelligence/contracts/operating-profile-contracts.json`
+- `deploy/cloudflare-pages/intelligence/profiles/operating-profiles.json`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `scripts/verify-production-release.mjs`
+- `sw.js`
+
+What changed:
+
+Dashboard now consumes the Intelligence operating profile contract and deploys the required profile assets with the Dashboard bundle. Fitness/Gym beta behavior remains the default and Fitness vocabulary is preserved. Example profiles validated: Fitness, Roofing, Security, and Medical.
+
+Production verification:
+
+Deployment/version verification passed. Cloudflare Access protection verification passed. Artifact/build parity passed. Authenticated live Dashboard browser smoke did not complete because the available CDP session redirected to Cloudflare Access login instead of entering the app.
+
+Verification:
+
+- `node --check scripts/verify-dashboard-runtime-workflows.mjs`: passed.
+- `node --check scripts/verify-production-release.mjs`: passed.
+- `git diff --check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed.
+- `npm run security:check`: passed.
+- `npm run dashboard:runtime-pool:check`: passed.
+- `npm run intelligence:operating-profile:check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm test`: passed.
+- `npm run verify:production-release -- --expected-worker-version 0bff8cba-4364-4b44-a997-fdcf9c413d99`: passed through available unauthenticated/deployment gates; authenticated app checks blocked.
+- `npm run verify:production-release -- --expected-worker-version 0bff8cba-4364-4b44-a997-fdcf9c413d99 --cdp http://127.0.0.1:9225`: CDP reached Cloudflare Access login, so authenticated in-app smoke remained blocked.
+
+Remaining blockers:
+
+Authenticated production app/runtime smoke requires a valid Cloudflare Access-authenticated browser session or cookie. Current CDP session only reached Cloudflare Access login, so live Founder/Rep in-app runtime verification could not be completed. Existing unrelated Companion/Mac local edits remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Prometheus CRM or Prometheus Mobile for the next operating profile consumer handoff. Companion profile-consumer work should wait until Founder acceptance clears active Companion visual review.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -6461,6 +6534,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
+- Do not duplicate Dashboard Operating Profile Consumer v1; reuse the Dashboard consumption of `intelligence/profiles/operating-profiles.json` and `intelligence/contracts/operating-profile-contracts.json`, the deploy asset copies under `deploy/cloudflare-pages/intelligence/`, preserved Fitness/Gym beta default behavior, profile-aware Dashboard runtime workflow coverage, and production Worker version `0bff8cba-4364-4b44-a997-fdcf9c413d99`.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
