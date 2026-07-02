@@ -6369,6 +6369,71 @@ Next recommended subsystem:
 
 Prometheus Dashboard, to design the future "Why?" consumer surface only after explicit handoff approval.
 
+### 2026-07-02: Prometheus Intelligence Engine - Operating Profile Engine + Field Evidence Activation Foundation v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Operating Profile Engine + Field Evidence Activation Foundation v1
+
+Commit: `d659694ca8d072fe1f711d164146dc1cef680967`
+
+Deploy: Deployed to Cloudflare Worker `prometheus-iq`
+
+Worker version: `2415f36e-ecfb-4223-9035-26c316eb6239`
+
+Status: Complete and deployed. Authenticated production route/browser checks remain blocked by missing Cloudflare Access cookie or CDP session. Local artifact parity passed.
+
+Implementation type: Architecture and validation foundation
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `intelligence/README.md`
+- `intelligence/contracts/operating-profile-contracts.json`
+- `intelligence/field-evidence-activation-foundation.md`
+- `intelligence/operating-profile-engine.mjs`
+- `intelligence/profiles/operating-profiles.json`
+- `intelligence/subsystem-contracts.md`
+- `package.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-operating-profile-engine.mjs`
+- `tests/operating-profile-engine.test.mjs`
+
+Operating Profile Engine created:
+
+Intelligence Engine added config-driven operating profiles for General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, and Home Services.
+
+Field Evidence foundation:
+
+Intelligence Engine added an architecture-only field evidence admission foundation with no production learning activation. The normalized model is `Visit -> Outcome -> Evidence -> Learning Signal -> Confidence -> Recommendation`.
+
+Contracts created:
+
+Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media operating profile contracts.
+
+Production verification:
+
+Deployment/version/security/runtime-pool/workflow gates passed. Authenticated production route/browser checks remain blocked by missing `PROMETHEUS_ACCESS_COOKIE`, Cloudflare Access session, or `--cdp`. Local artifact parity passed.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- `npm run intelligence:operating-profile:check`: passed.
+- `npm run test:intelligence:operating-profile`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `node scripts/verify-production-release.mjs --local-only --skip-existing-gates`: passed.
+
+Remaining blockers:
+
+Authenticated production browser verification requires `PROMETHEUS_ACCESS_COOKIE`, Cloudflare Access session, or `--cdp`. Existing unrelated Companion/Mac local edits remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Overwatch / Master Engineering State, then explicit Dashboard, CRM, Mobile, and Companion profile-consumer handoffs. Companion profile-consumer work should wait until Founder acceptance clears the active Companion visual review.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -6436,6 +6501,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Adaptive Field Learning Loop Foundation v1; reuse `intelligence/adaptive-field-learning-loop-foundation.md`, `intelligence/contracts/field-learning-loop-contracts.json`, `intelligence/field-learning-loop-handoffs.md`, updated `intelligence/subsystem-contracts.md`, and the Intelligence validation/test gates for completed-visit evidence capture, evidence admission, learning signals, confidence snapshots, recommendation explanations, and human override review.
 - Do not duplicate Adaptive Field Learning Offline Evidence Harness v1; reuse `intelligence/field-learning-offline-evidence-harness.mjs`, `intelligence/fixtures/field-visit-evidence-fixtures.json`, `scripts/verify-field-learning-offline-evidence-harness.mjs`, `tests/field-learning-offline-evidence-harness.test.mjs`, and the existing no-production-change safety flags for simulated evidence ingestion, learning signals, confidence snapshots, explanations, and human override enforcement.
 - Do not duplicate Recommendation Explainability Engine v1; reuse `intelligence/recommendation-explainability-engine.mjs`, `intelligence/contracts/recommendation-explainability-contracts.json`, `scripts/verify-recommendation-explainability-engine.mjs`, `tests/recommendation-explainability-engine.test.mjs`, and the no-formula/no-weight-disclosure safeguards for Mobile, Dashboard, and Companion explanation consumers.
+- Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
