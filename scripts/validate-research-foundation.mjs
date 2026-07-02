@@ -9,6 +9,7 @@ const sourceRegister = readJson("research/registers/source-register.json");
 const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
+const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
 const marketRecommendationSchema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
@@ -17,6 +18,7 @@ const sourcePolicy = readText("research/source-policy.md");
 const template = readText("research/templates/founder-intelligence-brief.md");
 const strategicBriefTemplate = readText("research/templates/strategic-intelligence-brief.md");
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
+const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const briefingSystem = readText("research/briefing-system.md");
 const marketIntelligenceEngine = readText("research/market-intelligence-engine.md");
 const briefingHandoffs = readText("research/future-briefing-handoffs.md");
@@ -156,6 +158,22 @@ const protectedMarketSubsystems = [
   "CRM",
   "Mobile",
   "Intelligence runtime"
+];
+
+const marketExpansionRequiredIndustries = [
+  "Fitness",
+  "Roofing",
+  "Security",
+  "Medical",
+  "Insurance",
+  "Solar",
+  "Home Services",
+  "Pest Control",
+  "HVAC",
+  "Commercial Services",
+  "Telecommunications",
+  "Merchant Services",
+  "B2B Field Sales"
 ];
 
 for (const category of requiredCategories) {
@@ -309,6 +327,59 @@ for (const heading of [
 ]) {
   assert.ok(marketRecommendationTemplate.includes(heading), `Market recommendation template missing heading: ${heading}`);
 }
+
+assert.equal(
+  marketExpansionScoring.status,
+  "founder_ready_research_artifact",
+  "Market expansion scoring artifact must be founder-ready research."
+);
+assert.equal(
+  marketExpansionScoring.recommendation,
+  "Prometheus should expand first into Roofing after the Fitness validation environment.",
+  "Market expansion recommendation must preserve the first expansion recommendation."
+);
+assert.equal(
+  marketExpansionScoring.industriesEvaluated.length >= marketExpansionRequiredIndustries.length,
+  true,
+  "Market expansion scoring must evaluate every required industry."
+);
+
+for (const industry of marketExpansionRequiredIndustries) {
+  assert.ok(
+    marketExpansionScoring.industriesEvaluated.some(evaluation => evaluation.industry === industry),
+    `Market expansion scoring missing industry: ${industry}`
+  );
+  assert.ok(marketExpansionReport.includes(`###`) && marketExpansionReport.includes(industry), `Market expansion report missing industry: ${industry}`);
+}
+
+assert.deepEqual(
+  marketExpansionScoring.top10ExpansionOpportunities,
+  [
+    "Roofing",
+    "Solar",
+    "HVAC",
+    "Pest Control",
+    "Home Services",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Commercial Services",
+    "Telecommunications"
+  ],
+  "Market expansion top 10 ranking drifted."
+);
+assert.ok(marketExpansionReport.includes("Why #1 Outranks #2"), "Market expansion report must explain why #1 outranks #2.");
+assert.ok(marketExpansionReport.includes("Why #2 Outranks #3"), "Market expansion report must explain why #2 outranks #3.");
+assert.ok(marketExpansionReport.includes("Immediate Targets"), "Market expansion report must identify immediate targets.");
+assert.ok(marketExpansionReport.includes("Future Targets"), "Market expansion report must identify future targets.");
+assert.ok(marketExpansionReport.includes("Long-Term Expansion"), "Market expansion report must identify long-term expansion.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.companionModified, false, "Market report must not modify Companion.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.dashboardModified, false, "Market report must not modify Dashboard.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.crmModified, false, "Market report must not modify CRM.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.mobileModified, false, "Market report must not modify Mobile.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.websiteModified, false, "Market report must not modify Website.");
+assert.equal(marketExpansionScoring.boundaryConfirmation.intelligenceRuntimeModified, false, "Market report must not modify Intelligence runtime.");
+assert.equal(marketExpansionScoring.sourceReferences.length >= 12, true, "Market expansion report must preserve source references.");
 
 assert.equal(sourceRegister.sources.length >= 6, true, "Source register needs internal and external seed sources.");
 for (const source of sourceRegister.sources) {

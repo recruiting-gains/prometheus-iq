@@ -27,3 +27,5 @@ Current foundation:
 - `research/registers/intelligence-backlog.json`
 - `research/registers/briefing-catalog.json`
 - `research/registers/market-intelligence-model.json`
+- `research/reports/market-expansion-recommendation-v1.md`
+- `research/reports/market-expansion-scoring-v1.json`

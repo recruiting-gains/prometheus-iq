@@ -1,0 +1,195 @@
+{
+  "version": "market-expansion-recommendation-v1",
+  "date": "2026-07-02",
+  "status": "founder_ready_research_artifact",
+  "recommendation": "Prometheus should expand first into Roofing after the Fitness validation environment.",
+  "scoringScale": "0-100",
+  "criteria": [
+    "market_size",
+    "outside_sales_workforce",
+    "field_visit_frequency",
+    "territory_based_selling",
+    "revenue_opportunity",
+    "ai_adoption_potential",
+    "operating_profile_onboarding_ease",
+    "sales_cycle_complexity",
+    "expansion_potential"
+  ],
+  "industriesEvaluated": [
+    {
+      "rank": 1,
+      "industry": "Roofing",
+      "opportunityScore": 86,
+      "recommendedPriority": "immediate_target",
+      "outsideSalesFit": "very_high",
+      "operatingProfileComplexity": "low_to_medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 2,
+      "industry": "Solar",
+      "opportunityScore": 83,
+      "recommendedPriority": "immediate_target",
+      "outsideSalesFit": "very_high",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 3,
+      "industry": "HVAC",
+      "opportunityScore": 82,
+      "recommendedPriority": "immediate_target",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "low_to_medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 4,
+      "industry": "Pest Control",
+      "opportunityScore": 78,
+      "recommendedPriority": "immediate_target",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "low",
+      "shouldEnter": true
+    },
+    {
+      "rank": 5,
+      "industry": "Home Services",
+      "opportunityScore": 77,
+      "recommendedPriority": "future_target",
+      "outsideSalesFit": "medium_to_high",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 6,
+      "industry": "Security",
+      "opportunityScore": 75,
+      "recommendedPriority": "future_target",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 7,
+      "industry": "Medical",
+      "opportunityScore": 72,
+      "recommendedPriority": "future_target",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "high",
+      "shouldEnter": true
+    },
+    {
+      "rank": 8,
+      "industry": "Insurance",
+      "opportunityScore": 70,
+      "recommendedPriority": "future_target",
+      "outsideSalesFit": "medium_to_high",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 9,
+      "industry": "Commercial Services",
+      "opportunityScore": 68,
+      "recommendedPriority": "future_target",
+      "outsideSalesFit": "medium_to_high",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": true
+    },
+    {
+      "rank": 10,
+      "industry": "Telecommunications",
+      "opportunityScore": 65,
+      "recommendedPriority": "long_term_expansion",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "medium_to_high",
+      "shouldEnter": true
+    },
+    {
+      "rank": 11,
+      "industry": "Merchant Services",
+      "opportunityScore": 63,
+      "recommendedPriority": "long_term_expansion",
+      "outsideSalesFit": "medium",
+      "operatingProfileComplexity": "medium",
+      "shouldEnter": false
+    },
+    {
+      "rank": 12,
+      "industry": "B2B Field Sales",
+      "opportunityScore": 61,
+      "recommendedPriority": "long_term_category",
+      "outsideSalesFit": "high",
+      "operatingProfileComplexity": "high",
+      "shouldEnter": false
+    },
+    {
+      "rank": 13,
+      "industry": "Fitness",
+      "opportunityScore": 58,
+      "recommendedPriority": "validation_baseline",
+      "outsideSalesFit": "medium",
+      "operatingProfileComplexity": "low",
+      "shouldEnter": false
+    }
+  ],
+  "top10ExpansionOpportunities": [
+    "Roofing",
+    "Solar",
+    "HVAC",
+    "Pest Control",
+    "Home Services",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Commercial Services",
+    "Telecommunications"
+  ],
+  "immediateTargets": [
+    "Roofing",
+    "Solar",
+    "HVAC",
+    "Pest Control"
+  ],
+  "futureTargets": [
+    "Home Services",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Commercial Services"
+  ],
+  "longTermExpansion": [
+    "Telecommunications",
+    "Merchant Services",
+    "B2B Field Sales"
+  ],
+  "sourceReferences": [
+    "COMPANY_IDENTITY.md",
+    "PRODUCT_VISION.md",
+    "research/registers/market-intelligence-model.json",
+    "https://www.bls.gov/ooh/sales/wholesale-and-manufacturing-sales-representatives.htm",
+    "https://www.bls.gov/ooh/sales/insurance-sales-agents.htm",
+    "https://www.bls.gov/ooh/installation-maintenance-and-repair/heating-air-conditioning-and-refrigeration-mechanics-and-installers.htm",
+    "https://www.bls.gov/ooh/construction-and-extraction/solar-photovoltaic-installers.htm",
+    "https://www.onetonline.org/link/summary/37-2021.00",
+    "https://www.onetonline.org/link/summary/49-2098.00",
+    "https://www.seia.org/research-resources/solar-market-insight-report",
+    "https://irecusa.org/programs/solar-jobs-census/",
+    "https://www.jchs.harvard.edu/improving-americas-housing-2025",
+    "https://www.advamed.org/medical-technology/medtechs-economic-impact/",
+    "https://www.iii.org/publications/a-firm-foundation-how-insurance-supports-the-economy/a-50-state-commitment/insurance-industry-at-a-glance",
+    "https://www.federalreserve.gov/paymentsystems/fr-payments-study.htm",
+    "https://www.ibisworld.com/united-states/industry-statistics/",
+    "https://www.healthandfitness.org/research-reports/"
+  ],
+  "boundaryConfirmation": {
+    "companionModified": false,
+    "dashboardModified": false,
+    "crmModified": false,
+    "mobileModified": false,
+    "websiteModified": false,
+    "intelligenceRuntimeModified": false,
+    "productionDeploymentRequired": false
+  }
+}

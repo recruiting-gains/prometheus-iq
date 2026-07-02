@@ -38,6 +38,8 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `registers/intelligence-backlog.json`: Initial recurring watchlist and open research backlog.
 - `registers/briefing-catalog.json`: Recurring briefing product catalog.
 - `registers/market-intelligence-model.json`: Market opportunity scoring model, candidate universe, and protected subsystem gates.
+- `reports/market-expansion-recommendation-v1.md`: First founder-ready strategic market expansion recommendation.
+- `reports/market-expansion-scoring-v1.json`: Structured scoring ledger for Market Expansion Recommendation v1.
 
 ## Recurring Founder Intelligence Briefs
 
@@ -90,6 +92,12 @@ Capabilities:
 - Enterprise target identification
 
 Market Intelligence Engine v1 is architecture and validation only. It does not score live markets, scrape sources, deploy runtime services, or modify production systems.
+
+Current founder-ready output:
+
+- First recommended expansion market: Roofing.
+- Top 10 expansion opportunities: Roofing, Solar, HVAC, Pest Control, Home Services, Security, Medical, Insurance, Commercial Services, Telecommunications.
+- Report: `research/reports/market-expansion-recommendation-v1.md`
 
 ## Boundary
 

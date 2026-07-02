@@ -196,3 +196,60 @@ test("Market Intelligence scoring model is weighted and protects blocked subsyst
     assert.match(template, new RegExp(heading));
   }
 });
+
+test("Market Expansion Recommendation evaluates required industries and ranks top opportunities", () => {
+  const scoring = readJson("research/reports/market-expansion-scoring-v1.json");
+  const report = readText("research/reports/market-expansion-recommendation-v1.md");
+
+  for (const industry of [
+    "Fitness",
+    "Roofing",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Solar",
+    "Home Services",
+    "Pest Control",
+    "HVAC",
+    "Commercial Services",
+    "Telecommunications",
+    "Merchant Services",
+    "B2B Field Sales"
+  ]) {
+    assert.ok(scoring.industriesEvaluated.some(evaluation => evaluation.industry === industry), `Missing ${industry}`);
+    assert.match(report, new RegExp(industry.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.deepEqual(scoring.top10ExpansionOpportunities, [
+    "Roofing",
+    "Solar",
+    "HVAC",
+    "Pest Control",
+    "Home Services",
+    "Security",
+    "Medical",
+    "Insurance",
+    "Commercial Services",
+    "Telecommunications"
+  ]);
+  assert.equal(scoring.industriesEvaluated[0].industry, "Roofing");
+  assert.equal(scoring.industriesEvaluated[0].opportunityScore, 86);
+  assert.match(report, /Why #1 Outranks #2/);
+  assert.match(report, /Why #2 Outranks #3/);
+});
+
+test("Market Expansion Recommendation remains research-only with source references", () => {
+  const scoring = readJson("research/reports/market-expansion-scoring-v1.json");
+  const report = readText("research/reports/market-expansion-recommendation-v1.md");
+
+  assert.equal(scoring.boundaryConfirmation.companionModified, false);
+  assert.equal(scoring.boundaryConfirmation.dashboardModified, false);
+  assert.equal(scoring.boundaryConfirmation.crmModified, false);
+  assert.equal(scoring.boundaryConfirmation.mobileModified, false);
+  assert.equal(scoring.boundaryConfirmation.websiteModified, false);
+  assert.equal(scoring.boundaryConfirmation.intelligenceRuntimeModified, false);
+  assert.equal(scoring.boundaryConfirmation.productionDeploymentRequired, false);
+  assert.ok(scoring.sourceReferences.length >= 12);
+  assert.match(report, /Source References/);
+  assert.match(report, /No Companion files modified/);
+});

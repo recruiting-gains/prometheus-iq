@@ -57,6 +57,79 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### Completed Work Lane: Market Expansion Recommendation v1
+
+Primary subsystem: Prometheus Research
+
+Secondary subsystems:
+
+- None. Research artifact only.
+
+Task:
+
+Market Expansion Recommendation v1.
+
+Status:
+
+Complete. See originating Overwatch handoff for commit hash.
+
+Implementation type:
+
+Research artifact and validation.
+
+Deploy:
+
+Not run. No production deployment required.
+
+Verified outcome:
+
+- Produced the first founder-ready strategic Market Expansion Recommendation after the Fitness validation environment.
+- Evaluated Fitness, Roofing, Security, Medical, Insurance, Solar, Home Services, Pest Control, HVAC, Commercial Services, Telecommunications, Merchant Services, and B2B Field Sales.
+- Ranked top 10 expansion opportunities: Roofing, Solar, HVAC, Pest Control, Home Services, Security, Medical, Insurance, Commercial Services, Telecommunications.
+- Recommended Roofing as the first post-Fitness expansion market.
+- Explained why Roofing outranks Solar and why Solar outranks HVAC.
+- Identified immediate targets, future targets, and long-term expansion categories.
+- Added structured scoring ledger and validation coverage.
+- Did not modify Companion, Dashboard, CRM, Mobile, Website, or Intelligence runtime.
+
+Research sources used:
+
+- `COMPANY_IDENTITY.md`
+- `PRODUCT_VISION.md`
+- `research/registers/market-intelligence-model.json`
+- BLS Occupational Outlook Handbook
+- O*NET
+- SEIA Solar Market Insight
+- IREC National Solar Jobs Census
+- Harvard Joint Center for Housing Studies
+- AdvaMed
+- Insurance Information Institute
+- Federal Reserve Payments Study
+- IBISWorld public industry summaries
+- Health & Fitness Association research
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/reports/market-expansion-recommendation-v1.md`
+- `research/reports/market-expansion-scoring-v1.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining blockers:
+
+- Primary buyer interviews are still needed in Roofing, Solar, HVAC, and Pest Control.
+- Better direct evidence is needed on field-sales headcount by vertical.
+- Competitor feature/pricing refresh is needed for roofing, solar, pest-control, and security canvassing tools.
+- Geographic expansion analysis should compare Houston/Texas density against national vertical density.
+- Regulatory review is needed before Medical, Insurance, Security, Telecom, or Merchant Services claims are used externally.
+
+Next recommended subsystem:
+
+Prometheus Sales for Roofing-focused discovery/pilot targeting, or Prometheus Research for a Roofing competitor and buyer-interview brief.
+
 ### Completed Work Lane: Market Intelligence Engine v1
 
 Primary subsystem: Prometheus Research
@@ -6985,6 +7058,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
+- Do not duplicate Market Expansion Recommendation v1; reuse `research/reports/market-expansion-recommendation-v1.md`, `research/reports/market-expansion-scoring-v1.json`, and the Research validation/test gates for the Roofing-first recommendation, top 10 expansion ranking, source references, and no-production-change boundary confirmations.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.
