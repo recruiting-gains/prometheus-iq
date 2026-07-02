@@ -207,7 +207,7 @@ Existing research-related documents must be reused:
 - `docs/prometheus-iq-competitive-differentiation.md`
 - `RESEARCH_FOUNDATION.md`
 - `COMPANY_IDENTITY.md`
-- `docs/product-vision.md`
+- `PRODUCT_VISION.md`
 - `docs/prometheus-company-manual.md`
 - `research/briefing-system.md`
 - `research/registers/briefing-catalog.json`

@@ -13,7 +13,7 @@ Recovered from pinned Codex thread:
 
 ## Founder Reference Files
 
-- Product vision: `/Users/cruzgarza/Documents/Prometheus/docs/product-vision.md`
+- Product vision: `/Users/cruzgarza/Documents/Prometheus/PRODUCT_VISION.md`
 - Beta sharing plan: `/Users/cruzgarza/Documents/Prometheus/docs/beta-sharing-plan.md`
 - Fitness Connection pitch plan: `/Users/cruzgarza/Documents/Prometheus/docs/fitness-connection-pitch-plan.md`
 - Investor readiness plan: `/Users/cruzgarza/Documents/Prometheus/docs/investor-readiness-plan.md`

@@ -6,7 +6,7 @@ This folder is the product and engineering control center. It helps future build
 
 ## Included Documents And Assets
 
-- `docs/product-vision.md`
+- `PRODUCT_VISION.md`
 - `docs/prometheus.md`
 - `docs/cloud-beta-cost-and-response-plan.md`
 - `docs/google-places-integration-readiness-plan.md`

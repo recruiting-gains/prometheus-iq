@@ -15,9 +15,9 @@
     },
     {
       "id": "internal-product-vision",
-      "title": "Prometheus IQ Product Vision",
+      "title": "Prometheus Product Vision v1",
       "publisher": "Prometheus",
-      "sourceRef": "docs/product-vision.md",
+      "sourceRef": "PRODUCT_VISION.md",
       "trustTier": "Tier 1",
       "categories": ["Sales", "Industries", "Opportunities"],
       "usage": "Internal product thesis and horizontal industry direction.",

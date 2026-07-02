@@ -7,7 +7,7 @@ Provide the fastest possible overview of Prometheus IQ for a busy executive.
 ## Included Documents
 
 - Source reference: `docs/executive-briefing-packet-chris-dallas.md`
-- Source reference: `docs/product-vision.md`
+- Source reference: `PRODUCT_VISION.md`
 - Source reference: `docs/prometheus.md`
 
 ## Missing Items
@@ -30,4 +30,3 @@ Provide the fastest possible overview of Prometheus IQ for a busy executive.
 - COO Review: Yes.
 - HR Review: Limited use.
 - Legal Review: Limited use; legal will need the approval package too.
-

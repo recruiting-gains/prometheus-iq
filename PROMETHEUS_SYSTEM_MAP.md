@@ -11,7 +11,7 @@ Every future Prometheus task should identify its primary workstream before work 
 ## Governing Identity Sources
 
 - `COMPANY_IDENTITY.md`: canonical company mission, vision, values, positioning, and permanent company identity decisions.
-- `docs/product-vision.md`: product vision and long-term product direction.
+- `PRODUCT_VISION.md`: canonical product vision, product hierarchy, customer hierarchy, product principles, and long-term platform direction.
 - `docs/prometheus-company-manual.md`: company operating context and certified company milestones.
 
 ## Workstreams

@@ -11,13 +11,13 @@ This architecture is planning and CRM-owned operating structure only. It does no
 - `PROMETHEUS_CONSTITUTION.md`
 - `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
 - `COMPANY_IDENTITY.md`
-- `docs/product-vision.md`
+- `PRODUCT_VISION.md`
 - `sales/README.md`
 - `sales/customer-success-lifecycle.md`
 - `crm/README.md`
 - `crm/crm-foundation.mjs`
 
-Root `PRODUCT_VISION.md` and `SALES_FOUNDATION.md` were not present. CRM used `docs/product-vision.md` and the committed `sales/` foundation as the approved fallback sources.
+Root `PRODUCT_VISION.md` is now the canonical product vision source. `SALES_FOUNDATION.md` was not present, so CRM used the committed `sales/` foundation as the approved fallback source.
 
 ## CRM Boundary
 
@@ -249,7 +249,7 @@ Reuse:
 - `crm/crm-foundation.mjs` for beta CRM contact/lead/follow-up/task primitives.
 - `sales/customer-success-lifecycle.md` for Sales-owned customer success operating language.
 - `COMPANY_IDENTITY.md` for company identity.
-- `docs/product-vision.md` for product promise and long-term product direction.
+- `PRODUCT_VISION.md` for product promise and long-term product direction.
 - `PROMETHEUS_MASTER_ENGINEERING_STATE.md` for completed work and duplicate-prevention references.
 
 ## Future Handoffs

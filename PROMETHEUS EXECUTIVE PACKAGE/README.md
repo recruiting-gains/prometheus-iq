@@ -31,7 +31,7 @@ This folder is designed to help decide what to discuss first, what to hold back,
 - `docs/prometheus-pilot-approval-package.md`
 - `docs/security-audit-2026-06-21.md`
 - `docs/security-plan.md`
-- `docs/product-vision.md`
+- `PRODUCT_VISION.md`
 - `docs/founder-master-notes.md`
 - `docs/fitness-connection-pitch-plan.md`
 - `docs/evidence-log.md`
@@ -39,4 +39,3 @@ This folder is designed to help decide what to discuss first, what to hold back,
 - `docs/website-cinematic-prompts.md`
 - `legal/Prometheus_IQ_Pilot_Confidentiality_Agreement_DRAFT.docx`
 - `legal/Prometheus_IQ_Authorized_User_NDA_DRAFT.docx`
-

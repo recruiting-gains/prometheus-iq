@@ -16,7 +16,7 @@ Summarize what Prometheus IQ does without explaining how the proprietary system 
 
 ## Included Documents
 
-- `docs/product-vision.md`
+- `PRODUCT_VISION.md`
 - `docs/prometheus.md`
 - `docs/public-site-cloudflare-readiness.md`
 
@@ -42,4 +42,3 @@ Summarize what Prometheus IQ does without explaining how the proprietary system 
 - COO Review: Yes.
 - HR Review: Limited.
 - Legal Review: Limited unless reviewing IP/confidentiality.
-

@@ -4,7 +4,7 @@
   "productionBetaSystemsModified": false,
   "externalCommunicationProvidersConnected": false,
   "sourceFallbacks": {
-    "PRODUCT_VISION.md": "docs/product-vision.md",
+    "PRODUCT_VISION.md": "PRODUCT_VISION.md",
     "SALES_FOUNDATION.md": "sales/"
   },
   "protectedSubsystems": [

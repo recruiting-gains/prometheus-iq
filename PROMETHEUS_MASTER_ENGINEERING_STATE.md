@@ -6,6 +6,7 @@ Governing sources:
 
 - `PROMETHEUS_CONSTITUTION.md`
 - `PROMETHEUS_SYSTEM_MAP.md`
+- `PRODUCT_VISION.md`
 - `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md`
 - `PROMETHEUS_MASTER_CONTEXT.md`
 
@@ -55,6 +56,76 @@ When an `OVERWATCH HANDOFF` is received:
 8. If no dependency exists, recommend the highest-priority engineering task.
 
 ## Active Dependency Tracker
+
+### Completed Work Lane: Canonical Product Vision Alignment v1
+
+Primary subsystem: Prometheus Product Vision
+
+Secondary subsystems:
+
+- Prometheus Intelligence Engine, reference update only.
+- Prometheus Research, source-register update only.
+- Prometheus Sales, source-reference update only.
+- Prometheus CRM, source-reference update only.
+- Prometheus Executive Package, source-reference update only.
+
+Task:
+
+Canonical Product Vision Alignment v1.
+
+Status:
+
+Complete.
+
+Implementation type:
+
+Documentation and governance alignment only.
+
+Commit:
+
+Pending.
+
+Deploy:
+
+Not run. Documentation and governance alignment only; no production deploy required.
+
+Verified outcome:
+
+- Created root `PRODUCT_VISION.md` as the canonical product vision source for the Prometheus platform.
+- Preserved `COMPANY_IDENTITY.md` as the canonical company identity source.
+- Defined Prometheus as the company, Prometheus IQ as the flagship product, Companion as the founder executive operating system, and gym/fitness as the first production validation environment only.
+- Updated active governing references away from `docs/product-vision.md`.
+- Converted `docs/product-vision.md` into a pointer that prevents duplicate product-vision drift.
+- Did not modify Dashboard, Data, Infrastructure, Social Media, Website production behavior, or Companion runtime behavior.
+
+Files changed:
+
+- `PRODUCT_VISION.md`
+- `docs/product-vision.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `intelligence/README.md`
+- `intelligence/contracts/adaptive-intelligence-contracts.json`
+- `research/architecture.md`
+- `research/registers/source-register.json`
+- `sales/README.md`
+- `crm/enterprise-lifecycle-architecture.md`
+- `crm/enterprise-lifecycle-model.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/validate-crm-enterprise-foundation.mjs`
+- `docs/prometheus.md`
+- `PROMETHEUS EXECUTIVE PACKAGE/README.md`
+- `PROMETHEUS EXECUTIVE PACKAGE/01 Executive Summary/README.md`
+- `PROMETHEUS EXECUTIVE PACKAGE/09 Product Overview/README.md`
+- `PROMETHEUS OPERATING SYSTEM/04 Product & Technology/README.md`
+
+Remaining blockers:
+
+Historical handoff records still mention that root `PRODUCT_VISION.md` was previously absent. Those statements remain historically accurate and should not be treated as active source routing.
+
+Next recommended subsystem:
+
+Prometheus Overwatch to record this handoff and close the product-vision fallback blocker.
 
 ### Completed Work Lane: Founder Strategic Intelligence Briefing System v1
 

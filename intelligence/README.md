@@ -14,7 +14,7 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 ## Existing Sources Reused
 
 - `COMPANY_IDENTITY.md`: company identity and outside-sales operating-system mission.
-- `docs/product-vision.md`: product vision fallback because root `PRODUCT_VISION.md` is absent.
+- `PRODUCT_VISION.md`: canonical product vision and long-term platform direction.
 - `research/README.md` and `research/architecture.md`: Research foundation fallback because root `RESEARCH_FOUNDATION.md` is absent.
 - `sales/README.md` and Sales foundation documents: Sales foundation fallback because root `SALES_FOUNDATION.md` is absent.
 - `crm/README.md` and CRM enterprise lifecycle foundation: CRM foundation fallback because root `CRM_FOUNDATION.md` is absent.
@@ -36,4 +36,3 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 ## Duplicate Prevention
 
 Future Adaptive Outside Sales Intelligence work must start here and extend these contracts. It must also reuse Route Intelligence V2, the Continuous Learning Framework, Golden Route Quality Gate v1, Runtime Pool Governance, CRM foundation contracts, Research source policy, and Sales operating-system artifacts before creating new abstractions.
-

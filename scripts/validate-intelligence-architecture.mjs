@@ -17,7 +17,7 @@ const requiredFiles = [
   "intelligence/future-subsystem-handoffs.md",
   "intelligence/contracts/adaptive-intelligence-contracts.json",
   "COMPANY_IDENTITY.md",
-  "docs/product-vision.md",
+  "PRODUCT_VISION.md",
   "research/README.md",
   "sales/README.md",
   "crm/README.md",
@@ -120,4 +120,3 @@ if (failures.length) {
 } else {
   console.log("Prometheus Intelligence architecture validated: adaptive outside-sales contracts, handoffs, duplicate prevention, and no-production-change flags.");
 }
-

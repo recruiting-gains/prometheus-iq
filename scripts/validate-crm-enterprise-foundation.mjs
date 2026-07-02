@@ -67,7 +67,7 @@ for (const target of requiredScaleTargets) {
 assert(model.implementationType === "architecture", "CRM v2 must remain architecture-only.");
 assert(model.productionBetaSystemsModified === false, "CRM v2 must not modify production beta systems.");
 assert(model.externalCommunicationProvidersConnected === false, "CRM v2 must not connect external communication providers.");
-assert(model.sourceFallbacks?.["PRODUCT_VISION.md"] === "docs/product-vision.md", "CRM v2 must record PRODUCT_VISION fallback.");
+assert(model.sourceFallbacks?.["PRODUCT_VISION.md"] === "PRODUCT_VISION.md", "CRM v2 must record PRODUCT_VISION canonical source.");
 assert(model.sourceFallbacks?.["SALES_FOUNDATION.md"] === "sales/", "CRM v2 must record SALES_FOUNDATION fallback.");
 
 const totalHealthWeight = (model.healthScoring?.dimensions || []).reduce((sum, dimension) => sum + Number(dimension.weight || 0), 0);

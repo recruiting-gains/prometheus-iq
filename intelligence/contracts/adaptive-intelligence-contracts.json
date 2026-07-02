@@ -9,7 +9,7 @@
   "activePoolChanged": false,
   "dataGovernanceChanged": false,
   "requiredSourceFallbacks": {
-    "productVision": "docs/product-vision.md",
+    "productVision": "PRODUCT_VISION.md",
     "researchFoundation": "research/README.md",
     "salesFoundation": "sales/README.md",
     "crmFoundation": "crm/README.md"
@@ -221,4 +221,3 @@
     "scripts/verify-zero-live-google-api-calls.mjs"
   ]
 }
-
