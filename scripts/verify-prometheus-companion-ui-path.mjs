@@ -104,7 +104,10 @@ const bannedResponseText = [
   "status card",
   "module text",
   "opening",
-  "i found safe prometheus context"
+  "i found safe prometheus context",
+  "not enough signal",
+  "ask me the sharper version",
+  "more anchor"
 ];
 
 const founderModeBannedText = [
@@ -339,7 +342,7 @@ for (const phrase of explicitNodeCases) {
 
 const founderAcceptanceCases = [
   ["Hello", ["i'm here", "what are we working on"]],
-  ["Good morning, Companion.", ["good morning", "everything is ready", "priorities"]],
+  ["Good morning, Companion.", ["good morning", "everything is ready"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
   ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
@@ -372,13 +375,13 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 
 const conversationalIntentCases = [
   ["Hello", ["i'm here", "what are we working on"], "natural_greeting"],
-  ["Good morning", ["good morning", "everything is ready", "priorities"], "greeting"],
+  ["Good morning", ["good morning", "everything is ready"], "greeting"],
   ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
   ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
   ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
   ["Website", ["website performance summary", "prometheusrouteiq.com", "public website"], "website_performance_summary"],
   ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"],
-  ["Advice", ["not start with another feature", "validate the field experience", "recommendation"], "founder_advice"]
+  ["Advice", ["not start with another feature", "validate the experience", "clean beta signal"], "founder_advice"]
 ];
 
 for (const [phrase, expected, intent] of conversationalIntentCases) {
@@ -412,8 +415,9 @@ for (const [phrase, expected, intent] of conversationalIntentCases) {
 
 const executiveReasoningCases = [
   ["How are we doing?", ["strong build position", "not yet a strong proof position", "recommendation"], "company_rundown"],
-  ["What's slowing Prometheus down?", ["real beta evidence", "next move", "anthony feedback"], "risk"],
-  ["What should I work on today?", ["not work on another feature first", "validation", "recommendation"], "priority"]
+  ["What's slowing Prometheus down?", ["slowdown is proof", "beta validation", "next move"], "risk"],
+  ["What should I do next?", ["do not start with another feature", "validation", "recommendation"], "priority"],
+  ["What should I work on today?", ["do not start with another feature", "validation", "recommendation"], "priority"]
 ];
 
 for (const [phrase, expected, intent] of executiveReasoningCases) {
@@ -550,7 +554,7 @@ for (const [phrase, expected] of protectedPassingCases) {
 const executiveCommandCenterCases = [
   [
     "Give me my Founder Morning Brief.",
-    ["founder morning brief", "engineering:", "instagram is not fully connected", "prometheus social media", "research:", "sales:", "website:", "crm:", "beta:", "daily priorities:"]
+    ["founder morning brief", "engineering:", "instagram status", "recommendation:", "research:", "sales:", "website:", "crm:", "beta:", "daily priorities:"]
   ],
   [
     "Give me the executive dashboard.",
@@ -666,14 +670,14 @@ const instagramAnalyticsProvider = new AIProvider({
 });
 
 const instagramDirectCases = [
-  ["Instagram", ["instagram analytics", "50 followers", "20 reach", "8 profile visits", "3 website clicks", "best post so far", "recommendation"]],
-  ["How is Instagram doing?", ["instagram analytics", "today's instagram read shows", "followers", "reach", "prometheus social media"]],
+  ["Instagram", ["instagram analytics", "prometheus i q on instagram", "50 followers", "20 reach", "8 profile visits", "3 website clicks", "best post so far", "recommendation"]],
+  ["How is Instagram doing?", ["instagram analytics", "instagram status", "followers", "reach", "prometheus i q on instagram"]],
   ["Show me my Instagram analytics.", ["instagram analytics", "50 followers", "20 reach", "3 website clicks"]],
-  ["How many followers do we have?", ["we have 50 instagram followers", "prometheus social media"]],
-  ["How much reach did we get?", ["instagram reach is 20", "prometheus social media"]],
-  ["Which post performed best?", ["best post so far: reel", "outside sales needs intelligence", "prometheus social media"]],
-  ["How many website clicks came from Instagram?", ["instagram sent 3 website clicks", "prometheus social media"]],
-  ["What should I post next?", ["recommendation:", "public-safe", "prometheus social media"]]
+  ["How many followers do we have?", ["we have 50 instagram followers"]],
+  ["How much reach did we get?", ["instagram reach is 20"]],
+  ["Which post performed best?", ["best post so far: reel", "outside sales needs intelligence"]],
+  ["How many website clicks came from Instagram?", ["instagram sent 3 website clicks"]],
+  ["What should I post next?", ["recommendation:", "public-safe"]]
 ];
 
 for (const [phrase, expected] of instagramDirectCases) {
@@ -708,8 +712,8 @@ for (const [phrase, expected] of instagramDirectCases) {
 const instagramBrief = await instagramAnalyticsProvider.ask("Give me my Founder Morning Brief.");
 const instagramBriefText = `${instagramBrief.title || ""} ${instagramBrief.body || ""}`.toLowerCase();
 const instagramExpected = [
-  "instagram is connected",
-  "prometheus social media",
+  "instagram status",
+  "prometheus i q on instagram",
   "50 followers",
   "20 reach",
   "44 impressions",
@@ -717,7 +721,7 @@ const instagramExpected = [
   "3 website clicks",
   "12 engagement",
   "best post so far: reel",
-  "growth trend: up 4",
+  "growth is up 4",
   "crm:"
 ];
 const instagramMissing = instagramExpected.filter((item) => !instagramBriefText.includes(item.toLowerCase()));
@@ -757,12 +761,21 @@ if (
 }
 
 const appSource = readFileSync(new URL("../prometheus-os/app.js", import.meta.url), "utf8");
+const indexSource = readFileSync(new URL("../prometheus-os/index.html", import.meta.url), "utf8");
+const styleSource = readFileSync(new URL("../prometheus-os/style.css", import.meta.url), "utf8");
 const uiPolicyFailures = [
   appSource.includes('kicker: "Prometheus response"') ? "normal response panel still uses Prometheus response card" : "",
   appSource.includes('kicker: "Clap detected"') ? "clap detection notification panel still exists" : "",
   !appSource.includes("function shouldDisplayConversationPanel") ? "conversation panel policy helper missing" : "",
   !appSource.includes("explicitPanelRequest") ? "explicit panel request gate missing" : "",
-  !appSource.includes("cardDisplayed") ? "last command result does not report card display state" : ""
+  !appSource.includes("cardDisplayed") ? "last command result does not report card display state" : "",
+  !appSource.includes("function interruptSpeech") ? "voice interrupt helper missing" : "",
+  !appSource.includes("window.prometheusOSInterruptSpeech") ? "native interrupt bridge missing" : "",
+  !appSource.includes("interruptOnly") ? "interrupt-only listening path missing" : "",
+  indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
+  !indexSource.includes("event-horizon-core") ? "event-horizon core markup missing" : "",
+  !styleSource.includes("body[data-voice=\"speaking\"] .prometheus-core") ? "speaking green glow state missing" : "",
+  !styleSource.includes("body[data-voice=\"listening\"] .prometheus-core") ? "listening green pulse state missing" : ""
 ].filter(Boolean);
 
 if (uiPolicyFailures.length) {

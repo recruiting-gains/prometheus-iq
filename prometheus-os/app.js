@@ -21,7 +21,7 @@ const detailActions = $("#detailActions");
 
 const forceFounderVoiceDefaults = true;
 const defaultPremiumTtsProvider = "elevenlabs";
-const founderGreeting = "Good to see you. What are we working on today?";
+const founderGreeting = "I'm here. What are we working on?";
 const companionShell = Boolean(window.__PROMETHEUS_COMPANION_SHELL__);
 const nativeCompanionCapture = false;
 
@@ -65,6 +65,10 @@ if (forceFounderVoiceDefaults) {
 const voice = new VoiceAssistant({
   onTranscript: (text) => {
     debugVoice("Heard", text, { kind: "ok" });
+    if (isStopCommand(text)) {
+      interruptSpeech("voice command");
+      return;
+    }
     if (isPrometheusSpeaking || commandInFlight) {
       debugVoice("Error", "Prometheus is already speaking or handling a command.", { kind: "warn" });
       return;
@@ -103,6 +107,7 @@ function debugVoice(stage, message = "", { kind = "info" } = {}) {
     "playback stalled",
     "Premium voice fallback",
     "Premium voice active",
+    "Stopped",
     "microphone recovery",
     "microphone permission changed"
   ]);
@@ -136,6 +141,29 @@ function commandFromTranscript(value) {
   const wake = voice.extractWakeCommand(cleaned);
   if (wake.woke && wake.command) return cleanSpeechCommand(wake.command);
   return cleaned;
+}
+
+function isStopCommand(value = "") {
+  const normalized = normalizeRouteCommand(value);
+  return ["stop", "stop talking", "quiet", "pause"].includes(normalized);
+}
+
+function interruptSpeech(source = "command") {
+  stopActiveAudio();
+  stopBackendSttCapture();
+  closeDetail();
+  commandInFlight = false;
+  lastCommandResult = {
+    type: "voice_interrupt",
+    routeSelected: "voice_interrupt",
+    title: "Stopped",
+    body: "Stopped.",
+    cardDisplayed: false,
+    source
+  };
+  debugVoice("Stopped", "speech interrupted", { kind: "ok" });
+  scheduleListeningAfterPlayback(200);
+  return lastCommandResult;
 }
 
 function shouldAttachRouteDiagnostic(message) {
@@ -296,8 +324,23 @@ function handleClap() {
 function scheduleBackendSttLoop(delay = 900) {
   window.clearTimeout(backendSttLoopTimer);
   if (!backendSttLoopEnabled || !continuousListeningEnabled) return;
-  if (isPrometheusSpeaking || commandInFlight || backendSttBusy) {
+  if (backendSttBusy) {
     backendSttLoopTimer = window.setTimeout(() => scheduleBackendSttLoop(1200), 1200);
+    return;
+  }
+  if (isPrometheusSpeaking) {
+    backendSttLoopTimer = window.setTimeout(() => {
+      startBackendSttCapture({
+        source: "interrupt listener",
+        duration: 1200,
+        silentNoInput: true,
+        interruptOnly: true
+      });
+    }, Math.min(delay, 350));
+    return;
+  }
+  if (commandInFlight) {
+    backendSttLoopTimer = window.setTimeout(() => scheduleBackendSttLoop(900), 900);
     return;
   }
   backendSttLoopTimer = window.setTimeout(() => {
@@ -745,6 +788,7 @@ function stopActiveAudio() {
     currentPremiumAudio = null;
   }
   isPrometheusSpeaking = false;
+  voice.isSpeaking = false;
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
   }
@@ -809,6 +853,10 @@ function playPremiumAudioBlob(blob, providerLabel) {
       lastProgressAt = Date.now();
       debugVoice("audio playback started", providerLabel, { kind: "ok" });
       setVoiceState("speaking");
+      if (continuousListeningEnabled) {
+        backendSttLoopEnabled = true;
+        scheduleBackendSttLoop(250);
+      }
     });
 
     audio.addEventListener("timeupdate", () => {
@@ -876,14 +924,16 @@ function playPremiumAudioBlob(blob, providerLabel) {
   });
 }
 
-async function startBackendSttCapture({ duration = 4200, source = "manual", silentNoInput = false } = {}) {
+async function startBackendSttCapture({ duration = 4200, source = "manual", silentNoInput = false, interruptOnly = false } = {}) {
   if (!backendSttEnabled || backendSttBusy) return false;
-  if (isPrometheusSpeaking || commandInFlight) return false;
+  if ((isPrometheusSpeaking || commandInFlight) && !interruptOnly) return false;
 
   try {
     backendSttBusy = true;
-    debugVoice("Listening", `capturing ${source} command audio`);
-    setVoiceState("listening");
+    if (!interruptOnly) {
+      debugVoice("Listening", `capturing ${source} command audio`);
+      setVoiceState("listening");
+    }
     const stream = await getBackendSttStream();
     const mimeType = getSupportedAudioType();
     const options = mimeType ? { mimeType } : undefined;
@@ -905,8 +955,10 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
             return;
           }
 
-          setVoiceState("thinking");
-          debugVoice("speech recognition transcript", "sending audio to local STT");
+          if (!interruptOnly) {
+            setVoiceState("thinking");
+            debugVoice("speech recognition transcript", "sending audio to local STT");
+          }
           const response = await fetch("http://127.0.0.1:8792/api/stt", {
             method: "POST",
             headers: {
@@ -923,7 +975,9 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
             return;
           }
 
-          debugVoice("STT response received", String(payload.text || "").trim(), { kind: "ok" });
+          if (!interruptOnly) {
+            debugVoice("STT response received", String(payload.text || "").trim(), { kind: "ok" });
+          }
           resolve({ ok: true, text: String(payload.text || "").trim() });
         } catch {
           debugVoice("error/fallback reason", "Speech transcription failed.", { kind: "error" });
@@ -954,7 +1008,7 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
     backendSttRecorder = null;
 
     if (!result.ok) {
-      setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
+      if (!interruptOnly) setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
       debugVoice("no command detected", result.error || "No command was detected.", { kind: "warn" });
       if (!silentNoInput) {
         openDetail({
@@ -968,11 +1022,19 @@ async function startBackendSttCapture({ duration = 4200, source = "manual", sile
     }
 
     const transcript = result.text;
-    debugVoice("Heard", transcript, { kind: "ok" });
+    if (!interruptOnly) debugVoice("Heard", transcript, { kind: "ok" });
     const now = Date.now();
     if (!transcript) {
-      setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
+      if (!interruptOnly) setVoiceState(continuousListeningEnabled ? "standby" : "sleeping");
       scheduleBackendSttLoop(700);
+      return false;
+    }
+    if (interruptOnly) {
+      if (isStopCommand(transcript)) {
+        interruptSpeech("interrupt listener");
+        return true;
+      }
+      scheduleBackendSttLoop(350);
       return false;
     }
     if (transcript === lastBackendTranscript && now - lastBackendTranscriptAt < 5000) {
@@ -1079,6 +1141,7 @@ async function speakNodeStatus(node, { source = "node" } = {}) {
 async function submitCommand(raw, { skipNodeRouting = false, source = "command" } = {}) {
   const message = commandFromTranscript(raw);
   if (!message) return;
+  if (isStopCommand(message)) return interruptSpeech(source);
   if (commandInFlight) {
     debugVoice("Error", "Command already in progress.", { kind: "warn" });
     return;
@@ -1219,6 +1282,10 @@ function speakBrowserFallback(text) {
       voice.isSpeaking = true;
       debugVoice("audio playback started", "browser fallback", { kind: "warn" });
       setVoiceState("speaking");
+      if (continuousListeningEnabled) {
+        backendSttLoopEnabled = true;
+        scheduleBackendSttLoop(250);
+      }
     };
     utterance.onend = () => {
       finish(true, "audio playback completed", "browser fallback");
@@ -1373,6 +1440,10 @@ window.prometheusOSOpenNode = (nodeId) => {
 
 window.prometheusOSSubmitCommand = (command) => {
   return submitCommand(command, { source: "companion bridge" });
+};
+
+window.prometheusOSInterruptSpeech = (source = "companion bridge") => {
+  return interruptSpeech(source);
 };
 
 window.prometheusOSSetVoiceDebug = (stage, message = "", kind = "info") => {

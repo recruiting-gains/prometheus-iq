@@ -221,19 +221,18 @@ function advice() {
   return response(
     "Founder Advice",
     [
-      "I would not start with another feature today.",
-      "The best move is to validate the field experience first, because today's engineering work only creates value if the route, mobile flow, voice layer, and proof loop actually improved.",
-      "My recommendation: test the founder voice path, verify Mobile or field usage if it is in scope today, capture one clean beta signal, then decide whether engineering or sales deserves the next block."
+      "Do not start with another feature.",
+      "Validate the experience that already exists.",
+      "Test the voice path, verify Mobile or field usage if it is in scope, capture one clean beta signal, then decide whether engineering or sales gets the next block."
     ].join(" "),
     { intent: "founder_advice", founderMode: true, entities: ["Cruz", "Validation", "Prometheus Companion"] }
   );
 }
 
 function morningGreeting() {
-  const next = createNextActionBrief();
   return response(
     "Good Morning",
-    `Good morning. Everything is ready whenever you are. I have a couple of priorities I would recommend. ${next.body} I can brief the company, plan the day, draft a message, or review the current risk.`,
+    "Good morning. Everything is ready whenever you are.",
     { intent: "greeting", entities: ["Cruz", "Prometheus Companion"] }
   );
 }

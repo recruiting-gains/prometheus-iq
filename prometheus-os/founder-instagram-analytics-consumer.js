@@ -82,6 +82,14 @@ function formatCount(value) {
   return new Intl.NumberFormat("en-US").format(Number(value || 0));
 }
 
+function spokenAccountLabel(account = "@prometheus.iq") {
+  const normalized = String(account || "").trim().toLowerCase();
+  if (normalized === "@prometheus.iq" || normalized === "prometheus.iq") {
+    return "Prometheus I Q on Instagram";
+  }
+  return `${String(account || "the account").replace(/^@/, "")} on Instagram`;
+}
+
 function hasValue(value) {
   return value !== null && value !== undefined;
 }
@@ -194,9 +202,9 @@ function growthTrendText(snapshot, metrics) {
     .map(name => latestMetricValue(metrics, name))
     .find(value => value !== null);
 
-  if (direct !== undefined) return `Growth trend: up ${formatCount(direct)} on the latest trend read.`;
-  if (snapshot?.summary?.growthTrend) return `Growth trend: ${snapshot.summary.growthTrend}.`;
-  return "Growth trend: I need one more comparable history point before I can call the trend confidently.";
+  if (direct !== undefined) return `Growth is up ${formatCount(direct)} on the latest read.`;
+  if (snapshot?.summary?.growthTrend) return `Growth: ${snapshot.summary.growthTrend}.`;
+  return "Growth needs one more comparable read before I would call the trend.";
 }
 
 function sourceLabel(snapshot, status) {
@@ -232,18 +240,17 @@ function founderMetricsText(metrics = {}) {
   ].filter(Boolean);
 
   if (!available.length) return "I could not retrieve today's Instagram numbers yet.";
-  return `Today's Instagram read shows ${available.join(", ")}.`;
+  return available.join(", ");
 }
 
 function createFounderBody({ account, status, metrics, topContent, growthTrend }) {
   const missing = missingMetricsText(metrics);
   return [
-    `Instagram is ${status?.state === SOCIAL_CONNECTION_STATES.CONNECTED ? "connected" : "not fully connected"} for ${account}, and I’m reading it through Prometheus Social Media.`,
-    founderMetricsText(metrics),
+    `Instagram status for ${spokenAccountLabel(account)}: ${founderMetricsText(metrics)}.`,
     topContent,
     growthTrend,
     missing,
-    "My recommendation: keep the next post focused on field reality, pilot proof, and why outside sales needs better direction before more activity."
+    "Recommendation: post one field-proof lesson next, not a broad ROI claim."
   ].filter(Boolean).join(" ");
 }
 
@@ -365,35 +372,31 @@ function directLeadForCommand(command, analytics, { developerMode = false } = {}
 
   if (normalized.includes("followers")) {
     return hasValue(metrics.followers)
-      ? `We have ${formatCount(metrics.followers)} Instagram followers right now. I’m reading that through Prometheus Social Media.`
+      ? `We have ${formatCount(metrics.followers)} Instagram followers right now.`
       : "I could not retrieve the latest follower count yet, but I can still review the rest of today's Instagram read.";
   }
   if (normalized.includes("reach")) {
     return hasValue(metrics.reach)
-      ? `Instagram reach is ${formatCount(metrics.reach)} on the latest read. I’m reading that through Prometheus Social Media.`
+      ? `Instagram reach is ${formatCount(metrics.reach)} on the latest read.`
       : "I could not retrieve the latest reach number yet, but the rest of the Instagram read is still available.";
   }
   if (normalized.includes("website click")) {
     return hasValue(metrics.websiteClicks)
-      ? `Instagram sent ${formatCount(metrics.websiteClicks)} website clicks on the latest read. I’m reading that through Prometheus Social Media.`
+      ? `Instagram sent ${formatCount(metrics.websiteClicks)} website clicks on the latest read.`
       : "I could not retrieve the latest Instagram website-click count yet.";
   }
   if (normalized.includes("performed best") || normalized.includes("best performing") || normalized.includes("top performing")) {
-    return `${analytics.metadata.topContentText} I’m reading that through Prometheus Social Media.`;
+    return analytics.metadata.topContentText;
   }
   if (normalized.includes("post next")) {
     return [
       `I would build the next post from the strongest Instagram signal I can see. ${analytics.metadata.topContentText}`,
       "Recommendation: post a concise founder lesson about field-sales intelligence, pilot proof, or why outside sales needs direction before activity.",
-      "Keep it public-safe: do not show private dashboards, route scoring, customer data, Anthony beta details, or proprietary mechanics.",
-      "I’m reading the performance signal through Prometheus Social Media."
+      "Keep it public-safe: no private dashboards, route scoring, customer data, Anthony beta details, or proprietary mechanics."
     ].join(" ");
   }
 
-  return [
-    founderMetricsText(metrics),
-    "I’m reading that through Prometheus Social Media."
-  ].join(" ");
+  return analytics.body;
 }
 
 export async function createFounderInstagramDirectAnswer({
@@ -405,10 +408,9 @@ export async function createFounderInstagramDirectAnswer({
 
   return {
     title: "Instagram Analytics",
-    body: [
-      directLeadForCommand(command, analytics, { developerMode }),
-      analytics.body
-    ].join(" "),
+    body: developerMode
+      ? analytics.body
+      : directLeadForCommand(command, analytics, { developerMode }),
     metadata: {
       ...analytics.metadata,
       intent: "instagram_analytics_direct_query"

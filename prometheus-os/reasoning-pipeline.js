@@ -255,8 +255,8 @@ function googlePlacesStatus(evidence = []) {
 function riskAnswer(evidence) {
   return response(
     "Biggest Prometheus risk",
-    "The biggest risk today is confusing internal progress with external validation. A better Companion, a better website, and cleaner documents all help, but they do not prove reps will use Prometheus or that leadership will approve a pilot. The thing slowing Prometheus down is the same gap: real beta evidence. The next move is to capture Anthony feedback, route quality notes, objections, and verified usage before building more.",
-    { intent: "risk", entities: ["Pilot", "Anthony", "Prometheus IQ"] }
+    "The slowdown is proof, not effort. The likely bottlenecks are beta validation, field evidence, Companion voice quality, Mobile verification, route evidence, buyer proof, and authenticated verification. Next move: close one proof loop today. Test the field path, capture Anthony feedback if available, and turn it into a simple buyer-facing signal.",
+    { intent: "risk", entities: ["Pilot", "Anthony", "Prometheus I Q"] }
   );
 }
 
@@ -298,10 +298,10 @@ function priorityAnswer(question) {
   const tomorrow = normalized.includes("tomorrow") || normalized.includes("coo");
   const intro = tomorrow
     ? "If I were your COO, I would tell you tomorrow is not a feature-building day. It is a validation day."
-    : "I would not work on another feature first. The highest ROI move is validation.";
+    : "Do not start with another feature. The highest ROI move is validation.";
   return response(
     tomorrow ? "COO recommendation for tomorrow" : "Highest ROI next move",
-    `${intro} First: ${top[0].title}. ${top[0].reason} Second: ${top[1].title}. ${top[1].reason} Third: ${top[2].title}. ${top[2].reason} The recommendation is clear: protect focus, collect proof, and avoid new features unless they directly improve Anthony's beta evidence or leadership approval odds.`,
+    `${intro} First, ${top[0].title}. ${top[0].reason} Then capture one clean beta or field signal. Recommendation: protect focus, collect proof, and avoid new features unless they directly improve Anthony's beta evidence or leadership approval odds.`,
     { intent: "priority", entities: ["Cruz", "Pilot", "Anthony"] }
   );
 }
@@ -420,15 +420,15 @@ function generalAnswer(question, evidence) {
   if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at") || normalized.includes("how are we doing") || normalized.includes("how are we looking") || normalized.includes("where do we stand")) {
     return response(
       "Prometheus rundown",
-      `We are in a strong build position, but not yet a strong proof position. The product foundation exists, the website is live, Companion has memory and reasoning, and Route Intelligence is moving from setup into quality control. The important question is no longer whether Prometheus can look impressive. It is whether Anthony and leadership can see proof that it improves field-sales activity. Recommendation: protect focus, test route quality, collect beta feedback, and keep every decision tied to validation.`,
-      { intent: "company_rundown", entities: ["Prometheus IQ", "Prometheus Companion", "Anthony", "Route Intelligence"] }
+      `We are in a strong build position, but not yet a strong proof position. Prometheus I Q has real product depth, Companion is getting closer, and the website/social layer is live. The next constraint is proof: Anthony feedback, route confidence, buyer clarity, and clean field evidence. Recommendation: validate before adding another feature.`,
+      { intent: "company_rundown", entities: ["Prometheus I Q", "Prometheus Companion", "Anthony", "Route Intelligence"] }
     );
   }
 
   if (!evidence.length) {
     return response(
       "Prometheus answer",
-      "Boss, I do not have enough verified Prometheus memory to answer that cleanly yet. I can reason from company context, but I will not invent facts. Ask me what changed, what matters, what is blocked, or what to do next.",
+      "My best read: stay in validation mode. The company has enough built to test, but not enough external proof to relax. The useful move is to capture field evidence, beta feedback, buyer clarity, or route confidence before opening another build thread.",
       { intent: "general", truth: "unknown" }
     );
   }

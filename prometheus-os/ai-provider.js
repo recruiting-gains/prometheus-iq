@@ -322,9 +322,9 @@ export class AIProvider {
     return {
       title: "Founder Conversation",
       body: [
-        "I do not have enough signal to answer that cleanly yet.",
-        "The useful move is to keep this tied to validation, beta proof, revenue path, or risk reduction.",
-        "Ask me the sharper version, or tell me the decision you are trying to make, and I will help you reason it through."
+        "My best read is to keep this tied to validation, beta proof, revenue path, or risk reduction.",
+        "When the available data is thin, the founder move is still clear: choose the action that creates proof instead of polish.",
+        "Recommendation: capture one useful signal, then decide whether the next block belongs to engineering, sales, or follow-up."
       ].join(" "),
       permission: "Level 0 - Read Only",
       tone: "founder-conversation",

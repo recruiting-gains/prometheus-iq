@@ -789,6 +789,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         log("Native STT transcript captured: \(cleanTranscript)")
         prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Heard', \(Self.javascriptStringLiteral(cleanTranscript)))")
 
+        if isStopCommand(cleanTranscript) {
+            stopSpeaking(source: "native STT")
+            scheduleNativeSttCapture(after: 0.4)
+            return
+        }
+
         let hasGreeting = isFounderGreeting(cleanTranscript)
         let hasWakePhrase = extractWakeCommand(from: cleanTranscript) != nil
         let hasDirectCommand = directSystemCommand(for: cleanTranscript) != nil
@@ -855,6 +861,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func handleTranscript(_ transcript: String, isFinal: Bool) {
+        if isStopCommand(transcript) {
+            stopSpeaking(source: "native transcript")
+            return
+        }
+
         guard !isSpeaking else { return }
 
         let cleanTranscript = transcript.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -973,6 +984,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private func isFounderGreeting(_ transcript: String) -> Bool {
         let normalized = normalizeCommand(transcript)
         return ["hello", "hi", "hey", "good morning", "morning", "how are you", "how are you doing"].contains(normalized)
+    }
+
+    private func isStopCommand(_ transcript: String) -> Bool {
+        let normalized = normalizeCommand(transcript)
+        return ["stop", "stop talking", "quiet", "pause"].contains(normalized)
     }
 
     private func greetingResponse(for transcript: String) -> String {
@@ -1306,6 +1322,21 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         speakWithSystemVoice(text)
+    }
+
+    private func stopSpeaking(source: String = "voice command") {
+        audioPlaybackGeneration += 1
+        premiumAudioPlayer?.stop()
+        premiumAudioPlayer = nil
+        if speechSynthesizer.isSpeaking {
+            speechSynthesizer.stopSpeaking(at: .immediate)
+        }
+        isSpeaking = false
+        shouldResumeListeningAfterSpeech = false
+        log("Speech interrupted by \(source).")
+        prometheusWebView?.evaluateJavaScript("window.prometheusOSInterruptSpeech && window.prometheusOSInterruptSpeech(\(Self.javascriptStringLiteral(source)))")
+        prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Stopped', 'speech interrupted', 'ok')")
+        startListening()
     }
 
     private func speakWithPremiumBackend(_ text: String, attempt: Int = 0, completion: @escaping (Bool) -> Void) {
