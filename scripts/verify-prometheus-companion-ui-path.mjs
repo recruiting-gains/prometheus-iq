@@ -337,6 +337,7 @@ for (const phrase of explicitNodeCases) {
 }
 
 const founderAcceptanceCases = [
+  ["Hello", ["hello, cruz", "companion is online", "external proof"]],
   ["Good morning, Companion.", ["good morning", "highest roi"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
@@ -366,6 +367,46 @@ for (const [phrase, expected] of founderAcceptanceCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> founder-assistant:${response.title}`);
+}
+
+const conversationalIntentCases = [
+  ["Hello", ["hello, cruz", "validation", "external proof"], "natural_greeting"],
+  ["Good morning", ["good morning", "highest roi"], "greeting"],
+  ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
+  ["Instagram", ["executive marketing summary", "instagram should support", "publish manually"], "executive_marketing_summary"],
+  ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
+  ["Website", ["website performance summary", "prometheusrouteiq.com", "public website"], "website_performance_summary"],
+  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"],
+  ["How are we doing?", ["executive company briefing", "external proof", "pilot credibility"], "executive_company_briefing"]
+];
+
+for (const [phrase, expected, intent] of conversationalIntentCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.map((item) => item.toLowerCase()).filter((item) => !text.includes(item));
+  const bannedHit = bannedResponseText.find((item) => text.includes(item)) ||
+    founderModeBannedText.find((item) => text.includes(item));
+  if (
+    response.metadata?.founderAssistant !== true ||
+    response.metadata?.routeSelected !== "founder_assistant" ||
+    response.metadata?.intent !== intent ||
+    bannedHit ||
+    missing.length
+  ) {
+    fail("conversational-intent-router", {
+      phrase,
+      title: response.title,
+      founderAssistant: response.metadata?.founderAssistant === true,
+      routeSelected: response.metadata?.routeSelected,
+      intent: response.metadata?.intent,
+      expectedIntent: intent,
+      bannedHit,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> conversational-intent:${response.title}`);
 }
 
 const disconnectedProvider = new AIProvider();
@@ -568,7 +609,6 @@ const instagramAnalyticsProvider = new AIProvider({
 
 const instagramDirectCases = [
   ["How is Instagram doing?", ["instagram analytics", "today's instagram read shows", "followers", "reach", "prometheus social media"]],
-  ["Instagram", ["instagram analytics", "today's instagram read shows", "prometheus social media"]],
   ["Show me my Instagram analytics.", ["instagram analytics", "50 followers", "20 reach", "3 website clicks"]],
   ["How many followers do we have?", ["we have 50 instagram followers", "prometheus social media"]],
   ["How much reach did we get?", ["instagram reach is 20", "prometheus social media"]],

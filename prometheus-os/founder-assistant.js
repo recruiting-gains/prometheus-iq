@@ -16,6 +16,7 @@ import {
 import {
   createBetaSummary,
   createCompanyStatusSummary,
+  createCrmSummary,
   createDailyDecisionSupport,
   createEngineeringStatusSummary,
   createExecutiveDashboardSummary,
@@ -56,6 +57,10 @@ function response(title, body, metadata = {}) {
 
 function includesAny(command, phrases) {
   return phrases.some((phrase) => command.includes(phrase));
+}
+
+function isExact(command, phrases) {
+  return phrases.some((phrase) => command === phrase);
 }
 
 function engineeringStatus() {
@@ -221,6 +226,15 @@ function morningGreeting() {
   );
 }
 
+function naturalGreeting() {
+  const next = createNextActionBrief();
+  return response(
+    "Hello, Cruz",
+    `Hello, Cruz. Companion is online. The short read: stay focused on validation and external proof. ${next.body} I can give you the morning brief, engineering status, beta status, website summary, Instagram read, or CRM summary.`,
+    { intent: "natural_greeting", founderMode: true, entities: ["Cruz", "Prometheus Companion"] }
+  );
+}
+
 function developerMode() {
   return response(
     "Developer Mode",
@@ -234,12 +248,87 @@ function developerMode() {
   );
 }
 
+function crmPipelineSummary() {
+  const crm = createCrmSummary();
+  return response(
+    "CRM Pipeline Summary",
+    [
+      "CRM is ready to support the sales pipeline, but it should stay disciplined.",
+      crm.body,
+      "Advice: keep follow-up tied to beta proof, leadership readiness, and clear next actions. Do not turn Companion into a parallel CRM."
+    ].join(" "),
+    {
+      ...crm.metadata,
+      intent: "crm_pipeline_summary",
+      founderMode: true,
+      entities: ["CRM", "Sales", "Pipeline"]
+    }
+  );
+}
+
+function companyBriefing() {
+  const company = createCompanyStatusSummary();
+  return response(
+    "Executive Company Briefing",
+    [
+      "We are doing well on build discipline and founder readiness, but the company still needs more external proof.",
+      company.body,
+      "Advice: protect the beta, capture real usage evidence, and keep new work tied to pilot credibility."
+    ].join(" "),
+    {
+      ...company.metadata,
+      intent: "executive_company_briefing",
+      founderMode: true,
+      entities: ["Prometheus", "Cruz", "Pilot"]
+    }
+  );
+}
+
+function conversationalIntentResponse(normalized) {
+  if (isExact(normalized, ["hello", "hi", "hey"])) return naturalGreeting();
+  if (isExact(normalized, ["good morning", "morning"])) return morningGreeting();
+  if (isExact(normalized, ["overwatch"])) return engineeringStatus();
+  if (isExact(normalized, ["instagram", "social", "social media"])) {
+    const social = createSocialMediaSummary();
+    return response("Executive Marketing Summary", social.body, {
+      ...social.metadata,
+      intent: "executive_marketing_summary",
+      founderMode: true,
+      entities: ["Instagram", "Social Media", "Marketing"]
+    });
+  }
+  if (isExact(normalized, ["anthony"])) {
+    const beta = createBetaSummary();
+    return response("Anthony Beta Progress", beta.body, {
+      ...beta.metadata,
+      intent: "anthony_beta_progress",
+      founderMode: true,
+      entities: ["Anthony", "Beta", "Prometheus IQ"]
+    });
+  }
+  if (isExact(normalized, ["website", "site"])) {
+    const website = createWebsiteSummary();
+    return response("Website Performance Summary", website.body, {
+      ...website.metadata,
+      intent: "website_performance_summary",
+      founderMode: true,
+      entities: ["Website", "PrometheusRouteIQ.com"]
+    });
+  }
+  if (isExact(normalized, ["crm", "pipeline"])) return crmPipelineSummary();
+  if (includesAny(normalized, ["how are we doing", "how are we looking", "where do we stand", "company briefing"])) return companyBriefing();
+  return null;
+}
+
 export async function createFounderAssistantResponse(command = "", {
   communicationsService = getDefaultFounderCommunicationsService(),
   socialMediaAnalyticsService
 } = {}) {
   const normalized = String(command || "").toLowerCase().trim();
   if (!normalized) return null;
+
+  const conversationalResponse = conversationalIntentResponse(normalized);
+  if (conversationalResponse) return conversationalResponse;
 
   if (/^(good morning|morning companion|good morning companion|hello companion|hey companion)\b/.test(normalized)) return morningGreeting();
   if (includesAny(normalized, ["founder morning brief", "morning brief", "executive morning brief", "start my morning"])) {
