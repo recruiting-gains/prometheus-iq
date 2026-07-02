@@ -8,6 +8,7 @@ const requiredFiles = [
   "sales/enterprise-sales-methodology.md",
   "sales/enterprise-industry-playbooks.md",
   "sales/enterprise-pilot-sales-package.md",
+  "sales/roofing-discovery-and-pilot-targeting.md",
   "sales/discovery-and-qualification.md",
   "sales/demo-pilot-onboarding.md",
   "sales/customer-success-lifecycle.md",
@@ -23,6 +24,7 @@ const requiredPhrases = new Map([
   ["sales/enterprise-sales-methodology.md", ["Do not sell Prometheus as a CRM replacement", "Enterprise"]],
   ["sales/enterprise-industry-playbooks.md", ["Healthcare", "Medical Devices", "B2B SaaS", "Cross-Industry Qualification Rule"]],
   ["sales/enterprise-pilot-sales-package.md", ["Enterprise Pilot Positioning", "Discovery Call Script", "Operating Profile Explanation", "Post-Pilot Expansion Path"]],
+  ["sales/roofing-discovery-and-pilot-targeting.md", ["Roofing Discovery Questions", "Roofing Pilot Qualification Criteria", "First-Call Script", "Follow-Up Email"]],
   ["sales/discovery-and-qualification.md", ["Qualification Framework", "Field motion"]],
   ["sales/demo-pilot-onboarding.md", ["Standard Demo Flow", "Pilot Structure", "Customer Onboarding"]],
   ["sales/customer-success-lifecycle.md", ["Expansion Strategy", "Renewal Strategy", "Success Metrics"]],
@@ -88,6 +90,34 @@ const requiredPilotProfiles = [
   "General Outside Sales",
 ];
 
+const requiredRoofingSections = [
+  "Target Customer Profile",
+  "Roofing Discovery Questions",
+  "Roofing Pilot Qualification Criteria",
+  "Roofing Buyer Personas",
+  "Roofing Value Proposition",
+  "Feature-To-Outcome Map",
+  "Objection Handling",
+  "Pilot Success Metrics",
+  "First-Call Script",
+  "Follow-Up Email",
+];
+
+const requiredRoofingPersonas = [
+  "Owner",
+  "Sales Manager",
+  "Canvassing Manager",
+  "Operations Manager",
+];
+
+const requiredRoofingOutcomes = [
+  "Inspections",
+  "Estimates",
+  "Signed contracts",
+  "Territory coverage",
+  "Canvasser accountability",
+];
+
 for (const file of requiredFiles) {
   const path = join(root, file);
   if (!existsSync(path)) {
@@ -149,6 +179,35 @@ if (existsSync(pilotPackagePath)) {
   for (const forbiddenSurface of ["Companion", "Website", "CRM runtime", "Mobile", "Dashboard", "Infrastructure"]) {
     if (!pilotPackage.includes(forbiddenSurface)) {
       failures.push(`Missing protected surface boundary in enterprise pilot package: ${forbiddenSurface}`);
+    }
+  }
+}
+
+const roofingPackagePath = join(root, "sales/roofing-discovery-and-pilot-targeting.md");
+if (existsSync(roofingPackagePath)) {
+  const roofingPackage = readFileSync(roofingPackagePath, "utf8");
+
+  for (const section of requiredRoofingSections) {
+    if (!roofingPackage.includes(`## ${section}`)) {
+      failures.push(`Missing roofing package section: ${section}`);
+    }
+  }
+
+  for (const persona of requiredRoofingPersonas) {
+    if (!roofingPackage.includes(`### ${persona}`)) {
+      failures.push(`Missing roofing buyer persona: ${persona}`);
+    }
+  }
+
+  for (const outcome of requiredRoofingOutcomes) {
+    if (!roofingPackage.toLowerCase().includes(outcome.toLowerCase())) {
+      failures.push(`Missing roofing outcome mapping: ${outcome}`);
+    }
+  }
+
+  for (const protectedSubsystem of ["Companion", "Website", "CRM runtime", "Mobile", "Dashboard", "Infrastructure", "Intelligence Engine"]) {
+    if (!roofingPackage.includes(protectedSubsystem)) {
+      failures.push(`Missing protected subsystem boundary in roofing package: ${protectedSubsystem}`);
     }
   }
 }

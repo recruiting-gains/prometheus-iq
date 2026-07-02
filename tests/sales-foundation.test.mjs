@@ -30,6 +30,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
     read("sales/enterprise-sales-methodology.md"),
     read("sales/enterprise-industry-playbooks.md"),
     read("sales/enterprise-pilot-sales-package.md"),
+    read("sales/roofing-discovery-and-pilot-targeting.md"),
     read("sales/discovery-and-qualification.md"),
     read("sales/demo-pilot-onboarding.md"),
     read("sales/customer-success-lifecycle.md"),
@@ -44,6 +45,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
     "Sales Process",
     "Enterprise Industry Playbooks",
     "Enterprise Pilot Sales Package",
+    "Roofing Discovery And Pilot Targeting",
     "Discovery Framework",
     "Qualification Framework",
     "Standard Demo Flow",
@@ -60,6 +62,45 @@ test("Sales foundation covers required operating-system artifacts", () => {
     "Sales Documentation Architecture",
   ]) {
     assert.match(files, new RegExp(phrase));
+  }
+});
+
+test("Roofing discovery and pilot targeting package covers required sales assets", () => {
+  const roofingPackage = read("sales/roofing-discovery-and-pilot-targeting.md");
+
+  for (const phrase of [
+    "Target Customer Profile",
+    "Roofing Discovery Questions",
+    "Roofing Pilot Qualification Criteria",
+    "Roofing Buyer Personas",
+    "Roofing Value Proposition",
+    "Feature-To-Outcome Map",
+    "Objection Handling",
+    "Pilot Success Metrics",
+    "First-Call Script",
+    "Follow-Up Email",
+    "Pilot Targeting Checklist",
+  ]) {
+    assert.match(roofingPackage, new RegExp(phrase));
+  }
+
+  for (const persona of [
+    "Owner",
+    "Sales Manager",
+    "Canvassing Manager",
+    "Operations Manager",
+  ]) {
+    assert.match(roofingPackage, new RegExp(`### ${persona}`));
+  }
+
+  for (const outcome of [
+    "inspections",
+    "estimates",
+    "signed contracts",
+    "territory coverage",
+    "canvasser accountability",
+  ]) {
+    assert.match(roofingPackage.toLowerCase(), new RegExp(outcome));
   }
 });
 
