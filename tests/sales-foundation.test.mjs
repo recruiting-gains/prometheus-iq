@@ -29,6 +29,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
   const files = [
     read("sales/enterprise-sales-methodology.md"),
     read("sales/enterprise-industry-playbooks.md"),
+    read("sales/enterprise-pilot-sales-package.md"),
     read("sales/discovery-and-qualification.md"),
     read("sales/demo-pilot-onboarding.md"),
     read("sales/customer-success-lifecycle.md"),
@@ -42,6 +43,7 @@ test("Sales foundation covers required operating-system artifacts", () => {
   for (const phrase of [
     "Sales Process",
     "Enterprise Industry Playbooks",
+    "Enterprise Pilot Sales Package",
     "Discovery Framework",
     "Qualification Framework",
     "Standard Demo Flow",
@@ -58,6 +60,38 @@ test("Sales foundation covers required operating-system artifacts", () => {
     "Sales Documentation Architecture",
   ]) {
     assert.match(files, new RegExp(phrase));
+  }
+});
+
+test("Enterprise pilot sales package covers required buyer and founder material", () => {
+  const pilotPackage = read("sales/enterprise-pilot-sales-package.md");
+
+  for (const phrase of [
+    "Enterprise Pilot Positioning",
+    "Pilot Qualification Criteria",
+    "Discovery Call Script",
+    "Fitness Connection-Style Enterprise Pilot Motion",
+    "Operating Profile Explanation",
+    "ROI And Value Framework",
+    "Objection Handling",
+    "Pricing Guidance",
+    "Pilot Success Criteria",
+    "Post-Pilot Expansion Path",
+    "Buyer-Facing Package",
+    "Founder-Facing Operating Guide",
+  ]) {
+    assert.match(pilotPackage, new RegExp(phrase));
+  }
+
+  for (const profile of [
+    "Fitness",
+    "Roofing",
+    "Security",
+    "Medical",
+    "Insurance",
+    "General Outside Sales",
+  ]) {
+    assert.match(pilotPackage, new RegExp(`### ${profile}`));
   }
 });
 

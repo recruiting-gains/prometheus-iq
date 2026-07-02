@@ -260,6 +260,7 @@ Current foundation:
 - `sales/README.md`
 - `sales/enterprise-sales-methodology.md`
 - `sales/enterprise-industry-playbooks.md`
+- `sales/enterprise-pilot-sales-package.md`
 - `sales/discovery-and-qualification.md`
 - `sales/demo-pilot-onboarding.md`
 - `sales/customer-success-lifecycle.md`

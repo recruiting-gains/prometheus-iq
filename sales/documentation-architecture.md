@@ -22,6 +22,7 @@ Purpose:
 - Sales process.
 - Positioning.
 - Industry playbooks.
+- Enterprise pilot sales package.
 - Qualification.
 - ROI.
 - Pricing strategy.
@@ -95,6 +96,7 @@ Use lowercase hyphenated filenames for Sales foundation files:
 
 - `enterprise-sales-methodology.md`
 - `enterprise-industry-playbooks.md`
+- `enterprise-pilot-sales-package.md`
 - `discovery-and-qualification.md`
 - `demo-pilot-onboarding.md`
 
@@ -126,6 +128,7 @@ Demo:
 
 Pilot approval:
 
+- Enterprise pilot sales package.
 - Pilot scope.
 - User list.
 - Success metrics.

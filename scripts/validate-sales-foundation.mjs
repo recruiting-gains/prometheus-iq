@@ -7,6 +7,7 @@ const requiredFiles = [
   "sales/README.md",
   "sales/enterprise-sales-methodology.md",
   "sales/enterprise-industry-playbooks.md",
+  "sales/enterprise-pilot-sales-package.md",
   "sales/discovery-and-qualification.md",
   "sales/demo-pilot-onboarding.md",
   "sales/customer-success-lifecycle.md",
@@ -21,6 +22,7 @@ const requiredPhrases = new Map([
   ["sales/README.md", ["Prometheus IQ is an AI operating system", "Sales does not own Dashboard"]],
   ["sales/enterprise-sales-methodology.md", ["Do not sell Prometheus as a CRM replacement", "Enterprise"]],
   ["sales/enterprise-industry-playbooks.md", ["Healthcare", "Medical Devices", "B2B SaaS", "Cross-Industry Qualification Rule"]],
+  ["sales/enterprise-pilot-sales-package.md", ["Enterprise Pilot Positioning", "Discovery Call Script", "Operating Profile Explanation", "Post-Pilot Expansion Path"]],
   ["sales/discovery-and-qualification.md", ["Qualification Framework", "Field motion"]],
   ["sales/demo-pilot-onboarding.md", ["Standard Demo Flow", "Pilot Structure", "Customer Onboarding"]],
   ["sales/customer-success-lifecycle.md", ["Expansion Strategy", "Renewal Strategy", "Success Metrics"]],
@@ -64,6 +66,28 @@ const requiredIndustrySections = [
   "Success Metrics",
 ];
 
+const requiredPilotPackageSections = [
+  "Enterprise Pilot Positioning",
+  "Pilot Qualification Criteria",
+  "Discovery Call Script",
+  "Fitness Connection-Style Enterprise Pilot Motion",
+  "Operating Profile Explanation",
+  "ROI And Value Framework",
+  "Objection Handling",
+  "Pricing Guidance",
+  "Pilot Success Criteria",
+  "Post-Pilot Expansion Path",
+];
+
+const requiredPilotProfiles = [
+  "Fitness",
+  "Roofing",
+  "Security",
+  "Medical",
+  "Insurance",
+  "General Outside Sales",
+];
+
 for (const file of requiredFiles) {
   const path = join(root, file);
   if (!existsSync(path)) {
@@ -102,6 +126,29 @@ if (existsSync(playbookPath)) {
       if (!section.includes(`### ${requiredSection}`)) {
         failures.push(`Missing ${requiredSection} in ${industry} playbook`);
       }
+    }
+  }
+}
+
+const pilotPackagePath = join(root, "sales/enterprise-pilot-sales-package.md");
+if (existsSync(pilotPackagePath)) {
+  const pilotPackage = readFileSync(pilotPackagePath, "utf8");
+
+  for (const section of requiredPilotPackageSections) {
+    if (!pilotPackage.includes(`### ${section}`)) {
+      failures.push(`Missing enterprise pilot package section: ${section}`);
+    }
+  }
+
+  for (const profile of requiredPilotProfiles) {
+    if (!pilotPackage.includes(`### ${profile}`)) {
+      failures.push(`Missing enterprise pilot operating profile card: ${profile}`);
+    }
+  }
+
+  for (const forbiddenSurface of ["Companion", "Website", "CRM runtime", "Mobile", "Dashboard", "Infrastructure"]) {
+    if (!pilotPackage.includes(forbiddenSurface)) {
+      failures.push(`Missing protected surface boundary in enterprise pilot package: ${forbiddenSurface}`);
     }
   }
 }
