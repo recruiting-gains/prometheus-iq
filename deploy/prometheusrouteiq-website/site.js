@@ -1,4 +1,7 @@
 import * as THREE from "./vendor/three.module.js";
+import { initializeWebsiteAttribution } from "./website-attribution.js";
+
+initializeWebsiteAttribution();
 
 const canvas = document.querySelector("#core");
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
