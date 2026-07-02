@@ -6507,6 +6507,64 @@ Next recommended subsystem:
 
 Prometheus CRM or Prometheus Mobile for the next operating profile consumer handoff. Companion profile-consumer work should wait until Founder acceptance clears active Companion visual review.
 
+### 2026-07-02: Prometheus CRM - Operating Profile Consumer v1
+
+Subsystem: Prometheus CRM
+
+Task: Operating Profile Consumer v1
+
+Commit: `9911e33e521906c22fa9edecc924a403fecbac02`
+
+Deploy: Not deployed. Not applicable; CRM library/test change only, no production-safe deploy target required.
+
+Status: Complete
+
+Profile contracts consumed:
+
+- `intelligence/operating-profile-engine.mjs`
+- `intelligence/profiles/operating-profiles.json`
+- `intelligence/contracts/operating-profile-contracts.json`
+- CRM consumes `CRMOperatingProfileContract` via `buildProfileConsumerContract`.
+
+Fitness default preserved:
+
+Yes. CRM defaults to Fitness. Fitness terminology and stages remain the default for new CRM state and leads.
+
+Example profiles validated:
+
+- Fitness.
+- Roofing.
+- Security.
+- Medical.
+- General Outside Sales.
+
+Files changed:
+
+- `crm/README.md`
+- `crm/crm-foundation.mjs`
+- `scripts/typecheck-crm.mjs`
+- `tests/crm-foundation.test.mjs`
+
+What changed:
+
+CRM now consumes Intelligence operating profiles through the existing CRM foundation instead of creating a separate profile model. CRM preserves its ownership of lead/contact/customer records while using the Intelligence profile contract for profile-specific CRM terminology, stages, and defaults.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:crm`: passed.
+- `npm run crm:validate`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+None for CRM Operating Profile Consumer v1. Existing uncommitted Companion/Prometheus OS visual-review changes remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Prometheus Mobile for the next operating profile consumer handoff. Companion profile-consumer work should wait until Founder acceptance clears active Companion visual review.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -6569,6 +6627,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the CRM foundation; reuse `crm/crm-foundation.mjs`, `scripts/lint-crm.mjs`, `scripts/typecheck-crm.mjs`, and `tests/crm-foundation.test.mjs`.
 - Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
 - Do not duplicate CRM Lead Attribution from Social Campaigns v1; reuse `attachWebsiteAttributionToLead` in `crm/crm-foundation.mjs`, the existing Website/Social attribution output, and normalized `crm_lead_created` attribution events through `social-media/contracts/social-media-contract.js`. CRM owns lead/contact records and must not call Instagram APIs or rebuild Website/Social attribution capture.
+- Do not duplicate CRM Operating Profile Consumer v1; reuse CRM's consumption of `intelligence/operating-profile-engine.mjs`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, and `CRMOperatingProfileContract` via `buildProfileConsumerContract` in `crm/crm-foundation.mjs`. Preserve Fitness as the CRM default and do not create a parallel CRM profile model.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.
