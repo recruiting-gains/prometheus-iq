@@ -5355,6 +5355,54 @@ Next recommended subsystem:
 
 Prometheus Infrastructure/Auth for authenticated production verification of Worker `c34e0ba3-a89f-4b42-a2ba-45b0288329cb`; then Prometheus Administration for field-test evidence and tester sign-off updates.
 
+### 2026-07-02: Prometheus Mobile - Beta Route Controls and Events Expansion
+
+Subsystem: Prometheus Mobile
+
+Task: Beta Route Controls and Events Expansion
+
+Commit: `3902c466713625a5dae256446643c9d393d0fa43`
+
+Deploy: PASS. Cloudflare Worker version: `02f4635b-0e36-46d9-ad84-8c399338e33b`
+
+Status: Complete and deployed. Authenticated production route/header and browser runtime checks remain blocked by missing Access cookie or CDP session.
+
+Files changed:
+
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+
+What changed:
+
+Mobile completed the next beta route-control lane covering nearby behavior, rep radius adjustment, ring explanation, morning/evening route options, Eventbrite expansion, and 15-location route generation.
+
+Verification:
+
+- Nearby: PASS.
+- Rep radius adjustment: PASS.
+- Ring explanation: PASS.
+- Morning/Evening route options: PASS.
+- Eventbrite expansion: PASS.
+- 15-location route generation: PASS.
+
+Production verification:
+
+Partial PASS. Deployment, version consistency, Cloudflare Access protection, and local gates passed. Authenticated production runtime/header checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`.
+
+Remaining blockers:
+
+Authenticated production route/header and browser runtime verification remains blocked until an Access cookie/session or Chrome CDP endpoint is available.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure/Auth for authenticated production verification of Worker `02f4635b-0e36-46d9-ad84-8c399338e33b`; then Prometheus Administration for field-test evidence and tester sign-off updates.
+
 ### 2026-07-02: Prometheus Administration - Beta Sprint 2 Field Feedback Command Center
 
 Subsystem: Prometheus Administration
@@ -5662,6 +5710,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Mobile Nearby Button Bug / Beta Stability Sprint 2 fix; preserve the Route-screen nearby status as a passive non-interactive badge, keep nearby context inside Route card "Why?" details, and retain Owner/Anthony Rep regression coverage.
 - Do not duplicate Mobile Beta Stability Sprint 2 Remaining Fixes + Deploy; reuse commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, the updated Dashboard/PWA parity files, workflow regression coverage, route-intelligence quality report update, and Cloudflare Worker deploy `79aa78e2-5556-44f7-9469-2f98c521d658` for dashboard performance, route state synchronization, rep radius/ring visibility, route generation greater than six businesses, and Hamza evidence routing.
 - Do not duplicate Mobile Beta Stability Sprint 2 Final UX Fixes; reuse commit `46b894f974dae63fcfd054521fbddb381b824496`, Cloudflare Worker version `c34e0ba3-a89f-4b42-a2ba-45b0288329cb`, Owner/Rep radius permission model, Active Pool ring visibility messaging, 53/53 Dashboard workflow coverage, and the existing source/deploy PWA parity files.
+- Do not duplicate Mobile Beta Route Controls and Events Expansion; reuse commit `3902c466713625a5dae256446643c9d393d0fa43`, Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`, nearby/radius/ring explanation behavior, morning/evening route options, Eventbrite expansion, 15-location route generation, and the existing source/deploy PWA parity files.
 - Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
@@ -5760,7 +5809,7 @@ Secondary subsystems:
 
 Reason:
 
-Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, then finalized Sprint 2 UX fixes at commit `46b894f974dae63fcfd054521fbddb381b824496` and deployed Cloudflare Worker version `c34e0ba3-a89f-4b42-a2ba-45b0288329cb`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, then completed Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb` and deployed Worker version `e2e5e155-a4fa-44a4-bf13-6febc8242488`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
+Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, finalized Sprint 2 UX fixes at commit `46b894f974dae63fcfd054521fbddb381b824496`, then completed Beta Route Controls and Events Expansion at commit `3902c466713625a5dae256446643c9d393d0fa43` and deployed Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, then completed Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb` and deployed Worker version `e2e5e155-a4fa-44a4-bf13-6febc8242488`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
 
 Known completed Instagram analytics lane:
 
