@@ -12,11 +12,12 @@ import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
 
 export class AIProvider {
-  constructor({ mode = "local-demo", communicationsService = null } = {}) {
+  constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null } = {}) {
     this.mode = mode;
     this.history = [];
     this.currentFocus = null;
     this.communicationsService = communicationsService;
+    this.socialMediaAnalyticsService = socialMediaAnalyticsService;
   }
 
   get providerLabel() {
@@ -48,7 +49,8 @@ export class AIProvider {
     }
 
     const founderAssistantResponse = await createFounderAssistantResponse(normalized, {
-      communicationsService: this.communicationsService || undefined
+      communicationsService: this.communicationsService || undefined,
+      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined
     });
     if (founderAssistantResponse) {
       return this.remember(cleanMessage, founderAssistantResponse);
@@ -144,7 +146,8 @@ export class AIProvider {
     }
 
     const founderAssistantResponse = await createFounderAssistantResponse(command, {
-      communicationsService: this.communicationsService || undefined
+      communicationsService: this.communicationsService || undefined,
+      socialMediaAnalyticsService: this.socialMediaAnalyticsService || undefined
     });
     if (founderAssistantResponse) return founderAssistantResponse;
 

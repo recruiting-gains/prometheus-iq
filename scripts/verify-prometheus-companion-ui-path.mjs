@@ -2,6 +2,14 @@ import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
 import {
+  SOCIAL_CONNECTION_STATES,
+  SOCIAL_DATA_SOURCES,
+  SOCIAL_MEDIA_CONTRACT_VERSION,
+  SOCIAL_PROVIDER_IDS,
+  createMarketingAnalyticsSnapshot,
+  createSocialProviderStatus
+} from "../social-media/contracts/social-media-contract.js";
+import {
   FOUNDER_COMMUNICATIONS_CONTRACT_VERSION,
   FOUNDER_CONNECTION_STATES,
   createDailyAgendaResponse,
@@ -162,6 +170,42 @@ function communicationsServiceForStatus(status) {
     }
   });
 }
+
+function socialMediaAnalyticsServiceForSnapshot(snapshot) {
+  return {
+    sourceSubsystem: "Prometheus Social Media",
+    async getInstagramAnalyticsSnapshot() {
+      return snapshot;
+    }
+  };
+}
+
+const liveInstagramAnalyticsSnapshot = createMarketingAnalyticsSnapshot({
+  id: "companion-founder-brief-instagram-test",
+  generatedAt: "2026-07-01T22:30:00.000Z",
+  providers: [
+    createSocialProviderStatus({
+      provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+      state: SOCIAL_CONNECTION_STATES.CONNECTED,
+      source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+      accountId: "17841421929598004",
+      accountHandle: "@prometheus.iq",
+      checkedAt: "2026-07-01T22:30:00.000Z"
+    })
+  ],
+  metrics: [
+    { name: "followers_count", value: 50, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "reach", value: 20, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "impressions", value: 44, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "profile_views", value: 8, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "website_clicks", value: 3, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "followers_growth", value: 4, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
+    { name: "content_reach", value: 11, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } },
+    { name: "content_views", value: 30, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } },
+    { name: "content_total_interactions", value: 12, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } }
+  ],
+  notes: ["Normalized Social Media provider snapshot for Companion acceptance coverage."]
+});
 
 function fail(label, payload) {
   failures += 1;
@@ -393,7 +437,7 @@ for (const [phrase, expected] of protectedPassingCases) {
 const executiveCommandCenterCases = [
   [
     "Give me my Founder Morning Brief.",
-    ["founder morning brief", "engineering:", "beta:", "research:", "sales:", "website:", "social media:", "calendar:", "priorities:"]
+    ["founder morning brief", "engineering (source: overwatch)", "instagram (source: prometheus social media)", "research (source: prometheus research)", "sales (source: prometheus sales)", "website (source: prometheus website)", "crm (source: prometheus crm)", "beta (source: prometheus administration)", "daily priorities (source: prometheus companion priority engine)"]
   ],
   [
     "Give me the executive dashboard.",
@@ -425,7 +469,7 @@ const executiveCommandCenterCases = [
   ],
   [
     "Give me social media summary.",
-    ["social media summary", "manual-operations ready", "no oauth", "manual"]
+    ["social media summary", "live instagram business analytics", "automated posting", "social media normalization"]
   ],
   [
     "Give me beta summary.",
@@ -472,6 +516,43 @@ for (const [phrase, expected] of executiveCommandCenterCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> executive:${response.title}`);
+}
+
+const instagramAnalyticsProvider = new AIProvider({
+  socialMediaAnalyticsService: socialMediaAnalyticsServiceForSnapshot(liveInstagramAnalyticsSnapshot)
+});
+const instagramBrief = await instagramAnalyticsProvider.ask("Give me my Founder Morning Brief.");
+const instagramBriefText = `${instagramBrief.title || ""} ${instagramBrief.body || ""}`.toLowerCase();
+const instagramExpected = [
+  "instagram (source: prometheus social media)",
+  SOCIAL_MEDIA_CONTRACT_VERSION,
+  "followers: 50",
+  "reach: 20",
+  "impressions: 44",
+  "profile visits: 8",
+  "website clicks: 3",
+  "engagement: 12",
+  "top performing content: reel",
+  "growth trend: 4",
+  "presentation only",
+  "no instagram api calls",
+  "crm (source: prometheus crm)"
+];
+const instagramMissing = instagramExpected.filter((item) => !instagramBriefText.includes(item.toLowerCase()));
+if (
+  instagramBrief.metadata?.executiveCommandCenter !== true ||
+  instagramBrief.metadata?.instagramState !== SOCIAL_CONNECTION_STATES.CONNECTED ||
+  instagramMissing.length
+) {
+  fail("founder-morning-brief-instagram-analytics", {
+    title: instagramBrief.title,
+    executiveCommandCenter: instagramBrief.metadata?.executiveCommandCenter === true,
+    instagramState: instagramBrief.metadata?.instagramState,
+    missing: instagramMissing,
+    body: instagramBrief.body
+  });
+} else {
+  console.log(`PASS Founder Morning Brief consumes normalized Instagram analytics -> ${instagramBrief.title}`);
 }
 
 if (failures) {

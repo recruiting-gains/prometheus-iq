@@ -14,6 +14,8 @@ const PORT = Number(process.env.PROMETHEUS_OS_PORT || 8792);
 const HOST = process.env.PROMETHEUS_OS_HOST || "127.0.0.1";
 const ROOT = normalize(join(fileURLToPath(new URL("../", import.meta.url))));
 const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
+const SOCIAL_MEDIA_INSTAGRAM_SNAPSHOT_URL = process.env.PROMETHEUS_SOCIAL_MEDIA_SNAPSHOT_URL ||
+  "https://prometheusrouteiq.com/api/social/instagram/snapshot";
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -187,6 +189,43 @@ async function handleVersion(_req, res) {
   sendJson(res, 200, version);
 }
 
+async function handleSocialInstagramSnapshot(_req, res) {
+  if (typeof fetch !== "function") {
+    sendJson(res, 503, {
+      ok: false,
+      sourceSubsystem: "Prometheus Social Media",
+      error: "Fetch is unavailable in this local Companion backend."
+    });
+    return;
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(SOCIAL_MEDIA_INSTAGRAM_SNAPSHOT_URL, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+      signal: controller.signal
+    });
+    const body = await response.json().catch(() => ({}));
+    sendJson(res, response.ok ? 200 : response.status, {
+      ok: response.ok,
+      sourceSubsystem: "Prometheus Social Media",
+      endpointType: "normalized-social-media-snapshot",
+      snapshot: body?.snapshot || body
+    });
+  } catch {
+    sendJson(res, 502, {
+      ok: false,
+      sourceSubsystem: "Prometheus Social Media",
+      endpointType: "normalized-social-media-snapshot",
+      error: "Normalized Instagram analytics snapshot is unavailable."
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function handleHealth(_req, res) {
   const version = await readCompanionVersion();
   sendJson(res, 200, {
@@ -270,6 +309,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && req.url === "/api/version") {
     await handleVersion(req, res);
+    return;
+  }
+
+  if (req.method === "GET" && req.url === "/api/social/instagram/snapshot") {
+    await handleSocialInstagramSnapshot(req, res);
     return;
   }
 

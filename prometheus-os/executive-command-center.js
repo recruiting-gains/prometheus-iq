@@ -5,13 +5,20 @@ import {
   createFounderAgendaBrief,
   getDefaultFounderCommunicationsService
 } from "./founder-communications-consumer.js";
+import {
+  createFounderInstagramAnalyticsBrief,
+  getDefaultFounderSocialAnalyticsService
+} from "./founder-instagram-analytics-consumer.js";
 
 const readOnlySources = Object.freeze({
   company: ["COMPANY_IDENTITY.md", "docs/product-vision.md"],
   research: ["research/README.md", "research/templates/founder-intelligence-brief.md"],
   sales: ["sales/README.md", "sales/enterprise-sales-methodology.md"],
   website: ["docs/public-site-cloudflare-readiness.md", "docs/3d-website-production-route.md"],
+  crm: ["crm/README.md", "crm/enterprise-lifecycle-architecture.md"],
   socialMedia: [
+    "social-media/contracts/social-media-contract.js",
+    "social-media/social-media-analytics-service.js",
     "social-media/founder-marketing-operating-system/README.md",
     "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json"
   ]
@@ -42,10 +49,16 @@ const sourceSummaries = Object.freeze({
     "The Prometheus visual standard is premium, cinematic, dark, intelligent, field-sales focused, and executive-ready.",
     "Public website changes remain Website-owned; Companion can summarize status only."
   ],
+  crm: [
+    "CRM owns contact, lead, follow-up, founder task, rep task, and enterprise lifecycle records.",
+    "Anthony runtime activity can convert into CRM contacts and leads through the CRM foundation.",
+    "CRM attribution from social campaigns is not implemented yet.",
+    "Companion can summarize CRM state but must not create a parallel CRM or mutate CRM records."
+  ],
   socialMedia: [
-    "The Founder Marketing Operating System is manual-operations ready with no production integrations, no live Meta APIs, and no live posting.",
+    "Social Media owns live Instagram Business analytics consumption and normalized marketing analytics contracts.",
     "Content pillars are Field Reality, Product Intelligence, Founder Build In Public, Enterprise Trust, and Outside Sales Education.",
-    "Publishing remains manual until approved integrations exist.",
+    "Publishing remains manual; analytics consumption does not enable live posting, DMs, comments automation, scraping, or token exposure.",
     "Social Media must not expose Anthony beta details, private dashboards, proprietary route logic, customer data, or live provider claims."
   ]
 });
@@ -201,6 +214,21 @@ export function createWebsiteSummary() {
   };
 }
 
+export function createCrmSummary() {
+  return {
+    title: "CRM Summary",
+    body: [
+      sourceSummaries.crm.join(" "),
+      "Current founder read: CRM is ready to represent beta contacts and follow-up queues, but social campaign lead attribution remains a future CRM-owned handoff.",
+      "Boundary: Companion does not create CRM records, send outreach, or own CRM pipeline logic."
+    ].join(" "),
+    metadata: {
+      ...sourceMetadata("crm"),
+      summaryArea: "crm"
+    }
+  };
+}
+
 export function createSocialMediaSummary() {
   const social = signal("social", { value: "@prometheus.iq", detail: "Manual social tracking remains available." });
   return {
@@ -209,7 +237,7 @@ export function createSocialMediaSummary() {
       `${social.value}. ${social.detail}`,
       sourceSummaries.socialMedia.join(" "),
       "Founder action: publish field reality, product intelligence, and enterprise-trust lessons manually.",
-      "Boundary: no OAuth, scraping, browser automation, automated posting, or live Meta metrics are claimed."
+      "Boundary: Companion does not own OAuth, scraping, browser automation, automated posting, DMs, comments automation, token handling, or Social Media normalization."
     ].join(" "),
     metadata: {
       ...sourceMetadata("socialMedia"),
@@ -236,7 +264,8 @@ export function createBetaSummary() {
 }
 
 export async function createFounderMorningBrief({
-  communicationsService = getDefaultFounderCommunicationsService()
+  communicationsService = getDefaultFounderCommunicationsService(),
+  socialMediaAnalyticsService = getDefaultFounderSocialAnalyticsService()
 } = {}) {
   const agenda = await createFounderAgendaBrief({
     service: communicationsService,
@@ -248,28 +277,46 @@ export async function createFounderMorningBrief({
   const priorities = createTopThreePriorities();
   const research = createResearchSummary();
   const sales = createSalesSummary();
+  const crm = createCrmSummary();
+  const instagram = await createFounderInstagramAnalyticsBrief({
+    service: socialMediaAnalyticsService
+  });
 
   return {
     title: "Founder Morning Brief",
     body: [
-      `Engineering: ${recentEngineeringSummary()}`,
-      `Beta: ${beta.value}. ${beta.detail}`,
-      `Research: ${research.body}`,
-      `Sales: ${sales.body}`,
-      `Website: ${website.value}. ${website.detail}`,
-      `Social Media: ${social.value}. ${social.detail}`,
-      `Calendar: ${agenda.body}`,
-      `Priorities: ${priorities.body}`,
+      `Engineering (Source: Overwatch): ${recentEngineeringSummary()}`,
+      instagram.body,
+      `Research (Source: Prometheus Research): ${research.body}`,
+      `Sales (Source: Prometheus Sales): ${sales.body}`,
+      `Website (Source: Prometheus Website): ${website.value}. ${website.detail}`,
+      `CRM (Source: Prometheus CRM): ${crm.body}`,
+      `Beta (Source: Prometheus Administration): ${beta.value}. ${beta.detail}`,
+      `Calendar (Source: Prometheus Integrations): ${agenda.body}`,
+      `Daily Priorities (Source: Prometheus Companion Priority Engine): ${priorities.body}`,
       "Executive read: protect Anthony beta, preserve founder focus, and turn internal progress into external proof."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
-      sections: ["engineering", "beta", "research", "sales", "website", "social media", "calendar", "priorities"],
+      sections: ["engineering", "instagram", "research", "sales", "website", "crm", "beta", "calendar", "priorities"],
       calendarState: agenda.metadata?.integrationState || "Unknown",
+      instagramState: instagram.metadata.providerState,
+      sourceSubsystems: [
+        "Overwatch",
+        "Prometheus Social Media",
+        "Prometheus Research",
+        "Prometheus Sales",
+        "Prometheus Website",
+        "Prometheus CRM",
+        "Prometheus Administration",
+        "Prometheus Integrations",
+        "Prometheus Companion"
+      ],
       readOnlySources: [
         ...readOnlySources.research,
         ...readOnlySources.sales,
         ...readOnlySources.website,
+        ...readOnlySources.crm,
         ...readOnlySources.socialMedia
       ]
     }

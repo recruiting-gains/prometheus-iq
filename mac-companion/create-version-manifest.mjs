@@ -129,30 +129,35 @@ function readJson(path) {
 const companionRoot = join(projectRoot, "mac-companion");
 const runtimeSourceRoot = join(projectRoot, "prometheus-os");
 const integrationsSourceRoot = join(projectRoot, "integrations");
+const socialMediaSourceRoot = join(projectRoot, "social-media");
 const installedAppPath = join(supportDir, "PrometheusCompanion.app");
 const installedRuntimeRoot = join(supportDir, "prometheus-os");
 const installedIntegrationsRoot = join(supportDir, "integrations");
+const installedSocialMediaRoot = join(supportDir, "social-media");
 
 const companionSource = fingerprint(projectRoot, [
   ...listFiles(companionRoot),
   ...listFiles(runtimeSourceRoot),
-  ...listFiles(integrationsSourceRoot)
+  ...listFiles(integrationsSourceRoot),
+  ...listFiles(socialMediaSourceRoot)
 ]);
 const runtimeSource = fingerprint(projectRoot, [
   ...listFiles(runtimeSourceRoot),
-  ...listFiles(integrationsSourceRoot)
+  ...listFiles(integrationsSourceRoot),
+  ...listFiles(socialMediaSourceRoot)
 ]);
 const sourceManifest = readJson(sourceManifestPath);
 const gitCommit = gitValue(["rev-parse", "--short=12", "HEAD"]);
 const gitBranch = gitValue(["branch", "--show-current"]);
-const sourceStatus = gitValue(["status", "--short", "--", "mac-companion", "prometheus-os", "integrations"]);
+const sourceStatus = gitValue(["status", "--short", "--", "mac-companion", "prometheus-os", "integrations", "social-media"], "");
 const buildId = sourceManifest?.buildId ||
   `${new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z")}-${gitCommit}-${companionSource.sha256.slice(0, 12)}`;
 
 const installedApp = pathFingerprint(installedAppPath);
 const installedRuntime = fingerprint(supportDir, [
   ...listFiles(installedRuntimeRoot, { includeAll: true }),
-  ...listFiles(installedIntegrationsRoot, { includeAll: true })
+  ...listFiles(installedIntegrationsRoot, { includeAll: true }),
+  ...listFiles(installedSocialMediaRoot, { includeAll: true })
 ]);
 const outOfSync = [];
 
@@ -198,10 +203,12 @@ const manifest = {
     companionRoot,
     runtimeSourceRoot,
     integrationsSourceRoot,
+    socialMediaSourceRoot,
     supportDir,
     installedAppPath,
     installedRuntimeRoot,
-    installedIntegrationsRoot
+    installedIntegrationsRoot,
+    installedSocialMediaRoot
   },
   source: {
     companionFingerprint: companionSource.sha256,

@@ -215,13 +215,16 @@ function morningGreeting() {
   );
 }
 
-export async function createFounderAssistantResponse(command = "", { communicationsService = getDefaultFounderCommunicationsService() } = {}) {
+export async function createFounderAssistantResponse(command = "", {
+  communicationsService = getDefaultFounderCommunicationsService(),
+  socialMediaAnalyticsService
+} = {}) {
   const normalized = String(command || "").toLowerCase().trim();
   if (!normalized) return null;
 
   if (/^(good morning|morning companion|good morning companion|hello companion|hey companion)\b/.test(normalized)) return morningGreeting();
   if (includesAny(normalized, ["founder morning brief", "morning brief", "executive morning brief", "start my morning"])) {
-    const brief = await createFounderMorningBrief({ communicationsService });
+    const brief = await createFounderMorningBrief({ communicationsService, socialMediaAnalyticsService });
     return response(brief.title, brief.body, {
       ...brief.metadata,
       intent: "founder_morning_brief",
