@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T05:01:06.783Z",
+  "generatedAt": "2026-07-02T19:06:30.029Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "dataset": {
@@ -646,7 +646,7 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 22,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 24,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": ""
   },
   "dashboardCompatibility": {

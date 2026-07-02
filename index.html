@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-pTMdy0yVFC5fR0FsmdJxMe/j/3NmGuV+YJ/J5f21rEM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BqMzecmYU+dka1TTpZSjUJCamv3pVdgBl96lkbaPVKM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1628,9 +1628,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-02-operating-profile-consumer-v1";
+    const appBuildVersion = "2026-07-02-operating-profile-consumer-v2";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v35-operating-profile-consumer";
+    const serviceWorkerCacheVersion = "prometheus-v36-operating-profile-consumer";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -19339,6 +19339,15 @@
           quickSuccess: "Membership",
           quickSuccessDetail: "Membership closed"
         },
+        general_outside_sales: {
+          progressPlural: "Opportunities",
+          progressSingular: "opportunity",
+          activityPlural: "Appointments",
+          pipelinePlural: "Leads",
+          deferredPlural: "Follow-ups",
+          quickSuccess: "Opportunity",
+          quickSuccessDetail: "Opportunity qualified"
+        },
         roofing: {
           progressPlural: "Contracts",
           progressSingular: "contract",
@@ -19417,15 +19426,18 @@
       }));
     }
 
-    function validateDashboardOperatingProfileContracts(registry, contracts) {
+    function validateMobileOperatingProfileContracts(registry, contracts) {
       const failures = [];
       if (registry?.version !== "operating-profile-engine-v1") failures.push("profile registry version mismatch");
       if (contracts?.version !== "operating-profile-contracts-v1") failures.push("profile contract version mismatch");
-      if (registry?.productionLearningActive !== false || registry?.productionRecommendationChanged !== false || registry?.scoringChanged !== false || registry?.activePoolChanged !== false) {
-        failures.push("operating profile registry is not production-safe for Dashboard consumption");
+      if (registry?.productionLearningActive !== false || registry?.productionRecommendationChanged !== false || registry?.scoringChanged !== false || registry?.activePoolChanged !== false || registry?.mobileBetaChanged !== false) {
+        failures.push("operating profile registry is not production-safe for Mobile consumption");
       }
       if (!Array.isArray(registry?.profiles) || !registry.profiles.length) failures.push("operating profile registry has no profiles");
-      if (!contracts?.contracts?.DashboardOperatingProfileContract?.requiredFields?.includes("dashboardLabels")) failures.push("Dashboard operating profile contract is missing dashboardLabels");
+      const mobileContractFields = contracts?.contracts?.MobileOperatingProfileContract?.requiredFields || [];
+      for (const field of ["terminology", "dashboardLabels", "mobileBetaChanged"]) {
+        if (!mobileContractFields.includes(field)) failures.push(`Mobile operating profile contract is missing ${field}`);
+      }
       return failures;
     }
 
@@ -19443,7 +19455,7 @@
         if (!contractResponse.ok) throw new Error(`Operating profile contract request failed with ${contractResponse.status}.`);
         const registry = await profileResponse.json();
         const contracts = await contractResponse.json();
-        const failures = validateDashboardOperatingProfileContracts(registry, contracts);
+        const failures = validateMobileOperatingProfileContracts(registry, contracts);
         if (failures.length) throw new Error(failures.join(" | "));
         operatingProfileRegistry = registry;
         operatingProfileContracts = contracts;
@@ -19457,7 +19469,8 @@
           source: operatingProfileSource,
           contractVersion: contracts.version,
           scoringChanged: registry.scoringChanged,
-          activePoolChanged: registry.activePoolChanged
+          activePoolChanged: registry.activePoolChanged,
+          mobileBetaChanged: registry.mobileBetaChanged
         };
         return true;
       } catch (error) {
@@ -19469,7 +19482,8 @@
           source: operatingProfileSource,
           contractVersion: "embedded",
           scoringChanged: false,
-          activePoolChanged: false
+          activePoolChanged: false,
+          mobileBetaChanged: false
         };
         return false;
       }

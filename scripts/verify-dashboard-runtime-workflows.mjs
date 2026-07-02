@@ -932,7 +932,8 @@ function verifyOperatingProfileVocabulary(label, snap, expected) {
       && snap.debug.operatingProfile?.source?.includes(expected.profileId)
       && hasExpectedTerms
       && snap.debug.operatingProfile?.scoringChanged === false
-      && snap.debug.operatingProfile?.activePoolChanged === false,
+      && snap.debug.operatingProfile?.activePoolChanged === false
+      && snap.debug.operatingProfile?.mobileBetaChanged === false,
     detail,
     JSON.stringify({
       expected,
@@ -987,6 +988,7 @@ async function runHarness() {
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
 
     for (const expected of [
+      { profileId: "general_outside_sales", terms: ["Opportunities Today", "Appointments", "Leads", "Outside Sales Route", "Verified Opportunities"] },
       { profileId: "roofing", terms: ["Contracts Today", "Inspections", "Leads", "Roofing Route", "Verified Contracts"] },
       { profileId: "security", terms: ["Contracts Today", "Site Surveys", "Security Prospects", "Security Route", "Verified Contracts"] },
       { profileId: "medical", terms: ["Partnerships Today", "Meetings", "Referrals", "Medical Route", "Verified Partnerships"] }
