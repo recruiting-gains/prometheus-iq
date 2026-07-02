@@ -806,14 +806,17 @@ if (
 
 const appSource = readFileSync(new URL("../prometheus-os/app.js", import.meta.url), "utf8");
 const providerSource = readFileSync(new URL("../prometheus-os/ai-provider.js", import.meta.url), "utf8");
+const voiceAssistantSource = readFileSync(new URL("../prometheus-os/voice-assistant.js", import.meta.url), "utf8");
 const indexSource = readFileSync(new URL("../prometheus-os/index.html", import.meta.url), "utf8");
 const styleSource = readFileSync(new URL("../prometheus-os/style.css", import.meta.url), "utf8");
+const nativeSource = readFileSync(new URL("../mac-companion/PrometheusCompanion.swift", import.meta.url), "utf8");
 const uiPolicyFailures = [
   appSource.includes('kicker: "Prometheus response"') ? "normal response panel still uses Prometheus response card" : "",
   appSource.includes('kicker: "Clap detected"') ? "clap detection notification panel still exists" : "",
   appSource.includes('kicker: "Speech capture"') ? "automatic speech-capture panel still exists" : "",
   appSource.includes("I did not catch that") ? "normal no-input prompt card still exists" : "",
   !appSource.includes("function shouldDisplayConversationPanel") ? "conversation panel policy helper missing" : "",
+  !voiceAssistantSource.includes("lower === item || lower.startsWith(`${item} `)") ? "wake phrase parser can strip Prometheus from the middle of executive questions" : "",
   !appSource.includes("explicitPanelRequest") ? "explicit panel request gate missing" : "",
   !appSource.includes("cardDisplayed") ? "last command result does not report card display state" : "",
   !appSource.includes("function interruptSpeech") ? "voice interrupt helper missing" : "",
@@ -826,6 +829,10 @@ const uiPolicyFailures = [
   !appSource.includes("\"actually stop\"") ? "actually stop interrupt phrase missing" : "",
   !appSource.includes("AbortController") ? "pending TTS abort controller missing" : "",
   !appSource.includes("voice.setInterruptOnly(true)") ? "browser interim interrupt mode missing for Companion shell" : "",
+  !appSource.includes('source: "command interrupt listener"') ? "stop command cannot interrupt while a response is still generating" : "",
+  !appSource.includes("./ai-provider.js?v=founder-regression-fix-20260702b") ? "AI provider module cache bust missing" : "",
+  !appSource.includes("./three-scene.js?v=founder-regression-fix-20260702") ? "three-scene module cache bust missing" : "",
+  !providerSource.includes("./founder-conversation-engine.js?v=founder-regression-fix-20260702b") ? "Founder conversation engine module cache bust missing" : "",
   !appSource.includes("installTopChromeReveal") ? "top chrome reveal behavior missing" : "",
   !appSource.includes("refreshFounderTimeline") ? "founder timeline refresh missing from Companion runtime" : "",
   !appSource.includes("/api/founder/timeline") ? "founder timeline backend consumption missing" : "",
@@ -839,8 +846,16 @@ const uiPolicyFailures = [
   indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
   indexSource.includes("event-horizon-core") ? "DOM event-horizon overlay still exists" : "",
   indexSource.includes("accretion-ring") ? "DOM accretion ring overlay still exists" : "",
+  !indexSource.includes("app.js?v=founder-regression-fix-20260702") ? "app module cache bust missing from installed HTML" : "",
+  !nativeSource.includes("configuration.websiteDataStore = .nonPersistent()") ? "native WebView persistent cache can serve stale Companion runtime" : "",
+  !nativeSource.includes("cacheBustedOSURL") ? "native WebView load does not cache-bust installed runtime" : "",
+  !nativeSource.includes("nativeFounderReply") ? "native founder fallback answers missing" : "",
+  !nativeSource.includes("assistantTask?.cancel()") ? "stop command does not cancel pending assistant work" : "",
+  !nativeSource.includes("premiumTtsTask?.cancel()") ? "stop command does not cancel pending premium TTS request" : "",
+  !nativeSource.includes(".autoHideMenuBar") ? "native shell does not auto-hide top system menu bar" : "",
   !styleSource.includes("Companion Visual Identity Reset v1") ? "visual reset CSS override missing" : "",
   !styleSource.includes("width: 100vw") ? "full-screen visual composition missing" : "",
+  !styleSource.includes("visibility: hidden") || !styleSource.includes("pointer-events: none") ? "legacy center software core is not hidden from normal view" : "",
   !styleSource.includes("body.top-chrome-visible .build-marker") ? "status chrome top-edge reveal CSS missing" : "",
   !styleSource.includes("body.developer-mode .build-marker") ? "developer mode chrome reveal CSS missing" : "",
   !styleSource.includes("body[data-voice=\"thinking\"] .prometheus-core") ? "thinking amber state missing" : "",

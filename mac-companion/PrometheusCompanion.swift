@@ -52,6 +52,9 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private var nativeAudioRecorder: AVAudioRecorder?
     private var nativeRecordingURL: URL?
     private var audioPlaybackGeneration = 0
+    private var speechRequestGeneration = 0
+    private var assistantTask: URLSessionDataTask?
+    private var premiumTtsTask: URLSessionDataTask?
     private var backgroundProcesses: [String: Process] = [:]
     private var backgroundLogHandles: [String: FileHandle] = [:]
 
@@ -86,6 +89,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        NSApp.presentationOptions = []
         stopListening()
     }
 
@@ -257,6 +261,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         } else {
             let configuration = WKWebViewConfiguration()
             configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+            configuration.websiteDataStore = .nonPersistent()
             let nativeCaptureScript = WKUserScript(
                 source: "window.__PROMETHEUS_COMPANION_SHELL__ = true;",
                 injectionTime: .atDocumentStart,
@@ -296,6 +301,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         window.setFrame(screenFrame, display: true)
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
+        NSApp.presentationOptions = [.autoHideMenuBar, .autoHideDock]
         NSApp.activate(ignoringOtherApps: true)
         NSRunningApplication.current.activate(options: [.activateAllWindows])
 
@@ -353,7 +359,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
         webView.stopLoading()
         webView.load(URLRequest(
-            url: osURL,
+            url: cacheBustedOSURL(),
             cachePolicy: .reloadIgnoringLocalCacheData,
             timeoutInterval: 15
         ))
@@ -402,6 +408,18 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         log("Prometheus OS WebView process terminated. Reloading.")
         webView.loadHTMLString(Self.loadingHTML, baseURL: nil)
         loadPrometheusOSWhenReady()
+    }
+
+    private func cacheBustedOSURL() -> URL {
+        guard var components = URLComponents(url: osURL, resolvingAgainstBaseURL: false) else {
+            return osURL
+        }
+
+        var queryItems = components.queryItems ?? []
+        queryItems.removeAll { $0.name == "companionBuild" }
+        queryItems.append(URLQueryItem(name: "companionBuild", value: String(Int(Date().timeIntervalSince1970))))
+        components.queryItems = queryItems
+        return components.url ?? osURL
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -836,12 +854,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
                 guard let self else { return }
                 if let error {
                     self.log("Web command route failed: \(error.localizedDescription). Falling back to native route.")
-                    if self.isFounderReasoningQuestion(transcript) {
-                        self.speak("I could not reach the Prometheus reasoning engine in the WebView. Reopen Prometheus OS and try again so I do not fall back to a card answer.")
-                        self.scheduleNativeSttCapture(after: 2.0)
-                        return
-                    }
-                    self.handleTranscript(transcript, isFinal: true)
+                    self.answerWithNativeFounderFallback(transcript, reason: "web command route error")
+                    return
+                }
+                if result == nil || result is NSNull {
+                    self.log("Web command route returned no result. Using native founder fallback.")
+                    self.answerWithNativeFounderFallback(transcript, reason: "web command route unavailable")
                     return
                 }
                 self.log("Transcript routed to Prometheus OS command router.")
@@ -1025,6 +1043,55 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             let normalizedPrompt = normalizeCommand(prompt)
             return normalized == normalizedPrompt || normalized.contains(normalizedPrompt)
         }
+    }
+
+    private func normalizeFounderText(_ value: String) -> String {
+        var normalized = value.lowercased()
+        normalized = normalized.replacingOccurrences(of: "[’‘']", with: "", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+        normalized = normalized.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+        return normalized.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func nativeFounderReply(for transcript: String) -> String? {
+        let normalized = normalizeFounderText(transcript)
+        guard !normalized.isEmpty else { return nil }
+
+        if ["hello", "hi", "hey"].contains(normalized) {
+            return founderGreeting
+        }
+
+        if normalized == "good morning" || normalized == "morning" || normalized == "good morning companion" {
+            return "Good morning. Everything is ready whenever you are."
+        }
+
+        if normalized.contains("how are we doing") || normalized.contains("how are we looking") || normalized.contains("where do we stand") {
+            return "We are in a strong build position, but not a strong proof position yet. Prometheus I Q has product depth, Companion is close, and the website and social layer are live. The constraint is proof: Anthony feedback, route confidence, buyer clarity, and clean field evidence. I would validate before adding another feature."
+        }
+
+        if normalized.contains("slowing prometheus down") || normalized.contains("whats slowing") || normalized.contains("what is slowing") || normalized.contains("bottleneck") {
+            return "The slowdown is proof, not effort. The likely bottlenecks are beta validation, field evidence, Companion voice quality, Mobile verification, route confidence, buyer proof, and authenticated verification. Fix the founder conversation loop first, then validate the field workflow."
+        }
+
+        if normalized.contains("what should i work on first") || normalized.contains("what should i work on") || normalized.contains("what should i do next") || normalized.contains("what should i do") {
+            return "Start with the first thing that makes Prometheus reliable in real use. Today, that is Companion conversation quality, then Mobile and route evidence. I would not start another feature unless it directly removes friction from that path."
+        }
+
+        return nil
+    }
+
+    private func answerWithNativeFounderFallback(_ transcript: String, reason: String) {
+        if let reply = nativeFounderReply(for: transcript) {
+            log("Native founder fallback answered because \(reason).")
+            conversationActive = true
+            conversationHistory.append(ChatMessage(role: "user", content: transcript))
+            conversationHistory.append(ChatMessage(role: "assistant", content: reply))
+            trimConversationHistory()
+            speak(reply)
+            return
+        }
+
+        handleTranscript(transcript, isFinal: true)
     }
 
     private func isExplicitNodeRequest(_ transcript: String) -> Bool {
@@ -1216,6 +1283,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         guard !cleanQuestion.isEmpty else { return }
 
         prepareForSpeech()
+        assistantTask?.cancel()
+        let requestGeneration = speechRequestGeneration
         log("Sending question to Prometheus assistant.")
 
         let outgoingHistory = conversationHistory
@@ -1235,19 +1304,29 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             return
         }
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard error == nil else {
                 Task { @MainActor [weak self] in
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Assistant network error: \(error?.localizedDescription ?? "unknown error").")
-                    self?.speakAfterPrepared("I could not reach my assistant backend right now.")
+                    if let fallback = self?.nativeFounderReply(for: cleanQuestion) {
+                        self?.speakAfterPrepared(fallback)
+                    } else {
+                        self?.speakAfterPrepared("I could not reach my assistant backend right now.")
+                    }
                 }
                 return
             }
 
             guard let http = response as? HTTPURLResponse else {
                 Task { @MainActor [weak self] in
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Assistant failed: missing HTTP response.")
-                    self?.speakAfterPrepared("I did not receive a valid assistant response.")
+                    if let fallback = self?.nativeFounderReply(for: cleanQuestion) {
+                        self?.speakAfterPrepared(fallback)
+                    } else {
+                        self?.speakAfterPrepared("I did not receive a valid assistant response.")
+                    }
                 }
                 return
             }
@@ -1255,18 +1334,27 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             guard let data, http.statusCode == 200 else {
                 let reason = Self.safeProviderError(from: data)
                 Task { @MainActor [weak self] in
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Assistant failed with status \(http.statusCode): \(reason)")
-                    self?.speakAfterPrepared("The assistant request failed. \(reason)")
+                    if let fallback = self?.nativeFounderReply(for: cleanQuestion) {
+                        self?.speakAfterPrepared(fallback)
+                    } else {
+                        self?.speakAfterPrepared("The assistant request failed. \(reason)")
+                    }
                 }
                 return
             }
 
             do {
                 let assistantResponse = try JSONDecoder().decode(AssistantResponse.self, from: data)
-                let answer = assistantResponse.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                let decodedAnswer = assistantResponse.text.trimmingCharacters(in: .whitespacesAndNewlines)
 
                 Task { @MainActor [weak self] in
                     guard let self else { return }
+                    guard self.speechRequestGeneration == requestGeneration else { return }
+                    let answer = decodedAnswer.isEmpty
+                        ? (self.nativeFounderReply(for: cleanQuestion) ?? "I'm here. I did not get a complete answer, but we can keep going.")
+                        : decodedAnswer
                     self.conversationHistory.append(ChatMessage(role: "user", content: cleanQuestion))
                     self.conversationHistory.append(ChatMessage(role: "assistant", content: answer))
                     self.trimConversationHistory()
@@ -1275,11 +1363,18 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
                 }
             } catch {
                 Task { @MainActor [weak self] in
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Assistant response decoding failed: \(error.localizedDescription).")
-                    self?.speakAfterPrepared("I had trouble reading the assistant response.")
+                    if let fallback = self?.nativeFounderReply(for: cleanQuestion) {
+                        self?.speakAfterPrepared(fallback)
+                    } else {
+                        self?.speakAfterPrepared("I had trouble reading the assistant response.")
+                    }
                 }
             }
-        }.resume()
+        }
+        assistantTask = task
+        task.resume()
     }
 
     private struct AssistantRequest: Codable {
@@ -1325,7 +1420,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func stopSpeaking(source: String = "voice command") {
+        speechRequestGeneration += 1
         audioPlaybackGeneration += 1
+        assistantTask?.cancel()
+        assistantTask = nil
+        premiumTtsTask?.cancel()
+        premiumTtsTask = nil
         premiumAudioPlayer?.stop()
         premiumAudioPlayer = nil
         if speechSynthesizer.isSpeaking {
@@ -1340,6 +1440,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func speakWithPremiumBackend(_ text: String, attempt: Int = 0, completion: @escaping (Bool) -> Void) {
+        let requestGeneration = speechRequestGeneration
         var request = URLRequest(url: ttsEndpoint)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -1364,12 +1465,14 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             return
         }
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard error == nil else {
                 DispatchQueue.main.async {
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Premium TTS network error: \(error?.localizedDescription ?? "unknown error").")
                     if attempt < 2 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            guard self?.speechRequestGeneration == requestGeneration else { return }
                             self?.speakWithPremiumBackend(text, attempt: attempt + 1, completion: completion)
                         }
                         return
@@ -1381,6 +1484,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
             guard let http = response as? HTTPURLResponse else {
                 DispatchQueue.main.async {
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Premium TTS failed: missing HTTP response.")
                     completion(false)
                 }
@@ -1390,9 +1494,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             guard let data, http.statusCode == 200 else {
                 let reason = Self.safeProviderError(from: data)
                 DispatchQueue.main.async {
+                    guard self?.speechRequestGeneration == requestGeneration else { return }
                     self?.log("Premium TTS failed with status \(http.statusCode): \(reason)")
                     if attempt < 1 && http.statusCode >= 500 {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            guard self?.speechRequestGeneration == requestGeneration else { return }
                             self?.speakWithPremiumBackend(text, attempt: attempt + 1, completion: completion)
                         }
                         return
@@ -1403,6 +1509,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             }
 
             DispatchQueue.main.async {
+                guard self?.speechRequestGeneration == requestGeneration else { return }
                 do {
                     self?.premiumAudioPlayer = try AVAudioPlayer(data: data)
                     self?.premiumAudioPlayer?.delegate = self
@@ -1420,7 +1527,9 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
                     completion(false)
                 }
             }
-        }.resume()
+        }
+        premiumTtsTask = task
+        task.resume()
     }
 
     private func speakWithSystemVoice(_ text: String) {
@@ -1437,6 +1546,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func prepareForSpeech() {
+        speechRequestGeneration += 1
         isSpeaking = true
         if audioEngine.isRunning {
             shouldResumeListeningAfterSpeech = true

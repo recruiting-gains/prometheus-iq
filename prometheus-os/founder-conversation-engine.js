@@ -45,8 +45,10 @@ function isExecutiveQuestion(normalized = "") {
     "how are we looking",
     "where do we stand",
     "whats slowing prometheus down",
+    "what s slowing prometheus down",
     "what is slowing prometheus down",
     "whats slowing us down",
+    "what s slowing us down",
     "what is slowing us down",
     "what should i work on",
     "what should i work on first",
@@ -58,7 +60,8 @@ function isExecutiveQuestion(normalized = "") {
   ].includes(normalized) ||
     /\bwhat should i work on first\b/.test(normalized) ||
     /\bwhat should i (work on|build|do)\b/.test(normalized) ||
-    /\bwhat.?s slowing\b/.test(normalized) ||
+    /\bwhat\s*s slowing\b/.test(normalized) ||
+    /\bwhats slowing\b/.test(normalized) ||
     /\bwhat changed today\b/.test(normalized) ||
     /\bhow are we doing\b/.test(normalized);
 }
@@ -164,7 +167,7 @@ export class FounderConversationEngine {
       });
     }
 
-    if (/\bwhat.?s slowing\b/.test(normalized) || normalized.includes("what is slowing")) {
+    if (/\bwhat\s*s slowing\b/.test(normalized) || /\bwhats slowing\b/.test(normalized) || normalized.includes("what is slowing")) {
       const body = [
         "The slowdown is proof, not capability.",
         "Prometheus has enough built to test. What can still slow us down is beta validation, weak field evidence, unclear feedback, Companion voice friction, Mobile verification risk, route-quality confidence, and buyer proof.",

@@ -9,7 +9,7 @@ import { createKnowledgeGraphSummary, resolveEntityKey } from "./knowledge-graph
 import { createMemorySystemSummary, createTimelineAnswer, createUnfinishedWorkRecap } from "./memory-system.js";
 import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
-import { FounderConversationEngine } from "./founder-conversation-engine.js";
+import { FounderConversationEngine } from "./founder-conversation-engine.js?v=founder-regression-fix-20260702b";
 
 export class AIProvider {
   constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null, founderTimeline = null } = {}) {

@@ -1,7 +1,7 @@
 import { companyState } from "./demo-data.js";
-import { aiProvider } from "./ai-provider.js";
+import { aiProvider } from "./ai-provider.js?v=founder-regression-fix-20260702b";
 import { VoiceAssistant } from "./voice-assistant.js";
-import { createPrometheusScene } from "./three-scene.js";
+import { createPrometheusScene } from "./three-scene.js?v=founder-regression-fix-20260702";
 import { routeCommandToTool } from "./agent-actions.js";
 import { getClarification, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
 import { resolveCompanionCommandRoute } from "./companion-command-router.js";
@@ -373,7 +373,14 @@ function scheduleBackendSttLoop(delay = 900) {
     return;
   }
   if (commandInFlight) {
-    backendSttLoopTimer = window.setTimeout(() => scheduleBackendSttLoop(900), 900);
+    backendSttLoopTimer = window.setTimeout(() => {
+      startBackendSttCapture({
+        source: "command interrupt listener",
+        duration: 900,
+        silentNoInput: true,
+        interruptOnly: true
+      });
+    }, Math.min(delay, 250));
     return;
   }
   backendSttLoopTimer = window.setTimeout(() => {

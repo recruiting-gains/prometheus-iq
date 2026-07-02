@@ -114,7 +114,7 @@ export class VoiceAssistant {
 
   extractWakeCommand(transcript) {
     const lower = this.normalizeSpeech(transcript);
-    const phrase = this.wakePhrases.find((item) => lower.includes(item));
+    const phrase = this.wakePhrases.find((item) => lower === item || lower.startsWith(`${item} `));
     if (!phrase) return { woke: false, command: "", phrase: "" };
     const phrasePattern = phrase
       .split(/\s+/)

@@ -1741,6 +1741,15 @@ body::after {
   display: none;
 }
 
+.prometheus-core,
+body[data-voice="listening"] .prometheus-core,
+body[data-voice="thinking"] .prometheus-core,
+body[data-voice="speaking"] .prometheus-core {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .os-shell,
 .core-experience,
 .network-stage,

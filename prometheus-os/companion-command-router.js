@@ -1,5 +1,5 @@
 import { getClarification, matchNodeIntent, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
-import { shouldUseCognitiveEngine } from "./context-resolver.js";
+import { shouldUseCognitiveEngine } from "./context-resolver.js?v=founder-regression-fix-20260702b";
 
 const explicitNodeRequestPattern = /\b(open|display|pull up|bring up|configure)\b|\b(show|view)\b.*\b(card|node|dashboard|settings)\b/;
 
