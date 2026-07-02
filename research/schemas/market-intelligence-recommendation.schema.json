@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/research/market-intelligence-recommendation.schema.json",
+  "title": "Prometheus Market Intelligence Recommendation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "recommendationId",
+    "market",
+    "status",
+    "summary",
+    "marketScore",
+    "whyItMatters",
+    "impactOnPrometheus",
+    "opportunities",
+    "risks",
+    "recommendedFounderActions",
+    "sourceReferences",
+    "confidenceAndLimitations",
+    "futureHandoffCandidates",
+    "boundaryConfirmation"
+  ],
+  "properties": {
+    "recommendationId": {
+      "type": "string",
+      "minLength": 8
+    },
+    "market": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "unscored",
+        "watch",
+        "research_next",
+        "validate_with_customer",
+        "priority_expansion_candidate",
+        "defer"
+      ]
+    },
+    "summary": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "marketScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "confidenceBand", "dimensionScores", "evidenceCount"],
+      "properties": {
+        "total": { "type": "number", "minimum": 0, "maximum": 100 },
+        "confidenceBand": { "type": "string", "enum": ["low", "medium", "high"] },
+        "dimensionScores": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dimensionScore" }
+        },
+        "evidenceCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "whyItMatters": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "impactOnPrometheus": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "opportunities": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recommendedFounderActions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sourceReferences": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sourceReference" }
+    },
+    "confidenceAndLimitations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "futureHandoffCandidates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["Sales", "Website", "Intelligence Engine", "Research"],
+      "properties": {
+        "Sales": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Website": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Intelligence Engine": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } },
+        "Research": { "type": "array", "items": { "$ref": "#/$defs/handoffCandidate" } }
+      }
+    },
+    "boundaryConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unsupportedScrapingUsed",
+        "companionModified",
+        "dashboardModified",
+        "crmModified",
+        "mobileModified",
+        "intelligenceRuntimeModified"
+      ],
+      "properties": {
+        "unsupportedScrapingUsed": { "type": "boolean", "const": false },
+        "companionModified": { "type": "boolean", "const": false },
+        "dashboardModified": { "type": "boolean", "const": false },
+        "crmModified": { "type": "boolean", "const": false },
+        "mobileModified": { "type": "boolean", "const": false },
+        "intelligenceRuntimeModified": { "type": "boolean", "const": false }
+      }
+    }
+  },
+  "$defs": {
+    "dimensionScore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimensionId", "rawScore", "weightedScore", "evidenceRefs", "rationale"],
+      "properties": {
+        "dimensionId": { "type": "string" },
+        "rawScore": { "type": "number", "minimum": 0, "maximum": 10 },
+        "weightedScore": { "type": "number", "minimum": 0 },
+        "evidenceRefs": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": "string" }
+      }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceId", "claim", "sourceTitle", "publisher", "sourceRef", "trustTier", "limitation"],
+      "properties": {
+        "sourceId": { "type": "string" },
+        "claim": { "type": "string" },
+        "sourceTitle": { "type": "string" },
+        "publisher": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "trustTier": { "type": "string", "enum": ["Tier 1", "Tier 2", "Tier 3"] },
+        "limitation": { "type": "string" }
+      }
+    },
+    "handoffCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recommendation", "approvalRequired", "status"],
+      "properties": {
+        "recommendation": { "type": "string" },
+        "approvalRequired": { "type": "boolean", "const": true },
+        "status": { "type": "string", "enum": ["candidate", "deferred", "approved"] }
+      }
+    }
+  }
+}

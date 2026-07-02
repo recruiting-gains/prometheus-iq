@@ -14,12 +14,16 @@ Current foundation:
 - `research/architecture.md`
 - `research/source-policy.md`
 - `research/briefing-system.md`
+- `research/market-intelligence-engine.md`
 - `research/future-briefing-handoffs.md`
 - `research/templates/founder-intelligence-brief.md`
 - `research/templates/strategic-intelligence-brief.md`
+- `research/templates/market-expansion-recommendation.md`
 - `research/schemas/founder-intelligence-brief.schema.json`
 - `research/schemas/strategic-intelligence-brief.schema.json`
+- `research/schemas/market-intelligence-recommendation.schema.json`
 - `research/taxonomy/research-taxonomy.json`
 - `research/registers/source-register.json`
 - `research/registers/intelligence-backlog.json`
 - `research/registers/briefing-catalog.json`
+- `research/registers/market-intelligence-model.json`

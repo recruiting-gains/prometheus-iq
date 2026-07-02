@@ -8,15 +8,20 @@ const taxonomy = readJson("research/taxonomy/research-taxonomy.json");
 const sourceRegister = readJson("research/registers/source-register.json");
 const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
+const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
+const marketRecommendationSchema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
 const architecture = readText("research/architecture.md");
 const sourcePolicy = readText("research/source-policy.md");
 const template = readText("research/templates/founder-intelligence-brief.md");
 const strategicBriefTemplate = readText("research/templates/strategic-intelligence-brief.md");
+const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
 const briefingSystem = readText("research/briefing-system.md");
+const marketIntelligenceEngine = readText("research/market-intelligence-engine.md");
 const briefingHandoffs = readText("research/future-briefing-handoffs.md");
 const researchFoundation = readText("RESEARCH_FOUNDATION.md");
+const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
 
 const requiredCategories = [
   "AI",
@@ -110,6 +115,49 @@ const strategicFutureHandoffs = [
   "Sales"
 ];
 
+const marketCapabilities = [
+  "market_opportunity_scoring",
+  "industry_attractiveness_analysis",
+  "outside_sales_market_ranking",
+  "competitor_movement_tracking",
+  "ai_trend_tracking",
+  "partnership_opportunities",
+  "geographic_expansion_opportunities",
+  "enterprise_target_identification"
+];
+
+const marketCapabilityLabels = [
+  "Market opportunity scoring",
+  "Industry attractiveness analysis",
+  "Outside-sales market ranking",
+  "Competitor movement tracking",
+  "AI trend tracking",
+  "Partnership opportunities",
+  "Geographic expansion opportunities",
+  "Enterprise target identification"
+];
+
+const marketRequiredFounderOutput = [
+  "summary",
+  "marketScore",
+  "whyItMatters",
+  "impactOnPrometheus",
+  "opportunities",
+  "risks",
+  "recommendedFounderActions",
+  "sourceReferences",
+  "confidenceAndLimitations",
+  "futureHandoffCandidates"
+];
+
+const protectedMarketSubsystems = [
+  "Companion",
+  "Dashboard",
+  "CRM",
+  "Mobile",
+  "Intelligence runtime"
+];
+
 for (const category of requiredCategories) {
   assert.ok(taxonomy.primaryCategories.includes(category), `Missing taxonomy category: ${category}`);
   assert.ok(template.includes(`${category}:`), `Missing template category section: ${category}`);
@@ -150,6 +198,14 @@ assert.ok(briefingSystem.includes("No automated scraping."), "Briefing system mu
 assert.ok(briefingSystem.includes("No production integrations."), "Briefing system must explicitly exclude production integrations.");
 assert.ok(briefingSystem.includes("Adaptive Outside Sales Intelligence Engine"), "Briefing system must align with Adaptive Intelligence.");
 assert.ok(briefingHandoffs.includes("This document prepares future handoffs. It does not authorize implementation."), "Briefing handoffs must be future-only.");
+assert.ok(researchFoundation.includes("research/market-intelligence-engine.md"), "Root research foundation must point to Market Intelligence Engine.");
+assert.ok(marketIntelligenceEngine.includes("Customer Intelligence Graph"), "Market Intelligence must reference Customer Intelligence Graph boundaries.");
+assert.ok(marketIntelligenceEngine.includes("Which outside-sales market should Prometheus pursue next"), "Market Intelligence must define the expansion question.");
+assert.equal(marketIntelligenceModel.runtimeActive, false, "Market Intelligence must not activate runtime behavior.");
+assert.equal(marketIntelligenceModel.productionSystemsModified, false, "Market Intelligence must not modify production systems.");
+assert.equal(marketIntelligenceModel.unsupportedScrapingAllowed, false, "Market Intelligence must prohibit unsupported scraping.");
+assert.equal(customerGraphContracts.status, "architecture_only", "Customer Intelligence Graph must remain architecture-only.");
+assert.equal(customerGraphContracts.researchRuntimeChanged, false, "Customer Intelligence Graph must not activate Research runtime.");
 
 for (const name of strategicBriefingNames) {
   assert.ok(briefingSystem.includes(name), `Briefing system missing product name: ${name}`);
@@ -204,6 +260,54 @@ for (const heading of [
   "Source References"
 ]) {
   assert.ok(strategicBriefTemplate.includes(heading), `Strategic brief template missing heading: ${heading}`);
+}
+
+assert.deepEqual(marketIntelligenceModel.capabilities, marketCapabilities, "Market Intelligence capabilities must match the requested capability set.");
+for (const label of marketCapabilityLabels) {
+  assert.ok(marketIntelligenceEngine.includes(label), `Market Intelligence doc missing capability: ${label}`);
+}
+
+const marketWeightTotal = marketIntelligenceModel.scoringDimensions.reduce((sum, dimension) => sum + dimension.weight, 0);
+assert.equal(marketWeightTotal, 100, "Market Intelligence scoring dimensions must total 100 weight points.");
+
+for (const dimension of marketIntelligenceModel.scoringDimensions) {
+  assert.ok(dimension.id, "Market Intelligence scoring dimension missing id.");
+  assert.ok(dimension.name, `Market Intelligence scoring dimension ${dimension.id} missing name.`);
+  assert.ok(dimension.question, `Market Intelligence scoring dimension ${dimension.id} missing question.`);
+  assert.ok(dimension.weight > 0, `Market Intelligence scoring dimension ${dimension.id} must have positive weight.`);
+}
+
+assert.deepEqual(
+  marketIntelligenceModel.requiredFounderReadyOutput,
+  marketRequiredFounderOutput,
+  "Market Intelligence founder-ready output contract drifted."
+);
+
+for (const output of marketRequiredFounderOutput) {
+  assert.ok(
+    marketRecommendationSchema.required.includes(output),
+    `Market recommendation schema missing required founder output: ${output}`
+  );
+}
+
+for (const subsystem of protectedMarketSubsystems) {
+  assert.ok(marketIntelligenceModel.protectedSubsystems.includes(subsystem), `Market model missing protected subsystem: ${subsystem}`);
+  assert.ok(marketIntelligenceEngine.includes(subsystem), `Market Intelligence doc missing protected subsystem: ${subsystem}`);
+}
+
+for (const heading of [
+  "Summary",
+  "Market Score",
+  "Why It Matters",
+  "Impact On Prometheus",
+  "Opportunities",
+  "Risks",
+  "Recommended Founder Actions",
+  "Source References",
+  "Confidence And Limitations",
+  "Future Handoff Candidates"
+]) {
+  assert.ok(marketRecommendationTemplate.includes(heading), `Market recommendation template missing heading: ${heading}`);
 }
 
 assert.equal(sourceRegister.sources.length >= 6, true, "Source register needs internal and external seed sources.");

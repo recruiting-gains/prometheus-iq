@@ -295,6 +295,15 @@ Areas:
 - Weekly Enterprise Technology Brief
 - Weekly Customer Pain Point Brief
 - Monthly Strategic Review
+- Market Intelligence Engine
+- Market Opportunity Scoring
+- Industry Attractiveness Analysis
+- Outside-Sales Market Ranking
+- Competitor Movement Tracking
+- AI Trend Tracking
+- Partnership Opportunity Tracking
+- Geographic Expansion Opportunity Tracking
+- Enterprise Target Identification
 - Startup Funding
 - Outside Sales Best Practices
 - Industry Research
@@ -312,15 +321,19 @@ Current foundation:
 - `research/architecture.md`
 - `research/source-policy.md`
 - `research/briefing-system.md`
+- `research/market-intelligence-engine.md`
 - `research/future-briefing-handoffs.md`
 - `research/templates/founder-intelligence-brief.md`
 - `research/templates/strategic-intelligence-brief.md`
+- `research/templates/market-expansion-recommendation.md`
 - `research/schemas/founder-intelligence-brief.schema.json`
 - `research/schemas/strategic-intelligence-brief.schema.json`
+- `research/schemas/market-intelligence-recommendation.schema.json`
 - `research/taxonomy/research-taxonomy.json`
 - `research/registers/source-register.json`
 - `research/registers/intelligence-backlog.json`
 - `research/registers/briefing-catalog.json`
+- `research/registers/market-intelligence-model.json`
 
 ## Workstream Routing Checklist
 

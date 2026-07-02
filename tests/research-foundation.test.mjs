@@ -136,3 +136,63 @@ test("Strategic briefings enforce required executive sections and future handoff
     assert.match(handoffs, new RegExp(`${target} Handoff`));
   }
 });
+
+test("Market Intelligence Engine defines expansion scoring without production runtime activation", () => {
+  const model = readJson("research/registers/market-intelligence-model.json");
+  const schema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
+  const engine = readText("research/market-intelligence-engine.md");
+  const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
+
+  const expectedCapabilities = [
+    "market_opportunity_scoring",
+    "industry_attractiveness_analysis",
+    "outside_sales_market_ranking",
+    "competitor_movement_tracking",
+    "ai_trend_tracking",
+    "partnership_opportunities",
+    "geographic_expansion_opportunities",
+    "enterprise_target_identification"
+  ];
+
+  assert.deepEqual(model.capabilities, expectedCapabilities);
+  assert.equal(model.runtimeActive, false);
+  assert.equal(model.productionSystemsModified, false);
+  assert.equal(model.unsupportedScrapingAllowed, false);
+  assert.equal(customerGraphContracts.status, "architecture_only");
+  assert.equal(customerGraphContracts.researchRuntimeChanged, false);
+  assert.match(engine, /Which outside-sales market should Prometheus pursue next/);
+  assert.match(engine, /Customer Intelligence Graph/);
+
+  for (const field of model.requiredFounderReadyOutput) {
+    assert.ok(schema.required.includes(field), `Market recommendation schema missing ${field}`);
+  }
+});
+
+test("Market Intelligence scoring model is weighted and protects blocked subsystems", () => {
+  const model = readJson("research/registers/market-intelligence-model.json");
+  const template = readText("research/templates/market-expansion-recommendation.md");
+
+  const weightTotal = model.scoringDimensions.reduce((sum, dimension) => sum + dimension.weight, 0);
+  assert.equal(weightTotal, 100);
+
+  for (const dimension of model.scoringDimensions) {
+    assert.equal(typeof dimension.id, "string");
+    assert.equal(typeof dimension.question, "string");
+    assert.ok(dimension.weight > 0);
+  }
+
+  for (const subsystem of ["Companion", "Dashboard", "CRM", "Mobile", "Intelligence runtime"]) {
+    assert.ok(model.protectedSubsystems.includes(subsystem), `Missing protected subsystem ${subsystem}`);
+  }
+
+  for (const heading of [
+    "Market Score",
+    "Why It Matters",
+    "Impact On Prometheus",
+    "Recommended Founder Actions",
+    "Source References",
+    "Boundary Confirmation"
+  ]) {
+    assert.match(template, new RegExp(heading));
+  }
+});

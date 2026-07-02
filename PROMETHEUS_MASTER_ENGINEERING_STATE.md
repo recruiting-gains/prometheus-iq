@@ -57,6 +57,66 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### Completed Work Lane: Market Intelligence Engine v1
+
+Primary subsystem: Prometheus Research
+
+Secondary subsystems:
+
+- Prometheus Intelligence Engine, reference boundary only.
+- Prometheus Sales, future handoff target only.
+- Prometheus Website, future handoff target only.
+
+Task:
+
+Market Intelligence Engine v1.
+
+Status:
+
+Complete. See originating Overwatch handoff for commit hash.
+
+Implementation type:
+
+Both.
+
+Deploy:
+
+Not run. Research architecture and validation only; no production deploy required.
+
+Verified outcome:
+
+- Created Market Intelligence Engine v1 under Research to transform sourced intelligence into future market expansion recommendations.
+- Added market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunity tracking, geographic expansion opportunity tracking, and enterprise target identification capability definitions.
+- Added weighted market scoring model with 100 total points and protected-subsystem gates.
+- Added founder-ready Market Expansion Recommendation schema and template.
+- Aligned Research market intelligence with Customer Intelligence Graph boundaries without activating Research graph consumption.
+- Updated Research validation and test coverage.
+- Did not modify Companion, Dashboard, CRM, Mobile, or Intelligence runtime.
+- Did not deploy runtime services.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/market-intelligence-engine.md`
+- `research/registers/market-intelligence-model.json`
+- `research/registers/source-register.json`
+- `research/schemas/market-intelligence-recommendation.schema.json`
+- `research/templates/market-expansion-recommendation.md`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining blockers:
+
+No live market ranking was produced in this foundation. Current market scores require attributable source collection before founder-ready recommendations can be issued.
+
+Next recommended subsystem:
+
+Prometheus Research for the first sourced Market Expansion Recommendation using the Market Intelligence Engine scoring model.
+
 ### Completed Work Lane: Canonical Product Vision Alignment v1
 
 Primary subsystem: Prometheus Product Vision
@@ -6924,6 +6984,7 @@ Current duplicate-prevention sources:
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
+- Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.

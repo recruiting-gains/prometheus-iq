@@ -25,15 +25,19 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `architecture.md`: Research operating architecture, workflows, boundaries, and handoff model.
 - `source-policy.md`: Source trust tiers, attribution requirements, and prohibited sourcing behavior.
 - `briefing-system.md`: Recurring executive intelligence system for founder briefings.
+- `market-intelligence-engine.md`: Research-owned market expansion scoring and ranking architecture.
 - `future-briefing-handoffs.md`: Future handoff rules for Companion, Intelligence Engine, Website, and Sales.
 - `schemas/founder-intelligence-brief.schema.json`: Machine-readable Founder Intelligence Brief contract.
 - `schemas/strategic-intelligence-brief.schema.json`: Machine-readable recurring strategic brief contract.
+- `schemas/market-intelligence-recommendation.schema.json`: Machine-readable market expansion recommendation contract.
 - `templates/founder-intelligence-brief.md`: Recurring brief template.
 - `templates/strategic-intelligence-brief.md`: Shared template for recurring executive intelligence products.
+- `templates/market-expansion-recommendation.md`: Founder-ready market expansion recommendation template.
 - `taxonomy/research-taxonomy.json`: Core categories, industries, intelligence questions, and future handoff targets.
 - `registers/source-register.json`: Initial approved-source registry.
 - `registers/intelligence-backlog.json`: Initial recurring watchlist and open research backlog.
 - `registers/briefing-catalog.json`: Recurring briefing product catalog.
+- `registers/market-intelligence-model.json`: Market opportunity scoring model, candidate universe, and protected subsystem gates.
 
 ## Recurring Founder Intelligence Briefs
 
@@ -69,6 +73,23 @@ Research owns these recurring executive intelligence products:
 - Monthly Strategic Review
 
 Each briefing must include Summary, Why it matters, Impact on Prometheus, Opportunities, Risks, Recommended founder actions, and Source references.
+
+## Market Intelligence Engine
+
+Research owns Market Intelligence Engine v1 for strategic market expansion recommendations.
+
+Capabilities:
+
+- Market opportunity scoring
+- Industry attractiveness analysis
+- Outside-sales market ranking
+- Competitor movement tracking
+- AI trend tracking
+- Partnership opportunities
+- Geographic expansion opportunities
+- Enterprise target identification
+
+Market Intelligence Engine v1 is architecture and validation only. It does not score live markets, scrape sources, deploy runtime services, or modify production systems.
 
 ## Boundary
 

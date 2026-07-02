@@ -1,0 +1,133 @@
+{
+  "version": "market-intelligence-engine-v1",
+  "status": "architecture_only",
+  "lastUpdated": "2026-07-02",
+  "mission": "Recommend where Prometheus should expand next using sourced strategic market intelligence.",
+  "runtimeActive": false,
+  "productionSystemsModified": false,
+  "unsupportedScrapingAllowed": false,
+  "candidateUniverseStatus": "unscored_until_evidence_collection",
+  "capabilities": [
+    "market_opportunity_scoring",
+    "industry_attractiveness_analysis",
+    "outside_sales_market_ranking",
+    "competitor_movement_tracking",
+    "ai_trend_tracking",
+    "partnership_opportunities",
+    "geographic_expansion_opportunities",
+    "enterprise_target_identification"
+  ],
+  "scoringDimensions": [
+    {
+      "id": "outside_sales_intensity",
+      "name": "Outside-sales intensity",
+      "weight": 15,
+      "question": "How central is field representative motion to revenue creation in this market?"
+    },
+    {
+      "id": "pain_severity",
+      "name": "Pain severity",
+      "weight": 15,
+      "question": "How severe are wasted travel, poor territory direction, weak follow-up, and low field visibility?"
+    },
+    {
+      "id": "buyer_urgency",
+      "name": "Buyer urgency",
+      "weight": 10,
+      "question": "How urgently would decision makers seek a better outside-sales operating layer?"
+    },
+    {
+      "id": "route_territory_complexity",
+      "name": "Route and territory complexity",
+      "weight": 10,
+      "question": "How much value can Prometheus create by improving routes, territories, timing, and prioritization?"
+    },
+    {
+      "id": "data_availability",
+      "name": "Data availability",
+      "weight": 10,
+      "question": "Can the market provide enough lawful, attributable, and operationally useful evidence to improve decisions?"
+    },
+    {
+      "id": "competitive_whitespace",
+      "name": "Competitive whitespace",
+      "weight": 10,
+      "question": "Is there room for Prometheus to win without being reduced to a commodity CRM, mapper, or route planner?"
+    },
+    {
+      "id": "enterprise_revenue_potential",
+      "name": "Enterprise revenue potential",
+      "weight": 10,
+      "question": "Can the market support meaningful contract value, multi-rep deployment, and executive visibility?"
+    },
+    {
+      "id": "regulatory_friction",
+      "name": "Regulatory friction",
+      "weight": 5,
+      "question": "How difficult are privacy, compliance, employment, healthcare, telecom, or location-data constraints?"
+    },
+    {
+      "id": "partnership_leverage",
+      "name": "Partnership leverage",
+      "weight": 5,
+      "question": "Are there partners, agencies, associations, platforms, or channel relationships that could accelerate entry?"
+    },
+    {
+      "id": "geographic_density",
+      "name": "Geographic density",
+      "weight": 5,
+      "question": "Are target accounts, routes, territories, or service areas dense enough for field intelligence to matter quickly?"
+    },
+    {
+      "id": "prometheus_implementation_fit",
+      "name": "Prometheus implementation fit",
+      "weight": 5,
+      "question": "How well does the market fit Prometheus' current outside-sales intelligence foundation?"
+    }
+  ],
+  "confidenceBands": [
+    "low",
+    "medium",
+    "high"
+  ],
+  "recommendationStates": [
+    "unscored",
+    "watch",
+    "research_next",
+    "validate_with_customer",
+    "priority_expansion_candidate",
+    "defer"
+  ],
+  "candidateMarkets": [
+    "Healthcare field sales",
+    "Medical device sales",
+    "Solar",
+    "Roofing",
+    "Pest control",
+    "Security",
+    "Telecom",
+    "Commercial services",
+    "Industrial sales",
+    "Logistics",
+    "Fitness and gyms"
+  ],
+  "requiredFounderReadyOutput": [
+    "summary",
+    "marketScore",
+    "whyItMatters",
+    "impactOnPrometheus",
+    "opportunities",
+    "risks",
+    "recommendedFounderActions",
+    "sourceReferences",
+    "confidenceAndLimitations",
+    "futureHandoffCandidates"
+  ],
+  "protectedSubsystems": [
+    "Companion",
+    "Dashboard",
+    "CRM",
+    "Mobile",
+    "Intelligence runtime"
+  ]
+}

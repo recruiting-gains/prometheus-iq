@@ -198,6 +198,30 @@ The briefing system is defined by:
 - `research/templates/strategic-intelligence-brief.md`
 - `research/future-briefing-handoffs.md`
 
+## Market Intelligence Engine
+
+Market Intelligence Engine v1 extends Research into strategic market expansion recommendations.
+
+Capabilities:
+
+- Market opportunity scoring.
+- Industry attractiveness analysis.
+- Outside-sales market ranking.
+- Competitor movement tracking.
+- AI trend tracking.
+- Partnership opportunities.
+- Geographic expansion opportunities.
+- Enterprise target identification.
+
+The engine is defined by:
+
+- `research/market-intelligence-engine.md`
+- `research/registers/market-intelligence-model.json`
+- `research/schemas/market-intelligence-recommendation.schema.json`
+- `research/templates/market-expansion-recommendation.md`
+
+Market Intelligence Engine v1 is not a runtime service. It must not modify Companion, Dashboard, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, or production data.
+
 ## Duplicate Prevention
 
 Existing research-related documents must be reused:
@@ -210,7 +234,9 @@ Existing research-related documents must be reused:
 - `PRODUCT_VISION.md`
 - `docs/prometheus-company-manual.md`
 - `research/briefing-system.md`
+- `research/market-intelligence-engine.md`
 - `research/registers/briefing-catalog.json`
+- `research/registers/market-intelligence-model.json`
 
 Do not create replacement competitive-positioning documents when an update to the existing Research structure or existing docs is sufficient.
 
@@ -223,5 +249,6 @@ Do not create replacement competitive-positioning documents when an update to th
 - No CRM data access.
 - No Intelligence Engine training.
 - No Intelligence Engine evidence writes.
+- No Market Intelligence runtime service.
 - No public publishing pipeline.
 - No private customer-data ingestion.
