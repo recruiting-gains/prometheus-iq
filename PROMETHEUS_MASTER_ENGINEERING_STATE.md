@@ -6605,6 +6605,60 @@ Next recommended subsystem:
 
 Overwatch / Master Engineering State, then CRM or Dashboard graph-consumer planning by explicit handoff only.
 
+### 2026-07-02: Prometheus Dashboard - Customer Intelligence Graph Consumer Planning v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Customer Intelligence Graph Consumer Planning v1
+
+Commit: `9d73e018236a404cc6737ab0606cbaa13df801ae`
+
+Deploy: Not run. Planning-only artifacts; no production runtime change.
+
+Status: Complete.
+
+Implementation type: Planning and validation
+
+Files changed:
+
+- `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`
+- `docs/dashboard-customer-intelligence-graph-consumer-plan.md`
+- `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`
+- `package.json`
+
+What changed:
+
+Dashboard added a planning contract for future Customer Intelligence Graph consumption. The plan defines future Dashboard surfaces for Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, and Find/Search.
+
+Future Dashboard views defined:
+
+- Territory relationships.
+- Business relationships.
+- Visit/outcome history.
+- Rep activity patterns.
+- Opportunity clusters.
+- Confidence propagation.
+
+Runtime boundary:
+
+Validation ensures the planning remains runtime-inactive and aligned with Intelligence-owned `customer-intelligence-graph-v1` contracts. No Dashboard runtime, UI, scoring, Active Pool, CRM, Mobile, Companion, Website, Infrastructure, or Intelligence Engine behavior changed.
+
+Verification:
+
+- `node --check scripts/verify-dashboard-customer-graph-consumer-plan.mjs`: passed.
+- `npm run dashboard:customer-graph-plan:check`: passed.
+- `npm run intelligence:customer-graph:check`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `git diff --cached --check`: passed.
+
+Remaining blockers:
+
+Future runtime graph consumption remains blocked until Intelligence authorizes `DashboardCustomerGraphContract.runtimeConsumptionAuthorized=true`, exposes a customer-scoped `CustomerGraphSnapshot`, and provides reviewed evidence/confidence propagation display policy.
+
+Next recommended subsystem:
+
+None.
+
 ### 2026-07-02: Prometheus Dashboard - Operating Profile Consumer v1
 
 Subsystem: Prometheus Dashboard
@@ -6864,6 +6918,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Recommendation Explainability Engine v1; reuse `intelligence/recommendation-explainability-engine.mjs`, `intelligence/contracts/recommendation-explainability-contracts.json`, `scripts/verify-recommendation-explainability-engine.mjs`, `tests/recommendation-explainability-engine.test.mjs`, and the no-formula/no-weight-disclosure safeguards for Mobile, Dashboard, and Companion explanation consumers.
 - Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
 - Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
+- Do not duplicate Dashboard Customer Intelligence Graph Consumer Planning v1; reuse `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-intelligence-graph-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`, and `npm run dashboard:customer-graph-plan:check` for future Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, Find/Search, territory relationships, business relationships, visit/outcome history, rep patterns, opportunity clusters, and confidence propagation planning. Runtime graph consumption remains blocked until Intelligence explicitly authorizes it.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
