@@ -326,7 +326,7 @@ h1 {
   position: relative;
   min-height: 560px;
   overflow: hidden;
-  border-radius: 30px;
+  border-radius: 0;
 }
 
 #holoCanvas {
@@ -1466,77 +1466,40 @@ body.developer-mode .voice-debug,
 
 /* Founder voice atmosphere v2 */
 body {
-  background:
-    radial-gradient(circle at 50% 48%, rgba(30, 92, 70, 0.14), transparent 24%),
-    radial-gradient(circle at 70% 18%, rgba(255, 138, 31, 0.08), transparent 28%),
-    radial-gradient(circle at 24% 78%, rgba(43, 211, 178, 0.08), transparent 32%),
-    linear-gradient(180deg, #010302 0%, #020706 48%, #000 100%);
+  background: #000;
 }
 
 body::before {
-  background-image:
-    radial-gradient(circle, rgba(240, 255, 248, 0.72) 0 1px, transparent 1.3px),
-    radial-gradient(circle, rgba(85, 255, 200, 0.34) 0 1px, transparent 1.4px),
-    radial-gradient(circle, rgba(255, 190, 98, 0.28) 0 1px, transparent 1.5px);
-  background-position: 0 0, 38px 72px, 96px 22px;
-  background-size: 190px 190px, 260px 260px, 340px 340px;
-  mask-image: radial-gradient(circle at 50% 50%, black 0 58%, transparent 92%);
-  opacity: 0.62;
-  animation: starDrift 34s linear infinite;
+  display: none;
 }
 
 body::after {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(8, 20, 15, 0.88), transparent 17%),
-    conic-gradient(from 210deg at 50% 50%, transparent 0deg, rgba(255, 138, 31, 0.08) 64deg, transparent 125deg, rgba(43, 211, 178, 0.09) 210deg, transparent 300deg);
-  filter: blur(28px);
-  opacity: 0.78;
+  display: none;
 }
 
 .core-stage {
-  border-color: rgba(75, 255, 191, 0.16);
-  background:
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.18), transparent 18%),
-    radial-gradient(circle at 50% 50%, rgba(21, 64, 49, 0.22), transparent 48%),
-    linear-gradient(145deg, rgba(0, 0, 0, 0.88), rgba(2, 10, 9, 0.94));
+  border-color: transparent;
+  background: #000;
 }
 
 .network-stage::before {
-  inset: 9%;
-  border-color: rgba(74, 255, 190, 0.14);
-  box-shadow:
-    0 0 90px rgba(43, 211, 178, 0.08),
-    inset 0 0 110px rgba(0, 0, 0, 0.74);
+  display: none;
 }
 
 .network-stage::after {
-  inset: 20%;
-  border-color: rgba(255, 184, 88, 0.18);
-  opacity: 0.5;
+  display: none;
 }
 
 .starfield {
-  background:
-    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 78% 28%, rgba(124, 255, 213, 0.62) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 38% 72%, rgba(255, 190, 98, 0.48) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 60% 62%, rgba(255, 255, 255, 0.54) 0 1px, transparent 1.5px);
-  background-size: 210px 210px, 260px 260px, 310px 310px, 370px 370px;
-  opacity: 0.72;
+  display: none;
 }
 
 .network-aura {
-  inset: 24%;
-  background:
-    radial-gradient(circle, rgba(0, 0, 0, 0.88) 0 18%, rgba(21, 70, 48, 0.18) 24%, transparent 58%),
-    conic-gradient(from 140deg, transparent, rgba(255, 150, 42, 0.18), transparent, rgba(43, 211, 178, 0.2), transparent);
-  filter: blur(10px);
-  opacity: 0.68;
+  display: none;
 }
 
 .neural-lines span {
-  background: linear-gradient(90deg, transparent, rgba(66, 255, 190, 0.32), rgba(255, 180, 76, 0.18), transparent);
-  opacity: 0.34;
+  display: none;
 }
 
 .prometheus-core {
