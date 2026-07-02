@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "administration.beta-sprint-2-command-center.v1",
+  "description": "Founder-facing Sprint 2 beta feedback command center. Uses existing Administration intake and keeps pass/fail pending until evidence is recorded.",
+  "commandCenterId": "command-center-beta-sprint-2",
+  "status": "open",
+  "testerId": "tester-anthony-001",
+  "deviceId": "device-anthony-primary-phone",
+  "linkedSprint1PacketId": "packet-beta-stabilization-sprint-1-readiness-2026-07-04",
+  "linkedSprint1PacketPath": "administration/verification/beta-stabilization-sprint-1/sign-off-packet.md",
+  "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+  "issues": [
+    {
+      "issueId": "issue-sprint2-slow-dashboard-loading-2026-07-02",
+      "issue": "Slow dashboard loading",
+      "ownerSubsystem": "Prometheus Mobile",
+      "severity": "High",
+      "status": "new",
+      "evidence": {
+        "screenshots": [],
+        "timestamps": [],
+        "notes": "Capture startup timing, device/PWA path, network state, and route-ready timing."
+      },
+      "passFailResult": "pending",
+      "nextAction": "Capture startup timing, device/PWA path, network state, and route-ready timing; route to Mobile."
+    },
+    {
+      "issueId": "issue-sprint2-hamzas-barbershop-repeat-2026-07-02",
+      "issue": "Hamza's Barbershop repeat recommendation",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "severity": "Medium",
+      "status": "new",
+      "evidence": {
+        "screenshots": [],
+        "timestamps": [],
+        "notes": "Capture repeated card screenshots, route position, timestamp, and prior visit/recommendation context."
+      },
+      "passFailResult": "pending",
+      "nextAction": "Capture repeated card screenshots, route position, timestamp, and prior visit/recommendation context; route to Intelligence Engine and involve Data only if business identity is wrong."
+    },
+    {
+      "issueId": "issue-sprint2-rep-radius-ring-visibility-2026-07-02",
+      "issue": "Rep radius/ring visibility",
+      "ownerSubsystem": "Prometheus Mobile",
+      "severity": "Medium",
+      "status": "new",
+      "evidence": {
+        "screenshots": [],
+        "timestamps": [],
+        "notes": "Capture whether radius/ring state is missing, unclear, or inaccessible on Anthony's device."
+      },
+      "passFailResult": "pending",
+      "nextAction": "Capture whether radius/ring state is missing, unclear, or inaccessible on Anthony's device; route to Mobile with Dashboard dependency only if product UI change is required."
+    },
+    {
+      "issueId": "issue-sprint2-route-size-greater-than-six-2026-07-02",
+      "issue": "Route size greater than six",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "severity": "High",
+      "status": "new",
+      "evidence": {
+        "screenshots": [],
+        "timestamps": [],
+        "notes": "Capture route count, route build context, app version, and whether more than six route cards are visible/actionable."
+      },
+      "passFailResult": "pending",
+      "nextAction": "Capture route count, route build context, app version, and whether more than six route cards are visible/actionable; route to Intelligence Engine with Dashboard dependency only if render cap is wrong."
+    },
+    {
+      "issueId": "issue-sprint2-nearby-button-does-nothing-2026-07-02",
+      "issue": "Nearby button does nothing",
+      "ownerSubsystem": "Prometheus Mobile",
+      "severity": "High",
+      "status": "new",
+      "evidence": {
+        "screenshots": [],
+        "timestamps": [],
+        "notes": "Capture tap timestamp, current screen, location permission state, and whether Nearby Opportunities ever renders."
+      },
+      "passFailResult": "pending",
+      "nextAction": "Capture tap timestamp, current screen, location permission state, and whether Nearby Opportunities ever renders; route to Mobile."
+    }
+  ]
+}

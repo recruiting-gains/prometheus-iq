@@ -33,7 +33,11 @@ const requiredMarkdown = [
   'administration/verification/beta-stabilization-sprint-1/beta-acceptance-criteria.md',
   'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.md',
   'administration/verification/beta-stabilization-sprint-1/saturday-field-test-guide.md',
-  'administration/verification/beta-stabilization-sprint-1/sign-off-packet.md'
+  'administration/verification/beta-stabilization-sprint-1/sign-off-packet.md',
+  'administration/command-center/beta-sprint-2/README.md',
+  'administration/command-center/beta-sprint-2/issue-tracker.md',
+  'administration/command-center/beta-sprint-2/evidence-log.md',
+  'administration/command-center/beta-sprint-2/follow-up-decisions.md'
 ];
 
 const requiredJson = [
@@ -51,7 +55,8 @@ const requiredJson = [
   'administration/registers/beta-observations.json',
   'administration/registers/regression-verification.json',
   'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json',
-  'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json'
+  'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json',
+  'administration/command-center/beta-sprint-2/issue-tracker.json'
 ];
 
 const failures = [];
@@ -228,11 +233,24 @@ if (stabilizationIssues) {
     if (!issue.testerVerification?.status) {
       failures.push(`${issue.issueId} must include testerVerification.status`);
     }
+    if (issue.issueId?.startsWith('issue-sprint2-')) {
+      for (const field of ['evidence', 'passFailResult', 'nextAction']) {
+        if (!(field in (issue.fieldFeedback ?? {}))) failures.push(`${issue.issueId} fieldFeedback is missing ${field}`);
+      }
+      if (issue.fieldFeedback?.passFailResult !== 'pending') {
+        failures.push(`${issue.issueId} pass/fail result must remain pending until evidence is recorded`);
+      }
+    }
   }
   const requiredSprintIssues = [
     'issue-dashboard-startup-places-performance-2026-06-30',
     'issue-data-residential-barber-route-quality-2026-06-30',
-    'issue-dashboard-active-pool-corrections-2026-07-01'
+    'issue-dashboard-active-pool-corrections-2026-07-01',
+    'issue-sprint2-slow-dashboard-loading-2026-07-02',
+    'issue-sprint2-hamzas-barbershop-repeat-2026-07-02',
+    'issue-sprint2-rep-radius-ring-visibility-2026-07-02',
+    'issue-sprint2-route-size-greater-than-six-2026-07-02',
+    'issue-sprint2-nearby-button-does-nothing-2026-07-02'
   ];
   for (const issueId of requiredSprintIssues) {
     if (!stabilizationIssues.issues?.some((issue) => issue.issueId === issueId)) {
@@ -269,6 +287,12 @@ if (sessions) {
     failures.push('test-session-history.json must include Anthony Saturday field-test session');
   } else if (saturdaySession.status !== 'prepared_not_completed') {
     failures.push('Anthony Saturday field-test session must remain prepared_not_completed before field verification');
+  }
+  const sprint2Session = sessions.sessions?.find((session) => session.sessionId === 'session-anthony-beta-sprint-2-field-feedback');
+  if (!sprint2Session) {
+    failures.push('test-session-history.json must include Anthony Beta Sprint 2 field feedback session');
+  } else if (sprint2Session.status !== 'open_pending_evidence') {
+    failures.push('Anthony Beta Sprint 2 field feedback session must remain open_pending_evidence');
   }
 }
 
@@ -350,6 +374,42 @@ if (issueMatrix) {
     }
     if (issue.passFail !== 'pending') {
       failures.push(`Issue verification matrix ${issueId} must remain pending before field verification`);
+    }
+  }
+}
+
+const sprint2Tracker = jsonByPath.get('administration/command-center/beta-sprint-2/issue-tracker.json');
+if (sprint2Tracker) {
+  if (sprint2Tracker.commandCenterId !== 'command-center-beta-sprint-2') {
+    failures.push('Sprint 2 command center must use command-center-beta-sprint-2 ID');
+  }
+  if (sprint2Tracker.linkedSprint1PacketId !== 'packet-beta-stabilization-sprint-1-readiness-2026-07-04') {
+    failures.push('Sprint 2 command center must link to Sprint 1 sign-off packet');
+  }
+  if (sprint2Tracker.status !== 'open') {
+    failures.push('Sprint 2 command center must remain open until evidence is resolved');
+  }
+  const requiredSprint2Issues = [
+    'issue-sprint2-slow-dashboard-loading-2026-07-02',
+    'issue-sprint2-hamzas-barbershop-repeat-2026-07-02',
+    'issue-sprint2-rep-radius-ring-visibility-2026-07-02',
+    'issue-sprint2-route-size-greater-than-six-2026-07-02',
+    'issue-sprint2-nearby-button-does-nothing-2026-07-02'
+  ];
+  if ((sprint2Tracker.issues ?? []).length !== requiredSprint2Issues.length) {
+    failures.push(`Sprint 2 command center must track exactly ${requiredSprint2Issues.length} issues`);
+  }
+  for (const issueId of requiredSprint2Issues) {
+    const issue = sprint2Tracker.issues?.find((item) => item.issueId === issueId);
+    if (!issue) {
+      failures.push(`Sprint 2 command center is missing ${issueId}`);
+      continue;
+    }
+    for (const field of ['issue', 'ownerSubsystem', 'severity', 'status', 'evidence', 'passFailResult', 'nextAction']) {
+      if (!(field in issue)) failures.push(`Sprint 2 command center ${issueId} is missing ${field}`);
+    }
+    if (issue.passFailResult !== 'pending') {
+      failures.push(`Sprint 2 command center ${issueId} pass/fail must remain pending until evidence is recorded`);
     }
   }
 }

@@ -65,6 +65,33 @@
       "linkedObservations": [],
       "status": "prepared_not_completed",
       "notes": "Prepared session record only. Do not mark complete or signed off until Anthony's Saturday field verification is performed."
+    },
+    {
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "version": "unknown_pending_evidence",
+      "sessionType": "beta_sprint_2_field_feedback",
+      "environment": "production_private_beta",
+      "workflowsCovered": [
+        "Dashboard loading",
+        "Recommendation repetition",
+        "Rep radius/ring visibility",
+        "Route size",
+        "Nearby button behavior"
+      ],
+      "linkedIssues": [
+        "issue-sprint2-slow-dashboard-loading-2026-07-02",
+        "issue-sprint2-hamzas-barbershop-repeat-2026-07-02",
+        "issue-sprint2-rep-radius-ring-visibility-2026-07-02",
+        "issue-sprint2-route-size-greater-than-six-2026-07-02",
+        "issue-sprint2-nearby-button-does-nothing-2026-07-02"
+      ],
+      "linkedObservations": [],
+      "status": "open_pending_evidence",
+      "notes": "Sprint 2 command center session. Evidence, screenshots, timestamps, and pass/fail results are pending."
     }
   ]
 }

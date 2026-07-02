@@ -157,6 +157,161 @@
         "status": "pending",
         "notes": "Saturday field test must verify route quality and Active Pool correction behavior before sign-off."
       }
+    },
+    {
+      "issueId": "issue-sprint2-slow-dashboard-loading-2026-07-02",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "version": "unknown_pending_evidence",
+      "category": "Mobile",
+      "severity": "High",
+      "description": "Slow dashboard loading reported for Sprint 2 field feedback.",
+      "expectedBehavior": "Prometheus IQ loads quickly enough for field use on Anthony's active beta device.",
+      "actualBehavior": "Slow dashboard loading reported; timing evidence pending.",
+      "subsystemOwner": "Prometheus Mobile",
+      "status": "new",
+      "regressionVerified": {
+        "status": "pending",
+        "source": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "notes": "Mobile owns active beta stability fix after evidence capture."
+      },
+      "resolvedVersion": null,
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Awaiting Anthony evidence, pass/fail result, and follow-up decision."
+      },
+      "fieldFeedback": {
+        "evidence": "Screenshot/timestamp pending.",
+        "passFailResult": "pending",
+        "nextAction": "Capture startup timing, device/PWA path, network state, and route-ready timing; route to Mobile."
+      }
+    },
+    {
+      "issueId": "issue-sprint2-hamzas-barbershop-repeat-2026-07-02",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "version": "unknown_pending_evidence",
+      "category": "Intelligence Engine",
+      "severity": "Medium",
+      "description": "Hamza's Barbershop repeat recommendation reported for Sprint 2 field feedback.",
+      "expectedBehavior": "Recommendation logic avoids unhelpful repeat recommendations after sufficient recent context.",
+      "actualBehavior": "Hamza's Barbershop repeat recommendation reported; repeat context pending.",
+      "subsystemOwner": "Prometheus Intelligence Engine",
+      "status": "new",
+      "regressionVerified": {
+        "status": "pending",
+        "source": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "notes": "Route to Intelligence Engine after repeat evidence is captured; involve Data only if business identity is wrong."
+      },
+      "resolvedVersion": null,
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Awaiting Anthony evidence, pass/fail result, and follow-up decision."
+      },
+      "fieldFeedback": {
+        "evidence": "Screenshot/timestamp pending.",
+        "passFailResult": "pending",
+        "nextAction": "Capture repeated card screenshots, route position, timestamp, and prior visit/recommendation context; route to Intelligence Engine and involve Data only if business identity is wrong."
+      }
+    },
+    {
+      "issueId": "issue-sprint2-rep-radius-ring-visibility-2026-07-02",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "version": "unknown_pending_evidence",
+      "category": "Mobile",
+      "severity": "Medium",
+      "description": "Rep radius/ring visibility reported for Sprint 2 field feedback.",
+      "expectedBehavior": "Anthony can understand assigned radius/ring context when it is relevant to field use.",
+      "actualBehavior": "Rep radius/ring visibility issue reported; exact visibility gap pending.",
+      "subsystemOwner": "Prometheus Mobile",
+      "status": "new",
+      "regressionVerified": {
+        "status": "pending",
+        "source": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "notes": "Mobile owns active beta visibility/stability assessment; Dashboard dependency only if product UI change is needed."
+      },
+      "resolvedVersion": null,
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Awaiting Anthony evidence, pass/fail result, and follow-up decision."
+      },
+      "fieldFeedback": {
+        "evidence": "Screenshot/timestamp pending.",
+        "passFailResult": "pending",
+        "nextAction": "Capture whether radius/ring state is missing, unclear, or inaccessible on Anthony's device; route to Mobile with Dashboard dependency only if product UI change is required."
+      }
+    },
+    {
+      "issueId": "issue-sprint2-route-size-greater-than-six-2026-07-02",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "version": "unknown_pending_evidence",
+      "category": "Intelligence Engine",
+      "severity": "High",
+      "description": "Route size greater than six reported for Sprint 2 field feedback.",
+      "expectedBehavior": "Anthony's active route should remain within the expected beta route size unless a verified workflow intentionally expands it.",
+      "actualBehavior": "Route size greater than six reported; route count evidence pending.",
+      "subsystemOwner": "Prometheus Intelligence Engine",
+      "status": "new",
+      "regressionVerified": {
+        "status": "pending",
+        "source": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "notes": "Route to Intelligence Engine after evidence capture; Dashboard dependency only if render cap is wrong."
+      },
+      "resolvedVersion": null,
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Awaiting Anthony evidence, pass/fail result, and follow-up decision."
+      },
+      "fieldFeedback": {
+        "evidence": "Screenshot/timestamp pending.",
+        "passFailResult": "pending",
+        "nextAction": "Capture route count, route build context, app version, and whether more than six route cards are visible/actionable; route to Intelligence Engine with Dashboard dependency only if render cap is wrong."
+      }
+    },
+    {
+      "issueId": "issue-sprint2-nearby-button-does-nothing-2026-07-02",
+      "date": "2026-07-02",
+      "testerId": "tester-anthony-001",
+      "companyId": "company-fitness-connection-almeda-001",
+      "deviceId": "device-anthony-primary-phone",
+      "sessionId": "session-anthony-beta-sprint-2-field-feedback",
+      "version": "unknown_pending_evidence",
+      "category": "Mobile",
+      "severity": "High",
+      "description": "Nearby button does nothing reported for Sprint 2 field feedback.",
+      "expectedBehavior": "Nearby button produces a visible response or actionable Nearby Opportunities state on Anthony's active beta device.",
+      "actualBehavior": "Nearby button reportedly does nothing; tap evidence pending.",
+      "subsystemOwner": "Prometheus Mobile",
+      "status": "new",
+      "regressionVerified": {
+        "status": "pending",
+        "source": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "notes": "Mobile owns active beta stability fix after tap/location evidence capture."
+      },
+      "resolvedVersion": null,
+      "testerVerification": {
+        "status": "pending",
+        "notes": "Awaiting Anthony evidence, pass/fail result, and follow-up decision."
+      },
+      "fieldFeedback": {
+        "evidence": "Screenshot/timestamp pending.",
+        "passFailResult": "pending",
+        "nextAction": "Capture tap timestamp, current screen, location permission state, and whether Nearby Opportunities ever renders; route to Mobile."
+      }
     }
   ]
 }

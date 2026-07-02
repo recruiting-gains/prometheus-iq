@@ -123,3 +123,47 @@ test('Sprint 1 issue verification matrix keeps every verification pending', () =
     assert.ok(issue.testerVerification);
   }
 });
+
+test('Sprint 2 command center links Sprint 1 packet and tracks required issues', () => {
+  const tracker = JSON.parse(readFileSync('administration/command-center/beta-sprint-2/issue-tracker.json', 'utf8'));
+
+  assert.equal(tracker.commandCenterId, 'command-center-beta-sprint-2');
+  assert.equal(tracker.status, 'open');
+  assert.equal(tracker.linkedSprint1PacketId, 'packet-beta-stabilization-sprint-1-readiness-2026-07-04');
+  assert.equal(tracker.issues.length, 5);
+  assert.deepEqual(
+    tracker.issues.map((issue) => issue.issueId),
+    [
+      'issue-sprint2-slow-dashboard-loading-2026-07-02',
+      'issue-sprint2-hamzas-barbershop-repeat-2026-07-02',
+      'issue-sprint2-rep-radius-ring-visibility-2026-07-02',
+      'issue-sprint2-route-size-greater-than-six-2026-07-02',
+      'issue-sprint2-nearby-button-does-nothing-2026-07-02'
+    ]
+  );
+});
+
+test('Sprint 2 command center issue fields stay evidence-pending', () => {
+  const tracker = JSON.parse(readFileSync('administration/command-center/beta-sprint-2/issue-tracker.json', 'utf8'));
+  const requiredFields = ['issue', 'ownerSubsystem', 'severity', 'status', 'evidence', 'passFailResult', 'nextAction'];
+
+  for (const issue of tracker.issues) {
+    for (const field of requiredFields) {
+      assert.ok(field in issue, `${issue.issueId} missing ${field}`);
+    }
+    assert.equal(issue.passFailResult, 'pending');
+    assert.equal(issue.status, 'new');
+  }
+});
+
+test('Sprint 2 command center issues are mirrored into unified stabilization intake', () => {
+  const tracker = JSON.parse(readFileSync('administration/command-center/beta-sprint-2/issue-tracker.json', 'utf8'));
+  const intake = JSON.parse(readFileSync('administration/registers/stabilization-issues.json', 'utf8')).issues;
+
+  for (const commandIssue of tracker.issues) {
+    const intakeIssue = intake.find((issue) => issue.issueId === commandIssue.issueId);
+    assert.ok(intakeIssue, `${commandIssue.issueId} missing from stabilization intake`);
+    assert.equal(intakeIssue.fieldFeedback.passFailResult, 'pending');
+    assert.equal(intakeIssue.fieldFeedback.nextAction, commandIssue.nextAction);
+  }
+});

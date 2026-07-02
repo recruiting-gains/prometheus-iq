@@ -41,6 +41,11 @@
       "documentId": "beta-stabilization-sprint-1-readiness-packet",
       "path": "administration/verification/beta-stabilization-sprint-1/README.md",
       "purpose": "Prepared verification and sign-off package for Anthony's second field test."
+    },
+    {
+      "documentId": "beta-sprint-2-command-center",
+      "path": "administration/command-center/beta-sprint-2/README.md",
+      "purpose": "Founder-facing Sprint 2 beta feedback command center for evidence, severity, pass/fail status, subsystem routing, and follow-up decisions."
     }
   ]
 }
