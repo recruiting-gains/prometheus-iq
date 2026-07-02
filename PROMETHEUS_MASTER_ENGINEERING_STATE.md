@@ -2167,6 +2167,60 @@ Next recommended subsystem:
 
 Prometheus CRM for CRM Lead Attribution from Social Campaigns v1, consuming Website/Social attribution outputs and preserving CRM ownership.
 
+### 2026-07-02: Prometheus Website - Enterprise Lead Intake + Beta Request Conversion Platform v1
+
+Subsystem: Prometheus Website
+
+Task: Enterprise Lead Intake + Beta Request Conversion Platform v1
+
+Commit: `f41ae9c52a868311b16ab42db4fbfbd24071d3a5`
+
+Deploy: Deployed to Cloudflare production
+
+Worker version: `40ecb192-f25b-43dc-850d-3e96ff6076fa`
+
+Status: Complete and deployed. `origin/main` matches local `main` at commit `f41ae9c52a868311b16ab42db4fbfbd24071d3a5`.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/site.js`
+- `package.json`
+- `src/main.jsx`
+- `tests/website-enterprise-lead-intake.test.mjs`
+
+What changed:
+
+Website added an enterprise intake module for beta, demo, pricing, and discovery-call requests. The intake flow supports company description, founder/customer role, operating profile, team size, field reps, locations, territory, primary goal, CRM/workflow description, preferred call window, duplicate detection, spam guard, founder-ready packet generation, and mailto handoff.
+
+CRM integration:
+
+Partial by design. Website now generates a founder-ready CRM-compatible lead packet using the existing CRM attribution contract shape with `crm_lead_created`, `crm_lead`, Lead -> Operating Profile -> CRM -> Pipeline metadata, Website/Social attribution, duplicate detection, spam guard, and founder mailto handoff. It does not mutate CRM records directly because no Website-owned production CRM persistence endpoint exists and CRM was not modified.
+
+Operating Profile integration:
+
+Complete for Website side. Intake asks "What best describes your outside-sales operation?" and supports Fitness, Roofing, Security, Medical, Insurance, Solar, Home Services, General Outside Sales, plus future profiles through General Outside Sales fallback while preserving requested profile text.
+
+Production verification:
+
+`https://prometheusrouteiq.com` verified live. Homepage content, enterprise intake module, legal routes, Instagram status route, desktop intake flow, and mobile intake flow verified. Desktop and mobile generated CRM attribution packets with no horizontal scroll regression.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run security:check`: passed.
+- `npm run test:website`: passed.
+- `npm run build`: passed.
+
+Remaining blockers:
+
+CRM-owned or Infrastructure-owned server-side lead persistence/founder notification endpoint is required for requests to become durable backend CRM records without relying on visitor mailto submission. Existing uncommitted Companion/Prometheus OS visual-review changes remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Prometheus CRM or Prometheus Infrastructure only if durable backend lead persistence/founder notification is approved. Otherwise Prometheus Sales for Enterprise Pilot Sales Package v1.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -6634,6 +6688,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
+- Do not duplicate Enterprise Lead Intake + Beta Request Conversion Platform v1; reuse `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`, `tests/website-enterprise-lead-intake.test.mjs`, the Website-side operating-profile intake, CRM-compatible founder-ready packet generation, spam/duplicate guards, mailto handoff, and deployed Cloudflare Website version `40ecb192-f25b-43dc-850d-3e96ff6076fa`. Website must not mutate CRM records directly until a CRM-owned or Infrastructure-owned durable persistence endpoint is approved.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
