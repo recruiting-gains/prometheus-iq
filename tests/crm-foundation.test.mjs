@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import {
   addContactNote,
   attachWebsiteAttributionToLead,
+  applyCrmOperatingProfileToLead,
   buildCrmReports,
+  buildCrmOperatingProfile,
   buildFollowUpQueue,
   buildTaskQueue,
   completeTask,
@@ -12,7 +14,9 @@ import {
   createLeadFromRuntimeRecord,
   dashboardRuntimeRecordsFromActivePool,
   loadRuntimeActivePool,
+  recordProfileOutcomeForLead,
   recordRouteVisit,
+  transitionLeadProfileStage,
   transitionLead
 } from "../crm/crm-foundation.mjs";
 import { createWebsiteAttributionSession } from "../deploy/prometheusrouteiq-website/website-attribution.js";
@@ -337,4 +341,124 @@ test("CRM rejects non-Website attribution targets instead of creating a parallel
     occurredAt: "2026-07-01T09:00:00.000Z",
     metadata: {}
   }), /requires Website attribution target website_traffic/);
+});
+
+test("CRM preserves Fitness as the default operating profile", () => {
+  const state = createCrmState({ now: "2026-07-02T09:00:00.000Z" });
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+
+  assert.equal(state.operatingProfile.profileId, "fitness");
+  assert.equal(state.operatingProfile.profileLabel, "Fitness");
+  assert.equal(lead.operatingProfileId, "fitness");
+  assert.equal(lead.profileTerminology.customer, "member");
+  assert.equal(lead.profileTerminology.target, "gym prospect");
+  assert.equal(lead.profileStage, "Gym Prospect");
+  assert.equal(lead.status, "New Lead");
+  assert.deepEqual(buildCrmOperatingProfile().crmStages, [
+    "Gym Prospect",
+    "Visited",
+    "Manager Reached",
+    "Trial/Tour",
+    "Membership Sold",
+    "Not Fit"
+  ]);
+});
+
+test("CRM consumes Intelligence Operating Profile contracts for required example profiles", () => {
+  const cases = [
+    {
+      profileId: "fitness",
+      expectedStage: "Manager Reached",
+      rawOutcome: "membership",
+      normalizedOutcome: "sale",
+      targetTerm: "gym prospect"
+    },
+    {
+      profileId: "roofing",
+      expectedStage: "Inspection Scheduled",
+      rawOutcome: "inspection",
+      normalizedOutcome: "inspection",
+      targetTerm: "property lead"
+    },
+    {
+      profileId: "security",
+      expectedStage: "Survey Scheduled",
+      rawOutcome: "site survey",
+      normalizedOutcome: "inspection",
+      targetTerm: "security prospect"
+    },
+    {
+      profileId: "medical",
+      expectedStage: "Provider Reached",
+      rawOutcome: "referral",
+      normalizedOutcome: "referral",
+      targetTerm: "provider prospect"
+    },
+    {
+      profileId: "general_outside_sales",
+      expectedStage: "Qualified",
+      rawOutcome: "contract",
+      normalizedOutcome: "contract",
+      targetTerm: "prospect"
+    }
+  ];
+
+  cases.forEach((item, index) => {
+    const state = createCrmState({
+      now: "2026-07-02T09:00:00.000Z",
+      operatingProfileId: item.profileId
+    });
+    const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(index), {
+      operatingProfileId: item.profileId
+    });
+    const operatingProfile = buildCrmOperatingProfile(item.profileId);
+
+    assert.equal(operatingProfile.profileId, item.profileId);
+    assert.equal(operatingProfile.runtimeMutationAuthorized, false);
+    assert.equal(lead.profileTerminology.target, item.targetTerm);
+    assert.equal(lead.profileStage, operatingProfile.crmStages[0]);
+
+    transitionLeadProfileStage(state, lead.id, item.expectedStage, {
+      occurredAt: "2026-07-02T10:00:00.000Z"
+    });
+    const outcome = recordProfileOutcomeForLead(state, {
+      leadId: lead.id,
+      rawOutcome: item.rawOutcome,
+      occurredAt: "2026-07-02T10:30:00.000Z"
+    });
+    const reports = buildCrmReports(state, { asOf: "2026-07-02T11:00:00.000Z" });
+
+    assert.equal(lead.profileStage, item.expectedStage);
+    assert.equal(outcome.normalizedOutcome, item.normalizedOutcome);
+    assert.equal(outcome.recommendationChanged, false);
+    assert.equal(outcome.productionLearningActive, false);
+    assert.equal(reports.profilePipelineCounts[item.profileId][item.expectedStage], 1);
+  });
+});
+
+test("CRM can apply a new operating profile to an existing lead without duplicate lead creation", () => {
+  const state = createCrmState({ now: "2026-07-02T09:00:00.000Z" });
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
+
+  applyCrmOperatingProfileToLead(state, lead.id, "roofing", {
+    occurredAt: "2026-07-02T09:15:00.000Z"
+  });
+
+  assert.equal(state.leads.length, 1);
+  assert.equal(lead.operatingProfileId, "roofing");
+  assert.equal(lead.profileTerminology.target, "property lead");
+  assert.equal(lead.profileStage, "Property Lead");
+  assert.equal(lead.profileStageHistory.at(-1).profileId, "roofing");
+});
+
+test("CRM rejects stages outside the active operating profile", () => {
+  const state = createCrmState({
+    now: "2026-07-02T09:00:00.000Z",
+    operatingProfileId: "medical"
+  });
+  const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(), {
+    operatingProfileId: "medical"
+  });
+
+  assert.throws(() => transitionLeadProfileStage(state, lead.id, "Inspection Scheduled"), /Unknown CRM operating profile stage for medical/);
 });

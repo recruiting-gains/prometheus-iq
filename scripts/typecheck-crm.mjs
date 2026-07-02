@@ -11,7 +11,10 @@ import {
   leadStatuses,
   loadRuntimeActivePool,
   recordRouteVisit,
-  attachWebsiteAttributionToLead
+  attachWebsiteAttributionToLead,
+  buildCrmOperatingProfile,
+  recordProfileOutcomeForLead,
+  transitionLeadProfileStage
 } from "../crm/crm-foundation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -51,6 +54,14 @@ attachWebsiteAttributionToLead(state, lead.id, {
 }, {
   occurredAt: "2026-06-30T09:30:00.000Z"
 });
+transitionLeadProfileStage(state, lead.id, "Manager Reached", {
+  occurredAt: "2026-06-30T10:00:00.000Z"
+});
+recordProfileOutcomeForLead(state, {
+  leadId: lead.id,
+  rawOutcome: "membership",
+  occurredAt: "2026-06-30T10:15:00.000Z"
+});
 
 const reports = buildCrmReports(state, { asOf: "2026-06-30T12:00:00.000Z" });
 const queue = buildFollowUpQueue(state, { asOf: "2026-06-30T12:00:00.000Z" });
@@ -67,6 +78,10 @@ assert.equal(typeof reports.founderActivitySummary.visibleContacts, "number");
 assert.equal(reports.anthonyBetaActivity.every(activity => activity.founderVisible), true);
 assert.equal(state.attributionEvents[0].target, "crm_lead");
 assert.equal(state.leads[0].attribution.campaignId, "typecheck-campaign");
+assert.equal(state.operatingProfile.profileId, "fitness");
+assert.equal(buildCrmOperatingProfile("roofing").crmStages.includes("Inspection Scheduled"), true);
+assert.equal(state.leads[0].profileStage, "Manager Reached");
+assert.equal(state.leads[0].profileOutcomes[0].normalizedOutcome, "sale");
 assert.equal(enterpriseModel.implementationType, "architecture");
 assert.equal(enterpriseModel.productionBetaSystemsModified, false);
 assert.equal(Array.isArray(enterpriseModel.entities), true);

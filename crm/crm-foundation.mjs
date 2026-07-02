@@ -7,8 +7,16 @@ import {
   SOCIAL_ATTRIBUTION_TARGETS,
   SOCIAL_DATA_SOURCES
 } from "../social-media/contracts/social-media-contract.js";
+import {
+  buildProfileConsumerContract,
+  getOperatingProfile,
+  loadOperatingProfileContracts,
+  loadOperatingProfiles,
+  normalizeIndustryOutcome
+} from "../intelligence/operating-profile-engine.mjs";
 
 export const crmVersion = "beta-crm-contact-follow-up-queue-v1";
+export const defaultCrmOperatingProfileId = "fitness";
 
 export const leadStatuses = [
   "New Lead",
@@ -183,12 +191,48 @@ function leadSourceFromTouch(touch) {
   return touch.metadata?.utm_source || touch.metadata?.campaign_platform || touch.provider || "website";
 }
 
+function loadCrmOperatingProfile(profileId = defaultCrmOperatingProfileId, options = {}) {
+  const registry = options.registry || loadOperatingProfiles();
+  const contracts = options.contracts || loadOperatingProfileContracts();
+  const profile = options.profile || getOperatingProfile(profileId || defaultCrmOperatingProfileId, registry);
+  const contract = buildProfileConsumerContract(profile.profileId, "CRM", { registry, contracts, profile });
+  return {
+    contractVersion: contract.contractVersion,
+    profileId: profile.profileId,
+    profileLabel: profile.label,
+    industry: profile.industry,
+    status: contract.status,
+    terminology: clone(profile.terminology || {}),
+    crmStages: clone(contract.crmStages || profile.crmStages || []),
+    outcomeVocabulary: clone(contract.outcomeVocabulary || profile.outcomeVocabulary || []),
+    runtimeMutationAuthorized: contract.runtimeMutationAuthorized === true
+  };
+}
+
+function crmOperatingProfileFor(state, profileId) {
+  if (profileId) return loadCrmOperatingProfile(profileId);
+  if (state.operatingProfile?.profileId) return loadCrmOperatingProfile(state.operatingProfile.profileId);
+  return loadCrmOperatingProfile(defaultCrmOperatingProfileId);
+}
+
+function firstProfileStage(operatingProfile) {
+  return operatingProfile.crmStages?.[0] || "Prospect";
+}
+
+function ensureKnownProfileStage(operatingProfile, stage) {
+  if (!operatingProfile.crmStages.includes(stage)) {
+    throw new Error(`Unknown CRM operating profile stage for ${operatingProfile.profileId}: ${stage}`);
+  }
+}
+
 export function createCrmState(options = {}) {
   const now = iso(options.now || new Date());
+  const operatingProfile = loadCrmOperatingProfile(options.operatingProfileId || defaultCrmOperatingProfileId);
   return {
     version: crmVersion,
     generatedAt: now,
     clock: now,
+    operatingProfile,
     contacts: [],
     leads: [],
     followUps: [],
@@ -314,6 +358,7 @@ export function createLeadForContact(state, contactId, options = {}) {
 
   const now = iso(options.createdAt || state.clock);
   const ownerRepId = options.ownerRepId || contact.ownerRepId || anthonyRepId;
+  const operatingProfile = crmOperatingProfileFor(state, options.operatingProfileId);
   const lead = {
     id: stableId("lead", [contact.id, ownerRepId, now.slice(0, 10)]),
     contactId: contact.id,
@@ -324,6 +369,20 @@ export function createLeadForContact(state, contactId, options = {}) {
     googlePlaceId: contact.googlePlaceId,
     status: "New Lead",
     prospectStatus: "New Lead",
+    operatingProfileId: operatingProfile.profileId,
+    operatingProfileLabel: operatingProfile.profileLabel,
+    profileTerminology: clone(operatingProfile.terminology),
+    profileStage: firstProfileStage(operatingProfile),
+    profileStageHistory: [{
+      from: "",
+      to: firstProfileStage(operatingProfile),
+      actorId: options.actorId || ownerRepId,
+      occurredAt: now,
+      profileId: operatingProfile.profileId,
+      note: "Lead created with CRM operating profile."
+    }],
+    profileOutcomeVocabulary: clone(operatingProfile.outcomeVocabulary),
+    profileOutcomes: [],
     priority: options.priority || "medium",
     createdAt: now,
     updatedAt: now,
@@ -370,6 +429,150 @@ export function createLeadForContact(state, contactId, options = {}) {
 export function createLeadFromRuntimeRecord(state, runtimeRecord, options = {}) {
   const contact = createContactFromRuntimeRecord(state, runtimeRecord, options);
   return createLeadForContact(state, contact.id, options);
+}
+
+export function buildCrmOperatingProfile(profileId = defaultCrmOperatingProfileId, options = {}) {
+  return loadCrmOperatingProfile(profileId, options);
+}
+
+export function applyCrmOperatingProfileToLead(state, leadId, profileId = defaultCrmOperatingProfileId, options = {}) {
+  const lead = findById(state.leads, leadId, "lead");
+  const contact = findById(state.contacts, lead.contactId, "contact");
+  const operatingProfile = loadCrmOperatingProfile(profileId);
+  const appliedAt = iso(options.occurredAt || state.clock);
+  const previousProfile = lead.operatingProfileId || "";
+  const previousStage = lead.profileStage || "";
+  const nextStage = firstProfileStage(operatingProfile);
+  lead.profileStageHistory ||= [];
+
+  lead.operatingProfileId = operatingProfile.profileId;
+  lead.operatingProfileLabel = operatingProfile.profileLabel;
+  lead.profileTerminology = clone(operatingProfile.terminology);
+  lead.profileStage = nextStage;
+  lead.profileOutcomeVocabulary = clone(operatingProfile.outcomeVocabulary);
+  lead.profileStageHistory.push({
+    from: previousStage,
+    to: nextStage,
+    actorId: options.actorId || lead.ownerRepId,
+    occurredAt: appliedAt,
+    profileId: operatingProfile.profileId,
+    note: options.note || `Operating profile changed from ${previousProfile || "none"} to ${operatingProfile.profileId}.`
+  });
+  lead.updatedAt = appliedAt;
+  contact.updatedAt = appliedAt;
+  addSalesActivity(state, {
+    leadId,
+    contactId: contact.id,
+    actorId: options.actorId || lead.ownerRepId,
+    type: "crm_operating_profile_applied",
+    occurredAt: appliedAt,
+    summary: `${contact.businessName} CRM operating profile set to ${operatingProfile.profileLabel}.`,
+    metadata: {
+      previousProfile,
+      profileId: operatingProfile.profileId,
+      profileStage: nextStage
+    }
+  });
+  return lead;
+}
+
+export function transitionLeadProfileStage(state, leadId, nextStage, options = {}) {
+  const lead = findById(state.leads, leadId, "lead");
+  const contact = findById(state.contacts, lead.contactId, "contact");
+  const operatingProfile = crmOperatingProfileFor(state, lead.operatingProfileId);
+  ensureKnownProfileStage(operatingProfile, nextStage);
+
+  const now = iso(options.occurredAt || state.clock);
+  const previous = lead.profileStage || firstProfileStage(operatingProfile);
+  lead.profileStageHistory ||= [];
+  lead.profileStage = nextStage;
+  lead.prospectStatus = nextStage;
+  lead.updatedAt = now;
+  contact.prospectStatus = nextStage;
+  contact.updatedAt = now;
+  lead.profileStageHistory.push({
+    from: previous,
+    to: nextStage,
+    actorId: options.actorId || lead.ownerRepId,
+    occurredAt: now,
+    profileId: operatingProfile.profileId,
+    note: options.note || ""
+  });
+  addSalesActivity(state, {
+    leadId,
+    contactId: contact.id,
+    actorId: options.actorId || lead.ownerRepId,
+    type: "crm_profile_stage_changed",
+    occurredAt: now,
+    summary: `${contact.businessName} moved from ${previous} to ${nextStage} in the ${operatingProfile.profileLabel} CRM profile.`,
+    metadata: {
+      profileId: operatingProfile.profileId,
+      from: previous,
+      to: nextStage
+    }
+  });
+  return lead;
+}
+
+export function recordProfileOutcomeForLead(state, input) {
+  const lead = findById(state.leads, input.leadId, "lead");
+  const contact = findById(state.contacts, lead.contactId, "contact");
+  const profileId = input.operatingProfileId || lead.operatingProfileId || state.operatingProfile?.profileId || defaultCrmOperatingProfileId;
+  const occurredAt = iso(input.occurredAt || state.clock);
+  const normalized = normalizeIndustryOutcome({
+    profileId,
+    rawOutcome: input.rawOutcome,
+    visit: {
+      businessRef: input.businessRef || {
+        source: "crm",
+        id: contact.id,
+        name: contact.businessName
+      },
+      repRef: input.repRef || {
+        source: "crm",
+        id: lead.ownerRepId
+      },
+      occurredAt
+    },
+    truthLevel: input.truthLevel || "crm_reported",
+    reviewRequired: input.reviewRequired
+  });
+  const profileOutcome = {
+    id: stableId("profile_outcome", [lead.id, profileId, input.rawOutcome, occurredAt]),
+    leadId: input.leadId,
+    contactId: contact.id,
+    profileId,
+    rawOutcome: input.rawOutcome,
+    normalizedOutcome: normalized.normalizedOutcome,
+    normalizedOutcomeLabel: normalized.normalizedOutcomeLabel,
+    matchedTerm: normalized.matchedTerm,
+    mappingSource: normalized.mappingSource,
+    occurredAt,
+    recommendationChanged: normalized.recommendationEligibility.canChangeRecommendation === true,
+    productionLearningActive: normalized.evidence.productionLearningActive === true,
+    reviewState: normalized.evidence.reviewState
+  };
+  lead.profileOutcomes ||= [];
+  lead.profileOutcomes.push(profileOutcome);
+  lead.lastProfileOutcome = profileOutcome;
+  lead.updatedAt = occurredAt;
+  contact.updatedAt = occurredAt;
+  addSalesActivity(state, {
+    leadId: input.leadId,
+    contactId: contact.id,
+    actorId: input.actorId || lead.ownerRepId,
+    type: "crm_profile_outcome_recorded",
+    occurredAt,
+    summary: `${contact.businessName} recorded ${input.rawOutcome} as ${profileOutcome.normalizedOutcome} under ${profileId}.`,
+    metadata: {
+      profileId,
+      rawOutcome: input.rawOutcome,
+      normalizedOutcome: profileOutcome.normalizedOutcome,
+      recommendationChanged: profileOutcome.recommendationChanged,
+      productionLearningActive: profileOutcome.productionLearningActive
+    }
+  });
+  return profileOutcome;
 }
 
 export function attachWebsiteAttributionToLead(state, leadId, websiteAttribution, options = {}) {
@@ -749,6 +952,13 @@ export function buildCrmReports(state, options = {}) {
     counts[status] = state.leads.filter(lead => lead.status === status).length;
     return counts;
   }, {});
+  const profilePipelineCounts = state.leads.reduce((counts, lead) => {
+    const profileId = lead.operatingProfileId || state.operatingProfile?.profileId || defaultCrmOperatingProfileId;
+    const stage = lead.profileStage || firstProfileStage(crmOperatingProfileFor(state, profileId));
+    counts[profileId] ||= {};
+    counts[profileId][stage] = (counts[profileId][stage] || 0) + 1;
+    return counts;
+  }, {});
 
   const taskCompletionStatus = {
     open: tasks.filter(task => task.status === "open").length,
@@ -773,6 +983,7 @@ export function buildCrmReports(state, options = {}) {
       pendingFollowUps: pendingFollowUps.length
     },
     contactPipelineCounts,
+    profilePipelineCounts,
     taskCompletionStatus
   };
 }

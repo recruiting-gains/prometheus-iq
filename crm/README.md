@@ -18,6 +18,10 @@ CRM also owns the operating architecture for company accounts, pilot companies, 
 
 CRM consumes Website attribution output and normalizes CRM lead attribution through the Social Media attribution contract. Use `attachWebsiteAttributionToLead` to attach `lead_source`, `campaign_id`, `campaign_platform`, first touch, last touch, qualified status, and manual notes to lead records. Do not create a separate CRM attribution model and do not call social provider APIs from CRM.
 
+## Operating Profiles
+
+CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness is the default profile. Use `buildCrmOperatingProfile`, `applyCrmOperatingProfileToLead`, `transitionLeadProfileStage`, and `recordProfileOutcomeForLead` for profile-driven terminology, CRM stages, outcome labels, and profile-aware pipeline reporting. Do not hardcode a new industry-specific CRM stage model inside CRM.
+
 ## v1 Workflow
 
 Supported lead states:
