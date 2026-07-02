@@ -9,6 +9,10 @@ import {
   getDefaultFounderCommunicationsService
 } from "./founder-communications-consumer.js";
 import {
+  createFounderInstagramDirectAnswer,
+  isFounderInstagramAnalyticsCommand
+} from "./founder-instagram-analytics-consumer.js";
+import {
   createBetaSummary,
   createCompanyStatusSummary,
   createDailyDecisionSupport,
@@ -229,6 +233,16 @@ export async function createFounderAssistantResponse(command = "", {
       ...brief.metadata,
       intent: "founder_morning_brief",
       entities: ["Cruz", "Prometheus Companion", "Calendar", "Priorities"]
+    });
+  }
+  if (isFounderInstagramAnalyticsCommand(normalized)) {
+    const instagram = await createFounderInstagramDirectAnswer({
+      command: normalized,
+      service: socialMediaAnalyticsService
+    });
+    return response(instagram.title, instagram.body, {
+      ...instagram.metadata,
+      entities: ["Instagram", "Prometheus Social Media", "Prometheus Companion"]
     });
   }
   if (includesAny(normalized, ["executive dashboard", "executive command center", "command center summary"])) {

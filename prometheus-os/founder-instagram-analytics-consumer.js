@@ -137,6 +137,42 @@ function topContentText(metrics) {
   return `Top performing content: ${String(top.mediaType || "content").toUpperCase()}${caption} with ${details}.`;
 }
 
+function normalizedCommand(command = "") {
+  return String(command || "")
+    .toLowerCase()
+    .replace(/[’‘']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function isFounderInstagramAnalyticsCommand(command = "") {
+  const normalized = normalizedCommand(command);
+  if (!normalized) return false;
+  if (["instagram", "instagram analytics", "show instagram analytics", "show me my instagram analytics"].includes(normalized)) return true;
+  if (normalized.includes("instagram") && (
+    normalized.includes("doing") ||
+    normalized.includes("analytics") ||
+    normalized.includes("reach") ||
+    normalized.includes("followers") ||
+    normalized.includes("website clicks") ||
+    normalized.includes("performed") ||
+    normalized.includes("post")
+  )) return true;
+  return [
+    "how many followers",
+    "followers do we have",
+    "how much reach",
+    "reach did we get",
+    "which post performed best",
+    "best performing post",
+    "top performing post",
+    "what should i post next",
+    "what should we post next",
+    "post next"
+  ].some(phrase => normalized.includes(phrase));
+}
+
 function growthTrendText(snapshot, metrics) {
   const direct = ["followers_growth", "follower_growth", "followers_delta", "growth_rate", "profile_growth", "reach_growth"]
     .map(name => latestMetricValue(metrics, name))
@@ -168,6 +204,8 @@ export async function createFounderInstagramAnalyticsBrief({
   const followers = latestMetricValue(metrics, "followers_count");
   const engagement = sumMetric(metrics, "content_total_interactions") ??
     ["content_likes", "content_comments", "content_shares", "content_saved"].reduce((total, name) => total + Number(sumMetric(metrics, name) || 0), 0);
+  const topContent = topContentText(metrics);
+  const growthTrend = growthTrendText(analyticsSnapshot, metrics);
 
   const contractVersion = analyticsSnapshot?.contractVersion || "unavailable";
   const contractOk = contractVersion === SOCIAL_MEDIA_CONTRACT_VERSION;
@@ -184,8 +222,8 @@ export async function createFounderInstagramAnalyticsBrief({
       `Profile visits: ${formatCount(profileVisits)}.`,
       `Website clicks: ${formatCount(websiteClicks)}.`,
       `Engagement: ${formatCount(engagement)}.`,
-      topContentText(metrics),
-      growthTrendText(analyticsSnapshot, metrics),
+      topContent,
+      growthTrend,
       "Companion role: presentation only; no Instagram API calls, tokens, Meta credentials, or Social Media normalization logic are owned here."
     ].join(" "),
     metadata: {
@@ -195,8 +233,68 @@ export async function createFounderInstagramAnalyticsBrief({
       provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
       providerState: state,
       metricSource: status?.source || "unavailable",
+      metrics: {
+        followers,
+        reach,
+        impressions,
+        profileVisits,
+        websiteClicks,
+        engagement
+      },
+      topContentText: topContent,
+      growthTrendText: growthTrend,
       presentationOnly: true,
       directInstagramApiCalls: false
+    }
+  };
+}
+
+function directLeadForCommand(command, analytics) {
+  const normalized = normalizedCommand(command);
+  const metrics = analytics.metadata.metrics || {};
+
+  if (normalized.includes("followers")) {
+    return `Direct answer: Followers: ${formatCount(metrics.followers)}. Source: Prometheus Social Media.`;
+  }
+  if (normalized.includes("reach")) {
+    return `Direct answer: Reach: ${formatCount(metrics.reach)}. Source: Prometheus Social Media.`;
+  }
+  if (normalized.includes("website click")) {
+    return `Direct answer: Website clicks from Instagram: ${formatCount(metrics.websiteClicks)}. Source: Prometheus Social Media.`;
+  }
+  if (normalized.includes("performed best") || normalized.includes("best performing") || normalized.includes("top performing")) {
+    return `Direct answer: ${analytics.metadata.topContentText} Source: Prometheus Social Media.`;
+  }
+  if (normalized.includes("post next")) {
+    return [
+      `Direct answer: use the strongest normalized Instagram signal. ${analytics.metadata.topContentText}`,
+      "Recommendation: post a concise founder lesson about field-sales intelligence, pilot proof, or why outside sales needs direction before activity.",
+      "Keep it public-safe: do not show private dashboards, route scoring, customer data, Anthony beta details, or proprietary mechanics.",
+      "Source: Prometheus Social Media."
+    ].join(" ");
+  }
+
+  return [
+    `Direct answer: Instagram has ${formatCount(metrics.followers)} followers, ${formatCount(metrics.reach)} reach, ${formatCount(metrics.impressions)} impressions, ${formatCount(metrics.profileVisits)} profile visits, ${formatCount(metrics.websiteClicks)} website clicks, and ${formatCount(metrics.engagement)} engagement.`,
+    "Source: Prometheus Social Media."
+  ].join(" ");
+}
+
+export async function createFounderInstagramDirectAnswer({
+  command = "",
+  service = getDefaultFounderSocialAnalyticsService()
+} = {}) {
+  const analytics = await createFounderInstagramAnalyticsBrief({ service });
+
+  return {
+    title: "Instagram Analytics",
+    body: [
+      directLeadForCommand(command, analytics),
+      analytics.body
+    ].join(" "),
+    metadata: {
+      ...analytics.metadata,
+      intent: "instagram_analytics_direct_query"
     }
   };
 }

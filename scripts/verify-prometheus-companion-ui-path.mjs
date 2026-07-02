@@ -521,6 +521,45 @@ for (const [phrase, expected] of executiveCommandCenterCases) {
 const instagramAnalyticsProvider = new AIProvider({
   socialMediaAnalyticsService: socialMediaAnalyticsServiceForSnapshot(liveInstagramAnalyticsSnapshot)
 });
+
+const instagramDirectCases = [
+  ["How is Instagram doing?", ["instagram analytics", "direct answer:", "followers", "reach", "source: prometheus social media"]],
+  ["Instagram", ["instagram analytics", "direct answer:", "source: prometheus social media"]],
+  ["Show me my Instagram analytics.", ["instagram analytics", "followers: 50", "reach: 20", "website clicks: 3"]],
+  ["How many followers do we have?", ["followers: 50", "source: prometheus social media"]],
+  ["How much reach did we get?", ["reach: 20", "source: prometheus social media"]],
+  ["Which post performed best?", ["top performing content: reel", "outside sales needs intelligence", "source: prometheus social media"]],
+  ["How many website clicks came from Instagram?", ["website clicks from instagram: 3", "source: prometheus social media"]],
+  ["What should I post next?", ["recommendation:", "public-safe", "source: prometheus social media"]]
+];
+
+for (const [phrase, expected] of instagramDirectCases) {
+  const response = await instagramAnalyticsProvider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.filter((item) => !text.includes(item.toLowerCase()));
+  if (
+    response.metadata?.founderAssistant !== true ||
+    response.metadata?.routeSelected !== "founder_assistant" ||
+    response.metadata?.intent !== "instagram_analytics_direct_query" ||
+    response.metadata?.directInstagramApiCalls !== false ||
+    text.includes("project context") ||
+    missing.length
+  ) {
+    fail("instagram-direct-query", {
+      phrase,
+      title: response.title,
+      founderAssistant: response.metadata?.founderAssistant === true,
+      routeSelected: response.metadata?.routeSelected,
+      intent: response.metadata?.intent,
+      directInstagramApiCalls: response.metadata?.directInstagramApiCalls,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> instagram-direct:${response.title}`);
+}
+
 const instagramBrief = await instagramAnalyticsProvider.ask("Give me my Founder Morning Brief.");
 const instagramBriefText = `${instagramBrief.title || ""} ${instagramBrief.body || ""}`.toLowerCase();
 const instagramExpected = [
