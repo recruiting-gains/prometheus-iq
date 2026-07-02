@@ -338,7 +338,7 @@ for (const phrase of explicitNodeCases) {
 }
 
 const founderAcceptanceCases = [
-  ["Hello", ["good to see you", "what are we working on today"]],
+  ["Hello", ["i'm here", "what are we working on"]],
   ["Good morning, Companion.", ["good morning", "everything is ready", "priorities"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
@@ -371,14 +371,14 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 }
 
 const conversationalIntentCases = [
-  ["Hello", ["good to see you", "what are we working on today"], "natural_greeting"],
+  ["Hello", ["i'm here", "what are we working on"], "natural_greeting"],
   ["Good morning", ["good morning", "everything is ready", "priorities"], "greeting"],
   ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
   ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
-  ["Instagram", ["executive marketing summary", "instagram should support", "publish manually"], "executive_marketing_summary"],
   ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
   ["Website", ["website performance summary", "prometheusrouteiq.com", "public website"], "website_performance_summary"],
-  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"]
+  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"],
+  ["Advice", ["not start with another feature", "validate the field experience", "recommendation"], "founder_advice"]
 ];
 
 for (const [phrase, expected, intent] of conversationalIntentCases) {
@@ -666,6 +666,7 @@ const instagramAnalyticsProvider = new AIProvider({
 });
 
 const instagramDirectCases = [
+  ["Instagram", ["instagram analytics", "50 followers", "20 reach", "8 profile visits", "3 website clicks", "best post so far", "recommendation"]],
   ["How is Instagram doing?", ["instagram analytics", "today's instagram read shows", "followers", "reach", "prometheus social media"]],
   ["Show me my Instagram analytics.", ["instagram analytics", "50 followers", "20 reach", "3 website clicks"]],
   ["How many followers do we have?", ["we have 50 instagram followers", "prometheus social media"]],

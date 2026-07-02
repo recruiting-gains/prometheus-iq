@@ -217,6 +217,18 @@ function productionBlockers() {
   );
 }
 
+function advice() {
+  return response(
+    "Founder Advice",
+    [
+      "I would not start with another feature today.",
+      "The best move is to validate the field experience first, because today's engineering work only creates value if the route, mobile flow, voice layer, and proof loop actually improved.",
+      "My recommendation: test the founder voice path, verify Mobile or field usage if it is in scope today, capture one clean beta signal, then decide whether engineering or sales deserves the next block."
+    ].join(" "),
+    { intent: "founder_advice", founderMode: true, entities: ["Cruz", "Validation", "Prometheus Companion"] }
+  );
+}
+
 function morningGreeting() {
   const next = createNextActionBrief();
   return response(
@@ -228,8 +240,8 @@ function morningGreeting() {
 
 function naturalGreeting() {
   return response(
-    "Good To See You",
-    "Good to see you. What are we working on today?",
+    "I'm Here",
+    "I'm here. What are we working on?",
     { intent: "natural_greeting", founderMode: true, entities: ["Cruz", "Prometheus Companion"] }
   );
 }
@@ -291,18 +303,20 @@ function companyBriefing() {
   );
 }
 
-function conversationalIntentResponse(normalized) {
+async function conversationalIntentResponse(normalized, { socialMediaAnalyticsService } = {}) {
   if (isExact(normalized, ["hello", "hi", "hey"])) return naturalGreeting();
   if (isExact(normalized, ["good morning", "morning"])) return morningGreeting();
   if (isExact(normalized, ["how are you", "how are you doing", "how are things"])) return healthGreeting();
   if (isExact(normalized, ["overwatch"])) return engineeringStatus();
   if (isExact(normalized, ["instagram", "social", "social media"])) {
-    const social = createSocialMediaSummary();
-    return response("Executive Marketing Summary", social.body, {
-      ...social.metadata,
-      intent: "executive_marketing_summary",
+    const instagram = await createFounderInstagramDirectAnswer({
+      command: "instagram",
+      service: socialMediaAnalyticsService
+    });
+    return response(instagram.title, instagram.body, {
+      ...instagram.metadata,
       founderMode: true,
-      entities: ["Instagram", "Social Media", "Marketing"]
+      entities: ["Instagram", "Prometheus Social Media", "Prometheus Companion"]
     });
   }
   if (isExact(normalized, ["anthony"])) {
@@ -324,6 +338,7 @@ function conversationalIntentResponse(normalized) {
     });
   }
   if (isExact(normalized, ["crm", "pipeline"])) return crmPipelineSummary();
+  if (isExact(normalized, ["advice", "advise me"])) return advice();
   if (includesAny(normalized, ["company briefing"])) return companyBriefing();
   return null;
 }
@@ -335,7 +350,9 @@ export async function createFounderAssistantResponse(command = "", {
   const normalized = String(command || "").toLowerCase().trim();
   if (!normalized) return null;
 
-  const conversationalResponse = conversationalIntentResponse(normalized);
+  const conversationalResponse = await conversationalIntentResponse(normalized, {
+    socialMediaAnalyticsService
+  });
   if (conversationalResponse) return conversationalResponse;
 
   if (/^(good morning|morning companion|good morning companion|hello companion|hey companion)\b/.test(normalized)) return morningGreeting();
@@ -461,6 +478,7 @@ export async function createFounderAssistantResponse(command = "", {
   if (includesAny(normalized, ["dashboard interact with the data", "dashboard interacts with the data", "dashboard and data", "dashboard data architecture"])) return dashboardDataArchitecture();
   if (includesAny(normalized, ["overwatch assign", "overwatch should assign", "what should overwatch"])) return overwatchAssignment();
   if (includesAny(normalized, ["production blockers", "blockers remain", "remaining blockers"])) return productionBlockers();
+  if (isExact(normalized, ["advice", "advise me"]) || includesAny(normalized, ["give me advice", "what is your advice"])) return advice();
   if (includesAny(normalized, ["founder briefing", "founder brief", "brief me as founder"])) {
     const timeline = createTimelineAnswer("this week");
     return response("Founder Briefing", `${timeline.body} ${promptTemplates.dailyBrief}`, { intent: "founder_briefing", entities: ["Cruz", "Prometheus Companion"] });

@@ -370,18 +370,21 @@ async function verify() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        provider: "openai",
+        provider: "elevenlabs",
         text: "Prometheus founder acceptance voice test."
       })
     });
     const audio = Buffer.from(await response.arrayBuffer());
+    const provider = String(response.headers.get("x-prometheus-voice-provider") || "").toLowerCase();
     const ok = response.ok &&
+      provider === "elevenlabs" &&
       audio.length > 1024 &&
       String(response.headers.get("content-type") || "").startsWith("audio/");
     record("tts", ok, ok
-      ? `OpenAI TTS returned ${audio.length} audio bytes`
-      : `OpenAI TTS failed with HTTP ${response.status}`, {
+      ? `ElevenLabs TTS returned ${audio.length} audio bytes`
+      : `ElevenLabs TTS failed with HTTP ${response.status}`, {
         status: response.status,
+        provider,
         bytes: audio.length,
         contentType: response.headers.get("content-type")
       });

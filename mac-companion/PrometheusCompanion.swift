@@ -6,7 +6,7 @@ import WebKit
 
 @MainActor
 final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
-    private let founderGreeting = "Hey Boss lets get to work im here for any update you need"
+    private let founderGreeting = "I'm here. What are we working on?"
     private let osURL = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_OS_URL"] ?? "http://127.0.0.1:8791/prometheus-os/")!
     private let ttsEndpoint = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_TTS_ENDPOINT"] ?? "http://127.0.0.1:8792/api/tts")!
     private let sttEndpoint = URL(string: ProcessInfo.processInfo.environment["PROMETHEUS_STT_ENDPOINT"] ?? "http://127.0.0.1:8792/api/stt")!
@@ -789,11 +789,19 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         log("Native STT transcript captured: \(cleanTranscript)")
         prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Heard', \(Self.javascriptStringLiteral(cleanTranscript)))")
 
+        let hasGreeting = isFounderGreeting(cleanTranscript)
         let hasWakePhrase = extractWakeCommand(from: cleanTranscript) != nil
         let hasDirectCommand = directSystemCommand(for: cleanTranscript) != nil
         let hasFounderReasoningQuestion = isFounderReasoningQuestion(cleanTranscript)
-        guard hasWakePhrase || hasDirectCommand || hasFounderReasoningQuestion || conversationActive else {
+        let hasFounderConversationPrompt = isFounderConversationPrompt(cleanTranscript)
+        guard hasGreeting || hasWakePhrase || hasDirectCommand || hasFounderReasoningQuestion || hasFounderConversationPrompt || conversationActive else {
             scheduleNativeSttCapture(after: 0.8)
+            return
+        }
+
+        if hasGreeting {
+            conversationActive = true
+            speak(greetingResponse(for: cleanTranscript))
             return
         }
 
@@ -926,6 +934,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             "changed today",
             "what did we finish",
             "what should i do next",
+            "what should i work on today",
+            "advice",
             "what major systems have been built",
             "major systems have been built",
             "what changed in prometheus over the last month",
@@ -934,6 +944,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             "who is anthony",
             "why is anthony important",
             "what is the biggest risk to prometheus today",
+            "what s slowing prometheus down",
+            "what is slowing prometheus down",
+            "slowing prometheus down",
+            "bottleneck",
+            "how are we doing",
             "if you were my coo",
             "what would you tell me to do tomorrow",
             "why is google places more important than meta",
@@ -952,6 +967,47 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         return reasoningSignals.contains { signal in
             let normalizedSignal = normalizeCommand(signal)
             return normalized == normalizedSignal || normalized.contains(normalizedSignal)
+        }
+    }
+
+    private func isFounderGreeting(_ transcript: String) -> Bool {
+        let normalized = normalizeCommand(transcript)
+        return ["hello", "hi", "hey", "good morning", "morning", "how are you", "how are you doing"].contains(normalized)
+    }
+
+    private func greetingResponse(for transcript: String) -> String {
+        let normalized = normalizeCommand(transcript)
+        if normalized == "how are you" || normalized == "how are you doing" {
+            return "I'm online and everything is healthy. What would you like to tackle?"
+        }
+        if normalized == "good morning" || normalized == "morning" {
+            return "Good morning. Everything is ready whenever you are."
+        }
+        return founderGreeting
+    }
+
+    private func isFounderConversationPrompt(_ transcript: String) -> Bool {
+        let normalized = normalizeCommand(transcript)
+        guard !normalized.isEmpty else { return false }
+        let prompts = [
+            "overwatch",
+            "instagram",
+            "social",
+            "social media",
+            "anthony",
+            "website",
+            "site",
+            "crm",
+            "pipeline",
+            "advice",
+            "what should i work on today",
+            "what s slowing prometheus down",
+            "what is slowing prometheus down",
+            "slowing prometheus down"
+        ]
+        return prompts.contains { prompt in
+            let normalizedPrompt = normalizeCommand(prompt)
+            return normalized == normalizedPrompt || normalized.contains(normalizedPrompt)
         }
     }
 
@@ -1242,6 +1298,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             speakWithPremiumBackend(text) { [weak self] success in
                 if !success {
                     self?.log("Premium TTS failed. Falling back to macOS system voice.")
+                    self?.prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Premium voice fallback', 'ElevenLabs failed. Browser voice is only being used for this response.', 'warn')")
                     self?.speakWithSystemVoice(text)
                 }
             }

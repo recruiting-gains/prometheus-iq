@@ -4,7 +4,7 @@ import { synthesizeWithElevenLabs } from "./elevenlabs-tts.js";
 const allowedProviders = new Set(["browser", "openai", "elevenlabs"]);
 
 export function normalizeProvider(provider) {
-  const value = String(provider || "browser").toLowerCase();
+  const value = String(provider || "elevenlabs").toLowerCase();
   return allowedProviders.has(value) ? value : "browser";
 }
 

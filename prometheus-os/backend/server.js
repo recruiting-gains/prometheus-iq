@@ -237,6 +237,8 @@ async function handleHealth(_req, res) {
     },
     tts: {
       elevenlabsConfigured: Boolean(process.env.ELEVENLABS_API_KEY),
+      elevenlabsVoiceConfigured: Boolean(process.env.ELEVENLABS_VOICE_ID),
+      defaultProvider: "elevenlabs",
       openaiConfigured: Boolean(process.env.OPENAI_API_KEY)
     },
     stt: {

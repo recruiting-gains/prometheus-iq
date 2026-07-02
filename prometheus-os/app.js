@@ -101,6 +101,8 @@ function debugVoice(stage, message = "", { kind = "info" } = {}) {
     "audio playback completed",
     "playback error",
     "playback stalled",
+    "Premium voice fallback",
+    "Premium voice active",
     "microphone recovery",
     "microphone permission changed"
   ]);
@@ -1254,27 +1256,31 @@ async function speakResponse(text) {
       });
 
       if (response.ok) {
-        debugVoice("TTS response received", `${selectedTtsProvider} audio ready`, { kind: "ok" });
+        const providerHeader = response.headers.get("X-Prometheus-Voice-Provider") || selectedTtsProvider;
+        debugVoice("Premium voice active", providerHeader, { kind: "ok" });
         const blob = await response.blob();
-        return await playPremiumAudioBlob(blob, selectedTtsProvider);
+        return await playPremiumAudioBlob(blob, providerHeader);
       }
 
+      const errorPayload = await response.json().catch(() => ({}));
+      const errorText = errorPayload.error || `Premium voice returned HTTP ${response.status}.`;
       openDetail({
         kicker: "Premium voice fallback",
-        title: "Premium voice not configured",
-        text: "Premium voice not configured. Using browser voice fallback.",
+        title: "ElevenLabs voice needs attention",
+        text: `${errorText} Browser voice is only being used for this response because premium voice failed.`,
         actions: voiceSettingsMarkup()
       });
-      debugVoice("error/fallback reason", `Premium TTS returned HTTP ${response.status}.`, { kind: "warn" });
+      debugVoice("Premium voice fallback", errorText, { kind: "warn" });
       bindDetailActions();
     } catch (error) {
+      const errorText = error?.message || "Local premium voice backend unavailable.";
       openDetail({
         kicker: "Premium voice fallback",
-        title: "Local backend unavailable",
-        text: "Premium voice backend is not running locally. Using browser voice fallback.",
+        title: "ElevenLabs voice needs attention",
+        text: `${errorText} Browser voice is only being used for this response because premium voice failed.`,
         actions: voiceSettingsMarkup()
       });
-      debugVoice("error/fallback reason", error?.message || "Local backend unavailable.", { kind: "warn" });
+      debugVoice("Premium voice fallback", errorText, { kind: "warn" });
       bindDetailActions();
     }
   }
