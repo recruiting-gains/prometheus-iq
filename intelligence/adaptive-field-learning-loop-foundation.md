@@ -224,3 +224,27 @@ This phase creates architecture only. Production activation requires a separate 
 - explanations are available
 - invalid and quarantined businesses are excluded
 - production recommendation behavior changes are explicitly approved
+
+## Offline Evidence Harness
+
+`field-learning-offline-evidence-harness.mjs` validates this foundation before live Anthony beta evidence arrives.
+
+The harness is allowed to:
+
+- consume simulated field visit fixtures
+- normalize offline evidence
+- generate admission decisions
+- produce learning signals
+- generate before and after confidence snapshots
+- produce future recommendation explanations
+- verify human override behavior
+- run regression tests
+
+The harness is not allowed to:
+
+- activate production learning
+- change Dashboard behavior
+- change CRM records
+- change Active Pool scoring
+- change Route Intelligence scoring
+- write Data governance outputs

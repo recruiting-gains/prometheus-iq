@@ -14,11 +14,14 @@ const requiredFiles = [
   "intelligence/README.md",
   "intelligence/adaptive-outside-sales-intelligence-engine.md",
   "intelligence/adaptive-field-learning-loop-foundation.md",
+  "intelligence/field-learning-offline-evidence-harness.mjs",
   "intelligence/subsystem-contracts.md",
   "intelligence/future-subsystem-handoffs.md",
   "intelligence/field-learning-loop-handoffs.md",
+  "intelligence/fixtures/field-visit-evidence-fixtures.json",
   "intelligence/contracts/adaptive-intelligence-contracts.json",
   "intelligence/contracts/field-learning-loop-contracts.json",
+  "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
   "RESEARCH_FOUNDATION.md",
@@ -41,6 +44,7 @@ for (const file of requiredFiles) {
 
 const architecture = read("intelligence/adaptive-outside-sales-intelligence-engine.md");
 const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation.md");
+const offlineHarness = read("intelligence/field-learning-offline-evidence-harness.mjs");
 const contractsDoc = read("intelligence/subsystem-contracts.md");
 const handoffs = read("intelligence/future-subsystem-handoffs.md");
 const fieldHandoffs = read("intelligence/field-learning-loop-handoffs.md");
@@ -48,6 +52,7 @@ const readme = read("intelligence/README.md");
 const systemMap = read("PROMETHEUS_SYSTEM_MAP.md");
 const contracts = readJson("intelligence/contracts/adaptive-intelligence-contracts.json");
 const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
+const fieldFixtures = readJson("intelligence/fixtures/field-visit-evidence-fixtures.json");
 
 const requiredArchitectureSections = [
   "Visit Outcome Learning",
@@ -108,6 +113,36 @@ const requiredFieldLearningSections = [
 
 for (const section of requiredFieldLearningSections) {
   assert(fieldLearning.includes(section), `Field Learning Loop foundation missing section: ${section}`);
+}
+
+const requiredOfflineHarnessScenarios = [
+  "successful-sale",
+  "no-decision-maker",
+  "closed-business",
+  "duplicate-location",
+  "wrong-business",
+  "gatekeeper",
+  "follow-up-required",
+  "competitor-present",
+  "customer-objection",
+  "bad-lead",
+  "high-value-opportunity"
+];
+
+for (const scenarioId of requiredOfflineHarnessScenarios) {
+  assert(fieldFixtures.scenarios?.some(scenario => scenario.scenarioId === scenarioId), `Field visit fixtures missing scenario ${scenarioId}`);
+}
+
+const requiredOfflineHarnessExports = [
+  "runOfflineEvidenceHarness",
+  "normalizeFixtureToEvidence",
+  "admitFieldEvidence",
+  "normalizeLearningSignals",
+  "buildConfidenceSnapshot",
+  "buildRecommendationExplanation"
+];
+for (const exportName of requiredOfflineHarnessExports) {
+  assert(offlineHarness.includes(`export function ${exportName}`), `Offline evidence harness missing export ${exportName}`);
 }
 
 const requiredEvidenceFields = [
@@ -214,10 +249,13 @@ assert(fieldContracts.anthonyBetaChanged === false, "Field Learning Loop must no
 assert(fieldContracts.productionLearningActive === false, "Field Learning Loop must not activate production learning.");
 assert(fieldContracts.prohibitions.includes("no_production_learning_activation"), "Field Learning Loop registry must prohibit production learning activation.");
 assert(fieldContracts.requiredActivationGates.includes("human_review_state"), "Field Learning Loop registry must require human review state.");
+assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
+assert(fieldFixtures.productionLearningActive === false, "Field visit fixtures must not activate production learning.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
 assert(systemMap.includes("Field Learning Loop rule"), "System map must include Field Learning Loop duplicate-prevention guidance.");
+assert(systemMap.includes("Offline learning validation rule"), "System map must include offline learning duplicate-prevention guidance.");
 
 if (failures.length) {
   console.error("Prometheus Intelligence architecture validation failed:");

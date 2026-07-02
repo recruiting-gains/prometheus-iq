@@ -1,0 +1,420 @@
+{
+  "version": "field-visit-evidence-fixtures-v1",
+  "status": "offline_validation_only",
+  "productionLearningActive": false,
+  "scenarios": [
+    {
+      "scenarioId": "successful-sale",
+      "label": "Successful sale",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-successful-sale",
+      "crmOutcome": "became_customer",
+      "businessRef": {
+        "businessId": "sim-business-001",
+        "name": "Pearland Performance Training",
+        "googlePlaceId": "sim-place-success-sale",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T15:00:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Owner bought after a direct walkthrough.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T15:00:00.000Z",
+        "gps_confirmation": true,
+        "decision_maker_reached": true,
+        "conversation_occurred": true,
+        "sale_made": true,
+        "notes": "Owner bought after a direct walkthrough."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "contact_quality",
+        "conversation_quality",
+        "conversion_outcome"
+      ],
+      "expectedTrend": "improving"
+    },
+    {
+      "scenarioId": "no-decision-maker",
+      "label": "No decision maker",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-no-decision-maker",
+      "crmOutcome": "not_available",
+      "businessRef": {
+        "businessId": "sim-business-002",
+        "name": "South Loop Auto Care",
+        "googlePlaceId": "sim-place-no-dm",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T15:20:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Front desk said owner is in on weekday mornings.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T15:20:00.000Z",
+        "gps_confirmation": true,
+        "no_decision_maker": true,
+        "follow_up_needed": true,
+        "notes": "Front desk said owner is in on weekday mornings."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "access_barrier",
+        "follow_up_need"
+      ],
+      "expectedTrend": "stable"
+    },
+    {
+      "scenarioId": "closed-business",
+      "label": "Closed business",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-closed-business",
+      "crmOutcome": "not_a_fit",
+      "businessRef": {
+        "businessId": "sim-business-003",
+        "name": "Former Retail Training Studio",
+        "googlePlaceId": "sim-place-closed-business",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T15:40:00.000Z",
+      "truthLevel": "verified",
+      "notes": "Sign removed and suite empty.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T15:40:00.000Z",
+        "gps_confirmation": true,
+        "closed_business": true,
+        "notes": "Sign removed and suite empty."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "location_validity",
+        "evidence_quality"
+      ],
+      "expectedTrend": "blocked"
+    },
+    {
+      "scenarioId": "duplicate-location",
+      "label": "Duplicate location",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-duplicate-location",
+      "crmOutcome": "not_a_fit",
+      "businessRef": {
+        "businessId": "sim-business-004",
+        "name": "Pearland Fitness Annex Duplicate",
+        "googlePlaceId": "sim-place-duplicate",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T16:00:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Same entrance and manager as prior record.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T16:00:00.000Z",
+        "gps_confirmation": true,
+        "duplicate": true,
+        "notes": "Same entrance and manager as prior record."
+      },
+      "humanOverride": {
+        "overrideType": "mark_duplicate_business",
+        "reason": "Founder marked this as a duplicate candidate in review."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "duplicate_risk",
+        "human_review"
+      ],
+      "expectedTrend": "blocked"
+    },
+    {
+      "scenarioId": "wrong-business",
+      "label": "Wrong business",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-wrong-business",
+      "crmOutcome": "not_a_fit",
+      "businessRef": {
+        "businessId": "sim-business-005",
+        "name": "Listing Was Actually a Tax Office",
+        "googlePlaceId": "sim-place-wrong-business",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T16:20:00.000Z",
+      "truthLevel": "verified",
+      "notes": "Address resolved to unrelated tax office.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T16:20:00.000Z",
+        "gps_confirmation": true,
+        "wrong_business": true,
+        "notes": "Address resolved to unrelated tax office."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "location_validity",
+        "evidence_quality"
+      ],
+      "expectedTrend": "blocked"
+    },
+    {
+      "scenarioId": "gatekeeper",
+      "label": "Gatekeeper",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-gatekeeper",
+      "crmOutcome": "conversation",
+      "businessRef": {
+        "businessId": "sim-business-006",
+        "name": "Bay Area Wellness Front Desk",
+        "googlePlaceId": "sim-place-gatekeeper",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T16:40:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Front desk blocked manager access but gave best callback window.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T16:40:00.000Z",
+        "gps_confirmation": true,
+        "conversation_occurred": true,
+        "gatekeeper": true,
+        "follow_up_needed": true,
+        "notes": "Front desk blocked manager access but gave best callback window."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "conversation_quality",
+        "access_barrier",
+        "follow_up_need"
+      ],
+      "expectedTrend": "stable"
+    },
+    {
+      "scenarioId": "follow-up-required",
+      "label": "Follow-up required",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-follow-up-required",
+      "crmOutcome": "follow_up_requested",
+      "businessRef": {
+        "businessId": "sim-business-007",
+        "name": "Friendswood Training Club",
+        "googlePlaceId": "sim-place-follow-up",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T17:00:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Manager asked for a Tuesday follow-up.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T17:00:00.000Z",
+        "gps_confirmation": true,
+        "decision_maker_reached": true,
+        "conversation_occurred": true,
+        "follow_up_needed": true,
+        "notes": "Manager asked for a Tuesday follow-up."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "contact_quality",
+        "conversation_quality",
+        "follow_up_need"
+      ],
+      "expectedTrend": "improving"
+    },
+    {
+      "scenarioId": "competitor-present",
+      "label": "Competitor present",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-competitor-present",
+      "crmOutcome": "conversation",
+      "businessRef": {
+        "businessId": "sim-business-008",
+        "name": "South Houston Fitness Retail",
+        "googlePlaceId": "sim-place-competitor",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T17:20:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Competitor flyer already on counter.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T17:20:00.000Z",
+        "gps_confirmation": true,
+        "conversation_occurred": true,
+        "competitor_present": true,
+        "notes": "Competitor flyer already on counter."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "conversation_quality",
+        "competitor_signal"
+      ],
+      "expectedTrend": "conflicting"
+    },
+    {
+      "scenarioId": "customer-objection",
+      "label": "Customer objection",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-customer-objection",
+      "crmOutcome": "follow_up_requested",
+      "businessRef": {
+        "businessId": "sim-business-009",
+        "name": "Alvin Performance Studio",
+        "googlePlaceId": "sim-place-objection",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T17:40:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "Owner asked about price and proof of ROI.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T17:40:00.000Z",
+        "gps_confirmation": true,
+        "decision_maker_reached": true,
+        "conversation_occurred": true,
+        "follow_up_needed": true,
+        "customer_objections": [
+          "price",
+          "proof_of_roi"
+        ],
+        "notes": "Owner asked about price and proof of ROI."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "contact_quality",
+        "conversation_quality",
+        "follow_up_need",
+        "objection_signal"
+      ],
+      "expectedTrend": "stable"
+    },
+    {
+      "scenarioId": "bad-lead",
+      "label": "Bad lead",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-bad-lead",
+      "crmOutcome": "not_a_fit",
+      "businessRef": {
+        "businessId": "sim-business-010",
+        "name": "Residential Address Bad Lead",
+        "googlePlaceId": "sim-place-bad-lead",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T18:00:00.000Z",
+      "truthLevel": "verified",
+      "notes": "Address is residential and not a business.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T18:00:00.000Z",
+        "gps_confirmation": true,
+        "wrong_business": true,
+        "notes": "Address is residential and not a business."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "location_validity",
+        "evidence_quality"
+      ],
+      "expectedTrend": "blocked"
+    },
+    {
+      "scenarioId": "high-value-opportunity",
+      "label": "High-value opportunity",
+      "sourceSubsystem": "Dashboard",
+      "sourceRecordId": "sim-visit-high-value-opportunity",
+      "crmOutcome": "proposal_requested",
+      "businessRef": {
+        "businessId": "sim-business-011",
+        "name": "Regional Fitness Expansion Office",
+        "googlePlaceId": "sim-place-high-value",
+        "activePoolEligible": true
+      },
+      "repRef": {
+        "repId": "anthony"
+      },
+      "territoryRef": {
+        "territoryId": "pearland-saturday-beta"
+      },
+      "visitOccurredAt": "2026-07-04T18:20:00.000Z",
+      "truthLevel": "rep_reported",
+      "notes": "District manager requested a multi-location proposal.",
+      "evidenceFields": {
+        "business_visited": true,
+        "date_time": "2026-07-04T18:20:00.000Z",
+        "gps_confirmation": true,
+        "decision_maker_reached": true,
+        "conversation_occurred": true,
+        "follow_up_needed": true,
+        "notes": "District manager requested a multi-location proposal."
+      },
+      "expectedSignalFamilies": [
+        "visit_completion",
+        "contact_quality",
+        "conversation_quality",
+        "follow_up_need",
+        "conversion_outcome"
+      ],
+      "expectedTrend": "improving",
+      "opportunityValue": "high"
+    }
+  ]
+}
