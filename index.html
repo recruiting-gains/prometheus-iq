@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-2OdxxqBUJ8Phq/xAVTShuXqgq62JOI3C8ZPqIP6oV0Q='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-byWGXyc3CGfvd+x8kJco2vZCw9tjaT5BUhsmjOfFHYg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -813,8 +813,15 @@
 
     .decision-chip.nearby {
       border-color: rgba(21, 163, 161, .42);
-      background: rgba(21, 163, 161, .12);
+      background: rgba(21, 163, 161, .08);
       color: var(--command);
+    }
+
+    .decision-chip.passive {
+      cursor: default;
+      pointer-events: none;
+      user-select: none;
+      box-shadow: none;
     }
 
     .compact-actions {
@@ -1554,9 +1561,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-01-active-pool-asset-sync-v1";
+    const appBuildVersion = "2026-07-01-nearby-badge-passive-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v30-active-pool-asset-sync";
+    const serviceWorkerCacheVersion = "prometheus-v31-nearby-badge-passive";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -21769,10 +21776,13 @@
       const intelligence = routeIntelligenceFor(p, analysis);
       const nearbyPreview = nearbyOpportunitiesForPlace(p, 2);
       const nearbyLabel = nearbyPreview.length
-        ? `${nearbyPreview.length} nearby`
-        : "No nearby";
+        ? `Nearby: ${nearbyPreview.length}`
+        : "Nearby: none";
       const nearbyDetail = nearbyPreview.length
         ? nearbyPreview.map(item => `${item.place.name} (${walkingDistanceLabel(item.feet)})`).join("; ")
+        : "No verified walkable add-on stops inside the current radius.";
+      const nearbyTitle = nearbyPreview.length
+        ? `${nearbyPreview.length} verified walkable add-on stops. Open Why for names.`
         : "No verified walkable add-on stops inside the current radius.";
       return `<article class="item route-card">
         <div class="rank">${index + 1}</div>
@@ -21783,7 +21793,7 @@
             <span class="decision-chip primary">${intelligence.confidence.percent}% Confidence</span>
             <span class="decision-chip">${escapeHtml(intelligence.expected.label)}</span>
             <span class="decision-chip">${escapeHtml(p.category)}</span>
-            <span class="decision-chip nearby">${escapeHtml(nearbyLabel)}</span>
+            <span class="decision-chip nearby passive" title="${escapeAttr(nearbyTitle)}" aria-label="${escapeAttr(nearbyTitle)}">${escapeHtml(nearbyLabel)}</span>
             <span class="decision-chip">${escapeHtml(intelligence.duration.label)}</span>
           </div>
           <div class="compact-actions">

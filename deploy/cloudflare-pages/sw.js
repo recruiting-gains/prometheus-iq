@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v30-active-pool-asset-sync";
+const CACHE_NAME = "prometheus-v31-nearby-badge-passive";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

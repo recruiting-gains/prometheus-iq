@@ -695,6 +695,42 @@ async function verifyNearbyOpportunitiesFlow(cdp) {
   })()`);
 }
 
+async function verifyRouteNearbyBadgePassive(cdp) {
+  return cdp.evaluate(`(() => {
+    const badge = document.querySelector("#routeList .decision-chip.nearby");
+    const card = badge?.closest(".route-card");
+    if (!badge || !card) throw new Error("Route nearby badge was not rendered.");
+    const before = {
+      activeView: document.querySelector(".view.active")?.id || "",
+      modalActive: document.getElementById("modal")?.classList.contains("active") || false,
+      detailsOpen: card.querySelector(".compact-details")?.hasAttribute("open") || false
+    };
+    badge.click();
+    const style = getComputedStyle(badge);
+    const after = {
+      activeView: document.querySelector(".view.active")?.id || "",
+      modalActive: document.getElementById("modal")?.classList.contains("active") || false,
+      detailsOpen: card.querySelector(".compact-details")?.hasAttribute("open") || false
+    };
+    return {
+      tagName: badge.tagName.toLowerCase(),
+      text: badge.textContent.trim(),
+      className: badge.className,
+      role: badge.getAttribute("role") || "",
+      dataOpen: badge.getAttribute("data-open") || "",
+      dataTab: badge.getAttribute("data-tab") || "",
+      dataQuickPlace: badge.getAttribute("data-quick-place") || "",
+      title: badge.getAttribute("title") || "",
+      ariaLabel: badge.getAttribute("aria-label") || "",
+      cursor: style.cursor,
+      pointerEvents: style.pointerEvents,
+      whyText: card.querySelector(".compact-details")?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 1000) || "",
+      before,
+      after
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -779,6 +815,8 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && routeSnap.routeText.includes("Route Builder"), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
+    const ownerNearbyBadge = await verifyRouteNearbyBadgePassive(founder.cdp);
+    assertWorkflow("Beta Stability Sprint 2 Owner route nearby badge passive", ownerNearbyBadge.tagName === "span" && ownerNearbyBadge.className.includes("passive") && ownerNearbyBadge.pointerEvents === "none" && !ownerNearbyBadge.role && !ownerNearbyBadge.dataOpen && !ownerNearbyBadge.dataTab && !ownerNearbyBadge.dataQuickPlace && ownerNearbyBadge.before.activeView === ownerNearbyBadge.after.activeView && ownerNearbyBadge.before.modalActive === ownerNearbyBadge.after.modalActive && ownerNearbyBadge.before.detailsOpen === ownerNearbyBadge.after.detailsOpen && ownerNearbyBadge.whyText.includes("Nearby Opportunities"), `${ownerNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(ownerNearbyBadge));
 
     await clickTab(founder.cdp, "places");
     const placesSnap = await snapshot(founder.cdp);
@@ -820,6 +858,10 @@ async function runHarness() {
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
+    await clickTab(rep.cdp, "route");
+    const repNearbyBadge = await verifyRouteNearbyBadgePassive(rep.cdp);
+    assertWorkflow("Beta Stability Sprint 2 Anthony Rep route nearby badge passive", repNearbyBadge.tagName === "span" && repNearbyBadge.className.includes("passive") && repNearbyBadge.pointerEvents === "none" && !repNearbyBadge.role && !repNearbyBadge.dataOpen && !repNearbyBadge.dataTab && !repNearbyBadge.dataQuickPlace && repNearbyBadge.before.activeView === repNearbyBadge.after.activeView && repNearbyBadge.before.modalActive === repNearbyBadge.after.modalActive && repNearbyBadge.before.detailsOpen === repNearbyBadge.after.detailsOpen && repNearbyBadge.whyText.includes("Nearby Opportunities"), `${repNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(repNearbyBadge));
+    await clickTab(rep.cdp, "today");
     const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
     assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a verified route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities location acquisition", nearbyFlow.latestVisitHasLocation && nearbyFlow.locationButtonLabel === "Location Attached" && nearbyFlow.locationStatus.includes("Device-reported visit location attached"), nearbyFlow.locationStatus, JSON.stringify(nearbyFlow));
