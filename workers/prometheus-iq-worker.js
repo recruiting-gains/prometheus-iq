@@ -13,6 +13,11 @@ import {
 import {
   createFounderInstagramAnalyticsReportingView
 } from "../social-media/reporting/founder-instagram-analytics-reporting-view.js";
+import {
+  AEGIS_API_HEADERS,
+  enforceAegisControls,
+  withAegisHeaders
+} from "./infrastructure/aegis-security-controls.js";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
 const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
@@ -33,12 +38,7 @@ const REQUIRED_TOKEN_PATCH_KEYS = Object.freeze([
 ]);
 
 const SECURITY_HEADERS = Object.freeze({
-  "Cache-Control": "no-store",
-  "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
-  "Referrer-Policy": "no-referrer",
-  "X-Content-Type-Options": "nosniff",
-  "X-Frame-Options": "DENY",
-  "X-Robots-Tag": "noindex"
+  ...AEGIS_API_HEADERS
 });
 
 function jsonResponse(body, status = 200) {
@@ -373,7 +373,9 @@ export default {
     const url = new URL(request.url);
     try {
       if (url.pathname.startsWith("/api/")) {
-        return await handleApiRequest(request, env);
+        const aegis = await enforceAegisControls(request, env);
+        if (!aegis.ok) return aegis.response;
+        return withAegisHeaders(await handleApiRequest(request, env), aegis);
       }
       return env.ASSETS.fetch(request);
     } catch {

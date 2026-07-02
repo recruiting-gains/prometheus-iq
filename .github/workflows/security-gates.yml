@@ -1,0 +1,39 @@
+name: Security Gates
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  aegis-security-gates:
+    name: Aegis security gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security checks
+        run: npm run security:check
+
+      - name: Run Aegis verification
+        run: npm run security:aegis:verify
+
+      - name: Run worker integration tests
+        run: npm run test:social-media

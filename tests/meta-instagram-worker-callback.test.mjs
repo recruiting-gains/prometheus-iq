@@ -10,6 +10,9 @@ import worker, {
   TOKEN_STORE_KEY
 } from "../workers/prometheus-iq-worker.js";
 import {
+  AEGIS_API_HEADERS
+} from "../workers/infrastructure/aegis-security-controls.js";
+import {
   INSTAGRAM_LOGIN_ANALYTICS_PERMISSIONS,
   INSTAGRAM_MINIMUM_ANALYTICS_PERMISSIONS
 } from "../social-media/infrastructure/instagram-runtime-controls.js";
@@ -50,6 +53,21 @@ function createTokenStore() {
     writes,
     async put(key, value, options) {
       writes.push({ key, value, options });
+    }
+  };
+}
+
+function createRateLimitStore() {
+  const values = new Map();
+  const writes = [];
+  return {
+    writes,
+    async get(key) {
+      return values.get(key) || null;
+    },
+    async put(key, value, options) {
+      values.set(key, String(value));
+      writes.push({ key, value: String(value), options });
     }
   };
 }
@@ -95,10 +113,12 @@ async function request(path, env, init = {}) {
 
 test("Meta Instagram callback status exposes only safe runtime and storage metadata", async () => {
   const tokenStore = createTokenStore();
+  const rateLimitStore = createRateLimitStore();
   const response = await request(STATUS_PATH, {
     ...baseEnv,
     META_INSTAGRAM_TOKEN_STORE: tokenStore,
-    META_INSTAGRAM_TOKEN_ENCRYPTION_KEY: "test-encryption-secret-with-at-least-32-chars"
+    META_INSTAGRAM_TOKEN_ENCRYPTION_KEY: "test-encryption-secret-with-at-least-32-chars",
+    AEGIS_RATE_LIMITS: rateLimitStore
   });
   const body = await response.json();
   const serialized = JSON.stringify(body);
@@ -109,6 +129,62 @@ test("Meta Instagram callback status exposes only safe runtime and storage metad
   assert.equal(body.storage.encryptionKeyConfigured, true);
   assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
   assert.equal(serialized.includes("test-encryption-secret"), false);
+  assert.equal(response.headers.get("X-Aegis-Route-Policy"), "public_status");
+  assert.equal(response.headers.get("X-Aegis-RateLimit-Store"), "kv");
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+  assert.equal(response.headers.get("Strict-Transport-Security"), AEGIS_API_HEADERS["Strict-Transport-Security"]);
+  assert.equal(rateLimitStore.writes.length, 1);
+});
+
+test("Aegis rate limits protect OAuth callback routes before provider exchange", async () => {
+  const rateLimitStore = createRateLimitStore();
+  const tokenStore = createTokenStore();
+  const originalFetch = globalThis.fetch;
+  const fetchImpl = createOrderedFetch([]);
+  const env = {
+    ...baseEnv,
+    META_INSTAGRAM_TOKEN_STORE: tokenStore,
+    META_INSTAGRAM_TOKEN_ENCRYPTION_KEY: "test-encryption-secret-with-at-least-32-chars",
+    AEGIS_RATE_LIMITS: rateLimitStore,
+    AEGIS_RATE_LIMIT_OAUTH_CALLBACK_MAX: "1"
+  };
+  globalThis.fetch = fetchImpl;
+  try {
+    const first = await request(`${CALLBACK_PATH}?code=oauth-code&state=bad-state`, env, {
+      headers: { "CF-Connecting-IP": "203.0.113.10" }
+    });
+    const second = await request(`${CALLBACK_PATH}?code=oauth-code&state=bad-state`, env, {
+      headers: { "CF-Connecting-IP": "203.0.113.10" }
+    });
+    const body = await second.json();
+
+    assert.equal(first.status, 400);
+    assert.equal(second.status, 429);
+    assert.equal(body.code, "rate_limited");
+    assert.equal(second.headers.get("Retry-After"), "60");
+    assert.equal(second.headers.get("X-Aegis-Route-Policy"), "oauth_callback");
+    assert.equal(fetchImpl.calls.length, 0);
+    assert.equal(tokenStore.writes.length, 0);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Aegis rejects unsupported API methods with hardened headers", async () => {
+  const response = await worker.fetch(new Request(`${baseEnv.META_OAUTH_CALLBACK_URL.replace(CALLBACK_PATH, STATUS_PATH)}`, {
+    method: "POST",
+    headers: { Accept: "application/json" }
+  }), {
+    ...baseEnv,
+    AEGIS_RATE_LIMITS: createRateLimitStore()
+  });
+  const body = await response.json();
+
+  assert.equal(response.status, 405);
+  assert.equal(body.message, "Method not allowed.");
+  assert.equal(response.headers.get("Allow"), "GET");
+  assert.equal(response.headers.get("Cross-Origin-Resource-Policy"), "same-origin");
+  assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
 });
 
 test("Meta Instagram callback exposes Facebook Login for Business compatible alias", async () => {

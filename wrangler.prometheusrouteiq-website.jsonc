@@ -31,6 +31,10 @@
     {
       "binding": "META_INSTAGRAM_TOKEN_STORE",
       "id": "9bc431ce712544bfa18dae1b6d59e19b"
+    },
+    {
+      "binding": "AEGIS_RATE_LIMITS",
+      "id": "1365393c0e534e44af87519e46ea1450"
     }
   ]
 }

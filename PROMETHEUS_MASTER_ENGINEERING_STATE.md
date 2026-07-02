@@ -7303,6 +7303,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
+- Do not duplicate Operation Aegis Phase I security controls; reuse `workers/infrastructure/aegis-security-controls.js`, `scripts/verify-aegis-security-foundation.mjs`, `.github/workflows/security-gates.yml`, `.github/dependabot.yml`, and `docs/aegis-phase-i-security-foundation.md`.
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
@@ -7354,6 +7355,56 @@ Verification:
 Remaining blockers:
 
 None for the repeatable method. Each future authenticated production verification still requires a live approved Cloudflare Access session through CDP or environment-only session cookies at run time.
+
+### 2026-07-02: Prometheus Infrastructure - Operation Aegis Phase I Enterprise Security Foundation
+
+Task:
+Operation Aegis Phase I - Enterprise Security Foundation.
+
+Status:
+Complete for Infrastructure-owned Worker controls, CI governance scaffolding, and verification documentation. Account-level Cloudflare Zero Trust and GitHub repository setting verification remains pending where this shell lacks the required management surface.
+
+Files changed:
+
+- `.github/dependabot.yml`
+- `.github/workflows/security-gates.yml`
+- `docs/aegis-phase-i-security-foundation.md`
+- `package.json`
+- `scripts/verify-aegis-security-foundation.mjs`
+- `tests/meta-instagram-worker-callback.test.mjs`
+- `workers/infrastructure/aegis-security-controls.js`
+- `workers/prometheus-iq-worker.js`
+- `wrangler.jsonc`
+- `wrangler.prometheusrouteiq-website.jsonc`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Created dedicated Cloudflare KV namespace `AEGIS_RATE_LIMITS` with namespace ID `1365393c0e534e44af87519e46ea1450`.
+- Bound `AEGIS_RATE_LIMITS` to both `prometheus-iq` and `prometheusrouteiq-website`.
+- Added reusable Aegis Worker route classification, method guards, KV-backed rate limiting, and hardened API headers.
+- Protected lead intake, beta request, public API, Instagram snapshot/report, OAuth, and public status route classes at the Worker edge.
+- Added regression coverage for Aegis route classification, rate limiting, hardened headers, non-permissive CORS behavior, and provider-exchange blocking under rate limit.
+- Added `npm run security:aegis:verify` for repeatable Infrastructure security-control verification.
+- Added GitHub Actions security gate and Dependabot config.
+- Documented Aegis Phase I evidence, completed controls, and remaining account-level verification.
+
+Security impact:
+
+Prometheus gained Worker-edge request protection for public/private API route classes, stricter API headers, no permissive CORS, Cloudflare-native KV-backed rate-limit storage, CI security gates, and dependency update governance scaffolding. Cloudflare Access protections were not weakened.
+
+Verification:
+
+- Wrangler authentication verified for `prometheusrouteiq@gmail.com`.
+- Existing Worker deployments listed for `prometheus-iq` and `prometheusrouteiq-website`.
+- `AEGIS_RATE_LIMITS` KV namespace created and visible through Wrangler.
+- Automated Aegis verifier added.
+
+Remaining risks:
+
+- GitHub branch protection, required reviews, required status checks, secret scanning, and push protection require GitHub API or repository Settings access for direct verification.
+- Cloudflare Access MFA, session duration, revocation, preview protection, and policy coverage require Zero Trust dashboard/API verification.
+- KV-backed Worker rate limiting is an edge hardening layer, not a full account-level Cloudflare WAF/rate-limit ruleset. Phase II should add account-level Cloudflare WAF/rate rules where the plan permits it.
 
 ## Next Recommended Engineering Task
 

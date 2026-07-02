@@ -10,6 +10,7 @@
     "lint": "node scripts/lint-crm.mjs",
     "typecheck": "node scripts/typecheck-crm.mjs",
     "security:check": "node scripts/security-check.mjs",
+    "security:aegis:verify": "node scripts/verify-aegis-security-foundation.mjs",
     "dashboard:runtime-pool:check": "node scripts/verify-dashboard-runtime-pool-consumption.mjs",
     "dashboard:runtime-workflows:check": "node scripts/verify-dashboard-runtime-workflows.mjs",
     "dashboard:customer-graph-plan:check": "node scripts/verify-dashboard-customer-graph-consumer-plan.mjs",
