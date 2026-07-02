@@ -4,6 +4,7 @@ import worker, {
   CALLBACK_PATH,
   CALLBACK_PATHS,
   FACEBOOK_BUSINESS_CALLBACK_PATH,
+  INSTAGRAM_REPORT_PATH,
   INSTAGRAM_SNAPSHOT_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY
@@ -288,6 +289,68 @@ test("Meta Instagram snapshot route returns provider data without exposing secre
     assert.equal(body.snapshot.providers[0].source, "provider_api");
     assert.equal(body.snapshot.providers[0].accountHandle, "@prometheus.iq");
     assert.equal(body.snapshot.metrics.find(metric => metric.name === "reach").value, 14);
+    assert.equal(fetchImpl.calls.length, 3);
+    assert.equal(serialized.includes("instagram-token-not-public"), false);
+    assert.equal(serialized.includes("meta-app-secret-not-returned"), false);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("Meta Instagram report route returns reporting view without exposing secrets", async () => {
+  const fetchImpl = createOrderedFetch([
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004?fields=user_id%2Cusername%2Caccount_type");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        user_id: "17841421929598004",
+        username: "prometheus.iq",
+        account_type: "BUSINESS"
+      }
+    },
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004/insights?metric=reach%2Cprofile_views%2Cwebsite_clicks&period=day");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        data: [
+          { name: "reach", values: [{ value: 14 }] },
+          { name: "profile_views", values: [{ value: 3 }] },
+          { name: "website_clicks", values: [{ value: 2 }] }
+        ]
+      }
+    },
+    {
+      assert: (url, init) => {
+        assert.equal(url, "https://graph.instagram.com/v21.0/17841421929598004/media?fields=id%2Ccaption%2Cmedia_type%2Cpermalink%2Ctimestamp%2Cusername&limit=10");
+        assert.equal(init.headers.Authorization, "Bearer instagram-token-not-public");
+      },
+      body: {
+        data: []
+      }
+    }
+  ]);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = fetchImpl;
+  try {
+    const response = await request(INSTAGRAM_REPORT_PATH, instagramLoginEnv);
+    const body = await response.json();
+    const serialized = JSON.stringify(body);
+
+    assert.equal(response.status, 200);
+    assert.equal(body.ok, true);
+    assert.equal(body.report.account.source, "Prometheus Social Media");
+    assert.equal(body.report.accountOverview.source, "Prometheus Social Media");
+    assert.equal(body.report.websiteAttribution.source, "Prometheus Website");
+    assert.equal(body.report.crmAttribution.source, "Prometheus CRM");
+    assert.equal(body.report.accountOverview.reach, 14);
+    assert.equal(body.report.accountOverview.profileVisits, 3);
+    assert.equal(body.report.accountOverview.websiteClicks, 2);
+    assert.equal(body.report.safety.presentationOnly, true);
+    assert.equal(body.report.safety.directInstagramApiCalls, false);
     assert.equal(fetchImpl.calls.length, 3);
     assert.equal(serialized.includes("instagram-token-not-public"), false);
     assert.equal(serialized.includes("meta-app-secret-not-returned"), false);

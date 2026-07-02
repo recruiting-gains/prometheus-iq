@@ -27,9 +27,16 @@ Live provider calls pass through the verified Instagram runtime controls. Meta G
 - `infrastructure/instagram-runtime-controls.js`: backend-only Instagram/Meta secret and runtime state validation.
 - `infrastructure/meta-instagram-oauth-workflow.js`: backend-only Meta Instagram OAuth connection, long-lived token exchange, token verification, and refresh workflow.
 - `social-media-analytics-service.js`: normalized marketing analytics snapshot service.
+- `reporting/founder-instagram-analytics-reporting-view.js`: read-only executive reporting view over normalized Instagram, Website attribution, and CRM attribution inputs.
 - `samples/marketing-analytics.sample.json`: explicit mock/sample analytics fixture.
 - `docs/social-media-marketing-analytics-architecture-v1.md`: architecture and subsystem contracts.
 - `docs/meta-instagram-setup.md`: required Meta app setup, scopes, permissions, and external configuration.
+
+## Read-Only Production Report Route
+
+- `GET /api/social/instagram/report`
+
+This route returns the Founder Instagram Analytics Reporting View from the existing normalized Instagram snapshot path. It does not expose tokens, post content, send messages, automate comments, scrape, or mutate Website/CRM attribution.
 
 ## Hard Rules
 
