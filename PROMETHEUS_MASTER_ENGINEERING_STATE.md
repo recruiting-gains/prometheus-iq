@@ -5557,6 +5557,53 @@ Next recommended subsystem:
 
 Prometheus Mobile for remaining Beta Stability Sprint 2 production-impact fixes.
 
+### 2026-07-02: Prometheus Companion - Founder-Only Conversational Intelligence Layer v2
+
+Subsystem: Prometheus Companion
+
+Task: Founder-Only Conversational Intelligence Layer v2
+
+Commit: `2cbef699a34ec8ffbaef585906a6d4202d9086d0`
+
+Deploy: Completed via `./mac-companion/sync-install-verify.sh`
+
+Status: PASS / Complete
+
+Files changed:
+
+- `prometheus-os/daily-priority-engine.js`
+- `prometheus-os/executive-command-center.js`
+- `prometheus-os/founder-assistant.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion refined Founder Mode responses to be more natural, concise, strategic, and voice-friendly. Score-style priority narration was removed from Founder Mode. Executive summaries, morning brief, decision support, strategy, memory, and status responses were tightened. Developer Mode remains explicit while Founder Mode remains the default. Verification now rejects technical language in Founder Mode responses.
+
+Runtime sync:
+
+- Source version = Installed version = Runtime version.
+- Version: `20260702T052056Z-2cbef699a34e-c8645668330b`.
+- Drift: none detected.
+
+Verification:
+
+- Companion acceptance harness: PASS.
+- `npm run lint`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run test:social-media`: PASS.
+- `npm run security:check`: PASS.
+- `npm run build`: PASS.
+- `./mac-companion/sync-install-verify.sh`: PASS.
+
+Remaining blockers:
+
+None for this Companion task.
+
+Next recommended subsystem:
+
+Prometheus Companion live founder voice QA with real conversational usage when founder interaction is available.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -5720,6 +5767,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Executive Operating System v2; reuse Companion executive summaries, read-only Research/Sales/Website/Social/Beta source summaries, Founder Morning Brief expansion, and direct founder command handling.
 - Do not duplicate Founder Morning Brief Live Instagram Analytics Consumption; reuse `prometheus-os/founder-instagram-analytics-consumer.js`, the local Companion backend proxy, and normalized Social Media snapshots/contracts only. Companion must not call Instagram APIs, store tokens, access Meta credentials, or own Social Media normalization.
 - Do not duplicate Founder Conversational Response Layer v1; preserve Founder Mode as the default natural executive-assistant response style, keep raw contracts/provider internals behind explicit Developer Mode, and extend `prometheus-os/executive-command-center.js`, `prometheus-os/founder-communications-consumer.js`, `prometheus-os/founder-instagram-analytics-consumer.js`, and `prometheus-os/memory-system.js` rather than creating a parallel response layer.
+- Do not duplicate Founder-Only Conversational Intelligence Layer v2; preserve Founder Mode as the default concise, natural, voice-friendly executive style, keep score-style narration and technical language out of default Founder Mode, keep Developer Mode explicit, and extend `prometheus-os/daily-priority-engine.js`, `prometheus-os/executive-command-center.js`, `prometheus-os/founder-assistant.js`, and `scripts/verify-prometheus-companion-ui-path.mjs` rather than creating another Companion response layer.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
@@ -5813,7 +5861,7 @@ Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation
 
 Known completed Instagram analytics lane:
 
-Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, so founder-facing Instagram/social summaries should stay natural by default and expose raw implementation details only in explicit Developer Mode.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, then Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, so founder-facing Instagram/social/executive summaries should stay natural, concise, and voice-friendly by default and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
