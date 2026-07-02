@@ -6059,6 +6059,59 @@ Next recommended subsystem:
 
 Prometheus Companion contextual holographic moment system for temporary subsystem references only.
 
+### 2026-07-02: Prometheus Companion - Companion Visual Identity Reset v1
+
+Subsystem: Prometheus Companion
+
+Task: Companion Visual Identity Reset v1
+
+Commit: `322388d87a2833347e6e107775ebf4f30ff3ca02`
+
+Deploy: Local Companion sync/install/verify completed; pushed to `origin/main`
+
+Status: PASS
+
+Files changed:
+
+- `prometheus-os/three-scene.js`
+- `prometheus-os/app.js`
+- `prometheus-os/style.css`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion replaced the prototype orbit/particle/globe scene with a shader-based cinematic deep-space event horizon environment. Persistent dashboard-style visual layers were removed from the normal Companion view. Top/debug chrome is hidden by default and reveals only from top-edge interaction or Developer Mode before auto-hiding. Visual verification rules now prevent regression to old orbit graphics, point clouds, torus rings, sphere/globe objects, and DOM visual clutter.
+
+Runtime verification:
+
+- Source version: `20260702T083357Z-322388d87a28-e4b6321083de`.
+- Installed version: `20260702T083357Z-322388d87a28-e4b6321083de`.
+- Runtime version: `20260702T083357Z-322388d87a28-e4b6321083de`.
+- Drift: none detected.
+- Installed runtime visual QA: PASS on desktop and mobile viewport checks.
+- Founder QA ready: yes.
+
+Verification:
+
+- `node --check prometheus-os/three-scene.js`: PASS.
+- `node --check prometheus-os/app.js`: PASS.
+- `node --check scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `npm run lint`: PASS.
+- `npm run typecheck`: PASS.
+- `npm run security:check`: PASS.
+- `swiftc -parse mac-companion/PrometheusCompanion.swift`: PASS.
+- `npm run build`: PASS.
+- `./mac-companion/sync-install-verify.sh`: PASS 19/19.
+
+Remaining blockers:
+
+None.
+
+Next recommended subsystem:
+
+Prometheus Companion voice latency and interruption polish.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -6295,6 +6348,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Executive Presence v2 - Cinematic Operating System; preserve the cinematic deep-space event-horizon Three.js scene, hidden normal conversation panels, removed subsystem tiles and automatic speech-capture/no-input panels, gated reports/charts/exports/nodes/voice settings/Developer Mode, read-only Founder Timeline backend endpoint, timeline-backed catch-up and Overwatch responses, and the 19/19 Companion sync/install/verify guardrails recorded in commit `d75090a2fe82397789b0c7daa34e49711fd98777`.
 - Do not duplicate Founder Conversation Engine v1; preserve `prometheus-os/founder-conversation-engine.js` as the stateful owner of greetings, executive status, bottleneck diagnosis, priority judgment, continuation, failure-language avoidance for executive prompts, full stop-command abort behavior, expanded Founder Timeline coverage, single WebGL cinematic environment layer, and the preserved Instagram/Overwatch/Calendar/Messages/Executive Brief/Developer Mode routes recorded in commit `20e77671b682168774e16bf9238fba787bc44a05`.
 - Do not duplicate Companion Visual Identity v1; preserve the unified WebGL deep-space/event-horizon environment in `prometheus-os/three-scene.js`, removed DOM atmosphere layers in `prometheus-os/index.html` and `prometheus-os/style.css`, deterministic cinematic star/dust placement, gravity-well scene, preserved voice-state colors, and visual policy harness protections recorded in commit `94192b41c0031f4b6a7da9c4059f40e9180d1092`.
+- Do not duplicate Companion Visual Identity Reset v1; preserve the shader-based cinematic deep-space event horizon environment, removed prototype orbit/particle/globe scene, hidden auto-revealing top/debug chrome, no persistent dashboard-style visual layers, and visual verification bans on orbit graphics, point clouds, torus rings, sphere/globe objects, and DOM visual clutter recorded in commit `322388d87a2833347e6e107775ebf4f30ff3ca02`.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
@@ -6389,7 +6443,7 @@ Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation
 
 Known completed Instagram analytics lane:
 
-Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade at commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`, Founder Voice QA Fix Pack v3 - Conversation Polish + Presence Upgrade at commit `0d9d3a56cc60d39ac0ddfa8b7230cc35175ad5c0`, Founder Executive Presence v2 - Cinematic Operating System at commit `d75090a2fe82397789b0c7daa34e49711fd98777`, Founder Conversation Engine v1 at commit `20e77671b682168774e16bf9238fba787bc44a05`, and Companion Visual Identity v1 at commit `94192b41c0031f4b6a7da9c4059f40e9180d1092`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, stop-interruptible, panel-light by default, ElevenLabs-backed by default, visually cinematic through one unified WebGL environment, timeline-aware for engineering catch-up, stateful across continuation, and expose raw implementation details only in explicit Developer Mode.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, Founder-Only Conversational Intelligence Layer v2 at commit `2cbef699a34ec8ffbaef585906a6d4202d9086d0`, Founder Conversation Intelligence Router v1 at commit `b9ce900b7fcd942d45fe2a7154c0baffe7b20eda`, Founder Conversation System v1 at commit `e2785e9d65c15b6150d77a70f33b0834bb48769b`, Founder Voice QA Fix Pack v1 at commit `4a9bd23be1e105aa3df5a148a62e47f1ff676e96`, Founder Voice QA Fix Pack v2 + Visual Atmosphere Upgrade at commit `3d6d1ef9e5f6aac2ca5247074f6cbeddb11bc8c7`, Founder Voice QA Fix Pack v3 - Conversation Polish + Presence Upgrade at commit `0d9d3a56cc60d39ac0ddfa8b7230cc35175ad5c0`, Founder Executive Presence v2 - Cinematic Operating System at commit `d75090a2fe82397789b0c7daa34e49711fd98777`, Founder Conversation Engine v1 at commit `20e77671b682168774e16bf9238fba787bc44a05`, Companion Visual Identity v1 at commit `94192b41c0031f4b6a7da9c4059f40e9180d1092`, and Companion Visual Identity Reset v1 at commit `322388d87a2833347e6e107775ebf4f30ff3ca02`, so founder-facing Instagram/social/executive summaries and short-prompt conversational flows should stay natural, concise, voice-friendly, stop-interruptible, panel-light by default, ElevenLabs-backed by default, visually cinematic through the current shader-based WebGL event-horizon environment, timeline-aware for engineering catch-up, stateful across continuation, and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
