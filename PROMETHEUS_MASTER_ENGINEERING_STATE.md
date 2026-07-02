@@ -7399,31 +7399,36 @@ Verification:
 - Existing Worker deployments listed for `prometheus-iq` and `prometheusrouteiq-website`.
 - `AEGIS_RATE_LIMITS` KV namespace created and visible through Wrangler.
 - Automated Aegis verifier added.
+- `prometheus-iq` deployed with message `Operation Aegis Phase I 232db65`; Worker version `21a252c5-e345-43f7-ae63-212ac22ac9f8`.
+- `prometheusrouteiq-website` deployed with message `Operation Aegis Phase I 232db65`; Worker version `47910566-6ef6-473d-91d2-00b82502bf82`.
+- Production `prometheusrouteiq.com/api/oauth/meta/instagram/status` returned `200` with `X-Aegis-Route-Policy: public_status`, `X-Aegis-RateLimit-Store: kv`, strict HSTS, CSP, CORP, no-store, no-referrer, noindex, and no permissive CORS.
+- Production `POST /api/oauth/meta/instagram/status` returned `405` with `Allow: GET` and hardened Aegis headers.
+- Production `prometheusrouteiq.com/api/social/instagram/snapshot` returned `200` with `X-Aegis-Route-Policy: instagram_read` and KV rate-limit headers.
+- Production `prometheus-iq.prometheusrouteiq.workers.dev` unauthenticated request returned Cloudflare Access `302` with no-store/no-cache behavior.
+- Production release verifier passed deployed artifact/build parity, Wrangler deployment version consistency, and Cloudflare Access protection for Worker version `21a252c5-e345-43f7-ae63-212ac22ac9f8`; authenticated route/header and browser runtime checks remain blocked without a live Access CDP/cookie session.
 
 Remaining risks:
 
 - GitHub branch protection, required reviews, required status checks, secret scanning, and push protection require GitHub API or repository Settings access for direct verification.
 - Cloudflare Access MFA, session duration, revocation, preview protection, and policy coverage require Zero Trust dashboard/API verification.
 - KV-backed Worker rate limiting is an edge hardening layer, not a full account-level Cloudflare WAF/rate-limit ruleset. Phase II should add account-level Cloudflare WAF/rate rules where the plan permits it.
+- `prometheusrouteiq-website` OAuth status reports `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` is not configured, so OAuth callback token persistence remains fail-closed until that secret is set.
 
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Authenticated production verification for current private Worker deployments.
+Operation Aegis Phase II: account-level security controls and verification.
 
 Primary subsystem: Prometheus Infrastructure/Auth.
 
 Secondary subsystems:
 
-- Prometheus Administration for Sprint 2 field evidence, timestamps, screenshots, pass/fail results, and final tester verification records
-- Prometheus Mobile only if authenticated production verification finds a runtime, header, browser, route, or workflow regression
-- Prometheus Intelligence Engine only if post-deploy field evidence shows Hamza's Barbershop repeat recommendation remains a recommendation/ranking defect
-- Prometheus Data only if post-deploy field evidence proves a business identity/data-quality defect
+- Prometheus Administration only if founder approval or account-owner action is needed for GitHub/Cloudflare settings
 
 Reason:
 
-Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, finalized Sprint 2 UX fixes at commit `46b894f974dae63fcfd054521fbddb381b824496`, then completed Beta Route Controls and Events Expansion at commit `3902c466713625a5dae256446643c9d393d0fa43` and deployed Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb`, and Recommendation Explainability Engine v1 at commit `ce3b556cc7361ddbe0c140321401014c61cdfa6c`, with latest reported Intelligence Worker version `6fdeed04-a05e-434f-8591-ee531cfdaf98`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
+Operation Aegis Phase I is deployed and verified for Infrastructure-owned Worker controls, headers, KV-backed rate limits, CI security gates, Dependabot scaffolding, and repeatable verification documentation. The highest remaining security work is account-level enforcement: Cloudflare Zero Trust MFA/session/revocation/preview coverage, Cloudflare WAF/rate-limit rules, GitHub branch protection, required checks/reviews, secret scanning, push protection, and repository security setting verification. During active beta, security work outranks new customer-facing feature expansion unless explicitly approved by the Founder.
 
 Known completed Instagram analytics lane:
 
