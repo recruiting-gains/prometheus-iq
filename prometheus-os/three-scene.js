@@ -64,55 +64,68 @@ const fragmentShader = `
   void main() {
     vec2 aspect = vec2(uResolution.x / max(uResolution.y, 1.0), 1.0);
     vec2 uv = (vUv - 0.5) * aspect;
-    vec2 center = vec2(0.0, -0.035);
+    vec2 center = vec2(0.0, -0.02);
     vec2 p = uv - center;
+    float portraitScale = mix(1.0, 1.48, smoothstep(0.0, 0.8, 1.0 - aspect.x));
+    p *= portraitScale;
     float r = length(p);
     float angle = atan(p.y, p.x);
-    float slow = uTime * 0.018;
+    float slow = uTime * 0.012;
+    float eventRadius = 0.19;
 
-    float gravity = 1.0 / max(r * r, 0.045);
-    vec2 bent = p + normalize(p + 0.0001) * gravity * 0.018;
+    float gravity = 1.0 / max(r * r, 0.055);
+    vec2 bent = p + normalize(p + 0.0001) * gravity * 0.012;
     vec2 skyUv = bent / aspect + 0.5;
 
     vec3 color = vec3(0.0);
-    float stars = starLayer(skyUv + vec2(slow * 0.02, 0.0), 86.0, 0.974, 0.052);
-    stars += starLayer(skyUv * 1.13 - vec2(0.08, slow * 0.018), 156.0, 0.987, 0.043);
-    stars *= smoothstep(0.16, 0.72, r);
-    color += vec3(0.65, 0.76, 0.88) * stars * 0.7;
+    float stars = starLayer(skyUv + vec2(slow * 0.006, 0.0), 118.0, 0.982, 0.035);
+    stars += starLayer(skyUv * 1.31 - vec2(0.05, slow * 0.004), 214.0, 0.992, 0.026);
+    stars *= smoothstep(eventRadius * 1.35, 0.78, r);
+    color += vec3(0.58, 0.67, 0.78) * stars * 0.44;
 
-    float hazeNoise = fbm(vec2(angle * 0.42, r * 2.2 - slow));
-    float nebula = smoothstep(0.22, 0.0, abs(p.y + 0.04)) * smoothstep(1.1, 0.12, r) * hazeNoise;
-    color += vec3(0.18, 0.10, 0.07) * nebula * 0.38;
+    float hazeNoise = fbm(vec2(angle * 0.34 + slow, r * 2.1 - slow * 1.7));
+    float nebula = smoothstep(0.55, 0.0, abs(p.y + 0.03)) * smoothstep(1.35, 0.16, r) * hazeNoise;
+    color += vec3(0.10, 0.065, 0.045) * nebula * 0.32;
 
-    float diskY = p.y + sin(angle * 2.0 + slow) * 0.012;
-    float diskCore = exp(-pow(abs(diskY) / 0.022, 1.35));
-    float diskWidth = smoothstep(1.55, 0.18, abs(p.x)) * smoothstep(0.42, 1.34, abs(p.x));
-    float shear = fbm(vec2(abs(p.x) * 2.6 - slow * 2.2, p.y * 28.0 + angle));
-    float disk = diskCore * diskWidth * (0.55 + shear * 0.7);
-    color += blackbody(shear) * disk * 1.05;
+    float turbulence = fbm(vec2(abs(p.x) * 4.8 - slow * 7.0, p.y * 34.0 + sin(angle) * 0.22));
+    float diskWarp = sin(p.x * 7.5 - slow * 9.0) * 0.006 + (turbulence - 0.5) * 0.018;
+    float diskY = p.y + diskWarp;
+    float diskThickness = mix(0.016, 0.038, smoothstep(0.28, 1.22, abs(p.x)));
+    float diskCore = exp(-pow(abs(diskY) / diskThickness, 1.42));
+    float diskInner = smoothstep(eventRadius * 0.82, eventRadius * 1.28, abs(p.x));
+    float diskOuter = smoothstep(1.58, 0.28, abs(p.x));
+    float disk = diskCore * diskInner * diskOuter * (0.42 + turbulence * 0.86);
+    color += blackbody(turbulence) * disk * 0.92;
 
-    float upperLens = exp(-pow(abs(length(vec2(p.x * 0.76, p.y - 0.12)) - 0.54) / 0.036, 1.55));
-    upperLens *= smoothstep(0.04, 0.48, p.y) * smoothstep(1.2, 0.1, abs(p.x));
-    float lowerLens = exp(-pow(abs(length(vec2(p.x * 0.8, p.y + 0.18)) - 0.5) / 0.05, 1.4));
-    lowerLens *= smoothstep(-0.02, -0.42, p.y) * smoothstep(1.1, 0.08, abs(p.x));
-    color += vec3(0.74, 0.42, 0.24) * (upperLens * 0.78 + lowerLens * 0.28);
+    float upperOval = length(vec2(p.x * 0.83, (p.y - 0.062) * 1.72));
+    float upperLens = exp(-pow(abs(upperOval - 0.34) / 0.026, 1.55));
+    upperLens *= smoothstep(-0.015, 0.15, p.y) * smoothstep(0.78, 0.16, abs(p.x));
+    upperLens *= 0.72 + fbm(vec2(angle * 1.7, r * 8.0 - slow * 2.0)) * 0.42;
 
-    float photon = exp(-pow(abs(r - 0.242) / 0.012, 1.65));
-    float rimMask = smoothstep(0.0, 0.08, abs(sin(angle)));
-    color += mix(vec3(0.95, 0.58, 0.31), uStateColor, uStatePower * 0.45) * photon * rimMask * 0.72;
+    float lowerOval = length(vec2(p.x * 0.9, (p.y + 0.11) * 1.96));
+    float lowerLens = exp(-pow(abs(lowerOval - 0.31) / 0.032, 1.55));
+    lowerLens *= smoothstep(0.01, -0.18, p.y) * smoothstep(0.7, 0.15, abs(p.x));
+    lowerLens *= 0.48 + fbm(vec2(angle * 1.3 + 2.0, r * 7.0 + slow)) * 0.34;
+    color += vec3(0.83, 0.42, 0.18) * upperLens * 0.74;
+    color += vec3(0.62, 0.27, 0.12) * lowerLens * 0.28;
 
-    float stateFlow = exp(-pow(abs(r - (0.34 + sin(angle * 2.0 - uTime * 0.055) * 0.014)) / 0.018, 1.35));
-    stateFlow *= smoothstep(0.08, 0.7, abs(p.x)) * smoothstep(0.9, 0.2, r);
-    color += uStateColor * stateFlow * (0.06 + uStatePower * 0.22);
+    float photon = exp(-pow(abs(r - eventRadius * 1.08) / 0.01, 1.7));
+    float photonBreak = smoothstep(0.1, 0.9, fbm(vec2(angle * 1.9 + slow, 8.0 * r)));
+    color += mix(vec3(0.78, 0.38, 0.16), uStateColor, uStatePower * 0.32) * photon * photonBreak * 0.18;
 
-    float shadow = smoothstep(0.254, 0.214, r);
-    float innerAbsorb = smoothstep(0.42, 0.12, r);
+    float inward = fract((eventRadius * 3.1 - r) * 4.2 + angle * 0.08 + uTime * 0.025);
+    float stateFlow = smoothstep(0.965, 1.0, inward) * smoothstep(0.72, eventRadius * 1.08, r);
+    stateFlow *= smoothstep(0.72, 0.08, abs(p.x)) * smoothstep(0.22, 0.0, abs(p.y));
+    color += uStateColor * stateFlow * uStatePower * 0.2;
+
+    float shadow = smoothstep(eventRadius * 1.08, eventRadius * 0.9, r);
+    float innerAbsorb = smoothstep(eventRadius * 2.2, eventRadius * 0.9, r);
     color = mix(color, vec3(0.0), shadow);
-    color *= 1.0 - innerAbsorb * 0.2;
+    color *= 1.0 - innerAbsorb * 0.26;
 
-    float vignette = smoothstep(1.12, 0.32, length(uv * vec2(0.82, 1.08)));
-    color *= 0.1 + vignette * 0.95;
-    color = pow(color, vec3(0.92));
+    float vignette = smoothstep(1.25, 0.34, length(uv * vec2(0.72, 1.06)));
+    color *= 0.04 + vignette * 0.98;
+    color = pow(color, vec3(0.96));
 
     gl_FragColor = vec4(color, 1.0);
   }

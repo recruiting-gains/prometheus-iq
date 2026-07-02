@@ -1,7 +1,7 @@
 import { companyState } from "./demo-data.js";
 import { aiProvider } from "./ai-provider.js?v=founder-regression-fix-20260702b";
 import { VoiceAssistant } from "./voice-assistant.js";
-import { createPrometheusScene } from "./three-scene.js?v=founder-regression-fix-20260702";
+import { createPrometheusScene } from "./three-scene.js?v=visual-presence-v3-20260702";
 import { routeCommandToTool } from "./agent-actions.js";
 import { getClarification, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
 import { resolveCompanionCommandRoute } from "./companion-command-router.js";
