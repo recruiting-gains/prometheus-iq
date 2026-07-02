@@ -446,6 +446,12 @@ async function snapshot(cdp) {
       territoryText: text(document.getElementById("territoryOverview")),
       territoryVisible: visible(document.getElementById("territoryOverview")),
       territoryRingCount: document.querySelectorAll("#territoryRingList .territory-ring").length,
+      territoryRingTexts: [...document.querySelectorAll("#territoryRingList .territory-ring")].map(ring => ring.textContent.trim().replace(/\\s+/g, " ")),
+      territoryOwnerPolicyVisible: visible(document.getElementById("territoryPolicyForm")),
+      territoryRepRadiusVisible: visible(document.getElementById("territoryRepRadiusForm")),
+      territoryRepRadiusDisabled: document.getElementById("territoryRepRadiusInput")?.disabled ?? null,
+      territoryPolicyStatus: text(document.getElementById("territoryPolicyStatus")),
+      territoryRepRadiusStatus: text(document.getElementById("territoryRepRadiusStatus")),
       routeText: text(document.getElementById("view-route")),
       todayText: text(document.getElementById("view-today")),
       placesText: text(document.getElementById("view-places")),
@@ -467,7 +473,8 @@ async function snapshot(cdp) {
         rendererReceived: Boolean(debug.renderRouteIntelligenceReceivedRecommendation),
         renderTimings: debug.renderTimings || {},
         deferredOwnerViews: debug.deferredOwnerViews || {},
-        placesRender: debug.placesRender || {}
+        placesRender: debug.placesRender || {},
+        territoryCoverage: debug.territoryCoverage || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -729,9 +736,50 @@ async function verifyRouteNearbyBadgePassive(cdp) {
       ariaLabel: badge.getAttribute("aria-label") || "",
       cursor: style.cursor,
       pointerEvents: style.pointerEvents,
+      borderStyle: style.borderStyle,
+      backgroundColor: style.backgroundColor,
+      color: style.color,
       whyText: card.querySelector(".compact-details")?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 1000) || "",
       before,
       after
+    };
+  })()`);
+}
+
+async function verifyTerritoryPermissionModel(cdp) {
+  return cdp.evaluate(`(() => {
+    if (typeof territoryPolicyFor !== "function") throw new Error("Territory policy engine is unavailable.");
+    const before = territoryPolicyFor(activeRepId);
+    updateOwnerTerritoryPolicy("allowed", 10);
+    updateOwnerTerritoryPolicy("assigned", 5);
+    updateOwnerTerritoryPolicy("allowRepChanges", true);
+    updateOwnerTerritoryPolicy("lockAssigned", false);
+    const afterOwner = territoryPolicyFor(activeRepId);
+    const ownerStatus = document.getElementById("territoryPolicyStatus")?.textContent?.trim() || "";
+    setMode("rep");
+    render();
+    const repControl = document.getElementById("territoryRepRadiusInput");
+    const repDisabledBefore = repControl?.disabled ?? null;
+    if (repControl) {
+      repControl.value = "10";
+      repControl.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const afterRep = territoryPolicyFor(activeRepId);
+    const repStatus = document.getElementById("territoryRepRadiusStatus")?.textContent?.trim() || "";
+    setMode("owner");
+    render();
+    return {
+      activeRepId,
+      before,
+      afterOwner,
+      afterRep,
+      ownerStatus,
+      repDisabledBefore,
+      repStatus,
+      assignedRadiusText: document.getElementById("territoryAssignedRadius")?.textContent?.trim() || "",
+      routePoolMaxMiles: typeof routePool === "function" && typeof routeVisiblePlaces === "function"
+        ? Math.max(...routePool(routeVisiblePlaces()).map(place => Number(String(place.distance || "").match(/\\d+(?:\\.\\d+)?/)?.[0] || 0)))
+        : null
     };
   })()`);
 }
@@ -879,9 +927,14 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && routeSnap.routeText.includes("Route Builder"), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
-    assertWorkflow("Beta Stability Sprint 2 route generation expands beyond six", routeSnap.routeCards > 6 && /(?:[7-9]|10) options/.test(routeSnap.routeCountLabel), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
+    assertWorkflow("Beta Stability Sprint 2 Owner route minimum preserved", routeSnap.routeCards >= 6 && /(?:6|[7-9]|10) options/.test(routeSnap.routeCountLabel), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const ownerNearbyBadge = await verifyRouteNearbyBadgePassive(founder.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Owner route nearby badge passive", ownerNearbyBadge.tagName === "span" && ownerNearbyBadge.className.includes("passive") && ownerNearbyBadge.pointerEvents === "none" && !ownerNearbyBadge.role && !ownerNearbyBadge.dataOpen && !ownerNearbyBadge.dataTab && !ownerNearbyBadge.dataQuickPlace && ownerNearbyBadge.before.activeView === ownerNearbyBadge.after.activeView && ownerNearbyBadge.before.modalActive === ownerNearbyBadge.after.modalActive && ownerNearbyBadge.before.detailsOpen === ownerNearbyBadge.after.detailsOpen && ownerNearbyBadge.whyText.includes("Nearby Opportunities"), `${ownerNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(ownerNearbyBadge));
+    assertWorkflow("Beta Stability Sprint 2 Owner route nearby badge passive", ownerNearbyBadge.tagName === "span" && ownerNearbyBadge.className.includes("passive") && ownerNearbyBadge.pointerEvents === "none" && ownerNearbyBadge.borderStyle === "dashed" && ownerNearbyBadge.text.includes("Nearby context") && !ownerNearbyBadge.role && !ownerNearbyBadge.dataOpen && !ownerNearbyBadge.dataTab && !ownerNearbyBadge.dataQuickPlace && ownerNearbyBadge.before.activeView === ownerNearbyBadge.after.activeView && ownerNearbyBadge.before.modalActive === ownerNearbyBadge.after.modalActive && ownerNearbyBadge.before.detailsOpen === ownerNearbyBadge.after.detailsOpen && ownerNearbyBadge.whyText.includes("Nearby Opportunities"), `${ownerNearbyBadge.text} is passive metadata; nearby context remains in Why details`, JSON.stringify(ownerNearbyBadge));
+
+    await clickTab(founder.cdp, "today");
+    const territoryPolicy = await verifyTerritoryPermissionModel(founder.cdp);
+    assertWorkflow("Beta Stability Sprint 2 territory owner permission model", territoryPolicy.afterOwner.assignedRadiusMiles === 5 && territoryPolicy.afterOwner.allowedRadiusMiles === 10 && territoryPolicy.afterOwner.allowRepRadiusChanges === true && territoryPolicy.afterOwner.lockAssignedRadius === false && territoryPolicy.ownerStatus.includes("rep changes allowed"), territoryPolicy.ownerStatus, JSON.stringify(territoryPolicy));
+    assertWorkflow("Beta Stability Sprint 2 territory rep allowed adjustment", territoryPolicy.repDisabledBefore === false && territoryPolicy.afterRep.assignedRadiusMiles === 10 && territoryPolicy.repStatus.includes("Rep adjustment allowed"), territoryPolicy.repStatus, JSON.stringify(territoryPolicy));
 
     await clickTab(founder.cdp, "places");
     const placesSnap = await snapshot(founder.cdp);
@@ -917,6 +970,8 @@ async function runHarness() {
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
+    assertWorkflow("Beta Stability Sprint 2 Rep radius locked by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === true && repSnap.territoryRepRadiusStatus.includes("locked"), repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus }));
+    assertWorkflow("Beta Stability Sprint 2 ring population evidence", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.ringTotals.slice(1).every(total => total === 0) && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Active Pool") && repSnap.territoryRingTexts.some(text => text.includes("not indexed in Active Pool")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
     await clickTab(rep.cdp, "places");
     const repAfterOwnerTab = await snapshot(rep.cdp);
@@ -931,7 +986,7 @@ async function runHarness() {
     const hamzaRouting = await verifyHamzaRepeatRecommendation(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 Hamza repeat recommendation evidence routing", hamzaRouting.daysSinceRecommendation === 0 && !hamzaRouting.bestNextIsHamza && hamzaRouting.reasons.some(reason => reason.includes("recently shown")), `${hamzaRouting.hamzaName} rotated off best-next after same-day route history; best next ${hamzaRouting.bestNextName}`, JSON.stringify(hamzaRouting));
     const repNearbyBadge = await verifyRouteNearbyBadgePassive(rep.cdp);
-    assertWorkflow("Beta Stability Sprint 2 Anthony Rep route nearby badge passive", repNearbyBadge.tagName === "span" && repNearbyBadge.className.includes("passive") && repNearbyBadge.pointerEvents === "none" && !repNearbyBadge.role && !repNearbyBadge.dataOpen && !repNearbyBadge.dataTab && !repNearbyBadge.dataQuickPlace && repNearbyBadge.before.activeView === repNearbyBadge.after.activeView && repNearbyBadge.before.modalActive === repNearbyBadge.after.modalActive && repNearbyBadge.before.detailsOpen === repNearbyBadge.after.detailsOpen && repNearbyBadge.whyText.includes("Nearby Opportunities"), `${repNearbyBadge.text} is passive; nearby context remains in Why details`, JSON.stringify(repNearbyBadge));
+    assertWorkflow("Beta Stability Sprint 2 Anthony Rep route nearby badge passive", repNearbyBadge.tagName === "span" && repNearbyBadge.className.includes("passive") && repNearbyBadge.pointerEvents === "none" && repNearbyBadge.borderStyle === "dashed" && repNearbyBadge.text.includes("Nearby context") && !repNearbyBadge.role && !repNearbyBadge.dataOpen && !repNearbyBadge.dataTab && !repNearbyBadge.dataQuickPlace && repNearbyBadge.before.activeView === repNearbyBadge.after.activeView && repNearbyBadge.before.modalActive === repNearbyBadge.after.modalActive && repNearbyBadge.before.detailsOpen === repNearbyBadge.after.detailsOpen && repNearbyBadge.whyText.includes("Nearby Opportunities"), `${repNearbyBadge.text} is passive metadata; nearby context remains in Why details`, JSON.stringify(repNearbyBadge));
     await clickTab(rep.cdp, "today");
     const nearbyFlow = await verifyNearbyOpportunitiesFlow(rep.cdp);
     assertWorkflow("Nearby Opportunities empty state", nearbyFlow.emptyBefore.includes("Log a verified route stop"), nearbyFlow.emptyBefore, JSON.stringify(nearbyFlow));

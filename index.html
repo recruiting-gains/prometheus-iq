@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-N7HokYAe4ho6JFQJj4k+Pwv9kIAOrwroJMRoJWb1zjA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-m97yY5otjWSy/Xg+OS9ATIHHPLS4nOoEFZ563UWbuXE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -817,6 +817,14 @@
       color: var(--command);
     }
 
+    .decision-chip.nearby.passive {
+      border-color: #d5ddd9;
+      border-style: dashed;
+      background: #eef2ef;
+      color: #63716b;
+      font-weight: 800;
+    }
+
     .decision-chip.passive {
       cursor: default;
       pointer-events: none;
@@ -1006,6 +1014,33 @@
     .territory-rings {
       display: grid;
       gap: 8px;
+    }
+
+    .territory-policy {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .checkline {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 32px;
+      color: var(--ink);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .checkline input {
+      width: auto;
+      min-height: 0;
+      margin: 0;
+    }
+
+    body[data-mode="owner"] .rep-radius-control {
+      display: none;
     }
 
     .territory-ring {
@@ -1285,7 +1320,7 @@
                 <span class="decision-chip primary" id="intelConfidenceChip">Confidence pending</span>
                 <span class="decision-chip" id="intelExpectedChip">Potential pending</span>
                 <span class="decision-chip" id="intelCategoryChip">Category pending</span>
-                <span class="decision-chip nearby" id="intelNearbyChip">Nearby pending</span>
+                <span class="decision-chip nearby passive" id="intelNearbyChip">Nearby context pending</span>
                 <span class="decision-chip" id="intelVisitTimeChip">Visit time pending</span>
               </div>
               <div class="intel-actions">
@@ -1342,6 +1377,19 @@
             <div class="mini-kpi"><span>Representative Radius</span><b id="territoryRepresentativeRadius">-</b></div>
           </div>
           <div class="territory-home" id="territoryHomeBase">Fitness Connection home base</div>
+          <form class="territory-policy owner-only" id="territoryPolicyForm">
+            <div class="grid two">
+              <label>Assigned Radius<select id="territoryAssignedRadiusInput" data-territory-policy="assigned"></select></label>
+              <label>Max Allowed Radius<select id="territoryAllowedRadiusInput" data-territory-policy="allowed"></select></label>
+            </div>
+            <label class="checkline"><input type="checkbox" id="territoryAllowRepRadiusChanges" data-territory-policy="allowRepChanges"> Rep can adjust radius</label>
+            <label class="checkline"><input type="checkbox" id="territoryLockAssignedRadius" data-territory-policy="lockAssigned"> Lock assigned radius</label>
+            <div class="status-line" id="territoryPolicyStatus">Owner radius policy pending.</div>
+          </form>
+          <form class="territory-policy rep-radius-control" id="territoryRepRadiusForm">
+            <label>Working Radius<select id="territoryRepRadiusInput" data-rep-radius></select></label>
+            <div class="status-line" id="territoryRepRadiusStatus">Radius policy pending.</div>
+          </form>
           <div class="territory-rings" id="territoryRingList"></div>
         </div>
 
@@ -1561,9 +1609,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-02-beta-stability-sprint-2-mobile-v1";
+    const appBuildVersion = "2026-07-02-beta-stability-sprint-2-mobile-final-ux-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v32-beta-stability-sprint-2-mobile";
+    const serviceWorkerCacheVersion = "prometheus-v33-beta-stability-sprint-2-mobile-final-ux";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -1644,6 +1692,7 @@
       anthony: { id: "anthony", name: "Anthony", role: "Beta tester", mode: "new-rep", explorationTarget: .8 }
     };
     const territoryRingSizeMiles = 5;
+    const territoryRadiusOptionsMiles = [5, 10, 15, 20, 25];
     const territoryProfiles = {
       cruz: {
         label: "Founder Territory",
@@ -1664,6 +1713,39 @@
         secondaryCategories: ["Car Wash", "Auto", "Business"]
       }
     };
+
+    function defaultTerritoryPolicy(profileId) {
+      const profile = territoryProfiles[profileId] || territoryProfiles.cruz;
+      return {
+        assignedRadiusMiles: profile.maxRadiusMiles,
+        allowedRadiusMiles: profile.maxRadiusMiles,
+        allowRepRadiusChanges: false,
+        lockAssignedRadius: true
+      };
+    }
+
+    function normalizeTerritoryPolicy(profileId, raw = {}) {
+      const defaults = defaultTerritoryPolicy(profileId);
+      const maxOption = Math.max(...territoryRadiusOptionsMiles);
+      const allowedRaw = cleanNumber(raw?.allowedRadiusMiles ?? defaults.allowedRadiusMiles, maxOption);
+      const assignedRaw = cleanNumber(raw?.assignedRadiusMiles ?? defaults.assignedRadiusMiles, maxOption);
+      const allowed = territoryRadiusOptionsMiles.includes(allowedRaw) ? allowedRaw : defaults.allowedRadiusMiles;
+      const assignedCandidate = territoryRadiusOptionsMiles.includes(assignedRaw) ? assignedRaw : defaults.assignedRadiusMiles;
+      return {
+        assignedRadiusMiles: Math.min(assignedCandidate, allowed),
+        allowedRadiusMiles: allowed,
+        allowRepRadiusChanges: raw?.allowRepRadiusChanges === true,
+        lockAssignedRadius: raw?.lockAssignedRadius !== false
+      };
+    }
+
+    function normalizeTerritoryPolicies(input = {}) {
+      const policies = {};
+      Object.keys(territoryProfiles).forEach(profileId => {
+        policies[profileId] = normalizeTerritoryPolicy(profileId, input?.[profileId]);
+      });
+      return policies;
+    }
 
     const cruzApprovedRoutePlaces = [
           {
@@ -19215,6 +19297,7 @@
         visits: [],
         routeHistory: [],
         activeRepId: "cruz",
+        territoryPolicies: normalizeTerritoryPolicies(),
         repProfiles: {
           cruz: createRepProfile("cruz", [], []),
           anthony: createRepProfile("anthony", [], [])
@@ -19460,7 +19543,7 @@
 
     function safeId(value, usedIds) {
       const candidate = cleanText(value, 128);
-      if (/^[A-Za-z0-9_-]+$/.test(candidate) && !usedIds.has(candidate)) {
+      if (/^[A-Za-z0-9 _-]+$/.test(candidate) && !usedIds.has(candidate)) {
         usedIds.add(candidate);
         return candidate;
       }
@@ -19696,6 +19779,8 @@
             const createdAt = cleanNumber(raw.createdAt, Date.now()) || Date.now();
             return {
               placeId: placeIdMap.get(originalPlaceId) || originalPlaceId,
+              routeKey: cleanText(raw.routeKey, 240),
+              placeName: cleanText(raw.placeName, 160),
               date,
               context: cleanText(raw.context, 40) || "route-intelligence",
               createdAt
@@ -19752,6 +19837,7 @@
         visits: active.visits,
         routeHistory: active.routeHistory,
         activeRepId: activeId,
+        territoryPolicies: normalizeTerritoryPolicies(input.territoryPolicies),
         repProfiles,
         founderHistoricalSnapshot
       });
@@ -19840,6 +19926,7 @@
       nextState.places = Array.from(byId.values());
       remapStatePlaceReferences(nextState, placeIdRemaps);
       nextState.repProfiles = nextState.repProfiles || {};
+      nextState.territoryPolicies = normalizeTerritoryPolicies(nextState.territoryPolicies);
       if (!nextState.repProfiles.anthony) nextState.repProfiles.anthony = createRepProfile("anthony", [], []);
       return nextState;
     }
@@ -20058,6 +20145,7 @@
         visits: [],
         routeHistory: [],
         activeRepId: "cruz",
+        territoryPolicies: normalizeTerritoryPolicies(),
         repProfiles: {
           cruz: createRepProfile("cruz", [], []),
           anthony: createRepProfile("anthony", [], [])
@@ -20605,8 +20693,26 @@
       return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
     }
 
+    function territoryPolicyFor(profileId = activeRepId) {
+      state.territoryPolicies = normalizeTerritoryPolicies(state.territoryPolicies);
+      return state.territoryPolicies[profileId] || normalizeTerritoryPolicy(profileId);
+    }
+
+    function canRepAdjustTerritoryRadius(profileId = activeRepId) {
+      const policy = territoryPolicyFor(profileId);
+      return policy.allowRepRadiusChanges && !policy.lockAssignedRadius;
+    }
+
     function territoryConfigFor(profileId = activeRepId) {
-      return territoryProfiles[profileId] || territoryProfiles.cruz;
+      const base = territoryProfiles[profileId] || territoryProfiles.cruz;
+      const policy = territoryPolicyFor(profileId);
+      return {
+        ...base,
+        maxRadiusMiles: policy.assignedRadiusMiles,
+        allowedRadiusMiles: policy.allowedRadiusMiles,
+        allowRepRadiusChanges: policy.allowRepRadiusChanges,
+        lockAssignedRadius: policy.lockAssignedRadius
+      };
     }
 
     function territoryRingCount(profileId = activeRepId) {
@@ -21660,8 +21766,8 @@
       intelExpectedChip.textContent = intelligence.expected.label;
       intelCategoryChip.textContent = next.category || "Google-qualified";
       intelNearbyChip.textContent = nearbyPreview.length
-        ? `${nearbyPreview.length} nearby`
-        : "No nearby";
+        ? `Nearby context: ${nearbyPreview.length}`
+        : "Nearby context: none";
       intelVisitTimeChip.textContent = intelligence.duration.label;
       recordRouteRecommendation(next);
       updateFounderDebugPanel({ stage: "route-recommendation-rendered" });
@@ -21759,12 +21865,13 @@
       document.getElementById("territoryCoverageProgress").textContent = `${coverage.percent}%`;
       document.getElementById("territoryRepresentativeRadius").textContent = representativeRadius;
       document.getElementById("territoryHomeBase").textContent = `${config.homeBase} · ${config.homeAddress}`;
+      renderTerritoryPolicyControls(config, coverage);
       document.getElementById("territoryRingList").innerHTML = coverage.rows.map(row => {
         const outer = Math.min(row.index * territoryRingSizeMiles, config.maxRadiusMiles);
         const inner = (row.index - 1) * territoryRingSizeMiles;
         const label = row.total
           ? `${row.visited}/${row.total} verified businesses touched`
-          : "No verified businesses in this ring yet";
+          : territoryEmptyRingLabel(row, inner);
         return `<article class="territory-ring ${row.index === current.index ? "active" : ""}">
           <div class="insight-bar-head">
             <span>Ring ${row.index} · ${inner}-${outer} mi</span>
@@ -21774,6 +21881,58 @@
           <div class="address-line">${escapeHtml(label)}</div>
         </article>`;
       }).join("");
+    }
+
+    function territoryOptionsMarkup(max = Math.max(...territoryRadiusOptionsMiles)) {
+      return territoryRadiusOptionsMiles
+        .filter(value => value <= max)
+        .map(value => `<option value="${value}">${value} mi</option>`)
+        .join("");
+    }
+
+    function territoryEmptyRingLabel(row, innerMiles) {
+      const usingActivePool = runtimeDatasetSource.pool === "active";
+      if (usingActivePool && innerMiles >= territoryRingSizeMiles) {
+        return "Outer ring not indexed in Active Pool yet";
+      }
+      return "No verified businesses in this ring yet";
+    }
+
+    function renderTerritoryPolicyControls(config, coverage) {
+      const policy = territoryPolicyFor(activeRepId);
+      const assignedInput = document.getElementById("territoryAssignedRadiusInput");
+      const allowedInput = document.getElementById("territoryAllowedRadiusInput");
+      const allowInput = document.getElementById("territoryAllowRepRadiusChanges");
+      const lockInput = document.getElementById("territoryLockAssignedRadius");
+      const policyStatus = document.getElementById("territoryPolicyStatus");
+      const repRadiusInput = document.getElementById("territoryRepRadiusInput");
+      const repStatus = document.getElementById("territoryRepRadiusStatus");
+      if (assignedInput && allowedInput && allowInput && lockInput && policyStatus) {
+        allowedInput.innerHTML = territoryOptionsMarkup();
+        allowedInput.value = String(policy.allowedRadiusMiles);
+        assignedInput.innerHTML = territoryOptionsMarkup(policy.allowedRadiusMiles);
+        assignedInput.value = String(policy.assignedRadiusMiles);
+        allowInput.checked = policy.allowRepRadiusChanges;
+        lockInput.checked = policy.lockAssignedRadius;
+        policyStatus.textContent = `Owner policy: ${policy.assignedRadiusMiles} mi assigned, ${policy.allowedRadiusMiles} mi max, rep changes ${canRepAdjustTerritoryRadius(activeRepId) ? "allowed" : "locked"}.`;
+      }
+      if (repRadiusInput && repStatus) {
+        repRadiusInput.innerHTML = territoryOptionsMarkup(policy.allowedRadiusMiles);
+        repRadiusInput.value = String(policy.assignedRadiusMiles);
+        repRadiusInput.disabled = !canRepAdjustTerritoryRadius(activeRepId);
+        repStatus.textContent = canRepAdjustTerritoryRadius(activeRepId)
+          ? `Rep adjustment allowed up to ${policy.allowedRadiusMiles} mi.`
+          : `Assigned radius locked at ${policy.assignedRadiusMiles} mi by owner policy.`;
+      }
+      window.prometheusDebugState.territoryCoverage = {
+        activeRepId,
+        assignedRadiusMiles: policy.assignedRadiusMiles,
+        allowedRadiusMiles: policy.allowedRadiusMiles,
+        repCanAdjust: canRepAdjustTerritoryRadius(activeRepId),
+        runtimePool: runtimeDatasetSource.pool || "unknown",
+        ringTotals: coverage.rows.map(row => row.total),
+        outerRingEmptyReason: runtimeDatasetSource.pool === "active" ? "Active Pool currently indexes Ring 1 only; full runtime pool contains limited outer-ring records." : ""
+      };
     }
 
     function visitCard(v) {
@@ -21827,8 +21986,8 @@
       const intelligence = routeIntelligenceFor(p, analysis);
       const nearbyPreview = nearbyOpportunitiesForPlace(p, 2);
       const nearbyLabel = nearbyPreview.length
-        ? `Nearby: ${nearbyPreview.length}`
-        : "Nearby: none";
+        ? `Nearby context: ${nearbyPreview.length}`
+        : "Nearby context: none";
       const nearbyDetail = nearbyPreview.length
         ? nearbyPreview.map(item => `${item.place.name} (${walkingDistanceLabel(item.feet)})`).join("; ")
         : "No verified walkable add-on stops inside the current radius.";
@@ -22555,6 +22714,37 @@
       if (appMode === "rep" && document.querySelector(".view.active.owner-only")) setTab("today");
     }
 
+    function updateOwnerTerritoryPolicy(field, value) {
+      if (!canUseOwnerMode()) return;
+      const policy = { ...territoryPolicyFor(activeRepId) };
+      if (field === "allowed") {
+        policy.allowedRadiusMiles = Number(value);
+        if (policy.assignedRadiusMiles > policy.allowedRadiusMiles) policy.assignedRadiusMiles = policy.allowedRadiusMiles;
+      } else if (field === "assigned") {
+        policy.assignedRadiusMiles = Math.min(Number(value), policy.allowedRadiusMiles);
+      } else if (field === "allowRepChanges") {
+        policy.allowRepRadiusChanges = Boolean(value);
+      } else if (field === "lockAssigned") {
+        policy.lockAssignedRadius = Boolean(value);
+      }
+      state.territoryPolicies = state.territoryPolicies || {};
+      state.territoryPolicies[activeRepId] = normalizeTerritoryPolicy(activeRepId, policy);
+      invalidateDashboardComputationCache();
+      save();
+    }
+
+    function updateRepTerritoryRadius(value) {
+      if (!canRepAdjustTerritoryRadius(activeRepId)) {
+        renderTerritoryOverview();
+        return;
+      }
+      const policy = { ...territoryPolicyFor(activeRepId), assignedRadiusMiles: Number(value) };
+      state.territoryPolicies = state.territoryPolicies || {};
+      state.territoryPolicies[activeRepId] = normalizeTerritoryPolicy(activeRepId, policy);
+      invalidateDashboardComputationCache();
+      save();
+    }
+
     document.addEventListener("click", event => {
       const modeSelect = event.target.closest("[data-mode-select]");
       if (modeSelect) setMode(modeSelect.dataset.modeSelect);
@@ -22628,6 +22818,16 @@
           notes: `${item.dateLabel}, ${item.time}. ${item.fit}. Access: ${item.permission}. Eventbrite: ${item.url}`
         });
       }
+    });
+
+    document.addEventListener("change", event => {
+      const policyControl = event.target.closest("[data-territory-policy]");
+      if (policyControl) {
+        updateOwnerTerritoryPolicy(policyControl.dataset.territoryPolicy, policyControl.type === "checkbox" ? policyControl.checked : policyControl.value);
+      }
+
+      const repRadiusControl = event.target.closest("[data-rep-radius]");
+      if (repRadiusControl) updateRepTerritoryRadius(repRadiusControl.value);
     });
 
     document.getElementById("quickAddPlace").addEventListener("click", () => {
