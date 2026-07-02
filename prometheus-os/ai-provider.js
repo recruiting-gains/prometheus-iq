@@ -1,5 +1,4 @@
 import { companyState, promptTemplates } from "./demo-data.js";
-import { searchContext } from "./project-context.js";
 import { classifyPermission, routeCommandToTool, runAgentTool } from "./agent-actions.js";
 import { PermissionLevel, addAuditEntry, permissionLabel } from "./audit-log.js";
 import { getClarification, normalizeIntentText } from "./intent-router.js";
@@ -320,12 +319,21 @@ export class AIProvider {
       };
     }
 
-    const context = searchContext(command)[0];
     return {
-      title: "Project context",
-      body: context.value.summary || "I found safe Prometheus context, but no exact command. Ask a sharper founder question and I will route it.",
+      title: "Founder Conversation",
+      body: [
+        "I do not have enough signal to answer that cleanly yet.",
+        "The useful move is to keep this tied to validation, beta proof, revenue path, or risk reduction.",
+        "Ask me the sharper version, or tell me the decision you are trying to make, and I will help you reason it through."
+      ].join(" "),
       permission: "Level 0 - Read Only",
-      tone: "context"
+      tone: "founder-conversation",
+      metadata: {
+        founderAssistant: true,
+        routeSelected: "founder_conversation",
+        cardFallbackUsed: false,
+        intent: "founder_conversation_fallback"
+      }
     };
   }
 }

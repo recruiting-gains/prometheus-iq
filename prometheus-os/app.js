@@ -21,7 +21,7 @@ const detailActions = $("#detailActions");
 
 const forceFounderVoiceDefaults = true;
 const defaultPremiumTtsProvider = "elevenlabs";
-const founderGreeting = "Hey Boss lets get to work im here for any update you need";
+const founderGreeting = "Good to see you. What are we working on today?";
 const companionShell = Boolean(window.__PROMETHEUS_COMPANION_SHELL__);
 const nativeCompanionCapture = false;
 
@@ -93,7 +93,18 @@ function debugVoice(stage, message = "", { kind = "info" } = {}) {
   } catch {
     // Native logging is available only inside Prometheus Companion.
   }
-  if (voiceDebug) {
+  const visibleStages = new Set([
+    "Listening",
+    "Thinking",
+    "Speaking",
+    "audio playback started",
+    "audio playback completed",
+    "playback error",
+    "playback stalled",
+    "microphone recovery",
+    "microphone permission changed"
+  ]);
+  if (voiceDebug && visibleStages.has(stage)) {
     voiceDebug.textContent = readable;
     voiceDebug.dataset.kind = kind;
   }
@@ -126,11 +137,7 @@ function commandFromTranscript(value) {
 }
 
 function shouldAttachRouteDiagnostic(message) {
-  const normalized = normalizeIntentText(message);
-  return normalized.includes("what happened yesterday") ||
-    normalized.includes("what happened this week") ||
-    normalized.includes("what should i do next") ||
-    normalized.includes("biggest risk");
+  return false;
 }
 
 function routeDiagnosticText(commandRoute) {
@@ -138,6 +145,16 @@ function routeDiagnosticText(commandRoute) {
   const cognitiveEngineUsed = commandRoute.type === "cognitive" ? "yes" : "no";
   const cardFallbackUsed = commandRoute.decision?.allowCards === false ? "no" : (commandRoute.type === "node" ? "yes" : "no");
   return `Diagnostic: route selected ${routeSelected}. Cognitive engine used: ${cognitiveEngineUsed}. Card fallback used: ${cardFallbackUsed}.`;
+}
+
+function explicitPanelRequest(message = "", response = {}) {
+  if (response.metadata?.developerMode === true) return true;
+  const normalized = normalizeIntentText(message);
+  return /\b(reports?|charts?|exports?|long form|long-form|longform|long analysis|long-form analysis|developer mode|technical details|show contracts?|show raw|raw output)\b/.test(normalized);
+}
+
+function shouldDisplayConversationPanel(message = "", response = {}) {
+  return explicitPanelRequest(message, response) || response.metadata?.showCard === true;
 }
 
 async function loadCompanionVersion() {
@@ -263,23 +280,13 @@ function handleWake(transcript, wakeDetails = null) {
     submitCommand(wake.command, { source: "wake phrase" });
     return;
   }
-  openDetail({
-    kicker: "Wake phrase detected",
-    title: "Prometheus is listening",
-    text: transcript.toLowerCase().includes("good morning")
-      ? "Good morning detected. Prometheus is ready for founder command."
-      : "Wake phrase detected. Continue speaking naturally."
-  });
+  closeDetail();
   startBackendSttCapture({ source: "wake phrase", silentNoInput: true });
 }
 
 function handleClap() {
   if (isPrometheusSpeaking || commandInFlight) return;
-  openDetail({
-    kicker: "Clap detected",
-    title: "Prometheus awakened",
-    text: "Clap detection heard a sharp audio spike. Prometheus is listening for your next command."
-  });
+  closeDetail();
   if (continuousListeningEnabled && !companionShell) voice.listen();
   startBackendSttCapture({ source: "clap", silentNoInput: true });
 }
@@ -329,17 +336,17 @@ function systemNodes() {
     {
       id: "calendar",
       label: "Calendar",
-      value: "Contract",
+      value: "Agenda",
       signal: "pending",
-      detail: "Calendar, meetings, reminders, and daily agenda consume the shared Founder Calendar & Message Integration Contract.",
+      detail: "Meetings, reminders, and daily agenda support for founder planning.",
       command: "Prometheus, remind me what meetings I have."
     },
     {
       id: "messages",
       label: "Messages",
-      value: "Contract",
+      value: "Drafts",
       signal: "ready",
-      detail: "Message summaries and draft requests consume the shared Founder Calendar & Message Integration Contract. Companion never sends without explicit approved send capability.",
+      detail: "Message summaries and draft support. Companion never sends without explicit approval.",
       command: "Prometheus, help me draft a message."
     },
     {
@@ -1102,11 +1109,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     try {
       debugVoice("command route selected", `clarification:${clarification.intent}`, { kind: "ok" });
       lastSpokenText = `${clarification.title}. ${clarification.body}`;
-      openDetail({
-        kicker: "Clarification needed",
-        title: clarification.title,
-        text: clarification.body
-      });
+      closeDetail();
       await speakResponse(lastSpokenText);
       lastCommandResult = {
         type: "clarification",
@@ -1139,18 +1142,25 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     setVoiceState("thinking");
     const routedTool = shouldReason
       ? "intelligence orchestrator"
-      : routeCommandToTool(normalizeRouteCommand(message)) || "safe project context";
+      : routeCommandToTool(normalizeRouteCommand(message)) || "founder conversation";
     debugVoice("Matched command", routedTool, { kind: "ok" });
     const response = await aiProvider.ask(message);
     debugVoice("response text generated", response.title, { kind: "ok" });
     const diagnostic = shouldAttachRouteDiagnostic(message) ? `\n\n${routeDiagnosticText(commandRoute)}` : "";
     const responseBody = `${response.body}${diagnostic}`;
-    lastSpokenText = `${response.title}. ${responseBody}`;
-    openDetail({
-      kicker: "Prometheus response",
-      title: response.title,
-      text: responseBody
-    });
+    lastSpokenText = response.metadata?.developerMode === true
+      ? `${response.title}. ${responseBody}`
+      : response.metadata?.spokenText || responseBody;
+    const cardDisplayed = shouldDisplayConversationPanel(message, response);
+    if (cardDisplayed) {
+      openDetail({
+        kicker: response.metadata?.developerMode === true ? "Developer Mode" : "Requested Output",
+        title: response.title,
+        text: responseBody
+      });
+    } else {
+      closeDetail();
+    }
 
     await speakResponse(lastSpokenText);
     lastCommandResult = {
@@ -1161,6 +1171,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
       cognitive: response.metadata?.cognitive === true,
       orchestrator: response.metadata?.orchestrator === true,
       cardFallbackUsed: response.metadata?.cardFallbackUsed === true,
+      cardDisplayed,
       source
     };
     return lastCommandResult;

@@ -1,6 +1,7 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
+import { readFileSync } from "node:fs";
 import {
   SOCIAL_CONNECTION_STATES,
   SOCIAL_DATA_SOURCES,
@@ -337,8 +338,8 @@ for (const phrase of explicitNodeCases) {
 }
 
 const founderAcceptanceCases = [
-  ["Hello", ["hello, cruz", "companion is online", "external proof"]],
-  ["Good morning, Companion.", ["good morning", "highest roi"]],
+  ["Hello", ["good to see you", "what are we working on today"]],
+  ["Good morning, Companion.", ["good morning", "everything is ready", "priorities"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
   ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
@@ -370,14 +371,14 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 }
 
 const conversationalIntentCases = [
-  ["Hello", ["hello, cruz", "validation", "external proof"], "natural_greeting"],
-  ["Good morning", ["good morning", "highest roi"], "greeting"],
+  ["Hello", ["good to see you", "what are we working on today"], "natural_greeting"],
+  ["Good morning", ["good morning", "everything is ready", "priorities"], "greeting"],
+  ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
   ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
   ["Instagram", ["executive marketing summary", "instagram should support", "publish manually"], "executive_marketing_summary"],
   ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
   ["Website", ["website performance summary", "prometheusrouteiq.com", "public website"], "website_performance_summary"],
-  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"],
-  ["How are we doing?", ["executive company briefing", "external proof", "pilot credibility"], "executive_company_briefing"]
+  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"]
 ];
 
 for (const [phrase, expected, intent] of conversationalIntentCases) {
@@ -407,6 +408,63 @@ for (const [phrase, expected, intent] of conversationalIntentCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> conversational-intent:${response.title}`);
+}
+
+const executiveReasoningCases = [
+  ["How are we doing?", ["strong build position", "not yet a strong proof position", "recommendation"], "company_rundown"],
+  ["What's slowing Prometheus down?", ["real beta evidence", "next move", "anthony feedback"], "risk"],
+  ["What should I work on today?", ["not work on another feature first", "validation", "recommendation"], "priority"]
+];
+
+for (const [phrase, expected, intent] of executiveReasoningCases) {
+  const route = resolveCompanionCommandRoute({
+    command: phrase,
+    history: provider.history,
+    nodes: nodesForHarness(),
+    phrasesForNode
+  });
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.map((item) => item.toLowerCase()).filter((item) => !text.includes(item));
+  const bannedHit = bannedResponseText.find((item) => text.includes(item)) ||
+    founderModeBannedText.find((item) => text.includes(item));
+  if (
+    route.type !== "cognitive" ||
+    response.metadata?.routeSelected !== "intelligence_orchestrator" ||
+    response.metadata?.orchestratorIntent !== intent ||
+    bannedHit ||
+    missing.length
+  ) {
+    fail("executive-question-reasoning", {
+      phrase,
+      routeType: route.type,
+      title: response.title,
+      routeSelected: response.metadata?.routeSelected,
+      orchestratorIntent: response.metadata?.orchestratorIntent,
+      expectedIntent: intent,
+      bannedHit,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> executive-reasoning:${response.title}`);
+}
+
+const unknownResponse = await provider.ask("Pineapple status");
+const unknownText = `${unknownResponse.title || ""} ${unknownResponse.body || ""}`.toLowerCase();
+if (
+  unknownText.includes("project context") ||
+  unknownText.includes("i found safe prometheus context") ||
+  unknownResponse.metadata?.routeSelected !== "founder_conversation"
+) {
+  fail("project-context-fallback-removed", {
+    title: unknownResponse.title,
+    routeSelected: unknownResponse.metadata?.routeSelected,
+    body: unknownResponse.body
+  });
+} else {
+  console.log(`PASS unknown prompt stays in Founder Conversation -> ${unknownResponse.title}`);
 }
 
 const disconnectedProvider = new AIProvider();
@@ -695,6 +753,23 @@ if (
   });
 } else {
   console.log(`PASS Developer Mode exposes Instagram technical details only on request -> ${developerModeResponse.title}`);
+}
+
+const appSource = readFileSync(new URL("../prometheus-os/app.js", import.meta.url), "utf8");
+const uiPolicyFailures = [
+  appSource.includes('kicker: "Prometheus response"') ? "normal response panel still uses Prometheus response card" : "",
+  appSource.includes('kicker: "Clap detected"') ? "clap detection notification panel still exists" : "",
+  !appSource.includes("function shouldDisplayConversationPanel") ? "conversation panel policy helper missing" : "",
+  !appSource.includes("explicitPanelRequest") ? "explicit panel request gate missing" : "",
+  !appSource.includes("cardDisplayed") ? "last command result does not report card display state" : ""
+].filter(Boolean);
+
+if (uiPolicyFailures.length) {
+  fail("voice-first-ui-policy", {
+    issues: uiPolicyFailures
+  });
+} else {
+  console.log("PASS Voice-first UI policy removes normal response cards and clap notification cards");
 }
 
 if (failures) {

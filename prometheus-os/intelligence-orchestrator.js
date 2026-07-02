@@ -11,6 +11,9 @@ const orchestratorPatterns = [
   /\bwhat changed\b/,
   /\bwhat major systems\b/,
   /\bsystems have been built\b/,
+  /\bhow are we doing\b/,
+  /\bhow are we looking\b/,
+  /\bwhere do we stand\b/,
   /\blast month\b/,
   /\bthis week\b/,
   /\byesterday\b/,
@@ -18,6 +21,10 @@ const orchestratorPatterns = [
   /\bwhy is\b/,
   /\bwhat is my biggest\b/,
   /\bbiggest risk\b/,
+  /\bwhat.?s slowing\b/,
+  /\bwhat is slowing\b/,
+  /\bslowing prometheus down\b/,
+  /\bbottleneck\b/,
   /\bwhat should i do\b/,
   /\bwhat should we do\b/,
   /\bhighest roi\b/,
@@ -45,9 +52,9 @@ function inferOrchestratorIntent(question = "") {
   if (normalized.includes("pilot readiness")) return "pilot_readiness";
   if (normalized.includes("google places") && normalized.includes("meta")) return "strategic_comparison";
   if (normalized.includes("google places")) return "google_places";
-  if (normalized.includes("risk") || normalized.includes("blocker")) return "risk";
+  if (normalized.includes("risk") || normalized.includes("blocker") || normalized.includes("slowing") || normalized.includes("bottleneck")) return "risk";
   if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("coo") || normalized.includes("tomorrow")) return "priority";
-  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at")) return "company_rundown";
+  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at") || normalized.includes("how are we doing") || normalized.includes("how are we looking") || normalized.includes("where do we stand")) return "company_rundown";
   if (normalized.includes("major systems")) return "major_systems";
   if (normalized.includes("week")) return "weekly_recap";
   if (normalized.includes("yesterday")) return "yesterday_recap";

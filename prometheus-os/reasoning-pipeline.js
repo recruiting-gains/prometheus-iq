@@ -255,7 +255,7 @@ function googlePlacesStatus(evidence = []) {
 function riskAnswer(evidence) {
   return response(
     "Biggest Prometheus risk",
-    "Boss, the biggest risk today is confusing internal progress with external validation. A better Companion, a better website, and cleaner documents all help, but they do not prove reps will use Prometheus or that leadership will approve a pilot. The external data still missing is real beta usage: verified visits, route quality notes, objections, and Anthony feedback. The risk-reduction move is to capture that proof before building more.",
+    "The biggest risk today is confusing internal progress with external validation. A better Companion, a better website, and cleaner documents all help, but they do not prove reps will use Prometheus or that leadership will approve a pilot. The thing slowing Prometheus down is the same gap: real beta evidence. The next move is to capture Anthony feedback, route quality notes, objections, and verified usage before building more.",
     { intent: "risk", entities: ["Pilot", "Anthony", "Prometheus IQ"] }
   );
 }
@@ -298,10 +298,10 @@ function priorityAnswer(question) {
   const tomorrow = normalized.includes("tomorrow") || normalized.includes("coo");
   const intro = tomorrow
     ? "If I were your COO, I would tell you tomorrow is not a feature-building day. It is a validation day."
-    : "Boss, the highest ROI move is validation, not more features.";
+    : "I would not work on another feature first. The highest ROI move is validation.";
   return response(
     tomorrow ? "COO recommendation for tomorrow" : "Highest ROI next move",
-    `${intro} Top three: ${top.map((task, index) => `${index + 1}. ${task.title}: ${task.description} Why: ${task.reason}`).join(" ")} The first move is ${top[0].title}, because it turns Prometheus from something impressive into something proven. I would avoid new features unless they directly improve Anthony's beta evidence or leadership approval odds.`,
+    `${intro} First: ${top[0].title}. ${top[0].reason} Second: ${top[1].title}. ${top[1].reason} Third: ${top[2].title}. ${top[2].reason} The recommendation is clear: protect focus, collect proof, and avoid new features unless they directly improve Anthony's beta evidence or leadership approval odds.`,
     { intent: "priority", entities: ["Cruz", "Pilot", "Anthony"] }
   );
 }
@@ -417,10 +417,10 @@ function followUpAnswer(question, context, evidence) {
 
 function generalAnswer(question, evidence) {
   const normalized = normalizeText(question);
-  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at")) {
+  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at") || normalized.includes("how are we doing") || normalized.includes("how are we looking") || normalized.includes("where do we stand")) {
     return response(
       "Prometheus rundown",
-      `Boss, the company is in a transition point: the product foundation exists, the public website exists, Companion now has memory and reasoning, and Google-powered Route Intelligence is moving from setup into quality control. The highest-value question is no longer whether Prometheus can look impressive. It is whether Anthony and leadership can see real proof that it improves field-sales activity. Best next move: protect focus, test the route quality, collect beta feedback, and keep every decision tied to validation.`,
+      `We are in a strong build position, but not yet a strong proof position. The product foundation exists, the website is live, Companion has memory and reasoning, and Route Intelligence is moving from setup into quality control. The important question is no longer whether Prometheus can look impressive. It is whether Anthony and leadership can see proof that it improves field-sales activity. Recommendation: protect focus, test route quality, collect beta feedback, and keep every decision tied to validation.`,
       { intent: "company_rundown", entities: ["Prometheus IQ", "Prometheus Companion", "Anthony", "Route Intelligence"] }
     );
   }
@@ -463,7 +463,7 @@ export function runReasoningPipeline({ question = "", context = {}, rankedEviden
   if (normalized.includes("route intelligence")) return routeIntelligenceAnswer();
   if (normalized.includes("companion")) return companionAnswer();
   if (normalized.includes("pilot readiness")) return pilotReadinessAnswer();
-  if (normalized.includes("risk") || normalized.includes("blocker")) return riskAnswer(rankedEvidence);
+  if (normalized.includes("risk") || normalized.includes("blocker") || normalized.includes("slowing") || normalized.includes("bottleneck")) return riskAnswer(rankedEvidence);
   if (normalized.includes("daily brief") || normalized.includes("founder brief") || normalized === "brief" || normalized.includes("give me the brief")) return dailyBriefAnswer();
   if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("what matters") || normalized.includes("focus on") || normalized.includes("coo") || normalized.includes("tomorrow")) return priorityAnswer(question);
   if (context.isFollowUp) return followUpAnswer(question, context, rankedEvidence);

@@ -220,18 +220,25 @@ function productionBlockers() {
 function morningGreeting() {
   const next = createNextActionBrief();
   return response(
-    "Good Morning, Cruz",
-    `Good morning, Cruz. Companion is online. Highest ROI: ${next.body} I can catch you up, plan the day, draft a message, review memory, or brief Prometheus engineering status.`,
+    "Good Morning",
+    `Good morning. Everything is ready whenever you are. I have a couple of priorities I would recommend. ${next.body} I can brief the company, plan the day, draft a message, or review the current risk.`,
     { intent: "greeting", entities: ["Cruz", "Prometheus Companion"] }
   );
 }
 
 function naturalGreeting() {
-  const next = createNextActionBrief();
   return response(
-    "Hello, Cruz",
-    `Hello, Cruz. Companion is online. The short read: stay focused on validation and external proof. ${next.body} I can give you the morning brief, engineering status, beta status, website summary, Instagram read, or CRM summary.`,
+    "Good To See You",
+    "Good to see you. What are we working on today?",
     { intent: "natural_greeting", founderMode: true, entities: ["Cruz", "Prometheus Companion"] }
+  );
+}
+
+function healthGreeting() {
+  return response(
+    "Ready",
+    "I'm online and everything is healthy. What would you like to tackle?",
+    { intent: "health_greeting", founderMode: true, entities: ["Prometheus Companion"] }
   );
 }
 
@@ -287,6 +294,7 @@ function companyBriefing() {
 function conversationalIntentResponse(normalized) {
   if (isExact(normalized, ["hello", "hi", "hey"])) return naturalGreeting();
   if (isExact(normalized, ["good morning", "morning"])) return morningGreeting();
+  if (isExact(normalized, ["how are you", "how are you doing", "how are things"])) return healthGreeting();
   if (isExact(normalized, ["overwatch"])) return engineeringStatus();
   if (isExact(normalized, ["instagram", "social", "social media"])) {
     const social = createSocialMediaSummary();
@@ -316,7 +324,7 @@ function conversationalIntentResponse(normalized) {
     });
   }
   if (isExact(normalized, ["crm", "pipeline"])) return crmPipelineSummary();
-  if (includesAny(normalized, ["how are we doing", "how are we looking", "where do we stand", "company briefing"])) return companyBriefing();
+  if (includesAny(normalized, ["company briefing"])) return companyBriefing();
   return null;
 }
 
