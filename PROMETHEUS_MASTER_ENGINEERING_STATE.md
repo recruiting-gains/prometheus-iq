@@ -5142,6 +5142,49 @@ Next recommended subsystem:
 
 Superseded by completed Infrastructure deployment and production release verification.
 
+### 2026-07-02: Prometheus Website - Enterprise Page Desktop Layout Fix + Deploy
+
+Subsystem: Prometheus Website
+
+Task: Enterprise Page Desktop Layout Fix + Deploy
+
+Commit: `04bcc6890d547532c89681ba039514afb7b5b6fa`
+
+Deploy: Complete to `https://prometheusrouteiq.com`
+
+Cloudflare Worker version: `d2df2a15-6ee6-4bf3-b253-376a78488cd6`
+
+Status: Complete
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `src/main.jsx`
+- `src/styles.css`
+
+What changed:
+
+Website fixed founder-reported desktop layout issues on the public Enterprise/Industries page by widening the trust layout, changing the evaluation cards to a readable two-column desktop grid, widening the industries layout, shortening industry/value card copy, and adding a dedicated route-intelligence loop layout so the "Make outside sales intelligent, directed, accountable, and compounding." section renders fully.
+
+Verification:
+
+- Local desktop and mobile Chrome/CDP layout assertions passed.
+- `npm run lint`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- Wrangler dry-run against `wrangler.prometheusrouteiq-website.jsonc`: passed.
+- Production deploy uploaded `/index.html` to Cloudflare Worker `prometheusrouteiq-website`.
+- Production route checks passed for `/`, `/privacy/`, `/terms/`, `/data-deletion/`, `/#enterprise`, `/#industries`, `/#investors`, and `/#pilot`.
+- Production desktop and mobile Chrome/CDP layout assertions passed: no horizontal overflow, updated messaging present, trust cards readable, industry cards wrapped correctly, value cards present, route-intelligence loop not clipped, and navigation targets present.
+
+Remaining blockers:
+
+None for Website.
+
+Next recommended subsystem:
+
+Prometheus Administration for Saturday field-test execution record and final founder review.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -5152,6 +5195,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Brand Identity Synchronization v1; reuse `deploy/prometheusrouteiq-website/public-assets/prometheus.svg` and the existing public Website header/nav, favicon, Open Graph/Twitter image, React logo mark, and cache-busted asset wiring.
 - Do not duplicate Enterprise & Investor Readiness v1; extend the existing public Website enterprise, industry, investor, founder story, customer success, trust, beta conversion, SEO, and mobile readability work.
 - Do not duplicate Enterprise Landing Page Refinement v1; reuse the managed enterprise deployment positioning, Founder Built / Controlled Beta / Enterprise Ready / Outcome Focused trust card structure, refined industry categories, Reduce Drive Time / Recover Selling Time / Verify Field Activity value cards, and improved card spacing/typography/wrapping in `src/main.jsx`, `src/styles.css`, and `deploy/prometheusrouteiq-website/index.html`.
+- Do not duplicate Enterprise Page Desktop Layout Fix + Deploy; preserve the `trust-layout`, `industries-layout`, and `intelligence-loop-layout` desktop fixes, two-column evaluation card grid, shortened industry/value card copy, mobile override behavior, and production Cloudflare Website deploy workflow.
 - Do not duplicate Public Website Canonical Branding Asset Audit + Hero Messaging Completion; reuse the canonical Company Identity logo assets, versioned `20260701-brand-v2` public asset filenames, `site.webmanifest` icon wiring, favicon / Apple touch icon / Open Graph / Twitter image updates, and the completed hero message "Make outside sales intelligent, directed, accountable, and compounding."
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
