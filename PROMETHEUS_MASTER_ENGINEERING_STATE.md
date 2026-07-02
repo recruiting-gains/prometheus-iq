@@ -3414,6 +3414,77 @@ Next recommended subsystem:
 
 Research / Integrations contract for dated Founder Intelligence Brief ingestion into Companion.
 
+### Completed Work Lane: Founder Morning Brief - Live Instagram Analytics Consumption
+
+Primary subsystem: Prometheus Companion
+
+Secondary subsystems:
+
+- Prometheus Social Media, consumed for normalized Instagram analytics only
+- Prometheus Website, future handoff for Website/social attribution path v1
+- Prometheus CRM, future handoff for CRM lead attribution from social campaigns v1
+
+Task:
+
+Founder Morning Brief - Live Instagram Analytics Consumption.
+
+Status:
+
+PASS.
+
+Implementation type:
+
+Code and validation.
+
+Commit:
+
+`c7ba34d514b35b0514bf7d5ce6f0b632353ce313`
+
+Deploy:
+
+Local Companion sync/install/verify completed. No production deploy.
+
+Files changed:
+
+- `prometheus-os/founder-instagram-analytics-consumer.js`
+- `prometheus-os/executive-command-center.js`
+- `prometheus-os/founder-assistant.js`
+- `prometheus-os/ai-provider.js`
+- `prometheus-os/backend/server.js`
+- `mac-companion/sync-install-verify.sh`
+- `mac-companion/create-version-manifest.mjs`
+- `mac-companion/verify-runtime.mjs`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+Verified outcome:
+
+- Founder Morning Brief now consumes normalized Instagram analytics from Prometheus Social Media only.
+- Added Instagram section with source label, followers, reach, impressions, profile visits, website clicks, engagement, top content, and growth trend.
+- Added explicit source labels for Engineering, Research, Sales, Website, CRM, Beta, Calendar, and Daily Priorities.
+- Added local Companion backend proxy for normalized Social Media snapshot consumption.
+- Companion handles no Instagram API calls, tokens, or Meta credentials.
+- Companion install/sync/version verification now includes reused `social-media/` contract files to prevent runtime drift.
+- `node --check` on touched Companion/runtime files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:social-media`: passed.
+- `npm run security:check`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed.
+- Companion report: PASS 18/18.
+- Source version = Installed version = Runtime version: `20260702T001219Z-c7ba34d514b3-c2e6b24c7043`.
+- Drift: none detected.
+
+Remaining blockers:
+
+- Root `PRODUCT_VISION.md` is absent; Companion used `docs/product-vision.md`.
+- Growth trend displays pending unless Social Media provides historical trend metrics.
+- Website and CRM attribution remain future subsystem work.
+
+Next recommended subsystem:
+
+Prometheus Website for Website/Social Attribution Path v1. Prometheus CRM should wait until Website/Social attribution outputs exist.
+
 ### Completed Work Lane: Founder Calendar & Message Provider Adapter v1
 
 Primary subsystem: Prometheus Integrations
@@ -4864,6 +4935,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
 - Do not duplicate Founder Executive Operating System v2; reuse Companion executive summaries, read-only Research/Sales/Website/Social/Beta source summaries, Founder Morning Brief expansion, and direct founder command handling.
+- Do not duplicate Founder Morning Brief Live Instagram Analytics Consumption; reuse `prometheus-os/founder-instagram-analytics-consumer.js`, the local Companion backend proxy, and normalized Social Media snapshots/contracts only. Companion must not call Instagram APIs, store tokens, access Meta credentials, or own Social Media normalization.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
