@@ -372,6 +372,160 @@ Required fields:
 - `reviewState`
 - `founderReviewNotes`
 
+## Operating Profile Contracts
+
+These contracts let future subsystems adopt the selected outside-sales operating profile. They are architecture-only and do not authorize production consumption.
+
+### OperatingProfile
+
+Purpose: define industry-specific terminology, KPIs, success events, outcome vocabulary, labels, CRM stages, Companion wording, and reporting language.
+
+Required fields:
+
+- `profileId`
+- `label`
+- `industry`
+- `terminology`
+- `kpis`
+- `successEvents`
+- `outcomeVocabulary`
+- `dashboardLabels`
+- `crmStages`
+- `companionWording`
+- `reportingLanguage`
+- `outcomeMappings`
+
+### OperatingProfileOutcomeMapping
+
+Purpose: map industry-specific outcomes into normalized evidence vocabulary.
+
+Required fields:
+
+- `terms`
+- `normalizedOutcome`
+
+### NormalizedOutcomeEvent
+
+Purpose: preserve the architecture chain from field visit to recommendation eligibility.
+
+Required fields:
+
+- `normalizedOutcomeId`
+- `profileId`
+- `rawOutcome`
+- `normalizedOutcome`
+- `stageSequence`
+- `evidence`
+- `learningSignalSeed`
+- `confidenceSeed`
+- `recommendationEligibility`
+- `explanationSeed`
+
+### DashboardOperatingProfileContract
+
+Purpose: future Dashboard label and vocabulary contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `dashboardLabels`
+- `terminology`
+- `outcomeVocabulary`
+- `runtimeConsumptionAuthorized`
+
+### CRMOperatingProfileContract
+
+Purpose: future CRM stage and outcome vocabulary contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `crmStages`
+- `outcomeVocabulary`
+- `runtimeMutationAuthorized`
+
+### CompanionOperatingProfileContract
+
+Purpose: future Companion wording contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `companionWording`
+- `runtimeConsumptionAuthorized`
+
+### MobileOperatingProfileContract
+
+Purpose: future Mobile vocabulary and label contract without changing Anthony beta behavior.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `terminology`
+- `dashboardLabels`
+- `mobileBetaChanged`
+
+### WebsiteOperatingProfileContract
+
+Purpose: future Website reporting-language contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `reportingLanguage`
+- `websiteChanged`
+
+### ResearchOperatingProfileContract
+
+Purpose: future Research terminology and outcome-vocabulary contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `industry`
+- `terminology`
+- `outcomeVocabulary`
+- `runtimeConsumptionAuthorized`
+
+### SalesOperatingProfileContract
+
+Purpose: future Sales terminology, KPI, and success-event contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `terminology`
+- `kpis`
+- `successEvents`
+- `runtimeConsumptionAuthorized`
+
+### SocialMediaOperatingProfileContract
+
+Purpose: future Social Media terminology and reporting-language contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `profileId`
+- `terminology`
+- `reportingLanguage`
+- `runtimeConsumptionAuthorized`
+
 ## Producer Boundaries
 
 Dashboard may produce:

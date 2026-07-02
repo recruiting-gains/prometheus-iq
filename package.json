@@ -16,12 +16,14 @@
     "intelligence:architecture:validate": "node scripts/validate-intelligence-architecture.mjs",
     "intelligence:field-learning:harness": "node scripts/verify-field-learning-offline-evidence-harness.mjs",
     "intelligence:explainability:check": "node scripts/verify-recommendation-explainability-engine.mjs",
+    "intelligence:operating-profile:check": "node scripts/verify-operating-profile-engine.mjs",
     "research:validate": "node scripts/validate-research-foundation.mjs",
     "crm:validate": "node scripts/validate-crm-enterprise-foundation.mjs",
     "test:intelligence:route-quality": "node --test tests/route-intelligence-quality-gate.test.mjs",
     "test:intelligence:architecture": "node --test tests/intelligence-architecture.test.mjs",
     "test:intelligence:field-learning": "node --test tests/field-learning-offline-evidence-harness.test.mjs",
     "test:intelligence:explainability": "node --test tests/recommendation-explainability-engine.test.mjs",
+    "test:intelligence:operating-profile": "node --test tests/operating-profile-engine.test.mjs",
     "test:crm": "node --test tests/crm-foundation.test.mjs tests/crm-enterprise-foundation.test.mjs",
     "test:integrations": "node --test tests/founder-communications-contract.test.mjs tests/founder-communications-provider-adapters.test.mjs",
     "test:research": "node --test tests/research-foundation.test.mjs",
@@ -34,7 +36,7 @@
     "verify:authenticated-production": "node scripts/verify-authenticated-production-access.mjs",
     "verify:production-release:local": "node scripts/verify-production-release.mjs --local-only",
     "instagram:verify-token": "node scripts/verify-instagram-business-token.mjs",
-    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run intelligence:route-quality:check && npm run intelligence:architecture:validate && npm run intelligence:field-learning:harness && npm run intelligence:explainability:check && npm run research:validate && npm run crm:validate && npm run test:intelligence:route-quality && npm run test:intelligence:architecture && npm run test:intelligence:field-learning && npm run test:intelligence:explainability && npm run test:crm && npm run test:integrations && npm run test:research && npm run test:social-media && npm run test:website && npm run build"
+    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run intelligence:route-quality:check && npm run intelligence:architecture:validate && npm run intelligence:field-learning:harness && npm run intelligence:explainability:check && npm run intelligence:operating-profile:check && npm run research:validate && npm run crm:validate && npm run test:intelligence:route-quality && npm run test:intelligence:architecture && npm run test:intelligence:field-learning && npm run test:intelligence:explainability && npm run test:intelligence:operating-profile && npm run test:crm && npm run test:integrations && npm run test:research && npm run test:social-media && npm run test:website && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
