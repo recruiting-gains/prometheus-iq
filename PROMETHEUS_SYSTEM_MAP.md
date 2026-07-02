@@ -66,6 +66,8 @@ Areas:
 - Pattern Detection
 - Knowledge Graph Contracts
 - Human Override Contracts
+- Field Evidence Model
+- Field Learning Signal Model
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
 
@@ -77,11 +79,16 @@ Current foundation:
 - `scripts/lib/route-intelligence-quality-gate.mjs`
 - `intelligence/README.md`
 - `intelligence/adaptive-outside-sales-intelligence-engine.md`
+- `intelligence/adaptive-field-learning-loop-foundation.md`
 - `intelligence/subsystem-contracts.md`
 - `intelligence/future-subsystem-handoffs.md`
+- `intelligence/field-learning-loop-handoffs.md`
 - `intelligence/contracts/adaptive-intelligence-contracts.json`
+- `intelligence/contracts/field-learning-loop-contracts.json`
 
 Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
+
+Field Learning Loop rule: completed-visit learning work must extend `intelligence/adaptive-field-learning-loop-foundation.md` and `intelligence/contracts/field-learning-loop-contracts.json`. Do not create a separate field evidence model, duplicate learning signal pipeline, alternate confidence framework, duplicate explanation framework, or unreviewed human override path.
 
 ### 4. Prometheus Infrastructure
 

@@ -2,6 +2,8 @@
 
 This document prepares future handoffs. It does not authorize implementation.
 
+Field Learning Loop specific handoff boundaries are defined in `intelligence/field-learning-loop-handoffs.md`.
+
 ## Dashboard Handoff
 
 Future task:
@@ -117,4 +119,3 @@ Acceptance conditions:
 - Sales artifacts distinguish customer-facing claims from internal hypotheses.
 - Metrics map to CRM or Dashboard evidence contracts.
 - Intelligence treats Sales input as hypothesis until validated.
-

@@ -10,7 +10,7 @@
   "dataGovernanceChanged": false,
   "requiredSourceFallbacks": {
     "productVision": "PRODUCT_VISION.md",
-    "researchFoundation": "research/README.md",
+    "researchFoundation": "RESEARCH_FOUNDATION.md",
     "salesFoundation": "sales/README.md",
     "crmFoundation": "crm/README.md"
   },

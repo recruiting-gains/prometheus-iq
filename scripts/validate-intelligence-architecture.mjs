@@ -13,11 +13,15 @@ const assert = (condition, message) => {
 const requiredFiles = [
   "intelligence/README.md",
   "intelligence/adaptive-outside-sales-intelligence-engine.md",
+  "intelligence/adaptive-field-learning-loop-foundation.md",
   "intelligence/subsystem-contracts.md",
   "intelligence/future-subsystem-handoffs.md",
+  "intelligence/field-learning-loop-handoffs.md",
   "intelligence/contracts/adaptive-intelligence-contracts.json",
+  "intelligence/contracts/field-learning-loop-contracts.json",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
+  "RESEARCH_FOUNDATION.md",
   "research/README.md",
   "sales/README.md",
   "crm/README.md",
@@ -36,11 +40,14 @@ for (const file of requiredFiles) {
 }
 
 const architecture = read("intelligence/adaptive-outside-sales-intelligence-engine.md");
+const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation.md");
 const contractsDoc = read("intelligence/subsystem-contracts.md");
 const handoffs = read("intelligence/future-subsystem-handoffs.md");
+const fieldHandoffs = read("intelligence/field-learning-loop-handoffs.md");
 const readme = read("intelligence/README.md");
 const systemMap = read("PROMETHEUS_SYSTEM_MAP.md");
 const contracts = readJson("intelligence/contracts/adaptive-intelligence-contracts.json");
+const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
 
 const requiredArchitectureSections = [
   "Visit Outcome Learning",
@@ -84,10 +91,97 @@ for (const contractName of requiredContracts) {
   assert(Array.isArray(contracts.contracts?.[contractName]?.requiredFields), `Contract ${contractName} must declare requiredFields`);
 }
 
+const requiredFieldLearningSections = [
+  "Field Evidence Capture",
+  "Evidence Admission",
+  "Learning Signal Normalization",
+  "Confidence Framework",
+  "Explainability Framework",
+  "Human Override",
+  "Dashboard",
+  "CRM",
+  "Research",
+  "Companion",
+  "Sales",
+  "Activation Gate"
+];
+
+for (const section of requiredFieldLearningSections) {
+  assert(fieldLearning.includes(section), `Field Learning Loop foundation missing section: ${section}`);
+}
+
+const requiredEvidenceFields = [
+  "business_visited",
+  "date_time",
+  "gps_confirmation",
+  "decision_maker_reached",
+  "conversation_occurred",
+  "sale_made",
+  "no_decision_maker",
+  "closed_business",
+  "wrong_business",
+  "duplicate",
+  "no_parking",
+  "gatekeeper",
+  "follow_up_needed",
+  "competitor_present",
+  "customer_objections",
+  "notes",
+  "photos_future"
+];
+
+for (const field of requiredEvidenceFields) {
+  assert(fieldContracts.evidenceFields.includes(field), `Field Learning Loop registry missing evidence field ${field}`);
+}
+
+const requiredFieldContracts = [
+  "FieldEvidenceEvent",
+  "FieldEvidenceAdmissionDecision",
+  "FieldLearningSignal",
+  "FieldConfidenceSnapshot",
+  "FieldRecommendationExplanation",
+  "FieldHumanOverride"
+];
+
+for (const contractName of requiredFieldContracts) {
+  assert(contractsDoc.includes(contractName), `Contracts doc missing ${contractName}`);
+  assert(Boolean(fieldContracts.contracts?.[contractName]), `Field Learning Loop registry missing ${contractName}`);
+  assert(Array.isArray(fieldContracts.contracts?.[contractName]?.requiredFields), `Field contract ${contractName} must declare requiredFields`);
+}
+
+const requiredFieldConfidenceFields = [
+  "confidenceBand",
+  "confidenceScore",
+  "evidenceCount",
+  "lastValidationAt",
+  "learningTrend"
+];
+for (const field of requiredFieldConfidenceFields) {
+  assert(fieldContracts.confidenceFields.includes(field), `Field Learning Loop registry missing confidence field ${field}`);
+}
+
+const requiredExplanationQuestions = [
+  "why",
+  "what_evidence",
+  "how_confident",
+  "what_changed",
+  "what_was_learned",
+  "next_rep_behavior"
+];
+for (const question of requiredExplanationQuestions) {
+  assert(fieldContracts.explanationQuestions.includes(question), `Field Learning Loop registry missing explanation question ${question}`);
+}
+
 const requiredHandoffs = ["Dashboard", "CRM", "Research", "Companion", "Data", "Sales"];
 for (const subsystem of requiredHandoffs) {
   assert(handoffs.includes(`${subsystem} Handoff`), `Future handoff missing ${subsystem}`);
   assert(contracts.futureSubsystemHandoffs.includes(subsystem), `Contract registry missing ${subsystem} handoff`);
+}
+
+const requiredFieldHandoffs = ["Dashboard", "CRM", "Research", "Companion", "Sales"];
+for (const subsystem of requiredFieldHandoffs) {
+  assert(fieldHandoffs.includes(`${subsystem} Handoff`), `Field Learning Loop handoff missing ${subsystem}`);
+  assert(fieldContracts.futureSubsystemContracts.includes(subsystem), `Field Learning Loop registry missing ${subsystem} contract`);
 }
 
 const requiredProhibitions = [
@@ -109,9 +203,21 @@ assert(contracts.dashboardRuntimeChanged === false, "Architecture must not decla
 assert(contracts.activePoolChanged === false, "Architecture must not declare Active Pool changes.");
 assert(contracts.dataGovernanceChanged === false, "Architecture must not declare Data governance changes.");
 assert(contracts.capabilityDomains.length >= 15, "Contract registry must cover all 15 requested capability domains.");
+assert(fieldContracts.status === "architecture_only", "Field Learning Loop registry must remain architecture_only.");
+assert(fieldContracts.productionBehaviorChanged === false, "Field Learning Loop must not declare production behavior changes.");
+assert(fieldContracts.scoringChanged === false, "Field Learning Loop must not declare scoring changes.");
+assert(fieldContracts.dashboardRuntimeChanged === false, "Field Learning Loop must not declare Dashboard runtime changes.");
+assert(fieldContracts.activePoolChanged === false, "Field Learning Loop must not declare Active Pool changes.");
+assert(fieldContracts.dataGovernanceChanged === false, "Field Learning Loop must not declare Data governance changes.");
+assert(fieldContracts.infrastructureChanged === false, "Field Learning Loop must not declare Infrastructure changes.");
+assert(fieldContracts.anthonyBetaChanged === false, "Field Learning Loop must not declare Anthony beta changes.");
+assert(fieldContracts.productionLearningActive === false, "Field Learning Loop must not activate production learning.");
+assert(fieldContracts.prohibitions.includes("no_production_learning_activation"), "Field Learning Loop registry must prohibit production learning activation.");
+assert(fieldContracts.requiredActivationGates.includes("human_review_state"), "Field Learning Loop registry must require human review state.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
+assert(systemMap.includes("Field Learning Loop rule"), "System map must include Field Learning Loop duplicate-prevention guidance.");
 
 if (failures.length) {
   console.error("Prometheus Intelligence architecture validation failed:");

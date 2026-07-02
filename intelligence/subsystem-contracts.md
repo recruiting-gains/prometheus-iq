@@ -141,6 +141,136 @@ Required fields:
 - `policyVersion`
 - `determinismKey`
 
+## Field Learning Loop Contracts
+
+These contracts specialize the adaptive intelligence architecture for completed field visits. They remain architecture-only until a future production activation handoff is approved.
+
+### FieldEvidenceEvent
+
+Purpose: preserve one completed-visit evidence record without changing production recommendations.
+
+Required fields:
+
+- `evidenceId`
+- `contractVersion`
+- `sourceSubsystem`
+- `sourceRecordId`
+- `businessRef`
+- `repRef`
+- `visitOccurredAt`
+- `capturedAt`
+- `evidenceFields`
+- `truthLevel`
+- `sensitivity`
+- `reviewState`
+
+Supported evidence fields:
+
+- business visited
+- date/time
+- GPS confirmation
+- decision maker reached
+- conversation occurred
+- sale made
+- no decision maker
+- closed business
+- wrong business
+- duplicate
+- no parking
+- gatekeeper
+- follow-up needed
+- competitor present
+- customer objections
+- notes
+- photos as future evidence
+
+### FieldEvidenceAdmissionDecision
+
+Purpose: document whether a field evidence record is allowed to become a learning signal.
+
+Required fields:
+
+- `decisionId`
+- `evidenceId`
+- `admissionStatus`
+- `admissionReasons`
+- `rejectionReasons`
+- `policyVersion`
+- `reviewRequired`
+- `decidedAt`
+
+### FieldLearningSignal
+
+Purpose: normalize admitted field evidence into deterministic learning signals.
+
+Required fields:
+
+- `signalId`
+- `sourceEvidenceIds`
+- `signalFamily`
+- `businessRef`
+- `territoryRef`
+- `repRef`
+- `measurements`
+- `confidenceWeight`
+- `truthLevel`
+- `learningTrend`
+- `allowedInfluence`
+- `policyVersion`
+
+### FieldConfidenceSnapshot
+
+Purpose: prepare future recommendation confidence metadata.
+
+Required fields:
+
+- `confidenceId`
+- `targetRef`
+- `confidenceBand`
+- `confidenceScore`
+- `evidenceCount`
+- `lastValidationAt`
+- `learningTrend`
+- `supportingEvidenceIds`
+- `limitingFactors`
+- `allowedInfluence`
+- `reviewState`
+- `policyVersion`
+
+### FieldRecommendationExplanation
+
+Purpose: prepare future explanation output for founder and manager review.
+
+Required fields:
+
+- `explanationId`
+- `recommendationRef`
+- `why`
+- `whatEvidence`
+- `howConfident`
+- `whatChanged`
+- `whatWasLearned`
+- `nextRepBehavior`
+- `uncertainties`
+- `reviewState`
+- `policyVersion`
+
+### FieldHumanOverride
+
+Purpose: keep every learned outcome reviewable and controllable by humans.
+
+Required fields:
+
+- `overrideId`
+- `targetRef`
+- `overrideType`
+- `reason`
+- `createdByRole`
+- `createdAt`
+- `expiresAt`
+- `reviewRequired`
+- `auditState`
+
 ## Producer Boundaries
 
 Dashboard may produce:
@@ -197,4 +327,3 @@ Research may consume anonymized learning questions only after Research handoff a
 Companion may consume founder summaries only after Companion handoff approval.
 
 No subsystem may consume these contracts as production behavior until the owning subsystem accepts implementation work.
-

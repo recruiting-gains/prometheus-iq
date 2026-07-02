@@ -1,0 +1,241 @@
+{
+  "version": "adaptive-field-learning-loop-foundation-v1",
+  "status": "architecture_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Define production-safe contracts for future completed-visit evidence, normalized learning signals, confidence metadata, recommendation explanations, and human override review.",
+  "productionBehaviorChanged": false,
+  "scoringChanged": false,
+  "dashboardRuntimeChanged": false,
+  "activePoolChanged": false,
+  "dataGovernanceChanged": false,
+  "infrastructureChanged": false,
+  "anthonyBetaChanged": false,
+  "productionLearningActive": false,
+  "requiredSourceFiles": {
+    "constitution": "PROMETHEUS_CONSTITUTION.md",
+    "masterEngineeringState": "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+    "companyIdentity": "COMPANY_IDENTITY.md",
+    "productVision": "PRODUCT_VISION.md",
+    "researchFoundation": "RESEARCH_FOUNDATION.md",
+    "salesFoundationFallback": "sales/README.md",
+    "crmFoundationFallback": "crm/README.md"
+  },
+  "evidenceFields": [
+    "business_visited",
+    "date_time",
+    "gps_confirmation",
+    "decision_maker_reached",
+    "conversation_occurred",
+    "sale_made",
+    "no_decision_maker",
+    "closed_business",
+    "wrong_business",
+    "duplicate",
+    "no_parking",
+    "gatekeeper",
+    "follow_up_needed",
+    "competitor_present",
+    "customer_objections",
+    "notes",
+    "photos_future"
+  ],
+  "truthLevels": [
+    "verified",
+    "rep_reported",
+    "manager_confirmed",
+    "system_inferred",
+    "estimated",
+    "unknown"
+  ],
+  "learningSignalFamilies": [
+    "visit_completion",
+    "contact_quality",
+    "conversation_quality",
+    "conversion_outcome",
+    "access_barrier",
+    "location_validity",
+    "duplicate_risk",
+    "follow_up_need",
+    "competitor_signal",
+    "objection_signal",
+    "territory_friction",
+    "evidence_quality",
+    "human_review"
+  ],
+  "confidenceFields": [
+    "confidenceBand",
+    "confidenceScore",
+    "evidenceCount",
+    "lastValidationAt",
+    "learningTrend",
+    "supportingEvidenceIds",
+    "limitingFactors",
+    "allowedInfluence",
+    "reviewState"
+  ],
+  "explanationQuestions": [
+    "why",
+    "what_evidence",
+    "how_confident",
+    "what_changed",
+    "what_was_learned",
+    "next_rep_behavior"
+  ],
+  "contracts": {
+    "FieldEvidenceEvent": {
+      "requiredFields": [
+        "evidenceId",
+        "contractVersion",
+        "sourceSubsystem",
+        "sourceRecordId",
+        "businessRef",
+        "repRef",
+        "visitOccurredAt",
+        "capturedAt",
+        "evidenceFields",
+        "truthLevel",
+        "sensitivity",
+        "reviewState"
+      ],
+      "allowedSourceSubsystems": [
+        "Dashboard",
+        "CRM",
+        "Companion"
+      ]
+    },
+    "FieldEvidenceAdmissionDecision": {
+      "requiredFields": [
+        "decisionId",
+        "evidenceId",
+        "admissionStatus",
+        "admissionReasons",
+        "rejectionReasons",
+        "policyVersion",
+        "reviewRequired",
+        "decidedAt"
+      ],
+      "statuses": [
+        "admitted",
+        "admitted_with_review",
+        "rejected",
+        "quarantined",
+        "pending_review"
+      ]
+    },
+    "FieldLearningSignal": {
+      "requiredFields": [
+        "signalId",
+        "sourceEvidenceIds",
+        "signalFamily",
+        "businessRef",
+        "territoryRef",
+        "repRef",
+        "measurements",
+        "confidenceWeight",
+        "truthLevel",
+        "learningTrend",
+        "allowedInfluence",
+        "policyVersion"
+      ]
+    },
+    "FieldConfidenceSnapshot": {
+      "requiredFields": [
+        "confidenceId",
+        "targetRef",
+        "confidenceBand",
+        "confidenceScore",
+        "evidenceCount",
+        "lastValidationAt",
+        "learningTrend",
+        "supportingEvidenceIds",
+        "limitingFactors",
+        "allowedInfluence",
+        "reviewState",
+        "policyVersion"
+      ],
+      "confidenceBands": [
+        "insufficient_evidence",
+        "low",
+        "developing",
+        "medium",
+        "high",
+        "blocked"
+      ],
+      "learningTrends": [
+        "new",
+        "improving",
+        "declining",
+        "stable",
+        "conflicting",
+        "stale",
+        "blocked"
+      ]
+    },
+    "FieldRecommendationExplanation": {
+      "requiredFields": [
+        "explanationId",
+        "recommendationRef",
+        "why",
+        "whatEvidence",
+        "howConfident",
+        "whatChanged",
+        "whatWasLearned",
+        "nextRepBehavior",
+        "uncertainties",
+        "reviewState",
+        "policyVersion"
+      ]
+    },
+    "FieldHumanOverride": {
+      "requiredFields": [
+        "overrideId",
+        "targetRef",
+        "overrideType",
+        "reason",
+        "createdByRole",
+        "createdAt",
+        "expiresAt",
+        "reviewRequired",
+        "auditState"
+      ],
+      "overrideTypes": [
+        "suppress_evidence",
+        "mark_wrong_business",
+        "mark_closed_business",
+        "mark_duplicate_business",
+        "require_follow_up_review",
+        "freeze_learning_influence",
+        "approve_signal_promotion",
+        "annotate_customer_context"
+      ]
+    }
+  },
+  "futureSubsystemContracts": [
+    "Dashboard",
+    "CRM",
+    "Research",
+    "Companion",
+    "Sales"
+  ],
+  "prohibitions": [
+    "no_production_recommendation_changes",
+    "no_dashboard_runtime_changes",
+    "no_active_pool_scoring_changes",
+    "no_anthony_beta_changes",
+    "no_data_modifications",
+    "no_infrastructure_modifications",
+    "no_production_learning_activation",
+    "no_unreviewed_human_override_bypass"
+  ],
+  "requiredActivationGates": [
+    "human_review_state",
+    "admission_audit_trail",
+    "evidence_to_signal_traceability",
+    "confidence_policy_version",
+    "recommendation_explanation_available",
+    "duplicate_and_quarantine_handling",
+    "zero_live_google_verification",
+    "dashboard_compatibility_verification",
+    "route_intelligence_quality_gate_compatibility"
+  ]
+}
