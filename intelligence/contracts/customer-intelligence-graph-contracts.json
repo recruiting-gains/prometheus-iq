@@ -1,0 +1,162 @@
+{
+  "version": "customer-intelligence-graph-v1",
+  "status": "architecture_only",
+  "consumerImplementationActive": false,
+  "productionScoringChanged": false,
+  "productionRecommendationsChanged": false,
+  "dashboardRuntimeChanged": false,
+  "mobileRuntimeChanged": false,
+  "companionRuntimeChanged": false,
+  "crmRuntimeChanged": false,
+  "researchRuntimeChanged": false,
+  "salesRuntimeChanged": false,
+  "infrastructureChanged": false,
+  "nodeTypes": [
+    "Business",
+    "Visit",
+    "Lead",
+    "Outcome",
+    "Rep",
+    "Territory",
+    "Operating Profile",
+    "Customer",
+    "Learning Signal"
+  ],
+  "relationshipTypes": [
+    "Visited",
+    "Recommended",
+    "Converted",
+    "Follow-up",
+    "Nearby",
+    "Similar",
+    "Repeated",
+    "Successful",
+    "Inactive"
+  ],
+  "graphObjectives": [
+    "opportunity_relationships",
+    "territory_relationships",
+    "customer_relationships",
+    "rep_performance_trends",
+    "cross_industry_learning",
+    "confidence_propagation"
+  ],
+  "futureConsumerContracts": [
+    "DashboardCustomerGraphContract",
+    "CRMCustomerGraphContract",
+    "MobileCustomerGraphContract",
+    "CompanionCustomerGraphContract",
+    "ResearchCustomerGraphContract",
+    "SalesCustomerGraphContract"
+  ],
+  "contracts": {
+    "CustomerGraphNode": {
+      "requiredFields": [
+        "nodeId",
+        "nodeType",
+        "customerId",
+        "sourceRefs",
+        "attributes",
+        "reviewState",
+        "sensitivity",
+        "validFrom"
+      ]
+    },
+    "CustomerGraphRelationship": {
+      "requiredFields": [
+        "relationshipId",
+        "relationshipType",
+        "fromNodeId",
+        "toNodeId",
+        "customerId",
+        "sourceEvidenceIds",
+        "confidenceSeed",
+        "reviewState",
+        "validFrom",
+        "validUntil"
+      ]
+    },
+    "CustomerGraphSnapshot": {
+      "requiredFields": [
+        "graphId",
+        "contractVersion",
+        "customerId",
+        "operatingProfileId",
+        "nodes",
+        "relationships",
+        "objectives",
+        "safety"
+      ]
+    },
+    "DashboardCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "runtimeConsumptionAuthorized"
+      ]
+    },
+    "CRMCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "runtimeMutationAuthorized"
+      ]
+    },
+    "MobileCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "mobileRuntimeChanged"
+      ]
+    },
+    "CompanionCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "companionRuntimeChanged"
+      ]
+    },
+    "ResearchCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "runtimeConsumptionAuthorized"
+      ]
+    },
+    "SalesCustomerGraphContract": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "customerId",
+        "allowedNodeTypes",
+        "allowedRelationshipTypes",
+        "runtimeConsumptionAuthorized"
+      ]
+    }
+  },
+  "prohibitions": [
+    "no_production_scoring",
+    "no_production_recommendation_changes",
+    "no_dashboard_changes",
+    "no_mobile_changes",
+    "no_companion_work",
+    "no_consumer_implementation",
+    "no_cross_customer_graph_bleed",
+    "no_confidence_propagation_activation"
+  ]
+}

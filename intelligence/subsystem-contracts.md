@@ -526,6 +526,159 @@ Required fields:
 - `reportingLanguage`
 - `runtimeConsumptionAuthorized`
 
+## Customer Intelligence Graph Contracts
+
+These contracts prepare per-customer intelligence graphs. They do not implement graph consumers or change production scoring, production recommendations, Dashboard behavior, Mobile behavior, Companion behavior, CRM runtime behavior, Research runtime behavior, or Sales runtime behavior.
+
+### CustomerGraphNode
+
+Purpose: represent one customer-owned graph entity.
+
+Required fields:
+
+- `nodeId`
+- `nodeType`
+- `customerId`
+- `sourceRefs`
+- `attributes`
+- `reviewState`
+- `sensitivity`
+- `validFrom`
+
+Supported node types:
+
+- Business
+- Visit
+- Lead
+- Outcome
+- Rep
+- Territory
+- Operating Profile
+- Customer
+- Learning Signal
+
+### CustomerGraphRelationship
+
+Purpose: represent one reviewable relationship between customer-owned nodes.
+
+Required fields:
+
+- `relationshipId`
+- `relationshipType`
+- `fromNodeId`
+- `toNodeId`
+- `customerId`
+- `sourceEvidenceIds`
+- `confidenceSeed`
+- `reviewState`
+- `validFrom`
+- `validUntil`
+
+Supported relationship types:
+
+- Visited
+- Recommended
+- Converted
+- Follow-up
+- Nearby
+- Similar
+- Repeated
+- Successful
+- Inactive
+
+### CustomerGraphSnapshot
+
+Purpose: hold a deterministic architecture-only graph snapshot for one customer and one operating profile context.
+
+Required fields:
+
+- `graphId`
+- `contractVersion`
+- `customerId`
+- `operatingProfileId`
+- `nodes`
+- `relationships`
+- `objectives`
+- `safety`
+
+### DashboardCustomerGraphContract
+
+Purpose: future Dashboard graph inspection contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `runtimeConsumptionAuthorized`
+
+### CRMCustomerGraphContract
+
+Purpose: future CRM graph relationship contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `runtimeMutationAuthorized`
+
+### MobileCustomerGraphContract
+
+Purpose: future Mobile graph context contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `mobileRuntimeChanged`
+
+### CompanionCustomerGraphContract
+
+Purpose: future Companion graph reasoning contract after Founder review.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `companionRuntimeChanged`
+
+### ResearchCustomerGraphContract
+
+Purpose: future Research graph question and cross-industry learning contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `runtimeConsumptionAuthorized`
+
+### SalesCustomerGraphContract
+
+Purpose: future Sales graph trend and opportunity narrative contract.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `customerId`
+- `allowedNodeTypes`
+- `allowedRelationshipTypes`
+- `runtimeConsumptionAuthorized`
+
 ## Producer Boundaries
 
 Dashboard may produce:

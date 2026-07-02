@@ -18,6 +18,8 @@ const requiredFiles = [
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
+  "intelligence/customer-intelligence-graph.mjs",
+  "intelligence/customer-intelligence-graph.md",
   "intelligence/subsystem-contracts.md",
   "intelligence/future-subsystem-handoffs.md",
   "intelligence/field-learning-loop-handoffs.md",
@@ -26,6 +28,7 @@ const requiredFiles = [
   "intelligence/contracts/field-learning-loop-contracts.json",
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
+  "intelligence/contracts/customer-intelligence-graph-contracts.json",
   "intelligence/profiles/operating-profiles.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
@@ -55,6 +58,8 @@ const offlineHarness = read("intelligence/field-learning-offline-evidence-harnes
 const explainabilityEngine = read("intelligence/recommendation-explainability-engine.mjs");
 const operatingProfileEngine = read("intelligence/operating-profile-engine.mjs");
 const fieldEvidenceActivation = read("intelligence/field-evidence-activation-foundation.md");
+const customerIntelligenceGraph = read("intelligence/customer-intelligence-graph.mjs");
+const customerIntelligenceGraphDoc = read("intelligence/customer-intelligence-graph.md");
 const contractsDoc = read("intelligence/subsystem-contracts.md");
 const handoffs = read("intelligence/future-subsystem-handoffs.md");
 const fieldHandoffs = read("intelligence/field-learning-loop-handoffs.md");
@@ -64,6 +69,7 @@ const contracts = readJson("intelligence/contracts/adaptive-intelligence-contrac
 const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
+const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
 const operatingProfiles = readJson("intelligence/profiles/operating-profiles.json");
 const fieldFixtures = readJson("intelligence/fixtures/field-visit-evidence-fixtures.json");
 
@@ -237,6 +243,81 @@ for (const contractName of requiredOperatingProfileConsumerContracts) {
   assert(Boolean(operatingProfileContracts.contracts?.[contractName]), `Operating Profile contract registry missing ${contractName}`);
 }
 
+const requiredCustomerGraphExports = [
+  "loadCustomerIntelligenceGraphContracts",
+  "normalizeCustomerGraphNodeType",
+  "normalizeCustomerGraphRelationshipType",
+  "buildCustomerGraphNode",
+  "buildCustomerGraphRelationship",
+  "buildCustomerGraphSnapshot",
+  "validateCustomerGraphContracts",
+  "validateCustomerGraphSnapshot",
+  "buildCustomerGraphConsumerContract"
+];
+for (const exportName of requiredCustomerGraphExports) {
+  assert(customerIntelligenceGraph.includes(`export function ${exportName}`), `Customer Intelligence Graph missing export ${exportName}`);
+}
+
+const requiredCustomerGraphNodeTypes = [
+  "Business",
+  "Visit",
+  "Lead",
+  "Outcome",
+  "Rep",
+  "Territory",
+  "Operating Profile",
+  "Customer",
+  "Learning Signal"
+];
+for (const nodeType of requiredCustomerGraphNodeTypes) {
+  assert(customerGraphContracts.nodeTypes.includes(nodeType), `Customer Intelligence Graph contracts missing node type ${nodeType}`);
+  assert(customerIntelligenceGraphDoc.includes(nodeType), `Customer Intelligence Graph doc missing node type ${nodeType}`);
+}
+
+const requiredCustomerGraphRelationshipTypes = [
+  "Visited",
+  "Recommended",
+  "Converted",
+  "Follow-up",
+  "Nearby",
+  "Similar",
+  "Repeated",
+  "Successful",
+  "Inactive"
+];
+for (const relationshipType of requiredCustomerGraphRelationshipTypes) {
+  assert(customerGraphContracts.relationshipTypes.includes(relationshipType), `Customer Intelligence Graph contracts missing relationship type ${relationshipType}`);
+  assert(customerIntelligenceGraphDoc.includes(relationshipType), `Customer Intelligence Graph doc missing relationship type ${relationshipType}`);
+}
+
+const requiredCustomerGraphObjectives = [
+  "opportunity_relationships",
+  "territory_relationships",
+  "customer_relationships",
+  "rep_performance_trends",
+  "cross_industry_learning",
+  "confidence_propagation"
+];
+for (const objective of requiredCustomerGraphObjectives) {
+  assert(customerGraphContracts.graphObjectives.includes(objective), `Customer Intelligence Graph contracts missing objective ${objective}`);
+}
+
+const requiredCustomerGraphContracts = [
+  "CustomerGraphNode",
+  "CustomerGraphRelationship",
+  "CustomerGraphSnapshot",
+  "DashboardCustomerGraphContract",
+  "CRMCustomerGraphContract",
+  "MobileCustomerGraphContract",
+  "CompanionCustomerGraphContract",
+  "ResearchCustomerGraphContract",
+  "SalesCustomerGraphContract"
+];
+for (const contractName of requiredCustomerGraphContracts) {
+  assert(contractsDoc.includes(contractName), `Contracts doc missing ${contractName}`);
+  assert(Boolean(customerGraphContracts.contracts?.[contractName]), `Customer Intelligence Graph registry missing ${contractName}`);
+}
+
 const requiredExplainabilityFactorGroups = [
   "location_intelligence",
   "business_intelligence",
@@ -398,6 +479,15 @@ assert(operatingProfiles.infrastructureChanged === false, "Operating Profile reg
 assert(operatingProfileContracts.prohibitions.includes("no_live_recommendation_scoring_changes"), "Operating Profile contracts must prohibit live recommendation scoring changes.");
 assert(fieldEvidenceActivation.includes("Visit -> Outcome -> Evidence -> Learning Signal -> Confidence -> Recommendation"), "Field Evidence Activation foundation must document the normalized outcome model.");
 assert(fieldEvidenceActivation.includes("Dashboard") && fieldEvidenceActivation.includes("CRM") && fieldEvidenceActivation.includes("Companion") && fieldEvidenceActivation.includes("Mobile") && fieldEvidenceActivation.includes("Website") && fieldEvidenceActivation.includes("Research") && fieldEvidenceActivation.includes("Sales") && fieldEvidenceActivation.includes("Social Media"), "Field Evidence Activation foundation must include profile consumer contracts.");
+assert(customerGraphContracts.status === "architecture_only", "Customer Intelligence Graph contracts must remain architecture_only.");
+assert(customerGraphContracts.consumerImplementationActive === false, "Customer Intelligence Graph must not activate consumers.");
+assert(customerGraphContracts.productionScoringChanged === false, "Customer Intelligence Graph must not change production scoring.");
+assert(customerGraphContracts.productionRecommendationsChanged === false, "Customer Intelligence Graph must not change production recommendations.");
+assert(customerGraphContracts.dashboardRuntimeChanged === false, "Customer Intelligence Graph must not change Dashboard runtime.");
+assert(customerGraphContracts.mobileRuntimeChanged === false, "Customer Intelligence Graph must not change Mobile runtime.");
+assert(customerGraphContracts.companionRuntimeChanged === false, "Customer Intelligence Graph must not change Companion runtime.");
+assert(customerGraphContracts.prohibitions.includes("no_cross_customer_graph_bleed"), "Customer Intelligence Graph must prohibit cross-customer graph bleed.");
+assert(customerGraphContracts.prohibitions.includes("no_confidence_propagation_activation"), "Customer Intelligence Graph must prohibit confidence propagation activation.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
@@ -405,6 +495,7 @@ assert(systemMap.includes("Field Learning Loop rule"), "System map must include 
 assert(systemMap.includes("Offline learning validation rule"), "System map must include offline learning duplicate-prevention guidance.");
 assert(systemMap.includes("Recommendation explainability rule"), "System map must include recommendation explainability duplicate-prevention guidance.");
 assert(systemMap.includes("Operating Profile rule"), "System map must include Operating Profile duplicate-prevention guidance.");
+assert(systemMap.includes("Customer Intelligence Graph rule"), "System map must include Customer Intelligence Graph duplicate-prevention guidance.");
 
 if (failures.length) {
   console.error("Prometheus Intelligence architecture validation failed:");

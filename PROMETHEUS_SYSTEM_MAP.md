@@ -72,6 +72,7 @@ Areas:
 - Recommendation Explainability Engine
 - Operating Profile Engine
 - Field Evidence Activation Foundation
+- Customer Intelligence Graph
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
 
@@ -91,12 +92,15 @@ Current foundation:
 - `intelligence/recommendation-explainability-engine.mjs`
 - `intelligence/operating-profile-engine.mjs`
 - `intelligence/field-evidence-activation-foundation.md`
+- `intelligence/customer-intelligence-graph.mjs`
+- `intelligence/customer-intelligence-graph.md`
 - `intelligence/profiles/operating-profiles.json`
 - `intelligence/fixtures/field-visit-evidence-fixtures.json`
 - `intelligence/contracts/adaptive-intelligence-contracts.json`
 - `intelligence/contracts/field-learning-loop-contracts.json`
 - `intelligence/contracts/recommendation-explainability-contracts.json`
 - `intelligence/contracts/operating-profile-contracts.json`
+- `intelligence/contracts/customer-intelligence-graph-contracts.json`
 
 Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
 
@@ -107,6 +111,8 @@ Offline learning validation rule: simulated field evidence, confidence, explanat
 Recommendation explainability rule: explanation work must extend `intelligence/recommendation-explainability-engine.mjs` and `intelligence/contracts/recommendation-explainability-contracts.json`. Do not expose scoring formulas, proprietary weights, or create separate Mobile, Dashboard, or Companion explanation contracts without approved Intelligence handoff.
 
 Operating Profile rule: industry adaptation and field-evidence activation work must extend `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, and `intelligence/contracts/operating-profile-contracts.json`. Do not create a parallel industry-profile engine, duplicate normalized outcome model, production learning activation path, or separate Dashboard/CRM/Companion/Mobile/Website profile contract without approved Intelligence handoff.
+
+Customer Intelligence Graph rule: customer graph work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, or Dashboard/CRM/Mobile/Companion/Research/Sales graph consumer without approved Intelligence handoff.
 
 ### 4. Prometheus Infrastructure
 

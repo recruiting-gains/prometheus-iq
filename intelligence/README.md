@@ -15,10 +15,13 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `recommendation-explainability-engine.mjs`: explanation-only engine that converts recommendation context into natural-language why, confidence, evidence, change, and next-action answers.
 - `operating-profile-engine.mjs`: configuration-driven profile engine that maps industry-specific field outcomes into normalized evidence without changing production scoring, Dashboard runtime behavior, Mobile beta behavior, CRM runtime behavior, Website behavior, Companion behavior, or Infrastructure.
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
+- `customer-intelligence-graph.mjs`: architecture-only graph engine for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal relationships.
+- `customer-intelligence-graph.md`: Customer Intelligence Graph architecture, customer isolation rules, graph objectives, and future consumer boundaries.
 - `contracts/adaptive-intelligence-contracts.json`: machine-readable contract registry for validation and future implementation planning.
 - `contracts/field-learning-loop-contracts.json`: machine-readable Field Learning Loop contract registry for completed-visit evidence, normalized signals, confidence, explainability, and human override review.
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
+- `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, Dashboard, CRM, Mobile, Companion, Research, and Sales contracts.
 - `profiles/operating-profiles.json`: initial General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, and Home Services operating profiles.
 - `fixtures/field-visit-evidence-fixtures.json`: simulated field visit evidence fixtures for regression testing before live beta evidence is admitted.
 
@@ -56,3 +59,5 @@ Future offline learning validation must extend `field-learning-offline-evidence-
 Future recommendation explanation work must extend `recommendation-explainability-engine.mjs` and `contracts/recommendation-explainability-contracts.json`. Do not expose scoring formulas, proprietary weights, or create separate Mobile, Dashboard, or Companion explanation contracts.
 
 Future operating-profile and field-evidence activation work must extend `operating-profile-engine.mjs`, `field-evidence-activation-foundation.md`, `profiles/operating-profiles.json`, and `contracts/operating-profile-contracts.json`. Do not create a separate industry configuration layer, parallel normalized outcome model, duplicate profile-specific Dashboard/CRM/Companion/Mobile/Website contract, or production learning activation path.
+
+Future Customer Intelligence Graph work must extend `customer-intelligence-graph.mjs`, `customer-intelligence-graph.md`, and `contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel customer graph, duplicate relationship vocabulary, cross-customer graph path, active confidence-propagation path, or Dashboard/CRM/Mobile/Companion/Research/Sales graph consumer without approved subsystem handoff.
