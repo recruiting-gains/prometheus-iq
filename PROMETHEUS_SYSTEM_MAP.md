@@ -69,6 +69,7 @@ Areas:
 - Field Evidence Model
 - Field Learning Signal Model
 - Offline Evidence Harness
+- Recommendation Explainability Engine
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
 
@@ -85,15 +86,19 @@ Current foundation:
 - `intelligence/future-subsystem-handoffs.md`
 - `intelligence/field-learning-loop-handoffs.md`
 - `intelligence/field-learning-offline-evidence-harness.mjs`
+- `intelligence/recommendation-explainability-engine.mjs`
 - `intelligence/fixtures/field-visit-evidence-fixtures.json`
 - `intelligence/contracts/adaptive-intelligence-contracts.json`
 - `intelligence/contracts/field-learning-loop-contracts.json`
+- `intelligence/contracts/recommendation-explainability-contracts.json`
 
 Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
 
 Field Learning Loop rule: completed-visit learning work must extend `intelligence/adaptive-field-learning-loop-foundation.md` and `intelligence/contracts/field-learning-loop-contracts.json`. Do not create a separate field evidence model, duplicate learning signal pipeline, alternate confidence framework, duplicate explanation framework, or unreviewed human override path.
 
 Offline learning validation rule: simulated field evidence, confidence, explanation, and human override regression work must extend `intelligence/field-learning-offline-evidence-harness.mjs` and `intelligence/fixtures/field-visit-evidence-fixtures.json`. Do not create a parallel offline learning harness or alternate simulated-evidence regression suite.
+
+Recommendation explainability rule: explanation work must extend `intelligence/recommendation-explainability-engine.mjs` and `intelligence/contracts/recommendation-explainability-contracts.json`. Do not expose scoring formulas, proprietary weights, or create separate Mobile, Dashboard, or Companion explanation contracts without approved Intelligence handoff.
 
 ### 4. Prometheus Infrastructure
 

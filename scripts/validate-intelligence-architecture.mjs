@@ -15,13 +15,16 @@ const requiredFiles = [
   "intelligence/adaptive-outside-sales-intelligence-engine.md",
   "intelligence/adaptive-field-learning-loop-foundation.md",
   "intelligence/field-learning-offline-evidence-harness.mjs",
+  "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/subsystem-contracts.md",
   "intelligence/future-subsystem-handoffs.md",
   "intelligence/field-learning-loop-handoffs.md",
   "intelligence/fixtures/field-visit-evidence-fixtures.json",
   "intelligence/contracts/adaptive-intelligence-contracts.json",
   "intelligence/contracts/field-learning-loop-contracts.json",
+  "intelligence/contracts/recommendation-explainability-contracts.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
+  "scripts/verify-recommendation-explainability-engine.mjs",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
   "RESEARCH_FOUNDATION.md",
@@ -45,6 +48,7 @@ for (const file of requiredFiles) {
 const architecture = read("intelligence/adaptive-outside-sales-intelligence-engine.md");
 const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation.md");
 const offlineHarness = read("intelligence/field-learning-offline-evidence-harness.mjs");
+const explainabilityEngine = read("intelligence/recommendation-explainability-engine.mjs");
 const contractsDoc = read("intelligence/subsystem-contracts.md");
 const handoffs = read("intelligence/future-subsystem-handoffs.md");
 const fieldHandoffs = read("intelligence/field-learning-loop-handoffs.md");
@@ -52,6 +56,7 @@ const readme = read("intelligence/README.md");
 const systemMap = read("PROMETHEUS_SYSTEM_MAP.md");
 const contracts = readJson("intelligence/contracts/adaptive-intelligence-contracts.json");
 const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
+const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const fieldFixtures = readJson("intelligence/fixtures/field-visit-evidence-fixtures.json");
 
 const requiredArchitectureSections = [
@@ -143,6 +148,48 @@ const requiredOfflineHarnessExports = [
 ];
 for (const exportName of requiredOfflineHarnessExports) {
   assert(offlineHarness.includes(`export function ${exportName}`), `Offline evidence harness missing export ${exportName}`);
+}
+
+const requiredExplainabilityExports = [
+  "buildRecommendationExplanationV1",
+  "buildConsumerExplanationContract",
+  "validateRecommendationExplanation",
+  "validateConsumerExplanationContract"
+];
+for (const exportName of requiredExplainabilityExports) {
+  assert(explainabilityEngine.includes(`export function ${exportName}`), `Recommendation Explainability Engine missing export ${exportName}`);
+}
+
+const requiredExplainabilityFactorGroups = [
+  "location_intelligence",
+  "business_intelligence",
+  "historical_intelligence",
+  "route_intelligence",
+  "learning_intelligence"
+];
+for (const group of requiredExplainabilityFactorGroups) {
+  assert(explainabilityContracts.factorGroups.includes(group), `Recommendation Explainability contracts missing factor group ${group}`);
+}
+
+const requiredExplainabilityQuestions = [
+  "why",
+  "how_confident",
+  "what_evidence_supports_it",
+  "what_changed",
+  "what_should_i_do_next"
+];
+for (const question of requiredExplainabilityQuestions) {
+  assert(explainabilityContracts.requiredQuestions.includes(question), `Recommendation Explainability contracts missing question ${question}`);
+}
+
+const requiredExplainabilityConsumerContracts = [
+  "MobileRecommendationExplanation",
+  "DashboardRecommendationExplanation",
+  "CompanionRecommendationExplanation"
+];
+for (const contractName of requiredExplainabilityConsumerContracts) {
+  assert(contractsDoc.includes(contractName), `Contracts doc missing ${contractName}`);
+  assert(Boolean(explainabilityContracts.consumerContracts?.[contractName]), `Recommendation Explainability registry missing ${contractName}`);
 }
 
 const requiredEvidenceFields = [
@@ -251,11 +298,20 @@ assert(fieldContracts.prohibitions.includes("no_production_learning_activation")
 assert(fieldContracts.requiredActivationGates.includes("human_review_state"), "Field Learning Loop registry must require human review state.");
 assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
 assert(fieldFixtures.productionLearningActive === false, "Field visit fixtures must not activate production learning.");
+assert(explainabilityContracts.status === "explanation_layer_only", "Recommendation Explainability registry must remain explanation_layer_only.");
+assert(explainabilityContracts.productionRecommendationChanged === false, "Recommendation Explainability must not declare production recommendation changes.");
+assert(explainabilityContracts.scoringChanged === false, "Recommendation Explainability must not declare scoring changes.");
+assert(explainabilityContracts.dashboardRuntimeChanged === false, "Recommendation Explainability must not declare Dashboard runtime changes.");
+assert(explainabilityContracts.proprietaryWeightsExposed === false, "Recommendation Explainability must not expose proprietary weights.");
+assert(explainabilityContracts.formulasExposed === false, "Recommendation Explainability must not expose formulas.");
+assert(explainabilityContracts.prohibitions.includes("no_formula_disclosure"), "Recommendation Explainability must prohibit formula disclosure.");
+assert(explainabilityContracts.prohibitions.includes("no_weight_disclosure"), "Recommendation Explainability must prohibit weight disclosure.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
 assert(systemMap.includes("Field Learning Loop rule"), "System map must include Field Learning Loop duplicate-prevention guidance.");
 assert(systemMap.includes("Offline learning validation rule"), "System map must include offline learning duplicate-prevention guidance.");
+assert(systemMap.includes("Recommendation explainability rule"), "System map must include recommendation explainability duplicate-prevention guidance.");
 
 if (failures.length) {
   console.error("Prometheus Intelligence architecture validation failed:");

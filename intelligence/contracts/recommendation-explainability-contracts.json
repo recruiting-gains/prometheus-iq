@@ -1,0 +1,112 @@
+{
+  "version": "recommendation-explainability-engine-v1",
+  "status": "explanation_layer_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Define reusable natural-language recommendation explanation contracts for future Mobile, Dashboard, and Companion consumption without changing production recommendations.",
+  "productionBehaviorChanged": false,
+  "productionRecommendationChanged": false,
+  "scoringChanged": false,
+  "dashboardRuntimeChanged": false,
+  "activePoolChanged": false,
+  "dataGovernanceChanged": false,
+  "infrastructureChanged": false,
+  "anthonyBetaChanged": false,
+  "productionLearningActive": false,
+  "proprietaryWeightsExposed": false,
+  "formulasExposed": false,
+  "factorGroups": [
+    "location_intelligence",
+    "business_intelligence",
+    "historical_intelligence",
+    "route_intelligence",
+    "learning_intelligence"
+  ],
+  "requiredQuestions": [
+    "why",
+    "how_confident",
+    "what_evidence_supports_it",
+    "what_changed",
+    "what_should_i_do_next"
+  ],
+  "consumerContracts": {
+    "MobileRecommendationExplanation": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "recommendationRef",
+        "headline",
+        "summary",
+        "factorBullets",
+        "confidenceDisplay",
+        "nextAction",
+        "reviewState"
+      ],
+      "consumer": "Mobile"
+    },
+    "DashboardRecommendationExplanation": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "recommendationRef",
+        "headline",
+        "summary",
+        "factorGroups",
+        "evidenceSummary",
+        "confidenceDisplay",
+        "whatChanged",
+        "nextAction",
+        "reviewState"
+      ],
+      "consumer": "Dashboard"
+    },
+    "CompanionRecommendationExplanation": {
+      "requiredFields": [
+        "contractVersion",
+        "consumer",
+        "recommendationRef",
+        "headline",
+        "summary",
+        "factorGroups",
+        "evidenceSummary",
+        "confidenceDisplay",
+        "whatChanged",
+        "nextAction",
+        "reviewState",
+        "founderReviewNotes"
+      ],
+      "consumer": "Companion"
+    }
+  },
+  "explanationContract": {
+    "requiredFields": [
+      "explanationId",
+      "contractVersion",
+      "recommendationRef",
+      "headline",
+      "summary",
+      "answers",
+      "factorGroups",
+      "evidenceSummary",
+      "confidenceDisplay",
+      "reviewState",
+      "safety"
+    ]
+  },
+  "languageRules": [
+    "natural_conversational_language",
+    "no_internal_scoring_formulas",
+    "no_proprietary_weights",
+    "cite_evidence_without_exposing_sensitive_raw_notes",
+    "preserve_human_override_state",
+    "explicitly_state_when_review_is_required"
+  ],
+  "prohibitions": [
+    "no_production_recommendation_changes",
+    "no_scoring_changes",
+    "no_dashboard_runtime_changes",
+    "no_active_pool_changes",
+    "no_formula_disclosure",
+    "no_weight_disclosure",
+    "no_unreviewed_override_bypass"
+  ]
+}

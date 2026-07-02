@@ -271,6 +271,107 @@ Required fields:
 - `reviewRequired`
 - `auditState`
 
+## Recommendation Explainability Contracts
+
+These contracts prepare natural-language recommendation explanations for future consumers. They do not change scoring, ranking, Dashboard behavior, or production recommendations.
+
+### RecommendationExplanationV1
+
+Purpose: answer why a recommendation exists without exposing internal scoring formulas or proprietary weights.
+
+Required fields:
+
+- `explanationId`
+- `contractVersion`
+- `recommendationRef`
+- `headline`
+- `summary`
+- `answers`
+- `factorGroups`
+- `evidenceSummary`
+- `confidenceDisplay`
+- `reviewState`
+- `safety`
+
+Required answer fields:
+
+- `why`
+- `howConfident`
+- `whatEvidenceSupportsIt`
+- `whatChanged`
+- `whatShouldIDoNext`
+
+Factor groups:
+
+- Location Intelligence
+- Business Intelligence
+- Historical Intelligence
+- Route Intelligence
+- Learning Intelligence
+
+Safety requirements:
+
+- natural conversational language
+- no internal scoring formulas
+- no proprietary weights
+- no production recommendation changes
+- no Dashboard runtime changes
+- no Active Pool changes
+- human override state remains visible
+
+### MobileRecommendationExplanation
+
+Purpose: compact explanation payload for future mobile "Why?" views.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `recommendationRef`
+- `headline`
+- `summary`
+- `factorBullets`
+- `confidenceDisplay`
+- `nextAction`
+- `reviewState`
+
+### DashboardRecommendationExplanation
+
+Purpose: full explanation payload for future Dashboard inspection.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `recommendationRef`
+- `headline`
+- `summary`
+- `factorGroups`
+- `evidenceSummary`
+- `confidenceDisplay`
+- `whatChanged`
+- `nextAction`
+- `reviewState`
+
+### CompanionRecommendationExplanation
+
+Purpose: founder-review explanation payload for future Companion summaries.
+
+Required fields:
+
+- `contractVersion`
+- `consumer`
+- `recommendationRef`
+- `headline`
+- `summary`
+- `factorGroups`
+- `evidenceSummary`
+- `confidenceDisplay`
+- `whatChanged`
+- `nextAction`
+- `reviewState`
+- `founderReviewNotes`
+
 ## Producer Boundaries
 
 Dashboard may produce:
