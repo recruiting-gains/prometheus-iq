@@ -5187,6 +5187,203 @@ Next recommended subsystem:
 
 Prometheus Administration for Saturday field-test execution record and final founder review.
 
+### 2026-07-02: Prometheus Mobile - Nearby Button Bug / Beta Stability Sprint 2
+
+Subsystem: Prometheus Mobile
+
+Task: Nearby Button Bug / Beta Stability Sprint 2
+
+Commit: `bc719323f1c7d2680dd97f43a175a84110c285dd`
+
+Deploy: Not run
+
+Status: Complete
+
+Files changed:
+
+- `index.html`
+- `deploy/cloudflare-pages/index.html`
+- `_headers`
+- `deploy/cloudflare-pages/_headers`
+- `sw.js`
+- `deploy/cloudflare-pages/sw.js`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+
+What changed:
+
+Mobile clarified the Route-screen nearby affordance as a passive proximity badge rather than an action button. The route card now displays non-interactive `Nearby: 2` / `Nearby: none` status while preserving nearby context inside the existing Route card "Why?" details. App/build markers were bumped to `2026-07-01-nearby-badge-passive-v1` and `prometheus-v31-nearby-badge-passive`, CSP hashes and source/deploy PWA parity were updated, and Beta Stability Sprint 2 regression coverage was added for Owner mode and Anthony/Rep mode.
+
+Verification:
+
+- `node --check scripts/verify-dashboard-runtime-workflows.mjs`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed, 43/43.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm test`: passed.
+- Final worktree status: clean.
+
+Remaining blockers:
+
+Production deploy was not run for this Mobile task.
+
+Next recommended subsystem:
+
+Prometheus Mobile for the remaining assigned Beta Stability Sprint 2 fixes unless Administration evidence routes a specific issue elsewhere.
+
+### 2026-07-02: Prometheus Administration - Beta Sprint 2 Field Feedback Command Center
+
+Subsystem: Prometheus Administration
+
+Task: Beta Sprint 2 Field Feedback Command Center
+
+Commit: `b8310ca`
+
+Deploy: Not run. Administration-only command center; no production deploy required.
+
+Status: Complete and committed
+
+Files changed:
+
+- `administration/command-center/beta-sprint-2/*`
+- `administration/registers/documentation-index.json`
+- `administration/registers/release-history.json`
+- `administration/registers/stabilization-issues.json`
+- `administration/registers/test-session-history.json`
+- `scripts/validate-administration-foundation.mjs`
+- `tests/administration-foundation.test.mjs`
+
+What changed:
+
+Administration created a founder-facing Sprint 2 beta feedback command center connected to the existing Administration intake system and Sprint 1 sign-off packet. It tracks issues, evidence, timestamps, screenshot placeholders, severity, status, pass/fail result, subsystem routing, and follow-up decisions.
+
+Sprint 2 issues tracked:
+
+- Slow dashboard loading.
+- Hamza's Barbershop repeat recommendation.
+- Rep radius/ring visibility.
+- Route size greater than six.
+- Nearby button does nothing.
+
+Future subsystem handoffs:
+
+- Prometheus Mobile: slow dashboard loading, rep radius/ring visibility, Nearby button behavior.
+- Prometheus Intelligence Engine: Hamza's Barbershop repeat recommendation and route size greater than six if evidence confirms recommendation/ranking behavior.
+- Prometheus Data: only if Hamza's Barbershop evidence proves a business identity/data-quality defect.
+
+Verification:
+
+- `node scripts/validate-administration-foundation.mjs`: passed.
+- `node --test tests/administration-foundation.test.mjs`: passed.
+- `git diff --check -- administration scripts/validate-administration-foundation.mjs tests/administration-foundation.test.mjs`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+Sprint 2 screenshots, timestamps, pass/fail results, and field evidence are pending. Subsystem handoffs should wait for captured field evidence unless a production-critical defect is already confirmed.
+
+Next recommended subsystem:
+
+Prometheus Mobile for active beta stability fixes after Administration evidence capture.
+
+### 2026-07-02: Prometheus Social Media - Founder Instagram Analytics Reporting View v1
+
+Subsystem: Prometheus Social Media
+
+Task: Founder Instagram Analytics Reporting View v1
+
+Commit: `54d787c`
+
+Deploy: Deployed to Cloudflare Worker `prometheusrouteiq-website`, version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`
+
+Status: Complete
+
+Implementation type: Implementation
+
+Files changed:
+
+- `package.json`
+- `social-media/README.md`
+- `social-media/reporting/README.md`
+- `social-media/reporting/founder-instagram-analytics-reporting-view.js`
+- `tests/founder-instagram-analytics-reporting-view.test.mjs`
+- `tests/meta-instagram-worker-callback.test.mjs`
+- `workers/prometheus-iq-worker.js`
+
+What changed:
+
+Social Media added a read-only Founder Instagram Analytics Reporting View over existing normalized Instagram analytics, Website attribution inputs, and CRM attribution inputs. It added production route `GET /api/social/instagram/report`. The route reuses the verified normalized snapshot path and does not duplicate Instagram API logic. No tokens are exposed, no posting, DMs, comments, scraping, or browser automation were added, and Website/CRM/Companion boundaries were preserved.
+
+Deployment verification:
+
+Production endpoint `https://prometheusrouteiq.com/api/social/instagram/report` returned HTTP 200 with report version `founder-instagram-analytics-reporting-view.v1`, source labels for Prometheus Social Media, Prometheus Website, and Prometheus CRM, safety flags enabled, and token leak check passed.
+
+Verification:
+
+- `npm run test:social-media`: passed, 39/39.
+- `npm run security:check`: passed.
+- `npm run build`: passed with existing Vite warnings.
+- `npm test`: passed.
+- `npx wrangler deploy --config wrangler.prometheusrouteiq-website.jsonc`: passed.
+
+Remaining blockers:
+
+None for Prometheus Social Media.
+
+Next recommended subsystem:
+
+Prometheus Companion, only if it should consume the new read-only executive report route.
+
+### 2026-07-02: Prometheus Companion - Founder Conversational Response Layer v1
+
+Subsystem: Prometheus Companion
+
+Task: Founder Conversational Response Layer v1
+
+Commit: `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`
+
+Deploy: Completed via `./mac-companion/sync-install-verify.sh`; installed Companion runtime updated locally
+
+Status: PASS
+
+Files changed:
+
+- `prometheus-os/executive-command-center.js`
+- `prometheus-os/founder-communications-consumer.js`
+- `prometheus-os/founder-instagram-analytics-consumer.js`
+- `prometheus-os/memory-system.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Companion made Founder Mode the default response style. Instagram, morning brief, calendar, message, engineering, research, sales, website, CRM, and social summaries now use natural executive-assistant language. Default founder responses no longer expose contracts, normalized snapshots, provider internals, API terminology, routing details, or implementation details. Missing data is explained naturally. Developer Mode remains available by explicit request, including "Developer mode" and "Show raw data."
+
+Deployment verification:
+
+- `./mac-companion/sync-install-verify.sh`: passed.
+- Companion verification: PASS 18/18.
+- Source version = Installed version = Runtime version: `20260702T022953Z-e2f14ba29951-86a5196a14a4`.
+- Drift: none detected.
+- Report: `mac-companion/reports/latest-companion-verification-report.md`.
+
+Verification:
+
+- `node --check` on touched Companion files: passed.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:social-media`: passed.
+- `npm run security:check`: passed.
+- `npm run build`: passed.
+- `./mac-companion/sync-install-verify.sh`: passed.
+
+Remaining blockers:
+
+Root `PRODUCT_VISION.md` remains absent in the reported Companion environment; `docs/product-vision.md` remains the fallback product vision source for that lane.
+
+Next recommended subsystem:
+
+Prometheus Mobile for remaining Beta Stability Sprint 2 production-impact fixes.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -5207,6 +5404,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Dashboard Rep-only role/session enforcement fix; reuse the `?pwa=rep` launch path, stored Rep launch context override, Rep `appMode` guard, Founder manifest separation, and Dashboard runtime workflow regression coverage.
 - Do not duplicate the Dashboard mobile pin-drop logging scroll fix; preserve the iOS/PWA-safe modal-body scroll container, safe-area padding, reachable quick logging submit action, automatic scroll-to-counts behavior, and Anthony mobile reachability regression coverage.
 - Do not duplicate the Dashboard Nearby Opportunities runtime behavior fix; preserve visit GPS anchoring, verified-place coordinate fallback, same-coordinate walkable opportunities, Active Pool filtering, runtime debug state, and workflow regression coverage.
+- Do not duplicate the Mobile Nearby Button Bug / Beta Stability Sprint 2 fix; preserve the Route-screen nearby status as a passive non-interactive badge, keep nearby context inside Route card "Why?" details, and retain Owner/Anthony Rep regression coverage.
 - Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
@@ -5215,11 +5413,13 @@ Current duplicate-prevention sources:
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
 - Do not duplicate Founder Executive Operating System v2; reuse Companion executive summaries, read-only Research/Sales/Website/Social/Beta source summaries, Founder Morning Brief expansion, and direct founder command handling.
 - Do not duplicate Founder Morning Brief Live Instagram Analytics Consumption; reuse `prometheus-os/founder-instagram-analytics-consumer.js`, the local Companion backend proxy, and normalized Social Media snapshots/contracts only. Companion must not call Instagram APIs, store tokens, access Meta credentials, or own Social Media normalization.
+- Do not duplicate Founder Conversational Response Layer v1; preserve Founder Mode as the default natural executive-assistant response style, keep raw contracts/provider internals behind explicit Developer Mode, and extend `prometheus-os/executive-command-center.js`, `prometheus-os/founder-communications-consumer.js`, `prometheus-os/founder-instagram-analytics-consumer.js`, and `prometheus-os/memory-system.js` rather than creating a parallel response layer.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
 - Do not duplicate Social Media provider abstraction, campaign normalization, attribution event normalization, or marketing analytics snapshots; reuse `social-media/contracts/social-media-contract.js`, `social-media/providers/social-provider-registry.js`, and `social-media/social-media-analytics-service.js`.
 - Do not duplicate Live Instagram Analytics Consumption v1; reuse `social-media/providers/instagram-business-provider.js` and existing `social-media-marketing-analytics-contract.v1` normalized metrics for account/profile data, `reach`, `profile_views`, `website_clicks`, recent media, content metadata, and content-scoped metrics `content_reach`, `content_views`, `content_likes`, `content_comments`, `content_shares`, `content_saved`, and `content_total_interactions`. Other subsystems must consume normalized Social Media outputs instead of calling Instagram directly.
+- Do not duplicate Founder Instagram Analytics Reporting View v1; reuse `social-media/reporting/founder-instagram-analytics-reporting-view.js`, `GET /api/social/instagram/report`, normalized Instagram analytics, Website attribution inputs, CRM attribution inputs, and the token-safe read-only reporting path.
 - Do not duplicate the Founder Marketing Operating System; reuse `social-media/founder-marketing-operating-system/`, its machine-readable model, campaign brief template, cadence, platform strategy, KPI framework, and attribution planning fields.
 - Do not duplicate Instagram/Meta secret runtime controls; reuse `social-media/infrastructure/instagram-runtime-controls.js` and `social-media/providers/instagram-business-provider.js`.
 - Do not duplicate the Meta Instagram OAuth workflow; reuse `social-media/infrastructure/meta-instagram-oauth-workflow.js`.
@@ -5243,35 +5443,31 @@ Current duplicate-prevention sources:
 - Do not duplicate the Administration beta operations foundation; reuse `administration/README.md`, `administration/architecture.md`, registers, workflows, templates, schema contracts, validator, and tests.
 - Do not duplicate the Administration private beta stabilization intake system; use `administration/registers/stabilization-issues.json` as the unified beta issue source of truth and keep legacy bug/feature registers lightweight.
 - Do not duplicate the Beta Stabilization Sprint 1 sign-off packet; reuse `administration/verification/beta-stabilization-sprint-1/` and keep sign-off pending until field results are recorded.
+- Do not duplicate the Beta Sprint 2 Field Feedback Command Center; reuse `administration/command-center/beta-sprint-2/`, `administration/registers/stabilization-issues.json`, and the existing Administration severity/status/pass-fail/subsystem-routing flow for Sprint 2 evidence.
 - Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
 
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
 
-Saturday field-test execution record, tester verification updates, and final founder review.
+Beta Stability Sprint 2 remaining production-impact fixes and evidence capture.
 
-Primary subsystem: Prometheus Administration.
+Primary subsystem: Prometheus Mobile.
 
 Secondary subsystems:
 
-- Prometheus Infrastructure/Auth, only if authenticated access, session, device, or Cloudflare Access verification requires platform changes
-- Prometheus Dashboard, only if tester sign-off identifies confirmed product defects
-- Prometheus Data, only if Saturday route quality validation identifies failed Active Pool corrections
+- Prometheus Administration for Sprint 2 field evidence, timestamps, screenshots, pass/fail results, and final tester verification records
+- Prometheus Intelligence Engine only if Hamza's Barbershop repeat recommendation or route size greater than six is confirmed as recommendation/ranking behavior
+- Prometheus Data only if Hamza's Barbershop evidence proves a business identity/data-quality defect
+- Prometheus Infrastructure/Auth only if authenticated access, session, device, deployment, or Cloudflare Access verification blocks beta validation
 
 Reason:
 
-Prometheus Administration completed the Beta Stabilization Sprint 1 Verification Readiness + Sign-off Packet Preparation at commit `07eb2f6`. Anthony is not signed off yet because the Saturday, July 4, 2026 second field test has not happened. Administration owns recording the field-test execution, updating tester/device/session verification, capturing pass/fail evidence, and preparing final founder review after the test. During active beta, continue routing bugs through Administration intake, assign confirmed product defects to Dashboard, route access/session problems to Infrastructure/Auth, and preserve production stability with the existing release verification gates.
+Prometheus Mobile completed the Nearby Button Bug / Beta Stability Sprint 2 fix at commit `bc719323f1c7d2680dd97f43a175a84110c285dd`, but the broader Sprint 2 lane still includes dashboard performance, route state synchronization, Hamza repeat recommendation evidence/routing, rep radius visibility, configurable route size greater than six locations, and field validation. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so all new beta observations should be captured there before being routed. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed defects to the owning subsystem.
 
-Known founder-gated task:
+Known completed Instagram analytics lane:
 
-Meta Instagram Cloudflare secret setup and live OAuth authorization verification.
-
-Primary subsystem: Prometheus Infrastructure.
-
-Reason:
-
-Social Media completed Marketing Analytics Architecture v1, Integrations implemented the Meta OAuth connection/token refresh workflow, Infrastructure added the Worker callback route, Infrastructure provisioned/deployed `META_INSTAGRAM_TOKEN_STORE` at commit `243bdbdaa2ea1a461a3e6100d9b659429ea107c8`, Infrastructure deployed the public-domain callback to `prometheusrouteiq.com` at commit `94ee92d32a8b29dc864204466dab75d7b11bd76d`, and Infrastructure added Instagram Business Login token-consumption support at commit `d4a513c60bbac54adeb281b97a17c7fcfe7da636`. The remaining dependency is founder-gated secret configuration: set Cloudflare Worker secret `INSTAGRAM_ACCESS_TOKEN` via `npx wrangler secret put INSTAGRAM_ACCESS_TOKEN --config wrangler.prometheusrouteiq-website.jsonc`, then verify locally with `npm run instagram:verify-token` using a non-logged shell prompt/export flow. Do not paste the token into chat, source, logs, URLs, or commits. After Cruz completes the secret setup and token verification, Prometheus Infrastructure owns live status/callback verification, then Prometheus Social Media owns live analytics consumption verification. Do not implement scraping, password storage, frontend secrets, live posting, DMs, comment automation, or non-Instagram providers.
+Prometheus Social Media completed the Founder Instagram Analytics Reporting View v1 at commit `54d787c` and deployed read-only endpoint `https://prometheusrouteiq.com/api/social/instagram/report` to Cloudflare Worker `prometheusrouteiq-website` version `aa9472c2-f7b3-43f9-82f6-845d86ed1e4d`. Prometheus Companion completed Founder Conversational Response Layer v1 at commit `e2f14ba299519b79263b17c0d9b80a114f9aa4e5`, so founder-facing Instagram/social summaries should stay natural by default and expose raw implementation details only in explicit Developer Mode.
 
 Known non-autonomous pending task:
 
