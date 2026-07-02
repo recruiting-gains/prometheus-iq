@@ -6565,6 +6565,61 @@ Next recommended subsystem:
 
 Prometheus Mobile for the next operating profile consumer handoff. Companion profile-consumer work should wait until Founder acceptance clears active Companion visual review.
 
+### 2026-07-02: Prometheus Mobile - Operating Profile Consumer v1
+
+Subsystem: Prometheus Mobile
+
+Task: Operating Profile Consumer v1
+
+Commit: `a7ee9067ff19bcfdfe9405c88bfba6e4188fc873`
+
+Deploy: Deployed to Cloudflare Worker `prometheus-iq`
+
+Worker version: `204d284b-80c7-4556-afaf-a174d62bec0e`
+
+Status: Complete and deployed. Production verification is a partial pass because authenticated production route/header and browser startup verification remain blocked by missing Access session/CDP.
+
+Files changed:
+
+- `_headers`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+- `deploy/cloudflare-pages/_headers`
+- `deploy/cloudflare-pages/index.html`
+- `deploy/cloudflare-pages/sw.js`
+- `index.html`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `sw.js`
+
+Profile contract status:
+
+- Operating Profile contracts consumed: PASS.
+- Fitness default preserved: PASS.
+- Example profiles validated: Fitness, General Outside Sales, Roofing, Security, and Medical.
+
+Production verification:
+
+Passed deployment parity, Worker version consistency, Cloudflare Access protection, and release gates. Authenticated production route/header and browser startup verification remain blocked by missing Access session/CDP.
+
+Verification:
+
+- `npm run security:check`: passed.
+- `npm run intelligence:operating-profile:check`: passed.
+- `npm run verify:zero-google-api`: passed.
+- `npm run dashboard:runtime-pool:check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed.
+- `npm run intelligence:route-quality:check`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `npm run verify:production-release:local -- --skip-existing-gates`: passed.
+- `npm run verify:production-release -- --expected-worker-version 204d284b-80c7-4556-afaf-a174d62bec0e`: partial pass; authenticated checks blocked.
+
+Remaining blockers:
+
+Authenticated production route/header verification requires `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or authenticated CDP. Production browser runtime startup verification requires authenticated CDP. Existing uncommitted Companion/Prometheus OS visual-review changes remain unstaged and untouched.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure/Auth for authenticated production verification only, or continue non-Companion profile consumers if explicitly approved. Companion profile-consumer work should wait until Founder acceptance clears active Companion visual review.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -6589,6 +6644,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Mobile Beta Stability Sprint 2 Remaining Fixes + Deploy; reuse commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, the updated Dashboard/PWA parity files, workflow regression coverage, route-intelligence quality report update, and Cloudflare Worker deploy `79aa78e2-5556-44f7-9469-2f98c521d658` for dashboard performance, route state synchronization, rep radius/ring visibility, route generation greater than six businesses, and Hamza evidence routing.
 - Do not duplicate Mobile Beta Stability Sprint 2 Final UX Fixes; reuse commit `46b894f974dae63fcfd054521fbddb381b824496`, Cloudflare Worker version `c34e0ba3-a89f-4b42-a2ba-45b0288329cb`, Owner/Rep radius permission model, Active Pool ring visibility messaging, 53/53 Dashboard workflow coverage, and the existing source/deploy PWA parity files.
 - Do not duplicate Mobile Beta Route Controls and Events Expansion; reuse commit `3902c466713625a5dae256446643c9d393d0fa43`, Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`, nearby/radius/ring explanation behavior, morning/evening route options, Eventbrite expansion, 15-location route generation, and the existing source/deploy PWA parity files.
+- Do not duplicate Mobile Operating Profile Consumer v1; reuse commit `a7ee9067ff19bcfdfe9405c88bfba6e4188fc873`, Cloudflare Worker version `204d284b-80c7-4556-afaf-a174d62bec0e`, the mobile/Dashboard PWA consumption of operating profile contracts, preserved Fitness default, validated Fitness / General Outside Sales / Roofing / Security / Medical profiles, and existing Dashboard runtime workflow/profile gates.
 - Do not duplicate the Data residential-house override/quarantine workflow; reuse `runtime-governance-overrides.json`, the residential-house Place ID/address failures, and the existing segmentation/governance gates.
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
