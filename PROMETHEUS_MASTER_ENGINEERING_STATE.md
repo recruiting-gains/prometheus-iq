@@ -5734,6 +5734,70 @@ Next recommended subsystem:
 
 Prometheus Infrastructure/Auth for authenticated production verification of Worker `e2e5e155-a4fa-44a4-bf13-6febc8242488`; then Prometheus Dashboard only after an explicit future evidence-producer handoff is approved.
 
+### 2026-07-02: Prometheus Intelligence Engine - Recommendation Explainability Engine v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Recommendation Explainability Engine v1
+
+Commit: `ce3b556cc7361ddbe0c140321401014c61cdfa6c`
+
+Handoff supplied commit: `ce3b556d0b2e6c05e8e6c7e82e5f5d7f5b29a90a` did not resolve locally; Overwatch recorded the verified repository commit above.
+
+Deploy: Deployed via `npx wrangler deploy`
+
+Worker version: `6fdeed04-a05e-434f-8591-ee531cfdaf98`
+
+Status: Complete and deployed. Authenticated production route/header and JavaScript runtime startup verification remain blocked by missing Access cookie or CDP endpoint.
+
+Implementation type: Explanation-only Intelligence layer
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `intelligence/README.md`
+- `intelligence/contracts/recommendation-explainability-contracts.json`
+- `intelligence/recommendation-explainability-engine.mjs`
+- `intelligence/subsystem-contracts.md`
+- `package.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-recommendation-explainability-engine.mjs`
+- `tests/recommendation-explainability-engine.test.mjs`
+
+Explanation contracts created:
+
+- `RecommendationExplanationV1`
+- `MobileRecommendationExplanation`
+- `DashboardRecommendationExplanation`
+- `CompanionRecommendationExplanation`
+
+What changed:
+
+Intelligence Engine built an explanation-only layer that generates natural-language recommendation explanations answering why, confidence, evidence, what changed, and next action. It added Location, Business, Historical, Route, and Learning Intelligence factor groups. Safeguards prevent scoring formula or proprietary weight disclosure. No production recommendation logic, Dashboard behavior, Active Pool scoring, or route scoring changed.
+
+Production verification:
+
+Passed existing security gate, active runtime pool gate, Dashboard runtime workflows gate, zero live Google API gate, deployed artifact/build parity, Wrangler deployment/version consistency, Cloudflare Access protection, and local production release verification. Authenticated production route/header verification and authenticated JavaScript/runtime startup verification remain blocked because no `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp` endpoint was available.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+- `npm run intelligence:explainability:check`: passed.
+- `npm run test:intelligence:explainability`: passed.
+- `npm run verify:production-release -- --expected-worker-version 6fdeed04-a05e-434f-8591-ee531cfdaf98`: partially blocked by missing auth/CDP.
+- `npm run verify:production-release:local`: passed.
+
+Remaining blockers:
+
+Authenticated production browser verification still requires Cloudflare Access credentials or a CDP browser endpoint.
+
+Next recommended subsystem:
+
+Prometheus Dashboard, to design the future "Why?" consumer surface only after explicit handoff approval.
+
 ## Duplicate Prevention Register
 
 Current duplicate-prevention sources:
@@ -5790,6 +5854,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.
 - Do not duplicate Adaptive Field Learning Loop Foundation v1; reuse `intelligence/adaptive-field-learning-loop-foundation.md`, `intelligence/contracts/field-learning-loop-contracts.json`, `intelligence/field-learning-loop-handoffs.md`, updated `intelligence/subsystem-contracts.md`, and the Intelligence validation/test gates for completed-visit evidence capture, evidence admission, learning signals, confidence snapshots, recommendation explanations, and human override review.
 - Do not duplicate Adaptive Field Learning Offline Evidence Harness v1; reuse `intelligence/field-learning-offline-evidence-harness.mjs`, `intelligence/fixtures/field-visit-evidence-fixtures.json`, `scripts/verify-field-learning-offline-evidence-harness.mjs`, `tests/field-learning-offline-evidence-harness.test.mjs`, and the existing no-production-change safety flags for simulated evidence ingestion, learning signals, confidence snapshots, explanations, and human override enforcement.
+- Do not duplicate Recommendation Explainability Engine v1; reuse `intelligence/recommendation-explainability-engine.mjs`, `intelligence/contracts/recommendation-explainability-contracts.json`, `scripts/verify-recommendation-explainability-engine.mjs`, `tests/recommendation-explainability-engine.test.mjs`, and the no-formula/no-weight-disclosure safeguards for Mobile, Dashboard, and Companion explanation consumers.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
@@ -5857,7 +5922,7 @@ Secondary subsystems:
 
 Reason:
 
-Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, finalized Sprint 2 UX fixes at commit `46b894f974dae63fcfd054521fbddb381b824496`, then completed Beta Route Controls and Events Expansion at commit `3902c466713625a5dae256446643c9d393d0fa43` and deployed Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, then completed Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb` and deployed Worker version `e2e5e155-a4fa-44a4-bf13-6febc8242488`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
+Prometheus Mobile completed the remaining Beta Stability Sprint 2 implementation and deployment lane at commit `3a60de29509f4986e5dfb4790e76eab2e88e0784`, finalized Sprint 2 UX fixes at commit `46b894f974dae63fcfd054521fbddb381b824496`, then completed Beta Route Controls and Events Expansion at commit `3902c466713625a5dae256446643c9d393d0fa43` and deployed Cloudflare Worker version `02f4635b-0e36-46d9-ad84-8c399338e33b`. Prometheus Intelligence Engine completed Adaptive Field Learning Loop Foundation v1 at commit `2ea6ec621f986198d73f65b1c6fe2fa616d56b88`, Adaptive Field Learning Offline Evidence Harness v1 at commit `58205491b378271816723a7f3ce99d28e9f8efeb`, and Recommendation Explainability Engine v1 at commit `ce3b556cc7361ddbe0c140321401014c61cdfa6c`, with latest reported Intelligence Worker version `6fdeed04-a05e-434f-8591-ee531cfdaf98`. Local/release gates and Cloudflare Access protection passed for the reported deployments, but authenticated production runtime/header and browser checks remain blocked without `PROMETHEUS_ACCESS_COOKIE`, `CF_AUTHORIZATION` / `CF_APPSESSION`, or `--cdp http://127.0.0.1:<port>`. Administration completed the Beta Sprint 2 Field Feedback Command Center at commit `b8310ca`, so post-deploy field evidence and tester sign-off should continue to be captured there. During active beta, protect production stability, avoid unrelated feature expansion, and assign only confirmed regressions to the owning subsystem.
 
 Known completed Instagram analytics lane:
 
