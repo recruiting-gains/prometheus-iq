@@ -35,6 +35,7 @@ npm run verify:production-release:local
 
 - The full gate reuses the existing local security, runtime-pool, and zero-live-Google checks, then verifies Wrangler deployment metadata, Cloudflare Access protection, authenticated production headers/assets, build marker, service worker version, active runtime pool, PWA manifest, browser startup health, and production console/network health.
 - For authenticated production checks, provide either `--cdp http://127.0.0.1:<port>` for an already-authenticated Chrome session or a private `PROMETHEUS_ACCESS_COOKIE`/`CF_AUTHORIZATION` + `CF_APPSESSION` environment value. Do not commit or print those values.
+- Use `docs/authenticated-production-verification-access.md` and `npm run verify:authenticated-production` as the standard repeatable Cloudflare Access verification entry point. Do not pass Access cookies on the command line.
 - Confirm the Cloudflare deployment package matches the approved local source.
 - When `/api/*` routes are part of the release, deploy through the root Worker config with `npx wrangler deploy --keep-vars` so `workers/prometheus-iq-worker.js` and the `ASSETS` binding are released together.
 - Confirm the live URL serves the same approved dashboard.

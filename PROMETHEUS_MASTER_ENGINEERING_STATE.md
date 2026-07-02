@@ -5569,6 +5569,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Adaptive Field Learning Loop Foundation v1; reuse `intelligence/adaptive-field-learning-loop-foundation.md`, `intelligence/contracts/field-learning-loop-contracts.json`, `intelligence/field-learning-loop-handoffs.md`, updated `intelligence/subsystem-contracts.md`, and the Intelligence validation/test gates for completed-visit evidence capture, evidence admission, learning signals, confidence snapshots, recommendation explanations, and human override review.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
+- Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
@@ -5578,6 +5579,43 @@ Current duplicate-prevention sources:
 - Do not duplicate the Beta Stabilization Sprint 1 sign-off packet; reuse `administration/verification/beta-stabilization-sprint-1/` and keep sign-off pending until field results are recorded.
 - Do not duplicate the Beta Sprint 2 Field Feedback Command Center; reuse `administration/command-center/beta-sprint-2/`, `administration/registers/stabilization-issues.json`, and the existing Administration severity/status/pass-fail/subsystem-routing flow for Sprint 2 evidence.
 - Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
+
+### 2026-07-01: Prometheus Infrastructure/Auth - Authenticated Production Verification Access v1
+
+Task:
+Authenticated Production Verification Access v1.
+
+Status:
+Complete.
+
+Files changed:
+
+- `scripts/verify-authenticated-production-access.mjs`
+- `package.json`
+- `docs/authenticated-production-verification-access.md`
+- `docs/prometheus-release-checklist.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Added a dedicated authenticated production verification wrapper that delegates to the existing production release verifier instead of duplicating verification logic.
+- Standardized the approved Cloudflare Access verification methods: authenticated localhost CDP session, `PROMETHEUS_PRODUCTION_CDP`, `PROMETHEUS_ACCESS_COOKIE`, or `CF_AUTHORIZATION` / `CF_APPSESSION`.
+- Rejected command-line `--auth-cookie` usage in the new wrapper to keep session material out of shell history and process arguments.
+- Documented the repeatable CDP workflow, environment-only cookie fallback, supported protected deployments, security rules, and expected commands.
+- Updated the release checklist to make `npm run verify:authenticated-production` the standard Access-protected release gate entry point.
+
+Security impact:
+
+No production security was weakened. Cloudflare Access remains required for protected routes. No credentials, tokens, cookies, OTPs, or secret values were committed.
+
+Verification:
+
+- Wrapper preflight supports redacted dry-run output.
+- Existing production verifier remains authoritative for Access protection, authenticated headers/routes, Dashboard/Mobile runtime, Intelligence route initialization, PWA behavior, CSP/security headers, cache behavior, console/runtime/network health, and unintended Google API failure detection.
+
+Remaining blockers:
+
+None for the repeatable method. Each future authenticated production verification still requires a live approved Cloudflare Access session through CDP or environment-only session cookies at run time.
 
 ## Next Recommended Engineering Task
 
