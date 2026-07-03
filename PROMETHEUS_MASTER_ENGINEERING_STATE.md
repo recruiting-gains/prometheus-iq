@@ -7438,6 +7438,7 @@ What changed:
 - Verified Zero Trust account session settings and confirmed MFA methods are currently off.
 - Verified Cloudflare zone `prometheusrouteiq.com` on Free Website plan with Cloudflare managed free WAF and DDoS rulesets present.
 - Added Cloudflare custom WAF rule `Prometheus Aegis public API method guard` to block unsafe HTTP methods on public `/api/` paths while preserving `GET`, `POST`, `OPTIONS`, and `HEAD`.
+- Verified the Cloudflare `Rate limiting rules` tab showed no existing zone-level rate-limit rules for `prometheusrouteiq.com`; Worker/KV Aegis rate limiting remains active.
 - Verified live public website HTTP `200`, protected private Worker Cloudflare Access HTTP `302`, WAF-blocked unsafe API method HTTP `403`, allowed API GET reaching Worker with Aegis headers, and Instagram OAuth status route HTTP `200` with KV rate-limit/no-store/security headers.
 
 Security impact:

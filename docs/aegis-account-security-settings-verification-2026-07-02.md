@@ -109,6 +109,7 @@ Purpose:
 
 Rate limiting status:
 
+- Cloudflare dashboard `Rate limiting rules` tab showed no existing results for `prometheusrouteiq.com`.
 - Cloudflare rate-limiting rule creation was visible in the dashboard menu, but API entrypoint reads for `http_ratelimit` returned authorization errors from the available automation token.
 - Volume-based route limiting remains enforced by existing Worker/KV Aegis controls through `AEGIS_RATE_LIMITS`.
 - Account-level Cloudflare rate-volume rules should be revisited with a token or dashboard flow that has explicit Zone WAF/rate-limit write permission.
