@@ -1271,7 +1271,7 @@ body.developer-mode .voice-debug,
     0 0 120px rgba(71, 234, 255, 0.14),
     inset 0 0 70px rgba(71, 234, 255, 0.2);
   text-align: center;
-  transform: translate(-50%, -50%);
+  transform: translate(calc(-50% - 8vw), calc(-50% - 12vh));
   animation: corePulse 2.6s ease-in-out infinite;
 }
 
@@ -1770,8 +1770,9 @@ body[data-voice="speaking"] .prometheus-core {
 }
 
 #holoCanvas {
-  position: fixed;
+  position: absolute;
   inset: 0;
+  z-index: 0;
   width: 100vw;
   height: 100vh;
   background: #000;
@@ -1813,4 +1814,406 @@ body.developer-mode .voice-debug[data-kind="error"] {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+/* Companion Final Signal Identity v1 */
+.signal-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.signal-aperture {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 50;
+  width: clamp(160px, 16vw, 240px);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border: clamp(8px, 1vw, 15px) solid rgba(83, 255, 194, 0.9);
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, #000 0%, #000 46%, rgba(7, 24, 20, 0.98) 55%, rgba(38, 255, 176, 0.22) 62%, transparent 76%),
+    conic-gradient(from 23deg, rgba(54, 255, 190, 0.0), rgba(76, 255, 195, 0.46), rgba(255, 164, 54, 0.22), rgba(54, 255, 190, 0.0) 72%);
+  box-shadow:
+    0 0 64px rgba(71, 255, 188, 0.52),
+    0 0 150px rgba(71, 255, 188, 0.28),
+    0 0 210px rgba(255, 144, 35, 0.1);
+  opacity: 1;
+  transform: translate(calc(-50% - 23vw), calc(-50% - 14vh));
+  animation: signalApertureBreathe 6.5s ease-in-out infinite;
+}
+
+.signal-aperture::before,
+.signal-aperture::after {
+  position: absolute;
+  inset: -34%;
+  border-radius: 50%;
+  pointer-events: none;
+  content: "";
+}
+
+.signal-aperture::before {
+  background:
+    radial-gradient(circle, transparent 0%, transparent 33%, rgba(69, 255, 190, 0.2) 34%, transparent 37%),
+    repeating-conic-gradient(from 18deg, rgba(103, 255, 208, 0.0) 0deg, rgba(103, 255, 208, 0.0) 9deg, rgba(103, 255, 208, 0.18) 10deg, rgba(103, 255, 208, 0.18) 11deg, rgba(255, 171, 67, 0.14) 14deg, rgba(255, 171, 67, 0.14) 15deg, rgba(103, 255, 208, 0.0) 18deg, rgba(103, 255, 208, 0.0) 26deg);
+  filter: blur(0.7px);
+  opacity: 0.52;
+  animation: signalApertureOrbit 28s linear infinite;
+}
+
+.signal-aperture::after {
+  inset: -70%;
+  background:
+    radial-gradient(circle, rgba(91, 255, 200, 0.18) 0, rgba(91, 255, 200, 0.18) 1px, transparent 2px),
+    radial-gradient(circle at 42% 38%, rgba(255, 177, 73, 0.22), transparent 18%),
+    radial-gradient(circle at 64% 58%, rgba(80, 255, 194, 0.25), transparent 20%);
+  background-size: 23px 23px, 100% 100%, 100% 100%;
+  filter: blur(0.2px);
+  opacity: 0.5;
+  animation: signalParticleDrift 18s ease-in-out infinite;
+}
+
+.signal-labels span {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: inline-flex;
+  width: var(--w);
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(142, 255, 222, 0.34);
+  border-radius: 2px;
+  color: rgba(228, 255, 247, 0.86);
+  background:
+    linear-gradient(90deg, rgba(5, 18, 17, 0.0), rgba(14, 35, 31, 0.34), rgba(5, 18, 17, 0.0)),
+    linear-gradient(180deg, rgba(255, 172, 67, 0.08), rgba(74, 255, 190, 0.055));
+  box-shadow:
+    0 0 18px rgba(77, 255, 194, 0.14),
+    inset 0 0 12px rgba(255, 176, 66, 0.04);
+  font-size: clamp(0.44rem, 0.62vw, 0.58rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(89, 255, 202, 0.36);
+  transform: translate(-50%, -50%) perspective(420px) rotateX(2deg) rotateZ(var(--tilt, -3deg));
+  animation: signalLabelDrift 8s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.signal-labels span::before {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: min(18vw, 210px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(93, 255, 199, 0.0), rgba(93, 255, 199, 0.2));
+  content: "";
+  opacity: 0.82;
+  transform: translateY(-50%);
+}
+
+.signal-labels span::after {
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  width: 5px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(101, 255, 201, 0.76);
+  box-shadow: 0 0 18px rgba(88, 255, 197, 0.52);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.signal-labels span:nth-child(2n) {
+  --tilt: 3deg;
+  border-color: rgba(255, 184, 82, 0.2);
+  color: rgba(255, 226, 185, 0.84);
+}
+
+.signal-labels span:nth-child(2n)::before {
+  background: linear-gradient(90deg, rgba(255, 179, 75, 0.0), rgba(255, 179, 75, 0.19));
+}
+
+.signal-labels span:nth-child(2n)::after {
+  background: rgba(255, 179, 75, 0.72);
+  box-shadow: 0 0 18px rgba(255, 159, 48, 0.44);
+}
+
+body[data-voice="speaking"] .signal-labels {
+  opacity: 0.94;
+}
+
+body[data-voice="speaking"] .signal-aperture {
+  opacity: 1;
+  box-shadow:
+    0 0 70px rgba(71, 255, 188, 0.5),
+    0 0 170px rgba(71, 255, 188, 0.28),
+    0 0 220px rgba(255, 144, 35, 0.1);
+}
+
+body[data-voice="speaking"] .signal-labels span {
+  color: rgba(230, 255, 248, 0.86);
+  border-color: rgba(101, 255, 202, 0.34);
+  box-shadow:
+    0 0 22px rgba(77, 255, 194, 0.14),
+    inset 0 0 14px rgba(77, 255, 194, 0.08);
+}
+
+@keyframes signalLabelDrift {
+  50% {
+    opacity: 0.88;
+    transform: translate(calc(-50% + 4px), calc(-50% - 5px)) perspective(420px) rotateX(3deg) rotateZ(var(--tilt, -3deg));
+  }
+}
+
+@keyframes signalApertureBreathe {
+  50% {
+    opacity: 1;
+    transform: translate(calc(-50% - 23vw), calc(-50% - 14vh)) scale(1.018);
+  }
+}
+
+@keyframes signalApertureOrbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes signalParticleDrift {
+  50% {
+    opacity: 0.72;
+    transform: scale(1.035) rotate(-4deg);
+  }
+}
+
+@media (max-width: 760px) {
+  .signal-labels {
+    opacity: 0.42;
+  }
+
+  .signal-aperture {
+    width: min(70vw, 270px);
+  }
+
+  .signal-labels span {
+    width: calc(var(--w) * 0.72);
+    height: 15px;
+    font-size: 0.42rem;
+  }
+
+  .signal-labels span::before {
+    width: 74px;
+  }
+}
+
+/* Living Intelligence Constellation v1 */
+.signal-aperture {
+  display: none;
+}
+
+.signal-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.signal-labels span {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  display: inline-flex;
+  width: var(--w);
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(135, 255, 219, 0.0);
+  border-radius: 999px;
+  color: rgba(232, 255, 249, 0);
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(0.46rem, 0.62vw, 0.58rem);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition:
+    opacity 420ms ease,
+    color 420ms ease,
+    border-color 420ms ease,
+    background 420ms ease,
+    box-shadow 420ms ease,
+    transform 420ms ease;
+  animation: constellationLabelFloat 9s ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.signal-labels span::before {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 8px);
+  width: min(18vw, 210px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(91, 255, 199, 0), rgba(91, 255, 199, 0.42));
+  content: "";
+  opacity: 0;
+  transform: translateY(-50%) scaleX(0.2);
+  transform-origin: right center;
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+.signal-labels span::after {
+  position: absolute;
+  top: 50%;
+  left: -13px;
+  width: 5px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(94, 255, 199, 0.94);
+  box-shadow:
+    0 0 16px rgba(94, 255, 199, 0.64),
+    0 0 34px rgba(94, 255, 199, 0.24);
+  content: "";
+  opacity: 0;
+  transform: translateY(-50%) scale(0.6);
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+body[data-active-node="instagram"] .signal-labels [data-node="instagram"],
+body[data-active-node="website"] .signal-labels [data-node="website"],
+body[data-active-node="crm"] .signal-labels [data-node="crm"],
+body[data-active-node="overwatch"] .signal-labels [data-node="overwatch"],
+body[data-active-node="companion"] .signal-labels [data-node="companion"],
+body[data-active-node="prometheus-iq"] .signal-labels [data-node="prometheus-iq"],
+body[data-active-node="mobile"] .signal-labels [data-node="mobile"],
+body[data-active-node="research"] .signal-labels [data-node="research"],
+body[data-active-node="infrastructure"] .signal-labels [data-node="infrastructure"],
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"],
+body[data-active-node="messages"] .signal-labels [data-node="messages"],
+body[data-active-node="memory"] .signal-labels [data-node="memory"],
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"] {
+  border-color: rgba(139, 255, 223, 0.42);
+  color: rgba(232, 255, 249, 0.86);
+  background:
+    linear-gradient(90deg, rgba(3, 16, 15, 0), rgba(10, 32, 28, 0.42), rgba(3, 16, 15, 0)),
+    radial-gradient(circle at 14% 50%, rgba(97, 255, 205, 0.18), transparent 38%);
+  box-shadow:
+    0 0 22px rgba(72, 255, 194, 0.16),
+    inset 0 0 14px rgba(72, 255, 194, 0.06);
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+body[data-active-node] .signal-labels span::before,
+body[data-active-node] .signal-labels span::after {
+  opacity: 0;
+}
+
+body[data-active-node="instagram"] .signal-labels [data-node="instagram"]::before,
+body[data-active-node="website"] .signal-labels [data-node="website"]::before,
+body[data-active-node="crm"] .signal-labels [data-node="crm"]::before,
+body[data-active-node="overwatch"] .signal-labels [data-node="overwatch"]::before,
+body[data-active-node="companion"] .signal-labels [data-node="companion"]::before,
+body[data-active-node="prometheus-iq"] .signal-labels [data-node="prometheus-iq"]::before,
+body[data-active-node="mobile"] .signal-labels [data-node="mobile"]::before,
+body[data-active-node="research"] .signal-labels [data-node="research"]::before,
+body[data-active-node="infrastructure"] .signal-labels [data-node="infrastructure"]::before,
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"]::before,
+body[data-active-node="messages"] .signal-labels [data-node="messages"]::before,
+body[data-active-node="memory"] .signal-labels [data-node="memory"]::before,
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"]::before {
+  opacity: 0.86;
+  transform: translateY(-50%) scaleX(1);
+}
+
+body[data-active-node="instagram"] .signal-labels [data-node="instagram"]::after,
+body[data-active-node="website"] .signal-labels [data-node="website"]::after,
+body[data-active-node="crm"] .signal-labels [data-node="crm"]::after,
+body[data-active-node="overwatch"] .signal-labels [data-node="overwatch"]::after,
+body[data-active-node="companion"] .signal-labels [data-node="companion"]::after,
+body[data-active-node="prometheus-iq"] .signal-labels [data-node="prometheus-iq"]::after,
+body[data-active-node="mobile"] .signal-labels [data-node="mobile"]::after,
+body[data-active-node="research"] .signal-labels [data-node="research"]::after,
+body[data-active-node="infrastructure"] .signal-labels [data-node="infrastructure"]::after,
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"]::after,
+body[data-active-node="messages"] .signal-labels [data-node="messages"]::after,
+body[data-active-node="memory"] .signal-labels [data-node="memory"]::after,
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"]::after {
+  opacity: 1;
+  transform: translateY(-50%) scale(1);
+}
+
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"],
+.signal-labels [data-node="calendar"],
+.signal-labels [data-node="messages"] {
+  border-color: rgba(255, 190, 92, 0.0);
+}
+
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"],
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"],
+body[data-active-node="messages"] .signal-labels [data-node="messages"] {
+  border-color: rgba(255, 190, 92, 0.36);
+  color: rgba(255, 230, 190, 0.86);
+  box-shadow:
+    0 0 22px rgba(255, 166, 55, 0.14),
+    inset 0 0 14px rgba(255, 166, 55, 0.05);
+}
+
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"]::before,
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"]::before,
+body[data-active-node="messages"] .signal-labels [data-node="messages"]::before {
+  background: linear-gradient(90deg, rgba(255, 182, 80, 0), rgba(255, 182, 80, 0.38));
+}
+
+body[data-active-node="strategy"] .signal-labels [data-node="strategy"]::after,
+body[data-active-node="calendar"] .signal-labels [data-node="calendar"]::after,
+body[data-active-node="messages"] .signal-labels [data-node="messages"]::after {
+  background: rgba(255, 188, 89, 0.9);
+  box-shadow:
+    0 0 16px rgba(255, 171, 60, 0.58),
+    0 0 34px rgba(255, 171, 60, 0.22);
+}
+
+@keyframes constellationLabelFloat {
+  50% {
+    transform: translate(calc(-50% + 3px), calc(-50% - 4px)) scale(1);
+  }
+}
+
+@media (max-width: 760px) {
+  .signal-labels span {
+    width: calc(var(--w) * 0.7);
+    height: 16px;
+    font-size: 0.42rem;
+  }
+
+  .signal-labels span::before {
+    width: 70px;
+  }
+}
+
+/* Living Intelligence Universe v1 */
+.signal-labels,
+.signal-aperture {
+  display: none !important;
+}
+
+.core-stage,
+.network-stage,
+.holo-card {
+  background: #000;
+}
+
+#holoCanvas {
+  z-index: 0;
 }

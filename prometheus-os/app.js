@@ -1,7 +1,7 @@
 import { companyState } from "./demo-data.js";
 import { aiProvider } from "./ai-provider.js?v=founder-regression-fix-20260702b";
 import { VoiceAssistant } from "./voice-assistant.js";
-import { createPrometheusScene } from "./three-scene.js?v=visual-presence-v3-20260702";
+import { createPrometheusScene } from "./three-scene.js?v=neural-galaxy-topic-synapse-20260702b";
 import { routeCommandToTool } from "./agent-actions.js";
 import { getClarification, normalizeIntentText, routeCommandIntent } from "./intent-router.js";
 import { resolveCompanionCommandRoute } from "./companion-command-router.js";
@@ -62,6 +62,8 @@ let suppressCardRoutesUntil = 0;
 let suppressCardRoutesReason = "";
 let companionVersion = null;
 let founderTimeline = null;
+let activeConstellationTimer = 0;
+let founderTimelineSimulationSignature = "";
 
 if (forceFounderVoiceDefaults) {
   localStorage.setItem("prometheus-os-tts-provider", selectedTtsProvider);
@@ -168,6 +170,7 @@ function interruptSpeech(source = "command") {
   stopBackendSttCapture();
   stopBackendSttLoop("voice interrupt");
   closeDetail();
+  clearConstellationNode();
   commandInFlight = false;
   lastCommandResult = {
     type: "voice_interrupt",
@@ -180,6 +183,150 @@ function interruptSpeech(source = "command") {
   debugVoice("Stopped", "speech interrupted", { kind: "ok" });
   scheduleListeningAfterPlayback(0);
   return lastCommandResult;
+}
+
+const constellationAliases = {
+  instagram: ["instagram", "followers", "reach", "profile visits", "website clicks", "post", "content"],
+  website: ["website", "site", "prometheusrouteiq", "landing page", "homepage"],
+  crm: ["crm", "sales pipeline", "pipeline", "leads", "deals"],
+  overwatch: ["overwatch", "engineering", "blocker", "blockers", "production", "commit", "deploy"],
+  companion: ["companion", "voice", "tts", "stt", "microphone"],
+  "prometheus-iq": ["prometheus iq", "dashboard", "data subsystem", "route intelligence", "intelligence engine"],
+  mobile: ["mobile", "anthony", "beta", "field", "field test"],
+  research: ["research", "market", "competitor", "findings"],
+  infrastructure: ["infrastructure", "runtime", "install", "sync", "deployment"],
+  calendar: ["calendar", "meetings", "meeting", "agenda", "schedule", "plan my day"],
+  messages: ["message", "messages", "email", "draft", "compose"],
+  memory: ["memory", "where we left off", "active pool", "long term goals", "decision recall"],
+  strategy: ["strategy", "advice", "risk", "price", "pricing", "how are we doing", "what should i", "slowing prometheus"]
+};
+
+function constellationNodeForText(value = "") {
+  const normalized = normalizeRouteCommand(value);
+  if (!normalized) return "";
+  const exact = {
+    instagram: "instagram",
+    website: "website",
+    crm: "crm",
+    overwatch: "overwatch",
+    companion: "companion",
+    mobile: "mobile",
+    research: "research",
+    infrastructure: "infrastructure",
+    calendar: "calendar",
+    meetings: "calendar",
+    email: "messages",
+    messages: "messages",
+    memory: "memory",
+    strategy: "strategy",
+    advice: "strategy"
+  }[normalized];
+  if (exact) return exact;
+
+  const match = Object.entries(constellationAliases).find(([, aliases]) => {
+    return aliases.some((alias) => normalized.includes(normalizeRouteCommand(alias)));
+  });
+  return match?.[0] || "";
+}
+
+function constellationNodeForSpeechContext(parts = []) {
+  for (const part of parts) {
+    const node = constellationNodeForText(part || "");
+    if (node) return node;
+  }
+  return "";
+}
+
+function activateConstellationForSpeech(parts = [], spokenText = "") {
+  const node = constellationNodeForSpeechContext(parts) || constellationNodeForText(spokenText);
+  activateConstellationNode(node);
+  return node;
+}
+
+function emitIntelligenceActivity(detail = {}) {
+  window.dispatchEvent(new CustomEvent("prometheus:intelligence-activity", {
+    detail: {
+      source: "companion",
+      ...detail
+    }
+  }));
+}
+
+function scheduleConstellationCooldown(delay = 1800) {
+  if (!document.body.dataset.activeNode) return;
+  window.clearTimeout(activeConstellationTimer);
+  activeConstellationTimer = window.setTimeout(() => {
+    clearConstellationNode();
+  }, delay);
+}
+
+function holdActiveConstellationNode() {
+  const nodeId = document.body.dataset.activeNode;
+  if (!nodeId) return;
+  window.clearTimeout(activeConstellationTimer);
+  emitIntelligenceActivity({
+    nodeId,
+    kind: "speaking",
+    intensity: 1.04,
+    source: "topic-speech-hold"
+  });
+}
+
+function activateConstellationNode(nodeId, duration = 12000) {
+  if (!nodeId) return;
+  window.clearTimeout(activeConstellationTimer);
+  document.body.dataset.activeNode = nodeId;
+  emitIntelligenceActivity({
+    nodeId,
+    kind: "conversation",
+    intensity: 0.92,
+    source: "conversation-route"
+  });
+  activeConstellationTimer = window.setTimeout(() => {
+    clearConstellationNode();
+  }, duration);
+}
+
+function clearConstellationNode() {
+  window.clearTimeout(activeConstellationTimer);
+  activeConstellationTimer = 0;
+  delete document.body.dataset.activeNode;
+  emitIntelligenceActivity({
+    systemId: "companion",
+    kind: "cooldown",
+    intensity: 0.18,
+    source: "conversation-settled"
+  });
+}
+
+function handleEscapeExit(source = "escape key", notifyNative = true) {
+  commandGeneration += 1;
+  if (currentCommandAbortController) {
+    try {
+      currentCommandAbortController.abort();
+    } catch {
+      // Command cancellation is best-effort.
+    }
+    currentCommandAbortController = null;
+  }
+  stopActiveAudio();
+  stopBackendSttCapture();
+  stopBackendSttLoop(source);
+  voice.stopAlwaysListening?.();
+  voice.setInterruptOnly?.(false);
+  closeDetail();
+  clearConstellationNode();
+  commandInFlight = false;
+  setVoiceState("idle");
+  document.body.classList.remove("top-chrome-visible");
+  debugVoice("Stopped", source, { kind: "ok" });
+  if (notifyNative) {
+    try {
+      window.webkit?.messageHandlers?.prometheusEscape?.postMessage({ action: "escape", source });
+    } catch {
+      // Native shell integration is optional.
+    }
+  }
 }
 
 function shouldAttachRouteDiagnostic(message) {
@@ -209,6 +356,23 @@ async function refreshFounderTimeline() {
     if (!response.ok) return null;
     founderTimeline = await response.json();
     aiProvider.setFounderTimeline?.(founderTimeline);
+    const signature = JSON.stringify(founderTimeline).slice(0, 2000);
+    if (signature && signature !== founderTimelineSimulationSignature) {
+      founderTimelineSimulationSignature = signature;
+      const timelineText = signature.toLowerCase();
+      const nodeId =
+        constellationNodeForText(timelineText) ||
+        (timelineText.includes("commit") || timelineText.includes("deploy") ? "overwatch" : "") ||
+        (timelineText.includes("instagram") ? "instagram" : "") ||
+        (timelineText.includes("crm") ? "crm" : "") ||
+        "memory";
+      emitIntelligenceActivity({
+        nodeId,
+        kind: "timeline",
+        intensity: 0.56,
+        source: "founder-timeline"
+      });
+    }
     return founderTimeline;
   } catch {
     return null;
@@ -322,6 +486,19 @@ function setVoiceState(state) {
   voiceStatus.textContent = friendly;
   coreState.textContent = friendly.toLowerCase();
   document.body.dataset.voice = state;
+  if (state === "speaking") {
+    holdActiveConstellationNode();
+  } else if (["idle", "standby", "sleeping"].includes(state)) {
+    scheduleConstellationCooldown(state === "sleeping" ? 700 : 1800);
+  }
+  if (["listening", "thinking", "speaking", "idle", "standby"].includes(state)) {
+    emitIntelligenceActivity({
+      kind: state,
+      nodeId: state === "thinking" ? "prometheus-iq" : "companion",
+      intensity: state === "thinking" ? 0.78 : state === "speaking" ? 0.68 : state === "listening" ? 0.46 : 0.16,
+      source: "voice-state"
+    });
+  }
   if (["listening", "thinking", "speaking"].includes(state)) {
     const label = friendly === "Listening" ? "Listening" : friendly;
     if (voiceDebug) {
@@ -1147,6 +1324,7 @@ function nodeResponseText(node) {
 
 async function speakNodeStatus(node, { source = "node" } = {}) {
   if (!node || commandInFlight) return;
+  activateConstellationNode(node.id === "analytics" ? "strategy" : node.id);
   if (cardRoutesSuppressed()) {
     debugVoice("card TTS blocked", `node:${node.id} ${suppressCardRoutesReason}`.trim(), { kind: "warn" });
     lastCommandResult = blockedCardRouteResult("blocked_node_tts", node.id, source);
@@ -1183,6 +1361,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
   const message = commandFromTranscript(raw);
   if (!message) return;
   if (isStopCommand(message)) return interruptSpeech(source);
+  activateConstellationNode(constellationNodeForText(message));
   if (commandInFlight) {
     debugVoice("Error", "Command already in progress.", { kind: "warn" });
     return;
@@ -1234,6 +1413,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
 
   const matchedNode = commandRoute.type === "node" ? commandRoute.matchedNode : null;
   if (matchedNode) {
+    activateConstellationNode(matchedNode.nodeId === "analytics" ? "strategy" : matchedNode.nodeId);
     clearCardSuppression();
     debugVoice(
       "command route selected",
@@ -1257,6 +1437,7 @@ async function submitCommand(raw, { skipNodeRouting = false, source = "command" 
     if (generation !== commandGeneration) return lastCommandResult;
     if (commandAbortController.signal.aborted) return lastCommandResult;
     debugVoice("response text generated", response.title, { kind: "ok" });
+    activateConstellationNode(response.metadata?.intent ? constellationNodeForText(response.metadata.intent) : constellationNodeForText(message));
     const diagnostic = shouldAttachRouteDiagnostic(message) ? `\n\n${routeDiagnosticText(commandRoute)}` : "";
     const responseBody = `${response.body}${diagnostic}`;
     lastSpokenText = response.metadata?.developerMode === true
@@ -1447,7 +1628,11 @@ function bindNetwork() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeDetail();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      handleEscapeExit();
+      return;
+    }
     if (event.key === " " && event.target === document.body && !continuousListeningEnabled) {
       event.preventDefault();
       voice.listen();
@@ -1476,13 +1661,8 @@ function initVoice() {
         startBackendSttLoop();
       } else {
         voice.setInterruptOnly(true);
-        voice.startAlwaysListening();
         debugVoice("Listening", "Companion WebView microphone capture owns STT in shell mode.", { kind: "ok" });
-        startBackendSttLoop();
-        startBackendSttCapture({
-          source: "companion webview",
-          silentNoInput: true
-        });
+        debugVoice("Ready", "microphone capture starts after native Companion confirms permission", { kind: "info" });
       }
     }, 600);
   }
@@ -1510,6 +1690,10 @@ window.prometheusOSSubmitCommand = (command) => {
 
 window.prometheusOSInterruptSpeech = (source = "companion bridge") => {
   return interruptSpeech(source);
+};
+
+window.prometheusOSHandleNativeEscape = (source = "native companion escape") => {
+  return handleEscapeExit(source, false);
 };
 
 window.prometheusOSSetVoiceDebug = (stage, message = "", kind = "info") => {

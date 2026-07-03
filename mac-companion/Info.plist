@@ -27,5 +27,7 @@
   <true/>
   <key>NSMicrophoneUsageDescription</key>
   <string>Prometheus uses the microphone locally to listen for wake phrases while the Mac is awake.</string>
+  <key>NSPrincipalClass</key>
+  <string>PrometheusCompanionApplication</string>
 </dict>
 </plist>

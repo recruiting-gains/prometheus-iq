@@ -88,6 +88,71 @@ cleanup_verification_services() {
 
 trap cleanup_verification_services EXIT
 
+verify_native_escape_exit() {
+  if [[ "${PROMETHEUS_COMPANION_SKIP_ESC_TEST:-0}" == "1" ]]; then
+    echo "SKIP native-esc: PROMETHEUS_COMPANION_SKIP_ESC_TEST=1"
+    {
+      echo ""
+      echo "## Native ESC Regression"
+      echo ""
+      echo "- SKIP native-esc: PROMETHEUS_COMPANION_SKIP_ESC_TEST=1"
+    } >>"$REPORT_PATH"
+    return 0
+  fi
+
+  local log_file="$LOG_DIR/companion.log"
+  local start_line
+  mkdir -p "$LOG_DIR"
+  touch "$log_file"
+  start_line="$(( $(wc -l < "$log_file" | tr -d ' ') + 1 ))"
+
+  echo "== Verify native ESC exit =="
+  /usr/bin/open "$APP_PATH"
+
+  for _ in {1..30}; do
+    if tail -n +"$start_line" "$log_file" | grep -q "Prometheus OS window opened and focused."; then
+      break
+    fi
+    sleep 0.5
+  done
+
+  if ! /usr/bin/osascript -e 'tell application "System Events" to key code 53' >/tmp/prometheus-companion-esc-test.out 2>/tmp/prometheus-companion-esc-test.err; then
+    echo "FAIL native-esc: System Events could not send ESC. $(cat /tmp/prometheus-companion-esc-test.err)" >&2
+    {
+      echo ""
+      echo "## Native ESC Regression"
+      echo ""
+      echo "- FAIL native-esc: System Events could not send ESC."
+    } >>"$REPORT_PATH"
+    exit 1
+  fi
+
+  for _ in {1..20}; do
+    if tail -n +"$start_line" "$log_file" | grep -q "ESC exit completed."; then
+      echo "PASS native-esc: one ESC press produced native exit completion"
+      {
+        echo ""
+        echo "## Native ESC Regression"
+        echo ""
+        echo "- PASS native-esc: one ESC press produced native exit completion."
+      } >>"$REPORT_PATH"
+      return 0
+    fi
+    sleep 0.5
+  done
+
+  echo "FAIL native-esc: one ESC press did not produce native exit completion." >&2
+  echo "Recent Companion log:" >&2
+  tail -n +"$start_line" "$log_file" >&2
+  {
+    echo ""
+    echo "## Native ESC Regression"
+    echo ""
+    echo "- FAIL native-esc: one ESC press did not produce native exit completion."
+  } >>"$REPORT_PATH"
+  exit 1
+}
+
 echo "== Prometheus Companion sync/install/verify =="
 echo "Project: $PROJECT_ROOT"
 echo "Runtime: $SUPPORT_DIR"
@@ -274,6 +339,8 @@ PROMETHEUS_PROJECT_ROOT="$PROJECT_ROOT" \
 PROMETHEUS_COMPANION_SUPPORT_DIR="$SUPPORT_DIR" \
 PROMETHEUS_COMPANION_REPORT="$REPORT_PATH" \
 "$NODE_BIN" "$COMPANION_DIR/verify-runtime.mjs"
+
+verify_native_escape_exit
 
 echo "== Complete =="
 echo "Installed app: $APP_PATH"

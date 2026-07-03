@@ -4,6 +4,45 @@ import AVFAudio
 import Foundation
 import WebKit
 
+func isPrometheusEscapeEvent(_ event: NSEvent) -> Bool {
+    event.type == .keyDown &&
+        (event.keyCode == 53 ||
+            event.characters == "\u{1b}" ||
+            event.charactersIgnoringModifiers == "\u{1b}")
+}
+
+@objc(PrometheusCompanionApplication)
+final class PrometheusCompanionApplication: NSApplication {
+    var onEscape: (() -> Void)?
+
+    override func sendEvent(_ event: NSEvent) {
+        if isPrometheusEscapeEvent(event) {
+            onEscape?()
+            return
+        }
+        super.sendEvent(event)
+    }
+}
+
+final class PrometheusCompanionWindow: NSWindow {
+    var onEscape: (() -> Void)?
+
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        if isPrometheusEscapeEvent(event) {
+            onEscape?()
+            return
+        }
+        super.keyDown(with: event)
+    }
+
+    override func cancelOperation(_ sender: Any?) {
+        onEscape?()
+    }
+}
+
 @MainActor
 final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerDelegate, AVSpeechSynthesizerDelegate, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     private let founderGreeting = "I'm here. What are we working on?"
@@ -26,6 +65,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private var prometheusWindow: NSWindow?
     private var prometheusWebView: WKWebView?
     private var statusItem: NSStatusItem?
+    private var escapeEventMonitor: Any?
+    private var globalEscapeEventMonitor: Any?
     private var isLoadingPrometheusOS = false
     private var didLoadPrometheusOS = false
     private var webLoadGeneration = 0
@@ -70,12 +111,14 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     func startCompanionIfNeeded() {
         guard !didStart else { return }
         didStart = true
+        configureApplicationEscapeHandler()
         configureAppIcon()
         NSApp.setActivationPolicy(.regular)
         speechSynthesizer.delegate = self
         startLocalServicesIfNeeded()
         configureMenuBar()
         configureWakeObservers()
+        installEscapeMonitorIfNeeded()
         showPrometheusWindow()
         greetAfterLoginOrUnlock()
         requestPermissionsAndStart()
@@ -89,6 +132,14 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        if let escapeEventMonitor {
+            NSEvent.removeMonitor(escapeEventMonitor)
+            self.escapeEventMonitor = nil
+        }
+        if let globalEscapeEventMonitor {
+            NSEvent.removeMonitor(globalEscapeEventMonitor)
+            self.globalEscapeEventMonitor = nil
+        }
         NSApp.presentationOptions = []
         stopListening()
     }
@@ -102,6 +153,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         menu.addItem(NSMenuItem(title: "Test Greeting", action: #selector(testGreeting), keyEquivalent: "g"))
         menu.addItem(NSMenuItem(title: "Daily Founder Brief", action: #selector(dailyFounderBriefAction), keyEquivalent: "b"))
         menu.addItem(NSMenuItem(title: "Test Assistant Conversation", action: #selector(testAssistantConversation), keyEquivalent: "a"))
+        menu.addItem(NSMenuItem(title: "Enable Microphone", action: #selector(enableMicrophoneAction), keyEquivalent: "m"))
         menu.addItem(NSMenuItem(title: "Restart Listening", action: #selector(restartListeningAction), keyEquivalent: "r"))
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit Prometheus", action: #selector(quit), keyEquivalent: "q"))
@@ -248,6 +300,21 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         startListening()
     }
 
+    @objc private func enableMicrophoneAction() {
+        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if granted {
+                    self.log("Microphone authorization granted from explicit Founder action.")
+                    self.startListening()
+                    return
+                }
+                self.log("Microphone authorization denied from explicit Founder action.")
+                self.prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Microphone blocked', 'permission was not granted', 'warn')")
+            }
+        }
+    }
+
     @objc private func quit() {
         NSApp.terminate(nil)
     }
@@ -269,6 +336,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             )
             configuration.userContentController.addUserScript(nativeCaptureScript)
             configuration.userContentController.add(self, name: "prometheusLog")
+            configuration.userContentController.add(self, name: "prometheusEscape")
             webView = WKWebView(frame: screenFrame, configuration: configuration)
             webView.wantsLayer = true
             webView.layer?.backgroundColor = NSColor.black.cgColor
@@ -280,12 +348,17 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         if prometheusWindow == nil {
-            let window = NSWindow(
+            let window = PrometheusCompanionWindow(
                 contentRect: screenFrame,
                 styleMask: [.borderless],
                 backing: .buffered,
                 defer: false
             )
+            window.onEscape = { [weak self] in
+                Task { @MainActor [weak self] in
+                    self?.handleEscapeExit(source: "native window escape")
+                }
+            }
             window.title = "Prometheus OS"
             window.level = .mainMenu
             window.backgroundColor = .black
@@ -299,8 +372,16 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
         guard let window = prometheusWindow else { return }
         window.setFrame(screenFrame, display: true)
+        if let companionWindow = window as? PrometheusCompanionWindow {
+            companionWindow.onEscape = { [weak self] in
+                Task { @MainActor [weak self] in
+                    self?.handleEscapeExit(source: "native window escape")
+                }
+            }
+        }
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
+        window.makeFirstResponder(webView)
         NSApp.presentationOptions = [.autoHideMenuBar, .autoHideDock]
         NSApp.activate(ignoringOtherApps: true)
         NSRunningApplication.current.activate(options: [.activateAllWindows])
@@ -423,6 +504,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "prometheusEscape" {
+            handleEscapeExit(source: "web escape")
+            return
+        }
+
         guard message.name == "prometheusLog" else { return }
 
         if let payload = message.body as? [String: Any] {
@@ -434,6 +520,53 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         log("WebView voice info: \(String(describing: message.body))")
+    }
+
+    private func configureApplicationEscapeHandler() {
+        if let app = NSApp as? PrometheusCompanionApplication {
+            app.onEscape = { [weak self] in
+                Task { @MainActor [weak self] in
+                    self?.handleEscapeExit(source: "native app escape")
+                }
+            }
+        }
+    }
+
+    private func installEscapeMonitorIfNeeded() {
+        guard escapeEventMonitor == nil else { return }
+
+        escapeEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if isPrometheusEscapeEvent(event) {
+                Task { @MainActor [weak self] in
+                    self?.handleEscapeExit(source: "native local escape monitor")
+                }
+                return nil
+            }
+            return event
+        }
+
+        globalEscapeEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard isPrometheusEscapeEvent(event) else { return }
+            Task { @MainActor [weak self] in
+                guard self?.prometheusWindow?.isVisible == true else { return }
+                self?.handleEscapeExit(source: "native global escape monitor")
+            }
+        }
+    }
+
+    private func handleEscapeExit(source: String = "escape") {
+        log("ESC exit requested: \(source).")
+        conversationActive = false
+        shouldResumeListeningAfterSpeech = false
+        nativePauseUntil = Date.distantFuture
+        stopSpeaking(source: source, resumeListening: false)
+        stopListening()
+        prometheusWebView?.evaluateJavaScript("window.prometheusOSHandleNativeEscape && window.prometheusOSHandleNativeEscape(\(Self.javascriptStringLiteral(source)))")
+        prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Exited', 'immersive Companion stopped', 'ok')")
+        prometheusWindow?.orderOut(nil)
+        NSApp.presentationOptions = []
+        NSApp.hide(nil)
+        log("ESC exit completed.")
     }
 
     @available(macOS 12.0, *)
@@ -468,11 +601,25 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     }
 
     private func requestPermissionsAndStart() {
-        log("Native microphone permission request skipped. Prometheus Companion uses WebView MediaRecorder capture with local backend STT.")
-        startListening()
+        let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        if status == .authorized {
+            log("Microphone authorization already granted. Starting Companion WebView STT.")
+            startListening()
+            return
+        }
+
+        log("Microphone authorization is \(microphoneAuthorizationLabel(status)); Companion will not open the permission prompt on launch. Use Restart Listening after permission is granted.")
+        prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Ready', 'microphone permission required before live listening', 'warn')")
     }
 
     private func startListening() {
+        let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        guard status == .authorized else {
+            log("Listening not started because microphone authorization is \(microphoneAuthorizationLabel(status)).")
+            prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Ready', 'microphone permission required before live listening', 'warn')")
+            return
+        }
+
         if isSpeaking {
             shouldResumeListeningAfterSpeech = true
             log("Listening start deferred while Prometheus is speaking.")
@@ -485,6 +632,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         nativeSttLoopEnabled = true
+        nativePauseUntil = Date.distantPast
         log("Prometheus Companion WebView microphone capture enabled. Audio will be sent to local backend STT.")
         prometheusWebView?.evaluateJavaScript("window.prometheusOSStartListening && window.prometheusOSStartListening({ companionShell: true })")
     }
@@ -1419,7 +1567,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         speakWithSystemVoice(text)
     }
 
-    private func stopSpeaking(source: String = "voice command") {
+    private func stopSpeaking(source: String = "voice command", resumeListening: Bool = true) {
         speechRequestGeneration += 1
         audioPlaybackGeneration += 1
         assistantTask?.cancel()
@@ -1434,9 +1582,13 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         isSpeaking = false
         shouldResumeListeningAfterSpeech = false
         log("Speech interrupted by \(source).")
-        prometheusWebView?.evaluateJavaScript("window.prometheusOSInterruptSpeech && window.prometheusOSInterruptSpeech(\(Self.javascriptStringLiteral(source)))")
+        if resumeListening {
+            prometheusWebView?.evaluateJavaScript("window.prometheusOSInterruptSpeech && window.prometheusOSInterruptSpeech(\(Self.javascriptStringLiteral(source)))")
+        }
         prometheusWebView?.evaluateJavaScript("window.prometheusOSSetVoiceDebug && window.prometheusOSSetVoiceDebug('Stopped', 'speech interrupted', 'ok')")
-        startListening()
+        if resumeListening {
+            startListening()
+        }
     }
 
     private func speakWithPremiumBackend(_ text: String, attempt: Int = 0, completion: @escaping (Bool) -> Void) {
@@ -1743,7 +1895,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 @main
 enum PrometheusCompanionMain {
     static func main() {
-        let app = NSApplication.shared
+        let app = PrometheusCompanionApplication.shared
         let delegate = PrometheusCompanion()
         app.delegate = delegate
         delegate.startCompanionIfNeeded()

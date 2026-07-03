@@ -21,6 +21,9 @@ import {
 } from "../integrations/founder-communications-contract.js";
 import { createFounderCommunicationsService } from "../integrations/founder-communications-service.js";
 
+const NEURAL_GALAXY_CACHE_VERSION = "neural-galaxy-topic-synapse-20260702";
+const NEURAL_GALAXY_SCENE_VERSION = "neural-galaxy-topic-synapse-20260702c";
+
 function nodesForHarness() {
   return [
     {
@@ -810,6 +813,8 @@ const voiceAssistantSource = readFileSync(new URL("../prometheus-os/voice-assist
 const indexSource = readFileSync(new URL("../prometheus-os/index.html", import.meta.url), "utf8");
 const styleSource = readFileSync(new URL("../prometheus-os/style.css", import.meta.url), "utf8");
 const nativeSource = readFileSync(new URL("../mac-companion/PrometheusCompanion.swift", import.meta.url), "utf8");
+const nativeInfoPlist = readFileSync(new URL("../mac-companion/Info.plist", import.meta.url), "utf8");
+const syncInstallVerifySource = readFileSync(new URL("../mac-companion/sync-install-verify.sh", import.meta.url), "utf8");
 const uiPolicyFailures = [
   appSource.includes('kicker: "Prometheus response"') ? "normal response panel still uses Prometheus response card" : "",
   appSource.includes('kicker: "Clap detected"') ? "clap detection notification panel still exists" : "",
@@ -831,7 +836,15 @@ const uiPolicyFailures = [
   !appSource.includes("voice.setInterruptOnly(true)") ? "browser interim interrupt mode missing for Companion shell" : "",
   !appSource.includes('source: "command interrupt listener"') ? "stop command cannot interrupt while a response is still generating" : "",
   !appSource.includes("./ai-provider.js?v=founder-regression-fix-20260702b") ? "AI provider module cache bust missing" : "",
-  !appSource.includes("./three-scene.js?v=visual-presence-v3-20260702") ? "three-scene module cache bust missing" : "",
+  !appSource.includes(`./three-scene.js?v=${NEURAL_GALAXY_CACHE_VERSION}`) ? "Neural Galaxy topic-synapse scene cache bust missing" : "",
+  !appSource.includes("activateConstellationNode") ? "constellation node activation missing" : "",
+  !appSource.includes("constellationNodeForText") ? "conversation-to-constellation routing missing" : "",
+  !appSource.includes("emitIntelligenceActivity") ? "Companion does not emit living simulation activity events" : "",
+  !appSource.includes("prometheus:intelligence-activity") ? "living intelligence simulation event channel missing" : "",
+  !appSource.includes("handleEscapeExit") ? "ESC emergency exit behavior missing" : "",
+  !appSource.includes("window.prometheusOSHandleNativeEscape") ? "native ESC bridge missing from Companion runtime" : "",
+  !appSource.includes("prometheusEscape") ? "WebView ESC message bridge missing" : "",
+  !appSource.includes("microphone capture starts after native Companion confirms permission") ? "Companion shell still risks opening microphone permission prompt before ESC can work" : "",
   !providerSource.includes("./founder-conversation-engine.js?v=founder-regression-fix-20260702b") ? "Founder conversation engine module cache bust missing" : "",
   !appSource.includes("installTopChromeReveal") ? "top chrome reveal behavior missing" : "",
   !appSource.includes("refreshFounderTimeline") ? "founder timeline refresh missing from Companion runtime" : "",
@@ -846,14 +859,46 @@ const uiPolicyFailures = [
   indexSource.includes("<span>PROMETHEUS</span>") ? "large center Prometheus wordmark still present" : "",
   indexSource.includes("event-horizon-core") ? "DOM event-horizon overlay still exists" : "",
   indexSource.includes("accretion-ring") ? "DOM accretion ring overlay still exists" : "",
-  !indexSource.includes("app.js?v=founder-regression-fix-20260702") ? "app module cache bust missing from installed HTML" : "",
+  indexSource.includes("signal-labels") ? "static constellation label DOM still exists" : "",
+  indexSource.includes("data-node=") ? "static subsystem label nodes still exist in normal view" : "",
+  !indexSource.includes(`style.css?v=${NEURAL_GALAXY_CACHE_VERSION}`) ? "Neural Galaxy topic-synapse stylesheet cache bust missing" : "",
+  !indexSource.includes(`app.js?v=${NEURAL_GALAXY_CACHE_VERSION}`) ? "Neural Galaxy topic-synapse app module cache bust missing from installed HTML" : "",
   !nativeSource.includes("configuration.websiteDataStore = .nonPersistent()") ? "native WebView persistent cache can serve stale Companion runtime" : "",
   !nativeSource.includes("cacheBustedOSURL") ? "native WebView load does not cache-bust installed runtime" : "",
   !nativeSource.includes("nativeFounderReply") ? "native founder fallback answers missing" : "",
   !nativeSource.includes("assistantTask?.cancel()") ? "stop command does not cancel pending assistant work" : "",
   !nativeSource.includes("premiumTtsTask?.cancel()") ? "stop command does not cancel pending premium TTS request" : "",
+  !nativeSource.includes("@objc(PrometheusCompanionApplication)") ? "native app-level ESC application class is not exported to the app bundle runtime" : "",
+  !nativeSource.includes("final class PrometheusCompanionApplication") ? "native app-level ESC application class missing" : "",
+  !nativeSource.includes("override func sendEvent") ? "native app-level ESC sendEvent trap missing" : "",
+  !nativeSource.includes("final class PrometheusCompanionWindow") ? "native ESC-capable Companion window missing" : "",
+  !nativeSource.includes("override func keyDown") ? "native window ESC keyDown handler missing" : "",
+  !nativeSource.includes("keyCode == 53") ? "native ESC key code guard missing" : "",
+  !nativeSource.includes("override func cancelOperation") ? "native cancelOperation ESC handler missing" : "",
+  !nativeSource.includes("NSEvent.addLocalMonitorForEvents") ? "native local ESC monitor missing" : "",
+  !nativeSource.includes("NSEvent.addGlobalMonitorForEvents") ? "native global ESC monitor missing for focus-stealing system UI" : "",
+  !nativeSource.includes("configureApplicationEscapeHandler") ? "native app-level ESC handler wiring missing" : "",
+  !nativeSource.includes("Enable Microphone") ? "explicit Founder microphone enable action missing" : "",
+  !nativeSource.includes("AVCaptureDevice.requestAccess(for: .audio)") ? "microphone permission prompt is not gated behind explicit Founder action" : "",
+  !nativeSource.includes("guard status == .authorized else") ? "native startListening can still trigger microphone prompt before ESC works" : "",
+  !nativeSource.includes("Listening not started because microphone authorization") ? "native startListening authorization guard log missing" : "",
+  !nativeSource.includes("Microphone authorization already granted") ? "native startup no longer checks microphone permission before starting capture" : "",
+  !nativeSource.includes("will not open the permission prompt on launch") ? "native startup can still show focus-stealing microphone prompt before ESC works" : "",
+  !nativeSource.includes("configuration.userContentController.add(self, name: \"prometheusEscape\")") ? "native WebView ESC handler registration missing" : "",
+  !nativeSource.includes("private func handleEscapeExit") ? "native ESC exit path missing" : "",
+  !nativeSource.includes("stopSpeaking(source: source, resumeListening: false)") ? "ESC path still resumes listening after speech cancellation" : "",
+  !nativeSource.includes("prometheusWindow?.orderOut(nil)") ? "ESC path does not close immersive Companion window" : "",
+  !nativeSource.includes("NSApp.presentationOptions = []") ? "ESC path does not release immersive presentation options" : "",
+  !nativeSource.includes("NSApp.hide(nil)") ? "ESC path does not return Founder to desktop/home view" : "",
+  !syncInstallVerifySource.includes("verify_native_escape_exit") ? "sync/install/verify does not run installed native ESC regression" : "",
+  !syncInstallVerifySource.includes("System Events") || !syncInstallVerifySource.includes("key code 53") ? "installed native ESC regression does not press the physical ESC key path" : "",
+  !syncInstallVerifySource.includes("ESC exit completed.") ? "installed native ESC regression does not verify native exit completion" : "",
+  !nativeInfoPlist.includes("<key>NSPrincipalClass</key>") ? "native app bundle does not declare the ESC-aware principal application class" : "",
+  !nativeInfoPlist.includes("<string>PrometheusCompanionApplication</string>") ? "native app bundle principal class is not PrometheusCompanionApplication" : "",
   !nativeSource.includes(".autoHideMenuBar") ? "native shell does not auto-hide top system menu bar" : "",
   !styleSource.includes("Companion Visual Identity Reset v1") ? "visual reset CSS override missing" : "",
+  !styleSource.includes("Living Intelligence Universe v1") ? "living universe CSS missing" : "",
+  !styleSource.includes("display: none !important") ? "legacy label overlays are not disabled" : "",
   !styleSource.includes("width: 100vw") ? "full-screen visual composition missing" : "",
   !styleSource.includes("visibility: hidden") || !styleSource.includes("pointer-events: none") ? "legacy center software core is not hidden from normal view" : "",
   !styleSource.includes("body.top-chrome-visible .build-marker") ? "status chrome top-edge reveal CSS missing" : "",
@@ -874,14 +919,59 @@ if (uiPolicyFailures.length) {
 
 const sceneSource = readFileSync(new URL("../prometheus-os/three-scene.js", import.meta.url), "utf8");
 const scenePolicyFailures = [
-  !sceneSource.includes("ShaderMaterial") ? "shader-based cinematic environment missing" : "",
-  !sceneSource.includes("starLayer") ? "realistic procedural star field missing" : "",
-  !sceneSource.includes("nebula") ? "subtle nebula haze missing" : "",
-  !sceneSource.includes("disk") ? "event-horizon accretion light missing" : "",
-  !sceneSource.includes("upperLens") ? "gravitational lensing missing" : "",
-  !sceneSource.includes("eventRadius") ? "event horizon absorption field missing" : "",
-  !sceneSource.includes("inward") ? "inward state-energy motion missing" : "",
+  !sceneSource.includes(`NODE_CACHE_VERSION = "${NEURAL_GALAXY_SCENE_VERSION}"`) ? "Neural Galaxy topic-synapse version marker missing" : "",
+  !sceneSource.includes("const SYSTEM_HUB_ANCHORS") ? "tight system hub anchor map missing" : "",
+  !sceneSource.includes("tightenedSystemHubCoordinate") ? "tightened system hub coordinate guard missing" : "",
+  !sceneSource.includes("node.kind === \"system\"") || !sceneSource.includes("marginX") ? "system node viewport guard missing" : "",
+  !sceneSource.includes("buildImmersiveSubstrate") || !sceneSource.includes("IMMERSIVE_SUBSTRATE_SIGNALS = 4600") ? "Full-screen corrected neural substrate guard missing" : "",
+  !sceneSource.includes("renderer-startup") || !sceneSource.includes("startupPower") ? "Immediate startup signal firing guard missing" : "",
+  !sceneSource.includes("const VIRTUAL_CAMERA") || !sceneSource.includes("zoom: 4.85") ? "Founder corrected virtual camera zoom missing" : "",
+  !sceneSource.includes("const SYSTEM_TIERS") ? "three-tier node hierarchy missing" : "",
+  !sceneSource.includes("const TIER_WEIGHT") ? "tier-specific visual weighting missing" : "",
+  !sceneSource.includes("const OPERATING_SYSTEMS") ? "real operating systems node model missing" : "",
+  !sceneSource.includes("const OPERATING_SIGNALS") ? "semantic operating signal model missing" : "",
+  !sceneSource.includes("const OPERATING_STATES") ? "operating state model missing" : "",
+  !sceneSource.includes("const OPERATING_EVENTS") ? "activity/event model missing" : "",
+  !sceneSource.includes("const NEURAL_HOTSPOTS") ? "organic neural hotspot model missing" : "",
+  !sceneSource.includes("const SIMULATION_STATES") ? "node simulation state model missing" : "",
+  !sceneSource.includes("createLivingSimulationEngine") ? "living intelligence simulation engine missing" : "",
+  !sceneSource.includes("eventQueue") ? "simulation event queue missing" : "",
+  !sceneSource.includes("wakeSystem") ? "simulation wake behavior missing" : "",
+  !sceneSource.includes("propagateSimulation") ? "simulation signal propagation missing" : "",
+  !sceneSource.includes("injectAmbientCommunication") ? "idle universe breathing/communication missing" : "",
+  !sceneSource.includes("canvas.dataset.simulation = \"living-intelligence\"") ? "installed canvas does not expose living simulation marker" : "",
+  !sceneSource.includes("function drawRelationshipField") ? "relationship-first neural field renderer missing" : "",
+  sceneSource.indexOf("drawRelationshipField") > sceneSource.indexOf("drawOperatingNodes") ? "relationships are not rendered before nodes" : "",
+  !sceneSource.includes("labelStrength") ? "emergent active-region label policy missing" : "",
+  !sceneSource.includes("visibleIdle") ? "idle connection suppression policy missing" : "",
+  !sceneSource.includes("fieldIntensity") ? "organic density falloff missing" : "",
+  !sceneSource.includes("function buildNeuralOperatingSystem") ? "neural operating system construction missing" : "",
+  !sceneSource.includes("function evolveNeuralOperatingSystem") ? "living operating system motion missing" : "",
+  !sceneSource.includes("function drawOperatingLinks") ? "operating system pathway renderer missing" : "",
+  !sceneSource.includes("function drawOperatingNodes") ? "operating system node renderer missing" : "",
+  !sceneSource.includes("resolveActiveSet") ? "conversation-driven neural activation missing" : "",
+  !sceneSource.includes("activeTopicSystem") || !sceneSource.includes("speakingTopicPath") ? "topic-specific speech pathway activation missing" : "",
+  !sceneSource.includes("clearOperatingField") ? "operating system field clear missing" : "",
+  !sceneSource.includes("canvas.getContext(\"2d\"") ? "renderer must use direct graph drawing rather than shader-only prototype" : "",
   !sceneSource.includes("voiceState") ? "voice-state driven cinematic colors missing" : "",
+  sceneSource.includes("FIELD_REGIONS") ? "old region/galaxy architecture still present" : "",
+  sceneSource.includes("galaxyPosition") ? "old centered galaxy positioning still present" : "",
+  sceneSource.includes("drawHeart") ? "old center-heart renderer still present" : "",
+  sceneSource.includes("drawBackground") ? "scene/background renderer still present instead of operating-system field" : "",
+  sceneSource.includes("const CLUSTERS") ? "old isolated cluster architecture still present" : "",
+  sceneSource.includes("const PRIMARY_NODES") ? "old primary-node cluster architecture still present" : "",
+  sceneSource.includes("const GENERATED_SIGNALS") ? "old generated cluster signal architecture still present" : "",
+  sceneSource.includes("function buildGraph") ? "old graph builder still present" : "",
+  sceneSource.includes("function tickGraph") ? "old force-cluster simulation still present" : "",
+  sceneSource.includes("repel") ? "old particle repulsion language still present" : "",
+  sceneSource.includes("ShaderMaterial") ? "old shader renderer architecture still present" : "",
+  sceneSource.includes("fragmentShader") ? "old fragment shader rendering philosophy still present" : "",
+  sceneSource.includes("eventRadius") ? "black-hole event-radius renderer still present" : "",
+  sceneSource.includes("accretion") ? "black-hole accretion language still present" : "",
+  sceneSource.includes("upperLens") ? "old gravitational-ring lens renderer still present" : "",
+  sceneSource.includes("orbitParticles") ? "old decorative orbit particles still present" : "",
+  sceneSource.includes("radialWhisper") ? "old radial ray visual language still present" : "",
+  sceneSource.includes("createRadialGradient(width * 0.50") ? "centered radial field still present" : "",
   sceneSource.includes("Points") ? "point-particle scene still present" : "",
   sceneSource.includes("TorusGeometry") ? "orbit/accretion torus geometry still present" : "",
   sceneSource.includes("SphereGeometry") ? "sphere/globe geometry still present" : "",
@@ -897,7 +987,7 @@ if (scenePolicyFailures.length) {
     issues: scenePolicyFailures
   });
 } else {
-  console.log("PASS Cinematic operating scene replaces dashboard globe and subsystem-node visuals");
+  console.log("PASS Founder Neural Operating System renders a full-screen semantic intelligence network");
 }
 
 if (failures) {
