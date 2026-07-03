@@ -13,6 +13,7 @@
     "security:aegis:verify": "node scripts/verify-aegis-security-foundation.mjs",
     "dashboard:runtime-pool:check": "node scripts/verify-dashboard-runtime-pool-consumption.mjs",
     "dashboard:runtime-workflows:check": "node scripts/verify-dashboard-runtime-workflows.mjs",
+    "dashboard:demo:check": "node scripts/verify-demo-dashboard.mjs",
     "dashboard:customer-graph-plan:check": "node scripts/verify-dashboard-customer-graph-consumer-plan.mjs",
     "dashboard:customer-graph-snapshot-plan:check": "node scripts/verify-dashboard-customer-graph-snapshot-plan.mjs",
     "intelligence:route-quality:check": "node scripts/verify-route-intelligence-quality-gate.mjs",
@@ -41,7 +42,7 @@
     "verify:authenticated-production": "node scripts/verify-authenticated-production-access.mjs",
     "verify:production-release:local": "node scripts/verify-production-release.mjs --local-only",
     "instagram:verify-token": "node scripts/verify-instagram-business-token.mjs",
-    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run intelligence:route-quality:check && npm run intelligence:architecture:validate && npm run intelligence:field-learning:harness && npm run intelligence:explainability:check && npm run intelligence:operating-profile:check && npm run intelligence:customer-graph:check && npm run research:validate && npm run crm:validate && npm run test:intelligence:route-quality && npm run test:intelligence:architecture && npm run test:intelligence:field-learning && npm run test:intelligence:explainability && npm run test:intelligence:operating-profile && npm run test:intelligence:customer-graph && npm run test:crm && npm run test:integrations && npm run test:research && npm run test:social-media && npm run test:website && npm run build"
+    "test": "npm run security:check && npm run dashboard:runtime-pool:check && npm run dashboard:runtime-workflows:check && npm run dashboard:demo:check && npm run intelligence:route-quality:check && npm run intelligence:architecture:validate && npm run intelligence:field-learning:harness && npm run intelligence:explainability:check && npm run intelligence:operating-profile:check && npm run intelligence:customer-graph:check && npm run research:validate && npm run crm:validate && npm run test:intelligence:route-quality && npm run test:intelligence:architecture && npm run test:intelligence:field-learning && npm run test:intelligence:explainability && npm run test:intelligence:operating-profile && npm run test:intelligence:customer-graph && npm run test:crm && npm run test:integrations && npm run test:research && npm run test:social-media && npm run test:website && npm run build"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

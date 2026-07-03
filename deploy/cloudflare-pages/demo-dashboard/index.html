@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="prometheus-demo-mode" content="mock-data-only">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <title>Prometheus IQ Demo Dashboard</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050706;
+      --panel: #0c1110;
+      --panel-2: #111816;
+      --line: rgba(163, 187, 174, 0.18);
+      --line-strong: rgba(94, 224, 144, 0.3);
+      --text: #f3f7f2;
+      --muted: #9bac9f;
+      --green: #58e08f;
+      --green-soft: rgba(88, 224, 143, 0.14);
+      --gold: #d9a441;
+      --gold-soft: rgba(217, 164, 65, 0.16);
+      --red: #ff7c6e;
+      --blue: #88a7ff;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.38);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(88, 224, 143, 0.12), transparent 32rem),
+        radial-gradient(circle at 84% 16%, rgba(217, 164, 65, 0.10), transparent 30rem),
+        linear-gradient(135deg, #030504 0%, #08110d 48%, #030504 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    main {
+      width: min(1440px, 100%);
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 28px;
+      overflow-x: hidden;
+    }
+
+    .topbar,
+    .section,
+    .card,
+    .metric,
+    .table-card,
+    .insight,
+    .pipeline-stage {
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(17, 24, 22, 0.96), rgba(9, 13, 12, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      padding: 22px;
+      border-radius: 8px;
+    }
+
+    .topbar > *,
+    .section,
+    .metric,
+    .card,
+    .insight,
+    .pipeline-stage {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--green);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+      font-size: clamp(2rem, 4vw, 4.3rem);
+      line-height: 0.98;
+      letter-spacing: 0;
+      overflow-wrap: break-word;
+    }
+
+    .subtitle {
+      max-width: 850px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 1.04rem;
+      line-height: 1.55;
+      overflow-wrap: break-word;
+    }
+
+    .demo-badge {
+      justify-self: end;
+      display: grid;
+      gap: 8px;
+      min-width: 230px;
+      padding: 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: var(--green-soft);
+      color: var(--text);
+    }
+
+    .demo-badge strong {
+      color: var(--green);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .demo-badge span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .profile-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 22px 0 0;
+      max-width: 100%;
+    }
+
+    .profile-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .profile-pill.active {
+      border-color: var(--green);
+      background: var(--green-soft);
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .metrics-grid {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      margin-top: 22px;
+    }
+
+    .two-col {
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+    }
+
+    .three-col {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .section {
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin-bottom: 4px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .section-note,
+    .small {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .metric {
+      min-height: 122px;
+      padding: 16px;
+      border-radius: 8px;
+      display: grid;
+      gap: 8px;
+      align-content: space-between;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .metric strong {
+      color: var(--text);
+      font-size: clamp(1.7rem, 3vw, 2.5rem);
+      line-height: 1;
+    }
+
+    .metric em {
+      color: var(--green);
+      font-size: 0.82rem;
+      font-style: normal;
+    }
+
+    .table-card {
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    td {
+      color: #dce8de;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .score {
+      display: inline-flex;
+      align-items: center;
+      min-width: 58px;
+      justify-content: center;
+      padding: 5px 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    .warn {
+      border-color: rgba(217, 164, 65, 0.42);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .risk {
+      border-color: rgba(255, 124, 110, 0.38);
+      background: rgba(255, 124, 110, 0.12);
+      color: var(--red);
+    }
+
+    .territory-list,
+    .insight-list,
+    .pipeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card,
+    .insight,
+    .pipeline-stage {
+      border-radius: 8px;
+      padding: 15px;
+    }
+
+    .card h3,
+    .insight h3,
+    .pipeline-stage h3 {
+      margin-bottom: 6px;
+      font-size: 0.94rem;
+    }
+
+    .card p,
+    .insight p,
+    .pipeline-stage p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.42;
+    }
+
+    .zone-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .zone-type {
+      color: var(--gold);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .pipeline {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .pipeline-stage strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 1.9rem;
+      line-height: 1;
+    }
+
+    .intelligence {
+      border-color: rgba(88, 224, 143, 0.24);
+      background: linear-gradient(180deg, rgba(18, 31, 25, 0.98), rgba(8, 12, 11, 0.98));
+    }
+
+    .insight {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .pulse {
+      width: 11px;
+      height: 11px;
+      margin-top: 4px;
+      border-radius: 999px;
+      background: var(--green);
+      box-shadow: 0 0 22px rgba(88, 224, 143, 0.75);
+    }
+
+    .footer-note {
+      margin: 18px 0 0;
+      color: rgba(243, 247, 242, 0.52);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 1180px) {
+      .metrics-grid,
+      .pipeline {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .two-col,
+      .three-col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      main {
+        padding: 16px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        width: 100%;
+        max-width: calc(100vw - 32px);
+        overflow: hidden;
+      }
+
+      .demo-badge {
+        justify-self: stretch;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 2rem;
+        line-height: 1.08;
+        overflow-wrap: anywhere;
+      }
+
+      .subtitle,
+      .demo-badge span {
+        overflow-wrap: anywhere;
+      }
+
+      .profile-row {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .profile-pill {
+        width: 100%;
+        justify-content: center;
+        white-space: normal;
+        text-align: center;
+      }
+
+      .metrics-grid,
+      .pipeline {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: 16px;
+      }
+
+      .table-card {
+        overflow-x: auto;
+      }
+
+      table {
+        min-width: 720px;
+      }
+    }
+  </style>
+</head>
+<body data-prometheus-demo="investor-franchise-owner" data-demo-data="mock-only">
+  <main>
+    <header class="topbar" aria-labelledby="pageTitle">
+      <div>
+        <p class="eyebrow">Prometheus IQ Demo Dashboard</p>
+        <h1 id="pageTitle">Field Sales Intelligence for Multi-Location Operators</h1>
+        <p class="subtitle">A view-only executive dashboard showing how franchise owners, regional managers, and enterprise buyers could monitor field visits, rep activity, territory production, follow-up risk, and location performance.</p>
+        <div class="profile-row" aria-label="Operating profile selector mock">
+          <span class="profile-pill active">Fitness / Franchise Sales</span>
+          <span class="profile-pill">Roofing</span>
+          <span class="profile-pill">Security</span>
+          <span class="profile-pill">Medical</span>
+          <span class="profile-pill">Insurance</span>
+          <span class="profile-pill">General Outside Sales</span>
+        </div>
+      </div>
+      <aside class="demo-badge" aria-label="Demo data notice">
+        <strong>Mock Data Only</strong>
+        <span>View-only investor/franchise owner demo. No live customer records, production databases, Active Pool records, CRM data, or scoring systems are used.</span>
+      </aside>
+    </header>
+
+    <section class="grid metrics-grid" aria-label="Executive Overview">
+      <article class="metric">
+        <span>Total Field Visits</span>
+        <strong>1,284</strong>
+        <em>+18% vs prior week</em>
+      </article>
+      <article class="metric">
+        <span>Qualified Leads Generated</span>
+        <strong>342</strong>
+        <em>68% from priority zones</em>
+      </article>
+      <article class="metric">
+        <span>Conversion Opportunities</span>
+        <strong>96</strong>
+        <em>31 high intent</em>
+      </article>
+      <article class="metric">
+        <span>Follow-Ups Due</span>
+        <strong>47</strong>
+        <em>12 at risk today</em>
+      </article>
+      <article class="metric">
+        <span>Active Reps</span>
+        <strong>14</strong>
+        <em>92% route completion</em>
+      </article>
+      <article class="metric">
+        <span>Locations Covered</span>
+        <strong>5</strong>
+        <em>Houston region</em>
+      </article>
+    </section>
+
+    <section class="grid two-col">
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <h2>Location Performance</h2>
+            <div class="section-note">Mock franchise locations ranked by activity score, conversion opportunity, and follow-up load.</div>
+          </div>
+          <span class="score">Demo</span>
+        </div>
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Location</th>
+                <th>Visits</th>
+                <th>Leads</th>
+                <th>Conversions</th>
+                <th>Follow-Ups</th>
+                <th>Activity Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Houston North</td>
+                <td>286</td>
+                <td>78</td>
+                <td>22</td>
+                <td>8</td>
+                <td><span class="score">91</span></td>
+              </tr>
+              <tr>
+                <td>Houston West</td>
+                <td>244</td>
+                <td>63</td>
+                <td>15</td>
+                <td>12</td>
+                <td><span class="score warn">78</span></td>
+              </tr>
+              <tr>
+                <td>Houston South</td>
+                <td>198</td>
+                <td>49</td>
+                <td>13</td>
+                <td>6</td>
+                <td><span class="score">83</span></td>
+              </tr>
+              <tr>
+                <td>Cypress</td>
+                <td>312</td>
+                <td>94</td>
+                <td>28</td>
+                <td>9</td>
+                <td><span class="score">96</span></td>
+              </tr>
+              <tr>
+                <td>Pearland</td>
+                <td>244</td>
+                <td>58</td>
+                <td>7</td>
+                <td>12</td>
+                <td><span class="score risk">64</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="section intelligence">
+        <div class="section-header">
+          <div>
+            <h2>Prometheus Intelligence Summary</h2>
+            <div class="section-note">Explainable demo insights for executive review.</div>
+          </div>
+        </div>
+        <div class="insight-list">
+          <article class="insight">
+            <span class="pulse"></span>
+            <div>
+              <h3>Cypress shows the strongest lead density this week.</h3>
+              <p>94 qualified leads from 312 visits, with the highest mock activity score in the region.</p>
+            </div>
+          </article>
+          <article class="insight">
+            <span class="pulse"></span>
+            <div>
+              <h3>Pearland has high visits but low conversion.</h3>
+              <p>244 visits created only 7 conversions, signaling manager review and offer-message testing.</p>
+            </div>
+          </article>
+          <article class="insight">
+            <span class="pulse"></span>
+            <div>
+              <h3>Houston West has 12 follow-ups at risk.</h3>
+              <p>Follow-up pressure is concentrated in one territory and should be assigned before close of day.</p>
+            </div>
+          </article>
+          <article class="insight">
+            <span class="pulse"></span>
+            <div>
+              <h3>Saturday field activity is outperforming weekday outreach.</h3>
+              <p>Mock weekend visits show a stronger lead-to-conversation ratio for fitness franchise campaigns.</p>
+            </div>
+          </article>
+          <article class="insight">
+            <span class="pulse"></span>
+            <div>
+              <h3>Three locations need manager review.</h3>
+              <p>Houston West, Pearland, and Houston South show follow-up or conversion patterns that require attention.</p>
+            </div>
+          </article>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2>Rep Activity</h2>
+          <div class="section-note">Mock sales consultant production, conversion rate, and territory coverage.</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Sales Consultant</th>
+              <th>Visits Completed</th>
+              <th>Leads Created</th>
+              <th>Follow-Ups Assigned</th>
+              <th>Conversion Rate</th>
+              <th>Territory Coverage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Anthony R.</td>
+              <td>148</td>
+              <td>42</td>
+              <td>7</td>
+              <td>28%</td>
+              <td><span class="score">94%</span></td>
+            </tr>
+            <tr>
+              <td>Maya L.</td>
+              <td>136</td>
+              <td>39</td>
+              <td>8</td>
+              <td>24%</td>
+              <td><span class="score">88%</span></td>
+            </tr>
+            <tr>
+              <td>Jordan P.</td>
+              <td>121</td>
+              <td>31</td>
+              <td>11</td>
+              <td>19%</td>
+              <td><span class="score warn">76%</span></td>
+            </tr>
+            <tr>
+              <td>Elena S.</td>
+              <td>112</td>
+              <td>28</td>
+              <td>6</td>
+              <td>21%</td>
+              <td><span class="score">82%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="grid three-col">
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <h2>Territory Intelligence</h2>
+            <div class="section-note">Mock territory signals for management focus.</div>
+          </div>
+        </div>
+        <div class="territory-list">
+          <article class="card zone-row">
+            <div>
+              <div class="zone-type">High-Opportunity Zone</div>
+              <h3>Cypress retail corridor</h3>
+              <p>Strong density of qualified prospects and above-average conversion intent.</p>
+            </div>
+            <span class="score">A</span>
+          </article>
+          <article class="card zone-row">
+            <div>
+              <div class="zone-type">Cold Zone</div>
+              <h3>Pearland east loop</h3>
+              <p>High visit volume with low response; adjust offer and rep cadence.</p>
+            </div>
+            <span class="score risk">C</span>
+          </article>
+          <article class="card zone-row">
+            <div>
+              <div class="zone-type">Repeat-Visit Zone</div>
+              <h3>Houston West medical plaza</h3>
+              <p>Multiple repeat conversations need structured follow-up ownership.</p>
+            </div>
+            <span class="score warn">B</span>
+          </article>
+          <article class="card zone-row">
+            <div>
+              <div class="zone-type">Recommended Next Area</div>
+              <h3>Houston North small business belt</h3>
+              <p>Balanced lead quality, clean coverage, and manager-ready pipeline.</p>
+            </div>
+            <span class="score">A</span>
+          </article>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <h2>Opportunity Pipeline</h2>
+            <div class="section-note">Mock opportunity state across the region.</div>
+          </div>
+        </div>
+        <div class="pipeline">
+          <article class="pipeline-stage">
+            <strong>86</strong>
+            <h3>New Leads</h3>
+            <p>Fresh qualified opportunities from field activity.</p>
+          </article>
+          <article class="pipeline-stage">
+            <strong>64</strong>
+            <h3>Contacted</h3>
+            <p>Initial outreach completed after field visit.</p>
+          </article>
+          <article class="pipeline-stage">
+            <strong>47</strong>
+            <h3>Follow-Up Needed</h3>
+            <p>Due or overdue next steps requiring rep action.</p>
+          </article>
+          <article class="pipeline-stage">
+            <strong>31</strong>
+            <h3>High Priority</h3>
+            <p>Best-fit conversion opportunities for management focus.</p>
+          </article>
+          <article class="pipeline-stage">
+            <strong>22</strong>
+            <h3>Closed/Won</h3>
+            <p>Mock outcomes showing franchise growth visibility.</p>
+          </article>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <h2>Management Focus</h2>
+            <div class="section-note">What an operator should inspect next.</div>
+          </div>
+        </div>
+        <div class="territory-list">
+          <article class="card">
+            <h3>Recover at-risk follow-ups</h3>
+            <p>Assign Houston West follow-ups before the next field block.</p>
+          </article>
+          <article class="card">
+            <h3>Replicate Cypress route pattern</h3>
+            <p>Use the strongest lead-density route shape in nearby franchise markets.</p>
+          </article>
+          <article class="card">
+            <h3>Review Pearland conversion gap</h3>
+            <p>High visit activity needs offer, script, or timing analysis.</p>
+          </article>
+          <article class="card">
+            <h3>Expand weekend coverage</h3>
+            <p>Saturday mock activity outperforms weekday outreach in this profile.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">Internal demo route: /demo-dashboard/ | Mock data only | No production data access | No scoring changes</p>
+  </main>
+</body>
+</html>
