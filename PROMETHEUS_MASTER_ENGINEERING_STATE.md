@@ -6613,6 +6613,55 @@ Next recommended subsystem:
 
 Prometheus Companion, only after Founder decides whether to preserve the current visual state and update verification markers, or continue visual review before certification.
 
+### 2026-07-03: Prometheus Companion - Founder Visual Acceptance Recorded
+
+Subsystem: Prometheus Companion
+
+Task: Record Companion Founder Visual Acceptance
+
+Commit: Not created. Acceptance was recorded in the master engineering state only.
+
+Deploy: Not changed. Current synced Companion renderer state preserved.
+
+Status: ACCEPTED by Founder visual review.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+Recorded explicit Founder approval for the current Companion Neural Galaxy renderer state. No renderer, layout, camera, node, path, color, animation, ESC, hidden top-bar, conversation, or runtime behavior changes were made.
+
+Renderer preservation:
+
+Current Companion visual-review files remain the accepted state:
+
+- `prometheus-os/three-scene.js`
+- `prometheus-os/app.js`
+- `prometheus-os/index.html`
+- `prometheus-os/style.css`
+
+Verification basis:
+
+- Founder Visual Review Blocker Repair routing harness result: PASS.
+- Neural Galaxy marker result: PASS.
+- Local sync/install verification: PASS.
+- Latest Companion verification report: PASS, 19/19.
+- ESC native one-press exit: PASS.
+- Hidden top bar / auto-hide behavior: preserved and covered by verifier checks.
+
+Founder visual review status: Approved.
+
+Remaining blockers:
+
+- No Founder visual review blocker remains.
+- Local worktree still contains existing uncommitted Companion visual/runtime changes and should be packaged/committed only when explicitly directed.
+
+Next recommended subsystem:
+
+Prometheus Companion may move from visual review lock to packaging/checkpoint if Founder requests commit/push. Otherwise preserve the current accepted renderer state.
+
 ### 2026-07-03: Prometheus Companion - Founder Visual Review Blocker Repair
 
 Subsystem: Prometheus Companion
@@ -7402,6 +7451,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Regression Path Fix v1; preserve WebView/module cache-busting for Companion runtime modules, wake-parser handling that does not strip "Prometheus" from executive questions, native fallback founder answers, stop cancellation of pending assistant work and premium TTS, interrupt listening during command generation, non-persistent native WebView cache, hidden top chrome, hidden legacy center DOM core/text, and installed runtime Playwright QA coverage recorded in commit `3618f84e731339f01bdc780a5e72a883859e180a`.
 - Do not treat Package Current Companion State / Verification as a Companion certification pass; the current synced Companion state has no drift but failed `node scripts/verify-prometheus-companion-ui-path.mjs` and `./mac-companion/sync-install-verify.sh` because the routing harness expects stale Neural Galaxy cache/version markers. Preserve the current visual renderer state until Founder review decides whether to update verification markers or continue visual review.
 - Do not treat Founder Visual Review Blocker Repair as Founder visual approval; it only updates `scripts/verify-prometheus-companion-ui-path.mjs` to recognize the current Neural Galaxy topic-synapse markers and confirms PASS 19/19 local sync/install verification while preserving the existing uncommitted Companion visual/runtime state.
+- Founder Visual Acceptance is now recorded for the current Companion Neural Galaxy renderer state. Preserve the accepted renderer exactly as-is and do not continue visual refinement unless the Founder explicitly reopens visual work.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
