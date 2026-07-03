@@ -6613,6 +6613,67 @@ Next recommended subsystem:
 
 Prometheus Companion, only after Founder decides whether to preserve the current visual state and update verification markers, or continue visual review before certification.
 
+### 2026-07-03: Prometheus Companion - Founder Visual Review Blocker Repair
+
+Subsystem: Prometheus Companion
+
+Task: Founder Visual Review Blocker Repair
+
+Commit: Not created. Existing Companion visual/runtime worktree files remain uncommitted.
+
+Deploy: Local Companion sync/install/verify completed.
+
+Status: PASS for routing/UI verification repair. Founder visual review approval remains pending.
+
+Files changed:
+
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+Existing Companion visual/runtime worktree files were preserved in place.
+
+What changed:
+
+Updated the Companion routing/UI verifier to recognize the current Neural Galaxy topic-synapse visual markers. No renderer, layout, camera, node, path, color, animation, ESC, top-bar, conversation, or runtime behavior changes were made.
+
+Verification run:
+
+- `node --check scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `./mac-companion/sync-install-verify.sh`: PASS.
+
+Verification result:
+
+- Latest Companion verification report: PASS, 19/19.
+- Routing harness result: PASS.
+- Neural Galaxy marker result: PASS.
+- Local sync/install verification: PASS.
+
+Version sync:
+
+- Source version: `20260703T023656Z-471a7fb4bb27-b30ed55aff16`
+- Installed version: `20260703T023656Z-471a7fb4bb27-b30ed55aff16`
+- Runtime version: `20260703T023656Z-471a7fb4bb27-b30ed55aff16`
+- Drift: None detected.
+
+ESC and hidden-top-bar preservation:
+
+ESC verification passed, including native one-press exit verification. Hidden top bar remains preserved and covered by verifier checks.
+
+Visual renderer status:
+
+Visual renderer state was preserved. No visual-review files were modified by this repair.
+
+Remaining blockers:
+
+- Founder visual review approval still required.
+- Local worktree still contains existing uncommitted Companion visual/runtime changes.
+
+Founder visual review status: Pending explicit Founder approval.
+
+Next recommended subsystem:
+
+Prometheus Companion remains locked for Founder visual review. Do not assign additional Companion initiatives until Founder approval is explicit.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -7340,6 +7401,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Companion Visual Identity Reset v1; preserve the shader-based cinematic deep-space event horizon environment, removed prototype orbit/particle/globe scene, hidden auto-revealing top/debug chrome, no persistent dashboard-style visual layers, and visual verification bans on orbit graphics, point clouds, torus rings, sphere/globe objects, and DOM visual clutter recorded in commit `322388d87a2833347e6e107775ebf4f30ff3ca02`.
 - Do not duplicate Founder Regression Path Fix v1; preserve WebView/module cache-busting for Companion runtime modules, wake-parser handling that does not strip "Prometheus" from executive questions, native fallback founder answers, stop cancellation of pending assistant work and premium TTS, interrupt listening during command generation, non-persistent native WebView cache, hidden top chrome, hidden legacy center DOM core/text, and installed runtime Playwright QA coverage recorded in commit `3618f84e731339f01bdc780a5e72a883859e180a`.
 - Do not treat Package Current Companion State / Verification as a Companion certification pass; the current synced Companion state has no drift but failed `node scripts/verify-prometheus-companion-ui-path.mjs` and `./mac-companion/sync-install-verify.sh` because the routing harness expects stale Neural Galaxy cache/version markers. Preserve the current visual renderer state until Founder review decides whether to update verification markers or continue visual review.
+- Do not treat Founder Visual Review Blocker Repair as Founder visual approval; it only updates `scripts/verify-prometheus-companion-ui-path.mjs` to recognize the current Neural Galaxy topic-synapse markers and confirms PASS 19/19 local sync/install verification while preserving the existing uncommitted Companion visual/runtime state.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
