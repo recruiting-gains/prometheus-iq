@@ -7414,6 +7414,43 @@ Remaining risks:
 - KV-backed Worker rate limiting is an edge hardening layer, not a full account-level Cloudflare WAF/rate-limit ruleset. Phase II should add account-level Cloudflare WAF/rate rules where the plan permits it.
 - `prometheusrouteiq-website` OAuth status reports `META_INSTAGRAM_TOKEN_ENCRYPTION_KEY` is not configured, so OAuth callback token persistence remains fail-closed until that secret is set.
 
+### 2026-07-02: Prometheus Infrastructure - Operation Aegis Account Security Settings Guided Verification v1
+
+Task:
+Account Security Settings Guided Verification v1.
+
+Status:
+Complete for authenticated GitHub settings, Cloudflare Zero Trust Access settings, and Cloudflare zone WAF review available through current dashboard/API access.
+
+Files changed:
+
+- `docs/aegis-account-security-settings-verification-2026-07-02.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Verified GitHub repository visibility, direct collaborator surface, Dependabot/security setting status, and branch protection status through repository Settings.
+- Enabled GitHub dependency graph, Dependabot alerts, Dependabot security updates, grouped security updates, and Dependabot malware alerts.
+- Created a classic `main` branch protection rule requiring pull requests, 1 approving review, stale-review dismissal, conversation resolution, admin enforcement, and no force-push/deletion allowance.
+- Verified GitHub plan limitation: the private repository branch protection rule is visible but not enforced until an eligible GitHub Team/Enterprise organization plan is used.
+- Verified Cloudflare Access application `Prometheus IQ Private Beta` protecting `prometheus-iq.prometheusrouteiq.workers.dev`.
+- Verified Access policy `Prometheus IQ Owner Access`, approved email identity selector, One-time PIN identity provider, 24-hour application session duration, instant authentication, and default-deny behavior outside the allow policy.
+- Verified Zero Trust account session settings and confirmed MFA methods are currently off.
+- Verified Cloudflare zone `prometheusrouteiq.com` on Free Website plan with Cloudflare managed free WAF and DDoS rulesets present.
+- Added Cloudflare custom WAF rule `Prometheus Aegis public API method guard` to block unsafe HTTP methods on public `/api/` paths while preserving `GET`, `POST`, `OPTIONS`, and `HEAD`.
+- Verified live public website HTTP `200`, protected private Worker Cloudflare Access HTTP `302`, WAF-blocked unsafe API method HTTP `403`, allowed API GET reaching Worker with Aegis headers, and Instagram OAuth status route HTTP `200` with KV rate-limit/no-store/security headers.
+
+Security impact:
+
+No production security was weakened. GitHub dependency security settings were enabled. Cloudflare Access protection remained intact. A narrow Cloudflare WAF method guard now blocks unsafe methods before public API traffic reaches Worker logic.
+
+Remaining risks:
+
+- GitHub branch protection/ruleset enforcement, secret scanning, push protection, and code scanning require eligible GitHub organization/Advanced Security plan support.
+- Required status checks should be enabled after stable CI check names are confirmed.
+- Cloudflare Access MFA remains off and should be enabled only after founder enrollment and recovery verification.
+- Account-level Cloudflare rate-volume rules require confirmed Zone WAF/rate-limit write permission; Worker/KV Aegis route rate limiting remains active meanwhile.
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:
