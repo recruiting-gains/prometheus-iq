@@ -6545,6 +6545,74 @@ Next recommended subsystem:
 
 Prometheus Companion voice latency and interruption polish only if further live founder usage identifies remaining latency.
 
+### 2026-07-03: Prometheus Companion - Package Current Companion State / Verification
+
+Subsystem: Prometheus Companion
+
+Task: Package Current Companion State / Verification
+
+Commit: None created. Current repository `HEAD` at verification time: `1fea66f01fd74208f03ef131dd528b3d1fbebadc`
+
+Deploy: Local Companion sync/install attempted. Current Companion source was synced as-is.
+
+Status: Current Companion state preserved and synced as-is. Verification did not fully pass.
+
+Files changed but not committed:
+
+- `mac-companion/Info.plist`
+- `mac-companion/PrometheusCompanion.swift`
+- `mac-companion/sync-install-verify.sh`
+- `prometheus-os/app.js`
+- `prometheus-os/index.html`
+- `prometheus-os/style.css`
+- `prometheus-os/three-scene.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+Verification run:
+
+- `node --check prometheus-os/app.js`: PASS.
+- `node --check prometheus-os/three-scene.js`: PASS.
+- `node --check scripts/verify-prometheus-companion-ui-path.mjs`: PASS.
+- `node scripts/verify-prometheus-companion-ui-path.mjs`: FAIL.
+- `./mac-companion/sync-install-verify.sh`: FAIL.
+
+Verification result:
+
+Local sync/install report: FAIL, 18/19.
+
+Version sync:
+
+- Source version: `20260703T004239Z-1fea66f01fd7-b30ed55aff16`
+- Installed version: `20260703T004239Z-1fea66f01fd7-b30ed55aff16`
+- Runtime version: `20260703T004239Z-1fea66f01fd7-b30ed55aff16`
+- Drift: None detected.
+
+Failed items:
+
+- Sync/install item: routing harness.
+- UI/path verification expected older Neural Galaxy node-tighten cache/version markers.
+- Current renderer reports `neural-galaxy-topic-synapse-20260702c`.
+
+ESC and hidden-top-bar status:
+
+ESC code path remains present and protected. Hidden top bar / auto-hide code path remains present. No ESC or top-bar changes were made during packaging. Full UI/path certification did not pass because of marker mismatch, not because of an ESC-specific or hidden-top-bar-specific failure.
+
+Visual renderer status:
+
+Current Companion visual renderer state was preserved exactly as found and synced as-is. No renderer, layout, or visual refinements were made.
+
+Remaining blockers:
+
+- Routing harness failure in sync/install verification.
+- UI/path verification expects stale Neural Galaxy cache/version markers.
+- Founder visual review still required.
+
+Founder review required: Yes.
+
+Next recommended subsystem:
+
+Prometheus Companion, only after Founder decides whether to preserve the current visual state and update verification markers, or continue visual review before certification.
+
 ### 2026-07-02: Prometheus Intelligence Engine - Adaptive Field Learning Loop Foundation v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -7271,6 +7339,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Companion Visual Identity v1; preserve the unified WebGL deep-space/event-horizon environment in `prometheus-os/three-scene.js`, removed DOM atmosphere layers in `prometheus-os/index.html` and `prometheus-os/style.css`, deterministic cinematic star/dust placement, gravity-well scene, preserved voice-state colors, and visual policy harness protections recorded in commit `94192b41c0031f4b6a7da9c4059f40e9180d1092`.
 - Do not duplicate Companion Visual Identity Reset v1; preserve the shader-based cinematic deep-space event horizon environment, removed prototype orbit/particle/globe scene, hidden auto-revealing top/debug chrome, no persistent dashboard-style visual layers, and visual verification bans on orbit graphics, point clouds, torus rings, sphere/globe objects, and DOM visual clutter recorded in commit `322388d87a2833347e6e107775ebf4f30ff3ca02`.
 - Do not duplicate Founder Regression Path Fix v1; preserve WebView/module cache-busting for Companion runtime modules, wake-parser handling that does not strip "Prometheus" from executive questions, native fallback founder answers, stop cancellation of pending assistant work and premium TTS, interrupt listening during command generation, non-persistent native WebView cache, hidden top chrome, hidden legacy center DOM core/text, and installed runtime Playwright QA coverage recorded in commit `3618f84e731339f01bdc780a5e72a883859e180a`.
+- Do not treat Package Current Companion State / Verification as a Companion certification pass; the current synced Companion state has no drift but failed `node scripts/verify-prometheus-companion-ui-path.mjs` and `./mac-companion/sync-install-verify.sh` because the routing harness expects stale Neural Galaxy cache/version markers. Preserve the current visual renderer state until Founder review decides whether to update verification markers or continue visual review.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
