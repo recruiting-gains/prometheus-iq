@@ -6662,6 +6662,59 @@ Next recommended subsystem:
 
 Prometheus Companion may move from visual review lock to packaging/checkpoint if Founder requests commit/push. Otherwise preserve the current accepted renderer state.
 
+### 2026-07-03: Prometheus Companion - Package Founder-Accepted Companion Visual Runtime
+
+Subsystem: Prometheus Companion
+
+Task: Package Founder-Accepted Companion Visual Runtime
+
+Commit: `fa9374207dd940bb680f5ecddacce04c48e6a5df`
+
+Deploy: Local Companion sync/install/verify completed.
+
+Status: PASS. Founder-accepted Companion visual runtime packaged, committed, pushed, and synchronized.
+
+Files changed:
+
+- `mac-companion/Info.plist`
+- `mac-companion/PrometheusCompanion.swift`
+- `mac-companion/sync-install-verify.sh`
+- `prometheus-os/app.js`
+- `prometheus-os/index.html`
+- `prometheus-os/style.css`
+- `prometheus-os/three-scene.js`
+- `scripts/verify-prometheus-companion-ui-path.mjs`
+
+What changed:
+
+Packaged the Founder-accepted Companion Neural Galaxy visual/runtime state into Git. Preserved Founder visual acceptance, routing harness verification, visual marker/version verification, native ESC behavior, and hidden top-bar behavior.
+
+Verification results:
+
+- Companion verification: PASS.
+- Local sync/install verification: PASS.
+- Routing harness verification: PASS.
+- Visual marker/version verification: PASS.
+- Native ESC verification: PASS.
+- Hidden top bar behavior: Preserved.
+- Founder visual acceptance: Preserved.
+
+Push and sync status:
+
+- Push status: Pushed to `origin/main`.
+- Working tree status at handoff: Clean.
+- GitHub sync status: Local `HEAD` matched `origin/main` at `fa9374207dd940bb680f5ecddacce04c48e6a5df`.
+
+Remaining blockers:
+
+None.
+
+Founder review required: No. Approved.
+
+Next recommended subsystem:
+
+Overwatch / Master Engineering State checkpoint, then proceed with non-Companion priorities unless Founder explicitly reopens Companion work.
+
 ### 2026-07-03: Prometheus Companion - Founder Visual Review Blocker Repair
 
 Subsystem: Prometheus Companion
@@ -7452,6 +7505,7 @@ Current duplicate-prevention sources:
 - Do not treat Package Current Companion State / Verification as a Companion certification pass; the current synced Companion state has no drift but failed `node scripts/verify-prometheus-companion-ui-path.mjs` and `./mac-companion/sync-install-verify.sh` because the routing harness expects stale Neural Galaxy cache/version markers. Preserve the current visual renderer state until Founder review decides whether to update verification markers or continue visual review.
 - Do not treat Founder Visual Review Blocker Repair as Founder visual approval; it only updates `scripts/verify-prometheus-companion-ui-path.mjs` to recognize the current Neural Galaxy topic-synapse markers and confirms PASS 19/19 local sync/install verification while preserving the existing uncommitted Companion visual/runtime state.
 - Founder Visual Acceptance is now recorded for the current Companion Neural Galaxy renderer state. Preserve the accepted renderer exactly as-is and do not continue visual refinement unless the Founder explicitly reopens visual work.
+- Package Founder-Accepted Companion Visual Runtime is the committed visual/runtime baseline at `fa9374207dd940bb680f5ecddacce04c48e6a5df`; preserve the packaged Neural Galaxy renderer, routing harness, visual markers, native ESC behavior, hidden top-bar behavior, and local sync/install verification unless Founder explicitly reopens Companion work.
 - Do not duplicate the founder communications integration contract; reuse `integrations/founder-communications-contract.js` and `integrations/founder-communications-service.js`.
 - Do not duplicate founder communications provider adapters; reuse `integrations/google-founder-communications-adapter.js`, `integrations/microsoft-founder-communications-adapter.js`, and `integrations/oauth-provider-auth.js`.
 - Do not duplicate the Companion founder communications consumer; reuse `prometheus-os/founder-communications-consumer.js`.
