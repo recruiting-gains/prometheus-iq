@@ -145,3 +145,30 @@ curl -sS -X POST https://prometheusrouteiq.com/api/partner-intake \
 ```
 
 Do not include secrets, private customer payloads, or credentials in verification examples.
+
+## Production Verification: 2026-07-03
+
+Deployment:
+
+- Worker: `prometheusrouteiq-website`
+- Version ID: `577650a2-9b93-4f8a-8a37-bf2561dfeeb9`
+
+Verified production submissions:
+
+- Fitness Connection: `sub_20260704035503_2f306c3d8729`
+- Smoothie Depot: `sub_20260704035517_3e948b4dbd32`
+
+Verified outcomes:
+
+- Both submissions returned HTTP `201`.
+- Both responses included `X-Aegis-Route-Policy: lead_intake`, KV rate-limit headers, no-store cache behavior, strict API CSP, HSTS, and no permissive CORS.
+- Fitness Connection persisted only under `shared-lead-intake/workspaces/fitness_connection/submissions/`.
+- Smoothie Depot persisted only under `shared-lead-intake/workspaces/smoothie_depot/submissions/`.
+- Both records include audit events for receipt, workspace routing, validation, spam protection, CRM handoff preparation, durable persistence, and notification queueing.
+- CRM handoff packets were prepared with `mutationPerformed: false`.
+
+Production blocker:
+
+- Cloudflare Email Service send attempts returned `email_send_failed:E_INTERNAL_SERVER_ERROR`.
+- Submissions remain safely persisted and notification status is queued.
+- Founder email delivery requires Cloudflare Email Service sender/domain readiness for `intake@prometheusrouteiq.com` or an approved replacement sender.

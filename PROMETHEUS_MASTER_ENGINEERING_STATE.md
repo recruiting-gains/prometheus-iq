@@ -8075,7 +8075,7 @@ Task:
 Shared Workspace Lead Intake Pipeline v1.
 
 Status:
-Implemented as shared Infrastructure platform capability.
+Implemented and deployed as shared Infrastructure platform capability. Founder email delivery is queued because Cloudflare Email Service returned `E_INTERNAL_SERVER_ERROR` during production send attempts.
 
 Files changed:
 
@@ -8101,6 +8101,11 @@ What changed:
 - Kept CRM runtime ownership intact: Infrastructure prepares CRM handoff packets and never creates or mutates CRM records.
 - Extended Aegis route classification so `/api/partner-intake` inherits lead-intake rate limiting, method guards, and hardened API headers.
 - Added focused automated tests for workspace routing, no cross-workspace contamination, durable persistence, founder notification path, spam rejection, public response safety, and Aegis protection.
+- Deployed `prometheusrouteiq-website` Worker version `577650a2-9b93-4f8a-8a37-bf2561dfeeb9`.
+- Verified production Fitness Connection submission `sub_20260704035503_2f306c3d8729` persisted under `shared-lead-intake/workspaces/fitness_connection/submissions/`.
+- Verified production Smoothie Depot submission `sub_20260704035517_3e948b4dbd32` persisted under `shared-lead-intake/workspaces/smoothie_depot/submissions/`.
+- Verified production responses returned HTTP `201` with `X-Aegis-Route-Policy: lead_intake`, KV rate-limit headers, no-store cache behavior, strict API CSP, HSTS, and no permissive CORS.
+- Verified production audit trails include receipt, workspace routing, validation, spam checks, CRM handoff preparation, durable persistence, and notification queueing.
 
 Security impact:
 
@@ -8109,6 +8114,7 @@ Lead intake now has a shared workspace-isolated platform boundary with Aegis pro
 Remaining risks:
 
 - Live email delivery depends on Cloudflare Email Service sender/domain readiness for `intake@prometheusrouteiq.com`. If the binding or sender is unavailable, submissions remain persisted and notification status is queued.
+- Production Cloudflare Email Service send attempts returned `email_send_failed:E_INTERNAL_SERVER_ERROR`; founder email delivery remains blocked until sender/domain readiness is fixed or an approved sender is configured.
 - Future workspaces must be registered in the shared workspace router before public intake forms target them.
 - CRM must consume the prepared handoff packet through an explicit CRM-owned workspace contract before runtime CRM records are created.
 
