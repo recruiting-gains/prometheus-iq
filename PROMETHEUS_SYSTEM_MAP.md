@@ -131,6 +131,9 @@ Current foundation:
 - `intelligence/contracts/recommendation-explainability-contracts.json`
 - `intelligence/contracts/operating-profile-contracts.json`
 - `intelligence/contracts/customer-intelligence-graph-contracts.json`
+- `intelligence/contracts/business-acquisition-intelligence-contracts.json`
+- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`
+- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
 
 Duplicate-prevention rule: Adaptive Outside Sales Intelligence Engine work must extend the existing Intelligence foundation, Route Intelligence V2 architecture, Continuous Learning Framework, Golden Route Quality Gate, Runtime Governance, CRM foundation, Research source policy, and Sales foundation. Do not create a parallel learning brain, separate opportunity-ranking system, duplicate knowledge graph, or production scoring path without explicit approved handoff.
 
@@ -143,6 +146,8 @@ Recommendation explainability rule: explanation work must extend `intelligence/r
 Operating Profile rule: industry adaptation and field-evidence activation work must extend `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, and `intelligence/contracts/operating-profile-contracts.json`. Do not create a parallel industry-profile engine, duplicate normalized outcome model, production learning activation path, or separate Dashboard/CRM/Companion/Mobile/Website profile contract without approved Intelligence handoff.
 
 Customer Intelligence Graph rule: customer graph and Living Customer Intelligence snapshot work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, automatic learning path, scoring path, or Dashboard/CRM/Mobile/Website/Companion/Research/Sales graph consumer without approved Intelligence handoff.
+
+Smoothie Depot Workspace rule: Smoothie Depot Business Acquisition Intelligence work must extend `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`, `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`, and `intelligence/contracts/business-acquisition-intelligence-contracts.json`. Do not mix Smoothie Depot franchise candidate intelligence, JR handoffs, commission tracking, protection periods, or Franchise Development operating profile state with Fitness Connection Route Intelligence, Active Pool scoring, units/memberships, or customer workspace data.
 
 ### 4. Prometheus Infrastructure
 

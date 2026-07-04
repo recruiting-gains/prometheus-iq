@@ -100,6 +100,85 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-03: Prometheus Intelligence Engine - Smoothie Depot Workspace Intelligence Plan v1
+
+Subsystem: Prometheus Intelligence Engine
+
+Task: Smoothie Depot Workspace Intelligence Plan v1
+
+Commit: `bd9fcbdbb2870b4b7a52ecc2398ea01235ab377f`
+
+Deploy: Not run. Architecture/planning and validation only; no production runtime deployment required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Architecture and validation.
+
+Workspace plan created:
+
+Yes. Created isolated Smoothie Depot workspace intelligence plan under `intelligence/workspaces/smoothie-depot/`.
+
+Operating Profile confirmed:
+
+Franchise Development. Added `franchise_development` to the Operating Profile registry.
+
+Business Acquisition Intelligence domain confirmed:
+
+Yes. Added planning contracts under `intelligence/contracts/business-acquisition-intelligence-contracts.json`.
+
+Fitness Connection isolation confirmed:
+
+Yes. Validation confirms Smoothie Depot data cannot influence Fitness Connection Route Intelligence, Active Pool, scoring, or recommendations.
+
+Contracts created:
+
+- Franchise candidate sourcing.
+- Business prospect research.
+- Franchise Readiness Assessment.
+- Candidate Intelligence Profile.
+- CRM pipeline stages.
+- Dashboard display needs.
+- JR handoff package.
+- Commission tracking.
+- Candidate protection period.
+- Workspace isolation guardrails.
+
+Files changed:
+
+- `intelligence/README.md`
+- `intelligence/contracts/business-acquisition-intelligence-contracts.json`
+- `intelligence/contracts/operating-profile-contracts.json`
+- `intelligence/profiles/operating-profiles.json`
+- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
+- `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`
+- `package.json`
+- `scripts/validate-intelligence-architecture.mjs`
+- `scripts/verify-operating-profile-engine.mjs`
+- `scripts/verify-smoothie-depot-workspace-intelligence-plan.mjs`
+- `tests/operating-profile-engine.test.mjs`
+- `tests/smoothie-depot-workspace-intelligence-plan.test.mjs`
+
+Tests/validation run:
+
+- `npm run intelligence:smoothie-depot-workspace:check`: passed.
+- `npm run test:intelligence:smoothie-depot-workspace`: passed.
+- `npm run intelligence:operating-profile:check`: passed.
+- `npm run test:intelligence:operating-profile`: passed.
+- `npm run intelligence:architecture:validate`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+- Dashboard/CRM runtime not implemented by design.
+- Candidate protection period duration remains configurable pending business/legal agreement.
+
+Next recommended subsystem:
+
+Overwatch / Master Engineering State, then CRM planning for Smoothie Depot candidate pipeline only after explicit handoff.
+
 ### 2026-07-03: Overwatch - Prometheus Workspace Isolation Governance Rule v1
 
 Subsystem: Overwatch
@@ -7767,6 +7846,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
 - Do not duplicate Living Customer Intelligence v1; reuse the read-only `CustomerGraphSnapshot` implementation in `intelligence/customer-intelligence-graph.mjs`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, and `tests/customer-intelligence-graph.test.mjs` for versioned, customer-scoped, explainable, queryable snapshots with businesses, visits, outcomes, leads, opportunities, rep activity, manager activity, territories, evidence history, confidence, operating profile, and learning provenance. Consumers must use the prepared read-only query contracts and must not activate scoring changes, automatic learning, Active Pool changes, or cross-customer graph access.
 - Do not violate Prometheus Workspace Isolation Governance Rule v1; every customer must operate inside an isolated Prometheus Workspace. Fitness Connection data must never influence Smoothie Depot intelligence, Smoothie Depot candidate intelligence must never influence Fitness Connection route recommendations, and future Dashboard, CRM, Intelligence, Data, Mobile, Website, Sales, Research, Social Media, Companion, and Infrastructure work must reject shared customer data, cross-customer learning contamination, global customer-specific state, wrong Operating Profile assignment, or ambiguous customer/workspace ownership.
+- Do not duplicate Smoothie Depot Workspace Intelligence Plan v1; reuse `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`, `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`, `intelligence/contracts/business-acquisition-intelligence-contracts.json`, and the `franchise_development` Operating Profile for Smoothie Depot Business Acquisition Intelligence, franchise candidate sourcing, business prospect research, Franchise Readiness Assessment, Candidate Intelligence Profile, CRM pipeline stages, Dashboard display needs, JR handoff package, commission tracking, candidate protection period, and workspace isolation guardrails. Do not mix Smoothie Depot candidate intelligence with Fitness Connection Route Intelligence, Active Pool scoring, units/memberships, or customer workspace data.
 - Do not duplicate Dashboard Read-Only CustomerGraphSnapshot Consumer Planning v1; reuse `dashboard/contracts/customer-graph-snapshot-consumer-plan.json`, `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-graph-snapshot-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-snapshot-plan.mjs`, and `npm run dashboard:customer-graph-snapshot-plan:check` for future customer intelligence overview, territory history, visit/outcome patterns, rep activity relationships, opportunity clusters, confidence/provenance summaries, operating profile insights, tenant/customer isolation policy, and explainability requirements. Runtime consumption remains blocked until Intelligence authorizes it and a customer-scoped snapshot delivery path exists.
 - Do not duplicate Dashboard Customer Intelligence Graph Consumer Planning v1; reuse `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-intelligence-graph-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`, and `npm run dashboard:customer-graph-plan:check` for future Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, Find/Search, territory relationships, business relationships, visit/outcome history, rep patterns, opportunity clusters, and confidence propagation planning. Runtime graph consumption remains blocked until Intelligence explicitly authorizes it.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.
