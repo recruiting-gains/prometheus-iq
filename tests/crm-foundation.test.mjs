@@ -9,6 +9,7 @@ import {
   buildFollowUpQueue,
   buildTaskQueue,
   completeTask,
+  consumeWorkspaceLeadIntakeHandoff,
   createCrmState,
   createFollowUp,
   createLeadFromRuntimeRecord,
@@ -19,6 +20,7 @@ import {
   transitionLeadProfileStage,
   transitionLead
 } from "../crm/crm-foundation.mjs";
+import { createSharedLeadIntakeSubmission } from "../workers/infrastructure/shared-lead-intake-pipeline.js";
 import { createWebsiteAttributionSession } from "../deploy/prometheusrouteiq-website/website-attribution.js";
 import {
   SOCIAL_ATTRIBUTION_EVENT_TYPES,
@@ -33,6 +35,56 @@ function memoryStorage() {
     setItem: (key, value) => items.set(key, String(value)),
     removeItem: key => items.delete(key)
   };
+}
+
+function memoryKvStore() {
+  const items = new Map();
+  return {
+    items,
+    async put(key, value, options = {}) {
+      items.set(key, { value: String(value), options });
+    }
+  };
+}
+
+async function infrastructureIntakeRecord(input = {}) {
+  const workspaceId = input.workspaceId || "fitness_connection";
+  const store = memoryKvStore();
+  const now = input.now || "2026-07-04T14:00:00.000Z";
+  const result = await createSharedLeadIntakeSubmission({
+    input: {
+      workspaceId,
+      companyName: input.companyName || "Workspace Candidate Co",
+      companyWebsite: input.companyWebsite || "https://example.com",
+      contactName: input.contactName || "Jordan Candidate",
+      contactMethod: input.contactMethod || "jordan@example.com",
+      requestType: input.requestType || "growth_partner",
+      primaryGoal: input.primaryGoal || "Explore Prometheus workspace lead intake.",
+      currentWorkflow: input.currentWorkflow || "Submitted through shared workspace partner intake.",
+      geographicTerritory: input.geographicTerritory || "Houston",
+      locationCount: input.locationCount || "2",
+      attribution: {
+        provider: "website",
+        campaignId: input.campaignId || "workspace-intake-test",
+        leadSource: input.leadSource || "partner_intake",
+        landingPath: "/partner-intake",
+        utm_source: input.utmSource || "website",
+        utm_medium: "test",
+        utm_campaign: input.campaignId || "workspace-intake-test"
+      },
+      openedAt: "2026-07-04T13:59:50.000Z"
+    },
+    request: new Request("https://prometheusrouteiq.com/api/partner-intake", {
+      method: "POST",
+      headers: { "content-type": "application/json" }
+    }),
+    env: { SHARED_LEAD_INTAKE_STORE: store },
+    now: new Date(now),
+    idFactory: ({ workspace }) => `sub_test_${workspace.workspaceId}`
+  });
+
+  assert.equal(result.ok, true, JSON.stringify(result, null, 2));
+  return result.record;
 }
 
 function anthonyRuntimeRecord(index = 0) {
@@ -461,4 +513,133 @@ test("CRM rejects stages outside the active operating profile", () => {
   });
 
   assert.throws(() => transitionLeadProfileStage(state, lead.id, "Inspection Scheduled"), /Unknown CRM operating profile stage for medical/);
+});
+
+test("Smoothie Depot workspace intake creates CRM candidate handoff", async () => {
+  const state = createCrmState({ now: "2026-07-04T14:10:00.000Z" });
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "smoothie_depot",
+    companyName: "Houston Juice Group",
+    contactName: "Sam Franchise",
+    contactMethod: "sam@example.com",
+    campaignId: "smoothie-depot-founder-sourcing",
+    leadSource: "partner_intake",
+    locationCount: "3"
+  });
+
+  const result = consumeWorkspaceLeadIntakeHandoff(state, record);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.workspaceId, "smoothie_depot");
+  assert.equal(result.targetType, "smoothie_depot_candidate_handoff");
+  assert.equal(result.candidate.workspaceId, "smoothie_depot");
+  assert.equal(result.candidate.submissionId, record.submissionId);
+  assert.equal(result.candidate.handoffId, record.crmHandoff.handoffId);
+  assert.equal(result.candidate.operatingProfileId, "franchise_development");
+  assert.equal(result.candidate.pipeline, "smoothie_depot_franchise_candidate_pipeline");
+  assert.equal(result.candidate.pipelineStage, "Contact Found");
+  assert.equal(result.candidate.candidateName, "Sam Franchise");
+  assert.equal(result.candidate.businessName, "Houston Juice Group");
+  assert.equal(result.candidate.email, "sam@example.com");
+  assert.equal(result.candidate.numberOfLocationsDesired, 3);
+  assert.equal(result.candidate.attribution.campaignId, "smoothie-depot-founder-sourcing");
+  assert.equal(result.audit.auditTrail.some(entry => entry.event === "workspace_crm_handoff_prepared"), true);
+  assert.equal(state.workspaceCandidateHandoffs.length, 1);
+  assert.equal(state.workspaceBusinessProspects.length, 1);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+});
+
+test("Fitness Connection workspace intake creates CRM lead handoff", async () => {
+  const state = createCrmState({ now: "2026-07-04T14:20:00.000Z" });
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Pearland Training Club",
+    contactName: "Morgan Manager",
+    contactMethod: "8325551212",
+    campaignId: "fitness-connection-growth",
+    leadSource: "partner_intake"
+  });
+
+  const result = consumeWorkspaceLeadIntakeHandoff(state, record);
+
+  assert.equal(result.ok, true);
+  assert.equal(result.workspaceId, "fitness_connection");
+  assert.equal(result.targetType, "fitness_connection_lead");
+  assert.equal(result.contact.workspaceId, "fitness_connection");
+  assert.equal(result.lead.workspaceId, "fitness_connection");
+  assert.equal(result.lead.submissionId, record.submissionId);
+  assert.equal(result.lead.handoffId, record.crmHandoff.handoffId);
+  assert.equal(result.lead.operatingProfileId, "fitness");
+  assert.equal(result.lead.profileStage, "Gym Prospect");
+  assert.equal(result.lead.status, "New Lead");
+  assert.equal(result.lead.businessName, "Pearland Training Club");
+  assert.equal(result.contact.phone, "8325551212");
+  assert.equal(result.lead.attribution.campaignId, "fitness-connection-growth");
+  assert.equal(result.audit.auditTrail.some(entry => entry.event === "workspace_crm_handoff_prepared"), true);
+  assert.equal(state.contacts.length, 1);
+  assert.equal(state.leads.length, 1);
+  assert.equal(state.workspaceLeadHandoffs.length, 1);
+  assert.equal(state.workspaceCandidateHandoffs.length, 0);
+});
+
+test("Workspace intake unknown workspace fails closed without CRM mutation", () => {
+  const state = createCrmState({ now: "2026-07-04T14:30:00.000Z" });
+
+  assert.throws(() => consumeWorkspaceLeadIntakeHandoff(state, {
+    status: "prepared",
+    mutationPerformed: false,
+    ownerSubsystem: "Prometheus CRM",
+    contract: "shared_workspace_crm_lead_intake_packet.v1",
+    workspaceId: "unknown_workspace",
+    handoffId: "crm_handoff_unknown",
+    preparedAt: "2026-07-04T14:30:00.000Z",
+    packet: {
+      lead: {
+        workspaceId: "unknown_workspace",
+        companyName: "Unknown Co",
+        requesterName: "Unknown Person",
+        contactMethod: "unknown@example.com"
+      },
+      crmIntegration: {
+        workspaceId: "unknown_workspace",
+        operatingProfileId: "general_outside_sales"
+      },
+      attribution: {}
+    },
+    submissionId: "sub_unknown"
+  }), /Unknown CRM workspace intake workspace: unknown_workspace/);
+
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+  assert.equal(state.workspaceCandidateHandoffs.length, 0);
+  assert.equal(state.workspaceLeadIntakeHandoffs.length, 0);
+});
+
+test("Workspace intake rejects cross-workspace contamination", async () => {
+  const state = createCrmState({ now: "2026-07-04T14:40:00.000Z" });
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Cross Workspace Gym",
+    contactName: "Casey Contact"
+  });
+  const contaminated = {
+    ...record,
+    crmHandoff: {
+      ...record.crmHandoff,
+      packet: {
+        ...record.crmHandoff.packet,
+        lead: {
+          ...record.crmHandoff.packet.lead,
+          workspaceId: "smoothie_depot"
+        }
+      }
+    }
+  };
+
+  assert.throws(() => consumeWorkspaceLeadIntakeHandoff(state, contaminated), /cross-workspace contamination/);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+  assert.equal(state.workspaceCandidateHandoffs.length, 0);
+  assert.equal(state.workspaceLeadIntakeHandoffs.length, 0);
 });
