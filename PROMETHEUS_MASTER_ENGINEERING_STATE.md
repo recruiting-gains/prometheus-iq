@@ -106,11 +106,11 @@ Subsystem: Prometheus Research
 
 Task: Smoothie Depot Executive Due Diligence Dossier v1
 
-Commit: Recorded by the Smoothie Depot Executive Due Diligence Dossier v1 handoff commit.
+Commit: `c0b1eac65cb45b62d83729f58d07e67f76bde585`
 
 Deploy: Not run. Research artifact and validation only; no production deployment required.
 
-Status: Complete and committed locally at handoff time.
+Status: Complete and committed. Push was pending at handoff time.
 
 Implementation type: Canonical Research-owned dossier artifact, structured dossier ledger, register, and validation.
 
@@ -467,7 +467,7 @@ Duplicate-prevention update:
 
 Do not create a separate Smoothie Depot due-diligence standard. Future reports must reuse `research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`, `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`, and the executive sections now embedded in `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md` or a dated successor. Future CRM/Dashboard/Companion use requires explicit subsystem handoff.
 
-Do not treat Dashboard-rendered Smoothie Depot dossier views as completed Research-owned Executive Due Diligence Dossier artifacts. Founder Executive Dossier Retrieval v1 confirmed that Nutrition Depot Executive Dossier v1 is still missing; future Research work must create a standalone completed Nutrition Depot dossier under `research/workspaces/smoothie-depot/` before Prometheus claims dossier completion for the current top mission target.
+Do not treat Dashboard-rendered Smoothie Depot dossier views as completed Research-owned Executive Due Diligence Dossier artifacts. Founder Executive Dossier Retrieval v1 identified this gap, and Smoothie Depot Executive Due Diligence Dossier v1 resolved it with the canonical Research artifacts under `research/workspaces/smoothie-depot/dossiers/`. Future Dashboard, CRM, Companion, or Sales usage must consume the Research-owned dossier artifacts instead of rebuilding or copying dossier logic.
 
 Tests/validation run:
 
