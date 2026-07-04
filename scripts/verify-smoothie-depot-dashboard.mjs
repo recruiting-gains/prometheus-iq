@@ -12,13 +12,15 @@ const source = read(sourcePath);
 const deploy = read(deployPath);
 const intelligencePlan = readJson("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json");
 const crmPlan = readJson("crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json");
+const rankedProspects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
+const dueDiligenceFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
 
 assert(source === deploy, "Smoothie Depot dashboard source and deploy asset must stay in sync.");
 assert(source.includes('data-workspace-id="smoothie_depot"'), "Dashboard must be scoped to smoothie_depot.");
 assert(source.includes('data-operating-profile-id="franchise_development"'), "Dashboard must use Franchise Development profile.");
 assert(source.includes('data-dashboard-owner="cruz"'), "Dashboard must identify Cruz as owner.");
 assert(source.includes('data-jr-access="false"'), "Dashboard must mark JR access false.");
-assert(source.includes('data-data-mode="workspace-fixture"'), "Dashboard must mark workspace fixture data mode.");
+assert(source.includes('data-data-mode="workspace-research-output"'), "Dashboard must mark workspace Research output data mode.");
 assert(source.includes("noindex,nofollow,noarchive"), "Dashboard must be noindex.");
 assert(source.includes("frame-ancestors 'none'"), "Dashboard CSP must prevent framing.");
 
@@ -43,6 +45,67 @@ assert(crmPlan.workspaceIsolation.fitnessConnectionSeparationConfirmed === true,
 
 for (const [flag, value] of Object.entries(crmPlan.protectedSubsystems)) {
   assert(value === false, `CRM protected subsystem flag ${flag} must remain false.`);
+}
+
+assert(rankedProspects.workspaceId === "smoothie_depot", "Research prospects must be Smoothie Depot scoped.");
+assert(rankedProspects.operatingProfileId === "franchise_development", "Research prospects must use Franchise Development.");
+assert(rankedProspects.productionRuntimeChange === false, "Research prospects must not activate production runtime.");
+assert(rankedProspects.workspaceIsolation.smoothieDepotWorkspaceOnly === true, "Research prospects must be Smoothie Depot only.");
+assert(rankedProspects.workspaceIsolation.fitnessConnectionDataUsed === false, "Research prospects must not use Fitness Connection data.");
+assert(rankedProspects.workspaceIsolation.routeIntelligenceUsed === false, "Research prospects must not use route systems.");
+assert(rankedProspects.workspaceIsolation.activePoolUsed === false, "Research prospects must not use Active Pool.");
+assert(dueDiligenceFramework.workspaceId === "smoothie_depot", "Due diligence framework must be Smoothie Depot scoped.");
+assert(dueDiligenceFramework.productionRuntimeChange === false, "Due diligence framework must not activate runtime.");
+assert(dueDiligenceFramework.workspaceIsolation.dashboardModified === false, "Research framework remains read-only; Dashboard is only consuming it.");
+
+for (const business of rankedProspects.topCallTargets.slice(0, 3)) {
+  assert(source.includes(business), `Mission queue missing Research top call target: ${business}`);
+}
+
+for (const requiredMissionText of [
+  "Today's Mission",
+  "Mission Queue",
+  "Top 3 Highest Priority Businesses",
+  "Executive Due Diligence Dossier",
+  "Business Name",
+  "Category",
+  "Outreach Priority",
+  "Executive Dossier Status",
+  "Confidence",
+  "Unknown Count",
+  "Last Updated",
+  "Recommended Opening Angle",
+  "Estimated Call Time",
+  "Research Complete %",
+  "Ready",
+  "Calling",
+  "Discovery",
+  "Qualified",
+  "JR Handoff",
+  "Follow-up",
+  "Closed",
+  "Promoted when current closes"
+]) {
+  assert(source.includes(requiredMissionText), `Dashboard mission queue missing required text: ${requiredMissionText}`);
+}
+
+for (const requiredDossierSection of [
+  "Executive Summary",
+  "Business Snapshot",
+  "Growth Timeline",
+  "Market Intelligence",
+  "Review Intelligence",
+  "Business Health",
+  "Expansion Indicators",
+  "Strategic Fit",
+  "Conversation Strategy",
+  "Discovery Questions",
+  "Risk Register",
+  "Unknown Register",
+  "JR Brief",
+  "Executive Call Card"
+]) {
+  assert(source.includes(requiredDossierSection), `Dashboard dossier missing required section: ${requiredDossierSection}`);
 }
 
 for (const metric of [
@@ -146,4 +209,4 @@ for (const forbidden of [
   assert(!source.includes(forbidden), `Smoothie Depot dashboard must not show or access forbidden term: ${forbidden}`);
 }
 
-console.log("Smoothie Depot Founder Dashboard verified: workspace-scoped fixture surface, required franchise development sections, no production data access, and Fitness Connection isolation preserved.");
+console.log("Smoothie Depot Founder Dashboard verified: workspace-scoped Research-output surface, mission queue, required franchise development sections, no production data access, and Fitness Connection isolation preserved.");

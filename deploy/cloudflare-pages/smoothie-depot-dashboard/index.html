@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <meta name="prometheus-workspace" content="smoothie_depot">
   <meta name="prometheus-operating-profile" content="franchise_development">
-  <meta name="prometheus-data-mode" content="workspace-dashboard-fixture">
+  <meta name="prometheus-data-mode" content="workspace-research-output">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <title>Smoothie Depot Founder Dashboard</title>
   <style>
@@ -177,6 +177,171 @@
       display: grid;
       gap: 16px;
       margin-top: 16px;
+    }
+
+    .mission-control {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mission-layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.42fr) minmax(0, 0.58fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .mission-card,
+    .mission-status,
+    .dossier-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(16, 24, 22, 0.97), rgba(7, 10, 9, 0.97));
+      box-shadow: var(--shadow);
+    }
+
+    .mission-board {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .mission-card {
+      display: grid;
+      gap: 10px;
+      padding: 15px;
+      cursor: pointer;
+    }
+
+    .mission-card:hover,
+    #targetNutrition:checked ~ main label[for="targetNutrition"],
+    #targetCranky:checked ~ main label[for="targetCranky"],
+    #targetLeemoo:checked ~ main label[for="targetLeemoo"] {
+      border-color: var(--green);
+      background: linear-gradient(180deg, rgba(92, 229, 151, 0.15), rgba(7, 10, 9, 0.97));
+    }
+
+    .mission-card h3 {
+      margin-bottom: 0;
+      font-size: 1.05rem;
+    }
+
+    .mission-metrics,
+    .dossier-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mission-fact,
+    .dossier-section {
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .mission-fact strong,
+    .dossier-section strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-size: 0.9rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .mission-fact.wide,
+    .dossier-section.wide {
+      grid-column: 1 / -1;
+    }
+
+    .mission-status {
+      padding: 15px;
+    }
+
+    .status-track {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .status-track label,
+    .selected-target,
+    .next-promotion {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .selected-target {
+      display: none;
+      border-color: var(--line-hot);
+      background: var(--green-soft);
+      color: var(--green);
+      cursor: default;
+    }
+
+    #statusReady:checked ~ main label[for="statusReady"],
+    #statusCalling:checked ~ main label[for="statusCalling"],
+    #statusDiscovery:checked ~ main label[for="statusDiscovery"],
+    #statusQualified:checked ~ main label[for="statusQualified"],
+    #statusJr:checked ~ main label[for="statusJr"],
+    #statusFollowUp:checked ~ main label[for="statusFollowUp"],
+    #statusClosed:checked ~ main label[for="statusClosed"] {
+      border-color: var(--line-hot);
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .next-promotion {
+      display: none;
+      border-color: rgba(224, 168, 73, 0.45);
+      background: var(--gold-soft);
+      color: var(--gold);
+      cursor: default;
+    }
+
+    #targetNutrition:checked ~ main .target-nutrition .selected-target,
+    #targetCranky:checked ~ main .target-cranky .selected-target,
+    #targetLeemoo:checked ~ main .target-leemoo .selected-target,
+    #targetNutrition:checked ~ #statusClosed:checked ~ main .target-cranky .promoted-after-nutrition,
+    #targetCranky:checked ~ #statusClosed:checked ~ main .target-leemoo .promoted-after-cranky,
+    #targetLeemoo:checked ~ #statusClosed:checked ~ main .queue-complete {
+      display: inline-flex;
+    }
+
+    .dossier-panel {
+      display: none;
+      padding: 17px;
+    }
+
+    #targetNutrition:checked ~ main .dossier-nutrition,
+    #targetCranky:checked ~ main .dossier-cranky,
+    #targetLeemoo:checked ~ main .dossier-leemoo {
+      display: block;
+    }
+
+    .dossier-panel h3 {
+      margin-bottom: 10px;
+      font-size: 1.25rem;
+    }
+
+    .dossier-source {
+      margin: 12px 0 0;
+      color: rgba(245, 248, 242, 0.52);
+      font-size: 0.74rem;
+      line-height: 1.45;
     }
 
     .two-col {
@@ -443,7 +608,8 @@
 
       .two-col,
       .three-col,
-      .candidate-layout {
+      .candidate-layout,
+      .mission-layout {
         grid-template-columns: 1fr;
       }
     }
@@ -464,7 +630,9 @@
       }
 
       .metrics,
-      .detail-grid {
+      .detail-grid,
+      .mission-metrics,
+      .dossier-grid {
         grid-template-columns: 1fr;
       }
 
@@ -483,19 +651,193 @@
     }
   </style>
 </head>
-<body data-workspace-id="smoothie_depot" data-operating-profile-id="franchise_development" data-dashboard-owner="cruz" data-jr-access="false" data-data-mode="workspace-fixture">
+<body data-workspace-id="smoothie_depot" data-operating-profile-id="franchise_development" data-dashboard-owner="cruz" data-jr-access="false" data-data-mode="workspace-research-output">
+  <input class="mission-control" id="targetNutrition" name="missionTarget" type="radio" checked>
+  <input class="mission-control" id="targetCranky" name="missionTarget" type="radio">
+  <input class="mission-control" id="targetLeemoo" name="missionTarget" type="radio">
+  <input class="mission-control" id="statusReady" name="missionStatus" type="radio" checked>
+  <input class="mission-control" id="statusCalling" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusDiscovery" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusQualified" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusJr" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusFollowUp" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusClosed" name="missionStatus" type="radio">
   <main>
     <header class="hero">
       <div>
         <p class="eyebrow">Smoothie Depot Workspace</p>
-        <h1>Founder Dashboard for Franchise Development</h1>
-        <p class="subtitle">Cruz-only workspace command center for replacing spreadsheets: candidate sourcing, owner research, discovery progress, JR handoffs, protection windows, and commission visibility.</p>
+        <h1>Today's Mission</h1>
+        <p class="subtitle">Cruz-only daily mission board for Smoothie Depot franchise development: top call targets, executive due diligence, call strategy, JR preparation, and status movement from first outreach through handoff.</p>
       </div>
       <aside class="workspace-badge">
         <strong>Workspace Isolated</strong>
-        <span>Workspace: Smoothie Depot. Operating profile: Franchise Development. Founder view only. JR does not use this dashboard.</span>
+        <span>Workspace: Smoothie Depot. Operating profile: Franchise Development. Source: existing Research outputs. Founder view only. JR does not use this dashboard.</span>
       </aside>
     </header>
+
+    <section class="section grid" aria-label="Top 3 Highest Priority Businesses">
+      <div class="section-head">
+        <div>
+          <h2>Mission Queue</h2>
+          <div class="note">Top 3 Highest Priority Businesses from existing Smoothie Depot Research outputs.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mission-layout" aria-label="Mission Queue">
+      <div class="mission-board">
+        <section class="mission-status">
+          <p class="eyebrow">Mission Status</p>
+          <h2>Move the active target through the founder pipeline.</h2>
+          <div class="status-track" aria-label="Mission Status">
+            <label for="statusReady">Ready</label>
+            <label for="statusCalling">Calling</label>
+            <label for="statusDiscovery">Discovery</label>
+            <label for="statusQualified">Qualified</label>
+            <label for="statusJr">JR Handoff</label>
+            <label for="statusFollowUp">Follow-up</label>
+            <label for="statusClosed">Closed</label>
+          </div>
+        </section>
+
+        <label class="mission-card target-nutrition" for="targetNutrition">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Priority 01</p>
+              <h3>Nutrition Depot Houston and Greater Houston</h3>
+            </div>
+            <span class="selected-target">Current Mission</span>
+          </div>
+          <div class="mission-metrics">
+            <div class="mission-fact wide"><span class="label">Business Name</span><strong>Nutrition Depot Houston and Greater Houston</strong></div>
+            <div class="mission-fact"><span class="label">Category</span><strong>Nutrition and supplement store</strong></div>
+            <div class="mission-fact"><span class="label">Outreach Priority</span><strong>Call today</strong></div>
+            <div class="mission-fact"><span class="label">Executive Dossier Status</span><strong>Ready for first call</strong></div>
+            <div class="mission-fact"><span class="label">Confidence</span><strong>High</strong></div>
+            <div class="mission-fact"><span class="label">Unknown Count</span><strong>4 verification items</strong></div>
+            <div class="mission-fact"><span class="label">Last Updated</span><strong>2026-07-03</strong></div>
+            <div class="mission-fact wide"><span class="label">Recommended Opening Angle</span><strong>You already serve Houston's performance and wellness customer. Would you be open to a Smoothie Depot franchise conversation as a second concept near your strongest nutrition corridors?</strong></div>
+            <div class="mission-fact"><span class="label">Estimated Call Time</span><strong>8-10 minutes</strong></div>
+            <div class="mission-fact"><span class="label">Research Complete %</span><strong>82%</strong></div>
+          </div>
+        </label>
+
+        <label class="mission-card target-cranky" for="targetCranky">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Priority 02</p>
+              <h3>Cranky Carrot Juice Co.</h3>
+            </div>
+            <span class="selected-target">Current Mission</span>
+            <span class="next-promotion promoted-after-nutrition">Promoted when current closes</span>
+          </div>
+          <div class="mission-metrics">
+            <div class="mission-fact wide"><span class="label">Business Name</span><strong>Cranky Carrot Juice Co.</strong></div>
+            <div class="mission-fact"><span class="label">Category</span><strong>Healthy cafe, juice bar, smoothies, plant-forward food</strong></div>
+            <div class="mission-fact"><span class="label">Outreach Priority</span><strong>Call today</strong></div>
+            <div class="mission-fact"><span class="label">Executive Dossier Status</span><strong>Ready; competitor sensitivity noted</strong></div>
+            <div class="mission-fact"><span class="label">Confidence</span><strong>High</strong></div>
+            <div class="mission-fact"><span class="label">Unknown Count</span><strong>3 verification items</strong></div>
+            <div class="mission-fact"><span class="label">Last Updated</span><strong>2026-07-03</strong></div>
+            <div class="mission-fact wide"><span class="label">Recommended Opening Angle</span><strong>You have already proven Houston demand for premium juice and smoothies. Could Smoothie Depot help you scale faster through a franchise model or inform where Houston wellness beverage demand is strongest?</strong></div>
+            <div class="mission-fact"><span class="label">Estimated Call Time</span><strong>7-9 minutes</strong></div>
+            <div class="mission-fact"><span class="label">Research Complete %</span><strong>88%</strong></div>
+          </div>
+        </label>
+
+        <label class="mission-card target-leemoo" for="targetLeemoo">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Priority 03</p>
+              <h3>LEEMOO Health Bar</h3>
+            </div>
+            <span class="selected-target">Current Mission</span>
+            <span class="next-promotion promoted-after-cranky">Promoted when current closes</span>
+            <span class="next-promotion queue-complete">Mission queue complete</span>
+          </div>
+          <div class="mission-metrics">
+            <div class="mission-fact wide"><span class="label">Business Name</span><strong>LEEMOO Health Bar</strong></div>
+            <div class="mission-fact"><span class="label">Category</span><strong>Health bar, smoothies, acai bowls, cold-pressed juice</strong></div>
+            <div class="mission-fact"><span class="label">Outreach Priority</span><strong>Call today</strong></div>
+            <div class="mission-fact"><span class="label">Executive Dossier Status</span><strong>Ready; expansion timing open</strong></div>
+            <div class="mission-fact"><span class="label">Confidence</span><strong>Medium-high</strong></div>
+            <div class="mission-fact"><span class="label">Unknown Count</span><strong>4 verification items</strong></div>
+            <div class="mission-fact"><span class="label">Last Updated</span><strong>2026-07-03</strong></div>
+            <div class="mission-fact wide"><span class="label">Recommended Opening Angle</span><strong>You already moved from mobile wellness demand into a retail health bar. Would you consider a conversation about franchise growth or a complementary Smoothie Depot location?</strong></div>
+            <div class="mission-fact"><span class="label">Estimated Call Time</span><strong>7-9 minutes</strong></div>
+            <div class="mission-fact"><span class="label">Research Complete %</span><strong>78%</strong></div>
+          </div>
+        </label>
+      </div>
+
+      <div class="detail-stack">
+        <article class="dossier-panel dossier-nutrition">
+          <p class="eyebrow">Executive Due Diligence Dossier</p>
+          <h3>Nutrition Depot Houston and Greater Houston</h3>
+          <div class="dossier-grid">
+            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>Highest-value first call: complementary category fit, public Houston-area retail footprint, public contactability, and plausible customer overlap with Smoothie Depot.</strong></div>
+            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Nutrition and supplement store with Southwest Freeway and Pasadena public location signals, ecommerce, and in-store pickup infrastructure.</strong></div>
+            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>Southwest Freeway relocation publicly reported in 2025; multiple Houston-area public signals remain visible.</strong></div>
+            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Wellness and performance customers plausibly overlap Smoothie Depot buyers without forcing a competitor conversion.</strong></div>
+            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: workout enhancement, protein, vitamins and minerals, general health, and pickup convenience.</strong></div>
+            <div class="dossier-section"><span class="label">Business Health</span><strong>Research confidence is high for first-call prioritization; operating performance and buying intent remain intentionally unknown.</strong></div>
+            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Relocation signal, Houston-area footprint, ecommerce, and pickup infrastructure.</strong></div>
+            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Strong complementary retail thesis; useful for JR if the operator confirms second-concept interest.</strong></div>
+            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Lead with customer overlap and second-concept expansion, not a generic franchise pitch.</strong></div>
+            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>Who owns expansion decisions? Are you open to a second concept? Which Houston corridors perform best? Would one location or multiple locations fit your growth plan?</strong></div>
+            <div class="dossier-section"><span class="label">Risk Register</span><strong>May have no food or beverage interest; public location signals may not map to one expansion decision maker.</strong></div>
+            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Decision-maker identity, second-concept openness, public-signal ownership structure, complementary versus distracting fit.</strong></div>
+            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare complementary-retail thesis, Houston corridor notes, and financing-readiness question path.</strong></div>
+            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call first. Ask for a short founder-to-operator conversation about Houston wellness corridors.</strong></div>
+          </div>
+          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+        </article>
+
+        <article class="dossier-panel dossier-cranky">
+          <p class="eyebrow">Executive Due Diligence Dossier</p>
+          <h3>Cranky Carrot Juice Co.</h3>
+          <div class="dossier-grid">
+            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>Strong direct-category fit with proven Houston demand, local operator story, and growth ambition.</strong></div>
+            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Healthy cafe, juice bar, smoothies, and plant-forward food business with downtown and Heights public location signals.</strong></div>
+            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>First retail location publicly reported in 2022; second Houston location publicly identified.</strong></div>
+            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Direct beverage-category experience makes the call high-fit but potentially competitor-sensitive.</strong></div>
+            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: cold-pressed juices, superfood smoothies, plant-forward food, customer service, and sustainability.</strong></div>
+            <div class="dossier-section"><span class="label">Business Health</span><strong>High confidence from public sources and U.S. Chamber recognition; franchise intent remains unknown.</strong></div>
+            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Second Houston location, small business recognition, catering, and local partnerships.</strong></div>
+            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Best for category intelligence and possible expansion conversation; conversion fit depends on brand posture.</strong></div>
+            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Frame the call as operator learning plus possible complementary expansion, not direct replacement.</strong></div>
+            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>Do you want to keep scaling under your own brand? Would you consider franchise ownership or partnership? What would make a second beverage concept attractive?</strong></div>
+            <div class="dossier-section"><span class="label">Risk Register</span><strong>May protect its own brand economics, recipes, systems, and competitive positioning.</strong></div>
+            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Complementary versus competitive view, capital path, expansion appetite, decision-maker timing.</strong></div>
+            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare competitive-sensitivity talking points and capture operator objections for future targeting.</strong></div>
+            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call after Nutrition Depot unless Nutrition Depot is unavailable or disqualifies quickly.</strong></div>
+          </div>
+          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+        </article>
+
+        <article class="dossier-panel dossier-leemoo">
+          <p class="eyebrow">Executive Due Diligence Dossier</p>
+          <h3>LEEMOO Health Bar</h3>
+          <div class="dossier-grid">
+            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>LEEMOO has tested mobile wellness demand and built a retail health bar in Houston, making it a strong but still verification-heavy prospect.</strong></div>
+            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Health bar with smoothies, acai bowls, and cold-pressed juice; Montrose location and publicly reported Heights expansion.</strong></div>
+            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>Food truck origin publicly stated; Montrose retail location visible; Heights location publicly reported.</strong></div>
+            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Health-bar positioning overlaps Smoothie Depot demand and can validate Houston wellness beverage corridors.</strong></div>
+            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: scratch-made health bar, no processed sugars, no preservatives, and no artificial flavors.</strong></div>
+            <div class="dossier-section"><span class="label">Business Health</span><strong>Medium-high confidence; exact founding year and franchise appetite are not captured from unrestricted public sources.</strong></div>
+            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Food truck to retail move and public reporting of an additional Heights location.</strong></div>
+            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Strong wellness-beverage fit; JR preparation depends on whether expansion is owner-led, partnership-led, or brand-protective.</strong></div>
+            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Lead with their move from mobile demand to retail execution, then test appetite for franchise or complementary location growth.</strong></div>
+            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>What did mobile demand teach you? How are you choosing locations? Would a franchise model accelerate expansion or distract from your brand?</strong></div>
+            <div class="dossier-section"><span class="label">Risk Register</span><strong>Could view Smoothie Depot as competitive; expansion reporting may not equal franchise intent.</strong></div>
+            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Decision-maker, available capital path, current opening timeline, one-location versus multi-location ambition.</strong></div>
+            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare mobile-to-retail growth story and ask whether JR should frame Smoothie Depot as complementary or strategic learning.</strong></div>
+            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call third if direct-category operator insight remains useful after the first two calls.</strong></div>
+          </div>
+          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+        </article>
+      </div>
+    </section>
 
     <section class="metrics" aria-label="Executive Summary">
       <article class="metric"><span>Total Businesses Identified</span><strong>184</strong><em>Houston-area candidate pool</em></article>
@@ -700,7 +1042,7 @@
       </section>
     </section>
 
-    <p class="footer">Internal Founder route: /smoothie-depot-dashboard/ · Workspace: Smoothie Depot · Data mode: workspace fixture · CRM runtime untouched</p>
+    <p class="footer">Internal Founder route: /smoothie-depot-dashboard/ · Workspace: Smoothie Depot · Data mode: workspace Research output · CRM runtime untouched</p>
   </main>
 </body>
 </html>
