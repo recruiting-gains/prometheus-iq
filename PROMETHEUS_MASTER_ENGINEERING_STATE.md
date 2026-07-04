@@ -100,6 +100,81 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-03: Prometheus Research - Smoothie Depot Business Prospect Discovery v1
+
+Subsystem: Prometheus Research
+
+Task: Smoothie Depot Business Prospect Discovery v1
+
+Commit: Recorded by the Smoothie Depot Business Prospect Discovery v1 handoff commit.
+
+Deploy: Not run. Research artifacts and validation only; no production deployment required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Research workflow, founder-ready prospect report, structured scoring ledger, and validation.
+
+Research workflow created:
+
+Yes. Created a Smoothie Depot workspace-only public business prospect discovery workflow to answer the daily founder question: "Who should I call today?"
+
+Businesses evaluated:
+
+- Nutrition Depot Houston and Greater Houston
+- Cranky Carrot Juice Co.
+- LEEMOO Health Bar
+- Tight Squeeze Juice Bar
+- HS Green
+- Acai Brasil USA
+- Leaf & Grain
+- Local Foods Group
+- Dish Society
+- Pure Green West University
+- Hungry's
+- Joyful Drink Experience
+
+Workspace isolation verified:
+
+Yes. Research artifacts are scoped to `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, and `intelligence_domain: business_acquisition_intelligence`. No Fitness Connection data, Route Intelligence, Active Pool, CRM runtime, Dashboard runtime, Website, Infrastructure, Companion, Mobile, or Intelligence runtime changes are authorized or included.
+
+Evidence sources verified:
+
+Only lawful public business information was used. Sources include official business websites and location pages, public chamber listings, public downtown or district directories, public food-truck directories, and public local business reporting. Private financials, credit reports, bank information, tax records, and restricted-platform scraped data were not collected.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `research/README.md`
+- `research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Duplicate-prevention update:
+
+Do not duplicate Smoothie Depot Business Prospect Discovery v1. Future Smoothie Depot prospect work should extend `research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`, refresh `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`, and preserve the structured ledger contract in `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json` or a dated successor. Future CRM or Dashboard usage requires an explicit approved subsystem handoff.
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run research:validate`: passed.
+- `npm run test:research`: passed.
+- `npm test`: passed.
+- `git diff --check`: passed.
+
+Remaining blockers:
+
+- Direct Google Business Profile URLs, Google ratings, and review counts need a dedicated manual verification pass for prospects where unrestricted sources did not surface them.
+- Buying intent, ownership interest, and available capital were not researched because this workflow avoids private or non-public information.
+- No CRM persistence, Dashboard display, or outreach automation has been implemented.
+
+Next recommended subsystem:
+
+Prometheus Research for a Daily Smoothie Depot Call List refresh cadence, then Prometheus Sales only when Cruz is ready to begin outreach. Prometheus CRM should wait for explicit runtime persistence approval.
+
 ### 2026-07-03: Prometheus Dashboard - Smoothie Depot Workspace Dashboard v1
 
 Subsystem: Prometheus Dashboard

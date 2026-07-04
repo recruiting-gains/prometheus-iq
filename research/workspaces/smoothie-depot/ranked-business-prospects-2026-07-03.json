@@ -1,0 +1,505 @@
+{
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "intelligenceDomain": "business_acquisition_intelligence",
+  "generatedAt": "2026-07-03",
+  "status": "founder_ready_research_artifact",
+  "dailyQuestion": "Who should I call today?",
+  "productionRuntimeChange": false,
+  "dataPolicy": {
+    "publicBusinessInformationOnly": true,
+    "privateFinancialsCollected": false,
+    "creditReportsCollected": false,
+    "bankInformationCollected": false,
+    "taxRecordsCollected": false,
+    "restrictedPlatformScrapingUsed": false,
+    "unsupportedScrapingAllowed": false
+  },
+  "workspaceIsolation": {
+    "smoothieDepotWorkspaceOnly": true,
+    "fitnessConnectionDataUsed": false,
+    "routeIntelligenceUsed": false,
+    "activePoolUsed": false,
+    "crossWorkspaceContamination": false,
+    "crmModified": false,
+    "dashboardModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false
+  },
+  "scoringModel": {
+    "totalPoints": 100,
+    "dimensions": [
+      {
+        "id": "category_fit",
+        "weight": 20
+      },
+      {
+        "id": "expansion_or_operator_signal",
+        "weight": 20
+      },
+      {
+        "id": "contactability",
+        "weight": 15
+      },
+      {
+        "id": "public_reputation_and_demand",
+        "weight": 15
+      },
+      {
+        "id": "franchise_readiness_hypothesis",
+        "weight": 15
+      },
+      {
+        "id": "evidence_confidence_and_workspace_safety",
+        "weight": 15
+      }
+    ]
+  },
+  "topCallTargets": [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co.",
+    "LEEMOO Health Bar",
+    "Tight Squeeze Juice Bar",
+    "HS Green"
+  ],
+  "prospects": [
+    {
+      "rank": 1,
+      "business": "Nutrition Depot Houston and Greater Houston",
+      "opportunityScore": 91,
+      "recommendedPriority": "Call today",
+      "category": "Nutrition and supplement store",
+      "location": "2005 Southwest Freeway Service Road, Houston, TX 77098; Pasadena public directory listing at 6065 Fairmont Pkwy Suite 120, Pasadena, TX 77505",
+      "publicContactMethods": [
+        "(346) 516-0878",
+        "(281) 991-3113",
+        "https://nutritiondepot.us/",
+        "https://ndonline.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "workout enhancement",
+        "protein",
+        "vitamins and minerals",
+        "general health",
+        "in-store pickup"
+      ],
+      "numberOfLocationsPubliclyEvident": "Multiple Houston-area public signals across ecommerce, location-specific, and chamber sources",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Southwest Freeway relocation reported in 2025",
+        "Houston-area public location signals",
+        "ecommerce and in-store pickup infrastructure"
+      ],
+      "reasonGoodFranchiseProspect": "The customer base overlaps tightly with Smoothie Depot's target wellness, fitness, and nutrition buyers.",
+      "suggestedFirstOutreachAngle": "You already serve Houston's performance and wellness customer. Would you be open to a Smoothie Depot franchise conversation as a second concept near your strongest nutrition corridors?",
+      "confidenceLevel": "High",
+      "evidenceSources": [
+        "https://ndonline.com/",
+        "https://nutritiondepot.us/",
+        "https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622",
+        "https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/"
+      ]
+    },
+    {
+      "rank": 2,
+      "business": "Cranky Carrot Juice Co.",
+      "opportunityScore": 88,
+      "recommendedPriority": "Call today",
+      "category": "Healthy cafe, juice bar, smoothies, plant-forward food",
+      "location": "712 Main St Suite 106, Houston, TX 77002; public sources also identify a Houston Heights location at 1231 W 11th St",
+      "publicContactMethods": [
+        "832-916-9734",
+        "https://www.crankycarrotjuice.co/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "cold-pressed juices",
+        "superfood smoothies",
+        "plant-forward food",
+        "customer service",
+        "sustainability"
+      ],
+      "numberOfLocationsPubliclyEvident": "Two Houston locations publicly identified",
+      "yearsOperatingPubliclyEvident": "First retail location reported in 2022 by Houston Chronicle",
+      "expansionIndicators": [
+        "Second Houston location",
+        "U.S. Chamber small business recognition",
+        "catering and local partnerships"
+      ],
+      "reasonGoodFranchiseProspect": "Strong direct-category fit with proven Houston demand, local operator story, and growth ambition.",
+      "suggestedFirstOutreachAngle": "You have already proven Houston demand for premium juice and smoothies. Could Smoothie Depot help you scale faster through a franchise model or inform where Houston wellness beverage demand is strongest?",
+      "confidenceLevel": "High",
+      "evidenceSources": [
+        "https://www.crankycarrotjuice.co/",
+        "https://downtownhouston.org/go/cranky-carrot-juice",
+        "https://www.uschamber.com/co/profiles/cranky-carrot-juice-co",
+        "https://www.houstonchronicle.com/business/article/cranky-carrot-small-business-award-21092636.php"
+      ]
+    },
+    {
+      "rank": 3,
+      "business": "LEEMOO Health Bar",
+      "opportunityScore": 84,
+      "recommendedPriority": "Call today",
+      "category": "Health bar, smoothies, acai bowls, cold-pressed juice",
+      "location": "910 Westheimer Rd, Houston, TX 77006; planned Heights location publicly reported at 621 Waverly Street, Suite 108",
+      "publicContactMethods": [
+        "281-506-4055",
+        "https://www.montrosecollective.com/leemoo"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "scratch-made health bar",
+        "no processed sugars",
+        "no preservatives",
+        "no artificial flavors"
+      ],
+      "numberOfLocationsPubliclyEvident": "One open Montrose location and one additional Heights location publicly reported",
+      "yearsOperatingPubliclyEvident": "Food truck origin publicly stated; exact founding year not captured",
+      "expansionIndicators": [
+        "Food truck to retail location",
+        "Public reporting of additional Heights location"
+      ],
+      "reasonGoodFranchiseProspect": "LEEMOO has tested mobile wellness demand and built a retail health bar in Houston.",
+      "suggestedFirstOutreachAngle": "You already moved from mobile wellness demand into a retail health bar. Would you consider a conversation about franchise territory growth or a complementary Smoothie Depot unit?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://www.montrosecollective.com/leemoo",
+        "https://whatnow.com/houston/restaurants/leemoo-health-bar-to-open-a-location-in-the-swift-building/"
+      ]
+    },
+    {
+      "rank": 4,
+      "business": "Tight Squeeze Juice Bar",
+      "opportunityScore": 82,
+      "recommendedPriority": "Call today",
+      "category": "Juice bar, smoothies, acai bowls, wellness shots",
+      "location": "600 N Shepherd Drive, Houston, TX 77007",
+      "publicContactMethods": [
+        "713-485-5683",
+        "https://tightsqueezejuicebar.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "fresh juices",
+        "smoothies",
+        "acai bowls",
+        "wellness shots"
+      ],
+      "numberOfLocationsPubliclyEvident": "One Houston Heights location",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Catering",
+        "Pop-up and event signals",
+        "M-K-T Heights retail presence"
+      ],
+      "reasonGoodFranchiseProspect": "Strong direct product fit and neighborhood wellness positioning.",
+      "suggestedFirstOutreachAngle": "You have a Heights wellness beverage audience and event demand. Would a structured Smoothie Depot franchise conversation help you evaluate a second location or territory play?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://tightsqueezejuicebar.com/",
+        "https://www.themkt.com/explore/tight-squeeze-juice-bar"
+      ]
+    },
+    {
+      "rank": 5,
+      "business": "HS Green",
+      "opportunityScore": 79,
+      "recommendedPriority": "Call after top four",
+      "category": "Healthy cafe and fresh-food kitchen",
+      "location": "5092 Richmond Ave, Houston, TX 77056",
+      "publicContactMethods": [
+        "713-904-3547",
+        "https://hsgreen.menu/"
+      ],
+      "googleBusinessProfile": "public_directory_summary_only",
+      "googleRating": 4.4,
+      "reviewCount": 969,
+      "publicReviewThemes": [
+        "fresh food",
+        "healthy options",
+        "clean eating",
+        "service",
+        "online ordering"
+      ],
+      "numberOfLocationsPubliclyEvident": "One Houston location captured in this pass",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Catering and rewards",
+        "Ordering infrastructure",
+        "Strong public review volume"
+      ],
+      "reasonGoodFranchiseProspect": "HS Green likely understands healthy convenience, daytime traffic, catering, and customer retention.",
+      "suggestedFirstOutreachAngle": "You already operate a healthy convenience restaurant with repeat demand. Would you be open to a low-complexity smoothie franchise conversation for a second revenue channel?",
+      "confidenceLevel": "High",
+      "evidenceSources": [
+        "https://hsgreen.menu/",
+        "https://hsgreen.menu/location/",
+        "https://www.tripadvisor.com/Restaurant_Review-g56003-d9788805-Reviews-HS_Green_Fresh_Food_Kitchen-Houston_Texas.html"
+      ]
+    },
+    {
+      "rank": 6,
+      "business": "Acai Brasil USA",
+      "opportunityScore": 77,
+      "recommendedPriority": "Call after top four",
+      "category": "Acai, smoothies, fresh juices, food truck and storefront operator",
+      "location": "Food truck locations at 1001 Westheimer Rd, Houston, TX 77006, and 105 Sabine St, Houston, TX 77007; official site also lists Houston-area storefronts",
+      "publicContactMethods": [
+        "https://acaibrasilusa.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "acai",
+        "fresh juices",
+        "smoothies",
+        "food truck access"
+      ],
+      "numberOfLocationsPubliclyEvident": "Multiple locations publicly listed by official website",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Food truck plus storefront footprint",
+        "Houston-area and out-of-market locations"
+      ],
+      "reasonGoodFranchiseProspect": "Mobile demand, store operations, smoothie-adjacent category, and multi-location discipline are all strong franchise prospect signals.",
+      "suggestedFirstOutreachAngle": "Your mobile and retail acai footprint shows demand across Houston. Would Smoothie Depot be a useful complementary franchise concept for new corridors?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://acaibrasilusa.com/food-truck/",
+        "https://acaibrasilusa.com/"
+      ]
+    },
+    {
+      "rank": 7,
+      "business": "Leaf & Grain",
+      "opportunityScore": 75,
+      "recommendedPriority": "Research more",
+      "category": "Healthy restaurant, salads, grain bowls",
+      "location": "5525 Weslayan St, Houston, TX 77005, plus other Houston locations",
+      "publicContactMethods": [
+        "https://eatlg.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "quality and freshness",
+        "salads",
+        "grain bowls",
+        "healthy lunch",
+        "high-quality proteins"
+      ],
+      "numberOfLocationsPubliclyEvident": "Multiple Houston locations publicly listed",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Multiple Houston location pages",
+        "Downtown and neighborhood footprint"
+      ],
+      "reasonGoodFranchiseProspect": "Mature healthy food operator with multi-location discipline and healthy lunch traffic knowledge.",
+      "suggestedFirstOutreachAngle": "You understand Houston healthy convenience across multiple neighborhoods. Would you be open to comparing Smoothie Depot as a beverage-first expansion concept?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://eatlg.com/",
+        "https://eatlg.com/west-university",
+        "https://eatlg.com/shops-at-houston-center"
+      ]
+    },
+    {
+      "rank": 8,
+      "business": "Local Foods Group",
+      "opportunityScore": 73,
+      "recommendedPriority": "Research more",
+      "category": "Multi-location healthy restaurant and hospitality operator",
+      "location": "Rice Village at 2424 Dunstan Rd, Houston, TX 77005, plus Post Oak, Heights, Rice University, and Austin public locations",
+      "publicContactMethods": [
+        "713-521-7800",
+        "https://www.localfoodstexas.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "fresh dining",
+        "takeout",
+        "delivery",
+        "catering",
+        "locally sourced ingredients"
+      ],
+      "numberOfLocationsPubliclyEvident": "Five locations across Austin and Houston publicly stated on Rice Village page",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Houston multi-location footprint",
+        "Austin presence",
+        "Catering and delivery infrastructure"
+      ],
+      "reasonGoodFranchiseProspect": "Strong operator quality and hospitality systems, but less likely to buy a smoothie franchise unless framed as a strategic second concept.",
+      "suggestedFirstOutreachAngle": "You have proven Houston healthy dining operations. Could a Smoothie Depot unit be useful as a lower-complexity beverage concept in a high-traffic corridor?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://www.localfoodstexas.com/",
+        "https://www.localfoodstexas.com/location/local-foods-rice-village/"
+      ]
+    },
+    {
+      "rank": 9,
+      "business": "Dish Society",
+      "opportunityScore": 71,
+      "recommendedPriority": "Research more",
+      "category": "Multi-location restaurant and hospitality operator",
+      "location": "Heights at 1050 Yale St #100, Houston, TX 77008, plus Houston and Austin locations",
+      "publicContactMethods": [
+        "713-861-3474",
+        "https://dishsociety.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "local-sourced restaurant",
+        "Houston and Austin locations",
+        "neighborhood dining"
+      ],
+      "numberOfLocationsPubliclyEvident": "Multiple Houston locations and Austin expansion publicly listed",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Houston and Austin footprint",
+        "Multiple successful locations publicly stated"
+      ],
+      "reasonGoodFranchiseProspect": "Strong operator sophistication but less direct product fit; useful for executive networking, hospitality operator intelligence, or possible partnership.",
+      "suggestedFirstOutreachAngle": "You understand Houston-to-Austin hospitality growth. Would you be open to a short operator feedback call on Smoothie Depot franchise expansion in Houston?",
+      "confidenceLevel": "Medium-high",
+      "evidenceSources": [
+        "https://dishsociety.com/",
+        "https://dishsociety.com/hours-and-locations/",
+        "https://dishsociety.com/location/heights/"
+      ]
+    },
+    {
+      "rank": 10,
+      "business": "Pure Green West University",
+      "opportunityScore": 69,
+      "recommendedPriority": "Watchlist",
+      "category": "Existing juice and smoothie franchise operator",
+      "location": "3311 Westpark Drive Space #210, Houston, TX 77005",
+      "publicContactMethods": [
+        "832-740-4823",
+        "https://www.puregreenfranchise.com/texas/west-university/"
+      ],
+      "googleBusinessProfile": "official_page_displays_google_review_snippets",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "smoothies",
+        "juice",
+        "clean store",
+        "friendly staff",
+        "packaging"
+      ],
+      "numberOfLocationsPubliclyEvident": "One Houston franchise location captured in this pass",
+      "yearsOperatingPubliclyEvident": "Official page published 2.7 years before retrieval; exact open date not captured",
+      "expansionIndicators": [
+        "Existing franchise model",
+        "Catering",
+        "Strong public delivery demand"
+      ],
+      "reasonGoodFranchiseProspect": "Useful benchmark and possible operator-intelligence conversation; lower conversion priority because of likely competing franchise alignment.",
+      "suggestedFirstOutreachAngle": "As a Houston juice franchise operator, your perspective on local demand would be valuable. Would you consider a brief operator-to-operator conversation about Houston smoothie franchise corridors?",
+      "confidenceLevel": "Medium",
+      "evidenceSources": [
+        "https://www.puregreenfranchise.com/texas/west-university/",
+        "https://www.ubereats.com/store/pure-green-juice-and-smoothies-west-university/_Cexf63rXT-mjnGLFx9YTw"
+      ]
+    },
+    {
+      "rank": 11,
+      "business": "Hungry's",
+      "opportunityScore": 66,
+      "recommendedPriority": "Watchlist",
+      "category": "Multi-location restaurant and hospitality operator",
+      "location": "Rice Village at 2356 Rice Blvd, Houston, TX 77005; Memorial at 14714 Memorial Dr, Houston, TX 77079; Woodway/Tanglewood also publicly reported",
+      "publicContactMethods": [
+        "https://hungryscafe.com/"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "healthy comfort food",
+        "private events",
+        "catering",
+        "family-friendly"
+      ],
+      "numberOfLocationsPubliclyEvident": "Three Houston locations publicly reported",
+      "yearsOperatingPubliclyEvident": "50 years publicly reported",
+      "expansionIndicators": [
+        "Multi-decade brand",
+        "Multiple locations",
+        "Recent continued expansion"
+      ],
+      "reasonGoodFranchiseProspect": "Strong hospitality operator, but lower immediate fit because it is not a smoothie or nutrition-first business.",
+      "suggestedFirstOutreachAngle": "You have built durable neighborhood restaurant demand in Houston. Would a lower-complexity smoothie concept ever fit your future expansion thinking?",
+      "confidenceLevel": "Medium",
+      "evidenceSources": [
+        "https://hungryscafe.com/locations/memorial-drive/",
+        "https://hungryscafe.com/locations/rice-village/",
+        "https://www.houstoniamag.com/eat-and-drink/2025/04/hungrys-50-years-anniversary"
+      ]
+    },
+    {
+      "rank": 12,
+      "business": "Joyful Drink Experience",
+      "opportunityScore": 65,
+      "recommendedPriority": "Watchlist",
+      "category": "Mobile juice bar and catering operator",
+      "location": "Houston, TX, mobile",
+      "publicContactMethods": [
+        "https://shopjoyfuldrinkexperience.com/",
+        "https://streetfoodfinder.com/joyfuldrink"
+      ],
+      "googleBusinessProfile": "not_captured_from_unrestricted_source",
+      "googleRating": null,
+      "reviewCount": null,
+      "publicReviewThemes": [
+        "mobile juice bar",
+        "cold-pressed juices",
+        "smoothies",
+        "mocktails",
+        "catering"
+      ],
+      "numberOfLocationsPubliclyEvident": "Mobile operator",
+      "yearsOperatingPubliclyEvident": "not_captured_from_unrestricted_source",
+      "expansionIndicators": [
+        "Mobile event model",
+        "Catering profile",
+        "Public booking infrastructure"
+      ],
+      "reasonGoodFranchiseProspect": "Food truck and mobile beverage operators can be strong franchise candidates if they want a brick-and-mortar or territory-backed growth path.",
+      "suggestedFirstOutreachAngle": "You have mobile demand for healthy drinks. Would a Smoothie Depot franchise be worth exploring as a permanent location or territory expansion path?",
+      "confidenceLevel": "Medium",
+      "evidenceSources": [
+        "https://shopjoyfuldrinkexperience.com/",
+        "https://streetfoodfinder.com/joyfuldrink"
+      ]
+    }
+  ],
+  "researchGaps": [
+    "Direct Google Business Profile URLs, ratings, and review counts need a dedicated manual verification pass for prospects where unrestricted sources did not surface them.",
+    "Ownership interest, available capital, and buying intent were not researched because they are not public business facts in this workflow.",
+    "No CRM records were created. Runtime persistence requires future explicit approval.",
+    "No private contact information was collected."
+  ]
+}

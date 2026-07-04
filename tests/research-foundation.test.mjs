@@ -253,3 +253,65 @@ test("Market Expansion Recommendation remains research-only with source referenc
   assert.match(report, /Source References/);
   assert.match(report, /No Companion files modified/);
 });
+
+test("Smoothie Depot prospect discovery creates a workspace-isolated daily call list", () => {
+  const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
+  const workflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
+  const report = readText("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md");
+
+  assert.equal(prospects.workspaceId, "smoothie_depot");
+  assert.equal(prospects.operatingProfileId, "franchise_development");
+  assert.equal(prospects.intelligenceDomain, "business_acquisition_intelligence");
+  assert.equal(prospects.productionRuntimeChange, false);
+  assert.equal(prospects.dataPolicy.publicBusinessInformationOnly, true);
+  assert.equal(prospects.dataPolicy.restrictedPlatformScrapingUsed, false);
+  assert.equal(prospects.workspaceIsolation.fitnessConnectionDataUsed, false);
+  assert.equal(prospects.workspaceIsolation.routeIntelligenceUsed, false);
+  assert.equal(prospects.workspaceIsolation.activePoolUsed, false);
+  assert.equal(prospects.workspaceIsolation.crmModified, false);
+  assert.equal(prospects.workspaceIsolation.dashboardModified, false);
+  assert.equal(prospects.workspaceIsolation.intelligenceRuntimeModified, false);
+
+  assert.match(workflow, /Who should I call today\?/);
+  assert.match(workflow, /Allowed Public Sources/);
+  assert.match(workflow, /Do not scrape unsupported or restricted sources/);
+  assert.match(workflow, /Fitness Connection data used: no\./);
+  assert.match(workflow, /Route Intelligence used: no\./);
+  assert.match(workflow, /Active Pool used: no\./);
+  assert.match(report, /Founder Answer/);
+  assert.match(report, /Workspace Isolation Verification/);
+
+  assert.ok(prospects.prospects.length >= 10);
+  assert.deepEqual(prospects.topCallTargets, [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co.",
+    "LEEMOO Health Bar",
+    "Tight Squeeze Juice Bar",
+    "HS Green"
+  ]);
+
+  for (const business of [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co.",
+    "LEEMOO Health Bar",
+    "Tight Squeeze Juice Bar",
+    "HS Green",
+    "Acai Brasil USA",
+    "Leaf & Grain",
+    "Local Foods Group",
+    "Dish Society",
+    "Pure Green West University"
+  ]) {
+    assert.ok(prospects.prospects.some(prospect => prospect.business === business), `Missing ${business}`);
+    assert.match(report, new RegExp(business.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  for (const prospect of prospects.prospects) {
+    assert.ok(prospect.opportunityScore >= 0 && prospect.opportunityScore <= 100);
+    assert.ok(prospect.publicContactMethods.length > 0);
+    assert.ok(prospect.expansionIndicators.length > 0);
+    assert.ok(prospect.reasonGoodFranchiseProspect);
+    assert.ok(prospect.suggestedFirstOutreachAngle);
+    assert.ok(prospect.evidenceSources.length > 0);
+  }
+});

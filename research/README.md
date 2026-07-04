@@ -40,6 +40,9 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `registers/market-intelligence-model.json`: Market opportunity scoring model, candidate universe, and protected subsystem gates.
 - `reports/market-expansion-recommendation-v1.md`: First founder-ready strategic market expansion recommendation.
 - `reports/market-expansion-scoring-v1.json`: Structured scoring ledger for Market Expansion Recommendation v1.
+- `workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`: Smoothie Depot public business prospect discovery workflow.
+- `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`: First founder-ready Smoothie Depot ranked prospect list.
+- `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`: Structured Smoothie Depot prospect scoring ledger.
 
 ## Recurring Founder Intelligence Briefs
 
@@ -98,6 +101,18 @@ Current founder-ready output:
 - First recommended expansion market: Roofing.
 - Top 10 expansion opportunities: Roofing, Solar, HVAC, Pest Control, Home Services, Security, Medical, Insurance, Commercial Services, Telecommunications.
 - Report: `research/reports/market-expansion-recommendation-v1.md`
+
+## Smoothie Depot Business Prospect Discovery
+
+Research owns Smoothie Depot Business Prospect Discovery v1 as a workspace-isolated research workflow for the daily founder question: "Who should I call today?"
+
+Current founder-ready output:
+
+- Top call targets: Nutrition Depot Houston and Greater Houston, Cranky Carrot Juice Co., LEEMOO Health Bar, Tight Squeeze Juice Bar, and HS Green.
+- Report: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
+- Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+
+This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
 
 ## Boundary
 

@@ -10,6 +10,7 @@ const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
+const smoothieDepotProspects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
 const marketRecommendationSchema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
@@ -19,6 +20,8 @@ const template = readText("research/templates/founder-intelligence-brief.md");
 const strategicBriefTemplate = readText("research/templates/strategic-intelligence-brief.md");
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
+const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
+const smoothieDepotReport = readText("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md");
 const briefingSystem = readText("research/briefing-system.md");
 const marketIntelligenceEngine = readText("research/market-intelligence-engine.md");
 const briefingHandoffs = readText("research/future-briefing-handoffs.md");
@@ -174,6 +177,19 @@ const marketExpansionRequiredIndustries = [
   "Telecommunications",
   "Merchant Services",
   "B2B Field Sales"
+];
+
+const smoothieDepotRequiredProspects = [
+  "Nutrition Depot Houston and Greater Houston",
+  "Cranky Carrot Juice Co.",
+  "LEEMOO Health Bar",
+  "Tight Squeeze Juice Bar",
+  "HS Green",
+  "Acai Brasil USA",
+  "Leaf & Grain",
+  "Local Foods Group",
+  "Dish Society",
+  "Pure Green West University"
 ];
 
 for (const category of requiredCategories) {
@@ -380,6 +396,124 @@ assert.equal(marketExpansionScoring.boundaryConfirmation.mobileModified, false, 
 assert.equal(marketExpansionScoring.boundaryConfirmation.websiteModified, false, "Market report must not modify Website.");
 assert.equal(marketExpansionScoring.boundaryConfirmation.intelligenceRuntimeModified, false, "Market report must not modify Intelligence runtime.");
 assert.equal(marketExpansionScoring.sourceReferences.length >= 12, true, "Market expansion report must preserve source references.");
+
+assert.equal(smoothieDepotProspects.workspaceId, "smoothie_depot", "Smoothie Depot prospects must stay in the Smoothie Depot workspace.");
+assert.equal(
+  smoothieDepotProspects.operatingProfileId,
+  "franchise_development",
+  "Smoothie Depot prospects must use the Franchise Development operating profile."
+);
+assert.equal(
+  smoothieDepotProspects.intelligenceDomain,
+  "business_acquisition_intelligence",
+  "Smoothie Depot prospects must use Business Acquisition Intelligence."
+);
+assert.equal(smoothieDepotProspects.productionRuntimeChange, false, "Smoothie Depot prospects must not activate runtime changes.");
+assert.equal(
+  smoothieDepotProspects.dataPolicy.publicBusinessInformationOnly,
+  true,
+  "Smoothie Depot prospects must use public business information only."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.restrictedPlatformScrapingUsed,
+  false,
+  "Smoothie Depot prospects must not use restricted-platform scraping."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.unsupportedScrapingAllowed,
+  false,
+  "Smoothie Depot prospects must prohibit unsupported scraping."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.privateFinancialsCollected,
+  false,
+  "Smoothie Depot prospects must not collect private financials."
+);
+assert.equal(smoothieDepotProspects.dataPolicy.creditReportsCollected, false, "Smoothie Depot prospects must not collect credit reports.");
+assert.equal(smoothieDepotProspects.dataPolicy.bankInformationCollected, false, "Smoothie Depot prospects must not collect bank information.");
+assert.equal(smoothieDepotProspects.dataPolicy.taxRecordsCollected, false, "Smoothie Depot prospects must not collect tax records.");
+assert.equal(smoothieDepotProspects.workspaceIsolation.smoothieDepotWorkspaceOnly, true, "Smoothie Depot prospects must be workspace scoped.");
+assert.equal(smoothieDepotProspects.workspaceIsolation.fitnessConnectionDataUsed, false, "Smoothie Depot prospects must not use Fitness Connection data.");
+assert.equal(smoothieDepotProspects.workspaceIsolation.routeIntelligenceUsed, false, "Smoothie Depot prospects must not use Route Intelligence.");
+assert.equal(smoothieDepotProspects.workspaceIsolation.activePoolUsed, false, "Smoothie Depot prospects must not use Active Pool.");
+assert.equal(smoothieDepotProspects.workspaceIsolation.crossWorkspaceContamination, false, "Smoothie Depot prospects must avoid cross-workspace contamination.");
+
+for (const subsystem of [
+  "crmModified",
+  "dashboardModified",
+  "websiteModified",
+  "infrastructureModified",
+  "companionModified",
+  "mobileModified",
+  "intelligenceRuntimeModified"
+]) {
+  assert.equal(smoothieDepotProspects.workspaceIsolation[subsystem], false, `Smoothie Depot prospects must not modify ${subsystem}.`);
+}
+
+const smoothieDepotWeightTotal = smoothieDepotProspects.scoringModel.dimensions.reduce(
+  (sum, dimension) => sum + dimension.weight,
+  0
+);
+assert.equal(smoothieDepotWeightTotal, 100, "Smoothie Depot prospect scoring dimensions must total 100 points.");
+assert.equal(smoothieDepotProspects.prospects.length >= 10, true, "Smoothie Depot prospect list must include at least 10 prospects.");
+assert.deepEqual(
+  smoothieDepotProspects.topCallTargets,
+  [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co.",
+    "LEEMOO Health Bar",
+    "Tight Squeeze Juice Bar",
+    "HS Green"
+  ],
+  "Smoothie Depot top call targets drifted."
+);
+
+for (const business of smoothieDepotRequiredProspects) {
+  assert.ok(
+    smoothieDepotProspects.prospects.some(prospect => prospect.business === business),
+    `Smoothie Depot prospect list missing ${business}.`
+  );
+  assert.ok(smoothieDepotReport.includes(business), `Smoothie Depot report missing ${business}.`);
+}
+
+for (const prospect of smoothieDepotProspects.prospects) {
+  assert.ok(Number.isInteger(prospect.rank), `Smoothie Depot prospect ${prospect.business} missing rank.`);
+  assert.ok(prospect.business, "Smoothie Depot prospect missing business name.");
+  assert.ok(prospect.category, `Smoothie Depot prospect ${prospect.business} missing category.`);
+  assert.ok(prospect.location, `Smoothie Depot prospect ${prospect.business} missing location.`);
+  assert.ok(prospect.publicReviewThemes.length > 0, `Smoothie Depot prospect ${prospect.business} needs public review themes.`);
+  assert.ok(prospect.expansionIndicators.length > 0, `Smoothie Depot prospect ${prospect.business} needs expansion indicators.`);
+  assert.ok(prospect.reasonGoodFranchiseProspect, `Smoothie Depot prospect ${prospect.business} missing franchise-fit reason.`);
+  assert.ok(prospect.suggestedFirstOutreachAngle, `Smoothie Depot prospect ${prospect.business} missing outreach angle.`);
+  assert.ok(prospect.confidenceLevel, `Smoothie Depot prospect ${prospect.business} missing confidence level.`);
+  assert.ok(prospect.evidenceSources.length > 0, `Smoothie Depot prospect ${prospect.business} missing evidence sources.`);
+}
+
+for (const requiredText of [
+  "Who should I call today?",
+  "Allowed Public Sources",
+  "Data Capture Contract",
+  "Workspace Isolation Verification",
+  "Fitness Connection data used: no.",
+  "Route Intelligence used: no.",
+  "Active Pool used: no.",
+  "CRM modified: no.",
+  "Dashboard modified: no."
+]) {
+  assert.ok(smoothieDepotWorkflow.includes(requiredText), `Smoothie Depot workflow missing ${requiredText}`);
+}
+
+for (const requiredText of [
+  "Founder Answer",
+  "Research Notes",
+  "Verified facts",
+  "Hypotheses",
+  "Source References",
+  "Workspace Isolation Verification",
+  "Restricted-platform scraping used: no."
+]) {
+  assert.ok(smoothieDepotReport.includes(requiredText), `Smoothie Depot report missing ${requiredText}`);
+}
 
 assert.equal(sourceRegister.sources.length >= 6, true, "Source register needs internal and external seed sources.");
 for (const source of sourceRegister.sources) {
