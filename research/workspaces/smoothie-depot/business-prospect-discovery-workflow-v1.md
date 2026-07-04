@@ -71,6 +71,28 @@ Capture only public business information:
 
 If a field is not available from a trustworthy unrestricted source, record it as not captured. Do not infer private facts.
 
+## Executive Due Diligence Standard
+
+Every report must meet the Smoothie Depot Executive Due Diligence Intelligence Standard v4 before it is treated as founder-ready.
+
+Required executive review:
+
+- Label every conclusion as observed, inferred from multiple evidence sources, self-reported, owner-provided, or unknown.
+- Ask why each conclusion is believed, what supports it, what contradicts it, how confident Research is, what would change the conclusion, what is assumed, and what is still unknown.
+- Produce competing hypotheses when evidence can support more than one explanation.
+- Identify contradictions instead of smoothing them away.
+- Rank unknowns by business value.
+- Include a red-team review before finalizing.
+- Include opportunity cost analysis answering why Cruz should call the top-ranked business if he only has time for one call.
+- Include a scenario decision tree for liquidity, number of desired units, timeline, and competitive sensitivity.
+- Prepare a post-meeting learning journal template before outreach.
+
+Major observations must follow this chain:
+
+Observation -> Business implication -> Strategic implication -> Conversation implication -> Verification needed -> Recommended action.
+
+Every recommendation must explain how the observation changes outreach priority, Smoothie Depot fit, JR preparation, discovery questions, timeline, follow-up, and expansion potential.
+
 ## Scoring Model
 
 Each prospect receives a 100-point opportunity score:

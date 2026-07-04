@@ -100,6 +100,76 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Research - Executive Due Diligence Intelligence Platform v4
+
+Subsystem: Prometheus Research
+
+Task: Executive Due Diligence Intelligence Platform v4 for Smoothie Depot.
+
+Commit: Recorded by the Executive Due Diligence Intelligence Platform v4 handoff commit.
+
+Deploy: Not run. Research artifacts and validation only; no production deployment required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Research standards, structured framework, executive report upgrade, and validation.
+
+Executive Due Diligence framework created:
+
+Yes. Created Smoothie Depot Executive Due Diligence Intelligence Standard v4 and a machine-readable executive framework for evidence labeling, confidence scoring, contradiction analysis, scenario decision trees, unknown-value ranking, and post-meeting decision journals.
+
+Evidence model:
+
+Every conclusion must be classified as observed, inferred from multiple evidence sources, self-reported, owner-provided, or unknown. Unknowns are preserved as decision intelligence.
+
+Confidence model:
+
+Every recommendation must include evidence quality, source reliability, confidence, business impact, and verification priority.
+
+Contradiction analysis framework:
+
+Research must identify supporting evidence, contradicting evidence, alternative hypotheses, stronger hypothesis, and falsification triggers.
+
+Decision journal framework:
+
+After every real conversation, Research must compare predicted outcome to actual outcome, record which assumptions held or failed, and preserve what Prometheus should learn. CRM persistence remains unauthorized without explicit future CRM handoff.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `research/README.md`
+- `research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`
+- `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`
+- `research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Duplicate-prevention update:
+
+Do not create a separate Smoothie Depot due-diligence standard. Future reports must reuse `research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`, `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`, and the executive sections now embedded in `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md` or a dated successor. Future CRM/Dashboard/Companion use requires explicit subsystem handoff.
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run research:validate`: passed.
+- `npm run test:research`: passed.
+- `npm test`: passed.
+- `git diff --check`: passed.
+
+Remaining blockers:
+
+- Direct Google Business Profile verification remains incomplete for several prospects.
+- Lawful public sources are sufficient for first-call prioritization but not sufficient for investment, acquisition, final qualification, or private-equity-style reliance.
+- Owner-provided facts, liquidity, decision-maker authority, timeline, and franchise intent remain unknown until conversations occur.
+
+Next recommended subsystem:
+
+Prometheus Research for a Nutrition Depot Executive Dossier v1 using this standard; Prometheus Sales only after Cruz approves outreach.
+
 ### 2026-07-03: Prometheus Research - Smoothie Depot Business Prospect Discovery v1
 
 Subsystem: Prometheus Research

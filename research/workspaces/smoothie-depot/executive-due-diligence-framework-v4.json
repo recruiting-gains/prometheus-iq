@@ -1,0 +1,201 @@
+{
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "intelligenceDomain": "business_acquisition_intelligence",
+  "frameworkVersion": "executive-due-diligence-intelligence-platform-v4",
+  "status": "research_standard_active",
+  "productionRuntimeChange": false,
+  "dataPolicy": {
+    "publicBusinessInformationOnly": true,
+    "psychologicalProfilingAllowed": false,
+    "privateFinancialsCollected": false,
+    "creditReportsCollected": false,
+    "bankInformationCollected": false,
+    "taxRecordsCollected": false,
+    "restrictedPlatformScrapingUsed": false,
+    "unsupportedScrapingAllowed": false
+  },
+  "workspaceIsolation": {
+    "smoothieDepotWorkspaceOnly": true,
+    "fitnessConnectionDataUsed": false,
+    "routeIntelligenceUsed": false,
+    "activePoolUsed": false,
+    "crmModified": false,
+    "dashboardModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false
+  },
+  "evidenceModel": {
+    "labels": [
+      "observed",
+      "inferred_from_multiple_evidence_sources",
+      "self_reported",
+      "owner_provided",
+      "unknown"
+    ],
+    "rules": [
+      "Every conclusion must carry exactly one evidence label.",
+      "Unknowns are preserved as decision intelligence.",
+      "Self-reported claims must not be treated as independently verified unless another lawful public source confirms them.",
+      "Owner-provided facts can update future recommendations only through a post-meeting decision journal."
+    ]
+  },
+  "sourceReliabilityModel": [
+    {
+      "tier": "Tier 1",
+      "sourceTypes": [
+        "official business website",
+        "official location page",
+        "public government or chamber listing",
+        "official franchise page"
+      ],
+      "defaultReliability": "High",
+      "limitations": "Self-reported business claims may be current enough for contact details but incomplete for performance or intent."
+    },
+    {
+      "tier": "Tier 2",
+      "sourceTypes": [
+        "local business reporting",
+        "public district directory",
+        "public tourism directory",
+        "public trade coverage"
+      ],
+      "defaultReliability": "Medium-high",
+      "limitations": "Reporting may be dated, paywalled, summarized, or based on interviews."
+    },
+    {
+      "tier": "Tier 3",
+      "sourceTypes": [
+        "public review summary",
+        "delivery marketplace summary",
+        "public food truck directory"
+      ],
+      "defaultReliability": "Medium",
+      "limitations": "Useful for demand and customer-experience signals but should not be treated as definitive operating data."
+    }
+  ],
+  "confidenceModel": {
+    "requiredFieldsPerRecommendation": [
+      "evidenceQuality",
+      "sourceReliability",
+      "confidence",
+      "businessImpact",
+      "verificationPriority"
+    ],
+    "levels": [
+      {
+        "level": "High",
+        "definition": "Multiple reliable public sources support the conclusion and no material contradiction is known."
+      },
+      {
+        "level": "Medium-high",
+        "definition": "Credible public evidence supports the conclusion, but at least one key operating or intent unknown remains."
+      },
+      {
+        "level": "Medium",
+        "definition": "The conclusion is plausible but relies on limited public sources or one major assumption."
+      },
+      {
+        "level": "Low",
+        "definition": "The conclusion is speculative and should not guide outreach without more evidence."
+      }
+    ]
+  },
+  "contradictionAnalysisFramework": {
+    "requiredQuestions": [
+      "What evidence supports the conclusion?",
+      "What evidence contradicts the conclusion?",
+      "Could another explanation exist?",
+      "Which hypothesis has stronger evidence?",
+      "What would prove the conclusion false?"
+    ],
+    "requiredOutputs": [
+      "primaryHypothesis",
+      "alternativeHypothesis",
+      "supportingEvidence",
+      "contradictingEvidence",
+      "strongerHypothesis",
+      "falsificationTrigger"
+    ]
+  },
+  "secondOrderAnalysisFields": [
+    "observation",
+    "businessImplication",
+    "strategicImplication",
+    "conversationImplication",
+    "verificationNeeded",
+    "recommendedAction"
+  ],
+  "thirdOrderAnalysisFields": [
+    "outreachPriority",
+    "smoothieDepotFit",
+    "jrPreparation",
+    "discoveryQuestions",
+    "timeline",
+    "followUp",
+    "expansionPotential"
+  ],
+  "unknownValueAnalysis": {
+    "rankingQuestion": "If Cruz could only learn one additional fact before calling, which fact would improve the decision the most?",
+    "rankingFactors": [
+      "ability_to_confirm_franchise_readiness",
+      "ability_to_confirm_decision_maker_access",
+      "ability_to_confirm_timeline",
+      "ability_to_confirm_multi_unit_potential",
+      "ability_to_reduce_reputational_or_competitive_risk"
+    ]
+  },
+  "scenarioDecisionTree": [
+    {
+      "condition": "candidate_confirms_available_liquidity",
+      "action": "Prepare franchise economics discussion and JR handoff."
+    },
+    {
+      "condition": "candidate_does_not_confirm_available_liquidity",
+      "action": "Keep relationship warm and test partnership, referral, or future timing."
+    },
+    {
+      "condition": "candidate_wants_multiple_units",
+      "action": "Escalate to territory strategy and multi-unit readiness review."
+    },
+    {
+      "condition": "candidate_only_wants_one_unit",
+      "action": "Test founder involvement, location thesis, and first-unit operating readiness."
+    },
+    {
+      "condition": "timeline_exceeds_12_months",
+      "action": "Downgrade outreach urgency and schedule future Research refresh."
+    },
+    {
+      "condition": "candidate_is_competitor_protective",
+      "action": "Switch to operator intelligence and partnership learning rather than conversion pressure."
+    }
+  ],
+  "decisionJournalFramework": {
+    "requiredFields": [
+      "whyOutreachOccurred",
+      "predictedOutcome",
+      "actualOutcome",
+      "whyProspectAdvanced",
+      "whyProspectPaused",
+      "whyProspectClosed",
+      "whyProspectDeclined",
+      "assumptionsCorrect",
+      "assumptionsFailed",
+      "prometheusLearning",
+      "futureRecommendationUpdate"
+    ],
+    "runtimePersistenceAuthorized": false,
+    "crmHandoffRequired": true
+  },
+  "qualityControlGate": [
+    "Is this the strongest evidence available?",
+    "Have lawful public sources been exhausted for this decision stage?",
+    "Have contradictions been identified?",
+    "Have unknowns been prioritized?",
+    "Would a private equity investment committee rely on this report?"
+  ]
+}

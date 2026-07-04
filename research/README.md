@@ -41,6 +41,8 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `reports/market-expansion-recommendation-v1.md`: First founder-ready strategic market expansion recommendation.
 - `reports/market-expansion-scoring-v1.json`: Structured scoring ledger for Market Expansion Recommendation v1.
 - `workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`: Smoothie Depot public business prospect discovery workflow.
+- `workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`: Smoothie Depot executive due diligence intelligence standard.
+- `workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`: Machine-readable evidence, confidence, contradiction, decision tree, and decision journal framework.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`: First founder-ready Smoothie Depot ranked prospect list.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`: Structured Smoothie Depot prospect scoring ledger.
 
@@ -113,6 +115,12 @@ Current founder-ready output:
 - Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
 
 This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
+
+Executive due diligence standard:
+
+- Evidence labels: observed, inferred from multiple evidence sources, self-reported, owner-provided, unknown.
+- Required challenge loops: supporting evidence, contradicting evidence, assumptions, confidence, falsification triggers, and unknowns.
+- Required analysis: second-order implications, third-order recommendation effects, opportunity cost, alternative hypotheses, red-team review, unknown-value ranking, scenario decision tree, decision confidence matrix, and post-meeting decision journal.
 
 ## Boundary
 

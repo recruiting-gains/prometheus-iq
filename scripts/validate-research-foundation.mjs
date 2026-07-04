@@ -10,6 +10,7 @@ const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
+const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
 const smoothieDepotProspects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
@@ -21,6 +22,7 @@ const strategicBriefTemplate = readText("research/templates/strategic-intelligen
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
+const smoothieDepotExecutiveStandard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
 const smoothieDepotReport = readText("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md");
 const briefingSystem = readText("research/briefing-system.md");
 const marketIntelligenceEngine = readText("research/market-intelligence-engine.md");
@@ -190,6 +192,14 @@ const smoothieDepotRequiredProspects = [
   "Local Foods Group",
   "Dish Society",
   "Pure Green West University"
+];
+
+const smoothieDepotEvidenceLabels = [
+  "observed",
+  "inferred_from_multiple_evidence_sources",
+  "self_reported",
+  "owner_provided",
+  "unknown"
 ];
 
 for (const category of requiredCategories) {
@@ -513,6 +523,176 @@ for (const requiredText of [
   "Restricted-platform scraping used: no."
 ]) {
   assert.ok(smoothieDepotReport.includes(requiredText), `Smoothie Depot report missing ${requiredText}`);
+}
+
+assert.equal(
+  smoothieDepotExecutiveFramework.workspaceId,
+  "smoothie_depot",
+  "Smoothie Depot executive due diligence framework must stay workspace-scoped."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.operatingProfileId,
+  "franchise_development",
+  "Smoothie Depot executive due diligence framework must use Franchise Development."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.productionRuntimeChange,
+  false,
+  "Smoothie Depot executive due diligence framework must not activate runtime changes."
+);
+assert.deepEqual(
+  smoothieDepotExecutiveFramework.evidenceModel.labels,
+  smoothieDepotEvidenceLabels,
+  "Executive due diligence evidence labels drifted."
+);
+assert.deepEqual(
+  smoothieDepotProspects.executiveDueDiligence.evidenceClassification,
+  smoothieDepotEvidenceLabels,
+  "Smoothie Depot prospect evidence classification drifted."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.dataPolicy.publicBusinessInformationOnly,
+  true,
+  "Executive due diligence framework must use public business information only."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.dataPolicy.psychologicalProfilingAllowed,
+  false,
+  "Executive due diligence framework must prohibit psychological profiling."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.dataPolicy.restrictedPlatformScrapingUsed,
+  false,
+  "Executive due diligence framework must not use restricted-platform scraping."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.workspaceIsolation.fitnessConnectionDataUsed,
+  false,
+  "Executive due diligence framework must not use Fitness Connection data."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.workspaceIsolation.routeIntelligenceUsed,
+  false,
+  "Executive due diligence framework must not use Route Intelligence."
+);
+assert.equal(
+  smoothieDepotExecutiveFramework.workspaceIsolation.activePoolUsed,
+  false,
+  "Executive due diligence framework must not use Active Pool."
+);
+
+for (const field of [
+  "evidenceQuality",
+  "sourceReliability",
+  "confidence",
+  "businessImpact",
+  "verificationPriority"
+]) {
+  assert.ok(
+    smoothieDepotExecutiveFramework.confidenceModel.requiredFieldsPerRecommendation.includes(field),
+    `Executive confidence model missing ${field}.`
+  );
+}
+
+for (const prospect of smoothieDepotProspects.prospects) {
+  const confidence = smoothieDepotProspects.executiveDueDiligence.decisionConfidence.find(
+    entry => entry.business === prospect.business
+  );
+  assert.ok(confidence, `Executive decision confidence missing for ${prospect.business}.`);
+  for (const field of smoothieDepotExecutiveFramework.confidenceModel.requiredFieldsPerRecommendation) {
+    assert.ok(confidence[field], `Executive decision confidence for ${prospect.business} missing ${field}.`);
+  }
+}
+
+for (const observation of smoothieDepotProspects.executiveDueDiligence.majorObservationAnalysis) {
+  for (const field of smoothieDepotExecutiveFramework.secondOrderAnalysisFields) {
+    assert.ok(observation[field], `Major observation missing second-order field ${field}.`);
+  }
+  for (const field of smoothieDepotExecutiveFramework.thirdOrderAnalysisFields) {
+    assert.ok(observation.thirdOrderEffect[field], `Major observation missing third-order field ${field}.`);
+  }
+}
+
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.oneCallRecommendation.business,
+  "Nutrition Depot Houston and Greater Houston",
+  "Executive one-call recommendation must preserve Nutrition Depot."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.oneCallRecommendation.comparedAgainstEveryKnownProspect,
+  true,
+  "Executive one-call recommendation must compare against every known prospect."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.alternativeHypotheses.length >= 3,
+  true,
+  "Executive due diligence must include alternative hypotheses."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.redTeamReview.weakestEvidence.length > 0,
+  true,
+  "Executive due diligence must include red-team weakest evidence."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.unknownValueRanking[0].unknown,
+  "Decision-maker openness to second-concept or franchise expansion",
+  "Highest-value unknown must target decision-maker expansion openness."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.decisionTree.length >= 5,
+  true,
+  "Executive due diligence must include a scenario decision tree."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.decisionJournalTemplate.includes("predictedOutcome"),
+  true,
+  "Executive due diligence must include post-meeting decision journal fields."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.qualityControl.contradictionsIdentified,
+  true,
+  "Executive due diligence must identify contradictions."
+);
+assert.equal(
+  smoothieDepotProspects.executiveDueDiligence.qualityControl.unknownsPrioritized,
+  true,
+  "Executive due diligence must prioritize unknowns."
+);
+
+for (const requiredText of [
+  "Evidence Classification",
+  "Required Dossier Sections",
+  "Executive Challenge Questions",
+  "Second-Order Analysis Standard",
+  "Third-Order Analysis Standard",
+  "Opportunity Cost Standard",
+  "Alternative Hypothesis Standard",
+  "Red Team Review Standard",
+  "Unknown Value Analysis Standard",
+  "Decision Confidence Model",
+  "Scenario Decision Tree",
+  "Decision Journal Framework",
+  "Quality Control Gate",
+  "Workspace Isolation Verification"
+]) {
+  assert.ok(smoothieDepotExecutiveStandard.includes(requiredText), `Executive due diligence standard missing ${requiredText}.`);
+}
+
+for (const requiredText of [
+  "Executive Due Diligence Layer",
+  "Opportunity Cost Analysis",
+  "Major Observation Analysis",
+  "Alternative Hypotheses",
+  "Red Team Review",
+  "Unknown Value Analysis",
+  "Decision Confidence Matrix",
+  "Decision Tree",
+  "Conversation Preparation",
+  "JR Executive Brief",
+  "Post-Meeting Learning Journal",
+  "Intelligence Quality Control"
+]) {
+  assert.ok(smoothieDepotReport.includes(requiredText), `Smoothie Depot executive report missing ${requiredText}.`);
 }
 
 assert.equal(sourceRegister.sources.length >= 6, true, "Source register needs internal and external seed sources.");

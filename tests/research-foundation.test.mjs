@@ -315,3 +315,92 @@ test("Smoothie Depot prospect discovery creates a workspace-isolated daily call 
     assert.ok(prospect.evidenceSources.length > 0);
   }
 });
+
+test("Smoothie Depot executive due diligence standard enforces challenge loops and decision quality", () => {
+  const framework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
+  const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
+  const standard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
+  const report = readText("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md");
+
+  assert.equal(framework.workspaceId, "smoothie_depot");
+  assert.equal(framework.operatingProfileId, "franchise_development");
+  assert.equal(framework.productionRuntimeChange, false);
+  assert.equal(framework.dataPolicy.publicBusinessInformationOnly, true);
+  assert.equal(framework.dataPolicy.psychologicalProfilingAllowed, false);
+  assert.equal(framework.dataPolicy.restrictedPlatformScrapingUsed, false);
+  assert.equal(framework.workspaceIsolation.fitnessConnectionDataUsed, false);
+  assert.equal(framework.workspaceIsolation.routeIntelligenceUsed, false);
+  assert.equal(framework.workspaceIsolation.activePoolUsed, false);
+
+  const evidenceLabels = [
+    "observed",
+    "inferred_from_multiple_evidence_sources",
+    "self_reported",
+    "owner_provided",
+    "unknown"
+  ];
+
+  assert.deepEqual(framework.evidenceModel.labels, evidenceLabels);
+  assert.deepEqual(prospects.executiveDueDiligence.evidenceClassification, evidenceLabels);
+  assert.equal(prospects.executiveDueDiligence.oneCallRecommendation.business, "Nutrition Depot Houston and Greater Houston");
+  assert.equal(prospects.executiveDueDiligence.oneCallRecommendation.comparedAgainstEveryKnownProspect, true);
+
+  for (const prospect of prospects.prospects) {
+    const confidence = prospects.executiveDueDiligence.decisionConfidence.find(
+      entry => entry.business === prospect.business
+    );
+    assert.ok(confidence, `Missing confidence model for ${prospect.business}`);
+    for (const field of framework.confidenceModel.requiredFieldsPerRecommendation) {
+      assert.ok(confidence[field], `${prospect.business} missing ${field}`);
+    }
+  }
+
+  for (const observation of prospects.executiveDueDiligence.majorObservationAnalysis) {
+    for (const field of framework.secondOrderAnalysisFields) {
+      assert.ok(observation[field], `Missing second-order field ${field}`);
+    }
+    for (const field of framework.thirdOrderAnalysisFields) {
+      assert.ok(observation.thirdOrderEffect[field], `Missing third-order field ${field}`);
+    }
+  }
+
+  assert.ok(prospects.executiveDueDiligence.alternativeHypotheses.length >= 3);
+  assert.ok(prospects.executiveDueDiligence.redTeamReview.weakestEvidence.length > 0);
+  assert.equal(
+    prospects.executiveDueDiligence.unknownValueRanking[0].unknown,
+    "Decision-maker openness to second-concept or franchise expansion"
+  );
+  assert.ok(prospects.executiveDueDiligence.decisionTree.length >= 5);
+  assert.ok(prospects.executiveDueDiligence.decisionJournalTemplate.includes("actualOutcome"));
+  assert.equal(prospects.executiveDueDiligence.qualityControl.contradictionsIdentified, true);
+  assert.equal(prospects.executiveDueDiligence.qualityControl.unknownsPrioritized, true);
+
+  for (const section of [
+    "Executive Challenge Questions",
+    "Second-Order Analysis Standard",
+    "Third-Order Analysis Standard",
+    "Opportunity Cost Standard",
+    "Alternative Hypothesis Standard",
+    "Red Team Review Standard",
+    "Unknown Value Analysis Standard",
+    "Decision Journal Framework",
+    "Quality Control Gate"
+  ]) {
+    assert.match(standard, new RegExp(section));
+  }
+
+  for (const section of [
+    "Opportunity Cost Analysis",
+    "Major Observation Analysis",
+    "Alternative Hypotheses",
+    "Red Team Review",
+    "Unknown Value Analysis",
+    "Decision Confidence Matrix",
+    "Decision Tree",
+    "JR Executive Brief",
+    "Post-Meeting Learning Journal",
+    "Intelligence Quality Control"
+  ]) {
+    assert.match(report, new RegExp(section));
+  }
+});

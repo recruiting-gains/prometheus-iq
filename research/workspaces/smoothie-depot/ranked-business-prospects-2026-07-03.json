@@ -496,6 +496,292 @@
       ]
     }
   ],
+  "executiveDueDiligence": {
+    "standardVersion": "executive-due-diligence-intelligence-platform-v4",
+    "evidenceClassification": [
+      "observed",
+      "inferred_from_multiple_evidence_sources",
+      "self_reported",
+      "owner_provided",
+      "unknown"
+    ],
+    "oneCallRecommendation": {
+      "business": "Nutrition Depot Houston and Greater Houston",
+      "reason": "Nutrition Depot has the best current opportunity-cost profile because it combines complementary category fit, public Houston-area retail footprint, public contactability, and a customer base that plausibly overlaps Smoothie Depot without requiring an immediate competitor-to-franchise conversion.",
+      "comparedAgainstEveryKnownProspect": true,
+      "confidence": "High",
+      "verificationNeeded": [
+        "Correct business-level decision maker",
+        "Openness to second-concept or franchise expansion",
+        "Whether Houston-area public signals map to one expansion decision maker",
+        "Whether Smoothie Depot feels complementary rather than operationally distracting"
+      ]
+    },
+    "majorObservationAnalysis": [
+      {
+        "observation": "Nutrition Depot appears to be the highest-value first call.",
+        "businessImplication": "The business may already understand retail wellness buyers, supplement attach rates, repeat purchase behavior, and gym-adjacent demand.",
+        "strategicImplication": "Smoothie Depot may be positioned as a complementary beverage concept rather than a replacement business.",
+        "conversationImplication": "Cruz should lead with customer overlap and second-concept expansion, not with a generic franchise pitch.",
+        "verificationNeeded": "Confirm whether the business decision maker is open to second-concept expansion and whether current locations or operators have appetite for franchise ownership.",
+        "recommendedAction": "Call first and ask for a short founder-to-operator conversation about Houston wellness corridors.",
+        "thirdOrderEffect": {
+          "outreachPriority": "First call",
+          "smoothieDepotFit": "Strong complementary category fit",
+          "jrPreparation": "Prepare complementary-retail thesis",
+          "discoveryQuestions": "Ask about customer demographics, strongest store corridors, second-concept appetite, and preferred expansion model.",
+          "timeline": "Same-day outreach justified",
+          "followUp": "If interested, prepare territory and unit-economics discussion for JR.",
+          "expansionPotential": "Potentially multi-corridor if the operator has Houston-area reach or referral access."
+        }
+      },
+      {
+        "observation": "Direct juice and smoothie operators are high-fit but may be competitor-sensitive.",
+        "businessImplication": "They understand the category but may protect their own brand economics.",
+        "strategicImplication": "These calls may produce operator intelligence, partnership insight, or future expansion learning even if they do not convert.",
+        "conversationImplication": "Lead with market learning, second-concept curiosity, or Houston expansion intelligence.",
+        "verificationNeeded": "Confirm whether the operator sees Smoothie Depot as complementary, competitive, or irrelevant.",
+        "recommendedAction": "Call after Nutrition Depot and position the conversation as operator learning plus possible complementary expansion.",
+        "thirdOrderEffect": {
+          "outreachPriority": "High for Cranky Carrot, LEEMOO, and Tight Squeeze; lower for Pure Green",
+          "smoothieDepotFit": "Strong product fit with mixed conversion fit",
+          "jrPreparation": "Prepare competitive sensitivity talking points",
+          "discoveryQuestions": "Ask whether they want to expand under their own brand, partner, franchise, or stay local.",
+          "timeline": "Outreach valuable this week",
+          "followUp": "Record competitor objections and operator economics themes.",
+          "expansionPotential": "High if operators want additional units; lower if brand-protective."
+        }
+      },
+      {
+        "observation": "Multi-location healthy restaurant groups are operationally mature but less directly aligned.",
+        "businessImplication": "They likely understand hiring, site selection, throughput, and local hospitality execution.",
+        "strategicImplication": "They may be better executive-network targets or advisors than immediate franchise buyers.",
+        "conversationImplication": "Ask for operator perspective before pitching ownership.",
+        "verificationNeeded": "Confirm whether they consider second concepts, franchise ownership, or beverage-only expansion.",
+        "recommendedAction": "Keep as research-more targets unless Cruz wants hospitality operator feedback.",
+        "thirdOrderEffect": {
+          "outreachPriority": "Lower than nutrition, juice, smoothie, and mobile beverage operators",
+          "smoothieDepotFit": "Medium",
+          "jrPreparation": "Prepare operator sophistication and second-concept framing",
+          "discoveryQuestions": "Ask about expansion criteria, management bandwidth, and simple beverage operations.",
+          "timeline": "Follow after top wellness and juice prospects",
+          "followUp": "Use insights to refine future restaurant operator targeting.",
+          "expansionPotential": "Potentially high if strategic interest exists, but evidence is currently unknown."
+        }
+      }
+    ],
+    "alternativeHypotheses": [
+      {
+        "topic": "Nutrition Depot expansion signal",
+        "primaryHypothesis": "Multiple Houston-area public signals and the 2025 Southwest Freeway move indicate a retail operator with enough maturity to consider a second concept.",
+        "alternativeHypothesis": "The move may reflect stabilization, relocation, or lease optimization rather than expansion appetite.",
+        "strongerHypothesis": "Maturity is better supported than active expansion intent.",
+        "falsificationTrigger": "Decision maker says they are not interested in additional concepts, or public evidence shows consolidation rather than growth."
+      },
+      {
+        "topic": "Direct competitor fit",
+        "primaryHypothesis": "Juice and smoothie operators are best prospects because they understand the category.",
+        "alternativeHypothesis": "They are worse prospects because they already have brand identity, recipes, systems, and competitive positioning.",
+        "strongerHypothesis": "They are best for intelligence and possible partnership, not necessarily conversion.",
+        "falsificationTrigger": "A direct operator expresses dissatisfaction with self-funded expansion or wants a franchise model."
+      },
+      {
+        "topic": "Multi-location restaurant operator fit",
+        "primaryHypothesis": "Multi-location hospitality groups have the systems to operate Smoothie Depot successfully.",
+        "alternativeHypothesis": "Their sophistication makes them less likely to adopt a smaller smoothie franchise.",
+        "strongerHypothesis": "Operational fit is strong, but franchise-conversion fit is unproven.",
+        "falsificationTrigger": "Evidence of second-concept acquisition, franchise ownership, or beverage expansion appetite."
+      }
+    ],
+    "redTeamReview": {
+      "whatIfRecommendationIsWrong": [
+        "Nutrition Depot may have no interest in food or beverage operations.",
+        "The apparent Houston-area footprint may reflect brand or distributor naming complexity rather than one coordinated operator.",
+        "Public sources do not prove available capital, decision-maker identity, timeline, or franchise intent."
+      ],
+      "weakestEvidence": [
+        "Direct Google Business Profile data is missing for most prospects.",
+        "Franchise intent is entirely unknown.",
+        "Operating performance is unknown and intentionally not inferred."
+      ],
+      "unsupportedAssumptions": [
+        "Supplement customers would translate into smoothie demand under the same operator.",
+        "A current wellness operator wants a second concept.",
+        "Multi-location signals imply capacity for franchise expansion."
+      ],
+      "falsificationTriggers": [
+        "Nutrition Depot decision maker says they are not open to food or beverage operations.",
+        "The locations are independently operated with no shared expansion decision maker.",
+        "Another prospect confirms near-term franchise interest and available capital first."
+      ]
+    },
+    "unknownValueRanking": [
+      {
+        "rank": 1,
+        "unknown": "Decision-maker openness to second-concept or franchise expansion",
+        "businessValue": "Most directly determines whether outreach can become a JR-ready opportunity."
+      },
+      {
+        "rank": 2,
+        "unknown": "Available liquidity or financing path",
+        "businessValue": "Determines qualification, but should be asked carefully and later in the conversation."
+      },
+      {
+        "rank": 3,
+        "unknown": "One-unit versus multi-unit ambition",
+        "businessValue": "Changes JR preparation and territory discussion."
+      },
+      {
+        "rank": 4,
+        "unknown": "Operating bandwidth for another concept",
+        "businessValue": "Affects timeline and risk."
+      },
+      {
+        "rank": 5,
+        "unknown": "Whether Smoothie Depot feels complementary or competitive",
+        "businessValue": "Changes positioning and follow-up."
+      }
+    ],
+    "decisionConfidence": [
+      {
+        "business": "Nutrition Depot Houston and Greater Houston",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "High",
+        "confidence": "High",
+        "businessImpact": "High",
+        "verificationPriority": "High"
+      },
+      {
+        "business": "Cranky Carrot Juice Co.",
+        "evidenceQuality": "High",
+        "sourceReliability": "High",
+        "confidence": "High",
+        "businessImpact": "High",
+        "verificationPriority": "High"
+      },
+      {
+        "business": "LEEMOO Health Bar",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "Medium-high",
+        "confidence": "Medium-high",
+        "businessImpact": "High",
+        "verificationPriority": "High"
+      },
+      {
+        "business": "Tight Squeeze Juice Bar",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "Medium-high",
+        "confidence": "Medium-high",
+        "businessImpact": "Medium-high",
+        "verificationPriority": "High"
+      },
+      {
+        "business": "HS Green",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "Medium-high",
+        "confidence": "High",
+        "businessImpact": "Medium-high",
+        "verificationPriority": "Medium"
+      },
+      {
+        "business": "Acai Brasil USA",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "High",
+        "confidence": "Medium-high",
+        "businessImpact": "Medium-high",
+        "verificationPriority": "Medium"
+      },
+      {
+        "business": "Leaf & Grain",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "High",
+        "confidence": "Medium-high",
+        "businessImpact": "Medium",
+        "verificationPriority": "Medium"
+      },
+      {
+        "business": "Local Foods Group",
+        "evidenceQuality": "High",
+        "sourceReliability": "High",
+        "confidence": "Medium-high",
+        "businessImpact": "Medium",
+        "verificationPriority": "Medium"
+      },
+      {
+        "business": "Dish Society",
+        "evidenceQuality": "High",
+        "sourceReliability": "High",
+        "confidence": "Medium-high",
+        "businessImpact": "Medium",
+        "verificationPriority": "Medium"
+      },
+      {
+        "business": "Pure Green West University",
+        "evidenceQuality": "Medium",
+        "sourceReliability": "Medium-high",
+        "confidence": "Medium",
+        "businessImpact": "Medium",
+        "verificationPriority": "Medium-high"
+      },
+      {
+        "business": "Hungry's",
+        "evidenceQuality": "Medium-high",
+        "sourceReliability": "High",
+        "confidence": "Medium",
+        "businessImpact": "Medium",
+        "verificationPriority": "Low"
+      },
+      {
+        "business": "Joyful Drink Experience",
+        "evidenceQuality": "Medium",
+        "sourceReliability": "Medium",
+        "confidence": "Medium",
+        "businessImpact": "Medium",
+        "verificationPriority": "Medium-high"
+      }
+    ],
+    "decisionTree": [
+      {
+        "condition": "Nutrition Depot confirms interest in a second concept",
+        "action": "Ask whether the operator is thinking one unit or multiple units, then prepare JR on customer overlap, Houston corridors, and financing readiness."
+      },
+      {
+        "condition": "Nutrition Depot is not interested in food or beverage operations",
+        "action": "Reposition as a referral and market-learning call, then move Cranky Carrot to first direct-category conversation."
+      },
+      {
+        "condition": "Prospect confirms available liquidity or financing path",
+        "action": "Move to qualification questions and prepare JR for franchise economics."
+      },
+      {
+        "condition": "Prospect does not confirm liquidity",
+        "action": "Keep the relationship warm, ask about partnership or referral potential, and avoid pushing a franchise discussion."
+      },
+      {
+        "condition": "Timeline exceeds 12 months",
+        "action": "Downgrade urgency and schedule a future Research refresh."
+      }
+    ],
+    "decisionJournalTemplate": [
+      "prospectContacted",
+      "whyOutreachOccurred",
+      "predictedOutcome",
+      "actualOutcome",
+      "assumptionsCorrect",
+      "assumptionsFailed",
+      "evidenceChanged",
+      "prospectStatusAfterConversation",
+      "prometheusLearning",
+      "futureRecommendationUpdate"
+    ],
+    "qualityControl": {
+      "strongestEvidenceAvailableForDecisionStage": "partially",
+      "lawfulPublicSourcesExhausted": false,
+      "contradictionsIdentified": true,
+      "unknownsPrioritized": true,
+      "privateEquityCommitteeReliance": "Suitable for first-call prioritization, not yet suitable for investment, acquisition, or final franchise qualification."
+    }
+  },
   "researchGaps": [
     "Direct Google Business Profile URLs, ratings, and review counts need a dedicated manual verification pass for prospects where unrestricted sources did not surface them.",
     "Ownership interest, available capital, and buying intent were not researched because they are not public business facts in this workflow.",
