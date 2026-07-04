@@ -25,7 +25,9 @@
     "INSTAGRAM_USER_ID": "17841421929598004",
     "INSTAGRAM_CONNECTION_VERIFIED_AT": "2026-07-01T23:18:58.005Z",
     "INSTAGRAM_GRANTED_SCOPES": "instagram_business_basic,instagram_business_manage_insights",
-    "INSTAGRAM_ACCOUNT_HANDLE": "@prometheus.iq"
+    "INSTAGRAM_ACCOUNT_HANDLE": "@prometheus.iq",
+    "FOUNDER_NOTIFICATION_FROM": "intake@prometheusrouteiq.com",
+    "FOUNDER_NOTIFICATION_TO": "prometheusrouteiq@gmail.com"
   },
   "kv_namespaces": [
     {
@@ -35,6 +37,16 @@
     {
       "binding": "AEGIS_RATE_LIMITS",
       "id": "1365393c0e534e44af87519e46ea1450"
+    },
+    {
+      "binding": "SHARED_LEAD_INTAKE_STORE",
+      "id": "5c78f078c68147f089f7b6423c99688c"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "FOUNDER_EMAIL",
+      "destination_address": "prometheusrouteiq@gmail.com"
     }
   ]
 }

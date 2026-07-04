@@ -18,6 +18,10 @@ import {
   enforceAegisControls,
   withAegisHeaders
 } from "./infrastructure/aegis-security-controls.js";
+import {
+  PARTNER_INTAKE_PATH,
+  handlePartnerIntakeRequest
+} from "./infrastructure/shared-lead-intake-pipeline.js";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
 const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
@@ -41,11 +45,12 @@ const SECURITY_HEADERS = Object.freeze({
   ...AEGIS_API_HEADERS
 });
 
-function jsonResponse(body, status = 200) {
+function jsonResponse(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body, null, 2), {
     status,
     headers: {
       ...SECURITY_HEADERS,
+      ...headers,
       "Content-Type": "application/json; charset=utf-8"
     }
   });
@@ -361,6 +366,10 @@ async function handleMetaInstagramCallback(request, env) {
 
 async function handleApiRequest(request, env) {
   const url = new URL(request.url);
+  if (url.pathname === PARTNER_INTAKE_PATH) {
+    const result = await handlePartnerIntakeRequest(request, env);
+    return jsonResponse(result.body, result.status, result.headers || {});
+  }
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
   if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);

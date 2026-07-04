@@ -7920,6 +7920,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
 - Do not duplicate Operation Aegis Phase I security controls; reuse `workers/infrastructure/aegis-security-controls.js`, `scripts/verify-aegis-security-foundation.mjs`, `.github/workflows/security-gates.yml`, `.github/dependabot.yml`, and `docs/aegis-phase-i-security-foundation.md`.
+- Do not duplicate shared workspace lead intake infrastructure; reuse `POST /api/partner-intake`, `workers/infrastructure/shared-lead-intake-pipeline.js`, `SHARED_LEAD_INTAKE_STORE`, and `docs/shared-workspace-lead-intake-pipeline.md` for Fitness Connection, Smoothie Depot, and future workspace lead intake routing.
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
@@ -8067,6 +8068,49 @@ Remaining risks:
 - Required status checks should be enabled after stable CI check names are confirmed.
 - Cloudflare Access MFA remains off and should be enabled only after founder enrollment and recovery verification.
 - Account-level Cloudflare rate-volume rules require confirmed Zone WAF/rate-limit write permission; Worker/KV Aegis route rate limiting remains active meanwhile.
+
+### 2026-07-03: Prometheus Infrastructure - Shared Workspace Lead Intake Pipeline v1
+
+Task:
+Shared Workspace Lead Intake Pipeline v1.
+
+Status:
+Implemented as shared Infrastructure platform capability.
+
+Files changed:
+
+- `workers/infrastructure/shared-lead-intake-pipeline.js`
+- `workers/infrastructure/aegis-security-controls.js`
+- `workers/prometheus-iq-worker.js`
+- `wrangler.jsonc`
+- `wrangler.prometheusrouteiq-website.jsonc`
+- `scripts/verify-aegis-security-foundation.mjs`
+- `tests/shared-lead-intake-pipeline.test.mjs`
+- `docs/shared-workspace-lead-intake-pipeline.md`
+- `package.json`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Created shared `POST /api/partner-intake` intake infrastructure owned by Prometheus Infrastructure, not individual workspaces.
+- Added explicit workspace router for Fitness Connection and Smoothie Depot with fail-closed behavior for unknown workspaces.
+- Added dedicated Cloudflare KV namespace `SHARED_LEAD_INTAKE_STORE` with namespace ID `5c78f078c68147f089f7b6423c99688c`.
+- Bound the shared intake store to both public website and private Worker configurations.
+- Added Cloudflare Email Service send binding `FOUNDER_EMAIL` and non-secret founder notification metadata.
+- Implemented validation, spam checks, workspace isolation, durable submission/audit/notification persistence, CRM handoff packet preparation, founder notification attempt/queue status, and future Dashboard/Companion hook placeholders.
+- Kept CRM runtime ownership intact: Infrastructure prepares CRM handoff packets and never creates or mutates CRM records.
+- Extended Aegis route classification so `/api/partner-intake` inherits lead-intake rate limiting, method guards, and hardened API headers.
+- Added focused automated tests for workspace routing, no cross-workspace contamination, durable persistence, founder notification path, spam rejection, public response safety, and Aegis protection.
+
+Security impact:
+
+Lead intake now has a shared workspace-isolated platform boundary with Aegis protection, dedicated durable storage, audit trails, and no customer-specific intake ownership.
+
+Remaining risks:
+
+- Live email delivery depends on Cloudflare Email Service sender/domain readiness for `intake@prometheusrouteiq.com`. If the binding or sender is unavailable, submissions remain persisted and notification status is queued.
+- Future workspaces must be registered in the shared workspace router before public intake forms target them.
+- CRM must consume the prepared handoff packet through an explicit CRM-owned workspace contract before runtime CRM records are created.
 
 ## Next Recommended Engineering Task
 

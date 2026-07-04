@@ -33,6 +33,7 @@ check("Worker delegates API requests through Aegis controls", containsAll(worker
 ]));
 check("Aegis controls classify protected public route groups", containsAll(aegisControls, [
   "lead_intake",
+  "partner-intake",
   "beta_request",
   "instagram_read",
   "oauth_callback",
@@ -56,6 +57,13 @@ check("Private Worker has dedicated AEGIS_RATE_LIMITS binding", containsAll(wran
 check("Website Worker has dedicated AEGIS_RATE_LIMITS binding", containsAll(wranglerWebsite, [
   "\"binding\": \"AEGIS_RATE_LIMITS\"",
   "1365393c0e534e44af87519e46ea1450"
+]));
+check("Shared lead intake has dedicated durable KV binding", containsAll(wranglerWebsite, [
+  "\"binding\": \"SHARED_LEAD_INTAKE_STORE\"",
+  "5c78f078c68147f089f7b6423c99688c"
+]) && containsAll(wranglerPrivate, [
+  "\"binding\": \"SHARED_LEAD_INTAKE_STORE\"",
+  "5c78f078c68147f089f7b6423c99688c"
 ]));
 check("Authenticated production verification runbook remains present", containsAll(authenticatedAccessRunbook, [
   "Cloudflare Access",

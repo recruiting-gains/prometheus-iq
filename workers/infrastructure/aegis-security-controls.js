@@ -53,7 +53,7 @@ const AEGIS_API_HEADERS = Object.freeze({
 });
 
 function aegisRoutePolicy(pathname) {
-  if (/^\/api\/(?:lead|leads|intake|enterprise)/i.test(pathname)) return ROUTE_POLICIES.lead_intake;
+  if (/^\/api\/(?:lead|leads|intake|enterprise|partner-intake)/i.test(pathname)) return ROUTE_POLICIES.lead_intake;
   if (/^\/api\/(?:beta|private-beta|request-beta)/i.test(pathname)) return ROUTE_POLICIES.beta_request;
   if (/^\/api\/.*(?:status|health)$/i.test(pathname)) return ROUTE_POLICIES.public_status;
   if (/^\/api\/oauth\//i.test(pathname)) return ROUTE_POLICIES.oauth_callback;
