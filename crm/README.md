@@ -22,6 +22,11 @@ CRM consumes Website attribution output and normalizes CRM lead attribution thro
 
 CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness is the default profile. Use `buildCrmOperatingProfile`, `applyCrmOperatingProfileToLead`, `transitionLeadProfileStage`, and `recordProfileOutcomeForLead` for profile-driven terminology, CRM stages, outcome labels, and profile-aware pipeline reporting. Do not hardcode a new industry-specific CRM stage model inside CRM.
 
+## Workspace Planning
+
+- `workspaces/smoothie-depot/candidate-pipeline-contracts.json`: Smoothie Depot franchise candidate CRM planning contracts for candidate records, business prospects, JR handoff, commission tracking, protected candidate tracking, and workspace isolation.
+- `workspaces/smoothie-depot/candidate-pipeline-planning.md`: human-readable Smoothie Depot CRM candidate pipeline plan. This remains planning-only and does not create CRM runtime records or Dashboard consumption.
+
 ## v1 Workflow
 
 Supported lead states:
