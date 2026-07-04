@@ -100,6 +100,64 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Administration - Smoothie Depot Founder Operating Manual v1
+
+Subsystem: Prometheus Administration
+
+Task: Smoothie Depot Founder Operating Manual v1
+
+Commit: `00d4583890d3dbab3f9b7e9f5005adac8a77194b`
+
+Deploy: Not run. Administration operating workflow only.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Administration operating workflow and validation.
+
+Operating Manual created:
+
+Yes. Created `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`.
+
+Daily workflow complete:
+
+Yes. Covers morning startup, research, outreach, qualification, JR handoff, follow-up, end-of-day closeout, and daily decision order.
+
+Operational checklists complete:
+
+Yes. Created `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md` for morning, research, calls, discovery, qualification, JR handoff, follow-up, and end of day.
+
+Workspace isolation verified:
+
+Yes. Added `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`; validation confirms Smoothie Depot only, `franchise_development`, no Fitness Connection data, no route systems, no Active Pool, no units, no memberships, and no runtime subsystem changes.
+
+Files changed:
+
+- `administration/registers/documentation-index.json`
+- `administration/registers/release-history.json`
+- `administration/workspaces/smoothie-depot/README.md`
+- `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`
+- `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`
+- `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`
+- `scripts/validate-administration-foundation.mjs`
+- `tests/administration-foundation.test.mjs`
+
+Validation run:
+
+- `node scripts/validate-administration-foundation.mjs`: passed.
+- `node --test tests/administration-foundation.test.mjs`: passed.
+- `npm run dashboard:smoothie-depot:check`: passed.
+- `npm run intelligence:smoothie-depot-workspace:check`: passed.
+- `npm run crm:smoothie-depot:validate`: passed.
+- `git diff --check -- administration scripts/validate-administration-foundation.mjs tests/administration-foundation.test.mjs`: passed.
+
+Remaining blockers:
+
+Live CRM candidate persistence remains unauthorized until explicit future CRM handoff. Manual is operational procedure only.
+
+Next recommended subsystem:
+
+Prometheus CRM only if Cruz approves runtime candidate persistence for Smoothie Depot.
+
 ### 2026-07-04: Prometheus Research - Executive Due Diligence Intelligence Platform v4
 
 Subsystem: Prometheus Research
@@ -8189,6 +8247,7 @@ Current duplicate-prevention sources:
 - Do not duplicate the Administration private beta stabilization intake system; use `administration/registers/stabilization-issues.json` as the unified beta issue source of truth and keep legacy bug/feature registers lightweight.
 - Do not duplicate the Beta Stabilization Sprint 1 sign-off packet; reuse `administration/verification/beta-stabilization-sprint-1/` and keep sign-off pending until field results are recorded.
 - Do not duplicate the Beta Sprint 2 Field Feedback Command Center; reuse `administration/command-center/beta-sprint-2/`, `administration/registers/stabilization-issues.json`, and the existing Administration severity/status/pass-fail/subsystem-routing flow for Sprint 2 evidence.
+- Do not duplicate Smoothie Depot Founder Operating Manual v1; reuse `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`, `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`, and `administration/workspaces/smoothie-depot/workspace-isolation-verification.json` for Smoothie Depot daily operations, research, outreach, qualification, JR handoff, follow-up, end-of-day closeout, and daily decision order. This is operational procedure only and does not authorize CRM candidate persistence, Dashboard runtime changes, route systems, Active Pool, units, memberships, or Fitness Connection data usage.
 - Use `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md` before planning Dashboard, Companion, Intelligence Engine, Infrastructure, Data, or beta-support work.
 
 ### 2026-07-01: Prometheus Infrastructure/Auth - Authenticated Production Verification Access v1

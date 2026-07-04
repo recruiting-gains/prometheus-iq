@@ -378,6 +378,25 @@ Current foundation:
 - `research/registers/briefing-catalog.json`
 - `research/registers/market-intelligence-model.json`
 
+### 13. Prometheus Administration
+
+Scope: operational procedures, beta records, pilot records, release history, documentation indexes, founder administrative requirements, and workspace operating manuals.
+
+Areas:
+
+- Beta Operations
+- Stabilization Intake
+- Tester Records
+- Release History
+- Documentation Index
+- Workspace Operating Manuals
+- Founder Administrative Procedures
+- Verification Checklists
+
+Primary rule: Administration owns operating procedure and governance records. It does not own product engineering, runtime route logic, data refresh infrastructure, CRM automation, Companion behavior, external integrations, or deployment configuration.
+
+Smoothie Depot Administration rule: Smoothie Depot operating procedure must extend `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`, `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`, and `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, and the no-Fitness-Connection / no-Route-Intelligence / no-Active-Pool / no-units / no-memberships boundary. It must not authorize CRM runtime persistence or Dashboard runtime changes.
+
 ## Workstream Routing Checklist
 
 Before beginning future work, answer:
