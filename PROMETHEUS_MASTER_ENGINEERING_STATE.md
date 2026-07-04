@@ -100,6 +100,80 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Research - Smoothie Depot Executive Due Diligence Dossier v1
+
+Subsystem: Prometheus Research
+
+Task: Smoothie Depot Executive Due Diligence Dossier v1
+
+Commit: Recorded by the Smoothie Depot Executive Due Diligence Dossier v1 handoff commit.
+
+Deploy: Not run. Research artifact and validation only; no production deployment required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Canonical Research-owned dossier artifact, structured dossier ledger, register, and validation.
+
+Business selected:
+
+Nutrition Depot Houston and Greater Houston, the highest-ranked Smoothie Depot prospect in the current Founder Mission Queue.
+
+Executive Due Diligence Dossier created:
+
+Yes. Created the first complete canonical Executive Due Diligence Dossier under the Smoothie Depot workspace using Executive Due Diligence Intelligence Platform v4.
+
+Canonical Research artifact recorded:
+
+Yes. Recorded the dossier under `research/workspaces/smoothie-depot/dossiers/` and added a canonical dossier register for future Dashboard consumption.
+
+Workspace verified:
+
+Verified. The dossier is scoped to `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, and `intelligence_domain: business_acquisition_intelligence`. No Fitness Connection, Route Intelligence, Active Pool, CRM, Dashboard, Website, Infrastructure, Companion, Mobile, or Intelligence runtime changes are included.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `research/README.md`
+- `research/workspaces/smoothie-depot/dossiers/dossier-register.json`
+- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
+- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining unknowns:
+
+- Decision-maker authority over one store versus multiple locations.
+- Second-concept or franchise expansion openness.
+- Available liquidity or financing path.
+- Food and beverage operating appetite.
+- One-unit versus multi-unit preference.
+- Timeline.
+- Direct Google Business Profile rating, review count, and complaint themes.
+- Whether Smoothie Depot feels complementary or distracting.
+
+Confidence level:
+
+High for first-call prioritization. Not sufficient for final franchise qualification, investment reliance, or JR handoff without live verification.
+
+Duplicate-prevention update:
+
+Do not regenerate a Nutrition Depot dossier from Dashboard content. Future Dashboard consumption should use `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`, `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`, and `research/workspaces/smoothie-depot/dossiers/dossier-register.json` as the canonical Research source.
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run research:validate`: passed.
+- `npm run test:research`: passed.
+- `npm test`: blocked by unrelated Dashboard workspace-switcher parity failure because `smoothie-depot-dashboard/index.html` and its deploy asset are out of sync in the pre-existing Dashboard worktree.
+- `git diff --check`: passed.
+
+Next recommended subsystem:
+
+Prometheus Dashboard to replace embedded dossier panels with the canonical Research dossier artifact, only as a read-only consumer.
+
 ### 2026-07-04: Prometheus Research - Founder Executive Dossier Retrieval v1
 
 Subsystem: Prometheus Research

@@ -404,3 +404,93 @@ test("Smoothie Depot executive due diligence standard enforces challenge loops a
     assert.match(report, new RegExp(section));
   }
 });
+
+test("Smoothie Depot stores the first canonical Nutrition Depot executive dossier", () => {
+  const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
+  const register = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
+  const dossier = readJson("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json");
+  const report = readText("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md");
+
+  const topProspect = prospects.prospects[0];
+  assert.equal(topProspect.business, "Nutrition Depot Houston and Greater Houston");
+  assert.equal(topProspect.canonicalDossier, "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md");
+
+  assert.equal(register.workspaceId, "smoothie_depot");
+  assert.equal(register.productionRuntimeChange, false);
+  assert.equal(register.canonicalDossiers[0].business, "Nutrition Depot Houston and Greater Houston");
+  assert.equal(register.canonicalDossiers[0].status, "completed_canonical_research_dossier");
+  assert.equal(register.canonicalDossiers[0].dashboardCanonicalSource, true);
+
+  assert.equal(dossier.workspaceId, "smoothie_depot");
+  assert.equal(dossier.operatingProfileId, "franchise_development");
+  assert.equal(dossier.businessSelected, "Nutrition Depot Houston and Greater Houston");
+  assert.equal(dossier.founderMissionQueueRank, 1);
+  assert.equal(dossier.artifactStatus, "completed_canonical_research_dossier");
+  assert.equal(dossier.productionRuntimeChange, false);
+  assert.equal(dossier.dataPolicy.publicBusinessInformationOnly, true);
+  assert.equal(dossier.dataPolicy.privateFinancialsCollected, false);
+  assert.equal(dossier.dataPolicy.creditReportsCollected, false);
+  assert.equal(dossier.dataPolicy.bankInformationCollected, false);
+  assert.equal(dossier.dataPolicy.taxRecordsCollected, false);
+  assert.equal(dossier.dataPolicy.psychologicalProfileCreated, false);
+  assert.equal(dossier.dataPolicy.restrictedPlatformScrapingUsed, false);
+  assert.equal(dossier.workspaceIsolation.fitnessConnectionDataUsed, false);
+  assert.equal(dossier.workspaceIsolation.routeIntelligenceUsed, false);
+  assert.equal(dossier.workspaceIsolation.activePoolUsed, false);
+
+  const requiredSections = [
+    "Executive Summary",
+    "Business Identity",
+    "Company History Timeline",
+    "Public Ownership / Operator Footprint",
+    "Business Evolution",
+    "Digital Presence Audit",
+    "Reputation Intelligence",
+    "Review Theme Intelligence",
+    "Customer Experience Intelligence",
+    "Market Position",
+    "Competitive Landscape",
+    "Geographic Opportunity",
+    "Growth Signals",
+    "Expansion Signals",
+    "Operational Maturity",
+    "Brand Strength",
+    "Community Presence",
+    "Business Network",
+    "Franchise Compatibility",
+    "Smoothie Depot Strategic Fit",
+    "Conversation Preparation",
+    "JR Executive Brief",
+    "Risk Register",
+    "Unknowns Register",
+    "Verification Checklist",
+    "Opportunity Ranking",
+    "Confidence Model",
+    "Evidence Matrix",
+    "Source Reliability Matrix",
+    "Recommended Next Actions"
+  ];
+
+  assert.deepEqual(dossier.requiredDossierSections, requiredSections);
+  for (const [index, section] of requiredSections.entries()) {
+    assert.match(report, new RegExp(`## ${index + 1}\\. ${section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+  }
+
+  for (const section of [
+    "Second-Order Analysis",
+    "Third-Order Analysis",
+    "Opportunity Cost Analysis",
+    "Alternative Hypotheses",
+    "Red Team Review",
+    "Unknown Value Analysis",
+    "Scenario Decision Tree",
+    "Post-Meeting Learning Journal",
+    "Intelligence Quality Control",
+    "Workspace Isolation Verification"
+  ]) {
+    assert.match(report, new RegExp(section));
+  }
+
+  assert.ok(dossier.remainingUnknowns.includes("Second-concept or franchise expansion openness"));
+  assert.ok(dossier.sourceReliabilityMatrix.length >= 5);
+});

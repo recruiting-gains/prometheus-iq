@@ -1,0 +1,134 @@
+{
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "intelligenceDomain": "business_acquisition_intelligence",
+  "platformStandard": "executive-due-diligence-intelligence-platform-v4",
+  "artifactStatus": "completed_canonical_research_dossier",
+  "generatedAt": "2026-07-04",
+  "businessSelected": "Nutrition Depot Houston and Greater Houston",
+  "founderMissionQueueRank": 1,
+  "sourceProspectArtifact": "research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json",
+  "canonicalMarkdownArtifact": "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
+  "productionRuntimeChange": false,
+  "workspaceIsolation": {
+    "smoothieDepotWorkspaceOnly": true,
+    "fitnessConnectionDataUsed": false,
+    "routeIntelligenceUsed": false,
+    "activePoolUsed": false,
+    "crmModified": false,
+    "dashboardModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false
+  },
+  "dataPolicy": {
+    "publicBusinessInformationOnly": true,
+    "privateFinancialsCollected": false,
+    "creditReportsCollected": false,
+    "bankInformationCollected": false,
+    "taxRecordsCollected": false,
+    "psychologicalProfileCreated": false,
+    "restrictedPlatformScrapingUsed": false,
+    "unsupportedScrapingAllowed": false
+  },
+  "requiredDossierSections": [
+    "Executive Summary",
+    "Business Identity",
+    "Company History Timeline",
+    "Public Ownership / Operator Footprint",
+    "Business Evolution",
+    "Digital Presence Audit",
+    "Reputation Intelligence",
+    "Review Theme Intelligence",
+    "Customer Experience Intelligence",
+    "Market Position",
+    "Competitive Landscape",
+    "Geographic Opportunity",
+    "Growth Signals",
+    "Expansion Signals",
+    "Operational Maturity",
+    "Brand Strength",
+    "Community Presence",
+    "Business Network",
+    "Franchise Compatibility",
+    "Smoothie Depot Strategic Fit",
+    "Conversation Preparation",
+    "JR Executive Brief",
+    "Risk Register",
+    "Unknowns Register",
+    "Verification Checklist",
+    "Opportunity Ranking",
+    "Confidence Model",
+    "Evidence Matrix",
+    "Source Reliability Matrix",
+    "Recommended Next Actions"
+  ],
+  "executiveConclusion": {
+    "recommendation": "Call first, but do not treat as qualified.",
+    "confidenceLevel": "High for first-call prioritization; not sufficient for final franchise qualification.",
+    "businessImpact": "High if the operator controls or influences multiple Houston-area wellness retail relationships.",
+    "verificationPriority": "High"
+  },
+  "evidenceClassification": {
+    "businessIdentityAndLocation": "observed",
+    "productAndWellnessCategoryFit": "observed_and_self_reported",
+    "houstonAreaRetailFootprint": "inferred_from_multiple_evidence_sources",
+    "smoothieDepotStrategicFit": "inferred_from_multiple_evidence_sources",
+    "franchiseInterestLiquidityOwnershipStructureDecisionAuthority": "unknown"
+  },
+  "remainingUnknowns": [
+    "Decision-maker authority over one store versus multiple locations",
+    "Second-concept or franchise expansion openness",
+    "Available liquidity or financing path",
+    "Food and beverage operating appetite",
+    "One-unit versus multi-unit preference",
+    "Timeline",
+    "Direct Google Business Profile rating, review count, and complaint themes",
+    "Whether Smoothie Depot feels complementary or distracting"
+  ],
+  "sourceReliabilityMatrix": [
+    {
+      "source": "Nutrition Depot Houston official site",
+      "url": "https://nutritiondepot.us/",
+      "tier": "Tier 1",
+      "reliability": "High",
+      "usedFor": "Houston address, phone, product categories, InBody testing, hours, contact path",
+      "limitations": "Self-reported and not proof of performance or intent"
+    },
+    {
+      "source": "Nutrition Depot Online",
+      "url": "https://ndonline.com/",
+      "tier": "Tier 1",
+      "reliability": "High",
+      "usedFor": "Ecommerce, product taxonomy, inventory, shipping, pickup, listed locations",
+      "limitations": "Relationship to Houston Southwest Freeway location needs verification"
+    },
+    {
+      "source": "Community Impact",
+      "url": "https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/",
+      "tier": "Tier 2",
+      "reliability": "Medium-high",
+      "usedFor": "2025 relocation and product description",
+      "limitations": "Local reporting does not prove current intent"
+    },
+    {
+      "source": "Pasadena Chamber",
+      "url": "https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622",
+      "tier": "Tier 2",
+      "reliability": "Medium-high",
+      "usedFor": "Pasadena location signal",
+      "limitations": "Does not prove shared ownership with Houston"
+    },
+    {
+      "source": "Waze public directory",
+      "url": "https://www.waze.com/live-map/directions/us/tx/houston/nutrition-depot?to=place.ChIJ2-4dRmrAQIYR4asS2Ur_sS8",
+      "tier": "Tier 3",
+      "reliability": "Medium",
+      "usedFor": "Secondary location and phone confirmation",
+      "limitations": "Directory data should remain secondary"
+    }
+  ],
+  "recommendedNextAction": "Call Nutrition Depot Houston first and verify decision-maker authority, second-concept openness, and whether the Houston contact controls one store or a broader Nutrition Depot network."
+}

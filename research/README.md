@@ -45,6 +45,9 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`: Machine-readable evidence, confidence, contradiction, decision tree, and decision journal framework.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`: First founder-ready Smoothie Depot ranked prospect list.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`: Structured Smoothie Depot prospect scoring ledger.
+- `workspaces/smoothie-depot/dossiers/dossier-register.json`: Canonical completed dossier register for Smoothie Depot Research.
+- `workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`: First completed canonical Executive Due Diligence Dossier.
+- `workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`: Structured canonical Executive Due Diligence Dossier ledger.
 
 ## Recurring Founder Intelligence Briefs
 
@@ -113,6 +116,7 @@ Current founder-ready output:
 - Top call targets: Nutrition Depot Houston and Greater Houston, Cranky Carrot Juice Co., LEEMOO Health Bar, Tight Squeeze Juice Bar, and HS Green.
 - Report: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
 - Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- First canonical completed dossier: `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
 
 This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
 

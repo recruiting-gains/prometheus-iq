@@ -11,6 +11,8 @@ const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
+const smoothieDepotDossierRegister = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
+const nutritionDepotDossier = readJson("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json");
 const smoothieDepotProspects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
@@ -23,6 +25,7 @@ const marketRecommendationTemplate = readText("research/templates/market-expansi
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
 const smoothieDepotExecutiveStandard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
+const nutritionDepotDossierReport = readText("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md");
 const smoothieDepotReport = readText("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md");
 const briefingSystem = readText("research/briefing-system.md");
 const marketIntelligenceEngine = readText("research/market-intelligence-engine.md");
@@ -200,6 +203,39 @@ const smoothieDepotEvidenceLabels = [
   "self_reported",
   "owner_provided",
   "unknown"
+];
+
+const smoothieDepotRequiredDossierSections = [
+  "Executive Summary",
+  "Business Identity",
+  "Company History Timeline",
+  "Public Ownership / Operator Footprint",
+  "Business Evolution",
+  "Digital Presence Audit",
+  "Reputation Intelligence",
+  "Review Theme Intelligence",
+  "Customer Experience Intelligence",
+  "Market Position",
+  "Competitive Landscape",
+  "Geographic Opportunity",
+  "Growth Signals",
+  "Expansion Signals",
+  "Operational Maturity",
+  "Brand Strength",
+  "Community Presence",
+  "Business Network",
+  "Franchise Compatibility",
+  "Smoothie Depot Strategic Fit",
+  "Conversation Preparation",
+  "JR Executive Brief",
+  "Risk Register",
+  "Unknowns Register",
+  "Verification Checklist",
+  "Opportunity Ranking",
+  "Confidence Model",
+  "Evidence Matrix",
+  "Source Reliability Matrix",
+  "Recommended Next Actions"
 ];
 
 for (const category of requiredCategories) {
@@ -657,6 +693,92 @@ assert.equal(
   smoothieDepotProspects.executiveDueDiligence.qualityControl.unknownsPrioritized,
   true,
   "Executive due diligence must prioritize unknowns."
+);
+
+const nutritionDepotProspect = smoothieDepotProspects.prospects.find(
+  prospect => prospect.business === "Nutrition Depot Houston and Greater Houston"
+);
+assert.ok(nutritionDepotProspect, "Nutrition Depot prospect must remain present.");
+assert.equal(
+  nutritionDepotProspect.canonicalDossier,
+  "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
+  "Nutrition Depot prospect must point to the canonical Research dossier."
+);
+assert.equal(smoothieDepotDossierRegister.workspaceId, "smoothie_depot", "Dossier register must stay in Smoothie Depot workspace.");
+assert.equal(smoothieDepotDossierRegister.productionRuntimeChange, false, "Dossier register must not activate runtime changes.");
+assert.equal(
+  smoothieDepotDossierRegister.canonicalDossiers[0].business,
+  "Nutrition Depot Houston and Greater Houston",
+  "First canonical dossier must be Nutrition Depot."
+);
+assert.equal(
+  smoothieDepotDossierRegister.canonicalDossiers[0].status,
+  "completed_canonical_research_dossier",
+  "Nutrition Depot dossier must be completed."
+);
+assert.equal(
+  smoothieDepotDossierRegister.canonicalDossiers[0].dashboardCanonicalSource,
+  true,
+  "Dossier register must mark the Nutrition Depot artifact as Dashboard-consumable source."
+);
+assert.equal(nutritionDepotDossier.workspaceId, "smoothie_depot", "Nutrition Depot dossier must stay in Smoothie Depot workspace.");
+assert.equal(
+  nutritionDepotDossier.businessSelected,
+  "Nutrition Depot Houston and Greater Houston",
+  "Nutrition Depot dossier must select the highest-ranked prospect."
+);
+assert.equal(nutritionDepotDossier.founderMissionQueueRank, 1, "Nutrition Depot dossier must be rank 1.");
+assert.equal(
+  nutritionDepotDossier.artifactStatus,
+  "completed_canonical_research_dossier",
+  "Nutrition Depot dossier must be completed canonical Research artifact."
+);
+assert.equal(nutritionDepotDossier.productionRuntimeChange, false, "Nutrition Depot dossier must not activate runtime changes.");
+assert.equal(nutritionDepotDossier.dataPolicy.publicBusinessInformationOnly, true, "Nutrition Depot dossier must use public business info only.");
+assert.equal(nutritionDepotDossier.dataPolicy.privateFinancialsCollected, false, "Nutrition Depot dossier must not collect private financials.");
+assert.equal(nutritionDepotDossier.dataPolicy.creditReportsCollected, false, "Nutrition Depot dossier must not collect credit reports.");
+assert.equal(nutritionDepotDossier.dataPolicy.bankInformationCollected, false, "Nutrition Depot dossier must not collect bank information.");
+assert.equal(nutritionDepotDossier.dataPolicy.taxRecordsCollected, false, "Nutrition Depot dossier must not collect tax records.");
+assert.equal(nutritionDepotDossier.dataPolicy.psychologicalProfileCreated, false, "Nutrition Depot dossier must not create a psychological profile.");
+assert.equal(nutritionDepotDossier.dataPolicy.restrictedPlatformScrapingUsed, false, "Nutrition Depot dossier must not use restricted-platform scraping.");
+assert.equal(nutritionDepotDossier.workspaceIsolation.fitnessConnectionDataUsed, false, "Nutrition Depot dossier must not use Fitness Connection data.");
+assert.equal(nutritionDepotDossier.workspaceIsolation.routeIntelligenceUsed, false, "Nutrition Depot dossier must not use Route Intelligence.");
+assert.equal(nutritionDepotDossier.workspaceIsolation.activePoolUsed, false, "Nutrition Depot dossier must not use Active Pool.");
+
+assert.deepEqual(
+  nutritionDepotDossier.requiredDossierSections,
+  smoothieDepotRequiredDossierSections,
+  "Nutrition Depot dossier must include every v4 required dossier section."
+);
+for (const [index, section] of smoothieDepotRequiredDossierSections.entries()) {
+  assert.ok(
+    nutritionDepotDossierReport.includes(`## ${index + 1}. ${section}`),
+    `Nutrition Depot dossier report missing section ${index + 1}. ${section}.`
+  );
+}
+for (const requiredText of [
+  "Second-Order Analysis",
+  "Third-Order Analysis",
+  "Opportunity Cost Analysis",
+  "Alternative Hypotheses",
+  "Red Team Review",
+  "Unknown Value Analysis",
+  "Scenario Decision Tree",
+  "Post-Meeting Learning Journal",
+  "Intelligence Quality Control",
+  "Workspace Isolation Verification"
+]) {
+  assert.ok(nutritionDepotDossierReport.includes(requiredText), `Nutrition Depot dossier missing ${requiredText}.`);
+}
+assert.equal(
+  nutritionDepotDossier.remainingUnknowns.includes("Second-concept or franchise expansion openness"),
+  true,
+  "Nutrition Depot dossier must preserve franchise openness as a remaining unknown."
+);
+assert.equal(
+  nutritionDepotDossier.sourceReliabilityMatrix.length >= 5,
+  true,
+  "Nutrition Depot dossier must include a source reliability matrix."
 );
 
 for (const requiredText of [
