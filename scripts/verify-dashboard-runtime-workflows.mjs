@@ -77,7 +77,13 @@ function startStaticServer({ missingActive = false } = {}) {
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
-    const pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
+    const pathname = decodeURIComponent(
+      url.pathname === "/"
+        ? "/index.html"
+        : url.pathname.endsWith("/")
+        ? `${url.pathname}index.html`
+        : url.pathname
+    );
     const relativePath = pathname.replace(/^\/+/, "");
     requests.push({ path: relativePath, method: request.method });
 
@@ -427,6 +433,9 @@ async function snapshot(cdp) {
       mode: document.body.dataset.mode,
       sessionRole: document.body.dataset.sessionRole,
       activeRepId: typeof activeRepId === "string" ? activeRepId : "",
+      workspaceId: document.body.dataset.workspaceId || "",
+      workspaceName: document.body.dataset.workspaceName || "",
+      workspaceOperatingProfileId: document.body.dataset.operatingProfileId || "",
       appBuildVersion: typeof appBuildVersion === "string" ? appBuildVersion : "",
       serviceWorkerCacheVersion: typeof serviceWorkerCacheVersion === "string" ? serviceWorkerCacheVersion : "",
       storedAppBuildVersion: localStorage.getItem("prometheus-app-build-version") || "",
@@ -440,6 +449,8 @@ async function snapshot(cdp) {
           text: element.textContent.trim().replace(/\\s+/g, " ").slice(0, 80)
         })),
       modeButtonLabels: [...document.querySelectorAll("[data-mode-select]")].filter(visible).map(button => button.textContent.trim()),
+      workspaceButtonLabels: [...document.querySelectorAll("[data-workspace-select]")].filter(visible).map(button => button.textContent.trim().replace(/\\s+/g, " ")),
+      activeWorkspaceButtons: [...document.querySelectorAll("[data-workspace-select].active")].filter(visible).map(button => button.dataset.workspaceSelect),
       profileButtonLabels: [...document.querySelectorAll("[data-rep-select]")].filter(visible).map(button => button.textContent.trim()),
       activeView: document.querySelector(".view.active")?.id || "",
       visibleTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
@@ -485,7 +496,8 @@ async function snapshot(cdp) {
         placesRender: debug.placesRender || {},
         territoryCoverage: debug.territoryCoverage || {},
         routeWindowFallback: debug.routeWindowFallback || {},
-        operatingProfile: debug.operatingProfile || {}
+        operatingProfile: debug.operatingProfile || {},
+        workspace: debug.workspace || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -541,10 +553,12 @@ async function mobileFitSnapshot(cdp) {
       activeView: document.querySelector(".view.active")?.id || "",
       ownerTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
       modeButtonLabels: [...document.querySelectorAll('[data-mode-select]')].filter(visible).map(button => button.textContent.trim()),
+      workspaceButtonLabels: [...document.querySelectorAll('[data-workspace-select]')].filter(visible).map(button => button.textContent.trim().replace(/\\s+/g, " ")),
       profileButtonLabels: [...document.querySelectorAll('[data-rep-select]')].filter(visible).map(button => button.textContent.trim()),
       rects: {
         header: rectFor("header"),
         topLine: rectFor(".topline"),
+        workspaceSwitch: rectFor("#workspaceSwitch"),
         modeSwitch: rectFor(".mode-switch:not(#repProfileSwitch)"),
         repProfileSwitch: rectFor("#repProfileSwitch"),
         goalChip: rectFor(".goal-chip"),
@@ -565,6 +579,26 @@ async function clickTab(cdp, tab) {
     return true;
   })()`);
   await wait(150);
+}
+
+async function clickWorkspace(cdp, workspaceId) {
+  await cdp.evaluate(`(() => {
+    const target = document.querySelector('[data-workspace-select="${workspaceId}"]');
+    if (!target) throw new Error('Missing workspace selector ${workspaceId}');
+    target.click();
+    return target.dataset.workspaceSelect;
+  })()`);
+  await wait(500);
+}
+
+async function waitForPath(cdp, pathname, timeoutMs = 8000) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const currentPath = await cdp.evaluate("location.pathname");
+    if (currentPath === pathname) return currentPath;
+    await wait(100);
+  }
+  throw new Error(`Timed out waiting for path ${pathname}`);
 }
 
 async function waitForPlacesRenderComplete(cdp, timeoutMs = 8000) {
@@ -977,6 +1011,26 @@ async function runHarness() {
   const chrome = await launchChrome();
 
   try {
+    const switcher = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
+    const switcherSnap = switcher.initial;
+    assertWorkflow("Founder workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness" && switcherSnap.activeWorkspaceButtons.includes("fitness_connection"), `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, activeWorkspaceButtons: switcherSnap.activeWorkspaceButtons, debug: switcherSnap.debug.workspace }));
+    assertWorkflow("Founder workspace switcher visible", switcherSnap.workspaceButtonLabels.some(label => label.includes("Fitness Connection")) && switcherSnap.workspaceButtonLabels.some(label => label.includes("Smoothie Depot")), switcherSnap.workspaceButtonLabels.join(" | "), JSON.stringify(switcherSnap.workspaceButtonLabels));
+    await clickWorkspace(switcher.cdp, "smoothie_depot");
+    await waitForPath(switcher.cdp, "/smoothie-depot-dashboard/");
+    const smoothieRouteSnap = await switcher.cdp.evaluate(`(() => ({
+      pathname: location.pathname,
+      workspaceId: document.body.dataset.workspaceId || "",
+      operatingProfileId: document.body.dataset.operatingProfileId || "",
+      owner: document.body.dataset.dashboardOwner || "",
+      jrAccess: document.body.dataset.jrAccess || "",
+      hasCandidatePipeline: document.body.textContent.includes("Candidate Pipeline"),
+      hasCommissionForecast: document.body.textContent.includes("Commission Forecast"),
+      hasFitnessRuntimeTerms: /Route Intelligence|Active Pool|Units|Memberships|Territories/.test(document.body.textContent)
+    }))()`);
+    assertWorkflow("Founder workspace switcher Smoothie Depot route", smoothieRouteSnap.pathname === "/smoothie-depot-dashboard/" && smoothieRouteSnap.workspaceId === "smoothie_depot" && smoothieRouteSnap.operatingProfileId === "franchise_development" && smoothieRouteSnap.owner === "cruz" && smoothieRouteSnap.jrAccess === "false", `${smoothieRouteSnap.pathname} workspace ${smoothieRouteSnap.workspaceId}`, JSON.stringify(smoothieRouteSnap));
+    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasCandidatePipeline && smoothieRouteSnap.hasCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "candidate pipeline and commission forecast visible without Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
+    switcher.cdp.close();
+
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
     assertWorkflow("Founder Mode", founderSnap.sessionRole === "founder" && founderSnap.mode === "owner" && founderSnap.visibleTabs.includes("places") && founderSnap.visibleTabs.includes("stats") && founderSnap.visibleTabs.includes("find"), `owner tabs visible: ${founderSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: founderSnap.sessionRole, mode: founderSnap.mode, visibleTabs: founderSnap.visibleTabs }));

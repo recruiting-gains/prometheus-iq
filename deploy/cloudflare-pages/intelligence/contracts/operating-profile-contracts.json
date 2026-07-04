@@ -19,7 +19,8 @@
     "medical",
     "insurance",
     "solar",
-    "home_services"
+    "home_services",
+    "franchise_development"
   ],
   "normalizedOutcomeModel": [
     "Visit",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v36-operating-profile-consumer";
+const CACHE_NAME = "prometheus-v37-founder-workspace-switcher";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

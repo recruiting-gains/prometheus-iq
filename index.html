@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-BqMzecmYU+dka1TTpZSjUJCamv3pVdgBl96lkbaPVKM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-xhfE9SZ/s5xFCLt07+PLL0uCOqYZgTFIi1D9BVYQ0gI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -158,6 +158,50 @@
     .mode-switch button.active {
       background: white;
       color: var(--command);
+    }
+
+    .workspace-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3px;
+      width: min(370px, 100%);
+      padding: 3px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.08);
+      min-width: 0;
+    }
+
+    .workspace-switch button {
+      min-width: 0;
+      min-height: 44px;
+      border-radius: 5px;
+      background: transparent;
+      color: rgba(255,255,255,.68);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.08;
+      padding: 5px 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .workspace-switch button span {
+      display: block;
+      margin-top: 3px;
+      color: rgba(255,255,255,.52);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .workspace-switch button.active {
+      background: white;
+      color: var(--command);
+    }
+
+    .workspace-switch button.active span {
+      color: var(--muted);
     }
 
     main {
@@ -689,6 +733,7 @@
     body.booting .owner-only,
     body.booting .manager-only,
     body.booting .admin-only,
+    body.booting .workspace-switch,
     body.booting .mode-switch { visibility: hidden; }
 
     .empty {
@@ -1237,6 +1282,11 @@
         width: 100%;
       }
 
+      .workspace-switch {
+        grid-column: 1 / -1;
+        width: 100%;
+      }
+
       .mode-switch:not(#repProfileSwitch) {
         grid-column: 1 / 2;
       }
@@ -1261,13 +1311,17 @@
     }
   </style>
 </head>
-<body class="booting" data-mode="owner" data-session-role="founder">
+<body class="booting" data-mode="owner" data-session-role="founder" data-workspace-id="fitness_connection" data-workspace-name="Fitness Connection" data-operating-profile-id="fitness">
   <div class="app">
     <header>
       <div class="topline">
         <div class="brand">
           <h1>Prometheus IQ</h1>
           <p id="todayLabel">Command center</p>
+        </div>
+        <div class="workspace-switch admin-only" id="workspaceSwitch" aria-label="Founder workspace selector">
+          <button class="active" type="button" data-workspace-select="fitness_connection">Fitness Connection<span>Fitness</span></button>
+          <button type="button" data-workspace-select="smoothie_depot">Smoothie Depot<span>Franchise Development</span></button>
         </div>
         <div class="mode-switch" aria-label="App mode">
           <button data-mode-select="rep">Rep</button>
@@ -1628,9 +1682,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-02-operating-profile-consumer-v2";
+    const appBuildVersion = "2026-07-04-founder-workspace-switcher-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v36-operating-profile-consumer";
+    const serviceWorkerCacheVersion = "prometheus-v37-founder-workspace-switcher";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -1639,6 +1693,22 @@
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
     const appUrlParams = new URLSearchParams(location.search);
+    const workspaceStoreKey = "prometheus-founder-workspace";
+    const defaultWorkspaceId = "fitness_connection";
+    const dashboardWorkspaces = {
+      fitness_connection: {
+        workspaceId: "fitness_connection",
+        label: "Fitness Connection",
+        operatingProfileId: "fitness",
+        route: "/"
+      },
+      smoothie_depot: {
+        workspaceId: "smoothie_depot",
+        label: "Smoothie Depot",
+        operatingProfileId: "franchise_development",
+        route: "/smoothie-depot-dashboard/"
+      }
+    };
     const requestedRuntimePool = appUrlParams.get("runtimePool") === "full" ? "full" : "active";
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
@@ -1648,6 +1718,12 @@
       runtimeDataSource: "embedded-fallback",
       runtimeDataStatus: "pending",
       runtimeDataPool: requestedRuntimePool,
+      workspace: {
+        workspaceId: defaultWorkspaceId,
+        label: dashboardWorkspaces[defaultWorkspaceId].label,
+        operatingProfileId: dashboardWorkspaces[defaultWorkspaceId].operatingProfileId,
+        source: "route-default"
+      },
       lastError: "",
       lastUnhandledRejection: "",
       lastStage: "script-start",
@@ -19527,6 +19603,10 @@
       return sessionRole === "founder" || sessionRole === "admin";
     }
 
+    function canUseFounderWorkspaceSwitcher() {
+      return sessionRole === "founder" || sessionRole === "admin";
+    }
+
     function canUseOwnerMode() {
       return sessionRole === "founder" || sessionRole === "admin" || sessionRole === "manager";
     }
@@ -23107,6 +23187,44 @@
       document.body.dataset.sessionRole = sessionRole;
       document.querySelectorAll("[data-mode-select]").forEach(button => button.classList.toggle("active", button.dataset.modeSelect === appMode));
       document.querySelectorAll("[data-rep-select]").forEach(button => button.classList.toggle("active", button.dataset.repSelect === activeRepId));
+      applyWorkspaceSwitcher();
+    }
+
+    function applyWorkspaceSwitcher() {
+      const currentWorkspace = dashboardWorkspaces[defaultWorkspaceId];
+      document.body.dataset.workspaceId = currentWorkspace.workspaceId;
+      document.body.dataset.workspaceName = currentWorkspace.label;
+      document.body.dataset.operatingProfileId = currentWorkspace.operatingProfileId;
+      window.prometheusDebugState.workspace = {
+        workspaceId: currentWorkspace.workspaceId,
+        label: currentWorkspace.label,
+        operatingProfileId: currentWorkspace.operatingProfileId,
+        source: "fitness-dashboard-route"
+      };
+      const switcher = document.getElementById("workspaceSwitch");
+      if (!switcher) return;
+      if (!canUseFounderWorkspaceSwitcher()) {
+        switcher.innerHTML = "";
+        return;
+      }
+      switcher.querySelectorAll("[data-workspace-select]").forEach(button => {
+        button.classList.toggle("active", button.dataset.workspaceSelect === currentWorkspace.workspaceId);
+      });
+    }
+
+    function setWorkspaceSelection(workspaceId) {
+      if (!canUseFounderWorkspaceSwitcher()) return;
+      const workspace = dashboardWorkspaces[workspaceId] || dashboardWorkspaces[defaultWorkspaceId];
+      localStorage.setItem(workspaceStoreKey, workspace.workspaceId);
+      if (workspace.workspaceId !== defaultWorkspaceId) {
+        window.location.assign(workspace.route);
+        return;
+      }
+      if (location.pathname !== "/" && location.pathname !== "/index.html") {
+        window.location.assign(workspace.route);
+        return;
+      }
+      applyWorkspaceSwitcher();
     }
 
     function renderRepProfileSwitch() {
@@ -23160,6 +23278,9 @@
     }
 
     document.addEventListener("click", event => {
+      const workspaceSelect = event.target.closest("[data-workspace-select]");
+      if (workspaceSelect) setWorkspaceSelection(workspaceSelect.dataset.workspaceSelect);
+
       const modeSelect = event.target.closest("[data-mode-select]");
       if (modeSelect) setMode(modeSelect.dataset.modeSelect);
 

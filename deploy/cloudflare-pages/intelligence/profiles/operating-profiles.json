@@ -326,6 +326,46 @@
         { "terms": ["lead"], "normalizedOutcome": "lead" },
         { "terms": ["follow-up", "follow up"], "normalizedOutcome": "follow_up" }
       ]
+    },
+    {
+      "profileId": "franchise_development",
+      "label": "Franchise Development",
+      "industry": "franchise_development",
+      "terminology": {
+        "customer": "franchise brand",
+        "target": "franchise-owner candidate",
+        "visit": "candidate touchpoint",
+        "success": "qualified franchise-owner candidate"
+      },
+      "kpis": ["candidates_sourced", "prospects_researched", "readiness_assessments", "jr_handoffs", "protected_candidates", "commissions_tracked"],
+      "successEvents": ["lead", "appointment", "contract", "referral", "follow_up"],
+      "outcomeVocabulary": ["Candidate sourced", "Business prospect researched", "Readiness assessed", "Qualified candidate", "JR handoff", "Protection period", "Commission eligible", "No fit"],
+      "dashboardLabels": {
+        "routeTitle": "Franchise Candidate Pipeline",
+        "primarySuccess": "Qualified Franchise Candidate",
+        "followUp": "JR Follow-up"
+      },
+      "crmStages": ["Candidate Sourced", "Researching", "Qualified", "JR Handoff", "Protected", "Commission Eligible", "Closed Won", "Closed Lost"],
+      "companionWording": {
+        "nextBestAction": "Preserve candidate evidence and handoff context without influencing route recommendations.",
+        "successPhrase": "qualified franchise-owner candidate"
+      },
+      "reportingLanguage": {
+        "pipelineUnit": "franchise-owner candidate",
+        "executiveSummary": "franchise development candidate intelligence"
+      },
+      "outcomeMappings": [
+        { "terms": ["candidate sourced", "franchise candidate", "owner candidate"], "normalizedOutcome": "lead" },
+        { "terms": ["business prospect researched", "prospect researched", "research complete"], "normalizedOutcome": "lead" },
+        { "terms": ["readiness assessed", "franchise readiness assessment"], "normalizedOutcome": "appointment" },
+        { "terms": ["qualified candidate", "qualified franchise candidate"], "normalizedOutcome": "appointment" },
+        { "terms": ["jr handoff", "handoff to jr"], "normalizedOutcome": "appointment" },
+        { "terms": ["franchise agreement", "franchise owner signed", "contract signed"], "normalizedOutcome": "contract" },
+        { "terms": ["commission eligible", "commission tracked"], "normalizedOutcome": "sale" },
+        { "terms": ["protection period", "candidate protection"], "normalizedOutcome": "follow_up" },
+        { "terms": ["no fit", "not qualified"], "normalizedOutcome": "wrong_business" },
+        { "terms": ["follow-up", "follow up"], "normalizedOutcome": "follow_up" }
+      ]
     }
   ]
 }
