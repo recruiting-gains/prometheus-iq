@@ -63,6 +63,8 @@ Areas:
 
 Primary rule: improve the existing dashboard. Do not create duplicate dashboards, duplicate route cards, or replacement apps unless Cruz explicitly approves.
 
+Founder workspace switcher rule: Founder workspace navigation lives inside the existing Dashboard through the Founder-only workspace selector in `index.html` and `deploy/cloudflare-pages/index.html`, verified by `scripts/verify-dashboard-workspace-switcher.mjs` and `scripts/verify-dashboard-runtime-workflows.mjs`. Default workspace is `fitness_connection`; Smoothie Depot selection routes to `/smoothie-depot-dashboard/`. Do not create a second workspace switcher, do not expose workspace switching to Rep/Anthony flows, and do not let workspace switching mix Fitness runtime data with Smoothie Depot candidate/JR/commission data.
+
 Smoothie Depot dashboard rule: the Smoothie Depot Founder Dashboard lives at `smoothie-depot-dashboard/index.html` with deploy asset `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html` and validation through `scripts/verify-smoothie-depot-dashboard.mjs`. It is scoped to `workspace_id: smoothie_depot` and `operating_profile_id: franchise_development`, uses workspace fixture data only unless future runtime approval is explicit, and must not surface Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory views.
 
 ### 2. Prometheus Companion
