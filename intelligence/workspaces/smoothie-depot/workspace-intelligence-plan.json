@@ -1,0 +1,111 @@
+{
+  "version": "smoothie-depot-workspace-intelligence-plan-v1",
+  "status": "planning_contracts_only",
+  "workspaceId": "smoothie_depot",
+  "workspaceName": "Smoothie Depot",
+  "decisionMaker": "JR",
+  "operatingProfileId": "franchise_development",
+  "operatingProfileLabel": "Franchise Development",
+  "intelligenceDomain": "business_acquisition_intelligence",
+  "intelligenceDomainLabel": "Business Acquisition Intelligence",
+  "owningSubsystem": "Prometheus Intelligence Engine",
+  "newSubsystemCreated": false,
+  "goal": "Help Cruz identify, qualify, track, and hand off potential Smoothie Depot franchise-owner candidates.",
+  "runtimeActivation": {
+    "dashboardRuntimeChanged": false,
+    "crmRuntimeChanged": false,
+    "websiteChanged": false,
+    "mobileChanged": false,
+    "companionChanged": false,
+    "routeIntelligenceChanged": false,
+    "activePoolChanged": false,
+    "productionScoringChanged": false,
+    "productionRecommendationChanged": false
+  },
+  "workspaceIsolation": {
+    "fitnessConnectionIsolationConfirmed": true,
+    "protectedWorkspaceIds": ["fitness_connection"],
+    "protectedWorkspaceNames": ["Fitness Connection"],
+    "routeIntelligenceInfluence": false,
+    "fitnessConnectionRouteInfluence": false,
+    "smoothieDepotToFitnessConnectionInfluence": false,
+    "fitnessConnectionToSmoothieDepotInfluence": false,
+    "allowedSharedLayers": [
+      "shared_intelligence_engine_contracts",
+      "shared_operating_profile_architecture",
+      "shared_validation_scripts",
+      "shared_anonymous_architecture_patterns"
+    ],
+    "blockedInfluencePaths": [
+      "smoothie_depot_candidate_data_to_fitness_connection_route_intelligence",
+      "smoothie_depot_candidate_data_to_fitness_connection_active_pool",
+      "smoothie_depot_candidate_data_to_fitness_connection_scoring",
+      "fitness_connection_field_data_to_smoothie_depot_candidate_ranking",
+      "smoothie_depot_workspace_data_to_global_production_recommendations"
+    ]
+  },
+  "contracts": {
+    "FranchiseCandidateSourcing": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Identify potential Smoothie Depot franchise-owner candidates from approved candidate sources.",
+      "plannedFields": ["candidateSourceId", "sourceType", "sourceName", "candidateRefs", "researchStatus", "generatedBy", "generatedAt", "isolationState"]
+    },
+    "BusinessProspectResearch": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Research candidate business background, ownership context, geography, and franchise fit.",
+      "plannedFields": ["researchId", "candidateRef", "businessRefs", "researchQuestions", "sourceRefs", "confidence", "reviewState"]
+    },
+    "FranchiseReadinessAssessment": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Assess candidate readiness without automated production scoring.",
+      "plannedFactors": ["capital_signal", "owner_operator_signal", "local_market_fit", "franchise_interest_signal", "operating_discipline", "follow_up_readiness", "risk_notes"],
+      "allowedInfluence": "planning_only"
+    },
+    "CandidateIntelligenceProfile": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Prepare a candidate intelligence profile for Cruz review and JR handoff.",
+      "plannedFields": ["profileId", "candidateRef", "businessBackground", "capitalSignals", "territoryInterest", "fitSummary", "risks", "nextAction", "provenance"]
+    },
+    "SmoothieDepotCrmPipelineStages": {
+      "workspaceId": "smoothie_depot",
+      "operatingProfileId": "franchise_development",
+      "runtimeMutationAuthorized": false,
+      "stages": ["Candidate Sourced", "Researching", "Qualified", "JR Handoff", "Protected", "Commission Eligible", "Closed Won", "Closed Lost"]
+    },
+    "SmoothieDepotDashboardDisplayNeeds": {
+      "workspaceId": "smoothie_depot",
+      "runtimeConsumptionAuthorized": false,
+      "views": ["Candidate Pipeline", "Readiness Review", "JR Handoff Queue", "Protection Periods", "Commission Watchlist"],
+      "fields": ["candidateName", "source", "readinessStatus", "confidence", "protectionStatus", "handoffStatus", "commissionStatus", "nextAction", "provenance"]
+    },
+    "JrHandoffPackage": {
+      "workspaceId": "smoothie_depot",
+      "decisionMaker": "JR",
+      "purpose": "Package candidate context for JR review.",
+      "plannedSections": ["candidateSummary", "fitRationale", "evidenceReviewed", "confidence", "risks", "recommendedAsk", "protectionStatus", "commissionStatus"]
+    },
+    "CommissionTracking": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Track commission eligibility planning without financial automation.",
+      "plannedFields": ["commissionId", "candidateRef", "triggerEvent", "estimatedValue", "status", "evidenceRefs", "reviewState"]
+    },
+    "CandidateProtectionPeriod": {
+      "workspaceId": "smoothie_depot",
+      "purpose": "Track configurable candidate protection windows after Cruz sources or hands off a candidate.",
+      "legalDurationAssigned": false,
+      "plannedFields": ["protectionId", "candidateRef", "startDate", "endDate", "protectedBy", "handoffRef", "status", "reviewState"]
+    },
+    "WorkspaceIsolationGuardrails": {
+      "workspaceId": "smoothie_depot",
+      "protectedWorkspaceIds": ["fitness_connection"],
+      "routeIntelligenceInfluence": false,
+      "fitnessConnectionIsolationConfirmed": true,
+      "blockedInfluencePaths": [
+        "smoothie_depot_candidate_data_to_fitness_connection_route_intelligence",
+        "smoothie_depot_candidate_data_to_fitness_connection_active_pool",
+        "smoothie_depot_candidate_data_to_fitness_connection_scoring",
+        "fitness_connection_field_data_to_smoothie_depot_candidate_ranking"
+      ]
+    }
+  }
+}

@@ -24,7 +24,7 @@ test("operating profile verifier passes", () => {
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   const summary = JSON.parse(result.stdout);
   assert.equal(summary.status, "passed");
-  assert.equal(summary.profileCount, 8);
+  assert.equal(summary.profileCount, 9);
   assert.equal(summary.productionSafety.productionLearningActive, false);
   assert.equal(summary.productionSafety.scoringChanged, false);
 });
@@ -69,7 +69,8 @@ test("industry outcomes normalize into the canonical outcome model", () => {
     ["medical", "referral", "referral"],
     ["insurance", "policy", "contract"],
     ["solar", "proposal", "estimate"],
-    ["home_services", "job booked", "contract"]
+    ["home_services", "job booked", "contract"],
+    ["franchise_development", "JR handoff", "appointment"]
   ];
 
   for (const [profileId, rawOutcome, expectedOutcome] of cases) {

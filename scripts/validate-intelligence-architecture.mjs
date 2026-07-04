@@ -29,7 +29,10 @@ const requiredFiles = [
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
+  "intelligence/contracts/business-acquisition-intelligence-contracts.json",
   "intelligence/profiles/operating-profiles.json",
+  "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md",
+  "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
   "COMPANY_IDENTITY.md",
@@ -70,7 +73,10 @@ const fieldContracts = readJson("intelligence/contracts/field-learning-loop-cont
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
+const businessAcquisitionContracts = readJson("intelligence/contracts/business-acquisition-intelligence-contracts.json");
 const operatingProfiles = readJson("intelligence/profiles/operating-profiles.json");
+const smoothieDepotWorkspacePlan = readJson("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json");
+const smoothieDepotWorkspaceDoc = read("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md");
 const fieldFixtures = readJson("intelligence/fixtures/field-visit-evidence-fixtures.json");
 
 const requiredArchitectureSections = [
@@ -197,7 +203,8 @@ const requiredOperatingProfiles = [
   "medical",
   "insurance",
   "solar",
-  "home_services"
+  "home_services",
+  "franchise_development"
 ];
 for (const profileId of requiredOperatingProfiles) {
   assert(operatingProfiles.profiles?.some(profile => profile.profileId === profileId), `Operating Profiles registry missing ${profileId}`);
@@ -331,6 +338,24 @@ const requiredCustomerGraphContracts = [
 for (const contractName of requiredCustomerGraphContracts) {
   assert(contractsDoc.includes(contractName), `Contracts doc missing ${contractName}`);
   assert(Boolean(customerGraphContracts.contracts?.[contractName]), `Customer Intelligence Graph registry missing ${contractName}`);
+}
+
+const requiredBusinessAcquisitionContracts = [
+  "FranchiseCandidateSourcing",
+  "BusinessProspectResearch",
+  "FranchiseReadinessAssessment",
+  "CandidateIntelligenceProfile",
+  "SmoothieDepotCrmPipelineStages",
+  "SmoothieDepotDashboardDisplayNeeds",
+  "JrHandoffPackage",
+  "CommissionTracking",
+  "CandidateProtectionPeriod",
+  "WorkspaceIsolationGuardrails"
+];
+for (const contractName of requiredBusinessAcquisitionContracts) {
+  assert(Boolean(smoothieDepotWorkspacePlan.contracts?.[contractName]), `Smoothie Depot workspace plan missing ${contractName}`);
+  assert(Boolean(businessAcquisitionContracts.contracts?.[contractName]), `Business Acquisition Intelligence contracts missing ${contractName}`);
+  assert(businessAcquisitionContracts.requiredContracts.includes(contractName), `Business Acquisition Intelligence registry must require ${contractName}`);
 }
 
 const requiredExplainabilityFactorGroups = [
@@ -523,6 +548,25 @@ for (const contentKey of ["businesses", "visits", "outcomes", "leads", "opportun
 for (const queryType of ["snapshot_summary", "by_node_type", "by_relationship_type", "by_business", "by_territory", "by_rep", "by_opportunity", "by_evidence", "by_confidence", "by_operating_profile"]) {
   assert(customerGraphContracts.queryTypes.includes(queryType), `Customer Intelligence Graph contracts missing query type ${queryType}`);
 }
+assert(businessAcquisitionContracts.status === "planning_contracts_only", "Business Acquisition Intelligence contracts must remain planning_contracts_only.");
+assert(businessAcquisitionContracts.workspaceId === "smoothie_depot", "Business Acquisition Intelligence contracts must be scoped to Smoothie Depot.");
+assert(businessAcquisitionContracts.operatingProfileId === "franchise_development", "Business Acquisition Intelligence must use Franchise Development Operating Profile.");
+assert(businessAcquisitionContracts.domainId === "business_acquisition_intelligence", "Business Acquisition Intelligence domain must be confirmed.");
+assert(businessAcquisitionContracts.newSubsystemCreated === false, "Business Acquisition Intelligence must not create a new subsystem.");
+assert(businessAcquisitionContracts.fitnessConnectionIsolationConfirmed === true, "Business Acquisition Intelligence must confirm Fitness Connection isolation.");
+assert(businessAcquisitionContracts.routeIntelligenceInfluence === false, "Business Acquisition Intelligence must not influence Route Intelligence.");
+assert(businessAcquisitionContracts.fitnessConnectionRouteInfluence === false, "Business Acquisition Intelligence must not influence Fitness Connection routes.");
+assert(businessAcquisitionContracts.dashboardRuntimeChanged === false, "Business Acquisition Intelligence must not change Dashboard runtime.");
+assert(businessAcquisitionContracts.crmRuntimeChanged === false, "Business Acquisition Intelligence must not change CRM runtime.");
+assert(businessAcquisitionContracts.websiteChanged === false, "Business Acquisition Intelligence must not change Website.");
+assert(businessAcquisitionContracts.mobileChanged === false, "Business Acquisition Intelligence must not change Mobile.");
+assert(businessAcquisitionContracts.companionChanged === false, "Business Acquisition Intelligence must not change Companion.");
+assert(businessAcquisitionContracts.prohibitions.includes("no_fitness_connection_route_intelligence_influence"), "Business Acquisition Intelligence must prohibit Fitness Connection Route Intelligence influence.");
+assert(smoothieDepotWorkspacePlan.workspaceName === "Smoothie Depot", "Smoothie Depot workspace plan must name Smoothie Depot.");
+assert(smoothieDepotWorkspacePlan.decisionMaker === "JR", "Smoothie Depot workspace plan must identify JR.");
+assert(smoothieDepotWorkspacePlan.workspaceIsolation.fitnessConnectionIsolationConfirmed === true, "Smoothie Depot workspace must confirm Fitness Connection isolation.");
+assert(smoothieDepotWorkspacePlan.workspaceIsolation.routeIntelligenceInfluence === false, "Smoothie Depot workspace must not influence Route Intelligence.");
+assert(smoothieDepotWorkspaceDoc.includes("Workspace Isolation Guardrails"), "Smoothie Depot workspace doc must include isolation guardrails.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");

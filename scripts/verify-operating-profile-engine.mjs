@@ -19,7 +19,8 @@ const samples = [
   ["medical", "appointment"],
   ["insurance", "policy"],
   ["solar", "proposal"],
-  ["home_services", "job booked"]
+  ["home_services", "job booked"],
+  ["franchise_development", "JR handoff"]
 ];
 
 const normalizedSamples = samples.map(([profileId, rawOutcome]) => {

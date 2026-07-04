@@ -22,7 +22,9 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
 - `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, read-only query, Dashboard, CRM, Mobile, Website, Companion, Research, and Sales contracts.
-- `profiles/operating-profiles.json`: initial General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, and Home Services operating profiles.
+- `contracts/business-acquisition-intelligence-contracts.json`: Smoothie Depot workspace-scoped Business Acquisition Intelligence planning contracts.
+- `profiles/operating-profiles.json`: initial General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, Home Services, and Franchise Development operating profiles.
+- `workspaces/smoothie-depot/workspace-intelligence-plan.md` and `.json`: isolated Smoothie Depot Workspace intelligence plan for franchise-owner candidate sourcing, qualification, JR handoff, commission tracking, and protection-period planning.
 - `fixtures/field-visit-evidence-fixtures.json`: simulated field visit evidence fixtures for regression testing before live beta evidence is admitted.
 
 ## Existing Sources Reused
@@ -61,3 +63,5 @@ Future recommendation explanation work must extend `recommendation-explainabilit
 Future operating-profile and field-evidence activation work must extend `operating-profile-engine.mjs`, `field-evidence-activation-foundation.md`, `profiles/operating-profiles.json`, and `contracts/operating-profile-contracts.json`. Do not create a separate industry configuration layer, parallel normalized outcome model, duplicate profile-specific Dashboard/CRM/Companion/Mobile/Website contract, or production learning activation path.
 
 Future Customer Intelligence Graph work must extend `customer-intelligence-graph.mjs`, `customer-intelligence-graph.md`, and `contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel customer graph, duplicate relationship vocabulary, cross-customer graph path, active confidence-propagation path, or Dashboard/CRM/Mobile/Companion/Research/Sales graph consumer without approved subsystem handoff.
+
+Future Smoothie Depot or Business Acquisition Intelligence work must extend `workspaces/smoothie-depot/workspace-intelligence-plan.md`, `workspaces/smoothie-depot/workspace-intelligence-plan.json`, and `contracts/business-acquisition-intelligence-contracts.json`. Do not mix Smoothie Depot candidate intelligence with Fitness Connection Route Intelligence, Active Pool scoring, or customer workspace data.
