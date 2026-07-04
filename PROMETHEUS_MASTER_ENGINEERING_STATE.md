@@ -2590,6 +2590,93 @@ Next recommended subsystem:
 
 Prometheus Website only if additional public conversion refinement is explicitly approved. Otherwise proceed with the next non-Website priority.
 
+### 2026-07-03: Prometheus Website - Lead Submission Trace + Founder Notification Investigation
+
+Subsystem: Prometheus Website
+
+Task: Lead Submission Trace + Founder Notification Investigation
+
+Commit: Not created. Investigation only; no production code changed.
+
+Deploy: Not run. No deployment required for investigation.
+
+Status: Complete investigation. Issue confirmed as shared Website / Infrastructure / CRM ownership.
+
+Who owns the problem:
+
+Shared ownership. Website owns the current frontend failure mode because the public intake creates a local packet but does not submit it to a backend. Infrastructure is required for durable public storage, rate limiting, notification provider/secrets, and production endpoint deployment. CRM is required for actual lead record creation/ingestion and pipeline persistence.
+
+Current submission flow:
+
+Browser:
+
+- Prospect completes Partner Intake and presses Generate Partner Packet.
+- `site.js` calls `createEnterpriseLeadIntake()`.
+- A CRM-shaped packet is generated in browser memory.
+- Packet is written only to visitor `localStorage`.
+- Dashboard preview is shown.
+- `#partnerEmail` is updated to a `mailto:prometheusrouteiq@gmail.com?...` link.
+
+Worker:
+
+- No request is sent when the packet is generated.
+- Production trace showed `generatedRequests: []`.
+- No lead-intake API route exists.
+- `POST /api/partner-intake` returns 404.
+
+Backend:
+
+- No backend submission occurs.
+
+CRM:
+
+- No CRM write occurs.
+- The packet contains `crm_lead_created` attribution metadata, but it is not delivered to CRM.
+
+Storage:
+
+Only browser-local storage currently exists:
+
+- `prometheus.website.enterpriseLeadIntake.lastPacket`
+- `prometheus.website.enterpriseLeadIntake.events`
+- `prometheus.website.enterpriseLeadIntake.duplicates`
+
+Founder notification:
+
+No automatic notification exists. Notification depends on the prospect clicking Send Partner Packet and successfully sending the generated `mailto:` email from their own mail client.
+
+Failure point:
+
+The submission stops in the browser. The public website creates a local packet but never posts it to Worker, backend storage, CRM, or a notification service.
+
+Recommended fix:
+
+Create a real production intake endpoint such as `POST /api/partner-intake`, then update Website frontend behavior to submit the packet to that endpoint and show success only after a `200` response.
+
+Endpoint requirements:
+
+- Validate spam, honeypot, timing, and duplicate fields server-side.
+- Persist a durable record.
+- Preserve attribution and operating profile.
+- Emit or enqueue a CRM-compatible lead payload.
+- Notify Founder immediately.
+- Return a stable submission ID to the browser.
+
+Whether CRM or Infrastructure is required:
+
+Yes. Infrastructure is required for durable storage binding, notification provider/secrets, rate limiting, and production endpoint deployment. CRM is required to ingest/create the lead record and own pipeline persistence.
+
+Remaining blockers:
+
+- No production intake endpoint exists.
+- No durable public lead storage exists.
+- No automatic Founder notification exists.
+- No CRM lead write occurs.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for `POST /api/partner-intake`, durable storage, notification controls, and rate-limited production deployment. Prometheus CRM should follow with lead ingestion/persistence ownership. Website should update success-state behavior only after the endpoint exists.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -7524,6 +7611,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
 - Do not duplicate Enterprise Lead Intake + Beta Request Conversion Platform v1; reuse `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`, `tests/website-enterprise-lead-intake.test.mjs`, the Website-side operating-profile intake, CRM-compatible founder-ready packet generation, spam/duplicate guards, mailto handoff, and deployed Cloudflare Website version `40ecb192-f25b-43dc-850d-3e96ff6076fa`. Website must not mutate CRM records directly until a CRM-owned or Infrastructure-owned durable persistence endpoint is approved.
 - Do not reintroduce public pilot/beta program positioning on PrometheusRouteIQ.com; Replace Pilot Program Language With Operational Partner Language v1 makes Partner Intake, Growth Partner Application, Operational Onboarding, Request Access, Apply for Growth Partnership, qualified businesses, franchise groups, outside-sales organizations, qualified lead generation, operating profile configuration, and private onboarding the canonical Website conversion language.
+- Do not treat Website Partner Intake packet generation as backend submission; Lead Submission Trace + Founder Notification Investigation confirmed the current production flow is browser-local `localStorage` plus `mailto:` only, with no Worker request, no `POST /api/partner-intake`, no durable storage, no automatic Founder notification, and no CRM write. Future implementation must route Infrastructure-owned durable endpoint work before Website claims submission success.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
