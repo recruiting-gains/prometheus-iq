@@ -16,6 +16,49 @@ This workspace owns platform-level coordination, architecture consistency, depen
 
 This workspace does not own normal subsystem implementation. Code changes should stay inside the owning subsystem unless the change affects multiple subsystems or a shared architecture contract.
 
+## Permanent Workspace Isolation Governance Rule
+
+Every customer operates inside an isolated Prometheus Workspace.
+
+Architecture law:
+
+- Platform-level systems are shared.
+- Workspace-level data is isolated.
+- Shared platform code is allowed.
+- Shared anonymous architecture is allowed.
+- Shared customer data is not allowed.
+
+Every customer workspace must isolate:
+
+- Customer intelligence.
+- CRM records.
+- Dashboard state.
+- Learning signals.
+- Operating profile state.
+- Route recommendations.
+- Candidate/opportunity records.
+- Founder/customer handoff records.
+
+Current example workspaces:
+
+- Fitness Connection Workspace:
+  - Operating Profile: Fitness.
+  - Owns Route Intelligence, units, memberships, and field-sales activity.
+- Smoothie Depot Workspace:
+  - Operating Profile: Franchise Development.
+  - Owns Business Acquisition Intelligence, franchise candidates, JR handoffs, and commission tracking.
+
+Cross-workspace contamination is prohibited:
+
+- Fitness Connection data must never influence Smoothie Depot intelligence.
+- Smoothie Depot candidate intelligence must never influence Fitness Connection route recommendations.
+- One customer's learning must never alter another customer's recommendations.
+- Customer-specific records must not be stored in global state.
+- A customer workspace must not use the wrong Operating Profile.
+- Dashboard and CRM views must make customer/workspace ownership unambiguous.
+
+Overwatch must reject or flag any future engineering prompt that mixes customer data across workspaces, allows cross-customer learning contamination, stores customer-specific data globally, uses an incorrect Operating Profile, or creates Dashboard/CRM ambiguity between customers.
+
 Before every engineering task, identify:
 
 1. Primary subsystem.
@@ -56,6 +99,54 @@ When an `OVERWATCH HANDOFF` is received:
 8. If no dependency exists, recommend the highest-priority engineering task.
 
 ## Active Dependency Tracker
+
+### 2026-07-03: Overwatch - Prometheus Workspace Isolation Governance Rule v1
+
+Subsystem: Overwatch
+
+Task: Prometheus Workspace Isolation Governance Rule v1
+
+Commit: Recorded by the Overwatch checkpoint commit for this governance update.
+
+Deploy: Not applicable. Governance/state update only.
+
+Status: Complete.
+
+Implementation type: Governance documentation/state only. No runtime code changed.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+
+What changed:
+
+Recorded the permanent Prometheus Workspace Isolation Governance Rule. Every customer operates inside an isolated Prometheus Workspace while sharing platform-level systems. Workspace-level customer intelligence, CRM, dashboard state, learning signals, operating profile state, route recommendations, candidate/opportunity records, and founder/customer handoff records must remain isolated.
+
+Current examples recorded:
+
+- Fitness Connection Workspace: Fitness Operating Profile, Route Intelligence, units, memberships, and field-sales activity.
+- Smoothie Depot Workspace: Franchise Development Operating Profile, Business Acquisition Intelligence, franchise candidates, JR handoffs, and commission tracking.
+
+Architecture law:
+
+- Platform-level systems are shared.
+- Workspace-level data is isolated.
+- Shared platform code is allowed.
+- Shared anonymous architecture is allowed.
+- Shared customer data is not allowed.
+
+Overwatch rejection rule:
+
+Overwatch must reject or flag future engineering prompts that mix customer data across workspaces, let one customer's learning alter another customer's recommendations, store customer-specific records in global state, use the wrong Operating Profile for a customer workspace, or create Dashboard/CRM ambiguity between customers.
+
+Remaining blockers:
+
+None for governance recording. Future implementation work must enforce this rule in runtime storage, CRM persistence, Dashboard state, Intelligence snapshots, and Operating Profile consumers.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure / CRM / Intelligence only when implementing workspace-scoped durable storage, customer-scoped CRM persistence, or customer-scoped intelligence delivery.
 
 ### Completed Work Lane: Market Expansion Recommendation v1
 
@@ -7675,6 +7766,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Operating Profile Engine + Field Evidence Activation Foundation v1; reuse `intelligence/operating-profile-engine.mjs`, `intelligence/field-evidence-activation-foundation.md`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, `scripts/verify-operating-profile-engine.mjs`, and `tests/operating-profile-engine.test.mjs` for industry profiles, normalized outcome model, operating profile contracts, and no-production-learning-activation safeguards.
 - Do not duplicate Customer Intelligence Graph v1; reuse `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, `tests/customer-intelligence-graph.test.mjs`, and the architecture-only graph model for per-customer Business, Visit, Lead, Outcome, Rep, Territory, Operating Profile, Customer, and Learning Signal nodes plus Visited, Recommended, Converted, Follow-up, Nearby, Similar, Repeated, Successful, and Inactive relationships.
 - Do not duplicate Living Customer Intelligence v1; reuse the read-only `CustomerGraphSnapshot` implementation in `intelligence/customer-intelligence-graph.mjs`, `intelligence/contracts/customer-intelligence-graph-contracts.json`, `scripts/verify-customer-intelligence-graph.mjs`, and `tests/customer-intelligence-graph.test.mjs` for versioned, customer-scoped, explainable, queryable snapshots with businesses, visits, outcomes, leads, opportunities, rep activity, manager activity, territories, evidence history, confidence, operating profile, and learning provenance. Consumers must use the prepared read-only query contracts and must not activate scoring changes, automatic learning, Active Pool changes, or cross-customer graph access.
+- Do not violate Prometheus Workspace Isolation Governance Rule v1; every customer must operate inside an isolated Prometheus Workspace. Fitness Connection data must never influence Smoothie Depot intelligence, Smoothie Depot candidate intelligence must never influence Fitness Connection route recommendations, and future Dashboard, CRM, Intelligence, Data, Mobile, Website, Sales, Research, Social Media, Companion, and Infrastructure work must reject shared customer data, cross-customer learning contamination, global customer-specific state, wrong Operating Profile assignment, or ambiguous customer/workspace ownership.
 - Do not duplicate Dashboard Read-Only CustomerGraphSnapshot Consumer Planning v1; reuse `dashboard/contracts/customer-graph-snapshot-consumer-plan.json`, `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-graph-snapshot-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-snapshot-plan.mjs`, and `npm run dashboard:customer-graph-snapshot-plan:check` for future customer intelligence overview, territory history, visit/outcome patterns, rep activity relationships, opportunity clusters, confidence/provenance summaries, operating profile insights, tenant/customer isolation policy, and explainability requirements. Runtime consumption remains blocked until Intelligence authorizes it and a customer-scoped snapshot delivery path exists.
 - Do not duplicate Dashboard Customer Intelligence Graph Consumer Planning v1; reuse `dashboard/contracts/customer-intelligence-graph-consumer-plan.json`, `docs/dashboard-customer-intelligence-graph-consumer-plan.md`, `scripts/verify-dashboard-customer-graph-consumer-plan.mjs`, and `npm run dashboard:customer-graph-plan:check` for future Founder Insights, Owner Territory Intelligence, Places, Route Intelligence, Rep Today, Find/Search, territory relationships, business relationships, visit/outcome history, rep patterns, opportunity clusters, and confidence propagation planning. Runtime graph consumption remains blocked until Intelligence explicitly authorizes it.
 - Do not duplicate Dashboard runtime workflow smoke coverage; reuse `scripts/verify-dashboard-runtime-workflows.mjs`.

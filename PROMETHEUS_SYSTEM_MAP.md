@@ -8,6 +8,35 @@ This document is a reference map only. It does not move folders, redesign archit
 
 Every future Prometheus task should identify its primary workstream before work begins. If a request touches multiple workstreams, the session should name the boundaries clearly and avoid mixing unrelated changes in one commit.
 
+## Workspace Isolation Rule
+
+Every customer operates inside an isolated Prometheus Workspace.
+
+Platform-level systems are shared. Workspace-level data is isolated.
+
+Allowed:
+
+- Shared platform code.
+- Shared anonymous architecture.
+- Shared subsystem contracts.
+- Workspace-scoped consumers that explicitly identify customer/workspace ownership.
+
+Prohibited:
+
+- Shared customer data.
+- Cross-customer learning contamination.
+- Customer-specific records in global state.
+- One customer's data altering another customer's recommendations.
+- Wrong Operating Profile assignment for a customer workspace.
+- Ambiguous Dashboard or CRM ownership between customer workspaces.
+
+Current workspace examples:
+
+- Fitness Connection Workspace uses the Fitness Operating Profile and owns its own Route Intelligence, units, memberships, and field-sales activity.
+- Smoothie Depot Workspace uses the Franchise Development Operating Profile and owns its own Business Acquisition Intelligence, franchise candidates, JR handoffs, and commission tracking.
+
+Fitness Connection data must never influence Smoothie Depot intelligence. Smoothie Depot candidate intelligence must never influence Fitness Connection route recommendations.
+
 ## Governing Identity Sources
 
 - `COMPANY_IDENTITY.md`: canonical company mission, vision, values, positioning, and permanent company identity decisions.
