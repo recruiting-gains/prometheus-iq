@@ -100,6 +100,73 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Dashboard - Founder Mission Queue v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Founder Mission Queue v1
+
+Commit: `0eff798`
+
+Deploy: Deployed with Wrangler to Cloudflare Worker `prometheus-iq`.
+
+Worker version: `7a92939b-a952-41a6-a2eb-096dd360c0cd`
+
+Status: Complete, deployed, and pushed to `origin/main`.
+
+Implementation type: Dashboard workspace surface update over existing Smoothie Depot Research outputs.
+
+What changed:
+
+- Converted the Smoothie Depot Founder Dashboard first view into Today's Mission.
+- Added the Top 3 Highest Priority Businesses mission queue from existing Research outputs.
+- Added selectable Executive Due Diligence Dossier views.
+- Added mission status controls: Ready, Calling, Discovery, Qualified, JR Handoff, Follow-up, Closed.
+- Added CSS-only next-target promotion behavior.
+- Preserved Smoothie Depot workspace isolation and deploy asset parity.
+- Did not modify Research, Intelligence, CRM runtime, Data, Companion, Mobile, Website, or Infrastructure logic.
+
+Research consumed:
+
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`
+
+Workspace isolation:
+
+Verified. Smoothie Depot dashboard contains no Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or production runtime data references.
+
+Files changed:
+
+- `smoothie-depot-dashboard/index.html`
+- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+- `scripts/verify-smoothie-depot-dashboard.mjs`
+
+Tests/validation run:
+
+- `npm run dashboard:smoothie-depot:check`: passed.
+- `npm run dashboard:workspace-switcher:check`: passed.
+- `node --check scripts/verify-smoothie-depot-dashboard.mjs`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run security:check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed.
+- `npm run research:validate`: passed.
+- `npm run crm:smoothie-depot:validate`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Production verification:
+
+Deployment succeeded. Cloudflare Access protection verified on the private `workers.dev` route. Unauthenticated content smoke is blocked by Access as expected. Public custom domain continues serving the marketing landing.
+
+Remaining blockers:
+
+No Dashboard implementation blocker. Authenticated production content smoke requires a Cruz/Overwatch Cloudflare Access session if required.
+
+Next recommended subsystem:
+
+None.
+
 ### 2026-07-04: Prometheus Dashboard - Founder Workspace Switcher v1
 
 Subsystem: Prometheus Dashboard
@@ -8245,6 +8312,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Dashboard Operating Profile Consumer v1; reuse the Dashboard consumption of `intelligence/profiles/operating-profiles.json` and `intelligence/contracts/operating-profile-contracts.json`, the deploy asset copies under `deploy/cloudflare-pages/intelligence/`, preserved Fitness/Gym beta default behavior, profile-aware Dashboard runtime workflow coverage, and production Worker version `0bff8cba-4364-4b44-a997-fdcf9c413d99`.
 - Do not duplicate Smoothie Depot Workspace Dashboard v1; reuse `smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `scripts/verify-smoothie-depot-dashboard.mjs`, and `npm run dashboard:smoothie-depot:check` for the Cruz-only Smoothie Depot Founder Dashboard. The surface must stay scoped to `smoothie_depot` / `franchise_development`, use workspace fixture data only unless future runtime approval is explicit, and must not display Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory surfaces.
 - Do not duplicate Founder Workspace Switcher v1; reuse the Founder-only workspace selector in `index.html` and `deploy/cloudflare-pages/index.html`, `scripts/verify-dashboard-workspace-switcher.mjs`, `npm run dashboard:workspace-switcher:check`, and the 69/69 Dashboard runtime workflow coverage. Fitness Connection must remain the default workspace, Smoothie Depot must route to `/smoothie-depot-dashboard/`, Rep/Anthony flows must not gain workspace switching, and Fitness runtime data must not mix with Smoothie Depot candidate/JR/commission data.
+- Do not duplicate Founder Mission Queue v1; reuse `smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `scripts/verify-smoothie-depot-dashboard.mjs`, `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`, and `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json` for Today's Mission, the Top 3 Highest Priority Businesses queue, selectable Executive Due Diligence Dossiers, mission status controls, and CSS-only next-target promotion behavior. The mission queue must remain scoped to Smoothie Depot / Franchise Development and must not consume Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or production runtime data.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.
