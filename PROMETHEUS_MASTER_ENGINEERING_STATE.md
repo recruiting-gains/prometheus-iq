@@ -100,6 +100,62 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-03: Prometheus Dashboard - Smoothie Depot Workspace Dashboard v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Smoothie Depot Workspace Dashboard v1
+
+Commit: `00de47bd9ad9b3388cb5353e92d58087b56748aa`
+
+Deploy: Not run. Commit/package asset prepared; production deploy was not requested.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Dashboard workspace surface and validation.
+
+Dashboard planning complete:
+
+Complete. Built Cruz-only Smoothie Depot Founder Dashboard at `/smoothie-depot-dashboard/` using workspace fixture data only.
+
+Workspace isolation verified:
+
+Verified. Dashboard is scoped to `smoothie_depot` and `franchise_development`; CRM and Intelligence Smoothie Depot isolation checks passed.
+
+Smoothie Depot dashboard verified:
+
+Verified. Executive Summary, Candidate Pipeline, Candidate Detail, JR Queue, Commission Dashboard, Activity Feed, and Founder Controls are present.
+
+Fitness Connection isolation verified:
+
+Verified. No Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory surfaces appear in the Smoothie Depot dashboard.
+
+Files changed:
+
+- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+- `smoothie-depot-dashboard/index.html`
+- `scripts/verify-smoothie-depot-dashboard.mjs`
+- `package.json`
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
+- `npm run dashboard:smoothie-depot:check`: passed.
+- `npm run intelligence:smoothie-depot-workspace:check`: passed.
+- `npm run crm:smoothie-depot:validate`: passed.
+- `npm test`: passed.
+- `git diff --check`: passed.
+
+Remaining blockers:
+
+None for package/validation. Production deployment was intentionally not run.
+
+Next recommended subsystem:
+
+None.
+
 ### 2026-07-03: Prometheus CRM - Workspace Lead Intake Handoff Consumer v1
 
 Subsystem: Prometheus CRM
@@ -7915,6 +7971,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Dashboard startup/Places performance stabilization; preserve deferred owner-only rendering during Rep startup, per-render selector memoization, progressive Places rendering, render timing diagnostics, and workflow coverage.
 - Do not duplicate Dashboard Active Pool Asset Synchronization v1; preserve the 297-record Active Pool / 594 runtime route record deploy asset, sanitized 789-record full fallback, updated runtime guards, CSP hashes, service worker/build markers, and verification gates.
 - Do not duplicate Dashboard Operating Profile Consumer v1; reuse the Dashboard consumption of `intelligence/profiles/operating-profiles.json` and `intelligence/contracts/operating-profile-contracts.json`, the deploy asset copies under `deploy/cloudflare-pages/intelligence/`, preserved Fitness/Gym beta default behavior, profile-aware Dashboard runtime workflow coverage, and production Worker version `0bff8cba-4364-4b44-a997-fdcf9c413d99`.
+- Do not duplicate Smoothie Depot Workspace Dashboard v1; reuse `smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `scripts/verify-smoothie-depot-dashboard.mjs`, and `npm run dashboard:smoothie-depot:check` for the Cruz-only Smoothie Depot Founder Dashboard. The surface must stay scoped to `smoothie_depot` / `franchise_development`, use workspace fixture data only unless future runtime approval is explicit, and must not display Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory surfaces.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
 - Do not duplicate the Companion Executive Command Center response layer; reuse `prometheus-os/executive-command-center.js`, existing Founder Assistant integration, and Companion UI-path verification.

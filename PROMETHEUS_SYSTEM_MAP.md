@@ -63,6 +63,8 @@ Areas:
 
 Primary rule: improve the existing dashboard. Do not create duplicate dashboards, duplicate route cards, or replacement apps unless Cruz explicitly approves.
 
+Smoothie Depot dashboard rule: the Smoothie Depot Founder Dashboard lives at `smoothie-depot-dashboard/index.html` with deploy asset `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html` and validation through `scripts/verify-smoothie-depot-dashboard.mjs`. It is scoped to `workspace_id: smoothie_depot` and `operating_profile_id: franchise_development`, uses workspace fixture data only unless future runtime approval is explicit, and must not surface Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory views.
+
 ### 2. Prometheus Companion
 
 Scope: Cruz's private Founder Operating System and local AI companion.
