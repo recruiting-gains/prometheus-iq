@@ -100,6 +100,55 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Research - Founder Executive Dossier Retrieval v1
+
+Subsystem: Prometheus Research
+
+Task: Founder Executive Dossier Retrieval v1.
+
+Commit: None. Retrieval only.
+
+Deploy: Not run.
+
+Status: Retrieval complete; required Research artifact missing.
+
+Implementation type: Read-only Research retrieval and gap confirmation.
+
+Retrieval result:
+
+No completed Research-owned Executive Due Diligence Dossier artifact exists for the highest-ranked Founder Mission Queue business. No complete dossier was returned because the required Research artifact is missing.
+
+Highest-ranked business in current Founder Mission Queue:
+
+Nutrition Depot Houston and Greater Houston.
+
+Required research stage incomplete:
+
+Nutrition Depot Executive Dossier v1 has not been generated as a completed Research artifact under Executive Due Diligence Intelligence Platform v4.
+
+Missing artifact:
+
+A standalone completed Executive Due Diligence Dossier for Nutrition Depot stored under the Smoothie Depot Research workspace.
+
+Existing related artifacts located:
+
+- `research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`
+- `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+
+Important distinction:
+
+Dashboard contains selectable dossier views, but those are Dashboard-rendered views consuming Research outputs, not a completed Research-owned Executive Due Diligence Dossier artifact.
+
+Remaining blockers:
+
+Nutrition Depot Executive Dossier v1 must be generated as a Research-owned artifact before Prometheus can claim a complete Executive Due Diligence Dossier for the current top mission target.
+
+Next required Research task:
+
+Nutrition Depot Executive Dossier v1.
+
 ### 2026-07-04: Prometheus Dashboard - Founder Mission Queue v1
 
 Subsystem: Prometheus Dashboard
@@ -343,6 +392,8 @@ Files changed:
 Duplicate-prevention update:
 
 Do not create a separate Smoothie Depot due-diligence standard. Future reports must reuse `research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`, `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`, and the executive sections now embedded in `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md` or a dated successor. Future CRM/Dashboard/Companion use requires explicit subsystem handoff.
+
+Do not treat Dashboard-rendered Smoothie Depot dossier views as completed Research-owned Executive Due Diligence Dossier artifacts. Founder Executive Dossier Retrieval v1 confirmed that Nutrition Depot Executive Dossier v1 is still missing; future Research work must create a standalone completed Nutrition Depot dossier under `research/workspaces/smoothie-depot/` before Prometheus claims dossier completion for the current top mission target.
 
 Tests/validation run:
 
