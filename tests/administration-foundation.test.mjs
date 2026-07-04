@@ -167,3 +167,53 @@ test('Sprint 2 command center issues are mirrored into unified stabilization int
     assert.equal(intakeIssue.fieldFeedback.nextAction, commandIssue.nextAction);
   }
 });
+
+test('Smoothie Depot founder operating manual preserves workspace isolation', () => {
+  const isolation = JSON.parse(
+    readFileSync('administration/workspaces/smoothie-depot/workspace-isolation-verification.json', 'utf8')
+  );
+
+  assert.equal(isolation.workspaceId, 'smoothie_depot');
+  assert.equal(isolation.operatingProfileId, 'franchise_development');
+  assert.equal(isolation.newSubsystemCreated, false);
+  assert.equal(isolation.workspaceIsolation.smoothieDepotOnly, true);
+  assert.equal(isolation.workspaceIsolation.fitnessConnectionDataUsed, false);
+  assert.equal(isolation.workspaceIsolation.routeSystemsUsed, false);
+  assert.equal(isolation.workspaceIsolation.activePoolUsed, false);
+  assert.equal(isolation.workspaceIsolation.unitTrackingUsed, false);
+  assert.equal(isolation.workspaceIsolation.membershipTrackingUsed, false);
+});
+
+test('Smoothie Depot founder operating manual covers full daily workflow', () => {
+  const manual = readFileSync('administration/workspaces/smoothie-depot/founder-operating-manual-v1.md', 'utf8');
+
+  for (const section of [
+    'Morning Startup',
+    'Research Workflow',
+    'Outreach Workflow',
+    'Qualification Workflow',
+    'JR Handoff Workflow',
+    'Follow-Up Workflow',
+    'End Of Day',
+    'Daily Decision Rule'
+  ]) {
+    assert.match(manual, new RegExp(section));
+  }
+});
+
+test('Smoothie Depot daily operating checklists cover required operating modes', () => {
+  const checklists = readFileSync('administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md', 'utf8');
+
+  for (const checklist of [
+    'Morning Checklist',
+    'Research Checklist',
+    'Call Checklist',
+    'Discovery Checklist',
+    'Qualification Checklist',
+    'JR Handoff Checklist',
+    'Follow-Up Checklist',
+    'End-Of-Day Checklist'
+  ]) {
+    assert.match(checklists, new RegExp(checklist));
+  }
+});

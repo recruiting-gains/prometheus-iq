@@ -46,6 +46,11 @@
       "documentId": "beta-sprint-2-command-center",
       "path": "administration/command-center/beta-sprint-2/README.md",
       "purpose": "Founder-facing Sprint 2 beta feedback command center for evidence, severity, pass/fail status, subsystem routing, and follow-up decisions."
+    },
+    {
+      "documentId": "smoothie-depot-founder-operating-manual-v1",
+      "path": "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
+      "purpose": "Cruz-only daily operating manual for Smoothie Depot Franchise Development workflow."
     }
   ]
 }

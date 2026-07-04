@@ -88,6 +88,25 @@
       "unknowns": [
         "Sprint 2 screenshots, timestamps, pass/fail results, and subsystem handoffs are pending evidence capture."
       ]
+    },
+    {
+      "releaseId": "release-smoothie-depot-founder-operating-manual-v1",
+      "date": "2026-07-04",
+      "type": "administration_operations",
+      "status": "created",
+      "engineeringCommit": null,
+      "deployment": "not_applicable",
+      "appBuildMarker": "not_applicable",
+      "affectedTesters": [],
+      "whatChanged": [
+        "Created Cruz-only Smoothie Depot Founder Operating Manual v1 and daily operating checklists."
+      ],
+      "verification": [
+        "Administration workflow only; no production systems, Dashboard runtime, CRM runtime, Intelligence runtime, Infrastructure, Route systems, Active Pool, unit tracking, or membership tracking changed."
+      ],
+      "unknowns": [
+        "Live CRM candidate persistence remains unauthorized until explicit future CRM handoff."
+      ]
     }
   ]
 }

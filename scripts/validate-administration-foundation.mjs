@@ -37,7 +37,10 @@ const requiredMarkdown = [
   'administration/command-center/beta-sprint-2/README.md',
   'administration/command-center/beta-sprint-2/issue-tracker.md',
   'administration/command-center/beta-sprint-2/evidence-log.md',
-  'administration/command-center/beta-sprint-2/follow-up-decisions.md'
+  'administration/command-center/beta-sprint-2/follow-up-decisions.md',
+  'administration/workspaces/smoothie-depot/README.md',
+  'administration/workspaces/smoothie-depot/founder-operating-manual-v1.md',
+  'administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md'
 ];
 
 const requiredJson = [
@@ -56,7 +59,8 @@ const requiredJson = [
   'administration/registers/regression-verification.json',
   'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json',
   'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json',
-  'administration/command-center/beta-sprint-2/issue-tracker.json'
+  'administration/command-center/beta-sprint-2/issue-tracker.json',
+  'administration/workspaces/smoothie-depot/workspace-isolation-verification.json'
 ];
 
 const failures = [];
@@ -411,6 +415,72 @@ if (sprint2Tracker) {
     if (issue.passFailResult !== 'pending') {
       failures.push(`Sprint 2 command center ${issueId} pass/fail must remain pending until evidence is recorded`);
     }
+  }
+}
+
+const smoothieManual = readRequired('administration/workspaces/smoothie-depot/founder-operating-manual-v1.md') ?? '';
+const smoothieChecklists = readRequired('administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md') ?? '';
+const smoothieIsolation = jsonByPath.get('administration/workspaces/smoothie-depot/workspace-isolation-verification.json');
+if (smoothieIsolation) {
+  if (smoothieIsolation.workspaceId !== 'smoothie_depot') {
+    failures.push('Smoothie Depot operating manual must use workspaceId smoothie_depot');
+  }
+  if (smoothieIsolation.operatingProfileId !== 'franchise_development') {
+    failures.push('Smoothie Depot operating manual must use franchise_development operating profile');
+  }
+  if (smoothieIsolation.newSubsystemCreated !== false) {
+    failures.push('Smoothie Depot operating manual must not create a new subsystem');
+  }
+  const isolation = smoothieIsolation.workspaceIsolation ?? {};
+  for (const [flag, expected] of Object.entries({
+    smoothieDepotOnly: true,
+    fitnessConnectionDataUsed: false,
+    routeSystemsUsed: false,
+    activePoolUsed: false,
+    unitTrackingUsed: false,
+    membershipTrackingUsed: false,
+    crossWorkspaceLearningUsed: false,
+    crmRuntimeModified: false,
+    dashboardRuntimeModified: false,
+    intelligenceRuntimeModified: false,
+    infrastructureModified: false
+  })) {
+    if (isolation[flag] !== expected) {
+      failures.push(`Smoothie Depot isolation flag ${flag} must be ${expected}`);
+    }
+  }
+  for (const filePath of smoothieIsolation.manualFiles ?? []) {
+    if (!existsSync(path.join(repoRoot, filePath))) {
+      failures.push(`Smoothie Depot manual references missing file: ${filePath}`);
+    }
+  }
+}
+for (const phrase of [
+  'Morning Startup',
+  'Research Workflow',
+  'Outreach Workflow',
+  'Qualification Workflow',
+  'JR Handoff Workflow',
+  'Follow-Up Workflow',
+  'End Of Day',
+  'Daily Decision Rule'
+]) {
+  if (!smoothieManual.includes(phrase)) {
+    failures.push(`Smoothie Depot founder operating manual is missing section: ${phrase}`);
+  }
+}
+for (const phrase of [
+  'Morning Checklist',
+  'Research Checklist',
+  'Call Checklist',
+  'Discovery Checklist',
+  'Qualification Checklist',
+  'JR Handoff Checklist',
+  'Follow-Up Checklist',
+  'End-Of-Day Checklist'
+]) {
+  if (!smoothieChecklists.includes(phrase)) {
+    failures.push(`Smoothie Depot daily checklists are missing: ${phrase}`);
   }
 }
 
