@@ -197,6 +197,8 @@ Primary rule: CRM owns the internal account/customer lifecycle model but must no
 
 Smoothie Depot CRM planning rule: Smoothie Depot candidate pipeline work must extend `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md` and `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, runtime-free planning status until explicit approval, and Fitness Connection separation. Do not mix Smoothie Depot candidate records with Fitness Connection CRM records, Route Intelligence, Active Pool scoring, or production recommendations.
 
+Workspace lead intake CRM consumer rule: shared intake handoffs must enter CRM through `consumeWorkspaceLeadIntakeHandoff` in `crm/crm-foundation.mjs`. The CRM consumer must route by `workspaceId`, support only approved workspaces, reject unknown workspaces fail-closed, reject cross-workspace contamination before mutation, and preserve submission ID, attribution, and audit metadata. Do not create a parallel shared intake CRM consumer or bypass workspace isolation.
+
 ### 6. Prometheus Data
 
 Scope: data sources, verified prospect pools, imports, exports, sync, and data quality.

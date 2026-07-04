@@ -100,6 +100,58 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-03: Prometheus CRM - Workspace Lead Intake Handoff Consumer v1
+
+Subsystem: Prometheus CRM
+
+Task: Workspace Lead Intake Handoff Consumer v1
+
+Commit: `6ef27af0ac9b8d75eed028049b4890f7200bb9a3`
+
+Deploy: Not run. CRM library/test change only; no runtime deployment performed.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: CRM-owned consumer implementation and validation.
+
+CRM consumer created:
+
+Yes. Added CRM-owned `consumeWorkspaceLeadIntakeHandoff`.
+
+Smoothie Depot mapping verified:
+
+Yes. Intake maps to a Franchise Development candidate handoff with candidate, business prospect, attribution, submission ID, and audit metadata preserved.
+
+Fitness Connection mapping verified:
+
+Yes. Intake maps to a Fitness/Growth CRM lead handoff with Fitness operating profile, contact, lead, attribution, submission ID, and audit metadata preserved.
+
+Workspace isolation verified:
+
+Yes. The consumer routes by `workspaceId`, supports `fitness_connection` and `smoothie_depot`, rejects unknown workspaces fail-closed, and rejects cross-workspace contamination before mutation.
+
+Files changed:
+
+- `crm/crm-foundation.mjs`
+- `tests/crm-foundation.test.mjs`
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed, including Infrastructure intake checks, Dashboard regressions, Intelligence checks, CRM tests, Website tests, and build.
+
+Remaining blockers:
+
+- No runtime deployment performed.
+- Future durable CRM persistence requires explicit follow-up approval.
+- Dashboard display of consumed handoffs requires explicit follow-up approval.
+
+Next recommended subsystem:
+
+Prometheus CRM for durable workspace CRM persistence only if explicitly approved; otherwise Prometheus Dashboard only if consumed handoff visibility is explicitly approved.
+
 ### 2026-07-03: Prometheus CRM - Smoothie Depot Franchise Development Candidate Pipeline Planning v1
 
 Subsystem: Prometheus CRM
@@ -7903,6 +7955,7 @@ Current duplicate-prevention sources:
 - Do not duplicate CRM Lead Attribution from Social Campaigns v1; reuse `attachWebsiteAttributionToLead` in `crm/crm-foundation.mjs`, the existing Website/Social attribution output, and normalized `crm_lead_created` attribution events through `social-media/contracts/social-media-contract.js`. CRM owns lead/contact records and must not call Instagram APIs or rebuild Website/Social attribution capture.
 - Do not duplicate CRM Operating Profile Consumer v1; reuse CRM's consumption of `intelligence/operating-profile-engine.mjs`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, and `CRMOperatingProfileContract` via `buildProfileConsumerContract` in `crm/crm-foundation.mjs`. Preserve Fitness as the CRM default and do not create a parallel CRM profile model.
 - Do not duplicate Smoothie Depot Franchise Development Candidate Pipeline Planning v1; reuse `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md`, `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`, `scripts/validate-smoothie-depot-crm-planning.mjs`, and `tests/smoothie-depot-crm-planning.test.mjs` for Smoothie Depot candidate records, business prospect records, JR handoffs, commission tracking, protected candidate tracking, and workspace isolation guardrails. This remains contracts-only until explicit future approval for runtime implementation, candidate persistence, JR workflow operations, commission updates, protected candidate updates, or Dashboard consumption.
+- Do not duplicate Workspace Lead Intake Handoff Consumer v1; reuse `consumeWorkspaceLeadIntakeHandoff` in `crm/crm-foundation.mjs` and the CRM tests in `tests/crm-foundation.test.mjs` for Fitness Connection lead handoffs and Smoothie Depot Franchise Development candidate handoffs. The consumer must route by `workspaceId`, preserve submission ID, attribution, and audit metadata, reject unknown workspaces fail-closed, and reject cross-workspace contamination before mutation.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.
