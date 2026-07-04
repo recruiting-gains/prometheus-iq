@@ -7,7 +7,7 @@
   <meta name="description" content="Prometheus IQ is enterprise AI Route Intelligence for outside sales organizations: field routing, verified activity, customer success discipline, and investor-ready operating intelligence across every field-sales vertical.">
   <link rel="canonical" href="https://prometheusrouteiq.com/">
   <meta property="og:title" content="Prometheus IQ | Enterprise AI Route Intelligence for Outside Sales">
-  <meta property="og:description" content="Founder-led AI Route Intelligence for enterprise outside-sales teams, controlled beta pilots, and field execution intelligence.">
+  <meta property="og:description" content="Founder-led AI Route Intelligence for qualified businesses, franchise groups, and outside-sales teams ready for private operational onboarding.">
   <meta property="og:url" content="https://prometheusrouteiq.com/">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://prometheusrouteiq.com/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg">
@@ -787,7 +787,7 @@
     .enterprise-grid,
     .investor-grid,
     .success-grid,
-    .beta-flow {
+    .partner-flow {
       display: grid;
       align-items: stretch;
       gap: 16px;
@@ -810,7 +810,7 @@
     }
 
     .industry-strip span,
-    .beta-flow span {
+    .partner-flow span {
       min-height: 44px;
       display: grid;
       place-items: center;
@@ -1059,7 +1059,7 @@
       line-height: 1.4;
     }
 
-    .beta-flow {
+    .partner-flow {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
@@ -1275,15 +1275,15 @@
       }
     }
 
-    .pilot-layout {
+    .partner-layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
       gap: clamp(20px, 4vw, 42px);
       align-items: stretch;
     }
 
-    .pilot-form-panel,
-    .pilot-dashboard,
+    .partner-form-panel,
+    .partner-dashboard,
     .demo-stage,
     .demo-panel {
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1295,11 +1295,11 @@
       backdrop-filter: blur(20px);
     }
 
-    .pilot-form-panel {
+    .partner-form-panel {
       padding: clamp(20px, 3vw, 30px);
     }
 
-    .pilot-progress {
+    .partner-progress {
       display: flex;
       align-items: center;
       gap: 12px;
@@ -1309,7 +1309,7 @@
       font-weight: 800;
     }
 
-    .pilot-progress-bar {
+    .partner-progress-bar {
       flex: 1;
       height: 8px;
       overflow: hidden;
@@ -1317,7 +1317,7 @@
       background: rgba(255, 255, 255, 0.08);
     }
 
-    .pilot-progress-fill {
+    .partner-progress-fill {
       width: 16.66%;
       height: 100%;
       border-radius: inherit;
@@ -1326,11 +1326,11 @@
       transition: width 280ms ease;
     }
 
-    .pilot-step {
+    .partner-step {
       display: none;
     }
 
-    .pilot-step.is-active {
+    .partner-step.is-active {
       display: block;
       animation: panelIn 260ms ease both;
     }
@@ -1347,16 +1347,16 @@
       }
     }
 
-    .pilot-step h3,
-    .pilot-dashboard h3,
+    .partner-step h3,
+    .partner-dashboard h3,
     .demo-panel h3 {
       margin: 0 0 8px;
       font-size: clamp(24px, 3vw, 34px);
       line-height: 1.04;
     }
 
-    .pilot-step p,
-    .pilot-dashboard p,
+    .partner-step p,
+    .partner-dashboard p,
     .demo-panel p {
       margin: 0;
       color: var(--muted);
@@ -1457,7 +1457,7 @@
       box-shadow: 0 0 36px rgba(39, 224, 160, 0.12);
     }
 
-    .pilot-actions,
+    .partner-actions,
     .demo-actions {
       display: flex;
       flex-wrap: wrap;
@@ -1485,7 +1485,7 @@
       box-shadow: 0 16px 42px rgba(255, 116, 56, 0.22);
     }
 
-    .pilot-preview {
+    .partner-preview {
       position: relative;
       min-height: 100%;
       overflow: hidden;
@@ -1587,13 +1587,13 @@
       color: var(--ink);
     }
 
-    .pilot-dashboard {
+    .partner-dashboard {
       display: none;
       padding: clamp(20px, 3vw, 30px);
       animation: panelIn 320ms ease both;
     }
 
-    .pilot-dashboard.is-visible {
+    .partner-dashboard.is-visible {
       display: block;
     }
 
@@ -2057,7 +2057,7 @@
       .enterprise-grid,
       .investor-grid,
       .success-grid,
-      .beta-flow {
+      .partner-flow {
         grid-template-columns: 1fr;
       }
 
@@ -2072,7 +2072,7 @@
       }
 
       .experience-header,
-      .pilot-layout,
+      .partner-layout,
       .demo-layout {
         grid-template-columns: 1fr;
       }
@@ -2133,7 +2133,7 @@
       <a href="#industries">Industries</a>
       <a href="#investors">Investors</a>
     </div>
-    <a href="#pilot" data-open-pilot>Start Enterprise Intake</a>
+      <a href="#partner" data-open-partner>Request Access</a>
   </nav>
 
   <main class="content">
@@ -2149,7 +2149,7 @@
         <h1>AI Route Intelligence for Outside Sales Teams.</h1>
         <p class="lead">Prometheus IQ helps outside-sales organizations decide where to go next, verify what happened, and turn field visits into governed operating intelligence across every industry where face-to-face selling still wins.</p>
         <div class="buttons">
-          <a class="button" href="#pilot" data-open-pilot>Start Enterprise Intake</a>
+          <a class="button" href="#partner" data-open-partner>Apply for Growth Partnership</a>
           <a class="button secondary" href="#enterprise">Enterprise Readiness</a>
         </div>
         <p class="cta-note">Built for healthcare, home services, franchise growth, telecom, insurance, B2B services, and any team where revenue depends on intelligent field execution.</p>
@@ -2184,7 +2184,7 @@
         <h2>Why teams can evaluate it safely</h2>
         <div class="trust-grid">
           <div class="trust-card"><strong>Founder Built</strong><span>Built from real outside-sales pressure and field execution gaps.</span></div>
-          <div class="trust-card"><strong>Controlled Beta</strong><span>Scoped rollout, defined users, and clear evaluation cadence.</span></div>
+          <div class="trust-card"><strong>Controlled Onboarding</strong><span>Scoped access, defined users, and clear readiness review.</span></div>
           <div class="trust-card"><strong>Enterprise Ready</strong><span>Governance, separation, and success discipline from day one.</span></div>
           <div class="trust-card"><strong>Outcome Focused</strong><span>Evaluation centers on routes, activity proof, and field results.</span></div>
         </div>
@@ -2195,7 +2195,7 @@
       <div class="copy-block">
         <div class="eyebrow">Industry Pages</div>
         <h2>Prometheus is horizontal outside-sales infrastructure, not a single-market tool.</h2>
-        <p class="lead">Gym sales remains the first production validation environment. The company category is broader: any organization that creates revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
+        <p class="lead">Gym sales remains the first production validation environment. The company category is broader: qualified businesses, franchise groups, and outside-sales organizations that create revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
         <div class="industry-pages" aria-label="Industries Prometheus IQ can support">
           <article><h3>Home Services</h3><p>Roofing, HVAC, pest, solar, and security teams.</p></article>
           <article><h3>Healthcare</h3><p>Medical device, referral, and provider outreach teams.</p></article>
@@ -2243,28 +2243,28 @@
       <div class="panel">
         <h2>Why it exists</h2>
         <p class="lead">Prometheus IQ is the first product in an AI operating system for outside sales, built to make field work directed, accountable, measurable, and compounding without becoming a surveillance product.</p>
-        <p class="testimonial-placeholder">Pilot testimonial placeholder: reserved for an approved customer quote after controlled beta results are reviewed.</p>
+        <p class="testimonial-placeholder">Partner testimonial placeholder: reserved for an approved customer quote after qualified partner onboarding results are reviewed.</p>
       </div>
     </section>
 
     <section id="enterprise" class="split">
       <div class="copy-block">
         <div class="eyebrow">Enterprise Page</div>
-        <h2>Built for controlled pilots, executive review, and field operating discipline.</h2>
-        <p class="lead">Enterprise buyers need more than a route map. Prometheus frames pilot success around route quality, verified activity, adoption, conversion path, and leadership visibility while keeping private beta systems and internal intelligence logic protected.</p>
+        <h2>Built for private onboarding, executive review, and field operating discipline.</h2>
+        <p class="lead">Qualified partners need more than a route map. Prometheus frames onboarding around route quality, verified activity, qualified lead generation, operating profile configuration, adoption, and leadership visibility while keeping private systems and internal intelligence logic protected.</p>
         <div class="enterprise-grid">
-          <div class="enterprise-card"><h3>Governed pilots</h3><p>Defined scope, success metrics, review cadence, and executive evaluation before expansion.</p></div>
-          <div class="enterprise-card"><h3>Security posture</h3><p>Public marketing remains separate from beta systems, internal logic, and private operating data.</p></div>
+          <div class="enterprise-card"><h3>Operational Onboarding</h3><p>Defined scope, success criteria, review cadence, and executive evaluation before expansion.</p></div>
+          <div class="enterprise-card"><h3>Security posture</h3><p>Public marketing remains separate from authenticated systems, internal logic, and private operating data.</p></div>
           <div class="enterprise-card"><h3>Manager visibility</h3><p>Leadership sees field execution, route usefulness, and outcomes without turning Prometheus into surveillance.</p></div>
           <div class="enterprise-card"><h3>CRM-adjacent adoption</h3><p>Prometheus strengthens the work before clean pipeline data exists, then informs downstream systems.</p></div>
         </div>
       </div>
       <div class="panel">
-        <h2>Pilot Signals</h2>
+        <h2>Partner Readiness Signals</h2>
         <div class="executive-grid">
           <div class="executive-item"><strong>Route Quality</strong><span>Did reps receive specific places they could actually walk into?</span></div>
           <div class="executive-item"><strong>Verified Activity</strong><span>Were visits intentionally logged and GPS confirmed?</span></div>
-          <div class="executive-item"><strong>Conversion Path</strong><span>Did conversations become leads, follow-ups, or units?</span></div>
+          <div class="executive-item"><strong>Qualified Lead Generation</strong><span>Did conversations become leads, follow-ups, or units?</span></div>
           <div class="executive-item"><strong>Adoption</strong><span>Did reps keep using the workflow without heavy support?</span></div>
         </div>
       </div>
@@ -2282,7 +2282,7 @@
           <div class="investor-card"><h3>Horizontal market</h3><p>Outside sales spans healthcare, home services, insurance, telecom, franchise growth, and B2B services.</p></div>
           <div class="investor-card"><h3>Compounding data</h3><p>Every verified visit and outcome can improve territory intelligence, coaching, and next-best-action quality.</p></div>
           <div class="investor-card"><h3>Founder-market fit</h3><p>Prometheus began in real field-sales pressure, with gym sales as validation rather than category definition.</p></div>
-          <div class="investor-card"><h3>Enterprise path</h3><p>The operating model supports controlled pilots, customer success reviews, renewal discipline, and expansion.</p></div>
+          <div class="investor-card"><h3>Enterprise path</h3><p>The operating model supports qualified partner onboarding, customer success reviews, renewal discipline, and expansion.</p></div>
         </div>
       </div>
     </section>
@@ -2290,34 +2290,34 @@
     <section class="split">
       <div class="copy-block">
         <div class="eyebrow">Customer Success Framework</div>
-        <h2>From beta request to expansion-ready operating review.</h2>
-        <p class="lead">Prometheus pilots are designed to create evidence: cleaner route decisions, verified work, useful outcomes, and a clear executive path for renewal or expansion.</p>
+        <h2>From partner intake to expansion-ready operating review.</h2>
+        <p class="lead">Prometheus onboarding is designed to create evidence: cleaner route decisions, verified work, qualified lead generation, useful outcomes, and a clear executive path for renewal or expansion.</p>
       </div>
       <div class="panel">
         <h2>Success Path</h2>
         <div class="success-grid">
           <div class="success-card"><span>1</span><h3>Baseline</h3><p>Document current routing, visit volume, follow-up discipline, and manager visibility.</p></div>
-          <div class="success-card"><span>2</span><h3>Pilot</h3><p>Run a focused team workflow against route quality, activity proof, conversion path, and adoption.</p></div>
+          <div class="success-card"><span>2</span><h3>Onboard</h3><p>Configure the operating profile and run a focused workflow against route quality, activity proof, conversion path, and adoption.</p></div>
           <div class="success-card"><span>3</span><h3>Review</h3><p>Translate field evidence into executive readouts, success gaps, and expansion criteria.</p></div>
           <div class="success-card"><span>4</span><h3>Scale</h3><p>Move from founder-led setup to repeatable onboarding, governance, and customer success rhythm.</p></div>
         </div>
       </div>
     </section>
 
-    <section id="pilot" class="footer">
+    <section id="partner" class="footer">
       <div>
-        <div class="eyebrow">Enterprise Lead Intake</div>
-        <h2>Start a private Prometheus IQ enterprise conversation.</h2>
-        <p class="lead">Request a demo, apply for a beta pilot, ask for enterprise pricing, or schedule discovery. Prometheus captures the operating profile, team shape, current workflow, attribution, and CRM-ready pipeline stage before founder review.</p>
-        <div class="beta-flow" aria-label="Beta request steps">
+        <div class="eyebrow">Partner Intake</div>
+        <h2>Apply for private Prometheus IQ operational onboarding.</h2>
+        <p class="lead">Prometheus IQ is now accepting qualified businesses, franchise groups, and outside-sales organizations for onboarding based on business fit, operating profile, and security readiness. Request a private demo, apply for growth partnership, ask for enterprise pricing, or schedule discovery.</p>
+        <div class="partner-flow" aria-label="Partner intake steps">
           <span>1. Request</span>
           <span>2. Operating profile</span>
           <span>3. CRM packet</span>
           <span>4. Founder review</span>
         </div>
-        <p class="testimonial-placeholder">Pilot testimonial placeholder: reserved for an approved customer quote after controlled beta results are reviewed.</p>
+        <p class="testimonial-placeholder">Partner testimonial placeholder: reserved for an approved customer quote after private onboarding results are reviewed.</p>
         <div class="buttons" style="justify-content:center">
-          <a class="button" href="mailto:prometheusrouteiq@gmail.com" data-open-pilot>Start Enterprise Intake</a>
+          <a class="button" href="mailto:prometheusrouteiq@gmail.com" data-open-partner>Apply for Growth Partnership</a>
           <a class="button secondary" href="https://www.instagram.com/prometheus.iq/">Instagram</a>
         </div>
         <nav class="legal-links" aria-label="Legal pages">
@@ -2329,38 +2329,38 @@
     </section>
   </main>
 
-  <div class="experience-modal" id="pilotExperience" role="dialog" aria-modal="true" aria-labelledby="pilotExperienceTitle" aria-hidden="true">
+  <div class="experience-modal" id="partnerExperience" role="dialog" aria-modal="true" aria-labelledby="partnerExperienceTitle" aria-hidden="true">
     <div class="experience-card">
-      <button class="experience-close" type="button" data-close-modal aria-label="Close pilot experience">×</button>
+      <button class="experience-close" type="button" data-close-modal aria-label="Close partner intake">×</button>
       <div class="experience-inner">
         <div class="experience-header">
           <div>
-            <div class="experience-kicker">Enterprise Lead Intake</div>
-            <h2 class="experience-title" id="pilotExperienceTitle">Tell Prometheus how your outside-sales operation works.</h2>
-            <p class="experience-subtitle">Create a founder-ready lead packet for demo requests, beta pilots, enterprise pricing, or discovery calls without connecting to private systems or exposing internal intelligence logic.</p>
+            <div class="experience-kicker">Partner Intake</div>
+            <h2 class="experience-title" id="partnerExperienceTitle">Tell Prometheus how your outside-sales operation works.</h2>
+            <p class="experience-subtitle">Create a founder-ready partner intake packet for private demos, growth partnership, enterprise pricing, or discovery calls without connecting to private systems or exposing internal intelligence logic.</p>
           </div>
           <div class="modal-core" aria-hidden="true"></div>
         </div>
 
-        <div class="pilot-layout">
-          <form class="pilot-form-panel" id="pilotForm">
-            <div class="pilot-progress">
-              <span id="pilotProgressText">Step 1 of 6</span>
-              <div class="pilot-progress-bar" aria-hidden="true"><div class="pilot-progress-fill" id="pilotProgressFill"></div></div>
+        <div class="partner-layout">
+          <form class="partner-form-panel" id="partnerForm">
+            <div class="partner-progress">
+              <span id="partnerProgressText">Step 1 of 6</span>
+              <div class="partner-progress-bar" aria-hidden="true"><div class="partner-progress-fill" id="partnerProgressFill"></div></div>
             </div>
 
-            <div class="pilot-step is-active" data-pilot-step="0">
+            <div class="partner-step is-active" data-partner-step="0">
               <h3>What do you want to do?</h3>
-              <p>Select the request type so the founder can route the lead into the right pipeline stage.</p>
+              <p>Select the request type so the founder can route the partner inquiry into the right onboarding stage.</p>
               <div class="goal-grid request-grid">
                 <label class="goal-option"><input type="radio" name="requestType" value="private_demo" required><strong>Request a private demo</strong><span>See how Prometheus IQ fits your field team.</span></label>
-                <label class="goal-option"><input type="radio" name="requestType" value="beta_pilot"><strong>Apply for a beta pilot</strong><span>Evaluate a controlled rollout with success criteria.</span></label>
+                <label class="goal-option"><input type="radio" name="requestType" value="growth_partner"><strong>Apply for growth partnership</strong><span>Request private onboarding as a qualified business growth partner.</span></label>
                 <label class="goal-option"><input type="radio" name="requestType" value="enterprise_pricing"><strong>Request enterprise pricing</strong><span>Discuss scope, seats, governance, and rollout path.</span></label>
                 <label class="goal-option"><input type="radio" name="requestType" value="discovery_call"><strong>Schedule discovery</strong><span>Share workflow context and determine fit.</span></label>
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="1">
+            <div class="partner-step" data-partner-step="1">
               <h3>Company profile</h3>
               <p>Describe the company and buyer context the founder should review.</p>
               <div class="field-grid">
@@ -2371,7 +2371,7 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="2">
+            <div class="partner-step" data-partner-step="2">
               <h3>Operating profile</h3>
               <p>What best describes your outside-sales operation?</p>
               <div class="field-grid">
@@ -2393,7 +2393,7 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="3">
+            <div class="partner-step" data-partner-step="3">
               <h3>Team and territory</h3>
               <p>This sizes the request without forcing a full procurement process upfront.</p>
               <div class="field-grid">
@@ -2413,9 +2413,9 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="4">
+            <div class="partner-step" data-partner-step="4">
               <h3>Primary goal</h3>
-              <p>Pick the executive outcome the pilot should prove first.</p>
+              <p>Pick the executive outcome onboarding should prove first.</p>
               <div class="goal-grid">
                 <label class="goal-option"><input type="radio" name="primaryGoal" value="More Sales" required><strong>More Sales</strong><span>Turn field sessions into measurable wins.</span></label>
                 <label class="goal-option"><input type="radio" name="primaryGoal" value="More Leads"><strong>More Leads</strong><span>Create more qualified conversations.</span></label>
@@ -2425,7 +2425,7 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="5">
+            <div class="partner-step" data-partner-step="5">
               <h3>Current sales workflow</h3>
               <p>This positions Prometheus around the gap before activity reaches the CRM.</p>
               <div class="field-grid">
@@ -2434,7 +2434,7 @@
               </div>
             </div>
 
-            <div class="pilot-step" data-pilot-step="6">
+            <div class="partner-step" data-partner-step="6">
               <h3>Contact and scheduling</h3>
               <p>Your enterprise lead packet will be generated instantly. Sending it stays under your control.</p>
               <div class="field-grid">
@@ -2445,14 +2445,14 @@
               </div>
             </div>
 
-            <div class="pilot-actions">
-              <button class="mini-button" type="button" id="pilotBack">Back</button>
-              <button class="mini-button primary" type="button" id="pilotNext">Next</button>
-              <button class="mini-button primary" type="button" id="pilotGenerate" hidden>Generate Snapshot</button>
+            <div class="partner-actions">
+              <button class="mini-button" type="button" id="partnerBack">Back</button>
+              <button class="mini-button primary" type="button" id="partnerNext">Next</button>
+              <button class="mini-button primary" type="button" id="partnerGenerate" hidden>Generate Partner Packet</button>
             </div>
           </form>
 
-          <div class="pilot-preview" aria-hidden="true">
+          <div class="partner-preview" aria-hidden="true">
             <div class="territory-map">
               <div class="territory-ring"></div>
               <div class="map-node"></div>
@@ -2464,14 +2464,14 @@
             <div class="preview-readout">
               <div class="readout-line"><span>Request</span><strong id="previewRequest">Select request</strong></div>
               <div class="readout-line"><span>Operating profile</span><strong id="previewProfile">Select profile</strong></div>
-              <div class="readout-line"><span>Pilot target</span><strong id="previewGoal">Select primary goal</strong></div>
+              <div class="readout-line"><span>Onboarding target</span><strong id="previewGoal">Select primary goal</strong></div>
             </div>
           </div>
         </div>
 
-        <div class="pilot-dashboard" id="pilotDashboard">
-          <div class="experience-kicker">Prometheus Enterprise Lead Packet</div>
-          <h3 id="dashboardCompany">Lead packet generated.</h3>
+        <div class="partner-dashboard" id="partnerDashboard">
+          <div class="experience-kicker">Prometheus Partner Intake Packet</div>
+          <h3 id="dashboardCompany">Partner packet generated.</h3>
           <p id="dashboardSummary">Prometheus has created a founder-ready CRM intake packet based on the request type, operating profile, attribution, and current workflow.</p>
           <div class="dashboard-grid">
             <div class="dashboard-card"><span>Pipeline Stage</span><strong id="dashPipelineStage">-</strong></div>
@@ -2482,9 +2482,9 @@
             <div class="dashboard-card"><span>Lead Source</span><strong id="dashLeadSource">-</strong></div>
           </div>
           <p class="intake-status" id="intakeStatus" role="status"></p>
-          <div class="pilot-actions">
-            <button class="mini-button" type="button" id="pilotReset">Review Answers</button>
-            <a class="mini-button primary" id="pilotEmail" href="mailto:prometheusrouteiq@gmail.com">Send to Founder</a>
+          <div class="partner-actions">
+            <button class="mini-button" type="button" id="partnerReset">Review Answers</button>
+            <a class="mini-button primary" id="partnerEmail" href="mailto:prometheusrouteiq@gmail.com">Send Partner Packet</a>
           </div>
         </div>
       </div>
@@ -2540,7 +2540,7 @@
             <div class="demo-actions">
               <button class="mini-button" type="button" id="demoBack">Back</button>
               <button class="mini-button primary" type="button" id="demoNext">Next Scene</button>
-              <button class="mini-button" type="button" data-open-pilot>Start Enterprise Intake</button>
+              <button class="mini-button" type="button" data-open-partner>Apply for Growth Partnership</button>
             </div>
           </div>
         </div>

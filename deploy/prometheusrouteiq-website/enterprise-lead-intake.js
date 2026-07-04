@@ -21,10 +21,10 @@ export const REQUEST_TYPES = Object.freeze({
     pipelineStage: "Discovery Requested",
     founderAction: "Schedule private demo"
   },
-  beta_pilot: {
-    label: "Beta Pilot",
-    pipelineStage: "Beta Pilot Requested",
-    founderAction: "Review beta pilot fit"
+  growth_partner: {
+    label: "Growth Partner Application",
+    pipelineStage: "Growth Partner Requested",
+    founderAction: "Review qualified growth partner fit"
   },
   enterprise_pricing: {
     label: "Enterprise Pricing",
@@ -104,7 +104,7 @@ function firstAndLastTouch(attributionSession = {}) {
 }
 
 function normalizeRequestType(value) {
-  const key = REQUEST_TYPES[value] ? value : "beta_pilot";
+  const key = REQUEST_TYPES[value] ? value : "growth_partner";
   return { key, ...REQUEST_TYPES[key] };
 }
 

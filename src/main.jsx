@@ -60,8 +60,8 @@ function App() {
     ["Field Operations", "Canvassing, appointment setting, coverage, and distributed execution."]
   ];
   const enterpriseSignals = [
-    ["Governed pilots", "Defined scope, success metrics, review cadence, and executive evaluation before expansion."],
-    ["Security posture", "Public marketing remains separate from beta systems, internal logic, and private operating data."],
+    ["Operational onboarding", "Defined scope, success criteria, review cadence, and executive evaluation before expansion."],
+    ["Security posture", "Public marketing remains separate from authenticated systems, internal logic, and private operating data."],
     ["Manager visibility", "Leadership sees field execution, route usefulness, and outcomes without turning Prometheus into surveillance."],
     ["CRM-adjacent adoption", "Prometheus strengthens the work before clean pipeline data exists, then informs downstream systems."]
   ];
@@ -69,17 +69,17 @@ function App() {
     ["Horizontal market", "Outside sales spans healthcare, home services, insurance, telecom, franchise growth, and B2B services."],
     ["Compounding data", "Every verified visit and outcome can improve territory intelligence, coaching, and next-best-action quality."],
     ["Founder-market fit", "Prometheus began in real field-sales pressure, with gym sales as validation rather than category definition."],
-    ["Enterprise path", "The operating model supports controlled pilots, customer success reviews, renewal discipline, and expansion."]
+    ["Enterprise path", "The operating model supports qualified partner onboarding, customer success reviews, renewal discipline, and expansion."]
   ];
   const successFramework = [
     ["Baseline", "Document current routing, visit volume, follow-up discipline, and manager visibility."],
-    ["Pilot", "Run a focused team workflow against route quality, activity proof, conversion path, and adoption."],
+    ["Onboard", "Configure the operating profile and run a focused workflow against route quality, activity proof, conversion path, and adoption."],
     ["Review", "Translate field evidence into executive readouts, success gaps, and expansion criteria."],
     ["Scale", "Move from founder-led setup to repeatable onboarding, governance, and customer success rhythm."]
   ];
   const trustSignals = [
     ["Founder Built", "Built from real outside-sales pressure and field execution gaps."],
-    ["Controlled Beta", "Scoped rollout, defined users, and clear evaluation cadence."],
+    ["Controlled Onboarding", "Scoped access, defined users, and clear readiness review."],
     ["Enterprise Ready", "Governance, separation, and success discipline from day one."],
     ["Outcome Focused", "Evaluation centers on routes, activity proof, and field results."]
   ];
@@ -100,7 +100,7 @@ function App() {
           <a href="#enterprise">Enterprise</a>
           <a href="#industries">Industries</a>
           <a href="#investors">Investors</a>
-          <a href="#pilot">Pilot</a>
+          <a href="#partner">Partner Intake</a>
         </nav>
       </header>
 
@@ -126,14 +126,14 @@ function App() {
               intelligence across every industry where face-to-face selling still wins.
             </p>
             <div className="hero-actions">
-              <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
+              <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Request Access</a>
               <a className="button secondary" href="#enterprise">Enterprise Readiness</a>
             </div>
             <div className="identity-strip" aria-label="Prometheus identity pillars">
               <span>Outside Sales</span>
               <span>AI Route Intelligence</span>
               <span>Verified Activity</span>
-              <span>Enterprise Pilots</span>
+              <span>Partner Onboarding</span>
             </div>
             <p className="cta-note">Built for healthcare, home services, franchise growth, telecom, insurance, B2B services, and any team where revenue depends on intelligent field execution.</p>
           </motion.div>
@@ -239,12 +239,12 @@ function App() {
         <div className="shell split">
           <div>
             <SectionLabel>Enterprise Page</SectionLabel>
-            <h2>Built for controlled pilots, executive review, and field operating discipline.</h2>
+            <h2>Built for private onboarding, executive review, and field operating discipline.</h2>
           </div>
           <p>
-            Enterprise buyers need more than a route map. Prometheus frames pilot success around
-            route quality, verified activity, adoption, conversion path, and leadership visibility
-            while keeping private beta systems and internal intelligence logic protected.
+            Qualified partners need more than a route map. Prometheus frames onboarding around
+            route quality, verified activity, qualified lead generation, operating profile configuration,
+            adoption, and leadership visibility while keeping private systems and internal intelligence logic protected.
           </p>
         </div>
         <div className="shell enterprise-grid">
@@ -309,7 +309,7 @@ function App() {
               accountable, measurable, and compounding without becoming a surveillance product.
             </p>
             <p className="testimonial-placeholder">
-              Pilot testimonial placeholder: reserved for an approved customer quote after the first controlled beta results are reviewed.
+              Partner testimonial placeholder: reserved for an approved customer quote after qualified partner onboarding results are reviewed.
             </p>
           </div>
         </div>
@@ -340,8 +340,8 @@ function App() {
       <section className="section success-section">
         <div className="shell section-head">
           <SectionLabel>Customer Success Framework</SectionLabel>
-          <h2>From beta request to expansion-ready operating review.</h2>
-          <p className="section-copy">Prometheus pilots are designed to create evidence: cleaner route decisions, verified work, useful outcomes, and a clear executive path for renewal or expansion.</p>
+          <h2>From partner intake to expansion-ready operating review.</h2>
+          <p className="section-copy">Prometheus onboarding is designed to create evidence: cleaner route decisions, verified work, qualified lead generation, useful outcomes, and a clear executive path for renewal or expansion.</p>
         </div>
         <div className="shell success-grid">
           {successFramework.map(([title, body], index) => (
@@ -354,17 +354,18 @@ function App() {
         </div>
       </section>
 
-      <section id="pilot" className="section pilot-section">
-        <div className="shell pilot-card">
+      <section id="partner" className="section partner-section">
+        <div className="shell partner-card">
           <div>
-            <SectionLabel>Enterprise Lead Intake</SectionLabel>
-            <h2>Start a private Prometheus IQ enterprise conversation.</h2>
+            <SectionLabel>Partner Intake</SectionLabel>
+            <h2>Apply for private Prometheus IQ operational onboarding.</h2>
             <p>
-              Request a private demo, apply for a beta pilot, request enterprise pricing, or
-              schedule discovery. Prometheus captures operating profile, team size, current
-              workflow, Website attribution, and CRM-ready pipeline context before founder review.
+              Prometheus IQ is now accepting qualified businesses, franchise groups, and
+              outside-sales organizations for onboarding based on business fit, operating profile,
+              and security readiness. Request a private demo, apply for growth partnership,
+              request enterprise pricing, or schedule discovery.
             </p>
-            <div className="beta-steps" aria-label="Beta request steps">
+            <div className="partner-steps" aria-label="Partner intake steps">
               <span>1. Request</span>
               <span>2. Operating profile</span>
               <span>3. CRM packet</span>
@@ -372,7 +373,7 @@ function App() {
             </div>
             <p className="investor-note">Investor signal: Prometheus IQ is positioned as repeatable field-intelligence infrastructure across multiple outside-sales verticals.</p>
           </div>
-          <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
+          <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
         </div>
       </section>
 
@@ -386,7 +387,7 @@ function App() {
           <div className="footer-links">
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
             <a href={instagramUrl}>@prometheus.IQ</a>
-            <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Enterprise%20Request`}>Start Enterprise Intake</a>
+            <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
           </div>
         </div>
       </footer>

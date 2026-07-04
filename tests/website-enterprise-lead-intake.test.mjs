@@ -105,6 +105,22 @@ test("enterprise intake supports future operating profiles through general outsi
   assert.equal(packet.lead.operatingProfile.crmProfileId, "general_outside_sales");
 });
 
+test("enterprise intake routes growth partner applications into operational onboarding", () => {
+  const packet = createEnterpriseLeadIntake({
+    formData: sampleForm({ requestType: "growth_partner", operatingProfileId: "home_services" }),
+    attributionSession: sampleAttribution(),
+    duplicateStorage: memoryStorage(),
+    now: new Date("2026-07-02T15:05:00.000Z"),
+    openedAt: "2026-07-02T15:04:50.000Z"
+  });
+
+  assert.equal(packet.ok, true);
+  assert.equal(packet.lead.requestLabel, "Growth Partner Application");
+  assert.equal(packet.lead.pipelineStage, "Growth Partner Requested");
+  assert.equal(packet.lead.founderAction, "Review qualified growth partner fit");
+  assert.equal(packet.lead.operatingProfile.crmProfileId, "home_services");
+});
+
 test("enterprise intake detects local duplicates without blocking founder handoff", () => {
   const storage = memoryStorage();
   const first = createEnterpriseLeadIntake({

@@ -640,7 +640,7 @@ const tick = (time) => {
 };
 
 const modalMap = {
-  pilot: document.querySelector("#pilotExperience"),
+  partner: document.querySelector("#partnerExperience"),
   demo: document.querySelector("#demoExperience")
 };
 let enterpriseIntakeOpenedAt = null;
@@ -665,11 +665,11 @@ const closeModals = () => {
   document.body.classList.remove("modal-open");
 };
 
-document.querySelectorAll("[data-open-pilot]").forEach((trigger) => {
+document.querySelectorAll("[data-open-partner]").forEach((trigger) => {
   trigger.addEventListener("click", (event) => {
     event.preventDefault();
     enterpriseIntakeOpenedAt = new Date().toISOString();
-    openModal(modalMap.pilot);
+    openModal(modalMap.partner);
   });
 });
 
@@ -695,25 +695,25 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeModals();
 });
 
-const pilotForm = document.querySelector("#pilotForm");
-const pilotSteps = [...document.querySelectorAll(".pilot-step")];
-const pilotProgressText = document.querySelector("#pilotProgressText");
-const pilotProgressFill = document.querySelector("#pilotProgressFill");
-const pilotBack = document.querySelector("#pilotBack");
-const pilotNext = document.querySelector("#pilotNext");
-const pilotGenerate = document.querySelector("#pilotGenerate");
-const pilotDashboard = document.querySelector("#pilotDashboard");
-const pilotPreviewRequest = document.querySelector("#previewRequest");
-const pilotPreviewProfile = document.querySelector("#previewProfile");
-const pilotPreviewGoal = document.querySelector("#previewGoal");
+const partnerForm = document.querySelector("#partnerForm");
+const partnerSteps = [...document.querySelectorAll(".partner-step")];
+const partnerProgressText = document.querySelector("#partnerProgressText");
+const partnerProgressFill = document.querySelector("#partnerProgressFill");
+const partnerBack = document.querySelector("#partnerBack");
+const partnerNext = document.querySelector("#partnerNext");
+const partnerGenerate = document.querySelector("#partnerGenerate");
+const partnerDashboard = document.querySelector("#partnerDashboard");
+const partnerPreviewRequest = document.querySelector("#previewRequest");
+const partnerPreviewProfile = document.querySelector("#previewProfile");
+const partnerPreviewGoal = document.querySelector("#previewGoal");
 const intakeStatus = document.querySelector("#intakeStatus");
-let pilotStepIndex = 0;
+let partnerStepIndex = 0;
 
-const getPilotData = () => Object.fromEntries(new FormData(pilotForm).entries());
+const getPartnerData = () => Object.fromEntries(new FormData(partnerForm).entries());
 
 const requestTypeLabel = (requestType) => ({
   private_demo: "Private demo",
-  beta_pilot: "Beta pilot",
+  growth_partner: "Growth partner",
   enterprise_pricing: "Enterprise pricing",
   discovery_call: "Discovery call"
 })[requestType] || "Select request";
@@ -723,38 +723,38 @@ const profileLabel = (profileId, otherProfile = "") => {
   return OPERATING_PROFILE_OPTIONS.find(profile => profile.profileId === profileId)?.label || "Select profile";
 };
 
-const setPilotStep = (index) => {
-  pilotStepIndex = Math.max(0, Math.min(index, pilotSteps.length - 1));
-  pilotSteps.forEach((step, stepIndex) => {
-    step.classList.toggle("is-active", stepIndex === pilotStepIndex);
+const setPartnerStep = (index) => {
+  partnerStepIndex = Math.max(0, Math.min(index, partnerSteps.length - 1));
+  partnerSteps.forEach((step, stepIndex) => {
+    step.classList.toggle("is-active", stepIndex === partnerStepIndex);
   });
-  pilotProgressText.textContent = `Step ${pilotStepIndex + 1} of ${pilotSteps.length}`;
-  pilotProgressFill.style.width = `${((pilotStepIndex + 1) / pilotSteps.length) * 100}%`;
-  pilotBack.disabled = pilotStepIndex === 0;
-  pilotNext.hidden = pilotStepIndex === pilotSteps.length - 1;
-  pilotGenerate.hidden = pilotStepIndex !== pilotSteps.length - 1;
-  updatePilotPreview();
+  partnerProgressText.textContent = `Step ${partnerStepIndex + 1} of ${partnerSteps.length}`;
+  partnerProgressFill.style.width = `${((partnerStepIndex + 1) / partnerSteps.length) * 100}%`;
+  partnerBack.disabled = partnerStepIndex === 0;
+  partnerNext.hidden = partnerStepIndex === partnerSteps.length - 1;
+  partnerGenerate.hidden = partnerStepIndex !== partnerSteps.length - 1;
+  updatePartnerPreview();
 };
 
-const validatePilotStep = () => {
-  const activeStep = pilotSteps[pilotStepIndex];
+const validatePartnerStep = () => {
+  const activeStep = partnerSteps[partnerStepIndex];
   const fields = [...activeStep.querySelectorAll("input, textarea, select")];
   return fields.every((field) => field.reportValidity());
 };
 
-const updatePilotPreview = () => {
-  const data = getPilotData();
-  pilotPreviewRequest.textContent = requestTypeLabel(data.requestType);
-  pilotPreviewProfile.textContent = profileLabel(data.operatingProfileId, data.otherOperatingProfile);
-  pilotPreviewGoal.textContent = data.primaryGoal || "Select primary goal";
+const updatePartnerPreview = () => {
+  const data = getPartnerData();
+  partnerPreviewRequest.textContent = requestTypeLabel(data.requestType);
+  partnerPreviewProfile.textContent = profileLabel(data.operatingProfileId, data.otherOperatingProfile);
+  partnerPreviewGoal.textContent = data.primaryGoal || "Select primary goal";
 };
 
-pilotForm.addEventListener("input", updatePilotPreview);
-pilotForm.addEventListener("change", updatePilotPreview);
+partnerForm.addEventListener("input", updatePartnerPreview);
+partnerForm.addEventListener("change", updatePartnerPreview);
 
-pilotBack.addEventListener("click", () => setPilotStep(pilotStepIndex - 1));
-pilotNext.addEventListener("click", () => {
-  if (validatePilotStep()) setPilotStep(pilotStepIndex + 1);
+partnerBack.addEventListener("click", () => setPartnerStep(partnerStepIndex - 1));
+partnerNext.addEventListener("click", () => {
+  if (validatePartnerStep()) setPartnerStep(partnerStepIndex + 1);
 });
 
 const getOpportunityAreas = (goal, industry) => {
@@ -778,9 +778,9 @@ const getMetrics = (goal) => {
   return map[goal] || "Visits, leads, outcomes";
 };
 
-const buildPilotDashboard = () => {
-  if (!validatePilotStep()) return;
-  const data = getPilotData();
+const buildPartnerDashboard = () => {
+  if (!validatePartnerStep()) return;
+  const data = getPartnerData();
   const packet = createEnterpriseLeadIntake({
     formData: data,
     attributionSession: window.prometheusWebsiteAttribution?.getSession?.() || websiteAttributionSession,
@@ -794,7 +794,7 @@ const buildPilotDashboard = () => {
   }
 
   document.querySelector("#dashboardCompany").textContent = `${packet.lead.companyName} is ready for founder review.`;
-  document.querySelector("#dashboardSummary").textContent = `${packet.lead.requestLabel} captured as ${packet.lead.pipelineStage}. Founder can review ${packet.lead.requesterName}, ${packet.lead.companyName}, ${packet.lead.operatingProfile.profileLabel}, ${packet.lead.teamSize}, and ${packet.lead.primaryGoal} immediately.`;
+  document.querySelector("#dashboardSummary").textContent = `${packet.lead.requestLabel} captured as ${packet.lead.pipelineStage}. Founder can review ${packet.lead.requesterName}, ${packet.lead.companyName}, ${packet.lead.operatingProfile.profileLabel}, ${packet.lead.teamSize}, and ${packet.lead.primaryGoal} for private onboarding immediately.`;
   document.querySelector("#dashPipelineStage").textContent = packet.lead.pipelineStage;
   document.querySelector("#dashOperatingProfile").textContent = packet.lead.operatingProfile.futureProfileRequested
     ? `${packet.lead.operatingProfile.requestedProfile} -> General Outside Sales`
@@ -807,19 +807,19 @@ const buildPilotDashboard = () => {
     ? "Duplicate request detected locally. The founder packet is still available for review."
     : "Lead packet stored locally with Website/Social attribution and CRM attribution event metadata.";
 
-  document.querySelector("#pilotEmail").href = buildEnterpriseLeadMailto(packet);
-  pilotDashboard.classList.add("is-visible");
-  pilotDashboard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  document.querySelector("#partnerEmail").href = buildEnterpriseLeadMailto(packet);
+  partnerDashboard.classList.add("is-visible");
+  partnerDashboard.scrollIntoView({ behavior: "smooth", block: "nearest" });
 };
 
-pilotGenerate.addEventListener("click", buildPilotDashboard);
-document.querySelector("#pilotReset").addEventListener("click", () => {
-  pilotDashboard.classList.remove("is-visible");
+partnerGenerate.addEventListener("click", buildPartnerDashboard);
+document.querySelector("#partnerReset").addEventListener("click", () => {
+  partnerDashboard.classList.remove("is-visible");
   intakeStatus.textContent = "";
-  setPilotStep(0);
+  setPartnerStep(0);
 });
 
-setPilotStep(0);
+setPartnerStep(0);
 
 const demoScenes = [
   {
