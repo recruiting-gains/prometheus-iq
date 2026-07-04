@@ -2537,6 +2537,59 @@ Next recommended subsystem:
 
 Prometheus CRM or Prometheus Infrastructure only if durable backend lead persistence/founder notification is approved. Otherwise Prometheus Sales for Enterprise Pilot Sales Package v1.
 
+### 2026-07-03: Prometheus Website - Replace Pilot Program Language With Operational Partner Language v1
+
+Subsystem: Prometheus Website
+
+Task: Replace Pilot Program Language With Operational Partner Language v1
+
+Commit: `dc3ed1626a29ecbba106656e0f40f1cc0b6c61dc`
+
+Deploy: Deployed to production Cloudflare project `prometheusrouteiq-website`.
+
+Production URL: `https://prometheusrouteiq.com`
+
+Worker version: `4d6e0455-6b82-4745-840c-c6e32573e235`
+
+Status: Complete and deployed. `origin/main` matches local `main` at commit `dc3ed1626a29ecbba106656e0f40f1cc0b6c61dc`.
+
+Files changed:
+
+- `deploy/prometheusrouteiq-website/index.html`
+- `deploy/prometheusrouteiq-website/site.js`
+- `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`
+- `deploy/prometheusrouteiq-website/privacy/index.html`
+- `deploy/prometheusrouteiq-website/terms/index.html`
+- `deploy/prometheusrouteiq-website/data-deletion/index.html`
+- `src/main.jsx`
+- `src/styles.css`
+- `tests/website-enterprise-lead-intake.test.mjs`
+
+What changed:
+
+Website removed public-facing pilot/beta positioning from the homepage, intake flow, SEO/Open Graph copy, compliance pages, React source mirror, and request-type contract. Website added operational partner positioning: Partner Intake, Growth Partner Application, Operational Onboarding, Request Access, Apply for Growth Partnership, qualified businesses, franchise groups, outside-sales organizations, qualified lead generation, operating profile configuration, and private onboarding language.
+
+Public positioning rule:
+
+PrometheusRouteIQ.com should no longer present the public conversion path as a pilot or beta program. The public site should present qualified businesses and outside-sales organizations as operational/growth partners moving through private onboarding and operating-profile configuration.
+
+Verification:
+
+- `npm run lint`: passed.
+- `npm run security:check`: passed.
+- `npm run test:website`: passed.
+- `npm run build`: passed.
+- Local desktop/mobile browser verification: passed.
+- Production desktop/mobile browser verification: passed.
+
+Remaining blockers:
+
+None Website-owned.
+
+Next recommended subsystem:
+
+Prometheus Website only if additional public conversion refinement is explicitly approved. Otherwise proceed with the next non-Website priority.
+
 ### Completed Work Lane: Mobile Experience Audit + Native Roadmap v1
 
 Primary subsystem: Prometheus Mobile
@@ -7470,6 +7523,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Public Meta Compliance Pages; reuse `https://prometheusrouteiq.com/privacy`, `https://prometheusrouteiq.com/terms`, `https://prometheusrouteiq.com/data-deletion`, and the corresponding `deploy/prometheusrouteiq-website/*/index.html` routes for Meta app review, OAuth compliance, and public policy references.
 - Do not duplicate Website/Social Attribution Path v1; reuse `deploy/prometheusrouteiq-website/website-attribution.js`, `tests/website-social-attribution.test.mjs`, local-only UTM/campaign/referrer/landing-path visitor/session capture, credential-param sanitization, and the existing Social Media attribution contract shape `website_visit`, `website_traffic`, and `website_contract`. CRM must consume this output rather than creating a parallel attribution capture system.
 - Do not duplicate Enterprise Lead Intake + Beta Request Conversion Platform v1; reuse `deploy/prometheusrouteiq-website/enterprise-lead-intake.js`, `tests/website-enterprise-lead-intake.test.mjs`, the Website-side operating-profile intake, CRM-compatible founder-ready packet generation, spam/duplicate guards, mailto handoff, and deployed Cloudflare Website version `40ecb192-f25b-43dc-850d-3e96ff6076fa`. Website must not mutate CRM records directly until a CRM-owned or Infrastructure-owned durable persistence endpoint is approved.
+- Do not reintroduce public pilot/beta program positioning on PrometheusRouteIQ.com; Replace Pilot Program Language With Operational Partner Language v1 makes Partner Intake, Growth Partner Application, Operational Onboarding, Request Access, Apply for Growth Partnership, qualified businesses, franchise groups, outside-sales organizations, qualified lead generation, operating profile configuration, and private onboarding the canonical Website conversion language.
 - Do not treat Mobile Experience Audit + Native Roadmap v1 as permission to modify the live Dashboard PWA during active beta; preserve PWA production behavior unless a confirmed beta-critical defect is assigned.
 - Do not duplicate Native Mobile Readiness v1; reuse the M0-M6 native roadmap, shared TypeScript domain core recommendation, offline/sync/GPS/push architecture, app store readiness checklist, and no-PWA-change guardrails.
 - Do not duplicate Prometheus company identity; reuse root `COMPANY_IDENTITY.md` as the canonical company mission, vision, values, positioning, and permanent decision source.
