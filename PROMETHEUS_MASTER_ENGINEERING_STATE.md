@@ -100,6 +100,72 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-03: Prometheus CRM - Smoothie Depot Franchise Development Candidate Pipeline Planning v1
+
+Subsystem: Prometheus CRM
+
+Task: Smoothie Depot Franchise Development Candidate Pipeline Planning v1
+
+Commit: `eb0d3bdcf671625e0e089744a8cfdad2e30d8f8f`
+
+Deploy: Not run. CRM planning/contracts only; no production deploy required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Architecture/contracts only.
+
+CRM pipeline planned:
+
+Yes. Smoothie Depot Franchise Development candidate pipeline planned as contracts-only.
+
+Contracts created:
+
+- Candidate record.
+- Business prospect record.
+- JR handoff.
+- Commission tracking.
+- Protected candidate tracking.
+- Workspace isolation guardrail.
+
+Workspace isolation confirmed:
+
+Yes. `workspaceId` is locked to `smoothie_depot`; runtime candidate records are not authorized.
+
+Fitness Connection separation confirmed:
+
+Yes. Fitness Connection remains protected. No record mixing, Route Intelligence influence, Active Pool influence, scoring influence, or recommendation influence is authorized.
+
+Files changed:
+
+- `crm/README.md`
+- `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`
+- `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md`
+- `package.json`
+- `scripts/lint-crm.mjs`
+- `scripts/validate-smoothie-depot-crm-planning.mjs`
+- `tests/smoothie-depot-crm-planning.test.mjs`
+
+Tests/validation run:
+
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run crm:smoothie-depot:validate`: passed.
+- `npm run test:crm`: passed.
+- `npm test`: passed, including build.
+
+Remaining blockers:
+
+- Runtime implementation requires explicit future approval.
+- Candidate persistence requires explicit future approval.
+- JR workflow operations require explicit future approval.
+- Commission updates require explicit future approval.
+- Protected candidate updates require explicit future approval.
+- Dashboard consumption requires explicit future approval.
+
+Next recommended subsystem:
+
+Prometheus CRM runtime implementation planning approval for Smoothie Depot candidate persistence.
+
 ### 2026-07-03: Prometheus Intelligence Engine - Smoothie Depot Workspace Intelligence Plan v1
 
 Subsystem: Prometheus Intelligence Engine
@@ -7836,6 +7902,7 @@ Current duplicate-prevention sources:
 - Do not duplicate CRM Customer Success & Enterprise Pipeline Foundation v2; reuse `crm/enterprise-lifecycle-architecture.md`, `crm/enterprise-lifecycle-model.json`, `scripts/validate-crm-enterprise-foundation.mjs`, and `tests/crm-enterprise-foundation.test.mjs` for company accounts, contacts, decision makers, pilot/beta companies, enterprise opportunities, onboarding, success tracking, expansion, renewal, executive relationships, health scoring, timelines, meetings, adoption, milestones, and multi-location hierarchy.
 - Do not duplicate CRM Lead Attribution from Social Campaigns v1; reuse `attachWebsiteAttributionToLead` in `crm/crm-foundation.mjs`, the existing Website/Social attribution output, and normalized `crm_lead_created` attribution events through `social-media/contracts/social-media-contract.js`. CRM owns lead/contact records and must not call Instagram APIs or rebuild Website/Social attribution capture.
 - Do not duplicate CRM Operating Profile Consumer v1; reuse CRM's consumption of `intelligence/operating-profile-engine.mjs`, `intelligence/profiles/operating-profiles.json`, `intelligence/contracts/operating-profile-contracts.json`, and `CRMOperatingProfileContract` via `buildProfileConsumerContract` in `crm/crm-foundation.mjs`. Preserve Fitness as the CRM default and do not create a parallel CRM profile model.
+- Do not duplicate Smoothie Depot Franchise Development Candidate Pipeline Planning v1; reuse `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md`, `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`, `scripts/validate-smoothie-depot-crm-planning.mjs`, and `tests/smoothie-depot-crm-planning.test.mjs` for Smoothie Depot candidate records, business prospect records, JR handoffs, commission tracking, protected candidate tracking, and workspace isolation guardrails. This remains contracts-only until explicit future approval for runtime implementation, candidate persistence, JR workflow operations, commission updates, protected candidate updates, or Dashboard consumption.
 - Do not duplicate Data runtime pool governance; reuse `scripts/govern-runtime-pool-refresh.mjs` and `scripts/test-runtime-pool-governance.mjs`.
 - Do not duplicate Route Intelligence golden route quality gates; reuse `scripts/verify-route-intelligence-quality-gate.mjs`, `scripts/lib/route-intelligence-quality-gate.mjs`, and `tests/route-intelligence-quality-gate.test.mjs`.
 - Do not duplicate Adaptive Outside Sales Intelligence Engine architecture; reuse `intelligence/adaptive-outside-sales-intelligence-engine.md`, `intelligence/subsystem-contracts.md`, `intelligence/future-subsystem-handoffs.md`, `intelligence/contracts/adaptive-intelligence-contracts.json`, `scripts/validate-intelligence-architecture.mjs`, and `tests/intelligence-architecture.test.mjs` for visit outcome learning, recommendation confidence, opportunity ranking, pattern detection, explainable AI, human override, knowledge graph, and continuous outside-sales learning contracts.

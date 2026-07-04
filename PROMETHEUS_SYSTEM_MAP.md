@@ -195,6 +195,8 @@ Areas:
 
 Primary rule: CRM owns the internal account/customer lifecycle model but must not duplicate Dashboard UI/runtime logic, Companion behavior, Infrastructure/auth/storage, Data route/prospect governance, Intelligence Engine scoring, or Sales-owned go-to-market narrative. Do not connect external communication systems or send messages without explicit Cruz approval.
 
+Smoothie Depot CRM planning rule: Smoothie Depot candidate pipeline work must extend `crm/workspaces/smoothie-depot/candidate-pipeline-planning.md` and `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, runtime-free planning status until explicit approval, and Fitness Connection separation. Do not mix Smoothie Depot candidate records with Fitness Connection CRM records, Route Intelligence, Active Pool scoring, or production recommendations.
+
 ### 6. Prometheus Data
 
 Scope: data sources, verified prospect pools, imports, exports, sync, and data quality.
