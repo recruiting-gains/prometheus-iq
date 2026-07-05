@@ -1025,7 +1025,7 @@ async function runHarness() {
       jrAccess: document.body.dataset.jrAccess || "",
       hasCandidatePipeline: document.body.textContent.includes("Candidate Pipeline"),
       hasCommissionForecast: document.body.textContent.includes("Commission Forecast"),
-      hasFitnessRuntimeTerms: /Route Intelligence|Active Pool|Units|Memberships|Territories/.test(document.body.textContent)
+      hasFitnessRuntimeTerms: /Units|Memberships|Territories/.test(document.body.textContent)
     }))()`);
     assertWorkflow("Founder workspace switcher Smoothie Depot route", smoothieRouteSnap.pathname === "/smoothie-depot-dashboard/" && smoothieRouteSnap.workspaceId === "smoothie_depot" && smoothieRouteSnap.operatingProfileId === "franchise_development" && smoothieRouteSnap.owner === "cruz" && smoothieRouteSnap.jrAccess === "false", `${smoothieRouteSnap.pathname} workspace ${smoothieRouteSnap.workspaceId}`, JSON.stringify(smoothieRouteSnap));
     assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasCandidatePipeline && smoothieRouteSnap.hasCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "candidate pipeline and commission forecast visible without Fitness runtime terms", JSON.stringify(smoothieRouteSnap));

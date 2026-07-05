@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { createHash } from "node:crypto";
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -14,8 +15,20 @@ const intelligencePlan = readJson("intelligence/workspaces/smoothie-depot/worksp
 const crmPlan = readJson("crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json");
 const rankedProspects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
 const dueDiligenceFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
+const dossierRegister = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
+const nutritionDepotDossier = readJson("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json");
+const nutritionDepotDossierMarkdown = read("research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md").trimEnd();
+const commandCenterSource = read("smoothie-depot-dashboard/command-center.js");
+const commandCenterDeploy = read("deploy/cloudflare-pages/smoothie-depot-dashboard/command-center.js");
+const htmlEscape = value => String(value)
+  .replaceAll("&", "&amp;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;")
+  .replaceAll('"', "&quot;")
+  .replaceAll("'", "&#39;");
 
 assert(source === deploy, "Smoothie Depot dashboard source and deploy asset must stay in sync.");
+assert(commandCenterSource === commandCenterDeploy, "Smoothie Depot command center script source and deploy asset must stay in sync.");
 assert(source.includes('data-workspace-id="smoothie_depot"'), "Dashboard must be scoped to smoothie_depot.");
 assert(source.includes('data-operating-profile-id="franchise_development"'), "Dashboard must use Franchise Development profile.");
 assert(source.includes('data-dashboard-owner="cruz"'), "Dashboard must identify Cruz as owner.");
@@ -23,6 +36,11 @@ assert(source.includes('data-jr-access="false"'), "Dashboard must mark JR access
 assert(source.includes('data-data-mode="workspace-research-output"'), "Dashboard must mark workspace Research output data mode.");
 assert(source.includes("noindex,nofollow,noarchive"), "Dashboard must be noindex.");
 assert(source.includes("frame-ancestors 'none'"), "Dashboard CSP must prevent framing.");
+assert(source.includes("script-src 'self'"), "Dashboard command center must allow only self-hosted scripts.");
+assert(source.includes("/smoothie-depot-dashboard/command-center.js"), "Dashboard must load the self-hosted command center script.");
+assert(!commandCenterSource.includes("fetch("), "Command center must not fetch data.");
+assert(!commandCenterSource.includes("localStorage"), "Command center must not persist local storage.");
+assert(!commandCenterSource.includes("sessionStorage"), "Command center must not persist session storage.");
 
 assert(intelligencePlan.workspaceId === "smoothie_depot", "Source intelligence plan must be Smoothie Depot scoped.");
 assert(intelligencePlan.operatingProfileId === "franchise_development", "Source intelligence plan must use Franchise Development.");
@@ -57,6 +75,16 @@ assert(rankedProspects.workspaceIsolation.activePoolUsed === false, "Research pr
 assert(dueDiligenceFramework.workspaceId === "smoothie_depot", "Due diligence framework must be Smoothie Depot scoped.");
 assert(dueDiligenceFramework.productionRuntimeChange === false, "Due diligence framework must not activate runtime.");
 assert(dueDiligenceFramework.workspaceIsolation.dashboardModified === false, "Research framework remains read-only; Dashboard is only consuming it.");
+assert(dossierRegister.workspaceId === "smoothie_depot", "Dossier register must be Smoothie Depot scoped.");
+assert(dossierRegister.productionRuntimeChange === false, "Dossier register must not activate runtime.");
+assert(dossierRegister.canonicalDossiers.some(dossier => dossier.dashboardCanonicalSource === true && dossier.business === "Nutrition Depot Houston and Greater Houston"), "Dossier register must expose Nutrition Depot as Dashboard canonical source.");
+assert(nutritionDepotDossier.workspaceId === "smoothie_depot", "Nutrition Depot dossier must be Smoothie Depot scoped.");
+assert(nutritionDepotDossier.artifactStatus === "completed_canonical_research_dossier", "Nutrition Depot dossier must be completed.");
+assert(nutritionDepotDossier.workspaceIsolation.fitnessConnectionDataUsed === false, "Nutrition Depot dossier must not use Fitness Connection data.");
+assert(nutritionDepotDossier.workspaceIsolation.routeIntelligenceUsed === false, "Nutrition Depot dossier must not use Route Intelligence.");
+assert(nutritionDepotDossier.workspaceIsolation.activePoolUsed === false, "Nutrition Depot dossier must not use Active Pool.");
+assert(nutritionDepotDossier.dataPolicy.publicBusinessInformationOnly === true, "Nutrition Depot dossier must use public business information only.");
+assert(nutritionDepotDossier.dataPolicy.privateFinancialsCollected === false, "Nutrition Depot dossier must not collect private financials.");
 
 for (const business of rankedProspects.topCallTargets.slice(0, 3)) {
   assert(source.includes(business), `Mission queue missing Research top call target: ${business}`);
@@ -66,7 +94,10 @@ for (const requiredMissionText of [
   "Today's Mission",
   "Mission Queue",
   "Top 3 Highest Priority Businesses",
-  "Executive Due Diligence Dossier",
+  "Founder Intelligence Command Center",
+  "Nutrition Depot Executive Due Diligence Dossier v1",
+  "Complete canonical Research artifact",
+  "Complete Structured Research Artifact JSON",
   "Business Name",
   "Category",
   "Outreach Priority",
@@ -89,24 +120,91 @@ for (const requiredMissionText of [
   assert(source.includes(requiredMissionText), `Dashboard mission queue missing required text: ${requiredMissionText}`);
 }
 
-for (const requiredDossierSection of [
+for (const requiredCommandCenterText of [
+  "Search dossier",
+  "Bookmark",
+  "Highlight evidence",
+  "Call notes",
+  "Discovery notes",
+  "JR notes",
+  "Follow-up notes",
+  "Mission",
+  "Call Date",
+  "Research Confidence",
+  "Outstanding Unknowns",
+  "Current Stage",
+  "Next Required Action"
+]) {
+  assert(source.includes(requiredCommandCenterText), `Command center missing required interaction or mission text: ${requiredCommandCenterText}`);
+}
+
+for (const requiredDossierSection of nutritionDepotDossier.requiredDossierSections) {
+  assert(source.includes(requiredDossierSection), `Dashboard command center missing Research-required dossier section: ${requiredDossierSection}`);
+}
+
+for (const requiredNavigationItem of [
   "Executive Summary",
+  "Business Identity",
   "Business Snapshot",
-  "Growth Timeline",
-  "Market Intelligence",
+  "Ownership",
+  "Company History",
+  "Business Timeline",
+  "Digital Presence",
+  "Website Analysis",
+  "Brand Analysis",
+  "SEO",
+  "Google Business Profile",
   "Review Intelligence",
-  "Business Health",
-  "Expansion Indicators",
+  "Review Theme Analysis",
+  "Operational Maturity",
+  "Growth Signals",
+  "Expansion Signals",
+  "Business Network",
+  "Market Intelligence",
+  "Competitive Landscape",
+  "Commercial Ecosystem",
+  "Community Presence",
+  "Hiring Signals",
   "Strategic Fit",
-  "Conversation Strategy",
+  "Franchise Compatibility",
+  "Conversation Intelligence",
   "Discovery Questions",
+  "Verification Checklist",
   "Risk Register",
   "Unknown Register",
-  "JR Brief",
-  "Executive Call Card"
+  "Alternative Hypotheses",
+  "Contradiction Analysis",
+  "Scenario Planning",
+  "Evidence Matrix",
+  "Source Reliability Matrix",
+  "Confidence Matrix",
+  "Decision Journal",
+  "Opportunity Ranking",
+  "JR Executive Brief",
+  "Executive Call Card",
+  "Mission Status",
+  "Founder Notes"
 ]) {
-  assert(source.includes(requiredDossierSection), `Dashboard dossier missing required section: ${requiredDossierSection}`);
+  assert(source.includes(`>${requiredNavigationItem}<`) || source.includes(`${requiredNavigationItem}</a>`), `Command center navigation missing: ${requiredNavigationItem}`);
 }
+
+for (const requiredMarkdownFragment of [
+  "# Nutrition Depot Executive Due Diligence Dossier v1",
+  "## 28. Evidence Matrix",
+  "| Claim | Evidence label | Source | Confidence | Contradiction or limitation |",
+  "## 29. Source Reliability Matrix",
+  "## Workspace Isolation Verification",
+  "- Fitness Connection data used: no.",
+  "- Route Intelligence used: no.",
+  "- Active Pool used: no."
+]) {
+  assert(source.includes(htmlEscape(requiredMarkdownFragment)), `Dashboard must render complete canonical markdown fragment: ${requiredMarkdownFragment}`);
+}
+
+const markdownHash = createHash("sha256").update(nutritionDepotDossierMarkdown).digest("hex");
+assert(source.includes(markdownHash), "Dashboard must expose the canonical Research artifact hash.");
+assert(source.includes(htmlEscape('"artifactStatus": "completed_canonical_research_dossier"')), "Dashboard must render structured Research JSON artifact.");
+assert(source.includes(htmlEscape('"sourceReliabilityMatrix"')), "Dashboard must render structured source reliability matrix.");
 
 for (const metric of [
   "Total Businesses Identified",
@@ -186,13 +284,9 @@ for (const activity of [
 }
 
 for (const forbidden of [
-  "Fitness Connection",
   "fitness_connection",
   "Units",
   "Memberships",
-  "Route Intelligence",
-  "Active Pool",
-  "Territory",
   "Territories",
   "runtime-pools",
   "active-pool",

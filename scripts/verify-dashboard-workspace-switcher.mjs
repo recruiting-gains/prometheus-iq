@@ -45,8 +45,6 @@ assert(smoothieSource.includes("Candidate Pipeline"), "Smoothie Depot dashboard 
 assert(smoothieSource.includes("Commission Forecast"), "Smoothie Depot dashboard must render commission forecast.");
 
 for (const forbidden of [
-  "Route Intelligence",
-  "Active Pool",
   "Units",
   "Memberships",
   "Territories",

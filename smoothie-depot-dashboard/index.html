@@ -7,7 +7,7 @@
   <meta name="prometheus-workspace" content="smoothie_depot">
   <meta name="prometheus-operating-profile" content="franchise_development">
   <meta name="prometheus-data-mode" content="workspace-research-output">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
   <title>Smoothie Depot Founder Dashboard</title>
   <style>
     :root {
@@ -344,6 +344,208 @@
       line-height: 1.45;
     }
 
+    .command-center {
+      min-width: 0;
+    }
+
+    .command-workspace {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .command-head {
+      padding: 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .command-head h2,
+    .pending-dossier h2 {
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+
+    .mission-console {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(92, 229, 151, 0.06);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(14px);
+    }
+
+    .mission-console div,
+    .notes-panel,
+    .research-cover,
+    .intel-section {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .mission-console div {
+      min-width: 0;
+      padding: 9px;
+    }
+
+    .mission-console strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-size: 0.78rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .command-tools {
+      display: grid;
+      grid-template-columns: auto minmax(160px, 1fr) auto auto;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .command-tools input {
+      min-height: 36px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.3);
+      color: var(--text);
+      padding: 0 10px;
+    }
+
+    .command-tools button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .command-layout {
+      display: grid;
+      grid-template-columns: minmax(170px, 0.2fr) minmax(0, 0.8fr);
+      min-height: 720px;
+    }
+
+    .command-nav {
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      max-height: calc(100vh - 150px);
+      overflow: auto;
+      padding: 12px;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 104px;
+    }
+
+    .command-nav a {
+      padding: 7px 8px;
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 0.74rem;
+      font-weight: 850;
+      text-decoration: none;
+    }
+
+    .command-nav a:hover {
+      background: var(--green-soft);
+      color: var(--green);
+    }
+
+    .command-reader {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+      padding: 14px;
+    }
+
+    .research-cover,
+    .intel-section,
+    .notes-panel {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .intel-section summary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 950;
+    }
+
+    .intel-section summary span {
+      flex: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .intel-section summary label {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .intel-section.is-bookmarked {
+      border-color: rgba(224, 168, 73, 0.7);
+    }
+
+    .intel-section.is-highlighted .research-pre {
+      background: rgba(224, 168, 73, 0.13);
+    }
+
+    .research-pre {
+      margin: 0;
+      max-width: 100%;
+      overflow: auto;
+      padding: 14px;
+      color: rgba(245, 248, 242, 0.9);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.78rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .notes-panel {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+    }
+
+    .notes-panel label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-weight: 850;
+    }
+
+    .notes-panel textarea {
+      min-height: 88px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.26);
+      color: var(--text);
+      padding: 10px;
+      font: inherit;
+    }
+
+    .pending-dossier {
+      padding: 18px;
+    }
+
     .two-col {
       grid-template-columns: minmax(0, 1.12fr) minmax(360px, 0.88fr);
     }
@@ -609,8 +811,21 @@
       .two-col,
       .three-col,
       .candidate-layout,
+      .command-layout,
       .mission-layout {
         grid-template-columns: 1fr;
+      }
+
+      .mission-console {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        position: static;
+      }
+
+      .command-nav {
+        max-height: none;
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
     }
 
@@ -631,8 +846,12 @@
 
       .metrics,
       .detail-grid,
-      .mission-metrics,
-      .dossier-grid {
+      .mission-metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .command-tools,
+      .mission-console {
         grid-template-columns: 1fr;
       }
 
@@ -770,71 +989,1450 @@
         </label>
       </div>
 
-      <div class="detail-stack">
-        <article class="dossier-panel dossier-nutrition">
-          <p class="eyebrow">Executive Due Diligence Dossier</p>
-          <h3>Nutrition Depot Houston and Greater Houston</h3>
-          <div class="dossier-grid">
-            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>Highest-value first call: complementary category fit, public Houston-area retail footprint, public contactability, and plausible customer overlap with Smoothie Depot.</strong></div>
-            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Nutrition and supplement store with Southwest Freeway and Pasadena public location signals, ecommerce, and in-store pickup infrastructure.</strong></div>
-            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>Southwest Freeway relocation publicly reported in 2025; multiple Houston-area public signals remain visible.</strong></div>
-            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Wellness and performance customers plausibly overlap Smoothie Depot buyers without forcing a competitor conversion.</strong></div>
-            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: workout enhancement, protein, vitamins and minerals, general health, and pickup convenience.</strong></div>
-            <div class="dossier-section"><span class="label">Business Health</span><strong>Research confidence is high for first-call prioritization; operating performance and buying intent remain intentionally unknown.</strong></div>
-            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Relocation signal, Houston-area footprint, ecommerce, and pickup infrastructure.</strong></div>
-            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Strong complementary retail thesis; useful for JR if the operator confirms second-concept interest.</strong></div>
-            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Lead with customer overlap and second-concept expansion, not a generic franchise pitch.</strong></div>
-            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>Who owns expansion decisions? Are you open to a second concept? Which Houston corridors perform best? Would one location or multiple locations fit your growth plan?</strong></div>
-            <div class="dossier-section"><span class="label">Risk Register</span><strong>May have no food or beverage interest; public location signals may not map to one expansion decision maker.</strong></div>
-            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Decision-maker identity, second-concept openness, public-signal ownership structure, complementary versus distracting fit.</strong></div>
-            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare complementary-retail thesis, Houston corridor notes, and financing-readiness question path.</strong></div>
-            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call first. Ask for a short founder-to-operator conversation about Houston wellness corridors.</strong></div>
+      <div class="detail-stack command-center" aria-label="Founder Intelligence Command Center">
+        <article class="dossier-panel dossier-nutrition command-workspace">
+          <div class="command-head">
+            <p class="eyebrow">Founder Intelligence Command Center</p>
+            <h2>Nutrition Depot Executive Due Diligence Dossier v1</h2>
+            <p class="note">Complete canonical Research artifact rendered from <code>research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md</code>. Dashboard presentation only; Research remains source of truth.</p>
           </div>
-          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+
+          <aside class="mission-console" id="missionStatusPanel" aria-label="Mission Mode">
+            <div><span class="label">Mission</span><strong>First Smoothie Depot franchise-development call</strong></div>
+            <div><span class="label">Business</span><strong>Nutrition Depot Houston and Greater Houston</strong></div>
+            <div><span class="label">Call Date</span><strong>Not scheduled</strong></div>
+            <div><span class="label">Research Confidence</span><strong>High for first-call prioritization; not sufficient for final franchise qualification.</strong></div>
+            <div><span class="label">Outstanding Unknowns</span><strong>8</strong></div>
+            <div><span class="label">Current Stage</span><strong>Ready</strong></div>
+            <div><span class="label">Next Required Action</span><strong>Call Nutrition Depot Houston first and verify decision-maker authority, second-concept openness, and whether the Houston contact controls one store or a broader Nutrition Depot network.</strong></div>
+          </aside>
+
+          <div class="command-tools" aria-label="Dossier interaction tools">
+            <label for="dossierSearch">Search dossier</label>
+            <input id="dossierSearch" type="search" placeholder="Search the complete Research artifact">
+            <button type="button" data-command="expand">Expand all</button>
+            <button type="button" data-command="collapse">Collapse all</button>
+          </div>
+
+          <div class="command-layout">
+            <nav class="command-nav" aria-label="Intelligence workspace navigation">
+            <a href="#intel-1-executive-summary">Executive Summary</a>
+            <a href="#intel-2-business-identity">Business Identity</a>
+            <a href="#intel-2-business-identity">Business Snapshot</a>
+            <a href="#intel-4-public-ownership-operator-footprint">Ownership</a>
+            <a href="#intel-3-company-history-timeline">Company History</a>
+            <a href="#intel-3-company-history-timeline">Business Timeline</a>
+            <a href="#intel-6-digital-presence-audit">Digital Presence</a>
+            <a href="#intel-6-digital-presence-audit">Website Analysis</a>
+            <a href="#intel-16-brand-strength">Brand Analysis</a>
+            <a href="#intel-6-digital-presence-audit">SEO</a>
+            <a href="#intel-8-review-theme-intelligence">Google Business Profile</a>
+            <a href="#intel-7-reputation-intelligence">Review Intelligence</a>
+            <a href="#intel-8-review-theme-intelligence">Review Theme Analysis</a>
+            <a href="#intel-15-operational-maturity">Operational Maturity</a>
+            <a href="#intel-13-growth-signals">Growth Signals</a>
+            <a href="#intel-14-expansion-signals">Expansion Signals</a>
+            <a href="#intel-18-business-network">Business Network</a>
+            <a href="#intel-10-market-position">Market Intelligence</a>
+            <a href="#intel-11-competitive-landscape">Competitive Landscape</a>
+            <a href="#intel-18-business-network">Commercial Ecosystem</a>
+            <a href="#intel-17-community-presence">Community Presence</a>
+            <a href="#intel-15-operational-maturity">Hiring Signals</a>
+            <a href="#intel-20-smoothie-depot-strategic-fit">Strategic Fit</a>
+            <a href="#intel-19-franchise-compatibility">Franchise Compatibility</a>
+            <a href="#intel-21-conversation-preparation">Conversation Intelligence</a>
+            <a href="#intel-21-conversation-preparation">Discovery Questions</a>
+            <a href="#intel-25-verification-checklist">Verification Checklist</a>
+            <a href="#intel-23-risk-register">Risk Register</a>
+            <a href="#intel-24-unknowns-register">Unknown Register</a>
+            <a href="#intel-alternative-hypotheses">Alternative Hypotheses</a>
+            <a href="#intel-red-team-review">Contradiction Analysis</a>
+            <a href="#intel-scenario-decision-tree">Scenario Planning</a>
+            <a href="#intel-28-evidence-matrix">Evidence Matrix</a>
+            <a href="#intel-29-source-reliability-matrix">Source Reliability Matrix</a>
+            <a href="#intel-27-confidence-model">Confidence Matrix</a>
+            <a href="#intel-post-meeting-learning-journal">Decision Journal</a>
+            <a href="#intel-26-opportunity-ranking">Opportunity Ranking</a>
+            <a href="#intel-22-jr-executive-brief">JR Executive Brief</a>
+            <a href="#intel-30-recommended-next-actions">Executive Call Card</a>
+            <a href="#missionStatusPanel">Mission Status</a>
+            <a href="#founderNotes">Founder Notes</a>
+            </nav>
+            <div class="command-reader">
+              <section class="research-cover" id="intel-executive-summary">
+                <pre class="research-pre"># Nutrition Depot Executive Due Diligence Dossier v1
+
+Research owner: Prometheus Research
+
+Workspace: Smoothie Depot Workspace
+
+Generated: 2026-07-04
+
+Artifact status: Completed canonical Research dossier
+
+Workspace metadata:
+
+- `workspace_id`: `smoothie_depot`
+- `operating_profile_id`: `franchise_development`
+- `intelligence_domain`: `business_acquisition_intelligence`
+- `platform_standard`: `executive-due-diligence-intelligence-platform-v4`
+- `production_runtime_change`: `false`
+</pre>
+              </section>
+          <details class="intel-section" id="intel-1-executive-summary" open>
+            <summary>
+              <span>1. Executive Summary</span>
+              <label><input type="checkbox" data-bookmark="intel-1-executive-summary"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-1-executive-summary"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 1. Executive Summary
+
+Business selected: Nutrition Depot Houston and Greater Houston.
+
+Selection basis: Nutrition Depot is the highest-ranked business in the current Smoothie Depot Founder Mission Queue. The current ranked prospect ledger places Nutrition Depot Houston and Greater Houston at rank 1 with an opportunity score of 91.
+
+Executive conclusion:
+
+Nutrition Depot should remain Cruz&#39;s first Smoothie Depot franchise-development call because it is the strongest current complement to Smoothie Depot rather than a direct smoothie-brand competitor. Public evidence shows a Houston nutrition and supplement retail operator with performance, protein, wellness, ecommerce, in-store pickup, and multiple Houston-area location signals. That creates a plausible path to a second-concept conversation around Smoothie Depot without asking an existing smoothie operator to abandon or dilute its own brand.
+
+Evidence classification:
+
+- Business identity and location: Observed.
+- Product and wellness-category fit: Observed and self-reported.
+- Houston-area retail footprint: Inferred from multiple evidence sources.
+- Smoothie Depot strategic fit: Inferred from multiple evidence sources.
+- Franchise interest, liquidity, ownership structure, and decision-maker authority: Unknown.
+
+Decision:
+
+Call first, but do not treat as qualified. This is a high-priority discovery call, not a franchise qualification decision.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-2-business-identity" open>
+            <summary>
+              <span>2. Business Identity</span>
+              <label><input type="checkbox" data-bookmark="intel-2-business-identity"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-2-business-identity"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 2. Business Identity
+
+Business name:
+
+Nutrition Depot Houston and Greater Houston.
+
+Primary public Houston location captured:
+
+Nutrition Depot Houston, 2005 Southwest Freeway Service Road, Houston, TX 77098.
+
+Public phone captured:
+
+(346) 516-0878.
+
+Public category:
+
+Nutrition, supplement, vitamin, protein, pre-workout, wellness, and fitness-oriented retail.
+
+Public websites:
+
+- https://nutritiondepot.us/
+- https://ndonline.com/
+
+Additional public Houston-area signals:
+
+- Pasadena Chamber lists Nutrition Depot Pasadena at 6065 Fairmont Pkwy Suite 120, Pasadena, TX 77505, with phone (281) 991-3113.
+- Nutrition Depot Online lists store locations in Kingwood, Pearland, Cypress, and Magnolia.
+
+Evidence classification:
+
+- Observed for public business name, category, address, phone, websites, and listed locations.
+- Inferred from multiple evidence sources for Greater Houston footprint.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-3-company-history-timeline">
+            <summary>
+              <span>3. Company History Timeline</span>
+              <label><input type="checkbox" data-bookmark="intel-3-company-history-timeline"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-3-company-history-timeline"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 3. Company History Timeline
+
+Known public timeline:
+
+- Copyright marker on the Houston `nutritiondepot.us` site states 2018. This is not proof of founding date, but it is a visible website/business rights marker.
+- Community Impact reported on February 7, 2025 that Nutrition Depot relocated from Rice Village to a new Southwest Freeway shopping center.
+- Community Impact reported the prior Rice Village store closed during the last week of January 2025 and the new space opened February 3, 2025.
+- Current official Houston site lists the Southwest Freeway location, public phone, hours, product categories, InBody body composition testing, mailing-list capture, and contact form.
+- Nutrition Depot Online currently presents ecommerce, real-time inventory, same-day shipping, in-store pickup, and multiple listed store locations.
+
+What this means:
+
+The most defensible timeline is not &quot;new business&quot; or &quot;fast expansion.&quot; The evidence supports &quot;relocated Houston retail operator with broader Nutrition Depot-area signals and mature retail/ecommerce infrastructure.&quot;
+
+Unknown:
+
+Exact founding date, owner history, consolidated entity structure, and whether the Houston, Pasadena, and Nutrition Depot Online locations share one decision maker.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-4-public-ownership-operator-footprint">
+            <summary>
+              <span>4. Public Ownership / Operator Footprint</span>
+              <label><input type="checkbox" data-bookmark="intel-4-public-ownership-operator-footprint"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-4-public-ownership-operator-footprint"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 4. Public Ownership / Operator Footprint
+
+Observed:
+
+- Community Impact refers to &quot;the owners&quot; closing the Rice Village store and reopening at Southwest Freeway.
+- Pasadena Chamber lists public chamber contact information and a member listing for Nutrition Depot Pasadena.
+- Nutrition Depot Online lists Kingwood, Pearland, Cypress, and Magnolia store locations.
+
+Not collected:
+
+- Private owner identity.
+- Private financial records.
+- Credit reports.
+- Bank records.
+- Tax records.
+- Personal background dossiers.
+
+Assessment:
+
+The public footprint is strong enough to justify a business-level call, but not strong enough to assume one owner/operator controls all public Nutrition Depot locations. Cruz should verify whether the person reached controls one store, several stores, ecommerce, or only a local location.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-5-business-evolution">
+            <summary>
+              <span>5. Business Evolution</span>
+              <label><input type="checkbox" data-bookmark="intel-5-business-evolution"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-5-business-evolution"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 5. Business Evolution
+
+Observed evolution:
+
+- The Houston location moved from Rice Village to Southwest Freeway in early 2025.
+- Community Impact described the new location as a more convenient space based on the business&#39;s public communication.
+- Official Houston site supports local retail, contact form, product browsing, InBody testing, and store hours.
+- Nutrition Depot Online supports ecommerce, real-time inventory, same-day shipping, in-store pickup, and multiple location listings.
+
+Primary interpretation:
+
+Nutrition Depot appears to be operating beyond a simple static storefront. Public sources show relocation, ecommerce, store pickup, inventory messaging, product depth, and local services.
+
+Alternative interpretation:
+
+The relocation may be optimization or stabilization rather than expansion. A move to a more convenient location is not the same as a growth mandate.
+
+Stronger hypothesis:
+
+Operational maturity is strongly supported. Active franchise expansion appetite is unknown.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-6-digital-presence-audit">
+            <summary>
+              <span>6. Digital Presence Audit</span>
+              <label><input type="checkbox" data-bookmark="intel-6-digital-presence-audit"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-6-digital-presence-audit"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 6. Digital Presence Audit
+
+Official Houston site:
+
+- Public address, phone, hours, contact form, supplement categories, InBody testing, product positioning, and store messaging are present.
+- The site supports basic customer journey needs: find location, call, browse categories, and send message.
+- The brand presentation appears locally oriented and practical rather than polished enterprise retail.
+
+Nutrition Depot Online:
+
+- Ecommerce product catalog, product categories, brand listing, best-seller merchandising, account/cart flow, newsletter capture, payment methods, real-time inventory claim, same-day shipping claim, in-store pickup claim, and store locations are visible.
+- The online operation indicates stronger digital maturity than the Houston single-location site alone.
+
+Digital maturity assessment:
+
+Medium-high.
+
+Why not high:
+
+Public sites do not clearly explain the relationship between Houston Southwest Freeway, Pasadena, and the Nutrition Depot Online listed locations. That creates decision-maker ambiguity.
+
+Conversation implication:
+
+Cruz should ask whether the person he reaches controls just the Houston store, the Houston-area store group, ecommerce, or a broader Nutrition Depot operating footprint.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-7-reputation-intelligence">
+            <summary>
+              <span>7. Reputation Intelligence</span>
+              <label><input type="checkbox" data-bookmark="intel-7-reputation-intelligence"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-7-reputation-intelligence"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 7. Reputation Intelligence
+
+Observed public reputation signals:
+
+- Nutrition Depot Online positions itself around large product selection, real-time inventory, same-day shipping, and in-store pickup.
+- The Houston site emphasizes supplement categories, wellness, protein, pre-workout, InBody testing, and health journey support.
+- Community Impact covered the Houston relocation as a local business event.
+- Pasadena Chamber categorizes Nutrition Depot Pasadena under Health &amp; Wellness.
+
+Review intelligence limitation:
+
+Direct Google Business Profile rating and review count were not captured from a reliable unrestricted source in this pass.
+
+Reputation assessment:
+
+Reputation evidence is sufficient for first-call prioritization but insufficient for final qualification. The strongest available reputation signal is category credibility and product depth, not verified customer review quality.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-8-review-theme-intelligence">
+            <summary>
+              <span>8. Review Theme Intelligence</span>
+              <label><input type="checkbox" data-bookmark="intel-8-review-theme-intelligence"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-8-review-theme-intelligence"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 8. Review Theme Intelligence
+
+Captured public review themes:
+
+- Supplements.
+- Protein.
+- Pre-workout.
+- Vitamins and minerals.
+- General health.
+- InBody body composition testing.
+- Product availability.
+- In-store pickup.
+- Same-day shipping.
+
+Positive operational themes inferred:
+
+- Customers likely visit for fitness performance, health, supplementation, and wellness needs.
+- Inventory depth and product category breadth are core public value propositions.
+- Body composition testing may create consultative retail moments rather than purely transactional visits.
+
+Negative or risk themes:
+
+- No direct reliable complaint theme analysis was completed.
+- Google, Yelp, or other public review trend verification remains incomplete.
+- Public review volume and complaint categories are unknown.
+
+Verification needed:
+
+Before JR treats this as a high-confidence candidate, Research should capture direct Google Business Profile rating, review count, recent positive themes, recent negative themes, and whether service or inventory complaints appear.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-9-customer-experience-intelligence">
+            <summary>
+              <span>9. Customer Experience Intelligence</span>
+              <label><input type="checkbox" data-bookmark="intel-9-customer-experience-intelligence"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-9-customer-experience-intelligence"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 9. Customer Experience Intelligence
+
+Publicly visible customer journey:
+
+- Customer can find store address and phone.
+- Customer can browse products online.
+- Customer can use ecommerce checkout through Nutrition Depot Online.
+- Customer can join a mailing list.
+- Customer can use in-store pickup.
+- Customer can access InBody testing at the Houston site.
+
+Business implication:
+
+Nutrition Depot likely understands repeat customers, consultative product conversations, customer goals, and wellness-oriented retail traffic.
+
+Strategic implication:
+
+That customer journey aligns with Smoothie Depot&#39;s potential value proposition: convenient wellness products, repeat visits, fitness-adjacent customers, and high-frequency consumables.
+
+Conversation implication:
+
+Cruz should talk about customer overlap, not just franchise ownership.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-10-market-position">
+            <summary>
+              <span>10. Market Position</span>
+              <label><input type="checkbox" data-bookmark="intel-10-market-position"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-10-market-position"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 10. Market Position
+
+Observed:
+
+Nutrition Depot operates in the supplement, vitamin, protein, pre-workout, and general wellness retail market.
+
+Inferred:
+
+The business likely competes with specialty supplement stores, ecommerce supplement sellers, health and wellness retailers, gyms with retail add-ons, smoothie/juice shops with protein products, and mass retailers carrying supplements.
+
+Strategic position:
+
+Nutrition Depot is not a smoothie brand. That is an advantage for a Smoothie Depot outreach conversation because it can be framed as a complementary food-and-beverage concept rather than a direct threat to its core identity.
+
+Risk:
+
+If the operator is strongly focused on supplements only, food service may feel outside its preferred operating model.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-11-competitive-landscape">
+            <summary>
+              <span>11. Competitive Landscape</span>
+              <label><input type="checkbox" data-bookmark="intel-11-competitive-landscape"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-11-competitive-landscape"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 11. Competitive Landscape
+
+Known competitive categories:
+
+- Supplement retailers.
+- Vitamin stores.
+- Gym-adjacent supplement sellers.
+- Online supplement ecommerce.
+- Smoothie and juice concepts with protein or wellness positioning.
+- Healthy cafes.
+
+Competitor-specific mapping:
+
+Not complete. This dossier does not claim exhaustive competitor coverage around 2005 Southwest Freeway or every Nutrition Depot listed location.
+
+Why this matters:
+
+Without local competitor mapping, Research can identify prospect fit but cannot yet assess site-by-site Smoothie Depot white space.
+
+Recommended next verification:
+
+Map gyms, smoothie shops, healthy cafes, medical wellness, and high-traffic retail nodes within the Southwest Freeway / Shepherd Drive corridor before a JR territory discussion.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-12-geographic-opportunity">
+            <summary>
+              <span>12. Geographic Opportunity</span>
+              <label><input type="checkbox" data-bookmark="intel-12-geographic-opportunity"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-12-geographic-opportunity"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 12. Geographic Opportunity
+
+Primary Houston location:
+
+2005 Southwest Freeway Service Road, Houston, TX 77098.
+
+Location implication:
+
+The public Houston site places Nutrition Depot near a central Houston corridor with retail visibility and potential access to fitness, wellness, commuter, and inner-loop customer segments.
+
+Greater Houston footprint signals:
+
+- Pasadena Chamber listing.
+- Nutrition Depot Online locations in Kingwood, Pearland, Cypress, and Magnolia.
+
+Strategic implication:
+
+If one operator or network relationship touches multiple Nutrition Depot locations, the conversation could produce multi-corridor Houston intelligence even if it does not become a franchise sale.
+
+Unknown:
+
+Whether these locations share ownership, management, brand rights, or decision-making authority.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-13-growth-signals">
+            <summary>
+              <span>13. Growth Signals</span>
+              <label><input type="checkbox" data-bookmark="intel-13-growth-signals"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-13-growth-signals"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 13. Growth Signals
+
+Observed growth/maturity signals:
+
+- 2025 Houston relocation to Southwest Freeway.
+- Ecommerce and product catalog through Nutrition Depot Online.
+- Real-time inventory claim.
+- Same-day shipping claim.
+- In-store pickup claim.
+- Mailing-list capture.
+- Multiple public store listings under Nutrition Depot Online.
+- Pasadena Chamber membership listing.
+
+Interpretation:
+
+These signals support retail maturity and operational sophistication more than they prove expansion appetite.
+
+Confidence:
+
+Medium-high for maturity. Medium for growth appetite.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-14-expansion-signals">
+            <summary>
+              <span>14. Expansion Signals</span>
+              <label><input type="checkbox" data-bookmark="intel-14-expansion-signals"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-14-expansion-signals"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 14. Expansion Signals
+
+Expansion-supporting evidence:
+
+- Community Impact reports the Houston location moved from Rice Village to Southwest Freeway.
+- Nutrition Depot Online lists multiple stores in the Greater Houston area.
+- Ecommerce and inventory infrastructure may indicate operational systems beyond one storefront.
+
+Contradicting or limiting evidence:
+
+- A relocation is not necessarily expansion.
+- Multiple Nutrition Depot listings may not represent one shared owner.
+- No public source confirms franchise interest, multi-unit development intent, or Smoothie Depot compatibility.
+
+Executive conclusion:
+
+Treat the business as a high-priority discovery target, not an expansion-qualified prospect.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-15-operational-maturity">
+            <summary>
+              <span>15. Operational Maturity</span>
+              <label><input type="checkbox" data-bookmark="intel-15-operational-maturity"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-15-operational-maturity"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 15. Operational Maturity
+
+Signals supporting maturity:
+
+- Public product taxonomy across protein, workout enhancement, muscle builders, weight loss, vitamins and minerals, general health, food and snacks, accessories, and brands.
+- Ecommerce cart and payment methods.
+- Real-time inventory messaging.
+- Shipping and pickup messaging.
+- Store hours and location data.
+- InBody testing offering.
+- Multiple store listings.
+
+Signals still missing:
+
+- Staffing model.
+- Store-level revenue.
+- Unit economics.
+- Food service capability.
+- Franchise operating readiness.
+- Management bandwidth.
+
+Assessment:
+
+Operational maturity appears medium-high for supplement retail. Smoothie franchise operating readiness remains unknown.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-16-brand-strength">
+            <summary>
+              <span>16. Brand Strength</span>
+              <label><input type="checkbox" data-bookmark="intel-16-brand-strength"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-16-brand-strength"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 16. Brand Strength
+
+Strength indicators:
+
+- Clear category name: Nutrition Depot.
+- Category fit is immediately understandable.
+- Multiple public location signals increase brand familiarity across Greater Houston.
+- Nutrition Depot Online makes bold selection, inventory, shipping, and pickup claims.
+- The Houston site supports a direct local contact journey.
+
+Limitations:
+
+- Brand architecture is unclear across Houston, Pasadena, and Nutrition Depot Online locations.
+- Visual/website consistency appears fragmented across public properties.
+
+Strategic implication:
+
+Brand recognition may be strong enough to open a business-level conversation, but not clear enough to assume consolidated decision-making.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-17-community-presence">
+            <summary>
+              <span>17. Community Presence</span>
+              <label><input type="checkbox" data-bookmark="intel-17-community-presence"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-17-community-presence"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 17. Community Presence
+
+Observed:
+
+- Pasadena Chamber lists Nutrition Depot Pasadena as a Health &amp; Wellness member.
+- Community Impact covered the Houston location move.
+- Public local directories and map sources list Nutrition Depot locations.
+
+Unknown:
+
+- Sponsorships.
+- Local gym partnerships.
+- Event participation.
+- School, charity, or community fitness involvement.
+- Business-to-business partnership network.
+
+Conversation implication:
+
+Cruz should ask: &quot;Which local fitness, wellness, or community groups drive the strongest customer relationships for you?&quot;
+</pre>
+          </details>
+          <details class="intel-section" id="intel-18-business-network">
+            <summary>
+              <span>18. Business Network</span>
+              <label><input type="checkbox" data-bookmark="intel-18-business-network"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-18-business-network"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 18. Business Network
+
+Known public network signals:
+
+- Pasadena Chamber membership.
+- Ecommerce brand catalog.
+- Public product brand relationships visible on Nutrition Depot Online.
+- Multiple store locations listed by Nutrition Depot Online.
+
+Potential network value:
+
+Nutrition Depot may know gym owners, trainers, fitness customers, supplement brand reps, wellness buyers, and local health communities.
+
+Unknown:
+
+Whether the Houston Southwest Freeway operator can introduce Cruz to other operators or decision makers.
+
+Recommended action:
+
+Even if franchise interest is low, ask for one referral to a Houston wellness operator who may be open to Smoothie Depot.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-19-franchise-compatibility">
+            <summary>
+              <span>19. Franchise Compatibility</span>
+              <label><input type="checkbox" data-bookmark="intel-19-franchise-compatibility"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-19-franchise-compatibility"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 19. Franchise Compatibility
+
+Compatibility strengths:
+
+- Wellness and fitness customer overlap.
+- Retail repeat-purchase environment.
+- Public product breadth.
+- Customer education/consultative selling likely matters.
+- InBody testing suggests comfort with body composition and goal-oriented wellness conversations.
+- Ecommerce and store pickup suggest operational process maturity.
+
+Compatibility risks:
+
+- Food service is operationally different from supplement retail.
+- The operator may prefer current category focus.
+- Smoothie Depot could feel distracting unless positioned as a complementary high-frequency beverage concept.
+- Liquidity and timeline are unknown.
+
+Franchise compatibility score:
+
+High for customer overlap. Medium for operating model fit. Unknown for buyer readiness.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-20-smoothie-depot-strategic-fit">
+            <summary>
+              <span>20. Smoothie Depot Strategic Fit</span>
+              <label><input type="checkbox" data-bookmark="intel-20-smoothie-depot-strategic-fit"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-20-smoothie-depot-strategic-fit"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 20. Smoothie Depot Strategic Fit
+
+Why Smoothie Depot fits:
+
+Smoothie Depot can be framed as a beverage-and-wellness extension to a supplement customer base. Nutrition Depot customers may already buy protein, pre-workout, vitamins, and wellness products. Smoothies can sit near that customer mission without competing directly with supplement retail.
+
+Why Smoothie Depot may not fit:
+
+The operator may not want food handling, franchise royalties, staffing complexity, cold-chain operations, or another storefront model.
+
+Strategic recommendation:
+
+Lead with complementary customer demand and Houston corridor learning. Do not lead with &quot;become a franchisee&quot; too early.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-21-conversation-preparation">
+            <summary>
+              <span>21. Conversation Preparation</span>
+              <label><input type="checkbox" data-bookmark="intel-21-conversation-preparation"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-21-conversation-preparation"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 21. Conversation Preparation
+
+Opening frame:
+
+&quot;You already serve Houston wellness and performance customers. Smoothie Depot is evaluating operators who understand that customer. I wanted to ask how you think about second concepts, local wellness corridors, and whether a smoothie franchise would ever fit your expansion thinking.&quot;
+
+Top discovery questions:
+
+1. Do you control only this Houston location, multiple Nutrition Depot locations, or a broader operating network?
+2. Are you currently thinking about expansion, second concepts, or additional revenue channels?
+3. Would a smoothie concept feel complementary to your current customers or too different operationally?
+4. Which Houston corridors bring the strongest fitness, wellness, and nutrition customers?
+5. If a model looked attractive, would you think one unit first or multiple locations?
+6. What would make a franchise conversation worth your time?
+7. Who besides you would need to be involved before a serious conversation with JR?
+
+Topics to postpone:
+
+- Private finances.
+- Credit.
+- Bank records.
+- Tax records.
+- Personal background.
+- Non-public ownership details.
+- Detailed liquidity until mutual interest exists.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-22-jr-executive-brief">
+            <summary>
+              <span>22. JR Executive Brief</span>
+              <label><input type="checkbox" data-bookmark="intel-22-jr-executive-brief"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-22-jr-executive-brief"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 22. JR Executive Brief
+
+Recommended JR posture:
+
+Prepare for a complementary-retail thesis, not a direct food-service operator thesis.
+
+Why JR should care:
+
+If Nutrition Depot has expansion appetite, it may provide access to wellness customers, gym-adjacent traffic, multiple Houston-area corridors, and operator insight into supplement buyers who could overlap with Smoothie Depot.
+
+What JR should not assume:
+
+- Do not assume the operator has capital.
+- Do not assume the operator wants food service.
+- Do not assume all Nutrition Depot locations share ownership.
+- Do not assume current public product depth equals franchise readiness.
+
+JR pre-call prep:
+
+- Be ready to explain Smoothie Depot as a simple complementary wellness beverage concept.
+- Be ready to discuss one-unit versus multi-unit pathways only if the operator expresses interest.
+- Be ready to accept &quot;not interested&quot; and still extract market intelligence or referrals.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-23-risk-register">
+            <summary>
+              <span>23. Risk Register</span>
+              <label><input type="checkbox" data-bookmark="intel-23-risk-register"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-23-risk-register"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 23. Risk Register
+
+Risk 1: Decision-maker ambiguity.
+
+- Severity: High.
+- Evidence: Public sources show multiple Nutrition Depot signals but do not prove shared control.
+- Mitigation: First question should clarify decision authority and footprint.
+
+Risk 2: Category mismatch.
+
+- Severity: Medium-high.
+- Evidence: Nutrition Depot is supplement retail, not food service.
+- Mitigation: Frame Smoothie Depot as complementary and test operational appetite before qualification.
+
+Risk 3: Expansion signal overinterpretation.
+
+- Severity: Medium.
+- Evidence: Relocation is public, but expansion appetite is not.
+- Mitigation: Treat relocation as maturity signal only.
+
+Risk 4: Review intelligence gap.
+
+- Severity: Medium.
+- Evidence: Direct Google rating/review count not captured from a reliable unrestricted source.
+- Mitigation: Complete GBP verification before any high-stakes handoff.
+
+Risk 5: Brand architecture ambiguity.
+
+- Severity: Medium.
+- Evidence: Houston site, Pasadena Chamber listing, and Nutrition Depot Online locations may represent separate operators.
+- Mitigation: Ask whether these are connected or independent.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-24-unknowns-register">
+            <summary>
+              <span>24. Unknowns Register</span>
+              <label><input type="checkbox" data-bookmark="intel-24-unknowns-register"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-24-unknowns-register"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 24. Unknowns Register
+
+Highest-value unknowns:
+
+1. Does the person Cruz reaches have authority over one location, multiple locations, or no expansion decisions?
+2. Is the operator open to second-concept or franchise expansion?
+3. Does the operator have available liquidity or a financing path?
+4. Would the operator consider food and beverage operations?
+5. Is interest one-unit, multi-unit, referral, or none?
+6. What is the real timeline?
+7. What local customer corridors does the operator believe are strongest?
+8. Are public Nutrition Depot locations connected under one ownership group?
+9. What are the latest verified Google rating, review count, and complaint themes?
+10. Would Smoothie Depot be viewed as complementary, distracting, or competitive?
+
+One fact to learn first:
+
+Whether the decision maker is open to second-concept or franchise expansion.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-25-verification-checklist">
+            <summary>
+              <span>25. Verification Checklist</span>
+              <label><input type="checkbox" data-bookmark="intel-25-verification-checklist"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-25-verification-checklist"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 25. Verification Checklist
+
+Before outreach:
+
+- Confirm public phone for Houston location.
+- Confirm public website and contact form.
+- Confirm current hours.
+- Confirm whether Nutrition Depot Houston is open at time of call.
+- Prepare source notes from official Houston site, Nutrition Depot Online, Community Impact, and Pasadena Chamber.
+
+During call:
+
+- Confirm decision-maker authority.
+- Confirm location footprint.
+- Confirm whether second-concept expansion is even interesting.
+- Confirm whether Smoothie Depot feels complementary or outside scope.
+- Confirm whether a JR conversation is appropriate.
+
+After call:
+
+- Record predicted versus actual outcome.
+- Record assumptions confirmed or rejected.
+- Update prospect confidence.
+- Do not create CRM record unless future CRM handoff authorizes it.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-26-opportunity-ranking">
+            <summary>
+              <span>26. Opportunity Ranking</span>
+              <label><input type="checkbox" data-bookmark="intel-26-opportunity-ranking"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-26-opportunity-ranking"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 26. Opportunity Ranking
+
+Current rank:
+
+1 of 12 in Smoothie Depot ranked business prospects.
+
+Why rank 1 holds:
+
+Nutrition Depot offers the strongest combination of customer overlap, public contactability, Houston relevance, wellness/nutrition category fit, and complementary positioning.
+
+Why rank could fall:
+
+- No shared decision maker.
+- No interest in food/beverage.
+- No expansion appetite.
+- Stronger direct interest from Cranky Carrot, LEEMOO, or Tight Squeeze.
+
+Fallback prospect if disqualified:
+
+Cranky Carrot Juice Co. for direct-category operator intelligence and possible second-concept conversation.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-27-confidence-model">
+            <summary>
+              <span>27. Confidence Model</span>
+              <label><input type="checkbox" data-bookmark="intel-27-confidence-model"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-27-confidence-model"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 27. Confidence Model
+
+Evidence quality:
+
+Medium-high.
+
+Source reliability:
+
+High for official websites and chamber/local reporting. Medium for public directory support.
+
+Confidence:
+
+High for first-call prioritization.
+
+Business impact:
+
+High if the operator controls or influences multiple Houston-area wellness retail relationships.
+
+Verification priority:
+
+High.
+
+Confidence limits:
+
+This dossier is not sufficient for investment reliance, final franchise qualification, or JR handoff without live verification.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-28-evidence-matrix">
+            <summary>
+              <span>28. Evidence Matrix</span>
+              <label><input type="checkbox" data-bookmark="intel-28-evidence-matrix"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-28-evidence-matrix"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 28. Evidence Matrix
+
+| Claim | Evidence label | Source | Confidence | Contradiction or limitation |
+| --- | --- | --- | --- | --- |
+| Nutrition Depot Houston is located at 2005 Southwest Freeway Service Road | Observed | Nutrition Depot Houston official site; Community Impact; Waze | High | None material for address |
+| Public phone is (346) 516-0878 | Observed | Nutrition Depot Houston official site; Waze | High | None material for phone |
+| Houston location relocated from Rice Village to Southwest Freeway in early 2025 | Observed | Community Impact | High | Relocation does not prove expansion intent |
+| Business sells supplements, protein, pre-workout, vitamins, and wellness products | Observed/self-reported | Nutrition Depot Houston; Community Impact; Nutrition Depot Online | High | Product breadth may vary by location |
+| Nutrition Depot Online supports ecommerce and inventory messaging | Observed/self-reported | Nutrition Depot Online | High | Relationship to Houston Southwest Freeway location needs verification |
+| Nutrition Depot Online lists Kingwood, Pearland, Cypress, and Magnolia locations | Observed | Nutrition Depot Online contact page | High | Ownership relationship to Houston store unknown |
+| Pasadena Chamber lists Nutrition Depot Pasadena | Observed | Pasadena Chamber | High | Relationship to Houston store unknown |
+| Smoothie Depot customer overlap is plausible | Inferred from multiple evidence sources | Product categories, wellness positioning, supplement customer mission | Medium-high | Actual customer overlap unknown |
+| Franchise interest exists | Unknown | None | Low | Must be verified by conversation |
+| Liquidity exists | Unknown | None | Low | Do not infer |
+| Decision-maker authority exists at first contact | Unknown | None | Low | Must be verified |
+</pre>
+          </details>
+          <details class="intel-section" id="intel-29-source-reliability-matrix">
+            <summary>
+              <span>29. Source Reliability Matrix</span>
+              <label><input type="checkbox" data-bookmark="intel-29-source-reliability-matrix"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-29-source-reliability-matrix"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 29. Source Reliability Matrix
+
+| Source | URL | Tier | Reliability | Used for | Limitations |
+| --- | --- | --- | --- | --- | --- |
+| Nutrition Depot Houston official site | https://nutritiondepot.us/ | Tier 1 | High | Houston address, phone, categories, InBody testing, hours, contact path | Self-reported; not independent proof of performance or intent |
+| Nutrition Depot Online | https://ndonline.com/ | Tier 1 | High | Ecommerce, product taxonomy, real-time inventory, same-day shipping, in-store pickup, listed store locations | Relationship to Houston Southwest Freeway store needs verification |
+| Nutrition Depot Online contact / locations page | https://ndonline.com/pages/contact-us | Tier 1 | High | Kingwood, Pearland, Cypress, Magnolia location signals | Listed locations may be separate operators |
+| Community Impact | https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/ | Tier 2 | Medium-high | 2025 relocation, prior Rice Village location, product description | Local reporting; does not prove current intent |
+| Pasadena Chamber | https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622 | Tier 2 | Medium-high | Pasadena listing, address, phone, category | Chamber listing does not prove shared ownership with Houston |
+| Waze public directory | https://www.waze.com/live-map/directions/us/tx/houston/nutrition-depot?to=place.ChIJ2-4dRmrAQIYR4asS2Ur_sS8 | Tier 3 | Medium | Location, phone, public navigation confirmation | Directory data should be secondary only |
+</pre>
+          </details>
+          <details class="intel-section" id="intel-30-recommended-next-actions">
+            <summary>
+              <span>30. Recommended Next Actions</span>
+              <label><input type="checkbox" data-bookmark="intel-30-recommended-next-actions"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-30-recommended-next-actions"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## 30. Recommended Next Actions
+
+Immediate action:
+
+Call Nutrition Depot Houston first.
+
+Call objective:
+
+Determine whether the decision maker is open to a second-concept or franchise conversation and whether the Houston contact controls one store, multiple stores, or a broader Nutrition Depot network.
+
+Recommended call sequence:
+
+1. Ask for the person who handles expansion, partnerships, or owner-level business decisions.
+2. Open with Houston wellness customer overlap.
+3. Ask whether second concepts or additional revenue channels are on their radar.
+4. Ask whether a smoothie concept would feel complementary or outside scope.
+5. If interested, ask whether the right next step is a short JR conversation.
+6. If not interested, ask for one referral to a Houston wellness or nutrition operator who might be open.
+
+Do not do:
+
+- Do not ask for private financials on the first call.
+- Do not imply they are qualified.
+- Do not imply Smoothie Depot has selected them.
+- Do not treat a store employee as decision maker without confirmation.
+- Do not create CRM persistence without explicit CRM handoff.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-second-order-analysis">
+            <summary>
+              <span>Second-Order Analysis</span>
+              <label><input type="checkbox" data-bookmark="intel-second-order-analysis"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-second-order-analysis"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Second-Order Analysis
+
+Observation:
+
+Nutrition Depot serves performance, supplement, and wellness customers.
+
+Business implication:
+
+The customer base may already understand protein, pre-workout, body composition, and wellness goals.
+
+Strategic implication:
+
+Smoothie Depot can be positioned as a complementary wellness beverage concept.
+
+Conversation implication:
+
+Lead with customer overlap and second-concept curiosity.
+
+Verification needed:
+
+Confirm whether the operator wants any concept beyond supplement retail.
+
+Recommended action:
+
+Call first and test second-concept interest.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-third-order-analysis">
+            <summary>
+              <span>Third-Order Analysis</span>
+              <label><input type="checkbox" data-bookmark="intel-third-order-analysis"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-third-order-analysis"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Third-Order Analysis
+
+If the observation is true:
+
+- Outreach priority: Nutrition Depot remains the first call.
+- Smoothie Depot fit: Strong customer-fit thesis.
+- JR preparation: Prepare complementary retail positioning and one-unit versus multi-unit pathways.
+- Discovery questions: Focus on customer overlap, expansion appetite, operating bandwidth, and decision authority.
+- Timeline: Same-day outreach is justified.
+- Follow-up: If interest exists, prepare a JR briefing and corridor map.
+- Expansion potential: Potentially multi-corridor if broader Nutrition Depot network access exists.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-opportunity-cost-analysis">
+            <summary>
+              <span>Opportunity Cost Analysis</span>
+              <label><input type="checkbox" data-bookmark="intel-opportunity-cost-analysis"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-opportunity-cost-analysis"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Opportunity Cost Analysis
+
+If Cruz only has time to call one business today, call Nutrition Depot.
+
+Why not Cranky Carrot first:
+
+Cranky Carrot has stronger direct smoothie/juice fit but may be more competitor-protective and already focused on its own brand.
+
+Why not LEEMOO first:
+
+LEEMOO has a strong mobile-to-retail story but fewer public operating-system signals than Nutrition Depot.
+
+Why not Tight Squeeze first:
+
+Tight Squeeze is direct category fit, but current evidence points to a narrower single-location and event/catering footprint.
+
+Why not HS Green first:
+
+HS Green shows healthy food maturity but less direct performance-nutrition customer overlap.
+
+Why not multi-location restaurant groups first:
+
+Leaf &amp; Grain, Local Foods, Dish Society, and Hungry&#39;s likely have stronger restaurant operations but weaker immediate smoothie-franchise conversion fit.
+
+Why not Pure Green first:
+
+Pure Green is already a juice/smoothie franchise operator and may be competitively constrained.
+
+Executive conclusion:
+
+Nutrition Depot offers the best first-call balance: high customer overlap, complementary positioning, public contactability, and useful Houston wellness-network intelligence.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-alternative-hypotheses">
+            <summary>
+              <span>Alternative Hypotheses</span>
+              <label><input type="checkbox" data-bookmark="intel-alternative-hypotheses"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-alternative-hypotheses"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Alternative Hypotheses
+
+Hypothesis A:
+
+Nutrition Depot is a strong Smoothie Depot prospect because wellness retail customers overlap with smoothie customers.
+
+Hypothesis B:
+
+Nutrition Depot is a weak Smoothie Depot prospect because supplement retail does not translate into food service appetite.
+
+Current stronger hypothesis:
+
+Hypothesis A is stronger for first-call prioritization. Hypothesis B remains a serious qualification risk.
+
+What would change the conclusion:
+
+If the operator says food service is not interesting, Nutrition Depot should move from franchise prospect to referral/market-intelligence contact.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-red-team-review">
+            <summary>
+              <span>Red Team Review</span>
+              <label><input type="checkbox" data-bookmark="intel-red-team-review"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-red-team-review"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Red Team Review
+
+What if this dossier is wrong?
+
+- Public evidence may overstate unified Nutrition Depot footprint.
+- The Houston operator may not control Pasadena or Nutrition Depot Online locations.
+- The operator may be satisfied with supplement retail and uninterested in food service.
+- The customer overlap may not translate into operational willingness.
+- The best direct prospect may actually be Cranky Carrot or LEEMOO if they confirm expansion appetite first.
+
+Weakest evidence:
+
+- Franchise intent.
+- Liquidity.
+- Decision-maker authority.
+- Google review quality.
+- Shared ownership across locations.
+
+Falsification triggers:
+
+- First contact confirms no decision authority.
+- Decision maker rejects food/beverage operations.
+- Public location signals are confirmed as separate businesses.
+- Another top prospect confirms near-term franchise interest before Nutrition Depot.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-unknown-value-analysis">
+            <summary>
+              <span>Unknown Value Analysis</span>
+              <label><input type="checkbox" data-bookmark="intel-unknown-value-analysis"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-unknown-value-analysis"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Unknown Value Analysis
+
+Highest-value unknown:
+
+Whether the decision maker is open to second-concept or franchise expansion.
+
+Unknown ranking:
+
+1. Decision-maker openness to second-concept/franchise expansion.
+2. Decision-maker authority over one store versus multiple locations.
+3. Available liquidity or financing path.
+4. Food and beverage operating appetite.
+5. One-unit versus multi-unit preference.
+6. Timeline.
+7. Current Google rating/review count and complaint themes.
+8. Referral network value.
+9. Whether Smoothie Depot feels complementary or distracting.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-scenario-decision-tree">
+            <summary>
+              <span>Scenario Decision Tree</span>
+              <label><input type="checkbox" data-bookmark="intel-scenario-decision-tree"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-scenario-decision-tree"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Scenario Decision Tree
+
+If candidate confirms available liquidity:
+
+Prepare franchise economics discussion and JR handoff.
+
+If candidate does not confirm liquidity:
+
+Keep relationship warm and test partnership, referral, or future timing.
+
+If candidate wants multiple units:
+
+Escalate to territory strategy and multi-unit readiness review.
+
+If candidate only wants one unit:
+
+Test owner involvement, first-site thinking, and first-unit operating readiness.
+
+If timeline exceeds 12 months:
+
+Downgrade urgency and schedule future Research refresh.
+
+If candidate is not the decision maker:
+
+Ask for the correct business-level decision path and do not qualify the prospect.
+
+If candidate is not interested:
+
+Ask for one referral to a Houston wellness operator and record the objection as Research learning.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-post-meeting-learning-journal">
+            <summary>
+              <span>Post-Meeting Learning Journal</span>
+              <label><input type="checkbox" data-bookmark="intel-post-meeting-learning-journal"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-post-meeting-learning-journal"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Post-Meeting Learning Journal
+
+Predicted outcome:
+
+Nutrition Depot is likely willing to have a short operator-level conversation if reached through the correct business contact, but immediate franchise qualification is uncertain.
+
+Record after conversation:
+
+- Actual outcome.
+- Whether the contact had decision authority.
+- Whether second-concept interest existed.
+- Whether Smoothie Depot felt complementary or distracting.
+- Whether one-unit or multi-unit thinking emerged.
+- Whether a JR handoff was appropriate.
+- Which assumptions held.
+- Which assumptions failed.
+- What Prometheus should change in future prospect scoring.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-intelligence-quality-control">
+            <summary>
+              <span>Intelligence Quality Control</span>
+              <label><input type="checkbox" data-bookmark="intel-intelligence-quality-control"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-intelligence-quality-control"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Intelligence Quality Control
+
+Strongest evidence available:
+
+Partially. Official business sources and local reporting support first-call prioritization.
+
+Lawful public sources exhausted:
+
+No. Direct Google Business Profile review capture and corridor competitor mapping remain incomplete.
+
+Contradictions identified:
+
+Yes. Public maturity signals may indicate stabilization rather than expansion; category fit may not translate into food-service appetite.
+
+Unknowns prioritized:
+
+Yes.
+
+Private equity committee reliance:
+
+This dossier is suitable for first-call executive briefing. It is not sufficient for investment, acquisition, final franchise qualification, or JR handoff without live verification.
+</pre>
+          </details>
+          <details class="intel-section" id="intel-workspace-isolation-verification">
+            <summary>
+              <span>Workspace Isolation Verification</span>
+              <label><input type="checkbox" data-bookmark="intel-workspace-isolation-verification"> Bookmark</label>
+              <label><input type="checkbox" data-highlight="intel-workspace-isolation-verification"> Highlight evidence</label>
+            </summary>
+            <pre class="research-pre">## Workspace Isolation Verification
+
+- Smoothie Depot workspace only: verified.
+- Fitness Connection data used: no.
+- Route Intelligence used: no.
+- Active Pool used: no.
+- CRM modified: no.
+- Dashboard modified: no.
+- Website modified: no.
+- Infrastructure modified: no.
+- Companion modified: no.
+- Mobile modified: no.
+- Intelligence runtime modified: no.
+- Private financials collected: no.
+- Credit reports collected: no.
+- Bank information collected: no.
+- Tax records collected: no.
+- Restricted-platform scraping used: no.</pre>
+          </details>
+              <details class="intel-section" id="intel-complete-structured-artifact" open>
+                <summary><span>Complete Structured Research Artifact JSON</span></summary>
+                <pre class="research-pre">{
+  &quot;workspaceId&quot;: &quot;smoothie_depot&quot;,
+  &quot;operatingProfileId&quot;: &quot;franchise_development&quot;,
+  &quot;intelligenceDomain&quot;: &quot;business_acquisition_intelligence&quot;,
+  &quot;platformStandard&quot;: &quot;executive-due-diligence-intelligence-platform-v4&quot;,
+  &quot;artifactStatus&quot;: &quot;completed_canonical_research_dossier&quot;,
+  &quot;generatedAt&quot;: &quot;2026-07-04&quot;,
+  &quot;businessSelected&quot;: &quot;Nutrition Depot Houston and Greater Houston&quot;,
+  &quot;founderMissionQueueRank&quot;: 1,
+  &quot;sourceProspectArtifact&quot;: &quot;research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json&quot;,
+  &quot;canonicalMarkdownArtifact&quot;: &quot;research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md&quot;,
+  &quot;productionRuntimeChange&quot;: false,
+  &quot;workspaceIsolation&quot;: {
+    &quot;smoothieDepotWorkspaceOnly&quot;: true,
+    &quot;fitnessConnectionDataUsed&quot;: false,
+    &quot;routeIntelligenceUsed&quot;: false,
+    &quot;activePoolUsed&quot;: false,
+    &quot;crmModified&quot;: false,
+    &quot;dashboardModified&quot;: false,
+    &quot;websiteModified&quot;: false,
+    &quot;infrastructureModified&quot;: false,
+    &quot;companionModified&quot;: false,
+    &quot;mobileModified&quot;: false,
+    &quot;intelligenceRuntimeModified&quot;: false
+  },
+  &quot;dataPolicy&quot;: {
+    &quot;publicBusinessInformationOnly&quot;: true,
+    &quot;privateFinancialsCollected&quot;: false,
+    &quot;creditReportsCollected&quot;: false,
+    &quot;bankInformationCollected&quot;: false,
+    &quot;taxRecordsCollected&quot;: false,
+    &quot;psychologicalProfileCreated&quot;: false,
+    &quot;restrictedPlatformScrapingUsed&quot;: false,
+    &quot;unsupportedScrapingAllowed&quot;: false
+  },
+  &quot;requiredDossierSections&quot;: [
+    &quot;Executive Summary&quot;,
+    &quot;Business Identity&quot;,
+    &quot;Company History Timeline&quot;,
+    &quot;Public Ownership / Operator Footprint&quot;,
+    &quot;Business Evolution&quot;,
+    &quot;Digital Presence Audit&quot;,
+    &quot;Reputation Intelligence&quot;,
+    &quot;Review Theme Intelligence&quot;,
+    &quot;Customer Experience Intelligence&quot;,
+    &quot;Market Position&quot;,
+    &quot;Competitive Landscape&quot;,
+    &quot;Geographic Opportunity&quot;,
+    &quot;Growth Signals&quot;,
+    &quot;Expansion Signals&quot;,
+    &quot;Operational Maturity&quot;,
+    &quot;Brand Strength&quot;,
+    &quot;Community Presence&quot;,
+    &quot;Business Network&quot;,
+    &quot;Franchise Compatibility&quot;,
+    &quot;Smoothie Depot Strategic Fit&quot;,
+    &quot;Conversation Preparation&quot;,
+    &quot;JR Executive Brief&quot;,
+    &quot;Risk Register&quot;,
+    &quot;Unknowns Register&quot;,
+    &quot;Verification Checklist&quot;,
+    &quot;Opportunity Ranking&quot;,
+    &quot;Confidence Model&quot;,
+    &quot;Evidence Matrix&quot;,
+    &quot;Source Reliability Matrix&quot;,
+    &quot;Recommended Next Actions&quot;
+  ],
+  &quot;executiveConclusion&quot;: {
+    &quot;recommendation&quot;: &quot;Call first, but do not treat as qualified.&quot;,
+    &quot;confidenceLevel&quot;: &quot;High for first-call prioritization; not sufficient for final franchise qualification.&quot;,
+    &quot;businessImpact&quot;: &quot;High if the operator controls or influences multiple Houston-area wellness retail relationships.&quot;,
+    &quot;verificationPriority&quot;: &quot;High&quot;
+  },
+  &quot;evidenceClassification&quot;: {
+    &quot;businessIdentityAndLocation&quot;: &quot;observed&quot;,
+    &quot;productAndWellnessCategoryFit&quot;: &quot;observed_and_self_reported&quot;,
+    &quot;houstonAreaRetailFootprint&quot;: &quot;inferred_from_multiple_evidence_sources&quot;,
+    &quot;smoothieDepotStrategicFit&quot;: &quot;inferred_from_multiple_evidence_sources&quot;,
+    &quot;franchiseInterestLiquidityOwnershipStructureDecisionAuthority&quot;: &quot;unknown&quot;
+  },
+  &quot;remainingUnknowns&quot;: [
+    &quot;Decision-maker authority over one store versus multiple locations&quot;,
+    &quot;Second-concept or franchise expansion openness&quot;,
+    &quot;Available liquidity or financing path&quot;,
+    &quot;Food and beverage operating appetite&quot;,
+    &quot;One-unit versus multi-unit preference&quot;,
+    &quot;Timeline&quot;,
+    &quot;Direct Google Business Profile rating, review count, and complaint themes&quot;,
+    &quot;Whether Smoothie Depot feels complementary or distracting&quot;
+  ],
+  &quot;sourceReliabilityMatrix&quot;: [
+    {
+      &quot;source&quot;: &quot;Nutrition Depot Houston official site&quot;,
+      &quot;url&quot;: &quot;https://nutritiondepot.us/&quot;,
+      &quot;tier&quot;: &quot;Tier 1&quot;,
+      &quot;reliability&quot;: &quot;High&quot;,
+      &quot;usedFor&quot;: &quot;Houston address, phone, product categories, InBody testing, hours, contact path&quot;,
+      &quot;limitations&quot;: &quot;Self-reported and not proof of performance or intent&quot;
+    },
+    {
+      &quot;source&quot;: &quot;Nutrition Depot Online&quot;,
+      &quot;url&quot;: &quot;https://ndonline.com/&quot;,
+      &quot;tier&quot;: &quot;Tier 1&quot;,
+      &quot;reliability&quot;: &quot;High&quot;,
+      &quot;usedFor&quot;: &quot;Ecommerce, product taxonomy, inventory, shipping, pickup, listed locations&quot;,
+      &quot;limitations&quot;: &quot;Relationship to Houston Southwest Freeway location needs verification&quot;
+    },
+    {
+      &quot;source&quot;: &quot;Community Impact&quot;,
+      &quot;url&quot;: &quot;https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/&quot;,
+      &quot;tier&quot;: &quot;Tier 2&quot;,
+      &quot;reliability&quot;: &quot;Medium-high&quot;,
+      &quot;usedFor&quot;: &quot;2025 relocation and product description&quot;,
+      &quot;limitations&quot;: &quot;Local reporting does not prove current intent&quot;
+    },
+    {
+      &quot;source&quot;: &quot;Pasadena Chamber&quot;,
+      &quot;url&quot;: &quot;https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622&quot;,
+      &quot;tier&quot;: &quot;Tier 2&quot;,
+      &quot;reliability&quot;: &quot;Medium-high&quot;,
+      &quot;usedFor&quot;: &quot;Pasadena location signal&quot;,
+      &quot;limitations&quot;: &quot;Does not prove shared ownership with Houston&quot;
+    },
+    {
+      &quot;source&quot;: &quot;Waze public directory&quot;,
+      &quot;url&quot;: &quot;https://www.waze.com/live-map/directions/us/tx/houston/nutrition-depot?to=place.ChIJ2-4dRmrAQIYR4asS2Ur_sS8&quot;,
+      &quot;tier&quot;: &quot;Tier 3&quot;,
+      &quot;reliability&quot;: &quot;Medium&quot;,
+      &quot;usedFor&quot;: &quot;Secondary location and phone confirmation&quot;,
+      &quot;limitations&quot;: &quot;Directory data should remain secondary&quot;
+    }
+  ],
+  &quot;recommendedNextAction&quot;: &quot;Call Nutrition Depot Houston first and verify decision-maker authority, second-concept openness, and whether the Houston contact controls one store or a broader Nutrition Depot network.&quot;
+}</pre>
+              </details>
+              <details class="intel-section" id="intel-dossier-register">
+                <summary><span>Research Dossier Register</span></summary>
+                <pre class="research-pre">{
+  &quot;workspaceId&quot;: &quot;smoothie_depot&quot;,
+  &quot;operatingProfileId&quot;: &quot;franchise_development&quot;,
+  &quot;intelligenceDomain&quot;: &quot;business_acquisition_intelligence&quot;,
+  &quot;registerStatus&quot;: &quot;active&quot;,
+  &quot;productionRuntimeChange&quot;: false,
+  &quot;canonicalDossiers&quot;: [
+    {
+      &quot;business&quot;: &quot;Nutrition Depot Houston and Greater Houston&quot;,
+      &quot;founderMissionQueueRank&quot;: 1,
+      &quot;status&quot;: &quot;completed_canonical_research_dossier&quot;,
+      &quot;platformStandard&quot;: &quot;executive-due-diligence-intelligence-platform-v4&quot;,
+      &quot;generatedAt&quot;: &quot;2026-07-04&quot;,
+      &quot;markdownArtifact&quot;: &quot;research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md&quot;,
+      &quot;structuredArtifact&quot;: &quot;research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json&quot;,
+      &quot;dashboardCanonicalSource&quot;: true
+    }
+  ],
+  &quot;workspaceIsolation&quot;: {
+    &quot;smoothieDepotWorkspaceOnly&quot;: true,
+    &quot;fitnessConnectionDataUsed&quot;: false,
+    &quot;routeIntelligenceUsed&quot;: false,
+    &quot;activePoolUsed&quot;: false,
+    &quot;crmModified&quot;: false,
+    &quot;dashboardModified&quot;: false,
+    &quot;websiteModified&quot;: false,
+    &quot;infrastructureModified&quot;: false,
+    &quot;companionModified&quot;: false,
+    &quot;mobileModified&quot;: false,
+    &quot;intelligenceRuntimeModified&quot;: false
+  }
+}</pre>
+              </details>
+              <section class="notes-panel" id="founderNotes" aria-label="Founder Notes">
+                <h3>Founder Notes</h3>
+                <label>Call notes<textarea aria-label="Call notes"></textarea></label>
+                <label>Discovery notes<textarea aria-label="Discovery notes"></textarea></label>
+                <label>JR notes<textarea aria-label="JR notes"></textarea></label>
+                <label>Follow-up notes<textarea aria-label="Follow-up notes"></textarea></label>
+                <p class="dossier-source">Notes are Dashboard-local typing surfaces only. No CRM persistence, Research mutation, or external submission is performed.</p>
+              </section>
+              <p class="dossier-source">Research artifact SHA-256: 4c2f0127a0d63040261a5cd0f645bbc38fa64ccab89bb4cf5c81dc2e91b47cb3. Complete Markdown and structured JSON are rendered without Dashboard summarization.</p>
+            </div>
+          </div>
         </article>
 
-        <article class="dossier-panel dossier-cranky">
-          <p class="eyebrow">Executive Due Diligence Dossier</p>
-          <h3>Cranky Carrot Juice Co.</h3>
-          <div class="dossier-grid">
-            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>Strong direct-category fit with proven Houston demand, local operator story, and growth ambition.</strong></div>
-            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Healthy cafe, juice bar, smoothies, and plant-forward food business with downtown and Heights public location signals.</strong></div>
-            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>First retail location publicly reported in 2022; second Houston location publicly identified.</strong></div>
-            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Direct beverage-category experience makes the call high-fit but potentially competitor-sensitive.</strong></div>
-            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: cold-pressed juices, superfood smoothies, plant-forward food, customer service, and sustainability.</strong></div>
-            <div class="dossier-section"><span class="label">Business Health</span><strong>High confidence from public sources and U.S. Chamber recognition; franchise intent remains unknown.</strong></div>
-            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Second Houston location, small business recognition, catering, and local partnerships.</strong></div>
-            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Best for category intelligence and possible expansion conversation; conversion fit depends on brand posture.</strong></div>
-            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Frame the call as operator learning plus possible complementary expansion, not direct replacement.</strong></div>
-            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>Do you want to keep scaling under your own brand? Would you consider franchise ownership or partnership? What would make a second beverage concept attractive?</strong></div>
-            <div class="dossier-section"><span class="label">Risk Register</span><strong>May protect its own brand economics, recipes, systems, and competitive positioning.</strong></div>
-            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Complementary versus competitive view, capital path, expansion appetite, decision-maker timing.</strong></div>
-            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare competitive-sensitivity talking points and capture operator objections for future targeting.</strong></div>
-            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call after Nutrition Depot unless Nutrition Depot is unavailable or disqualifies quickly.</strong></div>
-          </div>
-          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+        <article class="dossier-panel dossier-cranky pending-dossier">
+          <p class="eyebrow">Founder Intelligence Command Center</p>
+          <h2>Cranky Carrot Juice Co.</h2>
+          <p class="note">No completed canonical Research dossier is registered for this business. Dashboard will not summarize or fabricate one. Research must publish a completed Smoothie Depot dossier before this workspace can render it.</p>
         </article>
 
-        <article class="dossier-panel dossier-leemoo">
-          <p class="eyebrow">Executive Due Diligence Dossier</p>
-          <h3>LEEMOO Health Bar</h3>
-          <div class="dossier-grid">
-            <div class="dossier-section wide"><span class="label">Executive Summary</span><strong>LEEMOO has tested mobile wellness demand and built a retail health bar in Houston, making it a strong but still verification-heavy prospect.</strong></div>
-            <div class="dossier-section"><span class="label">Business Snapshot</span><strong>Health bar with smoothies, acai bowls, and cold-pressed juice; Montrose location and publicly reported Heights expansion.</strong></div>
-            <div class="dossier-section"><span class="label">Growth Timeline</span><strong>Food truck origin publicly stated; Montrose retail location visible; Heights location publicly reported.</strong></div>
-            <div class="dossier-section"><span class="label">Market Intelligence</span><strong>Health-bar positioning overlaps Smoothie Depot demand and can validate Houston wellness beverage corridors.</strong></div>
-            <div class="dossier-section"><span class="label">Review Intelligence</span><strong>Public themes captured: scratch-made health bar, no processed sugars, no preservatives, and no artificial flavors.</strong></div>
-            <div class="dossier-section"><span class="label">Business Health</span><strong>Medium-high confidence; exact founding year and franchise appetite are not captured from unrestricted public sources.</strong></div>
-            <div class="dossier-section"><span class="label">Expansion Indicators</span><strong>Food truck to retail move and public reporting of an additional Heights location.</strong></div>
-            <div class="dossier-section"><span class="label">Strategic Fit</span><strong>Strong wellness-beverage fit; JR preparation depends on whether expansion is owner-led, partnership-led, or brand-protective.</strong></div>
-            <div class="dossier-section wide"><span class="label">Conversation Strategy</span><strong>Lead with their move from mobile demand to retail execution, then test appetite for franchise or complementary location growth.</strong></div>
-            <div class="dossier-section wide"><span class="label">Discovery Questions</span><strong>What did mobile demand teach you? How are you choosing locations? Would a franchise model accelerate expansion or distract from your brand?</strong></div>
-            <div class="dossier-section"><span class="label">Risk Register</span><strong>Could view Smoothie Depot as competitive; expansion reporting may not equal franchise intent.</strong></div>
-            <div class="dossier-section"><span class="label">Unknown Register</span><strong>Decision-maker, available capital path, current opening timeline, one-location versus multi-location ambition.</strong></div>
-            <div class="dossier-section"><span class="label">JR Brief</span><strong>Prepare mobile-to-retail growth story and ask whether JR should frame Smoothie Depot as complementary or strategic learning.</strong></div>
-            <div class="dossier-section"><span class="label">Executive Call Card</span><strong>Call third if direct-category operator insight remains useful after the first two calls.</strong></div>
-          </div>
-          <p class="dossier-source">Research source consumed: ranked-business-prospects-2026-07-03.json and executive-due-diligence-framework-v4.json.</p>
+        <article class="dossier-panel dossier-leemoo pending-dossier">
+          <p class="eyebrow">Founder Intelligence Command Center</p>
+          <h2>LEEMOO Health Bar</h2>
+          <p class="note">No completed canonical Research dossier is registered for this business. Dashboard will not summarize or fabricate one. Research must publish a completed Smoothie Depot dossier before this workspace can render it.</p>
         </article>
       </div>
     </section>
@@ -1044,5 +2642,6 @@
 
     <p class="footer">Internal Founder route: /smoothie-depot-dashboard/ · Workspace: Smoothie Depot · Data mode: workspace Research output · CRM runtime untouched</p>
   </main>
+  <script src="/smoothie-depot-dashboard/command-center.js"></script>
 </body>
 </html>
