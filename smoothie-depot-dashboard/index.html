@@ -74,7 +74,7 @@
 
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);
       gap: 22px;
       align-items: start;
       padding: 24px;
@@ -102,7 +102,9 @@
       margin-bottom: 10px;
       font-size: clamp(2.25rem, 5vw, 5rem);
       line-height: 0.98;
-      overflow-wrap: anywhere;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
     }
 
     .subtitle {
@@ -114,7 +116,7 @@
     }
 
     .workspace-badge {
-      width: min(360px, 100%);
+      width: 100%;
       padding: 16px;
       border: 1px solid var(--line-hot);
       border-radius: 8px;
@@ -914,6 +916,10 @@
     }
 
     @media (max-width: 1180px) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       .metrics {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
@@ -952,6 +958,7 @@
       h1 {
         font-size: 2.15rem;
         line-height: 1.06;
+        overflow-wrap: break-word;
       }
 
       .metrics,

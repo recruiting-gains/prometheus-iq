@@ -38,6 +38,8 @@ assert(source.includes("noindex,nofollow,noarchive"), "Dashboard must be noindex
 assert(source.includes("frame-ancestors 'none'"), "Dashboard CSP must prevent framing.");
 assert(source.includes("script-src 'self'"), "Dashboard command center must allow only self-hosted scripts.");
 assert(source.includes("/smoothie-depot-dashboard/command-center.js"), "Dashboard must load the self-hosted command center script.");
+assert(source.includes("grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);"), "Dashboard hero must preserve a non-collapsing desktop title column.");
+assert(source.includes("overflow-wrap: normal;\n      word-break: normal;\n      hyphens: none;"), "Dashboard H1 must not use single-letter emergency wrapping on desktop.");
 assert(!commandCenterSource.includes("fetch("), "Command center must not fetch data.");
 assert(!commandCenterSource.includes("localStorage"), "Command center must not persist local storage.");
 assert(!commandCenterSource.includes("sessionStorage"), "Command center must not persist session storage.");
