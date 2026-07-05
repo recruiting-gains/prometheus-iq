@@ -100,13 +100,13 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
-### 2026-07-06: Prometheus Administration - Founder ROIs 2026-07-06
+### 2026-07-05: Prometheus Administration - Founder ROIs 2026-07-05
 
 Subsystem: Prometheus Administration
 
-Task: Founder ROIs - 2026-07-06
+Task: Founder ROIs - 2026-07-05
 
-Commit: Recorded by the Founder ROIs - 2026-07-06 handoff commit.
+Commit: Recorded by the Founder ROIs - 2026-07-05 handoff commit.
 
 Deploy: Not run. Administration operating artifact only.
 
@@ -131,12 +131,12 @@ Founder Operations / Customer Validation.
 Files changed:
 
 - `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
-- `administration/founder-rois/2026-07-06-founder-rois.md`
+- `administration/founder-rois/2026-07-05-founder-rois.md`
 - `administration/registers/documentation-index.json`
 
 Remaining blockers:
 
-- Website production messaging verification has not yet been recorded for the 2026-07-06 operations day.
+- Website production messaging verification has not yet been recorded for the 2026-07-05 operations day.
 - Nutrition Depot Executive Intelligence Package Founder review is pending.
 - Executive Intelligence methodology refinement depends on actual Founder review findings.
 
