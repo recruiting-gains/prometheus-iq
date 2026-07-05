@@ -121,9 +121,10 @@ function App() {
             <SectionLabel>Prometheus IQ by Prometheus</SectionLabel>
             <h1>AI Route Intelligence for Outside Sales Teams.</h1>
             <p>
-              Prometheus IQ helps outside-sales organizations decide where to go next,
-              verify what happened, and turn field visits into governed operating
-              intelligence across every industry where face-to-face selling still wins.
+              At Prometheus, we make it our business to know who sits in front of you before you ever shake their hand.
+              By transforming evidence into decision-ready intelligence, we help organizations reduce uncertainty before
+              important business decisions—from outside sales and franchise development to future operational intelligence
+              across every industry where preparation creates an advantage.
             </p>
             <div className="hero-actions">
               <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Request Access</a>
