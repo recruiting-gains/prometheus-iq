@@ -157,26 +157,46 @@ function validateDashboardConsumer(workspace, dossierContext, failures) {
   const [sourcePath, deployPath] = dashboardContract.requiredSourcePaths;
   const source = read(sourcePath);
   const deploy = read(deployPath);
-  const markdownHash = sha256(dossierContext.markdown);
-  const structuredArtifact = JSON.stringify(dossierContext.structured, null, 2);
+  const packageMarkdownPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md";
+  const packageJsonPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json";
+  const packageRegisterPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json";
+  const packageMarkdown = read(packageMarkdownPath).trimEnd();
+  const packageJson = readJson(packageJsonPath);
+  const packageRegister = readJson(packageRegisterPath);
+  const markdownHash = sha256(packageMarkdown);
+  const structuredArtifact = JSON.stringify(packageJson, null, 2);
+
+  assert(packageRegister.workspaceId === workspace.workspaceId, "Executive package register workspace mismatch.", failures);
+  assert(packageRegister.operatingProfileId === workspace.operatingProfileId, "Executive package register operating profile mismatch.", failures);
+  assert(packageRegister.boundaryConfirmation?.dashboardModified === false, "Executive package register must not be Dashboard-modified.", failures);
+  assert(packageJson.packageStatus === "completed_research_executive_intelligence_package", "Executive package must be completed.", failures);
+  assert(packageJson.workspaceId === workspace.workspaceId, "Executive package workspace mismatch.", failures);
+  assert(packageJson.operatingProfileId === workspace.operatingProfileId, "Executive package operating profile mismatch.", failures);
+  assert(packageJson.boundaryConfirmation?.productionSystemsModified === false, "Executive package must not modify production systems.", failures);
 
   assert(source === deploy, "Dashboard source and deploy mirror must match.", failures);
   assert(source.includes('data-workspace-id="smoothie_depot"'), "Dashboard must declare smoothie_depot workspace.", failures);
   assert(source.includes('data-operating-profile-id="franchise_development"'), "Dashboard must declare franchise_development profile.", failures);
   assert(source.includes("Executive Intelligence Operations Center"), "Dashboard must render Executive Intelligence Operations Center.", failures);
   assert(source.includes("Open Executive Intelligence Package"), "Dashboard must expose Executive Intelligence Package action.", failures);
+  assert(source.includes("Founder Executive Intelligence Review Mode"), "Dashboard must render Founder Executive Intelligence Review Mode.", failures);
   assert(source.includes("Founder Review"), "Dashboard must render Founder Review workflow.", failures);
   assert(source.includes("Founder Approves"), "Dashboard must render Founder approval decision.", failures);
   assert(source.includes("Founder Rejects"), "Dashboard must render Founder rejection decision.", failures);
   assert(source.includes("Additional Research Required"), "Dashboard must render additional Research request decision.", failures);
   assert(source.includes("Export Professional Executive Package"), "Dashboard must render professional package export workflow.", failures);
   assert(source.includes("Intelligence Library"), "Dashboard must render workspace-isolated Intelligence Library.", failures);
-  assert(source.includes("Decision Journal"), "Dashboard must render Decision Journal.", failures);
+  assert(source.includes("Local Founder Notes"), "Dashboard must render local Founder notes.", failures);
+  assert(source.includes("Table of Contents"), "Dashboard must render Executive package table of contents.", failures);
+  assert(source.includes("Previous:"), "Dashboard must render previous section navigation.", failures);
+  assert(source.includes("Next:"), "Dashboard must render next section navigation.", failures);
   assert(source.includes("No completed Research-owned Executive Intelligence Package is registered"), "Dashboard must fail closed for missing Executive Intelligence Packages.", failures);
+  assert(source.includes(packageMarkdownPath), "Dashboard must point to canonical Executive Intelligence Package Markdown.", failures);
   assert(source.includes(markdownHash), "Dashboard must expose canonical Markdown artifact hash.", failures);
-  assert(source.includes(htmlEscape("# Nutrition Depot Executive Due Diligence Dossier v1")), "Dashboard must render canonical Markdown title.", failures);
-  assert(source.includes(htmlEscape("## 29. Source Reliability Matrix")), "Dashboard must render full dossier sections.", failures);
-  assert(source.includes(htmlEscape('"artifactStatus": "completed_canonical_research_dossier"')), "Dashboard must render structured JSON artifact.", failures);
+  assert(source.includes(htmlEscape("# Nutrition Depot Executive Intelligence Package v1")), "Dashboard must render canonical Executive package title.", failures);
+  assert(source.includes(htmlEscape("## Executive Decision Page")), "Dashboard must render Executive Decision Page.", failures);
+  assert(source.includes(htmlEscape("## Layer 12: Executive Decision Support")), "Dashboard must render full package sections.", failures);
+  assert(source.includes(htmlEscape('"packageStatus": "completed_research_executive_intelligence_package"')), "Dashboard must render structured package JSON artifact.", failures);
   assert(source.includes(htmlEscape(structuredArtifact).slice(0, 120)), "Dashboard must render structured JSON content.", failures);
   assert(
     dashboardContract.allowedReadPaths.includes("administration/workspaces/smoothie-depot/founder-operating-manual-v1.md"),

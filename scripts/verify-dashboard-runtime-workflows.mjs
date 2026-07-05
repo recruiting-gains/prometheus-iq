@@ -1028,13 +1028,14 @@ async function runHarness() {
       hasFounderReview: document.body.textContent.includes("Founder Review"),
       hasExportWorkflow: document.body.textContent.includes("Export Professional Executive Package"),
       hasIntelligenceLibrary: document.body.textContent.includes("Intelligence Library"),
-      hasDecisionJournal: document.body.textContent.includes("Decision Journal"),
+      hasLocalNotes: document.body.textContent.includes("Local Founder Notes"),
+      hasExecutivePackage: document.body.textContent.includes("Nutrition Depot Executive Intelligence Package v1"),
       hasFixturePipeline: document.body.textContent.includes("Candidate Pipeline"),
       hasSalesCommissionForecast: document.body.textContent.includes("Commission Forecast"),
       hasFitnessRuntimeTerms: /Units|Memberships|Territories/.test(document.body.textContent)
     }))()`);
     assertWorkflow("Founder workspace switcher Smoothie Depot route", smoothieRouteSnap.pathname === "/smoothie-depot-dashboard/" && smoothieRouteSnap.workspaceId === "smoothie_depot" && smoothieRouteSnap.operatingProfileId === "franchise_development" && smoothieRouteSnap.owner === "cruz" && smoothieRouteSnap.jrAccess === "false", `${smoothieRouteSnap.pathname} workspace ${smoothieRouteSnap.workspaceId}`, JSON.stringify(smoothieRouteSnap));
-    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasOperationsCenter && smoothieRouteSnap.hasOpenPackage && smoothieRouteSnap.hasFounderReview && smoothieRouteSnap.hasExportWorkflow && smoothieRouteSnap.hasIntelligenceLibrary && smoothieRouteSnap.hasDecisionJournal && !smoothieRouteSnap.hasFixturePipeline && !smoothieRouteSnap.hasSalesCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "operations center, package lifecycle, export, library, and decision journal visible without CRM sales workflow or Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
+    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasOperationsCenter && smoothieRouteSnap.hasOpenPackage && smoothieRouteSnap.hasFounderReview && smoothieRouteSnap.hasExportWorkflow && smoothieRouteSnap.hasIntelligenceLibrary && smoothieRouteSnap.hasLocalNotes && smoothieRouteSnap.hasExecutivePackage && !smoothieRouteSnap.hasFixturePipeline && !smoothieRouteSnap.hasSalesCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "operations center, package lifecycle, export, library, local notes, and Executive Intelligence Package visible without CRM sales workflow or Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
     switcher.cdp.close();
 
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");

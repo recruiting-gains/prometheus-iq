@@ -46,7 +46,8 @@ assert(smoothieSource.includes("Open Executive Intelligence Package"), "Smoothie
 assert(smoothieSource.includes("Founder Review"), "Smoothie Depot dashboard must render Founder review controls.");
 assert(smoothieSource.includes("Export Professional Executive Package"), "Smoothie Depot dashboard must render export workflow.");
 assert(smoothieSource.includes("Intelligence Library"), "Smoothie Depot dashboard must render the isolated Intelligence Library.");
-assert(smoothieSource.includes("Decision Journal"), "Smoothie Depot dashboard must render the Decision Journal.");
+assert(smoothieSource.includes("Local Founder Notes"), "Smoothie Depot dashboard must render local Founder notes.");
+assert(smoothieSource.includes("Nutrition Depot Executive Intelligence Package v1"), "Smoothie Depot dashboard must render the Executive Intelligence Package.");
 assert(!smoothieSource.includes("Candidate Pipeline"), "Smoothie Depot dashboard must not render fixture candidate pipeline.");
 assert(!smoothieSource.includes("Commission Forecast"), "Smoothie Depot dashboard must not render sales commission forecasting.");
 
