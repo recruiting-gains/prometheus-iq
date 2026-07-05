@@ -39,6 +39,8 @@ CRM writes activity, lead, candidate, handoff, and pipeline state only through C
 
 Intelligence reads Research and CRM artifacts and may produce interpretation only through approved Intelligence-owned contracts.
 
+Administration writes operating procedure artifacts, release/sign-off registers, founder readiness reviews, field-feedback records, action plans, launch operation records, go/no-go reviews, and post-call AAR / decision-journal handoffs.
+
 Overwatch verifies contract consistency, canonical paths, workspace isolation, source/deploy parity, and fixture/demo-data prohibition.
 
 ## Smoothie Depot Canonical Artifacts
@@ -67,6 +69,20 @@ Intelligence-owned planning contracts:
 
 - `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
 - `intelligence/contracts/business-acquisition-intelligence-contracts.json`
+
+Administration-owned operating artifacts:
+
+- `overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json`
+- `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`
+- `administration/workspaces/smoothie-depot/README.md`
+- `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`
+- `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`
+- `administration/registers/release-history.json`
+- `administration/registers/regression-verification.json`
+- `administration/registers/stabilization-issues.json`
+- `administration/registers/beta-observations.json`
+- `administration/registers/test-session-history.json`
+- `administration/command-center/beta-sprint-2/issue-tracker.json`
 
 ## Fitness Connection Canonical Artifacts
 
@@ -136,6 +152,12 @@ Mobile may consume only role-scoped, workspace-scoped Fitness lead artifacts and
 
 Fitness Connection work must preserve the `fitness_connection` workspace, `fitness` Operating Profile, Founder/Rep separation, Anthony Rep-only access, Data-owned Active Pool governance, CRM-owned lead/activity state, and Smoothie Depot isolation.
 
+Dashboard may display Administration operating manuals read-only through the Administration operating artifact contract. Dashboard must not mutate, regenerate, summarize into source-of-truth records, or invent missing Administration operating artifacts.
+
+CRM may consume Administration field-feedback artifacts only through the Administration operating artifact contract. CRM must not read workspace operating manuals as mutable CRM state and must reject cross-workspace feedback.
+
+Intelligence may consume post-call AAR / decision-journal handoff artifacts only through the Administration operating artifact contract. Intelligence must not use field-feedback or decision-journal records as cross-workspace training signals.
+
 Overwatch must reject future handoffs that bypass this registry, duplicate these contracts, introduce production fixture/demo data, or blur workspace ownership.
 
 ## Fixture and Demo Data Policy
@@ -167,8 +189,7 @@ Incomplete links identified:
 Required remediation order:
 
 1. Keep Overwatch artifact contract verification active in `npm test`.
-2. Administration must register workspace operating manuals, release/sign-off registers, and field-feedback artifacts before new Administration workspace feature work.
-3. Sales must register a consumer contract before using Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
-4. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
-5. CRM runtime persistence requires explicit CRM-owned approval.
-6. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.
+2. Sales must register a consumer contract before using Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+3. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
+4. CRM runtime persistence requires explicit CRM-owned approval.
+5. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.

@@ -158,6 +158,19 @@
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_administration_operating_artifact_contract",
+          "artifactType": "administration_operating_artifact_contract",
+          "ownerSubsystem": "Prometheus Administration",
+          "path": "overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json",
+          "schema": "AdministrationOperatingArtifactContractV1",
+          "writeAllowed": ["Prometheus Administration"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
         }
       ],
       "consumerContracts": {
@@ -166,7 +179,10 @@
           "allowedReadPaths": [
             "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
             "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json"
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
+            "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
+            "administration/workspaces/smoothie-depot/README.md",
+            "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md"
           ],
           "requiredSourcePaths": [
             "smoothie-depot-dashboard/index.html",
@@ -178,7 +194,9 @@
           "mustFailClosedOnMissingCanonicalDossier": true,
           "mustNotSummarize": true,
           "mustNotRegenerateResearch": true,
-          "mustNotUseFixtureData": true
+          "mustNotUseFixtureData": true,
+          "administrationOperatingManualsReadOnly": true,
+          "mustNotWriteAdministrationArtifacts": true
         },
         "crm": {
           "consumerSubsystem": "Prometheus CRM",
@@ -188,12 +206,18 @@
           ],
           "allowedReadPaths": [
             "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
-            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json"
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
+            "administration/registers/stabilization-issues.json",
+            "administration/registers/beta-observations.json",
+            "administration/registers/test-session-history.json",
+            "administration/command-center/beta-sprint-2/issue-tracker.json"
           ],
           "requiredEntryPoint": "consumeWorkspaceLeadIntakeHandoff",
           "mustRejectUnknownWorkspace": true,
           "mustRejectCrossWorkspaceContamination": true,
-          "runtimeCandidatePersistenceAuthorized": false
+          "runtimeCandidatePersistenceAuthorized": false,
+          "mayConsumeFieldFeedbackOnlyThroughAdministrationContract": true,
+          "mayWriteAdministrationArtifacts": false
         },
         "intelligence": {
           "consumerSubsystem": "Prometheus Intelligence Engine",
@@ -208,7 +232,10 @@
           ],
           "mustNotActivateProductionScoring": true,
           "mustNotInfluenceFitnessConnection": true,
-          "mustNotMutateResearchOrCrm": true
+          "mustNotMutateResearchOrCrm": true,
+          "mayConsumeDecisionJournalAarOnlyThroughAdministrationContract": true,
+          "administrationDecisionJournalPathPattern": "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
+          "mustNotWriteAdministrationArtifacts": true
         },
         "overwatch": {
           "consumerSubsystem": "Prometheus Overwatch",

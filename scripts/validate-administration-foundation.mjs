@@ -60,7 +60,8 @@ const requiredJson = [
   'administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json',
   'administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json',
   'administration/command-center/beta-sprint-2/issue-tracker.json',
-  'administration/workspaces/smoothie-depot/workspace-isolation-verification.json'
+  'administration/workspaces/smoothie-depot/workspace-isolation-verification.json',
+  'overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json'
 ];
 
 const failures = [];
@@ -493,6 +494,72 @@ for (const phrase of ['Dashboard', 'Companion', 'CRM', 'Infrastructure', 'Integr
 for (const phrase of ['Private Beta Stabilization Intake', 'stabilization-issues.json', 'tester sign-off']) {
   if (!readme.includes(phrase)) {
     failures.push(`Administration README must document ${phrase}`);
+  }
+}
+
+const administrationContract = jsonByPath.get('overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json');
+if (administrationContract) {
+  if (administrationContract.owningSubsystem !== 'Prometheus Administration') {
+    failures.push('Administration operating artifact contract must be Administration-owned');
+  }
+  if (administrationContract.workspaceId !== 'smoothie_depot') {
+    failures.push('Administration operating artifact contract must register Smoothie Depot workspace');
+  }
+  const requiredArtifactTypes = [
+    'founder_operating_manual',
+    'workspace_operating_manual',
+    'daily_checklist',
+    'release_signoff_register',
+    'founder_readiness_review',
+    'field_feedback_artifact',
+    'founder_action_plan',
+    'launch_operations_record',
+    'go_no_go_readiness_artifact',
+    'post_call_aar_decision_journal_handoff'
+  ];
+  const registeredTypes = Object.values(administrationContract.artifactContracts ?? {}).map((artifact) => artifact.artifactType);
+  for (const artifactType of requiredArtifactTypes) {
+    if (!registeredTypes.includes(artifactType)) {
+      failures.push(`Administration operating artifact contract missing ${artifactType}`);
+    }
+  }
+  for (const [sectionName, section] of Object.entries(administrationContract.artifactContracts ?? {})) {
+    for (const filePath of Object.values(section.canonicalPaths ?? {})) {
+      if (!existsSync(path.join(repoRoot, filePath))) {
+        failures.push(`Administration contract ${sectionName} references missing file: ${filePath}`);
+      }
+    }
+    if (section.canonicalPaths && section.failClosedIfMissing !== true) {
+      failures.push(`Administration contract ${sectionName} must fail closed on missing canonical paths`);
+    }
+    if (section.canonicalPathPattern && section.missingWorkspaceInstanceBehavior !== 'fail_closed') {
+      failures.push(`Administration contract ${sectionName} must fail closed for missing workspace instances`);
+    }
+    if (section.fixtureDemoOperationsDataAllowedInProduction === true) {
+      failures.push(`Administration contract ${sectionName} must not allow fixture/demo operations data in production`);
+    }
+  }
+  if (administrationContract.workspaceRegistrations?.smoothie_depot?.status !== 'registered') {
+    failures.push('Smoothie Depot Administration operating artifacts must be registered');
+  }
+  const fitnessDiscoveryPath = administrationContract.workspaceRegistrations?.fitness_connection?.artifactDiscoveryPath;
+  if (fitnessDiscoveryPath && administrationContract.workspaceRegistrations.fitness_connection.currentAdministrationArtifactsPresent !== existsSync(path.join(repoRoot, fitnessDiscoveryPath))) {
+    failures.push('Fitness Connection Administration artifact presence must match discovery path');
+  }
+  if (administrationContract.consumerRules?.dashboard?.mayDisplayOperatingManualsReadOnly !== true) {
+    failures.push('Dashboard must display Administration operating manuals read-only through contract');
+  }
+  if (administrationContract.consumerRules?.crm?.mayConsumeFieldFeedbackOnlyThroughContract !== true) {
+    failures.push('CRM must consume Administration field feedback only through contract');
+  }
+  if (administrationContract.consumerRules?.intelligence?.mayConsumeDecisionJournalAarOnlyThroughContract !== true) {
+    failures.push('Intelligence must consume Administration AAR / decision journals only through contract');
+  }
+  if (administrationContract.workspaceIsolationRules?.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords !== true) {
+    failures.push('Administration contract must prohibit cross-workspace operating record consumption');
+  }
+  if (administrationContract.productionRules?.fixtureDemoOperationsDataProhibitedInProduction !== true) {
+    failures.push('Administration contract must prohibit fixture/demo operations data in production');
   }
 }
 

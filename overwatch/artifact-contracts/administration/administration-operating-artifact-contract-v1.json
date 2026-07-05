@@ -1,0 +1,213 @@
+{
+  "contractId": "administration-operating-artifact-contract-v1",
+  "schema": "AdministrationOperatingArtifactContractV1",
+  "schemaVersion": "1.0.0",
+  "version": "1.0.0",
+  "status": "active",
+  "owningSubsystem": "Prometheus Administration",
+  "workspaceId": "smoothie_depot",
+  "workspaceName": "Smoothie Depot",
+  "operatingProfileId": "franchise_development",
+  "description": "Canonical Administration operating artifact contract for workspace manuals, checklists, release/sign-off registers, readiness reviews, field feedback, action plans, launch records, go/no-go reviews, and post-call AAR / decision-journal handoffs.",
+  "purpose": "Register Administration-owned operating manuals, checklists, release/sign-off registers, field feedback, readiness records, and decision-journal handoff artifacts through the Prometheus Integration Contract Layer.",
+  "artifactContracts": {
+    "founderOperatingManuals": {
+      "artifactType": "founder_operating_manual",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "smoothieDepotFounderOperatingManual": "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md"
+      },
+      "requiredForWorkspace": true,
+      "failClosedIfMissing": true
+    },
+    "workspaceOperatingManuals": {
+      "artifactType": "workspace_operating_manual",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "smoothieDepotWorkspaceReadme": "administration/workspaces/smoothie-depot/README.md",
+        "smoothieDepotWorkspaceIsolationVerification": "administration/workspaces/smoothie-depot/workspace-isolation-verification.json"
+      },
+      "requiredForWorkspace": true,
+      "failClosedIfMissing": true
+    },
+    "dailyChecklists": {
+      "artifactType": "daily_checklist",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "smoothieDepotDailyOperatingChecklists": "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md"
+      },
+      "requiredForWorkspace": true,
+      "failClosedIfMissing": true
+    },
+    "releaseSignOffRegisters": {
+      "artifactType": "release_signoff_register",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "releaseHistory": "administration/registers/release-history.json",
+        "regressionVerification": "administration/registers/regression-verification.json",
+        "sprint1IssueVerificationMatrix": "administration/verification/beta-stabilization-sprint-1/issue-verification-matrix.json",
+        "sprint1SignOffPacket": "administration/verification/beta-stabilization-sprint-1/sign-off-packet.md"
+      },
+      "requiredForBetaOperations": true,
+      "failClosedIfMissing": true
+    },
+    "founderReadinessReviews": {
+      "artifactType": "founder_readiness_review",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "sprint1ReadinessReview": "administration/verification/beta-stabilization-sprint-1/beta-stabilization-sprint-1-readiness.json",
+        "saturdayFieldTestGuide": "administration/verification/beta-stabilization-sprint-1/saturday-field-test-guide.md"
+      },
+      "requiredForBetaOperations": true,
+      "failClosedIfMissing": true
+    },
+    "fieldFeedbackArtifacts": {
+      "artifactType": "field_feedback_artifact",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPaths": {
+        "stabilizationIssues": "administration/registers/stabilization-issues.json",
+        "betaObservations": "administration/registers/beta-observations.json",
+        "testSessionHistory": "administration/registers/test-session-history.json",
+        "sprint2IssueTracker": "administration/command-center/beta-sprint-2/issue-tracker.json",
+        "sprint2EvidenceLog": "administration/command-center/beta-sprint-2/evidence-log.md"
+      },
+      "requiredForBetaOperations": true,
+      "failClosedIfMissing": true
+    },
+    "founderActionPlans": {
+      "artifactType": "founder_action_plan",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPathPattern": "administration/workspaces/{workspace-slug}/founder-action-plans/{yyyy-mm-dd}-{plan-id}.md",
+      "requiredMetadata": ["workspaceId", "operatingProfileId", "owner", "status", "nextActions"],
+      "missingWorkspaceInstanceBehavior": "fail_closed",
+      "fixtureDemoOperationsDataAllowedInProduction": false
+    },
+    "launchOperationsRecords": {
+      "artifactType": "launch_operations_record",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPathPattern": "administration/workspaces/{workspace-slug}/launch-operations/{yyyy-mm-dd}-{record-id}.json",
+      "requiredMetadata": ["workspaceId", "operatingProfileId", "launchScope", "owner", "goNoGoStatus"],
+      "missingWorkspaceInstanceBehavior": "fail_closed",
+      "fixtureDemoOperationsDataAllowedInProduction": false
+    },
+    "goNoGoReadinessArtifacts": {
+      "artifactType": "go_no_go_readiness_artifact",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPathPattern": "administration/workspaces/{workspace-slug}/readiness/go-no-go-{yyyy-mm-dd}.md",
+      "requiredMetadata": ["workspaceId", "operatingProfileId", "decision", "majorBlockers", "founderReview"],
+      "missingWorkspaceInstanceBehavior": "fail_closed",
+      "fixtureDemoOperationsDataAllowedInProduction": false
+    },
+    "postCallAarDecisionJournalHandoffs": {
+      "artifactType": "post_call_aar_decision_journal_handoff",
+      "ownerSubsystem": "Prometheus Administration",
+      "canonicalPathPattern": "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
+      "requiredMetadata": ["workspaceId", "operatingProfileId", "sourceCallId", "decision", "aarSummary", "handoffTarget"],
+      "missingWorkspaceInstanceBehavior": "fail_closed",
+      "fixtureDemoOperationsDataAllowedInProduction": false
+    }
+  },
+  "workspaceRegistrations": {
+    "smoothie_depot": {
+      "workspaceId": "smoothie_depot",
+      "workspaceName": "Smoothie Depot",
+      "operatingProfileId": "franchise_development",
+      "status": "registered",
+      "registeredArtifacts": [
+        "founder_operating_manual",
+        "workspace_operating_manual",
+        "daily_checklist",
+        "release_signoff_register",
+        "founder_readiness_review",
+        "field_feedback_artifact"
+      ],
+      "futureArtifactContractsDefined": [
+        "founder_action_plan",
+        "launch_operations_record",
+        "go_no_go_readiness_artifact",
+        "post_call_aar_decision_journal_handoff"
+      ]
+    },
+    "fitness_connection": {
+      "workspaceId": "fitness_connection",
+      "workspaceName": "Fitness Connection",
+      "operatingProfileId": "fitness",
+      "status": "registered_if_present",
+      "artifactDiscoveryPath": "administration/workspaces/fitness-connection",
+      "currentAdministrationArtifactsPresent": false,
+      "requiredBehaviorIfArtifactsAppear": "register_in_this_contract_before_cross_subsystem_consumption"
+    }
+  },
+  "consumerRules": {
+    "dashboard": {
+      "consumerSubsystem": "Prometheus Dashboard",
+      "mayDisplayOperatingManualsReadOnly": true,
+      "allowedReadArtifactTypes": ["founder_operating_manual", "workspace_operating_manual", "daily_checklist"],
+      "allowedReadPaths": [
+        "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
+        "administration/workspaces/smoothie-depot/README.md",
+        "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md"
+      ],
+      "mayWriteAdministrationArtifacts": false,
+      "mayInventMissingOperatingRecords": false,
+      "mustFailClosedOnMissingArtifact": true
+    },
+    "crm": {
+      "consumerSubsystem": "Prometheus CRM",
+      "mayConsumeFieldFeedbackOnlyThroughContract": true,
+      "allowedReadArtifactTypes": ["field_feedback_artifact"],
+      "allowedReadPaths": [
+        "administration/registers/stabilization-issues.json",
+        "administration/registers/beta-observations.json",
+        "administration/registers/test-session-history.json",
+        "administration/command-center/beta-sprint-2/issue-tracker.json"
+      ],
+      "mayWriteAdministrationArtifacts": false,
+      "mayConsumeOperatingManualsDirectly": false,
+      "mustRejectCrossWorkspaceFeedback": true,
+      "mustFailClosedOnMissingFieldFeedback": true
+    },
+    "intelligence": {
+      "consumerSubsystem": "Prometheus Intelligence Engine",
+      "mayConsumeDecisionJournalAarOnlyThroughContract": true,
+      "allowedReadArtifactTypes": ["post_call_aar_decision_journal_handoff"],
+      "allowedPathPattern": "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
+      "mayWriteAdministrationArtifacts": false,
+      "mayConsumeFieldFeedbackAsTrainingSignalWithoutContract": false,
+      "mustRejectCrossWorkspaceDecisionJournal": true,
+      "mustFailClosedOnMissingDecisionJournal": true
+    },
+    "overwatch": {
+      "consumerSubsystem": "Prometheus Overwatch",
+      "allowedReadPaths": ["*"],
+      "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+      "mustVerifyCanonicalPathsExist": true,
+      "mustVerifyConsumerBoundaries": true,
+      "mustVerifyWorkspaceIsolation": true,
+      "mustVerifyMissingArtifactsFailClosed": true,
+      "mustVerifyFixtureDemoOperationsDataProhibited": true
+    }
+  },
+  "workspaceIsolationRules": {
+    "requiredWorkspaceId": "smoothie_depot",
+    "requiredOperatingProfileId": "franchise_development",
+    "protectedWorkspaceIds": ["fitness_connection"],
+    "noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords": true,
+    "fitnessConnectionOperatingRecordsMayInfluenceSmoothieDepot": false,
+    "smoothieDepotOperatingRecordsMayInfluenceFitnessConnection": false,
+    "crossWorkspaceOperatingRecordAccessAllowed": false,
+    "globalCustomerStateAllowed": false,
+    "fixtureDataAllowedInProduction": false,
+    "demoDataAllowedInProduction": false,
+    "missingArtifactFailsClosed": true
+  },
+  "productionRules": {
+    "fixtureDemoOperationsDataProhibitedInProduction": true,
+    "missingArtifactsFailClosed": true,
+    "administrationOwnsOperatingProcedureArtifacts": true,
+    "productRuntimeMutationAllowed": false,
+    "dashboardMayRenderReadOnly": true,
+    "crmMayConsumeFieldFeedbackOnlyThroughContract": true,
+    "intelligenceMayConsumeDecisionJournalAarOnlyThroughContract": true
+  }
+}

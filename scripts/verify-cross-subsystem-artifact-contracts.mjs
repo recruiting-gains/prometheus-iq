@@ -173,6 +173,13 @@ function validateDashboardConsumer(workspace, dossierContext, failures) {
   assert(source.includes(htmlEscape("## 29. Source Reliability Matrix")), "Dashboard must render full dossier sections.", failures);
   assert(source.includes(htmlEscape('"artifactStatus": "completed_canonical_research_dossier"')), "Dashboard must render structured JSON artifact.", failures);
   assert(source.includes(htmlEscape(structuredArtifact).slice(0, 120)), "Dashboard must render structured JSON content.", failures);
+  assert(
+    dashboardContract.allowedReadPaths.includes("administration/workspaces/smoothie-depot/founder-operating-manual-v1.md"),
+    "Dashboard Administration manual read path must be registered.",
+    failures
+  );
+  assert(dashboardContract.administrationOperatingManualsReadOnly === true, "Dashboard must consume Administration manuals read-only.", failures);
+  assert(dashboardContract.mustNotWriteAdministrationArtifacts === true, "Dashboard must not write Administration artifacts.", failures);
 
   for (const [label, value] of [
     ["Outreach Sent", "0"],
@@ -220,6 +227,13 @@ function validateCrmConsumer(workspace, failures) {
   const planning = readJson("crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json");
 
   assert(foundation.includes(crmContract.requiredEntryPoint), "CRM handoff entry point missing.", failures);
+  assert(
+    crmContract.allowedReadPaths.includes("administration/registers/stabilization-issues.json"),
+    "CRM Administration field-feedback read path must be registered.",
+    failures
+  );
+  assert(crmContract.mayConsumeFieldFeedbackOnlyThroughAdministrationContract === true, "CRM must consume field feedback only through Administration contract.", failures);
+  assert(crmContract.mayWriteAdministrationArtifacts === false, "CRM must not write Administration artifacts.", failures);
   assert(foundation.includes("Unknown CRM workspace intake workspace"), "CRM must reject unknown workspace.", failures);
   assert(foundation.includes("cross-workspace contamination"), "CRM must reject cross-workspace contamination.", failures);
   assert(foundation.includes("smoothie_depot_candidate_handoff"), "CRM must support Smoothie Depot candidate handoff target.", failures);
@@ -250,6 +264,17 @@ function validateIntelligenceConsumer(workspace, failures) {
   assert(contracts.contracts?.WorkspaceIsolationGuardrails, "Business acquisition contracts must define WorkspaceIsolationGuardrails.", failures);
   assert(intelligenceContract.mustNotActivateProductionScoring === true, "Intelligence contract must block production scoring.", failures);
   assert(intelligenceContract.mustNotMutateResearchOrCrm === true, "Intelligence contract must block Research/CRM mutation.", failures);
+  assert(
+    intelligenceContract.mayConsumeDecisionJournalAarOnlyThroughAdministrationContract === true,
+    "Intelligence must consume Administration decision journals/AARs only through contract.",
+    failures
+  );
+  assert(
+    intelligenceContract.administrationDecisionJournalPathPattern === "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
+    "Intelligence Administration decision-journal path pattern mismatch.",
+    failures
+  );
+  assert(intelligenceContract.mustNotWriteAdministrationArtifacts === true, "Intelligence must not write Administration artifacts.", failures);
 }
 
 function validateReferencedPaths(paths, label, failures) {
@@ -542,6 +567,109 @@ function validateSocialMediaArtifactContract(workspace, failures) {
   assert(contract.consumerRules.overwatch.mustVerifyWorkspaceIsolation === true, `${artifactId} Overwatch workspace isolation rule missing.`, failures);
 }
 
+function validateAdministrationOperatingArtifactContract(workspace, failures) {
+  const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
+  const artifact = artifacts.smoothie_depot_administration_operating_artifact_contract;
+  const contract = readJson(artifact.path);
+  const requiredArtifactTypes = [
+    "founder_operating_manual",
+    "workspace_operating_manual",
+    "daily_checklist",
+    "release_signoff_register",
+    "founder_readiness_review",
+    "field_feedback_artifact",
+    "founder_action_plan",
+    "launch_operations_record",
+    "go_no_go_readiness_artifact",
+    "post_call_aar_decision_journal_handoff"
+  ];
+  const registeredTypes = Object.values(contract.artifactContracts || {}).map(record => record.artifactType);
+
+  assert(artifact.ownerSubsystem === "Prometheus Administration", "Administration artifact contract must be Administration-owned.", failures);
+  assert(artifact.schema === "AdministrationOperatingArtifactContractV1", "Administration artifact contract schema mismatch.", failures);
+  assert(artifact.readAllowed.includes("Prometheus Dashboard"), "Administration contract must allow Dashboard read boundary.", failures);
+  assert(artifact.readAllowed.includes("Prometheus CRM"), "Administration contract must allow CRM read boundary.", failures);
+  assert(artifact.readAllowed.includes("Prometheus Intelligence Engine"), "Administration contract must allow Intelligence read boundary.", failures);
+  assert(contract.status === "active", "Administration operating artifact contract must be active.", failures);
+  assert(contract.owningSubsystem === "Prometheus Administration", "Administration operating artifact contract owner mismatch.", failures);
+  assert(contract.workspaceId === workspace.workspaceId, "Administration operating artifact contract workspace mismatch.", failures);
+  assert(contract.operatingProfileId === workspace.operatingProfileId, "Administration operating artifact contract operating profile mismatch.", failures);
+
+  for (const artifactType of requiredArtifactTypes) {
+    assert(registeredTypes.includes(artifactType), `Administration contract missing artifact type: ${artifactType}`, failures);
+  }
+
+  for (const [sectionName, section] of Object.entries(contract.artifactContracts || {})) {
+    for (const artifactPath of Object.values(section.canonicalPaths || {})) {
+      assert(exists(artifactPath), `Administration ${sectionName} referenced path does not exist: ${artifactPath}`, failures);
+    }
+    if (section.canonicalPaths) {
+      assert(section.failClosedIfMissing === true, `Administration ${sectionName} must fail closed on missing canonical paths.`, failures);
+    } else {
+      assert(Boolean(section.canonicalPathPattern), `Administration ${sectionName} missing canonical path pattern.`, failures);
+      assert(section.missingWorkspaceInstanceBehavior === "fail_closed", `Administration ${sectionName} must fail closed for missing workspace instances.`, failures);
+      assert(section.fixtureDemoOperationsDataAllowedInProduction === false, `Administration ${sectionName} must block production fixture/demo operations data.`, failures);
+    }
+  }
+
+  const smoothieRegistration = contract.workspaceRegistrations?.smoothie_depot;
+  assert(smoothieRegistration?.status === "registered", "Smoothie Depot Administration artifacts must be registered.", failures);
+  assert(
+    smoothieRegistration?.registeredArtifacts?.includes("founder_operating_manual"),
+    "Smoothie Depot founder operating manual must be registered.",
+    failures
+  );
+  assert(
+    smoothieRegistration?.registeredArtifacts?.includes("field_feedback_artifact"),
+    "Smoothie Depot field-feedback artifacts must be registered.",
+    failures
+  );
+  assert(
+    smoothieRegistration?.futureArtifactContractsDefined?.includes("post_call_aar_decision_journal_handoff"),
+    "Smoothie Depot AAR / decision-journal handoff contract must be defined.",
+    failures
+  );
+
+  const fitnessRegistration = contract.workspaceRegistrations?.fitness_connection;
+  assert(fitnessRegistration?.status === "registered_if_present", "Fitness Connection Administration registration must be conditional.", failures);
+  assert(
+    fitnessRegistration?.currentAdministrationArtifactsPresent === exists(fitnessRegistration.artifactDiscoveryPath),
+    "Fitness Connection Administration artifact presence must match the workspace discovery path.",
+    failures
+  );
+  assert(
+    fitnessRegistration?.requiredBehaviorIfArtifactsAppear === "register_in_this_contract_before_cross_subsystem_consumption",
+    "Fitness Connection Administration artifacts must require registration before consumption.",
+    failures
+  );
+
+  assert(contract.consumerRules.dashboard.mayDisplayOperatingManualsReadOnly === true, "Dashboard must display Administration manuals read-only.", failures);
+  assert(contract.consumerRules.dashboard.allowedReadPaths.includes("administration/workspaces/smoothie-depot/founder-operating-manual-v1.md"), "Dashboard manual read path missing from Administration contract.", failures);
+  assert(contract.consumerRules.dashboard.mayWriteAdministrationArtifacts === false, "Dashboard must not write Administration artifacts.", failures);
+  assert(contract.consumerRules.dashboard.mustFailClosedOnMissingArtifact === true, "Dashboard must fail closed on missing Administration artifacts.", failures);
+
+  assert(contract.consumerRules.crm.mayConsumeFieldFeedbackOnlyThroughContract === true, "CRM field-feedback contract rule missing.", failures);
+  assert(contract.consumerRules.crm.allowedReadPaths.includes("administration/registers/stabilization-issues.json"), "CRM field-feedback path missing from Administration contract.", failures);
+  assert(contract.consumerRules.crm.mayConsumeOperatingManualsDirectly === false, "CRM must not consume operating manuals directly.", failures);
+  assert(contract.consumerRules.crm.mustRejectCrossWorkspaceFeedback === true, "CRM must reject cross-workspace Administration feedback.", failures);
+
+  assert(contract.consumerRules.intelligence.mayConsumeDecisionJournalAarOnlyThroughContract === true, "Intelligence AAR contract rule missing.", failures);
+  assert(
+    contract.consumerRules.intelligence.allowedPathPattern === "administration/workspaces/{workspace-slug}/decision-journal/{yyyy-mm-dd}-{handoff-id}.json",
+    "Intelligence AAR path pattern missing from Administration contract.",
+    failures
+  );
+  assert(contract.consumerRules.intelligence.mustRejectCrossWorkspaceDecisionJournal === true, "Intelligence must reject cross-workspace decision journals.", failures);
+  assert(contract.consumerRules.overwatch.mustVerifyFixtureDemoOperationsDataProhibited === true, "Overwatch must verify fixture/demo operations prohibition.", failures);
+
+  assert(contract.workspaceIsolationRules.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords === true, "Administration contract must prohibit cross-workspace operating records.", failures);
+  assert(contract.workspaceIsolationRules.crossWorkspaceOperatingRecordAccessAllowed === false, "Administration contract must block cross-workspace operating record access.", failures);
+  assert(contract.workspaceIsolationRules.fixtureDataAllowedInProduction === false, "Administration contract must block production fixture data.", failures);
+  assert(contract.workspaceIsolationRules.missingArtifactFailsClosed === true, "Administration contract must fail closed on missing artifacts.", failures);
+  assert(contract.productionRules.fixtureDemoOperationsDataProhibitedInProduction === true, "Administration production rules must prohibit fixture/demo operations data.", failures);
+  assert(contract.productionRules.productRuntimeMutationAllowed === false, "Administration contract must not authorize product runtime mutation.", failures);
+}
+
 function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
   const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
@@ -709,12 +837,24 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
 
   const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
+  const administrationAudit = auditedSubsystems.get("Prometheus Administration");
   const dataAudit = auditedSubsystems.get("Prometheus Data");
   const socialMediaAudit = auditedSubsystems.get("Prometheus Social Media");
   const companionAudit = auditedSubsystems.get("Prometheus Companion");
   assert(companionAudit?.status === "quarantined_dormant_maintenance_only", "Companion must remain marked quarantined/dormant while Founder quarantine is active.", failures);
   assert(companionAudit?.founderReactivationRequired === true, "Companion quarantine must require explicit Founder reactivation.", failures);
   assert(companionAudit?.bypassIdentified === false, "Companion quarantine must not appear as an active contract-layer bypass.", failures);
+  assert(
+    administrationAudit?.status === "compliant_for_operating_artifact_contracts",
+    "Administration operating artifact contract bypass must be closed.",
+    failures
+  );
+  assert(administrationAudit?.bypassIdentified === false, "Administration operating artifact contract must not remain bypass-identified.", failures);
+  assert(
+    administrationAudit?.evidence?.some(item => item.includes("overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json")),
+    "Administration audit must reference the Administration operating artifact contract.",
+    failures
+  );
   assert(dataAudit?.status === "compliant_for_runtime_artifact_contracts", "Data runtime artifact contract bypass must be closed.", failures);
   assert(dataAudit?.bypassIdentified === false, "Data runtime artifact contract must not remain bypass-identified.", failures);
   assert(
@@ -746,10 +886,10 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   );
 
   const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Administration", "Priority 1 remediation must skip quarantined Companion and move to Administration.", failures);
+  assert(firstRemediation?.owner === "Prometheus Sales", "Priority 1 remediation must move to Sales after Administration registration.", failures);
   assert(
-    firstRemediation?.task?.includes("workspace operating manuals"),
-    "Priority 1 remediation must register Administration workspace operating artifacts while Companion is quarantined.",
+    firstRemediation?.task?.includes("Sales consumer contract"),
+    "Priority 1 remediation must register the Sales consumer contract after Administration registration.",
     failures
   );
 }
@@ -772,6 +912,7 @@ export function verifyCrossSubsystemArtifactContracts() {
       validateIntelligenceConsumer(workspace, failures);
       validateSharedWorkspaceLeadIntakeContract(workspace, failures);
       validateSocialMediaArtifactContract(workspace, failures);
+      validateAdministrationOperatingArtifactContract(workspace, failures);
 
       assert(
         Array.isArray(workspace.auditFindings.brokenLinksIdentified) && workspace.auditFindings.brokenLinksIdentified.length === 0,

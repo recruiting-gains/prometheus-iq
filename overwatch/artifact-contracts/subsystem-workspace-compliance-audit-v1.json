@@ -11,7 +11,7 @@
   "summary": {
     "subsystemsAudited": 14,
     "workspacesAudited": 3,
-    "fullyCompliantSubsystems": ["Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch", "Prometheus Social Media"],
+    "fullyCompliantSubsystems": ["Prometheus Administration", "Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch", "Prometheus Social Media"],
     "partialOrBypassSubsystems": [
       "Prometheus Dashboard",
       "Prometheus CRM",
@@ -19,7 +19,6 @@
       "Prometheus Website",
       "Prometheus Companion",
       "Prometheus Integrations",
-      "Prometheus Administration",
       "Prometheus Mobile"
     ],
     "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
@@ -184,17 +183,21 @@
     },
     {
       "subsystem": "Prometheus Administration",
-      "status": "partial_compliance",
+      "status": "compliant_for_operating_artifact_contracts",
       "evidence": [
+        "overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json registers Administration operating artifacts.",
         "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md",
         "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md",
-        "Administration workspace artifacts are not represented in the Overwatch artifact registry."
+        "administration/registers/release-history.json",
+        "administration/registers/regression-verification.json",
+        "administration/registers/stabilization-issues.json",
+        "administration/command-center/beta-sprint-2/issue-tracker.json"
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Administration",
       "secondaryOwners": ["Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Administration workspace operating manuals, verification records, and release/sign-off registers before new workspace operating-system or beta/field-feedback features."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain Administration operating artifact contract coverage before adding operating manuals, field-feedback artifacts, release/sign-off registers, founder readiness reviews, action plans, launch records, go/no-go reviews, or AAR/decision-journal handoffs."
     },
     {
       "subsystem": "Prometheus Mobile",
@@ -224,18 +227,18 @@
   "workspaces": [
     {
       "workspaceId": "smoothie_depot",
-      "status": "partial_compliance",
+      "status": "partial_compliance_administration_registered",
       "registeredInContractLayer": true,
       "evidence": [
         "Research/Dashboard/CRM/Intelligence Smoothie Depot artifacts are partially registered.",
         "Infrastructure shared lead intake paths are registered.",
-        "Administration operating manual paths remain outside the registry."
+        "Administration operating manuals, daily checklists, release/sign-off registers, readiness reviews, and field-feedback artifacts are registered through overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus Overwatch",
       "secondaryOwners": ["Prometheus Administration", "Prometheus CRM"],
       "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Extend Smoothie Depot registry coverage to Administration operating artifacts before new Smoothie Depot operating-system feature work."
+      "scheduledRemediation": "Keep missing Research dossiers and unauthorized CRM runtime persistence fail-closed before new Smoothie Depot feature work; Administration operating artifacts are now registered."
     },
     {
       "workspaceId": "fitness_connection",
@@ -269,12 +272,6 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Administration",
-      "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

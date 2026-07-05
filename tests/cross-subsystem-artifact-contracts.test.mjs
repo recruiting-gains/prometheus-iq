@@ -105,8 +105,16 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
   assert.equal(companion.founderReactivationRequired, true);
   assert.equal(companion.bypassIdentified, false);
 
-  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Administration");
-  assert.match(audit.globalRemediationOrder[0].task, /workspace operating manuals/);
+  const administration = audit.subsystems.find(record => record.subsystem === "Prometheus Administration");
+  assert.equal(administration.status, "compliant_for_operating_artifact_contracts");
+  assert.equal(administration.bypassIdentified, false);
+  assert.ok(
+    administration.evidence.some(item => item.includes("overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json")),
+    "Administration audit must record the operating artifact contract."
+  );
+
+  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Sales");
+  assert.match(audit.globalRemediationOrder[0].task, /Sales consumer contract/);
 });
 
 test("Fitness Connection workspace is registered with role and isolation contracts", () => {
@@ -216,4 +224,36 @@ test("Social Media artifact contracts register analytics, attribution, and consu
     assert.ok(contract.leadSourceProvenanceMetadata.requiredFields.includes("workspace_id"));
     assert.ok(contract.leadSourceProvenanceMetadata.requiredFields.includes("source_report_version"));
   }
+});
+
+test("Administration operating artifact contract registers manuals, feedback, and consumer boundaries", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const smoothieDepot = result.registry.workspaces.find(workspace => workspace.workspaceId === "smoothie_depot");
+  const artifact = smoothieDepot.canonicalArtifacts.find(candidate => (
+    candidate.artifactId === "smoothie_depot_administration_operating_artifact_contract"
+  ));
+  const contract = JSON.parse(fs.readFileSync("overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json", "utf8"));
+
+  assert.equal(artifact.ownerSubsystem, "Prometheus Administration");
+  assert.equal(artifact.schema, "AdministrationOperatingArtifactContractV1");
+  assert.equal(artifact.path, "overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json");
+  assert.ok(artifact.readAllowed.includes("Prometheus Dashboard"));
+  assert.ok(artifact.readAllowed.includes("Prometheus CRM"));
+  assert.ok(artifact.readAllowed.includes("Prometheus Intelligence Engine"));
+
+  assert.equal(contract.artifactContracts.founderOperatingManuals.canonicalPaths.smoothieDepotFounderOperatingManual, "administration/workspaces/smoothie-depot/founder-operating-manual-v1.md");
+  assert.equal(contract.artifactContracts.dailyChecklists.canonicalPaths.smoothieDepotDailyOperatingChecklists, "administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md");
+  assert.equal(contract.artifactContracts.releaseSignOffRegisters.canonicalPaths.releaseHistory, "administration/registers/release-history.json");
+  assert.equal(contract.artifactContracts.fieldFeedbackArtifacts.canonicalPaths.stabilizationIssues, "administration/registers/stabilization-issues.json");
+  assert.equal(contract.artifactContracts.postCallAarDecisionJournalHandoffs.missingWorkspaceInstanceBehavior, "fail_closed");
+
+  assert.equal(contract.consumerRules.dashboard.mayDisplayOperatingManualsReadOnly, true);
+  assert.equal(contract.consumerRules.dashboard.mayWriteAdministrationArtifacts, false);
+  assert.equal(contract.consumerRules.crm.mayConsumeFieldFeedbackOnlyThroughContract, true);
+  assert.equal(contract.consumerRules.crm.mayConsumeOperatingManualsDirectly, false);
+  assert.equal(contract.consumerRules.intelligence.mayConsumeDecisionJournalAarOnlyThroughContract, true);
+  assert.equal(contract.consumerRules.intelligence.mustRejectCrossWorkspaceDecisionJournal, true);
+  assert.equal(contract.workspaceIsolationRules.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords, true);
+  assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
+  assert.equal(contract.productionRules.fixtureDemoOperationsDataProhibitedInProduction, true);
 });

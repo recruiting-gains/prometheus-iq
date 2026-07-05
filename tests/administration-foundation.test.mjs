@@ -217,3 +217,19 @@ test('Smoothie Depot daily operating checklists cover required operating modes',
     assert.match(checklists, new RegExp(checklist));
   }
 });
+
+test('Administration operating artifacts are registered in the canonical contract layer', () => {
+  const contract = JSON.parse(
+    readFileSync('overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json', 'utf8')
+  );
+
+  assert.equal(contract.owningSubsystem, 'Prometheus Administration');
+  assert.equal(contract.workspaceRegistrations.smoothie_depot.status, 'registered');
+  assert.equal(contract.artifactContracts.founderOperatingManuals.canonicalPaths.smoothieDepotFounderOperatingManual, 'administration/workspaces/smoothie-depot/founder-operating-manual-v1.md');
+  assert.equal(contract.artifactContracts.releaseSignOffRegisters.canonicalPaths.releaseHistory, 'administration/registers/release-history.json');
+  assert.equal(contract.artifactContracts.fieldFeedbackArtifacts.canonicalPaths.stabilizationIssues, 'administration/registers/stabilization-issues.json');
+  assert.equal(contract.consumerRules.dashboard.mayDisplayOperatingManualsReadOnly, true);
+  assert.equal(contract.consumerRules.crm.mayConsumeFieldFeedbackOnlyThroughContract, true);
+  assert.equal(contract.consumerRules.intelligence.mayConsumeDecisionJournalAarOnlyThroughContract, true);
+  assert.equal(contract.workspaceIsolationRules.noWorkspaceMayConsumeAnotherWorkspaceOperatingRecords, true);
+});
