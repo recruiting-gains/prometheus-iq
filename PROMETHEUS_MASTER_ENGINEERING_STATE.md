@@ -100,6 +100,105 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Overwatch - Subsystem and Workspace Contract Compliance Audit v1
+
+Subsystem: Prometheus Overwatch
+
+Task: Audit every existing subsystem and workspace for compliance with the Prometheus Integration Contract Layer.
+
+Commit: Recorded by the Subsystem and Workspace Contract Compliance Audit v1 handoff commit.
+
+Deploy: Not run. Governance, audit, and validation layer only.
+
+Status: Complete.
+
+Implementation type: Cross-subsystem governance audit and enforceable validation extension.
+
+Contract compliance audit created:
+
+Yes. Created the active all-subsystem/all-workspace compliance audit:
+
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`
+
+Subsystems audited:
+
+14 subsystems audited:
+
+- Prometheus Administration
+- Prometheus Companion
+- Prometheus CRM
+- Prometheus Dashboard
+- Prometheus Data
+- Prometheus Infrastructure
+- Prometheus Integrations
+- Prometheus Intelligence Engine
+- Prometheus Mobile
+- Prometheus Overwatch
+- Prometheus Research
+- Prometheus Sales
+- Prometheus Social Media
+- Prometheus Website
+
+Workspaces audited:
+
+3 workspaces audited:
+
+- `smoothie_depot`
+- `fitness_connection`
+- `customer_fixture_prometheus`
+
+Compliance result:
+
+- Fully compliant today: Prometheus Overwatch, Prometheus Research for the currently registered canonical Nutrition Depot dossier path.
+- Documentation-only with no active runtime bypass: Prometheus Sales.
+- Partial compliance or bypass identified: Prometheus Dashboard, Prometheus CRM, Prometheus Intelligence Engine, Prometheus Data, Prometheus Infrastructure, Prometheus Website, Prometheus Companion, Prometheus Social Media, Prometheus Integrations, Prometheus Administration, Prometheus Mobile.
+
+Workspace result:
+
+- `smoothie_depot`: partial compliance. Research/Dashboard/CRM/Intelligence path is partially registered; Administration operating artifacts and Infrastructure shared lead-intake/KV handoff artifacts remain outside the registry.
+- `fitness_connection`: bypass identified. This active live/default workspace is not yet registered in the artifact contract layer; Dashboard runtime, Data Active Pool/runtime pools, CRM handoffs, and Intelligence route/operating-profile flows require canonical contracts.
+- `customer_fixture_prometheus`: allowed test fixture only; production consumer registration remains prohibited unless Cruz explicitly converts it into a real customer workspace.
+
+Required remediation order:
+
+1. Prometheus Overwatch: Register Fitness Connection canonical workspace artifact contract.
+2. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
+3. Prometheus Data: Register Active Pool, runtime pools, route-quality report, governance override, and Dashboard read contracts.
+4. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
+5. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
+6. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
+7. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+
+Feature work gate:
+
+Enabled. Future feature work that touches any subsystem or workspace marked `partial_compliance` or `bypass_identified` must first complete or explicitly include the scheduled remediation.
+
+Validation extended:
+
+`scripts/verify-cross-subsystem-artifact-contracts.mjs` now validates the subsystem/workspace compliance audit, required subsystem coverage, required workspace coverage, bypass ownership, scheduled remediation, and feature-work gating. `tests/cross-subsystem-artifact-contracts.test.mjs` now asserts the same contract guarantees.
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`
+- `scripts/verify-cross-subsystem-artifact-contracts.mjs`
+- `tests/cross-subsystem-artifact-contracts.test.mjs`
+
+Workspace isolation verified:
+
+Verified at governance level. The audit preserves the platform law that shared platform code is allowed, workspace-level customer data is isolated, and fixture/demo data may not be consumed in production.
+
+Remaining blockers:
+
+No blocker for the audit itself. Future feature work in partial or bypassed subsystems/workspaces is blocked until the listed remediation is complete or included in the approved task.
+
+Next recommended subsystem:
+
+Prometheus Overwatch for Fitness Connection canonical workspace artifact contract v1.
+
 ### 2026-07-04: Prometheus Overwatch - Cross-Subsystem Artifact Contract Audit v1
 
 Subsystem: Prometheus Overwatch
@@ -8806,7 +8905,7 @@ Prometheus Infrastructure/Auth for authenticated production verification only, o
 
 Current duplicate-prevention sources:
 
-- Do not duplicate Cross-Subsystem Artifact Contract Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for Research, Dashboard, CRM, Intelligence, and Overwatch. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, and preserve workspace isolation.
+- Do not duplicate Cross-Subsystem Artifact Contract Audit v1 or Subsystem and Workspace Contract Compliance Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for all subsystems and workspaces. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, preserve workspace isolation, and complete or include scheduled remediation before feature work in any subsystem or workspace marked `partial_compliance` or `bypass_identified`.
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.

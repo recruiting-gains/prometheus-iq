@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { createHash } from "node:crypto";
 
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const complianceAuditPath = "overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json";
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -256,13 +257,101 @@ function validateFixturePolicy(registry, failures) {
   }
 }
 
+function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
+  assert(
+    audit.auditId === "prometheus-subsystem-workspace-contract-compliance-audit-v1",
+    "Subsystem/workspace compliance audit id drifted.",
+    failures
+  );
+  assert(audit.status === "active", "Subsystem/workspace compliance audit must remain active.", failures);
+  assert(audit.owningSubsystem === "Prometheus Overwatch", "Subsystem/workspace compliance audit must be Overwatch-owned.", failures);
+  assert(
+    audit.contractLayer === "prometheus-cross-subsystem-artifact-contract-v1",
+    "Subsystem/workspace compliance audit must point to the active artifact contract layer.",
+    failures
+  );
+  assert(audit.featureWorkGate?.enabled === true, "Subsystem/workspace feature work gate must remain enabled.", failures);
+
+  const requiredSubsystems = [
+    "Prometheus Administration",
+    "Prometheus Companion",
+    "Prometheus CRM",
+    "Prometheus Dashboard",
+    "Prometheus Data",
+    "Prometheus Infrastructure",
+    "Prometheus Integrations",
+    "Prometheus Intelligence Engine",
+    "Prometheus Mobile",
+    "Prometheus Overwatch",
+    "Prometheus Research",
+    "Prometheus Sales",
+    "Prometheus Social Media",
+    "Prometheus Website"
+  ];
+  const auditedSubsystems = new Map((audit.subsystems || []).map(item => [item.subsystem, item]));
+  for (const subsystem of requiredSubsystems) {
+    assert(auditedSubsystems.has(subsystem), `Subsystem compliance audit missing ${subsystem}.`, failures);
+  }
+  assert(
+    audit.summary?.subsystemsAudited === requiredSubsystems.length,
+    "Subsystem compliance audit summary count must match required subsystem coverage.",
+    failures
+  );
+
+  const requiredWorkspaces = ["smoothie_depot", "fitness_connection", "customer_fixture_prometheus"];
+  const auditedWorkspaces = new Map((audit.workspaces || []).map(item => [item.workspaceId, item]));
+  for (const workspaceId of requiredWorkspaces) {
+    assert(auditedWorkspaces.has(workspaceId), `Workspace compliance audit missing ${workspaceId}.`, failures);
+  }
+  assert(
+    audit.summary?.workspacesAudited === requiredWorkspaces.length,
+    "Workspace compliance audit summary count must match required workspace coverage.",
+    failures
+  );
+
+  const records = [...(audit.subsystems || []), ...(audit.workspaces || [])];
+  for (const record of records) {
+    const name = record.subsystem || record.workspaceId || "unknown record";
+    const requiresRemediation = record.bypassIdentified === true || /partial|bypass/.test(record.status || "");
+    if (requiresRemediation) {
+      assert(Boolean(record.owner), `${name} bypass/partial record must assign an owner.`, failures);
+      assert(
+        record.remediationRequiredBeforeFutureFeatureWork === true,
+        `${name} bypass/partial record must block future feature work until remediation.`,
+        failures
+      );
+      assert(Boolean(record.scheduledRemediation), `${name} bypass/partial record must schedule remediation.`, failures);
+    }
+  }
+
+  const smoothieDepot = auditedWorkspaces.get("smoothie_depot");
+  const fitnessConnection = auditedWorkspaces.get("fitness_connection");
+  const fixtureWorkspace = auditedWorkspaces.get("customer_fixture_prometheus");
+  assert(smoothieDepot?.registeredInContractLayer === true, "Smoothie Depot must remain registered in the contract layer.", failures);
+  assert(smoothieDepot?.bypassIdentified === true, "Smoothie Depot partial compliance must remain visible until all artifacts are registered.", failures);
+  assert(fitnessConnection?.registeredInContractLayer === false, "Fitness Connection must not be falsely marked registered before contract remediation.", failures);
+  assert(fitnessConnection?.bypassIdentified === true, "Fitness Connection contract bypass must remain recorded.", failures);
+  assert(fixtureWorkspace?.status === "allowed_test_fixture_only", "Customer fixture workspace must remain test-only.", failures);
+  assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
+
+  const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
+  assert(firstRemediation?.owner === "Prometheus Overwatch", "Priority 1 remediation must be Overwatch-owned.", failures);
+  assert(
+    firstRemediation?.task?.includes("Fitness Connection"),
+    "Priority 1 remediation must register Fitness Connection canonical workspace artifacts.",
+    failures
+  );
+}
+
 export function verifyCrossSubsystemArtifactContracts() {
   const failures = [];
   const registry = readJson(registryPath);
+  const complianceAudit = readJson(complianceAuditPath);
 
   validateRegistryShape(registry, failures);
   validateCanonicalArtifacts(registry, failures);
   validateFixturePolicy(registry, failures);
+  validateSubsystemWorkspaceComplianceAudit(complianceAudit, failures);
 
   for (const workspace of registry.workspaces) {
     if (workspace.workspaceId === "smoothie_depot") {
@@ -292,7 +381,8 @@ export function verifyCrossSubsystemArtifactContracts() {
   return {
     ok: failures.length === 0,
     failures,
-    registry
+    registry,
+    complianceAudit
   };
 }
 
@@ -307,5 +397,7 @@ if (invokedPath === new URL(import.meta.url).pathname) {
 
   const workspaceCount = result.registry.workspaces.length;
   const artifactCount = result.registry.workspaces.reduce((count, workspace) => count + workspace.canonicalArtifacts.length, 0);
-  console.log(`Cross-subsystem artifact contracts verified: ${workspaceCount} workspace(s), ${artifactCount} canonical artifact(s), workspace isolation preserved.`);
+  const auditedSubsystemCount = result.complianceAudit.subsystems.length;
+  const auditedWorkspaceCount = result.complianceAudit.workspaces.length;
+  console.log(`Cross-subsystem artifact contracts verified: ${workspaceCount} registered workspace(s), ${artifactCount} canonical artifact(s), ${auditedSubsystemCount} subsystem(s) audited, ${auditedWorkspaceCount} workspace(s) audited, workspace isolation preserved.`);
 }
