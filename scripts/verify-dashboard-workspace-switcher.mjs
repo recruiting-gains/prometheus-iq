@@ -41,12 +41,14 @@ assert(smoothieSource.includes('data-workspace-id="smoothie_depot"'), "Smoothie 
 assert(smoothieSource.includes('data-operating-profile-id="franchise_development"'), "Smoothie Depot dashboard must remain Franchise Development scoped.");
 assert(smoothieSource.includes('data-dashboard-owner="cruz"'), "Smoothie Depot dashboard must remain Cruz-owned.");
 assert(smoothieSource.includes('data-jr-access="false"'), "Smoothie Depot dashboard must keep JR access false.");
-assert(smoothieSource.includes("Founder Intelligence Command Center"), "Smoothie Depot dashboard must render the Founder Intelligence Command Center.");
-assert(smoothieSource.includes("Monday Mission Slot"), "Smoothie Depot dashboard must render Monday mission slot.");
-assert(smoothieSource.includes("Wednesday Mission Slot"), "Smoothie Depot dashboard must render Wednesday mission slot.");
-assert(smoothieSource.includes("Friday Mission Slot"), "Smoothie Depot dashboard must render Friday mission slot.");
-assert(smoothieSource.includes("<span>Commission Forecast</span><strong>$0</strong>"), "Smoothie Depot dashboard must render zero-state commission forecast.");
+assert(smoothieSource.includes("Executive Intelligence Operations Center"), "Smoothie Depot dashboard must render the Executive Intelligence Operations Center.");
+assert(smoothieSource.includes("Open Executive Intelligence Package"), "Smoothie Depot dashboard must expose the Executive Intelligence Package primary action.");
+assert(smoothieSource.includes("Founder Review"), "Smoothie Depot dashboard must render Founder review controls.");
+assert(smoothieSource.includes("Export Professional Executive Package"), "Smoothie Depot dashboard must render export workflow.");
+assert(smoothieSource.includes("Intelligence Library"), "Smoothie Depot dashboard must render the isolated Intelligence Library.");
+assert(smoothieSource.includes("Decision Journal"), "Smoothie Depot dashboard must render the Decision Journal.");
 assert(!smoothieSource.includes("Candidate Pipeline"), "Smoothie Depot dashboard must not render fixture candidate pipeline.");
+assert(!smoothieSource.includes("Commission Forecast"), "Smoothie Depot dashboard must not render sales commission forecasting.");
 
 for (const forbidden of [
   "Units",

@@ -1023,16 +1023,18 @@ async function runHarness() {
       operatingProfileId: document.body.dataset.operatingProfileId || "",
       owner: document.body.dataset.dashboardOwner || "",
       jrAccess: document.body.dataset.jrAccess || "",
-      hasCommandCenter: document.body.textContent.includes("Founder Intelligence Command Center"),
-      hasMondaySlot: document.body.textContent.includes("Monday Mission Slot"),
-      hasWednesdaySlot: document.body.textContent.includes("Wednesday Mission Slot"),
-      hasFridaySlot: document.body.textContent.includes("Friday Mission Slot"),
-      hasZeroCommissionForecast: document.body.innerHTML.includes("<span>Commission Forecast</span><strong>$0</strong>"),
+      hasOperationsCenter: document.body.textContent.includes("Executive Intelligence Operations Center"),
+      hasOpenPackage: document.body.textContent.includes("Open Executive Intelligence Package"),
+      hasFounderReview: document.body.textContent.includes("Founder Review"),
+      hasExportWorkflow: document.body.textContent.includes("Export Professional Executive Package"),
+      hasIntelligenceLibrary: document.body.textContent.includes("Intelligence Library"),
+      hasDecisionJournal: document.body.textContent.includes("Decision Journal"),
       hasFixturePipeline: document.body.textContent.includes("Candidate Pipeline"),
+      hasSalesCommissionForecast: document.body.textContent.includes("Commission Forecast"),
       hasFitnessRuntimeTerms: /Units|Memberships|Territories/.test(document.body.textContent)
     }))()`);
     assertWorkflow("Founder workspace switcher Smoothie Depot route", smoothieRouteSnap.pathname === "/smoothie-depot-dashboard/" && smoothieRouteSnap.workspaceId === "smoothie_depot" && smoothieRouteSnap.operatingProfileId === "franchise_development" && smoothieRouteSnap.owner === "cruz" && smoothieRouteSnap.jrAccess === "false", `${smoothieRouteSnap.pathname} workspace ${smoothieRouteSnap.workspaceId}`, JSON.stringify(smoothieRouteSnap));
-    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasCommandCenter && smoothieRouteSnap.hasMondaySlot && smoothieRouteSnap.hasWednesdaySlot && smoothieRouteSnap.hasFridaySlot && smoothieRouteSnap.hasZeroCommissionForecast && !smoothieRouteSnap.hasFixturePipeline && !smoothieRouteSnap.hasFitnessRuntimeTerms, "command center and zero-state mission slots visible without fixture pipeline or Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
+    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasOperationsCenter && smoothieRouteSnap.hasOpenPackage && smoothieRouteSnap.hasFounderReview && smoothieRouteSnap.hasExportWorkflow && smoothieRouteSnap.hasIntelligenceLibrary && smoothieRouteSnap.hasDecisionJournal && !smoothieRouteSnap.hasFixturePipeline && !smoothieRouteSnap.hasSalesCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "operations center, package lifecycle, export, library, and decision journal visible without CRM sales workflow or Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
     switcher.cdp.close();
 
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");

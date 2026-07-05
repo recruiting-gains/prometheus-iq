@@ -14,6 +14,11 @@ searchInput?.addEventListener("input", applySearch);
 
 for (const button of document.querySelectorAll("[data-command]")) {
   button.addEventListener("click", () => {
+    if (button.dataset.command === "printPackage") {
+      window.print();
+      return;
+    }
+
     const open = button.dataset.command === "expand";
     for (const section of sections) section.open = open;
   });

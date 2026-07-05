@@ -89,51 +89,68 @@ assert(nutritionDepotDossier.dataPolicy.privateFinancialsCollected === false, "N
 assert(source.includes(nutritionDepotDossier.businessSelected), "Mission queue must show the completed canonical Nutrition Depot dossier.");
 
 for (const requiredMissionText of [
-  "Founder Intelligence Command Center",
-  "Founder Operations Zero State",
+  "Executive Intelligence Operations Center",
+  "Current Mission",
+  "Business Currently Under Research",
+  "Research Completion",
+  "Evidence Completion",
+  "Verification Completion",
+  "Founder Review Status",
+  "Package Status",
+  "Ready for Export",
+  "Awaiting Outcome",
+  "Learning Pending",
+  "Package Center",
+  "Open Executive Intelligence Package",
+  "Founder Approval",
+  "Professional PDF Export",
   "Mission Queue",
-  "Monday Mission Slot",
-  "Wednesday Mission Slot",
-  "Friday Mission Slot",
+  "Next Mission",
+  "Research Queue",
+  "Package Queue",
+  "Awaiting Founder Review",
+  "Outcome Pending",
+  "Research Learning Required",
   "Unassigned",
-  "No completed Research-owned canonical dossier is registered for this slot.",
+  "No completed Research-owned Executive Intelligence Package is registered",
   "Nutrition Depot Executive Due Diligence Dossier v1",
   "Complete canonical Research artifact",
   "Complete Structured Research Artifact JSON",
   "Ready",
-  "Calling",
-  "Discovery",
-  "Qualified",
-  "JR Handoff",
-  "Follow-up",
-  "Closed"
+  "Founder Review",
+  "Founder Approved",
+  "Research Requested",
+  "Delivered",
+  "Learning Pending"
 ]) {
   assert(source.includes(requiredMissionText), `Dashboard mission queue missing required text: ${requiredMissionText}`);
-}
-
-for (const zeroState of [
-  ["Outreach Sent", "0"],
-  ["Discovery Calls Scheduled", "0"],
-  ["Qualified Candidates", "0"],
-  ["JR Handoffs", "0"],
-  ["Closed Franchise Sales", "0"],
-  ["Commission Forecast", "$0"]
-]) {
-  const [label, value] = zeroState;
-  const pattern = new RegExp(`<span>${label}</span>\\s*<strong>${value.replace("$", "\\$")}</strong>`);
-  assert(pattern.test(source), `Dashboard zero-state metric missing or non-zero: ${label} ${value}`);
 }
 
 for (const requiredCommandCenterText of [
   "Search dossier",
   "Bookmark",
   "Highlight evidence",
-  "Call notes",
-  "Discovery notes",
-  "JR notes",
+  "Founder review notes",
+  "Export notes",
+  "Delivery notes",
   "Follow-up notes",
+  "Founder Approves",
+  "Founder Rejects",
+  "Additional Research Required",
+  "Founder Sign-off Before Export",
+  "Export Professional Executive Package",
+  "Print-ready PDF",
+  "Intelligence Library",
+  "Decision Journal",
+  "Outcome",
+  "Unexpected findings",
+  "Evidence that proved useful",
+  "Evidence that proved incorrect",
+  "Questions that mattered",
+  "Questions that didn't",
+  "Research improvements",
   "Mission",
-  "Call Date",
+  "Review Date",
   "Research Confidence",
   "Outstanding Unknowns",
   "Current Stage",
@@ -229,6 +246,13 @@ assert(source.includes(htmlEscape('"remediationStatus"')), "Dashboard must rende
 assert(source.includes(htmlEscape('"sourceReliabilityMatrix"')), "Dashboard must render structured source reliability matrix.");
 
 for (const removedFixtureText of [
+  "Founder Operations Zero State",
+  "Outreach Sent",
+  "Discovery Calls Scheduled",
+  "Qualified Candidates",
+  "JR Handoffs",
+  "Closed Franchise Sales",
+  "Commission Forecast",
   "Total Businesses Identified",
   "Owners Researched",
   "Contacts Found",
@@ -283,4 +307,4 @@ for (const forbidden of [
   assert(!source.includes(forbidden), `Smoothie Depot dashboard must not show or access forbidden term: ${forbidden}`);
 }
 
-console.log("Smoothie Depot Founder Dashboard verified: workspace-scoped Research-output surface, mission queue, required franchise development sections, no production data access, and Fitness Connection isolation preserved.");
+console.log("Smoothie Depot Executive Intelligence Operations Center verified: workspace-scoped Research-output surface, package lifecycle, no CRM sales workflow, no production data access, and Fitness Connection isolation preserved.");

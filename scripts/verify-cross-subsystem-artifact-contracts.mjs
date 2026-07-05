@@ -163,11 +163,16 @@ function validateDashboardConsumer(workspace, dossierContext, failures) {
   assert(source === deploy, "Dashboard source and deploy mirror must match.", failures);
   assert(source.includes('data-workspace-id="smoothie_depot"'), "Dashboard must declare smoothie_depot workspace.", failures);
   assert(source.includes('data-operating-profile-id="franchise_development"'), "Dashboard must declare franchise_development profile.", failures);
-  assert(source.includes("Founder Operations Zero State"), "Dashboard must render Founder Operations Zero State.", failures);
-  assert(source.includes("Monday Mission Slot"), "Dashboard must render Monday mission slot.", failures);
-  assert(source.includes("Wednesday Mission Slot"), "Dashboard must render Wednesday mission slot.", failures);
-  assert(source.includes("Friday Mission Slot"), "Dashboard must render Friday mission slot.", failures);
-  assert(source.includes("No completed Research-owned canonical dossier is registered for this slot."), "Dashboard must fail closed for missing dossiers.", failures);
+  assert(source.includes("Executive Intelligence Operations Center"), "Dashboard must render Executive Intelligence Operations Center.", failures);
+  assert(source.includes("Open Executive Intelligence Package"), "Dashboard must expose Executive Intelligence Package action.", failures);
+  assert(source.includes("Founder Review"), "Dashboard must render Founder Review workflow.", failures);
+  assert(source.includes("Founder Approves"), "Dashboard must render Founder approval decision.", failures);
+  assert(source.includes("Founder Rejects"), "Dashboard must render Founder rejection decision.", failures);
+  assert(source.includes("Additional Research Required"), "Dashboard must render additional Research request decision.", failures);
+  assert(source.includes("Export Professional Executive Package"), "Dashboard must render professional package export workflow.", failures);
+  assert(source.includes("Intelligence Library"), "Dashboard must render workspace-isolated Intelligence Library.", failures);
+  assert(source.includes("Decision Journal"), "Dashboard must render Decision Journal.", failures);
+  assert(source.includes("No completed Research-owned Executive Intelligence Package is registered"), "Dashboard must fail closed for missing Executive Intelligence Packages.", failures);
   assert(source.includes(markdownHash), "Dashboard must expose canonical Markdown artifact hash.", failures);
   assert(source.includes(htmlEscape("# Nutrition Depot Executive Due Diligence Dossier v1")), "Dashboard must render canonical Markdown title.", failures);
   assert(source.includes(htmlEscape("## 29. Source Reliability Matrix")), "Dashboard must render full dossier sections.", failures);
@@ -181,19 +186,36 @@ function validateDashboardConsumer(workspace, dossierContext, failures) {
   assert(dashboardContract.administrationOperatingManualsReadOnly === true, "Dashboard must consume Administration manuals read-only.", failures);
   assert(dashboardContract.mustNotWriteAdministrationArtifacts === true, "Dashboard must not write Administration artifacts.", failures);
 
-  for (const [label, value] of [
-    ["Outreach Sent", "0"],
-    ["Discovery Calls Scheduled", "0"],
-    ["Qualified Candidates", "0"],
-    ["JR Handoffs", "0"],
-    ["Closed Franchise Sales", "0"],
-    ["Commission Forecast", "$0"]
+  for (const requiredLifecycleText of [
+    "Business Currently Under Research",
+    "Research Completion",
+    "Evidence Completion",
+    "Verification Completion",
+    "Founder Review Status",
+    "Package Status",
+    "Ready for Export",
+    "Delivered",
+    "Awaiting Outcome",
+    "Learning Pending",
+    "Current Mission",
+    "Next Mission",
+    "Research Queue",
+    "Package Queue",
+    "Awaiting Founder Review",
+    "Outcome Pending",
+    "Research Learning Required"
   ]) {
-    const pattern = new RegExp(`<span>${label}</span>\\s*<strong>${value.replace("$", "\\$")}</strong>`);
-    assert(pattern.test(source), `Dashboard zero-state metric missing or non-zero: ${label}.`, failures);
+    assert(source.includes(requiredLifecycleText), `Dashboard lifecycle field missing: ${requiredLifecycleText}.`, failures);
   }
 
   for (const forbidden of [
+    "Founder Operations Zero State",
+    "Outreach Sent",
+    "Discovery Calls Scheduled",
+    "Qualified Candidates",
+    "JR Handoffs",
+    "Closed Franchise Sales",
+    "Commission Forecast",
     "Candidate Pipeline",
     "Candidate Detail",
     "JR Queue",

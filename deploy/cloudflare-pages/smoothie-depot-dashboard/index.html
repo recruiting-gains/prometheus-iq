@@ -8,7 +8,7 @@
   <meta name="prometheus-operating-profile" content="franchise_development">
   <meta name="prometheus-data-mode" content="workspace-research-output">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
-  <title>Smoothie Depot Founder Dashboard</title>
+  <title>Smoothie Depot Executive Intelligence Operations Center</title>
   <style>
     :root {
       color-scheme: dark;
@@ -227,6 +227,53 @@
       font-size: 1.05rem;
     }
 
+    .package-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 0 16px;
+      border: 1px solid var(--line-hot);
+      border-radius: 8px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 950;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .package-action.secondary {
+      border-color: rgba(224, 168, 73, 0.45);
+      background: var(--gold-soft);
+      color: var(--gold);
+    }
+
+    .review-control {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .review-control label {
+      display: grid;
+      gap: 8px;
+      min-height: 72px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .review-control input {
+      accent-color: var(--green);
+    }
+
     .mission-metrics,
     .dossier-grid {
       display: grid;
@@ -293,12 +340,13 @@
     }
 
     #statusReady:checked ~ main label[for="statusReady"],
-    #statusCalling:checked ~ main label[for="statusCalling"],
-    #statusDiscovery:checked ~ main label[for="statusDiscovery"],
-    #statusQualified:checked ~ main label[for="statusQualified"],
-    #statusJr:checked ~ main label[for="statusJr"],
-    #statusFollowUp:checked ~ main label[for="statusFollowUp"],
-    #statusClosed:checked ~ main label[for="statusClosed"] {
+    #statusReview:checked ~ main label[for="statusReview"],
+    #statusApproved:checked ~ main label[for="statusApproved"],
+    #statusResearchRequested:checked ~ main label[for="statusResearchRequested"],
+    #statusExportReady:checked ~ main label[for="statusExportReady"],
+    #statusDelivered:checked ~ main label[for="statusDelivered"],
+    #statusOutcomePending:checked ~ main label[for="statusOutcomePending"],
+    #statusLearningPending:checked ~ main label[for="statusLearningPending"] {
       border-color: var(--line-hot);
       background: var(--green-soft);
       color: var(--green);
@@ -315,9 +363,9 @@
     #targetNutrition:checked ~ main .target-nutrition .selected-target,
     #targetCranky:checked ~ main .target-cranky .selected-target,
     #targetLeemoo:checked ~ main .target-leemoo .selected-target,
-    #targetNutrition:checked ~ #statusClosed:checked ~ main .target-cranky .promoted-after-nutrition,
-    #targetCranky:checked ~ #statusClosed:checked ~ main .target-leemoo .promoted-after-cranky,
-    #targetLeemoo:checked ~ #statusClosed:checked ~ main .queue-complete {
+    #targetNutrition:checked ~ #statusDelivered:checked ~ main .target-cranky .promoted-after-nutrition,
+    #targetCranky:checked ~ #statusDelivered:checked ~ main .target-leemoo .promoted-after-cranky,
+    #targetLeemoo:checked ~ #statusDelivered:checked ~ main .queue-complete {
       display: inline-flex;
     }
 
@@ -402,7 +450,7 @@
 
     .command-tools {
       display: grid;
-      grid-template-columns: auto minmax(160px, 1fr) auto auto;
+      grid-template-columns: auto minmax(160px, 1fr) repeat(3, auto);
       gap: 8px;
       align-items: center;
       padding: 12px 18px;
@@ -803,6 +851,68 @@
       text-align: center;
     }
 
+    @media print {
+      @page {
+        size: letter;
+        margin: 0.7in;
+      }
+
+      body {
+        background: #ffffff;
+        color: #111111;
+      }
+
+      main {
+        width: 100%;
+        padding: 0;
+      }
+
+      .hero,
+      .section,
+      .mission-board,
+      .command-tools,
+      .command-nav,
+      .mission-console,
+      .notes-panel,
+      .footer,
+      .pending-dossier {
+        display: none !important;
+      }
+
+      .mission-layout,
+      .command-layout,
+      .detail-stack,
+      .dossier-panel,
+      .command-reader,
+      .intel-section {
+        display: block !important;
+      }
+
+      .dossier-panel,
+      .research-cover,
+      .intel-section {
+        border: 0;
+        box-shadow: none;
+        background: #ffffff;
+      }
+
+      .command-head {
+        border-bottom: 2px solid #111111;
+        padding: 0 0 18px;
+      }
+
+      .research-pre {
+        color: #111111;
+        font-size: 10.5pt;
+        line-height: 1.45;
+      }
+
+      .intel-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+    }
+
     @media (max-width: 1180px) {
       .metrics {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -846,7 +956,8 @@
 
       .metrics,
       .detail-grid,
-      .mission-metrics {
+      .mission-metrics,
+      .review-control {
         grid-template-columns: 1fr;
       }
 
@@ -875,48 +986,77 @@
   <input class="mission-control" id="targetCranky" name="missionTarget" type="radio">
   <input class="mission-control" id="targetLeemoo" name="missionTarget" type="radio">
   <input class="mission-control" id="statusReady" name="missionStatus" type="radio" checked>
-  <input class="mission-control" id="statusCalling" name="missionStatus" type="radio">
-  <input class="mission-control" id="statusDiscovery" name="missionStatus" type="radio">
-  <input class="mission-control" id="statusQualified" name="missionStatus" type="radio">
-  <input class="mission-control" id="statusJr" name="missionStatus" type="radio">
-  <input class="mission-control" id="statusFollowUp" name="missionStatus" type="radio">
-  <input class="mission-control" id="statusClosed" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusReview" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusApproved" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusResearchRequested" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusExportReady" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusDelivered" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusOutcomePending" name="missionStatus" type="radio">
+  <input class="mission-control" id="statusLearningPending" name="missionStatus" type="radio">
   <main>
     <header class="hero">
       <div>
         <p class="eyebrow">Smoothie Depot Workspace</p>
-        <h1>Founder Intelligence Command Center</h1>
-        <p class="subtitle">Cruz-only mission console for reading completed Research-owned executive dossiers and preparing first-call action without leaving Prometheus.</p>
+        <h1>Executive Intelligence Operations Center</h1>
+        <p class="subtitle">Cruz-only lifecycle console for producing, reviewing, approving, exporting, delivering, and improving Research-owned Executive Intelligence Packages.</p>
       </div>
       <aside class="workspace-badge">
         <strong>Workspace Isolated</strong>
-        <span>Workspace: Smoothie Depot. Operating profile: Franchise Development. Source: completed Research-owned canonical dossiers only. Founder view only.</span>
+        <span>Workspace: Smoothie Depot. Source: completed Research-owned canonical dossiers only. Founder view only. Dashboard manages package lifecycle and never creates intelligence.</span>
       </aside>
     </header>
 
-    <section class="section grid" aria-label="Operations Zero State">
+    <section class="section grid" aria-label="Executive Intelligence Operations Center">
       <div class="section-head">
         <div>
-          <h2>Founder Operations Zero State</h2>
-          <div class="note">No live Smoothie Depot founder operations have been completed yet. Dashboard no longer displays fixture candidates, fake contacts, fake commissions, or fake closed sales.</div>
+          <h2>Current Mission</h2>
+          <div class="note">Research owns the intelligence. Dashboard manages the package lifecycle from Research completion through Founder approval, export, delivery, outcome capture, and Research learning.</div>
         </div>
       </div>
-      <div class="metrics zero-metrics">
-        <article class="metric"><span>Outreach Sent</span><strong>0</strong><em>No live outreach recorded</em></article>
-        <article class="metric"><span>Discovery Calls Scheduled</span><strong>0</strong><em>No live discovery calls scheduled</em></article>
-        <article class="metric"><span>Qualified Candidates</span><strong>0</strong><em>No live candidates qualified</em></article>
-        <article class="metric"><span>JR Handoffs</span><strong>0</strong><em>No live JR handoffs</em></article>
-        <article class="metric"><span>Closed Franchise Sales</span><strong>0</strong><em>No live franchise sales closed</em></article>
-        <article class="metric"><span>Commission Forecast</span><strong>$0</strong><em>No live commission forecast</em></article>
+      <div class="metrics">
+        <article class="metric"><span>Business Currently Under Research</span><strong>Nutrition Depot</strong><em>Completed Research artifact available</em></article>
+        <article class="metric"><span>Research Completion</span><strong>Complete</strong><em>Canonical package loaded</em></article>
+        <article class="metric"><span>Evidence Completion</span><strong>Complete</strong><em>Evidence appendix rendered</em></article>
+        <article class="metric"><span>Verification Completion</span><strong>Pending</strong><em>Live verification remains Founder-gated</em></article>
+        <article class="metric"><span>Founder Review Status</span><strong>Awaiting</strong><em>No customer delivery before approval</em></article>
+        <article class="metric"><span>Package Status</span><strong>Ready</strong><em>Ready for Founder review</em></article>
+        <article class="metric"><span>Ready for Export</span><strong>Blocked</strong><em>Requires Founder approval</em></article>
+        <article class="metric"><span>Delivered</span><strong>No</strong><em>No package delivery recorded</em></article>
+        <article class="metric"><span>Learning Pending</span><strong>No</strong><em>No meeting outcome recorded</em></article>
       </div>
     </section>
 
-    <section class="section grid" aria-label="Monday Wednesday Friday Mission Queue">
+    <section class="section grid" aria-label="Executive Package Workflow">
+      <div class="section-head">
+        <div>
+          <h2>Package Center</h2>
+          <div class="note">Primary workflow: Research to Executive Intelligence Package to Founder Review to Founder Approval to Professional PDF Export to Delivery to Decision Maker Meeting to Outcome to Research Learning.</div>
+        </div>
+        <a class="package-action" href="#executivePackage">Open Executive Intelligence Package</a>
+      </div>
+      <div class="mission-metrics">
+        <div class="mission-fact"><span class="label">Package Format</span><strong>Print-ready PDF export path with executive typography, table of contents, evidence appendix, and professional pagination support.</strong></div>
+        <div class="mission-fact"><span class="label">Source of Truth</span><strong>Complete Research artifact rendered as stored; no Dashboard summary, regeneration, or rewrite.</strong></div>
+        <div class="mission-fact wide"><span class="label">Quality Standard</span><strong>"If this document were placed on the conference table before a Fortune 100 executive team discussing a strategic business opportunity, would it help them make a more informed decision?" If not, Research continues.</strong></div>
+      </div>
+    </section>
+
+    <section class="section grid" aria-label="Mission Queue">
       <div class="section-head">
         <div>
           <h2>Mission Queue</h2>
-          <div class="note">Monday, Wednesday, Friday mission slots. A slot is populated only when Research registers a completed canonical dossier.</div>
+          <div class="note">Operational queues are workspace-isolated and populated only from Research-owned Executive Intelligence Packages.</div>
         </div>
+      </div>
+      <div class="metrics">
+        <article class="metric"><span>Current Mission</span><strong>1</strong><em>Nutrition Depot package review</em></article>
+        <article class="metric"><span>Next Mission</span><strong>0</strong><em>Awaiting Research source</em></article>
+        <article class="metric"><span>Research Queue</span><strong>0</strong><em>No pending Dashboard-created work</em></article>
+        <article class="metric"><span>Package Queue</span><strong>1</strong><em>Ready for Founder review</em></article>
+        <article class="metric"><span>Awaiting Founder Review</span><strong>1</strong><em>Approval required</em></article>
+        <article class="metric"><span>Delivered</span><strong>0</strong><em>No package delivered</em></article>
+        <article class="metric"><span>Outcome Pending</span><strong>0</strong><em>No decision-maker meeting logged</em></article>
+        <article class="metric"><span>Research Learning Required</span><strong>0</strong><em>No outcome-based learning queued</em></article>
       </div>
     </section>
 
@@ -924,86 +1064,120 @@
       <div class="mission-board">
         <section class="mission-status">
           <p class="eyebrow">Mission Status</p>
-          <h2>Move the active Research-backed target through the founder pipeline.</h2>
+          <h2>Move the active Research-backed package through Founder-controlled approval and delivery.</h2>
           <div class="status-track" aria-label="Mission Status">
             <label for="statusReady">Ready</label>
-            <label for="statusCalling">Calling</label>
-            <label for="statusDiscovery">Discovery</label>
-            <label for="statusQualified">Qualified</label>
-            <label for="statusJr">JR Handoff</label>
-            <label for="statusFollowUp">Follow-up</label>
-            <label for="statusClosed">Closed</label>
+            <label for="statusReview">Founder Review</label>
+            <label for="statusApproved">Founder Approved</label>
+            <label for="statusResearchRequested">Research Requested</label>
+            <label for="statusExportReady">Ready for Export</label>
+            <label for="statusDelivered">Delivered</label>
+            <label for="statusOutcomePending">Outcome Pending</label>
+            <label for="statusLearningPending">Learning Pending</label>
           </div>
         </section>
 
         <label class="mission-card target-nutrition" for="targetNutrition">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Monday Mission Slot</p>
+              <p class="eyebrow">Current Mission</p>
               <h3>Nutrition Depot Houston and Greater Houston</h3>
             </div>
-            <span class="selected-target">Current Mission</span>
+            <span class="selected-target">Executive Package Open</span>
           </div>
           <div class="mission-metrics">
             <div class="mission-fact wide"><span class="label">Research Source</span><strong>Completed canonical Research dossier</strong></div>
-            <div class="mission-fact"><span class="label">Artifact Status</span><strong>completed_canonical_research_dossier</strong></div>
-            <div class="mission-fact"><span class="label">Generated</span><strong>2026-07-04</strong></div>
-            <div class="mission-fact"><span class="label">Research Confidence</span><strong>High for first-call prioritization; not sufficient for final franchise qualification.</strong></div>
-            <div class="mission-fact"><span class="label">Outstanding Unknowns</span><strong>8</strong></div>
-            <div class="mission-fact wide"><span class="label">Next Required Action</span><strong>Call Nutrition Depot Houston first and verify decision-maker authority, second-concept openness, and whether the Houston contact controls one store or a broader Nutrition Depot network.</strong></div>
+            <div class="mission-fact"><span class="label">Package Queue</span><strong>Ready for Founder Review</strong></div>
+            <div class="mission-fact"><span class="label">Founder Review</span><strong>Awaiting Founder decision</strong></div>
+            <div class="mission-fact"><span class="label">Ready for Export</span><strong>Requires approval</strong></div>
+            <div class="mission-fact"><span class="label">Delivered</span><strong>No</strong></div>
+            <div class="mission-fact"><span class="label">Awaiting Outcome</span><strong>No</strong></div>
+            <div class="mission-fact"><span class="label">Research Learning Required</span><strong>No outcome captured</strong></div>
           </div>
         </label>
 
         <label class="mission-card target-cranky empty-slot" for="targetCranky">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Wednesday Mission Slot</p>
+              <p class="eyebrow">Next Mission</p>
               <h3>Unassigned</h3>
             </div>
             <span class="selected-target">No Research Dossier</span>
           </div>
           <div class="mission-metrics">
-            <div class="mission-fact wide"><span class="label">Mission Status</span><strong>Not populated. No completed Research-owned canonical dossier is registered for this slot.</strong></div>
+            <div class="mission-fact wide"><span class="label">Research Queue</span><strong>Not populated. No completed Research-owned canonical dossier is registered for this package slot.</strong></div>
           </div>
         </label>
 
         <label class="mission-card target-leemoo empty-slot" for="targetLeemoo">
           <div class="section-head">
             <div>
-              <p class="eyebrow">Friday Mission Slot</p>
+              <p class="eyebrow">Research Queue</p>
               <h3>Unassigned</h3>
             </div>
             <span class="selected-target">No Research Dossier</span>
           </div>
           <div class="mission-metrics">
-            <div class="mission-fact wide"><span class="label">Mission Status</span><strong>Not populated. No completed Research-owned canonical dossier is registered for this slot.</strong></div>
+            <div class="mission-fact wide"><span class="label">Package Queue</span><strong>Awaiting Research-owned Executive Intelligence Package. Delivered, Outcome Pending, and Research Learning Required queues are empty.</strong></div>
           </div>
         </label>
       </div>
 
       <div class="detail-stack command-center" aria-label="Founder Intelligence Command Center">
-        <article class="dossier-panel dossier-nutrition command-workspace">
+        <article class="dossier-panel dossier-nutrition command-workspace" id="executivePackage">
           <div class="command-head">
-            <p class="eyebrow">Founder Intelligence Command Center</p>
+            <p class="eyebrow">Executive Package Workspace</p>
             <h2>Nutrition Depot Executive Due Diligence Dossier v1</h2>
             <p class="note">Complete canonical Research artifact rendered from <code>research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md</code>. Dashboard presentation only; Research remains source of truth.</p>
           </div>
 
           <aside class="mission-console" id="missionStatusPanel" aria-label="Mission Mode">
-            <div><span class="label">Mission</span><strong>Monday first-call preparation</strong></div>
+            <div><span class="label">Mission</span><strong>Executive Intelligence Package review</strong></div>
             <div><span class="label">Business</span><strong>Nutrition Depot Houston and Greater Houston</strong></div>
-            <div><span class="label">Call Date</span><strong>Monday slot, not scheduled</strong></div>
+            <div><span class="label">Review Date</span><strong>Founder review not completed</strong></div>
             <div><span class="label">Research Confidence</span><strong>High for first-call prioritization; not sufficient for final franchise qualification.</strong></div>
             <div><span class="label">Outstanding Unknowns</span><strong>8</strong></div>
-            <div><span class="label">Current Stage</span><strong>Ready</strong></div>
-            <div><span class="label">Next Required Action</span><strong>Call Nutrition Depot Houston first and verify decision-maker authority, second-concept openness, and whether the Houston contact controls one store or a broader Nutrition Depot network.</strong></div>
+            <div><span class="label">Current Stage</span><strong>Awaiting Founder Review</strong></div>
+            <div><span class="label">Next Required Action</span><strong>Founder must approve, reject, or request additional Research before any customer delivery.</strong></div>
           </aside>
+
+          <section class="section grid" aria-label="Founder Review">
+            <div class="section-head">
+              <div>
+                <h2>Founder Review</h2>
+                <div class="note">Founder approval is mandatory before export or delivery. Nothing reaches a customer until Cruz signs off.</div>
+              </div>
+              <button class="package-action secondary" type="button" data-command="printPackage">Export Professional Executive Package</button>
+            </div>
+            <div class="review-control" aria-label="Founder approval decisions">
+              <label><input type="radio" name="founderReviewDecision"> Founder Approves</label>
+              <label><input type="radio" name="founderReviewDecision"> Founder Rejects</label>
+              <label><input type="radio" name="founderReviewDecision"> Additional Research Required</label>
+              <label><input type="checkbox" name="founderSignoff"> Founder Sign-off Before Export</label>
+            </div>
+          </section>
+
+          <section class="section grid" aria-label="Intelligence Library">
+            <div class="section-head">
+              <div>
+                <h2>Intelligence Library</h2>
+                <div class="note">Workspace-isolated archive of Executive Intelligence Packages. This library displays completed Research artifacts only.</div>
+              </div>
+            </div>
+            <div class="mission-metrics">
+              <div class="mission-fact"><span class="label">Searchable Package</span><strong>Nutrition Depot Executive Due Diligence Dossier v1</strong></div>
+              <div class="mission-fact"><span class="label">Filter</span><strong>Status: Awaiting Founder Review</strong></div>
+              <div class="mission-fact"><span class="label">Archive Scope</span><strong>Smoothie Depot workspace only</strong></div>
+              <div class="mission-fact"><span class="label">Package State</span><strong>Not delivered; no outcome recorded</strong></div>
+            </div>
+          </section>
 
           <div class="command-tools" aria-label="Dossier interaction tools">
             <label for="dossierSearch">Search dossier</label>
             <input id="dossierSearch" type="search" placeholder="Search the complete Research artifact">
             <button type="button" data-command="expand">Expand all</button>
             <button type="button" data-command="collapse">Collapse all</button>
+            <button type="button" data-command="printPackage">Export PDF</button>
           </div>
 
           <div class="command-layout">
@@ -3110,11 +3284,22 @@ This dossier is suitable for first-call executive briefing. It is not sufficient
               </details>
               <section class="notes-panel" id="founderNotes" aria-label="Founder Notes">
                 <h3>Founder Notes</h3>
-                <label>Call notes<textarea aria-label="Call notes"></textarea></label>
-                <label>Discovery notes<textarea aria-label="Discovery notes"></textarea></label>
-                <label>JR notes<textarea aria-label="JR notes"></textarea></label>
+                <label>Founder review notes<textarea aria-label="Founder review notes"></textarea></label>
+                <label>Export notes<textarea aria-label="Export notes"></textarea></label>
+                <label>Delivery notes<textarea aria-label="Delivery notes"></textarea></label>
                 <label>Follow-up notes<textarea aria-label="Follow-up notes"></textarea></label>
                 <p class="dossier-source">Notes are Dashboard-local typing surfaces only. No CRM persistence, Research mutation, or external submission is performed.</p>
+              </section>
+              <section class="notes-panel" id="decisionJournal" aria-label="Decision Journal">
+                <h3>Decision Journal</h3>
+                <label>Outcome<textarea aria-label="Outcome"></textarea></label>
+                <label>Unexpected findings<textarea aria-label="Unexpected findings"></textarea></label>
+                <label>Evidence that proved useful<textarea aria-label="Evidence that proved useful"></textarea></label>
+                <label>Evidence that proved incorrect<textarea aria-label="Evidence that proved incorrect"></textarea></label>
+                <label>Questions that mattered<textarea aria-label="Questions that mattered"></textarea></label>
+                <label>Questions that didn't<textarea aria-label="Questions that did not matter"></textarea></label>
+                <label>Research improvements<textarea aria-label="Research improvements"></textarea></label>
+                <p class="dossier-source">Decision journal entries are lifecycle capture fields for Founder review and Research learning handoff; Dashboard does not mutate the Research artifact.</p>
               </section>
               <p class="dossier-source">Research artifact SHA-256: efd9484dc7809cc6021cfa9891f5ce1890693b009f519021e963a7fc2169db6a. Complete Markdown and structured JSON are rendered without Dashboard summarization.</p>
             </div>
@@ -3122,20 +3307,20 @@ This dossier is suitable for first-call executive briefing. It is not sufficient
         </article>
 
         <article class="dossier-panel dossier-cranky pending-dossier">
-          <p class="eyebrow">Founder Intelligence Command Center</p>
-          <h2>Wednesday Mission Slot</h2>
-          <p class="note">Unassigned. No completed Research-owned canonical dossier is registered for the Wednesday mission slot. Dashboard will not populate a mission without Research source-of-truth output.</p>
+          <p class="eyebrow">Executive Intelligence Operations Center</p>
+          <h2>Next Mission</h2>
+          <p class="note">Unassigned. No completed Research-owned Executive Intelligence Package is registered for the next mission. Dashboard will not populate package work without Research source-of-truth output.</p>
         </article>
 
         <article class="dossier-panel dossier-leemoo pending-dossier">
-          <p class="eyebrow">Founder Intelligence Command Center</p>
-          <h2>Friday Mission Slot</h2>
-          <p class="note">Unassigned. No completed Research-owned canonical dossier is registered for the Friday mission slot. Dashboard will not populate a mission without Research source-of-truth output.</p>
+          <p class="eyebrow">Executive Intelligence Operations Center</p>
+          <h2>Research Queue</h2>
+          <p class="note">Unassigned. No completed Research-owned Executive Intelligence Package is registered for this queue slot. Dashboard will not create intelligence or substitute fixture package data.</p>
         </article>
       </div>
     </section>
 
-    <p class="footer">Internal Founder route: /smoothie-depot-dashboard/ · Workspace: Smoothie Depot · Data mode: completed Research-owned canonical dossier · CRM runtime untouched</p>
+    <p class="footer">Internal Founder route: /smoothie-depot-dashboard/ · Workspace: Smoothie Depot · Data mode: completed Research-owned canonical dossier · Dashboard lifecycle only</p>
   </main>
   <script src="/smoothie-depot-dashboard/command-center.js"></script>
 </body>
