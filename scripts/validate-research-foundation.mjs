@@ -9,6 +9,7 @@ const sourceRegister = readJson("research/registers/source-register.json");
 const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
+const executiveIntelligenceStandard = readJson("research/registers/executive-intelligence-package-standard.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
 const smoothieDepotDossierRegister = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
@@ -17,11 +18,15 @@ const smoothieDepotProspects = readJson("research/workspaces/smoothie-depot/rank
 const schema = readJson("research/schemas/founder-intelligence-brief.schema.json");
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
 const marketRecommendationSchema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
+const executiveIntelligenceSchema = readJson("research/schemas/executive-intelligence-package.schema.json");
 const architecture = readText("research/architecture.md");
 const sourcePolicy = readText("research/source-policy.md");
+const researchReadme = readText("research/README.md");
 const template = readText("research/templates/founder-intelligence-brief.md");
 const strategicBriefTemplate = readText("research/templates/strategic-intelligence-brief.md");
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
+const executiveIntelligenceTemplate = readText("research/templates/executive-intelligence-package.md");
+const executiveIntelligencePlatform = readText("research/executive-intelligence-platform.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
 const smoothieDepotExecutiveStandard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
@@ -168,6 +173,50 @@ const protectedMarketSubsystems = [
   "Intelligence runtime"
 ];
 
+const executiveIntelligenceEvidenceLabels = [
+  "Observed",
+  "Corroborated",
+  "Owner-provided",
+  "Unknown",
+  "Inference"
+];
+
+const executiveIntelligenceConclusionFields = [
+  "evidenceBasis",
+  "sourceReliability",
+  "confidenceLevel",
+  "verificationNeeded",
+  "businessDecisionImpact"
+];
+
+const executiveIntelligenceLayerNames = [
+  "Executive Summary",
+  "Business Identity",
+  "Ownership Leadership Public Operators Corporate Structure Timeline",
+  "Business Evolution Expansion Growth Brand Development Historical Milestones",
+  "Operational Intelligence",
+  "Commercial Ecosystem Intelligence",
+  "Competitive Intelligence",
+  "Community Intelligence",
+  "Digital Intelligence",
+  "Reputation Intelligence",
+  "Strategic Intelligence",
+  "Executive Decision Support"
+];
+
+const protectedExecutiveIntelligenceSubsystems = [
+  "Dashboard",
+  "CRM",
+  "Website",
+  "Infrastructure",
+  "Companion",
+  "Mobile",
+  "Fitness Connection",
+  "Route Intelligence",
+  "Active Pool",
+  "Intelligence runtime"
+];
+
 const marketExpansionRequiredIndustries = [
   "Fitness",
   "Roofing",
@@ -286,6 +335,133 @@ assert.equal(marketIntelligenceModel.productionSystemsModified, false, "Market I
 assert.equal(marketIntelligenceModel.unsupportedScrapingAllowed, false, "Market Intelligence must prohibit unsupported scraping.");
 assert.equal(customerGraphContracts.status, "architecture_only", "Customer Intelligence Graph must remain architecture-only.");
 assert.equal(customerGraphContracts.researchRuntimeChanged, false, "Customer Intelligence Graph must not activate Research runtime.");
+
+assert.equal(executiveIntelligenceStandard.standardId, "executive_intelligence_platform_v1", "Executive Intelligence standard id drifted.");
+assert.equal(executiveIntelligenceStandard.artifactType, "executive_intelligence_package", "Executive Intelligence artifact type drifted.");
+assert.equal(executiveIntelligenceStandard.status, "active_research_standard", "Executive Intelligence standard must be active.");
+assert.equal(executiveIntelligenceStandard.productionRuntimeChange, false, "Executive Intelligence must not activate production runtime.");
+assert.equal(
+  executiveIntelligenceStandard.minimumQuestion,
+  "What would a Fortune 100 Corporate Development team want to know before making an important strategic decision involving this business?",
+  "Executive Intelligence minimum question drifted."
+);
+assert.deepEqual(
+  executiveIntelligenceStandard.evidenceLabels,
+  executiveIntelligenceEvidenceLabels,
+  "Executive Intelligence evidence labels drifted."
+);
+assert.deepEqual(
+  executiveIntelligenceStandard.requiredConclusionFields,
+  executiveIntelligenceConclusionFields,
+  "Executive Intelligence conclusion fields drifted."
+);
+assert.deepEqual(
+  executiveIntelligenceStandard.intelligenceLayers.map(layer => layer.name),
+  executiveIntelligenceLayerNames,
+  "Executive Intelligence layer names drifted."
+);
+assert.equal(executiveIntelligenceStandard.intelligenceLayers.length, 12, "Executive Intelligence must define 12 layers.");
+assert.equal(executiveIntelligenceStandard.researchRole.researchPreparesExecutives, true, "Research must prepare executives.");
+assert.equal(executiveIntelligenceStandard.researchRole.dashboardDisplays, true, "Dashboard role must remain display-only.");
+assert.equal(executiveIntelligenceStandard.researchRole.crmTracks, true, "CRM role must remain tracking-oriented.");
+assert.equal(executiveIntelligenceStandard.researchRole.intelligenceInterprets, true, "Intelligence role must remain interpretation-oriented.");
+assert.equal(executiveIntelligenceStandard.researchRole.overwatchGoverns, true, "Overwatch role must remain governance-oriented.");
+assert.equal(
+  executiveIntelligenceStandard.legacyDossierTransition.newDossiersAllowedAsPrimaryOutput,
+  false,
+  "Executive Intelligence must block new dossiers as primary output."
+);
+assert.equal(
+  executiveIntelligenceStandard.legacyDossierTransition.existingDossiersRemainHistoricalArtifacts,
+  true,
+  "Existing dossiers must remain historical Research artifacts."
+);
+assert.equal(
+  executiveIntelligenceStandard.legacyDossierTransition.dashboardMigrationRequiresFutureHandoff,
+  true,
+  "Dashboard migration must require future handoff."
+);
+
+assert.equal(executiveIntelligenceSchema.properties.platformStandard.const, "executive_intelligence_platform_v1", "Executive package schema standard const drifted.");
+assert.equal(executiveIntelligenceSchema.properties.productionRuntimeChange.const, false, "Executive package schema must block runtime activation.");
+assert.deepEqual(
+  executiveIntelligenceSchema.properties.evidenceLabels.items.enum,
+  executiveIntelligenceEvidenceLabels,
+  "Executive package schema evidence labels drifted."
+);
+assert.deepEqual(
+  executiveIntelligenceSchema.properties.conclusionRequirements.items.enum,
+  executiveIntelligenceConclusionFields,
+  "Executive package schema conclusion requirements drifted."
+);
+assert.equal(executiveIntelligenceSchema.properties.layers.minItems, 12, "Executive package schema must require 12 layers.");
+assert.equal(executiveIntelligenceSchema.properties.layers.maxItems, 12, "Executive package schema must cap packages at 12 canonical layers.");
+
+for (const [index, layerName] of executiveIntelligenceLayerNames.entries()) {
+  assert.equal(executiveIntelligenceStandard.intelligenceLayers[index].layer, index + 1, `Executive Intelligence layer ${index + 1} index drifted.`);
+  assert.ok(executiveIntelligenceStandard.intelligenceLayers[index].requiredElements.length > 0, `Executive Intelligence layer ${index + 1} missing required elements.`);
+  assert.ok(
+    executiveIntelligencePlatform.includes(`${index + 1}.`) && executiveIntelligencePlatform.includes(layerName.split(" ")[0]),
+    `Executive Intelligence platform doc missing layer ${index + 1}.`
+  );
+}
+
+for (const heading of [
+  "## Layer 1: Executive Summary",
+  "## Layer 2: Business Identity",
+  "## Layer 3: Ownership, Leadership, Public Operators, Corporate Structure, Timeline",
+  "## Layer 4: Business Evolution, Expansion, Growth, Brand Development, Historical Milestones",
+  "## Layer 5: Operational Intelligence",
+  "## Layer 6: Commercial Ecosystem Intelligence",
+  "## Layer 7: Competitive Intelligence",
+  "## Layer 8: Community Intelligence",
+  "## Layer 9: Digital Intelligence",
+  "## Layer 10: Reputation Intelligence",
+  "## Layer 11: Strategic Intelligence",
+  "## Layer 12: Executive Decision Support"
+]) {
+  assert.ok(executiveIntelligenceTemplate.includes(heading), `Executive Intelligence template missing heading: ${heading}`);
+}
+
+for (const label of executiveIntelligenceEvidenceLabels) {
+  assert.ok(executiveIntelligencePlatform.includes(label), `Executive Intelligence platform missing evidence label: ${label}`);
+  assert.ok(executiveIntelligenceTemplate.includes(label), `Executive Intelligence template missing evidence label: ${label}`);
+  assert.ok(sourcePolicy.includes(label), `Source policy missing Executive Intelligence label: ${label}`);
+}
+
+for (const phrase of [
+  "Research produces Executive Intelligence Packages",
+  "Fortune 100 Corporate Development",
+  "Research prepares executives",
+  "Dashboard displays",
+  "CRM tracks",
+  "Intelligence interprets",
+  "Overwatch governs",
+  "Existing Executive Due Diligence Dossiers remain historical Research artifacts"
+]) {
+  assert.ok(executiveIntelligencePlatform.includes(phrase), `Executive Intelligence platform missing phrase: ${phrase}`);
+  assert.ok(architecture.includes(phrase), `Research architecture missing Executive Intelligence phrase: ${phrase}`);
+}
+
+for (const requiredPath of [
+  "research/executive-intelligence-platform.md",
+  "research/registers/executive-intelligence-package-standard.json",
+  "research/schemas/executive-intelligence-package.schema.json",
+  "research/templates/executive-intelligence-package.md"
+]) {
+  assert.ok(researchFoundation.includes(requiredPath), `Root research foundation missing ${requiredPath}.`);
+  assert.ok(researchReadme.includes(requiredPath.replace("research/", "")) || researchReadme.includes(requiredPath), `Research README missing ${requiredPath}.`);
+  assert.ok(architecture.includes(requiredPath), `Research architecture missing ${requiredPath}.`);
+}
+
+for (const subsystem of protectedExecutiveIntelligenceSubsystems) {
+  assert.ok(executiveIntelligenceStandard.protectedSubsystems.includes(subsystem), `Executive Intelligence standard missing protected subsystem: ${subsystem}`);
+  assert.ok(executiveIntelligencePlatform.includes(subsystem), `Executive Intelligence platform missing protected subsystem: ${subsystem}`);
+}
+
+for (const [behavior, allowed] of Object.entries(executiveIntelligenceStandard.prohibitedBehavior)) {
+  assert.equal(allowed, false, `Executive Intelligence prohibited behavior must be false: ${behavior}`);
+}
 
 for (const name of strategicBriefingNames) {
   assert.ok(briefingSystem.includes(name), `Briefing system missing product name: ${name}`);

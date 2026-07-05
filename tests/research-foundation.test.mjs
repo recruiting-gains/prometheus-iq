@@ -254,6 +254,111 @@ test("Market Expansion Recommendation remains research-only with source referenc
   assert.match(report, /No Companion files modified/);
 });
 
+test("Executive Intelligence Platform defines package standard and dossier transition", () => {
+  const standard = readJson("research/registers/executive-intelligence-package-standard.json");
+  const schema = readJson("research/schemas/executive-intelligence-package.schema.json");
+  const platform = readText("research/executive-intelligence-platform.md");
+  const template = readText("research/templates/executive-intelligence-package.md");
+  const architecture = readText("research/architecture.md");
+  const policy = readText("research/source-policy.md");
+
+  const evidenceLabels = [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ];
+
+  const conclusionFields = [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ];
+
+  const layerNames = [
+    "Executive Summary",
+    "Business Identity",
+    "Ownership Leadership Public Operators Corporate Structure Timeline",
+    "Business Evolution Expansion Growth Brand Development Historical Milestones",
+    "Operational Intelligence",
+    "Commercial Ecosystem Intelligence",
+    "Competitive Intelligence",
+    "Community Intelligence",
+    "Digital Intelligence",
+    "Reputation Intelligence",
+    "Strategic Intelligence",
+    "Executive Decision Support"
+  ];
+
+  assert.equal(standard.standardId, "executive_intelligence_platform_v1");
+  assert.equal(standard.artifactType, "executive_intelligence_package");
+  assert.equal(standard.status, "active_research_standard");
+  assert.equal(standard.productionRuntimeChange, false);
+  assert.deepEqual(standard.evidenceLabels, evidenceLabels);
+  assert.deepEqual(standard.requiredConclusionFields, conclusionFields);
+  assert.deepEqual(standard.intelligenceLayers.map(layer => layer.name), layerNames);
+  assert.equal(standard.intelligenceLayers.length, 12);
+  assert.equal(schema.properties.platformStandard.const, "executive_intelligence_platform_v1");
+  assert.equal(schema.properties.productionRuntimeChange.const, false);
+  assert.deepEqual(schema.properties.evidenceLabels.items.enum, evidenceLabels);
+  assert.deepEqual(schema.properties.conclusionRequirements.items.enum, conclusionFields);
+  assert.equal(schema.properties.layers.minItems, 12);
+  assert.equal(schema.properties.layers.maxItems, 12);
+
+  for (const [index] of layerNames.entries()) {
+    assert.equal(standard.intelligenceLayers[index].layer, index + 1);
+    assert.ok(standard.intelligenceLayers[index].requiredElements.length > 0);
+    assert.match(template, new RegExp(`## Layer ${index + 1}:`));
+  }
+
+  for (const label of evidenceLabels) {
+    assert.match(platform, new RegExp(label));
+    assert.match(template, new RegExp(label));
+    assert.match(policy, new RegExp(label));
+  }
+
+  for (const phrase of [
+    "Research produces Executive Intelligence Packages",
+    "Fortune 100 Corporate Development",
+    "Research prepares executives",
+    "Dashboard displays",
+    "CRM tracks",
+    "Intelligence interprets",
+    "Overwatch governs",
+    "Existing Executive Due Diligence Dossiers remain historical Research artifacts"
+  ]) {
+    assert.match(platform, new RegExp(phrase));
+    assert.match(architecture, new RegExp(phrase));
+  }
+
+  assert.equal(standard.legacyDossierTransition.newDossiersAllowedAsPrimaryOutput, false);
+  assert.equal(standard.legacyDossierTransition.existingDossiersRemainHistoricalArtifacts, true);
+  assert.equal(standard.legacyDossierTransition.dashboardMigrationRequiresFutureHandoff, true);
+
+  for (const subsystem of [
+    "Dashboard",
+    "CRM",
+    "Website",
+    "Infrastructure",
+    "Companion",
+    "Mobile",
+    "Fitness Connection",
+    "Route Intelligence",
+    "Active Pool",
+    "Intelligence runtime"
+  ]) {
+    assert.ok(standard.protectedSubsystems.includes(subsystem));
+    assert.match(platform, new RegExp(subsystem));
+  }
+
+  for (const allowed of Object.values(standard.prohibitedBehavior)) {
+    assert.equal(allowed, false);
+  }
+});
+
 test("Smoothie Depot prospect discovery creates a workspace-isolated daily call list", () => {
   const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
   const workflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");

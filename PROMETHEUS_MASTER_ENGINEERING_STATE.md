@@ -100,6 +100,68 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Research - Executive Intelligence Platform v1
+
+Subsystem: Prometheus Research
+
+Task: Executive Intelligence Platform v1
+
+Commit: Recorded by the Executive Intelligence Platform v1 handoff commit.
+
+Deploy: Not run. Research architecture and validation standard only.
+
+Status: Complete.
+
+Implementation type: Both. Research architecture and machine-readable package standard.
+
+Executive Intelligence Platform v1 completed:
+
+Yes. Prometheus Research now treats Executive Intelligence Packages as the primary future executive-readiness artifact instead of new dossiers.
+
+Quality standard adopted:
+
+Yes. The active Research quality standard is Fortune 100 Corporate Development decision readiness: before an executive speaks with a company, Research must answer what a Fortune 100 Corporate Development team would want to know before making an important strategic decision involving that business.
+
+Research architecture updated:
+
+Yes. Added the Research-owned Executive Intelligence Platform standard, package register, package schema, and package template. Updated Research architecture, source policy, root foundation, validation, and tests to enforce lawful sourcing, evidence labels, conclusion fields, protected subsystem boundaries, and the 12-layer package structure.
+
+Future package standard established:
+
+Yes. Every Executive Intelligence Package must cover Executive Summary, Business Identity, Ownership/Leadership/Public Operators/Corporate Structure/Timeline, Business Evolution, Operational Intelligence, Commercial Ecosystem Intelligence, Competitive Intelligence, Community Intelligence, Digital Intelligence, Reputation Intelligence, Strategic Intelligence, and Executive Decision Support.
+
+Legacy dossier transition:
+
+Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
+
+Protected subsystem boundary:
+
+Research only. No Dashboard, CRM, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, Intelligence runtime, production data, or customer-facing behavior was modified.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/source-policy.md`
+- `research/executive-intelligence-platform.md`
+- `research/registers/executive-intelligence-package-standard.json`
+- `research/schemas/executive-intelligence-package.schema.json`
+- `research/templates/executive-intelligence-package.md`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining blockers:
+
+- Existing Smoothie Depot Dashboard still consumes canonical dossier artifacts until a future Dashboard-owned migration accepts Executive Intelligence Packages.
+- Existing Nutrition Depot dossier remains a historical/current Dashboard input; the first package-format business artifact still needs to be generated under the new standard.
+- Future package registers are established at the standard level, but no business-specific Executive Intelligence Package has been generated in this task.
+
+Next recommended subsystem:
+
+Prometheus Research - Nutrition Depot Executive Intelligence Package v1.
+
 ### 2026-07-05: Prometheus Overwatch - Prometheus Architectural Evolution Report v1
 
 Subsystem: Prometheus Overwatch
@@ -9194,6 +9256,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
 - Do not duplicate Market Expansion Recommendation v1; reuse `research/reports/market-expansion-recommendation-v1.md`, `research/reports/market-expansion-scoring-v1.json`, and the Research validation/test gates for the Roofing-first recommendation, top 10 expansion ranking, source references, and no-production-change boundary confirmations.
+- Do not duplicate Executive Intelligence Platform v1; reuse `research/executive-intelligence-platform.md`, `research/registers/executive-intelligence-package-standard.json`, `research/schemas/executive-intelligence-package.schema.json`, `research/templates/executive-intelligence-package.md`, `scripts/validate-research-foundation.mjs`, and `tests/research-foundation.test.mjs` for Executive Intelligence Packages, 12-layer package structure, evidence labels, required conclusion fields, Fortune 100 Corporate Development decision-readiness standard, protected subsystem boundaries, and the legacy dossier transition rule. Existing dossiers remain historical/current Dashboard inputs until a future Dashboard-owned migration is approved; new Research work must use package artifacts as the primary output.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.

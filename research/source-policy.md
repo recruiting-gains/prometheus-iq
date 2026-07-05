@@ -85,6 +85,24 @@ Use these labels consistently:
 - `Unknown`: not enough evidence yet.
 - `Founder assumption`: a working assumption from company strategy or founder context.
 
+## Executive Intelligence Package Evidence Labels
+
+Executive Intelligence Packages must use exactly one of these labels for every material conclusion:
+
+- `Observed`: directly visible in a lawful public source.
+- `Corroborated`: confirmed by more than one lawful public source.
+- `Owner-provided`: provided directly by an authorized business representative.
+- `Unknown`: not established by available lawful or owner-provided evidence.
+- `Inference`: reasoned conclusion derived from labeled evidence.
+
+Every Executive Intelligence Package recommendation and major conclusion must also include:
+
+- Evidence basis.
+- Source reliability.
+- Confidence level.
+- Verification needed.
+- Business decision impact.
+
 ## Production Boundary
 
 Research source collection must not:
@@ -94,3 +112,4 @@ Research source collection must not:
 - Modify Dashboard, Companion, CRM, Infrastructure, Website, or Intelligence Engine.
 - Publish public content without approval.
 - Trigger external communication workflows.
+- Use psychological profiling, hidden records, surveillance, restricted-platform scraping, or private business records for Executive Intelligence Packages.

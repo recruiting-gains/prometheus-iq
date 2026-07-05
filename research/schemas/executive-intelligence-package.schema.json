@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Prometheus Executive Intelligence Package",
+  "type": "object",
+  "required": [
+    "packageId",
+    "workspaceId",
+    "business",
+    "platformStandard",
+    "productionRuntimeChange",
+    "evidenceLabels",
+    "conclusionRequirements",
+    "layers",
+    "qualityGate",
+    "boundaryConfirmation"
+  ],
+  "properties": {
+    "packageId": {
+      "type": "string"
+    },
+    "workspaceId": {
+      "type": "string"
+    },
+    "business": {
+      "type": "string"
+    },
+    "platformStandard": {
+      "const": "executive_intelligence_platform_v1"
+    },
+    "productionRuntimeChange": {
+      "const": false
+    },
+    "evidenceLabels": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "Observed",
+          "Corroborated",
+          "Owner-provided",
+          "Unknown",
+          "Inference"
+        ]
+      },
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "conclusionRequirements": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "evidenceBasis",
+          "sourceReliability",
+          "confidenceLevel",
+          "verificationNeeded",
+          "businessDecisionImpact"
+        ]
+      },
+      "minItems": 5,
+      "maxItems": 5,
+      "uniqueItems": true
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "layer",
+          "name",
+          "requiredElements"
+        ],
+        "properties": {
+          "layer": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "name": {
+            "type": "string"
+          },
+          "requiredElements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    },
+    "qualityGate": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 5
+    },
+    "boundaryConfirmation": {
+      "type": "object",
+      "required": [
+        "lawfulInformationOnly",
+        "psychologicalProfilingUsed",
+        "privateInformationUsed",
+        "restrictedPlatformScrapingUsed",
+        "hiddenRecordsUsed",
+        "surveillanceUsed",
+        "productionSystemsModified"
+      ],
+      "properties": {
+        "lawfulInformationOnly": {
+          "const": true
+        },
+        "psychologicalProfilingUsed": {
+          "const": false
+        },
+        "privateInformationUsed": {
+          "const": false
+        },
+        "restrictedPlatformScrapingUsed": {
+          "const": false
+        },
+        "hiddenRecordsUsed": {
+          "const": false
+        },
+        "surveillanceUsed": {
+          "const": false
+        },
+        "productionSystemsModified": {
+          "const": false
+        }
+      }
+    }
+  }
+}

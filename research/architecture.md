@@ -222,6 +222,54 @@ The engine is defined by:
 
 Market Intelligence Engine v1 is not a runtime service. It must not modify Companion, Dashboard, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, or production data.
 
+## Executive Intelligence Platform
+
+Executive Intelligence Platform v1 establishes the active Research standard for high-impact executive conversation preparation.
+
+Research no longer treats dossiers as the primary future output. Research now produces Executive Intelligence Packages that answer:
+
+What would a Fortune 100 Corporate Development team want to know before making an important strategic decision involving this business?
+
+Research produces Executive Intelligence Packages as complete operational intelligence briefings for executive decision readiness.
+
+Every Executive Intelligence Package must prepare decision-makers by reducing uncertainty through lawful, attributable evidence. Research prepares executives. Dashboard displays. CRM tracks. Intelligence interprets. Overwatch governs.
+
+Required package layers:
+
+1. Executive Summary.
+2. Business Identity.
+3. Ownership, Leadership, Public Operators, Corporate Structure, Timeline.
+4. Business Evolution, Expansion, Growth, Brand Development, Historical Milestones.
+5. Operational Intelligence.
+6. Commercial Ecosystem Intelligence.
+7. Competitive Intelligence.
+8. Community Intelligence.
+9. Digital Intelligence.
+10. Reputation Intelligence.
+11. Strategic Intelligence.
+12. Executive Decision Support.
+
+Required evidence labels:
+
+- Observed.
+- Corroborated.
+- Owner-provided.
+- Unknown.
+- Inference.
+
+Every recommendation and major conclusion must include evidence basis, source reliability, confidence level, verification needed, and business decision impact.
+
+The platform is defined by:
+
+- `research/executive-intelligence-platform.md`
+- `research/registers/executive-intelligence-package-standard.json`
+- `research/schemas/executive-intelligence-package.schema.json`
+- `research/templates/executive-intelligence-package.md`
+
+Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
+
+Executive Intelligence Platform v1 is a Research standard only. It must not modify Dashboard, Companion, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, Fitness Connection, Route Intelligence, Active Pool, production data, or customer-facing behavior.
+
 ## Duplicate Prevention
 
 Existing research-related documents must be reused:
@@ -235,8 +283,10 @@ Existing research-related documents must be reused:
 - `docs/prometheus-company-manual.md`
 - `research/briefing-system.md`
 - `research/market-intelligence-engine.md`
+- `research/executive-intelligence-platform.md`
 - `research/registers/briefing-catalog.json`
 - `research/registers/market-intelligence-model.json`
+- `research/registers/executive-intelligence-package-standard.json`
 
 Do not create replacement competitive-positioning documents when an update to the existing Research structure or existing docs is sufficient.
 
@@ -250,5 +300,6 @@ Do not create replacement competitive-positioning documents when an update to th
 - No Intelligence Engine training.
 - No Intelligence Engine evidence writes.
 - No Market Intelligence runtime service.
+- No Executive Intelligence Package production runtime service.
 - No public publishing pipeline.
 - No private customer-data ingestion.

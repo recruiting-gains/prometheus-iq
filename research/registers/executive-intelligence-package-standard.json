@@ -1,0 +1,216 @@
+{
+  "standardId": "executive_intelligence_platform_v1",
+  "artifactType": "executive_intelligence_package",
+  "status": "active_research_standard",
+  "productionRuntimeChange": false,
+  "mission": "Prepare executive decision-makers for high-impact business conversations by reducing uncertainty through evidence.",
+  "minimumQuestion": "What would a Fortune 100 Corporate Development team want to know before making an important strategic decision involving this business?",
+  "researchRole": {
+    "researchPreparesExecutives": true,
+    "dashboardDisplays": true,
+    "crmTracks": true,
+    "intelligenceInterprets": true,
+    "overwatchGoverns": true
+  },
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "requiredConclusionFields": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "intelligenceLayers": [
+    {
+      "layer": 1,
+      "name": "Executive Summary",
+      "requiredElements": [
+        "decisionContext",
+        "executiveRecommendation",
+        "confidence",
+        "criticalUnknowns"
+      ]
+    },
+    {
+      "layer": 2,
+      "name": "Business Identity",
+      "requiredElements": [
+        "businessName",
+        "publicAddresses",
+        "publicContactMethods",
+        "businessCategory",
+        "sourceAttribution"
+      ]
+    },
+    {
+      "layer": 3,
+      "name": "Ownership Leadership Public Operators Corporate Structure Timeline",
+      "requiredElements": [
+        "ownership",
+        "leadership",
+        "publicOperators",
+        "corporateStructure",
+        "timeline"
+      ]
+    },
+    {
+      "layer": 4,
+      "name": "Business Evolution Expansion Growth Brand Development Historical Milestones",
+      "requiredElements": [
+        "businessEvolution",
+        "expansion",
+        "growth",
+        "brandDevelopment",
+        "historicalMilestones"
+      ]
+    },
+    {
+      "layer": 5,
+      "name": "Operational Intelligence",
+      "requiredElements": [
+        "locations",
+        "footprint",
+        "hiring",
+        "businessModel",
+        "operationalMaturity",
+        "growthIndicators",
+        "expansionSignals"
+      ]
+    },
+    {
+      "layer": 6,
+      "name": "Commercial Ecosystem Intelligence",
+      "requiredElements": [
+        "adjacentBusinesses",
+        "anchorBusinesses",
+        "trafficGenerators",
+        "medical",
+        "fitness",
+        "retail",
+        "residential",
+        "commercialDevelopment",
+        "economicActivity",
+        "futureDevelopment",
+        "infrastructure",
+        "roadProjects",
+        "construction",
+        "populationTrends"
+      ]
+    },
+    {
+      "layer": 7,
+      "name": "Competitive Intelligence",
+      "requiredElements": [
+        "directCompetitors",
+        "indirectCompetitors",
+        "substitutes",
+        "complementaryBusinesses",
+        "marketPositioning",
+        "competitiveStrengths",
+        "competitiveWeaknesses"
+      ]
+    },
+    {
+      "layer": 8,
+      "name": "Community Intelligence",
+      "requiredElements": [
+        "communityInvolvement",
+        "partnerships",
+        "organizations",
+        "events",
+        "networking",
+        "brandPresence",
+        "publicReputation"
+      ]
+    },
+    {
+      "layer": 9,
+      "name": "Digital Intelligence",
+      "requiredElements": [
+        "website",
+        "seo",
+        "socialPresence",
+        "marketingMaturity",
+        "digitalFootprint",
+        "customerJourney"
+      ]
+    },
+    {
+      "layer": 10,
+      "name": "Reputation Intelligence",
+      "requiredElements": [
+        "reviewAnalysis",
+        "themeAnalysis",
+        "operationalStrengths",
+        "operationalWeaknesses",
+        "complaintPatterns",
+        "recoveryBehavior"
+      ]
+    },
+    {
+      "layer": 11,
+      "name": "Strategic Intelligence",
+      "requiredElements": [
+        "growthProbability",
+        "expansionReadiness",
+        "businessMaturity",
+        "investmentReadiness",
+        "operationalComplexity",
+        "decisionMakerReadiness"
+      ]
+    },
+    {
+      "layer": 12,
+      "name": "Executive Decision Support",
+      "requiredElements": [
+        "topOpportunities",
+        "topRisks",
+        "criticalUnknowns",
+        "questionsThatReduceUncertainty",
+        "conversationStrategy",
+        "recommendedExecutiveApproach",
+        "recommendedNextInvestigation"
+      ]
+    }
+  ],
+  "qualityGate": [
+    "Every material conclusion is labeled.",
+    "Every recommendation is evidence-backed.",
+    "Every layer is complete or explicitly marked unknown.",
+    "Critical unknowns are ranked by executive decision value.",
+    "A Fortune 100 Corporate Development team would understand what is known, what is inferred, what is unknown, and what must be verified next."
+  ],
+  "prohibitedBehavior": {
+    "psychologicalProfiling": false,
+    "privateInformation": false,
+    "restrictedPlatformScraping": false,
+    "hiddenRecords": false,
+    "surveillance": false,
+    "productionRuntimeMutation": false
+  },
+  "protectedSubsystems": [
+    "Dashboard",
+    "CRM",
+    "Website",
+    "Infrastructure",
+    "Companion",
+    "Mobile",
+    "Fitness Connection",
+    "Route Intelligence",
+    "Active Pool",
+    "Intelligence runtime"
+  ],
+  "legacyDossierTransition": {
+    "newPrimaryResearchOutput": "Executive Intelligence Package",
+    "newDossiersAllowedAsPrimaryOutput": false,
+    "existingDossiersRemainHistoricalArtifacts": true,
+    "dashboardMigrationRequiresFutureHandoff": true
+  }
+}
+
