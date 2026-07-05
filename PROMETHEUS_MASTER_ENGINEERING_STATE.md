@@ -106,11 +106,11 @@ Subsystem: Prometheus Research
 
 Task: Nutrition Depot Executive Dossier v1 Remediation
 
-Commit: Recorded by the Nutrition Depot Executive Dossier v1 remediation handoff commit.
+Commit: `4e4631f78351191aa7b9caff5454443a27a6d7a8`
 
 Deploy: Not run. Research artifact and validation only; no production deployment required.
 
-Status: Complete and committed locally at handoff time.
+Status: Complete. Research remediation commit is present in repository history.
 
 Implementation type: Canonical Research dossier remediation and validation hardening.
 
@@ -155,6 +155,9 @@ Verified. Smoothie Depot workspace only. No Dashboard, CRM, Website, Infrastruct
 
 Tests/validation run:
 
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed.
 - `npm run research:validate`: passed.
 - `npm run test:research`: passed.
 - `git diff --check`: passed.
@@ -164,7 +167,7 @@ Remaining blockers:
 - Direct Google Business Profile review/rating capture remains incomplete.
 - Local competitor/corridor mapping remains incomplete.
 - Decision-maker authority, second-concept interest, liquidity/financing path, timeline, food-service appetite, and one-unit versus multi-unit intent require live conversation.
-- Full `npm test` was run and is blocked by the Dashboard read-only consumer check `dashboard:smoothie-depot:check`, which now expects the previous canonical Research artifact hash. Updating that hash belongs to a Dashboard follow-up and is intentionally outside this Research-only remediation.
+- Historical at Research handoff time: full `npm test` was blocked by the Dashboard read-only consumer check `dashboard:smoothie-depot:check`, which expected the previous canonical Research artifact hash. Current repository state includes the later Dashboard consumer update commit `aa47910471507077d3b06c0fa331a051e1d8136b`, and `npm run dashboard:smoothie-depot:check` now passes.
 
 Next recommended subsystem:
 
