@@ -258,6 +258,139 @@ function validateReferencedPaths(paths, label, failures) {
   }
 }
 
+function flattenContractPathGroups(contract, groupNames) {
+  return groupNames.flatMap(groupName => Object.values(contract[groupName] || {}));
+}
+
+function ensurePathRegistered(path, contract, groupNames, failures) {
+  const registeredPaths = flattenContractPathGroups(contract, groupNames);
+  assert(
+    registeredPaths.includes(path),
+    `Data runtime contract must register canonical path: ${path}`,
+    failures
+  );
+}
+
+function validateDataRuntimeArtifactContract(contract, routeDataContract, failures) {
+  const pathGroups = [
+    "canonicalRuntimeArtifacts",
+    "canonicalRouteQualityArtifacts",
+    "canonicalPoolSegmentationArtifacts",
+    "canonicalGovernanceOverrideArtifacts",
+    "canonicalAssignedLeadArtifacts",
+    "canonicalRuntimeEligibilityArtifacts",
+    "canonicalEvidenceAndProvenanceArtifacts",
+    "deployMirrorArtifacts"
+  ];
+
+  validateReferencedPaths(
+    Object.fromEntries(flattenContractPathGroups(contract, pathGroups).map(path => [path, path])),
+    "Data runtime artifact contract",
+    failures
+  );
+
+  for (const [key, path] of Object.entries(routeDataContract.canonicalDataPaths || {})) {
+    if (key === "activePool") ensurePathRegistered(path, contract, pathGroups, failures);
+    if (key === "runtimePools") ensurePathRegistered(path, contract, pathGroups, failures);
+    if (key === "routeQualityReport") ensurePathRegistered(path, contract, pathGroups, failures);
+    if (key === "runtimeGovernanceOverrides") ensurePathRegistered(path, contract, pathGroups, failures);
+  }
+
+  const activePool = readJson(contract.canonicalRuntimeArtifacts.activePool);
+  const reservePool = readJson(contract.canonicalRuntimeArtifacts.reservePool);
+  const quarantinePool = readJson(contract.canonicalRuntimeArtifacts.quarantinePool);
+  const runtimePools = readJson(contract.canonicalRuntimeArtifacts.runtimePools);
+  const routeQualityReport = readJson(contract.canonicalRouteQualityArtifacts.routeQualityReport);
+  const manifest = readJson(contract.canonicalPoolSegmentationArtifacts.runtimePoolManifest);
+  const governanceReport = readJson(contract.canonicalPoolSegmentationArtifacts.governanceReport);
+  const promotionGate = readJson(contract.canonicalPoolSegmentationArtifacts.promotionGate);
+  const overrides = readJson(contract.canonicalGovernanceOverrideArtifacts.runtimeGovernanceOverrides);
+  const qualityReport = readJson(contract.canonicalRuntimeEligibilityArtifacts.qualityReport);
+  const productionDataset = readJson(contract.canonicalEvidenceAndProvenanceArtifacts.productionDatasetJson);
+
+  assert(contract.owningSubsystem === "Prometheus Data", "Data runtime artifact contract must be Data-owned.", failures);
+  assert(contract.workspaceId === "fitness_connection", "Data runtime artifact contract workspace mismatch.", failures);
+  assert(contract.operatingProfileId === "fitness", "Data runtime artifact contract operating profile mismatch.", failures);
+
+  assert(activePool.pool === "active", "Data contract Active Pool path must point to the active pool.", failures);
+  assert(activePool.count === contract.expectedRuntimeMetrics.activePoolRecords, "Data contract Active Pool count mismatch.", failures);
+  assert(reservePool.pool === "reserve", "Data contract Reserve Pool path must point to reserve pool.", failures);
+  assert(reservePool.count === contract.expectedRuntimeMetrics.reservePoolRecords, "Data contract Reserve Pool count mismatch.", failures);
+  assert(quarantinePool.pool === "quarantine", "Data contract Quarantine Pool path must point to quarantine pool.", failures);
+  assert(quarantinePool.count === contract.expectedRuntimeMetrics.quarantinePoolRecords, "Data contract Quarantine Pool count mismatch.", failures);
+
+  assert(activePool.sourceDatasetVersion === contract.expectedRuntimeMetrics.requiredDatasetVersion, "Active Pool dataset version mismatch.", failures);
+  assert(activePool.segmentationVersion === contract.expectedRuntimeMetrics.requiredSegmentationVersion, "Active Pool segmentation version mismatch.", failures);
+  assert(runtimePools.dataset_version === contract.expectedRuntimeMetrics.requiredDatasetVersion, "Runtime pools dataset version mismatch.", failures);
+  assert(manifest.counts?.active === contract.expectedRuntimeMetrics.activePoolRecords, "Segmentation manifest Active count mismatch.", failures);
+  assert(manifest.counts?.reserve === contract.expectedRuntimeMetrics.reservePoolRecords, "Segmentation manifest Reserve count mismatch.", failures);
+  assert(manifest.counts?.quarantine === contract.expectedRuntimeMetrics.quarantinePoolRecords, "Segmentation manifest Quarantine count mismatch.", failures);
+
+  const activePlaceIds = activePool.records.map(record => record.googlePlaceId).filter(Boolean);
+  assert(activePlaceIds.length === activePool.records.length, "Active Pool must have Google Place IDs for every record.", failures);
+  assert(new Set(activePlaceIds).size === activePlaceIds.length, "Active Pool must not contain duplicate Google Place IDs.", failures);
+  assert(
+    activePool.records.every(record => /\d+/.test(record.address || "")),
+    "Active Pool records must have numbered addresses.",
+    failures
+  );
+  assert(
+    activePool.records.every(record => String(record.googleMapsUrl || "").startsWith("https://maps.google.com/")),
+    "Active Pool records must use safe Google Maps links.",
+    failures
+  );
+  assert(
+    activePool.records.every(record => record.poolAssignmentReasons?.includes("highest_quality_verified_runtime_candidate")),
+    "Active Pool records must expose runtime eligibility reasons.",
+    failures
+  );
+  assert(
+    activePool.records.some(record => record.runtimeProfiles?.some(profile => profile.repProfileId === "anthony")),
+    "Active Pool must preserve Anthony assigned runtime profiles.",
+    failures
+  );
+  assert(Array.isArray(runtimePools.cruz) && runtimePools.cruz.length > 0, "Runtime pools must include founder runtime leads.", failures);
+  assert(Array.isArray(runtimePools.anthony) && runtimePools.anthony.length > 0, "Runtime pools must include Anthony runtime leads.", failures);
+
+  assert(routeQualityReport.status === "passed", "Route-quality artifact must be passed.", failures);
+  assert(routeQualityReport.dataset?.activePoolRecords === contract.expectedRuntimeMetrics.activePoolRecords, "Route-quality Active count mismatch.", failures);
+  assert(routeQualityReport.dataset?.expandedDashboardRouteRecords === contract.expectedRuntimeMetrics.expandedDashboardRouteRecords, "Route-quality expanded Dashboard count mismatch.", failures);
+  assert(governanceReport.status === "passed", "Governance report must pass.", failures);
+  assert(governanceReport.promotionAllowed === true, "Governance report must allow promotion.", failures);
+  assert(promotionGate.status === "passed", "Promotion gate must pass.", failures);
+  assert(promotionGate.promotionAllowed === true, "Promotion gate must allow promotion.", failures);
+
+  const residentialOverride = overrides.residentialHouseAddressBlocks?.find(block => block.address === "10820 Hughes Rd, Houston, TX 77089, USA");
+  assert(Boolean(residentialOverride), "Governance overrides must preserve the residential-house barber block.", failures);
+  assert(residentialOverride?.governanceAction === "quarantine", "Residential-house override must quarantine affected records.", failures);
+  assert(
+    residentialOverride?.googlePlaceIds?.every(placeId => !activePlaceIds.includes(placeId)),
+    "Residential-house override Place IDs must not be in Active Pool.",
+    failures
+  );
+
+  assert(qualityReport.quality?.final_production_candidate_count === productionDataset.production_candidates?.length, "Quality report must match production dataset count.", failures);
+  assert(productionDataset.dataset_version === contract.expectedRuntimeMetrics.requiredDatasetVersion, "Production dataset version mismatch.", failures);
+  assert(activePool.runtimeBehaviorChanged === false, "Active Pool runtime behavior flag must remain stable.", failures);
+  assert(activePool.scoringChanged === false, "Active Pool scoring flag must remain stable.", failures);
+  assert(manifest.verification?.runtimeBehaviorChanged === false, "Segmentation manifest runtime behavior flag must remain stable.", failures);
+  assert(manifest.verification?.scoringChanged === false, "Segmentation manifest scoring flag must remain stable.", failures);
+
+  assert(contract.consumerRules.dashboard.mayReadOnlyApprovedDataArtifacts === true, "Dashboard must read only approved Data artifacts.", failures);
+  assert(contract.consumerRules.dashboard.mayWriteDataArtifacts === false, "Dashboard must not write Data artifacts.", failures);
+  assert(contract.consumerRules.crm.mayConsumeAssignedLeadArtifactsOnlyThroughContract === true, "CRM may consume assigned leads only through contract.", failures);
+  assert(contract.consumerRules.crm.mayReadActivePoolDirectly === false, "CRM direct Active Pool read must remain blocked.", failures);
+  assert(contract.consumerRules.intelligence.mayInterpretOnlyThroughApprovedReadPaths === true, "Intelligence must use approved Data read paths.", failures);
+  assert(contract.consumerRules.intelligence.mayChangeScoring === false, "Intelligence must not change scoring through Data contract.", failures);
+  assert(contract.consumerRules.mobile.mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts === true, "Mobile must be role/workspace scoped.", failures);
+  assert(contract.consumerRules.mobile.mayReadSmoothieDepotCandidateData === false, "Mobile must not read Smoothie Depot candidate data through Fitness contract.", failures);
+
+  assert(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessActivePoolData === false, "Smoothie Depot must not consume Fitness Active Pool data.", failures);
+  assert(contract.workspaceIsolationRules.fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData === false, "Fitness must not consume Smoothie Depot franchise candidate data.", failures);
+  assert(contract.workspaceIsolationRules.fixtureDataAllowedInProduction === false, "Production fixture data must remain prohibited.", failures);
+  assert(contract.workspaceIsolationRules.missingArtifactFailsClosed === true, "Missing Data artifacts must fail closed.", failures);
+}
+
 function validateSharedWorkspaceLeadIntakeContract(workspace, failures) {
   const artifactId = `${workspace.workspaceId}_shared_lead_intake_contract`;
   const artifact = workspace.canonicalArtifacts.find(candidate => candidate.artifactId === artifactId);
@@ -308,6 +441,7 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
   const dashboardContract = readJson(artifacts.fitness_connection_dashboard_consumer_contract.path);
   const routeDataContract = readJson(artifacts.fitness_connection_route_intelligence_data_contract.path);
+  const dataRuntimeArtifactContract = readJson(artifacts.fitness_connection_data_runtime_artifact_contract.path);
   const crmContract = readJson(artifacts.fitness_connection_crm_consumer_contract.path);
   const intelligenceContract = readJson(artifacts.fitness_connection_intelligence_consumer_contract.path);
   const dashboardSource = read(artifacts.fitness_connection_dashboard_source.path);
@@ -341,6 +475,9 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(dashboardContract.productionRules.anthonyRepAccessMustNotEqualFounderAccess === true, "Dashboard contract must protect Anthony/Founder boundary.", failures);
 
   validateReferencedPaths(routeDataContract.canonicalDataPaths, "Fitness route/data contract", failures);
+  validateReferencedPaths(routeDataContract.canonicalContractPaths, "Fitness route/data contract", failures);
+  validateReferencedPaths(routeDataContract.canonicalAssignedLeadPaths, "Fitness route/data contract", failures);
+  validateDataRuntimeArtifactContract(dataRuntimeArtifactContract, routeDataContract, failures);
   assert(activePool.pool === "active", "Fitness Active Pool must remain active pool.", failures);
   assert(activePool.count === routeDataContract.assignedLeadRules.activePoolExpectedCount, "Fitness Active Pool count must match contract.", failures);
   assert(activePool.records?.some(record => record.runtimeProfiles?.some(profile => profile.repProfileId === "anthony")), "Fitness Active Pool must include Anthony-assigned runtime profiles.", failures);
@@ -369,6 +506,8 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(workspace.consumerContracts.dashboard.mustPreserveFounderRepBoundary === true, "Fitness Dashboard consumer contract must preserve Founder/Rep boundary.", failures);
   assert(workspace.consumerContracts.crm.mustPreserveFitnessOperatingProfile === true, "Fitness CRM consumer contract must preserve Fitness profile.", failures);
   assert(workspace.consumerContracts.intelligence.mustNotInfluenceSmoothieDepot === true, "Fitness Intelligence consumer contract must not influence Smoothie Depot.", failures);
+  assert(workspace.consumerContracts.mobile.mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts === true, "Fitness Mobile consumer contract must require role/workspace-scoped lead artifacts.", failures);
+  assert(workspace.consumerContracts.mobile.mustNotUseSmoothieDepotData === true, "Fitness Mobile consumer contract must block Smoothie Depot data.", failures);
 }
 
 function validateFixturePolicy(registry, failures) {
@@ -464,6 +603,14 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
 
   const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
+  const dataAudit = auditedSubsystems.get("Prometheus Data");
+  assert(dataAudit?.status === "compliant_for_runtime_artifact_contracts", "Data runtime artifact contract bypass must be closed.", failures);
+  assert(dataAudit?.bypassIdentified === false, "Data runtime artifact contract must not remain bypass-identified.", failures);
+  assert(
+    dataAudit?.evidence?.some(item => item.includes("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json")),
+    "Data audit must reference the Fitness runtime artifact contract.",
+    failures
+  );
   assert(infrastructureAudit?.bypassIdentified === false, "Infrastructure shared lead-intake contract bypass must be closed.", failures);
   assert(
     infrastructureAudit?.evidence?.some(item => item.includes("integrations/shared-workspace-lead-intake-contract.js")),
@@ -472,10 +619,10 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   );
 
   const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Data", "Priority 1 remediation should move to Data after Infrastructure intake registration.", failures);
+  assert(firstRemediation?.owner === "Prometheus Social Media", "Priority 1 remediation should move to Social Media after Data runtime artifact registration.", failures);
   assert(
-    firstRemediation?.task?.includes("Active Pool"),
-    "Priority 1 remediation must register Data runtime artifacts after Infrastructure intake registration.",
+    firstRemediation?.task?.includes("Social Media"),
+    "Priority 1 remediation must register Social Media artifacts after Data runtime artifact registration.",
     failures
   );
 }

@@ -85,12 +85,22 @@ Dashboard-owned runtime consumers:
 
 Data-owned route intelligence artifacts:
 
+- `overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
 - `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
 - `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/quality-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json`
 
 CRM-owned contracts and entry points:
 
@@ -112,9 +122,17 @@ Dashboard must render completed Research-owned canonical dossier artifacts read-
 
 Dashboard must not summarize, abbreviate, reinterpret, mutate, or create Research intelligence.
 
+Dashboard must read Fitness Connection Active Pool and runtime pool artifacts only through approved Data contract paths and must not write Data artifacts.
+
 CRM must route intake and future candidate records by `workspaceId`, reject unknown workspaces, and reject cross-workspace contamination before mutation.
 
+CRM may consume Fitness Connection assigned lead artifacts only through the Data runtime artifact contract. CRM must not directly consume the Fitness Active Pool as mutable CRM state.
+
 Intelligence must not activate production scoring, mutate Research or CRM artifacts, or let Smoothie Depot intelligence influence Fitness Connection recommendations.
+
+Intelligence may interpret Fitness Connection Data artifacts only through approved read paths and must not mutate Data artifacts or change scoring through the Data contract.
+
+Mobile may consume only role-scoped, workspace-scoped Fitness lead artifacts and must not consume Smoothie Depot candidate or franchise data.
 
 Fitness Connection work must preserve the `fitness_connection` workspace, `fitness` Operating Profile, Founder/Rep separation, Anthony Rep-only access, Data-owned Active Pool governance, CRM-owned lead/activity state, and Smoothie Depot isolation.
 
@@ -148,8 +166,8 @@ Incomplete links identified:
 Required remediation order:
 
 1. Keep Overwatch artifact contract verification active in `npm test`.
-2. Infrastructure must register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
-3. Data must register any new Active Pool, runtime pool, route-quality, governance, or Dashboard-read artifacts through this layer.
+2. Social Media must register analytics/reporting and Website/CRM attribution artifacts.
+3. Companion must register read-only subsystem consumer contracts before new subsystem-consuming founder responses.
 4. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
 5. CRM runtime persistence requires explicit CRM-owned approval.
 6. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.

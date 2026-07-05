@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import test from "node:test";
 
 import { verifyCrossSubsystemArtifactContracts } from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
@@ -70,6 +71,14 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
     "Infrastructure audit must record the shared lead-intake contract."
   );
 
+  const data = audit.subsystems.find(record => record.subsystem === "Prometheus Data");
+  assert.equal(data.status, "compliant_for_runtime_artifact_contracts");
+  assert.equal(data.bypassIdentified, false);
+  assert.ok(
+    data.evidence.some(item => item.includes("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json")),
+    "Data audit must record the Fitness runtime artifact contract."
+  );
+
   for (const record of [...audit.subsystems, ...audit.workspaces]) {
     const requiresRemediation = record.bypassIdentified === true || /partial|bypass/.test(record.status);
     if (!requiresRemediation) continue;
@@ -79,8 +88,8 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
     assert.equal(record.remediationRequiredBeforeFutureFeatureWork, true);
   }
 
-  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Data");
-  assert.match(audit.globalRemediationOrder[0].task, /Active Pool/);
+  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Social Media");
+  assert.match(audit.globalRemediationOrder[0].task, /Social Media/);
 });
 
 test("Fitness Connection workspace is registered with role and isolation contracts", () => {
@@ -98,6 +107,7 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_workspace_identity_contract",
     "fitness_connection_dashboard_consumer_contract",
     "fitness_connection_route_intelligence_data_contract",
+    "fitness_connection_data_runtime_artifact_contract",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
@@ -111,4 +121,37 @@ test("Fitness Connection workspace is registered with role and isolation contrac
   assert.equal(fitnessConnection.consumerContracts.dashboard.mustPreserveAnthonyRepOnlyAccess, true);
   assert.equal(fitnessConnection.consumerContracts.crm.mustPreserveFitnessOperatingProfile, true);
   assert.equal(fitnessConnection.consumerContracts.intelligence.mustNotInfluenceSmoothieDepot, true);
+  assert.equal(fitnessConnection.consumerContracts.mobile.mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts, true);
+  assert.equal(fitnessConnection.consumerContracts.mobile.mustNotUseSmoothieDepotData, true);
+});
+
+test("Data runtime artifact contract registers canonical paths and consumer boundaries", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const fitnessConnection = result.registry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
+  const dataArtifact = fitnessConnection.canonicalArtifacts.find(artifact => artifact.artifactId === "fitness_connection_data_runtime_artifact_contract");
+
+  assert.equal(dataArtifact.ownerSubsystem, "Prometheus Data");
+  assert.equal(dataArtifact.path, "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json");
+  assert.ok(dataArtifact.readAllowed.includes("Prometheus Dashboard"));
+  assert.ok(dataArtifact.readAllowed.includes("Prometheus CRM"));
+  assert.ok(dataArtifact.readAllowed.includes("Prometheus Intelligence Engine"));
+  assert.ok(dataArtifact.readAllowed.includes("Prometheus Mobile"));
+
+  const contract = JSON.parse(fs.readFileSync(dataArtifact.path, "utf8"));
+
+  assert.equal(contract.expectedRuntimeMetrics.activePoolRecords, 297);
+  assert.equal(contract.expectedRuntimeMetrics.reservePoolRecords, 44);
+  assert.equal(contract.expectedRuntimeMetrics.quarantinePoolRecords, 109);
+  assert.equal(contract.expectedRuntimeMetrics.expandedDashboardRouteRecords, 594);
+  assert.equal(contract.canonicalRuntimeArtifacts.activePool, "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json");
+  assert.equal(contract.canonicalRuntimeArtifacts.runtimePools, "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json");
+  assert.equal(contract.canonicalRouteQualityArtifacts.routeQualityReport, "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json");
+  assert.equal(contract.canonicalGovernanceOverrideArtifacts.runtimeGovernanceOverrides, "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json");
+  assert.equal(contract.consumerRules.dashboard.mayReadOnlyApprovedDataArtifacts, true);
+  assert.equal(contract.consumerRules.crm.mayConsumeAssignedLeadArtifactsOnlyThroughContract, true);
+  assert.equal(contract.consumerRules.intelligence.mayInterpretOnlyThroughApprovedReadPaths, true);
+  assert.equal(contract.consumerRules.mobile.mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts, true);
+  assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessActivePoolData, false);
+  assert.equal(contract.workspaceIsolationRules.fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData, false);
+  assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
 });

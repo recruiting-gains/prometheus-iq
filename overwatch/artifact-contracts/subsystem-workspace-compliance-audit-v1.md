@@ -18,6 +18,8 @@ The platform is not yet universally covered. Several active or planned subsystem
 
 ## Fully Compliant Today
 
+- Prometheus Data: compliant for Fitness Connection runtime artifact contracts, including Active Pool, runtime pools, route-quality, segmentation, governance overrides, assigned lead artifacts, runtime eligibility artifacts, evidence/provenance metadata, consumer rules, and workspace isolation.
+- Prometheus Infrastructure: compliant for shared workspace lead-intake contracts.
 - Prometheus Overwatch: owns the registry, contract document, validation script, and test coverage.
 - Prometheus Research: compliant for the currently registered Nutrition Depot canonical Research dossier.
 
@@ -26,8 +28,6 @@ The platform is not yet universally covered. Several active or planned subsystem
 - Prometheus Dashboard: Smoothie Depot dossier consumption is contract-compliant; Fitness Connection runtime consumption remains outside the registry.
 - Prometheus CRM: Workspace lead handoff consumption exists; durable CRM paths and the shared intake packet contract are not fully registered.
 - Prometheus Intelligence Engine: Smoothie Depot workspace planning is covered; Fitness route intelligence, operating profile consumers, CustomerGraphSnapshots, and explanation consumers need broader registry coverage.
-- Prometheus Data: Active Pool, runtime pools, governance overrides, and route-quality outputs are consumed outside the registry.
-- Prometheus Infrastructure: Shared lead intake, KV layout, notification queue, and workspace router artifacts are not registered.
 - Prometheus Website: Partner intake and Website/Social attribution artifacts are not fully registered as canonical producers.
 - Prometheus Companion: consumes normalized subsystem outputs, but Companion consumer contracts are not registered in the artifact layer.
 - Prometheus Social Media: Instagram analytics/reporting and attribution artifacts are not fully registered.
@@ -44,12 +44,10 @@ The platform is not yet universally covered. Several active or planned subsystem
 
 ## Required Remediation Order
 
-1. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
-2. Prometheus Data: Register Active Pool, runtime pools, route-quality reports, governance overrides, and Dashboard read contracts.
-3. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
-4. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
-5. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
-6. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+1. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
+2. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
+3. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
+4. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
 
 ## Feature Work Gate
 

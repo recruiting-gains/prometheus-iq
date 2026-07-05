@@ -1,0 +1,129 @@
+{
+  "contractId": "fitness-connection-runtime-artifact-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Data",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "purpose": "Register Data-owned runtime artifacts for Fitness Connection Route Intelligence consumption through the Prometheus Integration Contract Layer.",
+  "canonicalRuntimeArtifacts": {
+    "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "runtimePools": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "reservePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+    "quarantinePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json"
+  },
+  "canonicalRouteQualityArtifacts": {
+    "routeQualityReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+    "routeQualityBaseline": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-baseline.json"
+  },
+  "canonicalPoolSegmentationArtifacts": {
+    "runtimePoolManifest": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json",
+    "segmentationReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/segmentation-report.md",
+    "governanceReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+    "governanceReportMarkdown": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.md",
+    "governanceBaseline": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-baseline.json",
+    "promotionGate": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json"
+  },
+  "canonicalGovernanceOverrideArtifacts": {
+    "runtimeGovernanceOverrides": "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json"
+  },
+  "canonicalAssignedLeadArtifacts": {
+    "founderPool": "data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json",
+    "anthonyPool": "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
+    "runtimePools": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "activePoolRuntimeProfiles": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+  },
+  "canonicalRuntimeEligibilityArtifacts": {
+    "qualityReport": "data/qualified-prospects/google-qualified-businesses-v2/quality-report.json",
+    "rejectedRecords": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json",
+    "governanceReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+    "promotionGate": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json"
+  },
+  "canonicalEvidenceAndProvenanceArtifacts": {
+    "productionDatasetJson": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+    "productionDatasetCsv": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.csv",
+    "auditSummary": "data/qualified-prospects/google-qualified-businesses-v2/audit-summary.md",
+    "qualityReport": "data/qualified-prospects/google-qualified-businesses-v2/quality-report.json",
+    "refreshRejectedRecords": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json"
+  },
+  "deployMirrorArtifacts": {
+    "activePoolDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "runtimePoolsDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+  },
+  "expectedRuntimeMetrics": {
+    "activePoolRecords": 297,
+    "reservePoolRecords": 44,
+    "quarantinePoolRecords": 109,
+    "expandedDashboardRouteRecords": 594,
+    "requiredDatasetVersion": "google-qualified-businesses-v2",
+    "requiredSegmentationVersion": "runtime-pool-segmentation-v1"
+  },
+  "consumerRules": {
+    "dashboard": {
+      "consumerSubsystem": "Prometheus Dashboard",
+      "allowedReadPaths": [
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json"
+      ],
+      "mayReadOnlyApprovedDataArtifacts": true,
+      "mayWriteDataArtifacts": false,
+      "mustFailClosedOnMissingArtifact": true,
+      "fixtureOrDemoDataAllowedInProduction": false
+    },
+    "crm": {
+      "consumerSubsystem": "Prometheus CRM",
+      "allowedReadPaths": [
+        "data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json"
+      ],
+      "mayConsumeAssignedLeadArtifactsOnlyThroughContract": true,
+      "mayReadActivePoolDirectly": false,
+      "mayWriteDataArtifacts": false,
+      "mustRejectCrossWorkspaceContamination": true
+    },
+    "intelligence": {
+      "consumerSubsystem": "Prometheus Intelligence Engine",
+      "allowedReadPaths": [
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json"
+      ],
+      "mayInterpretOnlyThroughApprovedReadPaths": true,
+      "mayChangeScoring": false,
+      "mayWriteDataArtifacts": false,
+      "mustNotInfluenceSmoothieDepot": true
+    },
+    "mobile": {
+      "consumerSubsystem": "Prometheus Mobile",
+      "allowedReadPaths": [
+        "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+      ],
+      "mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts": true,
+      "requiredWorkspaceId": "fitness_connection",
+      "requiredRoleScope": ["rep", "manager", "founder"],
+      "mayReadSmoothieDepotCandidateData": false
+    }
+  },
+  "workspaceIsolationRules": {
+    "smoothieDepotMayConsumeFitnessActivePoolData": false,
+    "smoothieDepotMayConsumeFitnessRuntimePools": false,
+    "fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData": false,
+    "fitnessConnectionMayConsumeSmoothieDepotCandidateData": false,
+    "globalCustomerStateAllowed": false,
+    "fixtureDataAllowedInProduction": false,
+    "demoDataAllowedInProduction": false,
+    "missingArtifactFailsClosed": true
+  },
+  "qualityGates": {
+    "googlePlaceIdRequired": true,
+    "numberedAddressRequired": true,
+    "verifiedBusinessNameRequired": true,
+    "safeGoogleMapsDirectionsRequired": true,
+    "genericLocationsAllowed": false,
+    "quarantinedBusinessesAllowedInActivePool": false,
+    "duplicateGooglePlaceIdsAllowedInActivePool": false,
+    "liveGoogleApiCallsAllowedAtRuntime": false
+  }
+}

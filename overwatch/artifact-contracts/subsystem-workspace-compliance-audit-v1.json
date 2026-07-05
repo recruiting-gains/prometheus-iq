@@ -11,12 +11,11 @@
   "summary": {
     "subsystemsAudited": 14,
     "workspacesAudited": 3,
-    "fullyCompliantSubsystems": ["Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch"],
+    "fullyCompliantSubsystems": ["Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch"],
     "partialOrBypassSubsystems": [
       "Prometheus Dashboard",
       "Prometheus CRM",
       "Prometheus Intelligence Engine",
-      "Prometheus Data",
       "Prometheus Website",
       "Prometheus Companion",
       "Prometheus Social Media",
@@ -25,7 +24,7 @@
       "Prometheus Mobile"
     ],
     "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
-    "criticalRemediationOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus CRM"]
+    "criticalRemediationOwners": ["Prometheus Dashboard", "Prometheus CRM"]
   },
   "subsystems": [
     {
@@ -69,17 +68,19 @@
     },
     {
       "subsystem": "Prometheus Data",
-      "status": "bypass_identified",
+      "status": "compliant_for_runtime_artifact_contracts",
       "evidence": [
+        "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
         "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
         "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
-        "Dashboard consumes Data runtime pool artifacts outside the Overwatch artifact registry."
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json",
+        "Data runtime artifacts are registered through the Prometheus Integration Contract Layer."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Data",
       "secondaryOwners": ["Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Create Fitness Connection/Data runtime artifact contract registering Active Pool, Reserve/Quarantine pool outputs, route-quality report, owner write permissions, Dashboard read permissions, and fixture/demo prohibitions."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain Fitness Connection/Data runtime artifact contract coverage before changing Active Pool, Reserve/Quarantine outputs, route-quality reports, governance overrides, assigned lead artifacts, or runtime eligibility artifacts."
     },
     {
       "subsystem": "Prometheus CRM",
@@ -262,30 +263,24 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Data",
-      "task": "Register Active Pool, runtime-pools, route-quality report, governance override, and Dashboard read contracts.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Social Media",
       "task": "Register Social Media analytics/reporting and Website/CRM attribution artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Social Media", "Prometheus Website", "Prometheus CRM", "Prometheus Companion"]
     },
     {
-      "priority": 3,
+      "priority": 2,
       "owner": "Prometheus Companion",
       "task": "Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.",
       "blocksFutureFeatureWorkFor": ["Prometheus Companion", "Prometheus Integrations"]
     },
     {
-      "priority": 4,
+      "priority": 3,
       "owner": "Prometheus Administration",
       "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
     },
     {
-      "priority": 5,
+      "priority": 4,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

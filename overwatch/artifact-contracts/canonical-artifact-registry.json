@@ -296,6 +296,19 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_data_runtime_artifact_contract",
+          "artifactType": "data_runtime_artifact_contract",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+          "schema": "FitnessConnectionRuntimeArtifactContractV1",
+          "writeAllowed": ["Prometheus Data"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Mobile", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_crm_consumer_contract",
           "artifactType": "crm_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",
@@ -368,6 +381,7 @@
             "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
             "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
             "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
+            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
             "intelligence/profiles/operating-profiles.json",
             "intelligence/contracts/operating-profile-contracts.json",
             "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
@@ -387,6 +401,9 @@
           "allowedReadPaths": [
             "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
             "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
+            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/founder-15-mile-pool.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
             "intelligence/profiles/operating-profiles.json",
             "intelligence/contracts/operating-profile-contracts.json"
           ],
@@ -408,12 +425,27 @@
           "allowedReadPaths": [
             "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
             "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
+            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
             "crm/crm-foundation.mjs",
-            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json"
           ],
           "mustNotActivateProductionScoringWithoutHandoff": true,
           "mustNotInfluenceSmoothieDepot": true,
           "mustNotMutateDashboardCrmOrData": true
+        },
+        "mobile": {
+          "consumerSubsystem": "Prometheus Mobile",
+          "allowedReadPaths": [
+            "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+          ],
+          "mayConsumeOnlyRoleWorkspaceScopedLeadArtifacts": true,
+          "mustUseFitnessWorkspaceScope": true,
+          "mustNotUseSmoothieDepotData": true,
+          "mustFailClosedOnMissingRuntimeArtifacts": true
         },
         "overwatch": {
           "consumerSubsystem": "Prometheus Overwatch",
