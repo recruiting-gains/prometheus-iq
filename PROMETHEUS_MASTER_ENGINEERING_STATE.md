@@ -100,6 +100,77 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Dashboard - Render Full Research Dossier Artifact v1
+
+Subsystem: Prometheus Dashboard
+
+Task: Render Full Research Dossier Artifact v1
+
+Commit: `aa47910471507077d3b06c0fa331a051e1d8136b`
+
+Deploy: Not separately recorded in handoff. Dashboard source and deploy mirror were updated and pushed to `origin/main`.
+
+Status: Complete.
+
+Implementation type: Dashboard read-only full Research artifact rendering and fixture-data removal.
+
+Fixture data removed:
+
+Complete. Removed fake candidate pipeline, fake candidate records, fake contacts, fake emails, fake commissions, fake closed sales, fake JR queue, and fake activity feed from the Smoothie Depot dashboard.
+
+Full Research artifact rendered:
+
+Complete. Dashboard renders the regenerated canonical Nutrition Depot Executive Due Diligence Dossier Markdown and structured JSON artifact read-only, without summarization, abbreviation, or reinterpretation.
+
+Zero-state verified:
+
+- Outreach Sent: 0.
+- Discovery Calls Scheduled: 0.
+- Qualified Candidates: 0.
+- JR Handoffs: 0.
+- Closed Franchise Sales: 0.
+- Commission Forecast: $0.
+
+Mission Queue verified:
+
+Complete. Monday / Wednesday / Friday mission slots render. Only Monday is populated because Nutrition Depot is the only completed Research-owned canonical dossier currently registered. Wednesday and Friday remain unassigned.
+
+Nutrition Depot dossier visible in full:
+
+Complete. Regenerated v4 dossier content, remediation status, all Research sections, matrices, analysis modules, source reliability matrix, and structured artifact JSON are rendered.
+
+Workspace isolation verified:
+
+Complete. Smoothie Depot only. No Fitness Connection runtime data, no CRM mutation, no Research mutation, and no Infrastructure, Website, Companion, Mobile, or Intelligence changes.
+
+Files changed:
+
+- `smoothie-depot-dashboard/index.html`
+- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+- `scripts/verify-smoothie-depot-dashboard.mjs`
+- `scripts/verify-dashboard-workspace-switcher.mjs`
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+
+Tests run:
+
+- `npm run dashboard:smoothie-depot:check`: passed.
+- `npm run dashboard:workspace-switcher:check`: passed.
+- `npm run dashboard:runtime-workflows:check`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run security:check`: passed.
+- `npm run research:validate`: passed.
+- `npm run build`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+None for Dashboard. Additional mission slots require Research to publish completed canonical dossiers for those businesses.
+
+Next recommended subsystem:
+
+Prometheus Research, only when Cruz wants additional completed canonical dossiers for Wednesday / Friday mission slots.
+
 ### 2026-07-04: Prometheus Research - Nutrition Depot Executive Dossier v1 Remediation
 
 Subsystem: Prometheus Research
@@ -8638,6 +8709,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Smoothie Depot Workspace Dashboard v1; reuse `smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `scripts/verify-smoothie-depot-dashboard.mjs`, and `npm run dashboard:smoothie-depot:check` for the Cruz-only Smoothie Depot Founder Dashboard. The surface must stay scoped to `smoothie_depot` / `franchise_development`, use workspace fixture data only unless future runtime approval is explicit, and must not display Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or Territory surfaces.
 - Do not duplicate Founder Workspace Switcher v1; reuse the Founder-only workspace selector in `index.html` and `deploy/cloudflare-pages/index.html`, `scripts/verify-dashboard-workspace-switcher.mjs`, `npm run dashboard:workspace-switcher:check`, and the 69/69 Dashboard runtime workflow coverage. Fitness Connection must remain the default workspace, Smoothie Depot must route to `/smoothie-depot-dashboard/`, Rep/Anthony flows must not gain workspace switching, and Fitness runtime data must not mix with Smoothie Depot candidate/JR/commission data.
 - Do not duplicate Founder Mission Queue v1; reuse `smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `scripts/verify-smoothie-depot-dashboard.mjs`, `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`, and `research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json` for Today's Mission, the Top 3 Highest Priority Businesses queue, selectable Executive Due Diligence Dossiers, mission status controls, and CSS-only next-target promotion behavior. The mission queue must remain scoped to Smoothie Depot / Franchise Development and must not consume Fitness Connection, Units, Memberships, Route Intelligence, Active Pool, or production runtime data.
+- Do not duplicate Render Full Research Dossier Artifact v1; preserve the zero-state Smoothie Depot dashboard behavior from commit `aa47910471507077d3b06c0fa331a051e1d8136b`: no fake candidate pipeline, no fake contacts/emails, no fake commissions, no fake closed sales, no fake JR queue, no fake activity feed, Monday-only populated mission slot until additional canonical Research dossiers exist, and read-only full rendering of the canonical Nutrition Depot Markdown and JSON artifacts without summarization, abbreviation, or reinterpretation.
 - Do not duplicate Founder Intelligence Command Center v1; reuse `smoothie-depot-dashboard/index.html`, `smoothie-depot-dashboard/command-center.js`, `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`, `deploy/cloudflare-pages/smoothie-depot-dashboard/command-center.js`, `scripts/verify-smoothie-depot-dashboard.mjs`, and the canonical Research dossier artifacts under `research/workspaces/smoothie-depot/dossiers/` for read-only full-artifact rendering, artifact hash exposure, search, expand/collapse, bookmarks, evidence highlighting, and local notes. Dashboard must not regenerate, abbreviate, reinterpret, mutate, or create Research intelligence, and no-canonical-dossier states must remain for businesses without completed Research-owned dossiers.
 - Do not duplicate Route Intelligence, Google discovery, representative profile storage, learning reset logic, Copy Today Summary, Export Today Report, Owner Mode, Rep Mode, Companion reasoning/orchestrator systems, Cloudflare Access setup, Route Intelligence V2 architecture, Continuous Learning Framework, or the release checklist.
 - Do not duplicate the Companion Founder Assistant response layer in `prometheus-os/founder-assistant.js`; extend it only from Companion-owned work or via explicit integration contracts.
