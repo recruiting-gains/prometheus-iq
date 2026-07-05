@@ -1,0 +1,191 @@
+{
+  "contractId": "fitness-connection-social-media-analytics-attribution-artifact-contract-v1",
+  "schema": "SocialMediaAnalyticsAttributionArtifactContractV1",
+  "version": "1.0.0",
+  "status": "active",
+  "owningSubsystem": "Prometheus Social Media",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "purpose": "Register Social Media-owned analytics, reporting, campaign, content-calendar, and attribution artifacts for Fitness Connection through the Prometheus Integration Contract Layer.",
+  "canonicalRouteArtifacts": {
+    "socialAccountSnapshot": {
+      "method": "GET",
+      "path": "/api/social/instagram/snapshot",
+      "artifactType": "social_account_snapshot",
+      "ownerSubsystem": "Prometheus Social Media",
+      "source": "Prometheus Social Media",
+      "requiredProvider": "instagram",
+      "productionConsumer": true,
+      "failClosedIfMissing": true
+    },
+    "instagramReport": {
+      "method": "GET",
+      "path": "/api/social/instagram/report",
+      "artifactType": "instagram_executive_report",
+      "ownerSubsystem": "Prometheus Social Media",
+      "source": "Prometheus Social Media",
+      "requiredReportVersion": "founder-instagram-analytics-reporting-view.v1",
+      "productionConsumer": true,
+      "failClosedIfMissing": true
+    }
+  },
+  "canonicalSocialMediaPaths": {
+    "socialMediaContract": "social-media/contracts/social-media-contract.js",
+    "instagramBusinessProvider": "social-media/providers/instagram-business-provider.js",
+    "socialProviderRegistry": "social-media/providers/social-provider-registry.js",
+    "analyticsService": "social-media/social-media-analytics-service.js",
+    "instagramReportingView": "social-media/reporting/founder-instagram-analytics-reporting-view.js",
+    "reportingReadme": "social-media/reporting/README.md",
+    "architectureDocument": "social-media/docs/social-media-marketing-analytics-architecture-v1.md",
+    "metaInstagramSetup": "social-media/docs/meta-instagram-setup.md",
+    "sampleAnalyticsFixture": "social-media/samples/marketing-analytics.sample.json"
+  },
+  "canonicalCampaignArtifactPaths": {
+    "founderMarketingOperatingSystem": "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json",
+    "campaignKpiAttributionFramework": "social-media/founder-marketing-operating-system/campaign-kpi-attribution-framework.md",
+    "campaignBriefTemplate": "social-media/founder-marketing-operating-system/templates/campaign-brief.template.md",
+    "platformStrategyAndCadence": "social-media/founder-marketing-operating-system/platform-strategy-and-cadence.md",
+    "brandAndGrowthStrategy": "social-media/founder-marketing-operating-system/brand-and-growth-strategy.md",
+    "founderContentWorkflow": "social-media/founder-marketing-operating-system/founder-content-workflow.md"
+  },
+  "canonicalContentCalendarArtifactPaths": {
+    "contentCalendar": "social-media/founder-marketing-operating-system/content-calendar.md"
+  },
+  "canonicalWebsiteAttributionPaths": {
+    "websiteReferralUtmContract": "deploy/prometheusrouteiq-website/website-attribution.js"
+  },
+  "canonicalCrmAttributionHandoffPaths": {
+    "crmFoundation": "crm/crm-foundation.mjs",
+    "sharedLeadIntakeContract": "integrations/shared-workspace-lead-intake-contract.js"
+  },
+  "attributionFlow": {
+    "sourceOfTruth": "Prometheus Social Media",
+    "steps": [
+      "Social Media owns campaign descriptors, content calendar artifacts, normalized social metrics, and canonical Instagram reports.",
+      "Website may attach referral, UTM, landing-path, referrer, and visitor metadata through the registered Website attribution path only.",
+      "CRM may consume lead-source attribution, campaign attribution, and conversion provenance through the registered CRM handoff paths only.",
+      "Dashboard may display analytics only from canonical Social Media reports and must not read provider output or raw Website/CRM attribution directly.",
+      "Research may cite canonical Social Media report artifacts as evidence but may not recalculate or fabricate production social metrics.",
+      "Overwatch verifies paths, consumer rules, workspace isolation, and fail-closed behavior before cross-subsystem consumption."
+    ],
+    "requiredMetricSources": [
+      "Prometheus Social Media",
+      "Prometheus Website",
+      "Prometheus CRM"
+    ],
+    "missingArtifactsFailClosed": true
+  },
+  "leadSourceProvenanceMetadata": {
+    "requiredFields": [
+      "workspace_id",
+      "operating_profile_id",
+      "source_subsystem",
+      "provider",
+      "campaign_id",
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+      "landing_path",
+      "referrer",
+      "visitor_id",
+      "lead_id",
+      "first_touch_at",
+      "last_touch_at",
+      "occurred_at",
+      "attribution_confidence",
+      "source_artifact_path",
+      "source_report_version"
+    ],
+    "sourceSubsystemMustBe": "Prometheus Social Media",
+    "sensitiveFieldsProhibited": [
+      "token",
+      "secret",
+      "password",
+      "credential",
+      "authorization",
+      "api_key",
+      "app_secret"
+    ]
+  },
+  "workspaceIsolationRules": {
+    "requiredWorkspaceId": "fitness_connection",
+    "requiredOperatingProfileId": "fitness",
+    "protectedWorkspaceIds": ["smoothie_depot"],
+    "fitnessConnectionSocialMetricsMayInfluenceSmoothieDepot": false,
+    "smoothieDepotSocialMetricsMayInfluenceFitnessConnection": false,
+    "crossWorkspaceAttributionAllowed": false,
+    "globalCustomerStateAllowed": false,
+    "fixtureDataAllowedInProduction": false,
+    "missingArtifactFailsClosed": true
+  },
+  "productionRules": {
+    "noFakeSocialMetricsInProduction": true,
+    "sampleAnalyticsFixtureProductionConsumer": false,
+    "providerMetricsMustComeFromSupportedApisOnly": true,
+    "unsupportedScrapingAllowed": false,
+    "browserAutomationAllowed": false,
+    "livePostingAllowed": false,
+    "dmAutomationAllowed": false,
+    "commentAutomationAllowed": false,
+    "secretsBackendOnly": true,
+    "tokensMayBeReturnedToConsumers": false
+  },
+  "consumerRules": {
+    "website": {
+      "consumerSubsystem": "Prometheus Website",
+      "mayConsumeAttributionMetadataOnlyThroughContract": true,
+      "allowedReadPaths": [
+        "social-media/contracts/social-media-contract.js",
+        "social-media/founder-marketing-operating-system/campaign-kpi-attribution-framework.md"
+      ],
+      "allowedWritePaths": ["deploy/prometheusrouteiq-website/website-attribution.js"],
+      "mayReadRawProviderOutputs": false,
+      "mayWriteSocialMediaReports": false,
+      "mustAttachWorkspaceAndCampaignMetadata": true,
+      "mustFailClosedOnMissingCampaignArtifact": true
+    },
+    "crm": {
+      "consumerSubsystem": "Prometheus CRM",
+      "mayConsumeLeadSourceAttributionOnlyThroughContract": true,
+      "allowedReadPaths": [
+        "social-media/contracts/social-media-contract.js",
+        "integrations/shared-workspace-lead-intake-contract.js"
+      ],
+      "allowedWritePaths": ["crm/crm-foundation.mjs"],
+      "mayReadRawProviderOutputs": false,
+      "mayWriteSocialMediaReports": false,
+      "mustRejectCrossWorkspaceAttribution": true,
+      "mustFailClosedOnMissingLeadSourceProvenance": true
+    },
+    "dashboard": {
+      "consumerSubsystem": "Prometheus Dashboard",
+      "mayDisplayAnalyticsOnlyFromCanonicalReports": true,
+      "allowedReadRoutes": ["/api/social/instagram/report"],
+      "mayReadRawProviderOutputs": false,
+      "mayInventMissingMetrics": false,
+      "mayWriteSocialMediaArtifacts": false,
+      "mustFailClosedOnMissingCanonicalReport": true
+    },
+    "research": {
+      "consumerSubsystem": "Prometheus Research",
+      "mayCiteCanonicalReportsOnly": true,
+      "allowedReadRoutes": ["/api/social/instagram/report"],
+      "mayRecalculateProductionSocialMetrics": false,
+      "mayInventMissingMetrics": false,
+      "mustPreserveMetricSourceLabels": true
+    },
+    "overwatch": {
+      "consumerSubsystem": "Prometheus Overwatch",
+      "allowedReadPaths": ["*"],
+      "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+      "mustVerifySocialMediaReportPathsRegistered": true,
+      "mustVerifyCampaignArtifactPathsRegistered": true,
+      "mustVerifyWebsiteAttributionPathRegistered": true,
+      "mustVerifyCrmAttributionHandoffPathRegistered": true,
+      "mustVerifyWorkspaceIsolation": true,
+      "mustVerifyMissingArtifactsFailClosed": true
+    }
+  }
+}

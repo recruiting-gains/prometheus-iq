@@ -436,6 +436,112 @@ function validateSharedWorkspaceLeadIntakeContract(workspace, failures) {
   assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.boundaries.dashboardReadsRawIntakeWithoutApproval === false, "Dashboard raw intake reads must remain blocked.", failures);
 }
 
+function validateSocialMediaArtifactContract(workspace, failures) {
+  const artifactId = `${workspace.workspaceId}_social_media_artifact_contract`;
+  const artifact = workspace.canonicalArtifacts.find(candidate => candidate.artifactId === artifactId);
+
+  assert(Boolean(artifact), `${workspace.workspaceId} missing Social Media artifact contract.`, failures);
+  assert(artifact?.ownerSubsystem === "Prometheus Social Media", `${artifactId} must be Social Media-owned.`, failures);
+  assert(artifact?.schema === "SocialMediaAnalyticsAttributionArtifactContractV1", `${artifactId} schema mismatch.`, failures);
+  assert(artifact?.readAllowed?.includes("Prometheus Website"), `${artifactId} must allow Website reads.`, failures);
+  assert(artifact?.readAllowed?.includes("Prometheus CRM"), `${artifactId} must allow CRM reads.`, failures);
+  assert(artifact?.readAllowed?.includes("Prometheus Dashboard"), `${artifactId} must allow Dashboard reads.`, failures);
+  assert(artifact?.readAllowed?.includes("Prometheus Research"), `${artifactId} must allow Research reads.`, failures);
+  assert(artifact?.failClosedIfMissing === true, `${artifactId} must fail closed if missing.`, failures);
+
+  if (!artifact?.path || !exists(artifact.path)) return;
+
+  const contract = readJson(artifact.path);
+  const worker = read("workers/prometheus-iq-worker.js");
+  const reportView = read(contract.canonicalSocialMediaPaths.instagramReportingView);
+  const socialContract = read(contract.canonicalSocialMediaPaths.socialMediaContract);
+
+  assert(contract.owningSubsystem === "Prometheus Social Media", `${artifactId} contract must be Social Media-owned.`, failures);
+  assert(contract.workspaceId === workspace.workspaceId, `${artifactId} workspace mismatch.`, failures);
+  assert(contract.operatingProfileId === workspace.operatingProfileId, `${artifactId} operating profile mismatch.`, failures);
+  assert(contract.status === "active", `${artifactId} contract must be active.`, failures);
+
+  validateReferencedPaths(contract.canonicalSocialMediaPaths, `${artifactId} Social Media paths`, failures);
+  validateReferencedPaths(contract.canonicalCampaignArtifactPaths, `${artifactId} campaign paths`, failures);
+  validateReferencedPaths(contract.canonicalContentCalendarArtifactPaths, `${artifactId} content calendar paths`, failures);
+  validateReferencedPaths(contract.canonicalWebsiteAttributionPaths, `${artifactId} Website attribution paths`, failures);
+  validateReferencedPaths(contract.canonicalCrmAttributionHandoffPaths, `${artifactId} CRM attribution handoff paths`, failures);
+
+  assert(
+    contract.canonicalRouteArtifacts.socialAccountSnapshot.path === "/api/social/instagram/snapshot",
+    `${artifactId} must register the Instagram account snapshot route.`,
+    failures
+  );
+  assert(
+    contract.canonicalRouteArtifacts.instagramReport.path === "/api/social/instagram/report",
+    `${artifactId} must register the Instagram report route.`,
+    failures
+  );
+  assert(
+    contract.canonicalRouteArtifacts.socialAccountSnapshot.failClosedIfMissing === true,
+    `${artifactId} snapshot route must fail closed if missing.`,
+    failures
+  );
+  assert(
+    contract.canonicalRouteArtifacts.instagramReport.failClosedIfMissing === true,
+    `${artifactId} report route must fail closed if missing.`,
+    failures
+  );
+  assert(worker.includes('"/api/social/instagram/snapshot"'), `${artifactId} Worker must expose snapshot path constant.`, failures);
+  assert(worker.includes('"/api/social/instagram/report"'), `${artifactId} Worker must expose report path constant.`, failures);
+  assert(
+    reportView.includes("founder-instagram-analytics-reporting-view.v1"),
+    `${artifactId} report view must expose canonical report version.`,
+    failures
+  );
+  assert(reportView.includes("Prometheus Social Media"), `${artifactId} report view must label Social Media source.`, failures);
+  assert(reportView.includes("Prometheus Website"), `${artifactId} report view must label Website source.`, failures);
+  assert(reportView.includes("Prometheus CRM"), `${artifactId} report view must label CRM source.`, failures);
+  assert(socialContract.includes("SOCIAL_MEDIA_CONTRACT_VERSION"), `${artifactId} Social Media contract version missing.`, failures);
+
+  for (const source of ["Prometheus Social Media", "Prometheus Website", "Prometheus CRM"]) {
+    assert(
+      contract.attributionFlow.requiredMetricSources.includes(source),
+      `${artifactId} attribution flow missing metric source: ${source}.`,
+      failures
+    );
+  }
+
+  assert(contract.attributionFlow.missingArtifactsFailClosed === true, `${artifactId} attribution flow must fail closed.`, failures);
+  assert(contract.leadSourceProvenanceMetadata.requiredFields.includes("workspace_id"), `${artifactId} lead provenance must require workspace_id.`, failures);
+  assert(contract.leadSourceProvenanceMetadata.requiredFields.includes("source_report_version"), `${artifactId} lead provenance must require source_report_version.`, failures);
+  assert(contract.leadSourceProvenanceMetadata.sourceSubsystemMustBe === "Prometheus Social Media", `${artifactId} lead provenance source mismatch.`, failures);
+  assert(contract.leadSourceProvenanceMetadata.sensitiveFieldsProhibited.includes("token"), `${artifactId} must prohibit token provenance fields.`, failures);
+
+  assert(contract.workspaceIsolationRules.requiredWorkspaceId === workspace.workspaceId, `${artifactId} isolation workspace mismatch.`, failures);
+  assert(contract.workspaceIsolationRules.requiredOperatingProfileId === workspace.operatingProfileId, `${artifactId} isolation operating profile mismatch.`, failures);
+  assert(contract.workspaceIsolationRules.crossWorkspaceAttributionAllowed === false, `${artifactId} must block cross-workspace attribution.`, failures);
+  assert(contract.workspaceIsolationRules.globalCustomerStateAllowed === false, `${artifactId} must block global customer state.`, failures);
+  assert(contract.workspaceIsolationRules.fixtureDataAllowedInProduction === false, `${artifactId} must block production fixture data.`, failures);
+  assert(contract.workspaceIsolationRules.missingArtifactFailsClosed === true, `${artifactId} isolation must fail closed.`, failures);
+
+  assert(contract.productionRules.noFakeSocialMetricsInProduction === true, `${artifactId} must block fake production social metrics.`, failures);
+  assert(contract.productionRules.sampleAnalyticsFixtureProductionConsumer === false, `${artifactId} sample analytics fixture must not be production-consumable.`, failures);
+  assert(contract.productionRules.providerMetricsMustComeFromSupportedApisOnly === true, `${artifactId} must require supported provider APIs.`, failures);
+  assert(contract.productionRules.unsupportedScrapingAllowed === false, `${artifactId} must prohibit unsupported scraping.`, failures);
+  assert(contract.productionRules.browserAutomationAllowed === false, `${artifactId} must prohibit browser automation.`, failures);
+  assert(contract.productionRules.livePostingAllowed === false, `${artifactId} must prohibit live posting.`, failures);
+  assert(contract.productionRules.tokensMayBeReturnedToConsumers === false, `${artifactId} must prohibit token returns.`, failures);
+
+  assert(contract.consumerRules.website.mayConsumeAttributionMetadataOnlyThroughContract === true, `${artifactId} Website consumer rule missing.`, failures);
+  assert(contract.consumerRules.website.mayReadRawProviderOutputs === false, `${artifactId} Website raw provider reads must be blocked.`, failures);
+  assert(contract.consumerRules.website.allowedWritePaths.includes("deploy/prometheusrouteiq-website/website-attribution.js"), `${artifactId} Website attribution path not registered.`, failures);
+  assert(contract.consumerRules.crm.mayConsumeLeadSourceAttributionOnlyThroughContract === true, `${artifactId} CRM consumer rule missing.`, failures);
+  assert(contract.consumerRules.crm.mustRejectCrossWorkspaceAttribution === true, `${artifactId} CRM must reject cross-workspace attribution.`, failures);
+  assert(contract.consumerRules.crm.allowedWritePaths.includes("crm/crm-foundation.mjs"), `${artifactId} CRM attribution handoff path not registered.`, failures);
+  assert(contract.consumerRules.dashboard.mayDisplayAnalyticsOnlyFromCanonicalReports === true, `${artifactId} Dashboard must consume canonical reports only.`, failures);
+  assert(contract.consumerRules.dashboard.allowedReadRoutes.includes("/api/social/instagram/report"), `${artifactId} Dashboard report route missing.`, failures);
+  assert(contract.consumerRules.dashboard.mayInventMissingMetrics === false, `${artifactId} Dashboard must not invent metrics.`, failures);
+  assert(contract.consumerRules.research.mayCiteCanonicalReportsOnly === true, `${artifactId} Research must cite canonical reports only.`, failures);
+  assert(contract.consumerRules.research.mayRecalculateProductionSocialMetrics === false, `${artifactId} Research must not recalculate production social metrics.`, failures);
+  assert(contract.consumerRules.overwatch.mustVerifyWorkspaceIsolation === true, `${artifactId} Overwatch workspace isolation rule missing.`, failures);
+}
+
 function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
   const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
@@ -604,6 +710,7 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
 
   const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
   const dataAudit = auditedSubsystems.get("Prometheus Data");
+  const socialMediaAudit = auditedSubsystems.get("Prometheus Social Media");
   assert(dataAudit?.status === "compliant_for_runtime_artifact_contracts", "Data runtime artifact contract bypass must be closed.", failures);
   assert(dataAudit?.bypassIdentified === false, "Data runtime artifact contract must not remain bypass-identified.", failures);
   assert(
@@ -617,12 +724,28 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
     "Infrastructure audit must reference the shared lead-intake contract.",
     failures
   );
+  assert(
+    socialMediaAudit?.status === "compliant_for_social_media_artifact_contracts",
+    "Social Media artifact contract bypass must be closed.",
+    failures
+  );
+  assert(socialMediaAudit?.bypassIdentified === false, "Social Media artifact contract must not remain bypass-identified.", failures);
+  assert(
+    socialMediaAudit?.evidence?.some(item => item.includes("overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json")),
+    "Social Media audit must reference the Smoothie Depot Social Media artifact contract.",
+    failures
+  );
+  assert(
+    socialMediaAudit?.evidence?.some(item => item.includes("overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json")),
+    "Social Media audit must reference the Fitness Connection Social Media artifact contract.",
+    failures
+  );
 
   const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Social Media", "Priority 1 remediation should move to Social Media after Data runtime artifact registration.", failures);
+  assert(firstRemediation?.owner === "Prometheus Companion", "Priority 1 remediation should move to Companion after Social Media artifact registration.", failures);
   assert(
-    firstRemediation?.task?.includes("Social Media"),
-    "Priority 1 remediation must register Social Media artifacts after Data runtime artifact registration.",
+    firstRemediation?.task?.includes("Companion"),
+    "Priority 1 remediation must register Companion consumer artifacts after Social Media artifact registration.",
     failures
   );
 }
@@ -644,6 +767,7 @@ export function verifyCrossSubsystemArtifactContracts() {
       validateCrmConsumer(workspace, failures);
       validateIntelligenceConsumer(workspace, failures);
       validateSharedWorkspaceLeadIntakeContract(workspace, failures);
+      validateSocialMediaArtifactContract(workspace, failures);
 
       assert(
         Array.isArray(workspace.auditFindings.brokenLinksIdentified) && workspace.auditFindings.brokenLinksIdentified.length === 0,
@@ -664,6 +788,7 @@ export function verifyCrossSubsystemArtifactContracts() {
     if (workspace.workspaceId === "fitness_connection") {
       validateFitnessConnectionWorkspaceContract(workspace, failures);
       validateSharedWorkspaceLeadIntakeContract(workspace, failures);
+      validateSocialMediaArtifactContract(workspace, failures);
     }
   }
 

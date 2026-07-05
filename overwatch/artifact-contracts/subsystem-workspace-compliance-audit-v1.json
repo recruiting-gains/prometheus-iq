@@ -11,14 +11,13 @@
   "summary": {
     "subsystemsAudited": 14,
     "workspacesAudited": 3,
-    "fullyCompliantSubsystems": ["Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch"],
+    "fullyCompliantSubsystems": ["Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch", "Prometheus Social Media"],
     "partialOrBypassSubsystems": [
       "Prometheus Dashboard",
       "Prometheus CRM",
       "Prometheus Intelligence Engine",
       "Prometheus Website",
       "Prometheus Companion",
-      "Prometheus Social Media",
       "Prometheus Integrations",
       "Prometheus Administration",
       "Prometheus Mobile"
@@ -129,7 +128,8 @@
       "evidence": [
         "deploy/prometheusrouteiq-website/enterprise-lead-intake.js generates partner intake packets.",
         "Infrastructure-owned shared intake endpoint and handoff contracts are registered.",
-        "Website/Social attribution artifacts are not yet fully registered in the Overwatch artifact registry."
+        "Website referral/UTM attribution path deploy/prometheusrouteiq-website/website-attribution.js is registered as a Social Media attribution consumer boundary.",
+        "Website-owned partner intake generation remains outside a Website-owned artifact contract."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus Website",
@@ -152,16 +152,19 @@
     },
     {
       "subsystem": "Prometheus Social Media",
-      "status": "partial_compliance",
+      "status": "compliant_for_social_media_artifact_contracts",
       "evidence": [
         "social-media/contracts/social-media-contract.js defines normalized metrics and attribution contracts.",
-        "GET /api/social/instagram/report and Website/CRM attribution planning are not yet registered in the Overwatch artifact registry."
+        "GET /api/social/instagram/snapshot and GET /api/social/instagram/report are registered as canonical Social Media route artifacts.",
+        "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json registers Smoothie Depot Social Media analytics, campaign, content calendar, Website attribution, CRM handoff, and lead provenance artifacts.",
+        "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json registers Fitness Connection Social Media analytics, campaign, content calendar, Website attribution, CRM handoff, and lead provenance artifacts.",
+        "Consumer rules for Website, CRM, Dashboard, Research, and Overwatch are documented in the Social Media artifact contracts."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Social Media",
       "secondaryOwners": ["Prometheus Website", "Prometheus CRM", "Prometheus Companion", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Social Media analytics/reporting artifacts, Website attribution inputs, CRM attribution outputs, and allowed consumers before new marketing analytics or attribution feature work."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain Social Media artifact contract coverage before changing analytics reports, campaign artifacts, Website attribution metadata, CRM attribution handoffs, or lead-source provenance."
     },
     {
       "subsystem": "Prometheus Integrations",
@@ -263,24 +266,18 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Social Media",
-      "task": "Register Social Media analytics/reporting and Website/CRM attribution artifacts.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Social Media", "Prometheus Website", "Prometheus CRM", "Prometheus Companion"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Companion",
       "task": "Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.",
       "blocksFutureFeatureWorkFor": ["Prometheus Companion", "Prometheus Integrations"]
     },
     {
-      "priority": 3,
+      "priority": 2,
       "owner": "Prometheus Administration",
       "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
     },
     {
-      "priority": 4,
+      "priority": 3,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

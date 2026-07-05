@@ -88,8 +88,20 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
     assert.equal(record.remediationRequiredBeforeFutureFeatureWork, true);
   }
 
-  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Social Media");
-  assert.match(audit.globalRemediationOrder[0].task, /Social Media/);
+  const socialMedia = audit.subsystems.find(record => record.subsystem === "Prometheus Social Media");
+  assert.equal(socialMedia.status, "compliant_for_social_media_artifact_contracts");
+  assert.equal(socialMedia.bypassIdentified, false);
+  assert.ok(
+    socialMedia.evidence.some(item => item.includes("overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json")),
+    "Social Media audit must record the Smoothie Depot Social Media artifact contract."
+  );
+  assert.ok(
+    socialMedia.evidence.some(item => item.includes("overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json")),
+    "Social Media audit must record the Fitness Connection Social Media artifact contract."
+  );
+
+  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Companion");
+  assert.match(audit.globalRemediationOrder[0].task, /Companion/);
 });
 
 test("Fitness Connection workspace is registered with role and isolation contracts", () => {
@@ -112,7 +124,8 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
     "fitness_connection_dashboard_deploy_asset",
-    "fitness_connection_shared_lead_intake_contract"
+    "fitness_connection_shared_lead_intake_contract",
+    "fitness_connection_social_media_artifact_contract"
   ]) {
     assert.ok(artifactIds.has(artifactId), `Missing Fitness canonical artifact: ${artifactId}`);
   }
@@ -154,4 +167,48 @@ test("Data runtime artifact contract registers canonical paths and consumer boun
   assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessActivePoolData, false);
   assert.equal(contract.workspaceIsolationRules.fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData, false);
   assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
+});
+
+test("Social Media artifact contracts register analytics, attribution, and consumer boundaries", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+
+  for (const [workspaceId, expectedPath] of [
+    ["smoothie_depot", "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json"],
+    ["fitness_connection", "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json"]
+  ]) {
+    const workspace = result.registry.workspaces.find(candidate => candidate.workspaceId === workspaceId);
+    const artifact = workspace.canonicalArtifacts.find(candidate => candidate.artifactId === `${workspaceId}_social_media_artifact_contract`);
+    const contract = JSON.parse(fs.readFileSync(expectedPath, "utf8"));
+
+    assert.equal(artifact.ownerSubsystem, "Prometheus Social Media");
+    assert.equal(artifact.path, expectedPath);
+    assert.equal(artifact.schema, "SocialMediaAnalyticsAttributionArtifactContractV1");
+    assert.ok(artifact.readAllowed.includes("Prometheus Website"));
+    assert.ok(artifact.readAllowed.includes("Prometheus CRM"));
+    assert.ok(artifact.readAllowed.includes("Prometheus Dashboard"));
+    assert.ok(artifact.readAllowed.includes("Prometheus Research"));
+
+    assert.equal(contract.canonicalRouteArtifacts.socialAccountSnapshot.path, "/api/social/instagram/snapshot");
+    assert.equal(contract.canonicalRouteArtifacts.instagramReport.path, "/api/social/instagram/report");
+    assert.equal(contract.canonicalSocialMediaPaths.instagramReportingView, "social-media/reporting/founder-instagram-analytics-reporting-view.js");
+    assert.equal(contract.canonicalCampaignArtifactPaths.founderMarketingOperatingSystem, "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json");
+    assert.equal(contract.canonicalContentCalendarArtifactPaths.contentCalendar, "social-media/founder-marketing-operating-system/content-calendar.md");
+    assert.equal(contract.canonicalWebsiteAttributionPaths.websiteReferralUtmContract, "deploy/prometheusrouteiq-website/website-attribution.js");
+    assert.equal(contract.canonicalCrmAttributionHandoffPaths.crmFoundation, "crm/crm-foundation.mjs");
+
+    assert.equal(contract.consumerRules.website.mayConsumeAttributionMetadataOnlyThroughContract, true);
+    assert.equal(contract.consumerRules.crm.mayConsumeLeadSourceAttributionOnlyThroughContract, true);
+    assert.equal(contract.consumerRules.dashboard.mayDisplayAnalyticsOnlyFromCanonicalReports, true);
+    assert.equal(contract.consumerRules.research.mayCiteCanonicalReportsOnly, true);
+    assert.equal(contract.consumerRules.overwatch.mustVerifyWorkspaceIsolation, true);
+
+    assert.equal(contract.workspaceIsolationRules.crossWorkspaceAttributionAllowed, false);
+    assert.equal(contract.workspaceIsolationRules.missingArtifactFailsClosed, true);
+    assert.equal(contract.productionRules.noFakeSocialMetricsInProduction, true);
+    assert.equal(contract.productionRules.sampleAnalyticsFixtureProductionConsumer, false);
+    assert.equal(contract.productionRules.unsupportedScrapingAllowed, false);
+    assert.equal(contract.productionRules.tokensMayBeReturnedToConsumers, false);
+    assert.ok(contract.leadSourceProvenanceMetadata.requiredFields.includes("workspace_id"));
+    assert.ok(contract.leadSourceProvenanceMetadata.requiredFields.includes("source_report_version"));
+  }
 });
