@@ -315,6 +315,32 @@ function App() {
         </div>
       </section>
 
+      <section className="section vision-section">
+        <div className="shell split">
+          <div>
+            <SectionLabel>Company Direction</SectionLabel>
+            <h2>Our Long-Term Vision</h2>
+          </div>
+          <p>
+            Prometheus helps organizations reduce uncertainty before important business decisions
+            by transforming evidence into decision-ready intelligence.
+          </p>
+        </div>
+        <div className="shell success-grid" aria-label="Prometheus long-term platform vision">
+          {[
+            ["Better evidence", "We believe better decisions begin with better evidence."],
+            ["Decision-ready intelligence", "Every research dossier, qualification process, operating profile, executive brief, and intelligence workflow exists to reduce uncertainty before a human makes an important business decision."],
+            ["Platform evolution", "Outside sales is where Prometheus began. Decision intelligence is where the platform is evolving."]
+          ].map(([title, body], index) => (
+            <article key={title}>
+              <span>{index + 1}</span>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section id="investors" className="section investor-section">
         <div className="shell split">
           <div>
