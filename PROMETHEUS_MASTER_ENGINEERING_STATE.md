@@ -100,6 +100,73 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Research - First Two Executive Intelligence Packages
+
+Subsystem: Prometheus Research
+
+Task: First and Second Executive Intelligence Packages
+
+Commit: Recorded by the First Two Executive Intelligence Packages handoff commit.
+
+Deploy: Not run. Research artifacts only.
+
+Status: Complete.
+
+Implementation type: Research artifact production, package register, validation, and tests.
+
+Executive Intelligence Packages produced:
+
+Yes. Produced the first two Smoothie Depot Executive Intelligence Packages using the existing Executive Intelligence Platform v1 standard without modifying the standard.
+
+Packages created:
+
+1. Nutrition Depot Houston and Greater Houston - rank 1.
+2. Cranky Carrot Juice Co. - rank 2.
+
+Canonical Research artifact paths:
+
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
+
+What reality exposed:
+
+The standard can produce useful decision-readiness packages, but the first packages show recurring gaps that should be learned from before changing the standard: ownership authority, true expansion appetite, capital readiness, supported review intelligence, commercial ecosystem mapping, site-level infrastructure/development context, and current hiring/operational capacity.
+
+Standard modification:
+
+No. The Executive Intelligence Platform v1 standard, package schema, and package template were not modified.
+
+Protected subsystem boundary:
+
+Research only. No Dashboard, CRM, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, Intelligence runtime, production data, or customer-facing behavior was modified.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining blockers:
+
+- Dashboard still consumes dossier artifacts until a future Dashboard-owned package migration is approved.
+- The first two packages are conversation-ready, not franchise-qualified; owner authority, capital readiness, expansion appetite, and current operating constraints require live conversation verification.
+- Commercial ecosystem and reputation layers need stronger lawful public-source depth before site-level or investment-level decisions.
+
+Next recommended subsystem:
+
+Prometheus Research - Executive Intelligence Package Learning Review v1 after Cruz completes the first calls.
+
 ### 2026-07-05: Prometheus Research - Executive Intelligence Benchmark Study v1
 
 Subsystem: Prometheus Research
@@ -9309,6 +9376,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Market Expansion Recommendation v1; reuse `research/reports/market-expansion-recommendation-v1.md`, `research/reports/market-expansion-scoring-v1.json`, and the Research validation/test gates for the Roofing-first recommendation, top 10 expansion ranking, source references, and no-production-change boundary confirmations.
 - Do not duplicate Executive Intelligence Platform v1; reuse `research/executive-intelligence-platform.md`, `research/registers/executive-intelligence-package-standard.json`, `research/schemas/executive-intelligence-package.schema.json`, `research/templates/executive-intelligence-package.md`, `scripts/validate-research-foundation.mjs`, and `tests/research-foundation.test.mjs` for Executive Intelligence Packages, 12-layer package structure, evidence labels, required conclusion fields, Fortune 100 Corporate Development decision-readiness standard, protected subsystem boundaries, and the legacy dossier transition rule. Existing dossiers remain historical/current Dashboard inputs until a future Dashboard-owned migration is approved; new Research work must use package artifacts as the primary output.
 - Do not duplicate Executive Intelligence Benchmark Study v1; reuse `research/reports/executive-intelligence-benchmark-study-v1.md`, `research/reports/executive-intelligence-benchmark-study-v1.json`, `scripts/validate-research-foundation.mjs`, and `tests/research-foundation.test.mjs` for public-source methodology benchmarking across McKinsey, Bain, BCG, Deloitte, corporate development, private equity diligence, investment banking M&A advisory, and strategic consulting. Future packages should reuse the Prometheus methodology of decision framing, decision thesis, issue tree, evidence map, value/risk driver map, alternatives and opportunity cost, scenario and decision tree, unknown value ranking, red-team review, and executive brief plus appendices.
+- Do not duplicate the first Smoothie Depot Executive Intelligence Packages; reuse `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`, `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`, `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`, `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`, `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`, and the Research validation/test gates for the rank 1 Nutrition Depot and rank 2 Cranky Carrot packages. These packages were produced without modifying the Executive Intelligence Platform standard and are Research-only until future Dashboard/CRM handoffs are approved.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.

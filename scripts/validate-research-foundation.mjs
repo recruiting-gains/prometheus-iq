@@ -11,6 +11,9 @@ const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const executiveIntelligenceStandard = readJson("research/registers/executive-intelligence-package-standard.json");
 const executiveBenchmarkStudy = readJson("research/reports/executive-intelligence-benchmark-study-v1.json");
+const smoothieDepotPackageRegister = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
+const nutritionDepotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
+const crankyCarrotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
 const smoothieDepotDossierRegister = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
@@ -29,6 +32,8 @@ const marketRecommendationTemplate = readText("research/templates/market-expansi
 const executiveIntelligenceTemplate = readText("research/templates/executive-intelligence-package.md");
 const executiveIntelligencePlatform = readText("research/executive-intelligence-platform.md");
 const executiveBenchmarkReport = readText("research/reports/executive-intelligence-benchmark-study-v1.md");
+const nutritionDepotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
+const crankyCarrotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
 const smoothieDepotExecutiveStandard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
@@ -606,6 +611,111 @@ for (const requiredPath of [
 ]) {
   assert.ok(researchFoundation.includes(requiredPath), `Root research foundation missing ${requiredPath}.`);
   assert.ok(researchReadme.includes(requiredPath), `Research README missing ${requiredPath}.`);
+  assert.ok(architecture.includes(requiredPath), `Research architecture missing ${requiredPath}.`);
+}
+
+assert.equal(smoothieDepotPackageRegister.workspaceId, "smoothie_depot", "Executive package register must stay in Smoothie Depot workspace.");
+assert.equal(
+  smoothieDepotPackageRegister.platformStandard,
+  "executive_intelligence_platform_v1",
+  "Executive package register must use the active platform standard."
+);
+assert.equal(smoothieDepotPackageRegister.productionRuntimeChange, false, "Executive package register must not activate runtime changes.");
+assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.standardModified, false, "Executive packages must not modify the standard.");
+assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.dashboardModified, false, "Executive packages must not modify Dashboard.");
+assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.crmModified, false, "Executive packages must not modify CRM.");
+assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.intelligenceRuntimeModified, false, "Executive packages must not modify Intelligence runtime.");
+assert.deepEqual(
+  smoothieDepotPackageRegister.packages.map(entry => entry.business),
+  [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co."
+  ],
+  "First two Executive Intelligence Packages must match the current mission queue leaders."
+);
+assert.deepEqual(
+  smoothieDepotPackageRegister.packages.map(entry => entry.rank),
+  [1, 2],
+  "First two Executive Intelligence Packages must preserve rank order."
+);
+
+const executivePackages = [
+  {
+    packageJson: nutritionDepotExecutivePackage,
+    packageReport: nutritionDepotExecutivePackageReport,
+    expectedBusiness: "Nutrition Depot Houston and Greater Houston",
+    expectedRank: 1,
+    requiredSource: "https://nutritiondepot.us/"
+  },
+  {
+    packageJson: crankyCarrotExecutivePackage,
+    packageReport: crankyCarrotExecutivePackageReport,
+    expectedBusiness: "Cranky Carrot Juice Co.",
+    expectedRank: 2,
+    requiredSource: "https://www.crankycarrotjuice.co/"
+  }
+];
+
+for (const packageArtifact of executivePackages) {
+  assert.equal(packageArtifact.packageJson.workspaceId, "smoothie_depot", `${packageArtifact.expectedBusiness} package must stay workspace-scoped.`);
+  assert.equal(
+    packageArtifact.packageJson.platformStandard,
+    "executive_intelligence_platform_v1",
+    `${packageArtifact.expectedBusiness} package must use Executive Intelligence Platform v1.`
+  );
+  assert.equal(packageArtifact.packageJson.productionRuntimeChange, false, `${packageArtifact.expectedBusiness} package must not activate runtime changes.`);
+  assert.equal(packageArtifact.packageJson.standardModified, false, `${packageArtifact.expectedBusiness} package must not modify the standard.`);
+  assert.equal(packageArtifact.packageJson.business, packageArtifact.expectedBusiness, `${packageArtifact.expectedBusiness} package business drifted.`);
+  assert.equal(packageArtifact.packageJson.founderMissionQueueRank, packageArtifact.expectedRank, `${packageArtifact.expectedBusiness} package rank drifted.`);
+  assert.deepEqual(
+    packageArtifact.packageJson.evidenceLabels,
+    executiveIntelligenceEvidenceLabels,
+    `${packageArtifact.expectedBusiness} evidence labels drifted.`
+  );
+  assert.deepEqual(
+    packageArtifact.packageJson.conclusionRequirements,
+    executiveIntelligenceConclusionFields,
+    `${packageArtifact.expectedBusiness} conclusion requirements drifted.`
+  );
+  assert.deepEqual(
+    packageArtifact.packageJson.layers.map(layer => layer.name),
+    executiveIntelligenceLayerNames,
+    `${packageArtifact.expectedBusiness} layer names drifted.`
+  );
+  assert.equal(packageArtifact.packageJson.layers.length, 12, `${packageArtifact.expectedBusiness} package must include 12 layers.`);
+  assert.ok(packageArtifact.packageJson.majorConclusions.length >= 2, `${packageArtifact.expectedBusiness} package needs major conclusions.`);
+  assert.ok(packageArtifact.packageJson.unknownValueRanking.length >= 5, `${packageArtifact.expectedBusiness} package needs unknown value ranking.`);
+  assert.ok(packageArtifact.packageJson.decisionTree.length >= 4, `${packageArtifact.expectedBusiness} package needs decision tree.`);
+  assert.ok(packageArtifact.packageJson.sourceReferences.includes(packageArtifact.requiredSource), `${packageArtifact.expectedBusiness} package missing primary source.`);
+  assert.equal(packageArtifact.packageJson.boundaryConfirmation.lawfulInformationOnly, true, `${packageArtifact.expectedBusiness} package must use lawful information only.`);
+  assert.equal(packageArtifact.packageJson.boundaryConfirmation.psychologicalProfilingUsed, false, `${packageArtifact.expectedBusiness} package must prohibit profiling.`);
+  assert.equal(packageArtifact.packageJson.boundaryConfirmation.privateInformationUsed, false, `${packageArtifact.expectedBusiness} package must prohibit private information.`);
+  assert.equal(packageArtifact.packageJson.boundaryConfirmation.restrictedPlatformScrapingUsed, false, `${packageArtifact.expectedBusiness} package must prohibit restricted scraping.`);
+  assert.equal(packageArtifact.packageJson.boundaryConfirmation.productionSystemsModified, false, `${packageArtifact.expectedBusiness} package must not modify production systems.`);
+  assert.ok(packageArtifact.packageReport.includes("Standard modified: no"), `${packageArtifact.expectedBusiness} report must state standard was not modified.`);
+  assert.ok(packageArtifact.packageReport.includes("Executive Decision Page"), `${packageArtifact.expectedBusiness} report missing executive decision page.`);
+  assert.ok(packageArtifact.packageReport.includes("Decision thesis"), `${packageArtifact.expectedBusiness} report missing decision thesis.`);
+  assert.ok(packageArtifact.packageReport.includes("Opportunity Cost"), `${packageArtifact.expectedBusiness} report missing opportunity cost.`);
+  assert.ok(packageArtifact.packageReport.includes("Red-Team Review"), `${packageArtifact.expectedBusiness} report missing red-team review.`);
+  assert.ok(packageArtifact.packageReport.includes("Decision Tree"), `${packageArtifact.expectedBusiness} report missing decision tree.`);
+  assert.ok(packageArtifact.packageReport.includes("Post-Meeting Learning Plan"), `${packageArtifact.expectedBusiness} report missing post-meeting learning plan.`);
+  for (const [index, layerName] of executiveIntelligenceLayerNames.entries()) {
+    assert.ok(
+      packageArtifact.packageReport.includes(`## Layer ${index + 1}:`) && packageArtifact.packageReport.includes(layerName.split(" ")[0]),
+      `${packageArtifact.expectedBusiness} report missing layer ${index + 1}.`
+    );
+  }
+}
+
+for (const requiredPath of [
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json"
+]) {
+  assert.ok(researchFoundation.includes(requiredPath), `Root research foundation missing ${requiredPath}.`);
+  assert.ok(researchReadme.includes(requiredPath.replace("research/", "")) || researchReadme.includes(requiredPath), `Research README missing ${requiredPath}.`);
   assert.ok(architecture.includes(requiredPath), `Research architecture missing ${requiredPath}.`);
 }
 

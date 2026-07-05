@@ -1,0 +1,276 @@
+{
+  "packageId": "smoothie_depot_eip_002_cranky_carrot",
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "business": "Cranky Carrot Juice Co.",
+  "platformStandard": "executive_intelligence_platform_v1",
+  "productionRuntimeChange": false,
+  "generatedDate": "2026-07-05",
+  "packageStatus": "completed_research_executive_intelligence_package",
+  "founderMissionQueueRank": 2,
+  "standardModified": false,
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "conclusionRequirements": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "decisionFraming": {
+    "decisionQuestion": "Should Cruz call Cranky Carrot second as a direct-category Smoothie Depot franchise-development prospect or operator-intelligence source?",
+    "decisionThesis": "Call second because Cranky Carrot has direct smoothie/juice category fit, public multi-location signals, founder/operator story, and public recognition, if the operator is open to a franchise conversation despite already operating a strong owned brand.",
+    "recommendedExecutivePosture": "Approach as peer operator learning first, then test whether Smoothie Depot could be a separate expansion vehicle.",
+    "confidence": "High for direct-category relevance; medium for franchise openness."
+  },
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Executive Summary",
+      "requiredElements": [
+        "decisionContext",
+        "executiveRecommendation",
+        "confidence",
+        "criticalUnknowns"
+      ],
+      "summary": "Cranky Carrot is the second Executive Intelligence Package because it is the strongest direct-category prospect after Nutrition Depot. The business has public signals around cold-pressed juices, superfood smoothies, plant-forward food, multiple Houston locations, public recognition, and catering/partnership activity."
+    },
+    {
+      "layer": 2,
+      "name": "Business Identity",
+      "requiredElements": [
+        "businessName",
+        "publicAddresses",
+        "publicContactMethods",
+        "businessCategory",
+        "sourceAttribution"
+      ],
+      "summary": "Public sources identify Cranky Carrot Juice Co. at 712 Main St Suite 106, Houston, TX 77002, and also identify a Houston Heights location at 1231 W 11th St. Public contact includes 832-916-9734 and the official website."
+    },
+    {
+      "layer": 3,
+      "name": "Ownership Leadership Public Operators Corporate Structure Timeline",
+      "requiredElements": [
+        "ownership",
+        "leadership",
+        "publicOperators",
+        "corporateStructure",
+        "timeline"
+      ],
+      "summary": "Public sources identify a founder/operator story and U.S. Chamber recognition. Exact corporate structure, ownership percentages, and decision authority for expansion remain unknown."
+    },
+    {
+      "layer": 4,
+      "name": "Business Evolution Expansion Growth Brand Development Historical Milestones",
+      "requiredElements": [
+        "businessEvolution",
+        "expansion",
+        "growth",
+        "brandDevelopment",
+        "historicalMilestones"
+      ],
+      "summary": "Public evidence supports a growth story from initial retail presence to at least two Houston public location signals plus recognition as a small business. The direct brand strength that makes Cranky attractive may also reduce willingness to adopt another brand."
+    },
+    {
+      "layer": 5,
+      "name": "Operational Intelligence",
+      "requiredElements": [
+        "locations",
+        "footprint",
+        "hiring",
+        "businessModel",
+        "operationalMaturity",
+        "growthIndicators",
+        "expansionSignals"
+      ],
+      "summary": "Cranky Carrot appears to operate a direct consumer wellness beverage and plant-forward food model with multiple location signals, catering, local partnerships, and public recognition. Hiring signals were not verified in this package."
+    },
+    {
+      "layer": 6,
+      "name": "Commercial Ecosystem Intelligence",
+      "requiredElements": [
+        "adjacentBusinesses",
+        "anchorBusinesses",
+        "trafficGenerators",
+        "medical",
+        "fitness",
+        "retail",
+        "residential",
+        "commercialDevelopment",
+        "economicActivity",
+        "futureDevelopment",
+        "infrastructure",
+        "roadProjects",
+        "construction",
+        "populationTrends"
+      ],
+      "summary": "Downtown Houston and Houston Heights both provide potential traffic-generator contexts. The package did not fully map adjacent tenants, foot traffic, parking, residential growth, infrastructure, road projects, construction, or population trends."
+    },
+    {
+      "layer": 7,
+      "name": "Competitive Intelligence",
+      "requiredElements": [
+        "directCompetitors",
+        "indirectCompetitors",
+        "substitutes",
+        "complementaryBusinesses",
+        "marketPositioning",
+        "competitiveStrengths",
+        "competitiveWeaknesses"
+      ],
+      "summary": "Cranky Carrot is a direct category participant. Competitors likely include smoothie shops, juice bars, acai concepts, healthy cafes, coffee shops with wellness beverages, and national smoothie franchises. Its strength is local authenticity and direct product fit; its weakness as a prospect is potential brand conflict."
+    },
+    {
+      "layer": 8,
+      "name": "Community Intelligence",
+      "requiredElements": [
+        "communityInvolvement",
+        "partnerships",
+        "organizations",
+        "events",
+        "networking",
+        "brandPresence",
+        "publicReputation"
+      ],
+      "summary": "U.S. Chamber recognition, public local profiles, and catering/partnership signals indicate community visibility. Specific business-network depth and referral power remain unknown."
+    },
+    {
+      "layer": 9,
+      "name": "Digital Intelligence",
+      "requiredElements": [
+        "website",
+        "seo",
+        "socialPresence",
+        "marketingMaturity",
+        "digitalFootprint",
+        "customerJourney"
+      ],
+      "summary": "Digital footprint includes an official website and public directory/profile coverage. Social conversion quality, SEO performance, paid media, email/SMS retention, and ordering funnel economics were not verified."
+    },
+    {
+      "layer": 10,
+      "name": "Reputation Intelligence",
+      "requiredElements": [
+        "reviewAnalysis",
+        "themeAnalysis",
+        "operationalStrengths",
+        "operationalWeaknesses",
+        "complaintPatterns",
+        "recoveryBehavior"
+      ],
+      "summary": "Public themes from existing Research and public profiles include cold-pressed juice, superfood smoothies, plant-forward food, customer service, and sustainability. Supported review-count, complaint-pattern, and recovery-behavior analysis remains incomplete."
+    },
+    {
+      "layer": 11,
+      "name": "Strategic Intelligence",
+      "requiredElements": [
+        "growthProbability",
+        "expansionReadiness",
+        "businessMaturity",
+        "investmentReadiness",
+        "operationalComplexity",
+        "decisionMakerReadiness"
+      ],
+      "summary": "Cranky Carrot is strategically valuable either as a direct prospect or as a category-learning conversation. Franchise readiness is uncertain because the business may prefer scaling its own brand."
+    },
+    {
+      "layer": 12,
+      "name": "Executive Decision Support",
+      "requiredElements": [
+        "topOpportunities",
+        "topRisks",
+        "criticalUnknowns",
+        "questionsThatReduceUncertainty",
+        "conversationStrategy",
+        "recommendedExecutiveApproach",
+        "recommendedNextInvestigation"
+      ],
+      "summary": "Call second. Lead with respect for Cranky Carrot's brand, ask what they have learned about Houston wellness beverage demand, then test whether the operator would ever consider a separate franchise vehicle or wants to stay exclusively focused on Cranky Carrot."
+    }
+  ],
+  "majorConclusions": [
+    {
+      "label": "Corroborated",
+      "conclusion": "Cranky Carrot is a high-relevance direct-category prospect.",
+      "evidenceBasis": "Official website, Downtown Houston listing, U.S. Chamber profile, Houston Chronicle coverage, and existing Research prospect ledger.",
+      "sourceReliability": "High for category and public identity; medium for expansion appetite.",
+      "confidenceLevel": "High",
+      "verificationNeeded": "Confirm current locations, operator authority, and expansion preferences.",
+      "businessDecisionImpact": "Second highest call priority after Nutrition Depot."
+    },
+    {
+      "label": "Inference",
+      "conclusion": "Cranky Carrot may be more valuable first as operator intelligence than as a franchise prospect.",
+      "evidenceBasis": "Direct category fit and owned brand strength create both relevance and potential brand-conflict risk.",
+      "sourceReliability": "Medium",
+      "confidenceLevel": "Medium",
+      "verificationNeeded": "Ask whether the operator would consider a separate concept or only wants to scale Cranky Carrot.",
+      "businessDecisionImpact": "Shapes the call from pitch-first to peer-learning-first."
+    }
+  ],
+  "unknownValueRanking": [
+    "Would the operator consider a separate franchise concept, or are they exclusively committed to Cranky Carrot?",
+    "Who controls expansion decisions for current and future locations?",
+    "What economics or operational constraints limit additional locations?",
+    "Which customer segments and Houston corridors have performed best?",
+    "Would the operator prefer franchise ownership, partnership, referral, or no involvement?"
+  ],
+  "opportunityCost": {
+    "ifOnlyOneCallToday": "Nutrition Depot still outranks Cranky Carrot for first call.",
+    "whyCrankySecond": "Cranky Carrot has stronger direct product fit, but direct category operators may be more competitor-protective and less likely to adopt Smoothie Depot than a complementary supplement retailer.",
+    "whenCrankyBecomesFirst": "If Nutrition Depot lacks authority or food-service interest, Cranky Carrot becomes the best immediate direct-category learning call."
+  },
+  "redTeamReview": {
+    "whatIfWrong": "Cranky Carrot may have no interest in franchising or second concepts and may view Smoothie Depot as a direct competitor.",
+    "weakestEvidence": "Public recognition and location signals do not prove liquidity, capacity, or willingness to franchise.",
+    "unsupportedAssumptions": "That direct category expertise implies openness to another brand.",
+    "falsificationTrigger": "Operator says they are only focused on Cranky Carrot and not interested in franchise ownership or partnership."
+  },
+  "decisionTree": [
+    {
+      "condition": "Operator is open to separate franchise ownership.",
+      "action": "Qualify capital, operating capacity, territory preference, and JR readiness."
+    },
+    {
+      "condition": "Operator is not open to a separate brand but willing to share market insight.",
+      "action": "Run a category-learning call and ask about Houston corridors, customer demand, labor, menu economics, and expansion constraints."
+    },
+    {
+      "condition": "Operator sees Smoothie Depot as a direct competitor.",
+      "action": "Keep the call respectful, avoid competitive probing, and exit with light market-learning questions only."
+    },
+    {
+      "condition": "Operator indicates active expansion interest.",
+      "action": "Prepare a follow-up with JR focused on whether Smoothie Depot can accelerate expansion beyond Cranky Carrot's current model."
+    }
+  ],
+  "qualityGate": [
+    "Every material conclusion is labeled.",
+    "Every recommendation is evidence-backed.",
+    "Every layer is complete or explicitly marked unknown.",
+    "Critical unknowns are ranked.",
+    "Fortune 100 Corporate Development readiness is sufficient for a second executive conversation, but not for financial qualification."
+  ],
+  "boundaryConfirmation": {
+    "lawfulInformationOnly": true,
+    "psychologicalProfilingUsed": false,
+    "privateInformationUsed": false,
+    "restrictedPlatformScrapingUsed": false,
+    "hiddenRecordsUsed": false,
+    "surveillanceUsed": false,
+    "productionSystemsModified": false
+  },
+  "sourceReferences": [
+    "https://www.crankycarrotjuice.co/",
+    "https://downtownhouston.org/go/cranky-carrot-juice",
+    "https://www.uschamber.com/co/profiles/cranky-carrot-juice-co",
+    "https://www.houstonchronicle.com/business/article/cranky-carrot-small-business-award-21092636.php",
+    "research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json"
+  ]
+}

@@ -287,6 +287,14 @@ Benchmark-derived Prometheus methodology:
 - Red-team review.
 - Executive brief and appendices.
 
+First packages produced under the standard without modifying the standard:
+
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
+
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
 
 Executive Intelligence Platform v1 is a Research standard only. It must not modify Dashboard, Companion, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, Fitness Connection, Route Intelligence, Active Pool, production data, or customer-facing behavior.

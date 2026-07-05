@@ -1,0 +1,277 @@
+{
+  "packageId": "smoothie_depot_eip_001_nutrition_depot",
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "business": "Nutrition Depot Houston and Greater Houston",
+  "platformStandard": "executive_intelligence_platform_v1",
+  "productionRuntimeChange": false,
+  "generatedDate": "2026-07-05",
+  "packageStatus": "completed_research_executive_intelligence_package",
+  "founderMissionQueueRank": 1,
+  "standardModified": false,
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "conclusionRequirements": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "decisionFraming": {
+    "decisionQuestion": "Should Cruz call Nutrition Depot first as a Smoothie Depot franchise-development prospect?",
+    "decisionThesis": "Call first because Nutrition Depot appears to be a complementary wellness and supplement operator with public Houston-area retail, ecommerce, and fitness-adjacent customer signals, if the reached operator has decision authority and any openness to a second concept.",
+    "recommendedExecutivePosture": "Use the call as authority verification and second-concept discovery, not as a hard franchise pitch.",
+    "confidence": "Medium-high for first-call priority; medium-low for franchise qualification until ownership, authority, liquidity, food-service interest, and expansion appetite are verified."
+  },
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Executive Summary",
+      "requiredElements": [
+        "decisionContext",
+        "executiveRecommendation",
+        "confidence",
+        "criticalUnknowns"
+      ],
+      "summary": "Nutrition Depot remains the strongest first Executive Intelligence Package because it has the best opportunity-cost profile among known Smoothie Depot prospects: complementary wellness category, public contactability, Houston relevance, and potential multi-corridor intelligence. The recommendation is to call, verify authority, and test second-concept interest."
+    },
+    {
+      "layer": 2,
+      "name": "Business Identity",
+      "requiredElements": [
+        "businessName",
+        "publicAddresses",
+        "publicContactMethods",
+        "businessCategory",
+        "sourceAttribution"
+      ],
+      "summary": "Public sources identify Nutrition Depot Houston at 2005 Southwest Freeway Service Road, Houston, TX 77098, and Nutrition Depot Pasadena at 6065 Fairmont Pkwy Suite 120, Pasadena, TX 77505. Public sources also identify Nutrition Depot Online and multiple Houston-area location signals."
+    },
+    {
+      "layer": 3,
+      "name": "Ownership Leadership Public Operators Corporate Structure Timeline",
+      "requiredElements": [
+        "ownership",
+        "leadership",
+        "publicOperators",
+        "corporateStructure",
+        "timeline"
+      ],
+      "summary": "Ownership and corporate structure are not established by current public evidence. Public sources support a Houston storefront, Pasadena listing, online ecommerce presence, and a 2025 relocation signal, but they do not prove shared control."
+    },
+    {
+      "layer": 4,
+      "name": "Business Evolution Expansion Growth Brand Development Historical Milestones",
+      "requiredElements": [
+        "businessEvolution",
+        "expansion",
+        "growth",
+        "brandDevelopment",
+        "historicalMilestones"
+      ],
+      "summary": "Public evidence supports relocation, ecommerce, product breadth, and multi-location signals. It does not prove active franchise appetite or one unified operating group."
+    },
+    {
+      "layer": 5,
+      "name": "Operational Intelligence",
+      "requiredElements": [
+        "locations",
+        "footprint",
+        "hiring",
+        "businessModel",
+        "operationalMaturity",
+        "growthIndicators",
+        "expansionSignals"
+      ],
+      "summary": "Nutrition Depot appears operationally more mature than a single static storefront because public sources show retail, product catalog, ecommerce, inventory messaging, store pickup, and local services. Hiring signals were not verified in this package."
+    },
+    {
+      "layer": 6,
+      "name": "Commercial Ecosystem Intelligence",
+      "requiredElements": [
+        "adjacentBusinesses",
+        "anchorBusinesses",
+        "trafficGenerators",
+        "medical",
+        "fitness",
+        "retail",
+        "residential",
+        "commercialDevelopment",
+        "economicActivity",
+        "futureDevelopment",
+        "infrastructure",
+        "roadProjects",
+        "construction",
+        "populationTrends"
+      ],
+      "summary": "The Southwest Freeway/Rice Village/inner-loop context likely provides retail, fitness, wellness, commuter, and residential demand signals, but this package did not exhaustively map adjacent businesses, infrastructure, road projects, construction, or population trends."
+    },
+    {
+      "layer": 7,
+      "name": "Competitive Intelligence",
+      "requiredElements": [
+        "directCompetitors",
+        "indirectCompetitors",
+        "substitutes",
+        "complementaryBusinesses",
+        "marketPositioning",
+        "competitiveStrengths",
+        "competitiveWeaknesses"
+      ],
+      "summary": "Direct and indirect competitors likely include supplement stores, vitamin stores, gyms with retail, online supplement sellers, mass retailers, and wellness beverage concepts. Nutrition Depot is complementary to Smoothie Depot because it is not publicly positioned as a smoothie brand."
+    },
+    {
+      "layer": 8,
+      "name": "Community Intelligence",
+      "requiredElements": [
+        "communityInvolvement",
+        "partnerships",
+        "organizations",
+        "events",
+        "networking",
+        "brandPresence",
+        "publicReputation"
+      ],
+      "summary": "Pasadena Chamber membership is a community/business-network signal. Broader partnerships, event participation, and referral influence remain unknown."
+    },
+    {
+      "layer": 9,
+      "name": "Digital Intelligence",
+      "requiredElements": [
+        "website",
+        "seo",
+        "socialPresence",
+        "marketingMaturity",
+        "digitalFootprint",
+        "customerJourney"
+      ],
+      "summary": "Digital footprint is stronger than most early prospects because public sources show a Houston site and ecommerce-oriented Nutrition Depot Online presence. SEO, analytics maturity, and social conversion quality were not verified."
+    },
+    {
+      "layer": 10,
+      "name": "Reputation Intelligence",
+      "requiredElements": [
+        "reviewAnalysis",
+        "themeAnalysis",
+        "operationalStrengths",
+        "operationalWeaknesses",
+        "complaintPatterns",
+        "recoveryBehavior"
+      ],
+      "summary": "Public review themes were not captured from a supported unrestricted review source in this package. Existing Research prospect data identifies workout enhancement, protein, vitamins, minerals, and general health themes from public-facing materials, but complaint patterns and recovery behavior remain unknown."
+    },
+    {
+      "layer": 11,
+      "name": "Strategic Intelligence",
+      "requiredElements": [
+        "growthProbability",
+        "expansionReadiness",
+        "businessMaturity",
+        "investmentReadiness",
+        "operationalComplexity",
+        "decisionMakerReadiness"
+      ],
+      "summary": "Strategic fit is high as a first call and uncertain as a franchise candidate. The likely best use of the call is to discover whether the operator has authority, interest, expansion capacity, and a view of Houston wellness corridors."
+    },
+    {
+      "layer": 12,
+      "name": "Executive Decision Support",
+      "requiredElements": [
+        "topOpportunities",
+        "topRisks",
+        "criticalUnknowns",
+        "questionsThatReduceUncertainty",
+        "conversationStrategy",
+        "recommendedExecutiveApproach",
+        "recommendedNextInvestigation"
+      ],
+      "summary": "Call first, open with a complementary wellness-retail thesis, verify authority, test second-concept interest, and ask whether the operator controls one store, multiple locations, ecommerce, or a broader network."
+    }
+  ],
+  "majorConclusions": [
+    {
+      "label": "Inference",
+      "conclusion": "Nutrition Depot should remain first call.",
+      "evidenceBasis": "Current Founder Mission Queue rank 1, official Houston site, Nutrition Depot Online, Pasadena Chamber listing, and Community Impact relocation coverage.",
+      "sourceReliability": "High for public identity and contactability; medium for operating-network implications.",
+      "confidenceLevel": "Medium-high",
+      "verificationNeeded": "Confirm decision-maker authority and second-concept openness.",
+      "businessDecisionImpact": "Highest immediate call priority."
+    },
+    {
+      "label": "Unknown",
+      "conclusion": "Unified ownership across public Nutrition Depot signals is not established.",
+      "evidenceBasis": "Multiple public listings exist, but current public evidence does not connect all locations to one operator.",
+      "sourceReliability": "High for listings; low for ownership inference.",
+      "confidenceLevel": "High that this is unknown.",
+      "verificationNeeded": "Ask which locations and channels the contact controls.",
+      "businessDecisionImpact": "Determines whether this is a one-store call or a multi-corridor opportunity."
+    }
+  ],
+  "unknownValueRanking": [
+    "Does the reached operator have authority over one store, multiple stores, ecommerce, or a broader Nutrition Depot network?",
+    "Is the operator open to food and beverage or second-concept ownership?",
+    "Does the operator have capital, partners, or financing access for a franchise discussion?",
+    "Which Houston corridors does the operator believe are strongest for wellness beverage demand?",
+    "Does Nutrition Depot already have plans that conflict with Smoothie Depot?"
+  ],
+  "opportunityCost": {
+    "ifOnlyOneCallToday": "Call Nutrition Depot first.",
+    "why": "It offers the strongest balance of complementary fit, public contactability, Houston wellness relevance, and lower direct-competitor sensitivity than juice/smoothie operators.",
+    "whyNotSecondRanked": "Cranky Carrot has stronger direct category fit but may be more protective of its own beverage brand and less likely to entertain a separate smoothie franchise."
+  },
+  "redTeamReview": {
+    "whatIfWrong": "Nutrition Depot may be a local supplement store with no food-service interest, no expansion appetite, and no authority beyond one store.",
+    "weakestEvidence": "Ownership and unified footprint.",
+    "unsupportedAssumptions": "That supplement retail customer overlap translates into Smoothie Depot franchise interest.",
+    "falsificationTrigger": "Operator says they do not control expansion decisions or are not interested in food/beverage concepts."
+  },
+  "decisionTree": [
+    {
+      "condition": "Operator controls multiple locations or ecommerce and is open to second concepts.",
+      "action": "Prepare JR for a multi-corridor franchise conversation."
+    },
+    {
+      "condition": "Operator controls one store but is interested.",
+      "action": "Qualify timing, capital, preferred geography, and operating partner capacity."
+    },
+    {
+      "condition": "Operator is not interested in food or beverage.",
+      "action": "Reposition as market-learning and referral conversation, then move Cranky Carrot to first active franchise prospect."
+    },
+    {
+      "condition": "Authority is unclear.",
+      "action": "Ask for the person who controls expansion or second-concept decisions."
+    }
+  ],
+  "qualityGate": [
+    "Every material conclusion is labeled.",
+    "Every recommendation is evidence-backed.",
+    "Every layer is complete or explicitly marked unknown.",
+    "Critical unknowns are ranked.",
+    "Fortune 100 Corporate Development readiness is sufficient for a first executive conversation, but not for investment or franchise qualification."
+  ],
+  "boundaryConfirmation": {
+    "lawfulInformationOnly": true,
+    "psychologicalProfilingUsed": false,
+    "privateInformationUsed": false,
+    "restrictedPlatformScrapingUsed": false,
+    "hiddenRecordsUsed": false,
+    "surveillanceUsed": false,
+    "productionSystemsModified": false
+  },
+  "sourceReferences": [
+    "https://nutritiondepot.us/",
+    "https://ndonline.com/",
+    "https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622",
+    "https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/",
+    "research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json",
+    "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md"
+  ]
+}

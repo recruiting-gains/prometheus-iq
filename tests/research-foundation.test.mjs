@@ -463,6 +463,96 @@ test("Executive Intelligence Benchmark Study compares public methodologies and p
   assert.match(architecture, /What makes executives trust recommendations/);
 });
 
+test("Smoothie Depot stores first two Executive Intelligence Packages without modifying standard", () => {
+  const register = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
+  const nutritionPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
+  const crankyPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json");
+  const nutritionReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
+  const crankyReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md");
+
+  const evidenceLabels = [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ];
+
+  const layerNames = [
+    "Executive Summary",
+    "Business Identity",
+    "Ownership Leadership Public Operators Corporate Structure Timeline",
+    "Business Evolution Expansion Growth Brand Development Historical Milestones",
+    "Operational Intelligence",
+    "Commercial Ecosystem Intelligence",
+    "Competitive Intelligence",
+    "Community Intelligence",
+    "Digital Intelligence",
+    "Reputation Intelligence",
+    "Strategic Intelligence",
+    "Executive Decision Support"
+  ];
+
+  assert.equal(register.workspaceId, "smoothie_depot");
+  assert.equal(register.platformStandard, "executive_intelligence_platform_v1");
+  assert.equal(register.productionRuntimeChange, false);
+  assert.equal(register.boundaryConfirmation.standardModified, false);
+  assert.equal(register.boundaryConfirmation.dashboardModified, false);
+  assert.equal(register.boundaryConfirmation.crmModified, false);
+  assert.equal(register.boundaryConfirmation.intelligenceRuntimeModified, false);
+  assert.deepEqual(register.packages.map(entry => entry.business), [
+    "Nutrition Depot Houston and Greater Houston",
+    "Cranky Carrot Juice Co."
+  ]);
+  assert.deepEqual(register.packages.map(entry => entry.rank), [1, 2]);
+
+  for (const packageArtifact of [
+    {
+      json: nutritionPackage,
+      report: nutritionReport,
+      business: "Nutrition Depot Houston and Greater Houston",
+      rank: 1,
+      source: "https://nutritiondepot.us/"
+    },
+    {
+      json: crankyPackage,
+      report: crankyReport,
+      business: "Cranky Carrot Juice Co.",
+      rank: 2,
+      source: "https://www.crankycarrotjuice.co/"
+    }
+  ]) {
+    assert.equal(packageArtifact.json.workspaceId, "smoothie_depot");
+    assert.equal(packageArtifact.json.platformStandard, "executive_intelligence_platform_v1");
+    assert.equal(packageArtifact.json.productionRuntimeChange, false);
+    assert.equal(packageArtifact.json.standardModified, false);
+    assert.equal(packageArtifact.json.business, packageArtifact.business);
+    assert.equal(packageArtifact.json.founderMissionQueueRank, packageArtifact.rank);
+    assert.deepEqual(packageArtifact.json.evidenceLabels, evidenceLabels);
+    assert.deepEqual(packageArtifact.json.layers.map(layer => layer.name), layerNames);
+    assert.equal(packageArtifact.json.layers.length, 12);
+    assert.ok(packageArtifact.json.majorConclusions.length >= 2);
+    assert.ok(packageArtifact.json.unknownValueRanking.length >= 5);
+    assert.ok(packageArtifact.json.decisionTree.length >= 4);
+    assert.ok(packageArtifact.json.sourceReferences.includes(packageArtifact.source));
+    assert.equal(packageArtifact.json.boundaryConfirmation.lawfulInformationOnly, true);
+    assert.equal(packageArtifact.json.boundaryConfirmation.psychologicalProfilingUsed, false);
+    assert.equal(packageArtifact.json.boundaryConfirmation.privateInformationUsed, false);
+    assert.equal(packageArtifact.json.boundaryConfirmation.restrictedPlatformScrapingUsed, false);
+    assert.equal(packageArtifact.json.boundaryConfirmation.productionSystemsModified, false);
+    assert.match(packageArtifact.report, /Standard modified: no/);
+    assert.match(packageArtifact.report, /Executive Decision Page/);
+    assert.match(packageArtifact.report, /Decision thesis/);
+    assert.match(packageArtifact.report, /Opportunity Cost/);
+    assert.match(packageArtifact.report, /Red-Team Review/);
+    assert.match(packageArtifact.report, /Decision Tree/);
+    assert.match(packageArtifact.report, /Post-Meeting Learning Plan/);
+    for (const [index] of layerNames.entries()) {
+      assert.match(packageArtifact.report, new RegExp(`## Layer ${index + 1}:`));
+    }
+  }
+});
+
 test("Smoothie Depot prospect discovery creates a workspace-isolated daily call list", () => {
   const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
   const workflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");

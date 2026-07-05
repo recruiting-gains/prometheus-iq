@@ -49,6 +49,11 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`: Smoothie Depot public business prospect discovery workflow.
 - `workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`: Smoothie Depot executive due diligence intelligence standard.
 - `workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`: Machine-readable evidence, confidence, contradiction, decision tree, and decision journal framework.
+- `workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`: Research register for completed Smoothie Depot Executive Intelligence Packages.
+- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`: First Executive Intelligence Package.
+- `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`: Structured first Executive Intelligence Package ledger.
+- `workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`: Second Executive Intelligence Package.
+- `workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`: Structured second Executive Intelligence Package ledger.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`: First founder-ready Smoothie Depot ranked prospect list.
 - `workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`: Structured Smoothie Depot prospect scoring ledger.
 - `workspaces/smoothie-depot/dossiers/dossier-register.json`: Canonical completed dossier register for Smoothie Depot Research.
@@ -165,6 +170,9 @@ Current founder-ready output:
 - Top call targets: Nutrition Depot Houston and Greater Houston, Cranky Carrot Juice Co., LEEMOO Health Bar, Tight Squeeze Juice Bar, and HS Green.
 - Report: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
 - Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- Executive Intelligence Package register: `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- First Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- Second Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
 - First canonical completed dossier: `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
 
 This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
