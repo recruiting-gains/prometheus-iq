@@ -1,0 +1,231 @@
+{
+  "contractId": "prometheus-cross-subsystem-artifact-contract-v1",
+  "version": "1.0.0",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "purpose": "Define the canonical artifact connection layer between Research, Dashboard, CRM, Intelligence, and Overwatch.",
+  "globalRules": {
+    "noSubsystemMayRegenerateAnotherSubsystemArtifact": true,
+    "noSubsystemMayInventMissingData": true,
+    "noProductionFixtureOrDemoData": true,
+    "noCrossSubsystemWrites": true,
+    "unknownOrMissingArtifactFailsClosed": true,
+    "workspaceIsolationRequired": true,
+    "customerSpecificGlobalStateProhibited": true
+  },
+  "workspaces": [
+    {
+      "workspaceId": "smoothie_depot",
+      "workspaceName": "Smoothie Depot",
+      "operatingProfileId": "franchise_development",
+      "intelligenceDomain": "business_acquisition_intelligence",
+      "protectedWorkspaceIds": ["fitness_connection"],
+      "workspaceIsolationRules": {
+        "fitnessConnectionDataUsed": false,
+        "routeIntelligenceUsed": false,
+        "activePoolUsed": false,
+        "fitnessConnectionInfluenceAllowed": false,
+        "globalCustomerStateAllowed": false,
+        "wrongOperatingProfileAllowed": false
+      },
+      "canonicalArtifacts": [
+        {
+          "artifactId": "smoothie_depot_dossier_register",
+          "artifactType": "dossier_register",
+          "ownerSubsystem": "Prometheus Research",
+          "path": "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
+          "schema": "DossierRegisterV1",
+          "writeAllowed": ["Prometheus Research"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "nutrition_depot_executive_dossier_markdown",
+          "artifactType": "executive_due_diligence_dossier_markdown",
+          "ownerSubsystem": "Prometheus Research",
+          "path": "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
+          "schema": "ExecutiveDueDiligenceDossierMarkdownV1",
+          "writeAllowed": ["Prometheus Research"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "nutrition_depot_executive_dossier_json",
+          "artifactType": "executive_due_diligence_dossier_structured",
+          "ownerSubsystem": "Prometheus Research",
+          "path": "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
+          "schema": "ExecutiveDueDiligenceDossierJsonV1",
+          "writeAllowed": ["Prometheus Research"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_ranked_business_prospects",
+          "artifactType": "ranked_business_prospects",
+          "ownerSubsystem": "Prometheus Research",
+          "path": "research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json",
+          "schema": "RankedBusinessProspectsV1",
+          "writeAllowed": ["Prometheus Research"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_crm_candidate_pipeline_contract",
+          "artifactType": "crm_candidate_pipeline_contract",
+          "ownerSubsystem": "Prometheus CRM",
+          "path": "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json",
+          "schema": "CRMCandidatePipelineContractV1",
+          "writeAllowed": ["Prometheus CRM"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_intelligence_workspace_plan",
+          "artifactType": "workspace_intelligence_plan",
+          "ownerSubsystem": "Prometheus Intelligence Engine",
+          "path": "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
+          "schema": "WorkspaceIntelligencePlanV1",
+          "writeAllowed": ["Prometheus Intelligence Engine"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Research", "Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_dashboard_source",
+          "artifactType": "dashboard_read_only_consumer",
+          "ownerSubsystem": "Prometheus Dashboard",
+          "path": "smoothie-depot-dashboard/index.html",
+          "schema": "DashboardReadOnlyDossierConsumerV1",
+          "writeAllowed": ["Prometheus Dashboard"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_dashboard_deploy_asset",
+          "artifactType": "dashboard_read_only_consumer_deploy_mirror",
+          "ownerSubsystem": "Prometheus Dashboard",
+          "path": "deploy/cloudflare-pages/smoothie-depot-dashboard/index.html",
+          "schema": "DashboardReadOnlyDossierConsumerV1",
+          "writeAllowed": ["Prometheus Dashboard"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
+        }
+      ],
+      "consumerContracts": {
+        "dashboard": {
+          "consumerSubsystem": "Prometheus Dashboard",
+          "allowedReadPaths": [
+            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json"
+          ],
+          "requiredSourcePaths": [
+            "smoothie-depot-dashboard/index.html",
+            "deploy/cloudflare-pages/smoothie-depot-dashboard/index.html"
+          ],
+          "writeProhibitedPaths": ["research/", "crm/", "intelligence/"],
+          "mustRenderFullArtifact": true,
+          "mustExposeArtifactHash": true,
+          "mustFailClosedOnMissingCanonicalDossier": true,
+          "mustNotSummarize": true,
+          "mustNotRegenerateResearch": true,
+          "mustNotUseFixtureData": true
+        },
+        "crm": {
+          "consumerSubsystem": "Prometheus CRM",
+          "ownedWritePaths": [
+            "crm/crm-foundation.mjs",
+            "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json"
+          ],
+          "allowedReadPaths": [
+            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json"
+          ],
+          "requiredEntryPoint": "consumeWorkspaceLeadIntakeHandoff",
+          "mustRejectUnknownWorkspace": true,
+          "mustRejectCrossWorkspaceContamination": true,
+          "runtimeCandidatePersistenceAuthorized": false
+        },
+        "intelligence": {
+          "consumerSubsystem": "Prometheus Intelligence Engine",
+          "ownedWritePaths": [
+            "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
+            "intelligence/contracts/business-acquisition-intelligence-contracts.json"
+          ],
+          "allowedReadPaths": [
+            "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
+            "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json",
+            "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json"
+          ],
+          "mustNotActivateProductionScoring": true,
+          "mustNotInfluenceFitnessConnection": true,
+          "mustNotMutateResearchOrCrm": true
+        },
+        "overwatch": {
+          "consumerSubsystem": "Prometheus Overwatch",
+          "allowedReadPaths": ["*"],
+          "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+          "mustVerifySourceAndDeployParity": true,
+          "mustVerifyCanonicalPathsExist": true,
+          "mustVerifyWorkspaceIsolation": true,
+          "mustVerifyFixtureDataProhibition": true
+        }
+      },
+      "auditFindings": {
+        "brokenLinksIdentified": [],
+        "incompleteLinksIdentified": [
+          "Cranky Carrot and LEEMOO mission slots have no completed canonical Research-owned dossier yet and must remain fail-closed.",
+          "CRM durable candidate persistence is not authorized; CRM currently owns handoff consumption contracts and workspace-scoped library behavior only.",
+          "Intelligence interpretation over Research plus CRM is planned by contract, but no production interpretation runtime is authorized."
+        ],
+        "fixtureDataLocationsIdentified": [
+          {
+            "path": "intelligence/fixtures/field-visit-evidence-fixtures.json",
+            "status": "allowed_offline_validation_only",
+            "productionConsumerAllowed": false
+          },
+          {
+            "path": "demo-dashboard/index.html",
+            "status": "allowed_demo_surface_only",
+            "productionConsumerAllowed": false
+          },
+          {
+            "path": "prometheus-os/demo-data.js",
+            "status": "allowed_companion_demo_context_only",
+            "productionConsumerAllowed": false
+          }
+        ],
+        "requiredRemediationOrder": [
+          "1. Keep Overwatch artifact contract verifier in npm test before accepting cross-subsystem handoffs.",
+          "2. Research must publish additional completed canonical dossiers before Dashboard populates Wednesday or Friday mission slots.",
+          "3. Dashboard may consume only completed Research-owned dossiers and must fail closed for missing dossiers.",
+          "4. CRM runtime persistence requires explicit CRM-owned approval before candidate records become durable records.",
+          "5. Intelligence may read Research plus CRM contracts only after an explicit interpretation handoff and must preserve workspace isolation."
+        ]
+      }
+    }
+  ]
+}

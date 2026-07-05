@@ -100,6 +100,134 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Overwatch - Cross-Subsystem Artifact Contract Audit v1
+
+Subsystem: Prometheus Overwatch
+
+Task: Cross-Subsystem Artifact Contract Audit v1
+
+Commit: Recorded by the Cross-Subsystem Artifact Contract Audit v1 handoff commit.
+
+Deploy: Not run. Governance, contract, and validation layer only.
+
+Status: Complete.
+
+Implementation type: Cross-subsystem canonical artifact contract layer, registry, verifier, tests, and system-map governance.
+
+Contract layer created:
+
+Yes. Created the Prometheus subsystem connection layer for Research, Dashboard, CRM, Intelligence, and Overwatch.
+
+Canonical registry:
+
+- `overwatch/artifact-contracts/canonical-artifact-registry.json`
+
+Human-readable contract:
+
+- `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`
+
+Validation:
+
+- `scripts/verify-cross-subsystem-artifact-contracts.mjs`
+- `tests/cross-subsystem-artifact-contracts.test.mjs`
+- `npm run overwatch:artifact-contracts:check`
+- `npm run test:overwatch`
+
+Canonical paths defined:
+
+- Research dossier register: `research/workspaces/smoothie-depot/dossiers/dossier-register.json`
+- Nutrition Depot Markdown dossier: `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
+- Nutrition Depot structured dossier: `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`
+- Smoothie Depot ranked prospects: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- CRM candidate pipeline contract: `crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json`
+- Intelligence workspace plan: `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
+- Dashboard source consumer: `smoothie-depot-dashboard/index.html`
+- Dashboard deploy consumer: `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+
+Ownership rules enforced:
+
+- Research writes dossiers.
+- Dashboard reads dossiers only.
+- CRM writes activity/candidate state only through CRM-owned contracts and approved runtime paths.
+- Intelligence reads Research plus CRM and may produce interpretation only through approved Intelligence contracts.
+- Overwatch verifies contracts, canonical paths, workspace isolation, source/deploy parity, and fixture/demo-data prohibition.
+
+Consumer rules enforced:
+
+- No subsystem may regenerate another subsystem's artifact.
+- No subsystem may invent missing data.
+- No subsystem may consume fixture or demo data in production.
+- No subsystem may write into another subsystem's owned artifact path.
+- Unknown or missing canonical artifacts must fail closed.
+
+Broken links identified:
+
+None for the current Nutrition Depot canonical dossier path.
+
+Incomplete links identified:
+
+- Cranky Carrot and LEEMOO have no completed canonical Research-owned dossiers and must remain fail-closed in Dashboard.
+- CRM durable candidate persistence is not authorized.
+- Intelligence production interpretation over Research plus CRM is not authorized.
+
+Fixture/demo data locations identified:
+
+- `intelligence/fixtures/field-visit-evidence-fixtures.json`: allowed offline validation only; production consumer prohibited.
+- `demo-dashboard/index.html`: allowed demo surface only; production consumer prohibited.
+- `prometheus-os/demo-data.js`: allowed Companion demo context only; production consumer prohibited.
+
+System-map correction:
+
+Updated `PROMETHEUS_SYSTEM_MAP.md` so the Smoothie Depot dashboard rule now requires read-only canonical Research dossier consumption and zero-state behavior instead of workspace fixture data.
+
+Package/test integration:
+
+Added `overwatch:artifact-contracts:check` and `test:overwatch`; included the artifact contract verifier in aggregate `npm test`.
+
+Workspace isolation verified:
+
+Verified. The contract layer enforces `workspaceId: smoothie_depot`, `operatingProfileId: franchise_development`, protected `fitness_connection` isolation, no Route Intelligence influence, no Active Pool influence, no cross-customer state, and no production fixture data in the Smoothie Depot Dashboard.
+
+Required remediation order:
+
+1. Keep Overwatch artifact contract verification active in `npm test` before accepting cross-subsystem handoffs.
+2. Research must publish additional completed canonical dossiers before Dashboard populates Wednesday or Friday mission slots.
+3. Dashboard may consume only completed Research-owned dossiers and must fail closed for missing dossiers.
+4. CRM runtime persistence requires explicit CRM-owned approval before candidate records become durable records.
+5. Intelligence may read Research plus CRM contracts only after an explicit interpretation handoff and must preserve workspace isolation.
+
+Files changed:
+
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `package.json`
+- `overwatch/artifact-contracts/canonical-artifact-registry.json`
+- `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`
+- `scripts/verify-cross-subsystem-artifact-contracts.mjs`
+- `tests/cross-subsystem-artifact-contracts.test.mjs`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+Tests run:
+
+- `node --check scripts/verify-cross-subsystem-artifact-contracts.mjs`: passed.
+- `npm run overwatch:artifact-contracts:check`: passed.
+- `node --test tests/cross-subsystem-artifact-contracts.test.mjs`: passed.
+- `npm run lint`: passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed with existing Vite/framer-motion module directive and chunk-size warnings.
+- `npm run dashboard:smoothie-depot:check`: passed.
+- `npm run research:validate`: passed.
+- `npm run crm:smoothie-depot:validate`: passed.
+- `npm run intelligence:smoothie-depot-workspace:check`: passed.
+- `npm test`: passed.
+
+Remaining blockers:
+
+No blocker for the contract layer. Additional customer-facing progress remains blocked on the intentionally incomplete links listed above: new Research dossiers for additional mission slots, explicit CRM runtime persistence approval, and explicit Intelligence interpretation approval.
+
+Next recommended subsystem:
+
+Prometheus Research, only if Cruz wants Cranky Carrot, LEEMOO, or another Smoothie Depot mission target promoted from fail-closed to completed canonical dossier status.
+
 ### 2026-07-04: Prometheus Dashboard - Render Full Research Dossier Artifact v1
 
 Subsystem: Prometheus Dashboard
@@ -8678,6 +8806,7 @@ Prometheus Infrastructure/Auth for authenticated production verification only, o
 
 Current duplicate-prevention sources:
 
+- Do not duplicate Cross-Subsystem Artifact Contract Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for Research, Dashboard, CRM, Intelligence, and Overwatch. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, and preserve workspace isolation.
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.
