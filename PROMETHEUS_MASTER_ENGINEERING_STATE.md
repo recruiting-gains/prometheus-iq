@@ -100,6 +100,84 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Research - Executive Intelligence Package Language Alignment v1
+
+Subsystem: Prometheus Research
+
+Task: Executive Intelligence Package Language Alignment v1
+
+Commit: Recorded by the Executive Intelligence Package Language Alignment v1 handoff commit.
+
+Deploy: Not run. Research artifact editorial alignment only.
+
+Status: Complete.
+
+Implementation type: Language and audience alignment only.
+
+Package reviewed:
+
+Nutrition Depot Executive Intelligence Package v1.
+
+Pages reviewed:
+
+- Executive Decision Page.
+- Layer 1: Executive Summary.
+- Layer 2: Business Identity.
+- Layer 3: Ownership, Leadership, Public Operators, Corporate Structure, Timeline.
+- Layer 4: Business Evolution, Expansion, Growth, Brand Development, Historical Milestones.
+- Layer 5: Operational Intelligence.
+- Layer 6: Commercial Ecosystem Intelligence.
+- Layer 7: Competitive Intelligence.
+- Layer 8: Community Intelligence.
+- Layer 9: Digital Intelligence.
+- Layer 10: Reputation Intelligence.
+- Layer 11: Strategic Intelligence.
+- Layer 12: Executive Decision Support.
+- Opportunity Cost.
+- Red-Team Review.
+- Decision Tree.
+- Post-Meeting Learning Plan.
+- Quality Gate.
+- Boundary Confirmation.
+- Source References.
+
+Language changes made:
+
+Replaced execution-assuming language with executive preparation, decision readiness, executive outreach priority, conversation preparation, and decision-support language. Removed package wording that implied Prometheus or a named founder owns outreach execution, conversation execution, qualification, or final decision.
+
+Examples of corrected wording:
+
+- "Should Cruz call Nutrition Depot first..." became "Should Nutrition Depot be prepared as the highest-priority executive outreach target..."
+- "Recommendation: Call Nutrition Depot first." became "Recommendation: Prepare Nutrition Depot as the highest-priority executive outreach target."
+- "Cruz should call..." became "Prepare the executive to prioritize Nutrition Depot..."
+- "Founder Mission Queue" became "Smoothie Depot Mission Queue."
+- "Record after call" became "Record after executive conversation."
+
+Evidence and methodology:
+
+No evidence, conclusions, scoring, source references, package standard, package schema, or package methodology were changed except where wording required alignment to the executive-preparation operating model.
+
+Protected subsystem boundary:
+
+Research artifact editorial alignment only. Dashboard source and deploy mirror were updated only to keep the read-only package display and canonical artifact hash aligned with the Research-owned artifact. No Dashboard persistence, CRM workflow, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, Intelligence runtime, production data, or customer-facing behavior was modified.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
+- `smoothie-depot-dashboard/index.html`
+- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+
+Remaining blockers:
+
+- Cranky Carrot and future packages should receive the same language-alignment review before Dashboard or CRM consumption.
+- Dashboard still consumes dossier artifacts until a future Dashboard-owned package migration is approved.
+
+Next recommended subsystem:
+
+Prometheus Research - Cranky Carrot Executive Intelligence Package Language Alignment v1.
+
 ### 2026-07-05: Prometheus Administration - Founder ROIs 2026-07-05
 
 Subsystem: Prometheus Administration

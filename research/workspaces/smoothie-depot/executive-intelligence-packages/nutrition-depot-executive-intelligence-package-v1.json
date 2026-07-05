@@ -24,10 +24,10 @@
     "businessDecisionImpact"
   ],
   "decisionFraming": {
-    "decisionQuestion": "Should Cruz call Nutrition Depot first as a Smoothie Depot franchise-development prospect?",
-    "decisionThesis": "Call first because Nutrition Depot appears to be a complementary wellness and supplement operator with public Houston-area retail, ecommerce, and fitness-adjacent customer signals, if the reached operator has decision authority and any openness to a second concept.",
-    "recommendedExecutivePosture": "Use the call as authority verification and second-concept discovery, not as a hard franchise pitch.",
-    "confidence": "Medium-high for first-call priority; medium-low for franchise qualification until ownership, authority, liquidity, food-service interest, and expansion appetite are verified."
+    "decisionQuestion": "Should Nutrition Depot be prepared as the highest-priority executive outreach target for Smoothie Depot franchise-development evaluation?",
+    "decisionThesis": "Prioritize executive outreach preparation because Nutrition Depot appears to be a complementary wellness and supplement operator with public Houston-area retail, ecommerce, and fitness-adjacent customer signals, if the reached operator has decision authority and any openness to a second concept.",
+    "recommendedExecutivePosture": "Prepare the receiving executive to verify authority and second-concept openness, not to treat Nutrition Depot as a qualified franchise candidate yet.",
+    "confidence": "Medium-high for executive outreach priority; medium-low for franchise qualification until ownership, authority, liquidity, food-service interest, and expansion appetite are verified."
   },
   "layers": [
     {
@@ -39,7 +39,7 @@
         "confidence",
         "criticalUnknowns"
       ],
-      "summary": "Nutrition Depot remains the strongest first Executive Intelligence Package because it has the best opportunity-cost profile among known Smoothie Depot prospects: complementary wellness category, public contactability, Houston relevance, and potential multi-corridor intelligence. The recommendation is to call, verify authority, and test second-concept interest."
+      "summary": "Nutrition Depot remains the strongest first Executive Intelligence Package because it has the best opportunity-cost profile among known Smoothie Depot prospects: complementary wellness category, public contactability, Houston relevance, and potential multi-corridor intelligence. The recommendation is executive outreach preparation focused on authority verification and second-concept interest."
     },
     {
       "layer": 2,
@@ -177,7 +177,7 @@
         "operationalComplexity",
         "decisionMakerReadiness"
       ],
-      "summary": "Strategic fit is high as a first call and uncertain as a franchise candidate. The likely best use of the call is to discover whether the operator has authority, interest, expansion capacity, and a view of Houston wellness corridors."
+      "summary": "Strategic fit is high as an executive outreach priority and uncertain as a franchise candidate. The likely best use of the executive conversation is to learn whether the operator has authority, interest, expansion capacity, and a view of Houston wellness corridors."
     },
     {
       "layer": 12,
@@ -191,18 +191,18 @@
         "recommendedExecutiveApproach",
         "recommendedNextInvestigation"
       ],
-      "summary": "Call first, open with a complementary wellness-retail thesis, verify authority, test second-concept interest, and ask whether the operator controls one store, multiple locations, ecommerce, or a broader network."
+      "summary": "Prepare the executive to prioritize Nutrition Depot, open with a complementary wellness-retail thesis, verify authority, test second-concept interest, and ask whether the operator controls one store, multiple locations, ecommerce, or a broader network."
     }
   ],
   "majorConclusions": [
     {
       "label": "Inference",
-      "conclusion": "Nutrition Depot should remain first call.",
-      "evidenceBasis": "Current Founder Mission Queue rank 1, official Houston site, Nutrition Depot Online, Pasadena Chamber listing, and Community Impact relocation coverage.",
+      "conclusion": "Nutrition Depot should remain the highest-priority executive outreach target.",
+      "evidenceBasis": "Current Smoothie Depot Mission Queue rank 1, official Houston site, Nutrition Depot Online, Pasadena Chamber listing, and Community Impact relocation coverage.",
       "sourceReliability": "High for public identity and contactability; medium for operating-network implications.",
       "confidenceLevel": "Medium-high",
       "verificationNeeded": "Confirm decision-maker authority and second-concept openness.",
-      "businessDecisionImpact": "Highest immediate call priority."
+      "businessDecisionImpact": "Highest immediate executive outreach priority."
     },
     {
       "label": "Unknown",
@@ -211,7 +211,7 @@
       "sourceReliability": "High for listings; low for ownership inference.",
       "confidenceLevel": "High that this is unknown.",
       "verificationNeeded": "Ask which locations and channels the contact controls.",
-      "businessDecisionImpact": "Determines whether this is a one-store call or a multi-corridor opportunity."
+      "businessDecisionImpact": "Determines whether this is a one-store conversation or a multi-corridor opportunity."
     }
   ],
   "unknownValueRanking": [
@@ -222,9 +222,9 @@
     "Does Nutrition Depot already have plans that conflict with Smoothie Depot?"
   ],
   "opportunityCost": {
-    "ifOnlyOneCallToday": "Call Nutrition Depot first.",
+    "ifOnlyOneOutreachSlotToday": "If only one executive outreach slot is available today, Nutrition Depot should receive that outreach priority.",
     "why": "It offers the strongest balance of complementary fit, public contactability, Houston wellness relevance, and lower direct-competitor sensitivity than juice/smoothie operators.",
-    "whyNotSecondRanked": "Cranky Carrot has stronger direct category fit but may be more protective of its own beverage brand and less likely to entertain a separate smoothie franchise."
+    "whyNotSecondRanked": "Cranky Carrot has stronger direct category fit but may be more protective of its own beverage brand and less likely to entertain a separate smoothie franchise as an executive conversation."
   },
   "redTeamReview": {
     "whatIfWrong": "Nutrition Depot may be a local supplement store with no food-service interest, no expansion appetite, and no authority beyond one store.",
@@ -235,19 +235,19 @@
   "decisionTree": [
     {
       "condition": "Operator controls multiple locations or ecommerce and is open to second concepts.",
-      "action": "Prepare JR for a multi-corridor franchise conversation."
+      "action": "Prepare an executive handoff to JR for a multi-corridor franchise conversation."
     },
     {
       "condition": "Operator controls one store but is interested.",
-      "action": "Qualify timing, capital, preferred geography, and operating partner capacity."
+      "action": "Prepare qualification questions around timing, capital, preferred geography, and operating partner capacity."
     },
     {
       "condition": "Operator is not interested in food or beverage.",
-      "action": "Reposition as market-learning and referral conversation, then move Cranky Carrot to first active franchise prospect."
+      "action": "Prepare a market-learning and referral conversation, then elevate Cranky Carrot as the next active franchise prospect."
     },
     {
       "condition": "Authority is unclear.",
-      "action": "Ask for the person who controls expansion or second-concept decisions."
+      "action": "Prepare the executive to ask for the person who controls expansion or second-concept decisions."
     }
   ],
   "qualityGate": [

@@ -18,7 +18,7 @@ Production runtime change: false
 
 Standard modified: no
 
-Founder Mission Queue rank: 1
+Smoothie Depot Mission Queue rank: 1
 
 ## Evidence Labels
 
@@ -34,25 +34,25 @@ Every recommendation and major conclusion below includes evidence basis, source 
 
 ## Executive Decision Page
 
-Decision question: Should Cruz call Nutrition Depot first as a Smoothie Depot franchise-development prospect?
+Decision question: Should Nutrition Depot be prepared as the highest-priority executive outreach target for Smoothie Depot franchise-development evaluation?
 
-Recommendation: Call Nutrition Depot first.
+Recommendation: Prepare Nutrition Depot as the highest-priority executive outreach target.
 
-Executive posture: Use the call to verify authority and second-concept openness. Do not treat the call as a qualified franchise pitch yet.
+Executive posture: Prepare the receiving executive to verify authority and second-concept openness. Do not present Nutrition Depot as a qualified franchise candidate yet.
 
-Decision thesis: Nutrition Depot should be first because it appears to be a complementary wellness and supplement operator with public Houston-area retail, ecommerce, and fitness-adjacent customer signals, if the reached operator has decision authority and any openness to a second concept.
+Decision thesis: Nutrition Depot should receive the highest outreach priority because it appears to be a complementary wellness and supplement operator with public Houston-area retail, ecommerce, and fitness-adjacent customer signals, if the reached operator has decision authority and any openness to a second concept.
 
-Confidence: Medium-high for first-call priority. Medium-low for franchise qualification until ownership, authority, liquidity, food-service interest, and expansion appetite are verified.
+Confidence: Medium-high for executive outreach priority. Medium-low for franchise qualification until ownership, authority, liquidity, food-service interest, and expansion appetite are verified.
 
 One fact that would most improve the decision: Whether the reached operator controls one store, multiple stores, ecommerce, or a broader Nutrition Depot network.
 
 ## Layer 1: Executive Summary
 
-Decision context: Nutrition Depot is the highest-ranked business in the current Smoothie Depot Founder Mission Queue. Existing Research ranks it above direct juice/smoothie operators because it is complementary rather than directly competitive.
+Decision context: Nutrition Depot is the highest-ranked business in the current Smoothie Depot Mission Queue. Existing Research ranks it above direct juice/smoothie operators because it is complementary rather than directly competitive.
 
-Executive recommendation: Cruz should call Nutrition Depot first, open with a complementary wellness-retail thesis, and verify whether the operator controls expansion decisions.
+Executive recommendation: Prepare the executive to prioritize Nutrition Depot, open with a complementary wellness-retail thesis, and verify whether the operator controls expansion decisions.
 
-Confidence: Medium-high for call priority; medium-low for franchise readiness.
+Confidence: Medium-high for executive outreach priority; medium-low for franchise readiness.
 
 Critical unknowns:
 
@@ -65,11 +65,11 @@ Critical unknowns:
 Major conclusion:
 
 - Label: Inference.
-- Evidence basis: Current Founder Mission Queue rank 1; Nutrition Depot Houston official site; Nutrition Depot Online; Pasadena Chamber listing; Community Impact relocation coverage.
+- Evidence basis: Current Smoothie Depot Mission Queue rank 1; Nutrition Depot Houston official site; Nutrition Depot Online; Pasadena Chamber listing; Community Impact relocation coverage.
 - Source reliability: High for public identity and contactability; medium for operating-network implications.
 - Confidence level: Medium-high.
-- Verification needed: Confirm authority, interest, and operating footprint on call.
-- Business decision impact: Highest immediate call priority.
+- Verification needed: Confirm authority, interest, and operating footprint during executive conversation.
+- Business decision impact: Highest immediate executive outreach priority.
 
 ## Layer 2: Business Identity
 
@@ -98,7 +98,7 @@ Major conclusion:
 - Source reliability: High for public contact and address data.
 - Confidence level: High for business identity; medium for network relationship.
 - Verification needed: Confirm which public Nutrition Depot signals share one operator.
-- Business decision impact: Cruz has enough public identity evidence to call, but must not assume a unified group.
+- Business decision impact: The receiving executive has enough public identity evidence to support outreach preparation, but should not assume a unified group.
 
 ## Layer 3: Ownership, Leadership, Public Operators, Corporate Structure, Timeline
 
@@ -123,7 +123,7 @@ Major conclusion:
 - Source reliability: High for public signals; low for ownership conclusion.
 - Confidence level: High that ownership remains unknown.
 - Verification needed: Ask whether the contact controls one store, multiple stores, ecommerce, or the broader Nutrition Depot network.
-- Business decision impact: Determines whether this is a one-store prospect, a multi-location prospect, or a referral path.
+- Business decision impact: Determines whether this is a one-store conversation, a multi-location opportunity, or a referral path.
 
 ## Layer 4: Business Evolution, Expansion, Growth, Brand Development, Historical Milestones
 
@@ -148,7 +148,7 @@ Major conclusion:
 - Source reliability: Medium-high.
 - Confidence level: Medium.
 - Verification needed: Ask whether the operator is growing, stabilizing, relocating, or consolidating.
-- Business decision impact: Expansion posture affects whether the call should move toward JR preparation or remain market-learning.
+- Business decision impact: Expansion posture affects whether the executive conversation should move toward JR preparation or remain market-learning.
 
 ## Layer 5: Operational Intelligence
 
@@ -173,7 +173,7 @@ Major conclusion:
 - Source reliability: Medium-high.
 - Confidence level: Medium.
 - Verification needed: Ask how many locations, channels, and staff the operator controls.
-- Business decision impact: Operational maturity supports first-call priority, but does not prove franchise readiness.
+- Business decision impact: Operational maturity supports highest outreach priority, but does not prove franchise readiness.
 
 ## Layer 6: Commercial Ecosystem Intelligence
 
@@ -212,7 +212,7 @@ Major conclusion:
 - Source reliability: Medium.
 - Confidence level: Medium-low for ecosystem detail.
 - Verification needed: Map adjacent businesses, gyms, anchors, traffic patterns, and development context before any site-level recommendation.
-- Business decision impact: The call can test corridor intelligence, but this package is not sufficient for site selection.
+- Business decision impact: The executive conversation can test corridor intelligence, but this package is not sufficient for site selection.
 
 ## Layer 7: Competitive Intelligence
 
@@ -276,7 +276,7 @@ Marketing maturity: Inference. Ecommerce, inventory, pickup, and product catalog
 
 Digital footprint: Moderate to strong for an initial prospect.
 
-Customer journey: Public journey appears to include product discovery, store information, ecommerce, pickup, and shipping.
+Customer journey: Public journey appears to include product research, store information, ecommerce, pickup, and shipping.
 
 Major conclusion:
 
@@ -316,7 +316,7 @@ Growth probability: Medium. Public signals indicate activity and maturity, not c
 
 Expansion readiness: Unknown.
 
-Business maturity: Medium-high for first-call relevance.
+Business maturity: Medium-high for executive outreach relevance.
 
 Investment readiness: Unknown.
 
@@ -331,7 +331,7 @@ Major conclusion:
 - Source reliability: Medium.
 - Confidence level: Medium.
 - Verification needed: Confirm authority, food-service interest, capital, and expansion timing.
-- Business decision impact: Strong first call, not yet qualified franchise candidate.
+- Business decision impact: Strong executive outreach priority, not yet qualified franchise candidate.
 
 ## Layer 12: Executive Decision Support
 
@@ -366,15 +366,15 @@ Questions that reduce uncertainty:
 4. If you expanded, would you prefer one unit, multiple units, or no operating expansion?
 5. Which Houston corridors do you think are under-served for wellness beverage demand?
 
-Conversation strategy: Start with respect for the current nutrition business. Frame Smoothie Depot as a complementary wellness beverage concept. Verify authority before discussing any specific franchise path.
+Conversation strategy: Prepare the executive to start with respect for the current nutrition business, frame Smoothie Depot as a complementary wellness beverage concept, and verify authority before discussing any specific franchise path.
 
-Recommended executive approach: Cruz should call. JR should not be pulled in until authority and second-concept interest are verified.
+Recommended executive approach: Nutrition Depot should be treated as the top executive outreach priority. JR handoff should wait until authority and second-concept interest are verified.
 
 Recommended next investigation: Confirm ownership/control, current operating footprint, customer overlap, food-service interest, and expansion timing.
 
 ## Opportunity Cost
 
-If Cruz only has time to call one business today, call Nutrition Depot.
+If the receiving executive has only one outreach slot today, Nutrition Depot should receive that outreach priority.
 
 Why this over Cranky Carrot: Cranky Carrot has stronger direct product fit, but direct category operators may be more competitor-protective and more committed to their own brand. Nutrition Depot is more complementary and may create a cleaner second-concept conversation.
 
@@ -407,25 +407,25 @@ Operator says they do not control expansion decisions or are not interested in f
 
 If operator controls multiple locations or ecommerce and is open to second concepts:
 
-Action: Prepare JR for a multi-corridor franchise conversation.
+Executive preparation: Prepare an executive handoff to JR for a multi-corridor franchise conversation.
 
 If operator controls one store but is interested:
 
-Action: Qualify timing, capital, preferred geography, and operating partner capacity.
+Executive preparation: Prepare qualification questions around timing, capital, preferred geography, and operating partner capacity.
 
 If operator is not interested in food or beverage:
 
-Action: Reposition as market-learning and referral conversation, then move Cranky Carrot to first active franchise prospect.
+Executive preparation: Prepare a market-learning and referral conversation, then elevate Cranky Carrot as the next active franchise prospect.
 
 If authority is unclear:
 
-Action: Ask for the person who controls expansion or second-concept decisions.
+Executive preparation: Prepare the executive to ask for the person who controls expansion or second-concept decisions.
 
 ## Post-Meeting Learning Plan
 
 Predicted outcome: Operator may be willing to provide market intelligence or referral value even if franchise interest is uncertain.
 
-Record after call:
+Record after executive conversation:
 
 - Actual authority level.
 - Interest level.
@@ -433,7 +433,7 @@ Record after call:
 - Food-service openness.
 - Capital or financing readiness.
 - Strongest Houston corridors mentioned.
-- Whether the first-call ranking was correct.
+- Whether the executive outreach priority was correct.
 
 ## Quality Gate
 
@@ -468,6 +468,5 @@ Record after call:
 | S2 | https://ndonline.com/ | Ecommerce, product catalog, digital retail and location signals. |
 | S3 | https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622 | Pasadena public chamber listing. |
 | S4 | https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/ | 2025 relocation signal and product context. |
-| S5 | research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json | Founder Mission Queue rank and comparison. |
+| S5 | research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json | Smoothie Depot Mission Queue rank and comparison. |
 | S6 | research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md | Historical dossier evidence and prior unknowns. |
-
