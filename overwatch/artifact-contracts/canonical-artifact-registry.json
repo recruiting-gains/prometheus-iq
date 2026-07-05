@@ -132,6 +132,19 @@
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "smoothie_depot_shared_lead_intake_contract",
+          "artifactType": "infrastructure_shared_workspace_lead_intake_contract",
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "path": "integrations/shared-workspace-lead-intake-contract.js",
+          "schema": "SharedWorkspaceLeadIntakeArtifactContractV1",
+          "writeAllowed": ["Prometheus Infrastructure"],
+          "readAllowed": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "smoothie_depot",
+          "requiredOperatingProfileId": "franchise_development",
+          "failClosedIfMissing": true
         }
       ],
       "consumerContracts": {
@@ -329,6 +342,19 @@
           "schema": "FitnessConnectionDashboardRuntimeConsumerV1",
           "writeAllowed": ["Prometheus Dashboard"],
           "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_shared_lead_intake_contract",
+          "artifactType": "infrastructure_shared_workspace_lead_intake_contract",
+          "ownerSubsystem": "Prometheus Infrastructure",
+          "path": "integrations/shared-workspace-lead-intake-contract.js",
+          "schema": "SharedWorkspaceLeadIntakeArtifactContractV1",
+          "writeAllowed": ["Prometheus Infrastructure"],
+          "readAllowed": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
           "productionConsumer": true,
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",

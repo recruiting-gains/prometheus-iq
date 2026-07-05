@@ -1,5 +1,10 @@
 import fs from "node:fs";
 import { createHash } from "node:crypto";
+import {
+  SHARED_WORKSPACE_LEAD_INTAKE_COMPONENTS,
+  SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT,
+  getSharedLeadIntakeWorkspaceContract
+} from "../integrations/shared-workspace-lead-intake-contract.js";
 
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const complianceAuditPath = "overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json";
@@ -253,6 +258,51 @@ function validateReferencedPaths(paths, label, failures) {
   }
 }
 
+function validateSharedWorkspaceLeadIntakeContract(workspace, failures) {
+  const artifactId = `${workspace.workspaceId}_shared_lead_intake_contract`;
+  const artifact = workspace.canonicalArtifacts.find(candidate => candidate.artifactId === artifactId);
+  const workspaceContract = getSharedLeadIntakeWorkspaceContract(workspace.workspaceId);
+
+  assert(Boolean(artifact), `${workspace.workspaceId} missing shared lead intake contract artifact.`, failures);
+  assert(artifact?.ownerSubsystem === "Prometheus Infrastructure", `${artifactId} must be Infrastructure-owned.`, failures);
+  assert(artifact?.path === "integrations/shared-workspace-lead-intake-contract.js", `${artifactId} path mismatch.`, failures);
+  assert(Boolean(workspaceContract), `${workspace.workspaceId} missing shared lead intake workspace contract.`, failures);
+  assert(workspaceContract?.workspaceId === workspace.workspaceId, `${workspace.workspaceId} shared intake workspaceId mismatch.`, failures);
+  assert(workspaceContract?.operatingProfileId === workspace.operatingProfileId, `${workspace.workspaceId} shared intake operating profile mismatch.`, failures);
+  assert(
+    workspaceContract?.protectedWorkspaceIds?.every(protectedWorkspaceId => workspace.protectedWorkspaceIds.includes(protectedWorkspaceId)),
+    `${workspace.workspaceId} shared intake protected workspace mismatch.`,
+    failures
+  );
+
+  for (const componentId of SHARED_WORKSPACE_LEAD_INTAKE_COMPONENTS) {
+    assert(
+      JSON.stringify(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT).includes(componentId),
+      `Shared lead intake contract missing component: ${componentId}.`,
+      failures
+    );
+  }
+
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.endpoint.path === "/api/partner-intake", "Shared intake endpoint path drifted.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.unknownWorkspaceFailsClosed === true, "Unknown workspace must fail closed.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.missingWorkspaceRouteFailsClosed === true, "Missing workspace route must fail closed.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.noCrossWorkspaceRouting === true, "Shared intake must block cross-workspace routing.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.workspaceRouter.noProductionFixtureOrDemoIntakeData === true, "Shared intake must block production fixture/demo intake data.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.kvPersistence.binding === "SHARED_LEAD_INTAKE_STORE", "Shared intake KV binding mismatch.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.kvPersistence.failClosedIfBindingMissing === true, "Shared intake KV binding must fail closed if missing.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.contract === "shared_workspace_crm_lead_intake_packet.v1", "CRM handoff contract mismatch.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.ownerSubsystem === "Prometheus CRM", "CRM handoff packet must remain CRM-owned.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.mutationPerformedByInfrastructure === false, "Infrastructure must not mutate CRM records.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.founderNotificationEvent.binding === "FOUNDER_EMAIL", "Founder notification binding mismatch.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.founderNotificationEvent.registeredEvenIfDeliveryPending === true, "Founder notification contract must exist even when email delivery is pending.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.failureRetryEvent.failedUnknownWorkspaceMayNotPersist === true, "Unknown workspace failures must not persist.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.auditMetadata.requiredEvents.includes("workspace_routed"), "Shared intake audit metadata must include workspace routing.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.aegisProtection.routePolicy === "lead_intake", "Shared intake Aegis policy mismatch.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.failClosedBehavior.unknownWorkspaceStatus === 400, "Shared intake unknown workspace status must be 400.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.boundaries.crmConsumesHandoffPackets === true, "CRM must consume shared intake handoff packets.", failures);
+  assert(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.boundaries.dashboardReadsRawIntakeWithoutApproval === false, "Dashboard raw intake reads must remain blocked.", failures);
+}
+
 function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
   const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
@@ -413,11 +463,19 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   assert(fixtureWorkspace?.status === "allowed_test_fixture_only", "Customer fixture workspace must remain test-only.", failures);
   assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
 
-  const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Infrastructure", "Priority 1 remediation must now be Infrastructure-owned after Fitness contract registration.", failures);
+  const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
+  assert(infrastructureAudit?.bypassIdentified === false, "Infrastructure shared lead-intake contract bypass must be closed.", failures);
   assert(
-    firstRemediation?.task?.includes("shared workspace lead-intake"),
-    "Priority 1 remediation must register shared workspace lead-intake artifacts.",
+    infrastructureAudit?.evidence?.some(item => item.includes("integrations/shared-workspace-lead-intake-contract.js")),
+    "Infrastructure audit must reference the shared lead-intake contract.",
+    failures
+  );
+
+  const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
+  assert(firstRemediation?.owner === "Prometheus Data", "Priority 1 remediation should move to Data after Infrastructure intake registration.", failures);
+  assert(
+    firstRemediation?.task?.includes("Active Pool"),
+    "Priority 1 remediation must register Data runtime artifacts after Infrastructure intake registration.",
     failures
   );
 }
@@ -438,6 +496,7 @@ export function verifyCrossSubsystemArtifactContracts() {
       validateDashboardConsumer(workspace, dossierContext, failures);
       validateCrmConsumer(workspace, failures);
       validateIntelligenceConsumer(workspace, failures);
+      validateSharedWorkspaceLeadIntakeContract(workspace, failures);
 
       assert(
         Array.isArray(workspace.auditFindings.brokenLinksIdentified) && workspace.auditFindings.brokenLinksIdentified.length === 0,
@@ -457,6 +516,7 @@ export function verifyCrossSubsystemArtifactContracts() {
     }
     if (workspace.workspaceId === "fitness_connection") {
       validateFitnessConnectionWorkspaceContract(workspace, failures);
+      validateSharedWorkspaceLeadIntakeContract(workspace, failures);
     }
   }
 

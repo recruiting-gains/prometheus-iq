@@ -11,13 +11,12 @@
   "summary": {
     "subsystemsAudited": 14,
     "workspacesAudited": 3,
-    "fullyCompliantSubsystems": ["Prometheus Research", "Prometheus Overwatch"],
+    "fullyCompliantSubsystems": ["Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch"],
     "partialOrBypassSubsystems": [
       "Prometheus Dashboard",
       "Prometheus CRM",
       "Prometheus Intelligence Engine",
       "Prometheus Data",
-      "Prometheus Infrastructure",
       "Prometheus Website",
       "Prometheus Companion",
       "Prometheus Social Media",
@@ -26,7 +25,7 @@
       "Prometheus Mobile"
     ],
     "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
-    "criticalRemediationOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus Infrastructure", "Prometheus CRM"]
+    "criticalRemediationOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus CRM"]
   },
   "subsystems": [
     {
@@ -88,13 +87,13 @@
       "evidence": [
         "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json is registered.",
         "consumeWorkspaceLeadIntakeHandoff handles Fitness Connection and Smoothie Depot handoffs.",
-        "shared_workspace_crm_lead_intake_packet.v1 is not yet registered in the Overwatch artifact registry."
+        "shared_workspace_crm_lead_intake_packet.v1 is registered through integrations/shared-workspace-lead-intake-contract.js."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus CRM",
       "secondaryOwners": ["Prometheus Infrastructure", "Prometheus Website", "Prometheus Overwatch"],
       "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register CRM workspace lead/candidate handoff artifacts for Fitness Connection and Smoothie Depot before adding CRM persistence, dashboard display, or new intake-consuming CRM features."
+      "scheduledRemediation": "Register any future CRM-owned durable lead/candidate record persistence artifacts before adding CRM persistence, dashboard display, or new intake-consuming CRM features."
     },
     {
       "subsystem": "Prometheus Intelligence Engine",
@@ -111,23 +110,25 @@
     },
     {
       "subsystem": "Prometheus Infrastructure",
-      "status": "partial_compliance",
+      "status": "compliant_for_shared_lead_intake_contracts",
       "evidence": [
         "workers/infrastructure/shared-lead-intake-pipeline.js owns shared workspace intake routing and KV persistence.",
-        "SHARED_LEAD_INTAKE_STORE records are not represented in the Overwatch artifact registry."
+        "integrations/shared-workspace-lead-intake-contract.js registers POST /api/partner-intake, SHARED_LEAD_INTAKE_STORE, workspace router, intake submission artifact, CRM handoff packet, Founder notification event, failure/retry event, audit metadata, Aegis metadata, and fail-closed behavior.",
+        "overwatch/artifact-contracts/canonical-artifact-registry.json registers shared lead-intake contract artifacts for Fitness Connection and Smoothie Depot."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Infrastructure",
       "secondaryOwners": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register shared lead intake endpoint, KV key layout, CRM handoff packet schema, notification queue status, and workspace router ownership before new public intake or persistence features."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain shared intake contract verification through npm run infrastructure:intake-contract:check and npm run overwatch:artifact-contracts:check."
     },
     {
       "subsystem": "Prometheus Website",
       "status": "partial_compliance",
       "evidence": [
         "deploy/prometheusrouteiq-website/enterprise-lead-intake.js generates partner intake packets.",
-        "Website attribution and intake packets flow toward Infrastructure/CRM without an Overwatch artifact registry entry."
+        "Infrastructure-owned shared intake endpoint and handoff contracts are registered.",
+        "Website/Social attribution artifacts are not yet fully registered in the Overwatch artifact registry."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus Website",
@@ -220,13 +221,14 @@
       "registeredInContractLayer": true,
       "evidence": [
         "Research/Dashboard/CRM/Intelligence Smoothie Depot artifacts are partially registered.",
-        "Administration operating manual and Infrastructure shared lead intake paths remain outside the registry."
+        "Infrastructure shared lead intake paths are registered.",
+        "Administration operating manual paths remain outside the registry."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus Overwatch",
-      "secondaryOwners": ["Prometheus Infrastructure", "Prometheus Administration", "Prometheus CRM"],
+      "secondaryOwners": ["Prometheus Administration", "Prometheus CRM"],
       "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Extend Smoothie Depot registry coverage to Administration operating artifacts and Infrastructure lead-intake/KV handoff artifacts before new Smoothie Depot feature work."
+      "scheduledRemediation": "Extend Smoothie Depot registry coverage to Administration operating artifacts before new Smoothie Depot operating-system feature work."
     },
     {
       "workspaceId": "fitness_connection",
@@ -260,36 +262,30 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Infrastructure",
-      "task": "Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Website", "Prometheus CRM", "Prometheus Infrastructure"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Data",
       "task": "Register Active Pool, runtime-pools, route-quality report, governance override, and Dashboard read contracts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine"]
     },
     {
-      "priority": 3,
+      "priority": 2,
       "owner": "Prometheus Social Media",
       "task": "Register Social Media analytics/reporting and Website/CRM attribution artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Social Media", "Prometheus Website", "Prometheus CRM", "Prometheus Companion"]
     },
     {
-      "priority": 4,
+      "priority": 3,
       "owner": "Prometheus Companion",
       "task": "Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.",
       "blocksFutureFeatureWorkFor": ["Prometheus Companion", "Prometheus Integrations"]
     },
     {
-      "priority": 5,
+      "priority": 4,
       "owner": "Prometheus Administration",
       "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
     },
     {
-      "priority": 6,
+      "priority": 5,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

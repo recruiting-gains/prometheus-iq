@@ -62,6 +62,14 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
   assert.equal(workspaces.fitness_connection.futureFeatureWorkRequiresContract, true);
   assert.equal(workspaces.customer_fixture_prometheus.status, "allowed_test_fixture_only");
 
+  const infrastructure = audit.subsystems.find(record => record.subsystem === "Prometheus Infrastructure");
+  assert.equal(infrastructure.status, "compliant_for_shared_lead_intake_contracts");
+  assert.equal(infrastructure.bypassIdentified, false);
+  assert.ok(
+    infrastructure.evidence.some(item => item.includes("integrations/shared-workspace-lead-intake-contract.js")),
+    "Infrastructure audit must record the shared lead-intake contract."
+  );
+
   for (const record of [...audit.subsystems, ...audit.workspaces]) {
     const requiresRemediation = record.bypassIdentified === true || /partial|bypass/.test(record.status);
     if (!requiresRemediation) continue;
@@ -71,8 +79,8 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
     assert.equal(record.remediationRequiredBeforeFutureFeatureWork, true);
   }
 
-  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Infrastructure");
-  assert.match(audit.globalRemediationOrder[0].task, /shared workspace lead-intake/);
+  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Data");
+  assert.match(audit.globalRemediationOrder[0].task, /Active Pool/);
 });
 
 test("Fitness Connection workspace is registered with role and isolation contracts", () => {
@@ -93,7 +101,8 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
-    "fitness_connection_dashboard_deploy_asset"
+    "fitness_connection_dashboard_deploy_asset",
+    "fitness_connection_shared_lead_intake_contract"
   ]) {
     assert.ok(artifactIds.has(artifactId), `Missing Fitness canonical artifact: ${artifactId}`);
   }

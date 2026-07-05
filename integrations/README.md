@@ -2,6 +2,36 @@
 
 Shared integration contracts for backend-safe third-party service access.
 
+## Shared Workspace Lead Intake Contract v1
+
+Entrypoints:
+
+```text
+integrations/shared-workspace-lead-intake-contract.js
+workers/infrastructure/shared-lead-intake-pipeline.js
+```
+
+The contract registers the Infrastructure-owned intake path for isolated workspace lead capture:
+
+- `POST /api/partner-intake`
+- `SHARED_LEAD_INTAKE_STORE`
+- workspace routing for `fitness_connection` and `smoothie_depot`
+- intake submission artifact shape
+- `shared_workspace_crm_lead_intake_packet.v1`
+- Founder email notification event state
+- failure/retry event semantics
+- audit metadata
+- Aegis `lead_intake` metadata
+- unknown or missing workspace fail-closed behavior
+
+Infrastructure validates, protects, routes, persists, and prepares handoff packets. CRM owns CRM business logic and consumes handoff packets through `consumeWorkspaceLeadIntakeHandoff`. Dashboard and Companion do not read raw intake data without a future explicit approval.
+
+Verification:
+
+```bash
+npm run infrastructure:intake-contract:check
+```
+
 ## Founder Calendar & Message Contract v1
 
 Entrypoints:

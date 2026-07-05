@@ -9078,7 +9078,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Infrastructure release verification; reuse `scripts/verify-production-release.mjs`.
 - Do not duplicate authenticated production verification access; reuse `scripts/verify-authenticated-production-access.mjs`, `npm run verify:authenticated-production`, and `docs/authenticated-production-verification-access.md` for Cloudflare Access-protected production checks.
 - Do not duplicate Operation Aegis Phase I security controls; reuse `workers/infrastructure/aegis-security-controls.js`, `scripts/verify-aegis-security-foundation.mjs`, `.github/workflows/security-gates.yml`, `.github/dependabot.yml`, and `docs/aegis-phase-i-security-foundation.md`.
-- Do not duplicate shared workspace lead intake infrastructure; reuse `POST /api/partner-intake`, `workers/infrastructure/shared-lead-intake-pipeline.js`, `SHARED_LEAD_INTAKE_STORE`, and `docs/shared-workspace-lead-intake-pipeline.md` for Fitness Connection, Smoothie Depot, and future workspace lead intake routing.
+- Do not duplicate shared workspace lead intake infrastructure or contracts; reuse `POST /api/partner-intake`, `workers/infrastructure/shared-lead-intake-pipeline.js`, `integrations/shared-workspace-lead-intake-contract.js`, `SHARED_LEAD_INTAKE_STORE`, `overwatch/artifact-contracts/canonical-artifact-registry.json`, `tests/shared-workspace-lead-intake-contract.test.mjs`, and `docs/shared-workspace-lead-intake-pipeline.md` for Fitness Connection, Smoothie Depot, and future workspace lead intake routing.
 - Do not duplicate the Research foundation; reuse `research/README.md`, `research/architecture.md`, `research/source-policy.md`, Research taxonomy, source register, backlog, Founder Intelligence Brief template, schema, validator, and tests.
 - Do not duplicate Founder Strategic Intelligence Briefing System v1; reuse root `RESEARCH_FOUNDATION.md`, `research/briefing-system.md`, `research/future-briefing-handoffs.md`, `research/registers/briefing-catalog.json`, `research/templates/strategic-intelligence-brief.md`, `research/schemas/strategic-intelligence-brief.schema.json`, and the Research validation/test gates for Daily Founder, Weekly AI, Weekly Competitor, Weekly Startup Funding, Weekly Outside Sales, Weekly Industry, Weekly Healthcare, Weekly Enterprise Technology, Weekly Customer Pain Point, and Monthly Strategic Review briefs.
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
@@ -9276,6 +9276,61 @@ Remaining risks:
 - Production Cloudflare Email Service send attempts returned `email_send_failed:E_INTERNAL_SERVER_ERROR`; founder email delivery remains blocked until sender/domain readiness is fixed or an approved sender is configured.
 - Future workspaces must be registered in the shared workspace router before public intake forms target them.
 - CRM must consume the prepared handoff packet through an explicit CRM-owned workspace contract before runtime CRM records are created.
+
+### 2026-07-04: Prometheus Infrastructure - Shared Workspace Lead Intake Artifact Contract v1
+
+Task:
+Shared Workspace Lead Intake Artifact Contract v1.
+
+Status:
+Complete. Infrastructure lead intake, KV persistence, CRM handoff, Founder notification, failure/retry, audit, Aegis, and fail-closed artifacts are now registered in the Prometheus Integration Contract Layer and the Overwatch canonical artifact registry.
+
+Files changed:
+
+- `integrations/shared-workspace-lead-intake-contract.js`
+- `integrations/README.md`
+- `overwatch/artifact-contracts/canonical-artifact-registry.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`
+- `scripts/verify-cross-subsystem-artifact-contracts.mjs`
+- `tests/shared-workspace-lead-intake-contract.test.mjs`
+- `tests/cross-subsystem-artifact-contracts.test.mjs`
+- `package.json`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Registered canonical contract coverage for `POST /api/partner-intake`, workspace routing, `SHARED_LEAD_INTAKE_STORE`, intake submission artifacts, `shared_workspace_crm_lead_intake_packet.v1`, Founder notification events, failure/retry events, audit metadata, Aegis `lead_intake` metadata, and workspace fail-closed behavior.
+- Registered workspace-scoped Infrastructure contract artifacts for `fitness_connection` and `smoothie_depot` in the Overwatch canonical artifact registry.
+- Added a reusable contract verifier that compares the canonical contract against the existing shared intake runtime registry and proves Fitness Connection and Smoothie Depot remain isolated.
+- Updated the Overwatch artifact verifier and compliance audit so the Infrastructure shared lead-intake contract bypass is closed; the next global remediation priority advances to Data runtime artifact registration.
+- Preserved Infrastructure boundary ownership: Infrastructure validates, protects, routes, persists, and prepares CRM handoff packets; CRM owns CRM business logic; Dashboard and Companion cannot read raw intake without explicit future approval.
+
+Validation:
+
+- Fitness Connection intake routes only to `fitness_connection` and KV prefix `shared-lead-intake/workspaces/fitness_connection/submissions/`.
+- Smoothie Depot intake routes only to `smoothie_depot` and KV prefix `shared-lead-intake/workspaces/smoothie_depot/submissions/`.
+- Unknown workspace fails closed with no persistence and no CRM handoff.
+- CRM handoff contract path registered as `shared_workspace_crm_lead_intake_packet.v1`.
+- KV/store contract registered as `SHARED_LEAD_INTAKE_STORE`.
+- Founder notification contract registered even while email delivery remains pending.
+- Aegis/rate-limit contract registered as `lead_intake`.
+
+Tests run:
+
+- `npm run infrastructure:intake-contract:check`
+- `npm run infrastructure:lead-intake:check`
+- `npm run security:aegis:verify`
+- `npm run security:check`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run overwatch:artifact-contracts:check`
+- `npm run test:overwatch`
+- `npm test`
+
+Remaining risks:
+
+- Live Founder email delivery remains dependent on Cloudflare Email Service sender/domain readiness for `intake@prometheusrouteiq.com`.
+- Future workspace intake targets must be registered in both the runtime workspace router and the canonical intake contract before production forms can route to them.
 
 ## Next Recommended Engineering Task
 
