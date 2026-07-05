@@ -18,7 +18,11 @@ Production runtime change: false
 
 Standard modified: no
 
-Founder Mission Queue rank: 2
+Audience perspective: Receiving Smoothie Depot executive
+
+Prometheus decision-maker/operator exception: none
+
+Smoothie Depot Mission Queue rank: 2
 
 ## Evidence Labels
 
@@ -34,13 +38,13 @@ Every recommendation and major conclusion below includes evidence basis, source 
 
 ## Executive Decision Page
 
-Decision question: Should Cruz call Cranky Carrot second as a direct-category Smoothie Depot franchise-development prospect or operator-intelligence source?
+Decision question: Should Cranky Carrot be prepared as the second-priority executive outreach target for direct-category Smoothie Depot franchise-development evaluation or operator intelligence?
 
-Recommendation: Call Cranky Carrot second.
+Recommendation: Prepare Cranky Carrot as the second-priority executive outreach target.
 
-Executive posture: Treat the conversation as peer operator learning first. Test franchise or separate-concept openness only after respecting the existing Cranky Carrot brand.
+Executive posture: Prepare the receiving executive to treat the conversation as peer operator learning first. Test franchise or separate-concept openness only after respecting the existing Cranky Carrot brand.
 
-Decision thesis: Cranky Carrot should be second because it has direct smoothie/juice category fit, public multi-location signals, founder/operator story, and public recognition, if the operator is open to a franchise conversation despite already operating a strong owned brand.
+Decision thesis: Cranky Carrot should receive second outreach priority because it has direct smoothie/juice category fit, public multi-location signals, founder/operator story, and public recognition, if the operator is open to a franchise conversation despite already operating a strong owned brand.
 
 Confidence: High for direct-category relevance; medium for franchise openness.
 
@@ -48,9 +52,9 @@ One fact that would most improve the decision: Whether the operator would consid
 
 ## Layer 1: Executive Summary
 
-Decision context: Cranky Carrot is the second-ranked Smoothie Depot prospect and the strongest direct-category operator behind Nutrition Depot's complementary first-call profile.
+Decision context: Cranky Carrot is the second-ranked Smoothie Depot prospect and the strongest direct-category operator behind Nutrition Depot's complementary top-priority profile.
 
-Executive recommendation: Cruz should call Cranky Carrot second. Use the call to learn category economics, Houston wellness beverage demand, and whether a separate Smoothie Depot franchise path is even acceptable.
+Executive recommendation: Prepare the executive to prioritize Cranky Carrot second. Use the conversation to learn category economics, Houston wellness beverage demand, and whether a separate Smoothie Depot franchise path is even acceptable.
 
 Confidence: High for relevance; medium for conversion potential.
 
@@ -69,7 +73,7 @@ Major conclusion:
 - Source reliability: High for category and public identity; medium for expansion appetite.
 - Confidence level: High for relevance.
 - Verification needed: Confirm operator authority and openness to a separate concept.
-- Business decision impact: Second-highest call priority.
+- Business decision impact: Second-highest executive outreach priority.
 
 ## Layer 2: Business Identity
 
@@ -96,7 +100,7 @@ Major conclusion:
 - Source reliability: High.
 - Confidence level: High.
 - Verification needed: Confirm current location count and contact authority.
-- Business decision impact: Strong direct category candidate for second call.
+- Business decision impact: Strong direct-category candidate for second executive outreach.
 
 ## Layer 3: Ownership, Leadership, Public Operators, Corporate Structure, Timeline
 
@@ -122,7 +126,7 @@ Major conclusion:
 - Source reliability: Medium-high.
 - Confidence level: Medium.
 - Verification needed: Ask who controls expansion decisions and whether there are partners or investors.
-- Business decision impact: Authority verification determines whether Cruz can move beyond category learning.
+- Business decision impact: Authority verification determines whether the executive conversation can move beyond category learning.
 
 ## Layer 4: Business Evolution, Expansion, Growth, Brand Development, Historical Milestones
 
@@ -147,7 +151,7 @@ Major conclusion:
 - Source reliability: Medium-high.
 - Confidence level: Medium.
 - Verification needed: Ask whether growth is active, paused, or constrained by capital, labor, site selection, or brand focus.
-- Business decision impact: Determines whether Smoothie Depot should pitch franchise ownership or simply learn from a category operator.
+- Business decision impact: Determines whether the executive should prepare for franchise-owner evaluation or operator-learning only.
 
 ## Layer 5: Operational Intelligence
 
@@ -236,7 +240,7 @@ Major conclusion:
 - Source reliability: Medium.
 - Confidence level: Medium.
 - Verification needed: Ask whether the operator sees Smoothie Depot as competition, complement, or unrelated.
-- Business decision impact: Determines whether Cruz should pursue franchise discovery or operator-learning only.
+- Business decision impact: Determines whether the executive should prepare for franchise evaluation or operator-learning only.
 
 ## Layer 8: Community Intelligence
 
@@ -275,7 +279,7 @@ Marketing maturity: Inference. Public site plus public profiles indicate basic d
 
 Digital footprint: Official website, Downtown Houston listing, U.S. Chamber profile, Houston Chronicle coverage.
 
-Customer journey: Unknown beyond public discovery and contact.
+Customer journey: Unknown beyond public research and contact.
 
 Major conclusion:
 
@@ -367,17 +371,17 @@ Questions that reduce uncertainty:
 
 Conversation strategy: Open as a respectful operator-learning conversation. Do not imply Cranky Carrot should become Smoothie Depot. Ask whether Smoothie Depot could ever be a separate expansion vehicle after learning what they are trying to build.
 
-Recommended executive approach: Cruz should call second. If Nutrition Depot disqualifies, Cranky Carrot becomes the best direct-category conversation.
+Recommended executive approach: Cranky Carrot should receive second executive outreach priority. If Nutrition Depot disqualifies, Cranky Carrot becomes the best direct-category conversation.
 
 Recommended next investigation: Confirm current location count, operator authority, growth posture, second-concept openness, and category economics.
 
 ## Opportunity Cost
 
-If Cruz only has time to call one business today, Nutrition Depot still outranks Cranky Carrot.
+If the receiving executive has only one outreach slot today, Nutrition Depot still outranks Cranky Carrot.
 
 Why Cranky Carrot is second: Cranky Carrot has stronger direct product fit, but direct category operators may be more competitor-protective and less likely to adopt Smoothie Depot than a complementary supplement retailer.
 
-When Cranky Carrot becomes first: If Nutrition Depot lacks authority or food-service interest, Cranky Carrot becomes the best immediate direct-category learning call.
+When Cranky Carrot becomes the top outreach priority: If Nutrition Depot lacks authority or food-service interest, Cranky Carrot becomes the best immediate direct-category learning conversation.
 
 ## Red-Team Review
 
@@ -405,25 +409,25 @@ Operator says they are only focused on Cranky Carrot and not interested in franc
 
 If operator is open to separate franchise ownership:
 
-Action: Qualify capital, operating capacity, territory preference, and JR readiness.
+Executive preparation: Prepare qualification questions around capital, operating capacity, territory preference, and JR readiness.
 
 If operator is not open to a separate brand but willing to share market insight:
 
-Action: Run a category-learning call and ask about Houston corridors, customer demand, labor, menu economics, and expansion constraints.
+Executive preparation: Prepare a category-learning conversation around Houston corridors, customer demand, labor, menu economics, and expansion constraints.
 
 If operator sees Smoothie Depot as a direct competitor:
 
-Action: Keep the call respectful, avoid competitive probing, and exit with light market-learning questions only.
+Executive preparation: Prepare a respectful conversation path, avoid competitive probing, and exit with light market-learning questions only if competitive sensitivity emerges.
 
 If operator indicates active expansion interest:
 
-Action: Prepare a follow-up with JR focused on whether Smoothie Depot can accelerate expansion beyond Cranky Carrot's current model.
+Executive preparation: Prepare a JR follow-up path focused on whether Smoothie Depot can accelerate expansion beyond Cranky Carrot's current model.
 
 ## Post-Meeting Learning Plan
 
 Predicted outcome: Operator may be valuable for category intelligence even if franchise interest is low.
 
-Record after call:
+Record after executive conversation:
 
 - Actual openness to separate concepts.
 - Current location count and authority.
@@ -465,5 +469,4 @@ Record after call:
 | S2 | https://downtownhouston.org/go/cranky-carrot-juice | Downtown Houston public listing and address signal. |
 | S3 | https://www.uschamber.com/co/profiles/cranky-carrot-juice-co | Public small business profile and recognition signal. |
 | S4 | https://www.houstonchronicle.com/business/article/cranky-carrot-small-business-award-21092636.php | Public coverage and recognition context. |
-| S5 | research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json | Founder Mission Queue rank and comparison. |
-
+| S5 | research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json | Smoothie Depot Mission Queue rank and comparison. |

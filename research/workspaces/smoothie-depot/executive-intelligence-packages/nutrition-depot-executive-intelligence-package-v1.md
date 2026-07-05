@@ -18,6 +18,10 @@ Production runtime change: false
 
 Standard modified: no
 
+Audience perspective: Receiving Smoothie Depot executive
+
+Prometheus decision-maker/operator exception: none
+
 Smoothie Depot Mission Queue rank: 1
 
 ## Evidence Labels

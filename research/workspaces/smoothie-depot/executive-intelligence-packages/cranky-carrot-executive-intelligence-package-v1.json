@@ -8,6 +8,12 @@
   "generatedDate": "2026-07-05",
   "packageStatus": "completed_research_executive_intelligence_package",
   "founderMissionQueueRank": 2,
+  "audiencePerspective": {
+    "writtenFor": "Receiving Smoothie Depot executive",
+    "defaultPerspective": "receiving_executive",
+    "prometheusDecisionMakerException": false,
+    "packageExecutesEngagement": false
+  },
   "standardModified": false,
   "evidenceLabels": [
     "Observed",
@@ -24,9 +30,9 @@
     "businessDecisionImpact"
   ],
   "decisionFraming": {
-    "decisionQuestion": "Should Cruz call Cranky Carrot second as a direct-category Smoothie Depot franchise-development prospect or operator-intelligence source?",
-    "decisionThesis": "Call second because Cranky Carrot has direct smoothie/juice category fit, public multi-location signals, founder/operator story, and public recognition, if the operator is open to a franchise conversation despite already operating a strong owned brand.",
-    "recommendedExecutivePosture": "Approach as peer operator learning first, then test whether Smoothie Depot could be a separate expansion vehicle.",
+    "decisionQuestion": "Should Cranky Carrot be prepared as the second-priority executive outreach target for direct-category Smoothie Depot franchise-development evaluation or operator intelligence?",
+    "decisionThesis": "Prioritize second executive outreach preparation because Cranky Carrot has direct smoothie/juice category fit, public multi-location signals, founder/operator story, and public recognition, if the operator is open to a franchise conversation despite already operating a strong owned brand.",
+    "recommendedExecutivePosture": "Prepare the receiving executive to approach as peer operator learning first, then test whether Smoothie Depot could be a separate expansion vehicle.",
     "confidence": "High for direct-category relevance; medium for franchise openness."
   },
   "layers": [
@@ -191,7 +197,7 @@
         "recommendedExecutiveApproach",
         "recommendedNextInvestigation"
       ],
-      "summary": "Call second. Lead with respect for Cranky Carrot's brand, ask what they have learned about Houston wellness beverage demand, then test whether the operator would ever consider a separate franchise vehicle or wants to stay exclusively focused on Cranky Carrot."
+      "summary": "Prepare the executive to prioritize Cranky Carrot second, lead with respect for Cranky Carrot's brand, ask what they have learned about Houston wellness beverage demand, then test whether the operator would ever consider a separate franchise vehicle or wants to stay exclusively focused on Cranky Carrot."
     }
   ],
   "majorConclusions": [
@@ -202,7 +208,7 @@
       "sourceReliability": "High for category and public identity; medium for expansion appetite.",
       "confidenceLevel": "High",
       "verificationNeeded": "Confirm current locations, operator authority, and expansion preferences.",
-      "businessDecisionImpact": "Second highest call priority after Nutrition Depot."
+      "businessDecisionImpact": "Second highest executive outreach priority after Nutrition Depot."
     },
     {
       "label": "Inference",
@@ -211,7 +217,7 @@
       "sourceReliability": "Medium",
       "confidenceLevel": "Medium",
       "verificationNeeded": "Ask whether the operator would consider a separate concept or only wants to scale Cranky Carrot.",
-      "businessDecisionImpact": "Shapes the call from pitch-first to peer-learning-first."
+      "businessDecisionImpact": "Shapes the executive conversation from pitch-first to peer-learning-first."
     }
   ],
   "unknownValueRanking": [
@@ -222,9 +228,9 @@
     "Would the operator prefer franchise ownership, partnership, referral, or no involvement?"
   ],
   "opportunityCost": {
-    "ifOnlyOneCallToday": "Nutrition Depot still outranks Cranky Carrot for first call.",
+    "ifOnlyOneOutreachSlotToday": "If only one executive outreach slot is available today, Nutrition Depot still outranks Cranky Carrot.",
     "whyCrankySecond": "Cranky Carrot has stronger direct product fit, but direct category operators may be more competitor-protective and less likely to adopt Smoothie Depot than a complementary supplement retailer.",
-    "whenCrankyBecomesFirst": "If Nutrition Depot lacks authority or food-service interest, Cranky Carrot becomes the best immediate direct-category learning call."
+    "whenCrankyBecomesTopPriority": "If Nutrition Depot lacks authority or food-service interest, Cranky Carrot becomes the best immediate direct-category learning conversation."
   },
   "redTeamReview": {
     "whatIfWrong": "Cranky Carrot may have no interest in franchising or second concepts and may view Smoothie Depot as a direct competitor.",
@@ -235,15 +241,15 @@
   "decisionTree": [
     {
       "condition": "Operator is open to separate franchise ownership.",
-      "action": "Qualify capital, operating capacity, territory preference, and JR readiness."
+      "action": "Prepare qualification questions around capital, operating capacity, territory preference, and JR readiness."
     },
     {
       "condition": "Operator is not open to a separate brand but willing to share market insight.",
-      "action": "Run a category-learning call and ask about Houston corridors, customer demand, labor, menu economics, and expansion constraints."
+      "action": "Prepare a category-learning conversation around Houston corridors, customer demand, labor, menu economics, and expansion constraints."
     },
     {
       "condition": "Operator sees Smoothie Depot as a direct competitor.",
-      "action": "Keep the call respectful, avoid competitive probing, and exit with light market-learning questions only."
+      "action": "Prepare a respectful conversation path, avoid competitive probing, and exit with light market-learning questions only if competitive sensitivity emerges."
     },
     {
       "condition": "Operator indicates active expansion interest.",

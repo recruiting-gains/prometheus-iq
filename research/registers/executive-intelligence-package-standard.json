@@ -12,6 +12,18 @@
     "intelligenceInterprets": true,
     "overwatchGoverns": true
   },
+  "audiencePerspective": {
+    "defaultPerspective": "receiving_executive",
+    "prometheusDecisionMakerExceptionRequiresWorkspaceDefinition": true,
+    "packageExecutesEngagement": false,
+    "prohibitedDefaultAssumptions": [
+      "Prometheus owns outreach execution",
+      "Prometheus owns conversation execution",
+      "Prometheus owns negotiation",
+      "Prometheus owns qualification",
+      "Prometheus owns final business decision"
+    ]
+  },
   "evidenceLabels": [
     "Observed",
     "Corroborated",
@@ -213,4 +225,3 @@
     "dashboardMigrationRequiresFutureHandoff": true
   }
 }
-

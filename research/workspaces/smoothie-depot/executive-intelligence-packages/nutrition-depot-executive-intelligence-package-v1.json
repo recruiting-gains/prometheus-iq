@@ -8,6 +8,12 @@
   "generatedDate": "2026-07-05",
   "packageStatus": "completed_research_executive_intelligence_package",
   "founderMissionQueueRank": 1,
+  "audiencePerspective": {
+    "writtenFor": "Receiving Smoothie Depot executive",
+    "defaultPerspective": "receiving_executive",
+    "prometheusDecisionMakerException": false,
+    "packageExecutesEngagement": false
+  },
   "standardModified": false,
   "evidenceLabels": [
     "Observed",

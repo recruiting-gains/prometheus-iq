@@ -234,6 +234,8 @@ Research produces Executive Intelligence Packages as complete operational intell
 
 Every Executive Intelligence Package must prepare decision-makers by reducing uncertainty through lawful, attributable evidence. Research prepares executives. Dashboard displays. CRM tracks. Intelligence interprets. Overwatch governs.
 
+Every Executive Intelligence Package must be written from the perspective of the executive receiving the package unless the workspace explicitly defines Prometheus as the decision-maker or operator. Default package language prepares executive decision readiness and must not imply Prometheus executes outreach, conversation, negotiation, qualification, or final decision ownership.
+
 Required package layers:
 
 1. Executive Summary.

@@ -100,6 +100,69 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Research - Executive Intelligence Package Audience Perspective Standard v1
+
+Subsystem: Prometheus Research
+
+Task: Executive Intelligence Package Audience Perspective Standard v1
+
+Commit: Recorded by the Executive Intelligence Package Audience Perspective Standard v1 handoff commit.
+
+Deploy: Not run. Research standard and package-artifact alignment only.
+
+Status: Complete.
+
+Implementation type: Standard update plus artifact alignment.
+
+Standard adopted:
+
+Every Executive Intelligence Package must be written from the perspective of the executive receiving the package unless the workspace explicitly defines Prometheus as the decision-maker or operator.
+
+Operating rule:
+
+Research prepares executive decision readiness. The receiving executive owns outreach, conversation, negotiation, qualification, and final decision unless a workspace-specific contract explicitly says otherwise.
+
+What changed:
+
+- Added an Audience Perspective Standard to the Executive Intelligence Platform.
+- Added a machine-readable `audiencePerspective` contract to the Executive Intelligence Package standard and schema.
+- Added receiving-executive perspective fields to the Nutrition Depot and Cranky Carrot package ledgers.
+- Added receiving-executive perspective declarations to the Nutrition Depot and Cranky Carrot package Markdown artifacts.
+- Re-aligned Cranky Carrot package language from founder/operator execution wording to executive-preparation wording.
+- Added validation gates to prevent reintroduction of specific execution-assuming package language.
+- Refreshed the Nutrition Depot read-only Dashboard mirror and canonical package hash to match the Research-owned package.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `research/executive-intelligence-platform.md`
+- `research/architecture.md`
+- `research/README.md`
+- `research/registers/executive-intelligence-package-standard.json`
+- `research/schemas/executive-intelligence-package.schema.json`
+- `research/templates/executive-intelligence-package.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
+- `smoothie-depot-dashboard/index.html`
+- `deploy/cloudflare-pages/smoothie-depot-dashboard/index.html`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Boundary confirmation:
+
+Research standard and package artifacts were updated. Dashboard source and deploy mirror were updated only to preserve the read-only canonical Nutrition Depot package display and artifact hash. No Dashboard persistence, CRM workflow, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, Intelligence runtime, production data, or customer-facing behavior was modified.
+
+Remaining blockers:
+
+- Future Executive Intelligence Packages must define `audiencePerspective` before validation can pass.
+- Any future workspace that wants Prometheus treated as decision-maker/operator needs an explicit workspace contract before packages may use that perspective.
+
+Next recommended subsystem:
+
+Prometheus Research - Executive Intelligence Package generation using Audience Perspective Standard v1.
+
 ### 2026-07-05: Prometheus Research - Executive Intelligence Package Language Alignment v1
 
 Subsystem: Prometheus Research

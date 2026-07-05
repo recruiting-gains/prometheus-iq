@@ -297,12 +297,19 @@ test("Executive Intelligence Platform defines package standard and dossier trans
   assert.equal(standard.artifactType, "executive_intelligence_package");
   assert.equal(standard.status, "active_research_standard");
   assert.equal(standard.productionRuntimeChange, false);
+  assert.equal(standard.audiencePerspective.defaultPerspective, "receiving_executive");
+  assert.equal(standard.audiencePerspective.prometheusDecisionMakerExceptionRequiresWorkspaceDefinition, true);
+  assert.equal(standard.audiencePerspective.packageExecutesEngagement, false);
   assert.deepEqual(standard.evidenceLabels, evidenceLabels);
   assert.deepEqual(standard.requiredConclusionFields, conclusionFields);
   assert.deepEqual(standard.intelligenceLayers.map(layer => layer.name), layerNames);
   assert.equal(standard.intelligenceLayers.length, 12);
   assert.equal(schema.properties.platformStandard.const, "executive_intelligence_platform_v1");
   assert.equal(schema.properties.productionRuntimeChange.const, false);
+  assert.ok(schema.required.includes("audiencePerspective"));
+  assert.equal(schema.properties.audiencePerspective.properties.defaultPerspective.const, "receiving_executive");
+  assert.equal(schema.properties.audiencePerspective.properties.prometheusDecisionMakerException.const, false);
+  assert.equal(schema.properties.audiencePerspective.properties.packageExecutesEngagement.const, false);
   assert.deepEqual(schema.properties.evidenceLabels.items.enum, evidenceLabels);
   assert.deepEqual(schema.properties.conclusionRequirements.items.enum, conclusionFields);
   assert.equal(schema.properties.layers.minItems, 12);
@@ -324,6 +331,7 @@ test("Executive Intelligence Platform defines package standard and dossier trans
     "Research produces Executive Intelligence Packages",
     "Fortune 100 Corporate Development",
     "Research prepares executives",
+    "Every Executive Intelligence Package must be written from the perspective of the executive receiving the package",
     "Dashboard displays",
     "CRM tracks",
     "Intelligence interprets",
@@ -528,6 +536,9 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
     assert.equal(packageArtifact.json.standardModified, false);
     assert.equal(packageArtifact.json.business, packageArtifact.business);
     assert.equal(packageArtifact.json.founderMissionQueueRank, packageArtifact.rank);
+    assert.equal(packageArtifact.json.audiencePerspective.defaultPerspective, "receiving_executive");
+    assert.equal(packageArtifact.json.audiencePerspective.prometheusDecisionMakerException, false);
+    assert.equal(packageArtifact.json.audiencePerspective.packageExecutesEngagement, false);
     assert.deepEqual(packageArtifact.json.evidenceLabels, evidenceLabels);
     assert.deepEqual(packageArtifact.json.layers.map(layer => layer.name), layerNames);
     assert.equal(packageArtifact.json.layers.length, 12);
@@ -541,6 +552,8 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
     assert.equal(packageArtifact.json.boundaryConfirmation.restrictedPlatformScrapingUsed, false);
     assert.equal(packageArtifact.json.boundaryConfirmation.productionSystemsModified, false);
     assert.match(packageArtifact.report, /Standard modified: no/);
+    assert.match(packageArtifact.report, /Audience perspective: Receiving Smoothie Depot executive/);
+    assert.match(packageArtifact.report, /Prometheus decision-maker\/operator exception: none/);
     assert.match(packageArtifact.report, /Executive Decision Page/);
     assert.match(packageArtifact.report, /Decision thesis/);
     assert.match(packageArtifact.report, /Opportunity Cost/);
@@ -549,6 +562,19 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
     assert.match(packageArtifact.report, /Post-Meeting Learning Plan/);
     for (const [index] of layerNames.entries()) {
       assert.match(packageArtifact.report, new RegExp(`## Layer ${index + 1}:`));
+    }
+    for (const prohibitedPhrase of [
+      "Cruz should",
+      "Should Cruz",
+      "Founder Mission Queue",
+      "Call first",
+      "call first",
+      "first-call",
+      "call priority",
+      "Record after call",
+      "Action:"
+    ]) {
+      assert.ok(!packageArtifact.report.includes(prohibitedPhrase), `${packageArtifact.business} report contains ${prohibitedPhrase}`);
     }
   }
 });

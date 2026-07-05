@@ -145,6 +145,10 @@ Evidence labels:
 
 Every recommendation and major conclusion must include evidence basis, source reliability, confidence level, verification needed, and business decision impact.
 
+Audience perspective:
+
+Every Executive Intelligence Package must be written from the perspective of the executive receiving the package unless the workspace explicitly defines Prometheus as the decision-maker or operator. Research prepares executive decision readiness; the receiving executive owns outreach, conversation, negotiation, qualification, and final decision.
+
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must use the Executive Intelligence Package standard.
 
 Benchmark methodology:

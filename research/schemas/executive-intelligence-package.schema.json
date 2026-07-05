@@ -8,6 +8,7 @@
     "business",
     "platformStandard",
     "productionRuntimeChange",
+    "audiencePerspective",
     "evidenceLabels",
     "conclusionRequirements",
     "layers",
@@ -29,6 +30,30 @@
     },
     "productionRuntimeChange": {
       "const": false
+    },
+    "audiencePerspective": {
+      "type": "object",
+      "required": [
+        "writtenFor",
+        "defaultPerspective",
+        "prometheusDecisionMakerException",
+        "packageExecutesEngagement"
+      ],
+      "properties": {
+        "writtenFor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "defaultPerspective": {
+          "const": "receiving_executive"
+        },
+        "prometheusDecisionMakerException": {
+          "const": false
+        },
+        "packageExecutesEngagement": {
+          "const": false
+        }
+      }
     },
     "evidenceLabels": {
       "type": "array",

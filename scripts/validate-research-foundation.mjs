@@ -411,6 +411,13 @@ assert.equal(executiveIntelligenceStandard.researchRole.dashboardDisplays, true,
 assert.equal(executiveIntelligenceStandard.researchRole.crmTracks, true, "CRM role must remain tracking-oriented.");
 assert.equal(executiveIntelligenceStandard.researchRole.intelligenceInterprets, true, "Intelligence role must remain interpretation-oriented.");
 assert.equal(executiveIntelligenceStandard.researchRole.overwatchGoverns, true, "Overwatch role must remain governance-oriented.");
+assert.equal(executiveIntelligenceStandard.audiencePerspective.defaultPerspective, "receiving_executive", "Executive Intelligence packages must default to the receiving executive perspective.");
+assert.equal(
+  executiveIntelligenceStandard.audiencePerspective.prometheusDecisionMakerExceptionRequiresWorkspaceDefinition,
+  true,
+  "Prometheus decision-maker/operator exception must require explicit workspace definition."
+);
+assert.equal(executiveIntelligenceStandard.audiencePerspective.packageExecutesEngagement, false, "Executive Intelligence packages must not execute the engagement.");
 assert.equal(
   executiveIntelligenceStandard.legacyDossierTransition.newDossiersAllowedAsPrimaryOutput,
   false,
@@ -429,6 +436,22 @@ assert.equal(
 
 assert.equal(executiveIntelligenceSchema.properties.platformStandard.const, "executive_intelligence_platform_v1", "Executive package schema standard const drifted.");
 assert.equal(executiveIntelligenceSchema.properties.productionRuntimeChange.const, false, "Executive package schema must block runtime activation.");
+assert.ok(executiveIntelligenceSchema.required.includes("audiencePerspective"), "Executive package schema must require audience perspective.");
+assert.equal(
+  executiveIntelligenceSchema.properties.audiencePerspective.properties.defaultPerspective.const,
+  "receiving_executive",
+  "Executive package schema must enforce receiving executive perspective."
+);
+assert.equal(
+  executiveIntelligenceSchema.properties.audiencePerspective.properties.prometheusDecisionMakerException.const,
+  false,
+  "Executive package schema must block Prometheus decision-maker exception unless a future workspace-specific schema allows it."
+);
+assert.equal(
+  executiveIntelligenceSchema.properties.audiencePerspective.properties.packageExecutesEngagement.const,
+  false,
+  "Executive package schema must prevent package execution ownership."
+);
 assert.deepEqual(
   executiveIntelligenceSchema.properties.evidenceLabels.items.enum,
   executiveIntelligenceEvidenceLabels,
@@ -478,6 +501,7 @@ for (const phrase of [
   "Research produces Executive Intelligence Packages",
   "Fortune 100 Corporate Development",
   "Research prepares executives",
+  "Every Executive Intelligence Package must be written from the perspective of the executive receiving the package",
   "Dashboard displays",
   "CRM tracks",
   "Intelligence interprets",
@@ -684,6 +708,9 @@ for (const packageArtifact of executivePackages) {
   );
   assert.equal(packageArtifact.packageJson.layers.length, 12, `${packageArtifact.expectedBusiness} package must include 12 layers.`);
   assert.ok(packageArtifact.packageJson.majorConclusions.length >= 2, `${packageArtifact.expectedBusiness} package needs major conclusions.`);
+  assert.equal(packageArtifact.packageJson.audiencePerspective.defaultPerspective, "receiving_executive", `${packageArtifact.expectedBusiness} package must use receiving executive perspective.`);
+  assert.equal(packageArtifact.packageJson.audiencePerspective.prometheusDecisionMakerException, false, `${packageArtifact.expectedBusiness} package must not assume Prometheus decision-maker/operator role.`);
+  assert.equal(packageArtifact.packageJson.audiencePerspective.packageExecutesEngagement, false, `${packageArtifact.expectedBusiness} package must not execute the engagement.`);
   assert.ok(packageArtifact.packageJson.unknownValueRanking.length >= 5, `${packageArtifact.expectedBusiness} package needs unknown value ranking.`);
   assert.ok(packageArtifact.packageJson.decisionTree.length >= 4, `${packageArtifact.expectedBusiness} package needs decision tree.`);
   assert.ok(packageArtifact.packageJson.sourceReferences.includes(packageArtifact.requiredSource), `${packageArtifact.expectedBusiness} package missing primary source.`);
@@ -693,6 +720,8 @@ for (const packageArtifact of executivePackages) {
   assert.equal(packageArtifact.packageJson.boundaryConfirmation.restrictedPlatformScrapingUsed, false, `${packageArtifact.expectedBusiness} package must prohibit restricted scraping.`);
   assert.equal(packageArtifact.packageJson.boundaryConfirmation.productionSystemsModified, false, `${packageArtifact.expectedBusiness} package must not modify production systems.`);
   assert.ok(packageArtifact.packageReport.includes("Standard modified: no"), `${packageArtifact.expectedBusiness} report must state standard was not modified.`);
+  assert.ok(packageArtifact.packageReport.includes("Audience perspective: Receiving Smoothie Depot executive"), `${packageArtifact.expectedBusiness} report must state receiving executive audience perspective.`);
+  assert.ok(packageArtifact.packageReport.includes("Prometheus decision-maker/operator exception: none"), `${packageArtifact.expectedBusiness} report must state no Prometheus decision-maker/operator exception.`);
   assert.ok(packageArtifact.packageReport.includes("Executive Decision Page"), `${packageArtifact.expectedBusiness} report missing executive decision page.`);
   assert.ok(packageArtifact.packageReport.includes("Decision thesis"), `${packageArtifact.expectedBusiness} report missing decision thesis.`);
   assert.ok(packageArtifact.packageReport.includes("Opportunity Cost"), `${packageArtifact.expectedBusiness} report missing opportunity cost.`);
@@ -704,6 +733,19 @@ for (const packageArtifact of executivePackages) {
       packageArtifact.packageReport.includes(`## Layer ${index + 1}:`) && packageArtifact.packageReport.includes(layerName.split(" ")[0]),
       `${packageArtifact.expectedBusiness} report missing layer ${index + 1}.`
     );
+  }
+  for (const prohibitedPhrase of [
+    "Cruz should",
+    "Should Cruz",
+    "Founder Mission Queue",
+    "Call first",
+    "call first",
+    "first-call",
+    "call priority",
+    "Record after call",
+    "Action:"
+  ]) {
+    assert.ok(!packageArtifact.packageReport.includes(prohibitedPhrase), `${packageArtifact.expectedBusiness} report contains execution-assuming phrase: ${prohibitedPhrase}`);
   }
 }
 

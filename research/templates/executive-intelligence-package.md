@@ -14,6 +14,10 @@ Platform standard: Executive Intelligence Platform v1
 
 Production runtime change: false
 
+Audience perspective: Receiving executive
+
+Prometheus decision-maker/operator exception: none unless explicitly defined by workspace
+
 ## Evidence Labels
 
 Use exactly one label per material conclusion:
@@ -233,4 +237,3 @@ Recommended next investigation:
 - Hidden records used: no
 - Surveillance used: no
 - Production systems modified: no
-

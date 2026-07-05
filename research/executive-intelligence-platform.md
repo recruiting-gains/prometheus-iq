@@ -34,12 +34,21 @@ Intelligence interprets.
 
 Overwatch governs.
 
+## Audience Perspective Standard
+
+Every Executive Intelligence Package must be written from the perspective of the executive receiving the package.
+
+Default package language must prepare the receiving executive for decision readiness, conversation preparation, uncertainty reduction, and next-step judgment. It must not assume Prometheus, a founder, or Research owns outreach execution, conversation execution, negotiation, qualification, or the final business decision.
+
+Prometheus may be written as the decision-maker or operator only when the workspace explicitly defines Prometheus in that role. If that exception is absent, the package must use executive-preparation language.
+
 ## Executive Intelligence Package Definition
 
 An Executive Intelligence Package is a complete operational intelligence briefing that contains every lawful piece of information that materially improves executive decision quality.
 
 Every package must:
 
+- Write from the receiving executive's perspective unless the workspace explicitly defines Prometheus as decision-maker or operator.
 - Preserve public-source attribution.
 - Separate observed facts, corroborated facts, owner-provided facts, unknowns, and inferences.
 - Identify source reliability.
@@ -146,4 +155,3 @@ New Research work must not create new dossier artifacts as the primary output. N
 - Route Intelligence modified: no.
 - Active Pool modified: no.
 - Intelligence runtime modified: no.
-
