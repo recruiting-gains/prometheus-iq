@@ -1,0 +1,235 @@
+{
+  "reportId": "executive_intelligence_benchmark_study_v1",
+  "subsystem": "Prometheus Research",
+  "status": "founder_ready_research_artifact",
+  "productionRuntimeChange": false,
+  "generatedDate": "2026-07-05",
+  "missionQuestion": "What makes executives trust recommendations?",
+  "organizationsAnalyzed": [
+    "McKinsey & Company",
+    "Bain & Company",
+    "Boston Consulting Group",
+    "Deloitte Strategy",
+    "Corporate Development teams",
+    "Private Equity Due Diligence teams",
+    "Investment Banking M&A advisory teams",
+    "Strategic Consulting firms"
+  ],
+  "methodologiesCompared": [
+    "structured_problem_solving",
+    "m_and_a_blueprint",
+    "strategy_under_uncertainty",
+    "integrated_due_diligence",
+    "investment_thesis_testing",
+    "strategic_due_diligence",
+    "due_diligence_governance",
+    "corporate_development_strategy",
+    "standardized_due_diligence_questionnaires",
+    "fairness_opinion_governance",
+    "answer_first_executive_communication"
+  ],
+  "commonPatterns": [
+    "decision_question_first",
+    "answer_first_recommendation",
+    "hypothesis_led_research",
+    "mece_issue_decomposition",
+    "investment_or_decision_thesis",
+    "source_tier_and_evidence_mapping",
+    "assumption_testing",
+    "risk_magnitude_probability_mitigation",
+    "unknown_register",
+    "alternatives_comparison",
+    "scenario_stress_testing",
+    "execution_path"
+  ],
+  "prometheusMethodology": [
+    "decision_framing",
+    "decision_thesis",
+    "issue_tree",
+    "evidence_map",
+    "value_and_risk_driver_map",
+    "alternatives_and_opportunity_cost",
+    "scenario_and_decision_tree",
+    "unknown_value_ranking",
+    "red_team_review",
+    "executive_brief_and_appendices"
+  ],
+  "recommendedPackageStructure": [
+    "Executive Decision Page",
+    "Decision Thesis",
+    "Recommendation And Confidence",
+    "Why This Company / Why Now / Why Prometheus",
+    "Opportunity Cost",
+    "Key Evidence Map",
+    "Strategic Fit",
+    "Business Identity And Ownership",
+    "Operational Intelligence",
+    "Commercial Ecosystem Intelligence",
+    "Competitive Intelligence",
+    "Community And Reputation Intelligence",
+    "Digital Intelligence",
+    "Value Drivers",
+    "Risk Register",
+    "Unknown Value Ranking",
+    "Red-Team Review",
+    "Conversation Strategy",
+    "Decision Tree",
+    "Post-Meeting Learning Plan",
+    "Source Appendix"
+  ],
+  "executiveTrustDrivers": [
+    "judgment",
+    "traceability",
+    "challenge",
+    "alternatives",
+    "candor",
+    "decision_specificity",
+    "reversibility_awareness",
+    "confidence_calibration",
+    "executive_fit"
+  ],
+  "recommendedFutureImprovements": [
+    "Add a Research package register for completed Executive Intelligence Packages.",
+    "Add a benchmark-derived quality gate to the Executive Intelligence Package schema.",
+    "Generate Nutrition Depot Executive Intelligence Package v1 using this methodology.",
+    "Add post-meeting learning fields to package artifacts.",
+    "Create a package-level decision thesis and unknown value ranking requirement.",
+    "Create a Dashboard handoff proposal only after at least one package artifact is complete and reviewed."
+  ],
+  "boundaryConfirmation": {
+    "researchArtifactOnly": true,
+    "publicSourcesOnly": true,
+    "proprietaryFormatsCopied": false,
+    "copyrightedDocumentsReproduced": false,
+    "dashboardModified": false,
+    "crmModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false,
+    "productionDataModified": false
+  },
+  "sourceReferences": [
+    {
+      "id": "S1",
+      "publisher": "McKinsey & Company",
+      "url": "https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/how-to-master-the-seven-step-problem-solving-process",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S2",
+      "publisher": "McKinsey & Company",
+      "url": "https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/a-blueprint-for-m-and-a-success",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S3",
+      "publisher": "McKinsey & Company",
+      "url": "https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/strategy-under-uncertainty",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S4",
+      "publisher": "McKinsey & Company",
+      "url": "https://www.mckinsey.com/capabilities/transformation/our-insights/from-potential-to-performance-using-gen-ai-to-conduct-outside-in-diligence",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S5",
+      "publisher": "Bain & Company",
+      "url": "https://www.bain.com/industry-expertise/private-equity/due-diligence/",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S6",
+      "publisher": "Bain & Company",
+      "url": "https://www.bain.com/insights/integrating-due-diligence-to-build-lasting-value/",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S7",
+      "publisher": "Bain & Company",
+      "url": "https://www.bain.com/insights/how-private-equity-firms-determine-where-to-invest/",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S8",
+      "publisher": "Bain & Company",
+      "url": "https://www.bain.com/consulting-services/change-management-results-delivery/results-delivery-office/",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S9",
+      "publisher": "Boston Consulting Group",
+      "url": "https://www.bcg.com/capabilities/mergers-acquisitions-transactions-pmi/due-diligence",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S10",
+      "publisher": "Boston Consulting Group",
+      "url": "https://www.bcg.com/capabilities/business-transformation/overview",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S11",
+      "publisher": "Boston Consulting Group",
+      "url": "https://www.bcg.com/capabilities/mergers-acquisitions-transactions-pmi/m-and-a",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S12",
+      "publisher": "Boston Consulting Group",
+      "url": "https://www.bcg.com/capabilities/mergers-acquisitions-transactions-pmi/strategic-alliances",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S13",
+      "publisher": "Deloitte",
+      "url": "https://www.deloitte.com/us/en/programs/center-for-board-effectiveness/articles/mergers-and-acquisitions-due-diligence-and-governance.html",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S14",
+      "publisher": "Deloitte",
+      "url": "https://www.deloitte.com/us/en/insights/topics/business-strategy-growth/corporate-development-strategy-survey.html",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S15",
+      "publisher": "Deloitte",
+      "url": "https://www.deloitte.com/us/en/services/consulting/services/mergers-acquisitions.html",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S16",
+      "publisher": "Deloitte",
+      "url": "https://nor.deloitte.com/rs/712-CNF-326/images/ma-catalyst-pov.pdf",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S17",
+      "publisher": "Institutional Limited Partners Association",
+      "url": "https://ilpa.org/resources-tools/resource-library/due-diligence-questionnaire/",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S18",
+      "publisher": "FINRA",
+      "url": "https://www.finra.org/sites/default/files/NoticeDocument/p012248.pdf",
+      "sourceTier": "Tier 1"
+    },
+    {
+      "id": "S19",
+      "publisher": "Mergers & Inquisitions",
+      "url": "https://mergersandinquisitions.com/investment-banking-pitch-books/",
+      "sourceTier": "Tier 2"
+    },
+    {
+      "id": "S20",
+      "publisher": "Management Consulted",
+      "url": "https://managementconsulted.com/pyramid-principle/",
+      "sourceTier": "Tier 2"
+    }
+  ]
+}

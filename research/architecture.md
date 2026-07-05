@@ -265,6 +265,27 @@ The platform is defined by:
 - `research/registers/executive-intelligence-package-standard.json`
 - `research/schemas/executive-intelligence-package.schema.json`
 - `research/templates/executive-intelligence-package.md`
+- `research/reports/executive-intelligence-benchmark-study-v1.md`
+- `research/reports/executive-intelligence-benchmark-study-v1.json`
+
+Executive Intelligence Benchmark Study v1 establishes the Prometheus methodology benchmark. It analyzes public decision-support patterns from McKinsey & Company, Bain & Company, Boston Consulting Group, Deloitte Strategy, corporate development teams, private equity due diligence teams, investment banking M&A advisory teams, and strategic consulting firms.
+
+The benchmark question is:
+
+What makes executives trust recommendations?
+
+Benchmark-derived Prometheus methodology:
+
+- Decision framing.
+- Decision thesis.
+- Issue tree.
+- Evidence map.
+- Value and risk driver map.
+- Alternatives and opportunity cost.
+- Scenario and decision tree.
+- Unknown value ranking.
+- Red-team review.
+- Executive brief and appendices.
 
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
 

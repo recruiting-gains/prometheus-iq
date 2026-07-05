@@ -359,6 +359,110 @@ test("Executive Intelligence Platform defines package standard and dossier trans
   }
 });
 
+test("Executive Intelligence Benchmark Study compares public methodologies and proposes Prometheus method", () => {
+  const benchmark = readJson("research/reports/executive-intelligence-benchmark-study-v1.json");
+  const report = readText("research/reports/executive-intelligence-benchmark-study-v1.md");
+  const architecture = readText("research/architecture.md");
+
+  const organizations = [
+    "McKinsey & Company",
+    "Bain & Company",
+    "Boston Consulting Group",
+    "Deloitte Strategy",
+    "Corporate Development teams",
+    "Private Equity Due Diligence teams",
+    "Investment Banking M&A advisory teams",
+    "Strategic Consulting firms"
+  ];
+
+  const methodologies = [
+    "structured_problem_solving",
+    "m_and_a_blueprint",
+    "strategy_under_uncertainty",
+    "integrated_due_diligence",
+    "investment_thesis_testing",
+    "strategic_due_diligence",
+    "due_diligence_governance",
+    "corporate_development_strategy",
+    "standardized_due_diligence_questionnaires",
+    "fairness_opinion_governance",
+    "answer_first_executive_communication"
+  ];
+
+  const prometheusMethodology = [
+    "decision_framing",
+    "decision_thesis",
+    "issue_tree",
+    "evidence_map",
+    "value_and_risk_driver_map",
+    "alternatives_and_opportunity_cost",
+    "scenario_and_decision_tree",
+    "unknown_value_ranking",
+    "red_team_review",
+    "executive_brief_and_appendices"
+  ];
+
+  assert.equal(benchmark.reportId, "executive_intelligence_benchmark_study_v1");
+  assert.equal(benchmark.status, "founder_ready_research_artifact");
+  assert.equal(benchmark.productionRuntimeChange, false);
+  assert.equal(benchmark.missionQuestion, "What makes executives trust recommendations?");
+  assert.deepEqual(benchmark.organizationsAnalyzed, organizations);
+  assert.deepEqual(benchmark.methodologiesCompared, methodologies);
+  assert.deepEqual(benchmark.prometheusMethodology, prometheusMethodology);
+  assert.ok(benchmark.sourceReferences.length >= 20);
+  assert.ok(benchmark.recommendedPackageStructure.length >= 20);
+
+  for (const organization of organizations) {
+    assert.match(report, new RegExp(organization.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  for (const section of [
+    "Executive Summary",
+    "Methodology Comparison",
+    "Decision Framework Comparison",
+    "Evidence Framework Comparison",
+    "Risk Communication Comparison",
+    "Executive Presentation Comparison",
+    "Research Standards Comparison",
+    "Private Equity vs Consulting Comparison",
+    "Corporate Development Comparison",
+    "Recommended Prometheus Executive Intelligence Methodology",
+    "Recommended Executive Intelligence Package Structure",
+    "Recommended Future Improvements",
+    "Source References"
+  ]) {
+    assert.match(report, new RegExp(section));
+  }
+
+  for (const phrase of [
+    "This is not a copy exercise",
+    "What makes executives trust recommendations",
+    "Proprietary formats copied: no",
+    "Copyrighted documents reproduced: no",
+    "Dashboard modified: no",
+    "CRM modified: no",
+    "Intelligence runtime modified: no"
+  ]) {
+    assert.match(report, new RegExp(phrase));
+  }
+
+  assert.equal(benchmark.boundaryConfirmation.researchArtifactOnly, true);
+  assert.equal(benchmark.boundaryConfirmation.publicSourcesOnly, true);
+  assert.equal(benchmark.boundaryConfirmation.proprietaryFormatsCopied, false);
+  assert.equal(benchmark.boundaryConfirmation.copyrightedDocumentsReproduced, false);
+  assert.equal(benchmark.boundaryConfirmation.dashboardModified, false);
+  assert.equal(benchmark.boundaryConfirmation.crmModified, false);
+  assert.equal(benchmark.boundaryConfirmation.websiteModified, false);
+  assert.equal(benchmark.boundaryConfirmation.infrastructureModified, false);
+  assert.equal(benchmark.boundaryConfirmation.companionModified, false);
+  assert.equal(benchmark.boundaryConfirmation.mobileModified, false);
+  assert.equal(benchmark.boundaryConfirmation.intelligenceRuntimeModified, false);
+  assert.equal(benchmark.boundaryConfirmation.productionDataModified, false);
+
+  assert.match(architecture, /Executive Intelligence Benchmark Study v1/);
+  assert.match(architecture, /What makes executives trust recommendations/);
+});
+
 test("Smoothie Depot prospect discovery creates a workspace-isolated daily call list", () => {
   const prospects = readJson("research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json");
   const workflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");

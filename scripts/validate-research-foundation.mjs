@@ -10,6 +10,7 @@ const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const executiveIntelligenceStandard = readJson("research/registers/executive-intelligence-package-standard.json");
+const executiveBenchmarkStudy = readJson("research/reports/executive-intelligence-benchmark-study-v1.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
 const smoothieDepotDossierRegister = readJson("research/workspaces/smoothie-depot/dossiers/dossier-register.json");
@@ -27,6 +28,7 @@ const strategicBriefTemplate = readText("research/templates/strategic-intelligen
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
 const executiveIntelligenceTemplate = readText("research/templates/executive-intelligence-package.md");
 const executiveIntelligencePlatform = readText("research/executive-intelligence-platform.md");
+const executiveBenchmarkReport = readText("research/reports/executive-intelligence-benchmark-study-v1.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
 const smoothieDepotExecutiveStandard = readText("research/workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md");
@@ -215,6 +217,44 @@ const protectedExecutiveIntelligenceSubsystems = [
   "Route Intelligence",
   "Active Pool",
   "Intelligence runtime"
+];
+
+const executiveBenchmarkOrganizations = [
+  "McKinsey & Company",
+  "Bain & Company",
+  "Boston Consulting Group",
+  "Deloitte Strategy",
+  "Corporate Development teams",
+  "Private Equity Due Diligence teams",
+  "Investment Banking M&A advisory teams",
+  "Strategic Consulting firms"
+];
+
+const executiveBenchmarkMethodologies = [
+  "structured_problem_solving",
+  "m_and_a_blueprint",
+  "strategy_under_uncertainty",
+  "integrated_due_diligence",
+  "investment_thesis_testing",
+  "strategic_due_diligence",
+  "due_diligence_governance",
+  "corporate_development_strategy",
+  "standardized_due_diligence_questionnaires",
+  "fairness_opinion_governance",
+  "answer_first_executive_communication"
+];
+
+const executiveBenchmarkPrometheusMethodology = [
+  "decision_framing",
+  "decision_thesis",
+  "issue_tree",
+  "evidence_map",
+  "value_and_risk_driver_map",
+  "alternatives_and_opportunity_cost",
+  "scenario_and_decision_tree",
+  "unknown_value_ranking",
+  "red_team_review",
+  "executive_brief_and_appendices"
 ];
 
 const marketExpansionRequiredIndustries = [
@@ -461,6 +501,112 @@ for (const subsystem of protectedExecutiveIntelligenceSubsystems) {
 
 for (const [behavior, allowed] of Object.entries(executiveIntelligenceStandard.prohibitedBehavior)) {
   assert.equal(allowed, false, `Executive Intelligence prohibited behavior must be false: ${behavior}`);
+}
+
+assert.equal(executiveBenchmarkStudy.reportId, "executive_intelligence_benchmark_study_v1", "Executive benchmark report id drifted.");
+assert.equal(executiveBenchmarkStudy.status, "founder_ready_research_artifact", "Executive benchmark must be founder-ready.");
+assert.equal(executiveBenchmarkStudy.productionRuntimeChange, false, "Executive benchmark must not activate production runtime.");
+assert.equal(
+  executiveBenchmarkStudy.missionQuestion,
+  "What makes executives trust recommendations?",
+  "Executive benchmark mission question drifted."
+);
+assert.deepEqual(
+  executiveBenchmarkStudy.organizationsAnalyzed,
+  executiveBenchmarkOrganizations,
+  "Executive benchmark organizations drifted."
+);
+assert.deepEqual(
+  executiveBenchmarkStudy.methodologiesCompared,
+  executiveBenchmarkMethodologies,
+  "Executive benchmark methodologies drifted."
+);
+assert.deepEqual(
+  executiveBenchmarkStudy.prometheusMethodology,
+  executiveBenchmarkPrometheusMethodology,
+  "Prometheus benchmark methodology drifted."
+);
+assert.equal(
+  executiveBenchmarkStudy.sourceReferences.length >= 20,
+  true,
+  "Executive benchmark must preserve at least 20 source references."
+);
+assert.equal(
+  executiveBenchmarkStudy.recommendedPackageStructure.length >= 20,
+  true,
+  "Executive benchmark must recommend a detailed package structure."
+);
+
+for (const organization of executiveBenchmarkOrganizations) {
+  assert.ok(executiveBenchmarkReport.includes(organization), `Executive benchmark report missing organization: ${organization}`);
+}
+
+for (const methodology of executiveBenchmarkPrometheusMethodology) {
+  const label = methodology.replaceAll("_", " ");
+  assert.ok(
+    executiveBenchmarkReport.toLowerCase().includes(label),
+    `Executive benchmark report missing Prometheus methodology: ${label}`
+  );
+}
+
+for (const section of [
+  "Executive Summary",
+  "Methodology Comparison",
+  "Decision Framework Comparison",
+  "Evidence Framework Comparison",
+  "Risk Communication Comparison",
+  "Executive Presentation Comparison",
+  "Research Standards Comparison",
+  "Private Equity vs Consulting Comparison",
+  "Corporate Development Comparison",
+  "Recommended Prometheus Executive Intelligence Methodology",
+  "Recommended Executive Intelligence Package Structure",
+  "Recommended Future Improvements",
+  "Source References"
+]) {
+  assert.ok(executiveBenchmarkReport.includes(section), `Executive benchmark report missing section: ${section}`);
+}
+
+for (const phrase of [
+  "This is not a copy exercise",
+  "What makes executives trust recommendations",
+  "Proprietary formats copied: no",
+  "Copyrighted documents reproduced: no",
+  "Dashboard modified: no",
+  "CRM modified: no",
+  "Intelligence runtime modified: no"
+]) {
+  assert.ok(executiveBenchmarkReport.includes(phrase), `Executive benchmark report missing phrase: ${phrase}`);
+}
+
+for (const [field, expected] of Object.entries({
+  researchArtifactOnly: true,
+  publicSourcesOnly: true,
+  proprietaryFormatsCopied: false,
+  copyrightedDocumentsReproduced: false,
+  dashboardModified: false,
+  crmModified: false,
+  websiteModified: false,
+  infrastructureModified: false,
+  companionModified: false,
+  mobileModified: false,
+  intelligenceRuntimeModified: false,
+  productionDataModified: false
+})) {
+  assert.equal(
+    executiveBenchmarkStudy.boundaryConfirmation[field],
+    expected,
+    `Executive benchmark boundary confirmation drifted: ${field}`
+  );
+}
+
+for (const requiredPath of [
+  "research/reports/executive-intelligence-benchmark-study-v1.md",
+  "research/reports/executive-intelligence-benchmark-study-v1.json"
+]) {
+  assert.ok(researchFoundation.includes(requiredPath), `Root research foundation missing ${requiredPath}.`);
+  assert.ok(researchReadme.includes(requiredPath), `Research README missing ${requiredPath}.`);
+  assert.ok(architecture.includes(requiredPath), `Research architecture missing ${requiredPath}.`);
 }
 
 for (const name of strategicBriefingNames) {

@@ -100,6 +100,57 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Research - Executive Intelligence Benchmark Study v1
+
+Subsystem: Prometheus Research
+
+Task: Executive Intelligence Benchmark Study v1
+
+Commit: Recorded by the Executive Intelligence Benchmark Study v1 handoff commit.
+
+Deploy: Not run. Research artifact and validation only.
+
+Status: Complete.
+
+Implementation type: Research benchmark artifact, structured methodology ledger, validation, and tests.
+
+Benchmark study completed:
+
+Yes. Created a public-source Executive Intelligence Benchmark Study comparing executive decision-support methodology patterns from McKinsey & Company, Bain & Company, Boston Consulting Group, Deloitte Strategy, corporate development teams, private equity due diligence teams, investment banking M&A advisory teams, and strategic consulting firms.
+
+Methodologies compared:
+
+Structured problem solving, M&A blueprint, strategy under uncertainty, integrated due diligence, investment thesis testing, strategic due diligence, due diligence governance, corporate development strategy, standardized due diligence questionnaires, fairness opinion governance, and answer-first executive communication.
+
+Prometheus methodology proposed:
+
+Yes. The recommended Prometheus Executive Intelligence Methodology is decision framing, decision thesis, issue tree, evidence map, value and risk driver map, alternatives and opportunity cost, scenario and decision tree, unknown value ranking, red-team review, and executive brief plus appendices.
+
+Executive Intelligence recommendations:
+
+Executive Intelligence Packages should open with decision question, decision thesis, recommendation and confidence, why this company / why now / why Prometheus, opportunity cost, key evidence map, strategic fit, business identity and ownership, operational intelligence, ecosystem intelligence, competitive intelligence, community/reputation intelligence, digital intelligence, value drivers, risk register, unknown value ranking, red-team review, conversation strategy, decision tree, post-meeting learning plan, and source appendix.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/reports/executive-intelligence-benchmark-study-v1.md`
+- `research/reports/executive-intelligence-benchmark-study-v1.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+Remaining blockers:
+
+- Benchmark methodology is established, but no business-specific Executive Intelligence Package has been regenerated with this methodology yet.
+- Existing Dashboard still consumes dossier artifacts until a future Dashboard-owned package migration is approved.
+- Future Executive Intelligence Package schema should be upgraded to require decision thesis, opportunity cost, unknown value ranking, and red-team fields after the first package artifact validates the structure.
+
+Next recommended subsystem:
+
+Prometheus Research - Nutrition Depot Executive Intelligence Package v1 using the benchmark methodology.
+
 ### 2026-07-05: Prometheus Research - Executive Intelligence Platform v1
 
 Subsystem: Prometheus Research
@@ -9257,6 +9308,7 @@ Current duplicate-prevention sources:
 - Do not duplicate Market Intelligence Engine v1; reuse `research/market-intelligence-engine.md`, `research/registers/market-intelligence-model.json`, `research/schemas/market-intelligence-recommendation.schema.json`, `research/templates/market-expansion-recommendation.md`, and the Research validation/test gates for market opportunity scoring, industry attractiveness analysis, outside-sales market ranking, competitor movement tracking, AI trend tracking, partnership opportunities, geographic expansion opportunities, and enterprise target identification.
 - Do not duplicate Market Expansion Recommendation v1; reuse `research/reports/market-expansion-recommendation-v1.md`, `research/reports/market-expansion-scoring-v1.json`, and the Research validation/test gates for the Roofing-first recommendation, top 10 expansion ranking, source references, and no-production-change boundary confirmations.
 - Do not duplicate Executive Intelligence Platform v1; reuse `research/executive-intelligence-platform.md`, `research/registers/executive-intelligence-package-standard.json`, `research/schemas/executive-intelligence-package.schema.json`, `research/templates/executive-intelligence-package.md`, `scripts/validate-research-foundation.mjs`, and `tests/research-foundation.test.mjs` for Executive Intelligence Packages, 12-layer package structure, evidence labels, required conclusion fields, Fortune 100 Corporate Development decision-readiness standard, protected subsystem boundaries, and the legacy dossier transition rule. Existing dossiers remain historical/current Dashboard inputs until a future Dashboard-owned migration is approved; new Research work must use package artifacts as the primary output.
+- Do not duplicate Executive Intelligence Benchmark Study v1; reuse `research/reports/executive-intelligence-benchmark-study-v1.md`, `research/reports/executive-intelligence-benchmark-study-v1.json`, `scripts/validate-research-foundation.mjs`, and `tests/research-foundation.test.mjs` for public-source methodology benchmarking across McKinsey, Bain, BCG, Deloitte, corporate development, private equity diligence, investment banking M&A advisory, and strategic consulting. Future packages should reuse the Prometheus methodology of decision framing, decision thesis, issue tree, evidence map, value/risk driver map, alternatives and opportunity cost, scenario and decision tree, unknown value ranking, red-team review, and executive brief plus appendices.
 - Do not duplicate the Sales operating-system foundation; reuse `sales/README.md`, Sales methodology, discovery/qualification, pilot/onboarding, customer success, objection, ROI, industry positioning, founder pitch, and documentation architecture files.
 - Do not duplicate Enterprise Industry Playbooks v1; reuse `sales/enterprise-industry-playbooks.md` and the Sales validation/test gates for Healthcare, Medical Devices, Solar, Roofing, Security, Telecom, Payroll, Commercial Cleaning, HVAC, Insurance, Industrial Equipment, Manufacturing, Logistics, and B2B SaaS playbooks.
 - Do not duplicate Enterprise Pilot Sales Package v1; reuse `sales/enterprise-pilot-sales-package.md` and the Sales validation/test gates for pilot positioning, qualification, discovery, Fitness Connection-style enterprise motion, Operating Profile explanation, ROI/value, objections, pricing, success criteria, post-pilot expansion, supported Operating Profile cards, and protected subsystem boundaries.

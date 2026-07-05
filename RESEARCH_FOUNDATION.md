@@ -33,5 +33,7 @@ Current foundation:
 - `research/registers/briefing-catalog.json`
 - `research/registers/market-intelligence-model.json`
 - `research/registers/executive-intelligence-package-standard.json`
+- `research/reports/executive-intelligence-benchmark-study-v1.md`
+- `research/reports/executive-intelligence-benchmark-study-v1.json`
 - `research/reports/market-expansion-recommendation-v1.md`
 - `research/reports/market-expansion-scoring-v1.json`

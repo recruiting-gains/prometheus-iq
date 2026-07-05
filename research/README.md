@@ -42,6 +42,8 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `registers/briefing-catalog.json`: Recurring briefing product catalog.
 - `registers/market-intelligence-model.json`: Market opportunity scoring model, candidate universe, and protected subsystem gates.
 - `registers/executive-intelligence-package-standard.json`: Active Executive Intelligence Package layer, evidence, quality, and boundary standard.
+- `reports/executive-intelligence-benchmark-study-v1.md`: Benchmark study of public executive decision-support methodologies.
+- `reports/executive-intelligence-benchmark-study-v1.json`: Structured benchmark ledger and Prometheus methodology recommendation.
 - `reports/market-expansion-recommendation-v1.md`: First founder-ready strategic market expansion recommendation.
 - `reports/market-expansion-scoring-v1.json`: Structured scoring ledger for Market Expansion Recommendation v1.
 - `workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`: Smoothie Depot public business prospect discovery workflow.
@@ -139,6 +141,14 @@ Evidence labels:
 Every recommendation and major conclusion must include evidence basis, source reliability, confidence level, verification needed, and business decision impact.
 
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must use the Executive Intelligence Package standard.
+
+Benchmark methodology:
+
+- Report: `research/reports/executive-intelligence-benchmark-study-v1.md`
+- Structured ledger: `research/reports/executive-intelligence-benchmark-study-v1.json`
+- Benchmark question: What makes executives trust recommendations?
+- Organizations analyzed: McKinsey & Company, Bain & Company, Boston Consulting Group, Deloitte Strategy, corporate development teams, private equity due diligence teams, investment banking M&A advisory teams, and strategic consulting firms.
+- Prometheus methodology: decision framing, decision thesis, issue tree, evidence map, value and risk driver map, alternatives and opportunity cost, scenario and decision tree, unknown value ranking, red-team review, executive brief and appendices.
 
 Current founder-ready output:
 
