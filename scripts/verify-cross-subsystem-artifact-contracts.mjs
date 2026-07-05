@@ -247,6 +247,80 @@ function validateIntelligenceConsumer(workspace, failures) {
   assert(intelligenceContract.mustNotMutateResearchOrCrm === true, "Intelligence contract must block Research/CRM mutation.", failures);
 }
 
+function validateReferencedPaths(paths, label, failures) {
+  for (const path of Object.values(paths || {})) {
+    assert(exists(path), `${label} referenced path does not exist: ${path}`, failures);
+  }
+}
+
+function validateFitnessConnectionWorkspaceContract(workspace, failures) {
+  const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
+  const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
+  const dashboardContract = readJson(artifacts.fitness_connection_dashboard_consumer_contract.path);
+  const routeDataContract = readJson(artifacts.fitness_connection_route_intelligence_data_contract.path);
+  const crmContract = readJson(artifacts.fitness_connection_crm_consumer_contract.path);
+  const intelligenceContract = readJson(artifacts.fitness_connection_intelligence_consumer_contract.path);
+  const dashboardSource = read(artifacts.fitness_connection_dashboard_source.path);
+  const dashboardDeploy = read(artifacts.fitness_connection_dashboard_deploy_asset.path);
+  const activePool = readJson(routeDataContract.canonicalDataPaths.activePool);
+  const runtimePools = readJson(routeDataContract.canonicalDataPaths.runtimePools);
+  const routeQualityReport = readJson(routeDataContract.canonicalDataPaths.routeQualityReport);
+  const crmFoundation = read(crmContract.canonicalCrmPaths.crmFoundation);
+  const crmTests = read(crmContract.canonicalCrmPaths.crmFoundationTests);
+  const operatingProfiles = readJson(intelligenceContract.canonicalIntelligencePaths.operatingProfileRegistry);
+
+  assert(identity.workspaceId === workspace.workspaceId, "Fitness identity contract workspace mismatch.", failures);
+  assert(identity.operatingProfileId === workspace.operatingProfileId, "Fitness identity contract operating profile mismatch.", failures);
+  assert(identity.workspaceIsolationRules.smoothieDepotCandidateDataUsed === false, "Fitness identity must block Smoothie Depot candidate data.", failures);
+  assert(identity.workspaceIsolationRules.missingArtifactFailsClosed === true, "Fitness identity must fail closed on missing artifacts.", failures);
+  assert(identity.roleBoundary.founderRole.canSwitchWorkspaces === true, "Founder role must retain workspace switcher.", failures);
+  assert(identity.roleBoundary.repRole.defaultRepId === "anthony", "Fitness rep default must remain Anthony.", failures);
+  assert(identity.roleBoundary.repRole.canSwitchWorkspaces === false, "Rep role must not switch workspaces.", failures);
+  assert(identity.roleBoundary.repRole.canViewOwnerTabs === false, "Rep role must not view owner tabs.", failures);
+  assert(identity.futureFeatureWorkGate.enabled === true, "Fitness future feature work gate must remain enabled.", failures);
+
+  assert(dashboardSource === dashboardDeploy, "Fitness Dashboard source and deploy mirror must match.", failures);
+  for (const marker of dashboardContract.requiredDashboardMarkers) {
+    assert(dashboardSource.includes(marker), `Fitness Dashboard missing required marker: ${marker}`, failures);
+  }
+  assert(dashboardSource.includes('body[data-session-role="rep"] .manager-only'), "Fitness Dashboard must hide manager controls from rep sessions.", failures);
+  assert(dashboardSource.includes('body[data-session-role="rep"] .admin-only'), "Fitness Dashboard must hide admin controls from rep sessions.", failures);
+  assert(dashboardSource.includes('if (appMode === "rep" && ["places", "stats", "find"].includes(name)) name = "today";'), "Fitness Dashboard must guard owner tabs from rep mode.", failures);
+  assert(dashboardSource.includes('if (requestedRole === "rep" || sessionRole === "rep") appMode = "rep";'), "Fitness Dashboard must force rep mode for rep sessions.", failures);
+  assert(dashboardContract.repViewContract.adminControlsAllowed === false, "Dashboard contract must block rep admin controls.", failures);
+  assert(dashboardContract.productionRules.anthonyRepAccessMustNotEqualFounderAccess === true, "Dashboard contract must protect Anthony/Founder boundary.", failures);
+
+  validateReferencedPaths(routeDataContract.canonicalDataPaths, "Fitness route/data contract", failures);
+  assert(activePool.pool === "active", "Fitness Active Pool must remain active pool.", failures);
+  assert(activePool.count === routeDataContract.assignedLeadRules.activePoolExpectedCount, "Fitness Active Pool count must match contract.", failures);
+  assert(activePool.records?.some(record => record.runtimeProfiles?.some(profile => profile.repProfileId === "anthony")), "Fitness Active Pool must include Anthony-assigned runtime profiles.", failures);
+  assert(runtimePools.datasetVersion === "google-qualified-businesses-v2" || runtimePools.sourceDatasetVersion === "google-qualified-businesses-v2" || runtimePools.dataset_version === "google-qualified-businesses-v2", "Fitness runtime pools must reference google-qualified-businesses-v2.", failures);
+  assert(routeQualityReport.status === "passed", "Fitness route quality report must pass.", failures);
+  assert(routeQualityReport.dataset?.activePoolRecords === routeDataContract.assignedLeadRules.activePoolExpectedCount, "Fitness route quality report Active Pool count must match contract.", failures);
+  assert(routeQualityReport.dataset?.expandedDashboardRouteRecords === routeDataContract.assignedLeadRules.expandedDashboardRouteRecordsExpected, "Fitness expanded Dashboard route records must match contract.", failures);
+  assert(routeDataContract.productionRules.smoothieDepotCandidateDataAllowed === false, "Fitness route/data contract must block Smoothie Depot candidate data.", failures);
+
+  validateReferencedPaths(crmContract.canonicalCrmPaths, "Fitness CRM contract", failures);
+  assert(crmFoundation.includes("fitness_connection: Object.freeze"), "CRM must register Fitness Connection workspace intake.", failures);
+  assert(crmFoundation.includes('targetType: "fitness_connection_lead"'), "CRM must preserve Fitness Connection lead target type.", failures);
+  assert(crmFoundation.includes("fitness_growth_lead_pipeline"), "CRM must preserve Fitness growth lead pipeline.", failures);
+  assert(crmFoundation.includes("cross-workspace contamination"), "CRM must reject cross-workspace contamination.", failures);
+  assert(crmTests.includes("Fitness Connection workspace intake creates CRM lead handoff"), "CRM tests must cover Fitness workspace intake.", failures);
+  assert(crmContract.writeRules.dashboardWritesCrmRecords === false, "Dashboard must not write Fitness CRM records.", failures);
+  assert(crmContract.writeRules.unknownWorkspaceFailsClosed === true, "CRM must fail closed for unknown workspace.", failures);
+
+  validateReferencedPaths(intelligenceContract.canonicalIntelligencePaths, "Fitness Intelligence contract", failures);
+  assert(operatingProfiles.profiles?.some(profile => profile.profileId === "fitness"), "Operating Profile registry must include Fitness.", failures);
+  assert(intelligenceContract.interpretationRules.productionLearningActive === false, "Fitness Intelligence contract must keep production learning inactive.", failures);
+  assert(intelligenceContract.interpretationRules.productionScoringChangeRequiresExplicitFutureHandoff === true, "Fitness scoring changes must require explicit future handoff.", failures);
+  assert(intelligenceContract.workspaceIsolationRules.smoothieDepotCandidateDataAllowed === false, "Fitness Intelligence contract must block Smoothie Depot candidate data.", failures);
+  assert(intelligenceContract.workspaceIsolationRules.fitnessFieldLearningInfluenceOnSmoothieDepotAllowed === false, "Fitness Intelligence must not influence Smoothie Depot.", failures);
+
+  assert(workspace.consumerContracts.dashboard.mustPreserveFounderRepBoundary === true, "Fitness Dashboard consumer contract must preserve Founder/Rep boundary.", failures);
+  assert(workspace.consumerContracts.crm.mustPreserveFitnessOperatingProfile === true, "Fitness CRM consumer contract must preserve Fitness profile.", failures);
+  assert(workspace.consumerContracts.intelligence.mustNotInfluenceSmoothieDepot === true, "Fitness Intelligence consumer contract must not influence Smoothie Depot.", failures);
+}
+
 function validateFixturePolicy(registry, failures) {
   for (const workspace of registry.workspaces) {
     const fixtureFindings = workspace.auditFindings.fixtureDataLocationsIdentified || [];
@@ -329,16 +403,21 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   const fixtureWorkspace = auditedWorkspaces.get("customer_fixture_prometheus");
   assert(smoothieDepot?.registeredInContractLayer === true, "Smoothie Depot must remain registered in the contract layer.", failures);
   assert(smoothieDepot?.bypassIdentified === true, "Smoothie Depot partial compliance must remain visible until all artifacts are registered.", failures);
-  assert(fitnessConnection?.registeredInContractLayer === false, "Fitness Connection must not be falsely marked registered before contract remediation.", failures);
-  assert(fitnessConnection?.bypassIdentified === true, "Fitness Connection contract bypass must remain recorded.", failures);
+  assert(fitnessConnection?.registeredInContractLayer === true, "Fitness Connection must be registered in the contract layer.", failures);
+  assert(fitnessConnection?.bypassIdentified === false, "Fitness Connection bypass must be closed by canonical workspace contract.", failures);
+  assert(
+    fitnessConnection?.futureFeatureWorkRequiresContract === true,
+    "Future Fitness Connection work must remain gated by the canonical workspace contract.",
+    failures
+  );
   assert(fixtureWorkspace?.status === "allowed_test_fixture_only", "Customer fixture workspace must remain test-only.", failures);
   assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
 
   const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Overwatch", "Priority 1 remediation must be Overwatch-owned.", failures);
+  assert(firstRemediation?.owner === "Prometheus Infrastructure", "Priority 1 remediation must now be Infrastructure-owned after Fitness contract registration.", failures);
   assert(
-    firstRemediation?.task?.includes("Fitness Connection"),
-    "Priority 1 remediation must register Fitness Connection canonical workspace artifacts.",
+    firstRemediation?.task?.includes("shared workspace lead-intake"),
+    "Priority 1 remediation must register shared workspace lead-intake artifacts.",
     failures
   );
 }
@@ -375,6 +454,9 @@ export function verifyCrossSubsystemArtifactContracts() {
         "Audit must define remediation order.",
         failures
       );
+    }
+    if (workspace.workspaceId === "fitness_connection") {
+      validateFitnessConnectionWorkspaceContract(workspace, failures);
     }
   }
 

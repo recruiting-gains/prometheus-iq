@@ -1,0 +1,40 @@
+{
+  "contractId": "fitness-connection-intelligence-consumer-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "consumerSubsystem": "Prometheus Intelligence Engine",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "canonicalIntelligencePaths": {
+    "operatingProfileRegistry": "intelligence/profiles/operating-profiles.json",
+    "operatingProfileContracts": "intelligence/contracts/operating-profile-contracts.json",
+    "adaptiveIntelligenceContracts": "intelligence/contracts/adaptive-intelligence-contracts.json",
+    "fieldLearningLoopContracts": "intelligence/contracts/field-learning-loop-contracts.json",
+    "recommendationExplainabilityContracts": "intelligence/contracts/recommendation-explainability-contracts.json",
+    "customerIntelligenceGraphContracts": "intelligence/contracts/customer-intelligence-graph-contracts.json"
+  },
+  "interpretationRules": {
+    "canReadResearch": false,
+    "canReadCrm": true,
+    "canReadDataRuntimePools": true,
+    "canReadDashboardEvidence": true,
+    "canMutateDashboard": false,
+    "canMutateCrm": false,
+    "canMutateData": false,
+    "productionLearningActive": false,
+    "productionScoringChangeRequiresExplicitFutureHandoff": true
+  },
+  "workspaceIsolationRules": {
+    "smoothieDepotCandidateDataAllowed": false,
+    "smoothieDepotFranchiseLearningInfluenceAllowed": false,
+    "fitnessFieldLearningInfluenceOnSmoothieDepotAllowed": false,
+    "globalCustomerStateAllowed": false,
+    "missingArtifactFailsClosed": true
+  },
+  "productionRules": {
+    "fixtureDataAllowed": false,
+    "formulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false
+  }
+}

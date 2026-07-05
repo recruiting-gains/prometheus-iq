@@ -1,0 +1,43 @@
+{
+  "contractId": "fitness-connection-dashboard-consumer-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "consumerSubsystem": "Prometheus Dashboard",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "sourceArtifacts": {
+    "dashboardSource": "index.html",
+    "dashboardDeployMirror": "deploy/cloudflare-pages/index.html",
+    "runtimeWorkflowVerifier": "scripts/verify-dashboard-runtime-workflows.mjs",
+    "workspaceSwitcherVerifier": "scripts/verify-dashboard-workspace-switcher.mjs"
+  },
+  "requiredDashboardMarkers": [
+    "data-workspace-id=\"fitness_connection\"",
+    "data-operating-profile-id=\"fitness\"",
+    "data-session-role=\"founder\"",
+    "data-workspace-select=\"fitness_connection\"",
+    "defaultWorkspaceId = \"fitness_connection\""
+  ],
+  "founderViewContract": {
+    "allowedTabs": ["today", "route", "places", "stats", "find"],
+    "requiredControls": ["workspace-switch", "mode-switch", "repProfileSwitch", "Founder Debug"],
+    "workspaceSwitchingAllowed": true,
+    "ownerModeAllowed": true
+  },
+  "repViewContract": {
+    "defaultRepId": "anthony",
+    "allowedTabs": ["today", "route"],
+    "blockedTabs": ["places", "stats", "find"],
+    "workspaceSwitchingAllowed": false,
+    "ownerModeAllowed": false,
+    "adminControlsAllowed": false
+  },
+  "productionRules": {
+    "sourceDeployParityRequired": true,
+    "fixtureDataAllowed": false,
+    "smoothieDepotCandidateDataAllowed": false,
+    "missingArtifactFailsClosed": true,
+    "anthonyRepAccessMustNotEqualFounderAccess": true
+  }
+}

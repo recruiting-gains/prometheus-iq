@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "status": "active",
   "owningSubsystem": "Prometheus Overwatch",
-  "purpose": "Define the canonical artifact connection layer between Research, Dashboard, CRM, Intelligence, and Overwatch.",
+  "purpose": "Define the canonical artifact connection layer between Prometheus subsystems and isolated workspaces.",
   "globalRules": {
     "noSubsystemMayRegenerateAnotherSubsystemArtifact": true,
     "noSubsystemMayInventMissingData": true,
@@ -225,6 +225,200 @@
           "4. CRM runtime persistence requires explicit CRM-owned approval before candidate records become durable records.",
           "5. Intelligence may read Research plus CRM contracts only after an explicit interpretation handoff and must preserve workspace isolation."
         ]
+      }
+    },
+    {
+      "workspaceId": "fitness_connection",
+      "workspaceName": "Fitness Connection",
+      "operatingProfileId": "fitness",
+      "intelligenceDomain": "route_intelligence",
+      "protectedWorkspaceIds": ["smoothie_depot"],
+      "workspaceIsolationRules": {
+        "smoothieDepotDataUsed": false,
+        "smoothieDepotCandidateDataUsed": false,
+        "smoothieDepotFranchiseLearningInfluenceAllowed": false,
+        "globalCustomerStateAllowed": false,
+        "wrongOperatingProfileAllowed": false,
+        "fixtureDataAllowedInProduction": false,
+        "missingArtifactFailsClosed": true
+      },
+      "canonicalArtifacts": [
+        {
+          "artifactId": "fitness_connection_workspace_identity_contract",
+          "artifactType": "workspace_identity_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
+          "schema": "FitnessConnectionWorkspaceIdentityContractV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Infrastructure", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_dashboard_consumer_contract",
+          "artifactType": "dashboard_consumer_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+          "schema": "FitnessConnectionDashboardConsumerContractV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_route_intelligence_data_contract",
+          "artifactType": "route_intelligence_data_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
+          "schema": "FitnessConnectionRouteIntelligenceDataContractV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_crm_consumer_contract",
+          "artifactType": "crm_consumer_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
+          "schema": "FitnessConnectionCrmConsumerContractV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus CRM", "Prometheus Dashboard", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_intelligence_consumer_contract",
+          "artifactType": "intelligence_consumer_contract",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
+          "schema": "FitnessConnectionIntelligenceConsumerContractV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Dashboard", "Prometheus CRM", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_dashboard_source",
+          "artifactType": "dashboard_runtime_consumer",
+          "ownerSubsystem": "Prometheus Dashboard",
+          "path": "index.html",
+          "schema": "FitnessConnectionDashboardRuntimeConsumerV1",
+          "writeAllowed": ["Prometheus Dashboard"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_dashboard_deploy_asset",
+          "artifactType": "dashboard_runtime_consumer_deploy_mirror",
+          "ownerSubsystem": "Prometheus Dashboard",
+          "path": "deploy/cloudflare-pages/index.html",
+          "schema": "FitnessConnectionDashboardRuntimeConsumerV1",
+          "writeAllowed": ["Prometheus Dashboard"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        }
+      ],
+      "consumerContracts": {
+        "dashboard": {
+          "consumerSubsystem": "Prometheus Dashboard",
+          "allowedReadPaths": [
+            "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
+            "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+            "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
+            "intelligence/profiles/operating-profiles.json",
+            "intelligence/contracts/operating-profile-contracts.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+          ],
+          "requiredSourcePaths": ["index.html", "deploy/cloudflare-pages/index.html"],
+          "writeProhibitedPaths": ["research/workspaces/smoothie-depot/", "crm/", "intelligence/", "data/"],
+          "mustPreserveFounderRepBoundary": true,
+          "mustPreserveAnthonyRepOnlyAccess": true,
+          "mustFailClosedOnMissingRuntimeArtifacts": true,
+          "mustNotUseSmoothieDepotData": true,
+          "mustNotUseFixtureData": true
+        },
+        "crm": {
+          "consumerSubsystem": "Prometheus CRM",
+          "ownedWritePaths": ["crm/crm-foundation.mjs"],
+          "allowedReadPaths": [
+            "overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json",
+            "overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json",
+            "intelligence/profiles/operating-profiles.json",
+            "intelligence/contracts/operating-profile-contracts.json"
+          ],
+          "requiredEntryPoint": "consumeWorkspaceLeadIntakeHandoff",
+          "mustRejectUnknownWorkspace": true,
+          "mustRejectCrossWorkspaceContamination": true,
+          "mustPreserveFitnessOperatingProfile": true
+        },
+        "intelligence": {
+          "consumerSubsystem": "Prometheus Intelligence Engine",
+          "ownedWritePaths": [
+            "intelligence/profiles/operating-profiles.json",
+            "intelligence/contracts/operating-profile-contracts.json",
+            "intelligence/contracts/adaptive-intelligence-contracts.json",
+            "intelligence/contracts/field-learning-loop-contracts.json",
+            "intelligence/contracts/recommendation-explainability-contracts.json",
+            "intelligence/contracts/customer-intelligence-graph-contracts.json"
+          ],
+          "allowedReadPaths": [
+            "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
+            "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
+            "crm/crm-foundation.mjs",
+            "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+          ],
+          "mustNotActivateProductionScoringWithoutHandoff": true,
+          "mustNotInfluenceSmoothieDepot": true,
+          "mustNotMutateDashboardCrmOrData": true
+        },
+        "overwatch": {
+          "consumerSubsystem": "Prometheus Overwatch",
+          "allowedReadPaths": ["*"],
+          "validationScript": "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+          "mustVerifySourceAndDeployParity": true,
+          "mustVerifyCanonicalPathsExist": true,
+          "mustVerifyWorkspaceIsolation": true,
+          "mustVerifyRoleAccessBoundary": true,
+          "mustVerifyFixtureDataProhibition": true
+        }
+      },
+      "auditFindings": {
+        "brokenLinksIdentified": [],
+        "incompleteLinksIdentified": [
+          "Authenticated production browser smoke still requires Cloudflare Access cookie or CDP session outside this contract.",
+          "Durable CRM persistence beyond current library handoff remains future CRM-owned work."
+        ],
+        "fixtureDataLocationsIdentified": [
+          {
+            "path": "intelligence/fixtures/field-visit-evidence-fixtures.json",
+            "status": "allowed_offline_validation_only",
+            "productionConsumerAllowed": false
+          },
+          {
+            "path": "demo-dashboard/index.html",
+            "status": "allowed_demo_surface_only",
+            "productionConsumerAllowed": false
+          }
+        ],
+        "futureFeatureWorkGate": "Future Fitness Connection work must use this workspace contract and registered canonical artifact paths."
       }
     }
   ]

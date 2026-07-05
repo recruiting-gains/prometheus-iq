@@ -26,7 +26,7 @@
       "Prometheus Mobile"
     ],
     "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
-    "criticalRemediationOwners": ["Prometheus Overwatch", "Prometheus Data", "Prometheus Dashboard", "Prometheus Infrastructure", "Prometheus CRM"]
+    "criticalRemediationOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus Infrastructure", "Prometheus CRM"]
   },
   "subsystems": [
     {
@@ -230,17 +230,19 @@
     },
     {
       "workspaceId": "fitness_connection",
-      "status": "bypass_identified",
-      "registeredInContractLayer": false,
+      "status": "registered_contract_compliant",
+      "registeredInContractLayer": true,
       "evidence": [
         "Fitness Connection is the default live Dashboard workspace.",
-        "Fitness Connection route data, Active Pool consumption, units/memberships vocabulary, CRM lead handoffs, and operating profile state are active outside the Overwatch artifact registry."
+        "Fitness Connection workspace identity, Dashboard, Route Intelligence/Data, CRM, and Intelligence contracts are registered in the Overwatch artifact registry.",
+        "Future Fitness Connection feature work remains gated by the canonical workspace contract."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Overwatch",
       "secondaryOwners": ["Prometheus Dashboard", "Prometheus Data", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Infrastructure"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Create Fitness Connection canonical workspace artifact contract before future Fitness Connection, beta, Dashboard, Data, CRM, or Intelligence feature work."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "futureFeatureWorkRequiresContract": true,
+      "scheduledRemediation": "No open Fitness Connection workspace-registration remediation. Future Fitness Connection, beta, Dashboard, Data, CRM, Infrastructure, or Intelligence work must use the registered Fitness Connection canonical workspace artifact contract."
     },
     {
       "workspaceId": "customer_fixture_prometheus",
@@ -258,42 +260,36 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Overwatch",
-      "task": "Register Fitness Connection canonical workspace artifact contract.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Dashboard", "Prometheus Data", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Infrastructure"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Infrastructure",
       "task": "Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Website", "Prometheus CRM", "Prometheus Infrastructure"]
     },
     {
-      "priority": 3,
+      "priority": 2,
       "owner": "Prometheus Data",
       "task": "Register Active Pool, runtime-pools, route-quality report, governance override, and Dashboard read contracts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine"]
     },
     {
-      "priority": 4,
+      "priority": 3,
       "owner": "Prometheus Social Media",
       "task": "Register Social Media analytics/reporting and Website/CRM attribution artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Social Media", "Prometheus Website", "Prometheus CRM", "Prometheus Companion"]
     },
     {
-      "priority": 5,
+      "priority": 4,
       "owner": "Prometheus Companion",
       "task": "Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.",
       "blocksFutureFeatureWorkFor": ["Prometheus Companion", "Prometheus Integrations"]
     },
     {
-      "priority": 6,
+      "priority": 5,
       "owner": "Prometheus Administration",
       "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
     },
     {
-      "priority": 7,
+      "priority": 6,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

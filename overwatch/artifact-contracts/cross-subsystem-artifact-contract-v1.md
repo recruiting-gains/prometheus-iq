@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This contract is the Prometheus subsystem connection layer. It defines how Research, Dashboard, CRM, Intelligence, and Overwatch communicate through canonical artifacts without duplicating ownership or contaminating workspaces.
+This contract is the Prometheus subsystem connection layer. It defines how Prometheus subsystems communicate through canonical artifacts without duplicating ownership or contaminating workspaces.
 
 ## Architecture Law
 
@@ -68,6 +68,44 @@ Intelligence-owned planning contracts:
 - `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
 - `intelligence/contracts/business-acquisition-intelligence-contracts.json`
 
+## Fitness Connection Canonical Artifacts
+
+Overwatch-owned workspace contracts:
+
+- `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json`
+
+Dashboard-owned runtime consumers:
+
+- `index.html`
+- `deploy/cloudflare-pages/index.html`
+
+Data-owned route intelligence artifacts:
+
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json`
+
+CRM-owned contracts and entry points:
+
+- `crm/crm-foundation.mjs`
+- `consumeWorkspaceLeadIntakeHandoff`
+
+Intelligence-owned profile and interpretation contracts:
+
+- `intelligence/profiles/operating-profiles.json`
+- `intelligence/contracts/operating-profile-contracts.json`
+- `intelligence/contracts/adaptive-intelligence-contracts.json`
+- `intelligence/contracts/field-learning-loop-contracts.json`
+- `intelligence/contracts/recommendation-explainability-contracts.json`
+- `intelligence/contracts/customer-intelligence-graph-contracts.json`
+
 ## Consumer Rules
 
 Dashboard must render completed Research-owned canonical dossier artifacts read-only. It must expose the canonical artifact hash, render the full Markdown and structured JSON artifact, and fail closed for businesses without a completed canonical dossier.
@@ -77,6 +115,8 @@ Dashboard must not summarize, abbreviate, reinterpret, mutate, or create Researc
 CRM must route intake and future candidate records by `workspaceId`, reject unknown workspaces, and reject cross-workspace contamination before mutation.
 
 Intelligence must not activate production scoring, mutate Research or CRM artifacts, or let Smoothie Depot intelligence influence Fitness Connection recommendations.
+
+Fitness Connection work must preserve the `fitness_connection` workspace, `fitness` Operating Profile, Founder/Rep separation, Anthony Rep-only access, Data-owned Active Pool governance, CRM-owned lead/activity state, and Smoothie Depot isolation.
 
 Overwatch must reject future handoffs that bypass this registry, duplicate these contracts, introduce production fixture/demo data, or blur workspace ownership.
 
@@ -103,11 +143,13 @@ Incomplete links identified:
 - Cranky Carrot and LEEMOO have no completed Research-owned canonical dossiers and must remain fail-closed in Dashboard.
 - CRM durable candidate persistence is not authorized.
 - Intelligence production interpretation over Research plus CRM is not authorized.
+- Authenticated production browser smoke remains outside the contract layer and requires Cloudflare Access credentials or CDP when runtime verification is requested.
 
 Required remediation order:
 
 1. Keep Overwatch artifact contract verification active in `npm test`.
-2. Research must publish additional completed canonical dossiers before Dashboard populates additional mission slots.
-3. Dashboard may consume only completed Research-owned dossiers and must fail closed for missing dossiers.
-4. CRM runtime persistence requires explicit CRM-owned approval.
-5. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.
+2. Infrastructure must register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
+3. Data must register any new Active Pool, runtime pool, route-quality, governance, or Dashboard-read artifacts through this layer.
+4. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
+5. CRM runtime persistence requires explicit CRM-owned approval.
+6. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.

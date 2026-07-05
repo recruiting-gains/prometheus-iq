@@ -1,0 +1,55 @@
+{
+  "contractId": "fitness-connection-workspace-identity-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "operatingProfileLabel": "Fitness",
+  "intelligenceDomain": "route_intelligence",
+  "workspacePurpose": "Fitness Connection is the active fitness operating workspace for field route intelligence, rep activity, membership/unit outcomes, manager visibility, and Founder oversight.",
+  "protectedWorkspaceIds": ["smoothie_depot"],
+  "allowedSharedLayers": [
+    "shared_platform_code",
+    "shared_operating_profile_engine",
+    "shared_cloudflare_access_protection",
+    "shared_workspace_switcher_shell",
+    "shared_overwatch_validation"
+  ],
+  "workspaceIsolationRules": {
+    "smoothieDepotDataUsed": false,
+    "smoothieDepotCandidateDataUsed": false,
+    "smoothieDepotFranchiseLearningInfluenceAllowed": false,
+    "globalCustomerStateAllowed": false,
+    "wrongOperatingProfileAllowed": false,
+    "fixtureDataAllowedInProduction": false,
+    "missingArtifactFailsClosed": true
+  },
+  "roleBoundary": {
+    "founderRole": {
+      "sessionRole": "founder",
+      "allowedMode": "owner",
+      "canSwitchWorkspaces": true,
+      "canViewOwnerTabs": true,
+      "canViewAdminControls": true
+    },
+    "repRole": {
+      "sessionRole": "rep",
+      "defaultRepId": "anthony",
+      "allowedMode": "rep",
+      "canSwitchWorkspaces": false,
+      "canViewOwnerTabs": false,
+      "canViewAdminControls": false
+    },
+    "managerRole": {
+      "sessionRole": "manager",
+      "allowedMode": "owner",
+      "canSwitchWorkspaces": false,
+      "requiresExplicitFutureAuthorization": true
+    }
+  },
+  "futureFeatureWorkGate": {
+    "enabled": true,
+    "rule": "Future Fitness Connection dashboard, CRM, route, rep, manager, enterprise, or Intelligence work must use this workspace contract and the registered canonical artifact paths."
+  }
+}

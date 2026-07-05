@@ -39,18 +39,17 @@ The platform is not yet universally covered. Several active or planned subsystem
 ## Workspace Audit
 
 - `smoothie_depot`: Partially compliant. Research dossier, Dashboard rendering, CRM planning, and Intelligence planning are covered. Administration and Infrastructure artifacts remain outside the registry.
-- `fitness_connection`: Bypass identified. This is an active live/default workspace, but its Dashboard runtime, Active Pool, Data, CRM, and Intelligence artifact flow is not registered.
+- `fitness_connection`: Registered contract-compliant. The active live/default workspace now has canonical workspace identity, Dashboard, Route Intelligence/Data, CRM, and Intelligence contracts. Future Fitness Connection work must use this contract.
 - `customer_fixture_prometheus`: Allowed only as a test fixture. It must not become a production workspace unless explicitly approved and registered.
 
 ## Required Remediation Order
 
-1. Prometheus Overwatch: Register Fitness Connection canonical workspace artifact contract.
-2. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
-3. Prometheus Data: Register Active Pool, runtime pools, route-quality reports, governance overrides, and Dashboard read contracts.
-4. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
-5. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
-6. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
-7. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+1. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
+2. Prometheus Data: Register Active Pool, runtime pools, route-quality reports, governance overrides, and Dashboard read contracts.
+3. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
+4. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
+5. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
+6. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
 
 ## Feature Work Gate
 

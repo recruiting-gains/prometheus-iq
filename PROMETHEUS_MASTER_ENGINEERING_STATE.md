@@ -100,6 +100,87 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Overwatch - Fitness Connection Canonical Workspace Artifact Contract v1
+
+Subsystem: Prometheus Overwatch
+
+Task: Fitness Connection Canonical Workspace Artifact Contract v1
+
+Commit: Recorded by the Fitness Connection Canonical Workspace Artifact Contract v1 handoff commit.
+
+Deploy: Not run. Governance, contract, and validation layer only.
+
+Status: Complete.
+
+Implementation type: Canonical workspace artifact contract, registry registration, role/access boundary definition, and validation coverage.
+
+Fitness Connection workspace contract created:
+
+Yes. Registered `fitness_connection` as a canonical workspace in the Prometheus Integration Contract Layer with Operating Profile `fitness`.
+
+Canonical workspace artifacts created:
+
+- `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json`
+
+Canonical source/deploy paths registered:
+
+- Dashboard source: `index.html`
+- Dashboard deploy mirror: `deploy/cloudflare-pages/index.html`
+- Active Pool: `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- Active Pool deploy mirror: `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
+- Runtime pools: `data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- Runtime pools deploy mirror: `deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json`
+- Route quality report: `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json`
+- Runtime governance overrides: `data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json`
+- CRM foundation: `crm/crm-foundation.mjs`
+- Operating Profile registry: `intelligence/profiles/operating-profiles.json`
+- Operating Profile contracts: `intelligence/contracts/operating-profile-contracts.json`
+
+Role/access boundary:
+
+- Founder role can use owner mode, owner tabs, admin controls, and Founder-only workspace switcher.
+- Anthony/Rep role remains Rep-only, defaults to `anthony`, cannot switch workspaces, cannot use owner mode, and cannot view owner/admin tabs.
+- Manager role remains future-authorized only and does not inherit Founder workspace switching.
+
+Isolation verification:
+
+Verified. Fitness Connection data must not enter Smoothie Depot. Smoothie Depot candidate/franchise data must not enter Fitness Connection. Fixture/demo data remains prohibited in production. Missing artifacts fail closed.
+
+Validation extended:
+
+`scripts/verify-cross-subsystem-artifact-contracts.mjs` now validates Fitness Connection workspace identity, Dashboard source/deploy parity, Founder/Rep access boundary, Active Pool and route-quality metrics, CRM handoff support, Intelligence operating-profile references, and Smoothie Depot isolation.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `overwatch/artifact-contracts/canonical-artifact-registry.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/crm-consumer-contract-v1.json`
+- `overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json`
+- `scripts/verify-cross-subsystem-artifact-contracts.mjs`
+- `tests/cross-subsystem-artifact-contracts.test.mjs`
+
+Future work gate:
+
+Enabled. Future Fitness Connection dashboard, CRM, route, rep, manager, enterprise, Data, Infrastructure, or Intelligence work must use the registered Fitness Connection canonical workspace artifact contract.
+
+Remaining blockers:
+
+No blocker for Fitness Connection workspace registration. Authenticated production browser smoke remains outside this governance task and still requires a valid Cloudflare Access session or CDP endpoint when runtime verification is requested.
+
+Next recommended subsystem:
+
+Prometheus Infrastructure for shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifact registration.
+
 ### 2026-07-04: Prometheus Overwatch - Subsystem and Workspace Contract Compliance Audit v1
 
 Subsystem: Prometheus Overwatch
@@ -157,18 +238,17 @@ Compliance result:
 Workspace result:
 
 - `smoothie_depot`: partial compliance. Research/Dashboard/CRM/Intelligence path is partially registered; Administration operating artifacts and Infrastructure shared lead-intake/KV handoff artifacts remain outside the registry.
-- `fitness_connection`: bypass identified. This active live/default workspace is not yet registered in the artifact contract layer; Dashboard runtime, Data Active Pool/runtime pools, CRM handoffs, and Intelligence route/operating-profile flows require canonical contracts.
+- `fitness_connection`: registered contract-compliant. This active live/default workspace now has canonical identity, Dashboard, Route Intelligence/Data, CRM, and Intelligence contracts; future Fitness work must use the registered contract.
 - `customer_fixture_prometheus`: allowed test fixture only; production consumer registration remains prohibited unless Cruz explicitly converts it into a real customer workspace.
 
 Required remediation order:
 
-1. Prometheus Overwatch: Register Fitness Connection canonical workspace artifact contract.
-2. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
-3. Prometheus Data: Register Active Pool, runtime pools, route-quality report, governance override, and Dashboard read contracts.
-4. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
-5. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
-6. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
-7. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+1. Prometheus Infrastructure: Register shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifacts.
+2. Prometheus Data: Register Active Pool, runtime pools, route-quality report, governance override, and Dashboard read contracts.
+3. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
+4. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
+5. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
+6. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
 
 Feature work gate:
 
@@ -197,7 +277,7 @@ No blocker for the audit itself. Future feature work in partial or bypassed subs
 
 Next recommended subsystem:
 
-Prometheus Overwatch for Fitness Connection canonical workspace artifact contract v1.
+Prometheus Infrastructure for shared workspace lead-intake endpoint, KV storage layout, CRM handoff packet, notification queue, and workspace router artifact registration.
 
 ### 2026-07-04: Prometheus Overwatch - Cross-Subsystem Artifact Contract Audit v1
 
@@ -8906,6 +8986,7 @@ Prometheus Infrastructure/Auth for authenticated production verification only, o
 Current duplicate-prevention sources:
 
 - Do not duplicate Cross-Subsystem Artifact Contract Audit v1 or Subsystem and Workspace Contract Compliance Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for all subsystems and workspaces. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, preserve workspace isolation, and complete or include scheduled remediation before feature work in any subsystem or workspace marked `partial_compliance` or `bypass_identified`.
+- Do not duplicate Fitness Connection Canonical Workspace Artifact Contract v1; reuse `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`, `dashboard-consumer-contract-v1.json`, `route-intelligence-data-contract-v1.json`, `crm-consumer-contract-v1.json`, `intelligence-consumer-contract-v1.json`, and the `fitness_connection` entry in `overwatch/artifact-contracts/canonical-artifact-registry.json`. Future Fitness dashboard, CRM, route, rep, manager, enterprise, Data, Infrastructure, or Intelligence work must preserve this contract, Founder/Rep separation, Anthony Rep-only access, Fitness operating profile, and Smoothie Depot isolation.
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
 - Do not duplicate Website Conversion Optimization v2; extend the existing public Website files and deployed Cloudflare Website workflow instead of creating a new marketing surface.

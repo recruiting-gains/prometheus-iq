@@ -1,0 +1,38 @@
+{
+  "contractId": "fitness-connection-crm-consumer-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "consumerSubsystem": "Prometheus CRM",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "canonicalCrmPaths": {
+    "crmFoundation": "crm/crm-foundation.mjs",
+    "crmFoundationTests": "tests/crm-foundation.test.mjs"
+  },
+  "entryPoints": {
+    "workspaceLeadIntakeConsumer": "consumeWorkspaceLeadIntakeHandoff",
+    "supportedWorkspaceMap": "supportedWorkspaceLeadIntakeWorkspaces.fitness_connection"
+  },
+  "leadActivityContracts": {
+    "targetType": "fitness_connection_lead",
+    "pipeline": "fitness_growth_lead_pipeline",
+    "operatingProfileId": "fitness",
+    "allowedCrmStages": ["Gym Prospect", "Visited", "Manager Reached", "Trial/Tour", "Membership Sold", "Not Fit"],
+    "allowedOutcomeUnits": ["membership", "trial_pass", "tour", "referral", "conversation", "follow_up"]
+  },
+  "writeRules": {
+    "crmOwnsLeadRecords": true,
+    "crmOwnsActivityRecords": true,
+    "dashboardWritesCrmRecords": false,
+    "intelligenceWritesCrmRecords": false,
+    "websiteWritesCrmRecordsDirectly": false,
+    "unknownWorkspaceFailsClosed": true,
+    "crossWorkspaceContaminationRejected": true
+  },
+  "productionRules": {
+    "smoothieDepotCandidateDataAllowed": false,
+    "fixtureDataAllowed": false,
+    "missingArtifactFailsClosed": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "contractId": "fitness-connection-route-intelligence-data-contract-v1",
+  "status": "active",
+  "owningSubsystem": "Prometheus Overwatch",
+  "producerSubsystem": "Prometheus Data",
+  "consumerSubsystem": "Prometheus Dashboard",
+  "workspaceId": "fitness_connection",
+  "workspaceName": "Fitness Connection",
+  "operatingProfileId": "fitness",
+  "routeIntelligenceDomain": "fitness_route_intelligence",
+  "canonicalDataPaths": {
+    "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "activePoolDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "runtimePools": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "runtimePoolsDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "runtimePoolManifest": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/runtime-pool-manifest.json",
+    "routeQualityReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+    "runtimeGovernanceOverrides": "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json"
+  },
+  "assignedLeadRules": {
+    "repProfilesRequired": ["cruz", "anthony"],
+    "anthonyAssignedLeadsAllowed": true,
+    "ownerAssignedLeadsAllowed": true,
+    "smoothieDepotCandidateLeadsAllowed": false,
+    "activePoolExpectedCount": 297,
+    "expandedDashboardRouteRecordsExpected": 594
+  },
+  "productionRules": {
+    "noLiveGoogleApiCalls": true,
+    "fixtureDataAllowed": false,
+    "smoothieDepotCandidateDataAllowed": false,
+    "missingArtifactFailsClosed": true,
+    "routeScoringChangesRequireIntelligenceHandoff": true,
+    "dataGovernanceOverridesMustRemainDataOwned": true
+  }
+}
