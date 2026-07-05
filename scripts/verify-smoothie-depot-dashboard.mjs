@@ -86,38 +86,42 @@ assert(nutritionDepotDossier.workspaceIsolation.activePoolUsed === false, "Nutri
 assert(nutritionDepotDossier.dataPolicy.publicBusinessInformationOnly === true, "Nutrition Depot dossier must use public business information only.");
 assert(nutritionDepotDossier.dataPolicy.privateFinancialsCollected === false, "Nutrition Depot dossier must not collect private financials.");
 
-for (const business of rankedProspects.topCallTargets.slice(0, 3)) {
-  assert(source.includes(business), `Mission queue missing Research top call target: ${business}`);
-}
+assert(source.includes(nutritionDepotDossier.businessSelected), "Mission queue must show the completed canonical Nutrition Depot dossier.");
 
 for (const requiredMissionText of [
-  "Today's Mission",
-  "Mission Queue",
-  "Top 3 Highest Priority Businesses",
   "Founder Intelligence Command Center",
+  "Founder Operations Zero State",
+  "Mission Queue",
+  "Monday Mission Slot",
+  "Wednesday Mission Slot",
+  "Friday Mission Slot",
+  "Unassigned",
+  "No completed Research-owned canonical dossier is registered for this slot.",
   "Nutrition Depot Executive Due Diligence Dossier v1",
   "Complete canonical Research artifact",
   "Complete Structured Research Artifact JSON",
-  "Business Name",
-  "Category",
-  "Outreach Priority",
-  "Executive Dossier Status",
-  "Confidence",
-  "Unknown Count",
-  "Last Updated",
-  "Recommended Opening Angle",
-  "Estimated Call Time",
-  "Research Complete %",
   "Ready",
   "Calling",
   "Discovery",
   "Qualified",
   "JR Handoff",
   "Follow-up",
-  "Closed",
-  "Promoted when current closes"
+  "Closed"
 ]) {
   assert(source.includes(requiredMissionText), `Dashboard mission queue missing required text: ${requiredMissionText}`);
+}
+
+for (const zeroState of [
+  ["Outreach Sent", "0"],
+  ["Discovery Calls Scheduled", "0"],
+  ["Qualified Candidates", "0"],
+  ["JR Handoffs", "0"],
+  ["Closed Franchise Sales", "0"],
+  ["Commission Forecast", "$0"]
+]) {
+  const [label, value] = zeroState;
+  const pattern = new RegExp(`<span>${label}</span>\\s*<strong>${value.replace("$", "\\$")}</strong>`);
+  assert(pattern.test(source), `Dashboard zero-state metric missing or non-zero: ${label} ${value}`);
 }
 
 for (const requiredCommandCenterText of [
@@ -201,86 +205,62 @@ for (const requiredMarkdownFragment of [
   assert(source.includes(htmlEscape(requiredMarkdownFragment)), `Dashboard must render complete canonical markdown fragment: ${requiredMarkdownFragment}`);
 }
 
+for (const requiredRegeneratedText of [
+  "Remediation status: Supersedes the prior thin canonical dossier in place.",
+  "Evidence label rule:",
+  "Canonical source rule:",
+  "Every major conclusion in this dossier is labeled as Observed",
+  "## Second-Order Analysis",
+  "## Third-Order Analysis",
+  "## Opportunity Cost Analysis",
+  "## Red Team Review",
+  "## Unknown Value Analysis",
+  "## Scenario Decision Tree",
+  "## Post-Meeting Learning Journal",
+  "## Intelligence Quality Control"
+]) {
+  assert(source.includes(htmlEscape(requiredRegeneratedText)), `Dashboard must render regenerated full v4 dossier text: ${requiredRegeneratedText}`);
+}
+
 const markdownHash = createHash("sha256").update(nutritionDepotDossierMarkdown).digest("hex");
 assert(source.includes(markdownHash), "Dashboard must expose the canonical Research artifact hash.");
 assert(source.includes(htmlEscape('"artifactStatus": "completed_canonical_research_dossier"')), "Dashboard must render structured Research JSON artifact.");
+assert(source.includes(htmlEscape('"remediationStatus"')), "Dashboard must render regenerated Research remediation status.");
 assert(source.includes(htmlEscape('"sourceReliabilityMatrix"')), "Dashboard must render structured source reliability matrix.");
 
-for (const metric of [
+for (const removedFixtureText of [
   "Total Businesses Identified",
   "Owners Researched",
   "Contacts Found",
-  "Outreach Sent",
-  "Discovery Calls Scheduled",
-  "Qualified Candidates",
-  "JR Handoffs",
-  "Closed Franchise Sales",
-  "Commission Forecast"
-]) {
-  assert(source.includes(metric), `Dashboard missing executive summary metric: ${metric}`);
-}
-
-for (const stage of [
-  "Business Identified",
-  "Owner Research",
-  "Contact Found",
-  "Outreach",
-  "Interested",
-  "Discovery Scheduled",
-  "Discovery Complete",
-  "Qualified Candidate",
-  "JR Handoff",
-  "FDD / Review",
-  "Closed"
-]) {
-  assert(source.includes(stage), `Dashboard missing candidate pipeline stage: ${stage}`);
-}
-
-for (const detail of [
-  "Business",
-  "Contact",
-  "Phone",
-  "Email",
-  "Website",
-  "Google Rating",
-  "Review Summary",
-  "Business Category",
-  "Locations",
-  "Franchise Readiness Assessment",
-  "Risk Flags",
-  "Notes",
-  "Next Action"
-]) {
-  assert(source.includes(detail), `Dashboard missing candidate detail field: ${detail}`);
-}
-
-for (const jrQueue of [
-  "Candidates ready for JR",
-  "Pending FDD",
-  "Waiting for decision",
-  "Follow-up needed"
-]) {
-  assert(source.includes(jrQueue), `Dashboard missing JR Queue section: ${jrQueue}`);
-}
-
-for (const commission of [
+  "Candidate Pipeline",
+  "Candidate Detail",
+  "JR Queue",
+  "Commission Dashboard",
+  "Activity Feed",
+  "Founder Controls",
+  "Bayou Nutrition Group",
+  "Cypress Wellness Holdings",
+  "Pearland Hospitality Partners",
+  "example.com",
+  "Fixture outcome",
+  "$186k",
+  "$42k protected",
   "Potential commissions",
   "Projected commissions",
   "Closed commissions",
   "Protected candidates",
-  "Expiration dates"
-]) {
-  assert(source.includes(commission), `Dashboard missing commission section: ${commission}`);
-}
-
-for (const activity of [
+  "Expiration dates",
+  "Franchise Readiness Assessment",
+  "Candidates ready for JR",
+  "Pending FDD",
+  "Waiting for decision",
+  "Follow-up needed",
   "Businesses found",
   "Research completed",
   "Candidate qualified",
-  "JR handoff",
   "Follow-up due"
 ]) {
-  assert(source.includes(activity), `Dashboard missing activity feed item: ${activity}`);
+  assert(!source.includes(removedFixtureText), `Dashboard must not render fixture/demo data: ${removedFixtureText}`);
 }
 
 for (const forbidden of [

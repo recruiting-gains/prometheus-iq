@@ -41,8 +41,12 @@ assert(smoothieSource.includes('data-workspace-id="smoothie_depot"'), "Smoothie 
 assert(smoothieSource.includes('data-operating-profile-id="franchise_development"'), "Smoothie Depot dashboard must remain Franchise Development scoped.");
 assert(smoothieSource.includes('data-dashboard-owner="cruz"'), "Smoothie Depot dashboard must remain Cruz-owned.");
 assert(smoothieSource.includes('data-jr-access="false"'), "Smoothie Depot dashboard must keep JR access false.");
-assert(smoothieSource.includes("Candidate Pipeline"), "Smoothie Depot dashboard must render candidate pipeline.");
-assert(smoothieSource.includes("Commission Forecast"), "Smoothie Depot dashboard must render commission forecast.");
+assert(smoothieSource.includes("Founder Intelligence Command Center"), "Smoothie Depot dashboard must render the Founder Intelligence Command Center.");
+assert(smoothieSource.includes("Monday Mission Slot"), "Smoothie Depot dashboard must render Monday mission slot.");
+assert(smoothieSource.includes("Wednesday Mission Slot"), "Smoothie Depot dashboard must render Wednesday mission slot.");
+assert(smoothieSource.includes("Friday Mission Slot"), "Smoothie Depot dashboard must render Friday mission slot.");
+assert(smoothieSource.includes("<span>Commission Forecast</span><strong>$0</strong>"), "Smoothie Depot dashboard must render zero-state commission forecast.");
+assert(!smoothieSource.includes("Candidate Pipeline"), "Smoothie Depot dashboard must not render fixture candidate pipeline.");
 
 for (const forbidden of [
   "Units",
