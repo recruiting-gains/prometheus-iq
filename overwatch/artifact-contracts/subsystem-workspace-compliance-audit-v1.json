@@ -139,16 +139,18 @@
     },
     {
       "subsystem": "Prometheus Companion",
-      "status": "partial_compliance",
+      "status": "quarantined_dormant_maintenance_only",
       "evidence": [
-        "Companion consumes normalized Social Media and founder timeline/context outputs.",
-        "Companion consumer artifacts are not yet represented in the Overwatch artifact registry."
+        "Founder quarantined Companion because prompts are hanging/stalling while other subsystems run normally.",
+        "Existing accepted Companion package remains preserved.",
+        "No new Companion feature, simulation, contract-layer, or runtime work is authorized unless Founder explicitly reactivates Companion."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Companion",
-      "secondaryOwners": ["Prometheus Social Media", "Prometheus Research", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Companion read-only consumer artifacts before new Companion integrations, summaries, timeline enrichment, or subsystem-consuming founder responses."
+      "secondaryOwners": ["Prometheus Overwatch"],
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "founderReactivationRequired": true,
+      "scheduledRemediation": "No Companion remediation is scheduled during quarantine. Companion work is maintenance-only/dormant and may resume only after explicit Founder reactivation."
     },
     {
       "subsystem": "Prometheus Social Media",
@@ -171,13 +173,14 @@
       "status": "partial_compliance",
       "evidence": [
         "integrations/founder-communications-contract.js defines provider-neutral communications contracts.",
-        "Provider outputs consumed by Companion are not yet registered in the Overwatch artifact registry."
+        "Provider outputs are not yet fully registered in the Overwatch artifact registry.",
+        "Companion consumer work is quarantined and must not be used as a reason to start Integrations-to-Companion work."
       ],
       "bypassIdentified": true,
       "owner": "Prometheus Integrations",
-      "secondaryOwners": ["Prometheus Companion", "Prometheus Overwatch"],
+      "secondaryOwners": ["Prometheus Overwatch"],
       "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register founder communications provider artifacts and Companion consumer rules before new live provider integration or message/calendar-consuming feature work."
+      "scheduledRemediation": "Register founder communications provider artifacts before new live provider integration or message/calendar-consuming feature work. Companion consumer rules remain dormant until Founder reactivation."
     },
     {
       "subsystem": "Prometheus Administration",
@@ -266,18 +269,12 @@
   "globalRemediationOrder": [
     {
       "priority": 1,
-      "owner": "Prometheus Companion",
-      "task": "Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.",
-      "blocksFutureFeatureWorkFor": ["Prometheus Companion", "Prometheus Integrations"]
-    },
-    {
-      "priority": 2,
       "owner": "Prometheus Administration",
       "task": "Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.",
       "blocksFutureFeatureWorkFor": ["Prometheus Administration"]
     },
     {
-      "priority": 3,
+      "priority": 2,
       "owner": "Prometheus Sales",
       "task": "Register Sales consumer contract before Sales uses Research/CRM/Dashboard artifacts in send-ready customer-facing materials.",
       "blocksFutureFeatureWorkFor": ["Prometheus Sales"]

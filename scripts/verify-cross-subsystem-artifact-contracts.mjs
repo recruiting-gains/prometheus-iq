@@ -711,6 +711,10 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
   const dataAudit = auditedSubsystems.get("Prometheus Data");
   const socialMediaAudit = auditedSubsystems.get("Prometheus Social Media");
+  const companionAudit = auditedSubsystems.get("Prometheus Companion");
+  assert(companionAudit?.status === "quarantined_dormant_maintenance_only", "Companion must remain marked quarantined/dormant while Founder quarantine is active.", failures);
+  assert(companionAudit?.founderReactivationRequired === true, "Companion quarantine must require explicit Founder reactivation.", failures);
+  assert(companionAudit?.bypassIdentified === false, "Companion quarantine must not appear as an active contract-layer bypass.", failures);
   assert(dataAudit?.status === "compliant_for_runtime_artifact_contracts", "Data runtime artifact contract bypass must be closed.", failures);
   assert(dataAudit?.bypassIdentified === false, "Data runtime artifact contract must not remain bypass-identified.", failures);
   assert(
@@ -742,10 +746,10 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   );
 
   const firstRemediation = audit.globalRemediationOrder?.find(item => item.priority === 1);
-  assert(firstRemediation?.owner === "Prometheus Companion", "Priority 1 remediation should move to Companion after Social Media artifact registration.", failures);
+  assert(firstRemediation?.owner === "Prometheus Administration", "Priority 1 remediation must skip quarantined Companion and move to Administration.", failures);
   assert(
-    firstRemediation?.task?.includes("Companion"),
-    "Priority 1 remediation must register Companion consumer artifacts after Social Media artifact registration.",
+    firstRemediation?.task?.includes("workspace operating manuals"),
+    "Priority 1 remediation must register Administration workspace operating artifacts while Companion is quarantined.",
     failures
   );
 }

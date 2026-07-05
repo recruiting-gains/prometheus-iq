@@ -86,6 +86,8 @@ Areas:
 
 Primary rule: Companion is founder-only. Do not confuse Companion work with the public website, Anthony beta, or production Prometheus IQ dashboard work.
 
+Quarantine rule: Companion is currently maintenance-only / dormant by Founder decision because prompts are hanging/stalling while other subsystems run normally. Do not assign new Companion feature work, contract-layer work, simulation work, or runtime work unless Founder explicitly reactivates Companion. Preserve the existing accepted Companion package; do not delete Companion or modify Companion code during quarantine. Current launch and contract-layer work should continue through non-Companion subsystems.
+
 ### 3. Prometheus Intelligence Engine
 
 Scope: the reasoning and recommendation layer behind Prometheus.

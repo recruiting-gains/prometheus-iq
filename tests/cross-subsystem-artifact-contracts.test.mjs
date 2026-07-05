@@ -100,8 +100,13 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
     "Social Media audit must record the Fitness Connection Social Media artifact contract."
   );
 
-  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Companion");
-  assert.match(audit.globalRemediationOrder[0].task, /Companion/);
+  const companion = audit.subsystems.find(record => record.subsystem === "Prometheus Companion");
+  assert.equal(companion.status, "quarantined_dormant_maintenance_only");
+  assert.equal(companion.founderReactivationRequired, true);
+  assert.equal(companion.bypassIdentified, false);
+
+  assert.equal(audit.globalRemediationOrder[0].owner, "Prometheus Administration");
+  assert.match(audit.globalRemediationOrder[0].task, /workspace operating manuals/);
 });
 
 test("Fitness Connection workspace is registered with role and isolation contracts", () => {

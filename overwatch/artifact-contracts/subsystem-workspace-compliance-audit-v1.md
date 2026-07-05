@@ -25,13 +25,14 @@ The platform is not yet universally covered. Several active or planned subsystem
 
 ## Partial Compliance or Bypass Identified
 
-- Prometheus Dashboard: Smoothie Depot dossier consumption is contract-compliant; Fitness Connection runtime consumption remains outside the registry.
+- Prometheus Dashboard: Smoothie Depot dossier consumption and Fitness Connection dashboard contracts are contract-compliant; future Dashboard consumers must continue through the registry.
 - Prometheus CRM: Workspace lead handoff consumption exists; durable CRM paths and the shared intake packet contract are not fully registered.
 - Prometheus Intelligence Engine: Smoothie Depot workspace planning is covered; Fitness route intelligence, operating profile consumers, CustomerGraphSnapshots, and explanation consumers need broader registry coverage.
+- Prometheus Data: Fitness Connection Active Pool/runtime artifact contracts are registered; future Data runtime artifacts must continue through the registry.
 - Prometheus Website: Partner intake and Website/Social attribution artifacts are not fully registered as canonical producers.
-- Prometheus Companion: consumes normalized subsystem outputs, but Companion consumer contracts are not registered in the artifact layer.
-- Prometheus Social Media: Instagram analytics/reporting and attribution artifacts are not fully registered.
-- Prometheus Integrations: provider outputs consumed by Companion are not registered.
+- Prometheus Companion: quarantined/dormant by Founder decision; no new Companion feature, contract-layer, simulation, or runtime work is authorized unless Founder explicitly reactivates Companion.
+- Prometheus Social Media: Instagram analytics/reporting and attribution artifacts are registered for current Fitness Connection and Smoothie Depot contracts.
+- Prometheus Integrations: provider outputs are not fully registered; Companion consumer work remains dormant and must not drive Integrations work during quarantine.
 - Prometheus Administration: workspace operating manuals, verification records, and release/sign-off registers are not registered.
 - Prometheus Mobile: current PWA/native-adjacent artifacts inherit Dashboard coverage but do not yet have Mobile-specific contracts.
 - Prometheus Sales: no active runtime bypass; before Sales consumes Research, CRM, or Dashboard artifacts in send-ready materials, a Sales consumer contract is required.
@@ -44,10 +45,8 @@ The platform is not yet universally covered. Several active or planned subsystem
 
 ## Required Remediation Order
 
-1. Prometheus Social Media: Register Social Media analytics/reporting and Website/CRM attribution artifacts.
-2. Prometheus Companion: Register Companion read-only subsystem consumer contracts before new subsystem-consuming founder responses.
-3. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
-4. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
+1. Prometheus Administration: Register workspace operating manuals, release/sign-off registers, and field-feedback artifacts.
+2. Prometheus Sales: Register Sales consumer contract before Sales uses Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
 
 ## Feature Work Gate
 

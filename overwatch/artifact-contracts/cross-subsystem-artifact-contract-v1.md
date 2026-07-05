@@ -162,12 +162,13 @@ Incomplete links identified:
 - CRM durable candidate persistence is not authorized.
 - Intelligence production interpretation over Research plus CRM is not authorized.
 - Authenticated production browser smoke remains outside the contract layer and requires Cloudflare Access credentials or CDP when runtime verification is requested.
+- Companion is quarantined/dormant by Founder decision. No Companion contract-layer, runtime, simulation, or feature work is authorized unless Founder explicitly reactivates Companion.
 
 Required remediation order:
 
 1. Keep Overwatch artifact contract verification active in `npm test`.
-2. Social Media must register analytics/reporting and Website/CRM attribution artifacts.
-3. Companion must register read-only subsystem consumer contracts before new subsystem-consuming founder responses.
+2. Administration must register workspace operating manuals, release/sign-off registers, and field-feedback artifacts before new Administration workspace feature work.
+3. Sales must register a consumer contract before using Research, CRM, or Dashboard artifacts in send-ready customer-facing materials.
 4. Research must publish additional completed canonical dossiers before Dashboard populates additional Smoothie Depot mission slots.
 5. CRM runtime persistence requires explicit CRM-owned approval.
 6. Intelligence interpretation requires explicit Intelligence-owned approval and must preserve workspace isolation.

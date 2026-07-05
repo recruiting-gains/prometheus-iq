@@ -100,6 +100,61 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-05: Prometheus Companion - Companion Quarantine Status v1
+
+Subsystem: Prometheus Companion
+
+Task: Companion Quarantine Status v1
+
+Commit: Recorded by the Companion Quarantine Status v1 handoff commit.
+
+Deploy: Not run. Governance/status update only.
+
+Status: Complete.
+
+Implementation type: Quarantine governance status, routing rule, and contract-layer queue update.
+
+Companion quarantine recorded:
+
+Yes. Companion is marked maintenance-only / dormant because Companion prompts are hanging/stalling while other subsystems run normally.
+
+Existing Companion package preserved:
+
+Yes. The accepted Companion package remains preserved. No Companion code, runtime, visual files, conversation files, native shell files, installer files, or verification scripts were modified.
+
+Current work rerouted away from Companion:
+
+Yes. Overwatch routing now blocks:
+
+- New Companion feature work.
+- Companion contract-layer work.
+- Companion simulation work.
+- Companion runtime work.
+
+Allowed Companion work:
+
+Only explicit Founder reactivation may reopen Companion. Until then, all current launch and contract-layer work continues through non-Companion subsystems.
+
+Contract-layer queue update:
+
+Removed Companion read-only consumer contract work from the active remediation queue during quarantine. Next active non-Companion remediation remains Administration workspace operating artifacts, followed by Sales consumer contracts if Sales consumes Research/CRM/Dashboard artifacts.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`
+- `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`
+- `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`
+
+Remaining blockers:
+
+Companion responsiveness remains unresolved by design. This does not block non-Companion launch operations, Dashboard, Research, CRM, Data, Infrastructure, Social Media, Website, Administration, Sales, or Overwatch work.
+
+Next recommended subsystem:
+
+Prometheus Administration for workspace operating manuals, release/sign-off registers, and field-feedback artifact registration, or Prometheus Sales if Administration is not immediately needed.
+
 ### 2026-07-04: Prometheus Overwatch - Fitness Connection Canonical Workspace Artifact Contract v1
 
 Subsystem: Prometheus Overwatch
@@ -8986,6 +9041,7 @@ Prometheus Infrastructure/Auth for authenticated production verification only, o
 Current duplicate-prevention sources:
 
 - Do not duplicate Cross-Subsystem Artifact Contract Audit v1 or Subsystem and Workspace Contract Compliance Audit v1; reuse `overwatch/artifact-contracts/canonical-artifact-registry.json`, `overwatch/artifact-contracts/cross-subsystem-artifact-contract-v1.md`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json`, `overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.md`, `scripts/verify-cross-subsystem-artifact-contracts.mjs`, and `tests/cross-subsystem-artifact-contracts.test.mjs` as the canonical connection layer for all subsystems and workspaces. Future cross-subsystem handoffs must use explicit canonical artifact contracts, preserve read/write ownership, fail closed on missing artifacts, reject production fixture/demo data, preserve workspace isolation, and complete or include scheduled remediation before feature work in any subsystem or workspace marked `partial_compliance` or `bypass_identified`.
+- Do not route new work to Companion while Companion Quarantine Status v1 is active. Companion is maintenance-only / dormant; preserve the existing accepted package and do not modify Companion code, runtime, visual files, simulation paths, or contract-layer consumers unless Founder explicitly reactivates Companion.
 - Do not duplicate Fitness Connection Canonical Workspace Artifact Contract v1; reuse `overwatch/artifact-contracts/workspaces/fitness-connection/workspace-identity-contract-v1.json`, `dashboard-consumer-contract-v1.json`, `route-intelligence-data-contract-v1.json`, `crm-consumer-contract-v1.json`, `intelligence-consumer-contract-v1.json`, and the `fitness_connection` entry in `overwatch/artifact-contracts/canonical-artifact-registry.json`. Future Fitness dashboard, CRM, route, rep, manager, enterprise, Data, Infrastructure, or Intelligence work must preserve this contract, Founder/Rep separation, Anthony Rep-only access, Fitness operating profile, and Smoothie Depot isolation.
 - Do not duplicate the existing Prometheus IQ dashboard in `index.html` and `deploy/cloudflare-pages/index.html`.
 - Do not duplicate the public PrometheusRouteIQ website surface; reuse `src/main.jsx`, `src/styles.css`, `landing.html`, and `deploy/prometheusrouteiq-website/`.
