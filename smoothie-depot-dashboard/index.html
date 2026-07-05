@@ -7,7 +7,8 @@
   <meta name="prometheus-workspace" content="smoothie_depot">
   <meta name="prometheus-operating-profile" content="franchise_development">
   <meta name="prometheus-data-mode" content="workspace-research-output">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <link rel="icon" href="/icons/prometheus.svg" type="image/svg+xml">
   <title>Smoothie Depot Executive Intelligence Operations Center</title>
   <style>
     :root {
@@ -484,6 +485,14 @@
       cursor: pointer;
     }
 
+    .export-status {
+      min-height: 1rem;
+      margin: -4px 18px 12px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 750;
+    }
+
     .command-layout {
       display: grid;
       grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
@@ -915,6 +924,7 @@
       .section,
       .mission-board,
       .command-tools,
+      .export-status,
       .command-nav,
       .mission-console,
       .notes-panel,
@@ -1229,6 +1239,7 @@
             <button type="button" data-command="collapse">Collapse all</button>
             <button type="button" data-command="printPackage">Export PDF</button>
           </div>
+          <p class="export-status" data-export-status aria-live="polite"></p>
 
           <div class="command-layout">
             <nav class="command-nav" aria-label="Executive Intelligence Package table of contents">

@@ -15,6 +15,7 @@ const packageRegisterPath = "research/workspaces/smoothie-depot/executive-intell
 
 const source = read(sourcePath);
 const deploy = read(deployPath);
+const deployHeaders = read("deploy/cloudflare-pages/_headers");
 const commandCenterSource = read("smoothie-depot-dashboard/command-center.js");
 const commandCenterDeploy = read("deploy/cloudflare-pages/smoothie-depot-dashboard/command-center.js");
 const intelligencePlan = readJson("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json");
@@ -38,7 +39,8 @@ assert(source.includes('data-dashboard-owner="cruz"'), "Dashboard must identify 
 assert(source.includes('data-jr-access="false"'), "Dashboard must mark JR access false.");
 assert(source.includes('data-data-mode="workspace-research-output"'), "Dashboard must mark workspace Research output data mode.");
 assert(source.includes("noindex,nofollow,noarchive"), "Dashboard must be noindex.");
-assert(source.includes("frame-ancestors 'none'"), "Dashboard CSP must prevent framing.");
+assert(!/<meta[^>]+Content-Security-Policy[^>]+frame-ancestors/i.test(source), "Dashboard meta CSP must not include unsupported frame-ancestors.");
+assert(deployHeaders.includes("frame-ancestors 'none'"), "Dashboard HTTP CSP must prevent framing.");
 assert(source.includes("script-src 'self'"), "Dashboard command center must allow only self-hosted scripts.");
 assert(source.includes("/smoothie-depot-dashboard/command-center.js"), "Dashboard must load the self-hosted command center script.");
 assert(source.includes("grid-template-columns: minmax(520px, 1fr) minmax(280px, 360px);"), "Dashboard hero must preserve a non-collapsing desktop title column.");
@@ -94,10 +96,14 @@ assert(source.includes("Search package"), "Dashboard must provide package search
 assert(source.includes("Previous:"), "Dashboard must render previous section navigation.");
 assert(source.includes("Next:"), "Dashboard must render next section navigation.");
 assert(source.includes("Export PDF"), "Dashboard must provide PDF export.");
+assert(source.includes('data-export-status aria-live="polite"'), "Dashboard must provide visible export status feedback.");
 assert(source.includes("Local Founder Notes"), "Dashboard must provide local notes only.");
 assert(source.includes("Evidence questions"), "Dashboard local notes must support evidence questions.");
 assert(source.includes("No CRM persistence, Dashboard persistence, Research mutation, or external submission is performed."), "Dashboard notes must stay local only.");
 assert(source.includes("Evidence sections remain Research-owned and cannot be edited from Dashboard."), "Dashboard must mark evidence as read-only.");
+assert(commandCenterSource.includes("preparePrintPackage"), "Command center must prepare the full package before print export.");
+assert(commandCenterSource.includes("window.print()"), "Command center must trigger browser print for PDF export.");
+assert(commandCenterSource.includes("Print dialog requested. Choose Save as PDF"), "Command center must give visible print/PDF feedback.");
 
 for (const requiredMissionText of [
   "Executive Intelligence Operations Center",
