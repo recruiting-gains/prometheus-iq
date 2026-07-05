@@ -4,6 +4,7 @@
   "intelligenceDomain": "business_acquisition_intelligence",
   "platformStandard": "executive-due-diligence-intelligence-platform-v4",
   "artifactStatus": "completed_canonical_research_dossier",
+  "remediationStatus": "supersedes_prior_thin_dossier_in_place",
   "generatedAt": "2026-07-04",
   "businessSelected": "Nutrition Depot Houston and Greater Houston",
   "founderMissionQueueRank": 1,
@@ -65,6 +66,31 @@
     "Source Reliability Matrix",
     "Recommended Next Actions"
   ],
+  "sectionDecisionQualityLedger": {
+    "status": "complete",
+    "sectionsCovered": 30,
+    "requiredFieldsPerSection": [
+      "conclusionLabel",
+      "majorConclusion",
+      "evidenceBasis",
+      "sourceReliability",
+      "confidenceLevel",
+      "verificationNeeded"
+    ]
+  },
+  "requiredAnalyticalModules": {
+    "businessHistoryReconstruction": true,
+    "reviewIntelligenceAnalysis": true,
+    "digitalMaturityAnalysis": true,
+    "marketIntelligence": true,
+    "businessDecisionSupport": true,
+    "uncertaintyAnalysis": true,
+    "comparativeAnalysis": true,
+    "scenarioAnalysis": true,
+    "decisionJournalSeed": true,
+    "qualityControlRedTeamReview": true
+  },
+  "qualityControlCompleted": true,
   "executiveConclusion": {
     "recommendation": "Call first, but do not treat as qualified.",
     "confidenceLevel": "High for first-call prioritization; not sufficient for final franchise qualification.",

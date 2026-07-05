@@ -733,6 +733,11 @@ assert.equal(
   "completed_canonical_research_dossier",
   "Nutrition Depot dossier must be completed canonical Research artifact."
 );
+assert.equal(
+  nutritionDepotDossier.remediationStatus,
+  "supersedes_prior_thin_dossier_in_place",
+  "Nutrition Depot dossier must explicitly supersede the prior thin dossier."
+);
 assert.equal(nutritionDepotDossier.productionRuntimeChange, false, "Nutrition Depot dossier must not activate runtime changes.");
 assert.equal(nutritionDepotDossier.dataPolicy.publicBusinessInformationOnly, true, "Nutrition Depot dossier must use public business info only.");
 assert.equal(nutritionDepotDossier.dataPolicy.privateFinancialsCollected, false, "Nutrition Depot dossier must not collect private financials.");
@@ -750,19 +755,59 @@ assert.deepEqual(
   smoothieDepotRequiredDossierSections,
   "Nutrition Depot dossier must include every v4 required dossier section."
 );
+assert.equal(
+  nutritionDepotDossier.sectionDecisionQualityLedger.status,
+  "complete",
+  "Nutrition Depot dossier must include a complete section decision-quality ledger."
+);
+assert.equal(
+  nutritionDepotDossier.sectionDecisionQualityLedger.sectionsCovered,
+  30,
+  "Nutrition Depot decision-quality ledger must cover all 30 sections."
+);
+for (const field of [
+  "conclusionLabel",
+  "majorConclusion",
+  "evidenceBasis",
+  "sourceReliability",
+  "confidenceLevel",
+  "verificationNeeded"
+]) {
+  assert.ok(
+    nutritionDepotDossier.sectionDecisionQualityLedger.requiredFieldsPerSection.includes(field),
+    `Nutrition Depot decision-quality ledger missing required field ${field}.`
+  );
+}
 for (const [index, section] of smoothieDepotRequiredDossierSections.entries()) {
   assert.ok(
     nutritionDepotDossierReport.includes(`## ${index + 1}. ${section}`),
     `Nutrition Depot dossier report missing section ${index + 1}. ${section}.`
   );
+  assert.ok(
+    nutritionDepotDossierReport.includes(`### Section ${index + 1} Decision Quality: ${section}`),
+    `Nutrition Depot dossier report missing decision-quality ledger for section ${index + 1}. ${section}.`
+  );
 }
 for (const requiredText of [
+  "Remediation status: Supersedes the prior thin canonical dossier in place.",
+  "Evidence label rule:",
+  "Complete 30-Section Decision Quality Ledger",
   "Second-Order Analysis",
   "Third-Order Analysis",
   "Opportunity Cost Analysis",
   "Alternative Hypotheses",
   "Red Team Review",
   "Unknown Value Analysis",
+  "Business History Reconstruction",
+  "Review Intelligence Analysis",
+  "Digital Maturity Analysis",
+  "Market Intelligence",
+  "Business Decision Support",
+  "Uncertainty Analysis",
+  "Comparative Analysis",
+  "Scenario Analysis",
+  "Decision Journal Seed",
+  "Quality Control / Red-Team Review",
   "Scenario Decision Tree",
   "Post-Meeting Learning Journal",
   "Intelligence Quality Control",
@@ -770,6 +815,25 @@ for (const requiredText of [
 ]) {
   assert.ok(nutritionDepotDossierReport.includes(requiredText), `Nutrition Depot dossier missing ${requiredText}.`);
 }
+for (const moduleComplete of [
+  "businessHistoryReconstruction",
+  "reviewIntelligenceAnalysis",
+  "digitalMaturityAnalysis",
+  "marketIntelligence",
+  "businessDecisionSupport",
+  "uncertaintyAnalysis",
+  "comparativeAnalysis",
+  "scenarioAnalysis",
+  "decisionJournalSeed",
+  "qualityControlRedTeamReview"
+]) {
+  assert.equal(
+    nutritionDepotDossier.requiredAnalyticalModules[moduleComplete],
+    true,
+    `Nutrition Depot dossier missing analytical module ${moduleComplete}.`
+  );
+}
+assert.equal(nutritionDepotDossier.qualityControlCompleted, true, "Nutrition Depot dossier must complete quality control.");
 assert.equal(
   nutritionDepotDossier.remainingUnknowns.includes("Second-concept or franchise expansion openness"),
   true,

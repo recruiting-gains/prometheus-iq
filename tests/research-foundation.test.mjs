@@ -426,6 +426,7 @@ test("Smoothie Depot stores the first canonical Nutrition Depot executive dossie
   assert.equal(dossier.businessSelected, "Nutrition Depot Houston and Greater Houston");
   assert.equal(dossier.founderMissionQueueRank, 1);
   assert.equal(dossier.artifactStatus, "completed_canonical_research_dossier");
+  assert.equal(dossier.remediationStatus, "supersedes_prior_thin_dossier_in_place");
   assert.equal(dossier.productionRuntimeChange, false);
   assert.equal(dossier.dataPolicy.publicBusinessInformationOnly, true);
   assert.equal(dossier.dataPolicy.privateFinancialsCollected, false);
@@ -472,17 +473,46 @@ test("Smoothie Depot stores the first canonical Nutrition Depot executive dossie
   ];
 
   assert.deepEqual(dossier.requiredDossierSections, requiredSections);
+  assert.equal(dossier.sectionDecisionQualityLedger.status, "complete");
+  assert.equal(dossier.sectionDecisionQualityLedger.sectionsCovered, 30);
+  for (const field of [
+    "conclusionLabel",
+    "majorConclusion",
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded"
+  ]) {
+    assert.ok(dossier.sectionDecisionQualityLedger.requiredFieldsPerSection.includes(field));
+  }
   for (const [index, section] of requiredSections.entries()) {
     assert.match(report, new RegExp(`## ${index + 1}\\. ${section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+    assert.match(
+      report,
+      new RegExp(`### Section ${index + 1} Decision Quality: ${section.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`)
+    );
   }
 
   for (const section of [
+    "Remediation status: Supersedes the prior thin canonical dossier in place.",
+    "Evidence label rule:",
+    "Complete 30-Section Decision Quality Ledger",
     "Second-Order Analysis",
     "Third-Order Analysis",
     "Opportunity Cost Analysis",
     "Alternative Hypotheses",
     "Red Team Review",
     "Unknown Value Analysis",
+    "Business History Reconstruction",
+    "Review Intelligence Analysis",
+    "Digital Maturity Analysis",
+    "Market Intelligence",
+    "Business Decision Support",
+    "Uncertainty Analysis",
+    "Comparative Analysis",
+    "Scenario Analysis",
+    "Decision Journal Seed",
+    "Quality Control / Red-Team Review",
     "Scenario Decision Tree",
     "Post-Meeting Learning Journal",
     "Intelligence Quality Control",
@@ -491,6 +521,22 @@ test("Smoothie Depot stores the first canonical Nutrition Depot executive dossie
     assert.match(report, new RegExp(section));
   }
 
+  for (const moduleComplete of [
+    "businessHistoryReconstruction",
+    "reviewIntelligenceAnalysis",
+    "digitalMaturityAnalysis",
+    "marketIntelligence",
+    "businessDecisionSupport",
+    "uncertaintyAnalysis",
+    "comparativeAnalysis",
+    "scenarioAnalysis",
+    "decisionJournalSeed",
+    "qualityControlRedTeamReview"
+  ]) {
+    assert.equal(dossier.requiredAnalyticalModules[moduleComplete], true);
+  }
+
   assert.ok(dossier.remainingUnknowns.includes("Second-concept or franchise expansion openness"));
   assert.ok(dossier.sourceReliabilityMatrix.length >= 5);
+  assert.equal(dossier.qualityControlCompleted, true);
 });

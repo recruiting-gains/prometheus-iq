@@ -100,6 +100,76 @@ When an `OVERWATCH HANDOFF` is received:
 
 ## Active Dependency Tracker
 
+### 2026-07-04: Prometheus Research - Nutrition Depot Executive Dossier v1 Remediation
+
+Subsystem: Prometheus Research
+
+Task: Nutrition Depot Executive Dossier v1 Remediation
+
+Commit: Recorded by the Nutrition Depot Executive Dossier v1 remediation handoff commit.
+
+Deploy: Not run. Research artifact and validation only; no production deployment required.
+
+Status: Complete and committed locally at handoff time.
+
+Implementation type: Canonical Research dossier remediation and validation hardening.
+
+Full 30-section dossier created:
+
+Yes. The canonical Nutrition Depot dossier now includes all 30 Executive Due Diligence Intelligence Platform v4 sections plus a 30-section decision-quality ledger.
+
+Old thin dossier replaced or superseded:
+
+Superseded in place. `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md` now states that it supersedes the prior thin canonical dossier.
+
+Evidence sources used:
+
+- Nutrition Depot Houston official site.
+- Nutrition Depot Online.
+- Nutrition Depot Online contact / location page.
+- Community Impact relocation coverage.
+- Pasadena Chamber listing.
+- Waze public directory as secondary directory corroboration.
+- Existing Smoothie Depot Research ranked prospect artifact.
+
+Confidence model created:
+
+Yes. The dossier records evidence quality, source reliability, confidence, business impact, and verification priority; the structured JSON records complete section decision-quality fields.
+
+Unknowns register created:
+
+Yes. The dossier ranks decision-maker authority, second-concept openness, liquidity/financing path, food and beverage appetite, unit ambition, timeline, direct review intelligence, and complementary-versus-distracting fit.
+
+Quality control completed:
+
+Yes. The dossier includes red-team review, contradiction handling, uncertainty analysis, comparative analysis, scenario analysis, decision journal seed, and quality-control limits.
+
+Canonical Research artifact path:
+
+- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md`
+- `research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.json`
+
+Workspace verified:
+
+Verified. Smoothie Depot workspace only. No Dashboard, CRM, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, or Intelligence runtime modifications are included.
+
+Tests/validation run:
+
+- `npm run research:validate`: passed.
+- `npm run test:research`: passed.
+- `git diff --check`: passed.
+
+Remaining blockers:
+
+- Direct Google Business Profile review/rating capture remains incomplete.
+- Local competitor/corridor mapping remains incomplete.
+- Decision-maker authority, second-concept interest, liquidity/financing path, timeline, food-service appetite, and one-unit versus multi-unit intent require live conversation.
+- Full `npm test` was run and is blocked by the Dashboard read-only consumer check `dashboard:smoothie-depot:check`, which now expects the previous canonical Research artifact hash. Updating that hash belongs to a Dashboard follow-up and is intentionally outside this Research-only remediation.
+
+Next recommended subsystem:
+
+Prometheus Research for direct Google Business Profile review capture and local corridor competitor mapping, then Prometheus Sales only when Cruz is ready to make the first call.
+
 ### 2026-07-04: Prometheus Dashboard - Founder Intelligence Command Center v1
 
 Subsystem: Prometheus Dashboard

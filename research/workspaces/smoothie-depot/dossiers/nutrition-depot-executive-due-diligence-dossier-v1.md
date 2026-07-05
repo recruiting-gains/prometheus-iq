@@ -8,6 +8,8 @@ Generated: 2026-07-04
 
 Artifact status: Completed canonical Research dossier
 
+Remediation status: Supersedes the prior thin canonical dossier in place. This artifact is the official Research-owned Nutrition Depot Executive Due Diligence Dossier v1 for the Smoothie Depot workspace.
+
 Workspace metadata:
 
 - `workspace_id`: `smoothie_depot`
@@ -15,6 +17,14 @@ Workspace metadata:
 - `intelligence_domain`: `business_acquisition_intelligence`
 - `platform_standard`: `executive-due-diligence-intelligence-platform-v4`
 - `production_runtime_change`: `false`
+
+Evidence label rule:
+
+Every major conclusion in this dossier is labeled as Observed, Inferred from multiple public sources, Self-reported, Owner-provided, or Unknown. No conclusion is based on private financials, credit reports, bank records, tax records, hidden personal dossiers, psychological profiling, restricted-platform scraping, Fitness Connection data, Route Intelligence, Active Pool, CRM, Dashboard, Website, Infrastructure, Companion, Mobile, or Intelligence runtime behavior.
+
+Canonical source rule:
+
+This dossier is the canonical Research artifact. Dashboard may consume it later as a read-only source, but Dashboard-rendered cards are not the Research source of truth.
 
 ## 1. Executive Summary
 
@@ -675,6 +685,599 @@ Do not do:
 - Do not imply Smoothie Depot has selected them.
 - Do not treat a store employee as decision maker without confirmation.
 - Do not create CRM persistence without explicit CRM handoff.
+
+## Complete 30-Section Decision Quality Ledger
+
+This ledger is the remediation layer that makes the dossier compliant with Executive Due Diligence Intelligence Platform v4. It applies the required decision-quality fields to every required dossier section.
+
+### Section 1 Decision Quality: Executive Summary
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Nutrition Depot Houston and Greater Houston should be Cruz's first call because it is the strongest complementary wellness retail prospect in the current Smoothie Depot Founder Mission Queue.
+- Evidence basis: Ranked prospect artifact places Nutrition Depot first; official Houston site shows supplement and wellness retail category; Nutrition Depot Online shows ecommerce, inventory, pickup, shipping, and multiple location signals; Community Impact confirms the 2025 Houston relocation.
+- Source reliability: High for official site claims; medium-high for local reporting; medium for directory corroboration.
+- Confidence level: High for first-call prioritization; medium for franchise-readiness inference.
+- Verification needed: Confirm decision-maker authority, second-concept openness, food and beverage appetite, and whether the Greater Houston location signals share one operator.
+
+### Section 2 Decision Quality: Business Identity
+
+- Conclusion label: Observed.
+- Major conclusion: The target business identity is Nutrition Depot Houston and Greater Houston, with the primary captured Houston location at 2005 Southwest Freeway Service Road, Houston, TX 77098.
+- Evidence basis: Nutrition Depot Houston official site lists the address, phone, hours, and category; Community Impact reports the relocation to Southwest Freeway; Waze provides secondary directory confirmation.
+- Source reliability: High for official site and local reporting; medium for Waze.
+- Confidence level: High for address and public phone; medium for broader "Greater Houston" operator identity.
+- Verification needed: Confirm whether the Houston Southwest Freeway contact controls or is connected to Pasadena, Kingwood, Pearland, Cypress, and Magnolia signals.
+
+### Section 3 Decision Quality: Company History Timeline
+
+- Conclusion label: Observed and Unknown.
+- Major conclusion: Public history supports a Houston relocation in early 2025, but does not establish founding date, ownership history, or expansion intent.
+- Evidence basis: Community Impact reported prior Rice Village closure in late January 2025 and Southwest Freeway opening on February 3, 2025; Houston site copyright marker shows 2018; official pages show current operations.
+- Source reliability: Medium-high for Community Impact timeline; high for current official site existence; low for using copyright marker as history.
+- Confidence level: High for relocation timeline; low for founding-history completeness.
+- Verification needed: Ask operator when the business began, whether Rice Village was the same ownership group, and whether relocation reflected growth, rent optimization, or customer access.
+
+### Section 4 Decision Quality: Public Ownership / Operator Footprint
+
+- Conclusion label: Unknown with limited observed public footprint signals.
+- Major conclusion: Public sources show multiple Nutrition Depot references, but do not prove consolidated ownership or shared decision authority.
+- Evidence basis: Community Impact references "the owners"; Pasadena Chamber lists Nutrition Depot Pasadena; Nutrition Depot Online lists Kingwood, Pearland, Cypress, and Magnolia locations.
+- Source reliability: Medium-high for public listings; low for ownership inference.
+- Confidence level: High that multiple public signals exist; low that they share one operator.
+- Verification needed: Ask whether the first contact owns one location, multiple locations, ecommerce, or only manages local store operations.
+
+### Section 5 Decision Quality: Business Evolution
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Nutrition Depot appears to have evolved beyond a static supplement storefront into a more digitally enabled retail operation, but active expansion appetite is unproven.
+- Evidence basis: Official Houston site shows retail/contact flow and InBody testing; Nutrition Depot Online shows ecommerce, product taxonomy, inventory, pickup, shipping, account/cart, and location list; Community Impact reports relocation.
+- Source reliability: High for observed digital features; medium-high for relocation reporting.
+- Confidence level: Medium-high for operational maturity; medium-low for expansion interpretation.
+- Verification needed: Confirm whether ecommerce and local store operations are connected and whether relocation improved sales, customer reach, or operating efficiency.
+
+### Section 6 Decision Quality: Digital Presence Audit
+
+- Conclusion label: Observed and Inferred from multiple public sources.
+- Major conclusion: Digital maturity is medium-high because the public web presence supports discovery, contact, ecommerce, product browsing, and fulfillment claims, but brand architecture is fragmented.
+- Evidence basis: Nutrition Depot Houston site lists address, phone, hours, InBody testing, product categories, and contact form; Nutrition Depot Online includes ecommerce, real-time inventory claim, same-day shipping claim, pickup, and listed store pages.
+- Source reliability: High for official digital assets; medium for interpreting maturity.
+- Confidence level: Medium-high.
+- Verification needed: Confirm whether both public websites are operated by the same entity or separate Nutrition Depot businesses.
+
+### Section 7 Decision Quality: Reputation Intelligence
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Reputation evidence is sufficient for first-call prioritization because public sources present category credibility and local business visibility, but it is insufficient for qualification.
+- Evidence basis: Official sites emphasize product selection and wellness support; Community Impact covered the move; Pasadena Chamber categorizes Nutrition Depot Pasadena as Health & Wellness.
+- Source reliability: High for self-reported category positioning; medium-high for public reporting and chamber listing.
+- Confidence level: Medium.
+- Verification needed: Capture direct Google Business Profile rating, review count, recent positive themes, recent negative themes, and complaint recovery signals.
+
+### Section 8 Decision Quality: Review Theme Intelligence
+
+- Conclusion label: Inferred from public product and review-adjacent sources; direct review analysis remains Unknown.
+- Major conclusion: Public themes indicate supplement, protein, pre-workout, general health, body composition, pickup, and product availability relevance; true customer review trends remain incomplete.
+- Evidence basis: Official product taxonomy, Houston site InBody testing, Nutrition Depot Online fulfillment claims, and public directory signals.
+- Source reliability: High for product themes; low for direct review conclusions because direct GBP review capture is missing.
+- Confidence level: Medium for theme relevance; low for complaint-frequency analysis.
+- Verification needed: Directly verify GBP/Yelp/public review themes before JR handoff.
+
+### Section 9 Decision Quality: Customer Experience Intelligence
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: The public customer journey suggests a repeat wellness retail experience with product browsing, phone/contact access, store hours, ecommerce, pickup, and body composition service touchpoints.
+- Evidence basis: Official Houston site and Nutrition Depot Online checkout, inventory, shipping, pickup, and contact patterns.
+- Source reliability: High for observed journey elements; medium for customer-experience inference.
+- Confidence level: Medium-high.
+- Verification needed: Ask how customers discover the store, how often they return, whether InBody testing drives product consultation, and whether customers ask for smoothies or ready-to-drink nutrition.
+
+### Section 10 Decision Quality: Market Position
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Nutrition Depot occupies a supplement and wellness retail position adjacent to Smoothie Depot's fitness and health customer base.
+- Evidence basis: Product categories include protein, pre-workout, vitamins, minerals, muscle builders, general health, food/snacks, and accessories; Pasadena Chamber classifies the business as Health & Wellness.
+- Source reliability: High for category evidence; medium for market-position inference.
+- Confidence level: Medium-high.
+- Verification needed: Ask which customer segments dominate sales: gym users, general wellness buyers, weight management, sports nutrition, body composition customers, or casual supplement shoppers.
+
+### Section 11 Decision Quality: Competitive Landscape
+
+- Conclusion label: Inferred from public category evidence.
+- Major conclusion: Nutrition Depot likely competes with supplement retailers, online supplement sellers, gyms with retail offerings, vitamin stores, mass retailers, and wellness beverage concepts, but local competitor mapping remains incomplete.
+- Evidence basis: Category and product mix implies competing channels; no full radius competitor scan has been completed.
+- Source reliability: Medium for category-based inference.
+- Confidence level: Medium.
+- Verification needed: Map local smoothie, supplement, gym, wellness, and healthy cafe competitors near the Houston location and any linked Greater Houston locations.
+
+### Section 12 Decision Quality: Geographic Opportunity
+
+- Conclusion label: Observed and Inferred from multiple public sources.
+- Major conclusion: The Southwest Freeway location gives a central Houston call target, while Pasadena, Kingwood, Pearland, Cypress, and Magnolia signals create a possible but unverified Greater Houston network opportunity.
+- Evidence basis: Official Houston address; Pasadena Chamber listing; Nutrition Depot Online location page.
+- Source reliability: High for addresses; medium for network interpretation.
+- Confidence level: High for location facts; medium-low for unified geographic opportunity.
+- Verification needed: Confirm shared control, franchise territory interest, and whether any listed corridor has under-served smoothie demand.
+
+### Section 13 Decision Quality: Growth Signals
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Public signals support operational maturity and local movement, not confirmed growth intent.
+- Evidence basis: 2025 relocation, ecommerce, real-time inventory claim, same-day shipping claim, in-store pickup, mailing-list capture, multiple location listings, chamber listing.
+- Source reliability: High for observed signals; medium for growth interpretation.
+- Confidence level: Medium-high for maturity; medium-low for growth intent.
+- Verification needed: Ask whether relocation was demand-driven, cost-driven, customer-access-driven, or stabilization-driven.
+
+### Section 14 Decision Quality: Expansion Signals
+
+- Conclusion label: Inferred from multiple public sources with material contradictions.
+- Major conclusion: Nutrition Depot has enough expansion-adjacent signals to justify discovery, but no public evidence proves active expansion appetite.
+- Evidence basis: Community Impact relocation; Nutrition Depot Online store list; ecommerce infrastructure.
+- Source reliability: Medium-high.
+- Confidence level: Medium.
+- Verification needed: Confirm whether the operator is exploring new locations, second concepts, partnerships, or no expansion at all.
+
+### Section 15 Decision Quality: Operational Maturity
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Operational maturity appears medium-high for supplement retail and unknown for food-service franchise operations.
+- Evidence basis: Product taxonomy, ecommerce, payment/cart flow, fulfillment claims, public hours, InBody testing, and location information.
+- Source reliability: High for observed retail features; medium for maturity interpretation.
+- Confidence level: Medium-high for retail maturity; unknown for food service.
+- Verification needed: Ask about staffing, manager capacity, appetite for food handling, and whether the operator has run food/beverage concepts before.
+
+### Section 16 Decision Quality: Brand Strength
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Nutrition Depot has clear category recognition and multiple public touchpoints, but brand architecture across public sites and locations is unclear.
+- Evidence basis: Brand name, official Houston site, Nutrition Depot Online, Pasadena Chamber, and product catalog visibility.
+- Source reliability: Medium-high.
+- Confidence level: Medium.
+- Verification needed: Determine whether public sites represent one coordinated brand, affiliated operators, or unrelated local entities using similar naming.
+
+### Section 17 Decision Quality: Community Presence
+
+- Conclusion label: Observed and Unknown.
+- Major conclusion: Chamber membership and local business reporting show some public community presence, but sponsorships, gym partnerships, and events remain unknown.
+- Evidence basis: Pasadena Chamber listing and Community Impact relocation coverage.
+- Source reliability: Medium-high.
+- Confidence level: Medium-low.
+- Verification needed: Ask about local gym relationships, trainer referrals, health events, community sponsorships, and business-to-business partnerships.
+
+### Section 18 Decision Quality: Business Network
+
+- Conclusion label: Inferred from public sources.
+- Major conclusion: Nutrition Depot may have a valuable wellness retail network, but network depth and referral power are unverified.
+- Evidence basis: Product brand catalog, chamber listing, listed store locations, and supplement customer category.
+- Source reliability: Medium.
+- Confidence level: Medium.
+- Verification needed: Ask whether the operator knows gym owners, trainers, nutrition coaches, wellness centers, or other operators who may fit Smoothie Depot.
+
+### Section 19 Decision Quality: Franchise Compatibility
+
+- Conclusion label: Inferred from multiple public sources and Unknown for buyer readiness.
+- Major conclusion: Franchise compatibility is high for customer overlap, medium for operating-model fit, and unknown for buyer readiness.
+- Evidence basis: Supplement and wellness customer base; repeat-product category; InBody testing; ecommerce and pickup maturity; no public franchise intent evidence.
+- Source reliability: Medium-high.
+- Confidence level: Medium-high for customer fit; medium for operations; low for readiness.
+- Verification needed: Confirm food-service appetite, capital path, time horizon, and decision-maker interest.
+
+### Section 20 Decision Quality: Smoothie Depot Strategic Fit
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Smoothie Depot should be positioned as a complementary wellness beverage concept for Nutrition Depot customers, not as a replacement business or direct competitor.
+- Evidence basis: Nutrition Depot's supplement/protein/wellness categories align with smoothie customer missions; Nutrition Depot is not currently positioned as a smoothie brand in public sources.
+- Source reliability: Medium-high.
+- Confidence level: High for positioning strategy; medium for conversion probability.
+- Verification needed: Ask whether smoothies feel complementary, distracting, or outside scope.
+
+### Section 21 Decision Quality: Conversation Preparation
+
+- Conclusion label: Inferred from dossier evidence.
+- Major conclusion: Cruz should open with customer overlap, operator respect, and second-concept curiosity rather than a hard franchise pitch.
+- Evidence basis: Complementary category thesis and unknown franchise interest.
+- Source reliability: Medium-high.
+- Confidence level: High.
+- Verification needed: Confirm the listener has authority and interest before moving into any JR or economics conversation.
+
+### Section 22 Decision Quality: JR Executive Brief
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: JR should prepare a complementary-retail thesis and avoid assuming Nutrition Depot is already qualified.
+- Evidence basis: Public category fit is strong; liquidity, food-service appetite, ownership, and timeline are unknown.
+- Source reliability: Medium-high.
+- Confidence level: High for preparation posture.
+- Verification needed: Cruz must verify interest and authority before JR receives this as an active candidate.
+
+### Section 23 Decision Quality: Risk Register
+
+- Conclusion label: Inferred from unknowns and contradictions.
+- Major conclusion: Top risks are decision-maker ambiguity, category mismatch, expansion overinterpretation, review intelligence gap, and brand architecture ambiguity.
+- Evidence basis: Multiple public Nutrition Depot signals without ownership clarity; supplement retail versus food-service model; missing direct review capture.
+- Source reliability: Medium-high for risks tied to observed gaps.
+- Confidence level: High.
+- Verification needed: Confirm each risk through live conversation and public review pass.
+
+### Section 24 Decision Quality: Unknowns Register
+
+- Conclusion label: Unknown.
+- Major conclusion: The most valuable unknown is whether the correct decision maker is open to second-concept or franchise expansion.
+- Evidence basis: No public source proves franchise intent, capital readiness, decision authority, or timeline.
+- Source reliability: High for absence of evidence in reviewed sources; not proof of absence.
+- Confidence level: High that unknowns remain material.
+- Verification needed: Ask decision-maker authority and second-concept openness first.
+
+### Section 25 Decision Quality: Verification Checklist
+
+- Conclusion label: Inferred from unknowns and quality-control requirements.
+- Major conclusion: The verification sequence should clarify public facts before outreach, authority and interest during outreach, and assumptions after outreach.
+- Evidence basis: Dossier unknowns and source limitations.
+- Source reliability: High for internal process logic.
+- Confidence level: High.
+- Verification needed: Execute checklist and update dossier or decision journal after the call.
+
+### Section 26 Decision Quality: Opportunity Ranking
+
+- Conclusion label: Inferred from current Founder Mission Queue and comparative analysis.
+- Major conclusion: Nutrition Depot remains rank 1 because it offers the best balance of complementary category fit, contactability, and Houston wellness-customer relevance.
+- Evidence basis: Current ranked prospect artifact; comparison against Cranky Carrot, LEEMOO, Tight Squeeze, HS Green, Acai Brasil, Leaf & Grain, Local Foods, Dish Society, Pure Green, Hungry's, and Joyful Drink Experience.
+- Source reliability: High for internal ranking artifact; medium-high for underlying public evidence.
+- Confidence level: High for call priority; medium for eventual qualification.
+- Verification needed: Update ranking if another prospect confirms near-term franchise interest before Nutrition Depot.
+
+### Section 27 Decision Quality: Confidence Model
+
+- Conclusion label: Inferred from evidence quality.
+- Major conclusion: Confidence is high for first-call prioritization, medium for conversion potential, and low for qualification until owner-provided facts exist.
+- Evidence basis: Official sites, local reporting, chamber listing, public directory, and unresolved unknowns.
+- Source reliability: High to medium.
+- Confidence level: Mixed by decision stage.
+- Verification needed: Tie confidence updates to owner-provided answers and direct review verification.
+
+### Section 28 Decision Quality: Evidence Matrix
+
+- Conclusion label: Observed and Inferred from multiple public sources.
+- Major conclusion: The evidence matrix separates observed facts, self-reported claims, inferred strategic fit, and unknown buyer-readiness variables.
+- Evidence basis: Matrix rows cite official Houston site, Nutrition Depot Online, Community Impact, Pasadena Chamber, Waze, and internal ranked prospect artifact.
+- Source reliability: Varies by row from high to medium.
+- Confidence level: High for observed facts; medium for inferences; low for unknowns.
+- Verification needed: Expand matrix after direct GBP review capture and first conversation.
+
+### Section 29 Decision Quality: Source Reliability Matrix
+
+- Conclusion label: Observed.
+- Major conclusion: The strongest sources are official business sites for current public claims and Community Impact for relocation history; directory data is secondary.
+- Evidence basis: Source matrix lists each source, URL, tier, reliability, use, and limitation.
+- Source reliability: High for Tier 1 sources; medium-high for Tier 2; medium for Tier 3.
+- Confidence level: High for source-tier structure.
+- Verification needed: Add direct Google Business Profile and any official owner-provided materials after conversation.
+
+### Section 30 Decision Quality: Recommended Next Actions
+
+- Conclusion label: Inferred from multiple public sources.
+- Major conclusion: Cruz should call Nutrition Depot Houston first to verify authority, second-concept openness, and whether there is a broader Greater Houston decision path.
+- Evidence basis: Rank 1 queue position, complementary customer thesis, operational maturity signals, and unresolved high-value unknowns.
+- Source reliability: Medium-high.
+- Confidence level: High for first call; not qualified beyond discovery.
+- Verification needed: Complete first-call journal before any JR handoff.
+
+## Business History Reconstruction
+
+Conclusion label: Observed for relocation events; Unknown for deeper ownership history.
+
+Evidence basis:
+
+- Community Impact reports the Houston move from Rice Village to Southwest Freeway in 2025.
+- Official Houston site confirms current Southwest Freeway operating identity.
+- Nutrition Depot Online confirms current broader public digital retail presence and listed locations.
+
+Source reliability:
+
+Medium-high for local reporting and high for current official web presence.
+
+Confidence level:
+
+High for 2025 relocation; low for founding story, ownership continuity, and full growth narrative.
+
+Verification needed:
+
+Ask when the Houston operator began, whether the Rice Village and Southwest Freeway stores share the same owners, and whether the move was demand-driven, lease-driven, or strategic.
+
+Reconstructed timeline:
+
+- Pre-2025: Public history is incomplete. A copyright marker on the Houston site shows 2018, but this is not a validated founding date.
+- Late January 2025: Community Impact reported the former Rice Village store closed during the last week of January.
+- February 3, 2025: Community Impact reported the new Southwest Freeway space opened.
+- Current state: Official Houston site and Nutrition Depot Online show public retail and ecommerce activity.
+
+## Review Intelligence Analysis
+
+Conclusion label: Inferred from public product/reputation themes; direct review conclusions remain Unknown.
+
+Evidence basis:
+
+Official sites and directories show supplement, protein, health, pickup, ecommerce, and body composition themes. Direct Google Business Profile review capture is incomplete.
+
+Source reliability:
+
+High for product themes from official sources; low for complaint frequency because review source capture remains incomplete.
+
+Confidence level:
+
+Medium for positive category themes; low for review trend analysis.
+
+Verification needed:
+
+Capture direct public review data before JR handoff: rating, review count, recent review themes, complaint categories, owner response behavior, and trend direction.
+
+Positive themes to test:
+
+- Product selection.
+- Fitness and supplement expertise.
+- Protein and pre-workout relevance.
+- Convenience through pickup and inventory.
+- Body-composition consultation.
+
+Negative themes to test:
+
+- Stockouts.
+- Pricing complaints.
+- Staff knowledge inconsistency.
+- Service speed.
+- Fulfillment friction.
+- Confusion between local and online operations.
+
+## Digital Maturity Analysis
+
+Conclusion label: Observed and Inferred from multiple public sources.
+
+Evidence basis:
+
+Nutrition Depot Houston site provides local identity, address, phone, hours, categories, InBody testing, and contact form. Nutrition Depot Online provides ecommerce, cart, product catalog, payment methods, real-time inventory claim, same-day shipping claim, pickup claim, and locations.
+
+Source reliability:
+
+High for observed site functions; medium for interpreting maturity.
+
+Confidence level:
+
+Medium-high.
+
+Verification needed:
+
+Confirm whether online operations are connected to the Houston operator. If connected, maturity rises. If disconnected, maturity is local-store medium.
+
+Assessment:
+
+- Website quality: Functional.
+- Brand consistency: Fragmented across sites.
+- Contact experience: Clear enough for outreach.
+- Customer journey: Stronger if ecommerce and Houston store are connected.
+- SEO indicators: Basic category/location discoverability evident.
+- Online professionalism: Adequate for local retail, not enterprise-grade.
+- Public communication quality: Direct and practical.
+
+## Market Intelligence
+
+Conclusion label: Inferred from public category and geographic evidence.
+
+Evidence basis:
+
+Supplement retail categories overlap with fitness, wellness, protein, and performance customers. Houston-area location signals suggest possible access to multiple commercial corridors.
+
+Source reliability:
+
+Medium-high.
+
+Confidence level:
+
+Medium.
+
+Verification needed:
+
+Map nearby gyms, smoothie shops, healthy cafes, medical wellness providers, residential density, daytime office traffic, and retail anchors around Southwest Freeway before territory recommendations.
+
+Market implication:
+
+Nutrition Depot may provide insight into where Houston wellness buyers already shop and what corridors are under-served by smoothie concepts.
+
+## Business Decision Support
+
+Conclusion label: Inferred from multiple public sources and current unknowns.
+
+Evidence basis:
+
+The dossier supports a discovery call but not qualification.
+
+Source reliability:
+
+High for process recommendation.
+
+Confidence level:
+
+High.
+
+Verification needed:
+
+Use first call to decide whether this remains a franchise prospect, becomes a referral source, or moves to watchlist.
+
+Recommended decision support:
+
+- Top opportunity: Complementary wellness retail customer base.
+- Top risk: Operator may not want food service or franchise involvement.
+- Top unknown: Decision-maker openness to second concepts.
+- Top opening topic: Houston wellness and performance customer overlap.
+- Topic to postpone: Private financial capacity.
+
+## Uncertainty Analysis
+
+Conclusion label: Unknown.
+
+Evidence basis:
+
+Reviewed public sources do not disclose ownership structure, liquidity, franchise interest, decision authority, full review quality, or food-service appetite.
+
+Source reliability:
+
+High for recognizing absence in reviewed sources; absence does not prove negative facts.
+
+Confidence level:
+
+High that uncertainty remains material.
+
+Verification needed:
+
+Resolve the top three unknowns before any JR handoff: authority, interest, and operating appetite.
+
+Highest-confidence conclusions:
+
+- Public Houston location and contact path exist.
+- Nutrition/supplement category fit exists.
+- Relocation was publicly reported in 2025.
+
+Lowest-confidence conclusions:
+
+- Shared Greater Houston ownership.
+- Franchise readiness.
+- Capital availability.
+- Food-service appetite.
+
+Biggest information gaps:
+
+- Who decides.
+- Whether they want expansion.
+- Whether they can operate food/beverage.
+
+Three uncertainty reducers:
+
+1. Are you the person who decides expansion or second-concept opportunities?
+2. Are second concepts or franchise systems on your radar?
+3. Would a smoothie concept feel complementary to Nutrition Depot customers?
+
+## Comparative Analysis
+
+Conclusion label: Inferred from current ranked prospect artifact.
+
+Evidence basis:
+
+Nutrition Depot is compared against every currently known prospect in the Founder Mission Queue artifact.
+
+Source reliability:
+
+High for internal ranking; medium-high for public evidence across prospects.
+
+Confidence level:
+
+High for first-call order.
+
+Verification needed:
+
+Update comparison after each live conversation.
+
+Comparison:
+
+- Cranky Carrot may have stronger direct product fit, but higher competitor sensitivity.
+- LEEMOO has strong mobile-to-retail signal, but less source depth.
+- Tight Squeeze has direct category fit, but narrower visible footprint.
+- HS Green has review volume and healthy-food maturity, but weaker performance-nutrition alignment.
+- Acai Brasil has product fit and mobile/store signals, but may already be committed to its own acai path.
+- Leaf & Grain, Local Foods, Dish Society, and Hungry's have operating maturity, but weaker immediate smoothie-franchise conversion fit.
+- Pure Green has franchise experience, but likely competitive brand constraints.
+- Joyful Drink Experience has mobile beverage relevance, but lower public maturity evidence.
+
+## Scenario Analysis
+
+Conclusion label: Inferred from v4 decision-tree standard.
+
+Evidence basis:
+
+Scenario logic maps unknowns to next actions.
+
+Source reliability:
+
+High for internal decision structure.
+
+Confidence level:
+
+High.
+
+Verification needed:
+
+Tie each branch to actual call outcomes.
+
+Scenarios:
+
+- If liquidity is confirmed: Prepare JR economics conversation.
+- If liquidity is not confirmed: Preserve relationship and test referral/partnership pathway.
+- If multiple locations are desired: Prepare territory and phased rollout discussion.
+- If only one location is desired: Test owner involvement and first-unit readiness.
+- If timeline exceeds 12 months: Downgrade urgency and schedule refresh.
+- If no food-service appetite exists: Convert to referral/market intelligence target.
+- If contact lacks authority: Ask for correct decision path.
+- If Smoothie Depot feels competitive: Shift to operator learning, not conversion pressure.
+
+## Decision Journal Seed
+
+Conclusion label: Owner-provided facts pending.
+
+Evidence basis:
+
+No real conversation has occurred yet.
+
+Source reliability:
+
+Unknown until owner-provided facts exist.
+
+Confidence level:
+
+Not applicable until post-call.
+
+Verification needed:
+
+Complete after first conversation.
+
+Seed:
+
+- Predicted outcome: A short operator-level conversation is plausible if the right contact is reached, but immediate franchise qualification is uncertain.
+- Expected positive signal: Openness to second concepts or willingness to meet JR.
+- Expected negative signal: Food-service disinterest or no expansion authority.
+- Assumption to test: Nutrition/wellness customer overlap makes Smoothie Depot worth discussing.
+- Learning to capture: Whether supplement retailers are better franchise prospects, referral sources, or market-intelligence sources.
+
+## Quality Control / Red-Team Review
+
+Conclusion label: Inferred from evidence gaps and contradictions.
+
+Evidence basis:
+
+The same public evidence can support maturity, stabilization, or expansion-adjacent hypotheses.
+
+Source reliability:
+
+High for identifying internal evidence limitations.
+
+Confidence level:
+
+High.
+
+Verification needed:
+
+Resolve contradictions before JR handoff.
+
+Red-team attack:
+
+- This recommendation may be wrong because supplement retail may not translate into food-service operations.
+- The Greater Houston footprint may be fragmented and not controlled by one operator.
+- The relocation may signal convenience or stabilization rather than expansion.
+- Public product depth does not prove capital, staffing capacity, or interest.
+- Direct smoothie operators may convert faster if they already want expansion.
+
+Quality control answer:
+
+- Strongest evidence available: adequate for first-call prioritization.
+- Lawful public sources exhausted: not fully; direct GBP review capture and local competitor mapping remain incomplete.
+- Contradictions identified: yes.
+- Unknowns prioritized: yes.
+- PE-committee reliance: no for investment or final qualification; yes for a first-call executive prep memo.
 
 ## Second-Order Analysis
 
