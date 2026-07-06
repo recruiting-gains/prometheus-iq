@@ -36,6 +36,8 @@ Current foundation:
 - `research/reports/executive-intelligence-benchmark-study-v1.md`
 - `research/reports/executive-intelligence-benchmark-study-v1.json`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`

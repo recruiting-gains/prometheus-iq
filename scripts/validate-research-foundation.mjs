@@ -12,7 +12,8 @@ const marketIntelligenceModel = readJson("research/registers/market-intelligence
 const executiveIntelligenceStandard = readJson("research/registers/executive-intelligence-package-standard.json");
 const executiveBenchmarkStudy = readJson("research/reports/executive-intelligence-benchmark-study-v1.json");
 const smoothieDepotPackageRegister = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
-const nutritionDepotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
+const nutritionDepotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json");
+const nutritionDepotExecutivePackageV1 = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
 const crankyCarrotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json");
 const marketExpansionScoring = readJson("research/reports/market-expansion-scoring-v1.json");
 const smoothieDepotExecutiveFramework = readJson("research/workspaces/smoothie-depot/executive-due-diligence-framework-v4.json");
@@ -32,7 +33,8 @@ const marketRecommendationTemplate = readText("research/templates/market-expansi
 const executiveIntelligenceTemplate = readText("research/templates/executive-intelligence-package.md");
 const executiveIntelligencePlatform = readText("research/executive-intelligence-platform.md");
 const executiveBenchmarkReport = readText("research/reports/executive-intelligence-benchmark-study-v1.md");
-const nutritionDepotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
+const nutritionDepotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md");
+const nutritionDepotExecutivePackageReportV1 = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
 const crankyCarrotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md");
 const marketExpansionReport = readText("research/reports/market-expansion-recommendation-v1.md");
 const smoothieDepotWorkflow = readText("research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md");
@@ -649,19 +651,57 @@ assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.standardModified,
 assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.dashboardModified, false, "Executive packages must not modify Dashboard.");
 assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.crmModified, false, "Executive packages must not modify CRM.");
 assert.equal(smoothieDepotPackageRegister.boundaryConfirmation.intelligenceRuntimeModified, false, "Executive packages must not modify Intelligence runtime.");
+const activeSmoothieDepotExecutivePackages = smoothieDepotPackageRegister.packages.filter(entry => entry.canonicalForResearch);
+const historicalNutritionDepotPackageRegisterEntry = smoothieDepotPackageRegister.packages.find(
+  entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot"
+);
+const rebuiltNutritionDepotPackageRegisterEntry = smoothieDepotPackageRegister.packages.find(
+  entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot_v2"
+);
 assert.deepEqual(
-  smoothieDepotPackageRegister.packages.map(entry => entry.business),
+  activeSmoothieDepotExecutivePackages.map(entry => entry.business),
   [
     "Nutrition Depot Houston and Greater Houston",
     "Cranky Carrot Juice Co."
   ],
-  "First two Executive Intelligence Packages must match the current mission queue leaders."
+  "Active canonical Executive Intelligence Packages must match the current mission queue leaders."
 );
 assert.deepEqual(
-  smoothieDepotPackageRegister.packages.map(entry => entry.rank),
+  activeSmoothieDepotExecutivePackages.map(entry => entry.rank),
   [1, 2],
-  "First two Executive Intelligence Packages must preserve rank order."
+  "Active canonical Executive Intelligence Packages must preserve rank order."
 );
+assert.ok(rebuiltNutritionDepotPackageRegisterEntry, "Nutrition Depot v2 register entry is required.");
+assert.equal(rebuiltNutritionDepotPackageRegisterEntry.canonicalForResearch, true, "Nutrition Depot v2 must be canonical for Research.");
+assert.equal(rebuiltNutritionDepotPackageRegisterEntry.supersedesPackageId, "smoothie_depot_eip_001_nutrition_depot", "Nutrition Depot v2 must supersede v1.");
+assert.ok(historicalNutritionDepotPackageRegisterEntry, "Nutrition Depot v1 historical register entry is required.");
+assert.equal(historicalNutritionDepotPackageRegisterEntry.artifactStatus, "superseded_historical_research_package", "Nutrition Depot v1 must be preserved as historical.");
+assert.equal(historicalNutritionDepotPackageRegisterEntry.canonicalForResearch, false, "Nutrition Depot v1 must not remain canonical after v2 rebuild.");
+assert.equal(nutritionDepotExecutivePackageV1.packageId, "smoothie_depot_eip_001_nutrition_depot", "Nutrition Depot v1 artifact must remain available.");
+assert.ok(nutritionDepotExecutivePackageReportV1.includes("Executive Intelligence Package"), "Nutrition Depot v1 historical markdown must remain available.");
+assert.equal(nutritionDepotExecutivePackage.packageId, "smoothie_depot_eip_001_nutrition_depot_v2", "Nutrition Depot active package must be v2.");
+assert.equal(nutritionDepotExecutivePackage.supersedesPackageId, "smoothie_depot_eip_001_nutrition_depot", "Nutrition Depot v2 must point to v1.");
+assert.equal(nutritionDepotExecutivePackage.v1PreservedAsHistorical, true, "Nutrition Depot v2 must record v1 historical preservation.");
+assert.ok(nutritionDepotExecutivePackage.ownershipFinding.finding.includes("Ivan Valdes"), "Nutrition Depot v2 must include Ivan Valdes ownership/control finding.");
+assert.ok(nutritionDepotExecutivePackage.ivanValdesFinding.finding.includes("operator"), "Nutrition Depot v2 must include Ivan Valdes operator finding.");
+assert.ok(nutritionDepotExecutivePackage.confirmedLocations.length >= 4, "Nutrition Depot v2 must include confirmed location intelligence.");
+assert.ok(nutritionDepotExecutivePackage.websiteEcommerceIntelligence.findings.length >= 4, "Nutrition Depot v2 must include ecommerce intelligence.");
+assert.ok(nutritionDepotExecutivePackage.reputationAnalysis.signals.length >= 5, "Nutrition Depot v2 must include reputation analysis.");
+assert.ok(nutritionDepotExecutivePackage.socialPresenceAnalysis.signals.length >= 5, "Nutrition Depot v2 must include social presence analysis.");
+assert.ok(nutritionDepotExecutivePackage.namedCompetitors.length >= 10, "Nutrition Depot v2 must include named competitors.");
+assert.ok(nutritionDepotExecutivePackage.sourceReferences.length >= 20, "Nutrition Depot v2 must include deep source references.");
+for (const v2RequiredText of [
+  "Executive Intelligence Package v2",
+  "Ivan Valdes",
+  "Ownership / Control Finding",
+  "Location Intelligence",
+  "Website / Ecommerce Intelligence",
+  "Public Reputation Signals",
+  "Named Local and Channel Competitors",
+  "Key Corrections From v1"
+]) {
+  assert.ok(nutritionDepotExecutivePackageReport.includes(v2RequiredText), `Nutrition Depot v2 report missing ${v2RequiredText}.`);
+}
 
 const executivePackages = [
   {
@@ -751,6 +791,8 @@ for (const packageArtifact of executivePackages) {
 
 for (const requiredPath of [
   "research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md",
+  "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json",
   "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md",
   "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json",
   "research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md",

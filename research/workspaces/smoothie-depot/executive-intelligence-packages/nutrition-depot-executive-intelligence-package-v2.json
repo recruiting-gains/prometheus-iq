@@ -1,0 +1,520 @@
+{
+  "packageId": "smoothie_depot_eip_001_nutrition_depot_v2",
+  "supersedesPackageId": "smoothie_depot_eip_001_nutrition_depot",
+  "packageVersion": "v2",
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "business": "Nutrition Depot Houston and Greater Houston",
+  "platformStandard": "executive_intelligence_platform_v1",
+  "productionRuntimeChange": false,
+  "generatedDate": "2026-07-06",
+  "packageStatus": "completed_research_executive_intelligence_package",
+  "founderReviewStatus": "v1_failed_founder_review_v2_deep_research_rebuild_completed",
+  "founderMissionQueueRank": 1,
+  "canonicalForResearch": true,
+  "v1PreservedAsHistorical": true,
+  "audiencePerspective": {
+    "writtenFor": "Receiving Smoothie Depot executive",
+    "defaultPerspective": "receiving_executive",
+    "prometheusDecisionMakerException": false,
+    "packageExecutesEngagement": false
+  },
+  "standardModified": false,
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "conclusionRequirements": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "decisionFraming": {
+    "decisionQuestion": "Should Nutrition Depot Houston / Greater Houston be treated as a high-priority executive outreach target for Smoothie Depot franchise-development evaluation?",
+    "decisionThesis": "Nutrition Depot deserves the top current executive outreach-preparation position because it combines category adjacency, public operator identification, multi-location signals, strong Pasadena customer reputation, ecommerce sophistication, fitness/wellness audience access, and a credible path to a second-concept conversation.",
+    "recommendedExecutivePosture": "Lead with operator respect and strategic curiosity. Treat the conversation as qualification and relationship development, not a pitch.",
+    "confidence": "Medium-high that Ivan Valdes is the key Pasadena / Clear Lake operator; medium that Nutrition Depot is an attractive Smoothie Depot expansion target; medium-low that all Houston-area Nutrition Depot assets are under common control."
+  },
+  "keyCorrectionsFromV1": [
+    "Added Prometheus-branded cover, explicit package metadata, executive decision page, and no founder review controls.",
+    "Replaced shallow ownership unknown with Ivan Valdes operator/control analysis supported by public sources.",
+    "Separated confirmed storefronts from broader Nutrition Depot network signals.",
+    "Added website and ecommerce catalog intelligence.",
+    "Added public reputation analysis from Birdeye, indexed review signals, Grubhub, Facebook snippets, and Glassdoor.",
+    "Added social presence analysis from Instagram, Facebook, LinkedIn, and Nutrition Depot Online public signals.",
+    "Named actual Houston / Greater Houston competitors and channel substitutes.",
+    "Replaced generic unknowns with checked-source unknowns and verification paths."
+  ],
+  "ownershipFinding": {
+    "label": "Corroborated / Owner-provided / Inference",
+    "finding": "Ivan Valdes appears to be the public operator and likely controlling owner for Nutrition Depot Pasadena and Clear Lake. Legal ownership is not fully verified. Public evidence does not yet prove that Ivan controls the Houston / Southwest Freeway storefront or Nutrition Depot Online.",
+    "evidenceBasis": [
+      "Pasadena Chamber identifies Ivan Valdes as Rep/Contact for Nutrition Depot Pasadena.",
+      "ChamberVu Pasadena 2024 guide lists Nutrition Depot Pasadena with Ivan Valdes, address, phone, and Health & Wellness category.",
+      "VoyageHouston attributes to Ivan a detailed operator history: started with Nutrition Depot in 2008, became Pasadena manager in 2012, purchased Pasadena in 2021, acquired Clear Lake in 2024, and owns/operates two Nutrition Depot storefronts.",
+      "LinkedIn public search identifies Ivan Valdes as Manager at Nutrition Depot in Pasadena.",
+      "Instagram public search-index snippets state the Pasadena account became owners of Clear Lake and that Clear Lake was the second store."
+    ],
+    "sourceReliability": "Medium-high for operator identification; medium for owner narrative; medium-low for social snippets; low for legal entity structure.",
+    "confidenceLevel": "Medium-high for Ivan as Pasadena/Clear Lake operator; medium for owner/control status; low for ownership beyond Pasadena/Clear Lake.",
+    "verificationNeeded": "Confirm legal entity names, current authority, whether Ivan controls Houston/Southwest Freeway, whether Nutrition Depot Online is connected, and whether other partners have decision rights.",
+    "businessDecisionImpact": "v2 supports a targeted executive conversation with Ivan Valdes or the current decision-maker while preserving caution around legal control."
+  },
+  "ivanValdesFinding": {
+    "label": "Owner-provided / Corroborated",
+    "finding": "Ivan Valdes' public relationship to Nutrition Depot appears meaningful and operator-level, centered on Pasadena and Clear Lake.",
+    "evidenceBasis": [
+      "VoyageHouston operator profile.",
+      "Pasadena Chamber rep/contact listing.",
+      "ChamberVu member listing.",
+      "LinkedIn public profile snippet.",
+      "Social public snippets."
+    ],
+    "sourceReliability": "Medium-high for operator identification; medium for timeline details; medium-low for exact ownership economics.",
+    "confidenceLevel": "Medium-high",
+    "verificationNeeded": "Current role, legal ownership, partner rights, and whether Ivan is the right person for a Smoothie Depot franchise-development conversation.",
+    "businessDecisionImpact": "Executive preparation should acknowledge the visible Pasadena-to-Clear-Lake path and ask how the operator evaluates expansion now."
+  },
+  "confirmedLocations": [
+    {
+      "name": "Nutrition Depot Houston / Southwest Freeway",
+      "address": "2005 Southwest Freeway Service Road, Houston, TX 77098",
+      "phone": "(346) 516-0878",
+      "corridor": "Inner Loop / Shepherd / I-69 / Rice Village-adjacent",
+      "status": "Confirmed Nutrition Depot storefront; control relationship to Ivan unverified.",
+      "evidenceBasis": "Official Houston site, Community Impact relocation article, Waze indexed listing, Grubhub indexed listing.",
+      "confidenceLevel": "High for storefront existence; low-medium for Ivan relationship."
+    },
+    {
+      "name": "Nutrition Depot Pasadena",
+      "address": "6065 Fairmont Pkwy Suite 120, Pasadena, TX 77505",
+      "phone": "(281) 991-3113",
+      "corridor": "Southeast Houston / Pasadena / Fairmont retail corridor",
+      "status": "Confirmed storefront and strongest Ivan-associated public identity anchor.",
+      "evidenceBasis": "Pasadena Chamber, ChamberVu, Fivestars, Birdeye, Instagram public snippets.",
+      "confidenceLevel": "High for storefront existence; medium-high for Ivan operator connection."
+    },
+    {
+      "name": "Nutrition Depot Clear Lake",
+      "address": "235 or 237 E NASA Pkwy, Webster, TX 77598",
+      "phone": "(281) 557-1269",
+      "corridor": "Clear Lake / Webster / NASA / League City / Friendswood",
+      "status": "Confirmed Clear Lake/Webster retail node; exact street number should be verified.",
+      "evidenceBasis": "Fivestars Clear Lake, Instagram public snippets, Facebook public snippets, VoyageHouston owner narrative.",
+      "confidenceLevel": "Medium-high for storefront existence; medium for Ivan operator connection."
+    },
+    {
+      "name": "Nutrition Depot Online",
+      "address": "https://ndonline.com/",
+      "phone": "Not central to this package",
+      "corridor": "Ecommerce / Houston network",
+      "status": "Confirmed ecommerce footprint; control relationship to Ivan unverified.",
+      "evidenceBasis": "Nutrition Depot Online catalog, product, brands, and payment pages.",
+      "confidenceLevel": "High for ecommerce existence; low-medium for Pasadena/Clear Lake control link."
+    }
+  ],
+  "websiteEcommerceIntelligence": {
+    "label": "Observed / Corroborated",
+    "summary": "Nutrition Depot has deeper digital/ecommerce sophistication than v1 recognized.",
+    "findings": [
+      "Official Houston site lists supplement categories, InBody Scale services, address, phone, and hours.",
+      "Nutrition Depot Online has ecommerce taxonomy across Protein, Workout Enhancement, Muscle Builders, Weight Loss, Vitamins & Minerals, General Health, Food & Snacks, Accessories, and Brands.",
+      "Product pages show SKU count/filter sophistication, brand filters, pricing, sold-out status, payment rails, newsletter capture, and detailed product merchandising.",
+      "Brand list includes 1st Phorm, 5% Nutrition, Alani Nu, Alpha Lion, APS, Axe and Sledge, Black Magic, Blackmarket Labs, BSN, Cellucor, Celsius, Core, Dymatize, Ghost, Glaxon, Gorilla Mind, Hi-Tech, Jocko Fuel, KULT, and others."
+    ],
+    "sourceReliability": "High for public website/ecommerce observations; medium-low for ownership linkage between Nutrition Depot Online and Ivan.",
+    "confidenceLevel": "High that ecommerce/product sophistication exists; low-medium that it is controlled by the same operator.",
+    "verificationNeeded": "Determine whether Ivan/Pasadena/Clear Lake operate or feed into ndonline.com and whether local stores support pickup, fulfillment, or inventory sync.",
+    "businessDecisionImpact": "If connected, Nutrition Depot has more advanced retail systems and digital thinking than a typical local storefront."
+  },
+  "reputationAnalysis": {
+    "label": "Corroborated / Inference",
+    "summary": "Pasadena public reputation is strong enough to support executive outreach preparation. Clear Lake is directionally positive but less quantified. Houston/Southwest Freeway reputation is too thin to rely on.",
+    "signals": [
+      "Birdeye / Google aggregation for Pasadena shows 4.9 stars and 347 reviews, with excerpts praising helpful customer service, selection, prices, and courteous employees.",
+      "Facebook Pasadena public search snippet shows 88% recommend across 28 reviews.",
+      "Wheree indexed snippets for Pasadena and Clear Lake emphasize knowledgeable staff, helpfulness, expertise, competitive prices, and positive shopping experience.",
+      "Grubhub Houston indexed listing shows a low-volume 4.2 rating across 5 ratings.",
+      "Glassdoor Nutrition Depot shows 3.7 rating across 16 reviews, 59% recommend, with employee positives around knowledge/discounts/customer interaction and risks around pay, benefits, management, and advancement."
+    ],
+    "sourceReliability": "Medium for Pasadena; medium-low for Clear Lake; low-medium for Houston; medium for employee-level signal.",
+    "confidenceLevel": "Medium-high for Pasadena customer experience; medium-low for Clear Lake and Houston patterns.",
+    "verificationNeeded": "Ask which location has the strongest customer base, whether reviews are actively managed, how complaints are handled, and whether staff expertise is formalized in training.",
+    "businessDecisionImpact": "Strong staff-advice reputation is relevant to Smoothie Depot because smoothie franchise execution requires customer education, menu recommendation, upsell discipline, and repeat-purchase service habits."
+  },
+  "socialPresenceAnalysis": {
+    "label": "Observed / Inference",
+    "summary": "Public social signals exist for Pasadena, Clear Lake, Nutrition Depot Online, and broader Nutrition Depot network pages. Direct Instagram/Facebook extraction was limited, so social snippets are treated as directional unless corroborated.",
+    "signals": [
+      "Nutrition Depot Pasadena Instagram public snippet shows 3,631 followers, 1,894 following, specialty supplement store, product availability DMs, 6065 Fairmont Parkway, and phone (281) 991-3113.",
+      "Nutrition Depot Clear Lake Instagram public snippet shows 2.2K+ followers, 1.6K+ posts, phone (281) 557-1269, hours, and Pasadena account linkage.",
+      "Instagram indexed post states Clear Lake became the second store.",
+      "Facebook Pasadena and Clear Lake public/search snippets show store presence, product posts, recommendation signal, and Ivan association snippets.",
+      "Nutrition Depot Online public social snippets show a broader retail-location/ecommerce network that may be separate from Ivan's Pasadena/Clear Lake footprint."
+    ],
+    "sourceReliability": "Medium-low because much of the social evidence is search-indexed or platform-limited.",
+    "confidenceLevel": "Medium for social presence existence; low-medium for ownership/control conclusions from social alone.",
+    "verificationNeeded": "Confirm official social accounts, current ownership, account managers, promotional cadence, and whether online/social assets are connected to the operator.",
+    "businessDecisionImpact": "Social presence supports public activity and product-promotion maturity, but should not substitute for direct operator verification."
+  },
+  "namedCompetitors": [
+    "The Vitamin Shoppe Pasadena, 5683 Fairmont Pkwy",
+    "GNC Spencer Square, 3540 Spencer Hwy, Pasadena",
+    "GNC Fairmont Shopping Center, 5830 Fairmont Parkway, Pasadena",
+    "The Vitamin Shoppe Baybrook-Webster, 19411 Gulf Freeway",
+    "GNC Houston-area locations",
+    "Amazon",
+    "Bodybuilding.com",
+    "The Vitamin Shoppe online",
+    "GNC.com",
+    "Cranky Carrot Juice Co.",
+    "JuiceLand Houston",
+    "Smoothie King Houston-area stores",
+    "Gyms with retail counters and supplement partnerships",
+    "Healthy cafes, acai concepts, and smoothie bowl concepts"
+  ],
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Executive Summary",
+      "requiredElements": [
+        "decisionContext",
+        "executiveRecommendation",
+        "confidence",
+        "criticalUnknowns"
+      ],
+      "summary": "Prepare Nutrition Depot as the highest-priority current executive outreach target, with the first executive conversation focused on authority verification and strategic fit."
+    },
+    {
+      "layer": 2,
+      "name": "Business Identity",
+      "requiredElements": [
+        "businessName",
+        "publicAddresses",
+        "publicContactMethods",
+        "businessCategory",
+        "sourceAttribution"
+      ],
+      "summary": "Nutrition Depot is a Houston-area supplement-retail brand/network with confirmed Houston, Pasadena, and Clear Lake public storefront signals plus an ecommerce footprint."
+    },
+    {
+      "layer": 3,
+      "name": "Ownership Leadership Public Operators Corporate Structure Timeline",
+      "requiredElements": [
+        "ownership",
+        "leadership",
+        "publicOperators",
+        "corporateStructure",
+        "timeline"
+      ],
+      "summary": "Ivan Valdes appears to be the public operator and likely controlling owner for Pasadena and Clear Lake; Houston/Southwest Freeway and Nutrition Depot Online control remain unverified."
+    },
+    {
+      "layer": 4,
+      "name": "Business Evolution Expansion Growth Brand Development Historical Milestones",
+      "requiredElements": [
+        "businessEvolution",
+        "expansion",
+        "growth",
+        "brandDevelopment",
+        "historicalMilestones"
+      ],
+      "summary": "The most decision-relevant evolution signal is Ivan's apparent progression from store employee to multi-store operator."
+    },
+    {
+      "layer": 5,
+      "name": "Operational Intelligence",
+      "requiredElements": [
+        "locations",
+        "footprint",
+        "hiring",
+        "businessModel",
+        "operationalMaturity",
+        "growthIndicators",
+        "expansionSignals"
+      ],
+      "summary": "The safest verified footprint is Pasadena plus Clear Lake under Ivan-associated operator signals, with Houston/Southwest Freeway confirmed as a Nutrition Depot storefront but not yet linked to Ivan."
+    },
+    {
+      "layer": 6,
+      "name": "Commercial Ecosystem Intelligence",
+      "requiredElements": [
+        "adjacentBusinesses",
+        "anchorBusinesses",
+        "trafficGenerators",
+        "medical",
+        "fitness",
+        "retail",
+        "residential",
+        "commercialDevelopment",
+        "economicActivity",
+        "futureDevelopment",
+        "infrastructure",
+        "roadProjects",
+        "construction",
+        "populationTrends"
+      ],
+      "summary": "Nutrition Depot's most valuable Smoothie Depot use case is a Houston corridor learning platform: Pasadena for suburban wellness retail, Clear Lake for Bay Area commuter/fitness retail, and Houston/Southwest Freeway for urban wellness if control is connected."
+    },
+    {
+      "layer": 7,
+      "name": "Competitive Intelligence",
+      "requiredElements": [
+        "directCompetitors",
+        "indirectCompetitors",
+        "substitutes",
+        "complementaryBusinesses",
+        "marketPositioning",
+        "competitiveStrengths",
+        "competitiveWeaknesses"
+      ],
+      "summary": "Nutrition Depot competes against named local supplement chains, online marketplaces, gyms with retail, and wellness beverage/food substitutes."
+    },
+    {
+      "layer": 8,
+      "name": "Community Intelligence",
+      "requiredElements": [
+        "communityInvolvement",
+        "partnerships",
+        "organizations",
+        "events",
+        "networking",
+        "brandPresence",
+        "publicReputation"
+      ],
+      "summary": "Pasadena has the strongest public community anchor through Chamber visibility and review volume; Clear Lake has event/social visibility; Houston/Southwest Freeway has relocation visibility."
+    },
+    {
+      "layer": 9,
+      "name": "Digital Intelligence",
+      "requiredElements": [
+        "website",
+        "seo",
+        "socialPresence",
+        "marketingMaturity",
+        "digitalFootprint",
+        "customerJourney"
+      ],
+      "summary": "Nutrition Depot has deeper public digital/ecommerce sophistication than v1 recognized, but asset ownership/control must be verified."
+    },
+    {
+      "layer": 10,
+      "name": "Reputation Intelligence",
+      "requiredElements": [
+        "reviewAnalysis",
+        "themeAnalysis",
+        "operationalStrengths",
+        "operationalWeaknesses",
+        "complaintPatterns",
+        "recoveryBehavior"
+      ],
+      "summary": "Pasadena reputation is strong and quantified; Clear Lake is directionally positive but less quantified; Houston/Southwest Freeway is too thin to rely on."
+    },
+    {
+      "layer": 11,
+      "name": "Strategic Intelligence",
+      "requiredElements": [
+        "growthProbability",
+        "expansionReadiness",
+        "businessMaturity",
+        "investmentReadiness",
+        "operationalComplexity",
+        "decisionMakerReadiness"
+      ],
+      "summary": "Nutrition Depot is strategically relevant because it sits at the intersection of wellness retail, fitness consumers, supplement education, repeat purchase, local service reputation, and possible multi-location operating experience."
+    },
+    {
+      "layer": 12,
+      "name": "Executive Decision Support",
+      "requiredElements": [
+        "topOpportunities",
+        "topRisks",
+        "criticalUnknowns",
+        "questionsThatReduceUncertainty",
+        "conversationStrategy",
+        "recommendedExecutiveApproach",
+        "recommendedNextInvestigation"
+      ],
+      "summary": "The executive conversation should reduce uncertainty around authority, footprint, online relationship, expansion appetite, food-service interest, capital readiness, and decision path."
+    }
+  ],
+  "majorConclusions": [
+    {
+      "label": "Corroborated / Owner-provided / Inference",
+      "conclusion": "Ivan Valdes appears to be the public operator and likely controlling owner for Nutrition Depot Pasadena and Clear Lake.",
+      "evidenceBasis": "Pasadena Chamber, ChamberVu, VoyageHouston, LinkedIn snippet, and Instagram public snippets.",
+      "sourceReliability": "Medium-high for operator identity; medium for ownership narrative; low for legal ownership.",
+      "confidenceLevel": "Medium-high for operator identity; medium for ownership/control.",
+      "verificationNeeded": "Confirm current legal decision authority and entity structure.",
+      "businessDecisionImpact": "Moves the package from generic prospect research to targeted executive preparation."
+    },
+    {
+      "label": "Observed / Corroborated",
+      "conclusion": "Nutrition Depot Pasadena has strong public customer reputation.",
+      "evidenceBasis": "Birdeye / Google aggregation shows 4.9 stars and 347 reviews with positive service, selection, and price themes.",
+      "sourceReliability": "Medium-high",
+      "confidenceLevel": "Medium-high",
+      "verificationNeeded": "Direct Google profile audit and complaint/recovery review.",
+      "businessDecisionImpact": "Supports the thesis that the operator understands advice-based wellness retail."
+    },
+    {
+      "label": "Observed / Inference",
+      "conclusion": "Nutrition Depot Online shows material ecommerce/product-catalog maturity, but linkage to Ivan is unverified.",
+      "evidenceBasis": "ndonline.com product, category, brand, pricing, inventory, payment, and newsletter pages.",
+      "sourceReliability": "High for website facts; medium-low for ownership/control linkage.",
+      "confidenceLevel": "High for ecommerce existence; low-medium for target linkage.",
+      "verificationNeeded": "Ask whether Pasadena/Clear Lake owns, uses, or feeds the ecommerce asset.",
+      "businessDecisionImpact": "If connected, this materially increases operator-maturity score."
+    },
+    {
+      "label": "Inference",
+      "conclusion": "Nutrition Depot outranks Cranky Carrot as the current first executive-preparation target because it is adjacent rather than directly competitive with Smoothie Depot.",
+      "evidenceBasis": "Supplement category adjacency, public operator identification, multi-location signals, reputation, ecommerce/product sophistication, and Cranky Carrot's owned direct-category brand.",
+      "sourceReliability": "Medium",
+      "confidenceLevel": "Medium",
+      "verificationNeeded": "Confirm expansion appetite, food-service interest, and authority.",
+      "businessDecisionImpact": "Guides resource allocation for executive preparation."
+    }
+  ],
+  "unknownValueRanking": [
+    {
+      "rank": 1,
+      "unknown": "Does Ivan Valdes currently have legal decision authority for Pasadena and Clear Lake?",
+      "whyItMatters": "Without authority, the executive conversation cannot qualify franchise potential.",
+      "whatWasChecked": "Chamber, ChamberVu, VoyageHouston, LinkedIn snippet, Instagram snippets.",
+      "verificationPath": "Ask directly and request entity names and decision process."
+    },
+    {
+      "rank": 2,
+      "unknown": "Is Houston / Southwest Freeway connected to Ivan or a separate operator?",
+      "whyItMatters": "Determines whether the footprint is two stores or potentially broader Houston platform.",
+      "whatWasChecked": "Official site, Community Impact, Waze, Grubhub, and web search for Ivan/Houston connection.",
+      "verificationPath": "Ask for location ownership/control map."
+    },
+    {
+      "rank": 3,
+      "unknown": "Is Nutrition Depot Online connected to Pasadena/Clear Lake?",
+      "whyItMatters": "Determines whether ecommerce sophistication belongs to the target operator.",
+      "whatWasChecked": "ndonline.com catalog, brands, payment rails, social profiles, search snippets.",
+      "verificationPath": "Ask who owns/operates ecommerce and whether local stores use it."
+    },
+    {
+      "rank": 4,
+      "unknown": "Is the operator actively seeking expansion or stabilizing current stores?",
+      "whyItMatters": "Determines timing and follow-up path.",
+      "whatWasChecked": "VoyageHouston operator narrative and Clear Lake acquisition signal.",
+      "verificationPath": "Ask current 12-24 month goals and capital priorities."
+    },
+    {
+      "rank": 5,
+      "unknown": "Does the operator have food-service interest and readiness?",
+      "whyItMatters": "Smoothie Depot requires different operating disciplines than supplement retail.",
+      "whatWasChecked": "Public sources; no direct food-service experience was verified.",
+      "verificationPath": "Ask prior food/beverage operations, staffing comfort, health permits, and daypart strategy."
+    },
+    {
+      "rank": 6,
+      "unknown": "What is the actual location-level sales/customer mix?",
+      "whyItMatters": "Determines whether Smoothie Depot customer overlap is real.",
+      "whatWasChecked": "Public reviews, product categories, and corridor signals only.",
+      "verificationPath": "Ask customer segments, repeat-rate drivers, gym partnerships, and top product categories."
+    },
+    {
+      "rank": 7,
+      "unknown": "What capital/liquidity profile is available for a franchise investment?",
+      "whyItMatters": "Determines ability to execute.",
+      "whatWasChecked": "No private financials were collected.",
+      "verificationPath": "Ask only lawful, voluntary qualification questions in conversation."
+    },
+    {
+      "rank": 8,
+      "unknown": "Who else influences decisions?",
+      "whyItMatters": "Partners or other stakeholders can slow or block follow-up.",
+      "whatWasChecked": "Public sources do not fully identify partners.",
+      "verificationPath": "Ask who participates in expansion decisions."
+    }
+  ],
+  "decisionTree": [
+    {
+      "condition": "Ivan confirms legal control of Pasadena and Clear Lake.",
+      "recommendedResponse": "Continue qualification with expansion appetite, bandwidth, and capital readiness."
+    },
+    {
+      "condition": "Ivan confirms control of only one store.",
+      "recommendedResponse": "Treat the opportunity as single-operator learning and defer multi-unit assumptions."
+    },
+    {
+      "condition": "Ivan confirms Houston/Southwest Freeway is unrelated.",
+      "recommendedResponse": "Narrow the thesis to Pasadena/Clear Lake and stop using Houston/Southwest as evidence of his scale."
+    },
+    {
+      "condition": "Ivan confirms Nutrition Depot Online is connected.",
+      "recommendedResponse": "Increase digital-maturity score and evaluate omnichannel partnership/franchise readiness."
+    },
+    {
+      "condition": "Ivan is expansion-oriented.",
+      "recommendedResponse": "Move to structured follow-up around concept fit, territory, economics, and timeline."
+    },
+    {
+      "condition": "Ivan is stabilizing current stores.",
+      "recommendedResponse": "Keep the relationship warm, gather market intelligence, and revisit after stabilization milestones."
+    },
+    {
+      "condition": "Ivan is not interested in franchising but likes partnerships.",
+      "recommendedResponse": "Explore lower-commitment collaboration or category-learning value."
+    },
+    {
+      "condition": "Ivan is not the decision-maker.",
+      "recommendedResponse": "Ask for the appropriate decision path and avoid qualification conclusions until authority is confirmed."
+    }
+  ],
+  "sourceReferences": [
+    "https://nutritiondepot.us/",
+    "https://communityimpact.com/houston/bellaire-meyerland-west-university/business/2025/02/07/nutrition-depot-moves-rice-village-location-to-southwest-freeway/",
+    "https://www.pasadenachamber.org/list/member/nutrition-depot-pasadena-10107622",
+    "https://chambervu.com/pasadena24/",
+    "https://voyagehouston.com/interview/community-highlights-meet-ivan-valdes-of-nutrition-depot/",
+    "https://www.linkedin.com/in/ivan-valdes-376833134",
+    "https://www.instagram.com/nutritiondepot_pasadena/?hl=en",
+    "https://www.instagram.com/p/C5wEI1mpGfL/?hl=en",
+    "https://www.instagram.com/nutritiondepotclearlake/?hl=en",
+    "https://www.facebook.com/NutritionDepot.Pasadena",
+    "https://www.facebook.com/p/Nutrition-Depot-Clear-Lake-61561860311420/",
+    "https://www.fivestars.com/business/TX/Pasadena/Nutrition/Nutrition-Depot-Pasadena/b0d9cadbbcd443a280584a8be2fd987d/",
+    "https://www.fivestars.com/business/TX/Webster/Nutrition/Nutrition-Depot-Clear-Lake/4e5d83eb81f6446786ceca06c3a32b89/",
+    "https://reviews.birdeye.com/nutrition-depot-149087740789870",
+    "https://ndonline.com/",
+    "https://ndonline.com/collections/pre-workout",
+    "https://ndonline.com/pages/brands",
+    "https://www.glassdoor.com/Reviews/Nutrition-Depot-Reviews-E912054.htm",
+    "https://locations.vitaminshoppe.com/tx/pasadena/vitamins-supplements-pasadena-tx-278.html",
+    "https://locations.vitaminshoppe.com/tx/webster/vitamins-supplements-webster-tx-208.html",
+    "https://stores.gnc.com/all-stores-texas/pasadena/3540-spencer-hwy",
+    "https://stores.gnc.com/all-stores-texas/pasadena",
+    "https://www.grubhub.com/restaurant/nutrition-depot-2005-sw-fwy-houston/2949227",
+    "https://www.yellowpages.com/first-colony-mall-sugar-land-tx/nutrition-depot"
+  ],
+  "boundaryConfirmation": {
+    "researchOnly": true,
+    "lawfulInformationOnly": true,
+    "psychologicalProfilingUsed": false,
+    "privateInformationUsed": false,
+    "restrictedPlatformScrapingUsed": false,
+    "productionSystemsModified": false,
+    "dashboardModified": false,
+    "crmModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false,
+    "fitnessConnectionDataUsed": false,
+    "routeIntelligenceUsed": false,
+    "activePoolUsed": false
+  }
+}

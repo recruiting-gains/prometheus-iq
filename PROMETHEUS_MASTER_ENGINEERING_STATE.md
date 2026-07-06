@@ -9855,6 +9855,55 @@ Remaining risks:
 - Live Founder email delivery remains dependent on Cloudflare Email Service sender/domain readiness for `intake@prometheusrouteiq.com`.
 - Future workspace intake targets must be registered in both the runtime workspace router and the canonical intake contract before production forms can route to them.
 
+### 2026-07-06: Prometheus Research - Nutrition Depot Executive Intelligence Package v2 Deep Research Rebuild
+
+Task:
+Nutrition Depot Executive Intelligence Package v2 - Deep Research Rebuild.
+
+Status:
+Complete. Research rebuilt Nutrition Depot from the ground up as the canonical Smoothie Depot Executive Intelligence Package v2 while preserving v1 as a superseded historical artifact.
+
+Files changed:
+
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Created a Prometheus-branded, founder-review-remediated Executive Intelligence Package v2 for Nutrition Depot Houston and Greater Houston.
+- Replaced v1 as canonical Research package in the Smoothie Depot Executive Intelligence Package register.
+- Preserved v1 as `superseded_historical_research_package` and explicitly recorded that v2 supersedes it.
+- Added deep ownership/control analysis identifying Ivan Valdes as the public operator and likely controlling owner for Pasadena/Clear Lake while keeping legal ownership and Houston/Southwest Freeway control unverified.
+- Added confirmed location intelligence for Houston/Southwest Freeway, Pasadena/Fairmont Parkway, Clear Lake/Webster/NASA Parkway, and Nutrition Depot Online.
+- Added website/ecommerce intelligence covering official Houston site signals, Nutrition Depot Online categories, product depth, brands, pricing, payment rails, and fulfillment/pickup implications.
+- Added public reputation analysis using Pasadena Birdeye/Google aggregation, Facebook/search-indexed recommendation signals, Wheree indexed review themes, Grubhub indexed Houston rating signal, and Glassdoor employee-level risk signals.
+- Added social presence analysis for Pasadena, Clear Lake, Facebook, Instagram, LinkedIn, and Nutrition Depot Online public signals without restricted-platform scraping.
+- Added named competitor intelligence for The Vitamin Shoppe, GNC, Amazon, Bodybuilding.com, Cranky Carrot, JuiceLand, Smoothie King, gyms with retail, and wellness food/beverage substitutes.
+- Updated Research validation/tests to treat Nutrition Depot v2 as the active canonical package and v1 as preserved historical.
+- Kept Dashboard, CRM, Website, Infrastructure, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, and Intelligence runtime untouched.
+
+Validation:
+
+- `npm run research:validate`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run test:research`
+- `npm run build`
+
+Remaining risks:
+
+- Legal ownership/entity structure remains unverified and must be confirmed by the receiving executive through lawful voluntary conversation.
+- Ivan Valdes' relationship to Houston/Southwest Freeway and Nutrition Depot Online remains unproven by reviewed public evidence.
+- Instagram/Facebook evidence remains directional where direct platform access was limited; no restricted-platform scraping was used.
+- Dashboard still points to historical v1 until a future approved Dashboard handoff migrates display/export consumers to Research v2.
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:

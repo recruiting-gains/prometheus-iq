@@ -473,9 +473,11 @@ test("Executive Intelligence Benchmark Study compares public methodologies and p
 
 test("Smoothie Depot stores first two Executive Intelligence Packages without modifying standard", () => {
   const register = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
-  const nutritionPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
+  const nutritionPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json");
+  const nutritionPackageV1 = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
   const crankyPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json");
-  const nutritionReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
+  const nutritionReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md");
+  const nutritionReportV1 = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md");
   const crankyReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md");
 
   const evidenceLabels = [
@@ -508,11 +510,43 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
   assert.equal(register.boundaryConfirmation.dashboardModified, false);
   assert.equal(register.boundaryConfirmation.crmModified, false);
   assert.equal(register.boundaryConfirmation.intelligenceRuntimeModified, false);
-  assert.deepEqual(register.packages.map(entry => entry.business), [
+  const activePackages = register.packages.filter(entry => entry.canonicalForResearch);
+  const historicalNutritionPackage = register.packages.find(entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot");
+  const rebuiltNutritionPackage = register.packages.find(entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot_v2");
+  assert.deepEqual(activePackages.map(entry => entry.business), [
     "Nutrition Depot Houston and Greater Houston",
     "Cranky Carrot Juice Co."
   ]);
-  assert.deepEqual(register.packages.map(entry => entry.rank), [1, 2]);
+  assert.deepEqual(activePackages.map(entry => entry.rank), [1, 2]);
+  assert.equal(rebuiltNutritionPackage.canonicalForResearch, true);
+  assert.equal(rebuiltNutritionPackage.supersedesPackageId, "smoothie_depot_eip_001_nutrition_depot");
+  assert.equal(historicalNutritionPackage.artifactStatus, "superseded_historical_research_package");
+  assert.equal(historicalNutritionPackage.canonicalForResearch, false);
+  assert.equal(nutritionPackage.packageId, "smoothie_depot_eip_001_nutrition_depot_v2");
+  assert.equal(nutritionPackage.supersedesPackageId, "smoothie_depot_eip_001_nutrition_depot");
+  assert.equal(nutritionPackage.v1PreservedAsHistorical, true);
+  assert.equal(nutritionPackageV1.packageId, "smoothie_depot_eip_001_nutrition_depot");
+  assert.match(nutritionReportV1, /Executive Intelligence Package/);
+  assert.match(nutritionPackage.ownershipFinding.finding, /Ivan Valdes/);
+  assert.match(nutritionPackage.ivanValdesFinding.finding, /operator/);
+  assert.ok(nutritionPackage.confirmedLocations.length >= 4);
+  assert.ok(nutritionPackage.websiteEcommerceIntelligence.findings.length >= 4);
+  assert.ok(nutritionPackage.reputationAnalysis.signals.length >= 5);
+  assert.ok(nutritionPackage.socialPresenceAnalysis.signals.length >= 5);
+  assert.ok(nutritionPackage.namedCompetitors.length >= 10);
+  assert.ok(nutritionPackage.sourceReferences.length >= 20);
+  for (const requiredText of [
+    "Executive Intelligence Package v2",
+    "Ivan Valdes",
+    "Ownership / Control Finding",
+    "Location Intelligence",
+    "Website / Ecommerce Intelligence",
+    "Public Reputation Signals",
+    "Named Local and Channel Competitors",
+    "Key Corrections From v1"
+  ]) {
+    assert.ok(nutritionReport.includes(requiredText));
+  }
 
   for (const packageArtifact of [
     {
