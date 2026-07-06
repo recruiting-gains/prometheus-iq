@@ -1,8 +1,21 @@
 {
   "version": "research-source-register-v1",
-  "lastUpdated": "2026-07-02",
+  "lastUpdated": "2026-07-06",
   "sourcePolicy": "../source-policy.md",
   "sources": [
+    {
+      "id": "apollo-enrichment",
+      "title": "Apollo Lead, Contact, and Company Enrichment",
+      "publisher": "Apollo.io",
+      "sourceRef": "Approved ChatGPT Apollo plugin/connector",
+      "trustTier": "Tier 3",
+      "categories": ["Opportunities", "Sales", "Industries", "Enterprise"],
+      "usage": "Permitted enrichment source for franchise target research, founder/operator discovery, executive identification, company enrichment, industry/location filtering, company size and job title signals, contact/persona discovery, multi-location operator discovery, and restaurant, wellness, fitness, supplement, retail, food and beverage, consumer health, investor/operator, and franchise-related target discovery.",
+      "limitations": "Apollo is not a source of truth. Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence. Apollo alone must not support final ownership, capital readiness, franchise-fit, authority, or Executive Intelligence conclusions.",
+      "enrichmentOnly": true,
+      "requiresCorroboration": true,
+      "permittedForFranchiseTargetLists": true
+    },
     {
       "id": "internal-company-identity",
       "title": "Prometheus Company Identity v1",

@@ -38,6 +38,20 @@ Every recommendation and major conclusion must include:
 - Verification needed:
 - Business decision impact:
 
+## Enrichment Source Disclosure
+
+Apollo used:
+
+Apollo use case:
+
+Apollo-derived findings:
+
+Corroboration status:
+
+Reason Apollo was not used, if applicable:
+
+Apollo-derived findings must be treated as enrichment signals unless corroborated by lawful public sources or owner-provided evidence. Apollo alone must not support final ownership, authority, capital readiness, franchise-fit, qualification, or executive recommendation conclusions.
+
 ## Layer 1: Executive Summary
 
 Decision context:

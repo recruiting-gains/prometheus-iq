@@ -13,6 +13,13 @@ Workspace metadata:
 - `intelligence_domain`: `business_acquisition_intelligence`
 - `production_runtime_change`: `false`
 
+Apollo enrichment status:
+
+- Apollo used: no.
+- Reason not used: This 2026-07-03 historical target list was produced before the Apollo Enrichment Standard for Franchise Target Research was adopted.
+- Future target lists must document Apollo use or explain why Apollo was not used.
+- Apollo is enrichment only and must be corroborated by lawful public sources before findings are treated as decision-ready evidence.
+
 ## Founder Answer
 
 Who should I call today?

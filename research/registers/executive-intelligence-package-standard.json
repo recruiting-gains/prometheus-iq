@@ -38,6 +38,43 @@
     "verificationNeeded",
     "businessDecisionImpact"
   ],
+  "enrichmentSourcePolicy": {
+    "apolloPermitted": true,
+    "apolloRole": "lead_contact_company_enrichment_source",
+    "researchRole": "verification_scoring_qualification_probability_and_executive_intelligence_package_creation",
+    "apolloIsSourceOfTruth": false,
+    "apolloDerivedFindingsMustBeLabeled": true,
+    "requiresLawfulPublicSourceCorroboration": true,
+    "prohibitedApolloOnlyConclusions": [
+      "ownership",
+      "control",
+      "authority",
+      "capital_readiness",
+      "franchise_fit",
+      "qualification_probability",
+      "executive_recommendation"
+    ],
+    "requiredFranchiseTargetListDisclosure": [
+      "apolloUsed",
+      "apolloUseCase",
+      "apolloProfilesSearched",
+      "apolloDerivedFieldsCaptured",
+      "corroborationStatus",
+      "reasonNotUsed"
+    ],
+    "requiredApolloTargetProfiles": [
+      "Houston-area franchise operators",
+      "Restaurant group owners",
+      "Multi-location business owners",
+      "Fitness company founders",
+      "Wellness company founders",
+      "Supplement/nutrition retail owners",
+      "Food and beverage operators",
+      "Consumer health executives",
+      "Private investors with operating backgrounds",
+      "Business owners with expansion signals"
+    ]
+  },
   "intelligenceLayers": [
     {
       "layer": 1,

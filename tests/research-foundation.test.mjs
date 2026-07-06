@@ -7,6 +7,7 @@ const readText = path => readFileSync(path, "utf8");
 
 test("Research foundation preserves production subsystem boundaries", () => {
   const taxonomy = readJson("research/taxonomy/research-taxonomy.json");
+  const sourceRegister = readJson("research/registers/source-register.json");
   const architecture = readText("research/architecture.md");
   const policy = readText("research/source-policy.md");
 
@@ -18,6 +19,17 @@ test("Research foundation preserves production subsystem boundaries", () => {
   assert.match(architecture, /No live integrations\./);
   assert.match(architecture, /No automated web scraping\./);
   assert.match(policy, /unsupported scraped sources/i);
+  assert.match(policy, /Apollo is permitted as a Research enrichment source/);
+  assert.match(policy, /Apollo is not a source of truth/);
+  assert.match(policy, /Apollo-derived findings must be labeled as enrichment signals/);
+  assert.match(policy, /Future franchise target lists must document whether Apollo was used/);
+
+  const apolloSource = sourceRegister.sources.find(source => source.id === "apollo-enrichment");
+  assert.ok(apolloSource);
+  assert.equal(apolloSource.trustTier, "Tier 3");
+  assert.equal(apolloSource.enrichmentOnly, true);
+  assert.equal(apolloSource.requiresCorroboration, true);
+  assert.equal(apolloSource.permittedForFranchiseTargetLists, true);
 });
 
 test("Founder Intelligence Brief contract covers required categories", () => {
@@ -332,6 +344,11 @@ test("Executive Intelligence Platform defines package standard and dossier trans
     "Fortune 100 Corporate Development",
     "Research prepares executives",
     "Every Executive Intelligence Package must be written from the perspective of the executive receiving the package",
+    "Apollo is permitted as a Research enrichment source",
+    "Apollo is not a source of truth",
+    "Apollo-derived findings must be labeled as enrichment signals",
+    "Apollo = lead/contact/company enrichment source",
+    "Research = verification, scoring, qualification probability, and Executive Intelligence Package creation",
     "Dashboard displays",
     "CRM tracks",
     "Intelligence interprets",
@@ -345,6 +362,14 @@ test("Executive Intelligence Platform defines package standard and dossier trans
   assert.equal(standard.legacyDossierTransition.newDossiersAllowedAsPrimaryOutput, false);
   assert.equal(standard.legacyDossierTransition.existingDossiersRemainHistoricalArtifacts, true);
   assert.equal(standard.legacyDossierTransition.dashboardMigrationRequiresFutureHandoff, true);
+  assert.equal(standard.enrichmentSourcePolicy.apolloPermitted, true);
+  assert.equal(standard.enrichmentSourcePolicy.apolloIsSourceOfTruth, false);
+  assert.equal(standard.enrichmentSourcePolicy.requiresLawfulPublicSourceCorroboration, true);
+  assert.ok(standard.enrichmentSourcePolicy.prohibitedApolloOnlyConclusions.includes("ownership"));
+  assert.ok(standard.enrichmentSourcePolicy.requiredFranchiseTargetListDisclosure.includes("apolloUsed"));
+  assert.ok(schema.properties.enrichmentSources.properties.apollo);
+  assert.match(template, /Enrichment Source Disclosure/);
+  assert.match(template, /Apollo-derived findings must be treated as enrichment signals/);
 
   for (const subsystem of [
     "Dashboard",
@@ -624,6 +649,11 @@ test("Smoothie Depot prospect discovery creates a workspace-isolated daily call 
   assert.equal(prospects.productionRuntimeChange, false);
   assert.equal(prospects.dataPolicy.publicBusinessInformationOnly, true);
   assert.equal(prospects.dataPolicy.restrictedPlatformScrapingUsed, false);
+  assert.equal(prospects.dataPolicy.apolloEnrichment.apolloUsed, false);
+  assert.ok(prospects.dataPolicy.apolloEnrichment.reasonNotUsed);
+  assert.equal(prospects.dataPolicy.apolloEnrichment.futureTargetListsMustDocumentApolloUse, true);
+  assert.equal(prospects.dataPolicy.apolloEnrichment.apolloIsSourceOfTruth, false);
+  assert.equal(prospects.dataPolicy.apolloEnrichment.requiresLawfulPublicSourceCorroboration, true);
   assert.equal(prospects.workspaceIsolation.fitnessConnectionDataUsed, false);
   assert.equal(prospects.workspaceIsolation.routeIntelligenceUsed, false);
   assert.equal(prospects.workspaceIsolation.activePoolUsed, false);
@@ -633,11 +663,16 @@ test("Smoothie Depot prospect discovery creates a workspace-isolated daily call 
 
   assert.match(workflow, /Who should I call today\?/);
   assert.match(workflow, /Allowed Public Sources/);
+  assert.match(workflow, /Apollo Enrichment Standard/);
+  assert.match(workflow, /Apollo is enrichment only/);
+  assert.match(workflow, /Future target lists must document Apollo use or explain why Apollo was not used/);
   assert.match(workflow, /Do not scrape unsupported or restricted sources/);
   assert.match(workflow, /Fitness Connection data used: no\./);
   assert.match(workflow, /Route Intelligence used: no\./);
   assert.match(workflow, /Active Pool used: no\./);
   assert.match(report, /Founder Answer/);
+  assert.match(report, /Apollo enrichment status/);
+  assert.match(report, /Apollo used: no\./);
   assert.match(report, /Workspace Isolation Verification/);
 
   assert.ok(prospects.prospects.length >= 10);

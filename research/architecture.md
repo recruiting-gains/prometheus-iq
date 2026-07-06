@@ -305,6 +305,21 @@ Existing Executive Due Diligence Dossiers remain historical Research artifacts a
 
 Executive Intelligence Platform v1 is a Research standard only. It must not modify Dashboard, Companion, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, Fitness Connection, Route Intelligence, Active Pool, production data, or customer-facing behavior.
 
+## Apollo Enrichment Standard For Franchise Target Research
+
+Apollo is permitted as a Research enrichment source when future franchise-development target lists need lead, contact, company, operator, title, company-size, location, industry, persona, or multi-location operator discovery.
+
+Apollo may support Houston-area franchise operator, restaurant group owner, multi-location business owner, fitness founder, wellness founder, supplement/nutrition retail owner, food and beverage operator, consumer health executive, private investor with operating background, and expansion-signal business owner discovery.
+
+Apollo is not a source of truth. Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence. Apollo alone must not support final ownership, control, authority, capital readiness, franchise-fit, qualification probability, or Executive Intelligence conclusions.
+
+Future franchise target lists must document whether Apollo was used. If Apollo was not used, Research must explain why.
+
+Operating rule:
+
+- Apollo = lead/contact/company enrichment source.
+- Research = verification, scoring, qualification probability, and Executive Intelligence Package creation.
+
 ## Duplicate Prevention
 
 Existing research-related documents must be reused:

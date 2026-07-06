@@ -33,6 +33,55 @@ Use sources that are public, attributable, and lawful to review manually:
 
 Do not scrape unsupported or restricted sources. Do not bypass access controls. Do not collect private financials, credit reports, bank information, tax records, personal identity dossiers, private social data, or restricted-platform data.
 
+## Apollo Enrichment Standard
+
+Apollo is permitted as an enrichment source for future Smoothie Depot franchise target lists when available through approved ChatGPT plugins/connectors.
+
+Use Apollo to help identify and enrich potential franchisee investors, operators, and expansion candidates across:
+
+- Houston-area franchise operators.
+- Restaurant group owners.
+- Multi-location business owners.
+- Fitness company founders.
+- Wellness company founders.
+- Supplement/nutrition retail owners.
+- Food and beverage operators.
+- Consumer health executives.
+- Private investors with operating backgrounds.
+- Business owners with expansion signals.
+
+Permitted Apollo use cases:
+
+- Founder/operator discovery.
+- Executive identification.
+- Company enrichment.
+- Industry filtering.
+- Location filtering.
+- Company size signals.
+- Job title signals.
+- Contact/persona discovery.
+- Multi-location operator discovery.
+- Restaurant, wellness, fitness, supplement, retail, and franchise-related target discovery.
+
+Apollo is enrichment only. It is not a source of truth.
+
+Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence. Do not use Apollo alone to make final ownership, capital readiness, franchise-fit, authority, or executive decision conclusions.
+
+Required target-list metadata:
+
+- Future target lists must document Apollo use or explain why Apollo was not used.
+- Apollo used: yes/no.
+- Apollo use case if used.
+- Apollo profiles searched if used.
+- Apollo-derived fields captured if used.
+- Corroboration status for Apollo-derived findings.
+- If Apollo was not used, reason Apollo was not used.
+
+Operating rule:
+
+- Apollo = lead/contact/company enrichment source.
+- Research = verification, scoring, qualification probability, and Executive Intelligence Package creation.
+
 ## Prospect Universe
 
 Prioritize business-level prospects that may already understand food service, wellness, fitness, nutrition, hospitality, or local customer acquisition:

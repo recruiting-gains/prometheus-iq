@@ -499,6 +499,34 @@ for (const label of executiveIntelligenceEvidenceLabels) {
   assert.ok(sourcePolicy.includes(label), `Source policy missing Executive Intelligence label: ${label}`);
 }
 
+for (const apolloText of [
+  "Apollo is permitted as a Research enrichment source",
+  "Apollo is not a source of truth",
+  "Apollo-derived findings must be labeled as enrichment signals",
+  "Apollo = lead/contact/company enrichment source",
+  "Research = verification, scoring, qualification probability, and Executive Intelligence Package creation",
+  "Future franchise target lists must document whether Apollo was used"
+]) {
+  assert.ok(sourcePolicy.includes(apolloText), `Source policy missing Apollo standard text: ${apolloText}`);
+  assert.ok(executiveIntelligencePlatform.includes(apolloText), `Executive Intelligence platform missing Apollo standard text: ${apolloText}`);
+}
+
+assert.equal(executiveIntelligenceStandard.enrichmentSourcePolicy.apolloPermitted, true, "Executive Intelligence standard must permit Apollo enrichment.");
+assert.equal(
+  executiveIntelligenceStandard.enrichmentSourcePolicy.apolloIsSourceOfTruth,
+  false,
+  "Executive Intelligence standard must not treat Apollo as source of truth."
+);
+assert.equal(
+  executiveIntelligenceStandard.enrichmentSourcePolicy.requiresLawfulPublicSourceCorroboration,
+  true,
+  "Executive Intelligence standard must require corroboration for Apollo enrichment."
+);
+assert.ok(
+  executiveIntelligenceSchema.properties.enrichmentSources.properties.apollo,
+  "Executive Intelligence schema must support Apollo enrichment disclosure."
+);
+
 for (const phrase of [
   "Research produces Executive Intelligence Packages",
   "Fortune 100 Corporate Development",
@@ -994,6 +1022,26 @@ assert.equal(
 assert.equal(smoothieDepotProspects.dataPolicy.creditReportsCollected, false, "Smoothie Depot prospects must not collect credit reports.");
 assert.equal(smoothieDepotProspects.dataPolicy.bankInformationCollected, false, "Smoothie Depot prospects must not collect bank information.");
 assert.equal(smoothieDepotProspects.dataPolicy.taxRecordsCollected, false, "Smoothie Depot prospects must not collect tax records.");
+assert.equal(smoothieDepotProspects.dataPolicy.apolloEnrichment.apolloUsed, false, "Historical Smoothie Depot prospects must disclose Apollo was not used.");
+assert.ok(
+  smoothieDepotProspects.dataPolicy.apolloEnrichment.reasonNotUsed,
+  "Smoothie Depot prospects must explain why Apollo was not used."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.apolloEnrichment.futureTargetListsMustDocumentApolloUse,
+  true,
+  "Future franchise target lists must document Apollo usage."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.apolloEnrichment.apolloIsSourceOfTruth,
+  false,
+  "Apollo must not be treated as source of truth."
+);
+assert.equal(
+  smoothieDepotProspects.dataPolicy.apolloEnrichment.requiresLawfulPublicSourceCorroboration,
+  true,
+  "Apollo enrichment must require lawful public-source corroboration."
+);
 assert.equal(smoothieDepotProspects.workspaceIsolation.smoothieDepotWorkspaceOnly, true, "Smoothie Depot prospects must be workspace scoped.");
 assert.equal(smoothieDepotProspects.workspaceIsolation.fitnessConnectionDataUsed, false, "Smoothie Depot prospects must not use Fitness Connection data.");
 assert.equal(smoothieDepotProspects.workspaceIsolation.routeIntelligenceUsed, false, "Smoothie Depot prospects must not use Route Intelligence.");
@@ -1054,6 +1102,10 @@ for (const prospect of smoothieDepotProspects.prospects) {
 for (const requiredText of [
   "Who should I call today?",
   "Allowed Public Sources",
+  "Apollo Enrichment Standard",
+  "Apollo is enrichment only",
+  "Apollo = lead/contact/company enrichment source",
+  "Future target lists must document Apollo use or explain why Apollo was not used",
   "Data Capture Contract",
   "Workspace Isolation Verification",
   "Fitness Connection data used: no.",
@@ -1067,6 +1119,9 @@ for (const requiredText of [
 
 for (const requiredText of [
   "Founder Answer",
+  "Apollo enrichment status",
+  "Apollo used: no.",
+  "Future target lists must document Apollo use or explain why Apollo was not used.",
   "Research Notes",
   "Verified facts",
   "Hypotheses",
@@ -1398,6 +1453,13 @@ for (const requiredText of [
 }
 
 assert.equal(sourceRegister.sources.length >= 6, true, "Source register needs internal and external seed sources.");
+const apolloSource = sourceRegister.sources.find(source => source.id === "apollo-enrichment");
+assert.ok(apolloSource, "Source register must include Apollo enrichment.");
+assert.equal(apolloSource.trustTier, "Tier 3", "Apollo enrichment must remain a directional Tier 3 source.");
+assert.equal(apolloSource.enrichmentOnly, true, "Apollo must be registered as enrichment only.");
+assert.equal(apolloSource.requiresCorroboration, true, "Apollo must require corroboration.");
+assert.equal(apolloSource.permittedForFranchiseTargetLists, true, "Apollo must be permitted for franchise target lists.");
+assert.ok(apolloSource.limitations.includes("not a source of truth"), "Apollo limitations must state source-of-truth boundary.");
 for (const source of sourceRegister.sources) {
   assert.ok(source.id, "Source is missing id.");
   assert.ok(source.title, `Source ${source.id} is missing title.`);

@@ -9904,6 +9904,58 @@ Remaining risks:
 - Instagram/Facebook evidence remains directional where direct platform access was limited; no restricted-platform scraping was used.
 - Dashboard still points to historical v1 until a future approved Dashboard handoff migrates display/export consumers to Research v2.
 
+### 2026-07-06: Prometheus Research - Apollo Enrichment Standard for Franchise Target Research
+
+Task:
+Apollo Enrichment Standard for Franchise Target Research.
+
+Status:
+Complete. Research now permits Apollo as an enrichment source for future franchise target lists while preserving lawful-source verification as the decision-ready evidence standard.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/source-policy.md`
+- `research/executive-intelligence-platform.md`
+- `research/templates/executive-intelligence-package.md`
+- `research/registers/source-register.json`
+- `research/registers/executive-intelligence-package-standard.json`
+- `research/schemas/executive-intelligence-package.schema.json`
+- `research/workspaces/smoothie-depot/business-prospect-discovery-workflow-v1.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
+- `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+What changed:
+
+- Added Apollo to Research source policy as a permitted enrichment source for franchise target research through approved ChatGPT plugins/connectors.
+- Registered Apollo in the Research source register as Tier 3, enrichment-only, corroboration-required, and permitted for franchise target lists.
+- Added the Apollo enrichment standard to the Smoothie Depot business prospect discovery workflow.
+- Added required franchise target-list metadata: Apollo used yes/no, use case, profiles searched, derived fields, corroboration status, and reason not used.
+- Updated the historical Smoothie Depot 2026-07-03 ranked prospect list to disclose Apollo was not used because the standard was adopted afterward.
+- Added Apollo enrichment disclosure support to the Executive Intelligence Package template and schema.
+- Updated the Executive Intelligence Platform standard to prohibit Apollo-only final conclusions about ownership, control, authority, capital readiness, franchise fit, qualification probability, or executive recommendation.
+- Added validation and tests enforcing Apollo as enrichment only and requiring lawful public-source or owner-provided corroboration before decision-ready use.
+- Kept Dashboard, Infrastructure, CRM, Website, Companion, Mobile, Fitness Connection, Route Intelligence, Active Pool, and Intelligence runtime untouched.
+
+Validation:
+
+- `npm run research:validate`
+- `npm run test:research`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+
+Remaining risks:
+
+- Apollo connector availability depends on the active ChatGPT plugin/connector environment.
+- Future Research target-list builders must still cross-check Apollo signals against lawful public sources before treating them as decision-ready evidence.
+- Apollo-derived contact/persona details must be handled under Research source policy and must not become CRM records without a future CRM-owned handoff.
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:

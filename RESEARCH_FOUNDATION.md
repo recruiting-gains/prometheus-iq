@@ -8,6 +8,8 @@ Research is Prometheus' strategic intelligence division. It produces verified in
 
 Research now produces Executive Intelligence Packages as its primary future executive-readiness artifact. The active quality standard is Fortune 100 Corporate Development decision readiness, not a sales report or lightweight dossier.
 
+Apollo is permitted as a Research enrichment source for future franchise target lists when available through approved ChatGPT plugins/connectors. Apollo is not a source of truth; Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
+
 Research must not modify production data or directly modify Dashboard, Companion, CRM, Infrastructure, Website, or Intelligence Engine behavior.
 
 Current foundation:

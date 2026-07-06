@@ -13,7 +13,14 @@
     "bankInformationCollected": false,
     "taxRecordsCollected": false,
     "restrictedPlatformScrapingUsed": false,
-    "unsupportedScrapingAllowed": false
+    "unsupportedScrapingAllowed": false,
+    "apolloEnrichment": {
+      "apolloUsed": false,
+      "reasonNotUsed": "Apollo enrichment standard was adopted after this 2026-07-03 historical target list was produced.",
+      "futureTargetListsMustDocumentApolloUse": true,
+      "apolloIsSourceOfTruth": false,
+      "requiresLawfulPublicSourceCorroboration": true
+    }
   },
   "workspaceIsolation": {
     "smoothieDepotWorkspaceOnly": true,

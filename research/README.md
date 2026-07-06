@@ -184,6 +184,13 @@ Current founder-ready output:
 
 This workflow uses lawful public business information only. It does not collect private financials, credit reports, bank information, tax records, or restricted-platform scraped data. It does not modify CRM, Dashboard, Website, Infrastructure, Companion, Mobile, Route Intelligence, Active Pool, Fitness Connection, or Intelligence Engine runtime.
 
+Apollo enrichment standard:
+
+- Apollo is permitted as a lead/contact/company enrichment source for future franchise target lists when available through approved ChatGPT plugins/connectors.
+- Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
+- Apollo alone must not support final ownership, capital readiness, franchise-fit, authority, qualification, or Executive Intelligence conclusions.
+- Future franchise target lists must document whether Apollo was used; if not used, Research must explain why.
+
 Executive due diligence standard:
 
 - Evidence labels: observed, inferred from multiple evidence sources, self-reported, owner-provided, unknown.

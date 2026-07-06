@@ -51,6 +51,7 @@ Every package must:
 - Write from the receiving executive's perspective unless the workspace explicitly defines Prometheus as decision-maker or operator.
 - Preserve public-source attribution.
 - Separate observed facts, corroborated facts, owner-provided facts, unknowns, and inferences.
+- Label Apollo-derived lead, contact, company, operator, title, size, industry, location, or persona findings as enrichment signals unless corroborated.
 - Identify source reliability.
 - Identify confidence.
 - Identify verification needed.
@@ -87,6 +88,23 @@ Every conclusion must use exactly one label:
 - Inference: reasoned conclusion derived from labeled evidence.
 
 No unlabeled conclusion is allowed in an Executive Intelligence Package.
+
+## Apollo Enrichment Standard
+
+Apollo is permitted as a Research enrichment source and lead/contact/company enrichment source for franchise target research when available through approved ChatGPT plugins/connectors.
+
+Apollo may support founder/operator discovery, executive identification, company enrichment, industry filtering, location filtering, company size signals, job title signals, contact/persona discovery, multi-location operator discovery, and restaurant, wellness, fitness, supplement, retail, food and beverage, consumer health, investor/operator, and franchise-related target discovery.
+
+Apollo is not a source of truth. Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
+
+Apollo alone must not support final conclusions about ownership, control, authority, capital readiness, franchise fit, qualification probability, or executive recommendation.
+
+Operating rule:
+
+- Apollo = lead/contact/company enrichment source.
+- Research = verification, scoring, qualification probability, and Executive Intelligence Package creation.
+
+Future franchise target lists must document whether Apollo was used. If Apollo was not used, Research must explain why.
 
 ## Required Conclusion Fields
 

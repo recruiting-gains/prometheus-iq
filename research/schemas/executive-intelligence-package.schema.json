@@ -85,6 +85,54 @@
       "maxItems": 5,
       "uniqueItems": true
     },
+    "enrichmentSources": {
+      "type": "object",
+      "properties": {
+        "apollo": {
+          "type": "object",
+          "required": [
+            "apolloUsed",
+            "apolloIsSourceOfTruth",
+            "requiresLawfulPublicSourceCorroboration"
+          ],
+          "properties": {
+            "apolloUsed": {
+              "type": "boolean"
+            },
+            "apolloUseCase": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "apolloProfilesSearched": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "apolloDerivedFieldsCaptured": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "corroborationStatus": {
+              "type": "string"
+            },
+            "reasonNotUsed": {
+              "type": "string"
+            },
+            "apolloIsSourceOfTruth": {
+              "const": false
+            },
+            "requiresLawfulPublicSourceCorroboration": {
+              "const": true
+            }
+          }
+        }
+      }
+    },
     "layers": {
       "type": "array",
       "minItems": 12,

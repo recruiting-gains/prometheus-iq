@@ -47,9 +47,53 @@ Useful as weak signals only.
 Examples:
 
 - Startup databases.
+- Lead/contact/company enrichment databases when used only for discovery or enrichment.
 - Podcast interviews.
 - Social posts from identifiable founders, executives, investors, or operators.
 - Community discussions with corroboration.
+
+## Permitted Enrichment Sources
+
+Apollo is permitted as a Research enrichment source for franchise target research when available through approved ChatGPT plugins/connectors.
+
+Apollo may be used for:
+
+- Founder/operator discovery.
+- Executive identification.
+- Company enrichment.
+- Industry filtering.
+- Location filtering.
+- Company size signals.
+- Job title signals.
+- Contact/persona discovery.
+- Multi-location operator discovery.
+- Restaurant, wellness, fitness, supplement, retail, food and beverage, consumer health, investor/operator, and franchise-related target discovery.
+
+Apollo is not a source of truth. Treat Apollo-derived findings as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
+
+Apollo-derived findings must be labeled as enrichment signals unless corroborated.
+
+Apollo must not be used alone to make final ownership, capital readiness, franchise-fit, or executive decision conclusions.
+
+Required operating rule:
+
+- Apollo = lead/contact/company enrichment source.
+- Research = verification, scoring, qualification probability, and Executive Intelligence Package creation.
+
+Future franchise target lists must document whether Apollo was used. If Apollo was not used, Research must explain why.
+
+Required Apollo target profiles for franchise-development research:
+
+- Houston-area franchise operators.
+- Restaurant group owners.
+- Multi-location business owners.
+- Fitness company founders.
+- Wellness company founders.
+- Supplement/nutrition retail owners.
+- Food and beverage operators.
+- Consumer health executives.
+- Private investors with operating backgrounds.
+- Business owners with expansion signals.
 
 ### Excluded
 
