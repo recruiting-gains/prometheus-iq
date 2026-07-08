@@ -24,6 +24,7 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 
 - `architecture.md`: Research operating architecture, workflows, boundaries, and handoff model.
 - `source-policy.md`: Source trust tiers, attribution requirements, and prohibited sourcing behavior.
+- `gaia-research-orchestrator.md`: Gaia Research Orchestrator and Evidence Engine architecture.
 - `executive-intelligence-platform.md`: Active Executive Intelligence Platform v1 standard for Research-owned Executive Intelligence Packages.
 - `briefing-system.md`: Recurring executive intelligence system for founder briefings.
 - `market-intelligence-engine.md`: Research-owned market expansion scoring and ranking architecture.
@@ -32,6 +33,7 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `schemas/strategic-intelligence-brief.schema.json`: Machine-readable recurring strategic brief contract.
 - `schemas/market-intelligence-recommendation.schema.json`: Machine-readable market expansion recommendation contract.
 - `schemas/executive-intelligence-package.schema.json`: Machine-readable Executive Intelligence Package contract.
+- `schemas/gaia-evidence-item.schema.json`: Machine-readable Gaia evidence item contract.
 - `templates/founder-intelligence-brief.md`: Recurring brief template.
 - `templates/strategic-intelligence-brief.md`: Shared template for recurring executive intelligence products.
 - `templates/market-expansion-recommendation.md`: Founder-ready market expansion recommendation template.
@@ -39,6 +41,7 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `taxonomy/research-taxonomy.json`: Core categories, industries, intelligence questions, and future handoff targets.
 - `registers/source-register.json`: Initial approved-source registry.
 - `registers/intelligence-backlog.json`: Initial recurring watchlist and open research backlog.
+- `registers/gaia-evidence-engine.json`: Provider-agnostic Gaia evidence orchestration and evidence-quality model.
 - `registers/briefing-catalog.json`: Recurring briefing product catalog.
 - `registers/market-intelligence-model.json`: Market opportunity scoring model, candidate universe, and protected subsystem gates.
 - `registers/executive-intelligence-package-standard.json`: Active Executive Intelligence Package layer, evidence, quality, and boundary standard.
@@ -152,6 +155,23 @@ Audience perspective:
 Every Executive Intelligence Package must be written from the perspective of the executive receiving the package unless the workspace explicitly defines Prometheus as the decision-maker or operator. Research prepares executive decision readiness; the receiving executive owns outreach, conversation, negotiation, qualification, and final decision.
 
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must use the Executive Intelligence Package standard.
+
+## Gaia Research Orchestrator
+
+Research owns Gaia Research Orchestrator Foundation v1 as the permanent provider-agnostic evidence architecture.
+
+Gaia does not replace external GPTs, connectors, plugins, databases, or research tools. Gaia orchestrates them.
+
+External providers are evidence providers only. Apollo, Marketing Research GPT, Consensus, SciSpace, AskYourPDF, Public Web Research, CRM through future approved handoff, and future approved evidence providers are interchangeable.
+
+Gaia validates evidence, normalizes evidence, removes duplicate findings, resolves conflicting evidence, tracks provenance, assigns confidence, identifies unknowns, scores evidence quality, forwards validated evidence into Executive Intelligence, and produces executive recommendations.
+
+External GPTs never produce executive recommendations. Gaia produces Executive Intelligence and recommendations after evidence passes Gaia validation.
+
+Defined by:
+
+- `research/gaia-research-orchestrator.md`
+- `research/registers/gaia-evidence-engine.json`
 
 Benchmark methodology:
 

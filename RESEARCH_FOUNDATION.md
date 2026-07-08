@@ -8,6 +8,8 @@ Research is Prometheus' strategic intelligence division. It produces verified in
 
 Research now produces Executive Intelligence Packages as its primary future executive-readiness artifact. The active quality standard is Fortune 100 Corporate Development decision readiness, not a sales report or lightweight dossier.
 
+Gaia is the Research Evidence Orchestrator. External GPTs and evidence providers provide evidence; Gaia validates, scores, organizes, and produces Executive Intelligence.
+
 Apollo is permitted as a Research enrichment source for future franchise target lists when available through approved ChatGPT plugins/connectors. Apollo is not a source of truth; Apollo-derived findings must be labeled as enrichment signals unless corroborated by lawful public sources or owner-provided evidence.
 
 Research must not modify production data or directly modify Dashboard, Companion, CRM, Infrastructure, Website, or Intelligence Engine behavior.
@@ -17,6 +19,7 @@ Current foundation:
 - `research/README.md`
 - `research/architecture.md`
 - `research/source-policy.md`
+- `research/gaia-research-orchestrator.md`
 - `research/executive-intelligence-platform.md`
 - `research/briefing-system.md`
 - `research/market-intelligence-engine.md`
@@ -29,8 +32,10 @@ Current foundation:
 - `research/schemas/strategic-intelligence-brief.schema.json`
 - `research/schemas/market-intelligence-recommendation.schema.json`
 - `research/schemas/executive-intelligence-package.schema.json`
+- `research/schemas/gaia-evidence-item.schema.json`
 - `research/taxonomy/research-taxonomy.json`
 - `research/registers/source-register.json`
+- `research/registers/gaia-evidence-engine.json`
 - `research/registers/intelligence-backlog.json`
 - `research/registers/briefing-catalog.json`
 - `research/registers/market-intelligence-model.json`

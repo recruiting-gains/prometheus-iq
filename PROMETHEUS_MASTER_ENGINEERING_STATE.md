@@ -9956,6 +9956,53 @@ Remaining risks:
 - Future Research target-list builders must still cross-check Apollo signals against lawful public sources before treating them as decision-ready evidence.
 - Apollo-derived contact/persona details must be handled under Research source policy and must not become CRM records without a future CRM-owned handoff.
 
+### 2026-07-08: Prometheus Research - Gaia Research Orchestrator Foundation v1
+
+Task:
+Gaia Research Orchestrator Foundation v1.
+
+Status:
+Complete. Gaia is now established as the permanent Research Evidence Orchestrator and provider-agnostic Evidence Engine architecture.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `RESEARCH_FOUNDATION.md`
+- `research/README.md`
+- `research/architecture.md`
+- `research/gaia-research-orchestrator.md`
+- `research/registers/gaia-evidence-engine.json`
+- `research/registers/source-register.json`
+- `research/schemas/gaia-evidence-item.schema.json`
+- `scripts/validate-research-foundation.mjs`
+- `tests/research-foundation.test.mjs`
+
+What changed:
+
+- Created the Research-owned Gaia Research Orchestrator architecture.
+- Created the machine-readable Gaia Evidence Engine model.
+- Created the Gaia Evidence Item schema for provider-normalized evidence records.
+- Established provider-agnostic evidence provider support for Apollo, Marketing Research GPT, Consensus, SciSpace, AskYourPDF, Public Web Research, CRM through future approved Research-safe handoff, and future approved evidence providers.
+- Defined Gaia responsibilities: evidence collection, normalization, duplicate removal, conflict resolution, provenance tracking, confidence assignment, unknown identification, evidence quality scoring, validated Executive Intelligence handoff, Executive Intelligence production, and executive recommendation ownership.
+- Defined provider boundaries: external GPTs and providers supply evidence only; they do not produce executive recommendations.
+- Registered Gaia and approved provider categories in the Research source register.
+- Added Research validation and tests for provider replaceability, evidence item fields, evidence quality scoring, protected subsystem boundaries, and the no-EIP-generated rule.
+- Kept Route IQ, Athena, Dashboard, Infrastructure, Website, CRM, Companion, Mobile, Fitness Connection, Intelligence runtime, and production data untouched.
+
+Validation:
+
+- `npm run research:validate`
+- `npm run test:research`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+
+Remaining risks:
+
+- CRM remains a future approved evidence provider only; no CRM data access is authorized by this architecture.
+- Actual provider execution still depends on each connector/plugin being available and returning usable evidence.
+- Future provider-specific adapters must produce Gaia Evidence Items before evidence can influence Executive Intelligence.
+
 ## Next Recommended Engineering Task
 
 Current active highest-priority task:

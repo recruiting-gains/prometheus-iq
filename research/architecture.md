@@ -305,6 +305,38 @@ Existing Executive Due Diligence Dossiers remain historical Research artifacts a
 
 Executive Intelligence Platform v1 is a Research standard only. It must not modify Dashboard, Companion, CRM, Mobile, Intelligence runtime, Website runtime, Infrastructure, Fitness Connection, Route Intelligence, Active Pool, production data, or customer-facing behavior.
 
+## Gaia Research Orchestrator Foundation v1
+
+Gaia is the Prometheus Research Evidence Orchestrator. Gaia does not replace external GPTs, connectors, plugins, databases, or research tools. Gaia orchestrates them.
+
+External GPTs and providers are evidence providers only. Gaia remains the executive intelligence engine.
+
+Future research requests may utilize Apollo, Marketing Research GPT, Consensus, SciSpace, AskYourPDF, Public Web Research, CRM through future approved Research-safe handoff, and future approved evidence providers.
+
+Every evidence source is replaceable. If a superior research provider exists tomorrow, Gaia can replace the old provider without changing evidence normalization, provenance tracking, duplicate detection, conflict resolution, confidence assignment, unknown identification, evidence quality scoring, or Executive Intelligence synthesis.
+
+Gaia Evidence Engine responsibilities:
+
+- Collect evidence.
+- Normalize evidence.
+- Remove duplicate findings.
+- Resolve conflicting evidence.
+- Track evidence provenance.
+- Assign confidence.
+- Identify unknowns.
+- Score evidence quality.
+- Forward validated evidence into Executive Intelligence.
+
+External GPTs never produce executive recommendations. External GPTs provide evidence. Gaia validates. Gaia scores. Gaia organizes. Gaia produces Executive Intelligence. Gaia recommends.
+
+The Gaia Research Orchestrator is defined by:
+
+- `research/gaia-research-orchestrator.md`
+- `research/registers/gaia-evidence-engine.json`
+- `research/schemas/gaia-evidence-item.schema.json`
+
+Gaia Research Orchestrator Foundation v1 is architecture only. It does not generate Executive Intelligence Packages and does not modify Route IQ, Athena, Dashboard, Infrastructure, Website, CRM, Companion, Mobile, Fitness Connection, Intelligence runtime, or production data.
+
 ## Apollo Enrichment Standard For Franchise Target Research
 
 Apollo is permitted as a Research enrichment source when future franchise-development target lists need lead, contact, company, operator, title, company-size, location, industry, persona, or multi-location operator discovery.

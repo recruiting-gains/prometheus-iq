@@ -1,0 +1,233 @@
+{
+  "standardId": "gaia_research_orchestrator_foundation_v1",
+  "artifactType": "research_orchestrator_architecture",
+  "status": "active_research_architecture",
+  "owner": "Prometheus Research",
+  "productionRuntimeChange": false,
+  "mission": "Gaia orchestrates external evidence providers and remains the executive intelligence engine.",
+  "corePrinciple": "Every evidence source is replaceable.",
+  "providerAgnostic": true,
+  "externalProvidersNeverRecommend": true,
+  "gaiaProducesExecutiveRecommendations": true,
+  "providers": [
+    {
+      "id": "apollo",
+      "name": "Apollo",
+      "providerType": "lead_contact_company_enrichment",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "marketing_research_gpt",
+      "name": "Marketing Research GPT",
+      "providerType": "market_research_gpt",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "consensus",
+      "name": "Consensus",
+      "providerType": "academic_research",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "scispace",
+      "name": "SciSpace",
+      "providerType": "scientific_literature",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "askyourpdf",
+      "name": "AskYourPDF",
+      "providerType": "document_analysis",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "public_web_research",
+      "name": "Public Web Research",
+      "providerType": "public_web_research",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "crm",
+      "name": "CRM",
+      "providerType": "crm_approved_handoff",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "requiresFutureApprovedHandoff": true,
+      "executiveRecommendationsAllowed": false
+    },
+    {
+      "id": "future_approved_evidence_provider",
+      "name": "Future Approved Evidence Provider",
+      "providerType": "future_approved_provider",
+      "role": "evidence_provider",
+      "replaceable": true,
+      "executiveRecommendationsAllowed": false
+    }
+  ],
+  "gaiaResponsibilities": [
+    "collect_evidence",
+    "normalize_evidence",
+    "remove_duplicate_findings",
+    "resolve_conflicting_evidence",
+    "track_evidence_provenance",
+    "assign_confidence",
+    "identify_unknowns",
+    "score_evidence_quality",
+    "forward_validated_evidence_into_executive_intelligence",
+    "produce_executive_intelligence",
+    "produce_executive_recommendations"
+  ],
+  "evidenceEnginePipeline": [
+    "collect",
+    "normalize",
+    "deduplicate",
+    "resolve_conflicts",
+    "track_provenance",
+    "assign_confidence",
+    "identify_unknowns",
+    "score_quality",
+    "handoff_to_executive_intelligence"
+  ],
+  "requiredEvidenceItemFields": [
+    "evidenceId",
+    "provider",
+    "providerType",
+    "workspaceId",
+    "researchQuestion",
+    "claim",
+    "evidenceType",
+    "sourceReferences",
+    "sourceAccessMethod",
+    "retrievedAt",
+    "providerSearchCriteria",
+    "providerFilters",
+    "rawFinding",
+    "normalizationStatus",
+    "duplicateGroupId",
+    "conflictGroupId",
+    "provenance",
+    "confidence",
+    "evidenceQualityScore",
+    "knownLimitations",
+    "unknownsCreated",
+    "allowedForExecutiveIntelligence"
+  ],
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "confidenceLevels": [
+    "High",
+    "Medium-high",
+    "Medium",
+    "Medium-low",
+    "Low",
+    "Unknown"
+  ],
+  "evidenceQualityScoring": {
+    "totalPoints": 100,
+    "dimensions": [
+      {
+        "id": "source_reliability",
+        "weight": 25
+      },
+      {
+        "id": "directness_to_claim",
+        "weight": 20
+      },
+      {
+        "id": "corroboration",
+        "weight": 20
+      },
+      {
+        "id": "recency",
+        "weight": 10
+      },
+      {
+        "id": "provider_transparency",
+        "weight": 10
+      },
+      {
+        "id": "conflict_status",
+        "weight": 10
+      },
+      {
+        "id": "decision_relevance",
+        "weight": 5
+      }
+    ]
+  },
+  "conflictOutcomes": [
+    "resolved_primary_source_controls",
+    "resolved_owner_provided_controls",
+    "resolved_multiple_sources_corroborate",
+    "unresolved_conflict",
+    "insufficient_evidence"
+  ],
+  "executiveIntelligenceHandoff": {
+    "onlyValidatedEvidenceAllowed": true,
+    "includes": [
+      "validated_claims",
+      "evidence_labels",
+      "provenance",
+      "confidence",
+      "evidence_quality_score",
+      "duplicate_groups",
+      "conflict_groups",
+      "unknowns",
+      "verification_questions",
+      "source_references",
+      "provider_limitations"
+    ],
+    "excludes": [
+      "unvalidated_provider_claims_as_final_facts",
+      "apollo_only_ownership_or_capital_readiness_claims",
+      "external_gpt_recommendations_as_executive_recommendations",
+      "crm_data_without_future_approved_research_safe_handoff",
+      "unsupported_scraped_data"
+    ]
+  },
+  "protectedSubsystems": [
+    "Route IQ",
+    "Athena",
+    "Dashboard",
+    "Infrastructure",
+    "Website",
+    "CRM",
+    "Companion",
+    "Mobile",
+    "Fitness Connection",
+    "Intelligence runtime",
+    "Production data"
+  ],
+  "boundaryConfirmation": {
+    "researchArchitectureOnly": true,
+    "executiveIntelligencePackagesGenerated": false,
+    "routeIqModified": false,
+    "athenaModified": false,
+    "dashboardModified": false,
+    "infrastructureModified": false,
+    "websiteModified": false,
+    "crmModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "fitnessConnectionModified": false,
+    "intelligenceRuntimeModified": false,
+    "productionDataModified": false
+  }
+}

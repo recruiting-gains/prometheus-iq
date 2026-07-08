@@ -10,6 +10,7 @@ const backlog = readJson("research/registers/intelligence-backlog.json");
 const briefingCatalog = readJson("research/registers/briefing-catalog.json");
 const marketIntelligenceModel = readJson("research/registers/market-intelligence-model.json");
 const executiveIntelligenceStandard = readJson("research/registers/executive-intelligence-package-standard.json");
+const gaiaEvidenceEngine = readJson("research/registers/gaia-evidence-engine.json");
 const executiveBenchmarkStudy = readJson("research/reports/executive-intelligence-benchmark-study-v1.json");
 const smoothieDepotPackageRegister = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
 const nutritionDepotExecutivePackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json");
@@ -24,6 +25,7 @@ const schema = readJson("research/schemas/founder-intelligence-brief.schema.json
 const strategicBriefSchema = readJson("research/schemas/strategic-intelligence-brief.schema.json");
 const marketRecommendationSchema = readJson("research/schemas/market-intelligence-recommendation.schema.json");
 const executiveIntelligenceSchema = readJson("research/schemas/executive-intelligence-package.schema.json");
+const gaiaEvidenceItemSchema = readJson("research/schemas/gaia-evidence-item.schema.json");
 const architecture = readText("research/architecture.md");
 const sourcePolicy = readText("research/source-policy.md");
 const researchReadme = readText("research/README.md");
@@ -31,6 +33,7 @@ const template = readText("research/templates/founder-intelligence-brief.md");
 const strategicBriefTemplate = readText("research/templates/strategic-intelligence-brief.md");
 const marketRecommendationTemplate = readText("research/templates/market-expansion-recommendation.md");
 const executiveIntelligenceTemplate = readText("research/templates/executive-intelligence-package.md");
+const gaiaResearchOrchestrator = readText("research/gaia-research-orchestrator.md");
 const executiveIntelligencePlatform = readText("research/executive-intelligence-platform.md");
 const executiveBenchmarkReport = readText("research/reports/executive-intelligence-benchmark-study-v1.md");
 const nutritionDepotExecutivePackageReport = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md");
@@ -365,6 +368,95 @@ for (const prohibitedTarget of taxonomy.prohibitedTargetsForDirectModification) 
 
 assert.ok(architecture.includes("No live integrations."), "Architecture must explicitly exclude live integrations.");
 assert.ok(architecture.includes("No automated web scraping."), "Architecture must explicitly exclude scraping.");
+assert.equal(gaiaEvidenceEngine.standardId, "gaia_research_orchestrator_foundation_v1", "Gaia standard id drifted.");
+assert.equal(gaiaEvidenceEngine.status, "active_research_architecture", "Gaia Evidence Engine must be active Research architecture.");
+assert.equal(gaiaEvidenceEngine.productionRuntimeChange, false, "Gaia Evidence Engine must not activate runtime changes.");
+assert.equal(gaiaEvidenceEngine.providerAgnostic, true, "Gaia must stay provider-agnostic.");
+assert.equal(gaiaEvidenceEngine.externalProvidersNeverRecommend, true, "External providers must not produce executive recommendations.");
+assert.equal(gaiaEvidenceEngine.gaiaProducesExecutiveRecommendations, true, "Gaia must own Executive Intelligence recommendations.");
+assert.equal(gaiaEvidenceEngine.boundaryConfirmation.researchArchitectureOnly, true, "Gaia task must remain architecture only.");
+assert.equal(
+  gaiaEvidenceEngine.boundaryConfirmation.executiveIntelligencePackagesGenerated,
+  false,
+  "Gaia foundation must not generate Executive Intelligence Packages."
+);
+
+const gaiaProviderIds = gaiaEvidenceEngine.providers.map(provider => provider.id);
+for (const providerId of [
+  "apollo",
+  "marketing_research_gpt",
+  "consensus",
+  "scispace",
+  "askyourpdf",
+  "public_web_research",
+  "crm",
+  "future_approved_evidence_provider"
+]) {
+  assert.ok(gaiaProviderIds.includes(providerId), `Gaia provider list missing ${providerId}.`);
+}
+
+for (const provider of gaiaEvidenceEngine.providers) {
+  assert.equal(provider.role, "evidence_provider", `Gaia provider ${provider.id} must be evidence-only.`);
+  assert.equal(provider.replaceable, true, `Gaia provider ${provider.id} must be replaceable.`);
+  assert.equal(provider.executiveRecommendationsAllowed, false, `Gaia provider ${provider.id} must not recommend.`);
+}
+
+for (const responsibility of [
+  "collect_evidence",
+  "normalize_evidence",
+  "remove_duplicate_findings",
+  "resolve_conflicting_evidence",
+  "track_evidence_provenance",
+  "assign_confidence",
+  "identify_unknowns",
+  "score_evidence_quality",
+  "forward_validated_evidence_into_executive_intelligence"
+]) {
+  assert.ok(gaiaEvidenceEngine.gaiaResponsibilities.includes(responsibility), `Gaia missing responsibility ${responsibility}.`);
+}
+
+const gaiaEvidenceQualityWeight = gaiaEvidenceEngine.evidenceQualityScoring.dimensions.reduce(
+  (sum, dimension) => sum + dimension.weight,
+  0
+);
+assert.equal(gaiaEvidenceQualityWeight, 100, "Gaia evidence quality scoring must total 100.");
+
+for (const field of gaiaEvidenceEngine.requiredEvidenceItemFields) {
+  assert.ok(gaiaEvidenceItemSchema.required.includes(field), `Gaia evidence item schema missing required field ${field}.`);
+}
+
+for (const boundary of [
+  "routeIqModified",
+  "athenaModified",
+  "dashboardModified",
+  "infrastructureModified",
+  "websiteModified",
+  "crmModified",
+  "intelligenceRuntimeModified",
+  "productionDataModified"
+]) {
+  assert.equal(gaiaEvidenceEngine.boundaryConfirmation[boundary], false, `Gaia boundary must keep ${boundary} false.`);
+}
+
+for (const requiredText of [
+  "Gaia does not replace external GPTs",
+  "Gaia orchestrates them",
+  "External GPTs never produce executive recommendations",
+  "Every evidence source is replaceable",
+  "Collect evidence",
+  "Normalize evidence",
+  "Remove duplicate findings",
+  "Resolve conflicting evidence",
+  "Track evidence provenance",
+  "Assign confidence",
+  "Identify unknowns",
+  "Score evidence quality",
+  "Forward validated evidence into Executive Intelligence"
+]) {
+  assert.ok(gaiaResearchOrchestrator.includes(requiredText), `Gaia orchestrator missing ${requiredText}.`);
+  assert.ok(architecture.includes(requiredText), `Research architecture missing Gaia text ${requiredText}.`);
+}
+
 assert.ok(sourcePolicy.includes("Verified fact"), "Source policy must define verified fact labeling.");
 assert.ok(sourcePolicy.includes("Hypothesis"), "Source policy must define hypothesis labeling.");
 assert.ok(template.includes("Evidence Ledger"), "Brief template must include an evidence ledger.");
@@ -543,6 +635,9 @@ for (const phrase of [
 }
 
 for (const requiredPath of [
+  "research/gaia-research-orchestrator.md",
+  "research/registers/gaia-evidence-engine.json",
+  "research/schemas/gaia-evidence-item.schema.json",
   "research/executive-intelligence-platform.md",
   "research/registers/executive-intelligence-package-standard.json",
   "research/schemas/executive-intelligence-package.schema.json",

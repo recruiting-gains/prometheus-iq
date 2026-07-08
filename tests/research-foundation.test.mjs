@@ -57,6 +57,88 @@ test("Founder Intelligence Brief contract covers required categories", () => {
   }
 });
 
+test("Gaia Research Orchestrator defines provider-agnostic Evidence Engine", () => {
+  const model = readJson("research/registers/gaia-evidence-engine.json");
+  const schema = readJson("research/schemas/gaia-evidence-item.schema.json");
+  const orchestrator = readText("research/gaia-research-orchestrator.md");
+  const architecture = readText("research/architecture.md");
+  const readme = readText("research/README.md");
+
+  assert.equal(model.standardId, "gaia_research_orchestrator_foundation_v1");
+  assert.equal(model.productionRuntimeChange, false);
+  assert.equal(model.providerAgnostic, true);
+  assert.equal(model.externalProvidersNeverRecommend, true);
+  assert.equal(model.gaiaProducesExecutiveRecommendations, true);
+  assert.equal(model.boundaryConfirmation.researchArchitectureOnly, true);
+  assert.equal(model.boundaryConfirmation.executiveIntelligencePackagesGenerated, false);
+
+  for (const providerId of [
+    "apollo",
+    "marketing_research_gpt",
+    "consensus",
+    "scispace",
+    "askyourpdf",
+    "public_web_research",
+    "crm",
+    "future_approved_evidence_provider"
+  ]) {
+    const provider = model.providers.find(entry => entry.id === providerId);
+    assert.ok(provider, `Missing provider ${providerId}`);
+    assert.equal(provider.role, "evidence_provider");
+    assert.equal(provider.replaceable, true);
+    assert.equal(provider.executiveRecommendationsAllowed, false);
+  }
+
+  for (const responsibility of [
+    "collect_evidence",
+    "normalize_evidence",
+    "remove_duplicate_findings",
+    "resolve_conflicting_evidence",
+    "track_evidence_provenance",
+    "assign_confidence",
+    "identify_unknowns",
+    "score_evidence_quality",
+    "forward_validated_evidence_into_executive_intelligence"
+  ]) {
+    assert.ok(model.gaiaResponsibilities.includes(responsibility));
+  }
+
+  const qualityWeight = model.evidenceQualityScoring.dimensions.reduce((sum, dimension) => sum + dimension.weight, 0);
+  assert.equal(qualityWeight, 100);
+
+  for (const field of model.requiredEvidenceItemFields) {
+    assert.ok(schema.required.includes(field));
+  }
+
+  for (const boundary of [
+    "routeIqModified",
+    "athenaModified",
+    "dashboardModified",
+    "infrastructureModified",
+    "websiteModified",
+    "crmModified",
+    "intelligenceRuntimeModified",
+    "productionDataModified"
+  ]) {
+    assert.equal(model.boundaryConfirmation[boundary], false);
+  }
+
+  for (const phrase of [
+    "Gaia does not replace external GPTs",
+    "Gaia orchestrates them",
+    "External GPTs never produce executive recommendations",
+    "Every evidence source is replaceable",
+    "Forward validated evidence into Executive Intelligence"
+  ]) {
+    assert.match(orchestrator, new RegExp(phrase));
+    assert.match(architecture, new RegExp(phrase));
+  }
+
+  assert.match(readme, /Gaia Research Orchestrator/);
+  assert.match(readme, /research\/gaia-research-orchestrator\.md/);
+  assert.match(readme, /research\/registers\/gaia-evidence-engine\.json/);
+});
+
 test("Research taxonomy keeps Prometheus horizontal across outside-sales industries", () => {
   const taxonomy = readJson("research/taxonomy/research-taxonomy.json");
 

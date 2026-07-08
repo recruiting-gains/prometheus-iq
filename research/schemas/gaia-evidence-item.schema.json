@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Gaia Evidence Item",
+  "type": "object",
+  "required": [
+    "evidenceId",
+    "provider",
+    "providerType",
+    "workspaceId",
+    "researchQuestion",
+    "claim",
+    "evidenceType",
+    "sourceReferences",
+    "sourceAccessMethod",
+    "retrievedAt",
+    "providerSearchCriteria",
+    "providerFilters",
+    "rawFinding",
+    "normalizationStatus",
+    "duplicateGroupId",
+    "conflictGroupId",
+    "provenance",
+    "confidence",
+    "evidenceQualityScore",
+    "knownLimitations",
+    "unknownsCreated",
+    "allowedForExecutiveIntelligence"
+  ],
+  "properties": {
+    "evidenceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "provider": {
+      "type": "string",
+      "minLength": 1
+    },
+    "providerType": {
+      "enum": [
+        "lead_contact_company_enrichment",
+        "academic_research",
+        "scientific_literature",
+        "document_analysis",
+        "public_web_research",
+        "market_research_gpt",
+        "crm_approved_handoff",
+        "future_approved_provider"
+      ]
+    },
+    "workspaceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "researchQuestion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidenceType": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sourceReferences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "sourceAccessMethod": {
+      "type": "string",
+      "minLength": 1
+    },
+    "retrievedAt": {
+      "type": "string"
+    },
+    "providerSearchCriteria": {
+      "type": "object"
+    },
+    "providerFilters": {
+      "type": "object"
+    },
+    "rawFinding": {
+      "type": "string"
+    },
+    "normalizationStatus": {
+      "enum": [
+        "raw",
+        "normalized",
+        "rejected",
+        "needs_review"
+      ]
+    },
+    "duplicateGroupId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "conflictGroupId": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "provider",
+        "retrievedAt",
+        "sourceTier",
+        "providerLimitations"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "retrievedAt": {
+          "type": "string"
+        },
+        "sourceTier": {
+          "enum": [
+            "Tier 1",
+            "Tier 2",
+            "Tier 3",
+            "Excluded"
+          ]
+        },
+        "providerLimitations": {
+          "type": "string"
+        },
+        "corroborated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "confidence": {
+      "enum": [
+        "High",
+        "Medium-high",
+        "Medium",
+        "Medium-low",
+        "Low",
+        "Unknown"
+      ]
+    },
+    "evidenceQualityScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "knownLimitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unknownsCreated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowedForExecutiveIntelligence": {
+      "type": "boolean"
+    }
+  }
+}
