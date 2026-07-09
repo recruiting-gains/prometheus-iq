@@ -241,12 +241,23 @@
     }
 
     .footer-designation {
-      margin: 14px 0 0;
-      color: #d9e2de;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.12em;
+      display: grid;
+      gap: 6px;
+      width: fit-content;
+      margin: 24px auto 0;
+      border-top: 1px solid var(--line);
+      padding-top: 20px;
+      color: #f5fff8;
+      font-size: 17px;
+      font-weight: 950;
+      line-height: 1.25;
+      letter-spacing: 0.1em;
+      text-align: center;
       text-transform: uppercase;
+    }
+
+    .footer-designation span {
+      display: block;
     }
 
     @media (max-width: 680px) {
@@ -340,7 +351,7 @@
 
   <footer>
     <p>Prometheus is the company. Prometheus IQ is the flagship product for outside-sales intelligence.</p>
-    <p class="footer-designation">PROMETHEUS ROUTE IQ&trade; &bull; U.S. PATENT PENDING</p>
+    <p class="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
   </footer>
 </body>
 </html>

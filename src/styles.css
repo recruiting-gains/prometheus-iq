@@ -212,17 +212,18 @@ h3 { margin: 0; font-size: 22px; }
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  margin: 0 0 20px;
-  border: 1px solid rgba(255, 215, 108, .38);
+  margin: 0 0 18px;
+  border: 1px solid rgba(139,219,199,.32);
   border-radius: 999px;
-  padding: 8px 12px;
-  color: #ffe9a8;
-  background: rgba(255, 215, 108, .08);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
-  font-size: 11px;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: .08em;
+  padding: 0 12px;
+  min-height: 34px;
+  color: var(--teal-soft);
+  background: rgba(255,255,255,.045);
+  box-shadow: 0 0 28px rgba(139,219,199,.08);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: .13em;
   text-transform: uppercase;
 }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
@@ -557,13 +558,21 @@ h3 { margin: 0; font-size: 22px; }
 .footer-links a:hover { color: var(--gold); }
 .footer-designation {
   grid-column: 1 / -1;
-  margin: 8px 0 0;
-  color: #d9e2de !important;
-  font-size: 12px !important;
-  font-weight: 900;
-  letter-spacing: .12em;
+  display: grid;
+  gap: 6px;
+  width: fit-content;
+  margin: 18px auto 0;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+  color: #f5fff8 !important;
+  font-size: 17px !important;
+  font-weight: 950;
+  line-height: 1.25;
+  letter-spacing: .1em;
+  text-align: center;
   text-transform: uppercase;
 }
+.footer-designation span { display: block; }
 .holo-label {
   padding: 7px 10px;
   border: 1px solid rgba(139,219,199,.4);
@@ -599,7 +608,7 @@ h3 { margin: 0; font-size: 22px; }
   .identity-strip span { flex: 1 1 calc(50% - 8px); justify-content: center; text-align: center; }
   .industry-strip span, .partner-steps span { flex: 1 1 calc(50% - 8px); justify-content: center; text-align: center; }
   .hero-actions .button { width: 100%; }
-  .patent-badge { max-width: 100%; margin-bottom: 18px; font-size: 10px; white-space: normal; }
+  .patent-badge { max-width: 100%; margin-bottom: 18px; white-space: normal; }
   .signal-panel { padding: 18px; }
   .feature-card, .problem-grid article, .loop-step { min-height: auto; }
 }

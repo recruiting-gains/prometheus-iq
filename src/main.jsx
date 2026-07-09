@@ -417,7 +417,7 @@ function App() {
             <a href={instagramUrl}>@prometheus.IQ</a>
             <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
           </div>
-          <p className="footer-designation">PROMETHEUS ROUTE IQ&trade; &bull; U.S. PATENT PENDING</p>
+          <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
         </div>
       </footer>
     </main>
