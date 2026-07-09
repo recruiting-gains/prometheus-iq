@@ -22,7 +22,7 @@ Boundary: This archive records technical prototype evidence only. It does not dr
 | --- | --- | --- | --- | --- |
 | ART-001 | Early Route IQ Territory Conversion Prototype | Early prototype evidence | Date not supplied; do not infer | Early geographic intelligence, territory prioritization, conversion scoring, representative targeting, and category weighting. |
 | ART-002 | Early Route IQ Automation Workflow | Workflow evidence | Date not supplied; do not infer | Automated route construction, event integration, suggested routing workflow, and representative decision support. |
-| ART-003 | First Operational Route IQ Dashboard | First operational UI evidence | Date not supplied in artifact description; Founder-confirmed first working implementation date remains May 8, 2026 | Representative-facing dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction. |
+| ART-003 | First Operational Route IQ Dashboard | First operational UI evidence and first working implementation evidence | Founder-confirmed completed date: May 8, 2026 | Representative-facing dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction. |
 
 ## ART-001 - Early Route IQ Territory Conversion Prototype
 
@@ -124,13 +124,13 @@ Founder confirmation still needed:
 
 ## ART-003 - First Operational Route IQ Dashboard
 
-Status: Founder-supplied invention evidence
+Status: Founder-confirmed first working implementation evidence
 
-Date status: Date not supplied in artifact description. Founder-confirmed first working implementation date remains May 8, 2026; do not infer that this artifact carries that date unless separately confirmed.
+Date status: Founder-confirmed completed date: May 8, 2026.
 
 Purpose: Demonstrates representative-facing intelligence including representative dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction.
 
-Record type: First operational UI evidence.
+Record type: First operational UI evidence and first working implementation evidence.
 
 Technical features evidenced:
 
@@ -164,14 +164,13 @@ Drawing links:
 
 Evidence notes:
 
+- Founder confirms ART-003 represents the first working implementation of Route IQ completed on May 8, 2026.
 - This artifact supports operational UI evidence for representative-facing Route IQ behavior.
 - This artifact supports recommendation confidence and expected historical outcomes as visible system outputs.
 - This artifact should later be supplemented with screenshots, screen recordings, local source files, deployment URLs, browser history, backup exports, or metadata if available.
 
 Founder confirmation still needed:
 
-- Date created or first used.
-- Whether this artifact is the May 8, 2026 working implementation or a later operational UI.
 - First user or viewer.
 - Device or environment used.
 - Original file, screenshot, recording, or deployment location.
@@ -181,9 +180,9 @@ Founder confirmation still needed:
 
 This archive partially addresses the following missing items from `PROVISIONAL_APPLICATION_CHECKLIST_V1.md`:
 
-- Dated first-working-implementation artifact: partially addressed by artifact description, but date linkage remains unconfirmed.
+- Dated first-working-implementation artifact: ART-003 is founder-confirmed as the first working implementation completed May 8, 2026.
 - Screenshot and UI evidence archive: partially addressed by ART-003, but source screenshots/files remain unlinked.
-- Implementation reduction-to-practice timeline: partially supported, but dates and original files remain open.
+- Implementation reduction-to-practice timeline: partially supported by ART-003 confirmation; original files and environment details remain open.
 - External evidence archive index: started for the three Founder-provided prototype artifacts.
 
 ## Open Artifact Preservation Tasks
