@@ -597,6 +597,52 @@ Remaining Founder actions:
 - Verify current USPTO instructions, forms, Patent Center workflow, and fee amount before submission.
 - Complete official filing forms and submit outside this repository if proceeding.
 
+### 2026-07-09 - Route IQ Patent Preparation Milestone 1
+
+Milestone name: Route IQ Patent Preparation Milestone 1
+
+Status: Complete.
+
+Purpose:
+
+Foundation completed for Founder-assembled U.S. provisional patent application.
+
+Milestone completion summary:
+
+- Patent Preparation subsystem: complete.
+- Technical Disclosure: complete.
+- Route IQ System Specification: complete.
+- Technical Comparison Analysis: complete.
+- Drawing Foundation: complete.
+- Figures 1-10: complete.
+- Invention Register: complete.
+- Patent Master State: complete.
+- Patent Roadmap: complete.
+- Founder Interview: complete.
+- Invention Timeline: complete.
+- Invention Evidence Register: complete.
+- Prototype Archive: complete.
+- Provisional Readiness Audit: complete.
+- Provisional Application Assembly Package: complete.
+
+Milestone boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms completed.
+- No patentability determination made.
+- No legal conclusions added.
+- No filing action taken from the repository.
+
+Remaining Founder and counsel items after Milestone 1:
+
+- Attach or index original ART-003 evidence.
+- Complete public and private disclosure timelines.
+- Complete redaction review.
+- Confirm ART-003 file, storage location, device/environment, and external disclosure status.
+- Decide whether to submit figure placeholders, simple formalized figures, or both.
+- Verify current USPTO workflow, forms, fees, inventor/applicant data, and filing upload.
+- Complete attorney review before relying on the package for legal filing decisions.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
