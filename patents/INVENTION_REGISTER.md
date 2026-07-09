@@ -42,6 +42,15 @@ Invention number: 1
 
 Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
 
+Founder-confirmed invention history:
+
+- First conception date: May 1, 2026.
+- Decision to create Representative Intelligence Loop: May 3, 2026.
+- Early invention discussions: None.
+- Conception source: Founder conceived the invention independently.
+- First working implementation: May 8, 2026.
+- Core insight: Route IQ should continuously learn the representative, not only the territory or customer, and adapt future visit recommendations based on representative-specific historical performance.
+
 Known evidence captured:
 
 - Earliest repository-supported multi-representative intelligence planning located at `docs/prometheus-multi-rep-intelligence-plan.md`, dated June 22, 2026.
@@ -53,8 +62,8 @@ Known evidence captured:
 
 Attorney-review questions:
 
-- Confirm inventor timeline.
-- Identify first working implementation.
+- Review founder-confirmed invention timeline and supporting artifacts.
+- Identify first working implementation artifact for the May 8, 2026 implementation.
 - Identify public disclosures.
 - Review relationship to mapping, CRM, navigation, calendar, and data-source integrations as possible inputs or interfaces rather than the core invention.
 - Identify concrete evidence schemas, probability calculations, and recommendation outputs from implementation artifacts.

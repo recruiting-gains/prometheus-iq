@@ -10,31 +10,36 @@ Boundary: This register is technical and historical support material only. It do
 
 ## 1. First Conception Date
 
-Status: Founder confirmation required
+Status: Founder-confirmed
 
 Current record:
 
-- Exact first conception date is unknown from the current repository evidence.
-- Founder must confirm when the Route IQ adaptive representative intelligence concept was first conceived.
-- Founder should distinguish initial route-intelligence idea, multi-representative learning idea, evidence-driven learning loop, probability/recommendation engine idea, and final adaptive representative intelligence architecture.
+- Founder-confirmed first conception date: May 1, 2026.
+- Founder-confirmed problem that led to the invention: Field representatives were being sent into territories without meaningful intelligence, resulting in unnecessary driving, wasted fuel, and reliance primarily on Google Maps to decide where to go next.
+- Founder-confirmed existing product limitation: HubSpot CRM stored customer information but did not solve the decision of where a specific representative should go next, did not continuously learn the representative, and did not generate adaptive visit recommendations.
+- Founder-confirmed differentiation: The Founder observed that representatives often performed well in certain locations but poorly in others, and that simply sending representatives to different businesses did not improve outcomes.
+- Founder-confirmed key insight: The system should continuously learn the representative, not just the territory or customer, and adapt recommendations based on that representative's historical performance.
 
-Evidence currently available:
+Repository evidence currently available:
 
 - `docs/prometheus-multi-rep-intelligence-plan.md` is dated June 22, 2026 and documents separate representative intelligence profiles, founder baseline preservation, Anthony new representative mode, independent visit history, independent route history, recommendation history, performance metrics, and learning history.
 - Git commit `e9d3b46` dated 2026-06-22, `Add Anthony prospect seed routing`, includes `docs/prometheus-multi-rep-intelligence-plan.md`, `index.html`, deployed dashboard HTML, qualified prospect data, and route-building scripts.
 
 Founder confirmation needed:
 
-- Confirm whether conception occurred before 2026-06-22.
 - Confirm whether any notes, chats, whiteboards, screenshots, texts, or recordings predate the repository evidence.
-- Confirm who contributed to the conception and when.
+- Confirm whether any dated May 1, 2026 conception artifact exists outside the repository.
 
 ## 2. First Architecture Discussion
 
-Status: Founder confirmation required
+Status: Founder-confirmed independent conception
 
 Current record:
 
+- Founder-confirmed early invention discussions: None.
+- Founder-confirmed conception source: The Founder conceived the invention independently.
+- Founder-confirmed decision to create the Representative Intelligence Loop: May 3, 2026.
+- Founder-confirmed invention evolution: The invention evolved from route optimization into an adaptive representative intelligence system whose primary objective is to learn the representative, the territory, the customer, and the outcomes through a continuous intelligence loop that improves future recommendations.
 - Earliest repository-supported architecture discussion located so far is `docs/prometheus-multi-rep-intelligence-plan.md`, dated June 22, 2026.
 - The document describes multi-representative intelligence architecture, separate representative profiles, founder historical baseline, Anthony new representative mode, and representative-specific learning over time.
 
@@ -51,9 +56,8 @@ Additional architecture documentation:
 
 Founder confirmation needed:
 
-- Confirm whether any oral or written architecture discussion occurred before 2026-06-22.
-- Identify participants in the first architecture discussion.
-- Identify whether any private communication contains earlier architecture detail.
+- Confirm whether any dated May 3, 2026 artifact exists showing the Representative Intelligence Loop decision.
+- Confirm whether any private notes, sketches, messages, or local files document the independent conception before the repository-supported architecture files.
 
 ## 3. First Technical Documentation
 
@@ -70,11 +74,16 @@ Known technical documentation:
 
 Founder confirmation needed:
 
-- Confirm whether any non-repository technical notes, notebooks, screenshots, whiteboards, or message threads predate these files.
+- Confirm whether any non-repository technical notes, notebooks, screenshots, whiteboards, or message threads predate these files, especially materials from May 1, 2026 through May 8, 2026.
 
 ## 4. First Implementation Evidence
 
-Status: Repository evidence captured, founder confirmation required for earliest implementation date
+Status: Founder-confirmed first implementation date; repository evidence captured
+
+Founder-confirmed implementation history:
+
+- Founder-confirmed first working implementation date: May 8, 2026.
+- Founder-confirmed implementation summary: Route IQ began from a route decision problem and evolved into an adaptive representative intelligence system that learns the representative, territory, customer, and outcomes through a continuous intelligence loop.
 
 Known repository evidence:
 
@@ -85,13 +94,17 @@ Known repository evidence:
 
 Founder confirmation needed:
 
-- Confirm whether a Route IQ implementation existed before commit `e9d3b46`.
-- Identify the first local prototype file, first browser demo, or first deployed version if earlier than the git evidence.
-- Confirm whether any uncommitted local prototypes, screenshots, or recordings exist.
+- Identify the first local prototype file, first browser demo, or first deployed version associated with the May 8, 2026 working implementation.
+- Confirm whether any uncommitted local prototypes, screenshots, recordings, exported files, or backups from May 8, 2026 exist.
 
 ## 5. First Working Prototype Evidence
 
-Status: Founder confirmation required
+Status: Founder-confirmed date; supporting artifact confirmation required
+
+Founder-confirmed record:
+
+- First working implementation: May 8, 2026.
+- Summary: The invention evolved from route optimization into an adaptive representative intelligence system whose primary objective is to learn the representative, the territory, the customer, and the outcomes through a continuous intelligence loop that improves future recommendations.
 
 Known repository evidence:
 
@@ -102,10 +115,10 @@ Known repository evidence:
 
 Founder confirmation needed:
 
-- Confirm the first date the prototype actually ran and produced representative-facing Route IQ behavior.
 - Confirm who used the prototype first.
 - Confirm whether the prototype was used on a phone, desktop, installed PWA, or deployed Cloudflare Pages instance.
 - Confirm whether the first working prototype included evidence capture, representative profile learning, customer/territory intelligence, probability scoring, or recommendation generation.
+- Locate and preserve dated artifacts showing the May 8, 2026 working implementation.
 
 ## 6. Git Commits Supporting Implementation
 
@@ -222,16 +235,16 @@ Founder confirmation needed:
 
 Current gaps:
 
-- Exact first conception date.
-- First architecture discussion date and participants.
-- First working prototype date.
+- Dated artifact supporting May 1, 2026 first conception.
+- Dated artifact supporting May 3, 2026 Representative Intelligence Loop decision.
+- Dated artifact supporting May 8, 2026 first working implementation.
 - First deployed or user-tested Route IQ instance.
 - Screenshots and UI evidence with dates.
 - Public disclosure timeline.
 - Private disclosure timeline.
 - Customer/prospect discussion timeline.
 - Attorney consultation record.
-- Inventor/contributor list.
+- Inventor/contributor list confirmation beyond founder-confirmed independent conception.
 - Reduction-to-practice timeline.
 - Source code map for evidence collection, learning, probability, and recommendation components.
 - Repository tags, releases, or deployment URLs tied to specific dates.
@@ -251,6 +264,13 @@ Current gaps:
 10. Has any attorney reviewed Route IQ yet?
 11. Are there notebooks, chats, texts, emails, voice notes, photos, recordings, or whiteboards that predate the git evidence?
 12. Are there implementation details that should be preserved as trade secrets rather than included in later public filings?
+
+Founder-confirmed answers recorded:
+
+- Question 1: May 1, 2026.
+- Question 2: May 3, 2026 decision to create the Representative Intelligence Loop.
+- Question 3: No early invention discussions; Founder conceived the invention independently.
+- Question 4: May 8, 2026.
 
 ## 14. Register Maintenance Rules
 

@@ -205,6 +205,52 @@ Remaining attorney-review questions:
 - Confirm attorney consultation status.
 - Identify screenshots, recordings, texts, emails, decks, and external artifacts that should be preserved.
 
+### 2026-07-09 - Founder Invention Interview Record v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- Founder-confirmed invention history supplied for Route IQ.
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/INVENTION_REGISTER.md`
+
+Documentation created or modified:
+
+- Updated `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md` with founder-confirmed first conception date, problem statement, existing product limitation, differentiation, Representative Intelligence Loop decision date, independent conception record, first working implementation date, and invention evolution summary.
+- Updated `patents/INVENTION_REGISTER.md` with founder-confirmed Route IQ invention history.
+
+Founder-confirmed facts recorded:
+
+- First conception date: May 1, 2026.
+- Problem that led to the invention: Field representatives were being sent into territories without meaningful intelligence, causing unnecessary driving, wasted fuel, and reliance primarily on Google Maps for where to go next.
+- Existing product limitation: HubSpot CRM stored customer information but did not decide where a specific representative should go next, continuously learn the representative, or generate adaptive visit recommendations.
+- Route IQ differentiation: Representatives could perform well in certain locations and poorly in others; simply sending representatives to different businesses did not improve outcomes.
+- Key insight: Continuously learn the representative, not just the territory or customer, and adapt recommendations based on representative-specific historical performance.
+- Decision to create Representative Intelligence Loop: May 3, 2026.
+- Early invention discussions: None.
+- Conception source: Founder conceived the invention independently.
+- First working implementation: May 8, 2026.
+- Summary: Route IQ evolved from route optimization into an adaptive representative intelligence system whose primary objective is to learn the representative, territory, customer, and outcomes through a continuous intelligence loop that improves future recommendations.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms prepared.
+- No legal conclusions added.
+- No patentability determination made.
+- No prior technical disclosures altered.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Locate dated artifacts supporting the May 1, May 3, and May 8, 2026 founder-confirmed dates.
+- Identify first implementation files, screenshots, recordings, backups, or deployed instances from May 8, 2026.
+- Confirm public disclosure history.
+- Confirm private disclosure history.
+- Confirm customer/prospect discussions.
+- Confirm attorney consultation status.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
