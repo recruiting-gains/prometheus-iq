@@ -1066,3 +1066,44 @@ Each work log entry should include:
 - No formal prior-art review has been performed by counsel.
 - No patent claims have been drafted, by design.
 - Any USPTO downloadable filing package or uploaded-document package has not yet been preserved if available.
+
+## Permanent Route IQ Invention Documentation Rule
+
+Status: Active permanent Founder operating rule.
+
+Objective: No material Route IQ invention should exist only in source code. Engineering and intellectual property must evolve together.
+
+Permanent operating rule:
+
+Every time Route IQ gains a materially new invention, capability, architecture, workflow, computer-implemented process, learning mechanism, intelligence engine, probability engine, recommendation engine, or other technical improvement that could materially extend the filed provisional patent application:
+
+1. Pause implementation only long enough to document the invention.
+2. Record the invention inside the Prometheus Patents / Route IQ subsystem.
+3. Document:
+   - Date conceived.
+   - Technical problem solved.
+   - Technical solution.
+   - System impact.
+   - Computer implementation.
+   - Alternative embodiments.
+   - Supporting diagrams.
+   - Supporting screenshots, when available.
+4. Determine whether the invention should be:
+   - Documented under the existing provisional record.
+   - Preserved as a trade secret.
+   - Reviewed by patent counsel for future continuation, continuation-in-part, divisional, or future patent filing.
+5. Resume engineering immediately after documentation.
+
+Required Route IQ engineering behavior:
+
+- Future Route IQ implementation tasks must check whether the work creates a materially new technical improvement.
+- If yes, the minimum invention record must be created in `patents/route-iq/` before implementation continues beyond the documentation pause.
+- If the improvement is sensitive, the trade secret register must be considered before public or broad internal disclosure.
+- Counsel-review candidates must be marked for future attorney review without drafting claims or making legal conclusions in this repository.
+
+Legal boundary:
+
+- This rule does not create legal claims.
+- This rule does not determine patentability.
+- This rule does not replace patent counsel.
+- This rule preserves technical facts and invention continuity for future counsel review.

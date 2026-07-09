@@ -59,6 +59,31 @@ Cross-workspace contamination is prohibited:
 
 Overwatch must reject or flag any future engineering prompt that mixes customer data across workspaces, allows cross-customer learning contamination, stores customer-specific data globally, uses an incorrect Operating Profile, or creates Dashboard/CRM ambiguity between customers.
 
+## Permanent Route IQ Invention Documentation Rule
+
+Every time Route IQ gains a materially new invention, capability, architecture, workflow, computer-implemented process, learning mechanism, intelligence engine, probability engine, recommendation engine, or other technical improvement that could materially extend the filed provisional patent application, engineering must pause only long enough to document the invention.
+
+The invention must be recorded inside the Prometheus Patents / Route IQ subsystem before implementation continues beyond the minimum required documentation point.
+
+Required documentation:
+
+- Date conceived.
+- Technical problem solved.
+- Technical solution.
+- System impact.
+- Computer implementation.
+- Alternative embodiments.
+- Supporting diagrams.
+- Supporting screenshots, when available.
+
+The record must determine whether the invention should be:
+
+- Documented under the existing provisional record.
+- Preserved as a trade secret.
+- Reviewed by patent counsel for future continuation, continuation-in-part, divisional, or future patent filing.
+
+After documentation, engineering should resume immediately. No material Route IQ invention should exist only in source code. Engineering and intellectual property must evolve together.
+
 Before every engineering task, identify:
 
 1. Primary subsystem.
@@ -99,6 +124,58 @@ When an `OVERWATCH HANDOFF` is received:
 8. If no dependency exists, recommend the highest-priority engineering task.
 
 ## Active Dependency Tracker
+
+### 2026-07-09: Prometheus Patents / Route IQ - Permanent Route IQ Invention Documentation Rule
+
+Subsystem: Prometheus Patents / Route IQ
+
+Task: Permanent Route IQ Invention Documentation Rule
+
+Commit: Recorded by the Permanent Route IQ Invention Documentation Rule handoff commit.
+
+Deploy: Not run. Governance and IP continuity documentation only.
+
+Status: Complete.
+
+Implementation type: Permanent Founder operating rule and engineering governance update.
+
+Permanent rule recorded:
+
+Yes. Future Route IQ engineering must pause only long enough to document any materially new invention, capability, architecture, workflow, computer-implemented process, learning mechanism, intelligence engine, probability engine, recommendation engine, or other technical improvement that could materially extend the filed provisional patent application.
+
+Required invention record fields:
+
+- Date conceived.
+- Technical problem solved.
+- Technical solution.
+- System impact.
+- Computer implementation.
+- Alternative embodiments.
+- Supporting diagrams.
+- Supporting screenshots, when available.
+
+Required disposition:
+
+Each new material Route IQ invention record must determine whether the invention should be documented under the existing provisional record, preserved as a trade secret, or reviewed by patent counsel for future continuation, continuation-in-part, divisional, or future patent filing.
+
+Founder operating rule:
+
+No material Route IQ invention should exist only in source code. Engineering and intellectual property must evolve together.
+
+Files changed:
+
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+- `PROMETHEUS_SYSTEM_MAP.md`
+- `patents/PATENT_MASTER_STATE.md`
+- `patents/PATENT_ROADMAP.md`
+
+Remaining blockers:
+
+None for the governance rule. Attorney review remains required for legal strategy, claim scope, continuation, continuation-in-part, divisional, or future patent filing decisions.
+
+Next recommended subsystem:
+
+None. Apply this rule during future Route IQ engineering intake.
 
 ### 2026-07-05: Prometheus Research - Executive Intelligence Package Audience Perspective Standard v1
 

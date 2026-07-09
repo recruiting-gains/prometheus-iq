@@ -4,6 +4,22 @@ Initialized: 2026-07-09
 
 Purpose: Track preparation work for future attorney review. This roadmap does not determine filing strategy or patentability.
 
+## Permanent Route IQ Invention Documentation Rule
+
+Status: Active.
+
+Objective: no material Route IQ invention should exist only in source code.
+
+For every materially new Route IQ invention, capability, architecture, workflow, computer-implemented process, learning mechanism, intelligence engine, probability engine, recommendation engine, or other technical improvement that could materially extend the filed provisional patent application:
+
+1. Pause implementation only long enough to document the invention.
+2. Record the invention inside the Prometheus Patents / Route IQ subsystem.
+3. Document the conception date, technical problem, technical solution, system impact, computer implementation, alternative embodiments, supporting diagrams, and available screenshots.
+4. Determine whether the invention belongs under the existing provisional record, should be preserved as a trade secret, or should be reviewed by patent counsel for future continuation, continuation-in-part, divisional, or future patent filing.
+5. Resume engineering immediately after documentation.
+
+Route IQ engineering work must now include an invention-documentation check before any new material technical improvement is treated as complete.
+
 ## Phase 1 - Foundation
 
 Status: Initialized

@@ -405,6 +405,35 @@ Primary rule: Administration owns operating procedure and governance records. It
 
 Smoothie Depot Administration rule: Smoothie Depot operating procedure must extend `administration/workspaces/smoothie-depot/founder-operating-manual-v1.md`, `administration/workspaces/smoothie-depot/daily-operating-checklists-v1.md`, and `administration/workspaces/smoothie-depot/workspace-isolation-verification.json`. It must preserve `workspace_id: smoothie_depot`, `operating_profile_id: franchise_development`, and the no-Fitness-Connection / no-Route-Intelligence / no-Active-Pool / no-units / no-memberships boundary. It must not authorize CRM runtime persistence or Dashboard runtime changes.
 
+### 14. Prometheus Patents / IP Preparation
+
+Scope: technical disclosure, invention records, patent preparation materials, evidence archives, drawings, filing records, trade secret registers, trademark records, copyright records, and attorney-review packages.
+
+Areas:
+
+- Route IQ patent preparation
+- Invention documentation
+- Technical disclosures
+- System specifications
+- Drawing foundations
+- Prototype evidence
+- USPTO filing records
+- Patent roadmap
+- Trade secret review candidates
+- Future continuation, continuation-in-part, divisional, or future filing support materials
+
+Primary rule: Patents / IP Preparation preserves technical facts and invention continuity for Founder and counsel review. It must not draft legal claims, make patentability determinations, provide legal opinions, replace counsel, or submit USPTO filings automatically.
+
+Route IQ permanent invention documentation rule: every materially new Route IQ invention, capability, architecture, workflow, computer-implemented process, learning mechanism, intelligence engine, probability engine, recommendation engine, or other technical improvement that could materially extend the filed provisional application must be documented inside `patents/route-iq/` before implementation continues beyond the minimum documentation pause. The record must include date conceived, technical problem solved, technical solution, system impact, computer implementation, alternative embodiments, supporting diagrams, and supporting screenshots when available. The record must also determine whether the invention should be documented under the existing provisional record, preserved as a trade secret, or reviewed by patent counsel for future continuation, continuation-in-part, divisional, or future patent filing.
+
+Current foundation:
+
+- `patents/README.md`
+- `patents/PATENT_MASTER_STATE.md`
+- `patents/PATENT_ROADMAP.md`
+- `patents/INVENTION_REGISTER.md`
+- `patents/route-iq/`
+
 ## Workstream Routing Checklist
 
 Before beginning future work, answer:
