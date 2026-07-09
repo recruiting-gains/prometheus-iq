@@ -30,7 +30,7 @@ Each invention record should include:
 
 ### IP-001 - Route IQ Adaptive Representative Intelligence System
 
-Status: Technical disclosure v1 completed
+Status: Founder-filed U.S. provisional application recorded
 
 Related subsystem: Route IQ
 
@@ -41,6 +41,16 @@ Documentation status: Documented in `DISCLOSURE_PACKAGE_V1.md` and `route-iq/TEC
 Invention number: 1
 
 Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
+
+Filing status:
+
+- Founder-controlled U.S. provisional application filing recorded on 2026-07-09.
+- Application number: 64/107,865.
+- Confirmation number: 3435.
+- Patent Center number: 78484033.
+- Receipt timestamp: 2026-07-09 12:52:12 AM ET.
+- Fee paid: $130.00 provisional application filing fee.
+- Filing report: `route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md`.
 
 Founder-confirmed invention history:
 
@@ -62,6 +72,8 @@ Known evidence captured:
 
 Attorney-review questions:
 
+- Review filed provisional application package and receipt records.
+- Confirm post-filing ownership, assignment, and follow-on utility filing planning.
 - Review founder-confirmed invention timeline and supporting artifacts.
 - Identify first working implementation artifact for the May 8, 2026 implementation.
 - Identify public disclosures.

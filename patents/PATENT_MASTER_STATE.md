@@ -732,6 +732,57 @@ Remaining Founder and counsel items:
 - Founder must complete final upload format conversion, final drawing format decision, upload filenames, original ART-003 evidence indexing, disclosure timelines, redaction review, and all personal/legal portal fields.
 - Counsel should confirm upload scope, drawing inclusion, and redaction decisions if available.
 
+### 2026-07-09 - Route IQ Founder-Controlled USPTO Provisional Filing and Payment
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md`
+- `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md`
+- `patents/route-iq/USPTO_ATTACHMENT_VERIFICATION_V1.md`
+- Generated Route IQ filing PDFs in `output/pdf/route-iq/filing/`
+- Founder-provided USPTO Patent Center filing and payment receipt screenshots.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md`.
+- Updated `patents/PATENT_MASTER_STATE.md`.
+- Updated `patents/INVENTION_REGISTER.md`.
+- Updated `patents/PATENT_ROADMAP.md`.
+- Preserved generated Route IQ filing PDFs in `output/pdf/route-iq/filing/`.
+
+Filing event recorded:
+
+- Founder completed a manual USPTO Patent Center filing workflow.
+- Application number: 64/107,865.
+- Confirmation number: 3435.
+- Patent Center number: 78484033.
+- Receipt timestamp: 2026-07-09 12:52:12 AM ET.
+- Title of invention: Route IQ Adaptive Representative Intelligence System.
+- Uploaded documents shown in the filing workflow: USPTO-generated Application Data Sheet and `ROUTE_IQ_PROVISIONAL_APPLICATION_CORE_V1.pdf`.
+- Filing package document description observed for the Route IQ core PDF: Appendix to the specification.
+- Fee paid: $130.00.
+- Fee description: Provisional Application Filing Fee.
+- Payment status: payment received by USPTO.
+
+Legal boundary confirmation:
+
+- Filing was performed by the Founder through USPTO Patent Center.
+- Payment was authorized by the Founder.
+- No patent claims were drafted by this subsystem.
+- No legal conclusions were added.
+- No patentability determination was made.
+- No legal advice was provided.
+
+Remaining post-filing archive tasks:
+
+- Add the saved Electronic Acknowledgement Receipt PDF to the repository or secure evidence archive.
+- Add the saved Electronic Payment Receipt PDF to the repository or secure evidence archive.
+- Record receipt file paths after the Founder provides or moves the saved files.
+- Preserve any USPTO downloadable filing package or uploaded-document package if available.
+- Calendar the 12-month provisional conversion deadline for attorney review and future utility filing decision support.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
@@ -751,4 +802,4 @@ Each work log entry should include:
 - Additional inventor interviews may be needed for implementation details and evidence artifacts.
 - No formal prior-art review has been performed by counsel.
 - No patent claims have been drafted, by design.
-- No USPTO filings have been prepared or submitted.
+- USPTO provisional filing receipts have not yet been added to the local evidence archive.

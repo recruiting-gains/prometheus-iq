@@ -54,7 +54,7 @@ Tasks:
 
 ## Phase 4 - Attorney Review Package
 
-Status: Planned
+Status: Route IQ initial filing completed; attorney review still recommended
 
 Tasks:
 
@@ -64,6 +64,22 @@ Tasks:
 - Provide source-material index. Route IQ initial evidence register created.
 - Provide public-disclosure timeline. Founder confirmation required.
 - Provide unresolved technical questions.
+
+Route IQ filing record:
+
+- Founder-controlled U.S. provisional application filing recorded on 2026-07-09.
+- Application number: 64/107,865.
+- Confirmation number: 3435.
+- Patent Center number: 78484033.
+- Fee paid: $130.00.
+- Filing report: `patents/route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md`.
+
+Route IQ post-filing archive tasks:
+
+- Add saved Electronic Acknowledgement Receipt PDF to the evidence archive.
+- Add saved Electronic Payment Receipt PDF to the evidence archive.
+- Preserve any USPTO downloadable uploaded-document package if available.
+- Calendar the 12-month provisional conversion deadline.
 
 ## Phase 5 - Portfolio Support
 
