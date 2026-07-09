@@ -90,6 +90,38 @@ Legal boundary:
 - No USPTO forms prepared.
 - No filing actions taken.
 
+### 2026-07-09 - Route IQ Technical Disclosure v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- Existing `patents/DISCLOSURE_PACKAGE_V1.md` Route IQ scaffold.
+- Existing `patents/INVENTION_REGISTER.md` Route IQ candidate entry.
+- Existing `patents/route-iq/README.md` workspace notes.
+
+Documentation created or modified:
+
+- Expanded Route IQ in the master disclosure package as a computer-implemented adaptive representative intelligence system.
+- Created `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`.
+- Updated the Route IQ workspace README.
+- Updated the invention register to record Route IQ as Invention #1 with technical disclosure v1 completed.
+
+Legal boundary confirmation:
+
+- No patent claims drafted.
+- No patentability determination made.
+- No legal conclusions added.
+- No USPTO forms prepared.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Confirm inventor timeline and first reduction to practice.
+- Identify source implementation artifacts for evidence collection, learning, probability, and recommendation components.
+- Identify public disclosures and customer-facing demonstrations.
+- Review whether any implementation details should be preserved as trade secrets instead of publicly disclosed.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.

@@ -22,21 +22,21 @@ Subject: Shared architecture across Route IQ, Gaia, Athena, Evidence Engine, Int
 
 Related disclosures: IP-003, IP-004, IP-007
 
-### FIG-002 - Route IQ Prospect Qualification Workflow
+### FIG-002 - Route IQ Adaptive Representative Intelligence Architecture
 
 Status: Planned
 
-Subject: Candidate intake, normalization, qualification, scoring, approval, and route-ready output.
+Subject: Representative, evidence collection, learning engine, representative profile, territory intelligence, customer intelligence, outcome intelligence, probability engine, recommendation engine, and representative feedback.
 
 Related disclosures: IP-001
 
-### FIG-003 - Route IQ Runtime Pool Segmentation
+### FIG-003 - Route IQ Representative Intelligence Loop
 
 Status: Planned
 
-Subject: Active pool, reserve pool, quarantine pool, rejected records, promotion gates, and governance artifacts.
+Subject: Representative learning, territory learning, customer learning, outcome learning, probability recalculation, recommendation generation, action, evidence collection, and continuous adaptation.
 
-Related disclosures: IP-001, IP-002
+Related disclosures: IP-001, IP-004
 
 ### FIG-004 - Gaia Research Orchestration Workflow
 

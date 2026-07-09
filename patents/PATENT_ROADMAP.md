@@ -71,7 +71,7 @@ Tasks:
 
 ## Candidate Preparation Order
 
-1. Route IQ qualified route intelligence.
+1. Route IQ adaptive representative intelligence.
 2. Runtime pool segmentation and governance.
 3. Evidence Engine.
 4. Intelligence Loop.

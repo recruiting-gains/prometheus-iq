@@ -4,8 +4,15 @@ Purpose: Store Route IQ technical disclosures, invention notes, workflows, diagr
 
 Initial focus:
 
-- Qualified route intelligence.
-- Prospect intake and normalization.
-- Runtime pool segmentation.
-- Promotion, quarantine, reserve, and rejection governance.
-- Route-ready outputs and field feedback loops.
+- Adaptive representative intelligence.
+- Representative evidence collection.
+- Representative learning.
+- Territory learning.
+- Customer learning.
+- Outcome learning.
+- Probability and recommendation engines.
+- Continuous adaptation from field evidence and outcomes.
+
+## Canonical Disclosure
+
+- [TECHNICAL_DISCLOSURE_V1.md](TECHNICAL_DISCLOSURE_V1.md): Route IQ technical disclosure v1.

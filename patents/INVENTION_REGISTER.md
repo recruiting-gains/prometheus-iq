@@ -28,22 +28,25 @@ Each invention record should include:
 
 ## Current Invention Candidates
 
-### IP-001 - Route IQ Qualified Route Intelligence System
+### IP-001 - Route IQ Adaptive Representative Intelligence System
 
-Status: Candidate disclosure scaffold
+Status: Technical disclosure v1 completed
 
 Related subsystem: Route IQ
 
-Summary: System for preparing qualified prospect pools, route-ready opportunity records, quality gates, and field execution outputs.
+Summary: Computer-implemented adaptive representative intelligence system that collects representative activity evidence, updates representative profile intelligence, territory intelligence, customer intelligence, and outcome intelligence, calculates future action probabilities, and generates adaptive recommendations for a representative.
 
-Documentation status: Covered at scaffold level in `DISCLOSURE_PACKAGE_V1.md`.
+Documentation status: Documented in `DISCLOSURE_PACKAGE_V1.md` and `route-iq/TECHNICAL_DISCLOSURE_V1.md`.
+
+Invention number: 1
 
 Attorney-review questions:
 
 - Confirm inventor timeline.
 - Identify first working implementation.
 - Identify public disclosures.
-- Review relationship to mapping, CRM, and data-source integrations.
+- Review relationship to mapping, CRM, navigation, calendar, and data-source integrations as possible inputs or interfaces rather than the core invention.
+- Identify concrete evidence schemas, probability calculations, and recommendation outputs from implementation artifacts.
 
 ### IP-002 - Runtime Pool Segmentation and Promotion Governance
 
