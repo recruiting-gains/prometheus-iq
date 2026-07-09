@@ -922,7 +922,7 @@ Technical differentiation areas recorded:
 Legal boundary confirmation:
 
 - No infringement conclusion made.
-- No invalidity conclusion made.
+- No legal conclusion about any reference made.
 - No patentability determination made.
 - No novelty or obviousness conclusion made.
 - No legal claim construction performed.
@@ -933,6 +933,62 @@ Remaining attorney-review questions:
 - Counsel should run formal searches with classification, citation-tree, family, prosecution-history, and non-English-publication methods.
 - Counsel should verify bibliographic and assignee data for all references.
 - Counsel should determine whether high-relevance references should be charted against the filed disclosure.
+
+### 2026-07-09 - Route IQ Technical Differentiation Analysis v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`
+- `patents/route-iq/ROUTE_IQ_PATENT_LANDSCAPE_ANALYSIS_V1.md`
+
+Documentation created or modified:
+
+- Created `patents/route-iq/ROUTE_IQ_TECHNICAL_DIFFERENTIATION_ANALYSIS_V1.md`.
+- Updated `patents/PATENT_MASTER_STATE.md`.
+
+Analysis result:
+
+- 28 landscape references compared against Route IQ technical materials.
+- 15 patent or published patent application references scored.
+- 9 commercial system references scored.
+- 4 technical literature/background categories scored.
+- High-, medium-, and low-relevance references were compared using technical overlap, technical differentiation, learning architecture, recommendation engine, probability engine, data flow, and computer implementation factors.
+- Similarity and differentiation scores were assigned as engineering estimates for every reference.
+
+Technical differentiation areas recorded:
+
+- Route IQ as an adaptive representative intelligence system rather than a route optimization product.
+- Representative-specific learning as an explicit system object.
+- Four-layer representative, territory, customer, and outcome intelligence architecture.
+- Evidence and outcome feedback loop that updates future recommendations.
+- Probability recommendations tied to representative, territory, customer, and outcome intelligence layers.
+
+Closest technical reference areas:
+
+- Territory itinerary management.
+- Sales productivity and calendar planning.
+- Automated salesbeat optimization.
+- CRM next-best-action recommendation systems.
+- Field-professional task scheduling.
+- Commercial field-sales routing and mapping platforms.
+
+Legal boundary confirmation:
+
+- No legal opinion added.
+- No patentability determination made.
+- No infringement analysis made.
+- No statutory conclusion made.
+- No legal conclusion about any reference made.
+
+Remaining attorney-review questions:
+
+- Counsel should review the high-relevance references against the filed disclosure before any non-provisional planning.
+- Counsel should evaluate whether the Representative Intelligence Loop, probability engine, recommendation engine, and evidence normalization architecture require additional formal drafting support.
+- Counsel should determine whether any additional implementation evidence should be preserved before non-provisional drafting.
 
 ## Future Work Intake Rule
 
