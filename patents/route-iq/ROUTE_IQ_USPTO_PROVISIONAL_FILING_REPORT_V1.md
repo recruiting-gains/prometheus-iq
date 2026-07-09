@@ -71,15 +71,23 @@ The following filing PDFs were generated before submission and should be preserv
 
 ## 6. Receipt Archive Status
 
-The Founder saved the USPTO receipt during the filing flow.
+Official USPTO receipt PDFs are now preserved in the local filing evidence archive.
 
-Receipt files that should be added to the local evidence archive when available:
+Archived receipt files:
 
-- Electronic Acknowledgement Receipt PDF.
-- Electronic Payment Receipt PDF.
-- Any downloaded USPTO uploaded-document package or filing confirmation bundle.
+- `output/pdf/route-iq/filing/USPTO_ACKNOWLEDGEMENT_RECEIPT_64_107865.pdf`
+- `output/pdf/route-iq/filing/USPTO_PAYMENT_RECEIPT_64_107865.pdf`
 
-Receipt file paths were not provided to the repository at the time this report was created.
+Receipt verification:
+
+- Acknowledgement receipt title: Electronic Acknowledgement Receipt.
+- Payment receipt title: Electronic Payment Receipt.
+- Application number verified on both receipts: 64/107,865.
+- Confirmation number verified on both receipts: 3435.
+- Patent Center number verified on both receipts: 78484033.
+- Receipt timestamp verified on both receipts: 2026-07-09 12:52:12 AM ET.
+- Payment amount verified on payment receipt: $130.00.
+- Fee description verified on payment receipt: Provisional Application Filing Fee.
 
 ## 7. Material Events During Filing
 
@@ -106,9 +114,6 @@ Post-filing repository work should focus on preserving receipts, recording exact
 
 | Item | Priority | Reason |
 | --- | --- | --- |
-| Add saved Electronic Acknowledgement Receipt PDF to evidence archive | Highest | Preserves official application receipt and filing identifiers. |
-| Add saved Electronic Payment Receipt PDF to evidence archive | Highest | Preserves proof of fee payment. |
-| Record local paths for both receipts | Highest | Allows Overwatch to locate official filing evidence. |
 | Confirm whether USPTO provides a downloadable uploaded-document package | High | Preserves exact filed document set as accepted by Patent Center. |
 | Calendar the 12-month provisional conversion deadline | High | Supports future utility filing or counsel review timeline. |
 | Attorney review of filed package | Recommended | Counsel can advise on follow-on filings, claims, ownership, and disclosure handling. |

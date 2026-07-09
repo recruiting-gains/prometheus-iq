@@ -25,3 +25,9 @@ Initial focus:
 - [ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md](ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md): Route IQ Founder provisional application package assembly v1.
 - [USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md](USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md): Route IQ Founder USPTO provisional filing workspace v1.
 - [USPTO_ATTACHMENT_VERIFICATION_V1.md](USPTO_ATTACHMENT_VERIFICATION_V1.md): Route IQ USPTO attachment verification and final manifest v1.
+- [ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md](ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md): Route IQ Founder-controlled USPTO provisional filing and payment record.
+
+## Filed Receipt Archive
+
+- `../../output/pdf/route-iq/filing/USPTO_ACKNOWLEDGEMENT_RECEIPT_64_107865.pdf`: Official USPTO Electronic Acknowledgement Receipt.
+- `../../output/pdf/route-iq/filing/USPTO_PAYMENT_RECEIPT_64_107865.pdf`: Official USPTO Electronic Payment Receipt.

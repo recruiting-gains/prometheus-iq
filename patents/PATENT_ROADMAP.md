@@ -73,11 +73,11 @@ Route IQ filing record:
 - Patent Center number: 78484033.
 - Fee paid: $130.00.
 - Filing report: `patents/route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md`.
+- Electronic Acknowledgement Receipt archived at `output/pdf/route-iq/filing/USPTO_ACKNOWLEDGEMENT_RECEIPT_64_107865.pdf`.
+- Electronic Payment Receipt archived at `output/pdf/route-iq/filing/USPTO_PAYMENT_RECEIPT_64_107865.pdf`.
 
 Route IQ post-filing archive tasks:
 
-- Add saved Electronic Acknowledgement Receipt PDF to the evidence archive.
-- Add saved Electronic Payment Receipt PDF to the evidence archive.
 - Preserve any USPTO downloadable uploaded-document package if available.
 - Calendar the 12-month provisional conversion deadline.
 

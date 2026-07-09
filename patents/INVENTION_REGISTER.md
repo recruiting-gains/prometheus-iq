@@ -51,6 +51,8 @@ Filing status:
 - Receipt timestamp: 2026-07-09 12:52:12 AM ET.
 - Fee paid: $130.00 provisional application filing fee.
 - Filing report: `route-iq/ROUTE_IQ_USPTO_PROVISIONAL_FILING_REPORT_V1.md`.
+- Electronic Acknowledgement Receipt archived at `../output/pdf/route-iq/filing/USPTO_ACKNOWLEDGEMENT_RECEIPT_64_107865.pdf`.
+- Electronic Payment Receipt archived at `../output/pdf/route-iq/filing/USPTO_PAYMENT_RECEIPT_64_107865.pdf`.
 
 Founder-confirmed invention history:
 
