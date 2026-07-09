@@ -155,6 +155,56 @@ Remaining attorney-review questions:
 - Identify implementation-specific component names that should be used in later formal drawings.
 - Determine whether any system detail should remain confidential rather than illustrated.
 
+### 2026-07-09 - Route IQ Invention Evidence Register v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/INVENTION_REGISTER.md`
+- `patents/PATENT_ROADMAP.md`
+- `docs/prometheus-multi-rep-intelligence-plan.md`
+- `docs/route-intelligence-v2-architecture.md`
+- `docs/continuous-learning-framework.md`
+- `intelligence/adaptive-field-learning-loop-foundation.md`
+- `intelligence/recommendation-explainability-engine.mjs`
+- Git history for Route IQ-related documentation, implementation, data, and patent-preparation commits.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`.
+- Updated `patents/INVENTION_REGISTER.md` with Route IQ evidence-register status and known evidence summary.
+- Updated `patents/PATENT_ROADMAP.md` to mark Route IQ evidence collection in progress and identify founder confirmations.
+- Recorded unknown dates as founder confirmation required.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms prepared.
+- No legal conclusions added.
+- No patentability determination made.
+- No filing actions taken.
+
+Known evidence captured:
+
+- Repository-supported multi-representative intelligence planning dated June 22, 2026.
+- Commit `e9d3b46` dated 2026-06-22 as early implementation-support evidence.
+- Route Intelligence V2 architecture and continuous learning documentation dated 2026-06-27.
+- Adaptive outside-sales intelligence, field learning, offline evidence, operating profile, route runtime, active pool, and explanation support commits from late June and early July 2026.
+- Route IQ patent-preparation technical disclosure and drawing foundation commits.
+
+Remaining attorney-review questions:
+
+- Confirm first conception date.
+- Confirm first architecture discussion date and participants.
+- Confirm first working prototype date and first user.
+- Confirm public disclosure history.
+- Confirm private disclosure history.
+- Confirm customer/prospect discussions.
+- Confirm attorney consultation status.
+- Identify screenshots, recordings, texts, emails, decks, and external artifacts that should be preserved.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.

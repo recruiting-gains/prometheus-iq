@@ -40,6 +40,17 @@ Documentation status: Documented in `DISCLOSURE_PACKAGE_V1.md` and `route-iq/TEC
 
 Invention number: 1
 
+Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
+
+Known evidence captured:
+
+- Earliest repository-supported multi-representative intelligence planning located at `docs/prometheus-multi-rep-intelligence-plan.md`, dated June 22, 2026.
+- Earliest repository-supported implementation evidence located in commit `e9d3b46` dated 2026-06-22, `Add Anthony prospect seed routing`.
+- Route Intelligence V2 architecture documented in commit `6a5cd3e` dated 2026-06-27.
+- Continuous learning framework documented in commit `0a16046` dated 2026-06-27.
+- Adaptive field learning and operating profile evidence foundations documented in July 2026 implementation commits.
+- Route IQ technical disclosure and drawing foundation documented in patent-preparation commits `c095e70` and `4bfa427`.
+
 Attorney-review questions:
 
 - Confirm inventor timeline.
@@ -47,6 +58,7 @@ Attorney-review questions:
 - Identify public disclosures.
 - Review relationship to mapping, CRM, navigation, calendar, and data-source integrations as possible inputs or interfaces rather than the core invention.
 - Identify concrete evidence schemas, probability calculations, and recommendation outputs from implementation artifacts.
+- Review `route-iq/INVENTION_EVIDENCE_REGISTER.md` and identify which evidence should be included in attorney materials.
 
 ### IP-002 - Runtime Pool Segmentation and Promotion Governance
 

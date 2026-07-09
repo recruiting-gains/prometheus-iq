@@ -19,16 +19,24 @@ Tasks:
 
 ## Phase 2 - Evidence Collection
 
-Status: Planned
+Status: In progress
 
 Tasks:
 
-- Identify source repository files for each invention candidate.
-- Gather product screenshots and workflow artifacts.
-- Gather existing reports and design documents.
+- Identify source repository files for each invention candidate. Route IQ v1 evidence register created.
+- Gather product screenshots and workflow artifacts. Founder confirmation required.
+- Gather existing reports and design documents. Initial Route IQ support materials indexed.
 - Record inventor interviews.
 - Record conception and reduction-to-practice timelines.
 - Record known public disclosures.
+
+Route IQ evidence register:
+
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+
+Route IQ evidence gaps:
+
+- Founder must confirm first conception date, first architecture discussion, first working prototype, public disclosures, private disclosures, customer/prospect discussions, attorney consultation history, and screenshot/UI evidence.
 
 ## Phase 3 - Technical Disclosure Expansion
 
@@ -53,8 +61,8 @@ Tasks:
 - Prepare attorney-ready disclosure packet.
 - Provide invention register.
 - Provide drawing register.
-- Provide source-material index.
-- Provide public-disclosure timeline.
+- Provide source-material index. Route IQ initial evidence register created.
+- Provide public-disclosure timeline. Founder confirmation required.
 - Provide unresolved technical questions.
 
 ## Phase 5 - Portfolio Support
