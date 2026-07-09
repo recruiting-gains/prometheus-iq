@@ -612,6 +612,8 @@ Initial drawing candidates:
 
 Route IQ drawing foundation v1 is stored in `patents/drawings/route-iq/` and includes engineering placeholders for Figures 1 through 10. These placeholders support the technical disclosure and are not formal patent drawings.
 
+Route IQ system specification v1 is stored in `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`. It documents the engineering purpose, components, inputs, processing pipeline, representative intelligence loop, recommendation engine, data relationships, computer implementation, example session, alternative embodiments, technical improvements, and future extensions for Route IQ as a computer-implemented adaptive representative intelligence system.
+
 ## 12. Future Patent Candidates
 
 Candidate disclosures are tracked in [INVENTION_REGISTER.md](INVENTION_REGISTER.md).

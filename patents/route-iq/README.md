@@ -16,3 +16,5 @@ Initial focus:
 ## Canonical Disclosure
 
 - [TECHNICAL_DISCLOSURE_V1.md](TECHNICAL_DISCLOSURE_V1.md): Route IQ technical disclosure v1.
+- [ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md](ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md): Route IQ engineering system specification v1.
+- [INVENTION_EVIDENCE_REGISTER.md](INVENTION_EVIDENCE_REGISTER.md): Route IQ invention evidence register v1.

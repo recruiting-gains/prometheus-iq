@@ -251,6 +251,53 @@ Remaining attorney-review questions:
 - Confirm customer/prospect discussions.
 - Confirm attorney consultation status.
 
+### 2026-07-09 - Route IQ System Specification v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/drawings/route-iq/`
+- `patents/DISCLOSURE_PACKAGE_V1.md`
+
+Documentation created or modified:
+
+- Created `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`.
+- Updated `patents/route-iq/README.md` to reference the engineering system specification.
+- Updated `patents/DISCLOSURE_PACKAGE_V1.md` to identify the Route IQ system specification as support material.
+
+Specification sections completed:
+
+- System Purpose.
+- System Components.
+- System Inputs.
+- Processing Pipeline.
+- Representative Intelligence Loop.
+- Recommendation Engine.
+- Data Relationships.
+- Computer Implementation.
+- Example End-to-End Session.
+- Alternative Embodiments.
+- Technical Improvements.
+- Future Extensions.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms prepared.
+- No legal conclusions added.
+- No statutory references added.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Confirm whether counsel wants component names revised for later formal drawings.
+- Identify first implementation artifacts corresponding to each engine described in the specification.
+- Identify whether any internal scoring details should remain trade secret rather than being disclosed.
+- Confirm future Apollo enrichment and other evidence-provider boundaries before implementation-specific disclosure expansion.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
@@ -267,7 +314,7 @@ Each work log entry should include:
 ## Current Blockers
 
 - No attorney review has occurred.
-- No inventor interviews have been completed inside this subsystem.
+- Additional inventor interviews may be needed for implementation details and evidence artifacts.
 - No formal prior-art review has been performed by counsel.
 - No patent claims have been drafted, by design.
 - No USPTO filings have been prepared or submitted.
