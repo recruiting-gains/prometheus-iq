@@ -643,6 +643,49 @@ Remaining Founder and counsel items after Milestone 1:
 - Verify current USPTO workflow, forms, fees, inventor/applicant data, and filing upload.
 - Complete attorney review before relying on the package for legal filing decisions.
 
+### 2026-07-09 - USPTO Provisional Filing Workspace v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md`
+- `patents/route-iq/PROVISIONAL_READINESS_AUDIT_V2.md`
+- `patents/route-iq/PROVISIONAL_APPLICATION_CHECKLIST_V1.md`
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/drawings/route-iq/`
+- USPTO public filing references for provisional applications, forms, fees, and Patent Center.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md`.
+- Updated `patents/route-iq/README.md`.
+
+Workspace result:
+
+- Founder filing workspace created for manual USPTO portal entry preparation.
+- Workspace includes invention title, inventor information, applicant information, correspondence information, entity status, technical disclosure attachment, drawing attachment list, figure list, attachment inventory, filing checklist, fee checklist, and final pre-submission checklist.
+- Every field is marked as already completed, requiring Founder input, requiring attorney confirmation, requiring USPTO portal entry, or a combination of those statuses.
+- Founder-specific personal, legal, applicant, correspondence, entity, and fee fields were left blank.
+
+Boundary confirmation:
+
+- No USPTO submission completed.
+- No USPTO forms completed.
+- No legal patent claims drafted.
+- No legal representations added.
+- No legal analysis added.
+- No patentability determination made.
+- No Founder personal information invented.
+
+Remaining Founder and counsel items:
+
+- Founder must complete inventor, applicant, correspondence, entity status, fee, final attachment, and portal-entry fields.
+- Counsel should confirm inventor/applicant/ownership status, entity status, drawing inclusion, upload scope, and redaction decisions if available.
+- Founder must verify current USPTO fee amount and portal workflow directly before submission.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
