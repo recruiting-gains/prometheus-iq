@@ -401,6 +401,57 @@ Remaining attorney-review questions:
 - Counsel should identify any additional technical examples, diagrams, or implementation details needed.
 - Founder should confirm missing artifact, disclosure, screenshot, and customer/prospect timelines.
 
+### 2026-07-09 - Route IQ Prototype Evidence Archive v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- Founder-provided descriptions for ART-001, ART-002, and ART-003.
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/drawings/route-iq/`
+
+Documentation created or modified:
+
+- Created `patents/route-iq/PROTOTYPE_ARCHIVE.md`.
+- Updated `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md` to record founder-supplied prototype, workflow, and operational UI evidence.
+
+Prototype artifacts recorded:
+
+- ART-001 - Early Route IQ Territory Conversion Prototype: geographic intelligence, territory prioritization, conversion scoring, representative targeting, and category weighting.
+- ART-002 - Early Route IQ Automation Workflow: automated route construction, event integration, suggested routing workflow, and representative decision support.
+- ART-003 - First Operational Route IQ Dashboard: representative dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction.
+
+Disclosure links created:
+
+- ART-001 linked to Technical Disclosure sections 4, 6, 7, and 8.
+- ART-002 linked to Technical Disclosure sections 5, 6, 8, 9, and 10.
+- ART-003 linked to Technical Disclosure sections 4, 5, 6, 7, 8, and 9.
+
+Drawing links created:
+
+- ART-001 linked to Figures 1, 4, 5, 6, 7, and 8.
+- ART-002 linked to Figures 1, 2, 7, 8, 9, and 10.
+- ART-003 linked to Figures 1, 2, 3, 6, 7, 8, and 9.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No filing forms modified.
+- No legal analysis added.
+- No dates inferred beyond founder-confirmed facts.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Confirm creation dates for ART-001, ART-002, and ART-003.
+- Attach or reference original artifact files, screenshots, recordings, workflow exports, or metadata.
+- Confirm whether ART-003 is the May 8, 2026 first working implementation or a later operational dashboard.
+- Confirm whether any prototype artifact was shown externally.
+- Complete redaction review for any sensitive prospect, customer, address, or scoring information.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.

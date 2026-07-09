@@ -85,6 +85,13 @@ Founder-confirmed implementation history:
 - Founder-confirmed first working implementation date: May 8, 2026.
 - Founder-confirmed implementation summary: Route IQ began from a route decision problem and evolved into an adaptive representative intelligence system that learns the representative, territory, customer, and outcomes through a continuous intelligence loop.
 
+Founder-supplied prototype artifacts:
+
+- `PROTOTYPE_ARCHIVE.md` records ART-001, Early Route IQ Territory Conversion Prototype, as early Route IQ prototype evidence demonstrating geographic intelligence, territory prioritization, conversion scoring, representative targeting, and category weighting.
+- `PROTOTYPE_ARCHIVE.md` records ART-002, Early Route IQ Automation Workflow, as workflow evidence demonstrating automated route construction, event integration, suggested routing workflow, and representative decision support.
+- `PROTOTYPE_ARCHIVE.md` records ART-003, First Operational Route IQ Dashboard, as first operational UI evidence demonstrating representative dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction.
+- No artifact dates are inferred from the artifact descriptions.
+
 Known repository evidence:
 
 - Commit `e9d3b46` dated 2026-06-22, `Add Anthony prospect seed routing`, modified `index.html`, deployed dashboard HTML, qualified prospect data, route outputs, import/build scripts, and Route IQ-related planning documentation.
@@ -95,6 +102,7 @@ Known repository evidence:
 Founder confirmation needed:
 
 - Identify the first local prototype file, first browser demo, or first deployed version associated with the May 8, 2026 working implementation.
+- Confirm whether ART-001, ART-002, or ART-003 correspond to the May 8, 2026 working implementation.
 - Confirm whether any uncommitted local prototypes, screenshots, recordings, exported files, or backups from May 8, 2026 exist.
 
 ## 5. First Working Prototype Evidence
@@ -113,12 +121,18 @@ Known repository evidence:
 - Commit `e9d3b46` dated 2026-06-22 includes `index.html`, deployed dashboard HTML, Anthony prospect data, route output data, and route-building scripts.
 - Later commits show continued runtime and production hardening, including runtime route data integration, active pool asset synchronization, nearby opportunities behavior, route controls, field learning foundations, and operating profile evidence foundations.
 
+Founder-supplied prototype evidence:
+
+- ART-003, First Operational Route IQ Dashboard, is recorded as first operational UI evidence. It demonstrates representative-facing intelligence, including dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction.
+- ART-001 and ART-002 are recorded as supporting early prototype and workflow evidence for geographic intelligence, territory prioritization, automation, event integration, and representative decision support.
+
 Founder confirmation needed:
 
 - Confirm who used the prototype first.
 - Confirm whether the prototype was used on a phone, desktop, installed PWA, or deployed Cloudflare Pages instance.
 - Confirm whether the first working prototype included evidence capture, representative profile learning, customer/territory intelligence, probability scoring, or recommendation generation.
 - Locate and preserve dated artifacts showing the May 8, 2026 working implementation.
+- Confirm dates, original file names, and storage locations for ART-001, ART-002, and ART-003.
 
 ## 6. Git Commits Supporting Implementation
 
@@ -150,7 +164,7 @@ Founder confirmation needed:
 
 ## 7. Screenshots Or UI Evidence
 
-Status: Founder confirmation required
+Status: Founder-supplied UI artifact recorded; source files and dates still require confirmation
 
 Known repository evidence:
 
@@ -159,12 +173,18 @@ Known repository evidence:
 - `docs/security-audit-2026-06-21.md` references mobile/PWA behavior and app deployment context.
 - `docs/fitness-connection-pitch-plan.md` references the need to show real field activity, a real result dashboard, and weekly screenshots, but the register does not currently contain the screenshots themselves.
 
+Founder-supplied UI evidence:
+
+- ART-003 in `PROTOTYPE_ARCHIVE.md` records the First Operational Route IQ Dashboard as first operational UI evidence.
+- ART-003 demonstrates representative dashboard, daily goals, route recommendation, recommendation confidence, expected historical outcomes, and representative interaction.
+
 Founder confirmation needed:
 
 - Locate and preserve screenshots of Route IQ UI, representative login/session, recommendation output, visit logging, owner mode, route controls, nearby opportunities, and report/export flows.
 - Confirm dates for each screenshot.
 - Confirm whether any screenshots were shown externally.
 - Identify whether screenshots contain confidential customer, prospect, address, or scoring information requiring redaction.
+- Attach or reference the source file, screenshot, or recording for ART-003.
 
 ## 8. Public Disclosure History
 
@@ -238,6 +258,7 @@ Current gaps:
 - Dated artifact supporting May 1, 2026 first conception.
 - Dated artifact supporting May 3, 2026 Representative Intelligence Loop decision.
 - Dated artifact supporting May 8, 2026 first working implementation.
+- Dates, source files, storage locations, and metadata for ART-001, ART-002, and ART-003 in `PROTOTYPE_ARCHIVE.md`.
 - First deployed or user-tested Route IQ instance.
 - Screenshots and UI evidence with dates.
 - Public disclosure timeline.
@@ -249,6 +270,7 @@ Current gaps:
 - Source code map for evidence collection, learning, probability, and recommendation components.
 - Repository tags, releases, or deployment URLs tied to specific dates.
 - External files, screenshots, recordings, texts, emails, and slide decks.
+- Redaction review for prototype artifacts if they contain prospect, customer, address, or internal scoring information.
 
 ## 13. Founder Questions Requiring Confirmation
 
