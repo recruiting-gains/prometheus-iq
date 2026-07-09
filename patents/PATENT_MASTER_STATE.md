@@ -488,6 +488,64 @@ Remaining attorney-review questions:
 - Confirm whether ART-003 was shown externally.
 - Complete redaction review for sensitive prospect, customer, address, or scoring information.
 
+### 2026-07-09 - Route IQ Provisional Application Readiness Audit v2
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`
+- `patents/route-iq/PROTOTYPE_ARCHIVE.md`
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/route-iq/PROVISIONAL_APPLICATION_CHECKLIST_V1.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/drawings/route-iq/`
+- `patents/DISCLOSURE_PACKAGE_V1.md`
+- `patents/INVENTION_REGISTER.md`
+- `patents/PATENT_MASTER_STATE.md`
+- `patents/PATENT_ROADMAP.md`
+- USPTO public filing references for factual filing-paper context.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/PROVISIONAL_READINESS_AUDIT_V2.md`.
+- Updated `patents/route-iq/README.md`.
+
+Readiness percentage:
+
+- Overall technical readiness: 88%.
+
+Audit result:
+
+- No technical blocker prevents assembling a Route IQ provisional application draft from the current package.
+- Remaining items are recommended evidence-strengthening, artifact attachment, disclosure timeline, redaction, figure conversion, and implementation-traceability tasks.
+
+Items recommended before filing:
+
+- Attach or index original ART-003 evidence.
+- Complete public disclosure timeline.
+- Complete private disclosure timeline.
+- Complete redaction review.
+- Confirm ART-003 source file, storage location, device/environment, and external disclosure status.
+- Decide whether to include simple figures generated from the ten figure placeholders.
+
+Boundary confirmation:
+
+- No legal patent claims drafted.
+- No filing forms completed.
+- No legal analysis added.
+- No filing strategy added.
+- No new architecture created.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Counsel should verify whether the package is adequate for the intended filing.
+- Counsel should identify any additional technical examples, figures, or artifact evidence needed.
+- Founder should complete the recommended pre-filing evidence tasks if time permits.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.

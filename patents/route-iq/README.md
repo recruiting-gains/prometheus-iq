@@ -21,3 +21,4 @@ Initial focus:
 - [INVENTION_EVIDENCE_REGISTER.md](INVENTION_EVIDENCE_REGISTER.md): Route IQ invention evidence register v1.
 - [PROTOTYPE_ARCHIVE.md](PROTOTYPE_ARCHIVE.md): Route IQ founder-supplied prototype evidence archive v1.
 - [PROVISIONAL_APPLICATION_CHECKLIST_V1.md](PROVISIONAL_APPLICATION_CHECKLIST_V1.md): Route IQ provisional application technical assembly checklist v1.
+- [PROVISIONAL_READINESS_AUDIT_V2.md](PROVISIONAL_READINESS_AUDIT_V2.md): Route IQ provisional application technical readiness audit v2.
