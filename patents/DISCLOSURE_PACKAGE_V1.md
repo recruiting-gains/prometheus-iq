@@ -596,11 +596,21 @@ Initial drawing candidates:
 - Prometheus platform architecture.
 - Route IQ adaptive representative intelligence architecture.
 - Route IQ representative intelligence loop.
+- Route IQ representative learning workflow.
+- Route IQ territory learning workflow.
+- Route IQ customer learning workflow.
+- Route IQ outcome learning workflow.
+- Route IQ probability recommendation engine.
+- Route IQ complete computer-implemented data flow.
+- Route IQ example representative session.
+- Route IQ alternative system embodiment.
 - Gaia research orchestration workflow.
 - Athena recommendation workflow.
 - Evidence Engine data lifecycle.
 - Intelligence Loop feedback cycle.
 - Shared subsystem handoff architecture.
+
+Route IQ drawing foundation v1 is stored in `patents/drawings/route-iq/` and includes engineering placeholders for Figures 1 through 10. These placeholders support the technical disclosure and are not formal patent drawings.
 
 ## 12. Future Patent Candidates
 

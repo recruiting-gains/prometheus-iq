@@ -122,6 +122,39 @@ Remaining attorney-review questions:
 - Identify public disclosures and customer-facing demonstrations.
 - Review whether any implementation details should be preserved as trade secrets instead of publicly disclosed.
 
+### 2026-07-09 - Route IQ Patent Drawing Foundation v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/DISCLOSURE_PACKAGE_V1.md`
+- `patents/DRAWING_REGISTER.md`
+
+Documentation created or modified:
+
+- Created Route IQ drawing foundation directory at `patents/drawings/route-iq/`.
+- Created engineering-style figure descriptions and placeholders for Figures 1 through 10.
+- Updated the drawing register with Route IQ figure titles, purposes, components, relationships, sources, and related disclosures.
+- Updated the master disclosure package to list the Route IQ figure set.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No formal patent drawings created.
+- No artistic graphics created.
+- No marketing diagrams created.
+- No USPTO forms prepared.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Confirm whether the Figure 1 through Figure 10 set is sufficient for counsel's first provisional drafting pass.
+- Identify whether any figure should be split into multiple formal illustrations.
+- Identify implementation-specific component names that should be used in later formal drawings.
+- Determine whether any system detail should remain confidential rather than illustrated.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
