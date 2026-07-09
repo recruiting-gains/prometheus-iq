@@ -24,3 +24,4 @@ Initial focus:
 - [PROVISIONAL_READINESS_AUDIT_V2.md](PROVISIONAL_READINESS_AUDIT_V2.md): Route IQ provisional application technical readiness audit v2.
 - [ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md](ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md): Route IQ Founder provisional application package assembly v1.
 - [USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md](USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md): Route IQ Founder USPTO provisional filing workspace v1.
+- [USPTO_ATTACHMENT_VERIFICATION_V1.md](USPTO_ATTACHMENT_VERIFICATION_V1.md): Route IQ USPTO attachment verification and final manifest v1.

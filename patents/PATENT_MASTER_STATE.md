@@ -686,6 +686,52 @@ Remaining Founder and counsel items:
 - Counsel should confirm inventor/applicant/ownership status, entity status, drawing inclusion, upload scope, and redaction decisions if available.
 - Founder must verify current USPTO fee amount and portal workflow directly before submission.
 
+### 2026-07-09 - USPTO Attachment Verification v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md`
+- `patents/route-iq/ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/route-iq/PROTOTYPE_ARCHIVE.md`
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/drawings/route-iq/`
+
+Documentation created or modified:
+
+- Created `patents/route-iq/USPTO_ATTACHMENT_VERIFICATION_V1.md`.
+- Updated `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md`.
+- Updated `patents/route-iq/README.md`.
+
+Verification result:
+
+- Attachment inventory A-001 through A-024 verified.
+- File existence verified for every numbered attachment.
+- Filename and location verification completed.
+- Local cross-reference verification completed.
+- Figure references for Figures 1 through 10 verified.
+- No missing files found.
+- No broken local references found.
+- No duplicate attachment IDs found.
+- No missing attachment numbers found.
+- USPTO filing workspace retained as an internal control reference rather than a numbered filing attachment.
+
+Boundary confirmation:
+
+- No USPTO forms prepared.
+- No legal patent claims drafted.
+- No legal analysis added.
+- No legal representations added.
+- No USPTO filing submitted.
+- No attachment content rewritten.
+
+Remaining Founder and counsel items:
+
+- Founder must complete final upload format conversion, final drawing format decision, upload filenames, original ART-003 evidence indexing, disclosure timelines, redaction review, and all personal/legal portal fields.
+- Counsel should confirm upload scope, drawing inclusion, and redaction decisions if available.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.

@@ -150,7 +150,10 @@ No entity status is determined in this workspace.
 | A-022 | Invention Register | `patents/INVENTION_REGISTER.md` | Already completed; requires Founder input | Internal support unless Founder elects to include. |
 | A-023 | Disclosure Package | `patents/DISCLOSURE_PACKAGE_V1.md` | Already completed; requires Founder input | Include as master disclosure appendix if desired. |
 | A-024 | Route IQ Workspace README | `patents/route-iq/README.md` | Already completed | Internal index. |
-| A-025 | USPTO Filing Workspace | `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md` | Already completed | Internal Founder portal-entry workspace. |
+
+Internal control reference:
+
+- `patents/route-iq/USPTO_PROVISIONAL_FILING_WORKSPACE_V1.md` is the Founder portal-entry workspace and is not assigned a filing attachment number.
 
 ## 11. Filing Checklist
 
