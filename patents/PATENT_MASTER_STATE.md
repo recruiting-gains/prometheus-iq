@@ -546,6 +546,57 @@ Remaining attorney-review questions:
 - Counsel should identify any additional technical examples, figures, or artifact evidence needed.
 - Founder should complete the recommended pre-filing evidence tasks if time permits.
 
+### 2026-07-09 - Route IQ Provisional Application Assembly v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`
+- `patents/route-iq/PROTOTYPE_ARCHIVE.md`
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/route-iq/PROVISIONAL_APPLICATION_CHECKLIST_V1.md`
+- `patents/route-iq/PROVISIONAL_READINESS_AUDIT_V2.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/drawings/route-iq/`
+- `patents/DISCLOSURE_PACKAGE_V1.md`
+- `patents/INVENTION_REGISTER.md`
+- `patents/PATENT_ROADMAP.md`
+- USPTO public filing references for cover sheet, forms, fee, and Patent Center verification.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/ROUTE_IQ_PROVISIONAL_APPLICATION_PACKAGE_V1.md`.
+- Updated `patents/route-iq/README.md`.
+
+Assembly result:
+
+- The Route IQ provisional application package has been assembled in recommended Founder filing order.
+- The package includes a cover sheet checklist, technical disclosure, system specification, drawing figures, figure descriptions, prototype evidence, Founder timeline, evidence register, technical comparison, supporting appendices, attachment inventory, and Founder filing actions.
+- Package completeness: assembled v1.
+- Technical readiness basis: 88% from `patents/route-iq/PROVISIONAL_READINESS_AUDIT_V2.md`.
+
+Boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms completed.
+- No legal analysis added.
+- No patentability determination made.
+- No filing actions taken.
+- Existing technical disclosures were referenced instead of duplicated.
+
+Remaining Founder actions:
+
+- Attach or index original ART-003 evidence.
+- Complete public disclosure timeline.
+- Complete private disclosure timeline.
+- Complete redaction review.
+- Decide whether to submit the ten engineering figure placeholders as narrative descriptions, formalized simple figures, or both.
+- Verify current USPTO instructions, forms, Patent Center workflow, and fee amount before submission.
+- Complete official filing forms and submit outside this repository if proceeding.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
