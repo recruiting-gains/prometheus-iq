@@ -119,6 +119,7 @@ function App() {
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
             <SectionLabel>Prometheus IQ by Prometheus</SectionLabel>
+            <div className="patent-badge" aria-label="U.S. patent pending technology">U.S. PATENT PENDING TECHNOLOGY</div>
             <h1>AI Route Intelligence for Outside Sales Teams.</h1>
             <p>
               At Prometheus, we make it our business to know who sits in front of you before you ever shake their hand.
@@ -416,6 +417,7 @@ function App() {
             <a href={instagramUrl}>@prometheus.IQ</a>
             <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
           </div>
+          <p className="footer-designation">PROMETHEUS ROUTE IQ&trade; &bull; U.S. PATENT PENDING</p>
         </div>
       </footer>
     </main>

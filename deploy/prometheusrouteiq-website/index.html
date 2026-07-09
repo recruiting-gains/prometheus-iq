@@ -648,6 +648,24 @@
       text-shadow: 0 0 24px rgba(39, 224, 160, 0.34);
     }
 
+    .patent-badge {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+      margin: 0 0 20px;
+      border: 1px solid rgba(255, 215, 108, 0.38);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: #ffe9a8;
+      background: rgba(255, 215, 108, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
     h1,
     h2,
     p {
@@ -1141,6 +1159,15 @@
       color: var(--gold);
       border-color: var(--gold);
       outline: none;
+    }
+
+    .footer-designation {
+      margin-top: 22px;
+      color: #d9e2de;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
     }
 
     body.modal-open {
@@ -2000,6 +2027,13 @@
         white-space: normal;
       }
 
+      .patent-badge {
+        max-width: 100%;
+        margin-bottom: 18px;
+        font-size: 10px;
+        white-space: normal;
+      }
+
       h1 {
         max-width: 100%;
         font-size: clamp(42px, 13vw, 58px);
@@ -2146,6 +2180,7 @@
       </div>
       <div class="hero-copy">
         <div class="eyebrow">Prometheus IQ by Prometheus</div>
+        <div class="patent-badge" aria-label="U.S. patent pending technology">U.S. PATENT PENDING TECHNOLOGY</div>
         <h1>AI Route Intelligence for Outside Sales Teams.</h1>
         <p class="lead">At Prometheus, we make it our business to know who sits in front of you before you ever shake their hand. By transforming evidence into decision-ready intelligence, we help organizations reduce uncertainty before important business decisions—from outside sales and franchise development to future operational intelligence across every industry where preparation creates an advantage.</p>
         <div class="buttons">
@@ -2341,6 +2376,7 @@
           <a href="/terms">Terms of Service</a>
           <a href="/data-deletion">Data Deletion</a>
         </nav>
+        <p class="footer-designation">PROMETHEUS ROUTE IQ&trade; &bull; U.S. PATENT PENDING</p>
       </div>
     </section>
   </main>
