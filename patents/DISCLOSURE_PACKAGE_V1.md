@@ -614,6 +614,8 @@ Route IQ drawing foundation v1 is stored in `patents/drawings/route-iq/` and inc
 
 Route IQ system specification v1 is stored in `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`. It documents the engineering purpose, components, inputs, processing pipeline, representative intelligence loop, recommendation engine, data relationships, computer implementation, example session, alternative embodiments, technical improvements, and future extensions for Route IQ as a computer-implemented adaptive representative intelligence system.
 
+Route IQ technical comparison analysis v1 is stored in `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`. It compares Route IQ against categories of existing software, including navigation systems, traditional CRM, route optimization, and sales intelligence, by technical behavior and engineering limitations.
+
 ## 12. Future Patent Candidates
 
 Candidate disclosures are tracked in [INVENTION_REGISTER.md](INVENTION_REGISTER.md).

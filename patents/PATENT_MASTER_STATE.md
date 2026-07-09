@@ -298,6 +298,47 @@ Remaining attorney-review questions:
 - Identify whether any internal scoring details should remain trade secret rather than being disclosed.
 - Confirm future Apollo enrichment and other evidence-provider boundaries before implementation-specific disclosure expansion.
 
+### 2026-07-09 - Route IQ Technical Comparison Analysis v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- Public product materials for navigation, CRM, route optimization, and sales intelligence category behavior.
+
+Documentation created or modified:
+
+- Created `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`.
+- Updated `patents/route-iq/README.md` to reference the comparison analysis.
+- Updated `patents/DISCLOSURE_PACKAGE_V1.md` to identify the comparison analysis as Route IQ support material.
+
+Comparison sections completed:
+
+- Navigation Systems.
+- Traditional CRM.
+- Route Optimization.
+- Sales Intelligence.
+- Dedicated Intelligence Loop Comparison.
+- Summary Of Technical Improvements.
+- Reference Materials Reviewed.
+
+Legal boundary confirmation:
+
+- No legal patent claims drafted.
+- No USPTO forms prepared.
+- No legal analysis added.
+- No statutory references added.
+- No comparison against legal publications added.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Counsel should determine whether further comparative materials are needed.
+- Founder should confirm which observed limitations came from personal field experience versus product-category research.
+- Any future detailed competitor comparison should be separated from legal analysis unless counsel directs otherwise.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
