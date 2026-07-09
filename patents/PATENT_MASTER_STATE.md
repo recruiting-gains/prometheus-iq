@@ -339,6 +339,68 @@ Remaining attorney-review questions:
 - Founder should confirm which observed limitations came from personal field experience versus product-category research.
 - Any future detailed competitor comparison should be separated from legal analysis unless counsel directs otherwise.
 
+### 2026-07-09 - Route IQ Provisional Application Assembly Checklist v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Source materials reviewed:
+
+- `patents/route-iq/TECHNICAL_DISCLOSURE_V1.md`
+- `patents/route-iq/ROUTE_IQ_SYSTEM_SPECIFICATION_V1.md`
+- `patents/route-iq/ROUTE_IQ_TECHNICAL_COMPARISON_ANALYSIS_V1.md`
+- `patents/route-iq/INVENTION_EVIDENCE_REGISTER.md`
+- `patents/DRAWING_REGISTER.md`
+- `patents/drawings/route-iq/`
+- `patents/DISCLOSURE_PACKAGE_V1.md`
+- `patents/INVENTION_REGISTER.md`
+- `patents/PATENT_ROADMAP.md`
+
+Documentation created or modified:
+
+- Created `patents/route-iq/PROVISIONAL_APPLICATION_CHECKLIST_V1.md`.
+- Updated `patents/route-iq/README.md` to reference the checklist.
+
+Readiness score recorded:
+
+- Technical disclosure readiness: 90%.
+- Drawing readiness: 80%.
+- Evidence readiness: 65%.
+- Timeline readiness: 70%.
+- Specification readiness: 90%.
+- Technical comparison readiness: 85%.
+- Overall provisional assembly readiness: 80%.
+
+Missing technical items identified:
+
+- Dated conception, loop-decision, and first-working-implementation artifacts.
+- Source-code-to-engine traceability map.
+- Screenshot and UI evidence archive.
+- Public and private disclosure timelines.
+- Customer/prospect discussion index.
+- Implementation reduction-to-practice timeline.
+- Formal figure conversion plan.
+- Component naming consistency table.
+- Data schema appendix.
+- Example data flow appendix.
+- Trade secret review list.
+- Attorney consultation record.
+- External evidence archive index.
+
+Legal boundary confirmation:
+
+- No filing forms completed.
+- No legal patent claims drafted.
+- No legal analysis added.
+- No filing strategy added.
+- No formal drawings created.
+- No filing actions taken.
+
+Remaining attorney-review questions:
+
+- Counsel should review whether the technical package is sufficient for drafting.
+- Counsel should identify any additional technical examples, diagrams, or implementation details needed.
+- Founder should confirm missing artifact, disclosure, screenshot, and customer/prospect timelines.
+
 ## Future Work Intake Rule
 
 All future patent preparation work must be recorded in this file before or during execution.
