@@ -10,6 +10,35 @@ Governing sources:
 - `PROMETHEUS_IQ_ENGINEERING_MASTER_INVENTORY.md`
 - `PROMETHEUS_MASTER_CONTEXT.md`
 
+## Current Operational Status
+
+Founder decision:
+
+- Field validation is complete.
+- Pilot phase is complete.
+- Route IQ is operational.
+
+Current company phase:
+
+- Deployment readiness.
+- Customer onboarding.
+- Enterprise hardening.
+- Continuous operational improvement.
+
+Route IQ status:
+
+- Patent Pending.
+- Operational.
+- Primary company product.
+- Primary engineering focus.
+
+Future Route IQ engineering philosophy:
+
+Every new Route IQ improvement must be evaluated as either:
+
+- Operational improvement.
+- Material invention requiring documentation under the Permanent Route IQ Invention Documentation Rule.
+
 ## Master Coordination Rule
 
 This workspace owns platform-level coordination, architecture consistency, dependency tracking, roadmap updates, and completed-work records.
@@ -389,7 +418,7 @@ Prometheus grows through refinement, not proliferation. Existing systems evolve.
 
 Current platform phase:
 
-Founder Operations / Customer Validation.
+Deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.
 
 Files changed:
 
@@ -610,15 +639,15 @@ Prometheus is a workspace-governed outside-sales and customer-intelligence opera
 
 Current company phase:
 
-Founder Operations / Customer Validation.
+Deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.
 
 Engineering maturity:
 
-Mature for controlled founder operations and customer validation. The platform has governed workspaces, Operating Profiles, canonical artifact contracts, Research-owned dossiers, Dashboard read-only consumption, CRM handoff boundaries, Aegis security controls, and validation gates. It is not yet enterprise-scale because durable CRM runtime persistence, some account-level security controls, and authenticated production browser verification remain bounded.
+Mature for operational deployment readiness and customer onboarding preparation. The platform has governed workspaces, Operating Profiles, canonical artifact contracts, Research-owned dossiers, Dashboard read-only consumption, CRM handoff boundaries, Aegis security controls, and validation gates. It is not yet enterprise-scale because durable CRM runtime persistence, some account-level security controls, and authenticated production browser verification remain bounded.
 
 Strategic maturity:
 
-Prometheus has moved beyond a single route-recommendation dashboard into a governed multi-workspace platform. Fitness Connection validates field route execution. Smoothie Depot validates Business Acquisition Intelligence and franchise-development operations. Companion remains preserved but quarantined/dormant.
+Prometheus has moved beyond a single route-recommendation dashboard into a governed multi-workspace platform. Fitness Connection supplies Route IQ production evidence for field route execution. Smoothie Depot supplies production evidence for Business Acquisition Intelligence and franchise-development operations. Companion remains preserved but quarantined/dormant.
 
 CTO conclusion:
 

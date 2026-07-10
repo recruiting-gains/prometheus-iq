@@ -43,6 +43,25 @@ Fitness Connection data must never influence Smoothie Depot intelligence. Smooth
 - `PRODUCT_VISION.md`: canonical product vision, product hierarchy, customer hierarchy, product principles, and long-term platform direction.
 - `docs/prometheus-company-manual.md`: company operating context and certified company milestones.
 
+## Route IQ Operational Status
+
+Founder decision:
+
+- Field validation is complete.
+- Pilot phase is complete.
+- Route IQ is operational.
+
+Current company phase:
+
+- Deployment readiness.
+- Customer onboarding.
+- Enterprise hardening.
+- Continuous operational improvement.
+
+Route IQ is the Patent Pending primary company product and primary engineering focus.
+
+Every new Route IQ improvement must be treated as either an operational improvement or a material invention requiring documentation under the Route IQ permanent invention documentation rule.
+
 ## Workstreams
 
 ### 1. Prometheus Dashboard

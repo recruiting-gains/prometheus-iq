@@ -20,6 +20,20 @@ For every materially new Route IQ invention, capability, architecture, workflow,
 
 Route IQ engineering work must now include an invention-documentation check before any new material technical improvement is treated as complete.
 
+Operational status:
+
+- Route IQ is Patent Pending.
+- Route IQ is operational.
+- Route IQ is the primary company product.
+- Route IQ is the primary engineering focus.
+
+Future Route IQ engineering classification:
+
+Every new Route IQ improvement must be evaluated as either:
+
+- Operational improvement.
+- Material invention requiring documentation under the Permanent Route IQ Invention Documentation Rule.
+
 ## Phase 1 - Foundation
 
 Status: Initialized
