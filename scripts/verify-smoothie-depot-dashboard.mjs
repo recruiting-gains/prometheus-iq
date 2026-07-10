@@ -9,8 +9,8 @@ const assert = (condition, message) => {
 
 const sourcePath = "smoothie-depot-dashboard/index.html";
 const deployPath = "deploy/cloudflare-pages/smoothie-depot-dashboard/index.html";
-const packageMarkdownPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md";
-const packageJsonPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json";
+const packageMarkdownPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md";
+const packageJsonPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json";
 const packageRegisterPath = "research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json";
 
 const source = read(sourcePath);
@@ -78,10 +78,14 @@ assert(registeredNutritionDepot.markdownPath === packageMarkdownPath, "Nutrition
 assert(registeredNutritionDepot.jsonPath === packageJsonPath, "Nutrition Depot package register JSON path must match canonical package.");
 assert(registeredNutritionDepot.artifactStatus === "completed_research_executive_intelligence_package", "Nutrition Depot package must be completed.");
 assert(registeredNutritionDepot.canonicalForResearch === true, "Nutrition Depot package must remain canonical for Research.");
+assert(registeredNutritionDepot.supersedesPackageId === "smoothie_depot_eip_001_nutrition_depot", "Nutrition Depot v2 must supersede the historical v1 package.");
 
 assert(nutritionDepotPackage.workspaceId === "smoothie_depot", "Nutrition Depot package must be Smoothie Depot scoped.");
 assert(nutritionDepotPackage.operatingProfileId === "franchise_development", "Nutrition Depot package must use Franchise Development.");
 assert(nutritionDepotPackage.packageStatus === "completed_research_executive_intelligence_package", "Nutrition Depot package must be completed.");
+assert(nutritionDepotPackage.packageId === "smoothie_depot_eip_001_nutrition_depot_v2", "Nutrition Depot active package must be v2.");
+assert(nutritionDepotPackage.supersedesPackageId === "smoothie_depot_eip_001_nutrition_depot", "Nutrition Depot active package must point to historical v1.");
+assert(nutritionDepotPackage.v1PreservedAsHistorical === true, "Nutrition Depot v2 must preserve v1 as historical.");
 assert(nutritionDepotPackage.productionRuntimeChange === false, "Nutrition Depot package must not activate production runtime.");
 assert(nutritionDepotPackage.standardModified === false, "Nutrition Depot package must not modify the Research standard.");
 assert(nutritionDepotPackage.boundaryConfirmation.productionSystemsModified === false, "Nutrition Depot package must not modify production systems.");
@@ -90,7 +94,7 @@ assert(nutritionDepotPackage.boundaryConfirmation.privateInformationUsed === fal
 assert(source.includes(nutritionDepotPackage.business), "Review mode must show the Nutrition Depot package business.");
 assert(source.includes(packageMarkdownPath), "Dashboard must point to the canonical Executive Intelligence Package Markdown path.");
 assert(source.includes("Founder Executive Intelligence Review Mode"), "Dashboard must render Founder Executive Intelligence Review Mode.");
-assert(source.includes("Nutrition Depot Executive Intelligence Package v1"), "Dashboard must render the package title.");
+assert(source.includes("Nutrition Depot Executive Intelligence Package v2"), "Dashboard must render the active package title.");
 assert(source.includes("Table of Contents"), "Dashboard must render a package table of contents.");
 assert(source.includes("Search package"), "Dashboard must provide package search.");
 assert(source.includes("Previous:"), "Dashboard must render previous section navigation.");
@@ -132,16 +136,20 @@ for (const heading of nutritionDepotPackageMarkdown.match(/^## .+$/gm) || []) {
 }
 
 for (const requiredMarkdownFragment of [
-  "# Nutrition Depot Executive Intelligence Package v1",
-  "Package owner: Prometheus Research",
-  "Package status: Completed Research Executive Intelligence Package",
+  "# Nutrition Depot Houston and Greater Houston",
+  "## Executive Intelligence Package v2",
+  "Audience perspective: Receiving Smoothie Depot executive",
+  "## Cover Page",
   "## Executive Decision Page",
+  "## Key Corrections From v1",
+  "## Research Boundary",
   "## Layer 1: Executive Summary",
+  "## Layer 11: Strategic Intelligence",
   "## Layer 12: Executive Decision Support",
-  "## Opportunity Cost",
-  "## Red-Team Review",
-  "## Decision Tree",
-  "## Quality Gate",
+  "## Evidence Matrix",
+  "## Source Reliability Matrix",
+  "## Quality Control",
+  "### Decision Tree",
   "## Source References"
 ]) {
   assert(source.includes(htmlEscape(requiredMarkdownFragment)), `Dashboard must render canonical package Markdown fragment: ${requiredMarkdownFragment}`);
@@ -150,7 +158,8 @@ for (const requiredMarkdownFragment of [
 const markdownHash = createHash("sha256").update(nutritionDepotPackageMarkdown).digest("hex");
 assert(source.includes(markdownHash), "Dashboard must expose the canonical Executive Intelligence Package hash.");
 assert(source.includes(htmlEscape('"packageStatus": "completed_research_executive_intelligence_package"')), "Dashboard must render structured package JSON artifact.");
-assert(source.includes(htmlEscape('"qualityGate"')), "Dashboard must render structured quality gate data.");
+assert(source.includes(htmlEscape('"ownershipFinding"')), "Dashboard must render structured ownership finding data.");
+assert(source.includes(htmlEscape('"audiencePerspective"')), "Dashboard must render structured audience perspective data.");
 assert(source.includes(htmlEscape('"sourceReferences"')), "Dashboard must render structured source references.");
 
 for (const removedFixtureText of [

@@ -1029,7 +1029,7 @@ async function runHarness() {
       hasExportWorkflow: document.body.textContent.includes("Export Professional Executive Package"),
       hasIntelligenceLibrary: document.body.textContent.includes("Intelligence Library"),
       hasLocalNotes: document.body.textContent.includes("Local Founder Notes"),
-      hasExecutivePackage: document.body.textContent.includes("Nutrition Depot Executive Intelligence Package v1"),
+      hasExecutivePackage: document.body.textContent.includes("Nutrition Depot Executive Intelligence Package v2"),
       hasFixturePipeline: document.body.textContent.includes("Candidate Pipeline"),
       hasSalesCommissionForecast: document.body.textContent.includes("Commission Forecast"),
       hasFitnessRuntimeTerms: /Units|Memberships|Territories/.test(document.body.textContent)
