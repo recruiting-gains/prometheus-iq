@@ -391,8 +391,8 @@ function directLeadForCommand(command, analytics, { developerMode = false } = {}
   if (normalized.includes("post next")) {
     return [
       `I would build the next post from the strongest Instagram signal I can see. ${analytics.metadata.topContentText}`,
-      "Recommendation: post a concise founder lesson about field-sales intelligence, pilot proof, or why outside sales needs direction before activity.",
-      "Keep it public-safe: no private dashboards, route scoring, customer data, Anthony beta details, or proprietary mechanics."
+      "Recommendation: post a concise founder lesson about Route IQ operations, customer onboarding, or why outside sales needs direction before activity.",
+      "Keep it public-safe: no private dashboards, route scoring, customer data, credentials, or proprietary mechanics."
     ].join(" ");
   }
 

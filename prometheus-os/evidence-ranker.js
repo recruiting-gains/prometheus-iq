@@ -17,21 +17,21 @@ function truthScore(truth) {
 
 function directConceptBoost(normalizedQuery, haystack) {
   const concepts = [
-    "anthony",
-    "chris",
-    "google places",
-    "google cloud",
-    "meta",
+    "route iq",
+    "gaia",
+    "athena",
+    "overwatch",
+    "patent pending",
+    "customer onboarding",
+    "enterprise hardening",
     "instagram",
     "website",
     "github",
     "git hub",
     "cloudflare",
-    "route intelligence",
     "prometheus companion",
     "companion",
-    "pilot readiness",
-    "pilot",
+    "deployment readiness",
     "social media"
   ];
 
@@ -44,8 +44,7 @@ function directConceptBoost(normalizedQuery, haystack) {
 }
 
 function inferQuestionMode(normalizedQuery) {
-  if (includesAny(normalizedQuery, ["executive", "leadership", "dallas", "larry", "phil", "approval"]) ||
-      (normalizedQuery.includes("chris") && includesAny(normalizedQuery, ["ready", "readiness", "status", "tell", "ask"]))) {
+  if (includesAny(normalizedQuery, ["executive", "founder", "company phase", "approval", "deployment readiness", "customer onboarding", "enterprise hardening"])) {
     return "executive";
   }
   if (includesAny(normalizedQuery, ["what happened", "what changed", "yesterday", "today", "this week", "last month", "timeline"])) return "timeline";
@@ -70,9 +69,9 @@ function sourceModeBoost(mode, item = {}) {
 
   if (mode === "executive") {
     if (includesAny(haystack, ["social media", "instagram", "build-in-public"])) return -5;
-    if (includesAny(haystack, ["executive", "leadership", "chris", "dallas", "larry", "phil", "approval", "pilot readiness"])) return 4;
-    if (includesAny(haystack, ["anthony", "cloudflare", "github", "llc", "domain"])) return 2;
-    if (category === "decision" && includesAny(haystack, ["follow-up", "pilot"])) return 2.5;
+    if (includesAny(haystack, ["executive", "founder", "company phase", "approval", "deployment readiness", "customer onboarding"])) return 4;
+    if (includesAny(haystack, ["route iq", "overwatch", "patent", "cloudflare", "github"])) return 2;
+    if (category === "decision" && includesAny(haystack, ["follow-up", "onboarding"])) return 2.5;
   }
 
   if (mode === "timeline") {
@@ -129,9 +128,9 @@ export function rankEvidence(query = "", evidence = [], context = {}) {
       const directBoost = directConceptBoost(primaryQuery, haystack);
       const recency = Math.max(0, 10 - daysSince(item.date));
       const founderRelevance = includesAny(haystack, ["cruz", "founder", "companion", "chief of staff", "memory"]) ? 9 : 5;
-      const businessImpact = includesAny(haystack, ["pilot", "leadership", "executive", "revenue", "customer", "validation"]) ? 9 : 5;
-      const pilotImportance = includesAny(haystack, ["anthony", "pilot", "route intelligence", "gps", "feedback", "validation"]) ? 10 : 4;
-      const revenueImpact = includesAny(haystack, ["customer", "pilot", "leadership", "pricing", "revenue", "sales"]) ? 8 : 4;
+      const businessImpact = includesAny(haystack, ["route iq", "deployment", "onboarding", "enterprise", "revenue", "customer", "operations"]) ? 9 : 5;
+      const operationalImportance = includesAny(haystack, ["route iq", "deployment readiness", "customer onboarding", "enterprise hardening", "crm", "feedback", "operations"]) ? 10 : 4;
+      const revenueImpact = includesAny(haystack, ["customer", "onboarding", "pricing", "revenue", "sales", "route iq"]) ? 8 : 4;
       const conversationRelevance = Math.min(10, matchingTerms * 1.4 + primaryMatchingTerms * 1.6);
       const confidence = Number.isFinite(item.confidence) ? item.confidence * 10 : 7;
       const truth = truthScore(item.truth);
@@ -142,7 +141,7 @@ export function rankEvidence(query = "", evidence = [], context = {}) {
         recency * 0.15 +
         founderRelevance * 0.14 +
         businessImpact * 0.18 +
-        pilotImportance * 0.18 +
+        operationalImportance * 0.18 +
         revenueImpact * 0.1 +
         conversationRelevance * 0.13 +
         sourceFit * 0.07 +
@@ -162,7 +161,7 @@ export function rankEvidence(query = "", evidence = [], context = {}) {
           recency,
           founderRelevance,
           businessImpact,
-          pilotImportance,
+          operationalImportance,
           revenueImpact,
           conversationRelevance,
           confidence,

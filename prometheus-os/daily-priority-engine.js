@@ -1,7 +1,7 @@
 const weights = {
   businessImpact: 0.25,
-  pilotValue: 0.25,
-  revenuePotential: 0.15,
+  customerOnboarding: 0.25,
+  operationalLeverage: 0.15,
   riskReduction: 0.15,
   founderEnergyFit: 0.1,
   urgency: 0.1
@@ -9,76 +9,76 @@ const weights = {
 
 const founderTasks = [
   {
-    id: "anthony-beta-feedback",
-    label: "Review Anthony beta feedback",
-    businessImpact: 9,
-    pilotValue: 10,
-    revenuePotential: 8,
-    riskReduction: 9,
-    founderEnergyFit: 8,
+    id: "execute-founder-mission",
+    label: "Execute today's Founder mission",
+    businessImpact: 10,
+    customerOnboarding: 10,
+    operationalLeverage: 9,
+    riskReduction: 8,
+    founderEnergyFit: 9,
     urgency: 10,
-    reason: "Real beta feedback is the shortest path from internal progress to proof a buyer can trust.",
-    nextStep: "Capture route clarity, GPS verification, logging friction, confusing moments, and whether the route felt useful."
+    reason: "The current company phase creates value through disciplined customer execution, not another disconnected build thread.",
+    nextStep: "Select the active workspace, set Today's Mission, review the Research dossier, and call the highest-value prospects first."
   },
   {
-    id: "leadership-follow-up",
-    label: "Prepare the Chris leadership follow-up",
+    id: "deployment-readiness-evidence",
+    label: "Close the next deployment-readiness item",
     businessImpact: 9,
-    pilotValue: 8,
-    revenuePotential: 9,
-    riskReduction: 8,
+    customerOnboarding: 8,
+    operationalLeverage: 9,
+    riskReduction: 10,
     founderEnergyFit: 7,
     urgency: 9,
-    reason: "A clean leadership follow-up can move Prometheus from interest to a controlled pilot conversation.",
-    nextStep: "Keep the ask simple: three approved users, 14 days, weekly review, final report, and no proprietary disclosure."
+    reason: "Verified readiness evidence protects an operational Route IQ while customers are being onboarded.",
+    nextStep: "Finish the next authenticated verification or account-owner control already recorded by Overwatch."
   },
   {
-    id: "github-backup-review",
-    label: "Prepare a safe GitHub backup review",
-    businessImpact: 7,
-    pilotValue: 6,
-    revenuePotential: 5,
-    riskReduction: 10,
-    founderEnergyFit: 8,
-    urgency: 8,
-    reason: "Clean backups protect source code, operating documents, and founder progress without risking secrets.",
-    nextStep: "Run status, review changed files, confirm no .env or keys are staged, then ask before commit or push."
-  },
-  {
-    id: "companion-reliability-test",
-    label: "Test Prometheus Companion voice reliability",
-    businessImpact: 7,
-    pilotValue: 5,
-    revenuePotential: 5,
+    id: "crm-operating-discipline",
+    label: "Preserve customer evidence in CRM",
+    businessImpact: 9,
+    customerOnboarding: 10,
+    operationalLeverage: 8,
     riskReduction: 8,
-    founderEnergyFit: 7,
-    urgency: 7,
-    reason: "Companion is founder leverage, but unreliable voice can distract from pilot execution.",
-    nextStep: "Test today's brief, what changed today, GitHub backup, Anthony status, and one follow-up question."
-  },
-  {
-    id: "social-proof-post",
-    label: "Create one safe social post",
-    businessImpact: 6,
-    pilotValue: 4,
-    revenuePotential: 7,
-    riskReduction: 4,
     founderEnergyFit: 8,
-    urgency: 5,
-    reason: "Public momentum helps the brand, but it should not outrank beta proof or leadership follow-up.",
-    nextStep: "Post founder progress without showing internal routes, scoring, private customer data, or proprietary logic."
+    urgency: 9,
+    reason: "Customer onboarding compounds only when each call, candidate stage, readiness signal, and follow-up survives the session.",
+    nextStep: "Update the candidate stage after every call and hand off to JR only when the evidence supports it."
   },
   {
-    id: "new-feature-build",
-    label: "Build new product features",
-    businessImpact: 5,
-    pilotValue: 3,
-    revenuePotential: 5,
-    riskReduction: 3,
+    id: "enterprise-hardening",
+    label: "Complete the next enterprise-hardening control",
+    businessImpact: 8,
+    customerOnboarding: 7,
+    operationalLeverage: 8,
+    riskReduction: 10,
+    founderEnergyFit: 6,
+    urgency: 8,
+    reason: "Account-owner security and workspace isolation are part of current operating readiness.",
+    nextStep: "Use the current Overwatch checkpoint and close one verified owner action without changing subsystem ownership."
+  },
+  {
+    id: "route-iq-improvement",
+    label: "Improve one verified Route IQ workflow",
+    businessImpact: 8,
+    customerOnboarding: 8,
+    operationalLeverage: 9,
+    riskReduction: 7,
+    founderEnergyFit: 8,
+    urgency: 7,
+    reason: "Route IQ is operational and should improve through observed operating evidence.",
+    nextStep: "Choose one verified workflow issue, preserve current behavior, and document any material invention change in the patent workspace."
+  },
+  {
+    id: "unscoped-expansion",
+    label: "Open an unscoped product expansion",
+    businessImpact: 4,
+    customerOnboarding: 2,
+    operationalLeverage: 3,
+    riskReduction: 2,
     founderEnergyFit: 4,
-    urgency: 2,
-    reason: "New features are lower ROI until Anthony's real beta feedback proves what needs to change.",
-    nextStep: "Do not build unless beta evidence shows a blocker."
+    urgency: 1,
+    reason: "Gaia is paused and Athena is architecture only; ungoverned expansion would pull attention away from the current phase.",
+    nextStep: "Do not expand the product set unless current governed evidence changes the company priority."
   }
 ];
 
@@ -122,6 +122,6 @@ export function createNextActionBrief() {
 export function createDailyPriorityEngineSummary() {
   return {
     title: "Daily Priority Engine",
-    body: "Prometheus ranks founder work by business impact, pilot value, revenue potential, risk reduction, founder energy, and urgency. Today, validation and leadership readiness beat new features."
+    body: "Prometheus ranks Founder work by business impact, customer onboarding, operational leverage, risk reduction, Founder energy, and urgency. Current mission execution and verified readiness outrank unscoped expansion."
   };
 }

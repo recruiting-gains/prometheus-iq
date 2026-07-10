@@ -194,7 +194,7 @@ Assistant verification command:
 ```bash
 curl -s -X POST http://127.0.0.1:8792/api/assistant \
   -H 'Content-Type: application/json' \
-  -d '{"message":"What should I work on next for Prometheus IQ?"}'
+  -d '{"message":"What should I work on next for Route IQ?"}'
 ```
 
 Expected result when the key is missing:
@@ -239,7 +239,7 @@ Expected successful response:
 
 ```json
 {
-  "text": "pilot readiness",
+  "text": "Route IQ status",
   "provider": "elevenlabs",
   "language": "en"
 }

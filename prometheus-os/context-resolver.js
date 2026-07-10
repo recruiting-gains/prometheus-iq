@@ -52,7 +52,9 @@ const cognitivePatterns = [
   /\bmore important than meta\b/,
   /\bwhat about\b/,
   /\bhow does this affect\b/,
-  /\bpilot readiness\b/,
+  /\bdeployment readiness\b/,
+  /\bcustomer onboarding\b/,
+  /\benterprise hardening\b/,
   /\bexecutive readiness\b/,
   /\bleadership readiness\b/,
   /\bleadership\b/,
@@ -61,17 +63,14 @@ const cognitivePatterns = [
 ];
 
 const topicPatterns = [
-  /\banthony\b/,
-  /\bchris\b/,
-  /\blarry\b/,
-  /\bphil\b/,
-  /\bdallas\b/,
-  /\bleadership\b/,
+  /\broute iq\b/,
+  /\bgaia\b/,
+  /\bathena\b/,
+  /\boverwatch\b/,
+  /\bpatent\b/,
+  /\bcustomer onboarding\b/,
+  /\benterprise hardening\b/,
   /\bexecutive\b/,
-  /\bpilot\b/,
-  /\bgoogle places\b/,
-  /\bgoogle api\b/,
-  /\broute intelligence\b/,
   /\bwebsite\b/,
   /\bgithub\b/,
   /\bcloudflare\b/,
@@ -122,7 +121,7 @@ export function shouldUseCognitiveEngine(command = "", history = []) {
   const normalized = normalizeText(command);
   if (!normalized) return false;
   if (operationalPatterns.some((pattern) => pattern.test(normalized))) return false;
-  if (/^(email|chris|website|anthony|github|backup|pilot|social media|instagram)$/.test(normalized)) return false;
+  if (/^(email|website|github|backup|social media|instagram)$/.test(normalized)) return false;
   if (cognitivePatterns.some((pattern) => pattern.test(normalized))) return true;
   if (topicPatterns.some((pattern) => pattern.test(normalized)) && /\b(status|recap|summary|blocked|risk|ready|readiness|matter|next|focus|why|what|brief)\b/.test(normalized)) {
     return true;

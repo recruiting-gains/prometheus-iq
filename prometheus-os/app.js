@@ -191,8 +191,8 @@ const constellationAliases = {
   crm: ["crm", "sales pipeline", "pipeline", "leads", "deals"],
   overwatch: ["overwatch", "engineering", "blocker", "blockers", "production", "commit", "deploy"],
   companion: ["companion", "voice", "tts", "stt", "microphone"],
-  "prometheus-iq": ["prometheus iq", "dashboard", "data subsystem", "route intelligence", "intelligence engine"],
-  mobile: ["mobile", "anthony", "beta", "field", "field test"],
+  "prometheus-iq": ["route iq", "primary product", "dashboard", "data subsystem", "intelligence engine"],
+  mobile: ["mobile", "field", "route iq mobile"],
   research: ["research", "market", "competitor", "findings"],
   infrastructure: ["infrastructure", "runtime", "install", "sync", "deployment"],
   calendar: ["calendar", "meetings", "meeting", "agenda", "schedule", "plan my day"],
@@ -613,10 +613,10 @@ function systemNodes() {
     },
     {
       id: "prometheus-iq",
-      label: "Prometheus IQ",
+      label: "Route IQ",
       value: "Product",
       signal: "ready",
-      detail: "Product state, Dashboard/Data boundary, Route Intelligence relationship, and pilot readiness context.",
+      detail: "Operational primary-product state, Dashboard/Data boundary, patent status, and deployment-readiness context.",
       command: "Prometheus, how does the Dashboard interact with the Data subsystem?"
     },
     {
@@ -640,7 +640,7 @@ function systemNodes() {
       label: "Strategy",
       value: "Founder",
       signal: "ready",
-      detail: "Long-term goals, pricing, executive positioning, validation focus, and pilot proof logic.",
+      detail: "Long-term goals, product decisions, Founder workflow, customer onboarding, and operating priorities.",
       command: "Prometheus, what are my long-term goals?"
     },
     {
@@ -743,7 +743,7 @@ function nodePhrases(node) {
     tasks: ["show tasks node", "open tasks node", "priority", "priorities", "what should i focus on today", "highest priority"],
     calendar: ["calendar", "meetings", "schedule", "plan my day"],
     messages: ["messages", "message", "draft message", "email", "write a message"],
-    "prometheus-iq": ["open prometheus iq node", "prometheus iq", "dashboard data", "dashboard and data", "route intelligence", "product status"],
+    "prometheus-iq": ["open route iq node", "route iq", "primary product", "dashboard data", "dashboard and data", "product status"],
     overwatch: ["overwatch", "assign next", "next subsystem", "handoff"],
     analytics: ["analytics", "metrics", "strategy critique", "weaknesses", "pricing"],
     strategy: ["strategy", "founder strategy", "long term goals", "pricing direction"],
@@ -1621,8 +1621,8 @@ function bindNetwork() {
       kicker: "Prometheus core",
       title: "Prometheus is active",
       text: companionShell
-        ? "Prometheus Companion is using local WebView microphone capture. Say a short command like “pilot readiness.”"
-        : "Prometheus is opening a secure speech capture window. Say a short command like “pilot readiness.”"
+        ? "Prometheus Companion is using local WebView microphone capture. Say a short command like “Route IQ status.”"
+        : "Prometheus is opening a secure speech capture window. Say a short command like “Route IQ status.”"
     });
     startBackendSttCapture({ source: "core" });
   });

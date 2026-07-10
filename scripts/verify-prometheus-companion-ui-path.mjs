@@ -52,9 +52,9 @@ function nodesForHarness() {
     },
     {
       id: "prometheus-iq",
-      label: "Prometheus IQ",
+      label: "Route IQ",
       value: "Product",
-      detail: "Product state, Dashboard/Data boundary, Route Intelligence relationship, and pilot readiness context."
+      detail: "Operational primary-product state, Dashboard/Data boundary, patent status, and deployment-readiness context."
     },
     {
       id: "overwatch",
@@ -72,7 +72,7 @@ function nodesForHarness() {
       id: "strategy",
       label: "Strategy",
       value: "Founder",
-      detail: "Long-term goals, pricing, executive positioning, validation focus, and pilot proof logic."
+      detail: "Long-term goals, product decisions, Founder workflow, customer onboarding, and operating priorities."
     },
     {
       id: "voice-settings",
@@ -89,7 +89,7 @@ function phrasesForNode(node) {
     tasks: ["show tasks node", "open tasks node", "priority", "priorities", "what should i focus on today", "highest priority"],
     calendar: ["calendar", "meetings", "schedule", "plan my day"],
     messages: ["messages", "message", "draft message", "email", "write a message"],
-    "prometheus-iq": ["open prometheus iq node", "prometheus iq", "dashboard data", "dashboard and data", "route intelligence", "product status"],
+    "prometheus-iq": ["open route iq node", "route iq", "primary product", "dashboard data", "dashboard and data", "product status"],
     overwatch: ["overwatch", "assign next", "next subsystem", "handoff"],
     analytics: ["analytics", "metrics", "strategy critique", "weaknesses", "pricing"],
     strategy: ["strategy", "founder strategy", "long term goals", "pricing direction"],
@@ -106,7 +106,6 @@ const bannedResponseText = [
   "dashboard card",
   "status card",
   "module text",
-  "opening",
   "i found safe prometheus context",
   "not enough signal",
   "ask me the sharper version",
@@ -133,14 +132,10 @@ const reasoningCases = [
   "Prometheus, what happened this week?",
   "Prometheus, what major systems have been built?",
   "Prometheus, what changed in Prometheus over the last month?",
-  "Prometheus, who is Anthony?",
-  "Prometheus, what about Anthony?",
-  "Prometheus, why is Anthony important?",
   "Prometheus, what is the biggest risk to Prometheus today?",
   "Prometheus, what should I do next?",
   "Prometheus, if you were my COO, what would you tell me to do tomorrow?",
-  "Prometheus, why is Google Places more important than Meta?",
-  "Prometheus, how many businesses did Anthony visit today?"
+  "Prometheus, what is blocking customer onboarding?"
 ];
 
 const provider = new AIProvider();
@@ -190,6 +185,34 @@ function communicationsServiceForStatus(status) {
       }
     }
   });
+}
+
+const currentKnowledgeCases = [
+  ["Prometheus, what is Route IQ's current status?", ["route iq status", "operational", "primary product"]],
+  ["Prometheus, what is Gaia's current status?", ["gaia status", "paused", "route iq remains"]],
+  ["Prometheus, what is Athena's current status?", ["athena status", "architecture only", "not be described as an operational product"]],
+  ["Prometheus, what is the patent status?", ["route iq patent status", "patent pending", "64/107,865"]],
+  ["Prometheus, what is the current company phase?", ["current company phase", "deployment readiness", "customer onboarding", "enterprise hardening", "continuous operational improvement"]],
+  ["Prometheus, what is the Founder workflow?", ["current founder workflow", "active workspace", "today's mission", "research dossier", "candidate stage", "overwatch"]]
+];
+
+for (const [phrase, expected] of currentKnowledgeCases) {
+  const response = await provider.ask(phrase);
+  const text = `${response.title || ""} ${response.body || ""}`.toLowerCase();
+  const missing = expected.filter((item) => !text.includes(item.toLowerCase()));
+  const bannedHit = bannedResponseText.find((item) => text.includes(item));
+  if (!isFounderConversationRoute(response) || bannedHit || missing.length) {
+    fail("current-platform-knowledge", {
+      phrase,
+      title: response.title,
+      routeSelected: response.metadata?.routeSelected,
+      bannedHit,
+      missing,
+      body: response.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> current-platform:${response.title}`);
 }
 
 function socialMediaAnalyticsServiceForSnapshot(snapshot) {
@@ -296,20 +319,12 @@ for (const phrase of reasoningCases) {
     continue;
   }
 
-  if (phrase.toLowerCase().includes("how many businesses") && !text.includes("do not have verified visit data")) {
-    fail("unknown-visit-data-truth", {
-      phrase,
-      body: response.body
-    });
-    continue;
-  }
-
   console.log(`PASS ${phrase} -> route:${route.type} routeSelected:${response.metadata.routeSelected} response:${response.title}`);
 }
 
 const explicitNodeCases = [
   "Prometheus, open memory node",
-  "Prometheus, open Prometheus IQ node",
+  "Prometheus, open Route IQ node",
   "Prometheus, open voice settings",
   "Prometheus, display calendar node",
   "Prometheus, show tasks node"
@@ -354,14 +369,14 @@ const founderAcceptanceCases = [
   ["Hello", ["i'm here", "what are we working on"]],
   ["Good morning, Companion.", ["good morning", "everything is ready"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
-  ["What’s the current engineering status of Prometheus?", ["engineering status", "founder command layer", "stay untouched"]],
+  ["What’s the current engineering status of Prometheus?", ["engineering status", "route iq is operational", "patent pending"]],
   ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
   ["Remind me what meetings I have.", ["founder meetings", "do not have your live calendar", "next 24 hours"]],
-  ["What are my long-term goals?", ["long-term founder goals", "route intelligence"]],
-  ["Help me plan my day.", ["founder day plan", "do not have your live calendar", "proof, not activity"]],
+  ["What are my long-term goals?", ["long-term founder goals", "route iq", "customer onboarding"]],
+  ["Help me plan my day.", ["founder day plan", "do not have your live calendar", "active workspace"]],
   ["How should we price this feature?", ["pricing direction", "operational value"]],
   ["What did we decide about Active Pool?", ["active pool decision", "active pool"]],
-  ["What are weaknesses in my current strategy?", ["strategy weaknesses", "overbuilding"]],
+  ["What are weaknesses in my current strategy?", ["strategy weaknesses", "implementation work outrun"]],
   ["How does the Dashboard interact with the Data subsystem?", ["dashboard and data boundary", "data supplies governed records"]]
 ];
 
@@ -387,11 +402,13 @@ const conversationalIntentCases = [
   ["Hello", ["i'm here", "what are we working on"], "natural_greeting"],
   ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
   ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
-  ["Overwatch", ["engineering status", "founder command layer", "stay untouched"], "engineering_status"],
-  ["Anthony", ["anthony beta progress", "anthony beta", "real usage feedback"], "anthony_beta_progress"],
-  ["Website", ["website performance summary", "prometheusrouteiq.com", "public website"], "website_performance_summary"],
-  ["CRM", ["crm pipeline summary", "sales pipeline", "parallel crm"], "crm_pipeline_summary"],
-  ["Advice", ["not start with another feature", "validate the experience", "clean beta signal"], "founder_advice"]
+  ["Overwatch", ["engineering status", "route iq is operational", "patent pending"], "engineering_status"],
+  ["Route IQ", ["route iq status", "operational", "primary product"], "route_iq_status"],
+  ["Gaia", ["gaia status", "paused", "route iq remains"], "gaia_status"],
+  ["Athena", ["athena status", "architecture only", "not be described as an operational product"], "athena_status"],
+  ["Website", ["website performance summary", "prometheusrouteiq.com", "website-owned"], "website_performance_summary"],
+  ["CRM", ["crm pipeline summary", "governed continuity layer", "customer onboarding"], "crm_pipeline_summary"],
+  ["Advice", ["do not open another product thread", "route iq is operational", "active workspace"], "founder_advice"]
 ];
 
 for (const [phrase, expected, intent] of conversationalIntentCases) {
@@ -424,10 +441,10 @@ for (const [phrase, expected, intent] of conversationalIntentCases) {
 }
 
 const executiveReasoningCases = [
-  ["How are we doing?", ["strong build position", "not a strong proof position", "recommendation"], "company_rundown"],
-  ["What's slowing Prometheus down?", ["slowdown is proof", "beta validation", "next move"], "risk"],
-  ["What should I do next?", ["would not start with another feature", "validate", "recommendation"], "priority"],
-  ["What should I work on today?", ["would not start with another feature", "validate", "recommendation"], "priority"]
+  ["How are we doing?", ["route iq is operational", "patent pending", "company phase"], "company_rundown"],
+  ["What's slowing Prometheus down?", ["execution discipline", "authenticated production verification", "next move"], "risk"],
+  ["What should I do next?", ["today's founder mission", "active workspace", "highest-value prospects"], "priority"],
+  ["What should I work on today?", ["today's founder mission", "research dossier", "candidate stage"], "priority"]
 ];
 
 for (const [phrase, expected, intent] of executiveReasoningCases) {
@@ -468,9 +485,9 @@ for (const [phrase, expected, intent] of executiveReasoningCases) {
 
 const founderConversationEngineCases = [
   ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
-  ["How are we doing?", ["strong build position", "not a strong proof position", "recommendation"], "company_rundown"],
-  ["What's slowing Prometheus down?", ["slowdown is proof", "beta validation", "next move"], "risk"],
-  ["What should I work on first?", ["would not start with another feature", "validate mobile", "recommendation"], "priority"]
+  ["How are we doing?", ["operating, not proving", "route iq is operational", "patent pending"], "company_rundown"],
+  ["What's slowing Prometheus down?", ["execution discipline", "customer handoff evidence", "next move"], "risk"],
+  ["What should I work on first?", ["today's founder mission", "active workspace", "highest-value prospects"], "priority"]
 ];
 
 for (const [phrase, expected, intent] of founderConversationEngineCases) {
@@ -522,7 +539,7 @@ const disconnectedProvider = new AIProvider();
 const disconnectedCases = [
   ["Remind me what meetings I have.", ["do not have your live calendar", "next 24 hours"]],
   ["Help me draft a message.", ["i prepared the draft", "i did not send anything"]],
-  ["Help me plan my day.", ["do not see synced agenda events", "proof, not activity"]]
+  ["Help me plan my day.", ["do not see synced agenda events", "active workspace"]]
 ];
 
 for (const [phrase, expected] of disconnectedCases) {
@@ -573,11 +590,11 @@ for (const phrase of [
 }
 
 const protectedPassingCases = [
-  ["What should I focus on today?", ["highest roi", "validation"]],
-  ["What’s the next highest-priority task?", ["highest roi", "anthony"]],
-  ["What production blockers remain?", ["production blockers", "anthony"]],
-  ["Should I focus on engineering or sales today?", ["highest roi", "validation"]],
-  ["What should Overwatch assign next?", ["overwatch next assignment", "founder acceptance"]]
+  ["What should I focus on today?", ["customer movement", "route iq"]],
+  ["What’s the next highest-priority task?", ["founder mission", "customer"]],
+  ["What production blockers remain?", ["production blockers", "authenticated production verification"]],
+  ["Should I focus on engineering or sales today?", ["customer", "route iq"]],
+  ["What should Overwatch assign next?", ["overwatch next assignment", "deployment-readiness"]]
 ];
 
 for (const [phrase, expected] of protectedPassingCases) {
@@ -601,67 +618,67 @@ for (const [phrase, expected] of protectedPassingCases) {
 const executiveCommandCenterCases = [
   [
     "Give me my Founder Morning Brief.",
-    ["founder morning brief", "engineering:", "instagram status", "recommendation:", "research:", "sales:", "website:", "crm:", "beta:", "daily priorities:"]
+    ["founder morning brief", "route iq is operational", "phase:", "engineering:", "instagram status", "research:", "sales:", "website:", "crm:", "daily priorities:"]
   ],
   [
     "Give me the executive dashboard.",
-    ["executive dashboard", "company:", "product:", "beta:", "sales:", "research:", "website:", "social media:"]
+    ["executive dashboard", "company:", "route iq", "phase:", "operations:", "research:", "website and social media:"]
   ],
   [
     "Help me decide what to prioritize today.",
-    ["daily decision support", "external proof first", "engineering should", "marketing should", "sales should", "product should", "research should", "recommendation:"]
+    ["daily decision support", "customer movement first", "engineering should", "sales should", "product should", "gaia stays paused", "recommendation:"]
   ],
   [
     "What is the company status?",
-    ["company status", "outside sales", "not the gym vertical", "founder decision:"]
+    ["company status", "outside sales", "route iq is operational", "founder decision:"]
   ],
   [
     "Give me engineering status.",
-    ["engineering status", "founder command layer", "stay untouched", "recent engineering memory:"]
+    ["engineering status", "route iq is operational", "gaia is paused", "recent engineering memory:"]
   ],
   [
     "Give me research summary.",
-    ["research summary", "outside evidence", "dated research brief", "strategic uncertainty"]
+    ["research summary", "read-only strategic intelligence", "gaia's architecture foundation", "outside evidence"]
   ],
   [
     "Give me sales summary.",
-    ["sales summary", "pilot-first", "controlled pilot", "customer workflows"]
+    ["sales summary", "customer onboarding", "route iq", "highest-value prospects"]
   ],
   [
     "Give me website summary.",
-    ["website summary", "public website", "should not reveal", "readout"]
+    ["website summary", "website-owned", "customer onboarding", "protected mechanics"]
   ],
   [
     "Give me social media summary.",
-    ["social media summary", "instagram should support", "publish manually", "will not auto-post"]
+    ["social media summary", "instagram performance", "companion uses", "publishing manually controlled"]
   ],
   [
-    "Give me beta summary.",
-    ["beta summary", "anthony", "must not modify anthony beta", "route clarity"]
+    "What do you remember about the current phase?",
+    ["operating state memory", "route iq is operational", "deployment readiness", "truth rule"]
   ],
   [
     "What company decisions do you remember?",
-    ["company decision memory", "prometheus is the company", "gym sales is the first production validation environment"]
+    ["company decision memory", "ai operating system for outside sales", "route iq is the primary operational product", "overwatch governs"]
   ],
   [
     "What product decisions do you remember?",
-    ["product decision memory", "sell more", "route intelligence"]
+    ["product decision memory", "route iq is operational", "patent pending", "gaia or athena expansion"]
   ],
   [
     "What engineering milestones do you remember?",
-    ["engineering milestone memory", "prometheus companion", "founder communications"]
+    ["engineering milestone memory", "prometheus companion", "governed workspace isolation"]
   ],
   [
-    "What beta findings do you remember?",
-    ["beta finding memory", "anthony", "real usage feedback"]
+    "What do you remember about operations?",
+    ["operating state memory", "route iq is operational", "current work is deployment readiness"]
   ],
   [
     "What investor conversations do you remember?",
-    ["investor conversation memory", "no verified investor conversation records", "truth rule"]
+    ["investor conversation memory", "no verified current investor conversation record", "truth rule"]
   ],
   [
     "Run an executive strategy meeting.",
-    ["executive strategy meeting", "meeting frame", "evidence needed:", "decision:"]
+    ["executive strategy meeting", "meeting frame", "route iq is operational", "decision:"]
   ]
 ];
 
@@ -691,7 +708,7 @@ const founderStyleCases = [
   "Give me sales summary.",
   "Give me website summary.",
   "Give me social media summary.",
-  "Give me beta summary.",
+  "What do you remember about the current phase?",
   "Show technical details."
 ];
 

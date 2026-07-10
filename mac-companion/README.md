@@ -219,8 +219,8 @@ Never paste the key into Codex chat. Never commit it to GitHub. The companion in
 - No API keys in this folder.
 - No secrets committed to Git.
 - No public deployment.
-- No production Prometheus IQ behavior changes.
-- No Anthony beta changes.
+- No production Route IQ behavior changes.
+- No protected subsystem changes.
 - Localhost only for startup services.
 - If this is ever deployed online, protect it with Cloudflare Access or equivalent founder-only authentication.
 
@@ -249,8 +249,8 @@ Examples:
 
 - `Good morning Prometheus`
 - `What should I work on next?`
-- `What is blocking the Anthony beta?`
-- `Help me prepare for Chris and Dallas leadership.`
+- `What is blocking Route IQ customer onboarding?`
+- `What is Route IQ's current operational status?`
 - `Prometheus, give me today's brief.`
 - `Prometheus, what changed today?`
 - `Prometheus, prepare GitHub backup.`
@@ -265,16 +265,16 @@ It can brief:
 - today's Prometheus status
 - highest ROI task
 - biggest company risk
-- Anthony beta status
-- Chris / leadership follow-up status
+- Route IQ operational and Patent Pending status
+- customer onboarding and enterprise-hardening status
 - website status
 - GitHub / backup status
 - Cloudflare status
-- pilot readiness
+- deployment readiness
 - social media opportunity
 - founder scorecard
 - recommended next action
 
 GitHub backup actions are preparation-only. Prometheus may draft the checklist and commit message, but commit and push still require explicit Cruz approval.
 
-Future work can connect these responses to a private local agent layer, but any action that modifies GitHub, Cloudflare, production files, or Anthony beta must require explicit approval.
+Future work can connect these responses to a private local agent layer, but any action that modifies GitHub, Cloudflare, or production files must require explicit approval.

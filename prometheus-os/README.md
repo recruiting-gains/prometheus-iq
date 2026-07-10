@@ -46,7 +46,7 @@ Prometheus OS combines:
 - Voice Interface
 - Company Intelligence
 - Deployment Intelligence
-- Beta Intelligence
+- Route IQ operational intelligence
 - Prometheus Project Context
 
 ## Files
@@ -92,9 +92,9 @@ Supported commands:
 - `Prometheus, where are we at?`
 - `Prometheus, give me the rundown.`
 - `Prometheus, what did we finish?`
-- `Prometheus, what should I tell Chris?`
-- `Prometheus, capture Anthony beta feedback.`
-- `Prometheus, draft an email to Chris.`
+- `Prometheus, what is Route IQ's current status?`
+- `Prometheus, capture customer feedback.`
+- `Prometheus, draft a customer onboarding email.`
 - `Prometheus, check Companion health.`
 - `Prometheus, end of day debrief.`
 
@@ -105,20 +105,20 @@ Follow-up support:
 
 Short ambiguous commands:
 
-- `Email`, `Chris`, `Anthony`, `Website`, `GitHub`, `Backup`, and `Pilot` ask a clarification question instead of guessing.
-- Specific commands such as `Pilot readiness`, `Draft an email to Chris`, and `Prepare GitHub backup` route directly.
+- `Email`, `Website`, `GitHub`, and `Backup` ask a clarification question instead of guessing.
+- Specific commands such as `Route IQ status`, `Draft a customer onboarding email`, and `Prepare GitHub backup` route directly.
 
 Daily brief covers:
 
 - today's Prometheus status
 - highest ROI task
 - biggest company risk
-- Anthony beta status
-- Chris / leadership follow-up status
+- Route IQ operational and Patent Pending status
+- customer onboarding and enterprise-hardening status
 - website status
 - GitHub / backup status
 - Cloudflare status
-- pilot readiness
+- deployment readiness
 - social media opportunity
 - founder scorecard
 - recommended next action
@@ -129,16 +129,16 @@ Progress log location:
 PROMETHEUS OPERATING SYSTEM/09 Founder Operating System/Daily Progress Log.md
 ```
 
-Prometheus may prepare a GitHub backup checklist or draft commit message, but it must not commit, push, deploy, modify Anthony beta, or modify production behavior without explicit Cruz approval.
+Prometheus may prepare a GitHub backup checklist or draft commit message, but it must not commit, push, deploy, or modify production behavior without explicit Cruz approval.
 
 ## Chief Of Staff Intelligence
 
 Prometheus now includes local-only founder support modules:
 
-- Daily priority engine - ranks work by business impact, pilot value, revenue potential, risk reduction, founder energy, and urgency.
-- Beta feedback assistant - classifies Anthony feedback as bug, UX issue, route quality issue, data issue, feature request, or training issue.
+- Daily priority engine - ranks work by business impact, customer onboarding value, revenue potential, risk reduction, founder energy, and urgency.
+- Operating feedback assistant - classifies customer and operating feedback as a defect, usability issue, data issue, workflow issue, support need, or improvement candidate.
 - Email drafting mode - drafts messages only; it does not connect Gmail or send email.
-- Founder conversation mode - answers direct operating questions such as what matters, what to tell Chris, and why a recommendation matters.
+- Founder conversation mode - answers direct operating questions about Route IQ, company priorities, product state, and why a recommendation matters.
 - Reliability monitor - explains the health-check path for local server, backend, microphone, STT, router, TTS, playback, and listening resume.
 - End-of-day debrief - summarizes changed, fixed, learned, blocked, safe-to-commit status, and tomorrow's highest ROI task.
 
@@ -170,7 +170,7 @@ Level 3 - Approval Required:
 - git push
 - Cloudflare deployment
 - production file changes
-- Anthony beta changes
+- protected product changes
 
 Level 4 - Blocked:
 
@@ -203,7 +203,7 @@ If deployed later:
 3. Keep `noindex,nofollow`.
 4. Do not link from the public homepage.
 5. Keep AI provider secrets server-side only.
-6. Keep Anthony beta and production app modification tools approval-gated.
+6. Keep protected product and production app modification tools approval-gated.
 7. Run a security review before release.
 
 ## Voice Layer

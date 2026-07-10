@@ -124,7 +124,7 @@ export class AIProvider {
       });
       return this.remember(cleanMessage, {
         title: "Approval required",
-        body: "That action may affect production, deployment, GitHub history, Cloudflare, or Anthony's beta. I can draft a checklist, but I will not execute it without explicit approval.",
+        body: "That action may affect production, deployment, GitHub history, Cloudflare, or a protected product environment. I can draft a checklist, but I will not execute it without explicit approval.",
         permission: permissionLabel(permissionLevel),
         tone: "approval"
       });
@@ -174,7 +174,7 @@ export class AIProvider {
     if (!command) {
       return {
         title: "PROMETHEUS standing by",
-        body: "Ask me what to do next, what changed today, what is blocking the pilot, Anthony beta status, website status, GitHub status, Cloudflare status, Chris follow-up, Instagram, Codex prompts, or founder summaries.",
+        body: "Ask me what to do next, what changed today, Route IQ status, deployment blockers, customer onboarding, Gaia, Athena, patent status, website status, GitHub, Cloudflare, or the current Founder workflow.",
         permission: "Level 0 - Read Only",
         tone: "idle"
       };
@@ -249,19 +249,10 @@ export class AIProvider {
       };
     }
 
-    if (/\banthony\s+beta\b/.test(command) || /\banthony\s+status\b/.test(command)) {
-      return {
-        title: "Anthony beta status",
-        body: "Anthony's beta path is ready for controlled use. He should see his own rep experience, not Cruz's history. Watch route clarity, GPS verification, visit logging, feedback, and export completion.",
-        permission: "Level 0 - Read Only",
-        tone: "beta"
-      };
-    }
-
     if (/\bwebsite\s+status\b/.test(command) || /\bsite\s+status\b/.test(command)) {
       return {
         title: "Website status",
-        body: "PrometheusRouteIQ.com is live. The website should create curiosity, explain outcomes, and drive pilot requests without exposing proprietary logic.",
+        body: "PrometheusRouteIQ.com is the public Route IQ presence. It should support customer onboarding and enterprise confidence without exposing proprietary logic.",
         permission: "Level 0 - Read Only",
         tone: "website"
       };
@@ -285,19 +276,19 @@ export class AIProvider {
       };
     }
 
-    if (/\bpilot\s+readiness\b/.test(command) || command.includes("blocking")) {
+    if (command.includes("deployment readiness") || command.includes("operational readiness") || command.includes("blocking")) {
       return {
-        title: "Pilot blockers",
-        body: "The main blockers are leadership approval, HR/legal comfort, clean user consent, stable beta behavior, and proving reps will actually use the workflow daily.",
+        title: "Operational blockers",
+        body: "The remaining constraints are authenticated production verification, account-owner security actions, repeatable customer onboarding, CRM handoff continuity, and continuous improvement from real Route IQ operations.",
         permission: "Level 0 - Read Only",
-        tone: "pilot"
+        tone: "operations"
       };
     }
 
-    if (command.includes("chris") || command.includes("larry") || command.includes("phil")) {
+    if (command.includes("customer handoff") || command.includes("customer follow up")) {
       return {
-        title: "Leadership follow-up",
-        body: "Ask what Dallas leadership needs to feel comfortable approving a controlled 14-day pilot. Keep the ask simple: 3 approved users, GPS verification, weekly review, final report, and no proprietary details disclosed.",
+        title: "Customer follow-up",
+        body: "Confirm the customer's current stage, define the next decision, update CRM immediately, and keep the handoff tied to the active workspace and today's mission.",
         permission: "Level 0 - Read Only",
         tone: "executive"
       };
@@ -306,7 +297,7 @@ export class AIProvider {
     if (command.includes("instagram") || command.includes("social")) {
       return {
         title: "Instagram guidance",
-        body: "Post the founder journey, private pilot progress, and field-sales lessons. Create curiosity without showing internal screens, route logic, scoring methods, or customer-sensitive details.",
+        body: "Share Route IQ operating lessons, customer outcomes, and outside-sales insight without exposing internal screens, proprietary route logic, scoring methods, or customer-sensitive details.",
         permission: "Level 0 - Read Only",
         tone: "social"
       };
@@ -365,9 +356,9 @@ export class AIProvider {
     return {
       title: "Founder Conversation",
       body: [
-        "My best read is to keep this tied to validation, beta proof, revenue path, or risk reduction.",
-        "When the available data is thin, the founder move is still clear: choose the action that creates proof instead of polish.",
-        "Recommendation: capture one useful signal, then decide whether the next block belongs to engineering, sales, or follow-up."
+        "My best read is to keep this tied to Route IQ operations, customer onboarding, revenue, or enterprise risk reduction.",
+        "When the available data is thin, use the active workspace, today's mission, the Research dossier, the prospect queue, and CRM stage as the decision sequence.",
+        "Recommendation: choose the next action that improves customer operations without expanding beyond the current product strategy."
       ].join(" "),
       permission: "Level 0 - Read Only",
       tone: "founder-conversation",

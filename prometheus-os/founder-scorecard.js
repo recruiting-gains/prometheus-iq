@@ -4,33 +4,33 @@ export function getFounderScorecard() {
   return [
     {
       label: "Product Discipline",
-      score: "8/10",
-      detail: "Route Intelligence, GPS verification, rep mode, owner mode, and Anthony's beta path are in place. The key is avoiding unnecessary feature work until beta feedback is real."
+      score: "9/10",
+      detail: "Route IQ is operational, Patent Pending, and the primary product. Gaia is paused and Athena is architecture only."
     },
     {
-      label: "Pilot Readiness",
+      label: "Deployment Readiness",
       score: "8/10",
-      detail: "Executive materials, pilot package, success metrics, and risk controls are prepared. The missing proof is external pilot usage data."
+      detail: "The platform is in deployment readiness. Authenticated verification and remaining account-owner controls must stay tied to current Overwatch evidence."
     },
     {
       label: "Founder Execution",
       score: "8/10",
-      detail: "Website, GitHub, Cloudflare, companion, and operating documents are moving together. Keep sessions focused, write down what changed, and end with a backup decision."
+      detail: "The current Founder workflow connects workspace selection, Today's Mission, Research, prospect calls, CRM stage updates, evidence-based handoff, and follow-up."
     },
     {
       label: "Business Risk Control",
       score: "7/10",
-      detail: "The company has stronger safeguards and documents than before. The main risk is still validating adoption before selling too broadly."
+      detail: "Workspace isolation, subsystem ownership, source control, patent documentation, and Overwatch governance are explicit operating controls."
     },
     {
-      label: "Market Proof",
-      score: "6/10",
-      detail: "Internal progress is strong, but Prometheus needs clean beta data, rep feedback, and leadership response before the story becomes enterprise-grade proof."
+      label: "Customer Onboarding",
+      score: "7/10",
+      detail: "Customer onboarding is a current company phase. Every call, stage, readiness signal, follow-up, and JR handoff should remain in the governed record."
     },
     {
       label: "Founder Focus",
       score: "7/10",
-      detail: "The next unlock is discipline: fewer new builds, more validation loops, cleaner feedback, and stronger proof for Chris, Dallas leadership, and future pilots."
+      detail: "The next unlock is disciplined execution: complete today's customer mission, close verified readiness work, and avoid ungoverned product expansion."
     }
   ];
 }

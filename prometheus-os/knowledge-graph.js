@@ -4,117 +4,130 @@ export const entities = {
   cruz: {
     label: "Cruz",
     type: "Founder",
-    summary: "Founder of Prometheus, builder of Prometheus IQ, and primary operator of Prometheus Companion.",
-    responsibilities: ["vision", "pilot validation", "founder conversations", "customer discovery", "product decisions"]
+    summary: "Founder of Prometheus and the active operator, mission commander, decision maker, workspace owner, and business development executor.",
+    responsibilities: ["company mission", "workspace selection", "customer execution", "product decisions", "governed handoffs"]
   },
-  anthony: {
-    label: "Anthony",
-    type: "Beta Tester",
-    summary: "Coworker beta tester intended to validate a private rep-mode Prometheus IQ workflow.",
-    responsibilities: ["test rep flow", "log visits", "provide feedback", "validate route quality"]
+  prometheus: {
+    label: "Prometheus",
+    type: "Company and Operating Platform",
+    summary: "The AI operating system for outside sales, built to make field execution intelligent, directed, accountable, and compounding.",
+    responsibilities: ["company operating state", "outside-sales intelligence", "subsystem coordination", "governance"]
   },
-  chris: {
-    label: "Chris",
-    type: "Leadership Contact",
-    summary: "Houston Area Manager contact who may discuss Prometheus with Dallas leadership.",
-    responsibilities: ["review concept", "route leadership interest", "clarify approval path"]
+  routeIq: {
+    label: "Route IQ",
+    type: "Primary Product",
+    summary: "The operational, Patent Pending primary Prometheus product and current engineering focus.",
+    responsibilities: ["operational field intelligence", "directed execution", "verified workflows", "continuous improvement"]
   },
-  larry: {
-    label: "Larry",
-    type: "COO Persona / Executive Reviewer",
-    summary: "COO-level approval lens used to pressure-test pilot readiness, risk controls, and operational value.",
-    responsibilities: ["risk review", "pilot approval logic", "operations fit"]
+  gaia: {
+    label: "Gaia",
+    type: "Paused Product Architecture",
+    summary: "The research-orchestration architecture foundation is preserved, but active Gaia expansion is paused.",
+    responsibilities: ["preserved architecture", "future governed research orchestration"]
   },
-  phil: {
-    label: "Phil",
-    type: "President Persona / Executive Reviewer",
-    summary: "President-level review lens used to evaluate business value, simplicity, and executive clarity.",
-    responsibilities: ["strategic fit", "business impact", "leadership clarity"]
-  },
-  prometheusIq: {
-    label: "Prometheus IQ",
-    type: "Product",
-    summary: "Field-sales intelligence platform that helps reps decide where to go, verify activity, log visits, and learn from outcomes.",
-    responsibilities: ["route intelligence", "GPS verification", "visit logging", "manager visibility", "pilot data"]
+  athena: {
+    label: "Athena",
+    type: "Architecture Only",
+    summary: "Athena is future intelligence architecture and invention documentation, not an active runtime.",
+    responsibilities: ["future architecture", "invention documentation"]
   },
   companion: {
     label: "Prometheus Companion",
     type: "Private Founder Assistant",
-    summary: "Native/local founder assistant and command center for Cruz, separate from customer-facing Prometheus IQ.",
-    responsibilities: ["daily brief", "memory", "voice", "founder priorities", "backup coaching"]
+    summary: "Cruz's reactivated local executive operating system for current-state briefings, memory, voice, and decision support.",
+    responsibilities: ["Founder brief", "current-state memory", "voice", "decision support", "read-only subsystem summaries"]
   },
-  cloudflare: {
-    label: "Cloudflare",
-    type: "Deployment / Protection",
-    summary: "Hosting and protection layer for public website and protected app deployment.",
-    responsibilities: ["public website", "protected app access", "deployment"]
+  overwatch: {
+    label: "Overwatch",
+    type: "Governance and Trust Layer",
+    summary: "The control plane for trusted engineering state, subsystem ownership, workspace isolation, verification, and checkpoints.",
+    responsibilities: ["trusted state", "verification", "subsystem boundaries", "checkpoint governance"]
   },
-  github: {
-    label: "GitHub",
-    type: "Source Control",
-    summary: "Repository backup and version-control system for Prometheus code and documentation.",
-    responsibilities: ["source backup", "commit history", "restore path"]
+  crm: {
+    label: "CRM",
+    type: "Customer Continuity System",
+    summary: "The governed record for contacts, leads, candidates, stages, follow-ups, readiness, and evidence-based handoffs.",
+    responsibilities: ["customer records", "stage continuity", "follow-up", "JR handoff evidence"]
+  },
+  research: {
+    label: "Research",
+    type: "Read-Only Intelligence Source",
+    summary: "Research supplies verified strategic evidence and Founder dossiers without owning implementation.",
+    responsibilities: ["evidence", "Founder dossier", "strategic analysis"]
+  },
+  sales: {
+    label: "Sales",
+    type: "Customer Onboarding Source",
+    summary: "Sales supports discovery, qualification, next-step control, and current customer onboarding.",
+    responsibilities: ["discovery", "qualification", "commercial next steps", "onboarding"]
   },
   website: {
     label: "Website",
     type: "Public Presence",
-    summary: "PrometheusRouteIQ.com, the public-facing cinematic website for pilot interest and credibility.",
-    responsibilities: ["brand", "request pilot", "demo", "social bio link"]
-  },
-  pilot: {
-    label: "Pilot",
-    type: "Validation System",
-    summary: "Controlled field test structure designed to prove rep adoption, verified activity, route quality, and measurable outcomes.",
-    responsibilities: ["validation", "success metrics", "feedback", "executive report"]
-  },
-  googlePlaces: {
-    label: "Google Places",
-    type: "Future Integration",
-    summary: "Planned backend-only source for real business discovery and prospect qualification.",
-    responsibilities: ["business discovery", "geocoding", "prospect refresh"]
-  },
-  routeIntelligence: {
-    label: "Route Intelligence",
-    type: "Product Intelligence Layer",
-    summary: "Prometheus IQ's routing logic for qualified prospects, exploration, freshness, category diversity, and rep-specific learning.",
-    responsibilities: ["recommendations", "freshness", "discovery", "rep-specific learning"]
+    summary: "The public Prometheus surface supporting Route IQ positioning and customer onboarding.",
+    responsibilities: ["positioning", "credibility", "customer conversion"]
   },
   socialMedia: {
     label: "Social Media",
-    type: "Growth Channel",
-    summary: "@prometheus.iq and founder build-in-public channel. Live Meta integration is paused due external account setup blockers.",
-    responsibilities: ["visibility", "founder story", "pilot interest", "manual engagement"]
+    type: "Read-Only Growth Source",
+    summary: "Owns normalized Instagram analytics and content performance signals consumed by Companion.",
+    responsibilities: ["normalized analytics", "content performance", "Founder marketing signals"]
+  },
+  cloudflare: {
+    label: "Cloudflare",
+    type: "Platform Delivery and Protection",
+    summary: "Supports public and protected surfaces while account-owner hardening remains governed by Overwatch.",
+    responsibilities: ["delivery", "protection", "account controls"]
+  },
+  github: {
+    label: "GitHub",
+    type: "Source Control",
+    summary: "The governed source-control, recovery, and checkpoint trail for Prometheus.",
+    responsibilities: ["source history", "recovery", "checkpoint traceability"]
+  },
+  patent: {
+    label: "Route IQ Patent",
+    type: "Patent Pending Invention Record",
+    summary: "United States provisional patent application 64/107,865 is filed for Route IQ.",
+    responsibilities: ["invention record", "material-change documentation"]
+  },
+  customerOnboarding: {
+    label: "Customer Onboarding",
+    type: "Current Company Phase",
+    summary: "The active operating process from workspace mission through customer action, CRM continuity, readiness assessment, handoff, and follow-up.",
+    responsibilities: ["mission execution", "customer calls", "CRM updates", "readiness", "handoff", "follow-up"]
   }
 };
 
 export const relationships = [
-  ["cruz", "founded", "prometheusIq"],
-  ["cruz", "uses", "companion"],
-  ["anthony", "tests", "prometheusIq"],
-  ["anthony", "validates", "routeIntelligence"],
-  ["chris", "can-introduce", "pilot"],
-  ["pilot", "requires", "executive readiness"],
-  ["larry", "reviews", "pilot"],
-  ["phil", "reviews", "pilot"],
-  ["prometheusIq", "depends-on", "routeIntelligence"],
-  ["prometheusIq", "hosted-through", "cloudflare"],
-  ["website", "hosted-through", "cloudflare"],
-  ["github", "backs-up", "prometheusIq"],
-  ["github", "backs-up", "companion"],
-  ["googlePlaces", "can-improve", "routeIntelligence"],
+  ["cruz", "founded", "prometheus"],
+  ["cruz", "operates", "companion"],
+  ["cruz", "executes", "customerOnboarding"],
+  ["prometheus", "operates", "routeIq"],
+  ["prometheus", "governed-by", "overwatch"],
+  ["routeIq", "protected-by", "patent"],
+  ["gaia", "status", "paused"],
+  ["athena", "status", "architecture only"],
+  ["customerOnboarding", "recorded-in", "crm"],
+  ["customerOnboarding", "uses", "research"],
+  ["customerOnboarding", "uses", "sales"],
+  ["website", "supports", "customerOnboarding"],
   ["socialMedia", "supports", "website"],
-  ["website", "supports", "pilot"],
-  ["companion", "tracks", "pilot"],
-  ["companion", "tracks", "github"],
-  ["companion", "tracks", "cloudflare"]
+  ["routeIq", "delivered-through", "cloudflare"],
+  ["github", "backs-up", "routeIq"],
+  ["github", "backs-up", "companion"],
+  ["companion", "reads", "overwatch"],
+  ["companion", "summarizes", "crm"],
+  ["companion", "summarizes", "research"],
+  ["companion", "summarizes", "socialMedia"]
 ];
 
 export const dependencies = {
-  pilotApproval: ["Chris leadership path", "risk controls", "user consent", "success metrics", "stable beta workflow"],
-  anthonyBeta: ["private rep experience", "route quality", "GPS verification", "visit logging", "feedback loop"],
-  routeIntelligence: ["qualified prospects", "rep-specific history", "freshness rules", "real-world outcomes"],
-  publicGrowth: ["website", "Instagram/manual social", "founder clarity", "pilot proof"],
-  companionReliability: ["local backend", "STT", "TTS", "intent router", "memory system", "manual launch"]
+  routeIqOperations: ["deployment readiness", "customer onboarding", "enterprise hardening", "continuous operational improvement"],
+  customerOnboarding: ["active workspace", "Today's Mission", "Research dossier", "prospect queue", "CRM stage updates", "evidence-based handoff", "follow-up"],
+  enterpriseHardening: ["authenticated verification", "account-owner controls", "workspace isolation", "Overwatch checkpoints"],
+  patentContinuity: ["filed provisional application", "material invention documentation", "governed patent workspace"],
+  companionReliability: ["local backend", "speech recognition", "premium voice", "intent routing", "current platform memory", "ESC"]
 };
 
 export function resolveEntityKey(command = "") {
@@ -129,8 +142,8 @@ export function createEntityBrief(entityKey) {
   const entity = entities[entityKey];
   if (!entity) {
     return {
-      title: "Unknown entity",
-      body: "I do not have that entity in Prometheus memory yet."
+      title: "Unknown Entity",
+      body: "I do not have that entity in current Prometheus memory."
     };
   }
 
@@ -140,7 +153,7 @@ export function createEntityBrief(entityKey) {
   const timeline = createEntityTimeline(entity.label);
 
   return {
-    title: `${entity.label} knowledge profile`,
+    title: `${entity.label} Knowledge Profile`,
     body: [
       `${entity.label} is a ${entity.type}.`,
       entity.summary,
@@ -158,23 +171,9 @@ export function createKnowledgeGraphSummary(command = "") {
   return {
     title: "Prometheus Knowledge Graph",
     body: [
-      `Prometheus currently tracks ${Object.keys(entities).length} core entities: ${Object.values(entities).map((entity) => entity.label).join(", ")}.`,
-      `It understands ${relationships.length} relationships across founder, beta, product, deployment, leadership, social, and route-intelligence systems.`,
-      "Most important dependency chain: Anthony beta validates Route Intelligence; Route Intelligence strengthens pilot proof; pilot proof improves leadership approval odds and future revenue."
-    ].join(" ")
-  };
-}
-
-export function createAnthonyMemoryProfile() {
-  return {
-    title: "Anthony Intelligence Profile",
-    body: [
-      "Anthony is the controlled beta tester profile, separate from Cruz founder history.",
-      "Current beta status: ready.",
-      "Route history: Anthony should use his own rep route package, not Cruz historical winners.",
-      "Feedback history: Prometheus should capture bugs, UX issues, route quality issues, data issues, feature requests, and training issues.",
-      "Discovery history: Anthony's route should prioritize fresh qualified storefronts and avoid generic plazas, big-box stores, restricted campuses, and Cruz-proven locations.",
-      "Future recommendation rule: validate whether Anthony knows exactly where to walk first, who to ask for, and how quickly he can log the outcome."
+      `Prometheus tracks ${Object.keys(entities).length} current entities: ${Object.values(entities).map((entity) => entity.label).join(", ")}.`,
+      `It understands ${relationships.length} relationships across the Founder, Route IQ operations, governance, customer onboarding, intelligence, delivery, and memory.`,
+      "Most important operating chain: the Founder sets the active mission, Research informs the next decision, Route IQ supports execution, CRM preserves the outcome, and Overwatch governs trusted state."
     ].join(" ")
   };
 }
@@ -183,11 +182,9 @@ export function createCompanionIntelligenceAudit() {
   return {
     title: "Companion Intelligence Audit",
     body: [
-      "Missing memory: automatic ingestion from new daily logs is not live yet; memory is currently curated and local.",
-      "Missing context: multi-turn conversation works in-session, but long-term conversational memory is not persisted as a database.",
-      "Missing founder knowledge: LLC status, actual Anthony feedback, Chris follow-up outcome, and external pilot responses need future updates after they happen.",
-      "Highest ROI improvement: connect daily progress logging to memory indexing so Prometheus updates its company timeline after every work session.",
-      "Risk: adding integrations before pilot validation can create maintenance load without increasing approval odds."
+      "Companion is synchronized to current Route IQ status, Patent Pending status, product boundaries, company phase, Founder workflow, and Overwatch governance.",
+      "Memory remains local and curated from governed repository state.",
+      "Highest-value maintenance action: refresh Companion whenever the master engineering state or Founder alignment changes."
     ].join(" ")
   };
 }

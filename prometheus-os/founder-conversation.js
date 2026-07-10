@@ -1,4 +1,5 @@
 import { createTopThreePriorities, createNextActionBrief } from "./daily-priority-engine.js";
+import { companyState } from "./demo-data.js";
 
 const followUpPatterns = [
   /^why\b/,
@@ -19,14 +20,14 @@ export function createFounderFollowUpResponse(command = "", lastEntry = null) {
   if (!lastEntry?.response?.body) {
     return {
       title: "Follow-Up",
-      body: "I need one previous answer to anchor that follow-up. Ask me what to do next, where we are at, or what matters right now, and I will explain the reasoning after that."
+      body: `The current operating reason is simple: Route IQ is operational, and the company is in ${companyState.currentPhase.join(", ").toLowerCase()}. The next action should move today's customer mission or close a verified readiness gap.`
     };
   }
 
   const previousTitle = lastEntry.response.title || "the last recommendation";
   return {
     title: `Why ${previousTitle} matters`,
-    body: `Because the last answer was tied to company leverage, not activity for activity's sake. The important question is: does this move Prometheus closer to pilot proof, customer trust, revenue, or risk reduction? Based on the last recommendation, the reason is this: ${lastEntry.response.body} The founder move is to turn that into one measurable next step instead of opening a new build thread.`
+    body: `Because the last answer was tied to operating leverage, not activity for activity's sake. The important question is whether it moves a customer decision, closes a verified readiness gap, protects Route IQ operations, or reduces enterprise risk. Based on the last recommendation: ${lastEntry.response.body} Turn that into one measurable next step.`
   };
 }
 
@@ -40,10 +41,10 @@ export function createFounderRundown(command = "") {
     };
   }
 
-  if (normalized.includes("what should i tell chris") || normalized.includes("tell chris")) {
+  if (normalized.includes("what should i tell the customer") || normalized.includes("customer message")) {
     return {
-      title: "What To Tell Chris",
-      body: "Tell Chris the ask is controlled and low-risk: three approved users, 14 days, GPS-verified activity, weekly review, and a final report. Do not lead with proprietary technology. Lead with visibility, accountability, and measurable LSM field performance."
+      title: "Customer Message",
+      body: "Lead with the current operating outcome: Route IQ makes outside sales more directed, accountable, and learnable. Keep the next step specific, preserve proprietary mechanics, and record the customer decision in CRM."
     };
   }
 
@@ -56,7 +57,7 @@ export function createFounderRundown(command = "") {
     const next = createNextActionBrief();
     return {
       title: "Founder Move",
-      body: `${next.body} The broader status: product is real, website is live, pilot materials are prepared, and the next company proof has to come from controlled beta usage.`
+      body: `${next.body} The broader status: Route IQ is operational and Patent Pending; Gaia is paused; Athena is architecture only; and the company is executing readiness, onboarding, hardening, and continuous improvement.`
     };
   }
 
@@ -64,13 +65,13 @@ export function createFounderRundown(command = "") {
     const priorities = createTopThreePriorities();
     return {
       title: "Prometheus Rundown",
-      body: `Prometheus is in validation mode. ${priorities.body}`
+      body: `Prometheus is in ${companyState.currentPhase.join(", ").toLowerCase()}. ${priorities.body}`
     };
   }
 
   return {
     title: "Founder Conversation",
-    body: "The direct answer: stay in validation mode. Protect the beta, capture feedback, keep leadership communication simple, and avoid new features unless the pilot proves they are necessary."
+    body: `The direct answer: ${companyState.chiefOfStaff.recommendedNextAction}`
   };
 }
 
@@ -84,6 +85,6 @@ export function isFounderConversationCommand(command = "") {
     "give me the rundown",
     "rundown",
     "what did we finish",
-    "what should i tell chris"
+    "what should i tell the customer"
   ].some((phrase) => normalized.includes(phrase));
 }

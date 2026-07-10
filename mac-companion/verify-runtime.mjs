@@ -322,8 +322,8 @@ async function verify() {
   try {
     const { AIProvider } = await import(pathToFileURL(join(projectRoot, "prometheus-os/ai-provider.js")));
     const provider = new AIProvider();
-    const first = await provider.ask("Prometheus, who is Anthony?");
-    const followUp = await provider.ask("Why is he important?");
+    const first = await provider.ask("Prometheus, what is Route IQ's current status?");
+    const followUp = await provider.ask("Why is it the primary product?");
     const ok = provider.history.length >= 2 &&
       Boolean(first.body) &&
       Boolean(followUp.body) &&

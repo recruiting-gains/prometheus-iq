@@ -27,9 +27,9 @@ const safeDocumentSources = [
     id: "operating-system-documents",
     title: "Prometheus Operating System Documents",
     type: "document-source",
-    summary: "Company operating documents covering pilot, pricing, LLC preparation, founder rhythm, executive materials, and company history.",
+    summary: "Current governed documents covering Route IQ operations, product boundaries, company phase, Founder alignment, customer onboarding, enterprise hardening, and company history.",
     tags: ["operations", "company", "documentation"],
-    entities: ["Prometheus IQ", "Pilot", "Cruz"],
+    entities: ["Route IQ", "Overwatch", "Cruz"],
     status: "registered"
   },
   {

@@ -45,9 +45,9 @@ export function createContextualFollowUpResponse(command = "", lastEntry) {
       title: "Why that matters",
       body: [
         `Your last answer was about ${lastAnswerSummary(lastEntry)}`,
-        "The reason it matters is company leverage: the best work right now should increase pilot proof, reduce founder risk, or make Prometheus easier to operate.",
+        "The reason it matters is company leverage: the best work right now should move customer onboarding, close verified readiness, reduce enterprise risk, or make Prometheus easier to operate.",
         decision.body,
-        "Prometheus gets closer to a real company when the next action produces evidence, not just more polish."
+        "Prometheus compounds when the next action produces a customer decision or a verified operating improvement."
       ].join(" ")
     };
   }
@@ -56,7 +56,7 @@ export function createContextualFollowUpResponse(command = "", lastEntry) {
     title: "Context follow-up",
     body: [
       `I am connecting that follow-up to ${lastAnswerSummary(lastEntry)}`,
-      "Ask me about Anthony, Chris, the pilot, the website, GitHub, Cloudflare, Route Intelligence, or social media and I will pull the specific memory profile."
+      "Ask me about Route IQ, Gaia, Athena, the current company phase, the Founder workflow, Overwatch, the website, GitHub, Cloudflare, CRM, or social media and I will pull the current profile."
     ].join(" ")
   };
 }

@@ -1,36 +1,40 @@
 export const safeProjectContext = {
   operatingSystem: {
-    summary: "Prometheus has a structured operating system covering executive materials, pilot program, pricing, product, security, LLC/finance, marketing, customer success, founder rhythm, and future expansion.",
+    summary: "Prometheus is the governed AI operating system for outside sales. Route IQ is operational and the company is executing deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
     safeFiles: [
-      "PROMETHEUS OPERATING SYSTEM/PROMETHEUS_OPERATING_SYSTEM_README.md",
-      "docs/prometheus-origin-story-development-history.md",
-      "docs/prometheus-founder-operating-system.md",
-      "docs/prometheus-pilot-execution-playbook.md"
+      "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+      "PROMETHEUS_SYSTEM_MAP.md",
+      "COMPANY_IDENTITY.md",
+      "PRODUCT_VISION.md",
+      "overwatch/reports/prometheus-architectural-evolution-report-v1.md"
     ]
   },
-  originStory: {
-    summary: "Prometheus started as a field-sales tool built from Cruz's direct experience. The contrarian truth is that face-to-face sales becomes more valuable as digital sales becomes more crowded.",
-    safeUse: "Use for founder story, investor answers, website copy, and leadership context."
+  company: {
+    mission: "Make outside sales intelligent, directed, accountable, and compounding.",
+    phase: ["Deployment readiness", "Customer onboarding", "Enterprise hardening", "Continuous operational improvement"]
   },
-  beta: {
-    anthony: "Anthony beta is planned as a controlled rep-mode test with a fresh route, separate profile, verified visits, visit logging, feedback capture, and export/backup process.",
-    support: "Pilot support should categorize bugs, collect daily feedback, and avoid new features during live beta unless critical."
+  products: {
+    routeIq: "Operational, Patent Pending, and the primary product.",
+    gaia: "Paused. Architecture foundation preserved; no active expansion.",
+    athena: "Architecture only. Not an active runtime."
+  },
+  founder: {
+    role: "Operator, mission commander, decision maker, workspace owner, and business development executor.",
+    workflow: "Select the active workspace, set Today's Mission, review the Research dossier, call the highest-value prospects, update CRM after every call, use readiness assessment when warranted, hand off to JR only with evidence, review follow-ups, and write tomorrow's priorities."
+  },
+  overwatch: {
+    summary: "Overwatch governs trusted platform state, subsystem ownership, workspace isolation, verification, and checkpoints."
   },
   website: {
-    summary: "PrometheusRouteIQ.com is the public brand site. It communicates outcomes and pilot interest without exposing source code, proprietary scoring, prompts, or recommendation logic.",
-    status: "Live"
+    summary: "The public Prometheus website supports current Route IQ positioning and customer onboarding without exposing protected mechanics or customer data.",
+    status: "Operational"
   },
-  executive: {
-    summary: "Executive materials exist for Chris, Dallas leadership, COO, President, HR, legal, and operations review. The sendable packet is intentionally simplified.",
-    safeUse: "Use for briefing, approval conversation, pilot request, risk controls, and success metrics."
-  },
-  googlePlaces: {
-    summary: "Google Places integration is planned for qualified prospect discovery. API keys must remain backend-only and should never be committed or printed.",
-    status: "Architecture prepared; live discovery requires valid local Google API keys and explicit approval before production use."
+  crm: {
+    summary: "CRM preserves customer, candidate, stage, follow-up, readiness, and evidence-based handoff records. Companion does not create a parallel CRM."
   },
   companion: {
-    summary: "Prometheus Companion is a local-only founder assistant with premium TTS support, local STT routing, Daily Chief of Staff commands, progress logging, and GitHub backup preparation.",
-    safeUse: "Use for local founder briefs, next-action guidance, status summaries, and preparation steps that do not modify production systems without approval."
+    summary: "Prometheus Companion is Cruz's reactivated, local Founder executive operating system. It consumes current governed state without owning other subsystem runtimes.",
+    safeUse: "Use for Founder briefs, current-state summaries, reasoning, memory, and decision support."
   },
   blockedSources: [
     ".env",
@@ -61,7 +65,7 @@ export function searchContext(query) {
     {
       section: "overview",
       value: {
-        summary: "Prometheus OS can safely reference high-level project summaries, pilot status, website status, executive readiness, and founder operating priorities."
+        summary: "Prometheus Companion can safely reference current Route IQ status, product boundaries, company phase, Founder workflow, Overwatch state, and read-only subsystem summaries."
       }
     }
   ];

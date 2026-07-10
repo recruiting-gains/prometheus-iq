@@ -38,19 +38,18 @@ const orchestratorPatterns = [
 
 function inferOrchestratorIntent(question = "") {
   const normalized = normalizeText(question);
-  if (normalized.includes("how many") && normalized.includes("anthony") && normalized.includes("visit")) return "anthony_visit_count";
-  if (normalized.includes("anthony")) return normalized.includes("why") ? "anthony_importance" : "anthony";
   if (
     normalized.includes("executive") ||
-    normalized.includes("leadership") ||
-    normalized.includes("larry") ||
-    normalized.includes("phil") ||
-    normalized.includes("dallas") ||
-    normalized.includes("pilot approval") ||
-    (normalized.includes("chris") && (normalized.includes("ready") || normalized.includes("readiness") || normalized.includes("status") || normalized.includes("tell") || normalized.includes("ask")))
+    normalized.includes("founder") ||
+    normalized.includes("company phase") ||
+    normalized.includes("deployment readiness") ||
+    normalized.includes("customer onboarding") ||
+    normalized.includes("enterprise hardening")
   ) return "executive_readiness";
-  if (normalized.includes("chris")) return "chris";
-  if (normalized.includes("pilot readiness")) return "pilot_readiness";
+  if (normalized.includes("route iq")) return "route_iq";
+  if (normalized.includes("gaia")) return "gaia";
+  if (normalized.includes("athena")) return "athena";
+  if (normalized.includes("patent")) return "patent_status";
   if (normalized.includes("google places") && normalized.includes("meta")) return "strategic_comparison";
   if (normalized.includes("google places")) return "google_places";
   if (normalized.includes("risk") || normalized.includes("blocker") || normalized.includes("slowing") || normalized.includes("bottleneck")) return "risk";

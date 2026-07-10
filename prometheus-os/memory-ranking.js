@@ -1,13 +1,13 @@
 const rankingWeights = {
   recency: 0.24,
   businessImpact: 0.22,
-  pilotImpact: 0.2,
+  operationalImpact: 0.2,
   founderRelevance: 0.16,
   conversationRelevance: 0.14,
   statusSignal: 0.04
 };
 
-const currentDate = new Date("2026-06-24T12:00:00-05:00");
+const currentDate = new Date("2026-07-10T12:00:00-05:00");
 
 export function getPrometheusToday() {
   return currentDate.toISOString().slice(0, 10);
@@ -50,14 +50,15 @@ export function inferMemoryIntent(query = "") {
   if (includesAny(normalized, ["this week", "weekly", "week"])) return "weekly_recap";
   if (includesAny(normalized, ["today", "changed today"])) return "today_recap";
   if (includesAny(normalized, ["since last login", "since login"])) return "since_last_login";
-  if (includesAny(normalized, ["pilot readiness", "pilot status", "pilot ready", "pilot"])) return "pilot";
-  if (includesAny(normalized, ["anthony"])) return "anthony";
-  if (includesAny(normalized, ["chris"])) return "chris";
-  if (includesAny(normalized, ["larry", "phil", "leadership", "dallas"])) return "leadership";
+  if (includesAny(normalized, ["deployment readiness", "customer onboarding", "enterprise hardening", "operational readiness"])) return "operations";
+  if (includesAny(normalized, ["route iq", "route i q"])) return "route_iq";
+  if (includesAny(normalized, ["gaia"])) return "gaia";
+  if (includesAny(normalized, ["athena"])) return "athena";
+  if (includesAny(normalized, ["patent"])) return "patent";
+  if (includesAny(normalized, ["overwatch"])) return "overwatch";
   if (includesAny(normalized, ["website", "site", "prometheusrouteiq"])) return "website";
   if (includesAny(normalized, ["github", "git"])) return "github";
   if (includesAny(normalized, ["cloudflare"])) return "cloudflare";
-  if (includesAny(normalized, ["google places", "google api", "google maps"])) return "google_places";
   if (includesAny(normalized, ["blocker", "blocked", "risk", "falling behind"])) return "risk";
   if (includesAny(normalized, ["why", "explain", "break that down"])) return "why";
   return "general";
@@ -87,8 +88,8 @@ export function rankMemoryItems(items = [], query = "", context = {}) {
       ].filter(Boolean).join(" "));
 
       const recency = item.date ? Math.max(0, 10 - daysSince(item.date)) : 5;
-      const businessImpact = includesAny(haystack, ["executive", "leadership", "revenue", "pilot", "customer", "validation"]) ? 9 : 5;
-      const pilotImpact = includesAny(haystack, ["anthony", "pilot", "route intelligence", "gps", "feedback", "validation"]) ? 9 : 4;
+      const businessImpact = includesAny(haystack, ["route iq", "deployment", "onboarding", "enterprise", "revenue", "customer", "operations"]) ? 9 : 5;
+      const operationalImpact = includesAny(haystack, ["route iq", "customer onboarding", "enterprise hardening", "crm", "feedback", "operations"]) ? 9 : 4;
       const founderRelevance = includesAny(haystack, ["cruz", "founder", "companion", "chief of staff", "memory", "decision"]) ? 9 : 5;
       const queryTerms = normalized.split(" ").filter((term) => term.length > 2);
       const matchingTerms = queryTerms.filter((term) => haystack.includes(term)).length;
@@ -99,7 +100,7 @@ export function rankMemoryItems(items = [], query = "", context = {}) {
       const score =
         recency * rankingWeights.recency +
         businessImpact * rankingWeights.businessImpact +
-        pilotImpact * rankingWeights.pilotImpact +
+        operationalImpact * rankingWeights.operationalImpact +
         founderRelevance * rankingWeights.founderRelevance +
         conversationRelevance * rankingWeights.conversationRelevance +
         statusSignal * rankingWeights.statusSignal;
@@ -110,7 +111,7 @@ export function rankMemoryItems(items = [], query = "", context = {}) {
         rankingReasons: {
           recency,
           businessImpact,
-          pilotImpact,
+          operationalImpact,
           founderRelevance,
           conversationRelevance,
           statusSignal

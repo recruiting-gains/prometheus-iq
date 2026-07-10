@@ -7,7 +7,7 @@ import { createGithubBackupChecklist, draftChiefOfStaffCommitMessage } from "./g
 import { founderScorecardText } from "./founder-scorecard.js";
 import { routeCommandIntent } from "./intent-router.js";
 import { createTopThreePriorities, createNextActionBrief, createDailyPriorityEngineSummary } from "./daily-priority-engine.js";
-import { createBetaFeedbackReport } from "./beta-feedback-assistant.js";
+import { createOperatingFeedbackReport } from "./beta-feedback-assistant.js";
 import { createEmailDraft } from "./email-drafting-mode.js";
 import { createFounderRundown } from "./founder-conversation.js";
 import {
@@ -32,7 +32,7 @@ const approvalPatterns = [
   /git\s+commit/i,
   /git\s+push/i,
   /deploy/i,
-  /modify\s+anthony/i,
+  /modify\s+(route iq|gaia|athena)/i,
   /production/i,
   /cloudflare\s+(deploy|deployment|secret|settings|config|configuration|token)/i
 ];
@@ -85,16 +85,16 @@ export const agentTools = {
     run() {
       return {
         title: "Prometheus summary",
-        body: "Prometheus IQ has a live website, protected app, Anthony beta preparation, Route Intelligence direction, executive packet, pilot package, GitHub backup, and Cloudflare deployment. The highest-leverage move is pilot validation."
+        body: "Prometheus is the AI operating system for outside sales. Route IQ is operational, Patent Pending, and the primary product. Gaia is paused, Athena remains architecture only, and the company is focused on deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement."
       };
     }
   },
-  createPilotBlockerBrief: {
+  createOperationalBlockerBrief: {
     permissionLevel: PermissionLevel.READ_ONLY,
     run() {
       return {
-        title: "Pilot Readiness",
-        body: "Pilot readiness is high, but not finished. The main blockers are leadership approval, HR and legal comfort, stable beta behavior, clear user consent, and proof that reps will use the workflow daily. The founder move is to reduce perceived risk and collect clean beta evidence."
+        title: "Operational Readiness",
+        body: "Route IQ is operational. The remaining work is deployment readiness, reliable customer onboarding, enterprise security hardening, authenticated production verification, and turning real customer activity into a continuous improvement loop."
       };
     }
   },
@@ -190,7 +190,7 @@ export const agentTools = {
     run() {
       return {
         title: "Founder summary",
-        body: "Today, Prometheus advanced as a company system: website, pilot, beta, executive readiness, and private operating system are now connected by a founder command layer."
+        body: "Prometheus is operating around one primary product: Route IQ. Current work connects deployment readiness, customer onboarding, CRM continuity, enterprise hardening, and continuous operational improvement under Overwatch governance."
       };
     }
   },
@@ -206,10 +206,10 @@ export const agentTools = {
       return createCompanionProgressSummary();
     }
   },
-  createBetaFeedbackReport: {
+  createOperatingFeedbackReport: {
     permissionLevel: PermissionLevel.PREPARE_ACTION,
     run({ command }) {
-      return createBetaFeedbackReport(command);
+      return createOperatingFeedbackReport(command);
     }
   },
   createEndOfDayDebrief: {
@@ -289,11 +289,12 @@ export function routeCommandToTool(command) {
   ) return "createGithubBackupChecklist";
   if (normalized.includes("founder scorecard") || normalized.includes("scorecard")) return "createFounderScorecard";
   if (
-    normalized === "what is blocking the pilot" ||
-    normalized === "pilot blockers" ||
-    normalized === "what blocks the pilot" ||
-    normalized.includes("pilot risks")
-  ) return "createPilotBlockerBrief";
+    normalized === "what is blocking deployment" ||
+    normalized === "operational blockers" ||
+    normalized === "what blocks onboarding" ||
+    normalized.includes("deployment risks") ||
+    normalized.includes("enterprise hardening")
+  ) return "createOperationalBlockerBrief";
   if (
     normalized === "what should i do next" ||
     normalized === "next action" ||
@@ -313,7 +314,7 @@ export function routeCommandToTool(command) {
     normalized.includes("give me the rundown") ||
     normalized.includes("rundown") ||
     normalized.includes("what did we finish") ||
-    normalized.includes("what should i tell chris")
+    normalized.includes("what should i tell the customer")
   ) return "createFounderRundown";
   if (
     normalized.includes("summarize prometheus companion progress") ||
@@ -339,8 +340,8 @@ export function routeCommandToTool(command) {
   if (normalized.includes("deployment checklist") || normalized.includes("deploy plan")) return "draftDeploymentChecklist";
   if (normalized.includes("codex prompt")) return "draftCodexPrompt";
   if (normalized.includes("founder summary")) return "createFounderSummary";
-  if (normalized.includes("beta feedback")) return "createBetaFeedbackReport";
-  if (normalized.includes("anthony feedback")) return "createBetaFeedbackReport";
+  if (normalized.includes("operating feedback")) return "createOperatingFeedbackReport";
+  if (normalized.includes("customer feedback")) return "createOperatingFeedbackReport";
   if (normalized.includes("health check") || normalized.includes("companion health") || normalized.includes("voice health")) return "createCompanionReliabilityReport";
   if (normalized.includes("end of day") || normalized.includes("debrief") || normalized.includes("close the day")) return "createEndOfDayDebrief";
   if (normalized.includes("command inventory") || normalized.includes("what can you do")) return "createCommandInventory";

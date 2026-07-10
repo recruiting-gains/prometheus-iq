@@ -288,7 +288,7 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
     @objc private func testAssistantConversation() {
         conversationActive = true
-        askAssistant("What should I work on next for Prometheus IQ?")
+        askAssistant("What should I work on next for Route IQ?")
     }
 
     @objc private func dailyFounderBriefAction() {
@@ -1118,8 +1118,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             "what changed in prometheus over the last month",
             "changed in prometheus over the last month",
             "over the last month",
-            "who is anthony",
-            "why is anthony important",
+            "route iq status",
+            "gaia status",
+            "athena status",
+            "what is the current company phase",
+            "what is the patent status",
+            "what is the founder workflow",
             "what is the biggest risk to prometheus today",
             "what s slowing prometheus down",
             "what is slowing prometheus down",
@@ -1128,17 +1132,14 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             "how are we doing",
             "if you were my coo",
             "what would you tell me to do tomorrow",
-            "why is google places more important than meta",
-            "google places more important than meta",
-            "how many businesses did anthony visit today",
-            "how many businesses did anthony visit",
+            "what is blocking deployment",
+            "what is blocking customer onboarding",
+            "enterprise hardening",
             "highest roi",
             "biggest risk",
             "biggest blocker",
-            "why is google places blocked",
-            "google places blocked",
-            "what about anthony",
-            "what about chris"
+            "current products",
+            "company mission"
         ]
 
         return reasoningSignals.contains { signal in
@@ -1176,7 +1177,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             "instagram",
             "social",
             "social media",
-            "anthony",
+            "route iq",
+            "gaia",
+            "athena",
+            "patent",
+            "company phase",
+            "founder workflow",
             "website",
             "site",
             "crm",
@@ -1214,15 +1220,15 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         if normalized.contains("how are we doing") || normalized.contains("how are we looking") || normalized.contains("where do we stand") {
-            return "We are in a strong build position, but not a strong proof position yet. Prometheus I Q has product depth, Companion is close, and the website and social layer are live. The constraint is proof: Anthony feedback, route confidence, buyer clarity, and clean field evidence. I would validate before adding another feature."
+            return "Prometheus is in its operating phase. Route I Q is operational, Patent Pending, and the primary product. Gaia is paused, and Athena remains architecture only. The company is focused on deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement."
         }
 
         if normalized.contains("slowing prometheus down") || normalized.contains("whats slowing") || normalized.contains("what is slowing") || normalized.contains("bottleneck") {
-            return "The slowdown is proof, not effort. The likely bottlenecks are beta validation, field evidence, Companion voice quality, Mobile verification, route confidence, buyer proof, and authenticated verification. Fix the founder conversation loop first, then validate the field workflow."
+            return "The constraint is operational readiness. The likely bottlenecks are authenticated production verification, account-owner security actions, repeatable customer onboarding, CRM handoff continuity, and turning real Route I Q activity into continuous improvement."
         }
 
         if normalized.contains("what should i work on first") || normalized.contains("what should i work on") || normalized.contains("what should i do next") || normalized.contains("what should i do") {
-            return "Start with the first thing that makes Prometheus reliable in real use. Today, that is Companion conversation quality, then Mobile and route evidence. I would not start another feature unless it directly removes friction from that path."
+            return "Start in the Founder Workspace Switcher, set today's mission and mission queue, review the Research dossier, then pull the Route I Q prospect queue. Call the highest-value prospects first and update CRM stage after every call."
         }
 
         return nil
@@ -1277,24 +1283,9 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
 
         let commands: [(nodeId: String, phrases: [String], response: String)] = [
             (
-                "pilot-readiness",
-                ["pilot readiness", "pilot ready", "pilot", "readiness"],
-                "Pilot readiness is high. The leadership packet, pilot package, success metrics, and risk controls are prepared."
-            ),
-            (
-                "executive-readiness",
-                ["executive readiness", "leadership packet", "executive packet", "packet"],
-                "Executive readiness is strong. The packet is ready for Chris and leadership review."
-            ),
-            (
-                "anthony-beta",
-                ["anthony beta", "anthony", "beta"],
-                "Anthony beta is ready. His private route and rep experience are prepared for testing."
-            ),
-            (
-                "route-intelligence",
-                ["route intelligence", "routes", "route", "v4 1"],
-                "Route Intelligence is at the v4.1 direction, focused on qualified prospects, route freshness, and rep-specific discovery."
+                "prometheus-iq",
+                ["route iq", "primary product", "product status", "routes"],
+                "Route I Q is operational, Patent Pending, and the primary Prometheus product."
             ),
             (
                 "github",
@@ -1318,8 +1309,8 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             ),
             (
                 "social-media",
-                ["social media", "instagram", "prometheus iq"],
-                "Social media is ready. Instagram is set up under Prometheus IQ."
+                ["social media", "instagram"],
+                "Social media is a read-only operating source for current Instagram analytics and content performance."
             ),
             (
                 "llc-progress",
@@ -1329,12 +1320,12 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
             (
                 "website",
                 ["website", "site", "homepage"],
-                "The website is live with the cinematic Prometheus IQ experience."
+                "PrometheusRouteIQ.com is the public Route I Q presence and supports customer onboarding and enterprise confidence."
             ),
             (
                 "founder-notes",
                 ["founder notes", "notes", "signals", "daily brief", "today s brief", "todays brief", "give me today s brief", "what changed today", "daily progress log", "progress log"],
-                "Hey Boss, here is today's brief. Anthony beta is ready. Website is online. Pilot readiness is high. GitHub is active, but commit and push still need your approval. Biggest risk is building beyond the validation signal before external pilot data proves adoption."
+                "Route I Q is operational and Patent Pending. Gaia is paused. Athena is architecture only. Current work is deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement under Overwatch governance."
             ),
             (
                 "voice-settings",
@@ -1404,11 +1395,11 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
         }
 
         if transcript.contains("what should i do next") || transcript.contains("highest roi") {
-            return "Your highest leverage task is to protect the pilot, collect clean beta feedback, and avoid unnecessary product changes until the first live test is complete."
+            return "Your highest leverage task is to set today's mission, work the highest-value Route I Q prospects, maintain CRM stage continuity, and close the most important deployment or onboarding blocker."
         }
 
-        if transcript.contains("anthony") {
-            return "Anthony beta is prepared as a separate rep experience. Keep his feedback focused on route clarity, visit logging, GPS verification, and whether the first route feels useful."
+        if transcript.contains("route iq") {
+            return "Route I Q is operational, Patent Pending, and the primary product."
         }
 
         return "Prometheus is online. I am listening, Mr. Garza."

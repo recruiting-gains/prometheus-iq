@@ -8,47 +8,47 @@ export function createEmailDraft(command = "") {
   if (!normalized.trim() || normalized === "email") {
     return {
       title: "Email Assistant",
-      body: "Do you want to draft an email, prepare a Chris follow-up, write a Larry and Phil executive note, create beta tester instructions, write pilot outreach, or draft a social caption?"
+      body: "Do you want a customer follow-up, Route IQ onboarding note, enterprise update, operating-feedback request, or social caption? I will draft only and will not send."
     };
   }
 
-  if (containsAny(normalized, ["chris", "hardeman", "leadership follow"])) {
+  if (containsAny(normalized, ["customer follow", "onboarding", "route iq customer"])) {
     return {
-      title: "Chris Follow-Up Draft",
-      body: "Chris, thank you again for being willing to share Prometheus IQ with the team while you are in Dallas. When you return, I would appreciate the chance to walk you through the controlled pilot structure, the safeguards, and the business outcomes we would measure. My goal is to keep this simple, low-risk, and focused on whether Prometheus IQ can improve field activity visibility and LSM execution."
+      title: "Customer Follow-Up Draft",
+      body: "Quick Route IQ update: I want to keep the next step simple and operational. Please confirm the current owner, the decision we need to close, and any onboarding blocker on your side. I will keep proprietary intelligence logic out of the discussion and focus on the outcome your team needs."
     };
   }
 
-  if (containsAny(normalized, ["larry", "phil", "president", "coo", "executive"])) {
+  if (containsAny(normalized, ["executive", "enterprise", "leadership", "security", "hardening"])) {
     return {
-      title: "Executive Note Draft",
-      body: "Prometheus IQ is a field-sales intelligence tool designed to help teams know where to go, verify activity, and measure what happened in the field. The request is a controlled 14-day pilot with approved users, weekly review, and a final report. The goal is not to replace existing systems, but to test whether field activity becomes more visible, accountable, and productive."
+      title: "Enterprise Update Draft",
+      body: "Route IQ is operational and Patent Pending. Our current work is deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement. I can provide the verified operating controls and next-step ownership without exposing protected product mechanics."
     };
   }
 
-  if (containsAny(normalized, ["beta tester", "anthony", "instructions"])) {
+  if (containsAny(normalized, ["feedback", "workflow", "route quality"])) {
     return {
-      title: "Beta Tester Instructions Draft",
-      body: "Your role in the beta is simple: use Prometheus IQ during field activity, follow the route, verify visits, log outcomes, and send end-of-day feedback. Focus on what felt useful, what felt confusing, what locations were actionable, and whether the workflow helped you move faster."
+      title: "Operating Feedback Request Draft",
+      body: "Please share what happened, where it happened, what you expected, what actually happened, and the operational impact. That gives us enough evidence to classify the issue and choose the smallest reliable correction."
     };
   }
 
-  if (containsAny(normalized, ["pilot outreach", "new business", "business owner", "outside sales"])) {
+  if (containsAny(normalized, ["new business", "business owner", "outside sales", "prospect"])) {
     return {
-      title: "Pilot Outreach Draft",
-      body: "I am building Prometheus IQ, a field-sales intelligence platform for teams that rely on outside sales, visits, events, or local outreach. I am currently looking for a small number of private pilot partners to test whether better routing, verified activity, and clearer reporting can improve field performance. Would you be open to a short conversation?"
+      title: "Route IQ Outreach Draft",
+      body: "Prometheus built Route IQ to make outside sales intelligent, directed, accountable, and compounding. It helps teams direct field activity, preserve verified outcomes, and improve the next decision. Would you be open to a short conversation about your current outside-sales workflow?"
     };
   }
 
   if (containsAny(normalized, ["instagram", "social", "caption", "post"])) {
     return {
       title: "Social Caption Draft",
-      body: "Building Prometheus IQ from the field up. The goal is simple: help outside sales teams know where to go, verify the work, and turn every visit into better intelligence for the next one. Private pilot work continues."
+      body: "Route IQ is built for a simple operating truth: outside sales creates more value when every decision, visit, and outcome improves what happens next. Prometheus makes that work intelligent, directed, accountable, and compounding."
     };
   }
 
   return {
     title: "Email Drafting Mode",
-    body: "I can draft the message, but I need the audience first: Chris, Larry and Phil, beta tester, pilot prospect, or social media. I will draft only. I will not send."
+    body: "I can draft the message, but I need the audience and the decision you want from them. I will draft only and will not send."
   };
 }

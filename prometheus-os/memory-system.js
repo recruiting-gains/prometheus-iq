@@ -1,117 +1,73 @@
 import { companyState } from "./demo-data.js";
 
-const today = "2026-06-24";
+const today = "2026-07-10";
 
 export const memoryEvents = [
   {
-    id: "prometheus-contrarian-truth",
-    date: "2026-06-18",
-    title: "Contrarian truth sharpened",
-    summary: "Cruz clarified that field sales and face-to-face activity have been overlooked while CRM and digital marketing systems grew.",
-    entities: ["Cruz", "Prometheus IQ", "Pilot"],
-    tags: ["founder", "strategy", "pitch"],
+    id: "route-iq-patent-pending",
+    date: "2026-07-09",
+    title: "Route IQ Patent Pending status recorded",
+    summary: "The Route IQ United States provisional patent application was filed and application 64/107,865 became the current governed patent record.",
+    entities: ["Route IQ", "Patent", "Prometheus"],
+    tags: ["route-iq", "patent", "governance"],
     status: "completed",
-    impact: "Created the core investor narrative: Prometheus is not another CRM; it is field-sales intelligence before the lead is created.",
-    source: "Founder pressure-test sessions"
+    impact: "Established the current Patent Pending status and invention-documentation obligation.",
+    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
   },
   {
-    id: "cloudflare-private-app",
-    date: "2026-06-20",
-    title: "Prometheus IQ deployed and protected on Cloudflare",
-    summary: "The working Prometheus IQ app was deployed through Cloudflare and protected with an additional login layer.",
-    entities: ["Prometheus IQ", "Cloudflare", "Cruz"],
-    tags: ["deployment", "security", "product"],
+    id: "route-iq-operational",
+    date: "2026-07-09",
+    title: "Route IQ operational status recorded",
+    summary: "Route IQ became the operational primary product and the current company and engineering focus.",
+    entities: ["Route IQ", "Prometheus", "Overwatch"],
+    tags: ["route-iq", "operations", "overwatch"],
     status: "completed",
-    impact: "Moved the app from local-only use to protected mobile access while keeping source code and data separate.",
-    source: "Deployment work log"
+    impact: "Moved the company into deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
+    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
   },
   {
-    id: "gps-route-intelligence-live",
-    date: "2026-06-21",
-    title: "GPS pin-drop verification and Route Intelligence verified",
-    summary: "GPS verification, Route Intelligence, rep/owner modes, production map, dashboards, import/export, and goal tracking were treated as live product capabilities.",
-    entities: ["Prometheus IQ", "Route Intelligence", "Anthony", "Cruz"],
-    tags: ["product", "gps", "route-intelligence", "pilot"],
-    status: "completed",
-    impact: "Created the product basis for a credible field-sales pilot: know where to go, verify activity, and learn from outcomes.",
-    source: "Product readiness summaries"
-  },
-  {
-    id: "executive-pilot-package",
-    date: "2026-06-22",
-    title: "Executive pilot materials built",
-    summary: "Executive briefing, pilot approval package, success metrics, competitive differentiation, pricing strategy, execution playbook, and LLC launch planning were created.",
-    entities: ["Chris", "Larry", "Phil", "Pilot", "Prometheus IQ"],
-    tags: ["business", "pilot", "executive", "operations"],
-    status: "completed",
-    impact: "Turned Prometheus from a product experiment into a management-ready pilot proposal.",
-    source: "Executive package and operating-system documents"
-  },
-  {
-    id: "route-intelligence-v4-anthony",
-    date: "2026-06-22",
-    title: "Anthony route isolation and qualified prospect logic",
-    summary: "Route Intelligence evolved to separate Cruz founder history from Anthony's new rep profile and prioritize qualified walk-in prospects over generic or restricted targets.",
-    entities: ["Anthony", "Cruz", "Route Intelligence", "Prometheus IQ"],
-    tags: ["product", "beta", "route-intelligence", "data"],
-    status: "completed",
-    impact: "Reduced the risk that Anthony sees Cruz-biased routes or non-actionable stops during beta testing.",
-    source: "Route Intelligence v4.1 planning and beta work"
-  },
-  {
-    id: "cinematic-public-website",
-    date: "2026-06-23",
-    title: "Cinematic public website and domain established",
-    summary: "PrometheusRouteIQ.com became the public home for a cinematic 3D field-sales intelligence website with Request Pilot and View Demo experiences.",
-    entities: ["Website", "Prometheus IQ", "Cloudflare", "Cruz"],
-    tags: ["website", "brand", "public-presence"],
-    status: "completed",
-    impact: "Gave Prometheus a public-facing presence that can support social media, investor conversations, and pilot interest.",
-    source: "Website build and domain work"
-  },
-  {
-    id: "prometheus-companion-native",
-    date: "2026-06-23",
-    title: "Prometheus Companion native Mac assistant created",
-    summary: "A native/local Companion experience was created with premium voice support, dock presence, manual launch behavior, and local-only founder assistant architecture.",
-    entities: ["Prometheus Companion", "Prometheus OS", "Cruz"],
-    tags: ["companion", "voice", "macos", "founder-os"],
-    status: "completed",
-    impact: "Shifted Prometheus from a web app into a private founder operating environment on Cruz's Mac.",
-    source: "Companion engineering sessions"
-  },
-  {
-    id: "daily-chief-of-staff",
-    date: "2026-06-24",
-    title: "Daily Chief of Staff layer added",
-    summary: "Prometheus Companion gained daily brief, founder scorecard, priority engine, GitHub backup coach, email drafting mode, social media readiness, and safer command handling.",
-    entities: ["Prometheus Companion", "Prometheus OS", "GitHub", "Social Media"],
-    tags: ["companion", "chief-of-staff", "routing", "operations"],
-    status: "completed",
-    impact: "Made Prometheus more useful as an operating partner instead of only a voice-enabled dashboard.",
-    source: "Companion intelligence reports"
-  },
-  {
-    id: "meta-instagram-blocked",
-    date: "2026-06-24",
-    title: "Meta / Instagram live integration paused",
-    summary: "Meta Developer registration hit account-security and unexpected-error blockers, so social media live API setup was paused.",
-    entities: ["Social Media", "Meta", "Instagram"],
-    tags: ["blocked", "social", "external-dependency"],
-    status: "blocked",
-    impact: "Prometheus can keep manual social media tracking, but live Instagram metrics require Meta account access to clear first.",
-    source: "Meta setup attempt"
-  },
-  {
-    id: "memory-system-v1",
-    date: today,
-    title: "Prometheus Memory System v1 started",
-    summary: "Local timeline, knowledge graph, decision engine, conversation context, Anthony memory, and Morning COO Brief v2 were added to Prometheus Companion.",
-    entities: ["Prometheus Companion", "Prometheus OS", "Cruz", "Anthony"],
-    tags: ["memory", "founder-os", "conversation", "decision-engine"],
+    id: "aegis-phase-two-account-controls",
+    date: "2026-07-09",
+    title: "Aegis Phase II account control checkpoint recorded",
+    summary: "Overwatch recorded account-level security completion and the remaining owner-controlled verification actions.",
+    entities: ["Overwatch", "Cloudflare", "GitHub", "Route IQ"],
+    tags: ["security", "enterprise-hardening", "overwatch"],
     status: "in-progress",
-    impact: "Moves Prometheus toward remembering company history and answering founder questions with context.",
-    source: "Current 8-hour engineering mission"
+    impact: "Keeps account-owner security work visible during enterprise hardening.",
+    source: "PROMETHEUS_MASTER_ENGINEERING_STATE.md"
+  },
+  {
+    id: "crm-workspace-lead-persistence",
+    date: "2026-07-10",
+    title: "CRM workspace lead persistence added",
+    summary: "Workspace-specific customer and lead continuity was strengthened for current onboarding operations.",
+    entities: ["CRM", "Customer Onboarding", "Prometheus"],
+    tags: ["crm", "customer-onboarding", "operations"],
+    status: "completed",
+    impact: "Preserves customer movement and handoff evidence across the Founder workflow.",
+    source: "Git commit a5fd9fd"
+  },
+  {
+    id: "nutrition-depot-executive-package",
+    date: "2026-07-10",
+    title: "Nutrition Depot executive package consumed",
+    summary: "The current customer-onboarding operating package was synchronized into the governed platform record.",
+    entities: ["Customer Onboarding", "Research", "Sales", "Prometheus"],
+    tags: ["customer-onboarding", "research", "sales"],
+    status: "completed",
+    impact: "Supports the active Founder mission with current customer context.",
+    source: "Git commit a1e7487"
+  },
+  {
+    id: "companion-platform-state-sync",
+    date: today,
+    title: "Companion current platform state synchronization",
+    summary: "Companion was reactivated by the Founder and synchronized to Route IQ operations, current product boundaries, current company phase, current Founder workflow, Overwatch state, and Patent Pending status.",
+    entities: ["Prometheus Companion", "Route IQ", "Gaia", "Athena", "Overwatch", "Cruz"],
+    tags: ["companion", "platform-state", "founder-os", "operations"],
+    status: "in-progress",
+    impact: "Prevents Founder decisions from relying on historical company assumptions.",
+    source: "Platform State Knowledge Sync v1"
   }
 ];
 
@@ -134,11 +90,11 @@ export function getTimelineEvents({ period = "week", entity, tag } = {}) {
   if (period === "today" || period === "since-login") {
     events = events.filter((event) => event.date === today);
   } else if (period === "yesterday") {
-    events = events.filter((event) => event.date === "2026-06-23");
+    events = events.filter((event) => event.date === "2026-07-09");
   } else if (period === "unfinished") {
     events = events.filter((event) => event.status !== "completed");
   } else if (period === "week") {
-    events = events.filter((event) => event.date >= "2026-06-18");
+    events = events.filter((event) => event.date >= "2026-07-03");
   }
 
   if (entity) {
@@ -157,23 +113,14 @@ export function getTimelineEvents({ period = "week", entity, tag } = {}) {
 export function searchMemory(query = "") {
   const needle = String(query).toLowerCase();
   return memoryEvents.filter((event) => {
-    const haystack = [
-      event.title,
-      event.summary,
-      event.impact,
-      event.status,
-      ...event.entities,
-      ...event.tags
-    ].join(" ").toLowerCase();
+    const haystack = [event.title, event.summary, event.impact, event.status, ...event.entities, ...event.tags].join(" ").toLowerCase();
     return haystack.includes(needle);
   });
 }
 
 function formatTimeline(events) {
   if (!events.length) return "I do not have a verified memory event for that yet.";
-  return events
-    .map((event) => `${event.date}: ${event.title}. ${event.summary}`)
-    .join(" ");
+  return events.map((event) => `${event.date}: ${event.title}. ${event.summary}`).join(" ");
 }
 
 export function createTimelineAnswer(command = "") {
@@ -206,24 +153,22 @@ export function createEntityTimeline(entity) {
 
 export function createUnfinishedWorkRecap() {
   const events = getTimelineEvents({ period: "unfinished" });
-  const blockers = events.filter((event) => event.status === "blocked");
   return {
-    title: "Unfinished Prometheus work",
+    title: "Unfinished Prometheus Work",
     body: [
       formatTimeline(events),
-      blockers.length ? "Main blocker: " + blockers.map((event) => `${event.title}: ${event.impact}`).join(" ") : "",
-      "Founder rule: keep blocked external integrations parked and move validation work forward."
-    ].filter(Boolean).join(" ")
+      "Founder rule: use the current Overwatch record, close verified operating gaps, and keep Route IQ stable."
+    ].join(" ")
   };
 }
 
 export function createMemorySystemSummary() {
   return {
-    title: "Prometheus Memory System v1",
+    title: "Prometheus Memory System",
     body: [
-      `Prometheus now has ${memoryEvents.length} verified memory events across founder strategy, product, deployment, executive readiness, route intelligence, Companion work, and external blockers.`,
-      "It can answer what happened today, yesterday, this week, what remains unfinished, and entity-specific questions about Anthony, Chris, the website, GitHub, Cloudflare, Route Intelligence, and the pilot.",
-      "Current limitation: memory is local and curated from verified project context; it does not yet automatically ingest every future file change without an explicit update step."
+      `Prometheus has ${memoryEvents.length} current verified memory events across Route IQ operations, patent status, security, customer onboarding, CRM continuity, and Companion synchronization.`,
+      "It can answer current timeline and entity questions about Route IQ, Gaia, Athena, Overwatch, CRM, customer onboarding, Website, GitHub, Cloudflare, and Companion.",
+      "Memory remains local and curated from governed repository state."
     ].join(" ")
   };
 }

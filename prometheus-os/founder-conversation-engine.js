@@ -1,4 +1,5 @@
 import { normalizeText } from "./memory-ranking.js";
+import { companyState } from "./demo-data.js";
 
 const stopCommands = new Set([
   "stop",
@@ -131,7 +132,7 @@ export class FounderConversationEngine {
     if (isGreeting(normalized)) {
       const morning = normalized.includes("morning");
       const body = morning
-        ? "Good morning. Everything is ready. I would keep today focused on proof: validate the experience, tighten the voice loop, and avoid starting another build thread unless it removes friction for founder use."
+        ? "Good morning. Everything is ready. Route IQ is operational, and today's work should move deployment readiness or customer onboarding forward."
         : "I’m here. What are we working on?";
       this.lastExecutiveRead = body;
       return response(morning ? "Good Morning" : "I'm Here", body, {
@@ -143,8 +144,8 @@ export class FounderConversationEngine {
     if (normalized === "continue") {
       const last = thread[0];
       const body = last?.body
-        ? `Continuing from that thread: ${last.body} My recommendation stays the same. Pick the move that creates the cleanest proof, then stop before it turns into another feature build.`
-        : "Continuing from the operating state: validate first, build second. I would use the next block to prove the experience is working before adding more surface area.";
+        ? `Continuing from that thread: ${last.body} My recommendation stays the same. Complete the next governed action in the current Founder workflow.`
+        : `Continuing from the current operating state: ${companyState.chiefOfStaff.recommendedNextAction}`;
       this.lastExecutiveRead = body;
       return response("Continuing", body, {
         intent: "conversation_continue",
@@ -154,51 +155,52 @@ export class FounderConversationEngine {
 
     if (/\bhow are we doing\b/.test(normalized) || normalized.includes("how are we looking") || normalized.includes("where do we stand")) {
       const body = [
-        "We’re in a strong build position, but not a strong proof position yet.",
-        "The product, Companion, website, and social layer are moving. The constraint is still evidence: beta behavior, route confidence, and buyer proof.",
+        "We are operating, not proving the concept anymore.",
+        "Route IQ is operational, Patent Pending, and the primary product. Gaia is paused. Athena remains architecture only.",
+        `The company phase is ${companyState.currentPhase.join(", ").toLowerCase()}.`,
         timeline ? `Latest operating signal: ${timeline}.` : "",
-        "Recommendation: do not chase another feature today. Validate the founder and field experience first."
+        "Recommendation: run today's customer mission and close the next verified readiness or hardening item without opening an ungoverned expansion thread."
       ].filter(Boolean).join(" ");
       this.lastExecutiveRead = body;
       return response("Prometheus Status", body, {
         intent: "company_rundown",
-        entities: ["Prometheus", "Companion", "Beta", "Route Intelligence"],
+        entities: ["Prometheus", "Route IQ", "Gaia", "Athena", "Overwatch"],
         spokenText: body
       });
     }
 
     if (/\bwhat\s*s slowing\b/.test(normalized) || /\bwhats slowing\b/.test(normalized) || normalized.includes("what is slowing")) {
       const body = [
-        "The slowdown is proof, not capability.",
-        "Prometheus has enough built to test. What can still slow us down is beta validation, weak field evidence, unclear feedback, Companion voice friction, Mobile verification risk, route-quality confidence, and buyer proof.",
-        "Next move: fix the founder conversation loop first, then validate the field workflow. Building more before that creates motion without leverage."
+        "The likely slowdown is execution discipline across readiness and onboarding, not product identity.",
+        "Route IQ is operational. The remaining friction is authenticated production verification, account-owner security controls, complete customer handoff evidence, and keeping current state synchronized across workspaces.",
+        "Next move: close one readiness blocker, then execute the highest-value customer action in today's mission."
       ].join(" ");
       this.lastExecutiveRead = body;
       return response("Prometheus Bottleneck", body, {
         intent: "risk",
-        entities: ["Beta", "Companion", "Mobile", "Route Intelligence"],
+        entities: ["Route IQ", "Customer Onboarding", "Enterprise Hardening", "Overwatch"],
         spokenText: body
       });
     }
 
     if (normalized.includes("what should i work on") || normalized.includes("what should i build") || normalized.includes("what should i do")) {
       const body = [
-        "Work on the first thing that makes Prometheus feel reliable in real use.",
-        "Today, I would start with Companion conversation quality, then validate Mobile and route evidence. I would not start with another feature unless it directly removes friction from that path.",
-        "Recommendation: make the founder experience feel alive, then prove the field workflow is stable."
+        "Start with today's Founder mission.",
+        "Select the active workspace, set the mission, review the Research dossier, and call the highest-value prospects first. Update the candidate stage after every call.",
+        "After the customer block, close the next deployment-readiness or enterprise-hardening action already recorded by Overwatch."
       ].join(" ");
       this.lastExecutiveRead = body;
       return response("First Priority", body, {
         intent: "priority",
-        entities: ["Companion", "Mobile", "Route Intelligence"],
+        entities: ["Founder Workflow", "Customer Onboarding", "Overwatch", "Route IQ"],
         spokenText: body
       });
     }
 
     if (normalized.includes("what changed today")) {
       const body = timeline
-        ? `Today’s operating signal: ${timeline}. My read is that Companion is the active leverage point, because it determines whether you can run the company through conversation instead of dashboards.`
-        : "Today’s useful read is Companion and validation. I do not need perfect data to say this: the highest-value move is making the founder operating loop reliable, then validating the field workflow.";
+        ? `Today’s operating signal: ${timeline}. Route IQ remains operational and the current work stays inside deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.`
+        : "The current governed state is stable: Route IQ is operational and Patent Pending, Gaia is paused, Athena is architecture only, and the next value comes from readiness and customer onboarding.";
       this.lastExecutiveRead = body;
       return response("Today’s Change", body, {
         intent: "today_recap",
@@ -208,8 +210,8 @@ export class FounderConversationEngine {
 
     const body = [
       "My best judgment: stay with the operating thread we are already in.",
-      "Prometheus needs proof more than polish right now.",
-      "Choose the action that improves founder control, beta evidence, route confidence, or buyer clarity."
+      "Route IQ is operational, so the decision standard is operational leverage.",
+      "Choose the action that advances today's customer mission, closes verified readiness work, or strengthens enterprise operations."
     ].join(" ");
     this.lastExecutiveRead = body;
     return response("Founder Judgment", body, {

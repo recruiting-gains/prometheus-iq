@@ -1,31 +1,26 @@
 import { companyState } from "./demo-data.js";
 import { founderScorecardText, getCompanySignal } from "./founder-scorecard.js";
 
-const today = "Wednesday, June 24, 2026";
-
 export function createDailyBrief({ voiceLength = "short" } = {}) {
-  const anthony = getCompanySignal("anthony");
-  const website = getCompanySignal("website");
-  const github = getCompanySignal("github");
-  const cloudflare = getCompanySignal("cloudflare");
-  const pilot = getCompanySignal("pilot");
-  const social = getCompanySignal("social");
-  const llc = getCompanySignal("llc");
+  const routeIq = getCompanySignal("route-iq");
+  const phase = getCompanySignal("company-phase");
+  const overwatch = getCompanySignal("overwatch");
+  const patent = getCompanySignal("patent");
+  const gaia = getCompanySignal("gaia");
+  const athena = getCompanySignal("athena");
 
   const brief = {
-    date: today,
-    prometheusStatus: "Prometheus OS is active as a private founder assistant. Prometheus IQ remains separate from the public website and Anthony beta.",
-    highestRoiTask: "Protect the beta signal: collect real rep feedback, confirm the route is actionable, and document where the workflow creates or removes friction.",
-    biggestRisk: "The biggest company risk is mistaking internal progress for market proof before external pilot data proves adoption.",
-    anthonyBetaStatus: `${anthony?.value || "Ready"}. ${anthony?.detail || ""}`,
-    leadershipStatus: "Chris has the context for Dallas leadership. Keep follow-up simple: approval for a controlled 14-day pilot with three approved users.",
-    websiteStatus: `${website?.value || "Live"}. ${website?.detail || ""}`,
-    githubStatus: `${github?.value || "Active"}. Commits and pushes still require Cruz approval.`,
-    cloudflareStatus: `${cloudflare?.value || "Deployed"}. Prometheus OS remains local-only.`,
-    pilotReadinessStatus: `${pilot?.value || "High"}. ${pilot?.detail || ""}`,
-    socialOpportunity: `${social?.value || "@prometheus.iq"}. Post founder progress and private pilot momentum without exposing internal technology.`,
+    date: companyState.generatedAt,
+    prometheusStatus: `${companyState.platformDefinition} ${routeIq?.detail || companyState.products.routeIq.detail}`,
+    highestRoiTask: companyState.chiefOfStaff.highestRoiTask,
+    biggestRisk: companyState.chiefOfStaff.biggestRisk,
+    routeIqStatus: `${routeIq?.value || "Operational"}. ${routeIq?.detail || ""}`,
+    patentStatus: `${patent?.value || "Patent Pending"}. ${patent?.detail || ""}`,
+    productPortfolio: `Gaia: ${gaia?.value || "Paused"}. Athena: ${athena?.value || "Architecture Only"}.`,
+    companyPhase: `${phase?.value || "Operational Scale-Up"}. ${phase?.detail || companyState.currentPhase.join(", ")}`,
+    overwatchStatus: `${overwatch?.value || "Active Governance"}. ${overwatch?.detail || companyState.overwatch.detail}`,
     founderScorecard: founderScorecardText(),
-    recommendedNextAction: "Run one clean validation loop: test the beta workflow, capture feedback, update the daily log, then prepare a GitHub backup only after reviewing changed files and confirming no secrets."
+    recommendedNextAction: companyState.chiefOfStaff.recommendedNextAction
   };
 
   if (voiceLength === "long") return brief;
@@ -33,16 +28,12 @@ export function createDailyBrief({ voiceLength = "short" } = {}) {
   return {
     title: "Daily Founder Brief",
     body: [
-      "Hey Boss, here’s today’s brief.",
-      "Anthony beta is ready.",
-      "Website is online.",
-      "Cloudflare is deployed.",
-      "GitHub is active, but commit and push still need your approval.",
-      `Pilot readiness is ${pilot?.value?.toLowerCase() || "high"}.`,
-      `${llc?.label || "LLC setup"} remains ${llc?.value?.toLowerCase() || "pending"}.`,
+      "Here is today's Founder brief.",
+      "Route IQ is operational and Patent Pending.",
+      "Gaia is paused. Athena is architecture only.",
+      `Current phase: ${companyState.currentPhase.join(", ")}.`,
       `Highest ROI task: ${brief.highestRoiTask}`,
       `Biggest risk: ${brief.biggestRisk}`,
-      "Founder rule: validation beats new features today.",
       `Recommended focus: ${brief.recommendedNextAction}`
     ].join(" ")
   };
@@ -52,8 +43,20 @@ export function createDailyBriefMarkdown() {
   const brief = createDailyBrief({ voiceLength: "long" });
   return `# Prometheus Daily Founder Brief - ${brief.date}
 
-## Today's Prometheus Status
+## Current Prometheus State
 ${brief.prometheusStatus}
+
+## Route IQ
+${brief.routeIqStatus}
+
+## Patent Status
+${brief.patentStatus}
+
+## Product Portfolio
+${brief.productPortfolio}
+
+## Current Company Phase
+${brief.companyPhase}
 
 ## Highest ROI Task
 ${brief.highestRoiTask}
@@ -61,26 +64,8 @@ ${brief.highestRoiTask}
 ## Biggest Company Risk
 ${brief.biggestRisk}
 
-## Anthony Beta Status
-${brief.anthonyBetaStatus}
-
-## Chris / Leadership Follow-Up Status
-${brief.leadershipStatus}
-
-## Website Status
-${brief.websiteStatus}
-
-## GitHub / Backup Status
-${brief.githubStatus}
-
-## Cloudflare Status
-${brief.cloudflareStatus}
-
-## Pilot Readiness Status
-${brief.pilotReadinessStatus}
-
-## Social Media Opportunity
-${brief.socialOpportunity}
+## Overwatch
+${brief.overwatchStatus}
 
 ## Founder Scorecard
 ${brief.founderScorecard}

@@ -3,7 +3,7 @@ export const githubBackupChecklist = [
   "Review every changed file before staging.",
   "Confirm no secrets, API keys, tokens, passwords, `.env`, private keys, screenshots with secrets, or credential files are staged.",
   "Confirm `.env` and `.env.*` remain ignored.",
-  "Confirm Anthony beta and production app files are not modified unless that was the explicit task.",
+  "Confirm protected product and production files are not modified unless that was the explicit task.",
   "Run focused checks, tests, or build commands when code changed.",
   "Draft a clear commit message.",
   "Ask Cruz before committing.",

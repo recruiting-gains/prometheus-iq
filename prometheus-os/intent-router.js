@@ -5,23 +5,11 @@ const commandClarifications = {
     title: "Email Assistant",
     body: "Do you want me to draft an email, review email setup, or prepare an outreach message?"
   },
-  chris: {
-    intent: "leadership_clarification",
-    category: "leadership",
-    title: "Chris Follow-Up",
-    body: "Do you want talking points for Chris, a follow-up message, or the executive packet summary?"
-  },
   website: {
     intent: "website_clarification",
     category: "website",
     title: "Website",
     body: "Do you want website status, website edits, deployment guidance, or social media link wording?"
-  },
-  anthony: {
-    intent: "anthony_clarification",
-    category: "beta",
-    title: "Anthony Beta",
-    body: "Do you want Anthony beta status, route notes, feedback questions, or the end-of-day review checklist?"
   },
   github: {
     intent: "github_clarification",
@@ -34,12 +22,6 @@ const commandClarifications = {
     category: "repository",
     title: "Backup",
     body: "Do you want a GitHub backup checklist, a daily data export reminder, or a safe commit message draft?"
-  },
-  pilot: {
-    intent: "pilot_clarification",
-    category: "pilot",
-    title: "Pilot",
-    body: "Do you want pilot readiness, pilot risks, pilot success metrics, or the Chris leadership ask?"
   }
 };
 
@@ -69,8 +51,8 @@ const toolRules = [
     intent: "founder_rundown",
     category: "chief_of_staff",
     toolName: "createFounderRundown",
-    exact: ["where are we at", "give me the rundown", "rundown", "what did we finish", "what should i tell chris"],
-    phrases: ["where are we at", "give me the rundown", "what did we finish", "what should i tell chris", "tell me what to tell chris", "founder rundown"]
+    exact: ["where are we at", "give me the rundown", "rundown", "what did we finish", "what should i tell the customer"],
+    phrases: ["where are we at", "give me the rundown", "what did we finish", "what should i tell the customer", "customer message", "founder rundown"]
   },
   {
     intent: "progress_log",
@@ -87,11 +69,11 @@ const toolRules = [
     phrases: ["show founder scorecard", "read founder scorecard", "how am i doing"]
   },
   {
-    intent: "pilot_blockers",
-    category: "pilot",
-    toolName: "createPilotBlockerBrief",
-    exact: ["what is blocking the pilot", "pilot blockers", "what blocks the pilot", "pilot readiness"],
-    phrases: ["what is blocking the pilot", "what could block the pilot", "show pilot blockers", "pilot risks", "show pilot readiness", "review pilot readiness"]
+    intent: "operational_blockers",
+    category: "operations",
+    toolName: "createOperationalBlockerBrief",
+    exact: ["what is blocking operations", "operational blockers", "readiness blockers", "enterprise hardening blockers"],
+    phrases: ["what is blocking operations", "show operational blockers", "show readiness blockers", "enterprise hardening risks", "review deployment readiness"]
   },
   {
     intent: "companion_progress",
@@ -108,11 +90,11 @@ const toolRules = [
     phrases: ["prepare github backup", "safe backup", "github backup checklist"]
   },
   {
-    intent: "beta_feedback",
-    category: "beta",
-    toolName: "createBetaFeedbackReport",
-    exact: ["beta feedback", "anthony feedback"],
-    phrases: ["prepare beta feedback", "create beta feedback report", "anthony beta feedback", "capture beta feedback"]
+    intent: "operating_feedback",
+    category: "operations",
+    toolName: "createOperatingFeedbackReport",
+    exact: ["operating feedback", "route iq feedback"],
+    phrases: ["prepare operating feedback", "create operating feedback report", "route iq feedback", "capture workflow feedback"]
   },
   {
     intent: "companion_roadmap",
@@ -147,7 +129,7 @@ const toolRules = [
     category: "email",
     toolName: "createEmailAssistantClarification",
     exact: ["draft an email", "write an email", "draft email", "write email"],
-    phrases: ["prepare an email", "draft email", "write email", "email to chris", "outreach email", "follow up email", "prepare an email to chris", "draft an email to chris", "social caption", "pilot outreach"]
+    phrases: ["prepare an email", "draft email", "write email", "customer email", "outreach email", "follow up email", "prepare a customer email", "draft a customer email", "social caption"]
   }
 ];
 

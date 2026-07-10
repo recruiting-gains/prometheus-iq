@@ -14,7 +14,6 @@ import {
   isFounderInstagramAnalyticsCommand
 } from "./founder-instagram-analytics-consumer.js";
 import {
-  createBetaSummary,
   createCompanyStatusSummary,
   createCrmSummary,
   createDailyDecisionSupport,
@@ -36,7 +35,7 @@ const activePoolDecision = {
   body: [
     "The Active Pool decision was about quality control.",
     "Prometheus should recommend from approved, current, walk-in-relevant locations instead of mixing every known prospect into the live experience.",
-    "For Anthony, that means his route stays separate from Cruz history and only uses reviewed active-pool records when the data quality is verified."
+    "Route IQ should use governed, workspace-specific active-pool records whose quality and current operating relevance are verified."
   ].join(" ")
 };
 
@@ -83,7 +82,7 @@ function engineeringStatus(founderTimeline) {
     {
       ...summary.metadata,
       intent: "engineering_status",
-      entities: ["Prometheus IQ", "Prometheus Companion", "Route Intelligence"]
+      entities: ["Route IQ", "Prometheus Companion", "Overwatch"]
     }
   );
 }
@@ -98,11 +97,11 @@ function catchUp(founderTimeline) {
     [
       timeline ? `Live operating signal: ${timeline}` : "",
       latest ? `Last recorded point: ${latest.date}: ${latest.title}. ${latest.summary}` : "I do not have a newly recorded memory event yet.",
-      "The operating thread is clear: Prometheus has product, website, executive materials, Route Intelligence, GitHub backup discipline, and Companion founder support.",
+      "The operating thread is clear: Route IQ is operational and Patent Pending, Gaia is paused, Athena is architecture only, and Companion is reactivated for the Founder.",
       unfinished.body,
-      "Next move: keep validation ahead of new features, capture Anthony beta proof, and keep leadership communication simple."
+      `Next move: ${companyState.chiefOfStaff.recommendedNextAction}`
     ].join(" "),
-    { intent: "catch_up", entities: ["Prometheus Companion", "Anthony", "Pilot"] }
+    { intent: "catch_up", entities: ["Prometheus Companion", "Route IQ", "Overwatch"] }
   );
 }
 
@@ -160,7 +159,7 @@ async function planDay(command, communicationsService) {
     {
       ...agenda.metadata,
       intent: "day_planning",
-      entities: ["Cruz", "Pilot", "Anthony", "Calendar"]
+      entities: ["Cruz", "Customer Onboarding", "Calendar", "Founder Workflow"]
     }
   );
 }
@@ -170,21 +169,21 @@ function longTermGoals() {
     "Long-Term Founder Goals",
     [
       "Your long-term goals are clear.",
-      "First, prove Prometheus IQ creates measurable field-sales value before scaling features.",
-      "Second, turn Anthony beta and controlled pilot usage into credible external proof.",
-      "Third, win a clean leadership-approved pilot without exposing proprietary route logic.",
-      "Fourth, build Prometheus as a recoverable company system with memory, security, source control, and founder continuity.",
-      "Fifth, make Route Intelligence the durable advantage: where to go, why it matters, verified activity, and learning from outcomes."
+      "First, make outside sales intelligent, directed, accountable, and compounding through Route IQ.",
+      "Second, turn an operational Route IQ into repeatable customer onboarding and enterprise-ready delivery.",
+      "Third, preserve the Patent Pending invention while documenting material Route IQ improvements.",
+      "Fourth, build Prometheus as a recoverable company system with governed memory, security, source control, and Founder continuity.",
+      "Fifth, expand Gaia or Athena only when governed company evidence justifies moving beyond the current product phase."
     ].join(" "),
-    { intent: "long_term_goals", entities: ["Cruz", "Prometheus IQ", "Pilot"] }
+    { intent: "long_term_goals", entities: ["Cruz", "Prometheus", "Route IQ", "Gaia", "Athena"] }
   );
 }
 
 function pricing() {
   return response(
     "Pricing Direction",
-    "Price the feature around operational value, not raw software access. For pilot conversations, avoid locking a final number before proof. A defensible path is: controlled pilot first, then price by seat or territory with a manager visibility layer, using verified visits, route quality, and time saved as value anchors. Do not discount the core Route Intelligence advantage into a generic dashboard subscription.",
-    { intent: "pricing_strategy", entities: ["Prometheus IQ", "Route Intelligence", "Pilot"] }
+    "Price Route IQ around operational value, not raw software access. Use current customer-onboarding evidence such as directed coverage, verified activity, decision quality, and time saved. Keep pricing aligned with the current commercial package and do not reduce the Patent Pending operating advantage to a generic dashboard subscription.",
+    { intent: "pricing_strategy", entities: ["Route IQ", "Customer Onboarding", "Sales"] }
   );
 }
 
@@ -192,13 +191,13 @@ function strategyCritique() {
   return response(
     "Strategy Weaknesses",
     [
-      "The main weakness is overbuilding before external validation catches up.",
-      "The second weakness is relying too heavily on founder intuition instead of recorded Anthony feedback and verified visit data.",
-      "The third is letting public polish, social, or Companion improvements outrank pilot proof.",
-      "The fourth is pricing or executive claims getting ahead of evidence.",
-      "Correction: keep every week tied to one proof loop: route quality, usage, feedback, leadership clarity, and clean memory."
+      "The main weakness would be treating an operational product as if the company were still searching for product identity.",
+      "The second is letting implementation work outrun customer onboarding and CRM evidence.",
+      "The third is leaving authenticated verification or account-owner security controls open while enterprise expectations rise.",
+      "The fourth is expanding Gaia or Athena before the current Route IQ operating phase earns that shift.",
+      "Correction: tie each week to the active workspace mission, customer movement, verified readiness, and one measurable operational improvement."
     ].join(" "),
-    { intent: "strategy_critique", entities: ["Cruz", "Pilot", "Anthony"] }
+    { intent: "strategy_critique", entities: ["Cruz", "Route IQ", "Customer Onboarding", "Overwatch"] }
   );
 }
 
@@ -206,28 +205,28 @@ function dashboardDataArchitecture() {
   return response(
     "Dashboard and Data Boundary",
     [
-      "The Dashboard is the Prometheus IQ product surface. It shows approved route recommendations, rep activity, manager views, and user-facing outcomes.",
+      "The Dashboard is a Route IQ product surface. It presents approved operating information and user-facing outcomes.",
       "Data prepares and governs the underlying business records, route pools, imports, exports, and runtime data.",
       "Companion should not own that product surface. Companion can explain status and summarize decisions, but it should not change Dashboard screens or Data records.",
-      "The clean boundary is this: Data supplies governed records, Route Intelligence selects usable routes, Dashboard presents them to users, and Companion briefs Cruz on state and decisions."
+      "The clean boundary is this: Data supplies governed records, Route IQ applies its operational intelligence, Dashboard presents approved outcomes, and Companion briefs Cruz on current state and decisions."
     ].join(" "),
-    { intent: "dashboard_data_architecture", entities: ["Dashboard", "Data", "Route Intelligence", "Prometheus Companion"] }
+    { intent: "dashboard_data_architecture", entities: ["Dashboard", "Data", "Route IQ", "Prometheus Companion"] }
   );
 }
 
 function overwatchAssignment() {
   return response(
     "Overwatch Next Assignment",
-    "Overwatch should assign the next task to whatever most directly improves founder acceptance and pilot proof. Current recommendation: validate Companion voice and founder-command reliability, then move back to Anthony beta evidence and leadership-ready reporting. Do not assign Dashboard, Data, or Infrastructure work unless a verified Companion blocker depends on it.",
-    { intent: "overwatch_assignment", entities: ["Overwatch", "Prometheus Companion", "Anthony"] }
+    "Overwatch should assign the next task that closes a verified deployment-readiness, customer-onboarding, or enterprise-hardening gap while preserving Route IQ operations. Current recommendation: finish the next recorded authenticated verification or account-owner control, then return the Founder to the active customer mission. Do not reopen Gaia or Athena without a governed phase change.",
+    { intent: "overwatch_assignment", entities: ["Overwatch", "Route IQ", "Customer Onboarding"] }
   );
 }
 
 function productionBlockers() {
   return response(
     "Production Blockers",
-    "Remaining blockers are external validation and integration proof, not a lack of internal build activity: Anthony beta feedback, verified visit data, leadership approval path, real calendar/message integration for Companion, and continued voice reliability testing. New feature work should wait unless it removes one of those blockers.",
-    { intent: "production_blockers", entities: ["Anthony", "Pilot", "Prometheus Companion"] }
+    "The remaining recorded blockers are operational: authenticated production verification, outstanding account-owner security controls, complete customer-onboarding evidence, and any current subsystem-specific verification failures recorded by Overwatch. Route IQ itself is operational.",
+    { intent: "production_blockers", entities: ["Route IQ", "Overwatch", "Enterprise Hardening"] }
   );
 }
 
@@ -235,11 +234,11 @@ function advice() {
   return response(
     "Founder Advice",
     [
-      "Do not start with another feature.",
-      "Validate the experience that already exists.",
-      "Test the voice path, verify Mobile or field usage if it is in scope, capture one clean beta signal, then decide whether engineering or sales gets the next block."
+      "Do not open another product thread today.",
+      "Route IQ is operational. Use it to move a real customer decision forward.",
+      "Start in the active workspace, set Today's Mission, review the Research dossier, call the highest-value prospects, and preserve every outcome in CRM."
     ].join(" "),
-    { intent: "founder_advice", founderMode: true, entities: ["Cruz", "Validation", "Prometheus Companion"] }
+    { intent: "founder_advice", founderMode: true, entities: ["Cruz", "Route IQ", "Founder Workflow"] }
   );
 }
 
@@ -280,14 +279,68 @@ function developerMode() {
   );
 }
 
+function routeIqStatus() {
+  const product = companyState.products.routeIq;
+  return response(
+    "Route IQ Status",
+    `${product.name} is ${product.status}, ${product.patentStatus}, and the ${product.role.toLowerCase()}. The current operating focus is deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.`,
+    { intent: "route_iq_status", founderMode: true, entities: ["Route IQ", "Overwatch"] }
+  );
+}
+
+function gaiaStatus() {
+  const product = companyState.products.gaia;
+  return response(
+    "Gaia Status",
+    `${product.name} is ${product.status.toLowerCase()}. ${product.detail} Route IQ remains the primary product.`,
+    { intent: "gaia_status", founderMode: true, entities: ["Gaia", "Route IQ"] }
+  );
+}
+
+function athenaStatus() {
+  const product = companyState.products.athena;
+  return response(
+    "Athena Status",
+    `${product.name} is ${product.status.toLowerCase()}. ${product.detail} It should not be described as an operational product.`,
+    { intent: "athena_status", founderMode: true, entities: ["Athena", "Route IQ"] }
+  );
+}
+
+function patentStatus() {
+  return response(
+    "Route IQ Patent Status",
+    `${companyState.patent.product} is ${companyState.patent.status}. ${companyState.patent.filing} is filed. Material invention changes must continue to be documented in the governed patent workspace.`,
+    { intent: "patent_status", founderMode: true, entities: ["Route IQ", "Patent"] }
+  );
+}
+
+function companyPhase() {
+  return response(
+    "Current Company Phase",
+    `Prometheus is in ${companyState.currentPhase.join(", ").toLowerCase()}. Route IQ is operational; Gaia is paused; Athena is architecture only.`,
+    { intent: "company_phase", founderMode: true, entities: ["Prometheus", "Route IQ", "Gaia", "Athena"] }
+  );
+}
+
+function founderWorkflow() {
+  const steps = companyState.founderAlignment.workflow
+    .map((step, index) => `${index + 1}. ${step}`)
+    .join(" ");
+  return response(
+    "Current Founder Workflow",
+    `Your current role is ${companyState.founderAlignment.role.join(", ").toLowerCase()}. The governed workflow is: ${steps}`,
+    { intent: "founder_workflow", founderMode: true, entities: ["Cruz", "Founder Workflow", "Overwatch"] }
+  );
+}
+
 function crmPipelineSummary() {
   const crm = createCrmSummary();
   return response(
     "CRM Pipeline Summary",
     [
-      "CRM is ready to support the sales pipeline, but it should stay disciplined.",
+      "CRM is the governed continuity layer for customer onboarding.",
       crm.body,
-      "Advice: keep follow-up tied to beta proof, leadership readiness, and clear next actions. Do not turn Companion into a parallel CRM."
+      "Advice: update the candidate stage after every call, preserve readiness evidence, and hand off to JR only when the record supports it. Companion remains read-only to CRM unless an approved integration explicitly allows an action."
     ].join(" "),
     {
       ...crm.metadata,
@@ -303,15 +356,15 @@ function companyBriefing() {
   return response(
     "Executive Company Briefing",
     [
-      "We are doing well on build discipline and founder readiness, but the company still needs more external proof.",
+      "Prometheus is in an operational company phase.",
       company.body,
-      "Advice: protect the beta, capture real usage evidence, and keep new work tied to pilot credibility."
+      "Advice: keep Route IQ stable, run the active customer mission, and close verified readiness and hardening work before expanding the product set."
     ].join(" "),
     {
       ...company.metadata,
       intent: "executive_company_briefing",
       founderMode: true,
-      entities: ["Prometheus", "Cruz", "Pilot"]
+      entities: ["Prometheus", "Cruz", "Route IQ", "Overwatch"]
     }
   );
 }
@@ -321,6 +374,9 @@ async function conversationalIntentResponse(normalized, { socialMediaAnalyticsSe
   if (isExact(normalized, ["good morning", "morning"])) return morningGreeting();
   if (isExact(normalized, ["how are you", "how are you doing", "how are things"])) return healthGreeting();
   if (isExact(normalized, ["overwatch"])) return engineeringStatus(founderTimeline);
+  if (isExact(normalized, ["route iq", "route i q"])) return routeIqStatus();
+  if (isExact(normalized, ["gaia"])) return gaiaStatus();
+  if (isExact(normalized, ["athena"])) return athenaStatus();
   if (isExact(normalized, ["instagram", "social", "social media"])) {
     const instagram = await createFounderInstagramDirectAnswer({
       command: "instagram",
@@ -330,15 +386,6 @@ async function conversationalIntentResponse(normalized, { socialMediaAnalyticsSe
       ...instagram.metadata,
       founderMode: true,
       entities: ["Instagram", "Prometheus Social Media", "Prometheus Companion"]
-    });
-  }
-  if (isExact(normalized, ["anthony"])) {
-    const beta = createBetaSummary();
-    return response("Anthony Beta Progress", beta.body, {
-      ...beta.metadata,
-      intent: "anthony_beta_progress",
-      founderMode: true,
-      entities: ["Anthony", "Beta", "Prometheus IQ"]
     });
   }
   if (isExact(normalized, ["website", "site"])) {
@@ -395,7 +442,7 @@ export async function createFounderAssistantResponse(command = "", {
     return response(dashboard.title, dashboard.body, {
       ...dashboard.metadata,
       intent: "executive_dashboard",
-      entities: ["Prometheus", "Prometheus IQ", "Prometheus Companion"]
+      entities: ["Prometheus", "Route IQ", "Prometheus Companion"]
     });
   }
   if (includesAny(normalized, ["company status", "prometheus status", "where does the company stand"])) {
@@ -403,7 +450,7 @@ export async function createFounderAssistantResponse(command = "", {
     return response(company.title, company.body, {
       ...company.metadata,
       intent: "company_status",
-      entities: ["Prometheus", "Prometheus IQ", "Cruz"]
+      entities: ["Prometheus", "Route IQ", "Cruz"]
     });
   }
   if (includesAny(normalized, ["daily decision support", "help me decide", "prioritize engineering marketing sales product", "prioritize today"])) {
@@ -427,7 +474,7 @@ export async function createFounderAssistantResponse(command = "", {
     return response(sales.title, sales.body, {
       ...sales.metadata,
       intent: "sales_summary",
-      entities: ["Sales", "Pilot", "Customers"]
+      entities: ["Sales", "Customer Onboarding", "CRM"]
     });
   }
   if (includesAny(normalized, ["website summary", "summarize website", "website status"])) {
@@ -446,14 +493,12 @@ export async function createFounderAssistantResponse(command = "", {
       entities: ["Social Media", "Founder Marketing"]
     });
   }
-  if (includesAny(normalized, ["beta summary", "anthony beta summary", "beta status"])) {
-    const beta = createBetaSummary();
-    return response(beta.title, beta.body, {
-      ...beta.metadata,
-      intent: "beta_summary",
-      entities: ["Anthony", "Beta", "Prometheus IQ"]
-    });
-  }
+  if (includesAny(normalized, ["route iq status", "route i q status", "current route iq", "current route i q", "route iqs current status", "route i qs current status"])) return routeIqStatus();
+  if (includesAny(normalized, ["gaia status", "current gaia", "gaias current status"])) return gaiaStatus();
+  if (includesAny(normalized, ["athena status", "current athena", "athenas current status"])) return athenaStatus();
+  if (includesAny(normalized, ["patent status", "patent pending", "route iq patent", "route i q patent"])) return patentStatus();
+  if (!normalized.includes("remember") && includesAny(normalized, ["company phase", "current phase", "what phase are we in"])) return companyPhase();
+  if (includesAny(normalized, ["founder workflow", "current founder workflow", "my workflow", "how do i run the company today"])) return founderWorkflow();
   if (includesAny(normalized, ["executive strategy meeting", "strategy meeting", "run strategy meeting"])) {
     const meeting = createExecutiveStrategyMeeting();
     return response(meeting.title, meeting.body, {
@@ -467,7 +512,6 @@ export async function createFounderAssistantResponse(command = "", {
       "company decisions",
       "product decisions",
       "engineering milestones",
-      "beta findings",
       "investor conversations",
       "founder memory",
       "what do you remember"
@@ -488,7 +532,7 @@ export async function createFounderAssistantResponse(command = "", {
   if (includesAny(normalized, ["long term goals", "long-term goals", "founder goals", "my goals"])) return longTermGoals();
   if (includesAny(normalized, ["plan my day", "daily agenda", "todays agenda", "today agenda", "plan today", "day plan"])) return planDay(normalized, communicationsService);
   if (includesAny(normalized, ["price this feature", "pricing", "how should we price"])) return pricing();
-  if (includesAny(normalized, ["active pool"])) return response(activePoolDecision.title, activePoolDecision.body, { intent: "active_pool_decision", entities: ["Active Pool", "Route Intelligence", "Data"] });
+  if (includesAny(normalized, ["active pool"])) return response(activePoolDecision.title, activePoolDecision.body, { intent: "active_pool_decision", entities: ["Active Pool", "Route IQ", "Data"] });
   if (includesAny(normalized, ["weaknesses in my current strategy", "weakness in my strategy", "critique my strategy", "strategy weaknesses"])) return strategyCritique();
   if (includesAny(normalized, ["dashboard interact with the data", "dashboard interacts with the data", "dashboard and data", "dashboard data architecture"])) return dashboardDataArchitecture();
   if (includesAny(normalized, ["overwatch assign", "overwatch should assign", "what should overwatch"])) return overwatchAssignment();

@@ -1,3 +1,4 @@
+import { companyState } from "./demo-data.js";
 import { rankDecisionTasks } from "./decision-engine.js";
 import { createDailyBrief } from "./daily-brief.js";
 import { addDaysToIsoDate, getPrometheusToday, normalizeText } from "./memory-ranking.js";
@@ -8,25 +9,6 @@ function sentenceList(items, limit = 5) {
     const impact = item.impact ? ` Impact: ${item.impact}` : "";
     return `${date}${item.title}. ${item.summary}${impact}`;
   }).join(" ");
-}
-
-function findEvidence(evidence, predicate) {
-  return evidence.filter(predicate);
-}
-
-function periodTimeline(question, evidence) {
-  const normalized = normalizeText(question);
-  const timeline = findEvidence(evidence, (item) => item.type === "timeline-event");
-  const today = getPrometheusToday();
-  const yesterday = addDaysToIsoDate(today, -1);
-  const weekStart = addDaysToIsoDate(today, -7);
-
-  if (normalized.includes("yesterday")) return timeline.filter((item) => item.date === yesterday);
-  if (normalized.includes("today")) return timeline.filter((item) => item.date === today);
-  if (normalized.includes("this week") || normalized.includes("week")) {
-    return timeline.filter((item) => item.date >= weekStart && item.date <= today);
-  }
-  return timeline;
 }
 
 function response(title, body, metadata = {}) {
@@ -44,265 +26,132 @@ function response(title, body, metadata = {}) {
   };
 }
 
-function recapPeriod(question, evidence) {
+function periodTimeline(question, evidence) {
   const normalized = normalizeText(question);
+  const timeline = evidence.filter((item) => item.type === "timeline-event");
+  const today = getPrometheusToday();
+  const yesterday = addDaysToIsoDate(today, -1);
+  const weekStart = addDaysToIsoDate(today, -7);
+
+  if (normalized.includes("yesterday")) return timeline.filter((item) => item.date === yesterday);
+  if (normalized.includes("today")) return timeline.filter((item) => item.date === today);
+  if (normalized.includes("week")) return timeline.filter((item) => item.date >= weekStart && item.date <= today);
+  return timeline;
+}
+
+function recapPeriod(question, evidence) {
   const timeline = periodTimeline(question, evidence);
   if (!timeline.length) {
     return response(
-      "Prometheus company recap",
-      "Boss, I do not have a verified timeline event for that period yet. I can only answer from the local Prometheus memory that has been recorded, and I will not invent progress that is not in the record.",
-      { intent: "recap", truth: "unknown" }
+      "Prometheus Company Recap",
+      "I do not have a new verified timeline event for that period. The current governed baseline remains: Route IQ is operational and Patent Pending, Gaia is paused, Athena is architecture only, and the company is executing readiness, onboarding, hardening, and continuous improvement.",
+      { intent: "recap", truth: "current_baseline" }
     );
   }
-
-  if (normalized.includes("yesterday")) {
-    return response(
-      "Yesterday in Prometheus",
-      `Boss, yesterday was mainly about making Prometheus feel real as a company system, not just an app. ${sentenceList(timeline, 4)} The practical takeaway is that the public presence and Companion foundation moved forward, but validation is still the next proof point. Real beta usage matters more now than more polish.`,
-      { intent: "yesterday_recap", entities: ["Prometheus Companion", "Website"] }
-    );
-  }
-
-  if (normalized.includes("today")) {
-    return response(
-      "Today in Prometheus",
-      `Boss, today the verified record points to Companion intelligence work, memory, and operating-system reliability. ${sentenceList(timeline, 6)} The important theme today is turning Prometheus from a command tool into a Chief of Staff: memory, context, safer routing, and better founder prioritization. The next useful move is to preserve the daily log and keep validation work ahead of new features.`,
-      { intent: "today_recap", entities: ["Prometheus Companion", "Memory System", "Founder Operating System"] }
-    );
-  }
-
-  if (normalized.includes("week")) {
-    return response(
-      "This week in Prometheus",
-      `Boss, this week Prometheus moved across four fronts: product readiness, executive readiness, public presence, and founder operating systems. ${sentenceList(timeline, 7)} The pattern is clear: the build is becoming more serious, but validation is now the lever that matters most.`,
-      { intent: "weekly_recap", entities: ["Prometheus IQ", "Pilot", "Prometheus Companion"] }
-    );
-  }
-
-  if (normalized.includes("last month") || normalized.includes("over the last month")) {
-    return response(
-      "Prometheus over the last month",
-      `Boss, over the recorded company history Prometheus changed from a founder-built field-sales tool into a broader operating system: protected app, Route Intelligence, GPS verification, executive pilot materials, public website, Companion voice, memory, and now cognitive reasoning. ${sentenceList(timeline, 8)} The biggest shift is maturity: Prometheus is no longer only a product idea; it has product, pitch, beta, website, security, and operating systems forming around it.`,
-      { intent: "month_recap", entities: ["Prometheus IQ", "Prometheus Companion", "Pilot"] }
-    );
-  }
-
   return response(
-    "Prometheus timeline",
-    `Boss, here is the verified timeline signal I have: ${sentenceList(timeline, 6)}`,
-    { intent: "timeline" }
+    "Prometheus Company Recap",
+    `Here is the verified operating record: ${sentenceList(timeline, 7)} Keep the decision tied to the current Route IQ operating phase and the next governed Founder action.`,
+    { intent: "recap", entities: ["Route IQ", "Overwatch"] }
   );
 }
 
-function majorSystems(evidence) {
-  const systems = [
-    "Prometheus IQ field-sales app with Route Intelligence, GPS verification, visit logging, rep and owner modes.",
-    "Cloudflare deployment and protection for the live app and public web presence.",
-    "GitHub source-control and backup workflow.",
-    "Executive pilot system: briefing packet, approval package, success metrics, risk controls, data ownership, and pilot execution playbook.",
-    "Cinematic public website at PrometheusRouteIQ.com.",
-    "Prometheus Companion: local Mac assistant, premium voice path, daily Chief of Staff modules, memory system, and reasoning layer.",
-    "Route Intelligence evolution: qualified prospect filtering, rep-specific profiles, Anthony separation, freshness, discovery, and category diversity."
-  ];
+function majorSystems() {
   return response(
-    "Major Prometheus systems built",
-    `Boss, the major systems built so far are: ${systems.join(" ")} The most important one for company value is still Route Intelligence plus verified field activity, because that is what can become pilot proof. The most important one for founder leverage is Companion, because it preserves context and helps you operate the company.`,
-    { intent: "major_systems", entities: ["Prometheus IQ", "Prometheus Companion", "Route Intelligence", "Pilot"], evidenceCount: evidence.length }
+    "Current Prometheus Systems",
+    [
+      "Route IQ is the operational, Patent Pending primary product.",
+      "Overwatch is the governance and trusted-state layer.",
+      "CRM preserves customer stages, follow-ups, and evidence-based handoffs.",
+      "Research is a read-only strategic intelligence source; Gaia is paused.",
+      "Athena remains architecture only.",
+      "Companion is the Founder's private executive operating system."
+    ].join(" "),
+    { intent: "major_systems", entities: ["Route IQ", "Overwatch", "CRM", "Gaia", "Athena", "Prometheus Companion"] }
   );
 }
 
-function anthonyAnswer(question, evidence) {
-  const normalized = normalizeText(question);
-  const anthony = evidence.find((item) => {
-    const title = normalizeText(item.title);
-    return item.type === "knowledge-graph-entity" && title.includes("anthony");
-  }) || evidence.find((item) => normalizeText(item.title).includes("anthony"));
-  if (normalized.includes("how many") && normalized.includes("visit")) {
-    return response(
-      "Anthony visit data",
-      "Boss, I do not have verified visit data for Anthony today. That means I cannot honestly say how many businesses he visited. To answer that correctly, Anthony needs to log visits in the beta flow or send feedback that gets recorded into Prometheus memory.",
-      { intent: "anthony_visit_count", entities: ["Anthony"], truth: "unknown" }
-    );
-  }
-  if (normalized.includes("why")) {
-    return response(
-      "Why Anthony matters",
-      "Anthony matters because he is the first real separation between founder usage and outside-user validation. If Anthony can open his own rep experience, understand where to go, log visits, and give feedback without seeing Cruz's history, Prometheus starts proving it can work beyond the founder. That is the bridge from a built product to credible pilot evidence.",
-      { intent: "anthony_importance", entities: ["Anthony", "Pilot", "Route Intelligence"] }
-    );
-  }
+function productAnswer(productKey) {
+  const product = companyState.products[productKey];
   return response(
-    "Anthony in Prometheus",
-    `Anthony is the controlled beta tester for Prometheus IQ. ${anthony?.summary || "His role is to validate a private rep-mode experience separate from Cruz founder data."} The key things to watch are route clarity, walk-in readiness, GPS verification, visit logging, route quality, and honest feedback.`,
-    { intent: "anthony", entities: ["Anthony"] }
+    `${product.name} Status`,
+    `${product.name} is ${product.status}. ${product.detail}${product.patentStatus ? ` It is ${product.patentStatus}.` : ""}`,
+    { intent: `${productKey}_status`, entities: [product.name], truth: "verified" }
   );
 }
 
-function chrisAnswer(evidence) {
+function patentAnswer() {
   return response(
-    "Chris and leadership context",
-    "Chris is the Houston leadership contact who may help Prometheus reach Dallas leadership. The right move with Chris is not to overwhelm him with technology. Keep the ask simple: a controlled 14-day pilot, three approved users, risk controls, weekly review, final report, and no proprietary mechanics disclosed unless an NDA and approval path are in place.",
-    { intent: "chris", entities: ["Chris", "Pilot"] }
+    "Route IQ Patent Status",
+    `${companyState.patent.product} is ${companyState.patent.status}. ${companyState.patent.filing} is filed. ${companyState.patent.detail}`,
+    { intent: "patent_status", entities: ["Route IQ", "Patent"], truth: "verified" }
   );
 }
 
-function evidenceSummaryFor(evidence = [], label) {
-  const normalizedLabel = normalizeText(label);
-  return evidence.find((item) => {
-    const haystack = normalizeText([item.title, item.summary, item.entities?.join(" ")].filter(Boolean).join(" "));
-    return haystack.includes(normalizedLabel);
-  });
-}
-
-function executiveReadinessAnswer(question, evidence = []) {
-  const normalized = normalizeText(question);
-  const pilotState = evidenceSummaryFor(evidence, "pilot readiness") || evidenceSummaryFor(evidence, "pilot");
-  const executiveState = evidenceSummaryFor(evidence, "executive readiness") || evidenceSummaryFor(evidence, "leadership");
-  const anthonyState = evidenceSummaryFor(evidence, "anthony");
-  const llcState = evidenceSummaryFor(evidence, "llc");
-
-  const audience = normalized.includes("larry") || normalized.includes("phil") || normalized.includes("dallas")
-    ? "Larry, Phil, and Dallas leadership"
-    : normalized.includes("chris")
-      ? "Chris"
-      : "leadership";
-
-  const readinessEvidence = [
-    executiveState ? `Executive materials: ${executiveState.summary}` : "Executive materials are recorded as prepared in Prometheus memory.",
-    pilotState ? `Pilot package: ${pilotState.summary}` : "Pilot package readiness is recorded as high preparation, pending external proof.",
-    anthonyState ? `Beta signal: ${anthonyState.summary}` : "Anthony beta remains the key proof source.",
-    llcState ? `Company setup: ${llcState.summary}` : ""
-  ].filter(Boolean).join(" ");
-
+function phaseAnswer() {
   return response(
-    "Executive readiness",
-    `Boss, Prometheus is ready for a serious ${audience} discussion, but not for an overcomplicated pitch. ${readinessEvidence} My read: preparation is strong, proof is still developing. The best executive wording is: Prometheus is requesting a controlled 14-day pilot with limited users, clear safeguards, weekly review, and a final results report. The part I would not oversell yet is guaranteed performance improvement, because Anthony's external beta data still needs to be captured. The next action is to keep the leadership ask simple and use real beta feedback as the proof layer.`,
-    { intent: "executive_readiness", entities: ["Chris", "Larry", "Phil", "Dallas Leadership", "Pilot", "Anthony"], truth: "verified" }
+    "Current Company Phase",
+    `Prometheus is in ${companyState.currentPhase.join(", ").toLowerCase()}. This is an operating phase: Route IQ is operational, Gaia is paused, and Athena is architecture only.`,
+    { intent: "company_phase", entities: ["Prometheus", "Route IQ", "Gaia", "Athena"], truth: "verified" }
   );
 }
 
-function googlePlacesVsMeta() {
+function founderWorkflowAnswer() {
+  const workflow = companyState.founderAlignment.workflow
+    .map((step, index) => `${index + 1}. ${step}`)
+    .join(" ");
   return response(
-    "Google Places versus Meta",
-    "Boss, Google Places is more important than Meta right now because it strengthens the core product: Route Intelligence. Better business discovery directly improves what reps see, where they go, and whether Anthony's route feels useful. Meta can help attention and social growth, but it does not prove the product works in the field. If I were ranking them as COO, Google Places supports validation; Meta supports distribution. Validation comes first.",
-    { intent: "strategic_comparison", entities: ["Google Places", "Social Media", "Route Intelligence"] }
+    "Current Founder Workflow",
+    `Your role is ${companyState.founderAlignment.role.join(", ").toLowerCase()}. The current governed workflow is: ${workflow}`,
+    { intent: "founder_workflow", entities: ["Cruz", "Overwatch", "CRM"], truth: "verified" }
   );
 }
 
 function websiteAnswer() {
   return response(
-    "Website context",
-    "Boss, the website is PrometheusRouteIQ.com, and its job is credibility plus conversion: make Prometheus look serious, explain field-sales outcomes, and move interested people toward Request Pilot or View Demo. The important discipline is to keep it focused on outcomes, not internal mechanics. Website polish helps, but it should not outrank Anthony beta proof or leadership follow-up.",
-    { intent: "website", entities: ["Website", "Pilot", "Social Media"], truth: "verified" }
+    "Website Context",
+    "The public Prometheus website supports current Route IQ positioning and customer onboarding. Website owns the public surface; Companion provides a read-only executive summary and does not change it.",
+    { intent: "website", entities: ["Website", "Route IQ"], truth: "verified" }
   );
 }
 
 function githubAnswer() {
   return response(
-    "GitHub context",
-    "Boss, GitHub is the recovery path and company memory trail for Prometheus. The useful habit is simple: review changed files, keep secrets and generated clutter out, commit only clean milestones, and push after approval. GitHub does not create customer value by itself, but it protects every valuable thing Prometheus has built.",
-    { intent: "github", entities: ["GitHub", "Disaster Recovery", "Founder Continuity"], truth: "verified" }
+    "GitHub Context",
+    "GitHub is part of the governed source-control, recovery, and checkpoint trail. Review scope, secrets, tests, subsystem ownership, commit intent, and push status before recording a milestone.",
+    { intent: "github", entities: ["GitHub", "Overwatch"], truth: "verified" }
   );
 }
 
 function cloudflareAnswer() {
   return response(
-    "Cloudflare context",
-    "Boss, Cloudflare is the public deployment and protection layer for the website and protected app. The operating rule is stability first: do not change deployment behavior unless the build is tested and the correct production folder is clear. Cloudflare matters because leadership and beta users judge Prometheus through what is actually live, not what works locally.",
-    { intent: "cloudflare", entities: ["Cloudflare", "Website", "Prometheus IQ"], truth: "verified" }
-  );
-}
-
-function routeIntelligenceAnswer() {
-  return response(
-    "Route Intelligence context",
-    "Boss, Route Intelligence is the core product value: helping reps know where to go next, why that stop matters, and how activity turns into learning. Google Places now gives better raw discovery, but Prometheus still has to judge quality. The next standard is not more locations; it is Anthony trusting the recommendations because every stop feels specific, walk-in ready, and worth the time.",
-    { intent: "route_intelligence", entities: ["Route Intelligence", "Google Places", "Anthony"], truth: "verified" }
+    "Cloudflare Context",
+    "Cloudflare supports public and protected platform surfaces. Remaining account-owner controls and authenticated production checks stay governed by the current Overwatch security checkpoint.",
+    { intent: "cloudflare", entities: ["Cloudflare", "Overwatch"], truth: "verified" }
   );
 }
 
 function companionAnswer() {
   return response(
-    "Companion context",
-    "Boss, Prometheus Companion is the private Founder Operating System. Its value is not the visuals; it is preserving context, ranking what matters, and helping you make better decisions without rebuilding the same thinking every session. The next improvement should keep making it more accurate, more contextual, and less likely to over-answer.",
-    { intent: "companion", entities: ["Prometheus Companion", "Founder Operating System"], truth: "verified" }
+    "Companion Context",
+    "Prometheus Companion is reactivated as the Founder's private executive operating system. It consumes current platform state, preserves the accepted visual runtime, and does not take ownership of Route IQ, Gaia, Athena, CRM, or other subsystem runtimes.",
+    { intent: "companion", entities: ["Prometheus Companion", "Cruz"], truth: "verified" }
   );
 }
 
-function hasGoogleDiscoveryEvidence(evidence = []) {
-  return evidence.some((item) => {
-    const haystack = normalizeText([item.id, item.title, item.summary, ...(item.tags || [])].filter(Boolean).join(" "));
-    return haystack.includes("google places") && (haystack.includes("discovery") || haystack.includes("249") || haystack.includes("202"));
-  });
-}
-
-function googlePlacesStatus(evidence = []) {
-  if (hasGoogleDiscoveryEvidence(evidence)) {
-    return response(
-      "Google Places status",
-      "Boss, Google Places is no longer blocked at the basic local setup layer. The current verified company memory says Places and Geocoding are configured locally, discovery returned 249 businesses, and 202 were Anthony-ready after filtering. The remaining work is quality and release discipline: rank the best stops, explain why they matter, avoid restricted targets, and do not modify Anthony's production beta until the route quality passes review.",
-      { intent: "google_places_status", entities: ["Google Places", "Route Intelligence", "Anthony"], truth: "verified" }
-    );
-  }
-
+function riskAnswer() {
   return response(
-    "Google Places status",
-    "Boss, I do not have verified local discovery evidence in memory for Google Places yet. The safe architecture requires backend-only key storage, Places and Geocoding enabled, a local discovery run, and a security check before the data should influence Anthony's route. I will not pretend live Google business data exists until that evidence is recorded.",
-    { intent: "google_places_status", entities: ["Google Places", "Route Intelligence"], truth: "unknown" }
+    "Biggest Prometheus Risk",
+    "The biggest current risk is operating from stale or incomplete evidence while Route IQ is already live. The concrete friction is authenticated production verification, remaining account-owner security controls, incomplete customer handoff records, and ungoverned product expansion. Close one verified readiness item, then execute the active customer mission.",
+    { intent: "risk", entities: ["Route IQ", "Overwatch", "Customer Onboarding"] }
   );
 }
 
-function riskAnswer(evidence) {
+function priorityAnswer() {
+  const top = rankDecisionTasks().slice(0, 3);
   return response(
-    "Biggest Prometheus risk",
-    "The slowdown is proof, not effort. The likely bottlenecks are beta validation, field evidence, Companion voice quality, Mobile verification, route evidence, buyer proof, and authenticated verification. Next move: close one proof loop today. Test the field path, capture Anthony feedback if available, and turn it into a simple buyer-facing signal.",
-    { intent: "risk", entities: ["Pilot", "Anthony", "Prometheus I Q"] }
-  );
-}
-
-function pilotReadinessAnswer() {
-  return response(
-    "Pilot readiness",
-    "Boss, pilot readiness is high on preparation but not complete on proof. The approval packet, executive materials, risk controls, success metrics, and pilot structure are ready. The missing piece is external proof: Anthony feedback, verified visits, route-quality evidence, and leadership confirmation. That is why the next move is validation, not adding more internal features.",
-    { intent: "pilot_readiness", entities: ["Pilot", "Anthony", "Chris"], truth: "verified" }
-  );
-}
-
-function unknownOperationalMetricAnswer(question) {
-  const normalized = normalizeText(question);
-  if ((normalized.includes("cost") || normalized.includes("spend") || normalized.includes("spending") || normalized.includes("billing") || normalized.includes("usage")) &&
-      (normalized.includes("google") || normalized.includes("maps") || normalized.includes("places") || normalized.includes("api"))) {
-    return response(
-      "Google cost data unavailable",
-      "Boss, I do not have verified Google Cloud billing or API usage data in Prometheus memory right now. I can confirm Google Places discovery was configured locally, but I cannot honestly say what it cost today unless billing or usage data is connected or manually recorded. The safe next move is to check Google Cloud Billing directly and then record the verified number in the daily log.",
-      { intent: "unknown_google_billing", entities: ["Google Places", "Google Cloud"], truth: "unknown" }
-    );
-  }
-
-  if ((normalized.includes("instagram") || normalized.includes("social") || normalized.includes("meta")) &&
-      (normalized.includes("views") || normalized.includes("reach") || normalized.includes("impressions") || normalized.includes("followers") || normalized.includes("comments") || normalized.includes("likes"))) {
-    return response(
-      "Social media metrics unavailable",
-      "Boss, I do not have verified Instagram performance data connected yet. The Meta setup was paused, so I cannot truthfully report views, reach, followers, comments, or likes from live data. I can still help plan the post or create a manual tracker, but I should not pretend the metrics are connected.",
-      { intent: "unknown_social_metrics", entities: ["Instagram", "Meta", "Social Media"], truth: "unknown" }
-    );
-  }
-
-  return null;
-}
-
-function priorityAnswer(question) {
-  const ranked = rankDecisionTasks();
-  const top = ranked.slice(0, 3);
-  const normalized = normalizeText(question);
-  const tomorrow = normalized.includes("tomorrow") || normalized.includes("coo");
-  const intro = tomorrow
-    ? "If I were your COO, I would tell you tomorrow is not a feature-building day. It is a validation day."
-    : "Do not start with another feature. The highest ROI move is validation.";
-  return response(
-    tomorrow ? "COO recommendation for tomorrow" : "Highest ROI next move",
-    `${intro} First, ${top[0].title}. ${top[0].reason} Then capture one clean beta or field signal. Recommendation: protect focus, collect proof, and avoid new features unless they directly improve Anthony's beta evidence or leadership approval odds.`,
-    { intent: "priority", entities: ["Cruz", "Pilot", "Anthony"] }
+    "Highest ROI Next Move",
+    `First, ${top[0].title}. ${top[0].reason} Second, ${top[1].title}. Third, ${top[2].title}. The operating rule is customer movement first, verified readiness second, and no ungoverned product expansion.`,
+    { intent: "priority", entities: ["Cruz", "Route IQ", "Customer Onboarding"] }
   );
 }
 
@@ -310,7 +159,7 @@ function dailyBriefAnswer() {
   return response(
     "Daily Founder Brief",
     createDailyBrief().body,
-    { intent: "founder_brief", entities: ["Cruz", "Prometheus Companion", "Pilot", "Anthony"], truth: "verified" }
+    { intent: "founder_brief", entities: ["Cruz", "Route IQ", "Overwatch"], truth: "verified" }
   );
 }
 
@@ -318,157 +167,63 @@ function previousAnswerText(context = {}) {
   return normalizeText([context.lastTitle, context.lastBody, context.lastCognitiveIntent, ...(context.focusEntities || [])].filter(Boolean).join(" "));
 }
 
-function whyPreviousAnswerMatters(context = {}, evidence = []) {
+function followUpAnswer(context = {}) {
   const previous = previousAnswerText(context);
-  const title = context.lastTitle || "the last answer";
-  const previousIntent = context.lastCognitiveIntent || "";
-
-  if (previousIntent === "priority" || previous.includes("highest roi") || previous.includes("next move") || previous.includes("priority") || previous.includes("coo")) {
+  if (previous.includes("route iq") || previous.includes("product")) {
     return response(
-      "Why that is the highest ROI move",
-      "Boss, it is the highest ROI move because it converts the work already completed into validation evidence. Prometheus has product, website, Companion, documents, route intelligence, and deployment progress. The bottleneck is not effort. The bottleneck is proof. Anthony beta feedback, verified route-quality evidence, and leadership clarity compound more than another isolated improvement.",
-      { intent: "follow_up_reasoning", entities: ["Pilot", "Validation", "Founder Leverage"], follows: previousIntent || title }
+      "Why It Matters",
+      "Because Route IQ is operational. The next decision should improve customer movement, operating reliability, or enterprise readiness without destabilizing the primary product.",
+      { intent: "follow_up_reasoning", entities: ["Route IQ"] }
     );
   }
-
-  if (previous.includes("google places")) {
+  if (previous.includes("risk") || previous.includes("blocker") || previous.includes("overwatch")) {
     return response(
-      "Why Google Places matters now",
-      "Boss, Google Places matters because it is tied directly to route quality, and route quality is what Anthony will judge first. The API setup itself is useful, but it is not the win. The win is turning verified business discovery into stops that feel obvious, walk-in ready, and worth his time. That is why quality control beats adding another feature right now.",
-      { intent: "follow_up_reasoning", entities: ["Google Places", "Route Intelligence", "Anthony"], follows: previousIntent || title }
+      "Why It Matters",
+      "Because trusted state is now an operating dependency. Closing the recorded blocker prevents stale assumptions from reaching customers or driving the next engineering decision.",
+      { intent: "follow_up_reasoning", entities: ["Overwatch", "Customer Onboarding"] }
     );
   }
-
-  if (previous.includes("anthony")) {
-    return response(
-      "Why Anthony matters",
-      "Boss, Anthony matters because he is the first meaningful validation test of whether Prometheus works outside your own head and habits. If his route feels useful, his visits are easy to log, and his feedback is specific, Prometheus starts collecting proof instead of opinions. That proof is what strengthens the Chris and Dallas leadership conversation.",
-      { intent: "follow_up_reasoning", entities: ["Anthony", "Pilot", "Route Intelligence"], follows: previousIntent || title }
-    );
-  }
-
-  if (previous.includes("chris") || previous.includes("leadership")) {
-    return response(
-      "Why leadership context matters",
-      "Boss, Chris matters because he is the bridge between founder excitement and executive permission. The leadership conversation has to stay simple: controlled pilot, limited users, clear safeguards, measurable outcome, and no proprietary mechanics exposed. If that message stays clean, Prometheus feels lower risk and easier to approve.",
-      { intent: "follow_up_reasoning", entities: ["Chris", "Pilot", "Leadership"], follows: previousIntent || title }
-    );
-  }
-
-  if (previous.includes("risk") || previous.includes("blocker")) {
-    return response(
-      "Why that risk matters",
-      "Boss, that risk matters because Prometheus can keep getting more polished without getting more proven. The company does not need more internal evidence that you can build. It needs external evidence that someone else can use it, trust it, and get value from it. That is why real beta feedback outranks cosmetic polish.",
-      { intent: "follow_up_reasoning", entities: ["Pilot", "Anthony", "Validation"], follows: previousIntent || title }
-    );
-  }
-
-  if (previous.includes("yesterday") || previous.includes("today") || previous.includes("week") || previous.includes("recap")) {
-    return response(
-      "Why that progress matters",
-      `Boss, ${title} matters because it shows Prometheus is moving from scattered building into an operating company rhythm: memory, route quality, validation, backup discipline, and founder continuity. The value is not any one artifact. The value is that Prometheus is becoming easier to run, easier to explain, and easier to test with real users.`,
-      { intent: "follow_up_reasoning", entities: context.focusEntities || ["Prometheus Companion", "Founder Operating System"], follows: previousIntent || title }
-    );
-  }
-
   return response(
-    "Why that matters",
-    `Boss, ${title} matters because it connects back to the central company test: can Prometheus create verified field-sales value outside the founder's own usage? If the answer produces usage, feedback, visits, objections, or leadership clarity, it moves the company forward. If it only makes the system feel more polished, it is lower priority right now.`,
-    { intent: "follow_up_reasoning", entities: context.focusEntities || [], follows: previousIntent || title }
+    "Why It Matters",
+    "Because the current company phase rewards execution: move the customer decision, preserve the evidence, and close the next verified operating gap.",
+    { intent: "follow_up_reasoning", entities: context.focusEntities || ["Prometheus"] }
   );
 }
 
-function focusedFollowUpAnswer(question, context, evidence) {
-  const normalized = normalizeText(question);
-  const previous = previousAnswerText(context);
-
-  if (normalized.includes("anthony") || (normalized === "what about anthony" && !previous.includes("anthony"))) {
-    return anthonyAnswer(question, evidence);
-  }
-
-  if (normalized.includes("chris") || normalized.includes("leadership")) {
-    return chrisAnswer(evidence);
-  }
-
-  if (normalized.includes("google places")) {
-    return googlePlacesStatus(evidence);
-  }
-
-  if (normalized.includes("website")) return websiteAnswer();
-  if (normalized.includes("github") || normalized.includes("git hub")) return githubAnswer();
-  if (normalized.includes("cloudflare")) return cloudflareAnswer();
-  if (normalized.includes("route intelligence")) return routeIntelligenceAnswer();
-  if (normalized.includes("companion")) return companionAnswer();
-
-  return response(
-    "Follow-up context",
-    `Boss, staying with the same thread: ${sentenceList(evidence, 3)} The practical move is to keep the conversation tied to validation and avoid turning it into another isolated dashboard check.`,
-    { intent: "follow_up", entities: context.focusEntities || [] }
-  );
-}
-
-function followUpAnswer(question, context, evidence) {
-  const normalized = normalizeText(question);
-  if (normalized === "why" || normalized.startsWith("why")) {
-    return whyPreviousAnswerMatters(context, evidence);
-  }
-  return focusedFollowUpAnswer(question, context, evidence);
-}
-
-function generalAnswer(question, evidence) {
-  const normalized = normalizeText(question);
-  if (normalized.includes("rundown") || normalized.includes("where are we") || normalized.includes("where we at") || normalized.includes("how are we doing") || normalized.includes("how are we looking") || normalized.includes("where do we stand")) {
-    return response(
-      "Prometheus rundown",
-      `We are in a strong build position, but not yet a strong proof position. Prometheus I Q has real product depth, Companion is getting closer, and the website/social layer is live. The next constraint is proof: Anthony feedback, route confidence, buyer clarity, and clean field evidence. Recommendation: validate before adding another feature.`,
-      { intent: "company_rundown", entities: ["Prometheus I Q", "Prometheus Companion", "Anthony", "Route Intelligence"] }
-    );
-  }
-
+function generalAnswer(evidence) {
   if (!evidence.length) {
     return response(
-      "Prometheus answer",
-      "My best read: stay in validation mode. The company has enough built to test, but not enough external proof to relax. The useful move is to capture field evidence, beta feedback, buyer clarity, or route confidence before opening another build thread.",
-      { intent: "general", truth: "unknown" }
+      "Prometheus Answer",
+      `My best read is the current governed baseline: Route IQ is operational and Patent Pending; Gaia is paused; Athena is architecture only; and the company is in ${companyState.currentPhase.join(", ").toLowerCase()}. The next action should come from today's Founder mission or the current Overwatch checkpoint.`,
+      { intent: "general", truth: "current_baseline" }
     );
   }
   return response(
-    "Prometheus intelligence brief",
-    `Boss, here is the strongest signal I found: ${sentenceList(evidence, 4)} My read is that the next answer should be grounded in validation, pilot readiness, and preserving clean company memory.`,
+    "Prometheus Intelligence Brief",
+    `Here is the strongest current evidence: ${sentenceList(evidence, 4)} Use it inside the current operating phase and preserve subsystem ownership.`,
     { intent: "general" }
   );
 }
 
-export function runReasoningPipeline({ question = "", context = {}, rankedEvidence = [], llmContext = {} } = {}) {
+export function runReasoningPipeline({ question = "", context = {}, rankedEvidence = [] } = {}) {
   const normalized = normalizeText(question);
-  const unknownMetricResponse = unknownOperationalMetricAnswer(question);
-  if (unknownMetricResponse) return unknownMetricResponse;
 
-  if (normalized.includes("anthony")) return anthonyAnswer(question, rankedEvidence);
-  if (
-    normalized.includes("executive") ||
-    normalized.includes("leadership") ||
-    normalized.includes("larry") ||
-    normalized.includes("phil") ||
-    normalized.includes("dallas") ||
-    normalized.includes("pilot approval") ||
-    (normalized.includes("chris") && (normalized.includes("ready") || normalized.includes("readiness") || normalized.includes("status") || normalized.includes("tell") || normalized.includes("ask")))
-  ) return executiveReadinessAnswer(question, rankedEvidence);
-  if (normalized.includes("chris")) return chrisAnswer(rankedEvidence);
-  if (normalized.includes("google places") && (normalized.includes("meta") || normalized.includes("more important"))) return googlePlacesVsMeta();
-  if (normalized.includes("google places")) return googlePlacesStatus(rankedEvidence);
+  if (normalized.includes("route iq") || normalized.includes("route i q")) return productAnswer("routeIq");
+  if (normalized.includes("gaia")) return productAnswer("gaia");
+  if (normalized.includes("athena")) return productAnswer("athena");
+  if (normalized.includes("patent")) return patentAnswer();
+  if (normalized.includes("company phase") || normalized.includes("current phase")) return phaseAnswer();
+  if (normalized.includes("founder workflow") || normalized.includes("my workflow")) return founderWorkflowAnswer();
   if (normalized.includes("website")) return websiteAnswer();
   if (normalized.includes("github") || normalized.includes("git hub")) return githubAnswer();
   if (normalized.includes("cloudflare")) return cloudflareAnswer();
-  if (normalized.includes("route intelligence")) return routeIntelligenceAnswer();
   if (normalized.includes("companion")) return companionAnswer();
-  if (normalized.includes("pilot readiness")) return pilotReadinessAnswer();
-  if (normalized.includes("risk") || normalized.includes("blocker") || normalized.includes("slowing") || normalized.includes("bottleneck")) return riskAnswer(rankedEvidence);
+  if (normalized.includes("risk") || normalized.includes("blocker") || normalized.includes("slowing") || normalized.includes("bottleneck")) return riskAnswer();
   if (normalized.includes("daily brief") || normalized.includes("founder brief") || normalized === "brief" || normalized.includes("give me the brief")) return dailyBriefAnswer();
-  if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("what matters") || normalized.includes("focus on") || normalized.includes("coo") || normalized.includes("tomorrow")) return priorityAnswer(question);
-  if (context.isFollowUp) return followUpAnswer(question, context, rankedEvidence);
+  if (normalized.includes("what should") || normalized.includes("highest roi") || normalized.includes("what matters") || normalized.includes("focus on") || normalized.includes("coo") || normalized.includes("tomorrow")) return priorityAnswer();
+  if (context.isFollowUp && normalized.startsWith("why")) return followUpAnswer(context);
   if (normalized.includes("what happened") || normalized.includes("what changed") || normalized.includes("this week") || normalized.includes("yesterday") || normalized.includes("today") || normalized.includes("last month")) return recapPeriod(question, rankedEvidence);
-  if (normalized.includes("major systems") || normalized.includes("systems have been built")) return majorSystems(rankedEvidence);
+  if (normalized.includes("major systems") || normalized.includes("systems have been built")) return majorSystems();
 
-  return generalAnswer(question, rankedEvidence, llmContext);
+  return generalAnswer(rankedEvidence);
 }

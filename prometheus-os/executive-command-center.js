@@ -11,89 +11,87 @@ import {
 } from "./founder-instagram-analytics-consumer.js";
 
 const readOnlySources = Object.freeze({
-  company: ["COMPANY_IDENTITY.md", "docs/product-vision.md"],
-  research: ["research/README.md", "research/templates/founder-intelligence-brief.md"],
+  company: [
+    "PROMETHEUS_MASTER_ENGINEERING_STATE.md",
+    "PROMETHEUS_SYSTEM_MAP.md",
+    "COMPANY_IDENTITY.md",
+    "PRODUCT_VISION.md",
+    "overwatch/reports/prometheus-architectural-evolution-report-v1.md"
+  ],
+  research: ["research/README.md", "research/architecture.md"],
   sales: ["sales/README.md", "sales/enterprise-sales-methodology.md"],
-  website: ["docs/public-site-cloudflare-readiness.md", "docs/3d-website-production-route.md"],
+  website: ["website/README.md", "PROMETHEUS_SYSTEM_MAP.md"],
   crm: ["crm/README.md", "crm/enterprise-lifecycle-architecture.md"],
   socialMedia: [
     "social-media/contracts/social-media-contract.js",
-    "social-media/social-media-analytics-service.js",
-    "social-media/founder-marketing-operating-system/README.md",
-    "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json"
+    "social-media/social-media-analytics-service.js"
   ]
 });
 
 const sourceSummaries = Object.freeze({
   company: [
-    "Prometheus exists to make outside sales intelligent, directed, accountable, and compounding.",
-    "Prometheus is the company; Prometheus IQ is the flagship product.",
-    "The customer is the outside sales organization, not the gym vertical.",
-    "The product promise is better field direction: sell more, drive less, waste less time, learn what works, and make tomorrow's route smarter."
+    companyState.mission,
+    companyState.platformDefinition,
+    "Route IQ is operational, Patent Pending, and the primary product.",
+    "Gaia is paused. Athena is architecture only."
   ],
   research: [
-    "Research is Prometheus' strategic intelligence division.",
-    "Research produces verified intelligence for founders, engineering, product strategy, sales, marketing, and future AI decision making.",
-    "Research outputs are advisory until an approved subsystem handoff accepts implementation.",
-    "Founder Intelligence Briefs should separate verified facts, hypotheses, implications, risks, and handoff recommendations."
+    "Research remains a read-only strategic intelligence source for Founder decisions.",
+    "Gaia's architecture foundation is preserved, but Gaia is paused and does not own current execution.",
+    "Research outputs remain advisory until a governed handoff accepts implementation."
   ],
   sales: [
-    "Sales owns reusable go-to-market strategy, messaging, discovery, qualification, demos, pilots, onboarding, expansion, renewal, and customer-facing sales documentation.",
-    "The sales thesis: Prometheus is the field-sales operating layer before and during CRM activity.",
-    "Discovery should confirm a real field execution problem before demoing.",
-    "Controlled pilots need written scope, users, success metrics, privacy boundaries, review cadence, and decision criteria."
+    "Sales supports current customer onboarding and enterprise operating conversations.",
+    "The current commercial motion should use Route IQ's operational state and the governed customer record.",
+    "Discovery, qualification, next-step control, and evidence-based handoff remain the operating disciplines."
   ],
   website: [
-    "The public website builds independently from the private Prometheus IQ app.",
-    "The website should communicate outcomes and pilot credibility without exposing route scoring, private customer data, GPS records, source code, prompts, or secrets.",
-    "The Prometheus visual standard is premium, cinematic, dark, intelligent, field-sales focused, and executive-ready.",
-    "Public website changes remain Website-owned; Companion can summarize status only."
+    "PrometheusRouteIQ.com is live, remains Website-owned, and supports current product positioning and customer onboarding.",
+    "Companion summarizes Website state without modifying the public surface."
   ],
   crm: [
-    "CRM owns contact, lead, follow-up, founder task, rep task, and enterprise lifecycle records.",
-    "Anthony runtime activity can convert into CRM contacts and leads through the CRM foundation.",
-    "CRM attribution from social campaigns is not implemented yet.",
-    "Companion can summarize CRM state but must not create a parallel CRM or mutate CRM records."
+    "CRM preserves contacts, leads, candidates, stages, follow-ups, and handoff evidence.",
+    "The Founder updates the candidate stage after every call and hands off to JR only when evidence supports it.",
+    "Companion summarizes CRM state and does not create a parallel record system."
   ],
   socialMedia: [
-    "Social Media owns Instagram performance reporting and founder marketing signals.",
-    "Content pillars are Field Reality, Product Intelligence, Founder Build In Public, Enterprise Trust, and Outside Sales Education.",
-    "Publishing remains intentional and manually controlled.",
-    "Social Media should protect Anthony beta details, private dashboards, proprietary route logic, customer data, and unverified claims."
+    "Social Media provides the current Instagram performance and content readout.",
+    "Companion uses that governed readout to brief the Founder without taking over publishing or account control."
   ]
 });
 
 const executiveMemory = {
   companyDecisions: [
-    "Prometheus is the company; Prometheus IQ is the flagship product.",
-    "Prometheus is an AI operating system for outside sales, not a gym application.",
-    "Gym sales is the first production validation environment, not the market definition.",
-    "Prometheus serves organizations where sales happen outside the office.",
-    "Prometheus will not become a surveillance product, generic CRM clone, or single-feature route planner."
+    "Prometheus is the AI operating system for outside sales.",
+    "The company mission is to make outside sales intelligent, directed, accountable, and compounding.",
+    "Route IQ is the primary operational product.",
+    "Gaia is paused and Athena is architecture only.",
+    "Overwatch governs trusted platform state, subsystem boundaries, and verified checkpoints."
   ],
   productDecisions: [
-    "Every product feature should help sell more, drive less, waste less time, learn what works, or make tomorrow's route smarter.",
-    "Prometheus IQ should decide where to create leads before CRM systems record them.",
-    "Route Intelligence plus verified field activity remains the core product advantage.",
-    "The Active Pool should keep runtime recommendations focused on reviewed, current, walk-in-relevant records.",
-    "Anthony's beta must stay isolated from Cruz's founder history."
+    "Route IQ is operational and Patent Pending.",
+    "Route IQ remains the primary engineering and company focus.",
+    "Material Route IQ invention changes must be documented in the patent workspace.",
+    "The Active Pool uses approved, current, workspace-relevant records.",
+    "No Gaia or Athena expansion is authorized by the current company phase."
   ],
   engineeringMilestones: [
-    "Prometheus IQ established Route Intelligence, GPS verification, visit logging, rep/owner modes, import/export, and goal tracking.",
-    "Cloudflare deployment and protection moved Prometheus from local-only app to controlled access.",
-    "Prometheus Companion became a local Mac founder assistant with voice, memory, reasoning, and sync/install verification.",
-    "Founder communications now consume the shared Integrations contract instead of local calendar/message placeholders.",
-    "Research, Sales, Administration, Integrations, Data, CRM, and Infrastructure foundations are tracked as separate subsystems."
+    "Route IQ reached operational status.",
+    "The Route IQ provisional patent application was filed and Patent Pending status is current.",
+    "Prometheus established governed workspace isolation, CRM handoffs, Founder operations, and Overwatch checkpoints.",
+    "Prometheus Companion was reactivated as the Founder's private executive operating system.",
+    "Current engineering work is deployment readiness, customer onboarding support, enterprise hardening, and continuous operational improvement."
   ],
-  betaFindings: [
-    "Verified beta findings are still incomplete until Anthony produces real usage feedback.",
-    "The beta should test route clarity, walk-in readiness, GPS verification, visit logging, feedback capture, and export/report usefulness.",
-    "Companion must not affect Anthony's beta runtime or Dashboard-owned product behavior."
+  operationalState: [
+    "The concept-testing phase is complete and is not the current company phase.",
+    "Route IQ is operational.",
+    "Current work is deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
+    "Remaining blockers must come from current Overwatch evidence, not historical assumptions."
   ],
   investorConversations: [
-    "No verified investor conversation records are present in Companion memory yet.",
-    "Investor framing should stay truthful: Prometheus is outside-sales intelligence infrastructure, not a route planner or CRM clone.",
-    "The strongest evidence for future investor conversations is external validation: beta usage, pilot proof, verified field outcomes, and executive willingness to approve."
+    "No verified current investor conversation record is present in Companion memory.",
+    "Current external framing should be truthful: Route IQ is an operational, Patent Pending outside-sales product inside the Prometheus operating platform.",
+    "Do not claim customer, revenue, or investor outcomes that are not recorded in governed evidence."
   ]
 };
 
@@ -111,14 +109,16 @@ function recentEngineeringSummary() {
       const tags = event.tags.join(" ").toLowerCase();
       const entities = event.entities.join(" ").toLowerCase();
       return tags.includes("companion") ||
-        tags.includes("product") ||
-        tags.includes("route-intelligence") ||
+        tags.includes("route-iq") ||
+        tags.includes("operations") ||
         entities.includes("prometheus companion") ||
-        entities.includes("prometheus iq");
+        entities.includes("route iq");
     })
     .slice(-4);
 
-  if (!events.length) return "Engineering memory has no new verified event for this week.";
+  if (!events.length) {
+    return "Route IQ is operational and Companion is reactivated. Use Overwatch for the latest verified checkpoint.";
+  }
   return events.map((event) => `${event.title}: ${event.summary}`).join(" ");
 }
 
@@ -135,10 +135,9 @@ export function createCompanyStatusSummary() {
   return {
     title: "Company Status",
     body: [
-      `${sourceSummaries.company.join(" ")}`,
-      "Right now the company is moving from internal build progress toward external proof.",
-      "The constraint is not more polish. It is credible beta and pilot evidence.",
-      "Keep the category clear: Prometheus is not a gym app, route planner, CRM clone, or surveillance product.",
+      sourceSummaries.company.join(" "),
+      `The current company phase is ${companyState.currentPhase.join(", ").toLowerCase()}.`,
+      "The operating constraint is disciplined execution across readiness, onboarding, hardening, and verified improvement.",
       `Founder decision: ${next.body}`
     ].join(" "),
     metadata: {
@@ -152,11 +151,12 @@ export function createEngineeringStatusSummary() {
   return {
     title: "Engineering Status",
     body: [
-      "Companion is operating as your founder command layer for briefings, memory, voice, and decision support.",
-      `Prometheus IQ remains focused on route quality and verified field activity. ${signal("route", { value: "Route Intelligence", detail: "Route logic remains product-owned." }).detail}`,
-      "I am keeping this as a readout only, so the product, data, infrastructure, CRM, and Anthony beta stay untouched.",
+      "Route IQ is operational, Patent Pending, and the primary engineering focus.",
+      "Gaia is paused. Athena is architecture only.",
+      "Companion is operating as the Founder's private briefing, memory, voice, and decision layer.",
+      `Overwatch: ${companyState.overwatch.detail}`,
       `Recent engineering memory: ${recentEngineeringSummary()}`,
-      "Recommendation: fix verified blockers only. Avoid feature work that does not improve beta proof or founder leverage."
+      "Recommendation: fix current verified blockers, protect subsystem ownership, and avoid ungoverned product expansion."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -169,10 +169,8 @@ export function createResearchSummary() {
   return {
     title: "Research Summary",
     body: [
-      "Research is ready to support founder decisions when outside evidence matters.",
-      "Use it for market movement, competitor pressure, investor framing, customer pain, and strategic uncertainty.",
-      "Current read: Companion does not yet have a live dated research brief to present.",
-      "Founder action: ask for a dated research brief when the decision needs evidence, not when it only needs execution."
+      sourceSummaries.research.join(" "),
+      "Use Research when a current decision needs outside evidence, and keep the result separate from implementation authority."
     ].join(" "),
     metadata: {
       ...sourceMetadata("research"),
@@ -185,10 +183,8 @@ export function createSalesSummary() {
   return {
     title: "Sales Summary",
     body: [
-      "Sales should stay pilot-first and evidence-led.",
-      "The thesis is simple: Prometheus is the operating layer before and during CRM activity, where field decisions actually happen.",
-      "Best next move: clarify the buyer problem, define the value hypothesis, then ask for a controlled pilot only when success criteria are clear.",
-      "I will keep sales guidance separate from CRM records and customer workflows."
+      sourceSummaries.sales.join(" "),
+      "Founder action: run the active workspace mission, call the highest-value prospects first, update every stage, and preserve the next step in CRM."
     ].join(" "),
     metadata: {
       ...sourceMetadata("sales"),
@@ -198,15 +194,13 @@ export function createSalesSummary() {
 }
 
 export function createWebsiteSummary() {
-  const website = signal("website", { value: "Live", detail: "PrometheusRouteIQ.com is live." });
+  const website = signal("website", { value: "Operational", detail: "The public Prometheus presence supports customer onboarding." });
   return {
     title: "Website Summary",
     body: [
       `${website.value}. ${website.detail}`,
-      "The public website should create confidence, explain outcomes, and support pilot interest.",
-      "It should not reveal route scoring, private customer data, GPS records, source code, prompts, or secrets.",
-      "Founder action: use the site for credibility and conversion, not internal mechanics.",
-      "I am treating the website as a readout here, not changing the public site."
+      sourceSummaries.website.join(" "),
+      "Founder action: use the site for current product credibility and conversion without exposing protected mechanics or customer data."
     ].join(" "),
     metadata: {
       ...sourceMetadata("website"),
@@ -219,9 +213,8 @@ export function createCrmSummary() {
   return {
     title: "CRM Summary",
     body: [
-      "CRM can represent contacts, leads, follow-up queues, founder tasks, rep tasks, and enterprise lifecycle records.",
-      "Current founder read: CRM is ready to support beta contacts and follow-up, but social campaign lead attribution remains future CRM-owned work.",
-      "I can summarize CRM state, but I will not create records or send outreach from Companion."
+      sourceSummaries.crm.join(" "),
+      "Founder action: preserve every call outcome, readiness signal, follow-up, and approved handoff."
     ].join(" "),
     metadata: {
       ...sourceMetadata("crm"),
@@ -231,15 +224,11 @@ export function createCrmSummary() {
 }
 
 export function createSocialMediaSummary() {
-  const social = signal("social", { value: "@prometheus.iq", detail: "Manual social tracking remains available." });
   return {
     title: "Social Media Summary",
     body: [
-      `${social.value}. ${social.detail}`,
-      "Instagram should support founder credibility without exposing private beta details, internal screens, customer data, or proprietary route logic.",
-      "Content should stay anchored in field reality, product intelligence, enterprise trust, and outside-sales education.",
-      "Founder action: publish manually and keep claims tied to what the social read actually supports.",
-      "I will not auto-post or expose private product mechanics."
+      sourceSummaries.socialMedia.join(" "),
+      "Founder action: use current performance evidence for the next content decision and keep publishing manually controlled."
     ].join(" "),
     metadata: {
       ...sourceMetadata("socialMedia"),
@@ -248,19 +237,14 @@ export function createSocialMediaSummary() {
   };
 }
 
+// Retained as a compatibility export for older callers; it now reports current operations.
 export function createBetaSummary() {
-  const beta = signal("anthony", { value: "Ready", detail: "Anthony beta requires real usage feedback." });
   return {
-    title: "Beta Summary",
-    body: [
-      `${beta.value}. ${beta.detail}`,
-      executiveMemory.betaFindings.join(" "),
-      "Founder action: collect route clarity, walk-in readiness, GPS verification, visit logging, feedback, and export usefulness.",
-      "Companion must not modify Anthony beta, Dashboard behavior, production route data, or beta access controls."
-    ].join(" "),
+    title: "Current Operations Summary",
+    body: executiveMemory.operationalState.join(" "),
     metadata: {
       executiveCommandCenter: true,
-      summaryArea: "beta"
+      summaryArea: "current_operations"
     }
   };
 }
@@ -273,35 +257,32 @@ export async function createFounderMorningBrief({
     service: communicationsService,
     command: "founder morning brief"
   });
-  const beta = signal("anthony", { value: "Ready", detail: "Anthony beta requires real usage feedback." });
-  const website = signal("website", { value: "Live", detail: "PrometheusRouteIQ.com is live." });
-  const social = signal("social", { value: "@prometheus.iq", detail: "Manual social tracking remains available." });
   const priorities = createTopThreePriorities();
   const research = createResearchSummary();
   const sales = createSalesSummary();
+  const website = createWebsiteSummary();
   const crm = createCrmSummary();
-  const instagram = await createFounderInstagramAnalyticsBrief({
-    service: socialMediaAnalyticsService
-  });
+  const instagram = await createFounderInstagramAnalyticsBrief({ service: socialMediaAnalyticsService });
 
   return {
     title: "Founder Morning Brief",
     body: [
-      "Here is the founder read.",
+      "Here is the Founder read.",
+      `Company: Route IQ is operational and Patent Pending. Gaia is paused. Athena is architecture only.`,
+      `Phase: ${companyState.currentPhase.join(", ")}.`,
       `Engineering: ${recentEngineeringSummary()}`,
       `Instagram: ${instagram.body}`,
       `Research: ${research.body}`,
       `Sales: ${sales.body}`,
-      `Website: ${website.value}. ${website.detail}`,
+      `Website: ${website.body}`,
       `CRM: ${crm.body}`,
-      `Beta: ${beta.value}. ${beta.detail}`,
       `Calendar: ${agenda.body}`,
       `Daily Priorities: ${priorities.body}`,
-      "My recommendation: protect Anthony beta, preserve founder focus, and turn internal progress into external proof."
+      `Recommendation: ${companyState.chiefOfStaff.recommendedNextAction}`
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
-      sections: ["engineering", "instagram", "research", "sales", "website", "crm", "beta", "calendar", "priorities"],
+      sections: ["company", "phase", "engineering", "instagram", "research", "sales", "website", "crm", "calendar", "priorities"],
       calendarState: agenda.metadata?.integrationState || "Unknown",
       instagramState: instagram.metadata.providerState,
       sourceSubsystems: [
@@ -311,17 +292,10 @@ export async function createFounderMorningBrief({
         "Prometheus Sales",
         "Prometheus Website",
         "Prometheus CRM",
-        "Prometheus Administration",
         "Prometheus Integrations",
         "Prometheus Companion"
       ],
-      readOnlySources: [
-        ...readOnlySources.research,
-        ...readOnlySources.sales,
-        ...readOnlySources.website,
-        ...readOnlySources.crm,
-        ...readOnlySources.socialMedia
-      ]
+      readOnlySources: Object.values(readOnlySources).flat()
     }
   };
 }
@@ -333,12 +307,10 @@ export function createExecutiveDashboardSummary() {
     title: "Executive Dashboard",
     body: [
       `Company: ${sourceSummaries.company.join(" ")}`,
-      "Product: Route Intelligence and verified field activity remain the durable advantage.",
-      "Beta: Anthony validation is still the main proof gap; leave the beta runtime undisturbed.",
-      "Research: use outside evidence when strategy is uncertain.",
-      "Sales: keep the motion controlled, pilot-first, and tied to measurable field value.",
-      "Website: use the site for credibility without revealing internal mechanics.",
-      "Social Media: use Instagram to build trust around field reality and product intelligence.",
+      `Phase: ${companyState.currentPhase.join(", ")}.`,
+      "Operations: execute the current Founder workflow and preserve customer evidence in CRM.",
+      "Research: use outside evidence only when a decision requires it.",
+      "Website and Social Media: consume their current read-only outputs.",
       `Memory: ${memory.body}`,
       `Decision: ${next.body}`
     ].join(" "),
@@ -354,13 +326,12 @@ export function createDailyDecisionSupport() {
   return {
     title: "Daily Decision Support",
     body: [
-      "Use this frame: external proof first, revenue path second, risk reduction third, founder leverage always.",
-      "Engineering should fix only defects that block Companion acceptance, beta validation, or recovery.",
-      "Product should prioritize Anthony beta evidence, route quality, visit logging, and proof that tomorrow's route gets smarter.",
-      "Sales should wait until the proof loop is clear enough to defend, then move into a controlled leadership follow-up.",
-      "Marketing should publish safe founder progress and field-sales lessons without showing internal screens, route scoring, customer data, or proprietary logic.",
-      "Research should come in when a decision needs outside evidence, not when it only needs execution.",
-      "Recommendation: product and beta validation first, sales follow-up second, marketing third, engineering only for verified blockers."
+      "Use this frame: customer movement first, verified readiness second, enterprise risk reduction third, and operational improvement throughout.",
+      "Engineering should fix only current verified blockers or improve an observed Route IQ workflow.",
+      "Sales should execute the active workspace mission and keep CRM stages and handoffs current.",
+      "Product should protect Route IQ operations and document material invention changes.",
+      "Gaia stays paused. Athena stays architecture only.",
+      "Recommendation: run the Founder customer workflow first, then close one Overwatch-recorded readiness or hardening action."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -380,9 +351,9 @@ export function createFounderMemoryRecall(command = "") {
   } else if (normalized.includes("engineering") || normalized.includes("milestone")) {
     key = "engineeringMilestones";
     title = "Engineering Milestone Memory";
-  } else if (normalized.includes("beta") || normalized.includes("anthony")) {
-    key = "betaFindings";
-    title = "Beta Finding Memory";
+  } else if (normalized.includes("operation") || normalized.includes("phase")) {
+    key = "operationalState";
+    title = "Operating State Memory";
   } else if (normalized.includes("investor")) {
     key = "investorConversations";
     title = "Investor Conversation Memory";
@@ -396,7 +367,7 @@ export function createFounderMemoryRecall(command = "") {
     body: [
       sentenceList(executiveMemory[key]),
       `Verified memory events available: ${memoryEvents.length}.`,
-      "Truth rule: I will only state investor, beta, and customer facts that have been recorded."
+      "Truth rule: I will state only current facts and recorded outcomes."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
@@ -409,11 +380,9 @@ export function createExecutiveStrategyMeeting() {
   return {
     title: "Executive Strategy Meeting",
     body: [
-      "Here is the meeting frame: decide the single highest-leverage proof loop, identify the evidence, name the risk, then choose the next action.",
-      "Current strategic read: Prometheus has enough internal build progress. The operating constraint is external validation.",
-      "Evidence needed: Anthony beta feedback, verified visits, route-quality notes, leadership response, and clean daily memory.",
-      "Risk: polishing systems can feel productive while delaying market proof.",
-      "Decision: keep Companion as Cruz's executive operating system and keep Prometheus IQ beta behavior untouched."
+      "Here is the meeting frame: name the active mission, identify the customer decision, verify the operating evidence, state the risk, and choose one next action.",
+      "Current strategic read: Route IQ is operational and Patent Pending. The constraint is disciplined readiness and onboarding execution.",
+      "Decision: execute the current Founder workflow, preserve every customer outcome, and close one governed readiness or hardening action before opening new product scope."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,

@@ -1,84 +1,84 @@
 const weights = {
-  revenueImpact: 0.18,
-  pilotImpact: 0.24,
+  customerImpact: 0.24,
+  operationalImpact: 0.22,
   founderLeverage: 0.18,
-  validationValue: 0.22,
+  readinessValue: 0.18,
   riskReduction: 0.12,
   strategicImportance: 0.06
 };
 
 export const decisionTasks = [
   {
-    id: "anthony-beta-feedback",
-    title: "Capture Anthony beta feedback",
-    description: "Collect real usage feedback, route quality notes, visit logs, GPS verification behavior, and friction points.",
-    revenueImpact: 8,
-    pilotImpact: 10,
-    founderLeverage: 8,
-    validationValue: 10,
-    riskReduction: 8,
-    strategicImportance: 9,
-    reason: "External beta evidence is the strongest path from internal build progress to pilot credibility."
-  },
-  {
-    id: "leadership-follow-up",
-    title: "Prepare Chris / Dallas follow-up",
-    description: "Keep the leadership ask simple: controlled 14-day pilot, three approved users, risk controls, weekly review, final report.",
-    revenueImpact: 9,
-    pilotImpact: 9,
-    founderLeverage: 8,
-    validationValue: 8,
+    id: "founder-mission-execution",
+    title: "Execute today's Founder mission",
+    description: "Select the active workspace, set Today's Mission, review the Research dossier, and call the highest-value prospects first.",
+    customerImpact: 10,
+    operationalImpact: 10,
+    founderLeverage: 9,
+    readinessValue: 8,
     riskReduction: 7,
-    strategicImportance: 9,
-    reason: "Leadership clarity can convert product readiness into an approved test."
+    strategicImportance: 10,
+    reason: "Customer movement is the highest-value use of an operational Route IQ."
   },
   {
-    id: "companion-memory-update",
-    title: "Keep Prometheus memory current",
-    description: "Update the daily progress log and memory timeline after major work so Prometheus does not lose company context.",
-    revenueImpact: 5,
-    pilotImpact: 7,
-    founderLeverage: 10,
-    validationValue: 6,
+    id: "deployment-readiness",
+    title: "Close the next verified readiness item",
+    description: "Use the current Overwatch checkpoint to complete authenticated verification or an outstanding account-owner control.",
+    customerImpact: 8,
+    operationalImpact: 9,
+    founderLeverage: 8,
+    readinessValue: 10,
+    riskReduction: 10,
+    strategicImportance: 9,
+    reason: "Verified readiness protects customer onboarding and enterprise confidence."
+  },
+  {
+    id: "crm-customer-continuity",
+    title: "Preserve customer movement in CRM",
+    description: "Update the candidate stage after every call, record the next step, and hand off to JR only when evidence supports it.",
+    customerImpact: 10,
+    operationalImpact: 9,
+    founderLeverage: 8,
+    readinessValue: 8,
     riskReduction: 8,
     strategicImportance: 8,
-    reason: "Founder leverage increases when decisions and company history stop living only in Cruz's head."
+    reason: "Customer onboarding compounds only when the operating record survives each conversation."
   },
   {
-    id: "github-backup-review",
-    title: "Prepare clean GitHub backup",
-    description: "Review changed files, exclude secrets/build artifacts/screenshots, then commit and push only after explicit approval.",
-    revenueImpact: 5,
-    pilotImpact: 6,
-    founderLeverage: 8,
-    validationValue: 5,
-    riskReduction: 10,
-    strategicImportance: 7,
-    reason: "A clean repository protects source code, preserves progress, and reduces recovery risk."
+    id: "companion-memory-current",
+    title: "Keep governed platform memory current",
+    description: "Record verified changes so Companion and Overwatch do not operate from historical assumptions.",
+    customerImpact: 6,
+    operationalImpact: 9,
+    founderLeverage: 10,
+    readinessValue: 8,
+    riskReduction: 9,
+    strategicImportance: 8,
+    reason: "Current state is an operating dependency for Founder decisions."
   },
   {
-    id: "public-social-proof",
-    title: "Post one build-in-public update",
-    description: "Share progress around field-sales intelligence and private pilot preparation without revealing proprietary logic.",
-    revenueImpact: 6,
-    pilotImpact: 5,
-    founderLeverage: 6,
-    validationValue: 5,
-    riskReduction: 3,
-    strategicImportance: 6,
-    reason: "Social proof helps market learning, but it should not outrank beta validation."
+    id: "route-iq-improvement",
+    title: "Improve one verified Route IQ workflow",
+    description: "Use observed operational evidence, preserve current behavior, and document material invention changes.",
+    customerImpact: 9,
+    operationalImpact: 9,
+    founderLeverage: 7,
+    readinessValue: 8,
+    riskReduction: 7,
+    strategicImportance: 9,
+    reason: "Continuous improvement should follow real operating evidence."
   },
   {
-    id: "new-feature-build",
-    title: "Avoid building a new feature tonight",
-    description: "Defer shiny new features unless they directly reduce beta risk or increase pilot approval odds.",
-    revenueImpact: 3,
-    pilotImpact: 4,
+    id: "ungoverned-expansion",
+    title: "Avoid ungoverned product expansion",
+    description: "Keep Gaia paused and Athena architecture only until the governed company phase changes.",
+    customerImpact: 3,
+    operationalImpact: 3,
     founderLeverage: 4,
-    validationValue: 3,
+    readinessValue: 2,
     riskReduction: 4,
     strategicImportance: 4,
-    reason: "Feature expansion without usage data can dilute focus."
+    reason: "Expansion now would dilute Route IQ operations and customer onboarding."
   }
 ];
 
@@ -100,7 +100,7 @@ export function createDecisionEngineSummary() {
   return {
     title: "Prometheus Decision Engine",
     body: [
-      "I scored founder tasks by revenue impact, pilot impact, founder leverage, validation value, risk reduction, and strategic importance.",
+      "I scored Founder work by customer impact, operational impact, Founder leverage, readiness value, risk reduction, and strategic importance.",
       `Top 3: ${top.map((task, index) => `${index + 1}. ${task.title} (${task.score}/10)`).join(" ")}`,
       `Highest ROI: ${top[0].title}. ${top[0].reason}`
     ].join(" ")
@@ -110,10 +110,8 @@ export function createDecisionEngineSummary() {
 export function createTopFounderPrioritiesV2() {
   const top = rankDecisionTasks().slice(0, 3);
   return {
-    title: "Top 3 founder priorities",
-    body: top.map((task, index) => {
-      return `${index + 1}. ${task.title}: ${task.description} Reason: ${task.reason}`;
-    }).join(" ")
+    title: "Top 3 Founder Priorities",
+    body: top.map((task, index) => `${index + 1}. ${task.title}: ${task.description} Reason: ${task.reason}`).join(" ")
   };
 }
 
@@ -121,27 +119,24 @@ export function createRoadmapGenerator() {
   return {
     title: "Prometheus Roadmap Generator",
     body: [
-      "Next 7 days: collect Anthony beta feedback, update the memory log daily, keep GitHub clean, and prepare leadership follow-up material only after real feedback arrives.",
-      "Next 30 days: convert beta feedback into pilot results, tighten Route Intelligence quality, finalize LLC and banking basics, and secure at least one external pilot path.",
-      "Next 90 days: turn pilot outcomes into repeatable onboarding, reporting, pricing, customer success, and route-data refresh systems.",
-      "Ranking logic: validation and pilot approval outrank new features until real external evidence is strong."
+      "Immediate: execute the active customer mission and close the next verified readiness item.",
+      "Near term: make customer onboarding repeatable, complete enterprise hardening, and preserve workspace-specific CRM evidence.",
+      "Ongoing: improve Route IQ from observed operations and document material invention changes.",
+      "Product boundary: Gaia remains paused and Athena remains architecture only until Overwatch records a governed phase change."
     ].join(" ")
   };
 }
 
 export function createMorningCooBriefV2() {
-  const ranked = rankDecisionTasks();
-  const top = ranked[0];
+  const top = rankDecisionTasks()[0];
   return {
     title: "Morning COO Brief v2",
     body: [
-      "What changed: Prometheus now has a stronger Companion, premium voice path, daily Chief of Staff modules, and a local memory system.",
-      "What matters: prove the product with beta usage before expanding features.",
-      "Biggest blocker: no fresh external pilot data has been collected inside the system yet.",
-      "Biggest opportunity: Anthony beta can turn the app from a founder-built tool into evidence a leadership team can evaluate.",
+      "Route IQ is operational, Patent Pending, and the primary product.",
+      "Gaia is paused. Athena is architecture only.",
+      "The company is in deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
       `Highest ROI action: ${top.title}.`,
-      "Founder warning: do not confuse a better operating system with market validation.",
-      "Pilot status: readiness is high, but approval and usage proof are still the next gates."
+      "Founder warning: do not let stale state or ungoverned expansion displace today's operating mission."
     ].join(" ")
   };
 }

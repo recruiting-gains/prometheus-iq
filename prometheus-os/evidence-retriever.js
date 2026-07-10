@@ -54,8 +54,8 @@ function createKnowledgeSourcePlan(query = "", context = {}) {
   const timelineQuestion = includesAny(normalized, ["what happened", "what changed", "yesterday", "today", "this week", "last month", "timeline"]);
   const statusQuestion = includesAny(normalized, ["status", "ready", "readiness", "where are we", "rundown", "update", "current", "state"]);
   const decisionQuestion = includesAny(normalized, ["what should", "next", "highest roi", "what matters", "focus", "priority", "risk", "blocker", "coo"]);
-  const executiveQuestion = includesAny(normalized, ["executive", "leadership", "chris", "larry", "phil", "dallas", "approval", "pilot"]);
-  const entityQuestion = includesAny(normalized, ["anthony", "chris", "google places", "route intelligence", "website", "github", "cloudflare", "companion", "meta", "instagram"]);
+  const executiveQuestion = includesAny(normalized, ["executive", "founder", "company phase", "approval", "deployment", "onboarding", "enterprise hardening"]);
+  const entityQuestion = includesAny(normalized, ["route iq", "gaia", "athena", "overwatch", "patent", "website", "github", "cloudflare", "companion", "crm", "instagram"]);
 
   if (timelineQuestion) {
     sourceWeights.timeline = 10;
@@ -83,7 +83,7 @@ function createKnowledgeSourcePlan(query = "", context = {}) {
     sourceWeights["company-state"] = Math.max(sourceWeights["company-state"], 9);
     sourceWeights.memory = Math.max(sourceWeights.memory, 9);
     sourceWeights["knowledge-graph"] = Math.max(sourceWeights["knowledge-graph"], 8);
-    reasons.push("executive/pilot readiness question");
+    reasons.push("executive/operational readiness question");
   }
 
   if (entityQuestion) {
@@ -248,29 +248,13 @@ function collectContextEvidence(query, context = {}, plan) {
   }), plan, "project-context", "safe project context match"));
 }
 
-function collectUnknownEvidence(query) {
-  const normalized = normalizeText(query);
-  if (normalized.includes("how many") && normalized.includes("anthony") && normalized.includes("visit")) {
-    return [{
-      id: "unknown-anthony-verified-visits-today",
-      title: "Anthony verified visit count today",
-      summary: "No verified Anthony visit count for today is available in local Prometheus memory.",
-      impact: "Prometheus should not guess beta activity. Anthony needs logged visits or imported feedback before this can be answered as fact.",
-      type: "unknown-operational-data",
-      source: "Prometheus Truth Doctrine",
-      tags: ["anthony", "beta", "unknown", "truth-doctrine"],
-      entities: ["Anthony"],
-      status: "unknown",
-      truth: "unknown",
-      confidence: 1
-    }];
-  }
+function collectUnknownEvidence() {
   return [];
 }
 
 function collectCompanyStateEvidence(query, context = {}, plan) {
   const normalized = plan.normalized || normalizeText(query);
-  const statusIntent = includesAny(normalized, ["status", "ready", "readiness", "where are we", "rundown", "update", "current", "state", "executive", "leadership", "pilot"]);
+  const statusIntent = includesAny(normalized, ["status", "ready", "readiness", "where are we", "rundown", "update", "current", "state", "executive", "founder", "deployment", "onboarding"]);
   if (!statusIntent) return [];
 
   const focusedKeys = new Set();
@@ -282,20 +266,16 @@ function collectCompanyStateEvidence(query, context = {}, plan) {
     }
   }
 
-  if (includesAny(normalized, ["executive", "leadership", "dallas", "larry", "phil", "approval"])) {
-    ["executive", "pilot", "anthony", "github", "cloudflare", "llc", "domain"].forEach((key) => focusedKeys.add(key));
-  }
-
-  if (normalized.includes("chris")) {
-    ["executive", "pilot", "anthony"].forEach((key) => focusedKeys.add(key));
+  if (includesAny(normalized, ["executive", "founder", "company phase", "approval", "deployment", "onboarding", "enterprise hardening"])) {
+    ["route-iq", "company-phase", "overwatch", "patent", "github", "cloudflare"].forEach((key) => focusedKeys.add(key));
   }
 
   if (normalized.includes("website") || normalized.includes("site")) {
     ["website", "domain", "cloudflare"].forEach((key) => focusedKeys.add(key));
   }
 
-  if (normalized.includes("route intelligence") || normalized.includes("google places")) {
-    ["route", "anthony", "pilot"].forEach((key) => focusedKeys.add(key));
+  if (normalized.includes("route iq") || normalized.includes("primary product")) {
+    ["route-iq", "patent", "company-phase", "overwatch"].forEach((key) => focusedKeys.add(key));
   }
 
   const allowGeneralState = focusedKeys.size === 0 && includesAny(normalized, ["where are we", "rundown", "company status", "company update"]);

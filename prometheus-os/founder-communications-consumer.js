@@ -55,17 +55,17 @@ function formatMessage(message) {
 }
 
 function messageDraftText(command = "") {
-  const toChris = command.includes("chris") || command.includes("leadership") || command.includes("pilot");
-  if (toChris) {
+  const customerUpdate = command.includes("customer") || command.includes("onboarding") || command.includes("route iq");
+  if (customerUpdate) {
     return {
-      subject: "Controlled Prometheus pilot follow-up",
-      body: "Chris, quick update: Prometheus is ready for a controlled pilot conversation. The ask is intentionally simple: a limited 14-day test, approved users only, GPS-verified activity, weekly review, and a final results report. I can keep proprietary routing logic out of the conversation unless leadership wants a deeper review under the right approval path. What would Dallas leadership need from me next to evaluate this cleanly?"
+      subject: "Route IQ onboarding follow-up",
+      body: "Quick Route IQ update: the current focus is a reliable onboarding path, clear ownership, and measurable next steps. I will keep proprietary intelligence logic out of the discussion and center the conversation on the operating outcome. What is the next decision we need to close together?"
     };
   }
 
   return {
     subject: "Prometheus founder update",
-    body: "Quick update from Prometheus: the product foundation is real, the next priority is validation, and I am keeping the ask focused on measurable field-sales proof instead of extra features. The next step is to collect useful feedback, confirm the blocker, and decide the smallest action that moves the pilot forward."
+    body: "Quick update from Prometheus: Route IQ is operational, Patent Pending, and the primary product. The company is focused on deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement. The next step is to confirm the current owner, blocker, and decision."
   };
 }
 
@@ -116,8 +116,8 @@ export async function createFounderAgendaBrief({ service = defaultService, comma
     body: [
       state,
       events,
-      "Plan the day around proof, not activity.",
-      "Highest-value operating blocks remain: beta validation, leadership follow-up, message review, and nightly memory/backup review."
+      "Use the active workspace and set today's mission before opening the prospect queue.",
+      "Call the highest-value prospects first, update CRM stage after every call, review follow-ups, and write tomorrow's priorities before closing the day."
     ].join(" "),
     metadata: {
       integrationContract: result.contractVersion,
