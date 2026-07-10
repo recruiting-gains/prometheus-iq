@@ -7,6 +7,7 @@ import {
   createCrmState,
   createLeadFromRuntimeRecord,
   crmVersion,
+  persistWorkspaceLeadIntakeHandoff,
   dashboardRuntimeRecordsFromActivePool,
   leadStatuses,
   loadRuntimeActivePool,
@@ -86,5 +87,6 @@ assert.equal(enterpriseModel.implementationType, "architecture");
 assert.equal(enterpriseModel.productionBetaSystemsModified, false);
 assert.equal(Array.isArray(enterpriseModel.entities), true);
 assert.equal(enterpriseModel.entities.some(entity => entity.id === "company_account"), true);
+assert.equal(typeof persistWorkspaceLeadIntakeHandoff, "function");
 
 console.log("CRM typecheck passed: exported API and runtime adapter contracts are valid.");

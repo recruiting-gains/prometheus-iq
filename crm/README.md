@@ -27,6 +27,10 @@ CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness
 - `workspaces/smoothie-depot/candidate-pipeline-contracts.json`: Smoothie Depot franchise candidate CRM planning contracts for candidate records, business prospects, JR handoff, commission tracking, protected candidate tracking, and workspace isolation.
 - `workspaces/smoothie-depot/candidate-pipeline-planning.md`: human-readable Smoothie Depot CRM candidate pipeline plan. This remains planning-only and does not create CRM runtime records or Dashboard consumption.
 
+## Workspace Lead Intake
+
+CRM consumes Infrastructure-prepared `shared_workspace_crm_lead_intake_packet.v1` handoff packets through `consumeWorkspaceLeadIntakeHandoff`. Use `persistWorkspaceLeadIntakeHandoff` with a CRM-owned durable store adapter to persist canonical workspace lead records under `crm-workspace-leads/` keys. Infrastructure owns receipt, routing, and intake storage; CRM owns customer lead persistence.
+
 ## v1 Workflow
 
 Supported lead states:

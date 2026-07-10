@@ -10,6 +10,7 @@ import {
   buildTaskQueue,
   completeTask,
   consumeWorkspaceLeadIntakeHandoff,
+  crmWorkspaceLeadPersistencePrefix,
   createCrmState,
   createFollowUp,
   createLeadFromRuntimeRecord,
@@ -17,6 +18,7 @@ import {
   loadRuntimeActivePool,
   recordProfileOutcomeForLead,
   recordRouteVisit,
+  persistWorkspaceLeadIntakeHandoff,
   transitionLeadProfileStage,
   transitionLead
 } from "../crm/crm-foundation.mjs";
@@ -43,6 +45,10 @@ function memoryKvStore() {
     items,
     async put(key, value, options = {}) {
       items.set(key, { value: String(value), options });
+    },
+    readJson(key) {
+      const item = items.get(key);
+      return item ? JSON.parse(item.value) : null;
     }
   };
 }
@@ -642,4 +648,137 @@ test("Workspace intake rejects cross-workspace contamination", async () => {
   assert.equal(state.leads.length, 0);
   assert.equal(state.workspaceCandidateHandoffs.length, 0);
   assert.equal(state.workspaceLeadIntakeHandoffs.length, 0);
+});
+
+test("CRM persists Fitness Connection workspace lead records durably", async () => {
+  const state = createCrmState({ now: "2026-07-04T15:00:00.000Z" });
+  const store = memoryKvStore();
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "League City Strength",
+    contactName: "Taylor Owner",
+    contactMethod: "taylor@example.com",
+    campaignId: "fitness-durable-intake"
+  });
+
+  const result = await persistWorkspaceLeadIntakeHandoff(state, record, {
+    store,
+    persistedAt: "2026-07-04T15:05:00.000Z"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.record.workspace.workspaceId, "fitness_connection");
+  assert.equal(result.record.leadId, result.consumed.lead.id);
+  assert.equal(result.record.company, "League City Strength");
+  assert.equal(result.record.contactName, "Taylor Owner");
+  assert.equal(result.record.email, "taylor@example.com");
+  assert.equal(result.record.phone, "");
+  assert.equal(result.record.source, "partner_intake");
+  assert.equal(result.record.submissionTimestamp, record.timestamp);
+  assert.equal(result.record.status, "New Lead");
+  assert.equal(result.record.assignedWorkspace.workspaceId, "fitness_connection");
+  assert.equal(result.record.notes.includes("Submitted through shared workspace partner intake."), true);
+  assert.equal(result.record.metadata.submissionId, record.submissionId);
+  assert.equal(result.record.metadata.handoffId, record.crmHandoff.handoffId);
+  assert.equal(result.record.metadata.operatingProfileId, "fitness");
+  assert.equal(result.record.metadata.auditTrail.some(entry => entry.event === "workspace_crm_handoff_prepared"), true);
+  assert.equal(result.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`);
+  assert.deepEqual(store.readJson(result.record.storage.keys.record), result.record);
+  assert.equal(store.items.has(`${crmWorkspaceLeadPersistencePrefix}/workspaces/smoothie_depot/submissions/${record.submissionId}/lead.json`), false);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
+});
+
+test("CRM persists Smoothie Depot intake as isolated franchise candidate lead record", async () => {
+  const state = createCrmState({ now: "2026-07-04T15:10:00.000Z" });
+  const store = memoryKvStore();
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "smoothie_depot",
+    companyName: "Cypress Smoothie Operators",
+    contactName: "Riley Candidate",
+    contactMethod: "7135550101",
+    campaignId: "smoothie-durable-intake",
+    locationCount: "4"
+  });
+
+  const result = await persistWorkspaceLeadIntakeHandoff(state, record, {
+    store,
+    persistedAt: "2026-07-04T15:15:00.000Z"
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.record.workspace.workspaceId, "smoothie_depot");
+  assert.equal(result.record.leadId, result.consumed.candidate.id);
+  assert.equal(result.record.company, "Cypress Smoothie Operators");
+  assert.equal(result.record.contactName, "Riley Candidate");
+  assert.equal(result.record.email, "");
+  assert.equal(result.record.phone, "7135550101");
+  assert.equal(result.record.status, "Contact Found");
+  assert.equal(result.record.assignedWorkspace.targetType, "smoothie_depot_candidate_handoff");
+  assert.equal(result.record.metadata.operatingProfileId, "franchise_development");
+  assert.equal(result.record.metadata.attribution.social.campaignId, "smoothie-durable-intake");
+  assert.equal(result.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/smoothie_depot/submissions/${record.submissionId}/lead.json`);
+  assert.deepEqual(store.readJson(result.record.storage.keys.record), result.record);
+  assert.equal(store.items.has(`${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`), false);
+  assert.equal(state.workspaceCandidateHandoffs.length, 1);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
+});
+
+test("CRM workspace lead persistence fails closed for unknown workspace without writes", async () => {
+  const state = createCrmState({ now: "2026-07-04T15:20:00.000Z" });
+  const store = memoryKvStore();
+
+  await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, {
+    status: "prepared",
+    mutationPerformed: false,
+    ownerSubsystem: "Prometheus CRM",
+    contract: "shared_workspace_crm_lead_intake_packet.v1",
+    workspaceId: "unknown_workspace",
+    handoffId: "crm_handoff_unknown_persist",
+    submissionId: "sub_unknown_persist",
+    preparedAt: "2026-07-04T15:20:00.000Z",
+    packet: {
+      lead: {
+        workspaceId: "unknown_workspace",
+        companyName: "Unknown Persistent Co",
+        requesterName: "Unknown Person",
+        contactMethod: "unknown@example.com"
+      },
+      crmIntegration: {
+        workspaceId: "unknown_workspace",
+        operatingProfileId: "general_outside_sales"
+      },
+      attribution: {}
+    }
+  }, { store }), /Unknown CRM workspace intake workspace: unknown_workspace/);
+
+  assert.equal(store.items.size, 0);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 0);
+  assert.equal(state.contacts.length, 0);
+  assert.equal(state.leads.length, 0);
+});
+
+test("CRM workspace lead persistence is idempotent per workspace submission", async () => {
+  const state = createCrmState({ now: "2026-07-04T15:30:00.000Z" });
+  const store = memoryKvStore();
+  const record = await infrastructureIntakeRecord({
+    workspaceId: "fitness_connection",
+    companyName: "Idempotent Fitness Lead",
+    contactName: "Devon Lead"
+  });
+
+  const first = await persistWorkspaceLeadIntakeHandoff(state, record, {
+    store,
+    persistedAt: "2026-07-04T15:31:00.000Z"
+  });
+  const second = await persistWorkspaceLeadIntakeHandoff(state, record, {
+    store,
+    persistedAt: "2026-07-04T15:32:00.000Z"
+  });
+
+  assert.equal(first.duplicate, false);
+  assert.equal(second.duplicate, true);
+  assert.equal(second.record.recordId, first.record.recordId);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
+  assert.equal(state.contacts.length, 1);
+  assert.equal(state.leads.length, 1);
 });
