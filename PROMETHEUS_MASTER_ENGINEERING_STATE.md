@@ -39,6 +39,50 @@ Every new Route IQ improvement must be evaluated as either:
 - Operational improvement.
 - Material invention requiring documentation under the Permanent Route IQ Invention Documentation Rule.
 
+## Current Security Checkpoint
+
+### 2026-07-10: Prometheus Infrastructure/Auth - Operation Aegis Phase II Account-Level Completion
+
+Task:
+Operation Aegis Phase II Account-Level Completion.
+
+Status:
+Complete for Infrastructure-owned account-level verification and precise blocker resolution.
+
+Files changed:
+
+- `docs/aegis-phase-ii-account-level-completion.md`
+- `PROMETHEUS_MASTER_ENGINEERING_STATE.md`
+
+What changed:
+
+- Recorded the account-level completion pass using the current Overwatch operational reset as source of truth.
+- Verified Cloudflare Access live challenge behavior, public WAF method guard behavior, hardened API headers, no-store runtime status behavior, KV-backed Aegis rate-limit headers, GitHub branch visibility, repository health, local security gates, and existing governance files.
+- Classified remaining account-level controls as founder/account-owner actions instead of ambiguous Infrastructure engineering blockers: Cloudflare MFA/recovery, GitHub MFA/recovery, GitHub private-repo plan-gated protections, Cloudflare account-token inventory permissions, optional account-level rate-volume rules, and founder-approved session-duration tightening.
+- Preserved Dashboard, Companion, CRM, Website features, Mobile, Research, Intelligence runtime, production data, and customer workspace logic.
+
+Validation:
+
+- `npm run security:check`
+- `npm run security:aegis:verify`
+- `npm run test:social-media`
+- `npm run infrastructure:lead-intake:check`
+- `npm run infrastructure:intake-contract:check`
+- `npm run overwatch:artifact-contracts:check`
+- `npm run lint`
+- `npm run typecheck`
+- `npm run build`
+- `git diff --check`
+- `git fsck --connectivity-only --no-dangling --no-progress`
+
+Remaining account-owner actions:
+
+- Founder must complete and verify Cloudflare MFA/recovery before MFA can be enforced without lockout risk.
+- Founder must complete and verify GitHub MFA/recovery if not already complete.
+- GitHub plan or organization security surface must be upgraded before private-repo branch protection enforcement, secret scanning, push protection, or code scanning can be treated as enterprise-complete.
+- Cloudflare dashboard/API permissions are required for full account API-token inventory and optional account-level rate-volume rule creation.
+- Founder approval is required before tightening Access session duration.
+
 ## Master Coordination Rule
 
 This workspace owns platform-level coordination, architecture consistency, dependency tracking, roadmap updates, and completed-work records.
