@@ -83,9 +83,10 @@ const executiveMemory = {
     "Current engineering work is deployment readiness, customer onboarding support, enterprise hardening, and continuous operational improvement."
   ],
   operationalState: [
-    "The concept-testing phase is complete and is not the current company phase.",
-    "Route IQ is operational.",
-    "Current work is deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
+    "Company phase: deployment readiness, customer onboarding, enterprise hardening, and continuous operational improvement.",
+    "Route IQ is operational, Patent Pending, and the primary company product.",
+    "Gaia is paused.",
+    "Athena is architecture only.",
     "Remaining blockers must come from current Overwatch evidence, not historical assumptions."
   ],
   investorConversations: [
@@ -94,6 +95,30 @@ const executiveMemory = {
     "Do not claim customer, revenue, or investor outcomes that are not recorded in governed evidence."
   ]
 };
+
+const historicalCompanyPhasePatterns = Object.freeze([
+  /\bconcept[-\s]?testing\b/i,
+  /\bpilot\b/i,
+  /\bbeta\b/i,
+  /\bvalidation\b/i
+]);
+
+function requestsHistoricalCompanyPhase(command = "") {
+  const normalized = String(command).toLowerCase();
+  return /\b(historical|history)\b/.test(normalized) ||
+    /\b(previous|prior|past|former|old)\s+(company\s+)?phase\b/.test(normalized) ||
+    /\bwhat\s+(was|were)\s+the\s+(previous|prior|past|former|old)\s+(company\s+)?phase\b/.test(normalized);
+}
+
+function operatingStateMemoryFor(command = "") {
+  if (requestsHistoricalCompanyPhase(command)) {
+    return executiveMemory.operationalState;
+  }
+
+  return executiveMemory.operationalState.filter((item) =>
+    !historicalCompanyPhasePatterns.some((pattern) => pattern.test(item))
+  );
+}
 
 function signal(key, fallback = {}) {
   return companyState.statusCards.find((card) => card.key === key) || fallback;
@@ -362,16 +387,22 @@ export function createFounderMemoryRecall(command = "") {
     title = "Company Decision Memory";
   }
 
+  const historicalContextRequested = key === "operationalState" && requestsHistoricalCompanyPhase(command);
+  const memoryItems = key === "operationalState"
+    ? operatingStateMemoryFor(command)
+    : executiveMemory[key];
+
   return {
     title,
     body: [
-      sentenceList(executiveMemory[key]),
+      sentenceList(memoryItems),
       `Verified memory events available: ${memoryEvents.length}.`,
       "Truth rule: I will state only current facts and recorded outcomes."
     ].join(" "),
     metadata: {
       executiveCommandCenter: true,
-      memoryCategory: key
+      memoryCategory: key,
+      historicalContextRequested
     }
   };
 }

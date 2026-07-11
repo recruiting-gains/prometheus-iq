@@ -1,5 +1,6 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
+import { createFounderMemoryRecall } from "../prometheus-os/executive-command-center.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
 import { readFileSync } from "node:fs";
 import {
@@ -654,7 +655,7 @@ const executiveCommandCenterCases = [
   ],
   [
     "What do you remember about the current phase?",
-    ["operating state memory", "route iq is operational", "deployment readiness", "truth rule"]
+    ["operating state memory", "deployment readiness", "customer onboarding", "enterprise hardening", "continuous operational improvement", "route iq is operational", "patent pending", "primary company product", "gaia is paused", "athena is architecture only", "truth rule"]
   ],
   [
     "What company decisions do you remember?",
@@ -670,7 +671,7 @@ const executiveCommandCenterCases = [
   ],
   [
     "What do you remember about operations?",
-    ["operating state memory", "route iq is operational", "current work is deployment readiness"]
+    ["operating state memory", "company phase: deployment readiness", "route iq is operational", "patent pending", "gaia is paused", "athena is architecture only"]
   ],
   [
     "What investor conversations do you remember?",
@@ -697,6 +698,45 @@ for (const [phrase, expected] of executiveCommandCenterCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> executive:${response.title}`);
+}
+
+const currentOperatingStateMemory = createFounderMemoryRecall("What do you remember about current operations?");
+const currentOperatingStateText = `${currentOperatingStateMemory.title} ${currentOperatingStateMemory.body}`.toLowerCase();
+const historicalCompanyPhaseTerms = ["concept testing", "concept-testing", "pilot", "beta", "validation"];
+const historicalPhaseLeak = historicalCompanyPhaseTerms.find((term) => currentOperatingStateText.includes(term));
+const requiredCurrentOperatingState = [
+  "deployment readiness",
+  "customer onboarding",
+  "enterprise hardening",
+  "continuous operational improvement",
+  "route iq is operational",
+  "patent pending",
+  "primary company product",
+  "gaia is paused",
+  "athena is architecture only"
+];
+const missingCurrentOperatingState = requiredCurrentOperatingState.filter(
+  (term) => !currentOperatingStateText.includes(term)
+);
+const historicalOperatingStateMemory = createFounderMemoryRecall(
+  "What do you remember about historical company phases?"
+);
+
+if (
+  historicalPhaseLeak ||
+  missingCurrentOperatingState.length ||
+  currentOperatingStateMemory.metadata?.historicalContextRequested !== false ||
+  historicalOperatingStateMemory.metadata?.historicalContextRequested !== true
+) {
+  fail("operating-state-memory-consistency", {
+    historicalPhaseLeak,
+    missingCurrentOperatingState,
+    currentHistoricalContextRequested: currentOperatingStateMemory.metadata?.historicalContextRequested,
+    explicitHistoricalContextRequested: historicalOperatingStateMemory.metadata?.historicalContextRequested,
+    body: currentOperatingStateMemory.body
+  });
+} else {
+  console.log("PASS operating-state-memory-consistency -> current-only-with-explicit-history-gate");
 }
 
 const founderStyleCases = [
