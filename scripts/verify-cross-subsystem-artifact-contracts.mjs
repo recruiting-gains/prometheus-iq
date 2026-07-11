@@ -8,6 +8,10 @@ import {
 
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const complianceAuditPath = "overwatch/artifact-contracts/subsystem-workspace-compliance-audit-v1.json";
+const fitnessBusinessHoursConsumerPath = "intelligence/contracts/route-business-hours-eligibility-contracts.json";
+const fitnessBusinessHoursDataContractPath = "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json";
+const fitnessBusinessHoursDatasetPath = "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json";
+const fitnessBusinessHoursConsumerId = "route-iq-closed-now-eligibility-contracts-v1";
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -347,6 +351,110 @@ function ensurePathRegistered(path, contract, groupNames, failures) {
     `Data runtime contract must register canonical path: ${path}`,
     failures
   );
+}
+
+export function validateFitnessBusinessHoursConsumerLinkage({
+  workspace,
+  intelligenceContract,
+  dataContract,
+  consumerContract,
+  dataContractRegistration,
+  consumerRegistration
+} = {}) {
+  const failures = [];
+  const intelligenceConsumer = workspace?.consumerContracts?.intelligence;
+  const requiredReadPaths = [
+    fitnessBusinessHoursConsumerPath,
+    fitnessBusinessHoursDataContractPath,
+    fitnessBusinessHoursDatasetPath
+  ];
+  const exactConsumerReaders = ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"];
+  const exactDataReaders = ["Prometheus Intelligence Engine", "Prometheus Overwatch"];
+  const sameMembers = (actual, expected) => JSON.stringify([...(actual || [])].sort()) === JSON.stringify([...expected].sort());
+
+  assert(Boolean(consumerRegistration), "Fitness business-hours Intelligence consumer contract must be registered canonically.", failures);
+  assert(Boolean(dataContractRegistration), "Fitness business-hours Data contract must be registered canonically.", failures);
+  assert(Boolean(consumerContract), "Fitness business-hours Intelligence consumer identifier could not be resolved.", failures);
+  assert(Boolean(dataContract), "Fitness business-hours Data contract could not be resolved.", failures);
+
+  for (const path of requiredReadPaths) {
+    assert(
+      intelligenceConsumer?.allowedReadPaths?.includes(path),
+      `Fitness Intelligence business-hours read path missing: ${path}`,
+      failures
+    );
+  }
+
+  assert(
+    intelligenceContract?.canonicalIntelligencePaths?.routeBusinessHoursEligibilityContracts === fitnessBusinessHoursConsumerPath,
+    "Fitness Intelligence consumer contract declares a non-canonical business-hours consumer path.",
+    failures
+  );
+  assert(
+    intelligenceContract?.authorizedDataReadPaths?.businessHoursDataContract === fitnessBusinessHoursDataContractPath,
+    "Fitness Intelligence consumer contract declares a non-canonical business-hours Data contract path.",
+    failures
+  );
+  assert(
+    intelligenceContract?.authorizedDataReadPaths?.businessHoursDataset === fitnessBusinessHoursDatasetPath,
+    "Fitness Intelligence consumer contract declares a non-canonical business-hours dataset path.",
+    failures
+  );
+
+  assert(consumerRegistration?.path === fitnessBusinessHoursConsumerPath, "Registered Intelligence consumer canonical path mismatch.", failures);
+  assert(consumerRegistration?.canonicalIdentifier === fitnessBusinessHoursConsumerId, "Registered Intelligence consumer canonical identifier mismatch.", failures);
+  assert(consumerRegistration?.ownerSubsystem === "Prometheus Intelligence Engine", "Registered business-hours consumer must be Intelligence-owned.", failures);
+  assert(sameMembers(consumerRegistration?.writeAllowed, ["Prometheus Intelligence Engine"]), "Only Intelligence may write its business-hours consumer contract.", failures);
+  assert(sameMembers(consumerRegistration?.readAllowed, exactConsumerReaders), "Business-hours consumer contract authorizes an unknown consumer.", failures);
+  assert(consumerRegistration?.linkedDataContractId === dataContract?.contractId, "Registered Intelligence consumer is not linked to the governing Data contract id.", failures);
+  assert(consumerRegistration?.linkedDataContractPath === fitnessBusinessHoursDataContractPath, "Registered Intelligence consumer Data contract path mismatch.", failures);
+  assert(consumerRegistration?.requiredWorkspaceId === "fitness_connection", "Registered Intelligence consumer workspace is unauthorized.", failures);
+  assert(consumerRegistration?.requiredOperatingProfileId === "fitness", "Registered Intelligence consumer operating profile is unauthorized.", failures);
+
+  assert(dataContractRegistration?.path === fitnessBusinessHoursDataContractPath, "Registered business-hours Data contract canonical path mismatch.", failures);
+  assert(dataContractRegistration?.ownerSubsystem === "Prometheus Data", "Registered business-hours artifact must remain Data-owned.", failures);
+  assert(sameMembers(dataContractRegistration?.writeAllowed, ["Prometheus Data"]), "Intelligence must not gain write access to the business-hours Data contract.", failures);
+  assert(sameMembers(dataContractRegistration?.readAllowed, exactDataReaders), "Business-hours Data contract authorizes an unknown consumer.", failures);
+  assert(dataContractRegistration?.authorizedConsumerSubsystem === "Prometheus Intelligence Engine", "Business-hours Data registration consumer is unauthorized.", failures);
+  assert(dataContractRegistration?.authorizedConsumerContractId === fitnessBusinessHoursConsumerId, "Business-hours Data registration consumer identifier mismatch.", failures);
+
+  assert(consumerContract?.version === fitnessBusinessHoursConsumerId, "Canonical Intelligence consumer identifier could not be resolved.", failures);
+  assert(consumerContract?.workspaceId === "fitness_connection", "Business-hours Intelligence consumer workspace is unauthorized.", failures);
+  assert(consumerContract?.operatingProfileId === "fitness", "Business-hours Intelligence consumer operating profile is unauthorized.", failures);
+  assert(consumerContract?.dataContract?.contractId === dataContract?.contractId, "Data contract and Intelligence consumer contract are not linked.", failures);
+  assert(consumerContract?.dataContract?.artifact === fitnessBusinessHoursDatasetPath, "Intelligence consumer declares a non-canonical business-hours dataset path.", failures);
+  assert(consumerContract?.dataContract?.dataOwnsStatusAndProvenance === true, "Data must retain business-hours status and provenance ownership.", failures);
+  assert(consumerContract?.dataContract?.sourceRecordsModified === false, "Intelligence consumer must not mutate business-hours source records.", failures);
+  assert(consumerContract?.safety?.workspaceIsolation === "fail_closed", "Business-hours Intelligence workspace isolation must fail closed.", failures);
+
+  assert(dataContract?.authorizationMetadata?.authorizedConsumerContractId === fitnessBusinessHoursConsumerId, "Data authorization does not resolve the canonical Intelligence consumer identifier.", failures);
+  assert(dataContract?.authorizationMetadata?.authorizedConsumerContractPath === fitnessBusinessHoursConsumerPath, "Data authorization declares a non-canonical Intelligence consumer path.", failures);
+  assert(dataContract?.canonicalArtifacts?.authorizedIntelligenceConsumerContract === fitnessBusinessHoursConsumerPath, "Data canonical artifacts do not link the Intelligence consumer.", failures);
+  assert(dataContract?.canonicalArtifacts?.businessHoursArtifact === fitnessBusinessHoursDatasetPath, "Data contract declares a non-canonical business-hours dataset path.", failures);
+  assert(dataContract?.authorizationMetadata?.authorizedWorkspaceId === "fitness_connection", "Data authorization workspace is unauthorized.", failures);
+  assert(dataContract?.authorizationMetadata?.authorizedOperatingProfileId === "fitness", "Data authorization operating profile is unauthorized.", failures);
+  assert(dataContract?.authorizationMetadata?.authorizedConsumerSubsystem === "Prometheus Intelligence Engine", "Data authorization consumer is unauthorized.", failures);
+  assert(dataContract?.authorizationMetadata?.failClosedBehavior?.unknownConsumerFailsClosed === true, "Unknown business-hours consumers must fail closed.", failures);
+  assert(dataContract?.authorizationMetadata?.failClosedBehavior?.unknownWorkspaceFailsClosed === true, "Unknown business-hours workspaces must fail closed.", failures);
+
+  const accessRules = intelligenceContract?.businessHoursAccessRules;
+  assert(accessRules?.canonicalConsumerIdentifier === fitnessBusinessHoursConsumerId, "Fitness Intelligence access rules do not resolve the canonical consumer identifier.", failures);
+  assert(accessRules?.canonicalConsumerContractPath === fitnessBusinessHoursConsumerPath, "Fitness Intelligence access rules declare a non-canonical consumer path.", failures);
+  assert(accessRules?.authorizedDataContractId === dataContract?.contractId, "Fitness Intelligence access rules are not linked to the Data contract.", failures);
+  assert(accessRules?.authorizedDataContractPath === fitnessBusinessHoursDataContractPath, "Fitness Intelligence access rules declare a non-canonical Data contract path.", failures);
+  assert(accessRules?.authorizedDatasetPath === fitnessBusinessHoursDatasetPath, "Fitness Intelligence access rules declare a non-canonical dataset path.", failures);
+  assert(accessRules?.authorizedConsumerSubsystem === "Prometheus Intelligence Engine", "Fitness Intelligence access rules authorize an unknown consumer.", failures);
+  assert(accessRules?.accessMode === "read_only", "Fitness Intelligence business-hours access must remain read-only.", failures);
+  assert(accessRules?.dataMutationAllowed === false, "Fitness Intelligence must not mutate the business-hours Data artifact.", failures);
+  assert(accessRules?.unknownConsumerFailsClosed === true, "Fitness Intelligence must fail closed for unknown business-hours consumers.", failures);
+  assert(accessRules?.unknownWorkspaceFailsClosed === true, "Fitness Intelligence must fail closed for unknown business-hours workspaces.", failures);
+  assert(accessRules?.consumerContractMismatchFailsClosed === true, "Fitness Intelligence must fail closed for mismatched business-hours contracts.", failures);
+  assert(intelligenceContract?.interpretationRules?.canMutateData === false, "Fitness Intelligence must not mutate Data.", failures);
+  assert(intelligenceContract?.workspaceIsolationRules?.smoothieDepotCandidateDataAllowed === false, "Fitness Intelligence business-hours access must not include Smoothie Depot.", failures);
+  assert(intelligenceConsumer?.mustNotInfluenceSmoothieDepot === true, "Fitness Intelligence business-hours evidence must not influence Smoothie Depot.", failures);
+  assert(intelligenceConsumer?.mustNotMutateDashboardCrmOrData === true, "Fitness Intelligence business-hours access must not authorize Data mutation.", failures);
+
+  return failures;
 }
 
 function validateBusinessHoursDataContract(contract, runtimeContract, failures) {
@@ -862,6 +970,15 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const dashboardContract = readJson(artifacts.fitness_connection_dashboard_consumer_contract.path);
   const routeDataContract = readJson(artifacts.fitness_connection_route_intelligence_data_contract.path);
   const dataRuntimeArtifactContract = readJson(artifacts.fitness_connection_data_runtime_artifact_contract.path);
+  const businessHoursDataRegistration = artifacts.fitness_connection_business_hours_data_contract;
+  const businessHoursConsumerRegistration = artifacts.fitness_connection_route_business_hours_intelligence_consumer_contract;
+  const businessHoursDataContract = businessHoursDataRegistration && exists(businessHoursDataRegistration.path)
+    ? readJson(businessHoursDataRegistration.path)
+    : null;
+  const businessHoursConsumerContract = businessHoursDataContract?.authorizationMetadata?.authorizedConsumerContractPath
+    && exists(businessHoursDataContract.authorizationMetadata.authorizedConsumerContractPath)
+    ? readJson(businessHoursDataContract.authorizationMetadata.authorizedConsumerContractPath)
+    : null;
   const crmContract = readJson(artifacts.fitness_connection_crm_consumer_contract.path);
   const intelligenceContract = readJson(artifacts.fitness_connection_intelligence_consumer_contract.path);
   const dashboardSource = read(artifacts.fitness_connection_dashboard_source.path);
@@ -920,6 +1037,15 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(crmContract.writeRules.unknownWorkspaceFailsClosed === true, "CRM must fail closed for unknown workspace.", failures);
 
   validateReferencedPaths(intelligenceContract.canonicalIntelligencePaths, "Fitness Intelligence contract", failures);
+  validateReferencedPaths(intelligenceContract.authorizedDataReadPaths, "Fitness Intelligence authorized Data reads", failures);
+  failures.push(...validateFitnessBusinessHoursConsumerLinkage({
+    workspace,
+    intelligenceContract,
+    dataContract: businessHoursDataContract,
+    consumerContract: businessHoursConsumerContract,
+    dataContractRegistration: businessHoursDataRegistration,
+    consumerRegistration: businessHoursConsumerRegistration
+  }));
   assert(operatingProfiles.profiles?.some(profile => profile.profileId === "fitness"), "Operating Profile registry must include Fitness.", failures);
   assert(intelligenceContract.interpretationRules.productionLearningActive === false, "Fitness Intelligence contract must keep production learning inactive.", failures);
   assert(intelligenceContract.interpretationRules.productionScoringChangeRequiresExplicitFutureHandoff === true, "Fitness scoring changes must require explicit future handoff.", failures);

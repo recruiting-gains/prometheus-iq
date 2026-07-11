@@ -3,7 +3,10 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 
-import { verifyCrossSubsystemArtifactContracts } from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
+import {
+  validateFitnessBusinessHoursConsumerLinkage,
+  verifyCrossSubsystemArtifactContracts
+} from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
 
 test("Cross-subsystem artifact contracts verify canonical paths and consumers", () => {
   const result = verifyCrossSubsystemArtifactContracts();
@@ -135,6 +138,7 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_route_intelligence_data_contract",
     "fitness_connection_data_runtime_artifact_contract",
     "fitness_connection_business_hours_data_contract",
+    "fitness_connection_route_business_hours_intelligence_consumer_contract",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
@@ -246,6 +250,79 @@ test("Data business-hours contract authorizes only the verified Fitness Intellig
   assert.equal(hours.routeEligibilityActivated, false);
   assert.equal(hours.runtimeBehaviorChanged, false);
   assert.equal(hours.scoringChanged, false);
+});
+
+test("Fitness business-hours canonical linkage fails closed for every unauthorized edge", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const workspace = result.registry.workspaces.find(candidate => candidate.workspaceId === "fitness_connection");
+  const registrations = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
+  const intelligenceContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_intelligence_consumer_contract.path, "utf8"));
+  const dataContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_business_hours_data_contract.path, "utf8"));
+  const consumerContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_route_business_hours_intelligence_consumer_contract.path, "utf8"));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const fixture = () => ({
+    workspace: clone(workspace),
+    intelligenceContract: clone(intelligenceContract),
+    dataContract: clone(dataContract),
+    consumerContract: clone(consumerContract),
+    dataContractRegistration: clone(registrations.fitness_connection_business_hours_data_contract),
+    consumerRegistration: clone(registrations.fitness_connection_route_business_hours_intelligence_consumer_contract)
+  });
+
+  assert.deepEqual(validateFitnessBusinessHoursConsumerLinkage(fixture()), []);
+
+  const cases = [
+    {
+      label: "unregistered consumer",
+      mutate: input => { input.consumerRegistration = null; },
+      expected: /must be registered canonically/
+    },
+    {
+      label: "unresolved canonical identifier",
+      mutate: input => { input.consumerRegistration.canonicalIdentifier = "unknown-consumer"; },
+      expected: /canonical identifier mismatch/
+    },
+    {
+      label: "missing required read path",
+      mutate: input => {
+        input.workspace.consumerContracts.intelligence.allowedReadPaths = input.workspace.consumerContracts.intelligence.allowedReadPaths
+          .filter(path => !path.endsWith("business-hours.json"));
+      },
+      expected: /read path missing/
+    },
+    {
+      label: "declared path mismatch",
+      mutate: input => { input.consumerRegistration.path = "intelligence/contracts/non-canonical-hours-contract.json"; },
+      expected: /canonical path mismatch/
+    },
+    {
+      label: "unlinked Data contract",
+      mutate: input => { input.consumerContract.dataContract.contractId = "unlinked-data-contract"; },
+      expected: /not linked/
+    },
+    {
+      label: "unauthorized workspace",
+      mutate: input => { input.consumerContract.workspaceId = "smoothie_depot"; },
+      expected: /workspace is unauthorized/
+    },
+    {
+      label: "unauthorized consumer",
+      mutate: input => { input.consumerRegistration.readAllowed.push("Prometheus Dashboard"); },
+      expected: /unknown consumer/
+    },
+    {
+      label: "Intelligence Data mutation",
+      mutate: input => { input.intelligenceContract.businessHoursAccessRules.dataMutationAllowed = true; },
+      expected: /must not mutate/
+    }
+  ];
+
+  for (const scenario of cases) {
+    const input = fixture();
+    scenario.mutate(input);
+    const failures = validateFitnessBusinessHoursConsumerLinkage(input);
+    assert.ok(failures.some(failure => scenario.expected.test(failure)), `${scenario.label}: ${failures.join(" | ")}`);
+  }
 });
 
 test("Social Media artifact contracts register analytics, attribution, and consumer boundaries", () => {

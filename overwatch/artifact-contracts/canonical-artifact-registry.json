@@ -365,6 +365,22 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_route_business_hours_intelligence_consumer_contract",
+          "artifactType": "intelligence_business_hours_consumer_contract",
+          "ownerSubsystem": "Prometheus Intelligence Engine",
+          "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+          "schema": "RouteIqClosedNowEligibilityContractsV1",
+          "canonicalIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
+          "linkedDataContractId": "fitness-connection-business-hours-data-contract-v1",
+          "linkedDataContractPath": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+          "writeAllowed": ["Prometheus Intelligence Engine"],
+          "readAllowed": ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_crm_consumer_contract",
           "artifactType": "crm_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",
@@ -489,12 +505,16 @@
             "intelligence/contracts/adaptive-intelligence-contracts.json",
             "intelligence/contracts/field-learning-loop-contracts.json",
             "intelligence/contracts/recommendation-explainability-contracts.json",
-            "intelligence/contracts/customer-intelligence-graph-contracts.json"
+            "intelligence/contracts/customer-intelligence-graph-contracts.json",
+            "intelligence/contracts/route-business-hours-eligibility-contracts.json"
           ],
           "allowedReadPaths": [
             "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
             "overwatch/artifact-contracts/workspaces/fitness-connection/route-intelligence-data-contract-v1.json",
             "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+            "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+            "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+            "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
             "crm/crm-foundation.mjs",
             "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
             "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",

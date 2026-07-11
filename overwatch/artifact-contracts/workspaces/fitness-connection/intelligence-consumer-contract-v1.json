@@ -12,7 +12,25 @@
     "adaptiveIntelligenceContracts": "intelligence/contracts/adaptive-intelligence-contracts.json",
     "fieldLearningLoopContracts": "intelligence/contracts/field-learning-loop-contracts.json",
     "recommendationExplainabilityContracts": "intelligence/contracts/recommendation-explainability-contracts.json",
-    "customerIntelligenceGraphContracts": "intelligence/contracts/customer-intelligence-graph-contracts.json"
+    "customerIntelligenceGraphContracts": "intelligence/contracts/customer-intelligence-graph-contracts.json",
+    "routeBusinessHoursEligibilityContracts": "intelligence/contracts/route-business-hours-eligibility-contracts.json"
+  },
+  "authorizedDataReadPaths": {
+    "businessHoursDataContract": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+    "businessHoursDataset": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+  },
+  "businessHoursAccessRules": {
+    "canonicalConsumerIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
+    "canonicalConsumerContractPath": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "authorizedDataContractId": "fitness-connection-business-hours-data-contract-v1",
+    "authorizedDataContractPath": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+    "authorizedDatasetPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "authorizedConsumerSubsystem": "Prometheus Intelligence Engine",
+    "accessMode": "read_only",
+    "dataMutationAllowed": false,
+    "unknownWorkspaceFailsClosed": true,
+    "unknownConsumerFailsClosed": true,
+    "consumerContractMismatchFailsClosed": true
   },
   "interpretationRules": {
     "canReadResearch": false,

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T21:26:36.839Z",
+  "generatedAt": "2026-07-11T23:28:37.166Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "dataset": {
@@ -641,13 +641,228 @@
     "governanceStatus": "passed",
     "promotionGateStatus": "passed",
     "runtimeBehaviorChanged": false,
-    "scoringChanged": false
+    "scoringChanged": false,
+    "activePoolGovernancePreserved": true,
+    "fullPoolFallbackGovernancePreserved": true
+  },
+  "businessHoursEligibility": {
+    "status": "passed",
+    "implementation": {
+      "eligibilityVersion": "route-iq-closed-now-eligibility-v1",
+      "consumerContractVersion": "route-iq-closed-now-eligibility-contracts-v1",
+      "sourceDatasetVersion": "google-qualified-businesses-v2",
+      "recordCount": 398,
+      "statusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+      "scoringWeightsChanged": false,
+      "liveGoogleCalls": false
+    },
+    "canonicalConsumer": {
+      "status": "passed",
+      "artifactId": "fitness_connection_route_business_hours_intelligence_consumer_contract",
+      "registered": true,
+      "canonicalIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
+      "identifierResolved": true,
+      "consumerContractPath": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+      "dataContractPath": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+      "datasetPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "requiredReadPaths": [
+        "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+        "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+      ],
+      "requiredReadPathsPresent": true,
+      "accessMode": "read_only",
+      "dataMutationAllowed": false,
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "smoothieDepotAccessAllowed": false,
+      "unknownWorkspaceFailsClosed": true,
+      "unknownConsumerFailsClosed": true
+    },
+    "statusPolicies": {
+      "sourceStatusCounts": {
+        "CLOSED_VERIFIED": 116,
+        "OPEN_VERIFIED": 237,
+        "HOURS_UNKNOWN": 45
+      },
+      "OPEN_VERIFIED": {
+        "status": "OPEN_VERIFIED",
+        "eligible": true,
+        "coverageOnly": false,
+        "selectionTier": 0,
+        "internalMarker": null,
+        "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+        "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+        "displayLabel": "Verified open"
+      },
+      "CLOSED_VERIFIED": {
+        "status": "CLOSED_VERIFIED",
+        "eligible": false,
+        "coverageOnly": false,
+        "selectionTier": 99,
+        "internalMarker": "CLOSED_NOW",
+        "reasonCode": "VERIFIED_CURRENT_WINDOW_CLOSED",
+        "reason": "Verified provider current-hours data show the business closed at 16:21 America/Chicago.",
+        "displayLabel": "Closed now"
+      },
+      "HOURS_UNKNOWN": {
+        "status": "HOURS_UNKNOWN",
+        "eligible": true,
+        "coverageOnly": true,
+        "selectionTier": 1,
+        "internalMarker": "HOURS_NOT_VERIFIED",
+        "reasonCode": "HOURS_SOURCE_MISSING",
+        "reason": "No verified business-hours source is available.",
+        "displayLabel": "Hours not verified"
+      },
+      "HOURS_STALE": {
+        "status": "HOURS_STALE",
+        "eligible": true,
+        "coverageOnly": true,
+        "selectionTier": 1,
+        "internalMarker": "HOURS_NOT_VERIFIED",
+        "reasonCode": "HOURS_SOURCE_STALE",
+        "reason": "Verified business hours are older than the 168-hour freshness threshold.",
+        "displayLabel": "Hours not verified"
+      },
+      "SPECIAL_HOURS_UNVERIFIED": {
+        "status": "SPECIAL_HOURS_UNVERIFIED",
+        "eligible": true,
+        "coverageOnly": true,
+        "selectionTier": 1,
+        "internalMarker": "HOURS_NOT_VERIFIED",
+        "reasonCode": "SPECIAL_HOURS_NOT_VERIFIED",
+        "reason": "Special or holiday hours for 2026-07-11 are not verified.",
+        "displayLabel": "Hours not verified"
+      }
+    },
+    "christianBrothersRegression": {
+      "status": "passed",
+      "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "permanentOperationalStatus": "OPERATIONAL",
+      "eligibilityStatus": "CLOSED_VERIFIED",
+      "eligible": false,
+      "initialRouteExcluded": true,
+      "replenishmentExcluded": true,
+      "exclusionReasonCode": "VERIFIED_CURRENT_WINDOW_CLOSED",
+      "exclusionReason": "Verified provider current-hours data show the business closed at 16:21 America/Chicago.",
+      "fieldEvidenceIds": [
+        "fitness-2026-07-11-christian-brothers-closed-observation"
+      ]
+    },
+    "queueValidation": {
+      "status": "passed",
+      "targetSize": 15,
+      "replenishmentThreshold": 5,
+      "initialStopCount": 15,
+      "initialActivePoolOnly": true,
+      "initialVerifiedOpenOnly": true,
+      "initialDuplicateCount": 0,
+      "completedStopsSimulated": 11,
+      "replenishmentTriggeredBelowThreshold": true,
+      "replenishedStopCount": 15,
+      "replenishmentAppended": 11,
+      "completedStopExclusionPreserved": true,
+      "replenishedDuplicateCount": 0,
+      "fullPoolFallbackExercised": true,
+      "fullPoolFallbackSourceOrder": [
+        "active",
+        "full",
+        "active"
+      ],
+      "fullPoolFallbackStatusOrder": [
+        "OPEN_VERIFIED",
+        "OPEN_VERIFIED",
+        "HOURS_UNKNOWN"
+      ],
+      "routeScoresUnchanged": true
+    },
+    "explainability": {
+      "status": "passed",
+      "requiredFields": [
+        "status",
+        "eligible",
+        "hoursConfidence",
+        "hoursFreshness",
+        "reasonCode",
+        "reason",
+        "evaluatedAt",
+        "businessTimezone",
+        "sourceRetrievedAt",
+        "hoursVerifiedAt",
+        "provenance"
+      ],
+      "missingFields": [],
+      "initialQueueExplanationsAvailable": true,
+      "closedExclusionAttributable": true,
+      "provenanceAvailable": true
+    },
+    "failureReasons": []
   },
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 30,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 5\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 5\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
-    "stderr": ""
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 6\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 6\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stderr": "",
+    "evidence": {
+      "status": "passed",
+      "checked_files": 32,
+      "live_google_api_calls": 0,
+      "google_api_endpoint_or_key_references": 0,
+      "generic_network_primitives": [
+        {
+          "file": "index.html",
+          "pattern": "Client fetch",
+          "count": 6
+        },
+        {
+          "file": "deploy/cloudflare-pages/index.html",
+          "pattern": "Client fetch",
+          "count": 6
+        },
+        {
+          "file": "deploy/cloudflare-pages/sw.js",
+          "pattern": "Client fetch",
+          "count": 2
+        },
+        {
+          "file": "deploy/prometheusrouteiq-website/vendor/three.core.js",
+          "pattern": "Client fetch",
+          "count": 3
+        },
+        {
+          "file": "deploy/prometheusrouteiq-website/vendor/three.core.js",
+          "pattern": "Client XMLHttpRequest",
+          "count": 4
+        }
+      ],
+      "note": "Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only."
+    }
+  },
+  "runtimeSurface": {
+    "status": "passed",
+    "checkedRuntimeFiles": 32,
+    "expectedRuntimeFiles": 32,
+    "dashboardFetches": 6,
+    "deployDashboardFetches": 6,
+    "expectedDashboardFetches": 6,
+    "sourceDeployFetchParity": true,
+    "liveGoogleApiCalls": 0
+  },
+  "repositoryState": {
+    "status": "passed",
+    "branch": "main",
+    "baseRef": "origin/main",
+    "baseCommit": "bb7255498e04cafbe02173b254bec5d39cf14fde",
+    "ahead": 3,
+    "behind": 0,
+    "expectedLocalCommitCount": 3,
+    "localCommitSubjects": [
+      "Implement Route IQ closed-now eligibility",
+      "Authorize Intelligence business hours consumption",
+      "Remediate business hours canonical route evidence"
+    ]
   },
   "dashboardCompatibility": {
     "status": "passed",

@@ -22,7 +22,12 @@ function fixtures() {
     quarantinePool: readJson(defaultPaths.quarantinePool),
     governanceReport: readJson(defaultPaths.governanceReport),
     promotionGate: readJson(defaultPaths.promotionGate),
-    expectedBaseline: readJson(defaultPaths.goldenBaseline)
+    expectedBaseline: readJson(defaultPaths.goldenBaseline),
+    businessHoursArtifact: readJson(defaultPaths.businessHoursArtifact),
+    businessHoursDataContract: readJson(defaultPaths.businessHoursDataContract),
+    businessHoursIntelligenceContract: readJson(defaultPaths.businessHoursIntelligenceContract),
+    fitnessIntelligenceConsumerContract: readJson(defaultPaths.fitnessIntelligenceConsumerContract),
+    canonicalArtifactRegistry: readJson(defaultPaths.canonicalArtifactRegistry)
   };
 }
 
@@ -54,6 +59,25 @@ test("quality gate passes for the reviewed golden Active Pool baseline", () => {
   assert.equal(result.report.candidateValidation.status, "passed");
   assert.equal(result.report.orderingConsistency.status, "passed");
   assert.equal(result.report.dashboardCompatibility.status, "passed");
+  assert.equal(result.report.businessHoursEligibility.status, "passed");
+  assert.equal(result.report.businessHoursEligibility.implementation.recordCount, 398);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.registered, true);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.identifierResolved, true);
+  assert.equal(result.report.businessHoursEligibility.canonicalConsumer.requiredReadPathsPresent, true);
+  assert.equal(result.report.businessHoursEligibility.statusPolicies.OPEN_VERIFIED.eligible, true);
+  assert.equal(result.report.businessHoursEligibility.statusPolicies.CLOSED_VERIFIED.eligible, false);
+  for (const status of ["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"]) {
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].coverageOnly, true);
+    assert.equal(result.report.businessHoursEligibility.statusPolicies[status].internalMarker, "HOURS_NOT_VERIFIED");
+  }
+  assert.equal(result.report.businessHoursEligibility.christianBrothersRegression.status, "passed");
+  assert.equal(result.report.businessHoursEligibility.queueValidation.initialStopCount, 15);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.replenishmentThreshold, 5);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.replenishedStopCount, 15);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.fullPoolFallbackExercised, true);
+  assert.equal(result.report.businessHoursEligibility.queueValidation.routeScoresUnchanged, true);
+  assert.equal(result.report.businessHoursEligibility.explainability.status, "passed");
+  assert.equal(result.report.runtimeSurface.status, "skipped");
 });
 
 test("quality gate fails when a quarantined business appears in Active recommendations", () => {
@@ -99,6 +123,20 @@ test("quality gate detects golden route order drift", () => {
 
   assert.equal(result.passed, false);
   assert.ok(result.report.failureReasons.some(reason => reason.includes("golden_route_order_or_membership_changed")));
+});
+
+test("quality gate fails when the canonical business-hours Intelligence consumer is unregistered", () => {
+  const current = fixtures();
+  const canonicalArtifactRegistry = clone(current.canonicalArtifactRegistry);
+  const fitnessWorkspace = canonicalArtifactRegistry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
+  fitnessWorkspace.canonicalArtifacts = fitnessWorkspace.canonicalArtifacts.filter(
+    artifact => artifact.artifactId !== "fitness_connection_route_business_hours_intelligence_consumer_contract"
+  );
+
+  const result = runWith({ canonicalArtifactRegistry });
+
+  assert.equal(result.passed, false);
+  assert.ok(result.report.failureReasons.includes("business_hours:business_hours_consumer_not_registered"));
 });
 
 test("incomplete runtime profile rows are skipped without crashing route generation", () => {

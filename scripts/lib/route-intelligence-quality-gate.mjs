@@ -3,6 +3,18 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import {
+  createEmptyRouteQueue,
+  maintainRouteQueue,
+  routeQueueIdentity
+} from "../../intelligence/continuous-adaptive-route-replenishment.mjs";
+import {
+  applyHoursEligibilityToScore,
+  buildRouteBusinessHoursIndex,
+  evaluateRouteBusinessHoursEligibility,
+  hoursNotVerifiedMarker,
+  routeBusinessHoursEligibilityVersion
+} from "../../intelligence/route-business-hours-eligibility.mjs";
 import { genericNamePattern, numberedAddress, safeMapsPattern } from "../segment-google-runtime-pools.mjs";
 
 export const gateVersion = "route-intelligence-golden-route-quality-gate-v1";
@@ -17,8 +29,17 @@ export const defaultPaths = {
   governanceReport: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
   promotionGate: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/promotion-gate.json",
   goldenBaseline: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-baseline.json",
-  qualityReport: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json"
+  qualityReport: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+  businessHoursArtifact: "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+  businessHoursDataContract: "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+  businessHoursIntelligenceContract: "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+  fitnessIntelligenceConsumerContract: "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
+  canonicalArtifactRegistry: "overwatch/artifact-contracts/canonical-artifact-registry.json"
 };
+
+const expectedRuntimeFileCount = 32;
+const expectedDashboardFetchCount = 6;
+const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 const dashboardCategories = new Set([
   "Apartment", "Auto", "Tire", "Oil Change", "Car Wash", "Warehouse", "Restaurant", "Retail", "Small Retail",
@@ -339,11 +360,396 @@ function runZeroGoogleCheck(root) {
     encoding: "utf8",
     env: { ...process.env, NO_COLOR: "1" }
   });
+  const stdout = String(result.stdout || "").trim();
+  let evidence = null;
+  try {
+    evidence = stdout ? JSON.parse(stdout) : null;
+  } catch {
+    evidence = null;
+  }
   return {
     status: result.status === 0 ? "passed" : "failed",
     exitCode: result.status,
-    stdout: String(result.stdout || "").trim(),
-    stderr: String(result.stderr || "").trim()
+    stdout,
+    stderr: String(result.stderr || "").trim(),
+    evidence
+  };
+}
+
+function runtimeSurfaceEvidence(zeroLiveGoogle) {
+  if (zeroLiveGoogle.status === "skipped") {
+    return {
+      status: "skipped",
+      reason: zeroLiveGoogle.reason,
+      expectedRuntimeFiles: expectedRuntimeFileCount,
+      expectedDashboardFetches: expectedDashboardFetchCount
+    };
+  }
+  const evidence = zeroLiveGoogle.evidence || {};
+  const primitives = evidence.generic_network_primitives || [];
+  const fetchCount = path => primitives.find(item => item.file === path && item.pattern === "Client fetch")?.count ?? null;
+  const sourceDashboardFetches = fetchCount("index.html");
+  const deployDashboardFetches = fetchCount("deploy/cloudflare-pages/index.html");
+  const passed = evidence.checked_files === expectedRuntimeFileCount
+    && sourceDashboardFetches === expectedDashboardFetchCount
+    && deployDashboardFetches === expectedDashboardFetchCount;
+  return {
+    status: passed ? "passed" : "failed",
+    checkedRuntimeFiles: evidence.checked_files ?? null,
+    expectedRuntimeFiles: expectedRuntimeFileCount,
+    dashboardFetches: sourceDashboardFetches,
+    deployDashboardFetches,
+    expectedDashboardFetches: expectedDashboardFetchCount,
+    sourceDeployFetchParity: sourceDashboardFetches === deployDashboardFetches,
+    liveGoogleApiCalls: evidence.live_google_api_calls ?? null
+  };
+}
+
+function gitCommand(root, args) {
+  const result = spawnSync("git", args, { cwd: root, encoding: "utf8" });
+  return {
+    ok: result.status === 0,
+    value: String(result.stdout || "").trim(),
+    error: String(result.stderr || "").trim()
+  };
+}
+
+function repositoryEvidence(root, expectedLocalCommitCount) {
+  const divergence = gitCommand(root, ["rev-list", "--left-right", "--count", "origin/main...HEAD"]);
+  const branch = gitCommand(root, ["branch", "--show-current"]);
+  const baseCommit = gitCommand(root, ["rev-parse", "origin/main"]);
+  const subjects = gitCommand(root, ["log", "--reverse", "--format=%s", "origin/main..HEAD"]);
+  if (!divergence.ok || !branch.ok || !baseCommit.ok || !subjects.ok) {
+    return {
+      status: expectedLocalCommitCount === undefined ? "unavailable" : "failed",
+      baseRef: "origin/main",
+      expectedLocalCommitCount: expectedLocalCommitCount ?? null,
+      error: [divergence.error, branch.error, baseCommit.error, subjects.error].filter(Boolean).join(" | ")
+    };
+  }
+  const [behind, ahead] = divergence.value.split(/\s+/).map(Number);
+  const localCommitSubjects = subjects.value ? subjects.value.split("\n") : [];
+  const matchesExpected = expectedLocalCommitCount === undefined || ahead === expectedLocalCommitCount;
+  return {
+    status: expectedLocalCommitCount === undefined ? "observed" : matchesExpected ? "passed" : "failed",
+    branch: branch.value,
+    baseRef: "origin/main",
+    baseCommit: baseCommit.value,
+    ahead,
+    behind,
+    expectedLocalCommitCount: expectedLocalCommitCount ?? null,
+    localCommitSubjects
+  };
+}
+
+function hoursDecisionEvidence(decision) {
+  return {
+    status: decision?.status || null,
+    eligible: decision?.eligible === true,
+    coverageOnly: decision?.coverageOnly === true,
+    selectionTier: decision?.selectionTier ?? null,
+    internalMarker: decision?.internalMarker ?? null,
+    reasonCode: decision?.reasonCode || null,
+    reason: decision?.reason || null,
+    displayLabel: decision?.displayLabel || null
+  };
+}
+
+export function buildBusinessHoursQualityEvidence({
+  activePool,
+  reservePool,
+  businessHoursArtifact,
+  dataContract,
+  consumerContract,
+  fitnessIntelligenceContract,
+  artifactRegistry
+}) {
+  const failures = [];
+  const check = (condition, reason) => {
+    if (!condition) failures.push(reason);
+  };
+  const fitnessWorkspace = artifactRegistry.workspaces?.find(workspace => workspace.workspaceId === "fitness_connection");
+  const registrations = Object.fromEntries((fitnessWorkspace?.canonicalArtifacts || []).map(artifact => [artifact.artifactId, artifact]));
+  const consumerRegistration = registrations.fitness_connection_route_business_hours_intelligence_consumer_contract;
+  const dataRegistration = registrations.fitness_connection_business_hours_data_contract;
+  const requiredReadPaths = [
+    defaultPaths.businessHoursIntelligenceContract,
+    defaultPaths.businessHoursDataContract,
+    defaultPaths.businessHoursArtifact
+  ];
+  const allowedReadPaths = fitnessWorkspace?.consumerContracts?.intelligence?.allowedReadPaths || [];
+  const canonicalIdentifier = consumerContract.version;
+
+  check(Boolean(consumerRegistration), "business_hours_consumer_not_registered");
+  check(canonicalIdentifier === "route-iq-closed-now-eligibility-contracts-v1", "business_hours_consumer_identifier_not_canonical");
+  check(consumerRegistration?.path === defaultPaths.businessHoursIntelligenceContract, "business_hours_consumer_canonical_path_mismatch");
+  check(consumerRegistration?.canonicalIdentifier === canonicalIdentifier, "business_hours_consumer_identifier_unresolved");
+  check(consumerRegistration?.linkedDataContractId === dataContract.contractId, "business_hours_consumer_data_contract_unlinked");
+  check(dataRegistration?.path === defaultPaths.businessHoursDataContract, "business_hours_data_contract_canonical_path_mismatch");
+  check(dataContract.authorizationMetadata?.authorizedConsumerContractId === canonicalIdentifier, "business_hours_data_authorization_identifier_mismatch");
+  check(dataContract.authorizationMetadata?.authorizedConsumerContractPath === defaultPaths.businessHoursIntelligenceContract, "business_hours_data_authorization_path_mismatch");
+  check(consumerContract.dataContract?.contractId === dataContract.contractId, "business_hours_contract_link_mismatch");
+  check(consumerContract.dataContract?.artifact === defaultPaths.businessHoursArtifact, "business_hours_dataset_path_mismatch");
+  check(fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only", "business_hours_access_not_read_only");
+  check(fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false, "business_hours_data_mutation_authorized");
+  check(fitnessIntelligenceContract.interpretationRules?.canMutateData === false, "fitness_intelligence_data_mutation_authorized");
+  check(fitnessIntelligenceContract.workspaceId === "fitness_connection", "fitness_intelligence_workspace_mismatch");
+  check(fitnessIntelligenceContract.operatingProfileId === "fitness", "fitness_intelligence_operating_profile_mismatch");
+  check(fitnessIntelligenceContract.workspaceIsolationRules?.smoothieDepotCandidateDataAllowed === false, "smoothie_depot_business_hours_access_allowed");
+  check(fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed === true, "unknown_business_hours_workspace_not_fail_closed");
+  check(fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed === true, "unknown_business_hours_consumer_not_fail_closed");
+  for (const path of requiredReadPaths) check(allowedReadPaths.includes(path), `fitness_intelligence_read_path_missing:${path}`);
+
+  const hoursIndex = buildRouteBusinessHoursIndex(businessHoursArtifact);
+  const evaluatedAt = businessHoursArtifact.statusEvaluatedAt;
+  const routeDate = String(evaluatedAt).slice(0, 10);
+  const decisionForRecord = (record, candidate = null) => evaluateRouteBusinessHoursEligibility({
+    record,
+    candidate,
+    evaluatedAt,
+    policy: hoursIndex.freshnessPolicy
+  });
+  const sourceStatusCounts = businessHoursArtifact.records.reduce((counts, record) => {
+    counts[record.currentOpenClosedEligibilityStatus] = (counts[record.currentOpenClosedEligibilityStatus] || 0) + 1;
+    return counts;
+  }, {});
+  const activeOpenRecord = businessHoursArtifact.records.find(record => record.activePoolMember && decisionForRecord(record).status === "OPEN_VERIFIED");
+  const activeUnknownRecord = businessHoursArtifact.records.find(record => record.activePoolMember && decisionForRecord(record).status === "HOURS_UNKNOWN");
+  const christianRecord = hoursIndex.recordsByPlaceId.get(christianBrothersPlaceId);
+  const christianDecision = decisionForRecord(christianRecord);
+  const staleDecision = decisionForRecord({ ...activeOpenRecord, hoursVerifiedAt: "2026-06-01T00:00:00.000Z" });
+  const specialDecision = decisionForRecord({
+    ...activeOpenRecord,
+    specialOrHolidayHours: [{
+      date: routeDate,
+      verificationStatus: "UNVERIFIED",
+      periods: null,
+      source: "GOOGLE_PLACES_CURRENT_OPENING_HOURS"
+    }]
+  });
+  const openDecision = decisionForRecord(activeOpenRecord);
+  const unknownDecision = decisionForRecord(activeUnknownRecord);
+
+  check(businessHoursArtifact.recordCount === 398 && businessHoursArtifact.records.length === 398, "business_hours_record_count_not_398");
+  check(openDecision.status === "OPEN_VERIFIED" && openDecision.eligible && openDecision.selectionTier === 0, "open_verified_policy_regressed");
+  check(christianRecord?.permanentOperationalStatus === "OPERATIONAL", "christian_brothers_permanent_status_regressed");
+  check(christianDecision.status === "CLOSED_VERIFIED" && !christianDecision.eligible, "closed_verified_policy_regressed");
+  for (const [status, decision] of [["HOURS_UNKNOWN", unknownDecision], ["HOURS_STALE", staleDecision], ["SPECIAL_HOURS_UNVERIFIED", specialDecision]]) {
+    check(
+      decision.status === status && decision.eligible && decision.coverageOnly && decision.selectionTier === 1 && decision.internalMarker === hoursNotVerifiedMarker,
+      `${status.toLowerCase()}_policy_regressed`
+    );
+  }
+
+  const candidateFromPoolRecord = (record, index, sourcePool) => {
+    const profile = record.runtimeProfiles?.find(item => item.repProfileId === "cruz") || record.runtimeProfiles?.[0];
+    return {
+      id: String(profile?.runtimeId || `${sourcePool}-${index}-${record.googlePlaceId}`).slice(0, 128),
+      googlePlaceId: record.googlePlaceId,
+      name: record.businessName,
+      address: record.address,
+      category: record.category,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      businessStatus: record.businessStatus || record.permanentOperationalStatus || "OPERATIONAL",
+      baseScore: Number(profile?.qualityScore ?? record.qualityScore ?? record.priority ?? 0),
+      hoursRecord: hoursIndex.recordsByPlaceId.get(record.googlePlaceId) || null
+    };
+  };
+  const activeCandidates = (activePool.records || []).map((record, index) => candidateFromPoolRecord(record, index, "active"));
+  const reserveCandidates = (reservePool.records || []).map((record, index) => candidateFromPoolRecord(record, index, "full"));
+  const eligibilityForCandidate = candidate => decisionForRecord(candidate.hoursRecord, candidate);
+  const scoreCandidate = candidate => applyHoursEligibilityToScore(
+    { score: candidate.baseScore, signals: ["existing route score"] },
+    eligibilityForCandidate(candidate)
+  );
+  const isEligible = candidate => eligibilityForCandidate(candidate).eligible;
+  const queueContext = {
+    workspaceId: "fitness_connection",
+    representativeId: "route-quality-gate",
+    operatingProfileId: "fitness",
+    routeDate
+  };
+  const initialQueue = createEmptyRouteQueue({ ...queueContext, targetSize: 15, threshold: 5 });
+  const initial = maintainRouteQueue({
+    queue: initialQueue,
+    ...queueContext,
+    primaryCandidates: activeCandidates,
+    force: true,
+    trigger: "route-quality-initial-generation",
+    identityOf: routeQueueIdentity,
+    isEligible,
+    scoreCandidate,
+    now: evaluatedAt
+  });
+  const christianIdentity = routeQueueIdentity({ googlePlaceId: christianBrothersPlaceId });
+  const candidateByIdentity = new Map(activeCandidates.map(candidate => [routeQueueIdentity(candidate), candidate]));
+  const initialIdentityKeys = initial.queue.entries.map(entry => entry.identityKey);
+  const initialScoresUnchanged = initial.queue.entries.every(entry => candidateByIdentity.get(entry.identityKey)?.baseScore === entry.scoreSnapshot);
+  const initialExplanationsAvailable = initial.queue.entries.every(entry => entry.eligibilitySnapshot?.reasonCode && entry.eligibilitySnapshot?.reason && entry.eligibilitySnapshot?.provenance);
+
+  check(initial.queue.entries.length === 15, "initial_route_did_not_reach_15_stops");
+  check(initial.queue.threshold === 5, "route_replenishment_threshold_not_5");
+  check(initial.queue.entries.every(entry => entry.sourcePool === "active"), "initial_route_did_not_preserve_active_pool_priority");
+  check(initial.queue.entries.every(entry => entry.eligibilitySnapshot?.status === "OPEN_VERIFIED"), "initial_route_used_non_open_candidate_with_open_coverage_available");
+  check(!initialIdentityKeys.includes(christianIdentity), "christian_brothers_entered_initial_route");
+  check(new Set(initialIdentityKeys).size === initialIdentityKeys.length, "initial_route_contains_duplicates");
+  check(initialScoresUnchanged, "business_hours_changed_initial_route_score");
+  check(initialExplanationsAvailable, "initial_route_hours_explanation_missing");
+
+  const completedIdentityKeys = initial.queue.entries.slice(0, 11).map(entry => entry.identityKey);
+  const replenished = maintainRouteQueue({
+    queue: initial.queue,
+    ...queueContext,
+    primaryCandidates: activeCandidates,
+    completedIdentityKeys,
+    force: false,
+    trigger: "route-quality-low-water-replenishment",
+    identityOf: routeQueueIdentity,
+    isEligible,
+    scoreCandidate,
+    now: evaluatedAt
+  });
+  const replenishedIdentityKeys = replenished.queue.entries.map(entry => entry.identityKey);
+  const replenishedScoresUnchanged = replenished.queue.entries.every(
+    entry => candidateByIdentity.get(entry.identityKey)?.baseScore === entry.scoreSnapshot
+      && entry.eligibilitySnapshot?.scoringChanged === false
+  );
+  check(replenished.belowThreshold && replenished.triggered, "adaptive_replenishment_did_not_trigger_below_5");
+  check(replenished.queue.entries.length === 15, "adaptive_replenishment_did_not_return_to_15");
+  check(completedIdentityKeys.every(identity => !replenishedIdentityKeys.includes(identity)), "completed_stop_reentered_replenished_route");
+  check(!replenishedIdentityKeys.includes(christianIdentity), "christian_brothers_entered_replenished_route");
+  check(new Set(replenishedIdentityKeys).size === replenishedIdentityKeys.length, "replenished_route_contains_duplicates");
+  check(replenishedScoresUnchanged, "business_hours_changed_replenishment_score");
+
+  const fallbackActiveOpen = activeCandidates.find(candidate => eligibilityForCandidate(candidate).status === "OPEN_VERIFIED");
+  const fallbackActiveUnknown = activeCandidates.find(candidate => eligibilityForCandidate(candidate).status === "HOURS_UNKNOWN");
+  const fallbackFullOpen = reserveCandidates.find(candidate => eligibilityForCandidate(candidate).status === "OPEN_VERIFIED");
+  const fallback = fallbackActiveOpen && fallbackActiveUnknown && fallbackFullOpen
+    ? maintainRouteQueue({
+      queue: createEmptyRouteQueue({ ...queueContext, targetSize: 3, threshold: 1 }),
+      ...queueContext,
+      primaryCandidates: [fallbackActiveUnknown, fallbackActiveOpen],
+      fallbackCandidates: [fallbackFullOpen],
+      force: true,
+      trigger: "route-quality-full-pool-fallback",
+      identityOf: routeQueueIdentity,
+      isEligible,
+      scoreCandidate,
+      now: evaluatedAt
+    })
+    : null;
+  const fallbackSourceOrder = fallback?.queue.entries.map(entry => entry.sourcePool) || [];
+  const fallbackStatusOrder = fallback?.queue.entries.map(entry => entry.eligibilitySnapshot?.status) || [];
+  check(fallback?.usedFallback === true, "full_pool_fallback_not_exercised");
+  check(JSON.stringify(fallbackSourceOrder) === JSON.stringify(["active", "full", "active"]), "active_and_full_pool_fallback_order_regressed");
+  check(JSON.stringify(fallbackStatusOrder) === JSON.stringify(["OPEN_VERIFIED", "OPEN_VERIFIED", "HOURS_UNKNOWN"]), "verified_open_fallback_preference_regressed");
+
+  const explanationFields = consumerContract.explainability?.requiredFields || [];
+  const missingExplanationFields = explanationFields.filter(field => !Object.prototype.hasOwnProperty.call(christianDecision, field));
+  check(missingExplanationFields.length === 0, "business_hours_explainability_fields_missing");
+  check(christianDecision.reasonCode === "VERIFIED_CURRENT_WINDOW_CLOSED", "christian_brothers_exclusion_reason_not_attributable");
+  check(christianDecision.provenance?.fieldEvidenceIds?.includes("fitness-2026-07-11-christian-brothers-closed-observation"), "christian_brothers_field_evidence_missing");
+  check(consumerContract.safety?.scoringWeightsChanged === false, "business_hours_contract_changed_scoring_weights");
+  check(dataContract.intelligenceHandoffPolicy?.intelligenceMayMutateDataArtifact === false, "business_hours_data_mutation_boundary_regressed");
+
+  const canonicalConsumerPassed = Boolean(consumerRegistration)
+    && canonicalIdentifier === "route-iq-closed-now-eligibility-contracts-v1"
+    && consumerRegistration.path === defaultPaths.businessHoursIntelligenceContract
+    && consumerRegistration.canonicalIdentifier === canonicalIdentifier
+    && consumerRegistration.linkedDataContractId === dataContract.contractId
+    && dataRegistration?.path === defaultPaths.businessHoursDataContract
+    && requiredReadPaths.every(path => allowedReadPaths.includes(path))
+    && fitnessIntelligenceContract.businessHoursAccessRules?.accessMode === "read_only"
+    && fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed === false
+    && fitnessIntelligenceContract.workspaceIsolationRules?.smoothieDepotCandidateDataAllowed === false
+    && fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed === true
+    && fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed === true;
+
+  return {
+    status: failures.length ? "failed" : "passed",
+    implementation: {
+      eligibilityVersion: routeBusinessHoursEligibilityVersion,
+      consumerContractVersion: canonicalIdentifier,
+      sourceDatasetVersion: businessHoursArtifact.sourceDatasetVersion,
+      recordCount: businessHoursArtifact.recordCount,
+      statusEvaluatedAt: evaluatedAt,
+      scoringWeightsChanged: consumerContract.safety?.scoringWeightsChanged,
+      liveGoogleCalls: consumerContract.safety?.liveGoogleCalls
+    },
+    canonicalConsumer: {
+      status: canonicalConsumerPassed ? "passed" : "failed",
+      artifactId: consumerRegistration?.artifactId || null,
+      registered: Boolean(consumerRegistration),
+      canonicalIdentifier,
+      identifierResolved: consumerRegistration?.canonicalIdentifier === canonicalIdentifier,
+      consumerContractPath: consumerRegistration?.path || null,
+      dataContractPath: dataRegistration?.path || null,
+      datasetPath: dataContract.canonicalArtifacts?.businessHoursArtifact || null,
+      requiredReadPaths,
+      requiredReadPathsPresent: requiredReadPaths.every(path => allowedReadPaths.includes(path)),
+      accessMode: fitnessIntelligenceContract.businessHoursAccessRules?.accessMode || null,
+      dataMutationAllowed: fitnessIntelligenceContract.businessHoursAccessRules?.dataMutationAllowed ?? null,
+      workspaceId: fitnessIntelligenceContract.workspaceId,
+      operatingProfileId: fitnessIntelligenceContract.operatingProfileId,
+      smoothieDepotAccessAllowed: fitnessIntelligenceContract.workspaceIsolationRules?.smoothieDepotCandidateDataAllowed,
+      unknownWorkspaceFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownWorkspaceFailsClosed,
+      unknownConsumerFailsClosed: fitnessIntelligenceContract.businessHoursAccessRules?.unknownConsumerFailsClosed
+    },
+    statusPolicies: {
+      sourceStatusCounts,
+      OPEN_VERIFIED: hoursDecisionEvidence(openDecision),
+      CLOSED_VERIFIED: hoursDecisionEvidence(christianDecision),
+      HOURS_UNKNOWN: hoursDecisionEvidence(unknownDecision),
+      HOURS_STALE: hoursDecisionEvidence(staleDecision),
+      SPECIAL_HOURS_UNVERIFIED: hoursDecisionEvidence(specialDecision)
+    },
+    christianBrothersRegression: {
+      status: christianRecord?.permanentOperationalStatus === "OPERATIONAL"
+        && christianDecision.status === "CLOSED_VERIFIED"
+        && !initialIdentityKeys.includes(christianIdentity)
+        && !replenishedIdentityKeys.includes(christianIdentity)
+        ? "passed"
+        : "failed",
+      googlePlaceId: christianBrothersPlaceId,
+      businessName: christianRecord?.businessName || null,
+      permanentOperationalStatus: christianRecord?.permanentOperationalStatus || null,
+      eligibilityStatus: christianDecision.status,
+      eligible: christianDecision.eligible,
+      initialRouteExcluded: !initialIdentityKeys.includes(christianIdentity),
+      replenishmentExcluded: !replenishedIdentityKeys.includes(christianIdentity),
+      exclusionReasonCode: christianDecision.reasonCode,
+      exclusionReason: christianDecision.reason,
+      fieldEvidenceIds: christianDecision.provenance?.fieldEvidenceIds || []
+    },
+    queueValidation: {
+      status: failures.some(reason => reason.includes("route") || reason.includes("replenishment") || reason.includes("fallback") || reason.includes("stop")) ? "failed" : "passed",
+      targetSize: 15,
+      replenishmentThreshold: 5,
+      initialStopCount: initial.queue.entries.length,
+      initialActivePoolOnly: initial.queue.entries.every(entry => entry.sourcePool === "active"),
+      initialVerifiedOpenOnly: initial.queue.entries.every(entry => entry.eligibilitySnapshot?.status === "OPEN_VERIFIED"),
+      initialDuplicateCount: initialIdentityKeys.length - new Set(initialIdentityKeys).size,
+      completedStopsSimulated: completedIdentityKeys.length,
+      replenishmentTriggeredBelowThreshold: replenished.belowThreshold && replenished.triggered,
+      replenishedStopCount: replenished.queue.entries.length,
+      replenishmentAppended: replenished.appended.length,
+      completedStopExclusionPreserved: completedIdentityKeys.every(identity => !replenishedIdentityKeys.includes(identity)),
+      replenishedDuplicateCount: replenishedIdentityKeys.length - new Set(replenishedIdentityKeys).size,
+      fullPoolFallbackExercised: fallback?.usedFallback === true,
+      fullPoolFallbackSourceOrder: fallbackSourceOrder,
+      fullPoolFallbackStatusOrder: fallbackStatusOrder,
+      routeScoresUnchanged: initialScoresUnchanged && replenishedScoresUnchanged
+    },
+    explainability: {
+      status: missingExplanationFields.length || !initialExplanationsAvailable ? "failed" : "passed",
+      requiredFields: explanationFields,
+      missingFields: missingExplanationFields,
+      initialQueueExplanationsAvailable: initialExplanationsAvailable,
+      closedExclusionAttributable: christianDecision.reasonCode === "VERIFIED_CURRENT_WINDOW_CLOSED",
+      provenanceAvailable: Boolean(christianDecision.provenance?.sourcePlaceId)
+    },
+    failureReasons: failures
   };
 }
 
@@ -377,6 +783,11 @@ export function runRouteIntelligenceQualityGate(options = {}) {
   const quarantinePool = options.quarantinePool || readJson(root, paths.quarantinePool);
   const governanceReport = options.governanceReport || readJson(root, paths.governanceReport);
   const promotionGate = options.promotionGate || readJson(root, paths.promotionGate);
+  const businessHoursArtifact = options.businessHoursArtifact || readJson(root, paths.businessHoursArtifact);
+  const businessHoursDataContract = options.businessHoursDataContract || readJson(root, paths.businessHoursDataContract);
+  const businessHoursIntelligenceContract = options.businessHoursIntelligenceContract || readJson(root, paths.businessHoursIntelligenceContract);
+  const fitnessIntelligenceConsumerContract = options.fitnessIntelligenceConsumerContract || readJson(root, paths.fitnessIntelligenceConsumerContract);
+  const canonicalArtifactRegistry = options.canonicalArtifactRegistry || readJson(root, paths.canonicalArtifactRegistry);
   const expectedBaseline = options.expectedBaseline
     || (existsSync(resolve(root, paths.goldenBaseline)) ? readJson(root, paths.goldenBaseline) : null);
 
@@ -422,10 +833,26 @@ export function runRouteIntelligenceQualityGate(options = {}) {
   const baselineComparison = compareBaseline(currentBaseline, expectedBaseline);
   failures.push(...baselineComparison.failures);
 
+  const businessHoursEligibility = buildBusinessHoursQualityEvidence({
+    activePool,
+    reservePool,
+    businessHoursArtifact,
+    dataContract: businessHoursDataContract,
+    consumerContract: businessHoursIntelligenceContract,
+    fitnessIntelligenceContract: fitnessIntelligenceConsumerContract,
+    artifactRegistry: canonicalArtifactRegistry
+  });
+  failures.push(...businessHoursEligibility.failureReasons.map(reason => `business_hours:${reason}`));
+
   const zeroLiveGoogle = options.runZeroGoogleCheck === false
     ? { status: "skipped", reason: "disabled_by_caller" }
     : runZeroGoogleCheck(root);
   if (zeroLiveGoogle.status === "failed") failures.push("zero_live_google_check_failed");
+  const runtimeSurface = runtimeSurfaceEvidence(zeroLiveGoogle);
+  if (runtimeSurface.status === "failed") failures.push("runtime_surface_evidence_mismatch");
+
+  const repositoryState = repositoryEvidence(root, options.expectedLocalCommitCount);
+  if (repositoryState.status === "failed") failures.push("local_commit_chain_mismatch");
 
   const dashboardCompatibilityFailures = routeRecords.filter(record => {
     return !record.id || !record.repProfileId || !record.name || !record.address || !record.googlePlaceId
@@ -461,9 +888,14 @@ export function runRouteIntelligenceQualityGate(options = {}) {
       governanceStatus: governanceReport.status,
       promotionGateStatus: promotionGate.status,
       runtimeBehaviorChanged: activePool.runtimeBehaviorChanged,
-      scoringChanged: activePool.scoringChanged
+      scoringChanged: activePool.scoringChanged,
+      activePoolGovernancePreserved: businessHoursIntelligenceContract.safety?.activePoolGovernancePreserved === true,
+      fullPoolFallbackGovernancePreserved: businessHoursIntelligenceContract.safety?.fullPoolFallbackGovernancePreserved === true
     },
+    businessHoursEligibility,
     zeroLiveGoogle,
+    runtimeSurface,
+    repositoryState,
     dashboardCompatibility: {
       status: dashboardCompatibilityFailures.length ? "failed" : "passed",
       checkedRecords: routeRecords.length,
