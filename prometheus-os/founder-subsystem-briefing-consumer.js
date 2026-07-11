@@ -22,6 +22,14 @@ const SOCIAL_PROVIDER_LABELS = Object.freeze({
   [SOCIAL_PROVIDER_IDS.YOUTUBE]: "YouTube"
 });
 
+const METRIC_PROVENANCE = Object.freeze({
+  VERIFIED: "verified",
+  CALCULATED: "calculated",
+  MISSING: "missing",
+  UNSUPPORTED: "unsupported",
+  STALE: "stale"
+});
+
 function normalizeCommand(command = "") {
   return String(command || "")
     .toLowerCase()
@@ -36,12 +44,85 @@ function asArray(value) {
 }
 
 function hasValue(value) {
-  return value !== null && value !== undefined && value !== "";
+  return value !== null &&
+    value !== undefined &&
+    !(typeof value === "string" && value.trim() === "");
 }
 
 function finiteNumber(value) {
+  if (!hasValue(value)) return null;
+  if (typeof value !== "number" && typeof value !== "string") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function sourceMarkedStale(source) {
+  const status = String(source?.status || source?.state || source?.metadata?.status || "").toLowerCase();
+  return source?.stale === true || source?.metadata?.stale === true || status === METRIC_PROVENANCE.STALE;
+}
+
+function metricReading(value, {
+  calculated = false,
+  stale = false,
+  source = "normalized source"
+} = {}) {
+  const numeric = finiteNumber(value);
+  const provenance = !hasValue(value)
+    ? METRIC_PROVENANCE.MISSING
+    : numeric === null
+      ? METRIC_PROVENANCE.UNSUPPORTED
+      : stale
+        ? METRIC_PROVENANCE.STALE
+        : calculated
+          ? METRIC_PROVENANCE.CALCULATED
+          : METRIC_PROVENANCE.VERIFIED;
+  return { value: numeric, provenance, source };
+}
+
+function calculatedReading(value, inputs, source) {
+  const readings = asArray(inputs);
+  if (!readings.length || readings.some(reading => finiteNumber(reading?.value) === null)) {
+    const unsupported = readings.some(reading => reading?.provenance === METRIC_PROVENANCE.UNSUPPORTED);
+    return {
+      value: null,
+      provenance: unsupported ? METRIC_PROVENANCE.UNSUPPORTED : METRIC_PROVENANCE.MISSING,
+      source
+    };
+  }
+  if (readings.some(reading => reading?.provenance === METRIC_PROVENANCE.STALE)) {
+    return {
+      value: null,
+      provenance: METRIC_PROVENANCE.STALE,
+      source: `${source}; calculation withheld because at least one required input is stale`
+    };
+  }
+  return metricReading(value, {
+    calculated: true,
+    source
+  });
+}
+
+function readingPresentation(label, reading, { percentageValue = false } = {}) {
+  if (reading?.provenance === METRIC_PROVENANCE.MISSING) {
+    return label === "engagement rate"
+      ? "engagement rate cannot be calculated because the required source metrics are unavailable"
+      : `${label} unavailable from the current snapshot`;
+  }
+  if (reading?.provenance === METRIC_PROVENANCE.UNSUPPORTED) {
+    return label === "engagement rate"
+      ? "engagement rate cannot be calculated because a required source metric is unsupported"
+      : `${label} not reported in a supported numeric format`;
+  }
+  if (reading?.provenance === METRIC_PROVENANCE.STALE && reading?.value === null) {
+    return `${label} unavailable because a required source metric is stale`;
+  }
+  const formatted = percentageValue ? percentage(reading?.value) : count(reading?.value);
+  return `${formatted} ${label} (${reading?.provenance || METRIC_PROVENANCE.VERIFIED})`;
+}
+
+function signedCount(value) {
+  const parsed = finiteNumber(value);
+  return parsed === null ? "unavailable" : `${parsed >= 0 ? "+" : ""}${count(parsed)}`;
 }
 
 function count(value) {
@@ -208,7 +289,22 @@ function latestAccountMetric(snapshot, names = []) {
   const metrics = asArray(snapshot?.metrics)
     .filter(metric => metric?.provider === SOCIAL_PROVIDER_IDS.INSTAGRAM && metric?.metadata?.scope !== "content" && names.includes(metric?.name))
     .sort((a, b) => String(b.observedAt || "").localeCompare(String(a.observedAt || "")));
-  return metrics.length ? finiteNumber(metrics[0].value) : null;
+  if (!metrics.length) return metricReading(null, { source: "current Instagram snapshot" });
+  const metric = metrics[0];
+  return metricReading(metric.value, {
+    stale: sourceMarkedStale(metric) || sourceMarkedStale(snapshot),
+    source: `current Instagram snapshot:${metric.name}`
+  });
+}
+
+function accountMetric(reportValue, report, snapshot, names) {
+  const reportReading = metricReading(reportValue, {
+    stale: sourceMarkedStale(report),
+    source: "normalized Social Media report"
+  });
+  if (reportReading.value !== null) return reportReading;
+  const snapshotReading = latestAccountMetric(snapshot, names);
+  return snapshotReading.provenance !== METRIC_PROVENANCE.MISSING ? snapshotReading : reportReading;
 }
 
 function snapshotContent(snapshot) {
@@ -223,9 +319,12 @@ function snapshotContent(snapshot) {
       publishedAt: metric.metadata?.publishedAt || null,
       captionPreview: metric.metadata?.captionPreview || "",
       permalink: metric.metadata?.permalink || null,
-      metrics: {}
+      metrics: {},
+      metricSources: {}
     };
-    current.metrics[metric.name.replace(/^content_/, "")] = finiteNumber(metric.value) || 0;
+    const metricName = metric.name.replace(/^content_/, "");
+    current.metrics[metricName] = metric.value;
+    current.metricSources[metricName] = metric;
     groups.set(id, current);
   }
   return [...groups.values()].map(normalizeContentMetrics);
@@ -233,25 +332,68 @@ function snapshotContent(snapshot) {
 
 function normalizeContentMetrics(group) {
   const metrics = group?.metrics || {};
-  const likes = finiteNumber(metrics.likes) || 0;
-  const comments = finiteNumber(metrics.comments) || 0;
-  const shares = finiteNumber(metrics.shares) || 0;
-  const saved = finiteNumber(metrics.saved) || 0;
-  const engagement = finiteNumber(metrics.engagement) ?? finiteNumber(metrics.totalInteractions) ?? (likes + comments + shares + saved);
-  const reach = finiteNumber(metrics.reach) ?? finiteNumber(metrics.views) ?? 0;
+  const metricSources = group?.metricSources || {};
+  const readMetric = key => metricReading(metrics[key], {
+    stale: sourceMarkedStale(metricSources[key]) || sourceMarkedStale(group),
+    source: metricSources[key]?.name || `normalized content:${key}`
+  });
+  const likes = readMetric("likes");
+  const comments = readMetric("comments");
+  const shares = readMetric("shares");
+  const saved = readMetric("saved");
+  const componentReadings = [likes, comments, shares, saved];
+  const directEngagementKey = ["total_interactions", "totalInteractions", "engagement"]
+    .find(key => Object.prototype.hasOwnProperty.call(metrics, key));
+  const directEngagement = directEngagementKey ? readMetric(directEngagementKey) : null;
+  const engagement = directEngagement && directEngagement.value !== null
+    ? directEngagement
+    : componentReadings.every(reading => reading.value !== null)
+      ? calculatedReading(
+        componentReadings.reduce((total, reading) => total + reading.value, 0),
+        componentReadings,
+        "calculated from likes, comments, shares, and saves"
+      )
+      : directEngagement?.provenance === METRIC_PROVENANCE.UNSUPPORTED
+        ? directEngagement
+        : calculatedReading(null, componentReadings, "calculated from likes, comments, shares, and saves");
+  const reach = readMetric("reach");
+  const views = readMetric("views");
+  const websiteClicks = readMetric("websiteClicks");
+  const engagementRate = engagement.value !== null && reach.value !== null && reach.value > 0
+    ? calculatedReading(
+      Math.round((engagement.value / reach.value) * 10000) / 100,
+      [engagement, reach],
+      "calculated from content engagement and content reach"
+    )
+    : {
+      value: null,
+      provenance: reach.value === 0 ? METRIC_PROVENANCE.UNSUPPORTED : METRIC_PROVENANCE.MISSING,
+      source: "requires content engagement and nonzero content reach"
+    };
   return {
     ...group,
     metrics: {
       ...metrics,
+      reach: reach.value,
+      views: views.value,
+      likes: likes.value,
+      comments: comments.value,
+      shares: shares.value,
+      saved: saved.value,
+      websiteClicks: websiteClicks.value,
+      engagement: engagement.value,
+      engagementRate: engagementRate.value
+    },
+    metricProvenance: {
       reach,
-      views: finiteNumber(metrics.views) || 0,
+      views,
       likes,
       comments,
       shares,
       saved,
-      websiteClicks: finiteNumber(metrics.websiteClicks) || 0,
+      websiteClicks,
       engagement,
-      engagementRate: reach ? Math.round((engagement / reach) * 10000) / 100 : 0
+      engagementRate
     }
   };
 }
@@ -279,10 +421,20 @@ function mergedContent(report, snapshot) {
   const groups = new Map(reportContent(report).map(item => [item.mediaId, item]));
   for (const item of snapshotContent(snapshot)) {
     const prior = groups.get(item.mediaId);
+    const mergedMetrics = { ...(prior?.metrics || {}) };
+    for (const [key, value] of Object.entries(item.metrics || {})) {
+      const hasPrior = Object.prototype.hasOwnProperty.call(mergedMetrics, key);
+      const priorNumeric = finiteNumber(mergedMetrics[key]);
+      const incomingNumeric = finiteNumber(value);
+      if (!hasPrior || incomingNumeric !== null || (priorNumeric === null && hasValue(value))) {
+        mergedMetrics[key] = value;
+      }
+    }
     groups.set(item.mediaId, normalizeContentMetrics({
       ...prior,
       ...item,
-      metrics: { ...(prior?.metrics || {}), ...(item.metrics || {}) }
+      metrics: mergedMetrics,
+      metricSources: { ...(prior?.metricSources || {}), ...(item.metricSources || {}) }
     }));
   }
   return [...groups.values()];
@@ -328,27 +480,46 @@ function contentInsideWindow(groups, window) {
 }
 
 function aggregateContent(groups) {
-  return groups.reduce((total, item) => {
-    const metrics = item.metrics || {};
-    total.reach += finiteNumber(metrics.reach) || 0;
-    total.views += finiteNumber(metrics.views) || 0;
-    total.likes += finiteNumber(metrics.likes) || 0;
-    total.comments += finiteNumber(metrics.comments) || 0;
-    total.shares += finiteNumber(metrics.shares) || 0;
-    total.saves += finiteNumber(metrics.saved) || 0;
-    total.websiteClicks += finiteNumber(metrics.websiteClicks) || 0;
-    total.engagements += finiteNumber(metrics.engagement) || 0;
-    return total;
-  }, {
-    reach: 0,
-    views: 0,
-    likes: 0,
-    comments: 0,
-    shares: 0,
-    saves: 0,
-    websiteClicks: 0,
-    engagements: 0
-  });
+  const aggregateMetric = (metricName, sourceName = metricName) => {
+    if (!groups.length) return metricReading(null, { source: `selected-period ${sourceName}` });
+    const readings = groups.map(item => item.metricProvenance?.[metricName] || metricReading(item.metrics?.[metricName]));
+    if (readings.some(reading => reading.value === null)) {
+      return {
+        value: null,
+        provenance: readings.some(reading => reading.provenance === METRIC_PROVENANCE.UNSUPPORTED)
+          ? METRIC_PROVENANCE.UNSUPPORTED
+          : METRIC_PROVENANCE.MISSING,
+        source: `selected-period ${sourceName}`
+      };
+    }
+    return calculatedReading(
+      readings.reduce((total, reading) => total + reading.value, 0),
+      readings,
+      `sum of verified ${sourceName} values in the selected period`
+    );
+  };
+
+  const readings = {
+    reach: aggregateMetric("reach"),
+    views: aggregateMetric("views"),
+    likes: aggregateMetric("likes"),
+    comments: aggregateMetric("comments"),
+    shares: aggregateMetric("shares"),
+    saves: aggregateMetric("saved", "saves"),
+    websiteClicks: aggregateMetric("websiteClicks", "website clicks"),
+    engagements: aggregateMetric("engagement", "engagements")
+  };
+  return {
+    reach: readings.reach.value,
+    views: readings.views.value,
+    likes: readings.likes.value,
+    comments: readings.comments.value,
+    shares: readings.shares.value,
+    saves: readings.saves.value,
+    websiteClicks: readings.websiteClicks.value,
+    engagements: readings.engagements.value,
+    metricProvenance: readings
+  };
 }
 
 function contentScore(item) {
@@ -366,15 +537,14 @@ function performanceByType(groups) {
   const types = new Map();
   for (const item of groups) {
     const type = titleCase(item.mediaType || "unknown");
-    const current = types.get(type) || { posts: 0, engagement: 0, reach: 0 };
-    current.posts += 1;
-    current.engagement += finiteNumber(item.metrics?.engagement) || 0;
-    current.reach += finiteNumber(item.metrics?.reach) || 0;
+    const current = types.get(type) || [];
+    current.push(item);
     types.set(type, current);
   }
   return [...types.entries()]
-    .sort((a, b) => b[1].engagement - a[1].engagement)
-    .map(([type, value]) => `${type}: ${value.posts} posts, ${count(value.engagement)} engagements, ${count(value.reach)} reach`);
+    .map(([type, items]) => ({ type, items, totals: aggregateContent(items) }))
+    .sort((a, b) => (finiteNumber(b.totals.engagements) ?? -1) - (finiteNumber(a.totals.engagements) ?? -1))
+    .map(({ type, items, totals }) => `${type}: ${items.length} posts, ${count(totals.engagements)} engagements, ${count(totals.reach)} reach`);
 }
 
 function performanceByDayTime(groups) {
@@ -384,26 +554,34 @@ function performanceByDayTime(groups) {
     const date = parseDate(item.publishedAt);
     if (!date) continue;
     const key = `${date.toLocaleDateString("en-US", { weekday: "long", timeZone: "UTC" })} ${String(date.getUTCHours()).padStart(2, "0")}:00 UTC`;
-    const current = buckets.get(key) || { posts: 0, engagement: 0 };
-    current.posts += 1;
-    current.engagement += finiteNumber(item.metrics?.engagement) || 0;
+    const current = buckets.get(key) || [];
+    current.push(item);
     buckets.set(key, current);
   }
-  const best = [...buckets.entries()].sort((a, b) => b[1].engagement - a[1].engagement)[0];
-  return best ? `${best[0]} led with ${count(best[1].engagement)} engagements across ${best[1].posts} post(s) (calculated)` : "unavailable";
+  const ranked = [...buckets.entries()]
+    .map(([key, items]) => ({ key, items, engagement: aggregateContent(items).engagements }))
+    .filter(item => finiteNumber(item.engagement) !== null)
+    .sort((a, b) => b.engagement - a.engagement);
+  const best = ranked[0];
+  return best ? `${best.key} led with ${count(best.engagement)} engagements across ${best.items.length} post(s) (calculated)` : "unavailable - complete engagement metrics are not reported for the timestamped content";
 }
 
 function trendComparison(report) {
   const monthly = asArray(report?.growthTrends?.monthly).filter(row => row?.period && row.period !== "undated");
   if (monthly.length < 2) return null;
   const [previous, current] = monthly.slice(-2);
+  const difference = (currentValue, previousValue) => {
+    const currentNumber = finiteNumber(currentValue);
+    const previousNumber = finiteNumber(previousValue);
+    return currentNumber === null || previousNumber === null ? null : currentNumber - previousNumber;
+  };
   return {
     previous,
     current,
-    reach: (finiteNumber(current.reach) || 0) - (finiteNumber(previous.reach) || 0),
-    engagement: (finiteNumber(current.engagement) || 0) - (finiteNumber(previous.engagement) || 0),
-    websiteVisits: (finiteNumber(current.websiteVisits) || 0) - (finiteNumber(previous.websiteVisits) || 0),
-    crmLeads: (finiteNumber(current.crmLeads) || 0) - (finiteNumber(previous.crmLeads) || 0)
+    reach: difference(current.reach, previous.reach),
+    engagement: difference(current.engagement, previous.engagement),
+    websiteVisits: difference(current.websiteVisits, previous.websiteVisits),
+    crmLeads: difference(current.crmLeads, previous.crmLeads)
   };
 }
 
@@ -412,10 +590,17 @@ function anomalyText(report) {
   if (daily.length < 2) return "unknown - fewer than two comparable daily reads are available";
   const previous = daily.at(-2);
   const current = daily.at(-1);
-  const engagementChange = (finiteNumber(current.engagement) || 0) - (finiteNumber(previous.engagement) || 0);
-  const reachChange = (finiteNumber(current.contentReach) || 0) - (finiteNumber(previous.contentReach) || 0);
+  const currentEngagement = finiteNumber(current.engagement);
+  const previousEngagement = finiteNumber(previous.engagement);
+  const currentReach = finiteNumber(current.contentReach);
+  const previousReach = finiteNumber(previous.contentReach);
+  if ([currentEngagement, previousEngagement, currentReach, previousReach].some(value => value === null)) {
+    return "unknown - the latest two daily reads do not contain every metric required for a comparison";
+  }
+  const engagementChange = currentEngagement - previousEngagement;
+  const reachChange = currentReach - previousReach;
   if (!engagementChange && !reachChange) return "no material change in the latest two daily reads";
-  return `latest daily change: ${engagementChange >= 0 ? "+" : ""}${count(engagementChange)} engagements and ${reachChange >= 0 ? "+" : ""}${count(reachChange)} content reach (calculated)`;
+  return `latest daily change: ${signedCount(engagementChange)} engagements and ${signedCount(reachChange)} content reach (calculated)`;
 }
 
 function recommendationFromReport(report) {
@@ -439,7 +624,7 @@ function sourceLabels(report, snapshot) {
 
 function missingAnalytics({ report, snapshot, groups, account, comparison }) {
   const missing = [];
-  for (const [label, value] of [
+  for (const [label, reading] of [
     ["followers or subscribers", account.followers],
     ["follower growth", account.followerGrowth],
     ["reach", account.reach],
@@ -449,7 +634,7 @@ function missingAnalytics({ report, snapshot, groups, account, comparison }) {
     ["link clicks", account.linkClicks],
     ["website clicks", account.websiteClicks]
   ]) {
-    if (!hasValue(value)) missing.push(label);
+    if ([METRIC_PROVENANCE.MISSING, METRIC_PROVENANCE.UNSUPPORTED].includes(reading?.provenance)) missing.push(label);
   }
   if (!groups.length) missing.push("content-level performance");
   if (!report?.websiteAttribution) missing.push("website attribution");
@@ -513,14 +698,14 @@ export async function createFounderSocialMediaBriefing({
   const totals = aggregateContent(selected);
   const accountOverview = report?.accountOverview || {};
   const account = {
-    followers: hasValue(accountOverview.followers) ? finiteNumber(accountOverview.followers) : latestAccountMetric(snapshot, ["followers_count"]),
-    followerGrowth: hasValue(accountOverview.followerGrowth) ? finiteNumber(accountOverview.followerGrowth) : latestAccountMetric(snapshot, ["follower_growth", "followers_growth", "followers_delta"]),
-    reach: hasValue(accountOverview.reach) ? finiteNumber(accountOverview.reach) : latestAccountMetric(snapshot, ["reach"]),
-    impressions: hasValue(accountOverview.impressions) ? finiteNumber(accountOverview.impressions) : latestAccountMetric(snapshot, ["impressions"]),
-    profileVisits: hasValue(accountOverview.profileVisits) ? finiteNumber(accountOverview.profileVisits) : latestAccountMetric(snapshot, ["profile_views"]),
-    websiteClicks: hasValue(accountOverview.websiteClicks) ? finiteNumber(accountOverview.websiteClicks) : latestAccountMetric(snapshot, ["website_clicks"]),
-    linkClicks: latestAccountMetric(snapshot, ["link_clicks"]),
-    engagementRate: hasValue(accountOverview.engagementRate) ? finiteNumber(accountOverview.engagementRate) : (totals.reach ? Math.round((totals.engagements / totals.reach) * 10000) / 100 : null)
+    followers: accountMetric(accountOverview.followers, report, snapshot, ["followers_count"]),
+    followerGrowth: accountMetric(accountOverview.followerGrowth, report, snapshot, ["follower_growth", "followers_growth", "followers_delta"]),
+    reach: accountMetric(accountOverview.reach, report, snapshot, ["reach"]),
+    impressions: accountMetric(accountOverview.impressions, report, snapshot, ["impressions"]),
+    profileVisits: accountMetric(accountOverview.profileVisits, report, snapshot, ["profile_views"]),
+    websiteClicks: accountMetric(accountOverview.websiteClicks, report, snapshot, ["website_clicks"]),
+    linkClicks: accountMetric(undefined, report, snapshot, ["link_clicks"]),
+    engagementRate: accountMetric(accountOverview.engagementRate, report, snapshot, ["engagement_rate"])
   };
   const availability = providerAvailability(report, snapshot);
   const comparison = trendComparison(report);
@@ -528,12 +713,36 @@ export async function createFounderSocialMediaBriefing({
   const weakest = [...selected].sort((a, b) => contentScore(a) - contentScore(b))[0] || null;
   const sources = sourceLabels(report, snapshot);
   const missing = missingAnalytics({ report, snapshot, groups: selected, account, comparison });
-  const websiteVisits = finiteNumber(report?.websiteAttribution?.websiteVisitsFromInstagram);
-  const leads = finiteNumber(report?.crmAttribution?.leadsGeneratedFromInstagram);
-  const conversionRate = finiteNumber(report?.crmAttribution?.conversionSummary?.visitToLeadRate);
+  const websiteVisits = metricReading(report?.websiteAttribution?.websiteVisitsFromInstagram, {
+    stale: sourceMarkedStale(report?.websiteAttribution) || sourceMarkedStale(report),
+    source: "normalized Website attribution"
+  });
+  const leads = metricReading(report?.crmAttribution?.leadsGeneratedFromInstagram, {
+    stale: sourceMarkedStale(report?.crmAttribution) || sourceMarkedStale(report),
+    source: "normalized CRM attribution"
+  });
+  const conversionRate = metricReading(report?.crmAttribution?.conversionSummary?.visitToLeadRate, {
+    stale: sourceMarkedStale(report?.crmAttribution) || sourceMarkedStale(report),
+    source: "normalized CRM attribution"
+  });
   const contentWebsiteLeader = report?.contentPerformance?.highestWebsiteTraffic || selected
-    .filter(item => (finiteNumber(item.metrics?.websiteClicks) || 0) > 0)
-    .sort((a, b) => (b.metrics.websiteClicks || 0) - (a.metrics.websiteClicks || 0))[0] || null;
+    .filter(item => finiteNumber(item.metrics?.websiteClicks) !== null && finiteNumber(item.metrics?.websiteClicks) > 0)
+    .sort((a, b) => finiteNumber(b.metrics.websiteClicks) - finiteNumber(a.metrics.websiteClicks))[0] || null;
+
+  const selectedEngagementRate = totals.engagements !== null && totals.reach !== null && totals.reach > 0
+    ? calculatedReading(
+      Math.round((totals.engagements / totals.reach) * 10000) / 100,
+      [totals.metricProvenance.engagements, totals.metricProvenance.reach],
+      "calculated from complete selected-period engagement and reach"
+    )
+    : {
+      value: null,
+      provenance: [totals.metricProvenance.engagements, totals.metricProvenance.reach]
+        .some(reading => reading?.provenance === METRIC_PROVENANCE.STALE)
+        ? METRIC_PROVENANCE.STALE
+        : totals.reach === 0 ? METRIC_PROVENANCE.UNSUPPORTED : METRIC_PROVENANCE.MISSING,
+      source: "requires complete engagement and nonzero reach metrics"
+    };
 
   const metadata = {
     intent: "social_media_direct_briefing",
@@ -548,6 +757,23 @@ export async function createFounderSocialMediaBriefing({
     includedPlatforms: availability.included.map(item => SOCIAL_PROVIDER_LABELS[item] || titleCase(item)),
     missingPlatforms: availability.missing.map(item => SOCIAL_PROVIDER_LABELS[item] || titleCase(item)),
     canonicalSources: sources,
+    metricProvenance: {
+      supportedStates: Object.values(METRIC_PROVENANCE),
+      account,
+      selectedPeriod: {
+        ...totals.metricProvenance,
+        engagementRate: selectedEngagementRate
+      },
+      businessImpact: {
+        websiteVisits,
+        leads,
+        conversionRate
+      },
+      content: selected.map(item => ({
+        mediaId: item.mediaId,
+        metrics: item.metricProvenance
+      }))
+    },
     presentationOnly: true,
     readOnly: true,
     directPlatformApiCalls: false,
@@ -558,7 +784,7 @@ export async function createFounderSocialMediaBriefing({
     return {
       title: "Instagram and LinkedIn Comparison",
       body: [
-        `Instagram is ${report?.account?.providerState || instagramProvider(snapshot)?.state || "partially available"}; latest refresh ${timestampLabel(generatedAt)}; ${count(account.followers)} followers, ${count(account.reach)} reach, ${count(totals.engagements)} selected-period engagements, and ${count(account.websiteClicks)} website clicks.`,
+        `Instagram is ${report?.account?.providerState || instagramProvider(snapshot)?.state || "partially available"}; latest refresh ${timestampLabel(generatedAt)}; ${readingPresentation("followers", account.followers)}, ${readingPresentation("reach", account.reach)}, ${count(totals.engagements)} selected-period engagements, and ${readingPresentation("website clicks", account.websiteClicks)}.`,
         "LinkedIn analytics are unavailable because no normalized LinkedIn connection or analytics artifact was included in the current Prometheus Social Media output.",
         "A cross-platform comparison cannot be calculated until that normalized LinkedIn artifact is available."
       ].join(" "),
@@ -570,8 +796,8 @@ export async function createFounderSocialMediaBriefing({
     return {
       title: "Social Website Traffic",
       body: contentWebsiteLeader
-        ? `Verified from normalized attribution: ${contentLabel(contentWebsiteLeader)}. Total Instagram-attributed website visits: ${count(websiteVisits)}. Total attributed leads: ${count(leads)}.`
-        : `No content-level website traffic leader is available in the latest normalized Social Media output. Account website clicks: ${count(account.websiteClicks)}. Attributed website visits: ${count(websiteVisits)}. Missing data: a normalized content-attribution event linking a post to website traffic.`,
+        ? `Verified from normalized attribution: ${contentLabel(contentWebsiteLeader)}. Total Instagram-attributed website visits: ${count(websiteVisits.value)}. Total attributed leads: ${count(leads.value)}.`
+        : `No content-level website traffic leader is available in the latest normalized Social Media output. Account website clicks: ${count(account.websiteClicks.value)}. Attributed website visits: ${count(websiteVisits.value)}. Missing data: a normalized content-attribution event linking a post to website traffic.`,
       metadata: { ...metadata, contentWebsiteAttributionAvailable: Boolean(contentWebsiteLeader) }
     };
   }
@@ -580,7 +806,7 @@ export async function createFounderSocialMediaBriefing({
     return {
       title: "Social Media Month Comparison",
       body: comparison
-        ? `${comparison.current.period} versus ${comparison.previous.period}: reach changed by ${comparison.reach >= 0 ? "+" : ""}${count(comparison.reach)}, engagement by ${comparison.engagement >= 0 ? "+" : ""}${count(comparison.engagement)}, website visits by ${comparison.websiteVisits >= 0 ? "+" : ""}${count(comparison.websiteVisits)}, and CRM leads by ${comparison.crmLeads >= 0 ? "+" : ""}${count(comparison.crmLeads)}. These are calculated from normalized monthly rows.`
+        ? `${comparison.current.period} versus ${comparison.previous.period}: reach changed by ${signedCount(comparison.reach)}, engagement by ${signedCount(comparison.engagement)}, website visits by ${signedCount(comparison.websiteVisits)}, and CRM leads by ${signedCount(comparison.crmLeads)}. These are calculated only where both normalized monthly values are available.`
         : `Previous-month comparison is unavailable. The current normalized Social Media report does not include two comparable monthly periods. Latest verified refresh: ${timestampLabel(generatedAt)}. Required action: allow the Social Media reporting history to accumulate another normalized monthly period.`,
       metadata: { ...metadata, previousPeriodAvailable: Boolean(comparison) }
     };
@@ -589,7 +815,6 @@ export async function createFounderSocialMediaBriefing({
   const onlyInstagram = normalized.includes("show only instagram");
   const periodText = `${dateLabel(window.start)} through ${dateLabel(window.end)}`;
   const postingFrequency = selected.length ? `${Math.round((selected.length / window.days) * 100) / 100} posts per day (calculated)` : "unavailable";
-  const normalizedEngagementRate = totals.reach ? Math.round((totals.engagements / totals.reach) * 10000) / 100 : null;
 
   return {
     title: onlyInstagram ? "Instagram Analytics Briefing" : "Social Media Analytics Briefing",
@@ -599,14 +824,14 @@ export async function createFounderSocialMediaBriefing({
       onlyInstagram
         ? "Platform scope: Instagram only, as requested."
         : `Platforms included: ${sentenceList(availability.included.map(item => SOCIAL_PROVIDER_LABELS[item]))}. Platforms missing or disconnected: ${sentenceList(availability.missing.map(item => SOCIAL_PROVIDER_LABELS[item]))}.`,
-      `Instagram account read: ${count(account.followers)} followers; growth ${count(account.followerGrowth)}; account reach ${count(account.reach)}; impressions ${count(account.impressions)}; profile visits ${count(account.profileVisits)}; link clicks ${count(account.linkClicks)}; website clicks ${count(account.websiteClicks)}; normalized engagement rate ${percentage(account.engagementRate)}.`,
-      `Selected-period calculated metrics: ${count(totals.engagements)} engagements; ${count(totals.likes)} likes; ${count(totals.comments)} comments; ${count(totals.shares)} shares; ${count(totals.saves)} saves; ${count(totals.websiteClicks)} content-level website clicks; engagement rate ${percentage(normalizedEngagementRate)}; ${selected.length} posts; posting frequency ${postingFrequency}.`,
+      `Instagram account read: ${readingPresentation("followers", account.followers)}; ${readingPresentation("follower growth", account.followerGrowth)}; ${readingPresentation("account reach", account.reach)}; ${readingPresentation("impressions", account.impressions)}; ${readingPresentation("profile visits", account.profileVisits)}; ${readingPresentation("link clicks", account.linkClicks)}; ${readingPresentation("website clicks", account.websiteClicks)}; ${readingPresentation("engagement rate", account.engagementRate, { percentageValue: true })}.`,
+      `Selected-period calculated metrics: ${count(totals.engagements)} engagements; ${count(totals.likes)} likes; ${count(totals.comments)} comments; ${count(totals.shares)} shares; ${count(totals.saves)} saves; ${count(totals.websiteClicks)} content-level website clicks; ${readingPresentation("engagement rate", selectedEngagementRate, { percentageValue: true })}; ${selected.length} posts; posting frequency ${postingFrequency}.`,
       `Top-performing post: ${contentLabel(top)}.`,
       `Weakest-performing post: ${contentLabel(weakest)}.`,
       `Performance by content type: ${sentenceList(performanceByType(selected), "unavailable")}.`,
       `Performance by posting day and time: ${performanceByDayTime(selected)}.`,
-      `Trend analysis: ${comparison ? `${comparison.current.period} versus ${comparison.previous.period}: ${comparison.engagement >= 0 ? "+" : ""}${count(comparison.engagement)} engagement and ${comparison.reach >= 0 ? "+" : ""}${count(comparison.reach)} reach (calculated)` : "previous comparable period unavailable"}; anomalies: ${anomalyText(report)}.`,
-      `Conversion and business impact: ${count(websiteVisits)} Instagram-attributed website visits; ${count(leads)} attributed leads; visit-to-lead rate ${percentage(conversionRate)}; content traffic leader ${contentLabel(contentWebsiteLeader)}.`,
+      `Trend analysis: ${comparison ? `${comparison.current.period} versus ${comparison.previous.period}: ${signedCount(comparison.engagement)} engagement and ${signedCount(comparison.reach)} reach (calculated where complete)` : "previous comparable period unavailable"}; anomalies: ${anomalyText(report)}.`,
+      `Conversion and business impact: ${count(websiteVisits.value)} Instagram-attributed website visits; ${count(leads.value)} attributed leads; visit-to-lead rate ${percentage(conversionRate.value)}; content traffic leader ${contentLabel(contentWebsiteLeader)}.`,
       `Current content themes: ${themesFromReport(report)}.`,
       `Missing data: ${sentenceList(missing)}.`,
       `Recommended next action: ${recommendationFromReport(report)}`

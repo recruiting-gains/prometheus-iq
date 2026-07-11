@@ -7,6 +7,7 @@ import {
   createMemoryCalibrationStorage
 } from "../prometheus-os/conversation-calibration.js";
 import { createFounderMemoryRecall } from "../prometheus-os/executive-command-center.js";
+import { createFounderSocialMediaBriefing } from "../prometheus-os/founder-subsystem-briefing-consumer.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
 import { readFileSync } from "node:fs";
 import {
@@ -230,6 +231,50 @@ function socialMediaAnalyticsServiceForSnapshot(snapshot, report = null) {
     },
     async getInstagramAnalyticsReport() {
       return report;
+    }
+  };
+}
+
+function snapshotOnlySocialService(metrics = [], { stale = false } = {}) {
+  return socialMediaAnalyticsServiceForSnapshot({
+    contractVersion: SOCIAL_MEDIA_CONTRACT_VERSION,
+    id: "companion-social-no-fabrication-regression",
+    generatedAt: "2026-07-11T15:10:28.829Z",
+    stale,
+    providers: [{
+      provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+      state: SOCIAL_CONNECTION_STATES.CONNECTED,
+      source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+      accountHandle: "@prometheus.iq",
+      checkedAt: "2026-07-11T15:10:28.829Z"
+    }],
+    metrics
+  });
+}
+
+function snapshotAccountMetric(name, value) {
+  return {
+    name,
+    value,
+    provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+    source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+    observedAt: "2026-07-11T15:10:28.829Z",
+    metadata: { scope: "account" }
+  };
+}
+
+function snapshotContentMetric(name, value) {
+  return {
+    name,
+    value,
+    provider: SOCIAL_PROVIDER_IDS.INSTAGRAM,
+    source: SOCIAL_DATA_SOURCES.PROVIDER_API,
+    observedAt: "2026-07-11T15:10:28.829Z",
+    metadata: {
+      scope: "content",
+      mediaId: "snapshot-only-media-1",
+      mediaType: "REEL",
+      publishedAt: "2026-07-11T14:00:00.000Z"
     }
   };
 }
@@ -1371,6 +1416,141 @@ for (const [phrase, expected] of socialMediaCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> normalized Social Media briefing`);
+}
+
+const missingFollowerCases = [
+  ["null", [snapshotAccountMetric("followers_count", null)]],
+  ["undefined", [snapshotAccountMetric("followers_count", undefined)]],
+  ["absent", []],
+  ["empty-string", [snapshotAccountMetric("followers_count", "")]]
+];
+
+for (const [label, metrics] of missingFollowerCases) {
+  const briefing = await createFounderSocialMediaBriefing({
+    command: "Social Media",
+    service: snapshotOnlySocialService(metrics)
+  });
+  const text = briefing.body.toLowerCase();
+  const provenance = briefing.metadata?.metricProvenance?.account?.followers?.provenance;
+  if (
+    provenance !== "missing" ||
+    !text.includes("followers unavailable from the current snapshot") ||
+    text.includes("0 followers")
+  ) {
+    fail("social-no-fabrication-missing", {
+      label,
+      provenance,
+      body: briefing.body
+    });
+  } else {
+    console.log(`PASS Social missing ${label} -> unavailable, never zero`);
+  }
+}
+
+for (const [label, value] of [["numeric-zero", 0], ["numeric-string-zero", "0"]]) {
+  const briefing = await createFounderSocialMediaBriefing({
+    command: "Social Media",
+    service: snapshotOnlySocialService([snapshotAccountMetric("followers_count", value)])
+  });
+  const text = briefing.body.toLowerCase();
+  const followers = briefing.metadata?.metricProvenance?.account?.followers;
+  if (
+    followers?.value !== 0 ||
+    followers?.provenance !== "verified" ||
+    !text.includes("0 followers (verified)")
+  ) {
+    fail("social-no-fabrication-explicit-zero", {
+      label,
+      followers,
+      body: briefing.body
+    });
+  } else {
+    console.log(`PASS Social ${label} -> verified zero preserved`);
+  }
+}
+
+const snapshotOnlyBriefing = await createFounderSocialMediaBriefing({
+  command: "Social Media",
+  service: snapshotOnlySocialService([
+    snapshotContentMetric("content_total_interactions", 12),
+    snapshotContentMetric("content_reach", 20)
+  ])
+});
+const snapshotOnlyText = snapshotOnlyBriefing.body.toLowerCase();
+const snapshotOnlyContentProvenance = snapshotOnlyBriefing.metadata?.metricProvenance?.content?.[0]?.metrics;
+const snapshotOnlyAccountProvenance = snapshotOnlyBriefing.metadata?.metricProvenance?.account;
+if (
+  !snapshotOnlyText.includes("12 engagements") ||
+  !snapshotOnlyText.includes("20 content reach") ||
+  !snapshotOnlyText.includes("60% engagement rate (calculated)") ||
+  !snapshotOnlyText.includes("engagement rate cannot be calculated because the required source metrics are unavailable") ||
+  snapshotOnlyText.includes("0 engagements") ||
+  snapshotOnlyContentProvenance?.engagement?.value !== 12 ||
+  snapshotOnlyContentProvenance?.engagement?.provenance !== "verified" ||
+  snapshotOnlyContentProvenance?.engagement?.source !== "content_total_interactions" ||
+  snapshotOnlyContentProvenance?.reach?.value !== 20 ||
+  snapshotOnlyAccountProvenance?.engagementRate?.provenance !== "missing"
+) {
+  fail("social-no-fabrication-snapshot-only", {
+    contentProvenance: snapshotOnlyContentProvenance,
+    accountProvenance: snapshotOnlyAccountProvenance,
+    body: snapshotOnlyBriefing.body
+  });
+} else {
+  console.log("PASS Social snapshot-only -> 12 interactions and 20 reach preserved with provenance");
+}
+
+const missingInputsBriefing = await createFounderSocialMediaBriefing({
+  command: "Social Media",
+  service: snapshotOnlySocialService([snapshotAccountMetric("followers_count", 5)])
+});
+const missingInputsText = missingInputsBriefing.body.toLowerCase();
+if (
+  !missingInputsText.includes("impressions unavailable from the current snapshot") ||
+  !missingInputsText.includes("engagement rate cannot be calculated because the required source metrics are unavailable") ||
+  missingInputsText.includes("0 impressions") ||
+  missingInputsText.includes("0% engagement rate") ||
+  missingInputsBriefing.metadata?.metricProvenance?.account?.impressions?.provenance !== "missing" ||
+  missingInputsBriefing.metadata?.metricProvenance?.account?.engagementRate?.provenance !== "missing"
+) {
+  fail("social-no-fabrication-required-inputs", {
+    accountProvenance: missingInputsBriefing.metadata?.metricProvenance?.account,
+    body: missingInputsBriefing.body
+  });
+} else {
+  console.log("PASS Social missing inputs -> impressions unavailable and engagement rate not calculated");
+}
+
+const unsupportedMetricBriefing = await createFounderSocialMediaBriefing({
+  command: "Social Media",
+  service: snapshotOnlySocialService([snapshotAccountMetric("impressions", "unsupported")])
+});
+if (
+  unsupportedMetricBriefing.metadata?.metricProvenance?.account?.impressions?.provenance !== "unsupported" ||
+  !unsupportedMetricBriefing.body.toLowerCase().includes("impressions not reported in a supported numeric format")
+) {
+  fail("social-no-fabrication-unsupported", {
+    accountProvenance: unsupportedMetricBriefing.metadata?.metricProvenance?.account,
+    body: unsupportedMetricBriefing.body
+  });
+} else {
+  console.log("PASS Social unsupported metric -> unsupported provenance remains explicit");
+}
+
+const staleMetricBriefing = await createFounderSocialMediaBriefing({
+  command: "Social Media",
+  service: snapshotOnlySocialService([snapshotAccountMetric("followers_count", 5)], { stale: true })
+});
+if (
+  staleMetricBriefing.metadata?.metricProvenance?.account?.followers?.provenance !== "stale" ||
+  !staleMetricBriefing.body.toLowerCase().includes("5 followers (stale)")
+) {
+  fail("social-no-fabrication-stale", {
+    accountProvenance: staleMetricBriefing.metadata?.metricProvenance?.account,
+    body: staleMetricBriefing.body
+  });
+} else {
+  console.log("PASS Social stale metric -> value retained and stale provenance stated");
 }
 
 const unavailableSocialProvider = new AIProvider({
