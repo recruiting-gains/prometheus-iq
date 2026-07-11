@@ -305,3 +305,28 @@ Founder-confirmed answers recorded:
 - Do not add legal conclusions.
 - Do not draft claims.
 - Do not complete USPTO forms.
+
+## 15. Continuous Adaptive Route Replenishment v1
+
+Status: Engineering expansion documented before implementation
+
+Recorded: 2026-07-11
+
+Supporting record:
+
+- `patents/route-iq/CONTINUOUS_ADAPTIVE_ROUTE_REPLENISHMENT_V1.md`
+
+Technical relationship:
+
+- Extends outcome-driven recommendation regeneration into continuous, bounded route queue maintenance.
+- Applies the latest available representative, territory, business, category, time-window, follow-up, objection, closing, and historical outcome evidence before selecting a replacement.
+- Maintains up to 15 active recommendations, appends replacements without rebuilding the route, and preserves completed-stop history.
+- Uses Active Pool candidates first and the governed Full Pool only as fallback.
+- Fails closed for unknown workspaces and prevents duplicate, completed, quarantined, or cross-workspace recommendations.
+- Uses a single-flight lock and bounded candidate scans to prevent overlapping replenishment and infinite generation loops.
+
+Evidence classification:
+
+- Preserve this record under the existing IP-001 evidence history.
+- Preserve scoring weights and proprietary ranking details as confidential implementation information.
+- Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.

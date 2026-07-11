@@ -33,7 +33,7 @@ function assertWorkflow(name, condition, detail, failureDetail = detail) {
 function contentType(pathname) {
   const ext = extname(pathname).toLowerCase();
   if (ext === ".html") return "text/html; charset=utf-8";
-  if (ext === ".js") return "text/javascript; charset=utf-8";
+  if (ext === ".js" || ext === ".mjs") return "text/javascript; charset=utf-8";
   if (ext === ".css") return "text/css; charset=utf-8";
   if (ext === ".json") return "application/json; charset=utf-8";
   if (ext === ".svg") return "image/svg+xml";
@@ -460,6 +460,12 @@ async function snapshot(cdp) {
       routeRisk: text(document.getElementById("routeRisk")),
       routeCountLabel: text(document.getElementById("routeCount")),
       dailyRouteCountLabel: text(document.getElementById("dailyRouteCount")),
+      routeLoopStatus: text(document.getElementById("routeLoopStatusToday")),
+      routeQueueIds: Array.isArray(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.entries)
+        ? state.repProfiles[activeRepId].activeRouteQueue.entries.map(entry => entry.identityKey)
+        : [],
+      routeQueueRevision: Number(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.revision || 0),
+      visitCount: Array.isArray(state?.repProfiles?.[activeRepId]?.visits) ? state.repProfiles[activeRepId].visits.length : 0,
       territoryText: text(document.getElementById("territoryOverview")),
       territoryVisible: visible(document.getElementById("territoryOverview")),
       territoryRingCount: document.querySelectorAll("#territoryRingList .territory-ring").length,
@@ -496,6 +502,8 @@ async function snapshot(cdp) {
         placesRender: debug.placesRender || {},
         territoryCoverage: debug.territoryCoverage || {},
         routeWindowFallback: debug.routeWindowFallback || {},
+        routeReplenishment: debug.routeReplenishment || {},
+        runtimeFallback: debug.runtimeFallback || {},
         operatingProfile: debug.operatingProfile || {},
         workspace: debug.workspace || {}
       },
@@ -660,7 +668,10 @@ async function verifyMobileQuickLogging(cdp) {
       && saveRect.right <= viewportWidth + 1
       && saveRect.bottom <= viewportHeight + 1;
     saveButton.click();
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const completionDeadline = Date.now() + 15000;
+    while (modal.classList.contains("active") && Date.now() < completionDeadline) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
     const afterUnits = Number(document.getElementById("unitsToday")?.textContent || 0);
     return {
       modalActiveAfterSubmit: modal.classList.contains("active"),
@@ -685,7 +696,9 @@ async function verifyMobileQuickLogging(cdp) {
       reachable,
       beforeUnits,
       afterUnits,
-      unitsInputValue: unitsInput.value
+      unitsInputValue: unitsInput.value,
+      routeLoopStatus: document.getElementById("routeLoopStatusToday")?.textContent?.trim() || "",
+      routeQueueCount: activeProfile().activeRouteQueue?.entries?.length || 0
     };
   })()`);
 }
@@ -886,6 +899,70 @@ async function verifyRouteStateSynchronization(cdp) {
   })()`);
 }
 
+async function verifyContinuousAdaptiveReplenishment(cdp) {
+  return cdp.evaluate(`(async () => {
+    const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+    const profile = activeProfile();
+    const beforeQueue = profile.activeRouteQueue?.entries?.map(entry => ({ ...entry })) || [];
+    if (beforeQueue.length !== 15) throw new Error("Expected 15 active stops before completion, found " + beforeQueue.length + ".");
+    const completedEntry = beforeQueue[0];
+    const completedPlace = state.places.find(place => routeIdentityKey(place) === completedEntry.identityKey);
+    if (!completedPlace) throw new Error("Unable to resolve the first active route stop.");
+    const beforeVisitCount = state.visits.length;
+    const beforeRevision = Number(profile.activeRouteQueue?.revision || 0);
+    document.querySelector('[data-open="quick"]')?.click();
+    await wait(0);
+    const form = document.getElementById("quickForm");
+    if (!form) throw new Error("Quick Result form did not open.");
+    form.elements.placeId.value = completedPlace.id;
+    form.querySelector('[data-quick-outcome="sale"]')?.click();
+    await wait(0);
+    form.querySelector('#quickCounts .btn[type="submit"]')?.click();
+    const deadline = Date.now() + 15000;
+    while (Date.now() < deadline) {
+      const queue = activeProfile().activeRouteQueue;
+      if (!document.getElementById("modal")?.classList.contains("active")
+        && Number(queue?.revision || 0) > beforeRevision
+        && window.prometheusDebugState?.routeReplenishment?.state !== "loading") break;
+      await wait(50);
+    }
+    const afterProfile = activeProfile();
+    const afterQueue = afterProfile.activeRouteQueue?.entries?.map(entry => ({ ...entry })) || [];
+    const stored = JSON.parse(localStorage.getItem("prometheus-v1") || "{}");
+    const storedProfile = stored.repProfiles?.[activeRepId] || {};
+    const status = document.getElementById("routeLoopStatusToday")?.textContent?.trim() || "";
+    const beforeFlight = routeReplenishmentCoordinator.status();
+    const firstFlight = requestAdaptiveRouteReplenishment({ force: false, trigger: "concurrency-check" });
+    const secondFlight = requestAdaptiveRouteReplenishment({ force: false, trigger: "concurrency-check" });
+    await Promise.all([firstFlight, secondFlight]);
+    const afterFlight = routeReplenishmentCoordinator.status();
+    return {
+      beforeQueueIds: beforeQueue.map(entry => entry.identityKey),
+      afterQueueIds: afterQueue.map(entry => entry.identityKey),
+      beforeVisitCount,
+      afterVisitCount: state.visits.length,
+      completedIdentity: completedEntry.identityKey,
+      completedPlaceId: completedPlace.id,
+      status,
+      queueState: afterProfile.activeRouteQueue?.state || "",
+      queueTarget: Number(afterProfile.activeRouteQueue?.targetSize || 0),
+      queueThreshold: Number(afterProfile.activeRouteQueue?.threshold || 0),
+      queueRevision: Number(afterProfile.activeRouteQueue?.revision || 0),
+      latestEvidenceCount: Number(afterProfile.adaptiveIntelligence?.evidenceCount || 0),
+      persistedVisitCount: Array.isArray(storedProfile.visits) ? storedProfile.visits.length : 0,
+      persistedQueueIds: storedProfile.activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
+      completedStillActive: afterQueue.some(entry => entry.identityKey === completedEntry.identityKey),
+      remainingOrderPreserved: beforeQueue.slice(1).every((entry, index) => afterQueue[index]?.identityKey === entry.identityKey),
+      appendedReplacement: afterQueue.length === 15 && !beforeQueue.some(entry => entry.identityKey === afterQueue.at(-1)?.identityKey),
+      duplicateCount: afterQueue.length - new Set(afterQueue.map(entry => entry.identityKey)).size,
+      debug: window.prometheusDebugState?.routeReplenishment || {},
+      beforeFlight,
+      afterFlight,
+      concurrencyCoalesced: afterFlight.coalesced > beforeFlight.coalesced
+    };
+  })()`);
+}
+
 async function verifyHamzaRepeatRecommendation(cdp) {
   return cdp.evaluate(`(() => {
     if (typeof routeVisiblePlaces !== "function" || typeof buildRouteList !== "function") throw new Error("Route engine is unavailable.");
@@ -1063,7 +1140,7 @@ async function runHarness() {
     await clickTab(founder.cdp, "route");
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && /Route/.test(routeSnap.routeText), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
-    assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 options"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
+    assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 active stops"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
     const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
     assertWorkflow("Beta Route Controls Owner Nearby opens context", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
 
@@ -1119,10 +1196,10 @@ async function runHarness() {
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
     const repRouteSnap = await snapshot(rep.cdp);
-    assertWorkflow("Beta Route Controls Anthony 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 options"), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
+    assertWorkflow("Beta Route Controls Anthony 15-location route generation", repRouteSnap.routeCards === 15 && repRouteSnap.routeCountLabel.includes("15 active stops"), `${repRouteSnap.routeCards} Anthony route cards rendered; ${repRouteSnap.routeCountLabel}`, JSON.stringify({ routeCards: repRouteSnap.routeCards, routeCountLabel: repRouteSnap.routeCountLabel, routeText: repRouteSnap.routeText.slice(0, 500) }));
     const routeWindows = await verifyRouteWindowOptions(rep.cdp);
-    assertWorkflow("Beta Route Controls Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("options"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
-    assertWorkflow("Beta Route Controls Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("options"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
+    assertWorkflow("Beta Route Controls Morning route options", routeWindows.morning.routeCards > 0 && routeWindows.morning.routeCountLabel.includes("active stops"), `${routeWindows.morning.routeCards} Morning options; ${routeWindows.morning.routeCountLabel}`, JSON.stringify(routeWindows.morning));
+    assertWorkflow("Beta Route Controls Evening route options", routeWindows.evening.routeCards > 0 && routeWindows.evening.routeCountLabel.includes("active stops"), `${routeWindows.evening.routeCards} Evening options; ${routeWindows.evening.routeCountLabel}`, JSON.stringify(routeWindows.evening));
     const hamzaRouting = await verifyHamzaRepeatRecommendation(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 Hamza repeat recommendation evidence routing", hamzaRouting.daysSinceRecommendation === 0 && !hamzaRouting.bestNextIsHamza && hamzaRouting.reasons.some(reason => reason.includes("recently shown")), `${hamzaRouting.hamzaName} rotated off best-next after same-day route history; best next ${hamzaRouting.bestNextName}`, JSON.stringify(hamzaRouting));
     const repNearbyBadge = await verifyRouteNearbyInteraction(rep.cdp);
@@ -1142,7 +1219,7 @@ async function runHarness() {
       viewport: { width: 390, height: 667, deviceScaleFactor: 3, mobile: true }
     });
     const quickLog = await verifyMobileQuickLogging(anthonyLog.cdp);
-    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify(quickLog));
+    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.routeQueueCount === 15 && quickLog.routeLoopStatus === "Route updated using your latest result." && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, queue ${quickLog.routeQueueCount}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify(quickLog));
     verifyNoErrors("Anthony mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
 
     const anthonyPwa = await runPageScenario(chrome, server, "/?pwa=rep&debug=1&harness=anthony-pwa-signin", "anthony-pwa", {
@@ -1156,6 +1233,21 @@ async function runHarness() {
     const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");
     verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
     verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
+
+    const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const adaptiveResult = await verifyContinuousAdaptiveReplenishment(adaptive.cdp);
+    assertWorkflow("Continuous replenishment completion trigger", adaptiveResult.afterVisitCount === adaptiveResult.beforeVisitCount + 1 && adaptiveResult.status === "Route updated using your latest result.", adaptiveResult.status, JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment queue returns to 15", adaptiveResult.afterQueueIds.length === 15 && adaptiveResult.queueTarget === 15 && adaptiveResult.queueThreshold === 5 && adaptiveResult.queueState === "active" && adaptiveResult.appendedReplacement, `${adaptiveResult.afterQueueIds.length}/${adaptiveResult.queueTarget} active stops`, JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment order and duplicate protection", adaptiveResult.remainingOrderPreserved && adaptiveResult.duplicateCount === 0 && !adaptiveResult.completedStillActive, "remaining order preserved; completed stop excluded; no duplicates", JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment evidence refresh", adaptiveResult.latestEvidenceCount >= adaptiveResult.afterVisitCount && adaptiveResult.debug.workspaceId === "fitness_connection" && adaptiveResult.debug.representativeId === "cruz", `${adaptiveResult.latestEvidenceCount} evidence records for ${adaptiveResult.debug.workspaceId}/${adaptiveResult.debug.representativeId}`, JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment durable persistence", adaptiveResult.persistedVisitCount === adaptiveResult.afterVisitCount && JSON.stringify(adaptiveResult.persistedQueueIds) === JSON.stringify(adaptiveResult.afterQueueIds), "visit outcome and active queue persisted together", JSON.stringify(adaptiveResult));
+    assertWorkflow("Continuous replenishment concurrent job protection", adaptiveResult.concurrencyCoalesced && adaptiveResult.afterFlight.started === adaptiveResult.beforeFlight.started + 1, `${adaptiveResult.afterFlight.coalesced - adaptiveResult.beforeFlight.coalesced} overlapping job coalesced`, JSON.stringify({ before: adaptiveResult.beforeFlight, after: adaptiveResult.afterFlight }));
+    verifyMobileFit("Continuous replenishment mobile rendering", await mobileFitSnapshot(adaptive.cdp));
+    const adaptiveReload = await navigateExistingScenario(adaptive.cdp, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment-reload");
+    assertWorkflow("Continuous replenishment separate runtime restoration", adaptiveReload.visitCount === adaptiveResult.afterVisitCount && JSON.stringify(adaptiveReload.routeQueueIds) === JSON.stringify(adaptiveResult.afterQueueIds), `${adaptiveReload.visitCount} visits and ${adaptiveReload.routeQueueIds.length} queued stops restored`, JSON.stringify({ before: adaptiveResult, reload: adaptiveReload }));
+    verifyNoErrors("Continuous adaptive replenishment", adaptive.eventLog, adaptiveReload);
 
     const full = await runPageScenario(chrome, server, "/?role=founder&debug=1&runtimePool=full&harness=runtime-workflows-full", "full");
     const fullSnap = full.initial;
@@ -1176,6 +1268,7 @@ async function runHarness() {
     rep.cdp.close();
     anthonyLog.cdp.close();
     anthonyPwa.cdp.close();
+    adaptive.cdp.close();
     full.cdp.close();
     fallback.cdp.close();
   } finally {

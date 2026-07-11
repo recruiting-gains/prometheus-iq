@@ -1,0 +1,70 @@
+{
+  "version": "continuous-adaptive-route-replenishment-contracts-v1",
+  "subsystem": "prometheus-intelligence-engine",
+  "domain": "route-intelligence",
+  "workspacePolicy": {
+    "authorizedWorkspaceId": "fitness_connection",
+    "unknownWorkspaceBehavior": "fail_closed",
+    "crossWorkspaceLearning": false,
+    "smoothieDepotRouteInfluence": false
+  },
+  "queuePolicy": {
+    "targetSize": 15,
+    "replenishmentThreshold": 5,
+    "outcomeTriggersImmediateMaintenance": true,
+    "preserveRemainingOrder": true,
+    "appendReplacement": true,
+    "completedStopExclusion": "current_route_date",
+    "duplicateIdentity": "google_place_id_then_normalized_name_address",
+    "concurrency": "single_flight",
+    "candidateScan": "bounded",
+    "emptyPoolBehavior": "explicit_exhausted_state"
+  },
+  "candidatePolicy": {
+    "primaryPool": "active",
+    "fallbackPool": "full",
+    "fallbackActivation": "only_after_no_eligible_active_candidate_can_fill_queue",
+    "liveGoogleCalls": false,
+    "requiredEligibility": [
+      "workspace_match",
+      "representative_visibility",
+      "route_eligible",
+      "inside_assigned_territory",
+      "valid_google_place_identity",
+      "not_quarantined",
+      "not_completed_current_route",
+      "not_already_active"
+    ]
+  },
+  "latestEvidenceInputs": [
+    "representative_strengths_weaknesses",
+    "logged_visit_outcomes",
+    "industry_category_performance",
+    "territory_performance",
+    "time_of_day_performance",
+    "business_customer_behavior",
+    "follow_up_status",
+    "objection_patterns",
+    "closing_patterns",
+    "distance_route_context",
+    "workspace_specific_evidence"
+  ],
+  "persistence": {
+    "visitOutcomeBeforeRegeneration": true,
+    "queueScopedBy": [
+      "workspace_id",
+      "representative_id",
+      "route_date",
+      "operating_profile_id"
+    ],
+    "completedHistoryPreserved": true,
+    "separateRuntimeOperationsSupported": true
+  },
+  "consumerCompatibility": {
+    "dashboard": "active_queue_projection",
+    "mobile": "active_queue_projection",
+    "recommendationExplanations": "existing_route_intelligence_contract",
+    "manualRouteRebuildRequired": false,
+    "fullApplicationRestartRequired": false
+  }
+}

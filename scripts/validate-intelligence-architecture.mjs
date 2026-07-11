@@ -20,6 +20,7 @@ const requiredFiles = [
   "intelligence/field-evidence-activation-foundation.md",
   "intelligence/customer-intelligence-graph.mjs",
   "intelligence/customer-intelligence-graph.md",
+  "intelligence/continuous-adaptive-route-replenishment.mjs",
   "intelligence/subsystem-contracts.md",
   "intelligence/future-subsystem-handoffs.md",
   "intelligence/field-learning-loop-handoffs.md",
@@ -30,6 +31,7 @@ const requiredFiles = [
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
   "intelligence/contracts/business-acquisition-intelligence-contracts.json",
+  "intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json",
   "intelligence/profiles/operating-profiles.json",
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md",
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
@@ -74,6 +76,7 @@ const explainabilityContracts = readJson("intelligence/contracts/recommendation-
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
 const businessAcquisitionContracts = readJson("intelligence/contracts/business-acquisition-intelligence-contracts.json");
+const adaptiveReplenishmentContracts = readJson("intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json");
 const operatingProfiles = readJson("intelligence/profiles/operating-profiles.json");
 const smoothieDepotWorkspacePlan = readJson("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json");
 const smoothieDepotWorkspaceDoc = read("intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md");
@@ -567,6 +570,15 @@ assert(smoothieDepotWorkspacePlan.decisionMaker === "JR", "Smoothie Depot worksp
 assert(smoothieDepotWorkspacePlan.workspaceIsolation.fitnessConnectionIsolationConfirmed === true, "Smoothie Depot workspace must confirm Fitness Connection isolation.");
 assert(smoothieDepotWorkspacePlan.workspaceIsolation.routeIntelligenceInfluence === false, "Smoothie Depot workspace must not influence Route Intelligence.");
 assert(smoothieDepotWorkspaceDoc.includes("Workspace Isolation Guardrails"), "Smoothie Depot workspace doc must include isolation guardrails.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.authorizedWorkspaceId === "fitness_connection", "Adaptive route replenishment must be scoped to Fitness Connection Route IQ.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.unknownWorkspaceBehavior === "fail_closed", "Adaptive route replenishment must fail closed for unknown workspaces.");
+assert(adaptiveReplenishmentContracts.workspacePolicy.crossWorkspaceLearning === false, "Adaptive route replenishment must prohibit cross-workspace learning.");
+assert(adaptiveReplenishmentContracts.queuePolicy.targetSize === 15, "Adaptive route replenishment must target 15 active stops.");
+assert(adaptiveReplenishmentContracts.queuePolicy.replenishmentThreshold === 5, "Adaptive route replenishment threshold must be five stops.");
+assert(adaptiveReplenishmentContracts.queuePolicy.concurrency === "single_flight", "Adaptive route replenishment must use single-flight concurrency.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.primaryPool === "active", "Adaptive route replenishment must prioritize Active Pool candidates.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.fallbackPool === "full", "Adaptive route replenishment must preserve Full Pool fallback.");
+assert(adaptiveReplenishmentContracts.candidatePolicy.liveGoogleCalls === false, "Adaptive route replenishment must preserve zero live Google calls.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
@@ -575,6 +587,7 @@ assert(systemMap.includes("Offline learning validation rule"), "System map must 
 assert(systemMap.includes("Recommendation explainability rule"), "System map must include recommendation explainability duplicate-prevention guidance.");
 assert(systemMap.includes("Operating Profile rule"), "System map must include Operating Profile duplicate-prevention guidance.");
 assert(systemMap.includes("Customer Intelligence Graph rule"), "System map must include Customer Intelligence Graph duplicate-prevention guidance.");
+assert(systemMap.includes("Continuous route replenishment rule"), "System map must include continuous route replenishment duplicate-prevention guidance.");
 
 if (failures.length) {
   console.error("Prometheus Intelligence architecture validation failed:");

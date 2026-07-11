@@ -17,12 +17,14 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
 - `customer-intelligence-graph.mjs`: read-only graph snapshot engine for per-customer Business, Visit, Lead, Outcome, Opportunity, Rep, Manager, Territory, Operating Profile, Customer, and Learning Signal relationships.
 - `customer-intelligence-graph.md`: Customer Intelligence Graph architecture, CustomerGraphSnapshots, provenance, safe query contracts, customer isolation rules, graph objectives, and future consumer boundaries.
+- `continuous-adaptive-route-replenishment.mjs`: production Route IQ queue controller for outcome-driven, representative-scoped, workspace-safe route maintenance.
 - `contracts/adaptive-intelligence-contracts.json`: machine-readable contract registry for validation and future implementation planning.
 - `contracts/field-learning-loop-contracts.json`: machine-readable Field Learning Loop contract registry for completed-visit evidence, normalized signals, confidence, explainability, and human override review.
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
 - `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, read-only query, Dashboard, CRM, Mobile, Website, Companion, Research, and Sales contracts.
 - `contracts/business-acquisition-intelligence-contracts.json`: Smoothie Depot workspace-scoped Business Acquisition Intelligence planning contracts.
+- `contracts/continuous-adaptive-route-replenishment-contracts.json`: queue, evidence, pool fallback, concurrency, persistence, and consumer compatibility contracts for continuous Route IQ replenishment.
 - `profiles/operating-profiles.json`: initial General Outside Sales, Fitness, Roofing, Security, Medical, Insurance, Solar, Home Services, and Franchise Development operating profiles.
 - `workspaces/smoothie-depot/workspace-intelligence-plan.md` and `.json`: isolated Smoothie Depot Workspace intelligence plan for franchise-owner candidate sourcing, qualification, JR handoff, commission tracking, and protection-period planning.
 - `fixtures/field-visit-evidence-fixtures.json`: simulated field visit evidence fixtures for regression testing before live beta evidence is admitted.
@@ -41,8 +43,9 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 
 ## Boundary Rules
 
-- Do not modify production recommendation logic from this architecture package.
-- Do not modify Dashboard behavior from this architecture package.
+- Architecture-only foundations remain non-production unless a separately governed activation explicitly authorizes runtime use.
+- Continuous Adaptive Route Replenishment v1 is the authorized production Route IQ activation and must remain scoped to the Fitness Connection workspace.
+- Do not create alternate production recommendation or Dashboard queue behavior outside the continuous replenishment controller and existing Route Intelligence integration.
 - Do not modify Active Pool scoring from this architecture package.
 - Do not modify Route Intelligence runtime code from this architecture package.
 - Do not modify Data governance from this architecture package.
@@ -65,3 +68,5 @@ Future operating-profile and field-evidence activation work must extend `operati
 Future Customer Intelligence Graph work must extend `customer-intelligence-graph.mjs`, `customer-intelligence-graph.md`, and `contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel customer graph, duplicate relationship vocabulary, cross-customer graph path, active confidence-propagation path, or Dashboard/CRM/Mobile/Companion/Research/Sales graph consumer without approved subsystem handoff.
 
 Future Smoothie Depot or Business Acquisition Intelligence work must extend `workspaces/smoothie-depot/workspace-intelligence-plan.md`, `workspaces/smoothie-depot/workspace-intelligence-plan.json`, and `contracts/business-acquisition-intelligence-contracts.json`. Do not mix Smoothie Depot candidate intelligence with Fitness Connection Route Intelligence, Active Pool scoring, or customer workspace data.
+
+Future adaptive route queue work must extend `continuous-adaptive-route-replenishment.mjs` and `contracts/continuous-adaptive-route-replenishment-contracts.json`. Do not create static pagination as a substitute, a second route queue, an unscoped queue store, a parallel scoring engine, or a fallback path that bypasses Active Pool, quarantine, completed-stop, workspace, or single-flight protections.

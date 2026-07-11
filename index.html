@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-xhfE9SZ/s5xFCLt07+PLL0uCOqYZgTFIi1D9BVYQ0gI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-HpmaNJTlSI25IT/F8q/21CZ/ZNouTU54kB2aTT8jpIQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -540,6 +540,26 @@
       color: rgba(255,255,255,.82);
       font-size: 13px;
       line-height: 1.35;
+    }
+
+    .route-loop-status {
+      border-left: 3px solid var(--accent);
+      color: #24423a;
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.35;
+      min-height: 42px;
+      padding: 11px 12px;
+    }
+
+    .route-loop-status[data-state="exhausted"] {
+      border-left-color: var(--gold);
+      color: #684c12;
+    }
+
+    .route-loop-status[data-state="error"] {
+      border-left-color: var(--bad);
+      color: var(--bad);
     }
 
     .intel-actions {
@@ -1375,8 +1395,9 @@
             <button class="btn" data-open="quick">Log Result</button>
             <button class="btn secondary owner-only" data-open="visit">Detailed Visit</button>
             <button class="btn secondary owner-only" data-open="location">+ Add Place</button>
-            <button class="btn secondary" data-tab="route">Build Route</button>
+            <button class="btn secondary" data-tab="route">View Route</button>
           </div>
+          <div class="route-loop-status" id="routeLoopStatusToday" data-state="loading" role="status" aria-live="polite">Preparing today’s route.</div>
         </div>
 
         <div class="section-title">
@@ -1492,6 +1513,7 @@
           <button class="seg" data-window="midday">Midday</button>
           <button class="seg" data-window="evening">Evening</button>
         </div>
+        <div class="route-loop-status" id="routeLoopStatusRoute" data-state="loading" role="status" aria-live="polite">Preparing today’s route.</div>
         <div class="list" id="routeList"></div>
       </section>
 
@@ -1682,12 +1704,14 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-04-founder-workspace-switcher-v1";
+    const appBuildVersion = "2026-07-11-continuous-adaptive-route-replenishment-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v37-founder-workspace-switcher";
+    const serviceWorkerCacheVersion = "prometheus-v38-continuous-adaptive-route-replenishment";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
+    const runtimeDatasetQuarantinePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json";
+    const routeReplenishmentModulePath = "./intelligence/continuous-adaptive-route-replenishment.mjs";
     const operatingProfileRegistryPath = "./intelligence/profiles/operating-profiles.json";
     const operatingProfileContractsPath = "./intelligence/contracts/operating-profile-contracts.json";
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
@@ -1718,6 +1742,13 @@
       runtimeDataSource: "embedded-fallback",
       runtimeDataStatus: "pending",
       runtimeDataPool: requestedRuntimePool,
+      routeReplenishment: {
+        version: "pending",
+        state: "loading",
+        activeCount: 0,
+        targetSize: 15,
+        threshold: 5
+      },
       workspace: {
         workspaceId: defaultWorkspaceId,
         label: dashboardWorkspaces[defaultWorkspaceId].label,
@@ -1771,6 +1802,12 @@
     const approvedPermissionSet = new Set(["Allowed table", "Allowed flyers/cards", "Allowed shift change", "Allowed staff talk", "Allowed resident email"]);
     const nearbyOpportunityRadiusFeet = 500;
     const betaRouteTargetSize = 15;
+    const routeReplenishmentThreshold = 5;
+    let routeReplenishmentApi = null;
+    let routeReplenishmentCoordinator = null;
+    let runtimeFullDatasetPlaces = [];
+    let runtimeQuarantinedGooglePlaceIds = new Set(runtimeBlockedGooglePlaceIds);
+    let runtimeFallbackDatasetPromise = null;
     const localDateKey = (date = new Date()) => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -19093,7 +19130,8 @@
     let runtimeDatasetSource = {
       label: "embedded-fallback",
       status: "embedded",
-      version: "embedded"
+      version: "embedded",
+      pool: "embedded"
     };
 
     function embeddedProductionPlaces() {
@@ -19695,17 +19733,22 @@
 
     function save() {
       try {
-        syncActiveProfile();
-        state = normalizeState(state);
-        activeRepId = state.activeRepId || activeRepId || "cruz";
-        invalidateDashboardComputationCache();
-        localStorage.setItem(storeKey, JSON.stringify(state));
+        persistStateWithoutRender();
         render();
         return true;
       } catch (error) {
         setDataStatus("Prometheus could not save this change. Export a backup and check available device storage.");
         return false;
       }
+    }
+
+    function persistStateWithoutRender() {
+      syncActiveProfile();
+      state = normalizeState(state);
+      activeRepId = state.activeRepId || activeRepId || "cruz";
+      invalidateDashboardComputationCache();
+      localStorage.setItem(storeKey, JSON.stringify(state));
+      return true;
     }
 
     function setDataStatus(message) {
@@ -19957,6 +20000,10 @@
         ...template,
         visits: Array.isArray(visits) ? visits : [],
         routeHistory: Array.isArray(routeHistory) ? routeHistory : [],
+        activeRouteQueue: null,
+        adaptiveIntelligence: null,
+        territoryPerformance: {},
+        outcomeSignals: [],
         createdAt: Date.now()
       };
       if (profileId === "anthony") {
@@ -19966,6 +20013,10 @@
         profile.timeWindowPerformance = {};
         profile.learnedPreferences = {};
         profile.confidenceAdjustments = {};
+        profile.activeRouteQueue = null;
+        profile.adaptiveIntelligence = null;
+        profile.territoryPerformance = {};
+        profile.outcomeSignals = [];
         profile.learningResetVersion = anthonyLearningResetVersion;
         profile.learningResetAt = new Date().toISOString();
       }
@@ -20041,6 +20092,10 @@
       profile.timeWindowPerformance = {};
       profile.learnedPreferences = {};
       profile.confidenceAdjustments = {};
+      profile.activeRouteQueue = null;
+      profile.adaptiveIntelligence = null;
+      profile.territoryPerformance = {};
+      profile.outcomeSignals = [];
       profile.learningResetVersion = anthonyLearningResetVersion;
       profile.learningResetAt = new Date().toISOString();
       profile.updatedAt = Date.now();
@@ -20057,6 +20112,10 @@
       profile.timeWindowPerformance = {};
       profile.learnedPreferences = {};
       profile.confidenceAdjustments = {};
+      profile.activeRouteQueue = null;
+      profile.adaptiveIntelligence = null;
+      profile.territoryPerformance = {};
+      profile.outcomeSignals = [];
       profile.learningResetVersion = founderLearningResetVersion;
       profile.learningResetAt = new Date().toISOString();
       profile.updatedAt = Date.now();
@@ -20076,6 +20135,14 @@
         localStorage.setItem(storeKey, JSON.stringify(state));
       } catch (error) {}
       render();
+      if (routeReplenishmentCoordinator) {
+        requestAdaptiveRouteReplenishment({ force: true, trigger: "representative-switch" })
+          .then(() => render())
+          .catch(error => {
+            setRouteLoopStatus("Your saved route is temporarily unavailable.", "error");
+            captureDebugError(error, "Representative route switch failed");
+          });
+      }
     }
 
     function normalizeState(input) {
@@ -20122,6 +20189,8 @@
           latitude: cleanCoordinate(raw.latitude ?? raw.lat, 90),
           longitude: cleanCoordinate(raw.longitude ?? raw.lng, 180),
           sharedProductionRoute: raw.sharedProductionRoute === true,
+          workspaceId: cleanText(raw.workspaceId, 80) || defaultWorkspaceId,
+          runtimePool: raw.runtimePool === "full" ? "full" : raw.runtimePool === "active" ? "active" : "",
           notes: cleanText(raw.notes, 2000),
           createdAt: cleanNumber(raw.createdAt, Date.now()) || Date.now()
         };
@@ -20144,6 +20213,7 @@
           id: safeId(raw.id, visitIds),
           placeId: placeIdMap.get(originalPlaceId) || "",
           placeName: cleanText(raw.placeName, 160),
+          workspaceId: cleanText(raw.workspaceId, 80) || defaultWorkspaceId,
           date: correctedDate,
           window: visitWindows.includes(raw.window) ? raw.window : visitWindow(new Date().getHours()),
           conversations: cleanNumber(raw.conversations, 10000),
@@ -20200,6 +20270,10 @@
             timeWindowPerformance: rawProfile?.timeWindowPerformance && typeof rawProfile.timeWindowPerformance === "object" ? cloneData(rawProfile.timeWindowPerformance) : {},
             learnedPreferences: rawProfile?.learnedPreferences && typeof rawProfile.learnedPreferences === "object" ? cloneData(rawProfile.learnedPreferences) : {},
             confidenceAdjustments: rawProfile?.confidenceAdjustments && typeof rawProfile.confidenceAdjustments === "object" ? cloneData(rawProfile.confidenceAdjustments) : {},
+            activeRouteQueue: rawProfile?.activeRouteQueue && typeof rawProfile.activeRouteQueue === "object" ? cloneData(rawProfile.activeRouteQueue) : null,
+            adaptiveIntelligence: rawProfile?.adaptiveIntelligence && typeof rawProfile.adaptiveIntelligence === "object" ? cloneData(rawProfile.adaptiveIntelligence) : null,
+            territoryPerformance: rawProfile?.territoryPerformance && typeof rawProfile.territoryPerformance === "object" ? cloneData(rawProfile.territoryPerformance) : {},
+            outcomeSignals: Array.isArray(rawProfile?.outcomeSignals) ? cloneData(rawProfile.outcomeSignals.slice(-500)) : [],
             learningResetVersion: cleanText(rawProfile?.learningResetVersion, 80),
             learningResetAt: cleanText(rawProfile?.learningResetAt, 80),
             createdAt: cleanNumber(rawProfile?.createdAt, Date.now()) || Date.now(),
@@ -20274,6 +20348,12 @@
       Object.values(nextState.repProfiles || {}).forEach(profile => {
         profile.visits = remapPlaceReferences(profile.visits, idMap);
         profile.routeHistory = remapPlaceReferences(profile.routeHistory, idMap);
+        if (Array.isArray(profile.activeRouteQueue?.entries)) {
+          profile.activeRouteQueue.entries = profile.activeRouteQueue.entries.map(entry => {
+            const placeId = idMap.get(entry?.placeId);
+            return placeId ? { ...entry, placeId } : entry;
+          });
+        }
       });
       return nextState;
     }
@@ -20352,6 +20432,8 @@
         repProfileId: cleanText(raw.repProfileId, 60),
         seedRouteOrder: cleanNumber(raw.seedRouteOrder, 1000),
         sharedProductionRoute: raw.sharedProductionRoute === true,
+        workspaceId: cleanText(raw.workspaceId, 80) || defaultWorkspaceId,
+        runtimePool: raw.runtimePool === "full" ? "full" : raw.runtimePool === "active" ? "active" : "",
         canRevisit: raw.canRevisit !== false,
         createdAt: Date.now()
       };
@@ -20395,6 +20477,8 @@
         repProfileId: profile.repProfileId,
         seedRouteOrder: profile.seedRouteOrder,
         sharedProductionRoute: true,
+        workspaceId: defaultWorkspaceId,
+        runtimePool: "active",
         canRevisit: true
       });
     }
@@ -20439,7 +20523,7 @@
       const seenIds = new Set();
       const places = [];
       rows.forEach(raw => {
-        const place = normalizeRuntimeDatasetPlace(raw);
+        const place = normalizeRuntimeDatasetPlace({ ...raw, workspaceId: defaultWorkspaceId, runtimePool: "full" });
         if (!place || seenIds.has(place.id)) return;
         seenIds.add(place.id);
         places.push(place);
@@ -20523,6 +20607,60 @@
         updateFounderDebugPanel({ stage: "runtime-dataset-fallback" });
         return false;
       }
+    }
+
+    function normalizeRuntimeQuarantineDataset(payload) {
+      if (!payload || typeof payload !== "object") throw new Error("Runtime quarantine payload is not valid JSON.");
+      if (payload.sourceDatasetVersion !== runtimeDatasetExpectedVersion) throw new Error("Runtime quarantine source version mismatch.");
+      if (payload.segmentationVersion !== runtimeDatasetExpectedSegmentationVersion || payload.pool !== "quarantine") {
+        throw new Error("Runtime quarantine contract mismatch.");
+      }
+      if (payload.runtimeBehaviorChanged !== false || payload.scoringChanged !== false) {
+        throw new Error("Runtime quarantine contract changed behavior or scoring.");
+      }
+      const records = Array.isArray(payload.records) ? payload.records : [];
+      if (Number(payload.count || 0) !== records.length) throw new Error("Runtime quarantine count does not match records.");
+      return new Set(records.map(record => cleanText(record?.googlePlaceId, 180)).filter(Boolean));
+    }
+
+    async function loadRuntimeFallbackDatasets() {
+      if (typeof fetch !== "function") return false;
+      try {
+        const fullPromise = runtimeDatasetSource.pool === "full"
+          ? Promise.resolve(runtimeDatasetPlaces.slice())
+          : fetch(runtimeDatasetFullPath, { cache: "no-store" }).then(async response => {
+              if (!response.ok) throw new Error(`Runtime full dataset request failed with ${response.status}.`);
+              return normalizeRuntimeDataset(await response.json());
+            });
+        const quarantinePromise = fetch(runtimeDatasetQuarantinePath, { cache: "no-store" }).then(async response => {
+          if (!response.ok) throw new Error(`Runtime quarantine request failed with ${response.status}.`);
+          return normalizeRuntimeQuarantineDataset(await response.json());
+        });
+        const [fullPlaces, quarantined] = await Promise.all([fullPromise, quarantinePromise]);
+        runtimeFullDatasetPlaces = fullPlaces;
+        runtimeQuarantinedGooglePlaceIds = new Set([...runtimeBlockedGooglePlaceIds, ...quarantined]);
+        window.prometheusDebugState.runtimeFallback = {
+          status: "ready",
+          fullRouteRecords: runtimeFullDatasetPlaces.length,
+          quarantinedGooglePlaceIds: runtimeQuarantinedGooglePlaceIds.size
+        };
+        return true;
+      } catch (error) {
+        runtimeFullDatasetPlaces = [];
+        runtimeQuarantinedGooglePlaceIds = new Set(runtimeBlockedGooglePlaceIds);
+        window.prometheusDebugState.runtimeFallback = {
+          status: "unavailable",
+          fullRouteRecords: 0,
+          quarantinedGooglePlaceIds: runtimeQuarantinedGooglePlaceIds.size,
+          error: error?.message || String(error || "unavailable")
+        };
+        return false;
+      }
+    }
+
+    function startRuntimeFallbackDatasetLoad() {
+      if (!runtimeFallbackDatasetPromise) runtimeFallbackDatasetPromise = loadRuntimeFallbackDatasets();
+      return runtimeFallbackDatasetPromise;
     }
 
     function resetData() {
@@ -20788,6 +20926,285 @@
       dashboardComputationCache.routeVisibleRepId = activeRepId;
       dashboardComputationCache.routeVisiblePlaces = places;
       return places;
+    }
+
+    function currentRouteWorkspaceId() {
+      return cleanText(document.body.dataset.workspaceId || window.prometheusDebugState.workspace?.workspaceId, 80) || defaultWorkspaceId;
+    }
+
+    function setRouteLoopStatus(message, status = "active") {
+      ["routeLoopStatusToday", "routeLoopStatusRoute"].forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+        element.textContent = message;
+        element.dataset.state = status;
+      });
+    }
+
+    async function loadRouteReplenishmentEngine() {
+      const loaded = await import(routeReplenishmentModulePath);
+      if (loaded.continuousAdaptiveRouteReplenishmentVersion !== "continuous-adaptive-route-replenishment-v1") {
+        throw new Error("Continuous route replenishment contract version mismatch.");
+      }
+      if (loaded.defaultRouteQueueTarget !== betaRouteTargetSize || loaded.defaultRouteReplenishmentThreshold !== routeReplenishmentThreshold) {
+        throw new Error("Continuous route replenishment queue policy mismatch.");
+      }
+      routeReplenishmentApi = loaded;
+      routeReplenishmentCoordinator = loaded.createSingleFlightReplenisher(performAdaptiveRouteReplenishment);
+      window.prometheusDebugState.routeReplenishment.version = loaded.continuousAdaptiveRouteReplenishmentVersion;
+      return true;
+    }
+
+    function representativeRoutePlacesFrom(places) {
+      const source = Array.isArray(places) ? places : [];
+      if (activeRepId === "anthony") return anthonyApprovedRoutePool(source);
+      if (activeRepId === "cruz") return founderGoogleRoutePool(source);
+      return source.filter(place => place.repProfileId !== "anthony");
+    }
+
+    function activeRouteQueue() {
+      if (!routeReplenishmentApi) return null;
+      const profile = activeProfile();
+      const queue = routeReplenishmentApi.normalizeRouteQueue(profile.activeRouteQueue, {
+        workspaceId: currentRouteWorkspaceId(),
+        representativeId: activeRepId,
+        operatingProfileId: activeOperatingProfile?.profileId || "fitness",
+        routeDate: todayKey(),
+        targetSize: betaRouteTargetSize,
+        threshold: routeReplenishmentThreshold
+      });
+      profile.activeRouteQueue = queue;
+      return queue;
+    }
+
+    function routeQueuePlace(entry) {
+      if (!entry) return null;
+      const byId = state.places.find(place => place.id === entry.placeId);
+      if (byId) return byId;
+      const allCandidates = runtimeFullDatasetPlaces.length
+        ? state.places.concat(runtimeFullDatasetPlaces)
+        : state.places;
+      return allCandidates.find(place => routeIdentityKey(place) === entry.identityKey) || null;
+    }
+
+    function completedRouteIdentityKeys() {
+      return todayVisits()
+        .map(visit => placeById(visit.placeId) || { id: visit.placeId, name: visit.placeName || "" })
+        .map(routeIdentityKey)
+        .filter(Boolean);
+    }
+
+    function refreshAdaptiveRouteIntelligence() {
+      if (!routeReplenishmentApi) return null;
+      const workspaceId = currentRouteWorkspaceId();
+      const profile = activeProfile();
+      const snapshot = routeReplenishmentApi.buildAdaptiveIntelligenceSnapshot({
+        workspaceId,
+        representativeId: activeRepId,
+        visits: state.visits,
+        places: state.places,
+        territoryResolver: place => territoryRingForPlace(place).label,
+        generatedAt: Date.now()
+      });
+      profile.adaptiveIntelligence = snapshot;
+      profile.placePerformance = snapshot.placePerformance;
+      profile.categoryPerformance = snapshot.categoryPerformance;
+      profile.timeWindowPerformance = snapshot.timeWindowPerformance;
+      profile.territoryPerformance = snapshot.territoryPerformance;
+      profile.outcomeSignals = snapshot.outcomeSignals;
+      profile.learnedPreferences = {
+        strongestCategories: snapshot.strengths,
+        developingCategories: snapshot.weaknesses,
+        refreshedAt: snapshot.generatedAt
+      };
+      return snapshot;
+    }
+
+    function queueCandidateWorkspace(place) {
+      return cleanText(place?.workspaceId, 80) || defaultWorkspaceId;
+    }
+
+    function isQuarantinedRouteCandidate(place) {
+      const placeId = cleanText(place?.googlePlaceId, 180);
+      return Boolean(placeId && runtimeQuarantinedGooglePlaceIds.has(placeId));
+    }
+
+    function isEligibleRouteQueueCandidate(place) {
+      return queueCandidateWorkspace(place) === currentRouteWorkspaceId()
+        && isGoogleQualifiedRoutePlace(place)
+        && isRouteEligible(place)
+        && isInsideAssignedTerritory(place)
+        && !wasVisitedToday(place)
+        && !isQuarantinedRouteCandidate(place);
+    }
+
+    function primaryRouteQueueCandidates() {
+      if (runtimeDatasetSource.pool === "full") return [];
+      return representativeRoutePlacesFrom(routeVisiblePlaces())
+        .filter(place => place.runtimePool !== "full");
+    }
+
+    function fallbackRouteQueueCandidates() {
+      const source = runtimeDatasetSource.pool === "full" ? routeVisiblePlaces() : runtimeFullDatasetPlaces;
+      return representativeRoutePlacesFrom(source)
+        .filter(place => !isQuarantinedRouteCandidate(place));
+    }
+
+    function latestRouteContextPlace() {
+      const latestVisit = todayVisits().slice().sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0];
+      if (latestVisit) return placeById(latestVisit.placeId);
+      const queue = activeRouteQueue();
+      const tail = queue?.entries?.[queue.entries.length - 1];
+      return routeQueuePlace(tail);
+    }
+
+    function routeContextDistanceMiles(origin, candidate) {
+      if (!origin || !candidate) return null;
+      const feet = distanceFeetBetweenPlaces(origin, candidate);
+      return Number.isFinite(feet) ? feet / 5280 : null;
+    }
+
+    function adaptiveQueueCandidateScore(candidate) {
+      const intelligence = activeProfile().adaptiveIntelligence || refreshAdaptiveRouteIntelligence();
+      const analysis = routeAnalysis(candidate, {
+        discoveryPreferred: routeMode(Math.max(0, GOAL - sumVisits(todayVisits()).units)).discoveryTarget >= .4,
+        expandRadius: shouldExpandRadius(Math.max(0, GOAL - sumVisits(todayVisits()).units))
+      });
+      return routeReplenishmentApi.scoreAdaptiveCandidate({
+        candidate,
+        baseScore: analysis.score,
+        intelligence,
+        currentTimeWindow: visitWindow(new Date().getHours()),
+        territoryLabel: territoryRingForPlace(candidate).label,
+        routeContextDistanceMiles: routeContextDistanceMiles(latestRouteContextPlace(), candidate)
+      });
+    }
+
+    function ensureQueueCandidatesInState(result, candidates) {
+      const byIdentity = new Map(candidates.map(place => [routeIdentityKey(place), place]));
+      const existingIdentities = new Set(state.places.map(routeIdentityKey));
+      result.appended.forEach(entry => {
+        if (existingIdentities.has(entry.identityKey)) return;
+        const place = byIdentity.get(entry.identityKey);
+        if (!place) return;
+        state.places.push({ ...place, workspaceId: defaultWorkspaceId, runtimePool: entry.sourcePool, createdAt: place.createdAt || Date.now() });
+        existingIdentities.add(entry.identityKey);
+      });
+    }
+
+    function recordQueueRecommendationHistory(result, candidates) {
+      const byIdentity = new Map(candidates.map(place => [routeIdentityKey(place), place]));
+      const date = todayKey();
+      state.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
+      result.appended.forEach(entry => {
+        const place = byIdentity.get(entry.identityKey) || routeQueuePlace(entry);
+        if (!place) return;
+        const exists = state.routeHistory.some(item => item.routeKey === entry.identityKey && item.date === date && item.context === "adaptive-queue");
+        if (exists) return;
+        state.routeHistory.push({
+          placeId: entry.placeId,
+          routeKey: entry.identityKey,
+          placeName: place.name || "",
+          date,
+          context: "adaptive-queue",
+          createdAt: Date.now()
+        });
+      });
+      state.routeHistory = state.routeHistory.slice(-routeHistoryLimit);
+    }
+
+    async function performAdaptiveRouteReplenishment(options = {}) {
+      const workspaceId = currentRouteWorkspaceId();
+      routeReplenishmentApi.assertRouteWorkspace(workspaceId);
+      const initialQueue = activeRouteQueue();
+      const completed = completedRouteIdentityKeys();
+      let primaryCandidates = primaryRouteQueueCandidates();
+      const primaryEligible = primaryCandidates.filter(isEligibleRouteQueueCandidate).length;
+      if (runtimeDatasetSource.pool === "full" || primaryEligible < betaRouteTargetSize) await startRuntimeFallbackDatasetLoad();
+      primaryCandidates = primaryRouteQueueCandidates();
+      const fallbackCandidates = fallbackRouteQueueCandidates();
+      const intelligence = refreshAdaptiveRouteIntelligence();
+      const result = routeReplenishmentApi.maintainRouteQueue({
+        queue: initialQueue,
+        workspaceId,
+        representativeId: activeRepId,
+        operatingProfileId: activeOperatingProfile?.profileId || "fitness",
+        routeDate: todayKey(),
+        primaryCandidates,
+        fallbackCandidates,
+        completedIdentityKeys: completed,
+        force: options.force === true,
+        trigger: options.trigger || "threshold",
+        identityOf: routeIdentityKey,
+        isEligible: isEligibleRouteQueueCandidate,
+        scoreCandidate: adaptiveQueueCandidateScore,
+        now: Date.now()
+      });
+      const candidates = primaryCandidates.concat(fallbackCandidates);
+      ensureQueueCandidatesInState(result, candidates);
+      activeProfile().activeRouteQueue = result.queue;
+      activeProfile().adaptiveIntelligence = intelligence;
+      recordQueueRecommendationHistory(result, candidates);
+      persistStateWithoutRender();
+      const flight = routeReplenishmentCoordinator?.status() || { inFlight: false, started: 0, coalesced: 0 };
+      window.prometheusDebugState.routeReplenishment = {
+        version: routeReplenishmentApi.continuousAdaptiveRouteReplenishmentVersion,
+        state: result.queue.state,
+        activeCount: result.metrics.activeCount,
+        targetSize: result.metrics.targetSize,
+        threshold: result.metrics.threshold,
+        revision: result.queue.revision,
+        triggered: result.triggered,
+        appendedCount: result.appended.length,
+        removedCount: result.removed.length,
+        usedFallback: result.usedFallback,
+        exhausted: result.exhausted,
+        latestEvidenceCount: intelligence.evidenceCount,
+        representativeId: activeRepId,
+        workspaceId,
+        routeDate: result.queue.routeDate,
+        singleFlight: flight,
+        failureReasons: result.failureReasons
+      };
+      if (result.exhausted) {
+        setRouteLoopStatus("No eligible locations remain in this route pool.", "exhausted");
+      } else if (options.trigger === "visit-outcome") {
+        setRouteLoopStatus("Route updated using your latest result.", "active");
+      } else if (result.queue.state === "depleted") {
+        setRouteLoopStatus(`${result.metrics.activeCount} eligible stops remain.`, "exhausted");
+      } else {
+        setRouteLoopStatus(`${result.metrics.activeCount} stops ready.`, "active");
+      }
+      return result;
+    }
+
+    function requestAdaptiveRouteReplenishment(options = {}) {
+      if (!routeReplenishmentCoordinator) return Promise.reject(new Error("Continuous route replenishment is not ready."));
+      if (options.trigger === "visit-outcome") setRouteLoopStatus("Updating your route from your latest result.", "loading");
+      return routeReplenishmentCoordinator.run(options);
+    }
+
+    function activeRouteItems(windowName = "all") {
+      if (!routeReplenishmentApi) {
+        return buildRouteList(routeVisiblePlaces(), betaRouteTargetSize, {
+          need: Math.max(0, GOAL - sumVisits(todayVisits()).units),
+          expandRadius: shouldExpandRadius(Math.max(0, GOAL - sumVisits(todayVisits()).units))
+        });
+      }
+      const queue = activeRouteQueue();
+      const allItems = (queue?.entries || [])
+        .map(entry => routeQueuePlace(entry))
+        .filter(place => place && isEligibleRouteQueueCandidate(place))
+        .map(place => routeAnalysis(place));
+      if (windowName === "all") return allItems;
+      const normalizedWindow = String(windowName || "").toLowerCase();
+      const direct = allItems.filter(item => {
+        const placeWindow = String(item.place.window || "").toLowerCase();
+        return placeWindow === normalizedWindow
+          || placeWindow === "anytime"
+          || placeWindow === "afternoon" && normalizedWindow === "evening";
+      });
+      return direct.length ? direct : allItems;
     }
 
     function placeCoordinate(place, key) {
@@ -21912,6 +22329,7 @@
     }
 
     function routeRecommendation() {
+      if (routeReplenishmentApi) return activeRouteItems()[0]?.place || null;
       return buildRouteList(routeVisiblePlaces(), 1, { need: Math.max(0, GOAL - sumVisits(todayVisits()).units) })[0]?.place;
     }
 
@@ -22104,7 +22522,7 @@
         ? "Today’s report is ready to copy or export."
         : "No visits logged today yet.");
 
-      const routeItems = buildRouteList(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = activeRouteItems();
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
       document.getElementById("unitsContext").textContent = pace.units;
       document.getElementById("needContext").textContent = pace.need;
@@ -22160,10 +22578,10 @@
       const routeRisk = document.getElementById("routeRisk");
 
       if (!next) {
-        bestNextMove.textContent = "Add fresh territory";
+        bestNextMove.textContent = "Route pool exhausted";
         bestMoveAddress.textContent = "No verified address available";
-        bestMoveReason.textContent = "Every saved place has already been hit today. Add a new map search from Find before driving more.";
-        bestMoveDetails.textContent = "No ranked stop is available from the current route pool.";
+        bestMoveReason.textContent = "No eligible location remains in the Active Pool or governed Full Pool fallback.";
+        bestMoveDetails.textContent = "Completed stops remain in history. Prometheus will not invent or repeat a location.";
         bestMoveDirections.href = "#";
         intelExpected.textContent = "New";
         intelWindow.textContent = visitWindow(new Date().getHours());
@@ -22176,12 +22594,12 @@
         intelNearbyChip.textContent = "Nearby pending";
         intelNearbyChip.dataset.nearbyPlace = "";
         intelVisitTimeChip.textContent = "Visit time pending";
-        routeRisk.textContent = "Warning: no unvisited saved stops are left for today.";
+        routeRisk.textContent = "No eligible locations remain in this route pool.";
         updateFounderDebugPanel({ stage: "route-placeholder-rendered" });
         return;
       }
 
-      const routeItems = buildRouteList(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
+      const routeItems = activeRouteItems();
       const analysis = routeItems.find(item => item.place.id === next.id) || routeAnalysis(next);
       const intelligence = routeIntelligenceFor(next, analysis, routeItems);
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
@@ -22224,11 +22642,12 @@
 
     function renderDailyRoute() {
       const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = routeListExcludingBestNext(routeVisiblePlaces(), routeDisplayLimitForPlaces(routeVisiblePlaces()), { need, expandRadius: shouldExpandRadius(need) });
-      document.getElementById("dailyRouteCount").textContent = `${routeItems.length} stops · ${routeMode(need).label}`;
+      const activeItems = activeRouteItems();
+      const routeItems = activeItems.slice(1);
+      document.getElementById("dailyRouteCount").textContent = `${activeItems.length} active · ${routeMode(need).label}`;
       const list = document.getElementById("dailyRoute");
       if (!routeItems.length) {
-        list.innerHTML = `<div class="empty">You logged every saved place today. Add fresh searches from the Find screen.</div>`;
+        list.innerHTML = `<div class="empty">${activeItems.length ? "The best next stop is the only eligible location remaining." : "No eligible locations remain in this route pool."}</div>`;
         return;
       }
       list.innerHTML = routeItems.map((item, index) => compactRouteCard(item.place, index, item)).join("");
@@ -22437,23 +22856,29 @@
     }
 
     function renderRoute() {
-      const windowRoute = routePlacesForWindow(routeVisiblePlaces().slice(), currentWindow);
-      const places = windowRoute.places;
-      const need = Math.max(0, GOAL - sumVisits(todayVisits()).units);
-      const routeItems = routeListExcludingBestNext(places, routeDisplayLimitForPlaces(places), { need, expandRadius: shouldExpandRadius(need) });
-      document.getElementById("routeCount").textContent = windowRoute.fallback
-        ? `${routeItems.length} options · ${windowLabel(currentWindow)} fallback`
-        : `${routeItems.length} options`;
+      const allRouteItems = activeRouteItems();
+      const normalizedWindow = String(currentWindow || "").toLowerCase();
+      const directWindowItems = currentWindow === "all" ? allRouteItems : allRouteItems.filter(item => {
+        const placeWindow = String(item.place.window || "").toLowerCase();
+        return placeWindow === normalizedWindow
+          || placeWindow === "anytime"
+          || placeWindow === "afternoon" && normalizedWindow === "evening";
+      });
+      const hasDirectWindowMatches = directWindowItems.length > 0;
+      const routeItems = hasDirectWindowMatches ? directWindowItems : allRouteItems;
+      document.getElementById("routeCount").textContent = currentWindow !== "all" && !hasDirectWindowMatches
+        ? `${routeItems.length} active stops · ${windowLabel(currentWindow)} fallback`
+        : `${routeItems.length} active stops`;
       const list = document.getElementById("routeList");
       if (!routeItems.length) {
-        list.innerHTML = `<div class="empty">Add a few places in Find, then this route will rank them.</div>`;
+        list.innerHTML = `<div class="empty">No eligible locations remain in this route pool.</div>`;
         viewRenderState.route = true;
         return;
       }
       window.prometheusDebugState.routeWindowFallback = {
         window: currentWindow,
-        fallback: Boolean(windowRoute.fallback),
-        directCount: windowRoute.directCount ?? routeItems.length,
+        fallback: currentWindow !== "all" && !hasDirectWindowMatches,
+        directCount: hasDirectWindowMatches ? routeItems.length : 0,
         routeCards: routeItems.length
       };
       list.innerHTML = routeItems.map((item, index) => {
@@ -22964,6 +23389,50 @@
       });
     }
 
+    async function persistCompletedVisitAndRefreshRoute(visit) {
+      let workspaceId;
+      let place;
+      try {
+        workspaceId = currentRouteWorkspaceId();
+        if (!routeReplenishmentApi) throw new Error("Continuous route replenishment is not ready.");
+        routeReplenishmentApi.assertRouteWorkspace(workspaceId);
+        place = state.places.find(item => item.id === visit.placeId);
+        if (!place || queueCandidateWorkspace(place) !== workspaceId) throw new Error("Visit location is outside the active workspace.");
+      } catch (error) {
+        setRouteLoopStatus("Choose a valid route location before saving.", "error");
+        return false;
+      }
+      const persistedVisit = {
+        ...visit,
+        workspaceId,
+        placeName: place.name || visit.placeName || "",
+        createdAt: Number(visit.createdAt || Date.now())
+      };
+      state.visits.push(persistedVisit);
+      persistStateWithoutRender();
+      try {
+        refreshAdaptiveRouteIntelligence();
+        persistStateWithoutRender();
+        await requestAdaptiveRouteReplenishment({ force: true, trigger: "visit-outcome", visitId: persistedVisit.id });
+        persistStateWithoutRender();
+        closeModal();
+        render();
+        return true;
+      } catch (error) {
+        persistStateWithoutRender();
+        closeModal();
+        setRouteLoopStatus("Result saved. Your route could not update yet.", "error");
+        render();
+        window.prometheusDebugState.routeReplenishment = {
+          ...window.prometheusDebugState.routeReplenishment,
+          state: "error",
+          outcomePersisted: true,
+          error: error?.message || String(error || "unavailable")
+        };
+        return false;
+      }
+    }
+
     function openModal(type, preset = {}) {
       const vocabulary = activeOperatingVocabulary();
       const modal = document.getElementById("modal");
@@ -23004,12 +23473,17 @@
 
         const quickForm = body.querySelector("#quickForm");
         attachVisitLocationControl(quickForm);
-        const saveQuickResult = values => {
+        let quickResultPending = false;
+        const saveQuickResult = async values => {
+          if (quickResultPending) return;
+          quickResultPending = true;
+          quickForm.querySelectorAll("button, select, input, textarea").forEach(control => { control.disabled = true; });
           const place = state.places.find(p => p.id === values.placeId);
-          state.visits.push({
+          const saved = await persistCompletedVisitAndRefreshRoute({
             id: id(),
             placeId: values.placeId,
             placeName: place ? place.name : "",
+            workspaceId: currentRouteWorkspaceId(),
             date: todayKey(),
             window: visitWindow(new Date().getHours()),
             conversations: Number(values.conversations || 0),
@@ -23022,15 +23496,17 @@
             quick: true,
             createdAt: Date.now()
           });
-          closeModal();
-          save();
+          if (!saved) {
+            quickResultPending = false;
+            quickForm.querySelectorAll("button, select, input, textarea").forEach(control => { control.disabled = false; });
+          }
         };
 
-        body.querySelectorAll("[data-quick-outcome]").forEach(button => button.addEventListener("click", () => {
+        body.querySelectorAll("[data-quick-outcome]").forEach(button => button.addEventListener("click", async () => {
           const outcome = button.dataset.quickOutcome;
           const placeId = quickForm.elements.placeId.value;
           if (outcome === "none") {
-            saveQuickResult({ placeId, outcome, conversations: 0, leads: 0, units: 0 });
+            await saveQuickResult({ placeId, outcome, conversations: 0, leads: 0, units: 0 });
             return;
           }
           const defaults = outcome === "sale"
@@ -23046,9 +23522,9 @@
           requestAnimationFrame(() => quickCounts.scrollIntoView({ block: "nearest" }));
         }));
 
-        quickForm.addEventListener("submit", event => {
+        quickForm.addEventListener("submit", async event => {
           event.preventDefault();
-          saveQuickResult(Object.fromEntries(new FormData(quickForm).entries()));
+          await saveQuickResult(Object.fromEntries(new FormData(quickForm).entries()));
         });
       } else if (type === "visit") {
         title.textContent = "Add Visit";
@@ -23074,14 +23550,16 @@
         </form>`;
         attachVisitLocationControl(body.querySelector("form"));
         body.querySelector("[name=window]").value = visitWindow(new Date().getHours());
-        body.querySelector("form").addEventListener("submit", event => {
+        body.querySelector("form").addEventListener("submit", async event => {
           event.preventDefault();
           const data = Object.fromEntries(new FormData(event.currentTarget).entries());
           const place = state.places.find(p => p.id === data.placeId);
-          state.visits.push({
+          event.currentTarget.querySelectorAll("button, select, input, textarea").forEach(control => { control.disabled = true; });
+          const saved = await persistCompletedVisitAndRefreshRoute({
             id: id(),
             placeId: data.placeId,
             placeName: place ? place.name : "",
+            workspaceId: currentRouteWorkspaceId(),
             date: data.date,
             window: data.window,
             conversations: Number(data.conversations || 0),
@@ -23093,8 +23571,7 @@
             location: locationFromForm(event.currentTarget),
             createdAt: Date.now()
           });
-          closeModal();
-          save();
+          if (!saved) event.currentTarget.querySelectorAll("button, select, input, textarea").forEach(control => { control.disabled = false; });
         });
       } else {
         title.textContent = "Add Place";
@@ -23418,12 +23895,16 @@
 
     (async () => {
       try {
+        await loadRouteReplenishmentEngine();
         await loadOperatingProfileDefinitions();
+        await requestAdaptiveRouteReplenishment({ force: true, trigger: "startup" });
         render();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";
         updateFounderDebugPanel({ stage: "startup-complete" });
-        loadRuntimeProductionDataset();
+        await loadRuntimeProductionDataset();
+        await requestAdaptiveRouteReplenishment({ force: true, trigger: "runtime-dataset-loaded" });
+        render();
       } catch (error) {
         captureDebugError(error, "Startup render failed");
         updateFounderDebugPanel({ stage: "startup-error" });

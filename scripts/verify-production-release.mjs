@@ -8,9 +8,12 @@ const root = resolve(import.meta.dirname, "..");
 const productionUrlDefault = "https://prometheus-iq.prometheusrouteiq.workers.dev";
 const workerNameDefault = "prometheus-iq";
 const activePoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
+const quarantinePoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json";
 const fullPoolPath = "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
 const operatingProfileRegistryPath = "/intelligence/profiles/operating-profiles.json";
 const operatingProfileContractsPath = "/intelligence/contracts/operating-profile-contracts.json";
+const routeReplenishmentModulePath = "/intelligence/continuous-adaptive-route-replenishment.mjs";
+const routeReplenishmentContractsPath = "/intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json";
 const blockedRuntimePlaceIds = new Set(["ChIJw_j5DXK9QIYRfEFiOYffXt0", "ChIJ9TRCKYubQIYR8psjkD8AVl8", "ChIJJR7e8XCbQIYRN_WV8sQpn5E"]);
 
 const args = parseArgs(process.argv.slice(2));
@@ -136,12 +139,18 @@ function assertLocalArtifacts() {
   const deployHeaders = read("deploy/cloudflare-pages/_headers");
   const activePool = read(`.${activePoolPath}`);
   const deployActivePool = read(`deploy/cloudflare-pages${activePoolPath}`);
+  const quarantinePool = read(`.${quarantinePoolPath}`);
+  const deployQuarantinePool = read(`deploy/cloudflare-pages${quarantinePoolPath}`);
   const fullPool = read(`.${fullPoolPath}`);
   const deployFullPool = read(`deploy/cloudflare-pages${fullPoolPath}`);
   const sourceOperatingProfiles = read(`.${operatingProfileRegistryPath}`);
   const deployOperatingProfiles = read(`deploy/cloudflare-pages${operatingProfileRegistryPath}`);
   const sourceOperatingProfileContracts = read(`.${operatingProfileContractsPath}`);
   const deployOperatingProfileContracts = read(`deploy/cloudflare-pages${operatingProfileContractsPath}`);
+  const sourceRouteReplenishmentModule = read(`.${routeReplenishmentModulePath}`);
+  const deployRouteReplenishmentModule = read(`deploy/cloudflare-pages${routeReplenishmentModulePath}`);
+  const sourceRouteReplenishmentContracts = read(`.${routeReplenishmentContractsPath}`);
+  const deployRouteReplenishmentContracts = read(`deploy/cloudflare-pages${routeReplenishmentContractsPath}`);
   const sourceFullPayload = JSON.parse(fullPool);
   const expectedDeployFullPool = JSON.stringify({
     ...sourceFullPayload,
@@ -156,6 +165,8 @@ function assertLocalArtifacts() {
   const buildMarker = getConst(script, "appBuildVersion");
   const serviceWorkerCacheVersion = getConst(script, "serviceWorkerCacheVersion");
   const runtimeDatasetActivePath = getConst(script, "runtimeDatasetActivePath");
+  const runtimeDatasetQuarantinePath = getConst(script, "runtimeDatasetQuarantinePath");
+  const routeReplenishmentModuleAssetPath = getConst(script, "routeReplenishmentModulePath");
   const runtimeDatasetExpectedVersion = getConst(script, "runtimeDatasetExpectedVersion");
   const headersMap = parseHeaderFile(headers);
   const deployHeadersMap = parseHeaderFile(deployHeaders);
@@ -165,9 +176,12 @@ function assertLocalArtifacts() {
   if (serviceWorker !== deployServiceWorker) failures.push("sw.js and deploy/cloudflare-pages/sw.js differ.");
   if (headers !== deployHeaders) failures.push("_headers and deploy/cloudflare-pages/_headers differ.");
   if (activePool !== deployActivePool) failures.push("Active pool source and deploy asset differ.");
+  if (quarantinePool !== deployQuarantinePool) failures.push("Quarantine pool source and deploy asset differ.");
   if (expectedDeployFullPool !== deployFullPool) failures.push("Full runtime pool deploy asset does not match the quarantined-record sanitized source full pool.");
   if (sourceOperatingProfiles !== deployOperatingProfiles) failures.push("Operating profile registry source and deploy asset differ.");
   if (sourceOperatingProfileContracts !== deployOperatingProfileContracts) failures.push("Operating profile contracts source and deploy asset differ.");
+  if (sourceRouteReplenishmentModule !== deployRouteReplenishmentModule) failures.push("Route replenishment module source and deploy asset differ.");
+  if (sourceRouteReplenishmentContracts !== deployRouteReplenishmentContracts) failures.push("Route replenishment contracts source and deploy asset differ.");
   if (scripts.length !== 1) failures.push(`Expected exactly one inline app script; found ${scripts.length}.`);
   if (script !== deployScript) failures.push("Source and deploy inline app scripts differ.");
   if (script) {
@@ -182,6 +196,8 @@ function assertLocalArtifacts() {
   if (!serviceWorkerCacheVersion) failures.push("Service worker cache marker is missing.");
   if (serviceWorkerCacheVersion !== swCacheName) failures.push("Service worker cache marker does not match sw.js CACHE_NAME.");
   if (runtimeDatasetActivePath !== `.${activePoolPath}`) failures.push("Runtime active dataset path does not point at the active pool asset.");
+  if (runtimeDatasetQuarantinePath !== `.${quarantinePoolPath}`) failures.push("Runtime quarantine dataset path does not point at the quarantine pool asset.");
+  if (routeReplenishmentModuleAssetPath !== `.${routeReplenishmentModulePath}`) failures.push("Route replenishment module path does not point at the deployed Intelligence asset.");
   if (runtimeDatasetExpectedVersion !== "google-qualified-businesses-v2") failures.push("Runtime dataset expected version is not google-qualified-businesses-v2.");
   if (!manifest.display || manifest.display !== "standalone") failures.push("PWA manifest display must remain standalone.");
   if (!index.includes('name="mobile-web-app-capable"')) failures.push("PWA mobile-web-app-capable meta is missing.");
@@ -200,11 +216,13 @@ function assertLocalArtifacts() {
     buildMarker,
     serviceWorkerCacheVersion,
     runtimeDatasetActivePath,
+    runtimeDatasetQuarantinePath,
+    routeReplenishmentModuleAssetPath,
     runtimeDatasetExpectedVersion,
     failures
   });
 
-  return { index, deployIndex, serviceWorker, deployServiceWorker, headers, deployHeaders, script, hash, buildMarker, serviceWorkerCacheVersion, runtimeDatasetActivePath };
+  return { index, deployIndex, serviceWorker, deployServiceWorker, headers, deployHeaders, script, hash, buildMarker, serviceWorkerCacheVersion, runtimeDatasetActivePath, runtimeDatasetQuarantinePath, routeReplenishmentModuleAssetPath };
 }
 
 function parseLatestDeployment(output) {
@@ -379,22 +397,35 @@ async function verifyAuthenticatedAssets(localContracts) {
   const indexResponse = await request("/?releaseGate=production", { headers, redirect: "manual" });
   const serviceWorkerResponse = await request("/sw.js?releaseGate=production", { headers, redirect: "manual" });
   const activePoolResponse = await request(`${activePoolPath}?releaseGate=production`, { headers, redirect: "manual" });
+  const quarantinePoolResponse = await request(`${quarantinePoolPath}?releaseGate=production`, { headers, redirect: "manual" });
+  const routeReplenishmentModuleResponse = await request(`${routeReplenishmentModulePath}?releaseGate=production`, { headers, redirect: "manual" });
+  const routeReplenishmentContractsResponse = await request(`${routeReplenishmentContractsPath}?releaseGate=production`, { headers, redirect: "manual" });
   const manifestResponse = await request("/manifest.webmanifest?releaseGate=production", { headers, redirect: "manual" });
   const index = await indexResponse.text();
   const serviceWorker = await serviceWorkerResponse.text();
   const activePoolText = await activePoolResponse.text();
+  const quarantinePoolText = await quarantinePoolResponse.text();
+  const routeReplenishmentModuleText = await routeReplenishmentModuleResponse.text();
+  const routeReplenishmentContractsText = await routeReplenishmentContractsResponse.text();
   const manifestText = await manifestResponse.text();
   const localDeployIndex = read("deploy/cloudflare-pages/index.html");
   const localDeployServiceWorker = read("deploy/cloudflare-pages/sw.js");
   const localDeployActivePool = read(`deploy/cloudflare-pages${activePoolPath}`);
+  const localDeployQuarantinePool = read(`deploy/cloudflare-pages${quarantinePoolPath}`);
+  const localDeployRouteReplenishmentModule = read(`deploy/cloudflare-pages${routeReplenishmentModulePath}`);
+  const localDeployRouteReplenishmentContracts = read(`deploy/cloudflare-pages${routeReplenishmentContractsPath}`);
   const localDeployManifest = read("deploy/cloudflare-pages/manifest.webmanifest");
   const liveScript = getInlineScript(index).script;
   const liveHash = liveScript ? `sha256-${createHash("sha256").update(liveScript, "utf8").digest("base64")}` : "";
   const liveBuildMarker = getConst(liveScript, "appBuildVersion");
   const liveServiceWorkerVersion = getConst(liveScript, "serviceWorkerCacheVersion");
   const liveActivePath = getConst(liveScript, "runtimeDatasetActivePath");
+  const liveQuarantinePath = getConst(liveScript, "runtimeDatasetQuarantinePath");
+  const liveRouteReplenishmentModulePath = getConst(liveScript, "routeReplenishmentModulePath");
   const swCacheName = (serviceWorker.match(/CACHE_NAME\s*=\s*"([^"]+)"/) || [])[1] || "";
   let activePool = {};
+  let quarantinePool = {};
+  let routeReplenishmentContracts = {};
   let manifest = {};
 
   try {
@@ -403,12 +434,22 @@ async function verifyAuthenticatedAssets(localContracts) {
     failures.push(`Active pool response is not JSON: ${error.message}`);
   }
   try {
+    quarantinePool = JSON.parse(quarantinePoolText);
+  } catch (error) {
+    failures.push(`Quarantine pool response is not JSON: ${error.message}`);
+  }
+  try {
+    routeReplenishmentContracts = JSON.parse(routeReplenishmentContractsText);
+  } catch (error) {
+    failures.push(`Route replenishment contracts response is not JSON: ${error.message}`);
+  }
+  try {
     manifest = JSON.parse(manifestText);
   } catch (error) {
     failures.push(`Manifest response is not JSON: ${error.message}`);
   }
 
-  for (const [label, response] of [["index", indexResponse], ["service worker", serviceWorkerResponse], ["active pool", activePoolResponse], ["manifest", manifestResponse]]) {
+  for (const [label, response] of [["index", indexResponse], ["service worker", serviceWorkerResponse], ["active pool", activePoolResponse], ["quarantine pool", quarantinePoolResponse], ["route replenishment module", routeReplenishmentModuleResponse], ["route replenishment contracts", routeReplenishmentContractsResponse], ["manifest", manifestResponse]]) {
     if (response.status !== 200) failures.push(`${label} returned HTTP ${response.status}.`);
   }
 
@@ -423,15 +464,23 @@ async function verifyAuthenticatedAssets(localContracts) {
   if (sha256(index) !== sha256(localDeployIndex)) failures.push("Live index.html does not match the local deployment package.");
   if (sha256(serviceWorker) !== sha256(localDeployServiceWorker)) failures.push("Live sw.js does not match the local deployment package.");
   if (sha256(activePoolText) !== sha256(localDeployActivePool)) failures.push("Live Active pool does not match the local deployment package.");
+  if (sha256(quarantinePoolText) !== sha256(localDeployQuarantinePool)) failures.push("Live quarantine pool does not match the local deployment package.");
+  if (sha256(routeReplenishmentModuleText) !== sha256(localDeployRouteReplenishmentModule)) failures.push("Live route replenishment module does not match the local deployment package.");
+  if (sha256(routeReplenishmentContractsText) !== sha256(localDeployRouteReplenishmentContracts)) failures.push("Live route replenishment contracts do not match the local deployment package.");
   if (sha256(manifestText) !== sha256(localDeployManifest)) failures.push("Live PWA manifest does not match the local deployment package.");
   if (/<meta[^>]+Content-Security-Policy[^>]+frame-ancestors/i.test(index)) failures.push("Live meta CSP still includes frame-ancestors.");
   if (liveBuildMarker !== localContracts.buildMarker) failures.push(`Live build marker ${liveBuildMarker || "missing"} does not match local ${localContracts.buildMarker}.`);
   if (liveServiceWorkerVersion !== localContracts.serviceWorkerCacheVersion) failures.push(`Live service worker marker ${liveServiceWorkerVersion || "missing"} does not match local ${localContracts.serviceWorkerCacheVersion}.`);
   if (swCacheName !== localContracts.serviceWorkerCacheVersion) failures.push(`Live sw.js cache ${swCacheName || "missing"} does not match local ${localContracts.serviceWorkerCacheVersion}.`);
   if (liveActivePath !== localContracts.runtimeDatasetActivePath) failures.push("Live runtime active path does not match the deployed artifact.");
+  if (liveQuarantinePath !== localContracts.runtimeDatasetQuarantinePath) failures.push("Live runtime quarantine path does not match the deployed artifact.");
+  if (liveRouteReplenishmentModulePath !== localContracts.routeReplenishmentModuleAssetPath) failures.push("Live route replenishment module path does not match the deployed artifact.");
   if (activePool.pool !== "active") failures.push("Live active pool response does not declare pool=active.");
   if (activePool.sourceDatasetVersion !== "google-qualified-businesses-v2") failures.push("Live active pool sourceDatasetVersion mismatch.");
   if (!Array.isArray(activePool.records) || activePool.records.length !== activePool.count) failures.push("Live active pool records length does not match count.");
+  if (quarantinePool.pool !== "quarantine" || !Array.isArray(quarantinePool.records) || quarantinePool.records.length !== quarantinePool.count) failures.push("Live quarantine pool contract is invalid.");
+  if (routeReplenishmentContracts.version !== "continuous-adaptive-route-replenishment-contracts-v1") failures.push("Live route replenishment contract version mismatch.");
+  if (!routeReplenishmentModuleText.includes("continuous-adaptive-route-replenishment-v1")) failures.push("Live route replenishment module version marker is missing.");
   if (manifest.display !== "standalone") failures.push("Live PWA manifest display must be standalone.");
   if (/maps\.googleapis\.com|places\.googleapis\.com|GOOGLE_(?:MAPS|PLACES)_API_KEY|AIza/.test(index)) failures.push("Live index contains a Google API endpoint/key reference.");
 
@@ -440,6 +489,9 @@ async function verifyAuthenticatedAssets(localContracts) {
       index: indexResponse.status,
       serviceWorker: serviceWorkerResponse.status,
       activePool: activePoolResponse.status,
+      quarantinePool: quarantinePoolResponse.status,
+      routeReplenishmentModule: routeReplenishmentModuleResponse.status,
+      routeReplenishmentContracts: routeReplenishmentContractsResponse.status,
       manifest: manifestResponse.status
     },
     buildMarker: liveBuildMarker,
@@ -486,7 +538,14 @@ function runtimeSmokeExpression(role) {
       routeInitialized: /Today.?s Route|Route Intelligence|Build Route/i.test(text),
       routeIntelligence: /Route Intelligence/i.test(text),
       discoveryMode: /Discovery Mode|New Rep Discovery/i.test(text),
-      buildRoute: /Build Route/i.test(text),
+      buildRoute: /Build Route|View Route|active stops/i.test(text),
+      routeQueueCount: Array.isArray(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.entries) ? state.repProfiles[activeRepId].activeRouteQueue.entries.length : 0,
+      routeQueueTarget: Number(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.targetSize || 0),
+      routeReplenishmentVersion: window.prometheusDebugState?.routeReplenishment?.version || "",
+      routeLoopStatus: document.getElementById("routeLoopStatusToday")?.textContent?.trim() || "",
+      viewportWidth: document.documentElement.clientWidth,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body?.scrollWidth || 0,
       directionsCount: directions.length
     };
   })()`;
@@ -541,7 +600,10 @@ async function verifyBrowserRuntime(localContracts) {
     await client.send("Network.setCacheDisabled", { cacheDisabled: true });
 
     const founder = await navigateAndSmoke(client, `${productionUrl}/?role=founder&rep=cruz&verify=${token}`, "founder");
+    await client.send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 3, mobile: true });
+    await client.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
     const rep = await navigateAndSmoke(client, `${productionUrl}/?role=rep&rep=anthony&verify=${token}`, "rep");
+    await client.send("Emulation.clearDeviceMetricsOverride");
     client.close();
 
     const failures = [];
@@ -552,7 +614,10 @@ async function verifyBrowserRuntime(localContracts) {
       if (smoke.buildMarker !== localContracts.buildMarker) failures.push(`${smoke.role} build marker mismatch.`);
       if (smoke.serviceWorkerVersion !== localContracts.serviceWorkerCacheVersion) failures.push(`${smoke.role} service worker marker mismatch.`);
       if (!smoke.routeInitialized || !smoke.routeIntelligence || !smoke.discoveryMode || !smoke.buildRoute || smoke.directionsCount < 1) failures.push(`${smoke.role} route startup feature checks failed.`);
+      if (smoke.routeQueueCount !== 15 || smoke.routeQueueTarget !== 15) failures.push(`${smoke.role} continuous route queue did not initialize to 15.`);
+      if (smoke.routeReplenishmentVersion !== "continuous-adaptive-route-replenishment-v1") failures.push(`${smoke.role} route replenishment version mismatch.`);
     }
+    if (rep.viewportWidth !== 390 || rep.documentScrollWidth > rep.viewportWidth + 1 || rep.bodyScrollWidth > rep.viewportWidth + 1) failures.push("Rep production mobile viewport has horizontal overflow or incorrect emulation width.");
     if (events.exceptions.length) failures.push("Browser runtime exceptions were emitted.");
     if (events.console.length) failures.push("Browser console errors/warnings were emitted.");
     if (events.logs.length) failures.push("Browser log errors/warnings were emitted.");
@@ -622,6 +687,7 @@ if (!skipExistingGates) {
     ["existing security gate", "security:check"],
     ["existing active runtime pool gate", "dashboard:runtime-pool:check"],
     ["existing dashboard runtime workflows gate", "dashboard:runtime-workflows:check"],
+    ["continuous adaptive route replenishment gate", "intelligence:adaptive-route-replenishment:check"],
     ["existing zero live Google API gate", "verify:zero-google-api"]
   ];
   for (const [name, scriptName] of gates) {

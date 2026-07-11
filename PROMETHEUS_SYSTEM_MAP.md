@@ -132,6 +132,7 @@ Areas:
 - Field Evidence Activation Foundation
 - Customer Intelligence Graph
 - Living Customer Intelligence Snapshots
+- Continuous Adaptive Route Replenishment
 
 Primary rule: improve the existing intelligence architecture. Do not create a second learning engine, second recommendation system, or disconnected scoring model.
 
@@ -153,6 +154,7 @@ Current foundation:
 - `intelligence/field-evidence-activation-foundation.md`
 - `intelligence/customer-intelligence-graph.mjs`
 - `intelligence/customer-intelligence-graph.md`
+- `intelligence/continuous-adaptive-route-replenishment.mjs`
 - `intelligence/profiles/operating-profiles.json`
 - `intelligence/fixtures/field-visit-evidence-fixtures.json`
 - `intelligence/contracts/adaptive-intelligence-contracts.json`
@@ -161,6 +163,7 @@ Current foundation:
 - `intelligence/contracts/operating-profile-contracts.json`
 - `intelligence/contracts/customer-intelligence-graph-contracts.json`
 - `intelligence/contracts/business-acquisition-intelligence-contracts.json`
+- `intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json`
 - `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`
 - `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`
 
@@ -177,6 +180,8 @@ Operating Profile rule: industry adaptation and field-evidence activation work m
 Customer Intelligence Graph rule: customer graph and Living Customer Intelligence snapshot work must extend `intelligence/customer-intelligence-graph.mjs`, `intelligence/customer-intelligence-graph.md`, and `intelligence/contracts/customer-intelligence-graph-contracts.json`. Do not create a parallel graph engine, duplicate graph vocabulary, cross-customer graph path, active confidence-propagation path, automatic learning path, scoring path, or Dashboard/CRM/Mobile/Website/Companion/Research/Sales graph consumer without approved Intelligence handoff.
 
 Smoothie Depot Workspace rule: Smoothie Depot Business Acquisition Intelligence work must extend `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md`, `intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json`, and `intelligence/contracts/business-acquisition-intelligence-contracts.json`. Do not mix Smoothie Depot franchise candidate intelligence, JR handoffs, commission tracking, protection periods, or Franchise Development operating profile state with Fitness Connection Route Intelligence, Active Pool scoring, units/memberships, or customer workspace data.
+
+Continuous route replenishment rule: outcome-driven Route IQ queue work must extend `intelligence/continuous-adaptive-route-replenishment.mjs` and `intelligence/contracts/continuous-adaptive-route-replenishment-contracts.json`. Preserve the existing Route Intelligence scoring and explanation functions, 15-stop queue target, fewer-than-5 recovery threshold, Active Pool priority, governed Full Pool fallback, quarantine exclusion, completed-stop history, deterministic append order, single-flight protection, local persistence, zero-live-Google boundary, and Fitness Connection workspace isolation. Do not replace this intelligence loop with static pagination or a second route queue.
 
 ### 4. Prometheus Infrastructure
 

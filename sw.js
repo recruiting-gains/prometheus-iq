@@ -1,8 +1,9 @@
-const CACHE_NAME = "prometheus-v37-founder-workspace-switcher";
+const CACHE_NAME = "prometheus-v38-continuous-adaptive-route-replenishment";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
-  "./icons/prometheus.svg"
+  "./icons/prometheus.svg",
+  "./intelligence/continuous-adaptive-route-replenishment.mjs"
 ];
 
 self.addEventListener("install", event => {
