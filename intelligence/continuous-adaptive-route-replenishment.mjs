@@ -295,6 +295,48 @@ export function createEmptyRouteQueue({
   };
 }
 
+function normalizeEligibilitySnapshot(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const provenance = raw.provenance && typeof raw.provenance === "object" ? raw.provenance : {};
+  return {
+    version: cleanText(raw.version, 120),
+    workspaceId: cleanText(raw.workspaceId, 80),
+    operatingProfileId: cleanText(raw.operatingProfileId, 80),
+    googlePlaceId: cleanText(raw.googlePlaceId, 180),
+    permanentOperationalStatus: cleanText(raw.permanentOperationalStatus, 40),
+    status: cleanText(raw.status, 40),
+    eligible: raw.eligible === true,
+    coverageOnly: raw.coverageOnly === true,
+    selectionTier: Math.max(0, Math.floor(finiteNumber(raw.selectionTier))),
+    internalMarker: cleanText(raw.internalMarker, 80) || null,
+    hoursConfidence: cleanText(raw.hoursConfidence, 20),
+    hoursFreshness: cleanText(raw.hoursFreshness, 20),
+    reasonCode: cleanText(raw.reasonCode, 160),
+    reason: cleanText(raw.reason, 600),
+    evaluatedAt: cleanText(raw.evaluatedAt, 40),
+    businessLocalDate: cleanText(raw.businessLocalDate, 20) || null,
+    businessLocalTime: cleanText(raw.businessLocalTime, 20) || null,
+    businessTimezone: cleanText(raw.businessTimezone, 120) || null,
+    sourceRetrievedAt: cleanText(raw.sourceRetrievedAt, 40) || null,
+    hoursVerifiedAt: cleanText(raw.hoursVerifiedAt, 40) || null,
+    sourceStatus: cleanText(raw.sourceStatus, 40) || null,
+    sourceStatusEvaluatedAt: cleanText(raw.sourceStatusEvaluatedAt, 40) || null,
+    provenance: {
+      sourceSystem: cleanText(provenance.sourceSystem, 120) || null,
+      sourceMethod: cleanText(provenance.sourceMethod, 120) || null,
+      sourcePlaceId: cleanText(provenance.sourcePlaceId, 180) || null,
+      retrievedAt: cleanText(provenance.retrievedAt, 40) || null,
+      normalizedAt: cleanText(provenance.normalizedAt, 40) || null,
+      fieldEvidenceIds: Array.isArray(provenance.fieldEvidenceIds)
+        ? provenance.fieldEvidenceIds.map(value => cleanText(value, 180)).filter(Boolean).slice(0, 25)
+        : []
+    },
+    failClosed: raw.failClosed === true,
+    scoringChanged: raw.scoringChanged === true,
+    displayLabel: cleanText(raw.displayLabel, 80)
+  };
+}
+
 function normalizeQueueEntry(raw) {
   const placeId = cleanText(raw?.placeId, 128);
   const identityKey = cleanText(raw?.identityKey, 500);
@@ -304,6 +346,8 @@ function normalizeQueueEntry(raw) {
     identityKey,
     sourcePool: raw?.sourcePool === "full" ? "full" : "active",
     scoreSnapshot: finiteNumber(raw?.scoreSnapshot),
+    selectionTierSnapshot: Math.max(0, Math.floor(finiteNumber(raw?.selectionTierSnapshot))),
+    eligibilitySnapshot: normalizeEligibilitySnapshot(raw?.eligibilitySnapshot),
     intelligenceSignals: Array.isArray(raw?.intelligenceSignals)
       ? raw.intelligenceSignals.map(value => cleanText(value, 120)).filter(Boolean).slice(0, 10)
       : [],
@@ -369,13 +413,15 @@ function orderedCandidates(candidates, sourcePool, scoreCandidate, identityOf, f
         identityKey,
         sourcePool,
         score: Number(normalized.score),
+        selectionTier: Math.max(0, Math.floor(finiteNumber(normalized.selectionTier))),
+        eligibility: normalizeEligibilitySnapshot(normalized.eligibility),
         signals: Array.isArray(normalized.signals) ? normalized.signals : []
       });
     } catch (error) {
       failureReasons.push(`score_failed:${identityKey}:${cleanText(error?.message, 80)}`);
     }
   }
-  return ranked.sort((left, right) => right.score - left.score || left.identityKey.localeCompare(right.identityKey));
+  return ranked.sort((left, right) => left.selectionTier - right.selectionTier || right.score - left.score || left.identityKey.localeCompare(right.identityKey));
 }
 
 export function maintainRouteQueue({
@@ -441,9 +487,10 @@ export function maintainRouteQueue({
   if (shouldRun && normalized.entries.length < normalized.targetSize) {
     const rankedPrimary = orderedCandidates(primaryCandidates, "active", scoreCandidate, identityOf, failureReasons);
     const rankedFallback = orderedCandidates(fallbackCandidates, "full", scoreCandidate, identityOf, failureReasons);
-    const appendFrom = ranked => {
+    const appendFrom = (ranked, selectionTier) => {
       for (const rankedCandidate of ranked) {
         if (normalized.entries.length >= normalized.targetSize) break;
+        if (rankedCandidate.selectionTier !== selectionTier) continue;
         if (completed.has(rankedCandidate.identityKey) || activeIdentities.has(rankedCandidate.identityKey)) continue;
         if (!isEligible(rankedCandidate.candidate, rankedCandidate.sourcePool)) continue;
         const placeId = cleanText(rankedCandidate.candidate?.id, 128);
@@ -453,6 +500,8 @@ export function maintainRouteQueue({
           identityKey: rankedCandidate.identityKey,
           sourcePool: rankedCandidate.sourcePool,
           scoreSnapshot: rankedCandidate.score,
+          selectionTierSnapshot: rankedCandidate.selectionTier,
+          eligibilitySnapshot: rankedCandidate.eligibility,
           intelligenceSignals: rankedCandidate.signals.map(value => cleanText(value, 120)).filter(Boolean).slice(0, 10),
           addedAt: isoTimestamp(now),
           trigger: cleanText(trigger, 80) || "queue-maintenance"
@@ -463,8 +512,12 @@ export function maintainRouteQueue({
         if (entry.sourcePool === "full") usedFallback = true;
       }
     };
-    appendFrom(rankedPrimary);
-    if (normalized.entries.length < normalized.targetSize) appendFrom(rankedFallback);
+    const selectionTiers = [...new Set(rankedPrimary.concat(rankedFallback).map(item => item.selectionTier))].sort((left, right) => left - right);
+    for (const selectionTier of selectionTiers) {
+      appendFrom(rankedPrimary, selectionTier);
+      if (normalized.entries.length < normalized.targetSize) appendFrom(rankedFallback, selectionTier);
+      if (normalized.entries.length >= normalized.targetSize) break;
+    }
   }
 
   const exhausted = normalized.entries.length === 0;

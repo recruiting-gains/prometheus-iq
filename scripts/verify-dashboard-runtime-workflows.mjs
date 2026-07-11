@@ -464,6 +464,15 @@ async function snapshot(cdp) {
       routeQueueIds: Array.isArray(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.entries)
         ? state.repProfiles[activeRepId].activeRouteQueue.entries.map(entry => entry.identityKey)
         : [],
+      routeQueueHours: Array.isArray(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.entries)
+        ? state.repProfiles[activeRepId].activeRouteQueue.entries.map(entry => ({
+            identityKey: entry.identityKey,
+            status: entry.eligibilitySnapshot?.status || "",
+            marker: entry.eligibilitySnapshot?.internalMarker || "",
+            reasonCode: entry.eligibilitySnapshot?.reasonCode || "",
+            scoringChanged: entry.eligibilitySnapshot?.scoringChanged === true
+          }))
+        : [],
       routeQueueRevision: Number(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.revision || 0),
       visitCount: Array.isArray(state?.repProfiles?.[activeRepId]?.visits) ? state.repProfiles[activeRepId].visits.length : 0,
       territoryText: text(document.getElementById("territoryOverview")),
@@ -484,6 +493,8 @@ async function snapshot(cdp) {
       findText: text(document.getElementById("view-find")),
       operatingProfileId: document.body.dataset.operatingProfile || "",
       routeCards: document.querySelectorAll("#routeList .route-card").length,
+      routeCardHoursStatuses: [...document.querySelectorAll("#routeList .route-card")].map(card => card.dataset.hoursStatus || ""),
+      routeCardHoursMarkers: [...document.querySelectorAll("#routeList .route-card")].map(card => card.dataset.hoursMarker || ""),
       dailyRouteCards: document.querySelectorAll("#dailyRoute .route-card").length,
       placesItems: document.querySelectorAll("#placesList .item").length,
       searchItems: document.querySelectorAll("#dailySearches .item").length,
@@ -503,6 +514,7 @@ async function snapshot(cdp) {
         territoryCoverage: debug.territoryCoverage || {},
         routeWindowFallback: debug.routeWindowFallback || {},
         routeReplenishment: debug.routeReplenishment || {},
+        businessHours: debug.businessHours || {},
         runtimeFallback: debug.runtimeFallback || {},
         operatingProfile: debug.operatingProfile || {},
         workspace: debug.workspace || {}
@@ -512,6 +524,83 @@ async function snapshot(cdp) {
         activeResourceDuration: Math.round(performance.getEntriesByType("resource").find(entry => entry.name.includes("active-pool.json"))?.duration || 0),
         fullResourceDuration: Math.round(performance.getEntriesByType("resource").find(entry => entry.name.includes("runtime-pools.json"))?.duration || 0)
       }
+    };
+  })()`);
+}
+
+async function verifyRouteBusinessHoursRuntime(cdp) {
+  return cdp.evaluate(`(() => {
+    const christianPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
+    const record = routeBusinessHoursIndex?.recordsByPlaceId?.get(christianPlaceId) || null;
+    const fieldDecision = record && routeBusinessHoursApi
+      ? routeBusinessHoursApi.evaluateRouteBusinessHoursEligibility({
+          record,
+          evaluatedAt: "2026-07-11T21:21:59.331Z",
+          policy: routeBusinessHoursIndex.freshnessPolicy,
+          artifactAvailable: true,
+          workspaceId: "fitness_connection",
+          operatingProfileId: "fitness"
+        })
+      : null;
+    const decisionAtFieldTime = place => {
+      const hoursRecord = routeBusinessHoursIndex?.recordsByPlaceId?.get(place?.googlePlaceId) || null;
+      return routeBusinessHoursApi.evaluateRouteBusinessHoursEligibility({
+        record: hoursRecord,
+        evaluatedAt: "2026-07-11T21:21:59.331Z",
+        policy: routeBusinessHoursIndex.freshnessPolicy,
+        artifactAvailable: true,
+        workspaceId: "fitness_connection",
+        operatingProfileId: "fitness"
+      });
+    };
+    const christianPlace = state.places.find(place => place.googlePlaceId === christianPlaceId) || null;
+    const openAlternative = state.places.find(place => place.googlePlaceId !== christianPlaceId && decisionAtFieldTime(place).status === "OPEN_VERIFIED") || null;
+    const fieldQueue = christianPlace && openAlternative
+      ? routeReplenishmentApi.maintainRouteQueue({
+          queue: routeReplenishmentApi.createEmptyRouteQueue({
+            workspaceId: "fitness_connection",
+            representativeId: "field-regression",
+            operatingProfileId: "fitness",
+            routeDate: "2026-07-11",
+            targetSize: 1,
+            threshold: 1
+          }),
+          workspaceId: "fitness_connection",
+          representativeId: "field-regression",
+          operatingProfileId: "fitness",
+          routeDate: "2026-07-11",
+          primaryCandidates: [christianPlace, openAlternative],
+          force: true,
+          identityOf: routeIdentityKey,
+          isEligible: place => decisionAtFieldTime(place).eligible,
+          scoreCandidate: place => routeBusinessHoursApi.applyHoursEligibilityToScore(
+            place.googlePlaceId === christianPlaceId ? 1000 : 1,
+            decisionAtFieldTime(place)
+          ),
+          now: "2026-07-11T21:21:59.331Z"
+        })
+      : null;
+    const queue = activeProfile().activeRouteQueue;
+    const entries = Array.isArray(queue?.entries) ? queue.entries : [];
+    const cards = [...document.querySelectorAll("#routeList .route-card")];
+    return {
+      artifactAvailable: routeBusinessHoursArtifactAvailable,
+      recordCount: routeBusinessHoursIndex?.recordCount || 0,
+      fieldDecision,
+      christianPermanentStatus: record?.permanentOperationalStatus || "",
+      christianQueued: entries.some(entry => entry.identityKey === "google:" + christianPlaceId),
+      fieldQueueIds: fieldQueue?.queue?.entries?.map(entry => entry.identityKey) || [],
+      fieldQueueOpenAlternativeId: openAlternative ? routeIdentityKey(openAlternative) : "",
+      queueCount: entries.length,
+      queueStatuses: entries.map(entry => entry.eligibilitySnapshot?.status || ""),
+      queueReasonCodes: entries.map(entry => entry.eligibilitySnapshot?.reasonCode || ""),
+      queueScoringChanged: entries.some(entry => entry.eligibilitySnapshot?.scoringChanged === true),
+      queueUnverifiedCount: entries.filter(entry => entry.eligibilitySnapshot?.internalMarker === "HOURS_NOT_VERIFIED").length,
+      routeCardCount: cards.length,
+      routeCardStatuses: cards.map(card => card.dataset.hoursStatus || ""),
+      routeCardMarkers: cards.map(card => card.dataset.hoursMarker || ""),
+      routeText: document.getElementById("routeList")?.textContent?.trim().replace(/\\s+/g, " ").slice(0, 1200) || "",
+      debug: window.prometheusDebugState?.businessHours || {}
     };
   })()`);
 }
@@ -1141,6 +1230,11 @@ async function runHarness() {
     const routeSnap = await snapshot(founder.cdp);
     assertWorkflow("Build Route workflow", routeSnap.activeView === "view-route" && routeSnap.routeCards > 0 && /Route/.test(routeSnap.routeText), `${routeSnap.routeCards} route cards rendered`, JSON.stringify({ activeView: routeSnap.activeView, routeCards: routeSnap.routeCards, routeText: routeSnap.routeText.slice(0, 300) }));
     assertWorkflow("Beta Route Controls Owner 15-location route generation", routeSnap.routeCards === 15 && routeSnap.routeCountLabel.includes("15 active stops"), `${routeSnap.routeCards} route cards rendered; ${routeSnap.routeCountLabel}`, JSON.stringify({ routeCards: routeSnap.routeCards, routeCountLabel: routeSnap.routeCountLabel }));
+    const businessHoursRuntime = await verifyRouteBusinessHoursRuntime(founder.cdp);
+    assertWorkflow("Route IQ governed business-hours artifact consumption", businessHoursRuntime.artifactAvailable && businessHoursRuntime.recordCount === 398 && businessHoursRuntime.debug.status === "ready" && businessHoursRuntime.debug.scoringChanged === false, `${businessHoursRuntime.recordCount} governed hours records loaded`, JSON.stringify(businessHoursRuntime));
+    assertWorkflow("Route IQ Christian Brothers closed-now field regression", businessHoursRuntime.christianPermanentStatus === "OPERATIONAL" && businessHoursRuntime.fieldDecision?.status === "CLOSED_VERIFIED" && businessHoursRuntime.fieldDecision?.eligible === false && businessHoursRuntime.fieldDecision?.reasonCode === "VERIFIED_CURRENT_WINDOW_CLOSED" && businessHoursRuntime.fieldQueueIds.length === 1 && businessHoursRuntime.fieldQueueIds[0] === businessHoursRuntime.fieldQueueOpenAlternativeId, `Christian Brothers excluded and ${businessHoursRuntime.fieldQueueOpenAlternativeId} selected`, JSON.stringify(businessHoursRuntime));
+    assertWorkflow("Route IQ active queue closed-now exclusion", businessHoursRuntime.queueCount === 15 && !businessHoursRuntime.queueStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.queueStatuses.every(Boolean) && !businessHoursRuntime.queueScoringChanged, `${businessHoursRuntime.queueCount} queued stops; 0 verified-closed; score weights unchanged`, JSON.stringify(businessHoursRuntime));
+    assertWorkflow("Route IQ mobile-compatible hours explainability", businessHoursRuntime.routeCardCount === 15 && !businessHoursRuntime.routeCardStatuses.includes("CLOSED_VERIFIED") && businessHoursRuntime.routeCardStatuses.every(Boolean) && businessHoursRuntime.routeText.includes("Business-hours eligibility") && (businessHoursRuntime.queueUnverifiedCount === 0 || businessHoursRuntime.routeCardMarkers.filter(marker => marker === "HOURS_NOT_VERIFIED").length === businessHoursRuntime.queueUnverifiedCount), `${businessHoursRuntime.routeCardCount} route cards expose additive hours status`, JSON.stringify(businessHoursRuntime));
     const ownerNearbyBadge = await verifyRouteNearbyInteraction(founder.cdp);
     assertWorkflow("Beta Route Controls Owner Nearby opens context", ownerNearbyBadge.tagName === "button" && ownerNearbyBadge.nearbyPlace && ownerNearbyBadge.after.modalActive && ownerNearbyBadge.modalTitle === "Nearby Context" && /Nearby Context|walkable|Directions|No verified/.test(ownerNearbyBadge.modalText), `${ownerNearbyBadge.text} opened ${ownerNearbyBadge.modalTitle}`, JSON.stringify(ownerNearbyBadge));
 

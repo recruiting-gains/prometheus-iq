@@ -1,5 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
+const isNodeRuntime = typeof process !== "undefined" && Boolean(process.versions?.node);
+const [fs, path] = isNodeRuntime
+  ? await Promise.all([import("node:fs").then(module => module.default), import("node:path").then(module => module.default)])
+  : [null, null];
 
 export const BUSINESS_HOURS_STATUSES = Object.freeze([
   "OPEN_VERIFIED",
@@ -620,6 +622,7 @@ export function validateBusinessHoursArtifact(artifact, expectedWorkspaceId = "f
 
 export function readBusinessHoursArtifact(filePath, workspaceId = "fitness_connection") {
   assertBusinessHoursWorkspace(workspaceId);
+  if (!fs) throw governanceError("business_hours_filesystem_unavailable", "Business-hours artifact reads require the Node.js filesystem runtime.");
   if (!fs.existsSync(filePath)) {
     throw governanceError("business_hours_artifact_missing", `Business-hours artifact is missing: ${filePath}`);
   }
@@ -632,6 +635,7 @@ export function readBusinessHoursArtifact(filePath, workspaceId = "fitness_conne
 }
 
 export function writeBusinessHoursArtifactAtomic(filePath, artifact, workspaceId = "fitness_connection") {
+  if (!fs || !path) throw governanceError("business_hours_filesystem_unavailable", "Business-hours artifact writes require the Node.js filesystem runtime.");
   const failures = validateBusinessHoursArtifact(artifact, workspaceId);
   if (failures.length) {
     throw governanceError("business_hours_artifact_invalid", failures.join("\n"));

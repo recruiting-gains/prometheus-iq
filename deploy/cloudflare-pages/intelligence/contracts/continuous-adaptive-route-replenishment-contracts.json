@@ -29,12 +29,21 @@
       "workspace_match",
       "representative_visibility",
       "route_eligible",
+      "business_hours_eligibility",
       "inside_assigned_territory",
       "valid_google_place_identity",
       "not_quarantined",
       "not_completed_current_route",
       "not_already_active"
-    ]
+    ],
+    "businessHoursSelectionOrder": [
+      "active_verified_open",
+      "full_pool_verified_open_fallback",
+      "active_hours_unverified_coverage",
+      "full_pool_hours_unverified_coverage"
+    ],
+    "verifiedClosedNeverSelected": true,
+    "hoursUnverifiedMarker": "HOURS_NOT_VERIFIED"
   },
   "latestEvidenceInputs": [
     "representative_strengths_weaknesses",

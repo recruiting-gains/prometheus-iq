@@ -1,0 +1,93 @@
+{
+  "version": "route-iq-closed-now-eligibility-contracts-v1",
+  "subsystem": "prometheus-intelligence-engine",
+  "domain": "route-intelligence",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "dataContract": {
+    "contractId": "fitness-connection-business-hours-data-contract-v1",
+    "artifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "identityJoin": "googlePlaceId",
+    "dataOwnsStatusAndProvenance": true,
+    "intelligenceOwnsEligibility": true,
+    "sourceRecordsModified": false
+  },
+  "eligibilityPolicy": {
+    "OPEN_VERIFIED": {
+      "eligible": true,
+      "selectionTier": 0,
+      "representation": "verified_open"
+    },
+    "CLOSED_VERIFIED": {
+      "eligible": false,
+      "selectionTier": 99,
+      "representation": "excluded_closed_now"
+    },
+    "HOURS_UNKNOWN": {
+      "eligibleForCoverageOnly": true,
+      "selectionTier": 1,
+      "internalMarker": "HOURS_NOT_VERIFIED"
+    },
+    "HOURS_STALE": {
+      "eligibleForCoverageOnly": true,
+      "selectionTier": 1,
+      "internalMarker": "HOURS_NOT_VERIFIED"
+    },
+    "SPECIAL_HOURS_UNVERIFIED": {
+      "eligibleForCoverageOnly": true,
+      "selectionTier": 1,
+      "internalMarker": "HOURS_NOT_VERIFIED"
+    }
+  },
+  "queuePolicy": {
+    "evaluationPoints": [
+      "initial_generation",
+      "adaptive_replenishment",
+      "route_regeneration",
+      "fallback_selection"
+    ],
+    "selectionOrder": [
+      "active_verified_open",
+      "full_pool_verified_open_fallback",
+      "active_hours_unverified_coverage",
+      "full_pool_hours_unverified_coverage"
+    ],
+    "verifiedClosedNeverSelected": true,
+    "completedStopExclusionPreserved": true,
+    "duplicatePreventionPreserved": true,
+    "emptyPoolBehavior": "explicit_exhausted_state"
+  },
+  "explainability": {
+    "requiredFields": [
+      "status",
+      "eligible",
+      "hoursConfidence",
+      "hoursFreshness",
+      "reasonCode",
+      "reason",
+      "evaluatedAt",
+      "businessTimezone",
+      "sourceRetrievedAt",
+      "hoursVerifiedAt",
+      "provenance"
+    ],
+    "recommendationScoreSeparateFromHoursEligibility": true,
+    "uncertainHoursMayBeRepresentedAsOpen": false,
+    "excludedDecisionAttributable": true
+  },
+  "safety": {
+    "scoringWeightsChanged": false,
+    "liveGoogleCalls": false,
+    "workspaceIsolation": "fail_closed",
+    "activePoolGovernancePreserved": true,
+    "fullPoolFallbackGovernancePreserved": true,
+    "unknownArtifactBehavior": "fail_closed",
+    "inventionGovernanceClassification": "operational_improvement",
+    "patentabilityClaimMade": false
+  },
+  "consumerCompatibility": {
+    "dashboard": "additive_hours_explanation_fields",
+    "mobile": "additive_hours_explanation_fields",
+    "existingRequiredFieldsRemoved": false
+  }
+}

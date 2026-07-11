@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-HpmaNJTlSI25IT/F8q/21CZ/ZNouTU54kB2aTT8jpIQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cnXMQP4JtZej3GuGqmXYLVmBF68jaBqmLkIV6K3zVjw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1704,13 +1704,16 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-11-continuous-adaptive-route-replenishment-v1";
+    const appBuildVersion = "2026-07-11-route-iq-closed-now-eligibility-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v38-continuous-adaptive-route-replenishment";
+    const serviceWorkerCacheVersion = "prometheus-v39-route-iq-closed-now-eligibility";
     const launchContextStoreKey = "prometheus-launch-context";
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
     const runtimeDatasetQuarantinePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json";
+    const businessHoursArtifactPath = "./data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json";
+    const businessHoursGovernanceModulePath = "./scripts/lib/business-hours-governance.mjs";
+    const routeBusinessHoursModulePath = "./intelligence/route-business-hours-eligibility.mjs";
     const routeReplenishmentModulePath = "./intelligence/continuous-adaptive-route-replenishment.mjs";
     const operatingProfileRegistryPath = "./intelligence/profiles/operating-profiles.json";
     const operatingProfileContractsPath = "./intelligence/contracts/operating-profile-contracts.json";
@@ -1748,6 +1751,16 @@
         activeCount: 0,
         targetSize: 15,
         threshold: 5
+      },
+      businessHours: {
+        version: "pending",
+        status: "loading",
+        recordCount: 0,
+        evaluatedAt: "",
+        eligible: 0,
+        excluded: 0,
+        hoursUnverified: 0,
+        scoringChanged: false
       },
       workspace: {
         workspaceId: defaultWorkspaceId,
@@ -1805,6 +1818,11 @@
     const routeReplenishmentThreshold = 5;
     let routeReplenishmentApi = null;
     let routeReplenishmentCoordinator = null;
+    let routeBusinessHoursApi = null;
+    let routeBusinessHoursIndex = null;
+    let routeBusinessHoursArtifactAvailable = false;
+    let routeBusinessHoursEvaluationAt = null;
+    let routeBusinessHoursDecisionCache = new Map();
     let runtimeFullDatasetPlaces = [];
     let runtimeQuarantinedGooglePlaceIds = new Set(runtimeBlockedGooglePlaceIds);
     let runtimeFallbackDatasetPromise = null;
@@ -20941,6 +20959,177 @@
       });
     }
 
+    function beginRouteBusinessHoursEvaluation(evaluatedAt = new Date()) {
+      const instant = evaluatedAt instanceof Date ? evaluatedAt : new Date(evaluatedAt);
+      if (Number.isNaN(instant.getTime())) throw new Error("Route IQ business-hours evaluation time is invalid.");
+      routeBusinessHoursEvaluationAt = instant;
+      routeBusinessHoursDecisionCache = new Map();
+      return instant;
+    }
+
+    function currentRouteBusinessHoursEvaluation() {
+      const now = new Date();
+      const intervalMinutes = Number(routeBusinessHoursIndex?.freshnessPolicy?.statusEvaluationIntervalMinutes || 15);
+      const maximumAgeMs = Math.max(1, intervalMinutes) * 60 * 1000;
+      if (!routeBusinessHoursEvaluationAt || now.getTime() - routeBusinessHoursEvaluationAt.getTime() >= maximumAgeMs) {
+        return beginRouteBusinessHoursEvaluation(now);
+      }
+      return routeBusinessHoursEvaluationAt;
+    }
+
+    function unavailableBusinessHoursDecision(place, reasonCode = "BUSINESS_HOURS_ENGINE_UNAVAILABLE") {
+      const workspaceId = currentRouteWorkspaceId();
+      return {
+        version: "route-iq-closed-now-eligibility-v1",
+        workspaceId,
+        operatingProfileId: dashboardWorkspaces[workspaceId]?.operatingProfileId || "fitness",
+        googlePlaceId: cleanText(place?.googlePlaceId, 180) || null,
+        status: "HOURS_UNKNOWN",
+        eligible: false,
+        coverageOnly: false,
+        selectionTier: 99,
+        internalMarker: "HOURS_NOT_VERIFIED",
+        hoursConfidence: "NONE",
+        hoursFreshness: "MISSING",
+        reasonCode,
+        reason: "The governed business-hours eligibility layer is unavailable, so Route IQ failed closed.",
+        evaluatedAt: currentRouteBusinessHoursEvaluation().toISOString(),
+        businessTimezone: null,
+        sourceRetrievedAt: null,
+        hoursVerifiedAt: null,
+        provenance: {},
+        failClosed: true,
+        scoringChanged: false,
+        displayLabel: "Hours not verified"
+      };
+    }
+
+    function businessHoursDecisionForPlace(place) {
+      const evaluatedAt = currentRouteBusinessHoursEvaluation();
+      const placeId = cleanText(place?.googlePlaceId, 180);
+      const cacheKey = `${placeId || routeIdentityKey(place)}::${evaluatedAt.toISOString()}`;
+      if (routeBusinessHoursDecisionCache.has(cacheKey)) return routeBusinessHoursDecisionCache.get(cacheKey);
+      if (!routeBusinessHoursApi) {
+        const unavailable = unavailableBusinessHoursDecision(place);
+        routeBusinessHoursDecisionCache.set(cacheKey, unavailable);
+        return unavailable;
+      }
+      const record = routeBusinessHoursIndex?.recordsByPlaceId?.get(placeId) || null;
+      const workspaceId = currentRouteWorkspaceId();
+      const eligibility = routeBusinessHoursApi.evaluateRouteBusinessHoursEligibility({
+        record,
+        candidate: place,
+        evaluatedAt,
+        policy: routeBusinessHoursIndex?.freshnessPolicy,
+        artifactAvailable: routeBusinessHoursArtifactAvailable,
+        workspaceId,
+        operatingProfileId: routeBusinessHoursIndex?.operatingProfileId || dashboardWorkspaces[workspaceId]?.operatingProfileId || "fitness"
+      });
+      routeBusinessHoursDecisionCache.set(cacheKey, eligibility);
+      return eligibility;
+    }
+
+    function annotateRouteQueueBusinessHours(queue, candidates) {
+      if (!queue || !Array.isArray(queue.entries)) return { evaluated: 0, eligible: 0, excluded: 0, hoursUnverified: 0, statuses: {}, reasonCodes: {} };
+      const byIdentity = new Map((Array.isArray(candidates) ? candidates : []).map(place => [routeIdentityKey(place), place]));
+      const selectedDecisions = [];
+      queue.entries.forEach(entry => {
+        const place = byIdentity.get(entry.identityKey) || routeQueuePlace(entry);
+        if (!place) return;
+        const eligibility = businessHoursDecisionForPlace(place);
+        entry.selectionTierSnapshot = eligibility.selectionTier;
+        entry.eligibilitySnapshot = eligibility;
+        selectedDecisions.push(eligibility);
+      });
+      return routeBusinessHoursApi?.summarizeRouteBusinessHours(selectedDecisions) || {
+        evaluated: selectedDecisions.length,
+        eligible: selectedDecisions.filter(item => item.eligible).length,
+        excluded: selectedDecisions.filter(item => !item.eligible).length,
+        hoursUnverified: selectedDecisions.filter(item => item.internalMarker === "HOURS_NOT_VERIFIED").length,
+        statuses: {},
+        reasonCodes: {}
+      };
+    }
+
+    function prepareRouteQueueForVerifiedOpenPreference(queue, candidates) {
+      if (!queue || !Array.isArray(queue.entries)) return { queue, removed: [] };
+      const source = Array.isArray(candidates) ? candidates : [];
+      const byIdentity = new Map(source.map(place => [routeIdentityKey(place), place]));
+      const availableVerifiedOpen = new Set(source.filter(place => {
+        return isEligibleRouteQueueCandidate(place) && businessHoursDecisionForPlace(place).status === "OPEN_VERIFIED";
+      }).map(routeIdentityKey));
+      const uncertainAllowance = Math.max(0, Number(queue.targetSize || betaRouteTargetSize) - availableVerifiedOpen.size);
+      let uncertainKept = 0;
+      const removed = [];
+      queue.entries = queue.entries.filter(entry => {
+        const place = byIdentity.get(entry.identityKey) || routeQueuePlace(entry);
+        if (!place) return true;
+        const eligibility = businessHoursDecisionForPlace(place);
+        if (eligibility.status === "OPEN_VERIFIED") return true;
+        if (!eligibility.eligible) return true;
+        if (uncertainKept < uncertainAllowance) {
+          uncertainKept += 1;
+          return true;
+        }
+        removed.push(entry);
+        return false;
+      });
+      return { queue, removed };
+    }
+
+    async function loadRouteBusinessHoursEligibility() {
+      try {
+        const [governance, intelligence, response] = await Promise.all([
+          import(businessHoursGovernanceModulePath),
+          import(routeBusinessHoursModulePath),
+          fetch(businessHoursArtifactPath, { cache: "no-store" })
+        ]);
+        if (typeof governance.evaluateBusinessHoursRecord !== "function") throw new Error("Business-hours governance evaluator is unavailable.");
+        if (intelligence.routeBusinessHoursEligibilityVersion !== "route-iq-closed-now-eligibility-v1") {
+          throw new Error("Route IQ business-hours eligibility version mismatch.");
+        }
+        routeBusinessHoursApi = intelligence;
+        if (!response.ok) throw new Error(`Business-hours artifact request failed with ${response.status}.`);
+        const artifact = await response.json();
+        const index = intelligence.buildRouteBusinessHoursIndex(artifact, {
+          workspaceId: defaultWorkspaceId,
+          operatingProfileId: "fitness"
+        });
+        routeBusinessHoursIndex = index;
+        routeBusinessHoursArtifactAvailable = true;
+        beginRouteBusinessHoursEvaluation(new Date());
+        window.prometheusDebugState.businessHours = {
+          version: intelligence.routeBusinessHoursEligibilityVersion,
+          status: "ready",
+          recordCount: index.recordCount,
+          evaluatedAt: routeBusinessHoursEvaluationAt.toISOString(),
+          eligible: 0,
+          excluded: 0,
+          hoursUnverified: 0,
+          scoringChanged: false,
+          artifactGeneratedAt: index.generatedAt,
+          sourceDatasetVersion: index.sourceDatasetVersion
+        };
+        return true;
+      } catch (error) {
+        routeBusinessHoursArtifactAvailable = false;
+        routeBusinessHoursIndex = null;
+        beginRouteBusinessHoursEvaluation(new Date());
+        window.prometheusDebugState.businessHours = {
+          version: routeBusinessHoursApi?.routeBusinessHoursEligibilityVersion || "unavailable",
+          status: "fail-closed",
+          recordCount: 0,
+          evaluatedAt: routeBusinessHoursEvaluationAt.toISOString(),
+          eligible: 0,
+          excluded: 0,
+          hoursUnverified: 0,
+          scoringChanged: false,
+          error: error?.message || String(error || "Business-hours eligibility unavailable")
+        };
+        return false;
+      }
+    }
+
     async function loadRouteReplenishmentEngine() {
       const loaded = await import(routeReplenishmentModulePath);
       if (loaded.continuousAdaptiveRouteReplenishmentVersion !== "continuous-adaptive-route-replenishment-v1") {
@@ -20965,7 +21154,11 @@
     function activeRouteQueue() {
       if (!routeReplenishmentApi) return null;
       const profile = activeProfile();
-      const queue = routeReplenishmentApi.normalizeRouteQueue(profile.activeRouteQueue, {
+      const rawQueue = profile.activeRouteQueue;
+      const hoursPolicyCurrent = !Array.isArray(rawQueue?.entries) || rawQueue.entries.every(entry => {
+        return entry?.eligibilitySnapshot?.version === "route-iq-closed-now-eligibility-v1";
+      });
+      const queue = routeReplenishmentApi.normalizeRouteQueue(hoursPolicyCurrent ? rawQueue : null, {
         workspaceId: currentRouteWorkspaceId(),
         representativeId: activeRepId,
         operatingProfileId: activeOperatingProfile?.profileId || "fitness",
@@ -21070,7 +21263,7 @@
         discoveryPreferred: routeMode(Math.max(0, GOAL - sumVisits(todayVisits()).units)).discoveryTarget >= .4,
         expandRadius: shouldExpandRadius(Math.max(0, GOAL - sumVisits(todayVisits()).units))
       });
-      return routeReplenishmentApi.scoreAdaptiveCandidate({
+      const scoreResult = routeReplenishmentApi.scoreAdaptiveCandidate({
         candidate,
         baseScore: analysis.score,
         intelligence,
@@ -21078,6 +21271,10 @@
         territoryLabel: territoryRingForPlace(candidate).label,
         routeContextDistanceMiles: routeContextDistanceMiles(latestRouteContextPlace(), candidate)
       });
+      const eligibility = businessHoursDecisionForPlace(candidate);
+      return routeBusinessHoursApi
+        ? routeBusinessHoursApi.applyHoursEligibilityToScore(scoreResult, eligibility)
+        : { ...scoreResult, selectionTier: eligibility.selectionTier, eligibility };
     }
 
     function ensureQueueCandidatesInState(result, candidates) {
@@ -21116,16 +21313,20 @@
     async function performAdaptiveRouteReplenishment(options = {}) {
       const workspaceId = currentRouteWorkspaceId();
       routeReplenishmentApi.assertRouteWorkspace(workspaceId);
-      const initialQueue = activeRouteQueue();
+      beginRouteBusinessHoursEvaluation(new Date());
       const completed = completedRouteIdentityKeys();
       let primaryCandidates = primaryRouteQueueCandidates();
-      const primaryEligible = primaryCandidates.filter(isEligibleRouteQueueCandidate).length;
-      if (runtimeDatasetSource.pool === "full" || primaryEligible < betaRouteTargetSize) await startRuntimeFallbackDatasetLoad();
+      const primaryVerifiedOpen = primaryCandidates.filter(place => {
+        return isEligibleRouteQueueCandidate(place) && businessHoursDecisionForPlace(place).status === "OPEN_VERIFIED";
+      }).length;
+      if (runtimeDatasetSource.pool === "full" || primaryVerifiedOpen < betaRouteTargetSize) await startRuntimeFallbackDatasetLoad();
       primaryCandidates = primaryRouteQueueCandidates();
       const fallbackCandidates = fallbackRouteQueueCandidates();
+      const candidates = primaryCandidates.concat(fallbackCandidates);
+      const preparedQueue = prepareRouteQueueForVerifiedOpenPreference(activeRouteQueue(), candidates);
       const intelligence = refreshAdaptiveRouteIntelligence();
       const result = routeReplenishmentApi.maintainRouteQueue({
-        queue: initialQueue,
+        queue: preparedQueue.queue,
         workspaceId,
         representativeId: activeRepId,
         operatingProfileId: activeOperatingProfile?.profileId || "fitness",
@@ -21140,13 +21341,36 @@
         scoreCandidate: adaptiveQueueCandidateScore,
         now: Date.now()
       });
-      const candidates = primaryCandidates.concat(fallbackCandidates);
+      if (preparedQueue.removed.length) result.removed.unshift(...preparedQueue.removed);
       ensureQueueCandidatesInState(result, candidates);
+      const queueHoursSummary = annotateRouteQueueBusinessHours(result.queue, candidates);
       activeProfile().activeRouteQueue = result.queue;
       activeProfile().adaptiveIntelligence = intelligence;
       recordQueueRecommendationHistory(result, candidates);
       persistStateWithoutRender();
       const flight = routeReplenishmentCoordinator?.status() || { inFlight: false, started: 0, coalesced: 0 };
+      const evaluatedHoursDecisions = [...routeBusinessHoursDecisionCache.values()];
+      const evaluatedHoursSummary = routeBusinessHoursApi?.summarizeRouteBusinessHours(evaluatedHoursDecisions) || queueHoursSummary;
+      window.prometheusDebugState.businessHours = {
+        ...(window.prometheusDebugState.businessHours || {}),
+        version: routeBusinessHoursApi?.routeBusinessHoursEligibilityVersion || "unavailable",
+        status: routeBusinessHoursArtifactAvailable ? "ready" : "fail-closed",
+        recordCount: routeBusinessHoursIndex?.recordCount || 0,
+        evaluatedAt: routeBusinessHoursEvaluationAt?.toISOString() || "",
+        eligible: evaluatedHoursSummary.eligible,
+        excluded: evaluatedHoursSummary.excluded,
+        hoursUnverified: queueHoursSummary.hoursUnverified,
+        queueStatuses: queueHoursSummary.statuses,
+        reasonCodes: evaluatedHoursSummary.reasonCodes,
+        excludedDecisions: evaluatedHoursDecisions.filter(item => !item.eligible).slice(0, 25).map(item => ({
+          googlePlaceId: item.googlePlaceId,
+          status: item.status,
+          reasonCode: item.reasonCode,
+          reason: item.reason,
+          evaluatedAt: item.evaluatedAt
+        })),
+        scoringChanged: false
+      };
       window.prometheusDebugState.routeReplenishment = {
         version: routeReplenishmentApi.continuousAdaptiveRouteReplenishmentVersion,
         state: result.queue.state,
@@ -21157,6 +21381,7 @@
         triggered: result.triggered,
         appendedCount: result.appended.length,
         removedCount: result.removed.length,
+        hoursPreferenceRemovedCount: preparedQueue.removed.length,
         usedFallback: result.usedFallback,
         exhausted: result.exhausted,
         latestEvidenceCount: intelligence.evidenceCount,
@@ -21164,16 +21389,28 @@
         workspaceId,
         routeDate: result.queue.routeDate,
         singleFlight: flight,
-        failureReasons: result.failureReasons
+        failureReasons: result.failureReasons,
+        businessHours: {
+          verifiedOpen: queueHoursSummary.statuses?.OPEN_VERIFIED || 0,
+          hoursUnverified: queueHoursSummary.hoursUnverified,
+          verifiedClosedSelected: queueHoursSummary.statuses?.CLOSED_VERIFIED || 0,
+          evaluatedAt: routeBusinessHoursEvaluationAt?.toISOString() || ""
+        }
       };
       if (result.exhausted) {
         setRouteLoopStatus("No eligible locations remain in this route pool.", "exhausted");
       } else if (options.trigger === "visit-outcome") {
-        setRouteLoopStatus("Route updated using your latest result.", "active");
+        setRouteLoopStatus(queueHoursSummary.hoursUnverified
+          ? `Route updated using your latest result. ${queueHoursSummary.hoursUnverified} stop${queueHoursSummary.hoursUnverified === 1 ? " has" : "s have"} unverified hours.`
+          : "Route updated using your latest result.", "active");
       } else if (result.queue.state === "depleted") {
-        setRouteLoopStatus(`${result.metrics.activeCount} eligible stops remain.`, "exhausted");
+        setRouteLoopStatus(queueHoursSummary.hoursUnverified
+          ? `${result.metrics.activeCount} eligible stops remain; ${queueHoursSummary.hoursUnverified} need an hours check.`
+          : `${result.metrics.activeCount} eligible stops remain.`, "exhausted");
       } else {
-        setRouteLoopStatus(`${result.metrics.activeCount} stops ready.`, "active");
+        setRouteLoopStatus(queueHoursSummary.hoursUnverified
+          ? `${result.metrics.activeCount} stops ready; ${queueHoursSummary.hoursUnverified} need an hours check.`
+          : `${result.metrics.activeCount} stops ready.`, "active");
       }
       return result;
     }
@@ -21299,6 +21536,7 @@
       const seen = new Set([currentKey]);
       const items = uniqueGoogleQualifiedRoutePlaces(routeVisiblePlaces())
         .filter(place => routeIdentityKey(place) !== currentKey)
+        .filter(isRouteEligible)
         .map(place => {
           const item = { place, feet: distanceFeetBetweenPlaces(origin, place) };
           item.nearbyScore = nearbyOpportunityScore(item);
@@ -21312,7 +21550,7 @@
           seen.add(key);
           return true;
         })
-        .sort((a, b) => b.nearbyScore - a.nearbyScore || a.feet - b.feet)
+        .sort((a, b) => businessHoursDecisionForPlace(a.place).selectionTier - businessHoursDecisionForPlace(b.place).selectionTier || b.nearbyScore - a.nearbyScore || a.feet - b.feet)
         .slice(0, limit);
       return items;
     }
@@ -21336,7 +21574,8 @@
         && place.permission !== "No"
         && accessType(place) !== "Do not recommend"
         && !isBlockedForAnthonyRoute(place)
-        && (activeRepId !== "anthony" || isDirectionSafeAnthonyPlace(place));
+        && (activeRepId !== "anthony" || isDirectionSafeAnthonyPlace(place))
+        && businessHoursDecisionForPlace(place).eligible;
     }
 
     function isAnthonyFirstRoute() {
@@ -21802,6 +22041,7 @@
 
     function routeAnalysis(place, context = {}) {
       const stats = placeStats(place.id);
+      const hoursEligibility = businessHoursDecisionForPlace(place);
       const founderStats = activeRepId === "cruz" ? { visits: 0, conversations: 0, leads: 0, units: 0, laterUnits: 0, locationVisits: 0 } : profilePlaceStats("cruz", place.id);
       const status = statusFor(place);
       const totalProduction = stats.units + stats.laterUnits;
@@ -21876,7 +22116,8 @@
         explorationScore,
         exploitationScore,
         successfulDiscovery,
-        reasons: routeReasons(place, { stats, founderStats, totalProduction, founderProduction, lane, tier, access, daysSinceVisit, daysSinceRecommendation, underTestedCategory, underTestedRadius, successfulDiscovery, windowFit, founderOverlapPenalty, territory, representativeLane })
+        hoursEligibility,
+        reasons: routeReasons(place, { stats, founderStats, totalProduction, founderProduction, lane, tier, access, daysSinceVisit, daysSinceRecommendation, underTestedCategory, underTestedRadius, successfulDiscovery, windowFit, founderOverlapPenalty, territory, representativeLane, hoursEligibility })
       };
     }
 
@@ -21896,6 +22137,9 @@
       if (data.stats.visits === 0) reasons.push("fresh territory");
       if (data.underTestedCategory) reasons.push(`${place.category} needs more data`);
       if (data.underTestedRadius) reasons.push(`${radiusBand(place)} radius needs testing`);
+      if (data.hoursEligibility?.status === "OPEN_VERIFIED") reasons.push("business hours verified open for this route evaluation");
+      if (data.hoursEligibility?.internalMarker === "HOURS_NOT_VERIFIED") reasons.push("business hours are not verified; confirm before visiting");
+      if (data.hoursEligibility?.status === "CLOSED_VERIFIED") reasons.push("excluded because verified hours show the business closed now");
       if (data.territory?.reason) reasons.push(data.territory.reason);
       if (data.representativeLane?.reason) reasons.push(data.representativeLane.reason);
       if (data.daysSinceVisit >= 7 && data.stats.visits > 0) reasons.push("fresh enough to revisit");
@@ -21974,7 +22218,7 @@
         discoveryPreferred: mode.discoveryTarget >= .4,
         provenPreferred: mode.discoveryTarget <= .25,
         expandRadius: context.expandRadius
-      })).sort((a, b) => a.tierRank - b.tierRank || b.score - a.score);
+      })).sort((a, b) => a.hoursEligibility.selectionTier - b.hoursEligibility.selectionTier || a.tierRank - b.tierRank || b.score - a.score);
       const discovery = scored.filter(item => item.lane === "Discovery" || item.lane === "New signal");
       const proven = scored.filter(item => item.lane === "Proven" || item.lane === "Founder baseline");
       const selected = [];
@@ -22601,13 +22845,14 @@
 
       const routeItems = activeRouteItems();
       const analysis = routeItems.find(item => item.place.id === next.id) || routeAnalysis(next);
+      const hoursEligibility = analysis.hoursEligibility;
       const intelligence = routeIntelligenceFor(next, analysis, routeItems);
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
       const nearbyPreview = nearbyOpportunitiesForPlace(next, 2);
       bestNextMove.textContent = next.name;
       bestMoveAddress.textContent = next.address || "Verified address pending";
       bestMoveReason.textContent = intelligence.quickReason;
-      bestMoveDetails.textContent = intelligence.bestMove;
+      bestMoveDetails.textContent = `${intelligence.bestMove} Hours: ${hoursEligibility.displayLabel}. ${hoursEligibility.reason}`;
       bestMoveDirections.href = directionsUrl(next);
       intelExpected.textContent = intelligence.expected.label;
       intelExpectedReason.textContent = intelligence.expected.reason;
@@ -22721,8 +22966,9 @@
       return `${header}<div class="nearby-context-list">${items.map(item => {
         const place = item.place;
         const itemAnalysis = routeAnalysis(place);
+        const hoursEligibility = itemAnalysis.hoursEligibility;
         const expected = expectedUnitsFor(place, itemAnalysis);
-        return `<article class="item route-card nearby-card">
+        return `<article class="item route-card nearby-card" data-hours-status="${escapeAttr(hoursEligibility.status)}">
           <div class="rank nearby-rank">+</div>
           <div class="route-card-body">
             <h3>${escapeHtml(place.name)}</h3>
@@ -22731,8 +22977,10 @@
               <span class="decision-chip primary">${escapeHtml(walkingDistanceLabel(item.feet))}</span>
               <span class="decision-chip">${escapeHtml(expected.label)}</span>
               <span class="decision-chip">${escapeHtml(place.category)}</span>
+              <span class="decision-chip">${escapeHtml(hoursEligibility.displayLabel)}</span>
             </div>
             <p class="address-line"><b>Why nearby:</b> ${escapeHtml(itemAnalysis.reasons.slice(0, 2).join("; ") || "verified walkable option near the selected route stop")}.</p>
+            <p class="address-line"><b>Hours:</b> ${escapeHtml(hoursEligibility.displayLabel)}. ${escapeHtml(hoursEligibility.reason)}</p>
             <div class="compact-actions">
               <a class="btn bright" href="${directionsUrl(place)}" target="_blank" rel="noreferrer">Directions</a>
               <button class="btn secondary" type="button" data-quick-place="${escapeAttr(place.id)}">Log Result</button>
@@ -22901,7 +23149,8 @@
       const nearbyTitle = nearbyPreview.length
         ? `${nearbyPreview.length} verified walkable add-on stops. Open Why for names.`
         : "No verified walkable add-on stops inside the current radius.";
-      return `<article class="item route-card">
+      const hoursEligibility = analysis.hoursEligibility;
+      return `<article class="item route-card" data-hours-status="${escapeAttr(hoursEligibility.status)}" data-hours-marker="${escapeAttr(hoursEligibility.internalMarker || "")}">
         <div class="rank">${index + 1}</div>
         <div class="route-card-body">
           <h3>${escapeHtml(p.name)}</h3>
@@ -22910,6 +23159,7 @@
             <span class="decision-chip primary">${intelligence.confidence.percent}% Confidence</span>
             <span class="decision-chip">${escapeHtml(intelligence.expected.label)}</span>
             <span class="decision-chip">${escapeHtml(p.category)}</span>
+            <span class="decision-chip">${escapeHtml(hoursEligibility.displayLabel)}</span>
             <button class="decision-chip nearby" type="button" data-nearby-place="${escapeAttr(p.id)}" title="${escapeAttr(nearbyTitle)}" aria-label="${escapeAttr(nearbyTitle)}">${escapeHtml(nearbyLabel)}</button>
             <span class="decision-chip">${escapeHtml(intelligence.duration.label)}</span>
           </div>
@@ -22921,6 +23171,7 @@
             <summary>Why?</summary>
             <p><b>Walk first:</b> ${escapeHtml(analysis.walkTarget)}. <b>Ask for:</b> ${escapeHtml(analysis.decisionMaker)}. ${escapeHtml(analysis.reasons.slice(0, 3).join("; ") || "Balanced route quality and fresh learning")}. ${escapeHtml(intelligence.whyNow)}.</p>
             <p><b>Evidence:</b> ${escapeHtml(intelligence.confidence.reason)}. Opportunity is shown as ${escapeHtml(intelligence.expected.label)}. ${stats.visits} prior visits, ${stats.units + stats.laterUnits} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}.</p>
+            <p><b>Recommendation score:</b> ${escapeHtml(analysis.score)}. <b>Business-hours eligibility:</b> ${escapeHtml(hoursEligibility.displayLabel)}. <b>Hours confidence:</b> ${escapeHtml(hoursEligibility.hoursConfidence)}. <b>Hours freshness:</b> ${escapeHtml(hoursEligibility.hoursFreshness)}. ${escapeHtml(hoursEligibility.reason)}</p>
             <p><b>Nearby Opportunities:</b> ${escapeHtml(nearbyDetail)}</p>
             <p><b>Visit length:</b> ${escapeHtml(intelligence.duration.label)}. <b>Window:</b> ${escapeHtml(p.window)}. ${p.distance ? `<b>Distance:</b> ${escapeHtml(p.distance)}.` : ""}</p>
           </details>
@@ -23897,14 +24148,13 @@
       try {
         await loadRouteReplenishmentEngine();
         await loadOperatingProfileDefinitions();
+        await loadRouteBusinessHoursEligibility();
+        await loadRuntimeProductionDataset();
         await requestAdaptiveRouteReplenishment({ force: true, trigger: "startup" });
         render();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";
         updateFounderDebugPanel({ stage: "startup-complete" });
-        await loadRuntimeProductionDataset();
-        await requestAdaptiveRouteReplenishment({ force: true, trigger: "runtime-dataset-loaded" });
-        render();
       } catch (error) {
         captureDebugError(error, "Startup render failed");
         updateFounderDebugPanel({ stage: "startup-error" });

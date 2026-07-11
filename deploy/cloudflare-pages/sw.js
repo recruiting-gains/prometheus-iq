@@ -1,9 +1,11 @@
-const CACHE_NAME = "prometheus-v38-continuous-adaptive-route-replenishment";
+const CACHE_NAME = "prometheus-v39-route-iq-closed-now-eligibility";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
   "./icons/prometheus.svg",
-  "./intelligence/continuous-adaptive-route-replenishment.mjs"
+  "./intelligence/continuous-adaptive-route-replenishment.mjs",
+  "./intelligence/route-business-hours-eligibility.mjs",
+  "./scripts/lib/business-hours-governance.mjs"
 ];
 
 self.addEventListener("install", event => {
