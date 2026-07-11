@@ -53,6 +53,9 @@ Prometheus IQ is not a gym sales platform. Gym sales is the first production val
 - `workspaces/smoothie-depot/executive-due-diligence-intelligence-standard-v4.md`: Smoothie Depot executive due diligence intelligence standard.
 - `workspaces/smoothie-depot/executive-due-diligence-framework-v4.json`: Machine-readable evidence, confidence, contradiction, decision tree, and decision journal framework.
 - `workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`: Research register for completed Smoothie Depot Executive Intelligence Packages.
+- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`: Canonical Smoothie Depot brand-strategy and expansion-readiness Executive Intelligence Package.
+- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.json`: Machine-readable canonical Smoothie Depot v3 package ledger.
+- `workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`: Gaia provenance, conflict, deduplication, confidence, and evidence-quality ledger for Smoothie Depot v3.
 - `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`: Canonical rebuilt Nutrition Depot Executive Intelligence Package.
 - `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`: Structured canonical rebuilt Nutrition Depot Executive Intelligence Package ledger.
 - `workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`: Historical first Executive Intelligence Package superseded by v2.
@@ -197,6 +200,8 @@ Current founder-ready output:
 - Report: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.md`
 - Structured ledger: `research/workspaces/smoothie-depot/ranked-business-prospects-2026-07-03.json`
 - Executive Intelligence Package register: `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- Canonical Smoothie Depot brand-strategy package: `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`
+- Smoothie Depot v3 evidence ledger: `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`
 - Canonical rebuilt Nutrition Depot Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
 - Historical Nutrition Depot Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
 - Second Executive Intelligence Package: `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`

@@ -1,0 +1,1621 @@
+{
+  "packageId": "smoothie_depot_eip_003_smoothie_depot_v3",
+  "workspaceId": "smoothie_depot",
+  "operatingProfileId": "franchise_development",
+  "business": "Smoothie Depot",
+  "packageVersion": "v3",
+  "packageStatus": "completed_research_executive_intelligence_package",
+  "canonicalForResearch": true,
+  "canonicalScope": "brand_strategy_and_expansion_readiness",
+  "generatedDate": "2026-07-11",
+  "researchCutoff": "2026-07-11",
+  "platformStandard": "executive_intelligence_platform_v1",
+  "evidenceEngineStandard": "gaia_research_orchestrator_foundation_v1",
+  "productionRuntimeChange": false,
+  "standardModified": false,
+  "priorPackageRevision": false,
+  "packagePurpose": "Prepare the receiving Smoothie Depot executive to decide whether, where, and under what gates the franchise system should expand within Greater Houston.",
+  "audiencePerspective": {
+    "writtenFor": "Receiving Smoothie Depot executive",
+    "defaultPerspective": "receiving_executive",
+    "prometheusDecisionMakerException": false,
+    "packageExecutesEngagement": false
+  },
+  "evidenceLabels": [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ],
+  "conclusionRequirements": [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ],
+  "decisionArchitecture": {
+    "fact": "A directly supported statement carrying an Observed or Corroborated platform label.",
+    "evidence": "The attributable source basis supporting or contradicting a fact or inference.",
+    "inference": "A reasoned conclusion carrying the Inference platform label.",
+    "probability": "A bounded analytical estimate, not a fact or financial forecast, with explicit drivers and falsifiers.",
+    "recommendation": "Executive decision support derived from validated evidence and stated uncertainty.",
+    "unknown": "A material question not established after reasonable lawful public-source review, carrying the Unknown platform label."
+  },
+  "providerAvailability": [
+    {
+      "provider": "Public Web Research",
+      "status": "used",
+      "result": "Official company pages, government publications, franchise disclosures, reputable local reporting, public directories, public review platforms, and public social surfaces were reviewed."
+    },
+    {
+      "provider": "Apollo",
+      "status": "attempted_unavailable",
+      "result": "People Search returned API_INACCESSIBLE under the connected account. A contact keyword search returned zero records. No Apollo-derived finding entered the package."
+    },
+    {
+      "provider": "Marketing Research GPT",
+      "status": "unavailable_in_active_environment",
+      "result": "No callable connector was available. Public Web Research continued without blocking package generation."
+    },
+    {
+      "provider": "Consensus",
+      "status": "unavailable_in_active_environment",
+      "result": "No callable connector was available. No academic claim was attributed to Consensus."
+    },
+    {
+      "provider": "SciSpace",
+      "status": "unavailable_in_active_environment",
+      "result": "No callable connector was available. No scientific claim was attributed to SciSpace."
+    },
+    {
+      "provider": "AskYourPDF",
+      "status": "unavailable_in_active_environment",
+      "result": "No callable connector was available. Public PDFs were reviewed through lawful public document access."
+    }
+  ],
+  "enrichmentSources": {
+    "apollo": {
+      "apolloUsed": true,
+      "apolloUseCase": [
+        "executive identification",
+        "operator discovery",
+        "company enrichment"
+      ],
+      "apolloProfilesSearched": [
+        "Smoothie Depot domain and company terms",
+        "owner",
+        "founder",
+        "C-suite",
+        "partner"
+      ],
+      "apolloDerivedFieldsCaptured": [],
+      "corroborationStatus": "No Apollo record was available to corroborate or advance.",
+      "reasonNotUsed": "People Search was inaccessible to the connected account and the fallback contact search returned no records.",
+      "apolloIsSourceOfTruth": false,
+      "requiresLawfulPublicSourceCorroboration": true
+    }
+  },
+  "executiveDecisionPage": {
+    "decision": "Whether to accelerate Greater Houston franchise expansion now, and which expansion model should receive executive authorization.",
+    "decisionThesis": "Authorize a gated cluster-expansion program, not unrestricted metro-wide acceleration. Houston demand and the existing local footprint support measured growth, but the public record does not yet establish unit economics, franchisor financial capacity, system turnover, legal franchisor identity, or consistent operating quality at the standard required for rapid franchise development.",
+    "recommendedExecutivePosture": "Proceed as a disciplined system builder. Use the next 90 days to establish disclosure, economics, franchisee validation, location quality, and support-capacity gates. Approve two or three cluster pilots only after those gates are passed.",
+    "overallConfidence": "Medium-high that Houston is attractive; Medium that Smoothie Depot is ready for measured expansion; Low that broad acceleration is presently decision-ready.",
+    "opportunityCost": "The highest-value executive use of the next decision cycle is proving the existing system before increasing unit count. Each new franchise sold before economics and support capacity are verified compounds reputational, legal, and franchisee-performance exposure; each month spent only refining brand collateral leaves documented Houston white space to larger competitors. A 90-day proof sprint preserves both options.",
+    "immediateDecisionGates": [
+      "Obtain and review the current FDD, legal franchisor identity, Item 19 if supplied, Item 20 outlet history, Item 21 financial statements, and all Texas offering documentation.",
+      "Reconcile the public investment-range conflict and confirm the controlling Item 7 figures.",
+      "Build a location-level operating scorecard covering sales, tickets, food and packaging cost, labor, occupancy, four-wall contribution, customer frequency, and review recovery.",
+      "Interview a representative set of current and former franchisees using the FDD population rather than a curated reference list alone.",
+      "Document franchisor staffing, training throughput, site-selection standards, opening support, field support, supply chain, POS, loyalty, and marketing governance.",
+      "Resolve the Webster reputation and operating-hours divergence before using the market as a franchise-development proof point."
+    ]
+  },
+  "majorConclusions": [
+    {
+      "label": "Corroborated",
+      "conclusion": "Greater Houston is large and still expanding, creating sufficient demand density for a well-executed smoothie and active-lifestyle concept.",
+      "evidenceBasis": "Greater Houston Partnership reports 7,904,627 metro residents in 2025 and 126,720 annual growth; the City of Houston estimates 2,392,327 residents; established smoothie competitors maintain dense local networks.",
+      "sourceReliability": "High for population; high for competitor-owned location listings; medium-high for the resulting demand conclusion.",
+      "confidenceLevel": "High",
+      "verificationNeeded": "Validate trade-area demand, traffic, household composition, gym density, and unit economics for each proposed site rather than treating metro growth as site-level proof.",
+      "businessDecisionImpact": "Houston market demand is not the principal reason to delay measured expansion; system readiness and site economics are."
+    },
+    {
+      "label": "Observed",
+      "conclusion": "Smoothie Depot publicly lists eight physical Greater Houston locations plus a mobile-service footprint.",
+      "evidenceBasis": "The official location page lists Fuqua, Pasadena, Webster, Bissonnet, Katy, 646 League City, Tuscan Lakes, La Porte, and mobile service. Independent sources corroborate multiple locations, including Katy and the 451 Spruce Street League City opening.",
+      "sourceReliability": "High for the current official listing; medium-high for active-status corroboration because not every listed location has an equally current independent signal.",
+      "confidenceLevel": "Medium-high",
+      "verificationNeeded": "Confirm current open status, ownership type, opening date, and franchise or company-operated classification for every listed outlet.",
+      "businessDecisionImpact": "The brand has a real operating base and more than a concept-stage footprint, but active-unit and ownership reconciliation is required before system-growth claims are used."
+    },
+    {
+      "label": "Observed",
+      "conclusion": "Smoothie Depot's public investment figures conflict within its own franchise website.",
+      "evidenceBasis": "The FAQ and investment heading state $180,070 to $317,970, while the line-item totals displayed on the investment page are $185,070 and $322,970.",
+      "sourceReliability": "High because both figures appear on the official franchise website.",
+      "confidenceLevel": "High",
+      "verificationNeeded": "Reconcile against the current FDD Item 7 and correct all public franchise materials.",
+      "businessDecisionImpact": "The conflict weakens disclosure credibility and can create avoidable qualification, compliance, and candidate-trust friction."
+    },
+    {
+      "label": "Inference",
+      "conclusion": "Smoothie Depot is positioned as a Houston local challenger with format flexibility, not as a scaled or systemically proven market leader.",
+      "evidenceBasis": "The brand has a local multi-format footprint, a lower stated entry range than Smoothie King, a gym-based League City site, a Katy drive-through, and a Fuqua coffee extension. Smoothie King lists 37 Houston city locations and Tropical Smoothie reports materially larger system scale and unit-volume disclosures.",
+      "sourceReliability": "High for observed footprints and competitor disclosures; medium-high for position classification.",
+      "confidenceLevel": "Medium-high",
+      "verificationNeeded": "Compare location-level revenue, customer retention, contribution margin, and brand awareness against named competitors in each target corridor.",
+      "businessDecisionImpact": "Expansion messaging should lead with local operating relevance and format economics rather than claiming category leadership."
+    },
+    {
+      "label": "Inference",
+      "conclusion": "Location-level reputation dispersion indicates a material operating-consistency risk.",
+      "evidenceBasis": "Fuqua and Katy show strong public ratings on several surfaces, while Webster shows 2.8 across 59 Restaurantji ratings but 4.9 across 53 Uber Eats ratings; complaints include service, hours, product quality, and management behavior. Platform samples differ and may be dated or biased.",
+      "sourceReliability": "Medium-low to medium for individual review platforms; medium-high for the existence of cross-platform divergence.",
+      "confidenceLevel": "Medium",
+      "verificationNeeded": "Audit current reviews by location and channel, inspect store operations, verify complaint recovery, and compare POS/service metrics.",
+      "businessDecisionImpact": "New franchise development should not outpace operating-standard enforcement and reputation recovery."
+    },
+    {
+      "label": "Unknown",
+      "conclusion": "The public record reviewed does not establish the current legal franchisor, audited financial capacity, system-wide outlet turnover, or representative unit economics.",
+      "evidenceBasis": "The official site names JR Gondal and Angie Caceres as franchise contacts; a 2016 trademark record names Atif Gondal; the site says an FDD is provided after application and initial meeting, but no current public Smoothie Depot FDD was located.",
+      "sourceReliability": "High for what public pages state; medium for search exhaustion; none for conclusions the absent FDD would need to establish.",
+      "confidenceLevel": "High that these items remain unverified publicly; Unknown as to their underlying condition.",
+      "verificationNeeded": "Review the current FDD, franchise agreement, Texas exemption notice, entity records, audited statements, and current/former franchisee population.",
+      "businessDecisionImpact": "Broad expansion authorization would be premature without the documents that establish franchisor capacity and franchise-system health."
+    },
+    {
+      "label": "Inference",
+      "conclusion": "The strongest expansion path is a staged cluster strategy using proven local formats, with a near-term emphasis on West/Fort Bend and North Houston growth corridors after current-unit gates are passed.",
+      "evidenceBasis": "The footprint is concentrated in Southeast Houston and the Bay Area, with one Katy western anchor. Fort Bend and Montgomery counties added 24,163 and 30,011 residents respectively in 2025, while Smoothie King's official Houston footprint shows extensive category demand across north, west, central, and medical corridors.",
+      "sourceReliability": "High for demographic and footprint evidence; medium for corridor prioritization without site-level economics.",
+      "confidenceLevel": "Medium",
+      "verificationNeeded": "Run site-level whitespace, traffic, rent, fitness-anchor, competitive-density, and customer-acquisition analyses before territory approval.",
+      "businessDecisionImpact": "Capital and executive attention should concentrate on defendable clusters rather than scattered metro coverage."
+    }
+  ],
+  "probabilityModel": {
+    "method": "Judgmental ranges derived from validated public evidence. These are decision-support estimates, not forecasts, valuations, or financial performance representations.",
+    "estimates": [
+      {
+        "outcome": "Greater Houston remains an attractive smoothie and active-lifestyle expansion market through the next three years.",
+        "probabilityRange": "70-80%",
+        "midpoint": 75,
+        "drivers": [
+          "7.9 million metro population and continued growth",
+          "strong incumbent unit density",
+          "existing Smoothie Depot local operating footprint",
+          "suburban county growth"
+        ],
+        "falsifiers": [
+          "site-level demand fails to support target tickets and frequency",
+          "occupancy or customer-acquisition costs erase unit returns",
+          "category demand shifts materially away from prepared smoothies"
+        ]
+      },
+      {
+        "outcome": "Smoothie Depot can add three to six durable net locations in Greater Houston within 24 to 36 months if the recommended gates are passed.",
+        "probabilityRange": "50-65%",
+        "midpoint": 58,
+        "drivers": [
+          "existing multi-location base",
+          "recent Katy and League City openings",
+          "lower stated entry range than larger competitors",
+          "flexible traditional, drive-through, gym, and mobile signals"
+        ],
+        "falsifiers": [
+          "weak representative unit economics",
+          "insufficient franchisor support capacity",
+          "high franchisee turnover or dissatisfaction",
+          "unresolved disclosure or operating-standard weaknesses"
+        ]
+      },
+      {
+        "outcome": "Smoothie Depot can sustain 15 to 20 Greater Houston locations within three to five years under the current publicly visible system.",
+        "probabilityRange": "30-45%",
+        "midpoint": 38,
+        "drivers": [
+          "Houston white space",
+          "cluster efficiencies",
+          "multi-unit franchise strategy"
+        ],
+        "falsifiers": [
+          "no repeatable four-wall economics",
+          "inconsistent unit quality",
+          "weak digital and loyalty infrastructure",
+          "owner-operator restriction materially limits candidate throughput"
+        ]
+      },
+      {
+        "outcome": "Smoothie Depot reaches category-leading Houston density comparable with Smoothie King's current 37-city-location footprint within five years.",
+        "probabilityRange": "10-20%",
+        "midpoint": 15,
+        "drivers": [
+          "exceptional unit economics",
+          "professionalized franchisor support",
+          "multi-unit operator recruitment",
+          "brand and digital investment"
+        ],
+        "falsifiers": [
+          "current support model remains founder-dependent",
+          "capital and candidate constraints persist",
+          "reputation variance continues",
+          "competitors defend priority corridors"
+        ]
+      }
+    ]
+  },
+  "companyOverview": {
+    "brandName": "Smoothie Depot The Smoothie Experts",
+    "publicOriginClaim": "2008",
+    "category": "Smoothies, fresh fruit beverages, supplements, healthy snacks, and selected coffee and food extensions",
+    "publicHeadquarters": "Unknown",
+    "publicWebsite": "https://www.smoothiedepotfranchise.com/",
+    "publicFranchiseContacts": [
+      "JR Gondal",
+      "Angie Caceres"
+    ],
+    "operatingFootprintSummary": "Eight physical Greater Houston addresses plus mobile service are listed on the official site as of the research cutoff.",
+    "evidenceClassification": "Observed",
+    "limitations": "The legal entity, franchisor headquarters, unit ownership classifications, and complete historical outlet count are not stated on the public website."
+  },
+  "businessModel": {
+    "observedElements": [
+      "Franchised smoothie retail concept with traditional locations stated at 800 to 1,500 square feet.",
+      "Fresh-fruit and dairy-free smoothies, supplement add-ons, healthy snacks, and locally visible product extensions.",
+      "Franchise fee of $35,000 per unit.",
+      "Royalty of 7% of adjusted gross sales on the FAQ and 7% of weekly gross sales with a $125 weekly minimum on the investment page.",
+      "No current national marketing and advertising fund fee is stated.",
+      "Potential franchisees are stated to need $300,000 minimum net worth, $75,000 liquidity, and good credit.",
+      "The site encourages multi-unit development and states a discount is available with a minimum of three locations.",
+      "Absentee ownership is not permitted; typical staffing is stated as 9 to 14 part-time employees."
+    ],
+    "formatSignals": [
+      "Traditional inline retail",
+      "Drive-through at Katy",
+      "Gym-based location at 451 Spruce Street",
+      "Mobile service",
+      "Coffee and expanded beverage daypart at Fuqua"
+    ],
+    "unitEconomicsStatus": "Unknown",
+    "unitEconomicsReason": "No current public Smoothie Depot FDD, representative P&L, system AUV distribution, four-wall margin, break-even period, or cash-on-cash return was located.",
+    "executiveImplication": "Format flexibility is strategically attractive, but each format requires separate prototype economics and operating standards before replication."
+  },
+  "ownershipLeadership": {
+    "findings": [
+      {
+        "label": "Observed",
+        "finding": "The official franchise site names JR Gondal and Angie Caceres as franchise contacts without publishing titles or biographies.",
+        "evidenceBasis": "Official FAQ, location, investment, process, menu, and Coffee & I pages.",
+        "sourceReliability": "High for contact designation; low for authority scope because titles are absent.",
+        "confidenceLevel": "High",
+        "verificationNeeded": "Confirm titles, legal authority, decision rights, and operating responsibilities.",
+        "businessDecisionImpact": "The receiving executive needs a documented governance and accountability map before expansion responsibilities are assigned."
+      },
+      {
+        "label": "Observed",
+        "finding": "A 2016 public trademark record identifies Atif Gondal as owner of the SMOOTHIE DEPOT THE SMOOTHIE EXPERTS mark application, serial 87118899.",
+        "evidenceBasis": "Public Justia trademark index reflecting the application record.",
+        "sourceReliability": "Medium-high for the historical trademark claimant; low for current company ownership or control.",
+        "confidenceLevel": "High for the historical filing, Low for present authority.",
+        "verificationNeeded": "Verify current USPTO status, assignments, legal entity ownership, and Atif Gondal's current role.",
+        "businessDecisionImpact": "Trademark ownership and franchisor control must align before new rights are sold or material brand investment is authorized."
+      },
+      {
+        "label": "Unknown",
+        "finding": "The public sources reviewed do not establish the legal franchisor entity or the current ownership and control relationship among Atif Gondal, JR Gondal, and Angie Caceres.",
+        "evidenceBasis": "Official website, public trademark index, public professional profile search, business-directory search, and public FDD search.",
+        "sourceReliability": "Medium for public-search exhaustion; no evidentiary support for an ownership conclusion.",
+        "confidenceLevel": "High that it remains unverified publicly.",
+        "verificationNeeded": "Obtain the FDD, entity documents, trademark records, governance chart, and written authority matrix.",
+        "businessDecisionImpact": "Authority ambiguity is a gating issue for franchise sales, contracts, disclosure ownership, and system accountability."
+      }
+    ]
+  },
+  "footprintLocations": [
+    {
+      "name": "Fuqua",
+      "address": "12344 Gulf Fwy Suite Q, Houston, TX 77034",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Restaurantji current listing",
+        "delivery-platform listings",
+        "Coffee & I page at the same address"
+      ],
+      "confidence": "High",
+      "strategicRole": "Flagship-like South Houston operating and beverage-extension test site"
+    },
+    {
+      "name": "Pasadena",
+      "address": "3800 Spencer Hwy Suite G, Pasadena, TX",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Restaurantji listing",
+        "public resale listing signal"
+      ],
+      "confidence": "Medium-high",
+      "strategicRole": "East/Southeast cluster unit; transfer economics require verification"
+    },
+    {
+      "name": "Webster",
+      "address": "20801 Gulf Fwy Suite 21, Webster, TX 77598",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Restaurantji",
+        "Uber Eats",
+        "Yahoo/Yelp mirror"
+      ],
+      "confidence": "High",
+      "strategicRole": "Bay Area unit and highest-priority operating/reputation verification case"
+    },
+    {
+      "name": "Bissonnet",
+      "address": "7098 Bissonnet St Suite B, Houston, TX",
+      "officiallyListed": true,
+      "independentSignals": [
+        "public business listing",
+        "property and fitness-anchor material"
+      ],
+      "confidence": "Medium-high",
+      "strategicRole": "Gym-adjacent Southwest Houston format signal"
+    },
+    {
+      "name": "Katy",
+      "address": "557 S Mason Rd Suite B, Katy, TX",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Community Impact opening report",
+        "Restaurantji",
+        "Uber Eats",
+        "Grubhub"
+      ],
+      "confidence": "High",
+      "strategicRole": "First reported Houston-area drive-through and western cluster anchor"
+    },
+    {
+      "name": "646 League City",
+      "address": "451 Spruce St, League City, TX",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Community Impact opening report",
+        "Roman Empire Gym co-location"
+      ],
+      "confidence": "High",
+      "strategicRole": "Nontraditional gym-based prototype"
+    },
+    {
+      "name": "Tuscan Lakes",
+      "address": "1260 E League City Pkwy #300, League City, TX",
+      "officiallyListed": true,
+      "independentSignals": [
+        "public property tenant material"
+      ],
+      "confidence": "Medium-high",
+      "strategicRole": "Bay Area residential-growth corridor unit"
+    },
+    {
+      "name": "La Porte",
+      "address": "9701 Spencer Hwy, La Porte, TX",
+      "officiallyListed": true,
+      "independentSignals": [],
+      "confidence": "Medium",
+      "strategicRole": "Eastern corridor footprint requiring current-status verification"
+    },
+    {
+      "name": "Mobile Service",
+      "address": "Upon contact",
+      "officiallyListed": true,
+      "independentSignals": [
+        "Official location page"
+      ],
+      "confidence": "Medium",
+      "strategicRole": "Event, catering, and community-demand test channel"
+    }
+  ],
+  "customerDemographics": {
+    "observedSegments": [
+      "Fitness-oriented customers using protein, pre-workout, recovery, and supplement add-ons",
+      "Health-conscious customers seeking fruit, vegetable, dairy-free, and gluten-free options",
+      "Convenience customers using delivery, drive-through, and mobile channels",
+      "Students, professionals, families, and gym members referenced by location context and public reviews"
+    ],
+    "inferredSegments": [
+      "Value-conscious local consumers attracted to a Houston-grown alternative",
+      "Morning and non-smoothie daypart customers at the Fuqua Coffee & I test",
+      "Youth sports, school, athletic-organization, and event customers where the brand's stated catering footprint is active"
+    ],
+    "unknowns": [
+      "Customer mix by location",
+      "New versus repeat customer share",
+      "Visit frequency and retention",
+      "Average ticket and add-on attachment",
+      "Delivery versus in-store contribution",
+      "Demographic and psychographic segments based on consented first-party data"
+    ],
+    "executiveImplication": "Public evidence supports plausible segments, but territory and menu decisions should use consented location-level customer and transaction data rather than demographic stereotypes."
+  },
+  "financialIndicators": {
+    "publicFranchiseTerms": {
+      "franchiseFee": "$35,000 per unit",
+      "royalty": "7% of adjusted gross sales; the investment page adds a $125 weekly minimum",
+      "nationalMarketingFee": "Currently none",
+      "minimumLiquidity": "$75,000",
+      "minimumNetWorth": "$300,000",
+      "publishedInvestmentRange": "$180,070-$317,970",
+      "displayedLineItemTotals": "$185,070-$322,970",
+      "typicalSize": "800-1,500 square feet",
+      "typicalStaffing": "9-14 part-time employees"
+    },
+    "publicResaleSignal": {
+      "location": "Pasadena",
+      "askingPrice": "$69,900",
+      "sellerReportedGrossRevenue": "$139,000",
+      "otherSellerReportedTerms": "Inventory $10,000; furniture, fixtures, and equipment $53,500; 1,500 square feet; rent $3,500 monthly; lease expiration June 1, 2028.",
+      "reliability": "Low. The listing states information was supplied by the seller or broker and was not independently verified.",
+      "decisionUse": "Directional only. It cannot represent system economics, current performance, profitability, or value."
+    },
+    "competitorBenchmarks": [
+      "Smoothie King 2026 FDD: $329,850-$683,715 inline/end-cap investment; $639,950-$1,278,900 freestanding drive-through investment.",
+      "Smoothie King 2026 FDD: 1,087 qualifying franchised units averaged $662,015 net sales and had a $627,210 median for the stated reporting period.",
+      "Tropical Smoothie public franchise page: $978,298 system-wide average net revenue across 1,431 qualifying restaurants and $1,251,191 top-half average for fiscal 2025, subject to its published limitations."
+    ],
+    "unknowns": [
+      "Smoothie Depot AUV and median",
+      "Four-wall contribution margin",
+      "Food and packaging cost",
+      "Labor percentage",
+      "Occupancy percentage",
+      "Franchisee EBITDA and owner compensation",
+      "Break-even and payback period",
+      "Same-store sales",
+      "Franchisor revenue mix and audited financial capacity",
+      "Opening-cost variance by format"
+    ]
+  },
+  "franchiseStrategy": {
+    "observedStrategy": [
+      "Application-led qualification followed by an initial meeting and FDD review",
+      "Existing-franchisee interviews before approval",
+      "Franchise agreement and $35,000 fee after approval",
+      "Build-out, training, and grand-opening support",
+      "Multi-unit development encouraged with a discount at three or more locations",
+      "Owner involvement required because absentee ownership is not permitted"
+    ],
+    "strategicStrengths": [
+      "Lower published entry range than the two largest national comparator systems reviewed",
+      "Local Houston operating story",
+      "Multiple prototype signals",
+      "Owner-operator model may support hands-on execution",
+      "No current national marketing fee lowers stated recurring fee burden"
+    ],
+    "strategicConstraints": [
+      "A 7% royalty exceeds Smoothie King's 6% operating fee benchmark before considering support differences",
+      "No national marketing fund can limit shared brand demand generation and system-wide creative capacity",
+      "Owner-operator requirement narrows the candidate pool and can slow multi-unit scaling",
+      "No public development timeline, territory map, support staffing, or franchisee population",
+      "Public disclosure inconsistency creates trust friction"
+    ],
+    "recommendedModel": "Use a selective, operator-led cluster strategy with defined site archetypes and performance gates. Do not sell scattered territories solely to increase unit count."
+  },
+  "marketOpportunity": {
+    "marketFacts": [
+      "Greater Houston population was reported at 7,904,627 in 2025, up 126,720 in one year.",
+      "Fort Bend grew 2.5% and Montgomery grew 4.0% in the referenced annual period.",
+      "Smoothie King lists 37 Houston city locations, demonstrating substantial category adoption and competitive intensity.",
+      "Tropical Smoothie lists seven Houston city locations and competes across smoothies, food, dayparts, delivery, and mobile ordering.",
+      "Smoothie Depot currently has a Southeast/Bay Area concentration with a Katy western anchor."
+    ],
+    "revenueDensityModel": {
+      "model": "37 Smoothie King Houston city locations multiplied by the Smoothie King 2025 all-unit average net sales of $662,015 equals approximately $24.5 million.",
+      "classification": "Inference",
+      "permittedUse": "Directional category-density proxy only.",
+      "limitations": "It is not Houston actual revenue, not a Smoothie Depot forecast, and assumes Houston units equal a national all-unit average despite likely unit-level variance."
+    },
+    "executiveInterpretation": "The market is proven but contested. Smoothie Depot's opportunity is not creating category demand; it is winning selected local trade areas with better economics, relevance, and execution."
+  },
+  "territoryAnalysis": {
+    "currentConcentration": "Southeast Houston, Pasadena, Webster, League City, La Porte, with single anchors in Southwest Houston and Katy.",
+    "priorityCorridors": [
+      {
+        "corridor": "West and Fort Bend",
+        "priority": 1,
+        "rationale": "Katy provides a western operating anchor; Fort Bend added 24,163 residents in 2025; Sugar Land and Missouri City can support cluster logistics if site economics validate.",
+        "preferredFormats": [
+          "drive-through or end-cap",
+          "fitness-adjacent inline"
+        ],
+        "verification": "Trade-area demand, rent, traffic, delivery economics, franchisee capacity, and competitive saturation."
+      },
+      {
+        "corridor": "North Houston, Spring, The Woodlands, and Humble",
+        "priority": 2,
+        "rationale": "Montgomery County added 30,011 residents and grew 4.0%; the official Smoothie King network demonstrates category demand, but no Smoothie Depot anchor is publicly listed.",
+        "preferredFormats": [
+          "fitness-anchored inline",
+          "end-cap",
+          "drive-through after prototype proof"
+        ],
+        "verification": "Operator availability, site whitespace, rent, traffic, and north-side supply/support coverage."
+      },
+      {
+        "corridor": "Inner Loop, Medical Center, Heights, and central Houston",
+        "priority": 3,
+        "rationale": "High population and daytime demand plus visible competitor density create opportunity, but rents and execution requirements are likely higher.",
+        "preferredFormats": [
+          "small-footprint inline",
+          "hospital, campus, or fitness nontraditional"
+        ],
+        "verification": "Rent-adjusted contribution, daypart demand, parking, delivery mix, and institutional partnership requirements."
+      },
+      {
+        "corridor": "Southeast and Bay Area infill",
+        "priority": 4,
+        "rationale": "Existing operating density can create support and brand efficiencies, but cannibalization and Webster performance must be understood before further infill.",
+        "preferredFormats": [
+          "select infill",
+          "gym and mobile partnerships"
+        ],
+        "verification": "Cannibalization, location health, franchisee territories, and brand consistency."
+      }
+    ],
+    "siteSelectionRule": "No corridor authorization should substitute for location underwriting. Every site requires trade-area, unit-economics, operator, cannibalization, and support-capacity approval."
+  },
+  "competitiveLandscape": {
+    "namedDirectCompetitors": [
+      {
+        "name": "Smoothie King",
+        "position": "Scaled smoothie and active-lifestyle leader",
+        "relevantEvidence": "37 official Houston city listings; 1,242 units in the 2026 FDD reporting population; app, rewards, delivery, mature FDD, and disclosed unit economics.",
+        "implication": "Sets the local density, digital convenience, franchise support, and disclosure benchmark."
+      },
+      {
+        "name": "Tropical Smoothie Cafe",
+        "position": "Scaled smoothie-plus-food fast-casual competitor",
+        "relevantEvidence": "Seven Houston city locations; 1,700-plus cafes; 60/40 smoothie-to-food mix; multiple dayparts and revenue streams.",
+        "implication": "Demonstrates a broader daypart and food model that can raise revenue but also operating complexity."
+      },
+      {
+        "name": "JuiceLand",
+        "position": "Texas wellness and whole-food beverage specialist",
+        "relevantEvidence": "Public Houston presence and product focus across smoothies, cold-pressed juice, meals, lattes, and wellness shots.",
+        "implication": "Competes on ingredient credibility, wellness identity, and menu breadth."
+      },
+      {
+        "name": "Main Squeeze Juice Co.",
+        "position": "Juice, smoothie, bowl, and wellness competitor",
+        "relevantEvidence": "The official location directory lists Greater Houston units in Atascocita and Friendswood.",
+        "implication": "Competes in the north and Bay Area corridors with juice, smoothie, bowl, and wellness positioning.",
+        "sourceIds": [
+          "S33"
+        ]
+      },
+      {
+        "name": "Nekter Juice Bar",
+        "position": "National juice, smoothie, and bowl concept",
+        "relevantEvidence": "The official directory lists a Houston Midtown unit at 304 Gray Street and additional Greater Houston units.",
+        "implication": "Competes on juice, smoothies, bowls, order-ahead convenience, and rewards.",
+        "sourceIds": [
+          "S34"
+        ]
+      },
+      {
+        "name": "Clean Juice",
+        "position": "Organic juice and wellness franchise",
+        "relevantEvidence": "The official Houston directory lists San Felipe and Vintage Park locations with ordering, catering, and app rewards.",
+        "implication": "Raises customer expectations for ingredient transparency, wellness positioning, and digital convenience.",
+        "sourceIds": [
+          "S35"
+        ]
+      },
+      {
+        "name": "Smoothie Factory + Kitchen",
+        "position": "Smoothie, juice, bowl, and food franchise",
+        "relevantEvidence": "The official directory lists a Houston Tunnel unit at 930 Main Street with ordering and catering.",
+        "implication": "Competes for downtown daypart demand with a broader food and convenience proposition.",
+        "sourceIds": [
+          "S36"
+        ]
+      }
+    ],
+    "indirectCompetitors": [
+      "Independent juice and acai shops",
+      "Nutrition clubs and supplement retailers with prepared shakes",
+      "Gyms with in-house smoothie bars",
+      "Coffee chains expanding refreshers, protein, and cold beverages",
+      "Quick-service restaurants and convenience stores",
+      "Home blending and retail ready-to-drink products"
+    ],
+    "competitiveStrengths": [
+      "Houston-local identity",
+      "Fresh-fruit and active-lifestyle positioning",
+      "Lower stated entry range",
+      "Multiple format signals",
+      "Fitness ecosystem relevance"
+    ],
+    "competitiveWeaknesses": [
+      "Lower unit density and brand awareness",
+      "No visible unified app, loyalty, or central online-ordering system",
+      "No public FDD or comparable unit-economics transparency",
+      "Cross-location reputation variance",
+      "Unclear brand standards across local menu extensions"
+    ]
+  },
+  "digitalAndReputation": {
+    "digitalFindings": [
+      "The Wix-hosted public site combines consumer menu, location, and franchise-development content.",
+      "The site links Instagram, Facebook, TikTok, X/Twitter, and YouTube handles.",
+      "Direct platform access did not yield a reliable, lawful cross-platform follower and engagement census in this research environment.",
+      "Public social mirrors show promotions, workout positioning, location mentions, loyalty punch-card messaging, and discount offers through 2026.",
+      "No unified Smoothie Depot ordering, rewards, customer account, or franchisee location microsite system was observed on the central website.",
+      "Delivery availability and menus vary by third-party platform and location."
+    ],
+    "reputationSignals": [
+      {
+        "location": "Fuqua",
+        "signal": "Restaurantji 4.3 across 142 ratings; praise for taste, speed, and supplement guidance; some complaints about order accuracy, consistency, and hours.",
+        "confidence": "Medium"
+      },
+      {
+        "location": "Pasadena",
+        "signal": "Restaurantji public rating around 4.4, with review-count variation across retrievals; positive gym and product themes.",
+        "confidence": "Medium-low"
+      },
+      {
+        "location": "Webster",
+        "signal": "Restaurantji 2.8 across 59 ratings with a polarized distribution, while Uber Eats shows 4.9 across 53 ratings. Complaints include hair, management behavior, hours, and product quality; delivery reviews praise product taste.",
+        "confidence": "Medium for divergence, Low for a unified customer-experience conclusion"
+      },
+      {
+        "location": "Katy",
+        "signal": "Restaurantji category listing showed 4.9 across 87 ratings; Uber Eats showed 5.0 across 55 ratings; Grubhub showed 4.7 across seven ratings. Channel availability should be rechecked.",
+        "confidence": "Medium"
+      },
+      {
+        "location": "Other locations",
+        "signal": "Public review evidence was too thin or inconsistent for a defensible location-level conclusion.",
+        "confidence": "Unknown"
+      }
+    ],
+    "executiveImplication": "Digital and reputation infrastructure is below the standard needed to scale confidently. A single customer journey, location directory, menu governance, loyalty layer, review-response protocol, and local-store digital standard should precede broad expansion."
+  },
+  "expansionOpportunities": [
+    {
+      "rank": 1,
+      "opportunity": "Prove and replicate a West/Fort Bend cluster around Katy",
+      "whyNow": "Katy supplies a recent drive-through proof point and Fort Bend is a high-growth county.",
+      "requiredGate": "Katy unit economics, drive-through throughput, daypart mix, operator capacity, and site-selection benchmark.",
+      "confidence": "Medium"
+    },
+    {
+      "rank": 2,
+      "opportunity": "Build a gym and fitness nontraditional playbook",
+      "whyNow": "The 451 Spruce Street location is inside Roman Empire Gym, and the brand's product proposition is naturally aligned with workout occasions.",
+      "requiredGate": "Separate economics, lease/license structure, traffic conversion, menu, staffing, and partner responsibilities for nontraditional units.",
+      "confidence": "Medium-high for fit, Medium-low for economics"
+    },
+    {
+      "rank": 3,
+      "opportunity": "Enter North Houston through a qualified multi-unit operator",
+      "whyNow": "Montgomery County growth and the absence of a listed Smoothie Depot anchor create whitespace.",
+      "requiredGate": "Operator proof, support radius, local site underwriting, and competitive response analysis.",
+      "confidence": "Medium"
+    },
+    {
+      "rank": 4,
+      "opportunity": "Extend profitable dayparts using controlled coffee, breakfast, bowl, and snack tests",
+      "whyNow": "Coffee & I at Fuqua and competitor disclosures show the strategic value of multiple dayparts.",
+      "requiredGate": "Incremental sales, margin, labor, equipment, throughput, training, and brand-consistency evidence.",
+      "confidence": "Medium-low"
+    },
+    {
+      "rank": 5,
+      "opportunity": "Professionalize digital ordering, loyalty, and local-store marketing",
+      "whyNow": "Scaled competitors offer integrated digital journeys while Smoothie Depot's public journey is fragmented.",
+      "requiredGate": "Technology cost, franchisee adoption, data governance, measurable retention benefit, and operating simplicity.",
+      "confidence": "High that capability matters, Unknown on return"
+    }
+  ],
+  "riskRegister": [
+    {
+      "rank": 1,
+      "risk": "Unit economics are not decision-ready",
+      "evidenceLabel": "Unknown",
+      "probability": "Medium-high",
+      "impact": "Critical",
+      "leadingIndicators": [
+        "Large variance in sales or contribution by location",
+        "Franchisees unable to state payback clearly",
+        "Reliance on owner labor to achieve positive economics"
+      ],
+      "mitigation": "FDD and location-level financial diligence before expansion approval."
+    },
+    {
+      "rank": 2,
+      "risk": "Franchisor legal, financial, and support capacity is not established publicly",
+      "evidenceLabel": "Unknown",
+      "probability": "Medium",
+      "impact": "Critical",
+      "leadingIndicators": [
+        "Unclear legal entity or authority",
+        "Thin support staffing",
+        "Delayed openings or inconsistent field support"
+      ],
+      "mitigation": "Review FDD, audited statements, entity and trademark chain, staffing plan, and support service levels."
+    },
+    {
+      "rank": 3,
+      "risk": "Operating and reputation inconsistency expands with unit count",
+      "evidenceLabel": "Inference",
+      "probability": "Medium-high",
+      "impact": "High",
+      "leadingIndicators": [
+        "Location-level rating dispersion",
+        "Unresolved hour and service complaints",
+        "Menu drift and inconsistent delivery listings"
+      ],
+      "mitigation": "Brand standards, audit cadence, service recovery, menu governance, and location scorecards."
+    },
+    {
+      "rank": 4,
+      "risk": "Public franchise claims and cost disclosures create trust or compliance exposure",
+      "evidenceLabel": "Observed",
+      "probability": "Medium",
+      "impact": "High",
+      "leadingIndicators": [
+        "Investment range conflict",
+        "Unsubstantiated margin or predictability language",
+        "Public terms not synchronized with the current FDD"
+      ],
+      "mitigation": "Counsel-led disclosure and website reconciliation against the current FDD."
+    },
+    {
+      "rank": 5,
+      "risk": "No shared marketing fund and fragmented digital infrastructure limit brand demand",
+      "evidenceLabel": "Inference",
+      "probability": "Medium-high",
+      "impact": "Medium-high",
+      "leadingIndicators": [
+        "Heavy discount dependence",
+        "Uneven local social activity",
+        "Low repeat-customer visibility",
+        "Franchisee marketing inconsistency"
+      ],
+      "mitigation": "Define minimum local spend, central creative, loyalty, attribution, and optional future fund economics."
+    },
+    {
+      "rank": 6,
+      "risk": "Owner-operator restriction constrains scale and candidate quality",
+      "evidenceLabel": "Inference",
+      "probability": "Medium",
+      "impact": "Medium",
+      "leadingIndicators": [
+        "Qualified multi-unit operators decline due to required presence",
+        "Operators cannot scale beyond one or two units",
+        "Manager-led units underperform"
+      ],
+      "mitigation": "Clarify permissible operating structures and use performance-based multi-unit approval."
+    }
+  ],
+  "unknownValueRanking": [
+    {
+      "rank": 1,
+      "unknown": "What do the current FDD, legal entity records, and audited financial statements establish about the franchisor and its capacity?",
+      "decisionValue": "Critical",
+      "whyItMatters": "This governs legal authority, disclosure quality, financial support capacity, and the reliability of every franchise-development claim.",
+      "bestVerificationSource": "Current FDD Items 1-4, 20-21; franchise agreement; entity documents; Texas Form 2703; trademark assignments."
+    },
+    {
+      "rank": 2,
+      "unknown": "What are representative unit economics by location, format, and age cohort?",
+      "decisionValue": "Critical",
+      "whyItMatters": "No expansion recommendation can be economically authorized without sales distribution, contribution, break-even, and payback evidence.",
+      "bestVerificationSource": "FDD Item 19 if provided, POS exports, normalized store P&Ls, tax-return reconciliation where authorized, and franchisee validation."
+    },
+    {
+      "rank": 3,
+      "unknown": "How many units opened, closed, transferred, reacquired, or changed operators in each of the last three years?",
+      "decisionValue": "Critical",
+      "whyItMatters": "Net unit growth can conceal churn, weak economics, or support failure.",
+      "bestVerificationSource": "FDD Item 20, current and former franchisee lists, lease and location reconciliation."
+    },
+    {
+      "rank": 4,
+      "unknown": "Can the franchisor support multiple simultaneous openings without degrading current units?",
+      "decisionValue": "High",
+      "whyItMatters": "Training, site selection, supply, opening, and field support capacity determine safe development pace.",
+      "bestVerificationSource": "Organization chart, staffing plan, opening calendar, service-level metrics, franchisee interviews."
+    },
+    {
+      "rank": 5,
+      "unknown": "What explains Webster's cross-platform reputation divergence, and is the underlying operating issue current?",
+      "decisionValue": "High",
+      "whyItMatters": "It may be a platform artifact, an isolated historical event, or evidence of a systemic control gap.",
+      "bestVerificationSource": "Current review census, complaint log, store audit, operator interview, POS and staffing history."
+    },
+    {
+      "rank": 6,
+      "unknown": "What are the territory rights, site criteria, cannibalization rules, and development obligations?",
+      "decisionValue": "High",
+      "whyItMatters": "Cluster expansion can strengthen economics or create internal competition depending on these terms.",
+      "bestVerificationSource": "FDD Item 12, franchise agreement, site-selection manual, existing territory maps."
+    },
+    {
+      "rank": 7,
+      "unknown": "Who holds current decision rights across brand, franchise sales, operations, trademarks, finance, and compliance?",
+      "decisionValue": "High",
+      "whyItMatters": "Growth requires accountable owners for every system promise and control.",
+      "bestVerificationSource": "Governance chart, entity records, employment or service roles, trademark chain, signed authority matrix."
+    },
+    {
+      "rank": 8,
+      "unknown": "Which menu, supplier, POS, loyalty, pricing, and marketing standards are mandatory across locations?",
+      "decisionValue": "Medium-high",
+      "whyItMatters": "Observed local variation can be innovation or uncontrolled brand drift.",
+      "bestVerificationSource": "Operations manual, supplier schedules, POS catalog, franchisee agreements, location audits."
+    },
+    {
+      "rank": 9,
+      "unknown": "What is the consented first-party customer mix, frequency, retention, and channel contribution by location?",
+      "decisionValue": "Medium-high",
+      "whyItMatters": "This determines site archetypes, menu, media, and loyalty economics.",
+      "bestVerificationSource": "POS and loyalty cohort data, delivery reconciliation, customer research with appropriate consent."
+    },
+    {
+      "rank": 10,
+      "unknown": "What marketing investment and measurement model will replace or complement the absence of a national fund?",
+      "decisionValue": "Medium",
+      "whyItMatters": "A low fee burden is attractive only if customer demand can be generated efficiently and consistently.",
+      "bestVerificationSource": "Franchise agreement, local-spend requirements, media results, customer-acquisition and retention analysis."
+    }
+  ],
+  "verificationChecklist": [
+    {
+      "priority": 1,
+      "verification": "Current FDD and franchise agreement reviewed by franchise counsel",
+      "completionEvidence": "Issue log covering Items 1-4, 5-8, 11-12, 17, 19-21, contracts, and state addenda"
+    },
+    {
+      "priority": 2,
+      "verification": "Legal franchisor, trademark chain, Texas offering status, and authority map confirmed",
+      "completionEvidence": "Entity records, Form 2703, USPTO status and assignments, governance matrix"
+    },
+    {
+      "priority": 3,
+      "verification": "All current and historical outlets reconciled",
+      "completionEvidence": "Location ledger with ownership type, dates, transfers, closures, and current status"
+    },
+    {
+      "priority": 4,
+      "verification": "Representative unit economics normalized",
+      "completionEvidence": "Cohort tables for sales, tickets, COGS, labor, occupancy, contribution, EBITDA, break-even, and payback"
+    },
+    {
+      "priority": 5,
+      "verification": "Current and former franchisee validation completed",
+      "completionEvidence": "Interview matrix sampled from the complete FDD population"
+    },
+    {
+      "priority": 6,
+      "verification": "Franchisor support capacity stress-tested",
+      "completionEvidence": "Staffing, throughput, service-level, opening-calendar, and escalation model"
+    },
+    {
+      "priority": 7,
+      "verification": "Location operating and reputation audit completed",
+      "completionEvidence": "Scorecard for all listed units, with Webster remediation or explanation"
+    },
+    {
+      "priority": 8,
+      "verification": "Two or three site archetypes underwritten",
+      "completionEvidence": "Traditional, drive-through, and gym/nontraditional prototype economics and standards"
+    },
+    {
+      "priority": 9,
+      "verification": "Priority corridors underwritten at trade-area level",
+      "completionEvidence": "White-space, competition, traffic, rent, demographic, and cannibalization analysis"
+    },
+    {
+      "priority": 10,
+      "verification": "Public franchise materials reconciled to controlled disclosures",
+      "completionEvidence": "Approved website copy and corrected investment figures"
+    }
+  ],
+  "decisionTree": [
+    {
+      "condition": "If FDD, legal, and audited-financial review establishes a compliant and adequately capitalized franchisor",
+      "path": "Advance to unit-economics and support-capacity gates."
+    },
+    {
+      "condition": "If legal authority, disclosure, or financial-capacity review fails",
+      "path": "Pause new franchise development and remediate the control gap before further market expansion."
+    },
+    {
+      "condition": "If representative unit economics show durable returns across more than one format and cohort",
+      "path": "Authorize two or three cluster pilots with format-specific thresholds."
+    },
+    {
+      "condition": "If economics work only with owner labor, exceptional rent, or one outlier location",
+      "path": "Do not generalize the model; redesign the prototype or limit expansion to the proven conditions."
+    },
+    {
+      "condition": "If franchisee validation confirms strong support and willingness to reinvest",
+      "path": "Prioritize existing high-performing operators for adjacent multi-unit development."
+    },
+    {
+      "condition": "If franchisee validation identifies recurring support or profitability failures",
+      "path": "Repair the installed base before adding operators."
+    },
+    {
+      "condition": "If Webster's negative signals are historical or platform-specific and current operations pass audit",
+      "path": "Retain the location as a monitored Bay Area proof point."
+    },
+    {
+      "condition": "If current operating failures explain the Webster signals",
+      "path": "Complete remediation, ownership change, or closure analysis before Bay Area infill."
+    },
+    {
+      "condition": "If Katy drive-through economics outperform inline units after capital normalization",
+      "path": "Use Katy as the lead West/Fort Bend site archetype."
+    },
+    {
+      "condition": "If gym-based economics outperform after partner and traffic normalization",
+      "path": "Develop a controlled nontraditional partnership program."
+    }
+  ],
+  "postMeetingLearningPlan": {
+    "prediction": "The public record predicts attractive Houston demand, real local brand relevance, and insufficient current evidence for broad acceleration.",
+    "captureAfterExecutiveReview": [
+      "Which public assumptions were confirmed by internal records",
+      "Which public facts were stale or incorrect",
+      "Which unknown changed the decision most",
+      "Which expansion gate passed or failed",
+      "What evidence changed the probability ranges",
+      "What should be added to future Executive Intelligence Packages"
+    ],
+    "decisionJournalSeed": {
+      "decision": "Authorize, condition, defer, or reject the proposed cluster-expansion program.",
+      "currentRecommendation": "Condition authorization on the six immediate decision gates.",
+      "currentConfidence": "Medium",
+      "expectedOutcome": "A proof sprint either validates two or three controlled pilots or identifies a smaller, cheaper remediation program before growth capital is committed.",
+      "reviewDate": "90 days after executive acceptance of the proof sprint"
+    }
+  },
+  "redTeamReview": {
+    "strongestCountercase": "The package may overstate system risk because the missing information is available privately in a current FDD and internal operating records, while review-platform dispersion may be stale or unrepresentative. If so, a 90-day proof sprint could delay attractive sites.",
+    "weakestEvidence": [
+      "Review aggregators and public delivery ratings use different populations and may contain stale, selective, or manipulated feedback.",
+      "The Pasadena resale listing is seller or broker supplied and cannot establish profitability or system health.",
+      "Corridor priorities rely on county growth and visible footprint, not completed site-level underwriting.",
+      "Public search cannot prove the absence of a valid FDD, Texas notice, robust support team, or healthy private financials."
+    ],
+    "unsupportedAssumptionsRejected": [
+      "Atif Gondal's historical trademark filing proves current company ownership",
+      "JR Gondal or Angie Caceres holds a specific executive title",
+      "Every officially listed location is currently open and franchised",
+      "Smoothie King's national AUV equals Houston unit sales",
+      "High review ratings prove strong unit economics",
+      "Low review ratings prove a systemic brand failure",
+      "Population growth alone creates a viable site"
+    ],
+    "whatWouldProveRecommendationWrong": [
+      "A current FDD and internal diligence package already establish strong economics, low churn, clear authority, and support capacity for rapid growth.",
+      "Signed, time-sensitive sites with independently underwritten returns create greater value than the delay risk of the proposed gates.",
+      "Existing operators have a validated multi-unit pipeline and opening capacity that the public record cannot observe."
+    ],
+    "response": "The recommendation is therefore conditional, not a permanent slowdown. The receiving executive can shorten the proof sprint immediately when controlled evidence closes the identified gates."
+  },
+  "layers": [
+    {
+      "layer": 1,
+      "name": "Executive Summary",
+      "requiredElements": [
+        "decisionContext",
+        "executiveRecommendation",
+        "confidence",
+        "criticalUnknowns"
+      ],
+      "summary": "Greater Houston is attractive, and Smoothie Depot has a credible local base. Authorize gated cluster expansion only after legal, economic, franchisee, support-capacity, and operating-quality proof."
+    },
+    {
+      "layer": 2,
+      "name": "Business Identity",
+      "requiredElements": [
+        "businessName",
+        "publicAddresses",
+        "publicContactMethods",
+        "businessCategory",
+        "sourceAttribution"
+      ],
+      "summary": "Smoothie Depot The Smoothie Experts is a Houston-centered smoothie and active-lifestyle franchise brand with eight physical addresses plus mobile service publicly listed."
+    },
+    {
+      "layer": 3,
+      "name": "Ownership Leadership Public Operators Corporate Structure Timeline",
+      "requiredElements": [
+        "ownership",
+        "leadership",
+        "publicOperators",
+        "corporateStructure",
+        "timeline"
+      ],
+      "summary": "JR Gondal and Angie Caceres are official franchise contacts; Atif Gondal is the named owner on a 2016 trademark application. Current legal ownership, governance, and authority remain unverified pending the FDD and entity records."
+    },
+    {
+      "layer": 4,
+      "name": "Business Evolution Expansion Growth Brand Development Historical Milestones",
+      "requiredElements": [
+        "businessEvolution",
+        "expansion",
+        "growth",
+        "brandDevelopment",
+        "historicalMilestones"
+      ],
+      "summary": "The brand claims a 2008 origin, filed a public trademark application in 2016, added a Katy drive-through in 2024, opened a gym-based League City location in 2025, and publicly introduced a Fuqua coffee extension."
+    },
+    {
+      "layer": 5,
+      "name": "Operational Intelligence",
+      "requiredElements": [
+        "locations",
+        "footprint",
+        "hiring",
+        "businessModel",
+        "operationalMaturity",
+        "growthIndicators",
+        "expansionSignals"
+      ],
+      "summary": "Multiple formats demonstrate adaptability, but unit status, economics, operating standards, staffing model, and support throughput require controlled verification."
+    },
+    {
+      "layer": 6,
+      "name": "Commercial Ecosystem Intelligence",
+      "requiredElements": [
+        "adjacentBusinesses",
+        "anchorBusinesses",
+        "trafficGenerators",
+        "medical",
+        "fitness",
+        "retail",
+        "residential",
+        "commercialDevelopment",
+        "economicActivity",
+        "futureDevelopment",
+        "infrastructure",
+        "roadProjects",
+        "construction",
+        "populationTrends"
+      ],
+      "summary": "Houston's 7.9 million residents, suburban growth, fitness anchors, medical demand, retail corridors, and mixed formats create opportunity, but this package does not replace site-specific commercial real-estate diligence."
+    },
+    {
+      "layer": 7,
+      "name": "Competitive Intelligence",
+      "requiredElements": [
+        "directCompetitors",
+        "indirectCompetitors",
+        "substitutes",
+        "complementaryBusinesses",
+        "marketPositioning",
+        "competitiveStrengths",
+        "competitiveWeaknesses"
+      ],
+      "summary": "Smoothie Depot competes with Smoothie King, Tropical Smoothie, JuiceLand, Main Squeeze, Nekter, Clean Juice, Smoothie Factory, local juice concepts, gyms, coffee, and home consumption."
+    },
+    {
+      "layer": 8,
+      "name": "Community Intelligence",
+      "requiredElements": [
+        "communityInvolvement",
+        "partnerships",
+        "organizations",
+        "events",
+        "networking",
+        "brandPresence",
+        "publicReputation"
+      ],
+      "summary": "The brand states school, campus, athletic, health-organization, catering, and mobile activity, while the gym location provides one corroborated partnership model. The complete current partnership portfolio is unknown."
+    },
+    {
+      "layer": 9,
+      "name": "Digital Intelligence",
+      "requiredElements": [
+        "website",
+        "seo",
+        "socialPresence",
+        "marketingMaturity",
+        "digitalFootprint",
+        "customerJourney"
+      ],
+      "summary": "The website and social handles create public visibility, but central ordering, loyalty, local-store pages, menu governance, and measurable digital acquisition are not publicly evident."
+    },
+    {
+      "layer": 10,
+      "name": "Reputation Intelligence",
+      "requiredElements": [
+        "reviewAnalysis",
+        "themeAnalysis",
+        "operationalStrengths",
+        "operationalWeaknesses",
+        "complaintPatterns",
+        "recoveryBehavior"
+      ],
+      "summary": "Taste, convenience, and fitness relevance are recurring strengths. Service, hours, accuracy, product consistency, and management-response concerns appear in selected locations, with Webster requiring the highest verification priority."
+    },
+    {
+      "layer": 11,
+      "name": "Strategic Intelligence",
+      "requiredElements": [
+        "growthProbability",
+        "expansionReadiness",
+        "businessMaturity",
+        "investmentReadiness",
+        "operationalComplexity",
+        "decisionMakerReadiness"
+      ],
+      "summary": "Market readiness is stronger than system-readiness evidence. Measured expansion is plausible; broad acceleration remains conditional."
+    },
+    {
+      "layer": 12,
+      "name": "Executive Decision Support",
+      "requiredElements": [
+        "topOpportunities",
+        "topRisks",
+        "criticalUnknowns",
+        "questionsThatReduceUncertainty",
+        "conversationStrategy",
+        "recommendedExecutiveApproach",
+        "recommendedNextInvestigation"
+      ],
+      "summary": "Use a 90-day proof sprint, then authorize only the formats, operators, and corridors that pass disclosure, economics, franchisee, support, operating, and site-level gates."
+    }
+  ],
+  "qualityGate": [
+    "Every material conclusion uses exactly one Executive Intelligence Platform evidence label.",
+    "Facts, evidence, inference, probability, recommendation, and unknown are separated.",
+    "Every major conclusion includes evidence basis, source reliability, confidence, verification needed, and business decision impact.",
+    "Reasonable lawful public sources were reviewed before material items were declared Unknown.",
+    "Contradictory public investment figures and review-platform signals are preserved as conflicts.",
+    "Apollo availability and the absence of Apollo-derived evidence are disclosed.",
+    "Other approved evidence-provider availability is disclosed without fabricating use.",
+    "Critical unknowns are ranked by decision value.",
+    "Probability estimates include drivers and falsifiers and are not presented as forecasts.",
+    "The package is written for the receiving Smoothie Depot executive and does not execute outreach, negotiation, qualification, or the final decision.",
+    "The red-team review identifies the weakest evidence, rejected assumptions, strongest countercase, and conditions that would reverse the recommendation.",
+    "Fortune 100 Corporate Development readiness is conditional on obtaining the controlled FDD, legal, financial, unit-economics, and franchisee evidence identified by the package."
+  ],
+  "evidenceLedgerPath": "research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json",
+  "sourceReferences": [
+    "https://www.smoothiedepotfranchise.com/",
+    "https://www.smoothiedepotfranchise.com/faq-s",
+    "https://www.smoothiedepotfranchise.com/investment",
+    "https://www.smoothiedepotfranchise.com/franchise-process",
+    "https://www.smoothiedepotfranchise.com/about-us",
+    "https://www.smoothiedepotfranchise.com/menus",
+    "https://www.smoothiedepotfranchise.com/coffeeandi",
+    "https://communityimpact.com/katy-north/dining/smoothie-depot-opens-1st-houston-drive-thru-location-in-katy/",
+    "https://communityimpact.com/bay-area/dining/smoothie-depot-now-open-in-league-city/",
+    "https://trademarks.justia.com/browse-by-date/2016/july/27/39.html",
+    "https://www.bizquest.com/business-for-sale/smoothie-depot-turnkey-and-profitable-smoothie-business-for-sale/BW2453874/",
+    "https://www.restaurantji.com/tx/houston/smoothie-depot-/",
+    "https://www.restaurantji.com/tx/pasadena/gondal-smoothie-depot-/",
+    "https://www.restaurantji.com/tx/webster/smoothie-depot-/",
+    "https://www.ubereats.com/store/smoothie-depot-webster/a_7ZNFDOQMKIdRFbPoyemQ",
+    "https://local.yahoo.com/info-215091406-smoothie-depot-webster-webster/",
+    "https://www.restaurantji.com/tx/katy/juice-bars-and-smoothies/",
+    "https://www.grubhub.com/restaurant/smoothie-depot-557-s-mason-rd-katy/8772968",
+    "https://www.ubereats.com/store/smoothie-depot-on-mason-katy/CGcq4dNpUr2wwQiMs4BdRw",
+    "https://www.houstondine.com/2366642596988999/Smoothie-Depot",
+    "https://www.instagram.com/smoothiedepot",
+    "https://www.facebook.com/smoothiedepot",
+    "https://www.tiktok.com/@smoothiedepot",
+    "https://www.youtube.com/@smoothiedepot",
+    "https://www.linkedin.com/in/smoothie-depot-2093901b6",
+    "https://locations.smoothieking.com/site-map/us/tx/houston/",
+    "https://www.smoothiekingfranchise.com/wp-content/uploads/2026/04/2026-27-FDD-Smoothie-King-complete-as-issued-4-8.pdf",
+    "https://www.smoothiekingfranchise.com/",
+    "https://www.smoothiekingfranchise.com/available-locations/",
+    "https://www.tropicalsmoothiefranchise.com/",
+    "https://www.tropicalsmoothiefranchise.com/available-territories/",
+    "https://locations.tropicalsmoothiecafe.com/tx/houston",
+    "https://www.juiceland.com/",
+    "https://www.mainsqueezejuiceco.com/locations",
+    "https://locations.nekterjuicebar.com/site-map/us/tx/houston/",
+    "https://locations.cleanjuice.com/us/tx/houston/",
+    "https://locations.smoothiefactorykitchen.com/site-map/us/tx/houston/",
+    "https://wpb.houston.org/app/uploads/2026/04/Glance-April-2026-Final.pdf",
+    "https://www.houstontx.gov/planning/Demographics/2025-Population-Estimate-FINAL-070125.pdf",
+    "https://www.ftc.gov/business-guidance/resources/consumers-guide-buying-franchise",
+    "https://www.sos.state.tx.us/statdoc/faqs2700.shtml"
+  ],
+  "sourceCatalog": [
+    {
+      "id": "S01",
+      "title": "Smoothie Depot franchise home",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Company claims and franchise positioning",
+      "limitations": "Primary for what the company states, not independent proof of margins, scalability, or performance."
+    },
+    {
+      "id": "S02",
+      "title": "FAQ's / About Us",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/faq-s",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Franchise terms, origin, staffing, and ownership model",
+      "limitations": "Self-reported; controlling FDD not available for reconciliation."
+    },
+    {
+      "id": "S03",
+      "title": "Initial Investment",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/investment",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Public franchise economics",
+      "limitations": "Contains an internal conflict between the stated range and displayed line-item totals."
+    },
+    {
+      "id": "S04",
+      "title": "Franchise Process",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/franchise-process",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Franchise-development process",
+      "limitations": "Describes process and FDD contents but does not provide the FDD or performance data publicly."
+    },
+    {
+      "id": "S05",
+      "title": "Locations / Contact",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/about-us",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Footprint and public contacts",
+      "limitations": "Does not state ownership type, opening dates, or independent active-status verification."
+    },
+    {
+      "id": "S06",
+      "title": "Smoothie Depot Nutritional Menu",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/menus",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Products and consumer pricing",
+      "limitations": "Central menu may not reflect every location or third-party delivery price."
+    },
+    {
+      "id": "S07",
+      "title": "Coffee & I menu",
+      "publisher": "Smoothie Depot",
+      "url": "https://www.smoothiedepotfranchise.com/coffeeandi",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Daypart and product extension",
+      "limitations": "Observed at Fuqua; system-wide rollout and economics are unknown."
+    },
+    {
+      "id": "S08",
+      "title": "Smoothie Depot opens first Houston drive-through location in Katy",
+      "publisher": "Community Impact",
+      "url": "https://communityimpact.com/katy-north/dining/smoothie-depot-opens-1st-houston-drive-thru-location-in-katy/",
+      "publishedDate": "2024-04-18",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 2",
+      "relevantCategory": "Expansion and format proof",
+      "limitations": "Local report and owner statements; not financial proof."
+    },
+    {
+      "id": "S09",
+      "title": "Smoothie Depot now open in League City",
+      "publisher": "Community Impact",
+      "url": "https://communityimpact.com/bay-area/dining/smoothie-depot-now-open-in-league-city/",
+      "publishedDate": "2025-01-31",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 2",
+      "relevantCategory": "Expansion and gym co-location",
+      "limitations": "Opening report; current economics and active status require verification."
+    },
+    {
+      "id": "S10",
+      "title": "July 27, 2016 trademark index",
+      "publisher": "Justia Trademarks",
+      "url": "https://trademarks.justia.com/browse-by-date/2016/july/27/39.html",
+      "publishedDate": "2016-07-27",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 2",
+      "relevantCategory": "Historical trademark claimant",
+      "limitations": "Secondary index; does not prove current trademark status, assignment, company ownership, or authority."
+    },
+    {
+      "id": "S11",
+      "title": "Smoothie Depot Pasadena business-for-sale listing",
+      "publisher": "BizQuest",
+      "url": "https://www.bizquest.com/business-for-sale/smoothie-depot-turnkey-and-profitable-smoothie-business-for-sale/BW2453874/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Directional resale and operator signal",
+      "limitations": "Seller or broker supplied, unverified, and the live listing may redirect after retrieval."
+    },
+    {
+      "id": "S12",
+      "title": "Smoothie Depot Fuqua reviews",
+      "publisher": "Restaurantji",
+      "url": "https://www.restaurantji.com/tx/houston/smoothie-depot-/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Public reputation",
+      "limitations": "Aggregator sample; review authenticity, representativeness, and completeness are not guaranteed."
+    },
+    {
+      "id": "S13",
+      "title": "Smoothie Depot Pasadena reviews",
+      "publisher": "Restaurantji",
+      "url": "https://www.restaurantji.com/tx/pasadena/gondal-smoothie-depot-/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Public reputation",
+      "limitations": "Review count varied across retrievals; directional only."
+    },
+    {
+      "id": "S14",
+      "title": "Smoothie Depot Webster reviews",
+      "publisher": "Restaurantji",
+      "url": "https://www.restaurantji.com/tx/webster/smoothie-depot-/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Public reputation",
+      "limitations": "Aggregator includes older and potentially non-transactional reviews; requires operational verification."
+    },
+    {
+      "id": "S15",
+      "title": "Smoothie Depot Webster delivery listing",
+      "publisher": "Uber Eats",
+      "url": "https://www.ubereats.com/store/smoothie-depot-webster/a_7ZNFDOQMKIdRFbPoyemQ",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Delivery reputation and menu",
+      "limitations": "Delivery-customer sample, location and distance dependent, and not representative of all visits."
+    },
+    {
+      "id": "S16",
+      "title": "Smoothie Depot Webster local listing",
+      "publisher": "Yahoo Local / Yelp mirror",
+      "url": "https://local.yahoo.com/info-215091406-smoothie-depot-webster-webster/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Public reputation",
+      "limitations": "Small and mirrored review sample."
+    },
+    {
+      "id": "S17",
+      "title": "Katy juice bars and smoothies listing",
+      "publisher": "Restaurantji",
+      "url": "https://www.restaurantji.com/tx/katy/juice-bars-and-smoothies/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Katy reputation and local ranking",
+      "limitations": "Aggregator ranking is dynamic and does not measure economics."
+    },
+    {
+      "id": "S18",
+      "title": "Smoothie Depot Katy delivery listing",
+      "publisher": "Grubhub",
+      "url": "https://www.grubhub.com/restaurant/smoothie-depot-557-s-mason-rd-katy/8772968",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Katy public reputation",
+      "limitations": "Small delivery-customer sample."
+    },
+    {
+      "id": "S19",
+      "title": "Smoothie Depot on Mason delivery listing",
+      "publisher": "Uber Eats",
+      "url": "https://www.ubereats.com/store/smoothie-depot-on-mason-katy/CGcq4dNpUr2wwQiMs4BdRw",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Katy public reputation and channel status",
+      "limitations": "Delivery availability can change and does not establish store closure or full customer experience."
+    },
+    {
+      "id": "S20",
+      "title": "Smoothie Depot public social mirror",
+      "publisher": "HoustonDine",
+      "url": "https://www.houstondine.com/2366642596988999/Smoothie-Depot",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Directional social activity",
+      "limitations": "Third-party mirror; not a complete or authoritative social analytics source."
+    },
+    {
+      "id": "S21",
+      "title": "Smoothie Depot social profiles",
+      "publisher": "Instagram, Facebook, TikTok, YouTube, X, and LinkedIn",
+      "url": "https://www.instagram.com/smoothiedepot",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 3",
+      "relevantCategory": "Digital presence",
+      "limitations": "Direct public access was limited; no reliable cross-platform audience census was created."
+    },
+    {
+      "id": "S22",
+      "title": "Smoothie King Houston location directory",
+      "publisher": "Smoothie King",
+      "url": "https://locations.smoothieking.com/site-map/us/tx/houston/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive footprint",
+      "limitations": "Official city directory; metro locations outside Houston city are excluded from the count."
+    },
+    {
+      "id": "S23",
+      "title": "Smoothie King 2026-2027 Franchise Disclosure Document",
+      "publisher": "Smoothie King Franchises, Inc.",
+      "url": "https://www.smoothiekingfranchise.com/wp-content/uploads/2026/04/2026-27-FDD-Smoothie-King-complete-as-issued-4-8.pdf",
+      "publishedDate": "2026-04-08",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive economics, scale, fees, and franchise system",
+      "limitations": "Competitor disclosure; performance figures cannot be transferred to Smoothie Depot or assumed for Houston units."
+    },
+    {
+      "id": "S24",
+      "title": "Smoothie King franchise information",
+      "publisher": "Smoothie King",
+      "url": "https://www.smoothiekingfranchise.com/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive franchise positioning",
+      "limitations": "Marketing content; FDD controls where terms differ."
+    },
+    {
+      "id": "S25",
+      "title": "Tropical Smoothie Cafe franchise information",
+      "publisher": "Tropical Smoothie Cafe",
+      "url": "https://www.tropicalsmoothiefranchise.com/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive scale, economics, and dayparts",
+      "limitations": "Competitor marketing page with disclosed Item 19 limitations; not transferable to Smoothie Depot."
+    },
+    {
+      "id": "S26",
+      "title": "Tropical Smoothie Cafe available territories",
+      "publisher": "Tropical Smoothie Cafe",
+      "url": "https://www.tropicalsmoothiefranchise.com/available-territories/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive system growth and menu mix",
+      "limitations": "Company-published system claims subject to its FDD."
+    },
+    {
+      "id": "S27",
+      "title": "Tropical Smoothie Cafe Houston directory",
+      "publisher": "Tropical Smoothie Cafe",
+      "url": "https://locations.tropicalsmoothiecafe.com/tx/houston",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Competitive footprint",
+      "limitations": "Official city directory; metro locations outside Houston city may be excluded."
+    },
+    {
+      "id": "S28",
+      "title": "JuiceLand",
+      "publisher": "JuiceLand",
+      "url": "https://www.juiceland.com/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Named competitor and product positioning",
+      "limitations": "Company-published brand and product information."
+    },
+    {
+      "id": "S29",
+      "title": "Houston: The Economy at a Glance, April 2026",
+      "publisher": "Greater Houston Partnership",
+      "url": "https://wpb.houston.org/app/uploads/2026/04/Glance-April-2026-Final.pdf",
+      "publishedDate": "2026-04",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 2",
+      "relevantCategory": "Metro population and county growth",
+      "limitations": "Partnership analysis of Census data; supports market context, not site viability."
+    },
+    {
+      "id": "S30",
+      "title": "July 1, 2025 Population Estimate",
+      "publisher": "City of Houston Planning and Development Department",
+      "url": "https://www.houstontx.gov/planning/Demographics/2025-Population-Estimate-FINAL-070125.pdf",
+      "publishedDate": "2026-02-10",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "City population",
+      "limitations": "Estimate carries a stated margin of error and does not establish consumer demand by site."
+    },
+    {
+      "id": "S31",
+      "title": "A Consumer's Guide to Buying a Franchise",
+      "publisher": "Federal Trade Commission",
+      "url": "https://www.ftc.gov/business-guidance/resources/consumers-guide-buying-franchise",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Franchise diligence and disclosure",
+      "limitations": "General regulatory guidance, not a Smoothie Depot compliance determination."
+    },
+    {
+      "id": "S32",
+      "title": "Frequently Asked Questions for Form Series 2700",
+      "publisher": "Texas Secretary of State",
+      "url": "https://www.sos.state.tx.us/statdoc/faqs2700.shtml",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Texas franchise-offering requirements",
+      "limitations": "General state guidance; no Smoothie Depot-specific compliance conclusion was made."
+    },
+    {
+      "id": "S33",
+      "title": "Main Squeeze Juice Co. locations",
+      "publisher": "Main Squeeze Juice Co.",
+      "url": "https://www.mainsqueezejuiceco.com/locations",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Named competitor and Greater Houston footprint",
+      "limitations": "Official directory reflects current company listings but does not establish unit economics or complete metro brand performance."
+    },
+    {
+      "id": "S34",
+      "title": "Nekter Juice Bar Houston directory",
+      "publisher": "Nekter Juice Bar",
+      "url": "https://locations.nekterjuicebar.com/site-map/us/tx/houston/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Named competitor and Houston footprint",
+      "limitations": "Official city directory; Greater Houston locations outside Houston city appear in separate municipality listings."
+    },
+    {
+      "id": "S35",
+      "title": "Clean Juice Houston directory",
+      "publisher": "Clean Juice",
+      "url": "https://locations.cleanjuice.com/us/tx/houston/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Named competitor and Houston footprint",
+      "limitations": "Official city directory; does not establish unit economics or customer share."
+    },
+    {
+      "id": "S36",
+      "title": "Smoothie Factory + Kitchen Houston directory",
+      "publisher": "Smoothie Factory + Kitchen",
+      "url": "https://locations.smoothiefactorykitchen.com/site-map/us/tx/houston/",
+      "retrievedDate": "2026-07-11",
+      "sourceTier": "Tier 1",
+      "relevantCategory": "Named competitor and Houston footprint",
+      "limitations": "Official city directory; does not establish unit economics or market share."
+    }
+  ],
+  "boundaryConfirmation": {
+    "researchOnly": true,
+    "lawfulInformationOnly": true,
+    "psychologicalProfilingUsed": false,
+    "privateInformationUsed": false,
+    "restrictedPlatformScrapingUsed": false,
+    "hiddenRecordsUsed": false,
+    "surveillanceUsed": false,
+    "productionSystemsModified": false,
+    "dashboardModified": false,
+    "crmModified": false,
+    "websiteModified": false,
+    "infrastructureModified": false,
+    "companionModified": false,
+    "mobileModified": false,
+    "intelligenceRuntimeModified": false,
+    "fitnessConnectionDataUsed": false,
+    "routeIntelligenceUsed": false,
+    "activePoolUsed": false
+  }
+}

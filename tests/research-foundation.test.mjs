@@ -578,7 +578,7 @@ test("Executive Intelligence Benchmark Study compares public methodologies and p
   assert.match(architecture, /What makes executives trust recommendations/);
 });
 
-test("Smoothie Depot stores first two Executive Intelligence Packages without modifying standard", () => {
+test("Smoothie Depot preserves canonical prospect packages without modifying standard", () => {
   const register = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
   const nutritionPackage = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json");
   const nutritionPackageV1 = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.json");
@@ -617,7 +617,9 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
   assert.equal(register.boundaryConfirmation.dashboardModified, false);
   assert.equal(register.boundaryConfirmation.crmModified, false);
   assert.equal(register.boundaryConfirmation.intelligenceRuntimeModified, false);
-  const activePackages = register.packages.filter(entry => entry.canonicalForResearch);
+  const activePackages = register.packages.filter(
+    entry => entry.canonicalForResearch && entry.canonicalScope === "prospect_due_diligence"
+  );
   const historicalNutritionPackage = register.packages.find(entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot");
   const rebuiltNutritionPackage = register.packages.find(entry => entry.packageId === "smoothie_depot_eip_001_nutrition_depot_v2");
   assert.deepEqual(activePackages.map(entry => entry.business), [
@@ -718,6 +720,169 @@ test("Smoothie Depot stores first two Executive Intelligence Packages without mo
       assert.ok(!packageArtifact.report.includes(prohibitedPhrase), `${packageArtifact.business} report contains ${prohibitedPhrase}`);
     }
   }
+});
+
+test("Smoothie Depot v3 creates a canonical brand-strategy package through the Gaia Evidence Engine", () => {
+  const register = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json");
+  const packageArtifact = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.json");
+  const evidenceLedger = readJson("research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json");
+  const report = readText("research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md");
+  const packageSchema = readJson("research/schemas/executive-intelligence-package.schema.json");
+  const evidenceSchema = readJson("research/schemas/gaia-evidence-item.schema.json");
+
+  const evidenceLabels = [
+    "Observed",
+    "Corroborated",
+    "Owner-provided",
+    "Unknown",
+    "Inference"
+  ];
+  const conclusionFields = [
+    "evidenceBasis",
+    "sourceReliability",
+    "confidenceLevel",
+    "verificationNeeded",
+    "businessDecisionImpact"
+  ];
+  const layerNames = [
+    "Executive Summary",
+    "Business Identity",
+    "Ownership Leadership Public Operators Corporate Structure Timeline",
+    "Business Evolution Expansion Growth Brand Development Historical Milestones",
+    "Operational Intelligence",
+    "Commercial Ecosystem Intelligence",
+    "Competitive Intelligence",
+    "Community Intelligence",
+    "Digital Intelligence",
+    "Reputation Intelligence",
+    "Strategic Intelligence",
+    "Executive Decision Support"
+  ];
+
+  const brandPackages = register.packages.filter(
+    entry => entry.canonicalForResearch && entry.canonicalScope === "brand_strategy_and_expansion_readiness"
+  );
+  assert.deepEqual(brandPackages.map(entry => entry.packageId), ["smoothie_depot_eip_003_smoothie_depot_v3"]);
+  assert.equal(brandPackages[0].priorPackageRevision, false);
+  assert.equal(brandPackages[0].evidenceLedgerPath, "research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json");
+
+  assert.equal(packageArtifact.packageId, "smoothie_depot_eip_003_smoothie_depot_v3");
+  assert.equal(packageArtifact.workspaceId, "smoothie_depot");
+  assert.equal(packageArtifact.business, "Smoothie Depot");
+  assert.equal(packageArtifact.packageVersion, "v3");
+  assert.equal(packageArtifact.canonicalForResearch, true);
+  assert.equal(packageArtifact.canonicalScope, "brand_strategy_and_expansion_readiness");
+  assert.equal(packageArtifact.priorPackageRevision, false);
+  assert.equal(packageArtifact.platformStandard, "executive_intelligence_platform_v1");
+  assert.equal(packageArtifact.evidenceEngineStandard, "gaia_research_orchestrator_foundation_v1");
+  assert.equal(packageArtifact.productionRuntimeChange, false);
+  assert.equal(packageArtifact.standardModified, false);
+  assert.deepEqual(packageArtifact.evidenceLabels, evidenceLabels);
+  assert.deepEqual(packageArtifact.conclusionRequirements, conclusionFields);
+  assert.deepEqual(packageArtifact.layers.map(layer => layer.name), layerNames);
+  assert.equal(packageArtifact.layers.length, 12);
+  assert.equal(packageArtifact.audiencePerspective.defaultPerspective, "receiving_executive");
+  assert.equal(packageArtifact.audiencePerspective.prometheusDecisionMakerException, false);
+  assert.equal(packageArtifact.audiencePerspective.packageExecutesEngagement, false);
+  assert.equal(packageArtifact.enrichmentSources.apollo.apolloUsed, true);
+  assert.equal(packageArtifact.enrichmentSources.apollo.apolloDerivedFieldsCaptured.length, 0);
+  assert.equal(packageArtifact.enrichmentSources.apollo.apolloIsSourceOfTruth, false);
+  assert.equal(packageArtifact.enrichmentSources.apollo.requiresLawfulPublicSourceCorroboration, true);
+  assert.equal(packageArtifact.providerAvailability.find(provider => provider.provider === "Apollo").status, "attempted_unavailable");
+  for (const providerName of ["Marketing Research GPT", "Consensus", "SciSpace", "AskYourPDF"]) {
+    assert.equal(
+      packageArtifact.providerAvailability.find(provider => provider.provider === providerName).status,
+      "unavailable_in_active_environment"
+    );
+  }
+  for (const field of packageSchema.required) {
+    assert.notEqual(packageArtifact[field], undefined, `Missing package schema field ${field}`);
+  }
+  assert.ok(packageArtifact.majorConclusions.length >= 7);
+  for (const conclusion of packageArtifact.majorConclusions) {
+    assert.ok(evidenceLabels.includes(conclusion.label));
+    assert.ok(!conclusion.label.includes("/"));
+    for (const field of conclusionFields) {
+      assert.ok(conclusion[field], `Conclusion missing ${field}`);
+    }
+  }
+  assert.ok(packageArtifact.sourceCatalog.length >= 30);
+  assert.ok(packageArtifact.footprintLocations.length >= 9);
+  assert.ok(packageArtifact.competitiveLandscape.namedDirectCompetitors.length >= 7);
+  assert.ok(packageArtifact.riskRegister.length >= 6);
+  assert.ok(packageArtifact.unknownValueRanking.length >= 10);
+  assert.ok(packageArtifact.decisionTree.length >= 10);
+  assert.ok(packageArtifact.probabilityModel.estimates.length >= 4);
+  assert.ok(packageArtifact.qualityGate.length >= 10);
+
+  assert.equal(evidenceLedger.packageId, packageArtifact.packageId);
+  assert.equal(evidenceLedger.workspaceId, "smoothie_depot");
+  assert.equal(evidenceLedger.evidenceStandard, "gaia_research_orchestrator_foundation_v1");
+  assert.ok(evidenceLedger.evidenceItems.length >= 25);
+  assert.ok(evidenceLedger.conflictGroups.length >= 4);
+  assert.ok(evidenceLedger.deduplication.duplicateGroups.length >= 4);
+  const sourceIds = new Set(packageArtifact.sourceCatalog.map(source => source.id));
+  const evidenceIds = new Set();
+  for (const evidenceItem of evidenceLedger.evidenceItems) {
+    for (const field of evidenceSchema.required) {
+      assert.notEqual(evidenceItem[field], undefined, `${evidenceItem.evidenceId} missing ${field}`);
+    }
+    assert.ok(!evidenceIds.has(evidenceItem.evidenceId));
+    evidenceIds.add(evidenceItem.evidenceId);
+    assert.ok(evidenceItem.evidenceQualityScore >= 0 && evidenceItem.evidenceQualityScore <= 100);
+    assert.ok(evidenceSchema.properties.providerType.enum.includes(evidenceItem.providerType));
+    assert.ok(evidenceSchema.properties.confidence.enum.includes(evidenceItem.confidence));
+    for (const sourceId of evidenceItem.sourceReferences) {
+      assert.ok(sourceIds.has(sourceId), `${evidenceItem.evidenceId} has unknown source ${sourceId}`);
+    }
+  }
+  assert.equal(evidenceLedger.evidenceItems.filter(item => item.allowedForExecutiveIntelligence).length, 27);
+  const apolloRecord = evidenceLedger.evidenceItems.find(item => item.provider === "Apollo");
+  assert.ok(apolloRecord);
+  assert.equal(apolloRecord.normalizationStatus, "rejected");
+  assert.equal(apolloRecord.allowedForExecutiveIntelligence, false);
+  assert.equal(evidenceLedger.handoffSummary.externalProviderRecommendationsAccepted, 0);
+  assert.equal(evidenceLedger.handoffSummary.apolloDerivedFindingsAccepted, 0);
+
+  for (const requiredText of [
+    "Smoothie Depot Executive Intelligence Package v3",
+    "Decision Architecture",
+    "Provider Disclosure",
+    "Executive Decision Page",
+    "Decision thesis",
+    "Opportunity Cost",
+    "Probability model",
+    "Unknown Value Analysis",
+    "Decision Tree",
+    "Red-Team Review",
+    "Post-Meeting Learning Plan",
+    "Intelligence Quality Control"
+  ]) {
+    assert.ok(report.includes(requiredText), `Report missing ${requiredText}`);
+  }
+  for (const [index] of layerNames.entries()) {
+    assert.ok(report.includes(`## Layer ${index + 1}:`), `Report missing layer ${index + 1}`);
+  }
+  for (const prohibitedPhrase of [
+    "Cruz should",
+    "Should Cruz",
+    "Founder Mission Queue",
+    "Call first",
+    "call first",
+    "first-call",
+    "call priority",
+    "Record after call",
+    "Action:"
+  ]) {
+    assert.ok(!report.includes(prohibitedPhrase), `Report contains ${prohibitedPhrase}`);
+  }
+  assert.equal(packageArtifact.boundaryConfirmation.lawfulInformationOnly, true);
+  assert.equal(packageArtifact.boundaryConfirmation.psychologicalProfilingUsed, false);
+  assert.equal(packageArtifact.boundaryConfirmation.privateInformationUsed, false);
+  assert.equal(packageArtifact.boundaryConfirmation.restrictedPlatformScrapingUsed, false);
+  assert.equal(packageArtifact.boundaryConfirmation.hiddenRecordsUsed, false);
+  assert.equal(packageArtifact.boundaryConfirmation.surveillanceUsed, false);
+  assert.equal(packageArtifact.boundaryConfirmation.productionSystemsModified, false);
 });
 
 test("Smoothie Depot prospect discovery creates a workspace-isolated daily call list", () => {

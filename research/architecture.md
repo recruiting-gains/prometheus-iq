@@ -292,6 +292,9 @@ Benchmark-derived Prometheus methodology:
 First packages produced under the standard without modifying the standard:
 
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/package-register.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.md`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3.json`
+- `research/workspaces/smoothie-depot/executive-intelligence-packages/smoothie-depot-executive-intelligence-package-v3-evidence.json`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.md`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v2.json`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/nutrition-depot-executive-intelligence-package-v1.md`
@@ -299,7 +302,7 @@ First packages produced under the standard without modifying the standard:
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.md`
 - `research/workspaces/smoothie-depot/executive-intelligence-packages/cranky-carrot-executive-intelligence-package-v1.json`
 
-Nutrition Depot v2 is the canonical Research package. Nutrition Depot v1 remains preserved as a superseded historical artifact because it failed Founder Review and must not be used as the current executive-delivery artifact.
+Smoothie Depot v3 is canonical for brand strategy and expansion readiness. Nutrition Depot v2 and Cranky Carrot remain canonical within prospect due diligence. Nutrition Depot v1 remains preserved as a superseded historical artifact because it failed Founder Review and must not be used as the current executive-delivery artifact.
 
 Existing Executive Due Diligence Dossiers remain historical Research artifacts and current Dashboard inputs until a future approved Dashboard handoff migrates consumers to Executive Intelligence Packages. New Research work must create Executive Intelligence Packages and package registers instead of new dossier artifacts as the primary output.
 
