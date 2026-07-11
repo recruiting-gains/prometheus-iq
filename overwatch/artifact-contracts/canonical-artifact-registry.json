@@ -349,6 +349,20 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_business_hours_data_contract",
+          "artifactType": "data_to_intelligence_business_hours_contract",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+          "schema": "FitnessConnectionBusinessHoursDataContractV1",
+          "writeAllowed": ["Prometheus Data"],
+          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiresIndependentOverwatchVerification": true,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_crm_consumer_contract",
           "artifactType": "crm_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",

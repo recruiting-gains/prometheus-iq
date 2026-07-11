@@ -133,6 +133,7 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_dashboard_consumer_contract",
     "fitness_connection_route_intelligence_data_contract",
     "fitness_connection_data_runtime_artifact_contract",
+    "fitness_connection_business_hours_data_contract",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
@@ -173,6 +174,10 @@ test("Data runtime artifact contract registers canonical paths and consumer boun
   assert.equal(contract.canonicalRuntimeArtifacts.runtimePools, "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json");
   assert.equal(contract.canonicalRouteQualityArtifacts.routeQualityReport, "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json");
   assert.equal(contract.canonicalGovernanceOverrideArtifacts.runtimeGovernanceOverrides, "data/qualified-prospects/google-qualified-businesses-v2/runtime-governance-overrides.json");
+  assert.equal(contract.canonicalBusinessHoursArtifacts.businessHoursDataContract, "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json");
+  assert.equal(contract.canonicalBusinessHoursArtifacts.businessHoursArtifact, "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json");
+  assert.equal(contract.expectedBusinessHoursMetrics.recordCount, 398);
+  assert.equal(contract.expectedBusinessHoursMetrics.routeEligibilityActivated, false);
   assert.equal(contract.consumerRules.dashboard.mayReadOnlyApprovedDataArtifacts, true);
   assert.equal(contract.consumerRules.crm.mayConsumeAssignedLeadArtifactsOnlyThroughContract, true);
   assert.equal(contract.consumerRules.intelligence.mayInterpretOnlyThroughApprovedReadPaths, true);
@@ -180,6 +185,30 @@ test("Data runtime artifact contract registers canonical paths and consumer boun
   assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessActivePoolData, false);
   assert.equal(contract.workspaceIsolationRules.fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData, false);
   assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
+});
+
+test("Data business-hours contract remains governed and inactive pending Intelligence verification", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const fitnessConnection = result.registry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
+  const artifactRegistration = fitnessConnection.canonicalArtifacts.find(artifact => artifact.artifactId === "fitness_connection_business_hours_data_contract");
+  const contract = JSON.parse(fs.readFileSync(artifactRegistration.path, "utf8"));
+  const hours = JSON.parse(fs.readFileSync(contract.canonicalArtifacts.businessHoursArtifact, "utf8"));
+
+  assert.equal(artifactRegistration.ownerSubsystem, "Prometheus Data");
+  assert.equal(artifactRegistration.productionConsumer, false);
+  assert.equal(artifactRegistration.requiresIndependentOverwatchVerification, true);
+  assert.equal(contract.status, "pending_independent_overwatch_verification");
+  assert.equal(contract.inventionGovernance.classification, "operational_improvement");
+  assert.equal(contract.inventionGovernance.patentabilityClaimMade, false);
+  assert.equal(contract.enrichmentPolicy.liveGoogleCallsAllowedInRepresentativeRuntime, false);
+  assert.equal(contract.persistenceAndFailurePolicy.unknownWorkspaceFailsClosed, true);
+  assert.equal(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized, false);
+  assert.equal(contract.intelligenceHandoffPolicy.routeEligibilityActivated, false);
+  assert.equal(contract.intelligenceHandoffPolicy.intelligenceOwnsFinalEligibilityAndRanking, true);
+  assert.equal(hours.recordCount, 398);
+  assert.equal(hours.routeEligibilityActivated, false);
+  assert.equal(hours.runtimeBehaviorChanged, false);
+  assert.equal(hours.scoringChanged, false);
 });
 
 test("Social Media artifact contracts register analytics, attribution, and consumer boundaries", () => {

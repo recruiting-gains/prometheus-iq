@@ -148,6 +148,30 @@ Verify that normal app runtime still makes zero live Google API calls:
 npm run verify:zero-google-api
 ```
 
+## Business Hours Enrichment
+
+Business hours are refreshed separately from business identity and pool segmentation. The batch process uses verified production Place IDs, stores regular/current/special hours with IANA timezone and provenance, and never calls Google from representative route-generation runtime.
+
+Readiness check without provider calls or writes:
+
+```bash
+npm run data:business-hours:dry-run
+```
+
+Scheduled provider refresh:
+
+```bash
+npm run data:business-hours:refresh
+```
+
+Offline status reevaluation without provider calls:
+
+```bash
+npm run data:business-hours:evaluate
+```
+
+The canonical artifact is `google-qualified-businesses-v2/business-hours-v1/business-hours.json`. Missing hours produce `HOURS_UNKNOWN`, stale hours produce `HOURS_STALE`, and unverified special hours produce `SPECIAL_HOURS_UNVERIFIED`. Permanent operational status remains separate from current open/closed status. The business-hours contract does not activate route eligibility or change scoring.
+
 ## Runtime Pool Segmentation
 
 After a verified refresh exists, segment the runtime dataset without changing Route Intelligence scoring or Dashboard behavior:

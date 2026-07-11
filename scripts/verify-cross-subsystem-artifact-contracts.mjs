@@ -349,6 +349,93 @@ function ensurePathRegistered(path, contract, groupNames, failures) {
   );
 }
 
+function validateBusinessHoursDataContract(contract, runtimeContract, failures) {
+  validateReferencedPaths(contract.canonicalArtifacts, "Business-hours Data contract", failures);
+
+  const artifact = readJson(contract.canonicalArtifacts.businessHoursArtifact);
+  const schema = readJson(contract.canonicalArtifacts.businessHoursSchema);
+  const report = readJson(contract.canonicalArtifacts.refreshReport);
+  const fieldEvidence = readJson(contract.canonicalArtifacts.founderFieldEvidence);
+  const sourceDataset = readJson(contract.sourceContract.sourceDataset);
+  const expected = runtimeContract.expectedBusinessHoursMetrics;
+  const statusCounts = artifact.records.reduce((counts, record) => {
+    counts[record.currentOpenClosedEligibilityStatus] = (counts[record.currentOpenClosedEligibilityStatus] || 0) + 1;
+    return counts;
+  }, {});
+  const artifactPlaceIds = artifact.records.map(record => record.googlePlaceId);
+  const sourcePlaceIds = new Set((sourceDataset.production_candidates || []).map(record => record.google_place_id));
+
+  assert(contract.owningSubsystem === "Prometheus Data", "Business-hours contract must be Data-owned.", failures);
+  assert(contract.producerSubsystem === "Prometheus Data", "Business-hours producer must be Prometheus Data.", failures);
+  assert(contract.intendedConsumerSubsystem === "Prometheus Intelligence Engine", "Business-hours intended consumer mismatch.", failures);
+  assert(contract.status === "pending_independent_overwatch_verification", "Business-hours contract must remain pending independent verification.", failures);
+  assert(contract.workspaceId === "fitness_connection", "Business-hours contract workspace mismatch.", failures);
+  assert(contract.operatingProfileId === "fitness", "Business-hours contract operating profile mismatch.", failures);
+  assert(contract.inventionGovernance.classification === "operational_improvement", "Business-hours invention-governance classification mismatch.", failures);
+  assert(contract.inventionGovernance.patentabilityClaimMade === false, "Business-hours contract must not make a patentability claim.", failures);
+
+  assert(schema.$id === "prometheus-data-business-hours-v1", "Business-hours schema id mismatch.", failures);
+  assert(artifact.schemaVersion === "prometheus-data-business-hours-v1", "Business-hours artifact schema version mismatch.", failures);
+  assert(artifact.artifactVersion === expected.artifactVersion, "Business-hours artifact version mismatch.", failures);
+  assert(artifact.workspaceId === contract.workspaceId, "Business-hours artifact workspace mismatch.", failures);
+  assert(artifact.operatingProfileId === contract.operatingProfileId, "Business-hours artifact operating profile mismatch.", failures);
+  assert(artifact.sourceDatasetVersion === contract.sourceContract.sourceDatasetVersion, "Business-hours source dataset version mismatch.", failures);
+  assert(artifact.recordCount === expected.recordCount, "Business-hours record count mismatch.", failures);
+  assert(artifact.records.length === expected.recordCount, "Business-hours records length mismatch.", failures);
+  assert(artifact.records.filter(record => record.activePoolMember).length === expected.activePoolIdentityMatches, "Business-hours Active Pool identity count mismatch.", failures);
+  assert(new Set(artifactPlaceIds).size === artifactPlaceIds.length, "Business-hours artifact contains duplicate Place IDs.", failures);
+  assert(artifactPlaceIds.every(placeId => sourcePlaceIds.has(placeId)), "Business-hours artifact contains an unverified source Place ID.", failures);
+  assert(artifact.records.every(record => record.workspaceId === "fitness_connection" && record.operatingProfileId === "fitness"), "Business-hours artifact contains cross-workspace records.", failures);
+  assert(artifact.records.every(record => !JSON.stringify(record).includes("smoothie_depot")), "Business-hours records must not contain Smoothie Depot data.", failures);
+  assert(artifact.records.every(record => contract.requiredRecordFields.every(field => Object.prototype.hasOwnProperty.call(record, field))), "Business-hours artifact is missing required governed record fields.", failures);
+  assert(artifact.records.every(record => record.hoursProvenance?.sourcePlaceId === record.googlePlaceId), "Business-hours provenance Place ID mismatch.", failures);
+  assert(artifact.records.every(record => record.regularWeeklyBusinessHours !== false && record.currentOpeningHoursWindow !== false && record.businessTimezone !== false), "Missing business-hours values must remain null, not false.", failures);
+  assert(artifact.records.every(record => typeof record.currentOpenClosedEligibilityStatus === "string"), "Business-hours status must not use boolean false certainty.", failures);
+  assert(artifact.routeEligibilityActivated === false, "Business-hours artifact must not activate route eligibility.", failures);
+  assert(artifact.runtimeBehaviorChanged === false, "Business-hours artifact must not change runtime behavior.", failures);
+  assert(artifact.scoringChanged === false, "Business-hours artifact must not change scoring.", failures);
+  assert(artifact.freshnessPolicy.freshnessThresholdHours === contract.freshnessPolicy.freshnessThresholdHours, "Business-hours freshness threshold mismatch.", failures);
+  assert(artifact.freshnessPolicy.providerRefreshIntervalHours === contract.freshnessPolicy.providerRefreshIntervalHours, "Business-hours provider refresh interval mismatch.", failures);
+  assert(artifact.freshnessPolicy.statusEvaluationIntervalMinutes === contract.freshnessPolicy.statusEvaluationIntervalMinutes, "Business-hours status evaluation interval mismatch.", failures);
+
+  assert(Object.values(statusCounts).reduce((sum, count) => sum + count, 0) === expected.statusCountTotal, "Business-hours status count total mismatch.", failures);
+  assert(Object.keys(statusCounts).every(status => expected.allowedStatusValues.includes(status)), "Business-hours artifact contains an unsupported status.", failures);
+  assert(Object.values(report.statusCounts).reduce((sum, count) => sum + count, 0) === expected.statusCountTotal, "Business-hours refresh report status count total mismatch.", failures);
+  assert(Object.keys(report.statusCounts).every(status => expected.allowedStatusValues.includes(status)), "Business-hours refresh report contains an unsupported status.", failures);
+  assert(report.status === "passed", "Business-hours refresh report must pass.", failures);
+  assert(report.counts.refreshSucceeded === expected.refreshSucceeded, "Business-hours successful refresh count mismatch.", failures);
+  assert(report.counts.refreshFailed === expected.refreshFailed, "Business-hours failed refresh count mismatch.", failures);
+  assert(report.counts.regularHoursAvailable === expected.regularHoursAvailable, "Business-hours regular hours count mismatch.", failures);
+  assert(report.counts.currentHoursAvailable === expected.currentHoursAvailable, "Business-hours current hours count mismatch.", failures);
+  assert(report.validation.activePoolAdmissionChanged === false, "Business-hours refresh must not change Active Pool admission.", failures);
+  assert(report.validation.quarantineRulesChanged === false, "Business-hours refresh must not change quarantine rules.", failures);
+  assert(report.validation.routeScoringChanged === false, "Business-hours refresh must not change route scoring.", failures);
+  assert(report.validation.liveGoogleRuntimeCallAdded === false, "Business-hours refresh must not add live Google runtime calls.", failures);
+
+  const reported = artifact.records.find(record => record.googlePlaceId === contract.reportedBusinessVerification.googlePlaceId);
+  assert(Boolean(reported), "Reported Christian Brothers Automotive record is missing from business-hours artifact.", failures);
+  assert(reported?.businessName === contract.reportedBusinessVerification.businessName, "Reported business name mismatch.", failures);
+  assert(reported?.address === contract.reportedBusinessVerification.address, "Reported business address mismatch.", failures);
+  assert(reported?.permanentOperationalStatus === "OPERATIONAL", "Reported business must preserve OPERATIONAL permanent status.", failures);
+  assert(reported?.currentOpenClosedEligibilityStatus === "CLOSED_VERIFIED", "Reported business must be CLOSED_VERIFIED at the governed snapshot.", failures);
+  assert(reported?.businessTimezone === "America/Chicago", "Reported business timezone mismatch.", failures);
+  assert(reported?.hoursProvenance?.fieldEvidenceIds?.includes(contract.reportedBusinessVerification.fieldEvidenceId), "Reported business field evidence provenance is missing.", failures);
+  assert(fieldEvidence.evidence?.some(evidence => evidence.evidenceId === contract.reportedBusinessVerification.fieldEvidenceId), "Founder field evidence artifact is missing the reported observation.", failures);
+
+  assert(contract.enrichmentPolicy.liveGoogleCallsAllowedInRepresentativeRuntime === false, "Business-hours contract must preserve zero live Google runtime calls.", failures);
+  assert(contract.enrichmentPolicy.failedRefreshMayOverwriteLastVerifiedHours === false, "Failed hours refresh must preserve last verified hours.", failures);
+  assert(contract.persistenceAndFailurePolicy.missingProviderBindingFailsClosedBeforeWrite === true, "Missing hours provider binding must fail closed.", failures);
+  assert(contract.persistenceAndFailurePolicy.unknownWorkspaceFailsClosed === true, "Unknown business-hours workspaces must fail closed.", failures);
+  assert(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessHours === false, "Smoothie Depot must not consume Fitness business hours.", failures);
+  assert(contract.workspaceIsolationRules.crossWorkspaceHoursJoinAllowed === false, "Cross-workspace business-hours joins must be prohibited.", failures);
+  assert(contract.intelligenceHandoffPolicy.independentOverwatchVerificationRequired === true, "Business-hours handoff must require independent verification.", failures);
+  assert(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized === false, "Business-hours Intelligence consumption must remain unauthorized.", failures);
+  assert(contract.intelligenceHandoffPolicy.routeEligibilityActivated === false, "Business-hours route eligibility must remain inactive.", failures);
+  assert(contract.intelligenceHandoffPolicy.dataOwnsGovernedHoursStatus === true, "Data must own governed business-hours status.", failures);
+  assert(contract.intelligenceHandoffPolicy.intelligenceOwnsFinalEligibilityAndRanking === true, "Intelligence must own final eligibility and ranking.", failures);
+  assert(contract.intelligenceHandoffPolicy.silentRecommendationRemovalAllowed === false, "Silent recommendation removal must remain prohibited.", failures);
+}
+
 function validateDataRuntimeArtifactContract(contract, routeDataContract, failures) {
   const pathGroups = [
     "canonicalRuntimeArtifacts",
@@ -358,6 +445,7 @@ function validateDataRuntimeArtifactContract(contract, routeDataContract, failur
     "canonicalAssignedLeadArtifacts",
     "canonicalRuntimeEligibilityArtifacts",
     "canonicalEvidenceAndProvenanceArtifacts",
+    "canonicalBusinessHoursArtifacts",
     "deployMirrorArtifacts"
   ];
 
@@ -467,6 +555,7 @@ function validateDataRuntimeArtifactContract(contract, routeDataContract, failur
   assert(contract.workspaceIsolationRules.fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData === false, "Fitness must not consume Smoothie Depot franchise candidate data.", failures);
   assert(contract.workspaceIsolationRules.fixtureDataAllowedInProduction === false, "Production fixture data must remain prohibited.", failures);
   assert(contract.workspaceIsolationRules.missingArtifactFailsClosed === true, "Missing Data artifacts must fail closed.", failures);
+  validateBusinessHoursDataContract(readJson(contract.canonicalBusinessHoursArtifacts.businessHoursDataContract), contract, failures);
 }
 
 function validateSharedWorkspaceLeadIntakeContract(workspace, failures) {

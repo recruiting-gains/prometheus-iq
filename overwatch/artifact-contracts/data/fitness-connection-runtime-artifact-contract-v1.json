@@ -46,6 +46,17 @@
     "qualityReport": "data/qualified-prospects/google-qualified-businesses-v2/quality-report.json",
     "refreshRejectedRecords": "data/qualified-prospects/google-qualified-businesses-v2/rejected-records.json"
   },
+  "canonicalBusinessHoursArtifacts": {
+    "businessHoursDataContract": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+    "businessHoursArtifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "businessHoursSchema": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.schema.json",
+    "businessHoursRefreshReport": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours-refresh-report.json",
+    "businessHoursFieldEvidence": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/founder-field-evidence.json",
+    "businessHoursGovernanceDocumentation": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/README.md",
+    "businessHoursNormalizerAndEvaluator": "scripts/lib/business-hours-governance.mjs",
+    "businessHoursOfflineRefresh": "scripts/refresh-google-business-hours.mjs",
+    "businessHoursFocusedTests": "tests/business-hours-governance.test.mjs"
+  },
   "deployMirrorArtifacts": {
     "activePoolDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
     "runtimePoolsDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
@@ -57,6 +68,24 @@
     "expandedDashboardRouteRecords": 594,
     "requiredDatasetVersion": "google-qualified-businesses-v2",
     "requiredSegmentationVersion": "runtime-pool-segmentation-v1"
+  },
+  "expectedBusinessHoursMetrics": {
+    "artifactVersion": "business-hours-v1",
+    "recordCount": 398,
+    "activePoolIdentityMatches": 297,
+    "refreshSucceeded": 398,
+    "refreshFailed": 0,
+    "regularHoursAvailable": 353,
+    "currentHoursAvailable": 353,
+    "statusCountTotal": 398,
+    "allowedStatusValues": [
+      "OPEN_VERIFIED",
+      "CLOSED_VERIFIED",
+      "HOURS_UNKNOWN",
+      "HOURS_STALE",
+      "SPECIAL_HOURS_UNVERIFIED"
+    ],
+    "routeEligibilityActivated": false
   },
   "consumerRules": {
     "dashboard": {
@@ -87,12 +116,17 @@
       "allowedReadPaths": [
         "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
         "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
-        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json"
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+        "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
+        "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
       ],
       "mayInterpretOnlyThroughApprovedReadPaths": true,
       "mayChangeScoring": false,
       "mayWriteDataArtifacts": false,
-      "mustNotInfluenceSmoothieDepot": true
+      "mustNotInfluenceSmoothieDepot": true,
+      "businessHoursIndependentVerificationRequired": true,
+      "businessHoursConsumptionAuthorized": false,
+      "businessHoursMayActivateRouteEligibility": false
     },
     "mobile": {
       "consumerSubsystem": "Prometheus Mobile",
@@ -111,6 +145,8 @@
     "smoothieDepotMayConsumeFitnessRuntimePools": false,
     "fitnessConnectionMayConsumeSmoothieDepotFranchiseCandidateData": false,
     "fitnessConnectionMayConsumeSmoothieDepotCandidateData": false,
+    "smoothieDepotMayConsumeFitnessBusinessHours": false,
+    "fitnessBusinessHoursMayContainSmoothieDepotRecords": false,
     "globalCustomerStateAllowed": false,
     "fixtureDataAllowedInProduction": false,
     "demoDataAllowedInProduction": false,
@@ -124,6 +160,13 @@
     "genericLocationsAllowed": false,
     "quarantinedBusinessesAllowedInActivePool": false,
     "duplicateGooglePlaceIdsAllowedInActivePool": false,
-    "liveGoogleApiCallsAllowedAtRuntime": false
+    "liveGoogleApiCallsAllowedAtRuntime": false,
+    "permanentAndCurrentHoursStatusSeparated": true,
+    "missingHoursMayBecomeVerifiedOpen": false,
+    "missingHoursMayBecomeVerifiedClosed": false,
+    "staleHoursMayBeTreatedAsFresh": false,
+    "unverifiedSpecialHoursMayBecomeVerifiedOpen": false,
+    "businessTimezoneRequiredForVerifiedHoursStatus": true,
+    "businessHoursRouteEligibilityActivated": false
   }
 }

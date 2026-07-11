@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "prometheus-data-business-hours-field-evidence-v1",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "recordedAt": "2026-07-11T15:00:00-05:00",
+  "evidence": [
+    {
+      "evidenceId": "fitness-2026-07-11-christian-brothers-closed-observation",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "placeIdVerificationSource": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "address": "9245 S Sam Houston Pkwy E, Houston, TX 77075, USA",
+      "observedAt": "2026-07-11T14:30:00-05:00",
+      "observedAtApproximate": true,
+      "businessTimezone": "America/Chicago",
+      "observedCurrentStatus": "CLOSED",
+      "evidenceSources": [
+        "FOUNDER_FIELD_OBSERVATION",
+        "GOOGLE_MAPS_CURRENT_STATUS"
+      ],
+      "scope": "Point-in-time corroborating evidence only; does not fabricate or replace regular weekly hours.",
+      "notes": "Founder arrived after Route IQ recommended the business and confirmed the location was closed; Google Maps also displayed the business as closed."
+    }
+  ]
+}

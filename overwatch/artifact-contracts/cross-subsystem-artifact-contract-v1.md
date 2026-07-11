@@ -102,6 +102,7 @@ Dashboard-owned runtime consumers:
 Data-owned route intelligence artifacts:
 
 - `overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json`
+- `overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json`
@@ -117,6 +118,10 @@ Data-owned route intelligence artifacts:
 - `data/qualified-prospects/google-qualified-businesses-v2/anthony-25-mile-pool.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/quality-report.json`
 - `data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.schema.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours-refresh-report.json`
+- `data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/founder-field-evidence.json`
 
 CRM-owned contracts and entry points:
 
@@ -139,6 +144,10 @@ Dashboard must render completed Research-owned canonical dossier artifacts read-
 Dashboard must not summarize, abbreviate, reinterpret, mutate, or create Research intelligence.
 
 Dashboard must read Fitness Connection Active Pool and runtime pool artifacts only through approved Data contract paths and must not write Data artifacts.
+
+Prometheus Data owns normalized Fitness Connection business-hours records, source freshness, timezone evaluation, provenance, and deterministic `OPEN_VERIFIED`, `CLOSED_VERIFIED`, `HOURS_UNKNOWN`, `HOURS_STALE`, and `SPECIAL_HOURS_UNVERIFIED` statuses. Permanent operational status and current hours status must remain separate.
+
+The business-hours contract remains pending independent Overwatch verification. It does not authorize a production Intelligence consumer, route suppression, scoring change, or live Google call. After independent verification, Intelligence may interpret the governed status through the canonical contract, must preserve the attributable status reason, and remains the sole owner of final route eligibility and ranking.
 
 CRM must route intake and future candidate records by `workspaceId`, reject unknown workspaces, and reject cross-workspace contamination before mutation.
 

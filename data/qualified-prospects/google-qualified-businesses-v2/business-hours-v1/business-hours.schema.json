@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prometheus-data-business-hours-v1",
+  "title": "Prometheus Data Business Hours Artifact v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "artifactVersion",
+    "generatedAt",
+    "statusEvaluatedAt",
+    "sourceRetrievedAt",
+    "workspaceId",
+    "operatingProfileId",
+    "protectedWorkspaceIds",
+    "sourceDatasetVersion",
+    "sourceArtifact",
+    "sourceCandidateCount",
+    "recordCount",
+    "refreshMode",
+    "provider",
+    "freshnessPolicy",
+    "routeEligibilityActivated",
+    "runtimeBehaviorChanged",
+    "scoringChanged",
+    "records"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "prometheus-data-business-hours-v1" },
+    "artifactVersion": { "const": "business-hours-v1" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "statusEvaluatedAt": { "type": "string", "format": "date-time" },
+    "sourceRetrievedAt": { "type": "string", "format": "date-time" },
+    "workspaceId": { "const": "fitness_connection" },
+    "operatingProfileId": { "const": "fitness" },
+    "protectedWorkspaceIds": {
+      "type": "array",
+      "contains": { "const": "smoothie_depot" }
+    },
+    "sourceDatasetVersion": { "const": "google-qualified-businesses-v2" },
+    "sourceArtifact": { "type": "string", "minLength": 1 },
+    "sourceCandidateCount": { "type": "integer", "minimum": 0 },
+    "recordCount": { "type": "integer", "minimum": 0 },
+    "refreshMode": {
+      "enum": [
+        "offline-scheduled-google-places-details",
+        "offline-status-evaluation"
+      ]
+    },
+    "provider": { "const": "GOOGLE_PLACES_API_NEW" },
+    "freshnessPolicy": { "$ref": "#/$defs/freshnessPolicy" },
+    "routeEligibilityActivated": { "const": false },
+    "runtimeBehaviorChanged": { "const": false },
+    "scoringChanged": { "const": false },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/businessHoursRecord" }
+    }
+  },
+  "$defs": {
+    "nullableTimestamp": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "hoursPoint": {
+      "type": ["object", "null"],
+      "required": ["date", "day", "hour", "minute", "truncated"],
+      "properties": {
+        "date": { "type": ["string", "null"], "format": "date" },
+        "day": { "type": ["integer", "null"], "minimum": 0, "maximum": 6 },
+        "hour": { "type": ["integer", "null"], "minimum": 0, "maximum": 23 },
+        "minute": { "type": ["integer", "null"], "minimum": 0, "maximum": 59 },
+        "truncated": { "type": ["boolean", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "hoursPeriod": {
+      "type": "object",
+      "required": ["open", "close"],
+      "properties": {
+        "open": { "$ref": "#/$defs/hoursPoint" },
+        "close": { "$ref": "#/$defs/hoursPoint" }
+      },
+      "additionalProperties": false
+    },
+    "freshnessPolicy": {
+      "type": "object",
+      "required": [
+        "providerRefreshIntervalHours",
+        "statusEvaluationIntervalMinutes",
+        "freshnessThresholdHours",
+        "fieldObservationFreshnessMinutes",
+        "staleStatus",
+        "missingStatus",
+        "unverifiedSpecialHoursStatus"
+      ],
+      "properties": {
+        "providerRefreshIntervalHours": { "type": "number", "exclusiveMinimum": 0 },
+        "statusEvaluationIntervalMinutes": { "type": "number", "exclusiveMinimum": 0 },
+        "freshnessThresholdHours": { "type": "number", "exclusiveMinimum": 0 },
+        "fieldObservationFreshnessMinutes": { "type": "number", "exclusiveMinimum": 0 },
+        "staleStatus": { "const": "HOURS_STALE" },
+        "missingStatus": { "const": "HOURS_UNKNOWN" },
+        "unverifiedSpecialHoursStatus": { "const": "SPECIAL_HOURS_UNVERIFIED" }
+      },
+      "additionalProperties": false
+    },
+    "businessHoursRecord": {
+      "type": "object",
+      "required": [
+        "workspaceId",
+        "operatingProfileId",
+        "googlePlaceId",
+        "businessName",
+        "address",
+        "category",
+        "latitude",
+        "longitude",
+        "activePoolMember",
+        "sourceDatasetVersion",
+        "permanentOperationalStatus",
+        "regularWeeklyBusinessHours",
+        "specialOrHolidayHours",
+        "currentOpeningHoursWindow",
+        "businessTimezone",
+        "currentHoursSource",
+        "sourceRetrievedAt",
+        "hoursVerifiedAt",
+        "hoursFreshnessStatus",
+        "hoursConfidence",
+        "hoursProvenance",
+        "lastSuccessfulRefreshAt",
+        "lastFailedRefreshAt",
+        "refreshFailure",
+        "currentOpenClosedEligibilityStatus",
+        "currentStatusReasonCode",
+        "currentStatusReason",
+        "currentStatusEvaluatedAt",
+        "currentStatusBusinessLocalDate",
+        "currentStatusBusinessLocalTime"
+      ],
+      "properties": {
+        "workspaceId": { "const": "fitness_connection" },
+        "operatingProfileId": { "const": "fitness" },
+        "googlePlaceId": { "type": "string", "minLength": 1 },
+        "businessName": { "type": "string", "minLength": 1 },
+        "address": { "type": "string", "minLength": 1 },
+        "category": { "type": "string", "minLength": 1 },
+        "latitude": { "type": ["number", "null"] },
+        "longitude": { "type": ["number", "null"] },
+        "activePoolMember": { "type": "boolean" },
+        "sourceDatasetVersion": { "const": "google-qualified-businesses-v2" },
+        "permanentOperationalStatus": { "type": "string", "minLength": 1 },
+        "regularWeeklyBusinessHours": {
+          "type": ["object", "null"],
+          "required": ["periods", "sourceOpenNowAtRetrieval"],
+          "properties": {
+            "periods": { "type": ["array", "null"], "items": { "$ref": "#/$defs/hoursPeriod" } },
+            "sourceOpenNowAtRetrieval": { "type": ["boolean", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "specialOrHolidayHours": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["date", "verificationStatus", "periods", "source"],
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "verificationStatus": { "enum": ["VERIFIED", "UNVERIFIED"] },
+              "periods": {
+                "type": ["array", "null"],
+                "items": { "$ref": "#/$defs/hoursPeriod" }
+              },
+              "source": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "currentOpeningHoursWindow": {
+          "type": ["object", "null"],
+          "required": [
+            "coverageStartDate",
+            "coverageEndDate",
+            "periods",
+            "specialDays",
+            "sourceOpenNowAtRetrieval",
+            "nextOpenTime",
+            "nextCloseTime"
+          ],
+          "properties": {
+            "coverageStartDate": { "type": "string", "format": "date" },
+            "coverageEndDate": { "type": "string", "format": "date" },
+            "periods": { "type": ["array", "null"], "items": { "$ref": "#/$defs/hoursPeriod" } },
+            "specialDays": { "type": "array", "items": { "type": "string", "format": "date" } },
+            "sourceOpenNowAtRetrieval": { "type": ["boolean", "null"] },
+            "nextOpenTime": { "$ref": "#/$defs/nullableTimestamp" },
+            "nextCloseTime": { "$ref": "#/$defs/nullableTimestamp" }
+          },
+          "additionalProperties": false
+        },
+        "businessTimezone": { "type": ["string", "null"] },
+        "currentHoursSource": { "type": ["string", "null"] },
+        "sourceRetrievedAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "hoursVerifiedAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "hoursFreshnessStatus": { "enum": ["FRESH", "STALE", "MISSING"] },
+        "hoursConfidence": { "enum": ["HIGH", "MEDIUM", "LOW", "NONE"] },
+        "hoursProvenance": {
+          "type": "object",
+          "required": [
+            "sourceSystem",
+            "sourceMethod",
+            "sourcePlaceId",
+            "fieldMask",
+            "retrievedAt",
+            "normalizedAt",
+            "providerBusinessName",
+            "providerAddress",
+            "fieldEvidenceIds"
+          ]
+        },
+        "lastSuccessfulRefreshAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "lastFailedRefreshAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "refreshFailure": { "type": ["object", "null"] },
+        "currentOpenClosedEligibilityStatus": {
+          "enum": [
+            "OPEN_VERIFIED",
+            "CLOSED_VERIFIED",
+            "HOURS_UNKNOWN",
+            "HOURS_STALE",
+            "SPECIAL_HOURS_UNVERIFIED"
+          ]
+        },
+        "currentStatusReasonCode": { "type": "string", "minLength": 1 },
+        "currentStatusReason": { "type": "string", "minLength": 1 },
+        "currentStatusEvaluatedAt": { "$ref": "#/$defs/nullableTimestamp" },
+        "currentStatusBusinessLocalDate": { "type": ["string", "null"], "format": "date" },
+        "currentStatusBusinessLocalTime": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
