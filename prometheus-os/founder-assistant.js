@@ -14,6 +14,12 @@ import {
   isFounderInstagramAnalyticsCommand
 } from "./founder-instagram-analytics-consumer.js";
 import {
+  createFounderInfrastructureBriefing,
+  createFounderSocialMediaBriefing,
+  isFounderInfrastructureBriefingCommand,
+  isFounderSocialMediaBriefingCommand
+} from "./founder-subsystem-briefing-consumer.js";
+import {
   createCompanyStatusSummary,
   createCrmSummary,
   createDailyDecisionSupport,
@@ -377,7 +383,26 @@ async function conversationalIntentResponse(normalized, { socialMediaAnalyticsSe
   if (isExact(normalized, ["route iq", "route i q"])) return routeIqStatus();
   if (isExact(normalized, ["gaia"])) return gaiaStatus();
   if (isExact(normalized, ["athena"])) return athenaStatus();
-  if (isExact(normalized, ["instagram", "social", "social media"])) {
+  if (isExact(normalized, ["infrastructure"])) {
+    const infrastructure = createFounderInfrastructureBriefing({ founderTimeline });
+    return response(infrastructure.title, infrastructure.body, {
+      ...infrastructure.metadata,
+      founderMode: true,
+      entities: ["Infrastructure", "Cloudflare", "Operation Aegis", "Prometheus Companion"]
+    });
+  }
+  if (isExact(normalized, ["social", "social media"])) {
+    const social = await createFounderSocialMediaBriefing({
+      command: normalized,
+      service: socialMediaAnalyticsService
+    });
+    return response(social.title, social.body, {
+      ...social.metadata,
+      founderMode: true,
+      entities: ["Social Media", "Instagram", "Prometheus Companion"]
+    });
+  }
+  if (isExact(normalized, ["instagram"])) {
     const instagram = await createFounderInstagramDirectAnswer({
       command: "instagram",
       service: socialMediaAnalyticsService
@@ -424,6 +449,23 @@ export async function createFounderAssistantResponse(command = "", {
       ...brief.metadata,
       intent: "founder_morning_brief",
       entities: ["Cruz", "Prometheus Companion", "Calendar", "Priorities"]
+    });
+  }
+  if (isFounderInfrastructureBriefingCommand(normalized)) {
+    const infrastructure = createFounderInfrastructureBriefing({ founderTimeline });
+    return response(infrastructure.title, infrastructure.body, {
+      ...infrastructure.metadata,
+      entities: ["Infrastructure", "Cloudflare", "Operation Aegis", "Prometheus Companion"]
+    });
+  }
+  if (isFounderSocialMediaBriefingCommand(normalized)) {
+    const social = await createFounderSocialMediaBriefing({
+      command: normalized,
+      service: socialMediaAnalyticsService
+    });
+    return response(social.title, social.body, {
+      ...social.metadata,
+      entities: ["Social Media", "Instagram", "Prometheus Companion"]
     });
   }
   if (isFounderInstagramAnalyticsCommand(normalized)) {

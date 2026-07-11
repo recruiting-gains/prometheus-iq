@@ -222,11 +222,14 @@ for (const [phrase, expected] of currentKnowledgeCases) {
   console.log(`PASS ${phrase} -> current-platform:${response.title}`);
 }
 
-function socialMediaAnalyticsServiceForSnapshot(snapshot) {
+function socialMediaAnalyticsServiceForSnapshot(snapshot, report = null) {
   return {
     sourceSubsystem: "Prometheus Social Media",
     async getInstagramAnalyticsSnapshot() {
       return snapshot;
+    },
+    async getInstagramAnalyticsReport() {
+      return report;
     }
   };
 }
@@ -251,12 +254,124 @@ const liveInstagramAnalyticsSnapshot = createMarketingAnalyticsSnapshot({
     { name: "profile_views", value: 8, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
     { name: "website_clicks", value: 3, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
     { name: "followers_growth", value: 4, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "account" } },
-    { name: "content_reach", value: 11, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } },
-    { name: "content_views", value: 30, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } },
-    { name: "content_total_interactions", value: 12, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", captionPreview: "Outside sales needs intelligence before activity." } }
+    { name: "content_reach", value: 11, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", publishedAt: "2026-07-01T18:00:00.000Z", captionPreview: "Outside sales needs intelligence before activity." } },
+    { name: "content_views", value: 30, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", publishedAt: "2026-07-01T18:00:00.000Z", captionPreview: "Outside sales needs intelligence before activity." } },
+    { name: "content_total_interactions", value: 12, source: SOCIAL_DATA_SOURCES.PROVIDER_API, provider: SOCIAL_PROVIDER_IDS.INSTAGRAM, observedAt: "2026-07-01T22:30:00.000Z", metadata: { scope: "content", mediaId: "ig-media-1", mediaType: "REEL", publishedAt: "2026-07-01T18:00:00.000Z", captionPreview: "Outside sales needs intelligence before activity." } }
   ],
   notes: ["Normalized Social Media provider snapshot for Companion acceptance coverage."]
 });
+
+const liveSocialMediaAnalyticsReport = {
+  version: "founder-instagram-analytics-reporting-view.v1",
+  generatedAt: "2026-07-01T22:30:00.000Z",
+  account: {
+    handle: "@prometheus.iq",
+    providerState: SOCIAL_CONNECTION_STATES.CONNECTED,
+    source: "Prometheus Social Media"
+  },
+  accountOverview: {
+    source: "Prometheus Social Media",
+    followers: 50,
+    followerGrowth: 4,
+    reach: 20,
+    impressions: 44,
+    profileVisits: 8,
+    websiteClicks: 3,
+    engagementRate: 60
+  },
+  contentPerformance: {
+    source: "Prometheus Social Media",
+    topPerformingPosts: [{
+      mediaId: "ig-media-weak",
+      mediaType: "IMAGE",
+      publishedAt: "2026-06-28T15:00:00.000Z",
+      captionPreview: "A concise Route IQ operating update.",
+      metrics: { reach: 5, views: 7, likes: 1, comments: 0, shares: 0, saved: 0, engagement: 1, websiteClicks: 0 }
+    }],
+    topPerformingReels: [{
+      mediaId: "ig-media-1",
+      mediaType: "REEL",
+      publishedAt: "2026-07-01T18:00:00.000Z",
+      captionPreview: "Outside sales needs intelligence before activity.",
+      metrics: { reach: 11, views: 30, likes: 7, comments: 2, shares: 2, saved: 1, engagement: 12, websiteClicks: 2 }
+    }],
+    topPerformingCarousels: [],
+    highestEngagement: {
+      mediaId: "ig-media-1",
+      mediaType: "REEL",
+      publishedAt: "2026-07-01T18:00:00.000Z",
+      captionPreview: "Outside sales needs intelligence before activity.",
+      metrics: { reach: 11, views: 30, likes: 7, comments: 2, shares: 2, saved: 1, engagement: 12, websiteClicks: 2 }
+    },
+    highestWebsiteTraffic: {
+      mediaId: "ig-media-1",
+      mediaType: "REEL",
+      publishedAt: "2026-07-01T18:00:00.000Z",
+      captionPreview: "Outside sales needs intelligence before activity.",
+      metrics: { reach: 11, views: 30, likes: 7, comments: 2, shares: 2, saved: 1, engagement: 12, websiteClicks: 2 }
+    }
+  },
+  growthTrends: {
+    daily: [
+      { period: "2026-06-30", contentReach: 8, engagement: 8, websiteVisits: 1, crmLeads: 0 },
+      { period: "2026-07-01", contentReach: 16, engagement: 13, websiteVisits: 2, crmLeads: 1 }
+    ],
+    monthly: [
+      { period: "2026-06", reach: 12, engagement: 8, websiteVisits: 1, crmLeads: 0 },
+      { period: "2026-07", reach: 20, engagement: 13, websiteVisits: 2, crmLeads: 1 }
+    ]
+  },
+  websiteAttribution: {
+    source: "Prometheus Website",
+    websiteVisitsFromInstagram: 2
+  },
+  crmAttribution: {
+    source: "Prometheus CRM",
+    leadsGeneratedFromInstagram: 1,
+    conversionSummary: { visitToLeadRate: 50 }
+  },
+  founderRecommendations: [
+    {
+      title: "Recommended content topics",
+      recommendation: "Continue the verified outside-sales intelligence and Route IQ operating themes."
+    },
+    {
+      title: "Suggested next post",
+      recommendation: "Publish one concise field lesson with a measurable next step."
+    }
+  ],
+  sourceAudit: [
+    { source: "Prometheus Social Media" },
+    { source: "Prometheus Website" },
+    { source: "Prometheus CRM" }
+  ]
+};
+
+const infrastructureTimelineFixture = {
+  ok: true,
+  infrastructure: {
+    overallStatus: "AMBER",
+    overallStatusEvidence: "working judgment",
+    overallStatusReason: "Production controls are verified, but founder/account-owner actions remain.",
+    operationalPhase: ["Deployment readiness", "Customer onboarding", "Enterprise hardening", "Continuous operational improvement"],
+    productionAvailability: { state: "verified", detail: "zone active at prometheusrouteiq.com" },
+    cloudflareWorker: { state: "verified", detail: "private Prometheus IQ Worker protected by Cloudflare Access" },
+    accessAuth: { state: "verified", detail: "unauthenticated private Worker request redirects through Cloudflare Access with HTTP 302" },
+    aegis: { state: "verified", detail: "Phase II complete for Infrastructure-owned controls" },
+    wafRateLimiting: { state: "verified", detail: "WAF unsafe-method guard returns 403 and Worker/KV AEGIS_RATE_LIMITS is active" },
+    deploymentVersion: { value: null, detail: "the latest verified Phase II checkpoint does not record a current deployed Worker version identifier" },
+    repository: { branch: "main", commit: "abc123", upstream: "origin/main", dirty: false, ahead: 0, behind: 0, syncState: "synchronized" },
+    latestMilestone: { date: "2026-07-10", title: "Operation Aegis Phase II Account-Level Completion", status: "Complete" },
+    activeWork: [],
+    activeBlockers: [],
+    historicalClosedBlockers: ["closed authenticated-browser blocker"],
+    founderActions: ["Founder verifies Cloudflare MFA and recovery", "Founder verifies GitHub MFA and recovery"],
+    limitations: ["GitHub enterprise security controls remain plan gated"],
+    latestVerifiedAt: "2026-07-10 (date precision; time not recorded)",
+    recommendedNextAction: "Verify founder-controlled MFA and recovery actions.",
+    sources: ["PROMETHEUS_MASTER_ENGINEERING_STATE.md", "PROMETHEUS_SYSTEM_MAP.md", "docs/aegis-phase-ii-account-level-completion.md"]
+  }
+};
 
 function fail(label, payload) {
   failures += 1;
@@ -1155,8 +1270,138 @@ for (const phrase of founderStyleCases) {
 }
 
 const instagramAnalyticsProvider = new AIProvider({
-  socialMediaAnalyticsService: socialMediaAnalyticsServiceForSnapshot(liveInstagramAnalyticsSnapshot)
+  socialMediaAnalyticsService: socialMediaAnalyticsServiceForSnapshot(liveInstagramAnalyticsSnapshot, liveSocialMediaAnalyticsReport)
 });
+
+const infrastructureVoiceProvider = new AIProvider({ founderTimeline: infrastructureTimelineFixture });
+const infrastructureTextProvider = new AIProvider({ founderTimeline: infrastructureTimelineFixture });
+const infrastructureVoiceResponse = await infrastructureVoiceProvider.ask("Infrastructure");
+const infrastructureTextResponse = await infrastructureTextProvider.ask("Infrastructure");
+const infrastructureText = `${infrastructureVoiceResponse.title || ""} ${infrastructureVoiceResponse.body || ""}`.toLowerCase();
+const infrastructureExpected = [
+  "overall status: amber",
+  "deployment readiness",
+  "zone active",
+  "cloudflare access",
+  "phase ii complete",
+  "waf unsafe-method guard",
+  "repository:",
+  "active infrastructure work: none",
+  "active blockers: none",
+  "founder or account-owner actions",
+  "plan or permission limitations",
+  "2026-07-10",
+  "recommendation:"
+];
+const infrastructureMissing = infrastructureExpected.filter(item => !infrastructureText.includes(item));
+if (
+  infrastructureVoiceResponse.metadata?.intent !== "infrastructure_direct_briefing" ||
+  infrastructureVoiceResponse.metadata?.readOnly !== true ||
+  infrastructureVoiceResponse.metadata?.inputModes?.join(",") !== "voice,text" ||
+  infrastructureVoiceResponse.body !== infrastructureTextResponse.body ||
+  infrastructureText.includes("closed authenticated-browser blocker") ||
+  infrastructureMissing.length
+) {
+  fail("direct-infrastructure-briefing", {
+    intent: infrastructureVoiceResponse.metadata?.intent,
+    inputModes: infrastructureVoiceResponse.metadata?.inputModes,
+    voiceTextMatch: infrastructureVoiceResponse.body === infrastructureTextResponse.body,
+    historicalClosedBlockerIncluded: infrastructureText.includes("closed authenticated-browser blocker"),
+    missing: infrastructureMissing,
+    body: infrastructureVoiceResponse.body
+  });
+} else {
+  console.log("PASS Infrastructure voice/text -> current read-only briefing with closed blockers excluded");
+}
+
+const activeInfrastructureProvider = new AIProvider({
+  founderTimeline: {
+    ...infrastructureTimelineFixture,
+    infrastructure: {
+      ...infrastructureTimelineFixture.infrastructure,
+      activeBlockers: ["Cloudflare Access verification is currently failing"],
+      recommendedNextAction: "Restore and verify Cloudflare Access before deployment."
+    }
+  }
+});
+const activeInfrastructureResponse = await activeInfrastructureProvider.ask("Infrastructure");
+if (
+  activeInfrastructureResponse.metadata?.activeBlockerCount !== 1 ||
+  !activeInfrastructureResponse.body.includes("Cloudflare Access verification is currently failing")
+) {
+  fail("direct-infrastructure-active-blocker", {
+    activeBlockerCount: activeInfrastructureResponse.metadata?.activeBlockerCount,
+    body: activeInfrastructureResponse.body
+  });
+} else {
+  console.log("PASS Infrastructure active blocker -> only current active blocker reported");
+}
+
+const socialMediaProvider = new AIProvider({
+  socialMediaAnalyticsService: socialMediaAnalyticsServiceForSnapshot(liveInstagramAnalyticsSnapshot, liveSocialMediaAnalyticsReport)
+});
+const socialMediaCases = [
+  ["Social Media", ["executive summary", "2026-06-28 through 2026-07-01", "prometheus social media", "platforms included: instagram", "linkedin", "50 followers", "top-performing post", "weakest-performing post", "performance by content type", "conversion and business impact", "missing data", "recommended next action"]],
+  ["Social Media last seven days", ["2026-06-25 through 2026-07-01", "posting frequency 0.29 posts per day"]],
+  ["Social Media last 30 days", ["2026-06-02 through 2026-07-01", "posting frequency 0.07 posts per day"]],
+  ["Compare Instagram and LinkedIn", ["instagram is connected", "linkedin analytics are unavailable", "cannot be calculated"]],
+  ["Show only Instagram", ["instagram analytics briefing", "platform scope: instagram only"]],
+  ["Which content drove the most website traffic?", ["social website traffic", "outside sales needs intelligence", "total instagram-attributed website visits: 2"]],
+  ["What changed from the previous month?", ["2026-07 versus 2026-06", "reach changed by +8", "engagement by +5"]]
+];
+
+for (const [phrase, expected] of socialMediaCases) {
+  const direct = await socialMediaProvider.ask(phrase);
+  const directText = `${direct.title || ""} ${direct.body || ""}`.toLowerCase();
+  const missing = expected.filter(item => !directText.includes(item));
+  if (
+    direct.metadata?.intent !== "social_media_direct_briefing" ||
+    direct.metadata?.readOnly !== true ||
+    direct.metadata?.directPlatformApiCalls !== false ||
+    missing.length
+  ) {
+    fail("direct-social-media-briefing", {
+      phrase,
+      intent: direct.metadata?.intent,
+      readOnly: direct.metadata?.readOnly,
+      directPlatformApiCalls: direct.metadata?.directPlatformApiCalls,
+      missing,
+      body: direct.body
+    });
+    continue;
+  }
+  console.log(`PASS ${phrase} -> normalized Social Media briefing`);
+}
+
+const unavailableSocialProvider = new AIProvider({
+  socialMediaAnalyticsService: {
+    lastVerifiedAt: "2026-06-30T12:00:00.000Z",
+    async getInstagramAnalyticsSnapshot() { return null; },
+    async getInstagramAnalyticsReport() { return null; }
+  }
+});
+const unavailableSocialResponse = await unavailableSocialProvider.ask("Social Media");
+const unavailableSocialText = `${unavailableSocialResponse.title} ${unavailableSocialResponse.body}`.toLowerCase();
+const unavailableSocialExpected = [
+  "social media analytics are unavailable",
+  "normalized prometheus social media report and instagram snapshot",
+  "last verified data: 2026-06-30t12:00:00.000z",
+  "required action",
+  "did not call a social platform"
+];
+const unavailableSocialMissing = unavailableSocialExpected.filter(item => !unavailableSocialText.includes(item));
+if (
+  unavailableSocialResponse.metadata?.analyticsAvailable !== false ||
+  unavailableSocialMissing.length
+) {
+  fail("direct-social-media-unavailable", {
+    analyticsAvailable: unavailableSocialResponse.metadata?.analyticsAvailable,
+    missing: unavailableSocialMissing,
+    body: unavailableSocialResponse.body
+  });
+} else {
+  console.log("PASS Social Media unavailable -> exact missing artifact, last verified data, and restore action");
+}
 
 const instagramDirectCases = [
   ["Instagram", ["instagram analytics", "prometheus i q on instagram", "50 followers", "20 reach", "8 profile visits", "3 website clicks", "best post so far", "recommendation"]],

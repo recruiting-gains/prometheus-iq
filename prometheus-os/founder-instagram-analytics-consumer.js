@@ -6,6 +6,7 @@ import {
 } from "../social-media/contracts/social-media-contract.js";
 
 const LOCAL_NORMALIZED_INSTAGRAM_SNAPSHOT_URL = "http://127.0.0.1:8792/api/social/instagram/snapshot";
+const LOCAL_NORMALIZED_INSTAGRAM_REPORT_URL = "http://127.0.0.1:8792/api/social/instagram/report";
 
 function environmentSnapshotUrl() {
   if (typeof process !== "undefined" && process?.env?.PROMETHEUS_SOCIAL_MEDIA_SNAPSHOT_URL) {
@@ -19,8 +20,24 @@ function environmentSnapshotUrl() {
   return "";
 }
 
+function environmentReportUrl() {
+  if (typeof process !== "undefined" && process?.env?.PROMETHEUS_SOCIAL_MEDIA_REPORT_URL) {
+    return process.env.PROMETHEUS_SOCIAL_MEDIA_REPORT_URL;
+  }
+
+  if (typeof window !== "undefined") {
+    return LOCAL_NORMALIZED_INSTAGRAM_REPORT_URL;
+  }
+
+  return "";
+}
+
 function unwrapSnapshot(payload) {
   return payload?.snapshot || payload?.data?.snapshot || payload;
+}
+
+function unwrapReport(payload) {
+  return payload?.report || payload?.data?.report || payload;
 }
 
 async function fetchJsonWithTimeout(fetchImpl, url, timeoutMs = 3500) {
@@ -44,7 +61,8 @@ async function fetchJsonWithTimeout(fetchImpl, url, timeoutMs = 3500) {
 
 export function getDefaultFounderSocialAnalyticsService({
   fetchImpl = globalThis.fetch,
-  snapshotUrl = environmentSnapshotUrl()
+  snapshotUrl = environmentSnapshotUrl(),
+  reportUrl = environmentReportUrl()
 } = {}) {
   return {
     sourceSubsystem: "Prometheus Social Media",
@@ -52,6 +70,11 @@ export function getDefaultFounderSocialAnalyticsService({
       if (!snapshotUrl || typeof fetchImpl !== "function") return null;
       const payload = await fetchJsonWithTimeout(fetchImpl, snapshotUrl);
       return unwrapSnapshot(payload);
+    },
+    async getInstagramAnalyticsReport() {
+      if (!reportUrl || typeof fetchImpl !== "function") return null;
+      const payload = await fetchJsonWithTimeout(fetchImpl, reportUrl);
+      return unwrapReport(payload);
     }
   };
 }
