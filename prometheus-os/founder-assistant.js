@@ -168,7 +168,7 @@ function longTermGoals() {
   return response(
     "Long-Term Founder Goals",
     [
-      "Your long-term goals are clear.",
+      "The recorded long-term goals are:",
       "First, make outside sales intelligent, directed, accountable, and compounding through Route IQ.",
       "Second, turn an operational Route IQ into repeatable customer onboarding and enterprise-ready delivery.",
       "Third, preserve the Patent Pending invention while documenting material Route IQ improvements.",
@@ -245,7 +245,7 @@ function advice() {
 function morningGreeting() {
   return response(
     "Good Morning",
-    "Good morning. Everything is ready whenever you are.",
+    "Good morning. What are we working on?",
     { intent: "greeting", entities: ["Cruz", "Prometheus Companion"] }
   );
 }
@@ -261,7 +261,7 @@ function naturalGreeting() {
 function healthGreeting() {
   return response(
     "Ready",
-    "I'm online and everything is healthy. What would you like to tackle?",
+    "I'm online. What would you like to tackle?",
     { intent: "health_greeting", founderMode: true, entities: ["Prometheus Companion"] }
   );
 }

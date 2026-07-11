@@ -1,5 +1,9 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
+import {
+  ConversationCalibration,
+  createMemoryCalibrationStorage
+} from "../prometheus-os/conversation-calibration.js";
 import { createFounderMemoryRecall } from "../prometheus-os/executive-command-center.js";
 import { normalizeIntentText } from "../prometheus-os/intent-router.js";
 import { readFileSync } from "node:fs";
@@ -368,7 +372,7 @@ for (const phrase of explicitNodeCases) {
 
 const founderAcceptanceCases = [
   ["Hello", ["i'm here", "what are we working on"]],
-  ["Good morning, Companion.", ["good morning", "everything is ready"]],
+  ["Good morning, Companion.", ["good morning", "what are we working on"]],
   ["Catch me up on where we left off.", ["where we left off", "last recorded point"]],
   ["What’s the current engineering status of Prometheus?", ["engineering status", "route iq is operational", "patent pending"]],
   ["Help me draft a message.", ["message draft", "i did not send anything", "draft:"]],
@@ -401,8 +405,8 @@ for (const [phrase, expected] of founderAcceptanceCases) {
 
 const conversationalIntentCases = [
   ["Hello", ["i'm here", "what are we working on"], "natural_greeting"],
-  ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
-  ["How are you?", ["online", "everything is healthy", "tackle"], "health_greeting"],
+  ["Good morning", ["good morning", "what are we working on"], "morning_greeting"],
+  ["How are you?", ["online", "tackle"], "health_greeting"],
   ["Overwatch", ["engineering status", "route iq is operational", "patent pending"], "engineering_status"],
   ["Route IQ", ["route iq status", "operational", "primary product"], "route_iq_status"],
   ["Gaia", ["gaia status", "paused", "route iq remains"], "gaia_status"],
@@ -485,8 +489,8 @@ for (const [phrase, expected, intent] of executiveReasoningCases) {
 }
 
 const founderConversationEngineCases = [
-  ["Good morning", ["good morning", "everything is ready"], "morning_greeting"],
-  ["How are we doing?", ["operating, not proving", "route iq is operational", "patent pending"], "company_rundown"],
+  ["Good morning", ["good morning", "what are we working on"], "morning_greeting"],
+  ["How are we doing?", ["current state", "route iq is operational", "patent pending"], "company_rundown"],
   ["What's slowing Prometheus down?", ["execution discipline", "customer handoff evidence", "next move"], "risk"],
   ["What should I work on first?", ["today's founder mission", "active workspace", "highest-value prospects"], "priority"]
 ];
@@ -518,6 +522,150 @@ for (const [phrase, expected, intent] of founderConversationEngineCases) {
     continue;
   }
   console.log(`PASS ${phrase} -> founder-conversation-engine:${response.title}`);
+}
+
+let calibrationNow = new Date("2026-07-10T09:00:00-05:00");
+const calibrationStorage = createMemoryCalibrationStorage();
+const calibration = new ConversationCalibration({
+  storage: calibrationStorage,
+  now: () => new Date(calibrationNow),
+  scope: "founder-acceptance"
+});
+const calibrationProvider = new AIProvider({ conversationCalibration: calibration });
+
+const neutralGreeting = await calibrationProvider.ask("Good morning");
+const neutralGreetingText = String(neutralGreeting.body || "").toLowerCase();
+if (
+  neutralGreetingText !== "good morning. what are we working on?" ||
+  neutralGreetingText.includes("excellent") ||
+  neutralGreetingText.includes("perfect")
+) {
+  fail("conversation-calibration-neutral-greeting", neutralGreeting);
+} else {
+  console.log("PASS conversation-calibration-neutral-greeting -> brief-and-grounded");
+}
+
+const completedAcknowledgment = await calibrationProvider.ask(
+  "The change passed validation and no blockers remain."
+);
+const completedAcknowledgmentText = String(completedAcknowledgment.body || "").toLowerCase();
+const praiseLeak = ["excellent", "perfect", "outstanding", "major milestone", "exactly what we wanted", "game-changing"]
+  .find((term) => completedAcknowledgmentText.includes(term));
+if (
+  completedAcknowledgment.metadata?.intent !== "plain_result_acknowledgment" ||
+  praiseLeak
+) {
+  fail("conversation-calibration-plain-result", {
+    praiseLeak,
+    response: completedAcknowledgment
+  });
+} else {
+  console.log("PASS conversation-calibration-plain-result -> no-exaggerated-praise");
+}
+
+await calibrationProvider.ask("What should I do next?");
+const evidenceCheck = await calibrationProvider.ask("Are you sure?");
+const evidenceCheckText = String(evidenceCheck.body || "").toLowerCase();
+const evidenceLabels = ["verified fact", "supported inference", "working judgment", "unknown"];
+const missingEvidenceLabels = evidenceLabels.filter((term) => !evidenceCheckText.includes(term));
+if (missingEvidenceLabels.length) {
+  fail("conversation-calibration-evidence-check", {
+    missingEvidenceLabels,
+    response: evidenceCheck
+  });
+} else {
+  console.log("PASS conversation-calibration-evidence-check -> fact-inference-judgment-unknown");
+}
+
+const disagreement = await calibrationProvider.ask("I think we should resume Gaia and build it now.");
+const disagreementText = String(disagreement.body || "").toLowerCase();
+const disagreementFields = ["i disagree", "concern:", "verified fact:", "supported inference:", "recommended alternative:"];
+const missingDisagreementFields = disagreementFields.filter((term) => !disagreementText.includes(term));
+if (missingDisagreementFields.length) {
+  fail("conversation-calibration-respectful-disagreement", {
+    missingDisagreementFields,
+    response: disagreement
+  });
+} else {
+  console.log("PASS conversation-calibration-respectful-disagreement -> concern-evidence-alternative");
+}
+
+const shorterPreference = await calibrationProvider.ask("Keep it shorter.");
+await calibrationProvider.ask("That answer was too long.");
+const explicitPreferenceState = calibration.getState();
+const lengthSignals = explicitPreferenceState.signals.filter(
+  (signal) => signal.category === "explicit_tone_or_length_preference"
+);
+if (
+  shorterPreference.metadata?.intent !== "explicit_length_preference" ||
+  explicitPreferenceState.preferences.responseLength?.value !== "concise" ||
+  explicitPreferenceState.preferences.responseLength?.source !== "explicit" ||
+  lengthSignals.length < 2
+) {
+  fail("conversation-calibration-explicit-preference", {
+    response: shorterPreference,
+    preferences: explicitPreferenceState.preferences,
+    lengthSignals
+  });
+} else {
+  console.log("PASS conversation-calibration-explicit-preference -> immediate-concision");
+}
+
+calibration.observeFounderInput("That was confusing.");
+calibration.observeFounderInput("That was confusing.");
+calibration.observeFounderInput("That was confusing.");
+calibrationNow = new Date("2026-07-11T09:00:00-05:00");
+const dailyReview = calibration.runDailyReviewIfNeeded();
+const adjustmentCount = dailyReview?.adjustment ? 1 : 0;
+if (
+  adjustmentCount > 1 ||
+  dailyReview?.adjustment?.key !== "responseStructure" ||
+  dailyReview?.adjustment?.value !== "answer-first"
+) {
+  fail("conversation-calibration-daily-review", dailyReview);
+} else {
+  console.log("PASS conversation-calibration-daily-review -> one-bounded-adjustment");
+}
+
+const learnedYesterday = await calibrationProvider.ask("What did you learn yesterday?");
+const learnedYesterdayText = String(learnedYesterday.body || "").toLowerCase();
+if (
+  learnedYesterday.metadata?.intent !== "calibration_learning_report" ||
+  !learnedYesterdayText.includes("one communication adjustment") ||
+  learnedYesterdayText.includes("route iq")
+) {
+  fail("conversation-calibration-learning-report", learnedYesterday);
+} else {
+  console.log("PASS conversation-calibration-learning-report -> communication-only");
+}
+
+const privateStateText = JSON.stringify(calibration.getState()).toLowerCase();
+const forbiddenLearnedData = [
+  "route iq",
+  "customer record",
+  "workspace data",
+  "engineering result",
+  "the change passed validation",
+  "that answer was too long",
+  "that was confusing"
+].find((term) => privateStateText.includes(term));
+if (forbiddenLearnedData) {
+  fail("conversation-calibration-privacy-boundary", { forbiddenLearnedData, state: calibration.getState() });
+} else {
+  console.log("PASS conversation-calibration-privacy-boundary -> abstract-signals-only");
+}
+
+const resetCalibration = await calibrationProvider.ask("Reset conversation calibration");
+const resetState = calibration.getState();
+if (
+  resetCalibration.metadata?.intent !== "calibration_reset" ||
+  resetState.signals.length !== 0 ||
+  Object.keys(resetState.preferences).length !== 0 ||
+  resetState.currentAdjustment !== null
+) {
+  fail("conversation-calibration-reset", { response: resetCalibration, state: resetState });
+} else {
+  console.log("PASS conversation-calibration-reset -> preferences-and-signals-cleared");
 }
 
 const unknownResponse = await provider.ask("Pineapple status");

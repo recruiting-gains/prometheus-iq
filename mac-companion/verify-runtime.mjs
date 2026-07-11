@@ -233,6 +233,7 @@ async function verify() {
     join(appPath, "Contents/Resources/companion-version.json"),
     join(runtimeRoot, "index.html"),
     join(runtimeRoot, "app.js"),
+    join(runtimeRoot, "conversation-calibration.js"),
     join(runtimeRoot, "voice-assistant.js"),
     join(runtimeRoot, "vendor/three.module.js"),
     join(supportDir, "integrations/founder-communications-contract.js"),
@@ -241,8 +242,8 @@ async function verify() {
     join(supportDir, "social-media/social-media-analytics-service.js")
   ].every((path) => existsSync(path));
   record("assets", assetsOk, assetsOk
-    ? "native app resources, runtime assets, shared integration contract, and Social Media analytics contract are installed"
-    : "one or more native app resources, runtime assets, shared integration contract files, or Social Media analytics contract files are missing");
+    ? "native app resources, calibration runtime, shared integration contract, and Social Media analytics contract are installed"
+    : "one or more native app resources, calibration runtime, shared integration contract files, or Social Media analytics contract files are missing");
 
   const versionOk = Boolean(sourceManifest && installedManifest && runtimeManifest) &&
     sourceManifest.buildId === installedManifest.buildId &&
@@ -337,6 +338,38 @@ async function verify() {
       });
   } catch (error) {
     record("conversation-flow", false, `conversation flow verification failed: ${error?.message || error}`);
+  }
+
+  try {
+    const { AIProvider } = await import(pathToFileURL(join(projectRoot, "prometheus-os/ai-provider.js")));
+    const {
+      ConversationCalibration,
+      createMemoryCalibrationStorage
+    } = await import(pathToFileURL(join(projectRoot, "prometheus-os/conversation-calibration.js")));
+    const calibration = new ConversationCalibration({
+      storage: createMemoryCalibrationStorage(),
+      scope: "runtime-verification"
+    });
+    const provider = new AIProvider({ conversationCalibration: calibration });
+    const preference = await provider.ask("Keep it shorter.");
+    const evidence = await provider.ask("Are you sure?");
+    const state = calibration.getState();
+    const serializedState = JSON.stringify(state).toLowerCase();
+    const ok = preference.metadata?.intent === "explicit_length_preference" &&
+      evidence.metadata?.intent === "evidence_check" &&
+      state.preferences.responseLength?.value === "concise" &&
+      !serializedState.includes("keep it shorter") &&
+      !serializedState.includes("are you sure");
+    record("conversation-calibration", ok, ok
+      ? "neutral calibration, explicit preference, evidence framing, and abstract-only persistence passed"
+      : "conversation calibration did not preserve expected local privacy and preference behavior", {
+        preferenceIntent: preference.metadata?.intent,
+        evidenceIntent: evidence.metadata?.intent,
+        responseLength: state.preferences.responseLength?.value,
+        rawTextPersisted: serializedState.includes("keep it shorter") || serializedState.includes("are you sure")
+      });
+  } catch (error) {
+    record("conversation-calibration", false, `conversation calibration verification failed: ${error?.message || error}`);
   }
 
   try {

@@ -10,9 +10,16 @@ import { createMemorySystemSummary, createTimelineAnswer, createUnfinishedWorkRe
 import { cognitiveEngine } from "./cognitive-engine.js";
 import { createFounderAssistantResponse } from "./founder-assistant.js";
 import { FounderConversationEngine } from "./founder-conversation-engine.js?v=founder-regression-fix-20260702b";
+import { ConversationCalibration } from "./conversation-calibration.js";
 
 export class AIProvider {
-  constructor({ mode = "local-demo", communicationsService = null, socialMediaAnalyticsService = null, founderTimeline = null } = {}) {
+  constructor({
+    mode = "local-demo",
+    communicationsService = null,
+    socialMediaAnalyticsService = null,
+    founderTimeline = null,
+    conversationCalibration = null
+  } = {}) {
     this.mode = mode;
     this.history = [];
     this.currentFocus = null;
@@ -20,6 +27,7 @@ export class AIProvider {
     this.socialMediaAnalyticsService = socialMediaAnalyticsService;
     this.founderTimeline = founderTimeline;
     this.founderConversationEngine = new FounderConversationEngine({ founderTimeline });
+    this.conversationCalibration = conversationCalibration || new ConversationCalibration();
   }
 
   get providerLabel() {
@@ -55,6 +63,13 @@ export class AIProvider {
         permission: permissionLabel(permissionLevel),
         tone: "blocked"
       });
+    }
+
+    const calibrationResponse = this.conversationCalibration.observeFounderInput(cleanMessage, {
+      history: this.history
+    });
+    if (calibrationResponse) {
+      return this.remember(cleanMessage, calibrationResponse);
     }
 
     if (this.founderConversationEngine.shouldAnswer(normalized)) {
@@ -159,15 +174,16 @@ export class AIProvider {
   }
 
   remember(input, response) {
-    this.currentFocus = response?.title || this.currentFocus;
-    this.founderConversationEngine.remember(input, response);
+    const calibratedResponse = this.conversationCalibration.calibrateResponse(input, response);
+    this.currentFocus = calibratedResponse?.title || this.currentFocus;
+    this.founderConversationEngine.remember(input, calibratedResponse);
     this.history.unshift({
       input,
-      response,
+      response: calibratedResponse,
       timestamp: new Date().toISOString()
     });
     this.history = this.history.slice(0, 30);
-    return response;
+    return calibratedResponse;
   }
 
   async localAnswer(command) {

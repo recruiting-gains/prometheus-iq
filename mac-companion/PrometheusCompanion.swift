@@ -1161,10 +1161,10 @@ final class PrometheusCompanion: NSObject, NSApplicationDelegate, AVAudioPlayerD
     private func greetingResponse(for transcript: String) -> String {
         let normalized = normalizeCommand(transcript)
         if normalized == "how are you" || normalized == "how are you doing" {
-            return "I'm online and everything is healthy. What would you like to tackle?"
+            return "I'm online. What would you like to tackle?"
         }
         if normalized == "good morning" || normalized == "morning" {
-            return "Good morning. Everything is ready whenever you are."
+            return "Good morning. What are we working on?"
         }
         return founderGreeting
     }

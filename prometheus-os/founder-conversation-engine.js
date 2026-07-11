@@ -132,8 +132,8 @@ export class FounderConversationEngine {
     if (isGreeting(normalized)) {
       const morning = normalized.includes("morning");
       const body = morning
-        ? "Good morning. Everything is ready. Route IQ is operational, and today's work should move deployment readiness or customer onboarding forward."
-        : "I’m here. What are we working on?";
+        ? "Good morning. What are we working on?"
+        : "I'm here. What are we working on?";
       this.lastExecutiveRead = body;
       return response(morning ? "Good Morning" : "I'm Here", body, {
         intent: morning ? "morning_greeting" : "natural_greeting",
@@ -155,7 +155,7 @@ export class FounderConversationEngine {
 
     if (/\bhow are we doing\b/.test(normalized) || normalized.includes("how are we looking") || normalized.includes("where do we stand")) {
       const body = [
-        "We are operating, not proving the concept anymore.",
+        "Current state: Route IQ is operational.",
         "Route IQ is operational, Patent Pending, and the primary product. Gaia is paused. Athena remains architecture only.",
         `The company phase is ${companyState.currentPhase.join(", ").toLowerCase()}.`,
         timeline ? `Latest operating signal: ${timeline}.` : "",
