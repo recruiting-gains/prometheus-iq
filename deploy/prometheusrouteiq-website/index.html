@@ -1007,13 +1007,22 @@
     }
 
     .industries-layout .industry-pages {
-      grid-template-columns: repeat(3, minmax(210px, 1fr));
+      grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 18px;
     }
 
     .industries-layout .industry-pages article {
+      grid-column: span 2;
       min-height: 156px;
       padding: 22px;
+    }
+
+    .industries-layout .industry-pages article:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+
+    .industries-layout .industry-pages article:nth-child(5) {
+      grid-column: 4 / span 2;
     }
 
     .industries-layout .industry-pages p {
@@ -2092,6 +2101,10 @@
         grid-template-columns: 1fr;
       }
 
+      .industries-layout .industry-pages article:nth-child(n) {
+        grid-column: auto;
+      }
+
       .panel {
         margin-left: 0;
       }
@@ -2254,7 +2267,6 @@
           <article><h3>Commercial Services</h3><p>Facilities, cleaning, logistics, uniforms, and B2B service sellers.</p></article>
           <article><h3>Retail & Franchise</h3><p>Multi-location growth, memberships, partnerships, and events.</p></article>
           <article><h3>B2B Sales</h3><p>Payroll, telecom, insurance, industrial, and territory acquisition.</p></article>
-          <article><h3>Field Operations</h3><p>Canvassing, appointment setting, coverage, and distributed execution.</p></article>
         </div>
         <div class="proof-strip">
           <div class="proof"><b>Reduce Drive Time</b><span>Prioritize territory moves before miles are wasted.</span></div>

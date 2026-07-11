@@ -56,8 +56,7 @@ function App() {
     ["Healthcare", "Medical device, referral, and provider outreach teams."],
     ["Commercial Services", "Facilities, cleaning, logistics, uniforms, and B2B service sellers."],
     ["Retail & Franchise", "Multi-location growth, memberships, partnerships, and events."],
-    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory acquisition."],
-    ["Field Operations", "Canvassing, appointment setting, coverage, and distributed execution."]
+    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory acquisition."]
   ];
   const enterpriseSignals = [
     ["Operational onboarding", "Defined scope, success criteria, review cadence, and executive evaluation before expansion."],

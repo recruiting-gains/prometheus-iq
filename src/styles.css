@@ -360,11 +360,12 @@ h3 { margin: 0; font-size: 22px; }
 }
 .industry-pages {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 18px;
   margin-top: 36px;
 }
 .industry-pages article {
+  grid-column: span 2;
   min-height: 156px;
   height: 100%;
   padding: 22px;
@@ -372,6 +373,8 @@ h3 { margin: 0; font-size: 22px; }
   border-radius: 8px;
   background: #f8f7ef;
 }
+.industry-pages article:nth-child(4) { grid-column: 2 / span 2; }
+.industry-pages article:nth-child(5) { grid-column: 4 / span 2; }
 .industry-pages h3 { font-size: 21px; }
 .industry-pages p { color: #5d6a64; line-height: 1.45; }
 .problem-grid {
@@ -595,6 +598,7 @@ h3 { margin: 0; font-size: 22px; }
   .hero-grid, .split, .founder-grid, .partner-card, .footer-grid { grid-template-columns: 1fr; }
   .signal-panel { max-width: 420px; }
   .problem-grid, .feature-grid, .trust-grid, .loop-track, .industry-pages, .enterprise-grid, .investor-grid, .success-grid { grid-template-columns: 1fr; }
+  .industry-pages article:nth-child(n) { grid-column: auto; }
   .loop-step::after { display: none; }
   .section { padding: 82px 0; }
   .core-window { min-height: 250px; }
