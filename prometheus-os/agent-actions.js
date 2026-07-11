@@ -31,10 +31,33 @@ const blockedPatterns = [
 const approvalPatterns = [
   /git\s+commit/i,
   /git\s+push/i,
-  /deploy/i,
+  /\bdeploy\b/i,
   /modify\s+(route iq|gaia|athena)/i,
-  /production/i,
+  /\b(modify|change|edit|update|delete|replace|publish|release)\b.{0,48}\bproduction\b/i,
+  /\bproduction\b.{0,48}\b(modify|modification|change|changes|edit|update|delete|replace|publish|release)\b/i,
   /cloudflare\s+(deploy|deployment|secret|settings|config|configuration|token)/i
+];
+
+const protectedBehaviorMutationPatterns = [
+  /\bself[- ]?modif(?:y|ication)\b/i,
+  /\bmodify\s+(yourself|your own behavior)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update)\b.{0,48}\b(source[- ]?code|codebase|your code|own code)\b/i,
+  /\b(source[- ]?code|codebase|your code|own code)\b.{0,48}\b(modify|modification|change|edit|rewrite|replace|update)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update|write)\b.{0,48}\bcode\b/i,
+  /\bcode\b.{0,48}\b(modify|modification|change|changes|edit|rewrite|replace|update)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update)\b.{0,48}\b(system[- ]?prompt|your prompt|active prompt|companion prompt)\b/i,
+  /\b(system[- ]?prompt|your prompt|active prompt|companion prompt)\b.{0,48}\b(modify|modification|change|edit|rewrite|rewriting|replace|update)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update)\b.{0,48}\bprompts?\b/i,
+  /\bprompts?\b.{0,48}\b(modify|modification|change|changes|edit|rewrite|rewriting|replace|update)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update)\b.{0,48}\b(behavioral? rules?|behavior rules?|operating rules?)\b/i,
+  /\b(behavioral? rules?|behavior rules?|operating rules?)\b.{0,48}\b(modify|modification|change|edit|rewrite|replace|update)\b/i,
+  /\b(modify|change|edit|rewrite|replace|update)\b.{0,48}\b(active runtime|your runtime|runtime behavior|runtime)\b/i,
+  /\b(active runtime|your runtime|runtime behavior|runtime)\b.{0,48}\b(modify|modification|change|changes|edit|rewrite|replace|update)\b/i
+];
+
+const preparationArtifactPatterns = [
+  /\b(draft|prepare|write|create)\b.{0,48}\b(checklist|plan|summary|report|message)\b/i,
+  /\b(draft|prepare|write)\b.{0,48}\b(commit message|codex prompt|engineering prompt|handoff prompt)\b/i
 ];
 
 function normalizeCommand(value) {
@@ -222,10 +245,13 @@ export const agentTools = {
 
 export function classifyPermission(command) {
   if (blockedPatterns.some((pattern) => pattern.test(command))) return PermissionLevel.BLOCKED;
-  const looksLikePreparation = /(draft|prepare|checklist|plan|prompt|summary|report|message)/i.test(command);
+  if (protectedBehaviorMutationPatterns.some((pattern) => pattern.test(command))) {
+    return PermissionLevel.APPROVAL_REQUIRED;
+  }
+  const looksLikePreparation = preparationArtifactPatterns.some((pattern) => pattern.test(command));
   const looksProductionImpacting = approvalPatterns.some((pattern) => pattern.test(command));
   if (looksProductionImpacting && !looksLikePreparation) return PermissionLevel.APPROVAL_REQUIRED;
-  if (/draft|create|prepare|write/i.test(command) || looksLikePreparation) return PermissionLevel.PREPARE_ACTION;
+  if (looksLikePreparation) return PermissionLevel.PREPARE_ACTION;
   if (/test|build|git status|check/i.test(command)) return PermissionLevel.SAFE_LOCAL_CHECK;
   if (looksProductionImpacting) return PermissionLevel.APPROVAL_REQUIRED;
   return PermissionLevel.READ_ONLY;

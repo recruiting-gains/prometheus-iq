@@ -2,6 +2,16 @@ const STORAGE_PREFIX = "prometheus-companion-conversation-calibration-v1";
 const DEFAULT_SCOPE = "founder-companion-local";
 const MAX_SIGNALS = 200;
 const MAX_REVIEWS = 45;
+const MAX_PENDING_RECOMMENDATIONS = 12;
+const MAX_DECISION_AUDIT = 200;
+
+const allowedDecisionActions = new Set([
+  "recommendation_created",
+  "recommendation_inspected",
+  "recommendation_approved",
+  "recommendation_rejected",
+  "recommendation_reset"
+]);
 
 const allowedSignalCategories = new Set([
   "explicit_founder_correction",
@@ -21,13 +31,6 @@ const allowedPreferences = Object.freeze({
   evidenceFraming: new Set(["explicit", "adaptive"]),
   repetition: new Set(["avoid", "standard"]),
   recommendationFraming: new Set(["concern-evidence-alternative", "standard"])
-});
-
-const inferredAdjustments = Object.freeze({
-  repeated_clarification_request: ["clarificationStyle", "single-concise-question"],
-  evidence_or_certainty_complaint: ["evidenceFraming", "explicit"],
-  rejected_recommendation: ["recommendationFraming", "concern-evidence-alternative"],
-  avoidable_repetition_or_confusion: ["responseStructure", "answer-first"]
 });
 
 const memoryValues = new Map();
@@ -62,12 +65,13 @@ function cleanScope(value = DEFAULT_SCOPE) {
 
 function defaultState(scope) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     scope,
     preferences: {},
     signals: [],
     reviews: [],
-    currentAdjustment: null,
+    pendingRecommendations: [],
+    decisionAudit: [],
     lastReviewDate: "",
     lastResetAt: null
   };
@@ -75,9 +79,15 @@ function defaultState(scope) {
 
 function safePreference(key, entry) {
   if (!allowedPreferences[key] || !entry || !allowedPreferences[key].has(entry.value)) return null;
+  const source = entry.source === "explicit"
+    ? "explicit"
+    : entry.source === "founder-approved-inference"
+      ? "founder-approved-inference"
+      : null;
+  if (!source) return null;
   return {
     value: entry.value,
-    source: entry.source === "explicit" ? "explicit" : "daily-review",
+    source,
     confidence: Math.max(0, Math.min(1, Number(entry.confidence) || 0)),
     updatedAt: String(entry.updatedAt || "").slice(0, 40)
   };
@@ -102,17 +112,50 @@ function safeSignal(signal) {
   };
 }
 
-function safeAdjustment(adjustment) {
-  if (!adjustment || !allowedPreferences[adjustment.key]?.has(adjustment.value)) return null;
+function safeRecommendation(recommendation) {
+  if (!recommendation || !allowedPreferences[recommendation.key]?.has(recommendation.value)) return null;
+  const date = String(recommendation.date || recommendation.createdDate || "").slice(0, 10);
+  const id = String(recommendation.id || `cal${date.replace(/-/g, "")}${recommendation.key}`)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 80);
+  if (!id) return null;
   return {
-    key: adjustment.key,
-    value: adjustment.value,
-    reason: String(adjustment.reason || "").slice(0, 240),
-    supportingSignalIds: Array.isArray(adjustment.supportingSignalIds)
-      ? adjustment.supportingSignalIds.map((id) => String(id).slice(0, 100)).slice(0, 12)
+    id,
+    key: recommendation.key,
+    value: recommendation.value,
+    rationale: String(recommendation.rationale || recommendation.reason || "").slice(0, 240),
+    supportingSignalIds: Array.isArray(recommendation.supportingSignalIds)
+      ? recommendation.supportingSignalIds.map((signalId) => String(signalId).slice(0, 100)).slice(0, 12)
       : [],
-    confidence: Math.max(0, Math.min(1, Number(adjustment.confidence) || 0)),
-    date: String(adjustment.date || "").slice(0, 10)
+    confidence: Math.max(0, Math.min(1, Number(recommendation.confidence) || 0)),
+    createdAt: String(recommendation.createdAt || `${date}T00:00:00.000Z`).slice(0, 40),
+    date
+  };
+}
+
+function safeDecisionAuditEntry(entry) {
+  if (!entry || !allowedDecisionActions.has(entry.action)) return null;
+  const recommendation = safeRecommendation({
+    id: entry.recommendationId,
+    key: entry.key,
+    value: entry.value,
+    rationale: entry.rationale,
+    confidence: entry.confidence,
+    date: String(entry.timestamp || "").slice(0, 10),
+    createdAt: entry.timestamp
+  });
+  if (!recommendation) return null;
+  return {
+    id: String(entry.id || "").slice(0, 120),
+    action: entry.action,
+    timestamp: String(entry.timestamp || "").slice(0, 40),
+    recommendationId: recommendation.id,
+    key: recommendation.key,
+    value: recommendation.value,
+    rationale: recommendation.rationale,
+    confidence: recommendation.confidence,
+    transition: String(entry.transition || "").replace(/[^a-z0-9_-]+/gi, "_").slice(0, 80)
   };
 }
 
@@ -133,13 +176,13 @@ function safeReview(review) {
       ? review.friction.map((item) => String(item).slice(0, 160)).slice(0, 3)
       : [],
     signalCounts: counts,
-    adjustment: safeAdjustment(review.adjustment)
+    recommendation: safeRecommendation(review.recommendation || review.adjustment)
   };
 }
 
 function sanitizeState(value, scope) {
   const state = defaultState(scope);
-  if (!value || value.schemaVersion !== 1 || value.scope !== scope) return state;
+  if (!value || ![1, 2].includes(value.schemaVersion) || value.scope !== scope) return state;
 
   for (const [key, entry] of Object.entries(value.preferences || {})) {
     const safe = safePreference(key, entry);
@@ -152,7 +195,32 @@ function sanitizeState(value, scope) {
   state.reviews = Array.isArray(value.reviews)
     ? value.reviews.map(safeReview).filter(Boolean).slice(0, MAX_REVIEWS)
     : [];
-  state.currentAdjustment = safeAdjustment(value.currentAdjustment);
+  state.pendingRecommendations = Array.isArray(value.pendingRecommendations)
+    ? value.pendingRecommendations.map(safeRecommendation).filter(Boolean).slice(0, MAX_PENDING_RECOMMENDATIONS)
+    : [];
+  state.decisionAudit = Array.isArray(value.decisionAudit)
+    ? value.decisionAudit.map(safeDecisionAuditEntry).filter(Boolean).slice(-MAX_DECISION_AUDIT)
+    : [];
+
+  if (value.schemaVersion === 1 && value.currentAdjustment) {
+    const migrated = safeRecommendation(value.currentAdjustment);
+    if (migrated && !state.pendingRecommendations.some((item) => item.id === migrated.id)) {
+      state.pendingRecommendations.push(migrated);
+      const migrationAudit = safeDecisionAuditEntry({
+        id: `${migrated.id}:recommendation_created:migration`,
+        action: "recommendation_created",
+        timestamp: migrated.createdAt,
+        recommendationId: migrated.id,
+        key: migrated.key,
+        value: migrated.value,
+        rationale: migrated.rationale || "Migrated from the prior unapproved daily-review state.",
+        confidence: migrated.confidence,
+        transition: "legacy_active_to_pending"
+      });
+      if (migrationAudit) state.decisionAudit.push(migrationAudit);
+    }
+  }
+
   state.lastReviewDate = String(value.lastReviewDate || "").slice(0, 10);
   state.lastResetAt = value.lastResetAt ? String(value.lastResetAt).slice(0, 40) : null;
   return state;
@@ -261,6 +329,10 @@ function completedResult(normalized = "") {
     !/\b(did|has|was|is it|are you|whether)\b/.test(normalized.slice(0, 24));
 }
 
+function recommendationIdFromCommand(normalized = "") {
+  return normalized.split(/\s+/).find((token) => /^cal[0-9a-z]{8,}$/.test(token)) || "";
+}
+
 export class ConversationCalibration {
   constructor({
     storage = browserStorage(),
@@ -329,7 +401,7 @@ export class ConversationCalibration {
     if (!allowedPreferences[key]?.has(value)) return false;
     this.state.preferences[key] = {
       value,
-      source: source === "explicit" ? "explicit" : "daily-review",
+      source: source === "explicit" ? "explicit" : "founder-approved-inference",
       confidence,
       updatedAt: this.timestamp()
     };
@@ -338,23 +410,148 @@ export class ConversationCalibration {
 
   reset() {
     const resetAt = this.timestamp();
+    const pendingRecommendations = [...this.state.pendingRecommendations];
+    const decisionAudit = [...this.state.decisionAudit];
     this.storage.removeItem(this.storageKey);
     this.state = defaultState(this.scope);
+    this.state.decisionAudit = decisionAudit;
+    for (const recommendation of pendingRecommendations) {
+      this.recordDecision(
+        "recommendation_reset",
+        recommendation,
+        "pending_to_reset_by_full_calibration_reset"
+      );
+    }
     this.state.lastResetAt = resetAt;
     this.state.lastReviewDate = localDateKey(this.now());
     this.persist();
   }
 
-  rejectCurrentAdjustment() {
-    const adjustment = this.state.currentAdjustment;
-    if (!adjustment) return false;
-    const preference = this.state.preferences[adjustment.key];
-    if (preference?.source === "daily-review" && preference.value === adjustment.value) {
-      delete this.state.preferences[adjustment.key];
+  createRecommendationId(key, date) {
+    const base = `cal${String(date || "").replace(/-/g, "")}${String(key || "")}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .slice(0, 68);
+    const knownIds = new Set([
+      ...this.state.pendingRecommendations.map((item) => item.id),
+      ...this.state.decisionAudit.map((item) => item.recommendationId)
+    ]);
+    let sequence = 1;
+    let id = `${base}${String(sequence).padStart(2, "0")}`;
+    while (knownIds.has(id)) {
+      sequence += 1;
+      id = `${base}${String(sequence).padStart(2, "0")}`;
     }
-    this.state.currentAdjustment = null;
+    return id;
+  }
+
+  recordDecision(action, recommendation, transition) {
+    if (!allowedDecisionActions.has(action) || !recommendation) return null;
+    const timestamp = this.timestamp();
+    const entry = safeDecisionAuditEntry({
+      id: `${recommendation.id}:${action}:${timestamp}`,
+      action,
+      timestamp,
+      recommendationId: recommendation.id,
+      key: recommendation.key,
+      value: recommendation.value,
+      rationale: recommendation.rationale,
+      confidence: recommendation.confidence,
+      transition
+    });
+    if (!entry) return null;
+    this.state.decisionAudit = [...this.state.decisionAudit, entry].slice(-MAX_DECISION_AUDIT);
+    return entry;
+  }
+
+  resolvePendingRecommendation(recommendationId = "") {
+    const cleanId = String(recommendationId || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "")
+      .slice(0, 80);
+    if (cleanId) {
+      return this.state.pendingRecommendations.find((item) => item.id === cleanId) || null;
+    }
+    return this.state.pendingRecommendations.length === 1
+      ? this.state.pendingRecommendations[0]
+      : null;
+  }
+
+  approveRecommendation(recommendationId = "") {
+    if (!recommendationId) return null;
+    const recommendation = this.resolvePendingRecommendation(recommendationId);
+    if (!recommendation) return null;
+    this.setPreference(recommendation.key, recommendation.value, {
+      source: "founder-approved-inference",
+      confidence: recommendation.confidence
+    });
+    this.state.pendingRecommendations = this.state.pendingRecommendations
+      .filter((item) => item.id !== recommendation.id);
+    this.recordDecision(
+      "recommendation_approved",
+      recommendation,
+      "pending_to_active_preference"
+    );
     this.persist();
-    return true;
+    return recommendation;
+  }
+
+  rejectRecommendation(recommendationId = "") {
+    const recommendation = this.resolvePendingRecommendation(recommendationId);
+    if (!recommendation) return null;
+    this.state.pendingRecommendations = this.state.pendingRecommendations
+      .filter((item) => item.id !== recommendation.id);
+    this.recordDecision(
+      "recommendation_rejected",
+      recommendation,
+      "pending_to_rejected_no_preference_change"
+    );
+    this.persist();
+    return recommendation;
+  }
+
+  resetPendingRecommendations(recommendationId = "") {
+    const recommendation = recommendationId
+      ? this.resolvePendingRecommendation(recommendationId)
+      : null;
+    const resetItems = recommendation
+      ? [recommendation]
+      : recommendationId
+        ? []
+        : [...this.state.pendingRecommendations];
+    if (!resetItems.length) return [];
+    const resetIds = new Set(resetItems.map((item) => item.id));
+    this.state.pendingRecommendations = this.state.pendingRecommendations
+      .filter((item) => !resetIds.has(item.id));
+    for (const item of resetItems) {
+      this.recordDecision(
+        "recommendation_reset",
+        item,
+        "pending_to_reset_no_preference_change"
+      );
+    }
+    this.persist();
+    return resetItems;
+  }
+
+  inspectRecommendations(recommendationId = "") {
+    const recommendation = recommendationId
+      ? this.resolvePendingRecommendation(recommendationId)
+      : null;
+    const inspected = recommendation
+      ? [recommendation]
+      : recommendationId
+        ? []
+        : [...this.state.pendingRecommendations];
+    for (const item of inspected) {
+      this.recordDecision(
+        "recommendation_inspected",
+        item,
+        "pending_to_pending_after_inspection"
+      );
+    }
+    if (inspected.length) this.persist();
+    return inspected;
   }
 
   runDailyReviewIfNeeded({ force = false } = {}) {
@@ -397,20 +594,34 @@ export class ConversationCalibration {
     const candidate = [...candidateGroups.values()]
       .filter((group) => group.interactions.size >= 3)
       .sort((a, b) => b.interactions.size - a.interactions.size)[0];
-    let adjustment = null;
-    if (candidate) {
-      adjustment = {
-        key: candidate.key,
-        value: candidate.value,
-        reason: `${candidate.interactions.size} separate calibration interactions supported this communication adjustment.`,
-        supportingSignalIds: candidate.signals.map((signal) => signal.id).slice(0, 12),
-        confidence: Math.min(0.95, 0.55 + candidate.interactions.size * 0.1),
-        date: today
-      };
-      this.setPreference(adjustment.key, adjustment.value, {
-        source: "daily-review",
-        confidence: adjustment.confidence
-      });
+    let recommendation = null;
+    const activePreferenceMatches = candidate &&
+      this.state.preferences[candidate.key]?.value === candidate.value;
+    if (candidate && !activePreferenceMatches) {
+      recommendation = this.state.pendingRecommendations.find(
+        (item) => item.key === candidate.key && item.value === candidate.value
+      ) || null;
+      if (!recommendation) {
+        recommendation = {
+          id: this.createRecommendationId(candidate.key, today),
+          key: candidate.key,
+          value: candidate.value,
+          rationale: `${candidate.interactions.size} separate calibration interactions supported this communication recommendation.`,
+          supportingSignalIds: candidate.signals.map((signal) => signal.id).slice(0, 12),
+          confidence: Math.min(0.95, 0.55 + candidate.interactions.size * 0.1),
+          createdAt: this.timestamp(),
+          date: today
+        };
+        this.state.pendingRecommendations = [
+          ...this.state.pendingRecommendations,
+          recommendation
+        ].slice(-MAX_PENDING_RECOMMENDATIONS);
+        this.recordDecision(
+          "recommendation_created",
+          recommendation,
+          "signals_to_pending_founder_approval"
+        );
+      }
     }
 
     const review = {
@@ -419,13 +630,12 @@ export class ConversationCalibration {
       whatWorked,
       friction,
       signalCounts,
-      adjustment
+      recommendation
     };
     this.state.reviews = [
       review,
       ...this.state.reviews.filter((item) => item.date !== today)
     ].slice(0, MAX_REVIEWS);
-    this.state.currentAdjustment = adjustment;
     this.state.lastReviewDate = today;
     this.persist();
     return review;
@@ -434,7 +644,7 @@ export class ConversationCalibration {
   learnedYesterdayResponse() {
     const yesterday = previousDateKey(this.now());
     const review = this.state.reviews.find((item) => item.reviewedDate === yesterday);
-    if (!review?.adjustment) {
+    if (!review?.recommendation) {
       return calibrationResponse(
         "Conversation Calibration",
         "Yesterday's review found no repeated communication pattern strong enough to change the default. No company, customer, workspace, product, or engineering facts were learned.",
@@ -443,22 +653,25 @@ export class ConversationCalibration {
     }
     return calibrationResponse(
       "Conversation Calibration",
-      `Yesterday's review made one communication adjustment: ${review.adjustment.key} is now ${review.adjustment.value}. Reason: ${review.adjustment.reason} Confidence: ${Math.round(review.adjustment.confidence * 100)} percent. No company, customer, workspace, product, or engineering facts were learned.`,
+      `Yesterday's review created pending recommendation ${review.recommendation.id}: ${review.recommendation.key} could become ${review.recommendation.value}. Rationale: ${review.recommendation.rationale} Confidence: ${Math.round(review.recommendation.confidence * 100)} percent. No preference changed; Founder approval is required. No company, customer, workspace, product, or engineering facts were learned.`,
       "calibration_learning_report"
     );
   }
 
-  inspectionResponse() {
+  inspectionResponse(recommendationId = "") {
     const preferences = Object.entries(this.state.preferences);
     const preferenceText = preferences.length
       ? preferences.map(([key, entry]) => `${key}: ${entry.value} (${entry.source})`).join("; ")
       : "No learned communication preference is active.";
-    const adjustment = this.state.currentAdjustment
-      ? ` Current daily adjustment: ${this.state.currentAdjustment.key} to ${this.state.currentAdjustment.value}.`
-      : " No inferred daily adjustment is active.";
+    const inspected = this.inspectRecommendations(recommendationId);
+    const pendingText = inspected.length
+      ? ` Pending recommendation${inspected.length === 1 ? "" : "s"}: ${inspected.map((item) => `${item.id} proposes ${item.key} as ${item.value}; ${item.rationale}`).join(" | ")}. ${inspected.length === 1 ? "It remains" : "They remain"} pending and inactive.`
+      : recommendationId
+        ? ` Pending recommendation ${recommendationId} was not found.`
+        : " No inferred recommendation is pending.";
     return calibrationResponse(
       "Conversation Calibration",
-      `${preferenceText}${adjustment} Stored data is limited to abstract communication signals and explicit preferences.`,
+      `${preferenceText}${pendingText} Stored data is limited to abstract communication signals, explicit preferences, and recommendation decisions.`,
       "calibration_inspection"
     );
   }
@@ -471,7 +684,7 @@ export class ConversationCalibration {
       this.reset();
       return calibrationResponse(
         "Conversation Calibration Reset",
-        "Conversation calibration was reset. Learned preferences and abstract calibration signals were cleared. Company and operating memory were not changed.",
+        "Conversation calibration was reset. Learned preferences, abstract signals, and pending recommendations were cleared. The durable recommendation decision audit was retained. Company and operating memory were not changed.",
         "calibration_reset"
       );
     }
@@ -481,15 +694,58 @@ export class ConversationCalibration {
     }
 
     if (/\b(show|inspect) conversation calibration\b/.test(normalized)) {
-      return this.inspectionResponse();
+      return this.inspectionResponse(recommendationIdFromCommand(normalized));
     }
 
-    if (/\b(reject|undo) (the )?(last |current )?calibration adjustment\b/.test(normalized)) {
-      const rejected = this.rejectCurrentAdjustment();
+    if (/\binspect (the )?(pending )?(calibration )?recommendation\b/.test(normalized)) {
+      return this.inspectionResponse(recommendationIdFromCommand(normalized));
+    }
+
+    if (/\bapprove (the )?(pending )?(calibration )?recommendation\b/.test(normalized)) {
+      const recommendationId = recommendationIdFromCommand(normalized);
+      const approved = this.approveRecommendation(recommendationId);
+      const requiresIdentifier = !recommendationId && this.state.pendingRecommendations.length > 0;
       return calibrationResponse(
-        "Conversation Calibration",
-        rejected ? "The inferred calibration adjustment was rejected and removed." : "There is no inferred calibration adjustment to reject.",
-        "calibration_rejection"
+        approved ? "Calibration Recommendation Approved" : "Calibration Approval Not Applied",
+        approved
+          ? `Approved recommendation ${approved.id}. Active preference ${approved.key} is now ${approved.value}. Exactly one identified recommendation was applied.`
+          : requiresIdentifier
+            ? `Specify the recommendation ID to approve exactly one pending recommendation: ${this.state.pendingRecommendations.map((item) => item.id).join(", ")}.`
+            : recommendationId
+              ? `Pending recommendation ${recommendationId} was not found. No preference changed.`
+              : "There is no pending recommendation to approve. No preference changed.",
+        approved ? "calibration_recommendation_approved" : "calibration_approval_not_applied"
+      );
+    }
+
+    if (/\breject (the )?(pending )?(calibration )?recommendation\b/.test(normalized) || /\b(reject|undo) (the )?(last |current )?calibration adjustment\b/.test(normalized)) {
+      const recommendationId = recommendationIdFromCommand(normalized);
+      const rejected = this.rejectRecommendation(recommendationId);
+      const requiresIdentifier = !recommendationId && this.state.pendingRecommendations.length > 1;
+      return calibrationResponse(
+        rejected ? "Calibration Recommendation Rejected" : "Calibration Rejection Not Applied",
+        rejected
+          ? `Rejected recommendation ${rejected.id}. Active preferences were not changed.`
+          : requiresIdentifier
+            ? `More than one recommendation is pending. Specify the recommendation ID: ${this.state.pendingRecommendations.map((item) => item.id).join(", ")}.`
+            : recommendationId
+              ? `Pending recommendation ${recommendationId} was not found. No preference changed.`
+              : "There is no pending recommendation to reject. No preference changed.",
+        rejected ? "calibration_recommendation_rejected" : "calibration_rejection_not_applied"
+      );
+    }
+
+    if (/\breset (the )?(pending )?(calibration )?recommendation\b/.test(normalized)) {
+      const recommendationId = recommendationIdFromCommand(normalized);
+      const resetItems = this.resetPendingRecommendations(recommendationId);
+      return calibrationResponse(
+        resetItems.length ? "Pending Calibration Reset" : "Pending Calibration Unchanged",
+        resetItems.length
+          ? `Reset pending recommendation${resetItems.length === 1 ? "" : "s"} ${resetItems.map((item) => item.id).join(", ")}. Active preferences were not changed, and the durable decision audit was retained.`
+          : recommendationId
+            ? `Pending recommendation ${recommendationId} was not found. Nothing changed.`
+            : "There is no pending recommendation to reset. Nothing changed.",
+        resetItems.length ? "calibration_recommendation_reset" : "calibration_reset_not_applied"
       );
     }
 
@@ -497,8 +753,8 @@ export class ConversationCalibration {
       const review = this.runDailyReviewIfNeeded({ force: true });
       return calibrationResponse(
         "Conversation Calibration Review",
-        review?.adjustment
-          ? `Review complete. One adjustment was selected: ${review.adjustment.key} is now ${review.adjustment.value}. Confidence: ${Math.round(review.adjustment.confidence * 100)} percent.`
+        review?.recommendation
+          ? `Review complete. Pending recommendation ${review.recommendation.id} proposes ${review.recommendation.key} as ${review.recommendation.value}. Confidence: ${Math.round(review.recommendation.confidence * 100)} percent. No preference changed; explicit Founder approval is required.`
           : "Review complete. No repeated pattern met the three-interaction threshold, so no default changed.",
         "calibration_review"
       );

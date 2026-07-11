@@ -346,27 +346,51 @@ async function verify() {
       ConversationCalibration,
       createMemoryCalibrationStorage
     } = await import(pathToFileURL(join(projectRoot, "prometheus-os/conversation-calibration.js")));
+    let calibrationNow = new Date("2026-07-10T09:00:00-05:00");
     const calibration = new ConversationCalibration({
       storage: createMemoryCalibrationStorage(),
+      now: () => new Date(calibrationNow),
       scope: "runtime-verification"
     });
     const provider = new AIProvider({ conversationCalibration: calibration });
     const preference = await provider.ask("Keep it shorter.");
     const evidence = await provider.ask("Are you sure?");
-    const state = calibration.getState();
-    const serializedState = JSON.stringify(state).toLowerCase();
+    calibration.observeFounderInput("That was confusing.");
+    calibration.observeFounderInput("That was confusing.");
+    calibration.observeFounderInput("That was confusing.");
+    calibrationNow = new Date("2026-07-11T09:00:00-05:00");
+    const recommendation = calibration.runDailyReviewIfNeeded()?.recommendation;
+    const pendingState = calibration.getState();
+    const approval = recommendation?.id
+      ? await provider.ask(`Approve recommendation ${recommendation.id}`)
+      : null;
+    const approvedState = calibration.getState();
+    const serializedState = JSON.stringify(approvedState).toLowerCase();
     const ok = preference.metadata?.intent === "explicit_length_preference" &&
       evidence.metadata?.intent === "evidence_check" &&
-      state.preferences.responseLength?.value === "concise" &&
+      pendingState.preferences.responseLength?.value === "concise" &&
+      pendingState.preferences.responseStructure === undefined &&
+      pendingState.pendingRecommendations.length === 1 &&
+      recommendation?.id &&
+      approval?.metadata?.intent === "calibration_recommendation_approved" &&
+      approvedState.preferences.responseStructure?.value === "answer-first" &&
+      approvedState.preferences.responseStructure?.source === "founder-approved-inference" &&
+      approvedState.decisionAudit.some((entry) => entry.action === "recommendation_approved") &&
       !serializedState.includes("keep it shorter") &&
-      !serializedState.includes("are you sure");
+      !serializedState.includes("are you sure") &&
+      !serializedState.includes("that was confusing");
     record("conversation-calibration", ok, ok
-      ? "neutral calibration, explicit preference, evidence framing, and abstract-only persistence passed"
-      : "conversation calibration did not preserve expected local privacy and preference behavior", {
+      ? "neutral calibration, inert recommendation, identified Founder approval, audit trail, and abstract-only persistence passed"
+      : "conversation calibration did not preserve expected approval, privacy, and preference behavior", {
         preferenceIntent: preference.metadata?.intent,
         evidenceIntent: evidence.metadata?.intent,
-        responseLength: state.preferences.responseLength?.value,
-        rawTextPersisted: serializedState.includes("keep it shorter") || serializedState.includes("are you sure")
+        recommendationId: recommendation?.id,
+        approvalIntent: approval?.metadata?.intent,
+        pendingPreferenceBeforeApproval: pendingState.preferences.responseStructure?.value || null,
+        approvedPreference: approvedState.preferences.responseStructure?.value || null,
+        rawTextPersisted: serializedState.includes("keep it shorter") ||
+          serializedState.includes("are you sure") ||
+          serializedState.includes("that was confusing")
       });
   } catch (error) {
     record("conversation-calibration", false, `conversation calibration verification failed: ${error?.message || error}`);

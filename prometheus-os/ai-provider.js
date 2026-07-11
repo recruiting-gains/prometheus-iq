@@ -65,6 +65,29 @@ export class AIProvider {
       });
     }
 
+    if (permissionLevel === PermissionLevel.APPROVAL_REQUIRED) {
+      addAuditEntry({
+        action: cleanMessage,
+        tool: "approval-router",
+        permissionLevel,
+        approved: false,
+        blocked: false,
+        result: "Approval required. Action was not executed."
+      });
+      return this.remember(cleanMessage, {
+        title: "Approval required",
+        body: "That request would alter source code, prompts, behavior rules, runtime state, deployment, Git history, production, or another protected environment. I will not execute it without an explicit Founder-approved engineering action.",
+        permission: permissionLabel(permissionLevel),
+        tone: "approval",
+        metadata: {
+          routeSelected: "approval_router",
+          intent: "protected_mutation_approval_required",
+          cardFallbackUsed: false,
+          showCard: false
+        }
+      });
+    }
+
     const calibrationResponse = this.conversationCalibration.observeFounderInput(cleanMessage, {
       history: this.history
     });
@@ -125,23 +148,6 @@ export class AIProvider {
         body: output.body,
         permission: permissionLabel(output.permissionLevel),
         tone: "tool"
-      });
-    }
-
-    if (permissionLevel === PermissionLevel.APPROVAL_REQUIRED) {
-      addAuditEntry({
-        action: cleanMessage,
-        tool: "approval-router",
-        permissionLevel,
-        approved: false,
-        blocked: false,
-        result: "Approval required. Action was not executed."
-      });
-      return this.remember(cleanMessage, {
-        title: "Approval required",
-        body: "That action may affect production, deployment, GitHub history, Cloudflare, or a protected product environment. I can draft a checklist, but I will not execute it without explicit approval.",
-        permission: permissionLabel(permissionLevel),
-        tone: "approval"
       });
     }
 

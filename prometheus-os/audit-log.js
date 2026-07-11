@@ -1,6 +1,17 @@
 const STORAGE_KEY = "prometheus-os-audit-log";
 let memoryLog = [];
 
+function browserStorage() {
+  if (
+    typeof window !== "undefined" &&
+    window.localStorage &&
+    typeof window.localStorage.getItem === "function"
+  ) {
+    return window.localStorage;
+  }
+  return null;
+}
+
 export const PermissionLevel = Object.freeze({
   READ_ONLY: 0,
   SAFE_LOCAL_CHECK: 1,
@@ -21,10 +32,9 @@ export function permissionLabel(level) {
 
 function readLog() {
   try {
-    if (typeof localStorage === "undefined" || typeof localStorage.getItem !== "function") {
-      return memoryLog;
-    }
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    const storage = browserStorage();
+    if (!storage) return memoryLog;
+    return JSON.parse(storage.getItem(STORAGE_KEY) || "[]");
   } catch {
     return [];
   }
@@ -32,11 +42,12 @@ function readLog() {
 
 function writeLog(log) {
   const nextLog = log.slice(0, 200);
-  if (typeof localStorage === "undefined" || typeof localStorage.setItem !== "function") {
+  const storage = browserStorage();
+  if (!storage) {
     memoryLog = nextLog;
     return;
   }
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextLog));
+  storage.setItem(STORAGE_KEY, JSON.stringify(nextLog));
 }
 
 export function addAuditEntry({ action, tool, permissionLevel, approved = false, blocked = false, result }) {
@@ -61,6 +72,7 @@ export function getAuditLog() {
 
 export function clearAuditLog() {
   memoryLog = [];
-  if (typeof localStorage === "undefined" || typeof localStorage.removeItem !== "function") return;
-  localStorage.removeItem(STORAGE_KEY);
+  const storage = browserStorage();
+  if (!storage) return;
+  storage.removeItem(STORAGE_KEY);
 }

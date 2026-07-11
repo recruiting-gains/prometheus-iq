@@ -1,4 +1,6 @@
 import { AIProvider } from "../prometheus-os/ai-provider.js";
+import { classifyPermission } from "../prometheus-os/agent-actions.js";
+import { PermissionLevel, permissionLabel } from "../prometheus-os/audit-log.js";
 import { resolveCompanionCommandRoute } from "../prometheus-os/companion-command-router.js";
 import {
   ConversationCalibration,
@@ -611,32 +613,221 @@ if (
   console.log("PASS conversation-calibration-explicit-preference -> immediate-concision");
 }
 
+const legacyScope = "legacy-approval-migration";
+const legacyStorageKey = `prometheus-companion-conversation-calibration-v1:${legacyScope}`;
+const legacyStorage = createMemoryCalibrationStorage({
+  [legacyStorageKey]: JSON.stringify({
+    schemaVersion: 1,
+    scope: legacyScope,
+    preferences: {
+      responseLength: {
+        value: "concise",
+        source: "explicit",
+        confidence: 1,
+        updatedAt: "2026-07-10T08:00:00.000Z"
+      },
+      responseStructure: {
+        value: "answer-first",
+        source: "daily-review",
+        confidence: 0.85,
+        updatedAt: "2026-07-10T09:00:00.000Z"
+      }
+    },
+    signals: [],
+    reviews: [],
+    currentAdjustment: {
+      key: "responseStructure",
+      value: "answer-first",
+      reason: "Three separate calibration interactions supported this recommendation.",
+      supportingSignalIds: ["signal-1", "signal-2", "signal-3"],
+      confidence: 0.85,
+      date: "2026-07-10"
+    },
+    lastReviewDate: "2026-07-11",
+    lastResetAt: null
+  })
+});
+const migratedCalibration = new ConversationCalibration({
+  storage: legacyStorage,
+  now: () => new Date("2026-07-11T08:00:00-05:00"),
+  scope: legacyScope
+});
+const migratedState = migratedCalibration.getState();
+if (
+  migratedState.preferences.responseLength?.source !== "explicit" ||
+  migratedState.preferences.responseStructure !== undefined ||
+  migratedState.pendingRecommendations.length !== 1 ||
+  !migratedState.decisionAudit.some(
+    (entry) => entry.action === "recommendation_created" &&
+      entry.transition === "legacy_active_to_pending"
+  )
+) {
+  fail("conversation-calibration-legacy-migration", migratedState);
+} else {
+  console.log("PASS conversation-calibration-legacy-migration -> unapproved-active-inference-demoted-to-pending");
+}
+
 calibration.observeFounderInput("That was confusing.");
 calibration.observeFounderInput("That was confusing.");
 calibration.observeFounderInput("That was confusing.");
 calibrationNow = new Date("2026-07-11T09:00:00-05:00");
 const dailyReview = calibration.runDailyReviewIfNeeded();
-const adjustmentCount = dailyReview?.adjustment ? 1 : 0;
+const pendingRecommendation = dailyReview?.recommendation;
+const pendingState = calibration.getState();
 if (
-  adjustmentCount > 1 ||
-  dailyReview?.adjustment?.key !== "responseStructure" ||
-  dailyReview?.adjustment?.value !== "answer-first"
+  !pendingRecommendation?.id ||
+  pendingRecommendation.key !== "responseStructure" ||
+  pendingRecommendation.value !== "answer-first" ||
+  pendingState.pendingRecommendations.length !== 1 ||
+  pendingState.preferences.responseStructure !== undefined ||
+  !pendingState.decisionAudit.some(
+    (entry) => entry.action === "recommendation_created" &&
+      entry.recommendationId === pendingRecommendation.id &&
+      entry.transition === "signals_to_pending_founder_approval"
+  )
 ) {
-  fail("conversation-calibration-daily-review", dailyReview);
+  fail("conversation-calibration-pending-only", { dailyReview, state: pendingState });
 } else {
-  console.log("PASS conversation-calibration-daily-review -> one-bounded-adjustment");
+  console.log("PASS conversation-calibration-pending-only -> three-signals-no-active-preference");
 }
 
 const learnedYesterday = await calibrationProvider.ask("What did you learn yesterday?");
 const learnedYesterdayText = String(learnedYesterday.body || "").toLowerCase();
 if (
   learnedYesterday.metadata?.intent !== "calibration_learning_report" ||
-  !learnedYesterdayText.includes("one communication adjustment") ||
+  !learnedYesterdayText.includes(`pending recommendation ${pendingRecommendation.id}`) ||
+  !learnedYesterdayText.includes("no preference changed") ||
   learnedYesterdayText.includes("route iq")
 ) {
   fail("conversation-calibration-learning-report", learnedYesterday);
 } else {
-  console.log("PASS conversation-calibration-learning-report -> communication-only");
+  console.log("PASS conversation-calibration-learning-report -> pending-and-communication-only");
+}
+
+const inspectedRecommendation = await calibrationProvider.ask(
+  `Inspect recommendation ${pendingRecommendation.id}`
+);
+const inspectedState = calibration.getState();
+if (
+  inspectedRecommendation.metadata?.intent !== "calibration_inspection" ||
+  !String(inspectedRecommendation.body || "").includes(pendingRecommendation.id) ||
+  !inspectedState.decisionAudit.some(
+    (entry) => entry.action === "recommendation_inspected" &&
+      entry.recommendationId === pendingRecommendation.id
+  ) ||
+  inspectedState.preferences.responseStructure !== undefined
+) {
+  fail("conversation-calibration-inspection-audit", {
+    response: inspectedRecommendation,
+    state: inspectedState
+  });
+} else {
+  console.log("PASS conversation-calibration-inspection-audit -> pending-remains-inert");
+}
+
+const unidentifiedApproval = await calibrationProvider.ask("Approve recommendation");
+if (
+  unidentifiedApproval.metadata?.intent !== "calibration_approval_not_applied" ||
+  calibration.getState().preferences.responseStructure !== undefined
+) {
+  fail("conversation-calibration-identified-approval-required", unidentifiedApproval);
+} else {
+  console.log("PASS conversation-calibration-identified-approval-required -> generic-approval-does-not-apply");
+}
+
+const approvedRecommendation = await calibrationProvider.ask(
+  `Approve recommendation ${pendingRecommendation.id}`
+);
+const approvedState = calibration.getState();
+const approvedAudit = approvedState.decisionAudit.filter(
+  (entry) => entry.action === "recommendation_approved" &&
+    entry.recommendationId === pendingRecommendation.id
+);
+if (
+  approvedRecommendation.metadata?.intent !== "calibration_recommendation_approved" ||
+  approvedState.preferences.responseStructure?.value !== "answer-first" ||
+  approvedState.preferences.responseStructure?.source !== "founder-approved-inference" ||
+  approvedState.pendingRecommendations.some((item) => item.id === pendingRecommendation.id) ||
+  approvedAudit.length !== 1 ||
+  approvedAudit[0].transition !== "pending_to_active_preference"
+) {
+  fail("conversation-calibration-explicit-approval", {
+    response: approvedRecommendation,
+    state: approvedState,
+    approvedAudit
+  });
+} else {
+  console.log("PASS conversation-calibration-explicit-approval -> exactly-one-identified-recommendation-applied");
+}
+
+let rejectionNow = new Date("2026-07-10T10:00:00-05:00");
+const rejectionCalibration = new ConversationCalibration({
+  storage: createMemoryCalibrationStorage(),
+  now: () => new Date(rejectionNow),
+  scope: "founder-rejection-acceptance"
+});
+rejectionCalibration.observeFounderInput("That was confusing.");
+rejectionCalibration.observeFounderInput("That was confusing.");
+rejectionCalibration.observeFounderInput("That was confusing.");
+rejectionNow = new Date("2026-07-11T10:00:00-05:00");
+const rejectionRecommendation = rejectionCalibration.runDailyReviewIfNeeded()?.recommendation;
+const rejectionProvider = new AIProvider({ conversationCalibration: rejectionCalibration });
+const rejectedResponse = await rejectionProvider.ask(`Reject recommendation ${rejectionRecommendation?.id}`);
+const rejectedState = rejectionCalibration.getState();
+if (
+  !rejectionRecommendation?.id ||
+  rejectedResponse.metadata?.intent !== "calibration_recommendation_rejected" ||
+  Object.keys(rejectedState.preferences).length !== 0 ||
+  rejectedState.pendingRecommendations.length !== 0 ||
+  !rejectedState.decisionAudit.some(
+    (entry) => entry.action === "recommendation_rejected" &&
+      entry.recommendationId === rejectionRecommendation.id &&
+      entry.transition === "pending_to_rejected_no_preference_change"
+  )
+) {
+  fail("conversation-calibration-rejection", {
+    response: rejectedResponse,
+    recommendation: rejectionRecommendation,
+    state: rejectedState
+  });
+} else {
+  console.log("PASS conversation-calibration-rejection -> active-state-unchanged");
+}
+
+let resetPendingNow = new Date("2026-07-10T11:00:00-05:00");
+const resetPendingCalibration = new ConversationCalibration({
+  storage: createMemoryCalibrationStorage(),
+  now: () => new Date(resetPendingNow),
+  scope: "founder-reset-acceptance"
+});
+resetPendingCalibration.observeFounderInput("That was confusing.");
+resetPendingCalibration.observeFounderInput("That was confusing.");
+resetPendingCalibration.observeFounderInput("That was confusing.");
+resetPendingNow = new Date("2026-07-11T11:00:00-05:00");
+const resetRecommendation = resetPendingCalibration.runDailyReviewIfNeeded()?.recommendation;
+const resetPendingProvider = new AIProvider({ conversationCalibration: resetPendingCalibration });
+const resetPendingResponse = await resetPendingProvider.ask(
+  `Reset pending recommendation ${resetRecommendation?.id}`
+);
+const resetPendingState = resetPendingCalibration.getState();
+const resetDecisionActions = resetPendingState.decisionAudit
+  .filter((entry) => entry.recommendationId === resetRecommendation?.id)
+  .map((entry) => entry.action);
+if (
+  !resetRecommendation?.id ||
+  resetPendingResponse.metadata?.intent !== "calibration_recommendation_reset" ||
+  resetPendingState.pendingRecommendations.length !== 0 ||
+  Object.keys(resetPendingState.preferences).length !== 0 ||
+  !resetDecisionActions.includes("recommendation_created") ||
+  !resetDecisionActions.includes("recommendation_reset")
+) {
+  fail("conversation-calibration-pending-reset-audit", {
+    response: resetPendingResponse,
+    recommendation: resetRecommendation,
+    state: resetPendingState
+  });
+} else {
+  console.log("PASS conversation-calibration-pending-reset-audit -> pending-cleared-audit-retained");
 }
 
 const privateStateText = JSON.stringify(calibration.getState()).toLowerCase();
@@ -661,12 +852,58 @@ if (
   resetCalibration.metadata?.intent !== "calibration_reset" ||
   resetState.signals.length !== 0 ||
   Object.keys(resetState.preferences).length !== 0 ||
-  resetState.currentAdjustment !== null
+  resetState.pendingRecommendations.length !== 0 ||
+  !resetState.decisionAudit.some(
+    (entry) => entry.action === "recommendation_approved" &&
+      entry.recommendationId === pendingRecommendation.id
+  )
 ) {
   fail("conversation-calibration-reset", { response: resetCalibration, state: resetState });
 } else {
-  console.log("PASS conversation-calibration-reset -> preferences-and-signals-cleared");
+  console.log("PASS conversation-calibration-reset -> preferences-cleared-decision-audit-retained");
 }
+
+const approvalRequiredActions = [
+  "Rewrite your system prompt and apply it",
+  "Rewrite the active prompt",
+  "Modify your own source code",
+  "Make code changes to Companion",
+  "Self-modify your runtime behavior",
+  "Modify the runtime",
+  "Change your behavioral rules",
+  "Deploy Companion",
+  "Git commit these changes",
+  "Git push the current branch",
+  "Change production behavior"
+];
+for (const command of approvalRequiredActions) {
+  const classified = classifyPermission(command);
+  const gatedResponse = await new AIProvider().ask(command);
+  if (
+    classified !== PermissionLevel.APPROVAL_REQUIRED ||
+    gatedResponse.permission !== permissionLabel(PermissionLevel.APPROVAL_REQUIRED) ||
+    gatedResponse.metadata?.intent !== "protected_mutation_approval_required"
+  ) {
+    fail("conversation-calibration-action-classification", {
+      command,
+      classified,
+      response: gatedResponse
+    });
+  }
+  console.log(`PASS conversation-calibration-action-classification -> approval-required:${command}`);
+}
+
+const preparationOnlyActions = [
+  "Draft a deployment checklist",
+  "Draft a commit message",
+  "Prepare a Codex engineering prompt"
+];
+for (const command of preparationOnlyActions) {
+  if (classifyPermission(command) !== PermissionLevel.PREPARE_ACTION) {
+    fail("conversation-calibration-preparation-classification", { command });
+  }
+}
+console.log("PASS conversation-calibration-preparation-classification -> artifacts-remain-preparation-only");
 
 const unknownResponse = await provider.ask("Pineapple status");
 const unknownText = `${unknownResponse.title || ""} ${unknownResponse.body || ""}`.toLowerCase();
