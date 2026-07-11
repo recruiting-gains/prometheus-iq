@@ -41,6 +41,10 @@
     {
       "binding": "SHARED_LEAD_INTAKE_STORE",
       "id": "5c78f078c68147f089f7b6423c99688c"
+    },
+    {
+      "binding": "CRM_WORKSPACE_LEAD_STORE",
+      "id": "f20a0a4f66fb4b53ab26644e2d3bd0dd"
     }
   ],
   "send_email": [

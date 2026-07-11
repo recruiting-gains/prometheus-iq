@@ -22,6 +22,9 @@ import {
   PARTNER_INTAKE_PATH,
   handlePartnerIntakeRequest
 } from "./infrastructure/shared-lead-intake-pipeline.js";
+import {
+  persistWorkspaceLeadIntakeWithProductionStore
+} from "../crm/workspace-lead-production-runtime.mjs";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
 const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
@@ -364,10 +367,48 @@ async function handleMetaInstagramCallback(request, env) {
   });
 }
 
+async function handlePartnerIntakeWithCrm(request, env) {
+  const result = await handlePartnerIntakeRequest(request, env);
+  if (!result.record) return result;
+
+  try {
+    const crmPersistence = await persistWorkspaceLeadIntakeWithProductionStore(result.record, { env });
+    return {
+      ...result,
+      headers: {
+        ...(result.headers || {}),
+        "X-Prometheus-CRM-Persistence": crmPersistence.status
+      }
+    };
+  } catch (error) {
+    const code = error?.code || "crm_workspace_lead_persistence_failed";
+    console.error(JSON.stringify({
+      message: "CRM workspace lead persistence failed.",
+      code,
+      workspaceId: result.record.workspace.workspaceId,
+      submissionId: result.record.submissionId
+    }));
+    return {
+      body: {
+        ok: false,
+        code,
+        message: "CRM durable lead persistence is unavailable.",
+        submissionId: result.record.submissionId,
+        workspaceId: result.record.workspace.workspaceId,
+        infrastructurePersisted: true
+      },
+      status: error?.status || 500,
+      headers: {
+        "X-Prometheus-CRM-Persistence": "failed"
+      }
+    };
+  }
+}
+
 async function handleApiRequest(request, env) {
   const url = new URL(request.url);
   if (url.pathname === PARTNER_INTAKE_PATH) {
-    const result = await handlePartnerIntakeRequest(request, env);
+    const result = await handlePartnerIntakeWithCrm(request, env);
     return jsonResponse(result.body, result.status, result.headers || {});
   }
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
@@ -404,6 +445,7 @@ export {
   INSTAGRAM_SNAPSHOT_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
+  handlePartnerIntakeWithCrm,
   persistMetaInstagramTokenPatch,
   validateTokenStorage
 };

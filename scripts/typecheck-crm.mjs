@@ -17,6 +17,22 @@ import {
   recordProfileOutcomeForLead,
   transitionLeadProfileStage
 } from "../crm/crm-foundation.mjs";
+import {
+  createCloudflareKvCrmWorkspaceLeadStore,
+  crmWorkspaceLeadStoreBinding,
+  crmWorkspaceLeadStoreTechnology,
+  validateCloudflareKvCrmWorkspaceLeadStoreBinding
+} from "../crm/cloudflare-kv-workspace-lead-store.mjs";
+import {
+  persistWorkspaceLeadIntakeWithProductionStore,
+  productionCrmWorkspaceLeadBindingStatus,
+  readWorkspaceLeadIntakeFromProductionStore
+} from "../crm/workspace-lead-production-runtime.mjs";
+import {
+  readPersistedWorkspaceLeadBySubmission,
+  supportedWorkspaceLeadIntakeWorkspaces,
+  validateWorkspaceLeadIntakeHandoff
+} from "../crm/workspace-lead-persistence.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const enterpriseModel = JSON.parse(readFileSync(resolve(root, "crm/enterprise-lifecycle-model.json"), "utf8"));
@@ -88,5 +104,26 @@ assert.equal(enterpriseModel.productionBetaSystemsModified, false);
 assert.equal(Array.isArray(enterpriseModel.entities), true);
 assert.equal(enterpriseModel.entities.some(entity => entity.id === "company_account"), true);
 assert.equal(typeof persistWorkspaceLeadIntakeHandoff, "function");
+assert.equal(typeof persistWorkspaceLeadIntakeWithProductionStore, "function");
+assert.equal(typeof readWorkspaceLeadIntakeFromProductionStore, "function");
+assert.equal(typeof readPersistedWorkspaceLeadBySubmission, "function");
+assert.equal(typeof validateWorkspaceLeadIntakeHandoff, "function");
+assert.equal(crmWorkspaceLeadStoreBinding, "CRM_WORKSPACE_LEAD_STORE");
+assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
+assert.equal(supportedWorkspaceLeadIntakeWorkspaces.fitness_connection.runtimePersistenceAllowed, true);
+assert.equal(supportedWorkspaceLeadIntakeWorkspaces.smoothie_depot.runtimePersistenceAllowed, false);
+
+const kvBinding = {
+  async get() { return null; },
+  async put() {}
+};
+assert.equal(validateCloudflareKvCrmWorkspaceLeadStoreBinding({ CRM_WORKSPACE_LEAD_STORE: kvBinding }).ok, true);
+assert.equal(createCloudflareKvCrmWorkspaceLeadStore({ CRM_WORKSPACE_LEAD_STORE: kvBinding }).bindingName, crmWorkspaceLeadStoreBinding);
+assert.deepEqual(productionCrmWorkspaceLeadBindingStatus({ CRM_WORKSPACE_LEAD_STORE: kvBinding }), {
+  bindingName: crmWorkspaceLeadStoreBinding,
+  storageTechnology: crmWorkspaceLeadStoreTechnology,
+  readable: true,
+  writable: true
+});
 
 console.log("CRM typecheck passed: exported API and runtime adapter contracts are valid.");

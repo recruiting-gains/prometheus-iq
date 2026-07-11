@@ -31,6 +31,12 @@ CRM consumes Operating Profile definitions from the Intelligence Engine. Fitness
 
 CRM consumes Infrastructure-prepared `shared_workspace_crm_lead_intake_packet.v1` handoff packets through `consumeWorkspaceLeadIntakeHandoff`. Use `persistWorkspaceLeadIntakeHandoff` with a CRM-owned durable store adapter to persist canonical workspace lead records under `crm-workspace-leads/` keys. Infrastructure owns receipt, routing, and intake storage; CRM owns customer lead persistence.
 
+### Production Durable Store
+
+Production CRM workspace leads use the dedicated Cloudflare Workers KV binding `CRM_WORKSPACE_LEAD_STORE` and namespace `f20a0a4f66fb4b53ab26644e2d3bd0dd`. `createCloudflareKvCrmWorkspaceLeadStore` implements the existing readable/writable persistence interface, while `persistWorkspaceLeadIntakeWithProductionStore` composes the Infrastructure handoff packet into CRM-owned durable records. `readWorkspaceLeadIntakeFromProductionStore` resolves the submission index and verifies the workspace partition before returning a record.
+
+The production Worker persists Fitness Connection lead handoffs and fails closed when the CRM binding is unavailable. Smoothie Depot intake remains available to Infrastructure, but CRM runtime candidate persistence is governance-blocked until `runtimeImplementationApproved` and `runtimeCandidateRecordsAllowed` are explicitly changed in the CRM planning contract.
+
 ## v1 Workflow
 
 Supported lead states:

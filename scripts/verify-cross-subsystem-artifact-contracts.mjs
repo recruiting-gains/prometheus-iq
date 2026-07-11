@@ -272,7 +272,10 @@ function validateDashboardConsumer(workspace, dossierContext, failures) {
 
 function validateCrmConsumer(workspace, failures) {
   const crmContract = workspace.consumerContracts.crm;
-  const foundation = read("crm/crm-foundation.mjs");
+  const foundation = [
+    read("crm/crm-foundation.mjs"),
+    read("crm/workspace-lead-persistence.mjs")
+  ].join("\n");
   const tests = read("tests/crm-foundation.test.mjs");
   const planning = readJson("crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json");
 
@@ -733,7 +736,10 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const activePool = readJson(routeDataContract.canonicalDataPaths.activePool);
   const runtimePools = readJson(routeDataContract.canonicalDataPaths.runtimePools);
   const routeQualityReport = readJson(routeDataContract.canonicalDataPaths.routeQualityReport);
-  const crmFoundation = read(crmContract.canonicalCrmPaths.crmFoundation);
+  const crmFoundation = [
+    read(crmContract.canonicalCrmPaths.crmFoundation),
+    read("crm/workspace-lead-persistence.mjs")
+  ].join("\n");
   const crmTests = read(crmContract.canonicalCrmPaths.crmFoundationTests);
   const operatingProfiles = readJson(intelligenceContract.canonicalIntelligencePaths.operatingProfileRegistry);
 

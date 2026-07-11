@@ -678,7 +678,8 @@ async function handlePartnerIntakeRequest(request, env) {
 
   return {
     body: publicSubmissionResponse(result.record),
-    status: result.status
+    status: result.status,
+    record: result.record
   };
 }
 

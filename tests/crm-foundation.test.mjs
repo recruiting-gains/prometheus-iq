@@ -688,7 +688,7 @@ test("CRM persists Fitness Connection workspace lead records durably", async () 
   assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
 });
 
-test("CRM persists Smoothie Depot intake as isolated franchise candidate lead record", async () => {
+test("CRM durable persistence blocks Smoothie Depot candidate records under current governance", async () => {
   const state = createCrmState({ now: "2026-07-04T15:10:00.000Z" });
   const store = memoryKvStore();
   const record = await infrastructureIntakeRecord({
@@ -700,27 +700,18 @@ test("CRM persists Smoothie Depot intake as isolated franchise candidate lead re
     locationCount: "4"
   });
 
-  const result = await persistWorkspaceLeadIntakeHandoff(state, record, {
+  await assert.rejects(() => persistWorkspaceLeadIntakeHandoff(state, record, {
     store,
     persistedAt: "2026-07-04T15:15:00.000Z"
+  }), error => {
+    assert.equal(error.code, "crm_workspace_runtime_governance_blocked");
+    assert.equal(error.status, 409);
+    return true;
   });
 
-  assert.equal(result.ok, true);
-  assert.equal(result.record.workspace.workspaceId, "smoothie_depot");
-  assert.equal(result.record.leadId, result.consumed.candidate.id);
-  assert.equal(result.record.company, "Cypress Smoothie Operators");
-  assert.equal(result.record.contactName, "Riley Candidate");
-  assert.equal(result.record.email, "");
-  assert.equal(result.record.phone, "7135550101");
-  assert.equal(result.record.status, "Contact Found");
-  assert.equal(result.record.assignedWorkspace.targetType, "smoothie_depot_candidate_handoff");
-  assert.equal(result.record.metadata.operatingProfileId, "franchise_development");
-  assert.equal(result.record.metadata.attribution.social.campaignId, "smoothie-durable-intake");
-  assert.equal(result.record.storage.keys.record, `${crmWorkspaceLeadPersistencePrefix}/workspaces/smoothie_depot/submissions/${record.submissionId}/lead.json`);
-  assert.deepEqual(store.readJson(result.record.storage.keys.record), result.record);
-  assert.equal(store.items.has(`${crmWorkspaceLeadPersistencePrefix}/workspaces/fitness_connection/submissions/${record.submissionId}/lead.json`), false);
-  assert.equal(state.workspaceCandidateHandoffs.length, 1);
-  assert.equal(state.workspaceLeadPersistenceRecords.length, 1);
+  assert.equal(store.items.size, 0);
+  assert.equal(state.workspaceCandidateHandoffs.length, 0);
+  assert.equal(state.workspaceLeadPersistenceRecords.length, 0);
 });
 
 test("CRM workspace lead persistence fails closed for unknown workspace without writes", async () => {
