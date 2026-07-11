@@ -85,7 +85,7 @@
       "HOURS_STALE",
       "SPECIAL_HOURS_UNVERIFIED"
     ],
-    "routeEligibilityActivated": false
+    "routeEligibilityActivated": true
   },
   "consumerRules": {
     "dashboard": {
@@ -125,8 +125,13 @@
       "mayWriteDataArtifacts": false,
       "mustNotInfluenceSmoothieDepot": true,
       "businessHoursIndependentVerificationRequired": true,
-      "businessHoursConsumptionAuthorized": false,
-      "businessHoursMayActivateRouteEligibility": false
+      "businessHoursAuthorizedConsumerContractId": "route-iq-closed-now-eligibility-contracts-v1",
+      "businessHoursConsumptionAuthorized": true,
+      "businessHoursMayActivateRouteEligibility": true,
+      "businessHoursInitialRouteGenerationAuthorized": true,
+      "businessHoursAdaptiveReplenishmentAuthorized": true,
+      "businessHoursExplainabilityAuthorized": true,
+      "businessHoursDataMutationAllowed": false
     },
     "mobile": {
       "consumerSubsystem": "Prometheus Mobile",
@@ -167,6 +172,6 @@
     "staleHoursMayBeTreatedAsFresh": false,
     "unverifiedSpecialHoursMayBecomeVerifiedOpen": false,
     "businessTimezoneRequiredForVerifiedHoursStatus": true,
-    "businessHoursRouteEligibilityActivated": false
+    "businessHoursRouteEligibilityActivated": true
   }
 }

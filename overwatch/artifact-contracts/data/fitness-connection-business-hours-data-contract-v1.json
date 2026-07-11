@@ -1,13 +1,13 @@
 {
   "contractId": "fitness-connection-business-hours-data-contract-v1",
-  "status": "pending_independent_overwatch_verification",
+  "status": "active_authorized",
   "owningSubsystem": "Prometheus Data",
   "producerSubsystem": "Prometheus Data",
   "intendedConsumerSubsystem": "Prometheus Intelligence Engine",
   "workspaceId": "fitness_connection",
   "workspaceName": "Fitness Connection",
   "operatingProfileId": "fitness",
-  "purpose": "Provide normalized, fresh, explainable business-hours status to Prometheus Intelligence without changing route eligibility, ranking, or scoring in this Data task.",
+  "purpose": "Authorize the verified Prometheus Intelligence closed-now eligibility consumer to read normalized, fresh, explainable Fitness Connection business-hours status without changing Data ownership or route scoring.",
   "inventionGovernance": {
     "classification": "operational_improvement",
     "reason": "This foundation applies standard provider hours, timezone, freshness, provenance, and deterministic schedule evaluation without adding a new recommendation, ranking, learning, or probability mechanism.",
@@ -22,7 +22,61 @@
     "governanceDocumentation": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/README.md",
     "normalizerAndEvaluator": "scripts/lib/business-hours-governance.mjs",
     "offlineRefreshProcess": "scripts/refresh-google-business-hours.mjs",
-    "focusedTests": "tests/business-hours-governance.test.mjs"
+    "focusedTests": "tests/business-hours-governance.test.mjs",
+    "authorizedIntelligenceConsumerContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json"
+  },
+  "authorizationMetadata": {
+    "authorizationStatus": "AUTHORIZED_ACTIVE",
+    "routeEligibilityActivationStatus": "ACTIVE",
+    "authorizedAt": "2026-07-11T22:17:55Z",
+    "authorizedWorkspaceId": "fitness_connection",
+    "authorizedOperatingProfileId": "fitness",
+    "authorizedConsumerSubsystem": "Prometheus Intelligence Engine",
+    "authorizedConsumerContractId": "route-iq-closed-now-eligibility-contracts-v1",
+    "authorizedConsumerContractPath": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "governingDataContractId": "fitness-connection-business-hours-data-contract-v1",
+    "governingDataContractVersion": "v1",
+    "governingBusinessHoursArtifactVersion": "business-hours-v1",
+    "governingSourceDatasetVersion": "google-qualified-businesses-v2",
+    "authorizedDatasetSha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd",
+    "activationCommitReference": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+    "authorizationRationale": "The identified Intelligence consumer passed functional verification for governed loading, closed-now suppression, verified-open eligibility, conservative uncertainty handling, initial route generation, adaptive replenishment, duplicate and completed-stop protection, Christian Brothers regression, explainability, zero-live-Google behavior, and consumer compatibility.",
+    "authorizedConsumptionScopes": [
+      "initial_route_generation",
+      "continuous_adaptive_replenishment",
+      "recommendation_explainability"
+    ],
+    "provenanceRequirements": {
+      "sourcePlaceIdRequired": true,
+      "sourceRetrievedAtRequired": true,
+      "hoursVerifiedAtRequiredWhenVerified": true,
+      "reasonCodeRequired": true,
+      "fieldEvidenceIdsPreserved": true
+    },
+    "freshnessRequirements": {
+      "freshnessThresholdHours": 168,
+      "staleStatus": "HOURS_STALE",
+      "missingStatus": "HOURS_UNKNOWN",
+      "specialHoursUnverifiedStatus": "SPECIAL_HOURS_UNVERIFIED",
+      "staleOrUnknownMayBeRepresentedAsVerifiedOpen": false
+    },
+    "explainabilityRequirements": {
+      "eligibilityStatusRequired": true,
+      "eligibilityReasonCodeRequired": true,
+      "eligibilityReasonRequired": true,
+      "hoursConfidenceRequired": true,
+      "hoursFreshnessRequired": true,
+      "businessTimezoneRequired": true,
+      "provenanceRequired": true,
+      "silentRecommendationRemovalAllowed": false
+    },
+    "failClosedBehavior": {
+      "unknownConsumerFailsClosed": true,
+      "unknownWorkspaceFailsClosed": true,
+      "crossWorkspaceUseFailsClosed": true,
+      "missingArtifactFailsClosed": true,
+      "consumerContractMismatchFailsClosed": true
+    }
   },
   "sourceContract": {
     "sourceDataset": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
@@ -127,8 +181,13 @@
   },
   "intelligenceHandoffPolicy": {
     "independentOverwatchVerificationRequired": true,
-    "intelligenceConsumptionAuthorized": false,
-    "routeEligibilityActivated": false,
+    "verifiedIntelligenceActivationCommit": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+    "authorizedConsumerContractId": "route-iq-closed-now-eligibility-contracts-v1",
+    "intelligenceConsumptionAuthorized": true,
+    "routeEligibilityActivated": true,
+    "initialRouteGenerationConsumptionAuthorized": true,
+    "continuousAdaptiveReplenishmentConsumptionAuthorized": true,
+    "explainabilityConsumptionAuthorized": true,
     "knownClosedSuppressionPolicyForFutureIntelligenceTask": "Known closed businesses may be suppressed when qualified verified-open alternatives exist.",
     "knownOpenPolicyForFutureIntelligenceTask": "Known open businesses remain eligible for Intelligence evaluation.",
     "unknownOrStalePolicyForFutureIntelligenceTask": "Unknown, stale, and unverified special hours require a separate conservative Intelligence policy.",
@@ -136,6 +195,7 @@
     "silentRecommendationRemovalAllowed": false,
     "dataOwnsGovernedHoursStatus": true,
     "intelligenceOwnsFinalEligibilityAndRanking": true,
+    "intelligenceMayMutateDataArtifact": false,
     "routeScoringWeightsChanged": false
   },
   "currentVerifiedMetrics": {
@@ -166,7 +226,11 @@
   },
   "productionChangeControl": {
     "independentVerificationRequiredBeforePush": true,
-    "independentVerificationRequiredBeforeIntelligenceConsumption": true,
+    "independentVerificationRequiredBeforeIntelligenceConsumption": false,
+    "authorizationCommitMustBeOverwatchVerifiedBeforePush": true,
+    "activationCommitReference": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+    "authorizationOnlyChange": true,
+    "businessHoursDatasetModified": false,
     "dashboardModified": false,
     "intelligenceModified": false,
     "crmModified": false,

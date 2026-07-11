@@ -2,7 +2,7 @@
 
 Owner: Prometheus Data
 
-Status: governed Data foundation implemented; route eligibility is not activated.
+Status: governed Data foundation implemented; the verified Fitness Connection Intelligence consumer is authorized for closed-now route eligibility.
 
 ## Root Cause
 
@@ -14,7 +14,7 @@ Founder field evidence from July 11, 2026 identified the failure at Christian Br
 
 `scripts/refresh-google-business-hours.mjs` is an offline or scheduled batch process. It reads verified business identities from `google-qualified-businesses-v2.json`, fetches Place Details by the existing Google Place ID, normalizes structured hours, evaluates a deterministic status in the business-local timezone, and atomically writes `business-hours.json`.
 
-The representative route-generation runtime makes no Google call. A future Prometheus Intelligence task may consume the governed artifact only after independent verification and must own final route eligibility and ranking.
+The representative route-generation runtime makes no Google call. The verified `route-iq-closed-now-eligibility-contracts-v1` Prometheus Intelligence consumer may read the governed artifact for Fitness Connection initial route generation, adaptive replenishment, and explainability. Intelligence owns final route eligibility and ranking and may not mutate Data artifacts.
 
 Provider refresh:
 
@@ -41,7 +41,7 @@ Recommended schedule:
 - Provider hours remain fresh for at most 168 hours.
 - Point-in-time field observations remain current for at most 240 minutes and are corroborating evidence, not a weekly schedule.
 
-No scheduler or production consumer is deployed by this task.
+No provider-refresh scheduler is deployed by this Data task. Consumer authorization is limited to the already verified Intelligence contract and does not authorize any other subsystem or workspace.
 
 ## Status Model
 
@@ -81,14 +81,14 @@ The Data-to-Intelligence handoff contract is:
 
 `overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json`
 
-The contract permits a future Intelligence consumer to apply a conservative, explainable policy after independent verification:
+The contract authorizes the identified Intelligence consumer to apply the verified conservative, explainable policy:
 
 - Known closed businesses may be suppressed when qualified verified-open alternatives exist.
 - Known open businesses remain eligible for Intelligence evaluation.
 - Unknown, stale, and unverified special hours require separate conservative handling.
 - Every exclusion or uncertainty must retain the Data status and reason code.
 
-This Data task does not remove any recommendation, change any route score, or activate that policy.
+This Data authorization does not modify Intelligence runtime logic, route scores, or the business-hours dataset.
 
 ## Provider Reference
 

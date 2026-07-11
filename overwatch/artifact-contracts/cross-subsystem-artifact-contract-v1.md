@@ -147,7 +147,7 @@ Dashboard must read Fitness Connection Active Pool and runtime pool artifacts on
 
 Prometheus Data owns normalized Fitness Connection business-hours records, source freshness, timezone evaluation, provenance, and deterministic `OPEN_VERIFIED`, `CLOSED_VERIFIED`, `HOURS_UNKNOWN`, `HOURS_STALE`, and `SPECIAL_HOURS_UNVERIFIED` statuses. Permanent operational status and current hours status must remain separate.
 
-The business-hours contract remains pending independent Overwatch verification. It does not authorize a production Intelligence consumer, route suppression, scoring change, or live Google call. After independent verification, Intelligence may interpret the governed status through the canonical contract, must preserve the attributable status reason, and remains the sole owner of final route eligibility and ranking.
+The business-hours contract authorizes only the verified `route-iq-closed-now-eligibility-contracts-v1` Prometheus Intelligence consumer for Fitness Connection initial route generation, continuous adaptive replenishment, and explainability. The authorization does not permit Data mutation, scoring-weight changes, live Google calls, cross-workspace use, Smoothie Depot consumption, or unregistered consumers. Intelligence must preserve the attributable status reason and remains the sole owner of final route eligibility and ranking.
 
 CRM must route intake and future candidate records by `workspaceId`, reject unknown workspaces, and reject cross-workspace contamination before mutation.
 

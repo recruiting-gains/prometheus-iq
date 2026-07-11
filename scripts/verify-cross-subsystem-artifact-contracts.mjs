@@ -356,6 +356,7 @@ function validateBusinessHoursDataContract(contract, runtimeContract, failures) 
   const schema = readJson(contract.canonicalArtifacts.businessHoursSchema);
   const report = readJson(contract.canonicalArtifacts.refreshReport);
   const fieldEvidence = readJson(contract.canonicalArtifacts.founderFieldEvidence);
+  const authorizedConsumerContract = readJson(contract.authorizationMetadata.authorizedConsumerContractPath);
   const sourceDataset = readJson(contract.sourceContract.sourceDataset);
   const expected = runtimeContract.expectedBusinessHoursMetrics;
   const statusCounts = artifact.records.reduce((counts, record) => {
@@ -368,11 +369,45 @@ function validateBusinessHoursDataContract(contract, runtimeContract, failures) 
   assert(contract.owningSubsystem === "Prometheus Data", "Business-hours contract must be Data-owned.", failures);
   assert(contract.producerSubsystem === "Prometheus Data", "Business-hours producer must be Prometheus Data.", failures);
   assert(contract.intendedConsumerSubsystem === "Prometheus Intelligence Engine", "Business-hours intended consumer mismatch.", failures);
-  assert(contract.status === "pending_independent_overwatch_verification", "Business-hours contract must remain pending independent verification.", failures);
+  assert(contract.status === "active_authorized", "Business-hours contract must be active and authorized.", failures);
   assert(contract.workspaceId === "fitness_connection", "Business-hours contract workspace mismatch.", failures);
   assert(contract.operatingProfileId === "fitness", "Business-hours contract operating profile mismatch.", failures);
   assert(contract.inventionGovernance.classification === "operational_improvement", "Business-hours invention-governance classification mismatch.", failures);
   assert(contract.inventionGovernance.patentabilityClaimMade === false, "Business-hours contract must not make a patentability claim.", failures);
+
+  assert(contract.authorizationMetadata.authorizationStatus === "AUTHORIZED_ACTIVE", "Business-hours authorization status mismatch.", failures);
+  assert(contract.authorizationMetadata.routeEligibilityActivationStatus === "ACTIVE", "Business-hours route eligibility activation status mismatch.", failures);
+  assert(contract.authorizationMetadata.authorizedWorkspaceId === contract.workspaceId, "Business-hours authorized workspace mismatch.", failures);
+  assert(contract.authorizationMetadata.authorizedOperatingProfileId === contract.operatingProfileId, "Business-hours authorized operating profile mismatch.", failures);
+  assert(contract.authorizationMetadata.authorizedConsumerSubsystem === "Prometheus Intelligence Engine", "Business-hours authorized consumer subsystem mismatch.", failures);
+  assert(contract.authorizationMetadata.authorizedConsumerContractId === "route-iq-closed-now-eligibility-contracts-v1", "Business-hours authorized consumer contract mismatch.", failures);
+  assert(contract.authorizationMetadata.governingDataContractId === contract.contractId, "Business-hours governing Data contract mismatch.", failures);
+  assert(contract.authorizationMetadata.governingBusinessHoursArtifactVersion === "business-hours-v1", "Business-hours governing artifact version mismatch.", failures);
+  assert(contract.authorizationMetadata.governingSourceDatasetVersion === "google-qualified-businesses-v2", "Business-hours governing dataset version mismatch.", failures);
+  assert(contract.authorizationMetadata.activationCommitReference === "be7a04c8df84a68d20868ce53183965495a4fc7d", "Business-hours activation commit mismatch.", failures);
+  assert(sha256(read(contract.canonicalArtifacts.businessHoursArtifact)) === contract.authorizationMetadata.authorizedDatasetSha256, "Authorized business-hours dataset hash changed.", failures);
+  assert(contract.authorizationMetadata.authorizedConsumptionScopes.includes("initial_route_generation"), "Initial route generation must be authorized.", failures);
+  assert(contract.authorizationMetadata.authorizedConsumptionScopes.includes("continuous_adaptive_replenishment"), "Adaptive replenishment must be authorized.", failures);
+  assert(contract.authorizationMetadata.authorizedConsumptionScopes.includes("recommendation_explainability"), "Business-hours explainability must be authorized.", failures);
+  assert(contract.authorizationMetadata.failClosedBehavior.unknownConsumerFailsClosed === true, "Unknown business-hours consumers must fail closed.", failures);
+  assert(contract.authorizationMetadata.failClosedBehavior.unknownWorkspaceFailsClosed === true, "Unknown business-hours workspaces must fail closed.", failures);
+  assert(contract.authorizationMetadata.failClosedBehavior.crossWorkspaceUseFailsClosed === true, "Cross-workspace business-hours use must fail closed.", failures);
+  assert(contract.authorizationMetadata.failClosedBehavior.consumerContractMismatchFailsClosed === true, "Mismatched business-hours consumer contracts must fail closed.", failures);
+  assert(contract.authorizationMetadata.freshnessRequirements.freshnessThresholdHours === contract.freshnessPolicy.freshnessThresholdHours, "Authorized freshness threshold mismatch.", failures);
+  assert(contract.authorizationMetadata.freshnessRequirements.staleOrUnknownMayBeRepresentedAsVerifiedOpen === false, "Stale or unknown hours must not become verified open.", failures);
+  assert(contract.authorizationMetadata.explainabilityRequirements.silentRecommendationRemovalAllowed === false, "Authorized consumer must preserve explainability.", failures);
+  assert(contract.authorizationMetadata.provenanceRequirements.sourcePlaceIdRequired === true, "Authorized consumer must preserve Place ID provenance.", failures);
+
+  assert(authorizedConsumerContract.version === contract.authorizationMetadata.authorizedConsumerContractId, "Authorized Intelligence contract id mismatch.", failures);
+  assert(authorizedConsumerContract.workspaceId === contract.workspaceId, "Authorized Intelligence contract workspace mismatch.", failures);
+  assert(authorizedConsumerContract.operatingProfileId === contract.operatingProfileId, "Authorized Intelligence contract operating profile mismatch.", failures);
+  assert(authorizedConsumerContract.dataContract.contractId === contract.contractId, "Authorized Intelligence contract must reference the governing Data contract.", failures);
+  assert(authorizedConsumerContract.dataContract.dataOwnsStatusAndProvenance === true, "Data must retain status and provenance ownership.", failures);
+  assert(authorizedConsumerContract.dataContract.intelligenceOwnsEligibility === true, "Intelligence must retain eligibility ownership.", failures);
+  assert(authorizedConsumerContract.dataContract.sourceRecordsModified === false, "Authorized Intelligence consumer must not mutate Data records.", failures);
+  assert(authorizedConsumerContract.safety.liveGoogleCalls === false, "Authorized Intelligence consumer must preserve zero live Google calls.", failures);
+  assert(authorizedConsumerContract.safety.scoringWeightsChanged === false, "Authorized Intelligence consumer must preserve scoring weights.", failures);
+  assert(authorizedConsumerContract.safety.workspaceIsolation === "fail_closed", "Authorized Intelligence consumer must fail closed on workspace isolation.", failures);
 
   assert(schema.$id === "prometheus-data-business-hours-v1", "Business-hours schema id mismatch.", failures);
   assert(artifact.schemaVersion === "prometheus-data-business-hours-v1", "Business-hours artifact schema version mismatch.", failures);
@@ -429,11 +464,20 @@ function validateBusinessHoursDataContract(contract, runtimeContract, failures) 
   assert(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessHours === false, "Smoothie Depot must not consume Fitness business hours.", failures);
   assert(contract.workspaceIsolationRules.crossWorkspaceHoursJoinAllowed === false, "Cross-workspace business-hours joins must be prohibited.", failures);
   assert(contract.intelligenceHandoffPolicy.independentOverwatchVerificationRequired === true, "Business-hours handoff must require independent verification.", failures);
-  assert(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized === false, "Business-hours Intelligence consumption must remain unauthorized.", failures);
-  assert(contract.intelligenceHandoffPolicy.routeEligibilityActivated === false, "Business-hours route eligibility must remain inactive.", failures);
+  assert(contract.intelligenceHandoffPolicy.authorizedConsumerContractId === contract.authorizationMetadata.authorizedConsumerContractId, "Business-hours handoff consumer id mismatch.", failures);
+  assert(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized === true, "Business-hours Intelligence consumption must be authorized.", failures);
+  assert(contract.intelligenceHandoffPolicy.routeEligibilityActivated === true, "Business-hours route eligibility must be active.", failures);
+  assert(contract.intelligenceHandoffPolicy.initialRouteGenerationConsumptionAuthorized === true, "Initial route generation consumption must be authorized.", failures);
+  assert(contract.intelligenceHandoffPolicy.continuousAdaptiveReplenishmentConsumptionAuthorized === true, "Adaptive replenishment consumption must be authorized.", failures);
+  assert(contract.intelligenceHandoffPolicy.explainabilityConsumptionAuthorized === true, "Explainability consumption must be authorized.", failures);
   assert(contract.intelligenceHandoffPolicy.dataOwnsGovernedHoursStatus === true, "Data must own governed business-hours status.", failures);
   assert(contract.intelligenceHandoffPolicy.intelligenceOwnsFinalEligibilityAndRanking === true, "Intelligence must own final eligibility and ranking.", failures);
+  assert(contract.intelligenceHandoffPolicy.intelligenceMayMutateDataArtifact === false, "Intelligence must not mutate the business-hours Data artifact.", failures);
   assert(contract.intelligenceHandoffPolicy.silentRecommendationRemovalAllowed === false, "Silent recommendation removal must remain prohibited.", failures);
+  assert(runtimeContract.expectedBusinessHoursMetrics.routeEligibilityActivated === true, "Data runtime contract must activate authorized business-hours eligibility.", failures);
+  assert(runtimeContract.consumerRules.intelligence.businessHoursConsumptionAuthorized === true, "Data runtime contract must authorize Intelligence hours consumption.", failures);
+  assert(runtimeContract.consumerRules.intelligence.businessHoursAuthorizedConsumerContractId === contract.authorizationMetadata.authorizedConsumerContractId, "Data runtime contract authorized consumer mismatch.", failures);
+  assert(runtimeContract.consumerRules.intelligence.businessHoursDataMutationAllowed === false, "Data runtime contract must prohibit Intelligence Data mutation.", failures);
 }
 
 function validateDataRuntimeArtifactContract(contract, routeDataContract, failures) {

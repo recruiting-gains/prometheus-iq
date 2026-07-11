@@ -356,8 +356,10 @@
           "schema": "FitnessConnectionBusinessHoursDataContractV1",
           "writeAllowed": ["Prometheus Data"],
           "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": false,
+          "productionConsumer": true,
           "requiresIndependentOverwatchVerification": true,
+          "authorizedConsumerSubsystem": "Prometheus Intelligence Engine",
+          "authorizedConsumerContractId": "route-iq-closed-now-eligibility-contracts-v1",
           "requiredWorkspaceId": "fitness_connection",
           "requiredOperatingProfileId": "fitness",
           "failClosedIfMissing": true

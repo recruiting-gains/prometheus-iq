@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import test from "node:test";
 
@@ -177,7 +178,7 @@ test("Data runtime artifact contract registers canonical paths and consumer boun
   assert.equal(contract.canonicalBusinessHoursArtifacts.businessHoursDataContract, "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json");
   assert.equal(contract.canonicalBusinessHoursArtifacts.businessHoursArtifact, "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json");
   assert.equal(contract.expectedBusinessHoursMetrics.recordCount, 398);
-  assert.equal(contract.expectedBusinessHoursMetrics.routeEligibilityActivated, false);
+  assert.equal(contract.expectedBusinessHoursMetrics.routeEligibilityActivated, true);
   assert.equal(contract.consumerRules.dashboard.mayReadOnlyApprovedDataArtifacts, true);
   assert.equal(contract.consumerRules.crm.mayConsumeAssignedLeadArtifactsOnlyThroughContract, true);
   assert.equal(contract.consumerRules.intelligence.mayInterpretOnlyThroughApprovedReadPaths, true);
@@ -187,24 +188,60 @@ test("Data runtime artifact contract registers canonical paths and consumer boun
   assert.equal(contract.workspaceIsolationRules.fixtureDataAllowedInProduction, false);
 });
 
-test("Data business-hours contract remains governed and inactive pending Intelligence verification", () => {
+test("Data business-hours contract authorizes only the verified Fitness Intelligence consumer", () => {
   const result = verifyCrossSubsystemArtifactContracts();
   const fitnessConnection = result.registry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
   const artifactRegistration = fitnessConnection.canonicalArtifacts.find(artifact => artifact.artifactId === "fitness_connection_business_hours_data_contract");
   const contract = JSON.parse(fs.readFileSync(artifactRegistration.path, "utf8"));
   const hours = JSON.parse(fs.readFileSync(contract.canonicalArtifacts.businessHoursArtifact, "utf8"));
+  const hoursSource = fs.readFileSync(contract.canonicalArtifacts.businessHoursArtifact, "utf8");
+  const consumer = JSON.parse(fs.readFileSync(contract.authorizationMetadata.authorizedConsumerContractPath, "utf8"));
+  const datasetSha256 = createHash("sha256").update(hoursSource).digest("hex");
 
   assert.equal(artifactRegistration.ownerSubsystem, "Prometheus Data");
-  assert.equal(artifactRegistration.productionConsumer, false);
+  assert.equal(artifactRegistration.productionConsumer, true);
   assert.equal(artifactRegistration.requiresIndependentOverwatchVerification, true);
-  assert.equal(contract.status, "pending_independent_overwatch_verification");
+  assert.equal(artifactRegistration.authorizedConsumerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(artifactRegistration.authorizedConsumerContractId, "route-iq-closed-now-eligibility-contracts-v1");
+  assert.equal(contract.status, "active_authorized");
   assert.equal(contract.inventionGovernance.classification, "operational_improvement");
   assert.equal(contract.inventionGovernance.patentabilityClaimMade, false);
+  assert.equal(contract.authorizationMetadata.authorizationStatus, "AUTHORIZED_ACTIVE");
+  assert.equal(contract.authorizationMetadata.routeEligibilityActivationStatus, "ACTIVE");
+  assert.equal(contract.authorizationMetadata.authorizedWorkspaceId, "fitness_connection");
+  assert.equal(contract.authorizationMetadata.authorizedOperatingProfileId, "fitness");
+  assert.equal(contract.authorizationMetadata.authorizedConsumerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(contract.authorizationMetadata.authorizedConsumerContractId, "route-iq-closed-now-eligibility-contracts-v1");
+  assert.equal(contract.authorizationMetadata.activationCommitReference, "be7a04c8df84a68d20868ce53183965495a4fc7d");
+  assert.equal(contract.authorizationMetadata.authorizedDatasetSha256, datasetSha256);
+  assert.deepEqual(contract.authorizationMetadata.authorizedConsumptionScopes, [
+    "initial_route_generation",
+    "continuous_adaptive_replenishment",
+    "recommendation_explainability"
+  ]);
+  assert.equal(contract.authorizationMetadata.failClosedBehavior.unknownConsumerFailsClosed, true);
+  assert.equal(contract.authorizationMetadata.failClosedBehavior.unknownWorkspaceFailsClosed, true);
+  assert.equal(contract.authorizationMetadata.failClosedBehavior.crossWorkspaceUseFailsClosed, true);
+  assert.equal(contract.authorizationMetadata.failClosedBehavior.consumerContractMismatchFailsClosed, true);
   assert.equal(contract.enrichmentPolicy.liveGoogleCallsAllowedInRepresentativeRuntime, false);
   assert.equal(contract.persistenceAndFailurePolicy.unknownWorkspaceFailsClosed, true);
-  assert.equal(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized, false);
-  assert.equal(contract.intelligenceHandoffPolicy.routeEligibilityActivated, false);
+  assert.equal(contract.intelligenceHandoffPolicy.intelligenceConsumptionAuthorized, true);
+  assert.equal(contract.intelligenceHandoffPolicy.routeEligibilityActivated, true);
+  assert.equal(contract.intelligenceHandoffPolicy.initialRouteGenerationConsumptionAuthorized, true);
+  assert.equal(contract.intelligenceHandoffPolicy.continuousAdaptiveReplenishmentConsumptionAuthorized, true);
+  assert.equal(contract.intelligenceHandoffPolicy.explainabilityConsumptionAuthorized, true);
   assert.equal(contract.intelligenceHandoffPolicy.intelligenceOwnsFinalEligibilityAndRanking, true);
+  assert.equal(contract.intelligenceHandoffPolicy.dataOwnsGovernedHoursStatus, true);
+  assert.equal(contract.intelligenceHandoffPolicy.intelligenceMayMutateDataArtifact, false);
+  assert.equal(consumer.version, contract.authorizationMetadata.authorizedConsumerContractId);
+  assert.equal(consumer.workspaceId, "fitness_connection");
+  assert.equal(consumer.operatingProfileId, "fitness");
+  assert.equal(consumer.dataContract.dataOwnsStatusAndProvenance, true);
+  assert.equal(consumer.dataContract.intelligenceOwnsEligibility, true);
+  assert.equal(consumer.dataContract.sourceRecordsModified, false);
+  assert.equal(consumer.safety.liveGoogleCalls, false);
+  assert.equal(consumer.safety.scoringWeightsChanged, false);
+  assert.equal(consumer.safety.workspaceIsolation, "fail_closed");
   assert.equal(hours.recordCount, 398);
   assert.equal(hours.routeEligibilityActivated, false);
   assert.equal(hours.runtimeBehaviorChanged, false);
