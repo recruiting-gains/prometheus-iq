@@ -76,6 +76,14 @@ function uniqueBusinessByName(records, businessName) {
   return matches[0];
 }
 
+function uniqueEvidenceByAnchor(observations, businessName) {
+  const matches = observations.filter(observation => observation.anchorBusinessName === businessName);
+  if (matches.length !== 1) {
+    throw new Error(`Expected one commercial-center evidence record for ${businessName}; found ${matches.length}.`);
+  }
+  return matches[0];
+}
+
 function buildPoolIndex(productionIds, pools) {
   const index = new Map();
   for (const [poolName, records] of Object.entries(pools)) {
@@ -296,7 +304,7 @@ function buildBusinessCoverage(inputs, resolved) {
   });
 }
 
-function buildCommercialCenters(generatedAt, inputs, resolved, businessCoverage) {
+function buildCommercialCenters(generatedAt, inputs, resolved, evidence, businessCoverage) {
   const base = baseArtifact("commercial_center_dataset", generatedAt, inputs);
   return {
     ...base,
@@ -318,7 +326,7 @@ function buildCommercialCenters(generatedAt, inputs, resolved, businessCoverage)
         verifiedAnchorPlaceIds: [resolved.texans.google_place_id],
         corroboratedNearbyPlaceIds: [resolved.blackhawk.google_place_id],
         unresolvedNearbyBusinesses: [{ businessName: "Elite Dry Cleaners", googlePlaceId: null }],
-        minimumObservedNearbyBusinessCount: 2,
+        minimumObservedNearbyBusinessCount: evidence.texans.minimumObservedNearbyBusinessCount,
         observedAttributes: {
           multipleStorefronts: true,
           adjacentStorefronts: true,
@@ -346,7 +354,7 @@ function buildCommercialCenters(generatedAt, inputs, resolved, businessCoverage)
         verifiedAnchorPlaceIds: [resolved.christian.google_place_id],
         corroboratedNearbyPlaceIds: [],
         unresolvedNearbyBusinesses: [],
-        minimumObservedNearbyBusinessCount: 5,
+        minimumObservedNearbyBusinessCount: evidence.christian.minimumObservedNearbyBusinessCount,
         observedAttributes: {
           multipleStorefronts: null,
           adjacentStorefronts: null,
@@ -374,7 +382,7 @@ function buildCommercialCenters(generatedAt, inputs, resolved, businessCoverage)
   };
 }
 
-function buildWalkabilityGroups(generatedAt, inputs, resolved, texansDistance) {
+function buildWalkabilityGroups(generatedAt, inputs, resolved, evidence, texansDistance) {
   return {
     ...baseArtifact("walkability_dataset", generatedAt, inputs),
     groupCount: 2,
@@ -398,7 +406,7 @@ function buildWalkabilityGroups(generatedAt, inputs, resolved, texansDistance) {
           }
         ],
         unresolvedMembers: [{ businessName: "Elite Dry Cleaners", googlePlaceId: null }],
-        minimumObservedNearbyBusinessCount: 2,
+        minimumObservedNearbyBusinessCount: evidence.texans.minimumObservedNearbyBusinessCount,
         straightLineDistanceMetersForResolvedPair: texansDistance.meters,
         straightLineDistanceFeetForResolvedPair: texansDistance.feet,
         internalWalkingDistanceEstimateMeters: null,
@@ -423,7 +431,7 @@ function buildWalkabilityGroups(generatedAt, inputs, resolved, texansDistance) {
           }
         ],
         unresolvedMembers: [],
-        minimumObservedNearbyBusinessCount: 5,
+        minimumObservedNearbyBusinessCount: evidence.christian.minimumObservedNearbyBusinessCount,
         straightLineDistanceMetersForResolvedPair: null,
         straightLineDistanceFeetForResolvedPair: null,
         internalWalkingDistanceEstimateMeters: null,
@@ -524,7 +532,7 @@ function relationshipRecord({
   };
 }
 
-function buildRelationships(generatedAt, inputs, resolved, texansDistance, christianNearbyDistance) {
+function buildRelationships(generatedAt, inputs, resolved, evidence, texansDistance, christianNearbyDistance) {
   const records = [
     relationshipRecord({
       relationshipId: "relationship-tier4-texans-blackhawk-dental-2026-07-11",
@@ -585,8 +593,8 @@ function buildRelationships(generatedAt, inputs, resolved, texansDistance, chris
         anchorGooglePlaceId: resolved.christian.google_place_id,
         unresolvedBusinessName: null,
         unresolvedGooglePlaceId: null,
-        minimumUnresolvedBusinessCount: 5,
-        reason: "Founder observed more than five walkable businesses, but their identities were not archived."
+        minimumUnresolvedBusinessCount: evidence.christian.minimumObservedNearbyBusinessCount,
+        reason: `${evidence.christian.finding} Their identities were not archived.`
       }
     ]
   };
@@ -602,6 +610,8 @@ export function validateCommercialCenterArtifacts(artifacts, inputs) {
   const relationships = artifacts.relationships.records || [];
   const commercialContextIds = new Set((artifacts.commercialCenters.commercialContexts || []).map(context => context.commercialCenterId));
   const walkabilityGroupIds = new Set((artifacts.walkabilityGroups.groups || []).map(group => group.walkabilityGroupId));
+  const christianEvidence = uniqueEvidenceByAnchor(inputs.commercialCenterEvidence.observations || [], "Christian Brothers Automotive Pearland");
+  const christianMinimum = christianEvidence.minimumObservedNearbyBusinessCount;
 
   for (const artifact of Object.values(artifacts)) {
     check(artifact.artifactVersion === commercialCenterArtifactVersion, `${artifact.artifactType}:artifact_version_mismatch`);
@@ -655,7 +665,14 @@ export function validateCommercialCenterArtifacts(artifacts, inputs) {
   check(tier5?.verificationStatus === "CALCULATED_COORDINATE_PROXIMITY_ONLY", "tier_5_verification_disclosure_missing");
   check((tier5?.straightLineDistanceFeet ?? Infinity) <= nearbyDiagnosticMaximumFeet, "tier_5_outside_nearby_diagnostic_bound");
   check(artifacts.relationships.unresolvedEvidence.some(item => item.unresolvedBusinessName === "Elite Dry Cleaners" && item.unresolvedGooglePlaceId === null), "elite_dry_cleaners_unknown_identity_not_preserved");
-  check(artifacts.relationships.unresolvedEvidence.some(item => item.minimumUnresolvedBusinessCount === 5), "christian_brothers_unresolved_count_not_preserved");
+  check(christianEvidence.finding === "More than five walkable businesses.", "christian_brothers_qualitative_evidence_regressed");
+  check(christianEvidence.quantityExpression === "MORE_THAN_FIVE", "christian_brothers_quantity_expression_regressed");
+  check(Number.isInteger(christianMinimum) && christianMinimum >= 6, "christian_brothers_minimum_not_greater_than_five");
+  check(artifacts.commercialCenters.commercialContexts.some(context => context.commercialCenterId === contextIds.christian
+    && context.minimumObservedNearbyBusinessCount === christianMinimum), "christian_brothers_commercial_context_count_not_preserved");
+  check(artifacts.walkabilityGroups.groups.some(group => group.walkabilityGroupId === contextIds.christianWalkability
+    && group.minimumObservedNearbyBusinessCount === christianMinimum), "christian_brothers_walkability_count_not_preserved");
+  check(artifacts.relationships.unresolvedEvidence.some(item => item.minimumUnresolvedBusinessCount === christianMinimum), "christian_brothers_unresolved_count_not_preserved");
   check(businessRecords.every(record => record.workspaceId === authorizedWorkspaceId), "cross_workspace_business_record");
   check(businessRecords.every(record => record.businessHoursReference !== null), "business_hours_reference_missing");
 
@@ -714,6 +731,10 @@ export function buildCommercialCenterArtifacts(options = {}) {
     blackhawk: uniqueBusinessByName(inputs.productionRecords, "Blackhawk Dental"),
     firstTexas: uniqueBusinessByName(inputs.productionRecords, "First Texas Dental")
   };
+  const evidence = {
+    texans: uniqueEvidenceByAnchor(inputs.commercialCenterEvidence.observations || [], "Texans Auto Repair - Blackhawk"),
+    christian: uniqueEvidenceByAnchor(inputs.commercialCenterEvidence.observations || [], "Christian Brothers Automotive Pearland")
+  };
   const texansMeters = distanceMeters(resolved.texans, resolved.blackhawk);
   const christianNearbyMeters = distanceMeters(resolved.christian, resolved.firstTexas);
   const texansDistance = { meters: round(texansMeters), feet: round(texansMeters * 3.28084) };
@@ -724,10 +745,10 @@ export function buildCommercialCenterArtifacts(options = {}) {
 
   const businessCoverage = buildBusinessCoverage(inputs, resolved);
   const artifacts = {
-    commercialCenters: buildCommercialCenters(generatedAt, inputs, resolved, businessCoverage),
-    walkabilityGroups: buildWalkabilityGroups(generatedAt, inputs, resolved, texansDistance),
+    commercialCenters: buildCommercialCenters(generatedAt, inputs, resolved, evidence, businessCoverage),
+    walkabilityGroups: buildWalkabilityGroups(generatedAt, inputs, resolved, evidence, texansDistance),
     shoppingCenters: buildShoppingCenters(generatedAt, inputs, resolved),
-    relationships: buildRelationships(generatedAt, inputs, resolved, texansDistance, christianNearbyDistance)
+    relationships: buildRelationships(generatedAt, inputs, resolved, evidence, texansDistance, christianNearbyDistance)
   };
   const validation = validateCommercialCenterArtifacts(artifacts, inputs);
   if (validation.status !== "passed") {

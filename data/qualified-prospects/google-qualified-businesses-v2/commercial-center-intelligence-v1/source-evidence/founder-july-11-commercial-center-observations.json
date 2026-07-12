@@ -19,6 +19,16 @@
       "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
     ]
   },
+  "correctionHistory": [
+    {
+      "correctionId": "christian-brothers-more-than-five-evidence-correction-v1",
+      "correctedAt": "2026-07-12T06:52:29Z",
+      "fieldPath": "observations[commercial-center-evidence-christian-brothers-2026-07-11].minimumObservedNearbyBusinessCount",
+      "previousValue": 5,
+      "correctedValue": 6,
+      "semanticBasis": "The Founder observation was more than five walkable businesses; the conservative numeric minimum is six."
+    }
+  ],
   "globalSiteContextFindings": {
     "multipleStorefrontsObserved": true,
     "sharedParkingObserved": true,
@@ -65,11 +75,12 @@
       "linkedObservationId": "fitness-2026-07-11-christian-brothers-nearby-context-false-negative",
       "anchorBusinessName": "Christian Brothers Automotive Pearland",
       "anchorGooglePlaceIdProvidedByFounder": null,
-      "finding": "More than five businesses were observed within walking distance while Nearby Context returned no nearby businesses.",
+      "finding": "More than five walkable businesses.",
+      "quantityExpression": "MORE_THAN_FIVE",
       "relatedVisitTimestamp": "2026-07-11T19:31:21.937Z",
       "relatedVisitTimestampIsObservationTimestamp": false,
       "namedNearbyBusinesses": [],
-      "minimumObservedNearbyBusinessCount": 5,
+      "minimumObservedNearbyBusinessCount": 6,
       "adjacentStorefrontsObserved": null,
       "walkableBusinessesObserved": true,
       "officialShoppingCenterNameAvailable": false,

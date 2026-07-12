@@ -93,14 +93,20 @@ test("Texans field evidence resolves only the uniquely governed Blackhawk identi
   assert.ok(relationships.unresolvedEvidence.some(item => item.unresolvedBusinessName === "Elite Dry Cleaners" && item.unresolvedGooglePlaceId === null));
 });
 
-test("Christian Brothers preserves five unresolved walkable identities and a separate Tier 5 diagnostic", () => {
+test("Christian Brothers preserves more than five unresolved walkable identities and a separate Tier 5 diagnostic", () => {
   const result = generated();
+  const sourceEvidence = json(commercialCenterPaths.commercialCenterEvidence);
+  const christianEvidence = sourceEvidence.observations.find(observation => observation.anchorBusinessName === "Christian Brothers Automotive Pearland");
   const christian = result.artifacts.commercialCenters.businessRecords.find(record => record.businessName === "Christian Brothers Automotive Pearland");
   const group = result.artifacts.walkabilityGroups.groups.find(item => item.anchorGooglePlaceId === christian.googlePlaceId);
   const tier5 = result.artifacts.relationships.records.find(record => record.tier === 5);
 
+  assert.equal(christianEvidence.finding, "More than five walkable businesses.");
+  assert.equal(christianEvidence.quantityExpression, "MORE_THAN_FIVE");
+  assert.equal(christianEvidence.minimumObservedNearbyBusinessCount, 6);
+  assert.ok(sourceEvidence.correctionHistory.some(correction => correction.previousValue === 5 && correction.correctedValue === 6));
   assert.equal(group.groupStatus, "FOUNDER_OBSERVED_IDENTITIES_UNAVAILABLE");
-  assert.equal(group.minimumObservedNearbyBusinessCount, 5);
+  assert.equal(group.minimumObservedNearbyBusinessCount, 6);
   assert.equal(group.resolvedMembers.length, 1);
   assert.equal(group.internalWalkingDistanceEstimateMeters, null);
   assert.equal(tier5.leftBusiness.businessName, "Christian Brothers Automotive Pearland");
@@ -110,7 +116,7 @@ test("Christian Brothers preserves five unresolved walkable identities and a sep
   assert.equal(tier5.fieldObservationCorroborated, false);
   assert.equal(tier5.straightLineDistanceFeet, 1473.2);
   assert.equal(tier5.internalWalkingDistanceEstimateMeters, null);
-  assert.ok(result.artifacts.relationships.unresolvedEvidence.some(item => item.minimumUnresolvedBusinessCount === 5));
+  assert.ok(result.artifacts.relationships.unresolvedEvidence.some(item => item.minimumUnresolvedBusinessCount === 6));
 });
 
 test("relationship tiers never promote missing Tier 1 through Tier 3 evidence", () => {

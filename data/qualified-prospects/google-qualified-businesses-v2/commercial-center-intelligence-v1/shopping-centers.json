@@ -1,7 +1,7 @@
 {
   "artifactVersion": "commercial-center-intelligence-v1",
   "artifactType": "shopping_center_dataset",
-  "generatedAt": "2026-07-12T06:37:25.660Z",
+  "generatedAt": "2026-07-12T06:53:13.306Z",
   "status": "governed_partial_coverage",
   "owningSubsystem": "Prometheus Data",
   "workspaceId": "fitness_connection",
@@ -35,7 +35,7 @@
     },
     "commercialCenterEvidence": {
       "path": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
-      "sha256": "6554f89b963bf05c2b1e8a1b21e43c6de7c55f055f8890eee66bb33129e4df03"
+      "sha256": "79faa934251f8443b63626e1eb29c3a45976b57e6465fc56518c1d9ba890c9c8"
     },
     "dataContract": {
       "path": "overwatch/artifact-contracts/data/fitness-connection-commercial-center-data-contract-v1.json",
