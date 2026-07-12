@@ -45,6 +45,10 @@
     {
       "binding": "CRM_WORKSPACE_LEAD_STORE",
       "id": "f20a0a4f66fb4b53ab26644e2d3bd0dd"
+    },
+    {
+      "binding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+      "id": "7a332eaad86247f7a106a48c492b76e6"
     }
   ],
   "send_email": [
