@@ -1,0 +1,144 @@
+{
+  "policyVersion": "nearby-context-intelligence-v2-policy-v1",
+  "status": "advisory_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "fieldEvidenceBasis": {
+    "observedOn": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "findingIds": [
+      "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+    ],
+    "finding": "Nearby Context reported no verified nearby businesses at two Founder-verified locations where adjacent and walkable storefronts were observed.",
+    "learningInput": false,
+    "recommendationScoreInput": false,
+    "archiveMutationAllowed": false,
+    "purpose": "Shape and validate relationship-aware arrival context without promoting stress observations into learned evidence or source records."
+  },
+  "candidatePolicy": {
+    "allowedSourcePools": [
+      "active",
+      "full"
+    ],
+    "forbiddenSourcePools": [
+      "quarantine",
+      "rejected"
+    ],
+    "activePoolFirst": true,
+    "fullPoolFallback": true,
+    "fullPoolFallbackActivation": "after_active_verified_open_supply_cannot_fill_target_before_uncertain_hours_coverage",
+    "requiresExistingRouteEligibility": true,
+    "requiresCanonicalBusinessHoursEligibility": true,
+    "requiresWorkspaceMatch": true,
+    "requiresOperatingProfileMatch": true,
+    "requiresStableBusinessIdentity": true,
+    "requiresCoordinates": true,
+    "requiresOperationalBusinessStatus": true,
+    "completedStopExclusion": "current_route",
+    "primaryBusinessExclusion": true,
+    "duplicateBehavior": "retain_best_governance_stage_once",
+    "maximumCandidateScan": 5000,
+    "maximumResults": 6,
+    "liveGoogleCallsAllowed": false,
+    "recommendationScoreUsedForOrdering": false
+  },
+  "businessHoursPolicy": {
+    "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
+    "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+    "selectionOrder": [
+      "active_verified_open",
+      "full_pool_verified_open_fallback",
+      "active_hours_unverified_coverage",
+      "full_pool_hours_unverified_coverage"
+    ],
+    "closedVerifiedBehavior": "exclude_never_classify",
+    "uncertainStatuses": [
+      "HOURS_UNKNOWN",
+      "HOURS_STALE",
+      "SPECIAL_HOURS_UNVERIFIED"
+    ],
+    "uncertainStatusBehavior": "canonical_conservative_coverage_tier"
+  },
+  "relationshipPolicy": {
+    "priorityOrder": [
+      "same_building",
+      "same_shopping_center",
+      "same_commercial_parcel",
+      "walkable",
+      "nearby"
+    ],
+    "labels": {
+      "same_building": "Same building",
+      "same_shopping_center": "Same shopping center",
+      "same_commercial_parcel": "Same commercial parcel",
+      "walkable": "Walkable opportunity",
+      "nearby": "Nearby opportunity"
+    },
+    "confidenceOrder": [
+      "HIGH",
+      "MODERATE",
+      "LOW"
+    ],
+    "maximumSearchRadiusFeet": 2500,
+    "sameBuildingInferenceMaximumFeet": 175,
+    "adjacentBuildingMaximumFeet": 250,
+    "inferredShoppingCenterMaximumFeet": 650,
+    "inferredShoppingCenterMinimumMembers": 3,
+    "inferredShoppingCenterStreetNumberSpan": 100,
+    "walkableMaximumFeet": 1000,
+    "nearbyMaximumFeet": 1800,
+    "structuredRelationshipFields": [
+      "buildingId",
+      "shoppingCenterId",
+      "commercialParcelId",
+      "parkingAreaId"
+    ],
+    "verifiedRelationshipSource": "matching_nonempty_structured_identifier",
+    "inferredRelationshipDisclosureRequired": true,
+    "missingStructuredRelationshipBehavior": "use_conservative_address_and_distance_inference",
+    "straightLineDistanceLabel": "approximate_straight_line_distance"
+  },
+  "selectionPrecedence": [
+    "existing_route_eligibility",
+    "canonical_business_hours_eligibility",
+    "canonical_business_hours_selection_stage",
+    "source_pool_governance",
+    "relationship_priority",
+    "relationship_confidence",
+    "distance_feet",
+    "existing_route_order",
+    "stable_business_identity"
+  ],
+  "explainability": {
+    "title": "Nearby Opportunities",
+    "requiredQuestions": [
+      "why",
+      "evidence",
+      "confidence",
+      "whatChanged",
+      "nextAction"
+    ],
+    "naturalLanguageRequired": true,
+    "relationshipVerificationRequired": true,
+    "hoursProvenanceRequired": true,
+    "internalFormulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false,
+    "emptyStateMessage": "No qualified nearby opportunities are available in the governed candidate supply.",
+    "coverageGapMessage": "Nearby storefronts may exist, but the current governed records were absent or excluded. No business was invented or admitted around governance."
+  },
+  "activationSafety": {
+    "advisoryConsumerActive": true,
+    "dashboardConsumerActive": false,
+    "recommendationReplacementActive": false,
+    "productionQueueMutationActive": false,
+    "routeScoringWeightsChanged": false,
+    "dashboardRuntimeChanged": false,
+    "dataChanged": false,
+    "crmChanged": false,
+    "companionChanged": false,
+    "liveGoogleCallsAllowed": false,
+    "futureDashboardActivationRequiresExplicitHandoff": true
+  }
+}

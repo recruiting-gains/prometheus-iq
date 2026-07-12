@@ -19,6 +19,8 @@ const requiredFiles = [
   "intelligence/read-only-field-session-learning.md",
   "intelligence/discovery-mode-intelligence-v2.mjs",
   "intelligence/discovery-mode-intelligence-v2.md",
+  "intelligence/nearby-context-intelligence-v2.mjs",
+  "intelligence/nearby-context-intelligence-v2.md",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -37,6 +39,9 @@ const requiredFiles = [
   "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
   "intelligence/config/discovery-mode-intelligence-v2.json",
   "intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json",
+  "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+  "intelligence/config/nearby-context-intelligence-v2.json",
+  "intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json",
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
@@ -48,6 +53,7 @@ const requiredFiles = [
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-read-only-field-session-learning.mjs",
   "scripts/verify-discovery-mode-intelligence-v2.mjs",
+  "scripts/verify-nearby-context-intelligence-v2.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
@@ -76,6 +82,8 @@ const readOnlyFieldSessionLearning = read("intelligence/read-only-field-session-
 const readOnlyFieldSessionLearningDoc = read("intelligence/read-only-field-session-learning.md");
 const discoveryModeIntelligence = read("intelligence/discovery-mode-intelligence-v2.mjs");
 const discoveryModeIntelligenceDoc = read("intelligence/discovery-mode-intelligence-v2.md");
+const nearbyContextIntelligence = read("intelligence/nearby-context-intelligence-v2.mjs");
+const nearbyContextIntelligenceDoc = read("intelligence/nearby-context-intelligence-v2.md");
 const explainabilityEngine = read("intelligence/recommendation-explainability-engine.mjs");
 const operatingProfileEngine = read("intelligence/operating-profile-engine.mjs");
 const fieldEvidenceActivation = read("intelligence/field-evidence-activation-foundation.md");
@@ -94,6 +102,9 @@ const readOnlyFieldSessionLearningSnapshot = readJson("intelligence/artifacts/re
 const discoveryModeContracts = readJson("intelligence/contracts/discovery-mode-intelligence-v2-contracts.json");
 const discoveryModeConfig = readJson("intelligence/config/discovery-mode-intelligence-v2.json");
 const discoveryModePlan = readJson("intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json");
+const nearbyContextContracts = readJson("intelligence/contracts/nearby-context-intelligence-v2-contracts.json");
+const nearbyContextConfig = readJson("intelligence/config/nearby-context-intelligence-v2.json");
+const nearbyContextAudit = readJson("intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -607,6 +618,36 @@ assert(discoveryModePlan.validation.productionQueueConsumerActive === false, "Di
 assert(discoveryModeIntelligence.includes("export function buildDiscoveryModeAdvisoryPlan"), "Discovery Mode v2 composer export is missing.");
 for (const section of ["Discovery Queue Architecture", "Canonical Eligibility Integration", "Category Balancing Strategy", "Evidence Thresholds", "Learning Impact", "Explainability Model", "Configuration Model", "Activation Boundary"]) {
   assert(discoveryModeIntelligenceDoc.includes(section), `Discovery Mode v2 architecture missing ${section}.`);
+}
+assert(nearbyContextContracts.status === "advisory_only", "Nearby Context v2 contracts must remain advisory only.");
+assert(nearbyContextContracts.outputContract.runtimeConsumptionAuthorized === false, "Nearby Context v2 must not authorize Dashboard runtime consumption.");
+assert(nearbyContextContracts.outputContract.recommendationMutationAuthorized === false, "Nearby Context v2 must not authorize recommendation mutation.");
+assert(nearbyContextContracts.eligibilityContract.canonicalImplementation === "intelligence/route-business-hours-eligibility.mjs", "Nearby Context v2 must reuse canonical business-hours eligibility.");
+assert(nearbyContextContracts.eligibilityContract.relationshipClassificationOccursAfterEligibility === true, "Nearby Context v2 must classify relationships after eligibility.");
+assert(nearbyContextContracts.eligibilityContract.closedVerifiedEligible === false, "Nearby Context v2 must exclude CLOSED_VERIFIED candidates.");
+assert(nearbyContextContracts.eligibilityContract.eligibilityReimplementationAllowed === false, "Nearby Context v2 must prohibit a second eligibility engine.");
+assert(JSON.stringify(nearbyContextContracts.relationshipContract.priorityOrder) === JSON.stringify(["same_building", "same_shopping_center", "same_commercial_parcel", "walkable", "nearby"]), "Nearby Context v2 relationship priority regressed.");
+assert(nearbyContextContracts.selectionContract.quarantineSelectable === false, "Nearby Context v2 must prohibit quarantine selection.");
+assert(nearbyContextContracts.selectionContract.completedBusinessesSelectable === false, "Nearby Context v2 must prohibit completed-business selection.");
+assert(nearbyContextContracts.selectionContract.recommendationScoresUsedForOrdering === false, "Nearby Context v2 must not order by recommendation scores.");
+assert(nearbyContextConfig.candidatePolicy.requiresCanonicalBusinessHoursEligibility === true, "Nearby Context v2 must require canonical hours decisions.");
+assert(nearbyContextConfig.candidatePolicy.recommendationScoreUsedForOrdering === false, "Nearby Context v2 configuration must preserve recommendation-score ordering boundaries.");
+assert(nearbyContextConfig.activationSafety.dashboardConsumerActive === false, "Nearby Context v2 Dashboard consumer must remain inactive.");
+assert(nearbyContextConfig.activationSafety.routeScoringWeightsChanged === false, "Nearby Context v2 must not change route scoring weights.");
+assert(nearbyContextConfig.fieldEvidenceBasis.learningInput === false, "Nearby Context v2 must not promote stress observations into learning.");
+assert(nearbyContextAudit.artifactType === "nearby_context_intelligence_v2_audit", "Nearby Context v2 canonical artifact type regressed.");
+assert(nearbyContextAudit.stressContexts.length === 2, "Nearby Context v2 must preserve both Founder stress contexts.");
+assert(nearbyContextAudit.stressContexts.every(context => context.plan.status === "coverage_gap"), "Nearby Context v2 must report governed stress-test coverage gaps honestly.");
+assert(nearbyContextAudit.stressContexts.every(context => context.plan.nearbyOpportunities.emptyState?.recommendationInvented === false), "Nearby Context v2 must not invent an empty-state recommendation.");
+assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.count === nearbyContextConfig.candidatePolicy.maximumResults, "Nearby Context v2 governed capability probe must fill the configured target.");
+assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), "Nearby Context v2 capability probe must use verified-open candidates.");
+assert(nearbyContextAudit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.recommendationScoreChanged === false), "Nearby Context v2 capability probe changed recommendation scoring.");
+assert(nearbyContextAudit.validation.dashboardConsumerActive === false, "Nearby Context v2 artifact activated a Dashboard consumer.");
+assert(nearbyContextAudit.validation.routeScoringWeightsChanged === false, "Nearby Context v2 artifact changed route scoring.");
+assert(nearbyContextIntelligence.includes("export function buildNearbyContextAdvisory"), "Nearby Context v2 advisory composer export is missing.");
+assert(nearbyContextIntelligence.includes("evaluateRouteBusinessHoursEligibility"), "Nearby Context v2 canonical hours consumer is missing.");
+for (const section of ["Nearby Opportunity Architecture", "Canonical Eligibility Boundary", "Relationship Model", "Selection Strategy", "Explainability Model", "Field Evidence Findings", "Configuration Model", "Activation Boundary"]) {
+  assert(nearbyContextIntelligenceDoc.includes(section), `Nearby Context v2 architecture missing ${section}.`);
 }
 assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
 assert(fieldFixtures.productionLearningActive === false, "Field visit fixtures must not activate production learning.");

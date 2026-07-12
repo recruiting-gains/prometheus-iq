@@ -1,0 +1,3798 @@
+{
+  "artifactType": "nearby_context_intelligence_v2_audit",
+  "version": "nearby-context-intelligence-v2",
+  "policyVersion": "nearby-context-intelligence-v2-policy-v1",
+  "contractVersion": "nearby-context-intelligence-v2-contracts-v1",
+  "status": "advisory_only",
+  "generatedAt": "2026-07-11T21:21:59.331Z",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "representativeId": "cruz",
+  "sourceDatasetVersion": "google-qualified-businesses-v2",
+  "sourceCounts": {
+    "active": 297,
+    "governedFullPoolFallbackProjection": 44,
+    "quarantineDiagnostics": 109,
+    "canonicalHours": 398,
+    "completedFieldVisits": 4
+  },
+  "fieldEvidenceBasis": {
+    "observedOn": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "findingIds": [
+      "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+    ],
+    "finding": "Nearby Context reported no verified nearby businesses at two Founder-verified locations where adjacent and walkable storefronts were observed.",
+    "learningInput": false,
+    "recommendationScoreInput": false,
+    "archiveMutationAllowed": false,
+    "purpose": "Shape and validate relationship-aware arrival context without promoting stress observations into learned evidence or source records."
+  },
+  "stressContexts": [
+    {
+      "observationId": "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "finding": "Texans Auto Repair showed no nearby businesses despite multiple adjacent walk-in businesses, including Elite Dry Cleaners and Blackhawk Dental.",
+      "identityConfirmation": "texans_visit_confirmed_adjacent_business_identity_not_fully_archived",
+      "observedBusinessCoverage": [
+        {
+          "observedBusinessName": "Elite Dry Cleaners",
+          "governedIdentityAvailable": false,
+          "matches": []
+        },
+        {
+          "observedBusinessName": "Blackhawk Dental",
+          "governedIdentityAvailable": true,
+          "matches": [
+            {
+              "googlePlaceId": "ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+              "sourcePool": "quarantine",
+              "routeEligible": false,
+              "distanceFeet": 112.3
+            }
+          ]
+        }
+      ],
+      "plan": {
+        "artifactType": "nearby_context_advisory_plan",
+        "version": "nearby-context-intelligence-v2",
+        "policyVersion": "nearby-context-intelligence-v2-policy-v1",
+        "contractVersion": "nearby-context-intelligence-v2-contracts-v1",
+        "status": "coverage_gap",
+        "generatedAt": "2026-07-11T21:21:59.331Z",
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz",
+        "primary": {
+          "identityKey": "google:ChIJI13UBweRQIYRmwr6qAnoIz0",
+          "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+          "businessName": "Texans Auto Repair - Blackhawk",
+          "address": "10326 Blackhawk Blvd, Houston, TX 77089, USA",
+          "coordinatesAvailable": true
+        },
+        "sourceProvenance": {
+          "fieldObservationId": "fitness-2026-07-11-texans-nearby-context-false-negative",
+          "fieldObservationClassification": "founder_verified_design_requirement",
+          "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+          "fullPoolFallbackProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+          "quarantineDiagnostics": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+          "canonicalBusinessHours": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+          "archivedFieldSession": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json"
+        },
+        "fieldEvidenceBasis": {
+          "observedOn": "2026-07-11",
+          "classification": "founder_verified_design_requirement",
+          "findingIds": [
+            "fitness-2026-07-11-texans-nearby-context-false-negative",
+            "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+          ],
+          "finding": "Nearby Context reported no verified nearby businesses at two Founder-verified locations where adjacent and walkable storefronts were observed.",
+          "learningInput": false,
+          "recommendationScoreInput": false,
+          "archiveMutationAllowed": false,
+          "purpose": "Shape and validate relationship-aware arrival context without promoting stress observations into learned evidence or source records."
+        },
+        "architecture": {
+          "purpose": "secondary_arrival_opportunities_not_recommendation_replacement",
+          "eligibilityBoundary": "before_relationship_classification",
+          "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
+          "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+          "activePoolPriority": true,
+          "governedFullPoolFallback": true,
+          "relationshipPriority": [
+            "same_building",
+            "same_shopping_center",
+            "same_commercial_parcel",
+            "walkable",
+            "nearby"
+          ],
+          "relationshipEvidence": "verified_structured_identifiers_or_disclosed_conservative_inference",
+          "distanceMethod": "approximate_straight_line_distance",
+          "runtimeConsumerActive": false,
+          "recommendationScoreOrdering": false
+        },
+        "nearbyOpportunities": {
+          "title": "Nearby Opportunities",
+          "status": "coverage_gap",
+          "maximumResults": 6,
+          "count": 0,
+          "entries": [],
+          "emptyState": {
+            "code": "GOVERNED_NEARBY_SUPPLY_UNAVAILABLE",
+            "message": "No qualified nearby opportunities are available in the governed candidate supply.",
+            "detail": "Nearby storefronts may exist, but the current governed records were absent or excluded. No business was invented or admitted around governance.",
+            "reasonCodes": [
+              "nearby_candidates_quarantined",
+              "no_governed_eligible_nearby_supply"
+            ],
+            "recommendationInvented": false,
+            "nextAction": "Continue with the primary visit. Nearby coverage can improve as verified storefront records become available."
+          }
+        },
+        "coverage": {
+          "suppliedCandidateCount": 450,
+          "scannedCandidateCount": 450,
+          "inputTruncated": false,
+          "eligibleRelationshipCandidateCount": 0,
+          "selectedCandidateCount": 0,
+          "sourcePoolDistribution": {
+            "active": 297,
+            "full": 44,
+            "quarantine": 109
+          },
+          "selectedSourcePoolDistribution": {},
+          "selectedGovernanceStageDistribution": {},
+          "selectedRelationshipDistribution": {},
+          "selectedHoursStatusDistribution": {},
+          "hoursEvaluation": {
+            "evaluated": 450,
+            "eligible": 334,
+            "excluded": 116,
+            "hoursUnverified": 97,
+            "statuses": {
+              "OPEN_VERIFIED": 237,
+              "CLOSED_VERIFIED": 116,
+              "HOURS_UNKNOWN": 97,
+              "HOURS_STALE": 0,
+              "SPECIAL_HOURS_UNVERIFIED": 0
+            },
+            "reasonCodes": {
+              "VERIFIED_CURRENT_WINDOW_CLOSED": 116,
+              "VERIFIED_CURRENT_WINDOW_OPEN": 237,
+              "HOURS_SOURCE_MISSING": 45,
+              "BUSINESS_HOURS_RECORD_UNAVAILABLE": 52
+            }
+          },
+          "exclusionCount": 450,
+          "exclusionReasonDistribution": {
+            "closed_verified": 74,
+            "completed_business": 3,
+            "forbidden_source_pool": 109,
+            "outside_maximum_search_radius": 262,
+            "outside_nearby_relationship_scope": 1,
+            "primary_business": 1
+          },
+          "nearbyGovernanceExclusionCount": 1,
+          "exclusions": [
+            {
+              "identityKey": "google:ChIJI13UBweRQIYRmwr6qAnoIz0",
+              "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+              "businessName": "Texans Auto Repair - Blackhawk",
+              "sourcePool": "active",
+              "distanceFeet": 0,
+              "reason": "primary_business",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+              "googlePlaceId": "ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+              "businessName": "Blackhawk Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 112.3,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ15Xh8zWXQIYRxLDRM52CeF4",
+              "googlePlaceId": "ChIJ15Xh8zWXQIYRxLDRM52CeF4",
+              "businessName": "Kings Mobile Car Detailing",
+              "sourcePool": "active",
+              "distanceFeet": 2009.2,
+              "reason": "outside_nearby_relationship_scope",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJx9GwkjeXQIYRSZUHNH87YV8",
+              "googlePlaceId": "ChIJx9GwkjeXQIYRSZUHNH87YV8",
+              "businessName": "First Texas Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 3621.2,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJiduac7LCQIYR-sGBtIAjKR0",
+              "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+              "businessName": "Christian Brothers Automotive Pearland",
+              "sourcePool": "active",
+              "distanceFeet": 3990.7,
+              "reason": "completed_business",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJV3MAdYuXQIYR2Ru6lHxw_fA",
+              "googlePlaceId": "ChIJV3MAdYuXQIYR2Ru6lHxw_fA",
+              "businessName": "The Club House Studios",
+              "sourcePool": "active",
+              "distanceFeet": 5059.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9-pdC1WXQIYRJxowgkIewe4",
+              "googlePlaceId": "ChIJ9-pdC1WXQIYRJxowgkIewe4",
+              "businessName": "Carwash",
+              "sourcePool": "active",
+              "distanceFeet": 5268.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJHx40h1aXQIYRNREN9WdYG_U",
+              "googlePlaceId": "ChIJHx40h1aXQIYRNREN9WdYG_U",
+              "businessName": "Tx Hair Fashions",
+              "sourcePool": "active",
+              "distanceFeet": 5329.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJHZTkVQCXQIYRWYAgfeQ2qeI",
+              "googlePlaceId": "ChIJHZTkVQCXQIYRWYAgfeQ2qeI",
+              "businessName": "24/7 Tire Shop",
+              "sourcePool": "active",
+              "distanceFeet": 5734.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJq1KUFOWbQIYRtEywmXHNZ7s",
+              "googlePlaceId": "ChIJq1KUFOWbQIYRtEywmXHNZ7s",
+              "businessName": "Loving Smiles Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 6221.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJR5kvuAGaQIYRbeP1x3tbCsI",
+              "googlePlaceId": "ChIJR5kvuAGaQIYRbeP1x3tbCsI",
+              "businessName": "Universal Lube & Oil - Auto Repair LLC",
+              "sourcePool": "active",
+              "distanceFeet": 6655.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJe8M2PlqXQIYRG7eykLJe0po",
+              "googlePlaceId": "ChIJe8M2PlqXQIYRG7eykLJe0po",
+              "businessName": "D'RICO VIP BARBER SHOP",
+              "sourcePool": "active",
+              "distanceFeet": 6659,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJj4lxeEOXQIYRJHCvVRN0OQc",
+              "googlePlaceId": "ChIJj4lxeEOXQIYRJHCvVRN0OQc",
+              "businessName": "ABA Salons",
+              "sourcePool": "active",
+              "distanceFeet": 6791.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJj45AiGyXQIYRWAsgmMUUmVI",
+              "googlePlaceId": "ChIJj45AiGyXQIYRWAsgmMUUmVI",
+              "businessName": "El Oregano Restaurant",
+              "sourcePool": "active",
+              "distanceFeet": 6872.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJJR7e8XCbQIYRN_WV8sQpn5E",
+              "googlePlaceId": "ChIJJR7e8XCbQIYRN_WV8sQpn5E",
+              "businessName": "BARBER SHOP YSA🙏",
+              "sourcePool": "quarantine",
+              "distanceFeet": 6887.7,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9TRCKYubQIYR8psjkD8AVl8",
+              "googlePlaceId": "ChIJ9TRCKYubQIYR8psjkD8AVl8",
+              "businessName": "Jorgitin-Barbershop",
+              "sourcePool": "quarantine",
+              "distanceFeet": 6887.7,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJb_Ij0wGaQIYRbrL-jm4Uhww",
+              "googlePlaceId": "ChIJb_Ij0wGaQIYRbrL-jm4Uhww",
+              "businessName": "Hair By Angel salon",
+              "sourcePool": "active",
+              "distanceFeet": 6910.6,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ0b330gGaQIYROiv0rrGGx4w",
+              "googlePlaceId": "ChIJ0b330gGaQIYROiv0rrGGx4w",
+              "businessName": "Express Tax Services",
+              "sourcePool": "full",
+              "distanceFeet": 6942.6,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ28K9pqmXQIYR8iRxYb31Kqs",
+              "googlePlaceId": "ChIJ28K9pqmXQIYR8iRxYb31Kqs",
+              "businessName": "The Smoke Shoppe",
+              "sourcePool": "quarantine",
+              "distanceFeet": 6955.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJg3gZd0OXQIYR0L0DRHiLtA4",
+              "googlePlaceId": "ChIJg3gZd0OXQIYR0L0DRHiLtA4",
+              "businessName": "Gigi's Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 6956.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJi5b7NECWQIYRvwfqI8lSpks",
+              "googlePlaceId": "ChIJi5b7NECWQIYRvwfqI8lSpks",
+              "businessName": "Tristan's Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 6960.9,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjXX-KbiXQIYRrWY6PPB6kdI",
+              "googlePlaceId": "ChIJjXX-KbiXQIYRrWY6PPB6kdI",
+              "businessName": "Cano’s Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 6969.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJw_j5DXK9QIYRfEFiOYffXt0",
+              "googlePlaceId": "ChIJw_j5DXK9QIYRfEFiOYffXt0",
+              "businessName": "David's Barber Shop",
+              "sourcePool": "quarantine",
+              "distanceFeet": 7018.9,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJdx0N8ESXQIYR7XkH6myTq74",
+              "googlePlaceId": "ChIJdx0N8ESXQIYR7XkH6myTq74",
+              "businessName": "KADOSH mobile wash and detailing",
+              "sourcePool": "active",
+              "distanceFeet": 7035.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNVwxzoyZQIYRhshbEY-p9_U",
+              "googlePlaceId": "ChIJNVwxzoyZQIYRhshbEY-p9_U",
+              "businessName": "Texas Grill 49",
+              "sourcePool": "active",
+              "distanceFeet": 7051.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJw-mwaEOXQIYRFZQ7tWUt-mA",
+              "googlePlaceId": "ChIJw-mwaEOXQIYRFZQ7tWUt-mA",
+              "businessName": "M W Exclusive Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 7216,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJ408BdA2XQIYRkmWY7TOPyz4",
+              "googlePlaceId": "ChIJ408BdA2XQIYRkmWY7TOPyz4",
+              "businessName": "Tidal Wave Auto Spa | Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 7302.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJxW4MMACXQIYRyF5nM67hml0",
+              "googlePlaceId": "ChIJxW4MMACXQIYRyF5nM67hml0",
+              "businessName": "Hamza’s Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 7482.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJG7HiZLOZQIYRESARsfH80GE",
+              "googlePlaceId": "ChIJG7HiZLOZQIYRESARsfH80GE",
+              "businessName": "Space City Auto Detail",
+              "sourcePool": "active",
+              "distanceFeet": 7513.6,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJOb3DqQOXQIYR6p6FPwU08s4",
+              "googlePlaceId": "ChIJOb3DqQOXQIYR6p6FPwU08s4",
+              "businessName": "Quick Quack Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 8175.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJzUaF2JqXQIYRUCnuVxbp7II",
+              "googlePlaceId": "ChIJzUaF2JqXQIYRUCnuVxbp7II",
+              "businessName": "Clinica Medica Fuqua",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8193.6,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNfkIbLWXQIYRj6-jothhvuU",
+              "googlePlaceId": "ChIJNfkIbLWXQIYRj6-jothhvuU",
+              "businessName": "Lynx Automotive Mobile Mechanic",
+              "sourcePool": "active",
+              "distanceFeet": 8219.1,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJk5Hx0liXQIYRrFd6OyUGQyM",
+              "googlePlaceId": "ChIJk5Hx0liXQIYRrFd6OyUGQyM",
+              "businessName": "Mai Hair Design",
+              "sourcePool": "active",
+              "distanceFeet": 8221.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJtST-VOaXQIYRjzBjdVUVLPI",
+              "googlePlaceId": "ChIJtST-VOaXQIYRjzBjdVUVLPI",
+              "businessName": "SRG Tax Services",
+              "sourcePool": "full",
+              "distanceFeet": 8321.8,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJvUYdrliXQIYROvZ-oMwdpoo",
+              "googlePlaceId": "ChIJvUYdrliXQIYROvZ-oMwdpoo",
+              "businessName": "Car - Beamer Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 8363.7,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC0GASV-XQIYRjvz21NqhsY8",
+              "googlePlaceId": "ChIJC0GASV-XQIYRjvz21NqhsY8",
+              "businessName": "Mexico Lindo Barber Shop",
+              "sourcePool": "active",
+              "distanceFeet": 8476.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ56yfy0iXQIYRnEO2z1oEUZg",
+              "googlePlaceId": "ChIJ56yfy0iXQIYRnEO2z1oEUZg",
+              "businessName": "Take 5 Oil Change",
+              "sourcePool": "active",
+              "distanceFeet": 8568.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJiSw-VF-XQIYRNXPa-F34zcY",
+              "googlePlaceId": "ChIJiSw-VF-XQIYRNXPa-F34zcY",
+              "businessName": "Easy Wash",
+              "sourcePool": "active",
+              "distanceFeet": 8632.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJNVj8V1-XQIYRMS7hYrLfy18",
+              "googlePlaceId": "ChIJNVj8V1-XQIYRMS7hYrLfy18",
+              "businessName": "Elias G Khalil DDS",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8821,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNVj8V1-XQIYR8qh2NHthalw",
+              "googlePlaceId": "ChIJNVj8V1-XQIYR8qh2NHthalw",
+              "businessName": "Houston Family Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8824.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJs7kEFF-XQIYRP-gtmBR_190",
+              "googlePlaceId": "ChIJs7kEFF-XQIYRP-gtmBR_190",
+              "businessName": "AutoZone Auto Parts",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8842,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJl9wc9OGZQIYRSpncszmjTRE",
+              "googlePlaceId": "ChIJl9wc9OGZQIYRSpncszmjTRE",
+              "businessName": "Sage Hollow Apartments",
+              "sourcePool": "full",
+              "distanceFeet": 8855,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJbcxYBf6ZQIYRGECq_oyr0qA",
+              "googlePlaceId": "ChIJbcxYBf6ZQIYRGECq_oyr0qA",
+              "businessName": "Jackson Hewitt Tax Service",
+              "sourcePool": "full",
+              "distanceFeet": 8907.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJm3a75-GZQIYRLJcoGWMVzwA",
+              "googlePlaceId": "ChIJm3a75-GZQIYRLJcoGWMVzwA",
+              "businessName": "Fuqua Family Practice. Jarrod Drab D.O.",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8930.2,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+              "googlePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+              "businessName": "La Familia Auto Insurance",
+              "sourcePool": "active",
+              "distanceFeet": 8932.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+              "googlePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+              "businessName": "Jiffy Lube Oil Change",
+              "sourcePool": "active",
+              "distanceFeet": 9004.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ4bxB_fmZQIYR2dllTgLzYQM",
+              "googlePlaceId": "ChIJ4bxB_fmZQIYR2dllTgLzYQM",
+              "businessName": "Lam's Complete Auto",
+              "sourcePool": "active",
+              "distanceFeet": 9099.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+              "googlePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+              "businessName": "Wok D'Lite",
+              "sourcePool": "active",
+              "distanceFeet": 9111.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJv7MA7eGZQIYRINIvMqp85nU",
+              "googlePlaceId": "ChIJv7MA7eGZQIYRINIvMqp85nU",
+              "businessName": "Montoya Auto Service",
+              "sourcePool": "active",
+              "distanceFeet": 9126.3,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJBVBUL9mZQIYRA2_npJzDh94",
+              "googlePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+              "businessName": "Lone Star Seafood",
+              "sourcePool": "active",
+              "distanceFeet": 9138.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJX5q17eGZQIYRkCCnrr6ikk4",
+              "googlePlaceId": "ChIJX5q17eGZQIYRkCCnrr6ikk4",
+              "businessName": "Automatic Transmission Center",
+              "sourcePool": "active",
+              "distanceFeet": 9140,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJF8vibuGZQIYRwDvtFvUnmzU",
+              "googlePlaceId": "ChIJF8vibuGZQIYRwDvtFvUnmzU",
+              "businessName": "Top Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 9183.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ_SXddzWRQIYRyHNCN6STDps",
+              "googlePlaceId": "ChIJ_SXddzWRQIYRyHNCN6STDps",
+              "businessName": "Almeda Dental Pearland",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9187.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJpyLNheGZQIYRAHrGG7frsY0",
+              "googlePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+              "businessName": "Bravos Mexican restaurant",
+              "sourcePool": "active",
+              "distanceFeet": 9201.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJM34mkuGZQIYRrMDpkli7wjM",
+              "googlePlaceId": "ChIJM34mkuGZQIYRrMDpkli7wjM",
+              "businessName": "Pilgrim Cleaners",
+              "sourcePool": "active",
+              "distanceFeet": 9241.9,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+              "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+              "businessName": "Fuqua Professional Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 9316.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJGdiUOCiZQIYRAPILZxNMIqU",
+              "googlePlaceId": "ChIJGdiUOCiZQIYRAPILZxNMIqU",
+              "businessName": "MavCo Income Tax & Multi-Service",
+              "sourcePool": "full",
+              "distanceFeet": 9370.3,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJE_qeXjmZQIYRuCgChjGMul0",
+              "googlePlaceId": "ChIJE_qeXjmZQIYRuCgChjGMul0",
+              "businessName": "Luxe Beauty Barre| Wellness, Aesthetics, Weight Loss",
+              "sourcePool": "active",
+              "distanceFeet": 9370.9,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+              "googlePlaceId": "ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+              "businessName": "Texas Radiators & Mufflers & Vehicles Emissions Inspection",
+              "sourcePool": "active",
+              "distanceFeet": 9403.1,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+              "googlePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+              "businessName": "Kruzzers Auto Care LLC",
+              "sourcePool": "active",
+              "distanceFeet": 9484.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJexwRoQ-bQIYR9k07z4Vwsl4",
+              "googlePlaceId": "ChIJexwRoQ-bQIYR9k07z4Vwsl4",
+              "businessName": "American Hairlines Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 9505.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJGU-97BqaQIYRJFsKweJYbKY",
+              "googlePlaceId": "ChIJGU-97BqaQIYRJFsKweJYbKY",
+              "businessName": "Harris County Tax Collector",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9540.6,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJCe4DawCZQIYRMwubMJVys1o",
+              "googlePlaceId": "ChIJCe4DawCZQIYRMwubMJVys1o",
+              "businessName": "Botax",
+              "sourcePool": "active",
+              "distanceFeet": 9790.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJc7enc7CZQIYRSFNExbNUQcw",
+              "googlePlaceId": "ChIJc7enc7CZQIYRSFNExbNUQcw",
+              "businessName": "LUXURIOUS BY VALERIE",
+              "sourcePool": "active",
+              "distanceFeet": 9790.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJla6Uh2mZQIYRNnoKwL44FIk",
+              "googlePlaceId": "ChIJla6Uh2mZQIYRNnoKwL44FIk",
+              "businessName": "Utopia Beauty Bliss",
+              "sourcePool": "active",
+              "distanceFeet": 9790.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJSbooCeGZQIYR9TmsVVvSz8I",
+              "googlePlaceId": "ChIJSbooCeGZQIYR9TmsVVvSz8I",
+              "businessName": "Car Wash",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9806.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJhavu-mCXQIYRMsum7C6Lx9k",
+              "googlePlaceId": "ChIJhavu-mCXQIYRMsum7C6Lx9k",
+              "businessName": "Thang Quang Lam, DDS, PA",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9846.9,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJGU-97BqaQIYRrcNhETqCE1w",
+              "googlePlaceId": "ChIJGU-97BqaQIYRrcNhETqCE1w",
+              "businessName": "Hair Etc by Bobo",
+              "sourcePool": "active",
+              "distanceFeet": 9867.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJGQVQYuGZQIYRS_mTGpzSmF4",
+              "googlePlaceId": "ChIJGQVQYuGZQIYRS_mTGpzSmF4",
+              "businessName": "Sabo Smoke, Vape, Delta 8 THC and CBD",
+              "sourcePool": "active",
+              "distanceFeet": 9936.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJCfUU8BOZQIYRCFljCmlK_iU",
+              "googlePlaceId": "ChIJCfUU8BOZQIYRCFljCmlK_iU",
+              "businessName": "Southside Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 9982.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJa5TLQOGZQIYR3EZwdXH9Gjk",
+              "googlePlaceId": "ChIJa5TLQOGZQIYR3EZwdXH9Gjk",
+              "businessName": "Pho 21,Fuqua St. Paul",
+              "sourcePool": "active",
+              "distanceFeet": 9997.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjYz2c6uXQIYRs34L17Mo9ZU",
+              "googlePlaceId": "ChIJjYz2c6uXQIYRs34L17Mo9ZU",
+              "businessName": "Miracle Organics, LLC",
+              "sourcePool": "active",
+              "distanceFeet": 10025.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ6wsYFeGZQIYRPTiSbo2nmiM",
+              "googlePlaceId": "ChIJ6wsYFeGZQIYRPTiSbo2nmiM",
+              "businessName": "Nancy's Hair & Nails",
+              "sourcePool": "active",
+              "distanceFeet": 10026,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJdwE6rWGZQIYRWZ3WgsHVaHc",
+              "googlePlaceId": "ChIJdwE6rWGZQIYRWZ3WgsHVaHc",
+              "businessName": "The Tea Bar",
+              "sourcePool": "active",
+              "distanceFeet": 10029.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJyclcb-CZQIYRCYJsVdGi2Bk",
+              "googlePlaceId": "ChIJyclcb-CZQIYRCYJsVdGi2Bk",
+              "businessName": "Green Arbor Apartments",
+              "sourcePool": "full",
+              "distanceFeet": 10044.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9zxsR-GZQIYRWnU_N6h-FxM",
+              "googlePlaceId": "ChIJ9zxsR-GZQIYRWnU_N6h-FxM",
+              "businessName": "7Spice",
+              "sourcePool": "active",
+              "distanceFeet": 10048,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+              "googlePlaceId": "ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+              "businessName": "Social Smoke Hookah Lounge & Bar",
+              "sourcePool": "active",
+              "distanceFeet": 10089.9,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJg3eaumCXQIYRlIUFZypreME",
+              "googlePlaceId": "ChIJg3eaumCXQIYRlIUFZypreME",
+              "businessName": "Fox Hair & Nails",
+              "sourcePool": "active",
+              "distanceFeet": 10099.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+              "googlePlaceId": "ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+              "businessName": "Aquexentaris Auto Technician",
+              "sourcePool": "active",
+              "distanceFeet": 10124.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJ6YE_twKZQIYRDL3ojqNupCY",
+              "googlePlaceId": "ChIJ6YE_twKZQIYRDL3ojqNupCY",
+              "businessName": "Clinica San Felipe",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10142.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ1SBWpSyZQIYRPMTwxCQc3-Q",
+              "googlePlaceId": "ChIJ1SBWpSyZQIYRPMTwxCQc3-Q",
+              "businessName": "Settlers Ranch",
+              "sourcePool": "full",
+              "distanceFeet": 10184,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJLbS2u2CXQIYRbGwtk8auD5g",
+              "googlePlaceId": "ChIJLbS2u2CXQIYRbGwtk8auD5g",
+              "businessName": "Hair By Paul",
+              "sourcePool": "active",
+              "distanceFeet": 10195.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ7w0QOuGZQIYRWqzmIjvCo3M",
+              "googlePlaceId": "ChIJ7w0QOuGZQIYRWqzmIjvCo3M",
+              "businessName": "Southview Square",
+              "sourcePool": "active",
+              "distanceFeet": 10242,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+              "googlePlaceId": "ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+              "businessName": "Kingspoint Mart",
+              "sourcePool": "active",
+              "distanceFeet": 10260.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJI-F3g8CbQIYRcvvWKQjZ4aY",
+              "googlePlaceId": "ChIJI-F3g8CbQIYRcvvWKQjZ4aY",
+              "businessName": "Yobe Salon",
+              "sourcePool": "active",
+              "distanceFeet": 10264.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJabJjBfGZQIYRMVoSpJ-xtWo",
+              "googlePlaceId": "ChIJabJjBfGZQIYRMVoSpJ-xtWo",
+              "businessName": "Bayou City Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10322.1,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-zpzPfCZQIYRA-cR5HVCFqo",
+              "googlePlaceId": "ChIJ-zpzPfCZQIYRA-cR5HVCFqo",
+              "businessName": "Carrington Park At Gulf Pointe",
+              "sourcePool": "full",
+              "distanceFeet": 10476.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+              "googlePlaceId": "ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+              "businessName": "Tasty Cajun",
+              "sourcePool": "active",
+              "distanceFeet": 10509.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJraCPnBWXQIYR32Q8i6aQBMw",
+              "googlePlaceId": "ChIJraCPnBWXQIYR32Q8i6aQBMw",
+              "businessName": "Cơm Gà Houston South 45",
+              "sourcePool": "active",
+              "distanceFeet": 10549.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+              "googlePlaceId": "ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+              "businessName": "Pho Bac | Vietnamese Noodle House",
+              "sourcePool": "active",
+              "distanceFeet": 10549.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+              "googlePlaceId": "ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+              "businessName": "Uptown Detail",
+              "sourcePool": "active",
+              "distanceFeet": 10554.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJVaUCWxyZQIYRfKwZzuq3tLM",
+              "googlePlaceId": "ChIJVaUCWxyZQIYRfKwZzuq3tLM",
+              "businessName": "ClearWater Express Wash",
+              "sourcePool": "active",
+              "distanceFeet": 10591.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJWQVQdpebQIYRDhVTnr57TgU",
+              "googlePlaceId": "ChIJWQVQdpebQIYRDhVTnr57TgU",
+              "businessName": "Bossway Hair",
+              "sourcePool": "active",
+              "distanceFeet": 10621.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJXX61U-CZQIYRHPBOvkK7mkg",
+              "googlePlaceId": "ChIJXX61U-CZQIYRHPBOvkK7mkg",
+              "businessName": "Sabo Village",
+              "sourcePool": "full",
+              "distanceFeet": 10716.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJvy6mD8SZQIYRbFZwMEZP5NE",
+              "googlePlaceId": "ChIJvy6mD8SZQIYRbFZwMEZP5NE",
+              "businessName": "Island Flavorz",
+              "sourcePool": "active",
+              "distanceFeet": 10741.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ77MfoNWZQIYRix9oGe_n-zg",
+              "googlePlaceId": "ChIJ77MfoNWZQIYRix9oGe_n-zg",
+              "businessName": "Advance Modern Dentistry",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10811.1,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJeTi4--aZQIYRwFCOZZMYHAQ",
+              "googlePlaceId": "ChIJeTi4--aZQIYRwFCOZZMYHAQ",
+              "businessName": "Garcia J Carlos DDS",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10811.1,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJZZ-zf4KZQIYR_iuq8sIRhKE",
+              "googlePlaceId": "ChIJZZ-zf4KZQIYR_iuq8sIRhKE",
+              "businessName": "Rock N' Roll It",
+              "sourcePool": "active",
+              "distanceFeet": 10827.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ12MB9OaZQIYRZMP_cv46dYU",
+              "googlePlaceId": "ChIJ12MB9OaZQIYRZMP_cv46dYU",
+              "businessName": "Bayou City Property Tax",
+              "sourcePool": "full",
+              "distanceFeet": 10834,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJtYz5yu-ZQIYRbXgjsscutLg",
+              "googlePlaceId": "ChIJtYz5yu-ZQIYRbXgjsscutLg",
+              "businessName": "Montelago Apartments",
+              "sourcePool": "full",
+              "distanceFeet": 10888.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            }
+          ],
+          "fullPoolFallbackUsed": false,
+          "coverageGapDetected": true,
+          "governedDataInvented": false
+        },
+        "explainabilityModel": {
+          "requiredQuestions": [
+            "why",
+            "evidence",
+            "confidence",
+            "whatChanged",
+            "nextAction"
+          ],
+          "relationshipVerificationVisible": true,
+          "hoursProvenancePreserved": true,
+          "sourcePoolVisible": true,
+          "distanceVisible": true,
+          "internalFormulaExposureAllowed": false,
+          "proprietaryWeightExposureAllowed": false
+        },
+        "validation": {
+          "deterministicOrderingRequired": true,
+          "canonicalBusinessHoursEligibilityPreserved": true,
+          "closedVerifiedExcluded": true,
+          "quarantineExcluded": true,
+          "completedBusinessesExcluded": true,
+          "primaryBusinessExcluded": true,
+          "duplicatePreventionPassed": true,
+          "workspaceIsolationPassed": true,
+          "operatingProfileIsolationPassed": true,
+          "relationshipPriorityPreserved": true,
+          "explanationsComplete": true,
+          "recommendationScoresUsedForOrdering": false,
+          "recommendationScoresChanged": false,
+          "liveGoogleCallsMade": false,
+          "recommendationReplacementActive": false,
+          "productionQueueMutationActive": false,
+          "dashboardConsumerActive": false,
+          "routeScoringWeightsChanged": false,
+          "dashboardRuntimeChanged": false,
+          "dataChanged": false,
+          "crmChanged": false,
+          "companionChanged": false
+        }
+      }
+    },
+    {
+      "observationId": "fitness-2026-07-11-christian-brothers-nearby-context-false-negative",
+      "finding": "The Christian Brothers location showed no nearby businesses despite more than five businesses within walking distance.",
+      "identityConfirmation": "christian_brothers_visit_confirmed_nearby_business_identities_unavailable",
+      "observedBusinessCoverage": [],
+      "plan": {
+        "artifactType": "nearby_context_advisory_plan",
+        "version": "nearby-context-intelligence-v2",
+        "policyVersion": "nearby-context-intelligence-v2-policy-v1",
+        "contractVersion": "nearby-context-intelligence-v2-contracts-v1",
+        "status": "coverage_gap",
+        "generatedAt": "2026-07-11T21:21:59.331Z",
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz",
+        "primary": {
+          "identityKey": "google:ChIJiduac7LCQIYR-sGBtIAjKR0",
+          "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+          "businessName": "Christian Brothers Automotive Pearland",
+          "address": "9245 S Sam Houston Pkwy E, Houston, TX 77075, USA",
+          "coordinatesAvailable": true
+        },
+        "sourceProvenance": {
+          "fieldObservationId": "fitness-2026-07-11-christian-brothers-nearby-context-false-negative",
+          "fieldObservationClassification": "founder_verified_design_requirement",
+          "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+          "fullPoolFallbackProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+          "quarantineDiagnostics": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+          "canonicalBusinessHours": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+          "archivedFieldSession": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json"
+        },
+        "fieldEvidenceBasis": {
+          "observedOn": "2026-07-11",
+          "classification": "founder_verified_design_requirement",
+          "findingIds": [
+            "fitness-2026-07-11-texans-nearby-context-false-negative",
+            "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+          ],
+          "finding": "Nearby Context reported no verified nearby businesses at two Founder-verified locations where adjacent and walkable storefronts were observed.",
+          "learningInput": false,
+          "recommendationScoreInput": false,
+          "archiveMutationAllowed": false,
+          "purpose": "Shape and validate relationship-aware arrival context without promoting stress observations into learned evidence or source records."
+        },
+        "architecture": {
+          "purpose": "secondary_arrival_opportunities_not_recommendation_replacement",
+          "eligibilityBoundary": "before_relationship_classification",
+          "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
+          "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+          "activePoolPriority": true,
+          "governedFullPoolFallback": true,
+          "relationshipPriority": [
+            "same_building",
+            "same_shopping_center",
+            "same_commercial_parcel",
+            "walkable",
+            "nearby"
+          ],
+          "relationshipEvidence": "verified_structured_identifiers_or_disclosed_conservative_inference",
+          "distanceMethod": "approximate_straight_line_distance",
+          "runtimeConsumerActive": false,
+          "recommendationScoreOrdering": false
+        },
+        "nearbyOpportunities": {
+          "title": "Nearby Opportunities",
+          "status": "coverage_gap",
+          "maximumResults": 6,
+          "count": 0,
+          "entries": [],
+          "emptyState": {
+            "code": "GOVERNED_NEARBY_SUPPLY_UNAVAILABLE",
+            "message": "No qualified nearby opportunities are available in the governed candidate supply.",
+            "detail": "Nearby storefronts may exist, but the current governed records were absent or excluded. No business was invented or admitted around governance.",
+            "reasonCodes": [
+              "nearby_candidates_quarantined",
+              "no_governed_eligible_nearby_supply"
+            ],
+            "recommendationInvented": false,
+            "nextAction": "Continue with the primary visit. Nearby coverage can improve as verified storefront records become available."
+          }
+        },
+        "coverage": {
+          "suppliedCandidateCount": 450,
+          "scannedCandidateCount": 450,
+          "inputTruncated": false,
+          "eligibleRelationshipCandidateCount": 0,
+          "selectedCandidateCount": 0,
+          "sourcePoolDistribution": {
+            "active": 297,
+            "full": 44,
+            "quarantine": 109
+          },
+          "selectedSourcePoolDistribution": {},
+          "selectedGovernanceStageDistribution": {},
+          "selectedRelationshipDistribution": {},
+          "selectedHoursStatusDistribution": {},
+          "hoursEvaluation": {
+            "evaluated": 450,
+            "eligible": 334,
+            "excluded": 116,
+            "hoursUnverified": 97,
+            "statuses": {
+              "OPEN_VERIFIED": 237,
+              "CLOSED_VERIFIED": 116,
+              "HOURS_UNKNOWN": 97,
+              "HOURS_STALE": 0,
+              "SPECIAL_HOURS_UNVERIFIED": 0
+            },
+            "reasonCodes": {
+              "VERIFIED_CURRENT_WINDOW_CLOSED": 116,
+              "VERIFIED_CURRENT_WINDOW_OPEN": 237,
+              "HOURS_SOURCE_MISSING": 45,
+              "BUSINESS_HOURS_RECORD_UNAVAILABLE": 52
+            }
+          },
+          "exclusionCount": 450,
+          "exclusionReasonDistribution": {
+            "closed_verified": 74,
+            "completed_business": 3,
+            "forbidden_source_pool": 109,
+            "outside_maximum_search_radius": 262,
+            "outside_nearby_relationship_scope": 1,
+            "primary_business": 1
+          },
+          "nearbyGovernanceExclusionCount": 1,
+          "exclusions": [
+            {
+              "identityKey": "google:ChIJiduac7LCQIYR-sGBtIAjKR0",
+              "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+              "businessName": "Christian Brothers Automotive Pearland",
+              "sourcePool": "active",
+              "distanceFeet": 0,
+              "reason": "primary_business",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJx9GwkjeXQIYRSZUHNH87YV8",
+              "googlePlaceId": "ChIJx9GwkjeXQIYRSZUHNH87YV8",
+              "businessName": "First Texas Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 1473.2,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ15Xh8zWXQIYRxLDRM52CeF4",
+              "googlePlaceId": "ChIJ15Xh8zWXQIYRxLDRM52CeF4",
+              "businessName": "Kings Mobile Car Detailing",
+              "sourcePool": "active",
+              "distanceFeet": 2008.9,
+              "reason": "outside_nearby_relationship_scope",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJdx0N8ESXQIYR7XkH6myTq74",
+              "googlePlaceId": "ChIJdx0N8ESXQIYR7XkH6myTq74",
+              "businessName": "KADOSH mobile wash and detailing",
+              "sourcePool": "active",
+              "distanceFeet": 3054.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJe8M2PlqXQIYRG7eykLJe0po",
+              "googlePlaceId": "ChIJe8M2PlqXQIYRG7eykLJe0po",
+              "businessName": "D'RICO VIP BARBER SHOP",
+              "sourcePool": "active",
+              "distanceFeet": 3273.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJxW4MMACXQIYRyF5nM67hml0",
+              "googlePlaceId": "ChIJxW4MMACXQIYRyF5nM67hml0",
+              "businessName": "Hamza’s Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 3565.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+              "googlePlaceId": "ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+              "businessName": "Blackhawk Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 3887.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJI13UBweRQIYRmwr6qAnoIz0",
+              "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+              "businessName": "Texans Auto Repair - Blackhawk",
+              "sourcePool": "active",
+              "distanceFeet": 3990.7,
+              "reason": "completed_business",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJOb3DqQOXQIYR6p6FPwU08s4",
+              "googlePlaceId": "ChIJOb3DqQOXQIYR6p6FPwU08s4",
+              "businessName": "Quick Quack Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 4625,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ408BdA2XQIYRkmWY7TOPyz4",
+              "googlePlaceId": "ChIJ408BdA2XQIYRkmWY7TOPyz4",
+              "businessName": "Tidal Wave Auto Spa | Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 4984.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNfkIbLWXQIYRj6-jothhvuU",
+              "googlePlaceId": "ChIJNfkIbLWXQIYRj6-jothhvuU",
+              "businessName": "Lynx Automotive Mobile Mechanic",
+              "sourcePool": "active",
+              "distanceFeet": 5202.8,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJg3gZd0OXQIYR0L0DRHiLtA4",
+              "googlePlaceId": "ChIJg3gZd0OXQIYR0L0DRHiLtA4",
+              "businessName": "Gigi's Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 5509.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJj4lxeEOXQIYRJHCvVRN0OQc",
+              "googlePlaceId": "ChIJj4lxeEOXQIYRJHCvVRN0OQc",
+              "businessName": "ABA Salons",
+              "sourcePool": "active",
+              "distanceFeet": 5697.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJj45AiGyXQIYRWAsgmMUUmVI",
+              "googlePlaceId": "ChIJj45AiGyXQIYRWAsgmMUUmVI",
+              "businessName": "El Oregano Restaurant",
+              "sourcePool": "active",
+              "distanceFeet": 5785.5,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJi5b7NECWQIYRvwfqI8lSpks",
+              "googlePlaceId": "ChIJi5b7NECWQIYRvwfqI8lSpks",
+              "businessName": "Tristan's Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 6007,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjXX-KbiXQIYRrWY6PPB6kdI",
+              "googlePlaceId": "ChIJjXX-KbiXQIYRrWY6PPB6kdI",
+              "businessName": "Cano’s Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 6020.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJw-mwaEOXQIYRFZQ7tWUt-mA",
+              "googlePlaceId": "ChIJw-mwaEOXQIYRFZQ7tWUt-mA",
+              "businessName": "M W Exclusive Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 6185.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJHx40h1aXQIYRNREN9WdYG_U",
+              "googlePlaceId": "ChIJHx40h1aXQIYRNREN9WdYG_U",
+              "businessName": "Tx Hair Fashions",
+              "sourcePool": "active",
+              "distanceFeet": 7243.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJHZTkVQCXQIYRWYAgfeQ2qeI",
+              "googlePlaceId": "ChIJHZTkVQCXQIYRWYAgfeQ2qeI",
+              "businessName": "24/7 Tire Shop",
+              "sourcePool": "active",
+              "distanceFeet": 7302.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJV3MAdYuXQIYR2Ru6lHxw_fA",
+              "googlePlaceId": "ChIJV3MAdYuXQIYR2Ru6lHxw_fA",
+              "businessName": "The Club House Studios",
+              "sourcePool": "active",
+              "distanceFeet": 7690.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9-pdC1WXQIYRJxowgkIewe4",
+              "googlePlaceId": "ChIJ9-pdC1WXQIYRJxowgkIewe4",
+              "businessName": "Carwash",
+              "sourcePool": "active",
+              "distanceFeet": 7906.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjYz2c6uXQIYRs34L17Mo9ZU",
+              "googlePlaceId": "ChIJjYz2c6uXQIYRs34L17Mo9ZU",
+              "businessName": "Miracle Organics, LLC",
+              "sourcePool": "active",
+              "distanceFeet": 7970.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJzUaF2JqXQIYRUCnuVxbp7II",
+              "googlePlaceId": "ChIJzUaF2JqXQIYRUCnuVxbp7II",
+              "businessName": "Clinica Medica Fuqua",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8288.3,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJk5Hx0liXQIYRrFd6OyUGQyM",
+              "googlePlaceId": "ChIJk5Hx0liXQIYRrFd6OyUGQyM",
+              "businessName": "Mai Hair Design",
+              "sourcePool": "active",
+              "distanceFeet": 8325.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJtST-VOaXQIYRjzBjdVUVLPI",
+              "googlePlaceId": "ChIJtST-VOaXQIYRjzBjdVUVLPI",
+              "businessName": "SRG Tax Services",
+              "sourcePool": "full",
+              "distanceFeet": 8381.4,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJG4nWySKXQIYRFP24b5TZ3Vs",
+              "googlePlaceId": "ChIJG4nWySKXQIYRFP24b5TZ3Vs",
+              "businessName": "Nino's Auto Detailing- Ceramic coatings and Paint Corrections",
+              "sourcePool": "active",
+              "distanceFeet": 8404.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJvUYdrliXQIYROvZ-oMwdpoo",
+              "googlePlaceId": "ChIJvUYdrliXQIYROvZ-oMwdpoo",
+              "businessName": "Car - Beamer Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 8521.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC0GASV-XQIYRjvz21NqhsY8",
+              "googlePlaceId": "ChIJC0GASV-XQIYRjvz21NqhsY8",
+              "businessName": "Mexico Lindo Barber Shop",
+              "sourcePool": "active",
+              "distanceFeet": 8639.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ56yfy0iXQIYRnEO2z1oEUZg",
+              "googlePlaceId": "ChIJ56yfy0iXQIYRnEO2z1oEUZg",
+              "businessName": "Take 5 Oil Change",
+              "sourcePool": "active",
+              "distanceFeet": 8717.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJiSw-VF-XQIYRNXPa-F34zcY",
+              "googlePlaceId": "ChIJiSw-VF-XQIYRNXPa-F34zcY",
+              "businessName": "Easy Wash",
+              "sourcePool": "active",
+              "distanceFeet": 8804.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJs7kEFF-XQIYRP-gtmBR_190",
+              "googlePlaceId": "ChIJs7kEFF-XQIYRP-gtmBR_190",
+              "businessName": "AutoZone Auto Parts",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8815.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJNVj8V1-XQIYRMS7hYrLfy18",
+              "googlePlaceId": "ChIJNVj8V1-XQIYRMS7hYrLfy18",
+              "businessName": "Elias G Khalil DDS",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8918.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNVj8V1-XQIYR8qh2NHthalw",
+              "googlePlaceId": "ChIJNVj8V1-XQIYR8qh2NHthalw",
+              "businessName": "Houston Family Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 8921.8,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+              "googlePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+              "businessName": "La Familia Auto Insurance",
+              "sourcePool": "active",
+              "distanceFeet": 9055.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJm3a75-GZQIYRLJcoGWMVzwA",
+              "googlePlaceId": "ChIJm3a75-GZQIYRLJcoGWMVzwA",
+              "businessName": "Fuqua Family Practice. Jarrod Drab D.O.",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9056.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+              "googlePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+              "businessName": "Jiffy Lube Oil Change",
+              "sourcePool": "active",
+              "distanceFeet": 9171.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJg3eaumCXQIYRlIUFZypreME",
+              "googlePlaceId": "ChIJg3eaumCXQIYRlIUFZypreME",
+              "businessName": "Fox Hair & Nails",
+              "sourcePool": "active",
+              "distanceFeet": 9182.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJIfd97xGXQIYRqQ70PQe8XZU",
+              "googlePlaceId": "ChIJIfd97xGXQIYRqQ70PQe8XZU",
+              "businessName": "Jim's Auto Service",
+              "sourcePool": "active",
+              "distanceFeet": 9198.7,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+              "googlePlaceId": "ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+              "businessName": "Aquexentaris Auto Technician",
+              "sourcePool": "active",
+              "distanceFeet": 9207.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJx3_bt6eXQIYRVAbbUfaOpTo",
+              "googlePlaceId": "ChIJx3_bt6eXQIYRVAbbUfaOpTo",
+              "businessName": "Tire Care Center",
+              "sourcePool": "active",
+              "distanceFeet": 9218.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJq1KUFOWbQIYRtEywmXHNZ7s",
+              "googlePlaceId": "ChIJq1KUFOWbQIYRtEywmXHNZ7s",
+              "businessName": "Loving Smiles Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9227.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJXya8cRKXQIYRdMb2MCRmgTU",
+              "googlePlaceId": "ChIJXya8cRKXQIYRdMb2MCRmgTU",
+              "businessName": "Texas Wheels & Tire",
+              "sourcePool": "active",
+              "distanceFeet": 9270.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJLbS2u2CXQIYRbGwtk8auD5g",
+              "googlePlaceId": "ChIJLbS2u2CXQIYRbGwtk8auD5g",
+              "businessName": "Hair By Paul",
+              "sourcePool": "active",
+              "distanceFeet": 9283.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJl9wc9OGZQIYRSpncszmjTRE",
+              "googlePlaceId": "ChIJl9wc9OGZQIYRSpncszmjTRE",
+              "businessName": "Sage Hollow Apartments",
+              "sourcePool": "full",
+              "distanceFeet": 9284.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJNwsy8BSXQIYRAI_6tNaXiVg",
+              "googlePlaceId": "ChIJNwsy8BSXQIYRAI_6tNaXiVg",
+              "businessName": "Drive Rite Automotive",
+              "sourcePool": "active",
+              "distanceFeet": 9302.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJv7MA7eGZQIYRINIvMqp85nU",
+              "googlePlaceId": "ChIJv7MA7eGZQIYRINIvMqp85nU",
+              "businessName": "Montoya Auto Service",
+              "sourcePool": "active",
+              "distanceFeet": 9308.2,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJX5q17eGZQIYRkCCnrr6ikk4",
+              "googlePlaceId": "ChIJX5q17eGZQIYRkCCnrr6ikk4",
+              "businessName": "Automatic Transmission Center",
+              "sourcePool": "active",
+              "distanceFeet": 9308.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+              "googlePlaceId": "ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+              "businessName": "Kingspoint Mart",
+              "sourcePool": "active",
+              "distanceFeet": 9358.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJbcxYBf6ZQIYRGECq_oyr0qA",
+              "googlePlaceId": "ChIJbcxYBf6ZQIYRGECq_oyr0qA",
+              "businessName": "Jackson Hewitt Tax Service",
+              "sourcePool": "full",
+              "distanceFeet": 9409.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+              "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+              "businessName": "Galachy Tire Shop",
+              "sourcePool": "active",
+              "distanceFeet": 9412.2,
+              "reason": "completed_business",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJMb3z65zrQIYRiqwl5D-AoBQ",
+              "googlePlaceId": "ChIJMb3z65zrQIYRiqwl5D-AoBQ",
+              "businessName": "Zapeta’s Hand Car Wash and Detail",
+              "sourcePool": "active",
+              "distanceFeet": 9420.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJq07JUm2XQIYR4zDnGPJfxy4",
+              "googlePlaceId": "ChIJq07JUm2XQIYR4zDnGPJfxy4",
+              "businessName": "Citgo Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 9441.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJM34mkuGZQIYRrMDpkli7wjM",
+              "googlePlaceId": "ChIJM34mkuGZQIYRrMDpkli7wjM",
+              "businessName": "Pilgrim Cleaners",
+              "sourcePool": "active",
+              "distanceFeet": 9459.8,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+              "googlePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+              "businessName": "Wok D'Lite",
+              "sourcePool": "active",
+              "distanceFeet": 9467.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJraCPnBWXQIYR32Q8i6aQBMw",
+              "googlePlaceId": "ChIJraCPnBWXQIYR32Q8i6aQBMw",
+              "businessName": "Cơm Gà Houston South 45",
+              "sourcePool": "active",
+              "distanceFeet": 9529.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+              "googlePlaceId": "ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+              "businessName": "Pho Bac | Vietnamese Noodle House",
+              "sourcePool": "active",
+              "distanceFeet": 9529.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+              "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+              "businessName": "Fuqua Professional Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 9549.9,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJpyLNheGZQIYRAHrGG7frsY0",
+              "googlePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+              "businessName": "Bravos Mexican restaurant",
+              "sourcePool": "active",
+              "distanceFeet": 9562.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+              "googlePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+              "businessName": "Kruzzers Auto Care LLC",
+              "sourcePool": "active",
+              "distanceFeet": 9592.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+              "googlePlaceId": "ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+              "businessName": "Texas Radiators & Mufflers & Vehicles Emissions Inspection",
+              "sourcePool": "active",
+              "distanceFeet": 9623.7,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+              "googlePlaceId": "ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+              "businessName": "Tasty Cajun",
+              "sourcePool": "active",
+              "distanceFeet": 9625.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJBVBUL9mZQIYRA2_npJzDh94",
+              "googlePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+              "businessName": "Lone Star Seafood",
+              "sourcePool": "active",
+              "distanceFeet": 9628.1,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJF8vibuGZQIYRwDvtFvUnmzU",
+              "googlePlaceId": "ChIJF8vibuGZQIYRwDvtFvUnmzU",
+              "businessName": "Top Hair Salon",
+              "sourcePool": "active",
+              "distanceFeet": 9676.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJhavu-mCXQIYRMsum7C6Lx9k",
+              "googlePlaceId": "ChIJhavu-mCXQIYRMsum7C6Lx9k",
+              "businessName": "Thang Quang Lam, DDS, PA",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9695.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJR5kvuAGaQIYRbeP1x3tbCsI",
+              "googlePlaceId": "ChIJR5kvuAGaQIYRbeP1x3tbCsI",
+              "businessName": "Universal Lube & Oil - Auto Repair LLC",
+              "sourcePool": "active",
+              "distanceFeet": 9763,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJsVRHhHKXQIYRCv9FyZndgpc",
+              "googlePlaceId": "ChIJsVRHhHKXQIYRCv9FyZndgpc",
+              "businessName": "Miami Car Wash",
+              "sourcePool": "active",
+              "distanceFeet": 9775.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJEQmuCW6XQIYR4iM3ObuYY-Y",
+              "googlePlaceId": "ChIJEQmuCW6XQIYR4iM3ObuYY-Y",
+              "businessName": "United States Postal Service",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9802.9,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJ60STIx2XQIYRnVI5ZMTQn34",
+              "googlePlaceId": "ChIJ60STIx2XQIYRnVI5ZMTQn34",
+              "businessName": "LA PLACITA",
+              "sourcePool": "full",
+              "distanceFeet": 9845.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-wJcqtiXQIYR4wYj5atb5PA",
+              "googlePlaceId": "ChIJ-wJcqtiXQIYR4wYj5atb5PA",
+              "businessName": "Fire Fades Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 9872.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJyclcb-CZQIYRCYJsVdGi2Bk",
+              "googlePlaceId": "ChIJyclcb-CZQIYRCYJsVdGi2Bk",
+              "businessName": "Green Arbor Apartments",
+              "sourcePool": "full",
+              "distanceFeet": 9891.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJkRiOsHaXQIYRgd0XwOwFD5Y",
+              "googlePlaceId": "ChIJkRiOsHaXQIYRgd0XwOwFD5Y",
+              "businessName": "South Houston Dental",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9900.7,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJb_Ij0wGaQIYRbrL-jm4Uhww",
+              "googlePlaceId": "ChIJb_Ij0wGaQIYRbrL-jm4Uhww",
+              "businessName": "Hair By Angel salon",
+              "sourcePool": "active",
+              "distanceFeet": 9903.1,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJea-aRmGXQIYRLJTwbfyLsUE",
+              "googlePlaceId": "ChIJea-aRmGXQIYRLJTwbfyLsUE",
+              "businessName": "David Citek, DDS",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9908.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJQYn6Xh6XQIYRSQ5iOWNxfls",
+              "googlePlaceId": "ChIJQYn6Xh6XQIYRSQ5iOWNxfls",
+              "businessName": "Montano’s barber shop # 2",
+              "sourcePool": "active",
+              "distanceFeet": 9913.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJHRGBJx2XQIYRdJBP9pKiBPc",
+              "googlePlaceId": "ChIJHRGBJx2XQIYRdJBP9pKiBPc",
+              "businessName": "Fiesta Auto Insurance & Tax Service",
+              "sourcePool": "full",
+              "distanceFeet": 9937.3,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ0b330gGaQIYROiv0rrGGx4w",
+              "googlePlaceId": "ChIJ0b330gGaQIYROiv0rrGGx4w",
+              "businessName": "Express Tax Services",
+              "sourcePool": "full",
+              "distanceFeet": 9937.5,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJbal6C2GXQIYRmpm3VfpXXTc",
+              "googlePlaceId": "ChIJbal6C2GXQIYRmpm3VfpXXTc",
+              "businessName": "P & S Complete Auto Repair",
+              "sourcePool": "active",
+              "distanceFeet": 9947.5,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ28K9pqmXQIYR8iRxYb31Kqs",
+              "googlePlaceId": "ChIJ28K9pqmXQIYR8iRxYb31Kqs",
+              "businessName": "The Smoke Shoppe",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9950.7,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJSbooCeGZQIYR9TmsVVvSz8I",
+              "googlePlaceId": "ChIJSbooCeGZQIYR9TmsVVvSz8I",
+              "businessName": "Car Wash",
+              "sourcePool": "quarantine",
+              "distanceFeet": 9989,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJNVwxzoyZQIYRhshbEY-p9_U",
+              "googlePlaceId": "ChIJNVwxzoyZQIYRhshbEY-p9_U",
+              "businessName": "Texas Grill 49",
+              "sourcePool": "active",
+              "distanceFeet": 10088.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+              "googlePlaceId": "ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+              "businessName": "Uptown Detail",
+              "sourcePool": "active",
+              "distanceFeet": 10092.4,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJJd4EsjeYQIYRzsAiJYsYHZA",
+              "googlePlaceId": "ChIJJd4EsjeYQIYRzsAiJYsYHZA",
+              "businessName": "Kindle Clinic",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10109.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJJR7e8XCbQIYRN_WV8sQpn5E",
+              "googlePlaceId": "ChIJJR7e8XCbQIYRN_WV8sQpn5E",
+              "businessName": "BARBER SHOP YSA🙏",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10112.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9TRCKYubQIYR8psjkD8AVl8",
+              "googlePlaceId": "ChIJ9TRCKYubQIYR8psjkD8AVl8",
+              "businessName": "Jorgitin-Barbershop",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10112.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJhVrfIACXQIYR5fVQz7qew70",
+              "googlePlaceId": "ChIJhVrfIACXQIYR5fVQz7qew70",
+              "businessName": "Purerentaris AutoGlass Windshield Repairs",
+              "sourcePool": "active",
+              "distanceFeet": 10129.8,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJS9lIAsiXQIYRbdm45-qM65w",
+              "googlePlaceId": "ChIJS9lIAsiXQIYRbdm45-qM65w",
+              "businessName": "Taylor Auto Express",
+              "sourcePool": "active",
+              "distanceFeet": 10149.5,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJF_53cmGXQIYRg97yhmQZCmU",
+              "googlePlaceId": "ChIJF_53cmGXQIYRg97yhmQZCmU",
+              "businessName": "Taylor Tire & Automotive",
+              "sourcePool": "active",
+              "distanceFeet": 10149.5,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJCfUU8BOZQIYRCFljCmlK_iU",
+              "googlePlaceId": "ChIJCfUU8BOZQIYRCFljCmlK_iU",
+              "businessName": "Southside Barbershop",
+              "sourcePool": "active",
+              "distanceFeet": 10179.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ6wsYFeGZQIYRPTiSbo2nmiM",
+              "googlePlaceId": "ChIJ6wsYFeGZQIYRPTiSbo2nmiM",
+              "businessName": "Nancy's Hair & Nails",
+              "sourcePool": "active",
+              "distanceFeet": 10180.7,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJa5TLQOGZQIYR3EZwdXH9Gjk",
+              "googlePlaceId": "ChIJa5TLQOGZQIYR3EZwdXH9Gjk",
+              "businessName": "Pho 21,Fuqua St. Paul",
+              "sourcePool": "active",
+              "distanceFeet": 10186.9,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJw_j5DXK9QIYRfEFiOYffXt0",
+              "googlePlaceId": "ChIJw_j5DXK9QIYRfEFiOYffXt0",
+              "businessName": "David's Barber Shop",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10193.5,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ_SXddzWRQIYRyHNCN6STDps",
+              "googlePlaceId": "ChIJ_SXddzWRQIYRyHNCN6STDps",
+              "businessName": "Almeda Dental Pearland",
+              "sourcePool": "quarantine",
+              "distanceFeet": 10207.4,
+              "reason": "forbidden_source_pool",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJG7HiZLOZQIYRESARsfH80GE",
+              "googlePlaceId": "ChIJG7HiZLOZQIYRESARsfH80GE",
+              "businessName": "Space City Auto Detail",
+              "sourcePool": "active",
+              "distanceFeet": 10226.8,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJdwE6rWGZQIYRWZ3WgsHVaHc",
+              "googlePlaceId": "ChIJdwE6rWGZQIYRWZ3WgsHVaHc",
+              "businessName": "The Tea Bar",
+              "sourcePool": "active",
+              "distanceFeet": 10248.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJCe4DawCZQIYRMwubMJVys1o",
+              "googlePlaceId": "ChIJCe4DawCZQIYRMwubMJVys1o",
+              "businessName": "Botax",
+              "sourcePool": "active",
+              "distanceFeet": 10257.6,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "HOURS_UNKNOWN"
+            },
+            {
+              "identityKey": "google:ChIJc7enc7CZQIYRSFNExbNUQcw",
+              "googlePlaceId": "ChIJc7enc7CZQIYRSFNExbNUQcw",
+              "businessName": "LUXURIOUS BY VALERIE",
+              "sourcePool": "active",
+              "distanceFeet": 10257.6,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJla6Uh2mZQIYRNnoKwL44FIk",
+              "googlePlaceId": "ChIJla6Uh2mZQIYRNnoKwL44FIk",
+              "businessName": "Utopia Beauty Bliss",
+              "sourcePool": "active",
+              "distanceFeet": 10257.6,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ9zxsR-GZQIYRWnU_N6h-FxM",
+              "googlePlaceId": "ChIJ9zxsR-GZQIYRWnU_N6h-FxM",
+              "businessName": "7Spice",
+              "sourcePool": "active",
+              "distanceFeet": 10272.3,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJ-XgfVheXQIYR3ZePVXNjjig",
+              "googlePlaceId": "ChIJ-XgfVheXQIYR3ZePVXNjjig",
+              "businessName": "Southeast Houston Auto Storage",
+              "sourcePool": "active",
+              "distanceFeet": 10286.2,
+              "reason": "outside_maximum_search_radius",
+              "hoursStatus": "OPEN_VERIFIED"
+            },
+            {
+              "identityKey": "google:ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+              "googlePlaceId": "ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+              "businessName": "Social Smoke Hookah Lounge & Bar",
+              "sourcePool": "active",
+              "distanceFeet": 10311.4,
+              "reason": "closed_verified",
+              "hoursStatus": "CLOSED_VERIFIED"
+            }
+          ],
+          "fullPoolFallbackUsed": false,
+          "coverageGapDetected": true,
+          "governedDataInvented": false
+        },
+        "explainabilityModel": {
+          "requiredQuestions": [
+            "why",
+            "evidence",
+            "confidence",
+            "whatChanged",
+            "nextAction"
+          ],
+          "relationshipVerificationVisible": true,
+          "hoursProvenancePreserved": true,
+          "sourcePoolVisible": true,
+          "distanceVisible": true,
+          "internalFormulaExposureAllowed": false,
+          "proprietaryWeightExposureAllowed": false
+        },
+        "validation": {
+          "deterministicOrderingRequired": true,
+          "canonicalBusinessHoursEligibilityPreserved": true,
+          "closedVerifiedExcluded": true,
+          "quarantineExcluded": true,
+          "completedBusinessesExcluded": true,
+          "primaryBusinessExcluded": true,
+          "duplicatePreventionPassed": true,
+          "workspaceIsolationPassed": true,
+          "operatingProfileIsolationPassed": true,
+          "relationshipPriorityPreserved": true,
+          "explanationsComplete": true,
+          "recommendationScoresUsedForOrdering": false,
+          "recommendationScoresChanged": false,
+          "liveGoogleCallsMade": false,
+          "recommendationReplacementActive": false,
+          "productionQueueMutationActive": false,
+          "dashboardConsumerActive": false,
+          "routeScoringWeightsChanged": false,
+          "dashboardRuntimeChanged": false,
+          "dataChanged": false,
+          "crmChanged": false,
+          "companionChanged": false
+        }
+      }
+    }
+  ],
+  "governedCapabilityProbe": {
+    "artifactType": "nearby_context_advisory_plan",
+    "version": "nearby-context-intelligence-v2",
+    "policyVersion": "nearby-context-intelligence-v2-policy-v1",
+    "contractVersion": "nearby-context-intelligence-v2-contracts-v1",
+    "status": "opportunities_available",
+    "generatedAt": "2026-07-11T21:21:59.331Z",
+    "workspaceId": "fitness_connection",
+    "operatingProfileId": "fitness",
+    "representativeId": "cruz",
+    "primary": {
+      "identityKey": "google:ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+      "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+      "businessName": "Fuqua Professional Auto Repair",
+      "address": "10619 Fuqua St, Houston, TX 77089, USA",
+      "coordinatesAvailable": true
+    },
+    "sourceProvenance": {
+      "classification": "governed_runtime_capability_probe",
+      "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "fullPoolFallbackProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+      "canonicalBusinessHours": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+    },
+    "fieldEvidenceBasis": {
+      "observedOn": "2026-07-11",
+      "classification": "founder_verified_design_requirement",
+      "findingIds": [
+        "fitness-2026-07-11-texans-nearby-context-false-negative",
+        "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+      ],
+      "finding": "Nearby Context reported no verified nearby businesses at two Founder-verified locations where adjacent and walkable storefronts were observed.",
+      "learningInput": false,
+      "recommendationScoreInput": false,
+      "archiveMutationAllowed": false,
+      "purpose": "Shape and validate relationship-aware arrival context without promoting stress observations into learned evidence or source records."
+    },
+    "architecture": {
+      "purpose": "secondary_arrival_opportunities_not_recommendation_replacement",
+      "eligibilityBoundary": "before_relationship_classification",
+      "canonicalHoursImplementation": "intelligence/route-business-hours-eligibility.mjs",
+      "canonicalHoursVersion": "route-iq-closed-now-eligibility-v1",
+      "activePoolPriority": true,
+      "governedFullPoolFallback": true,
+      "relationshipPriority": [
+        "same_building",
+        "same_shopping_center",
+        "same_commercial_parcel",
+        "walkable",
+        "nearby"
+      ],
+      "relationshipEvidence": "verified_structured_identifiers_or_disclosed_conservative_inference",
+      "distanceMethod": "approximate_straight_line_distance",
+      "runtimeConsumerActive": false,
+      "recommendationScoreOrdering": false
+    },
+    "nearbyOpportunities": {
+      "title": "Nearby Opportunities",
+      "status": "opportunities_available",
+      "maximumResults": 6,
+      "count": 6,
+      "entries": [
+        {
+          "order": 1,
+          "identityKey": "google:ChIJpyLNheGZQIYRAHrGG7frsY0",
+          "googlePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+          "businessName": "Bravos Mexican restaurant",
+          "address": "10906 Fuqua St, Houston, TX 77089, USA",
+          "category": "Restaurant",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 305.1,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJpyLNheGZQIYRAHrGG7frsY0",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 79.4,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "Bravos Mexican restaurant is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 305 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider Bravos Mexican restaurant as a secondary stop."
+          }
+        },
+        {
+          "order": 2,
+          "identityKey": "google:ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+          "googlePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+          "businessName": "Kruzzers Auto Care LLC",
+          "address": "10617 Fuqua St, Houston, TX 77089, USA",
+          "category": "Car Wash",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 318,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJmyQy7GSZQIYRxiDyvF_eI_M",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 89.5,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "Kruzzers Auto Care LLC is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 318 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider Kruzzers Auto Care LLC as a secondary stop."
+          }
+        },
+        {
+          "order": 3,
+          "identityKey": "google:ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+          "googlePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+          "businessName": "Wok D'Lite",
+          "address": "Parking lot, 10904 Fuqua St, Houston, TX 77089, USA",
+          "category": "Restaurant",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 322.1,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJC8eiLBOZQIYRh2AyuPl9cD8",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 79.3,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "Wok D'Lite is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 322 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider Wok D'Lite as a secondary stop."
+          }
+        },
+        {
+          "order": 4,
+          "identityKey": "google:ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+          "googlePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+          "businessName": "Jiffy Lube Oil Change",
+          "address": "10605 Fuqua St, Houston, TX 77089, USA",
+          "category": "Auto",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 385.4,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJ-1DE7-GZQIYRhYNdqb02Kak",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 89.4,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "Jiffy Lube Oil Change is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 385 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider Jiffy Lube Oil Change as a secondary stop."
+          }
+        },
+        {
+          "order": 5,
+          "identityKey": "google:ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+          "googlePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+          "businessName": "La Familia Auto Insurance",
+          "address": "10655 Fuqua St E, Houston, TX 77089, USA",
+          "category": "Auto",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 517.1,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJjc3ZH7SZQIYRBEOeXkVVLkA",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 89.4,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "La Familia Auto Insurance is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 517 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider La Familia Auto Insurance as a secondary stop."
+          }
+        },
+        {
+          "order": 6,
+          "identityKey": "google:ChIJBVBUL9mZQIYRA2_npJzDh94",
+          "googlePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+          "businessName": "Lone Star Seafood",
+          "address": "10990 Fuqua St, Houston, TX 77089, USA",
+          "category": "Restaurant",
+          "sourcePool": "active",
+          "governanceStage": "active_verified_open",
+          "distanceFeet": 608.7,
+          "distanceMethod": "approximate_straight_line_distance",
+          "relationship": {
+            "type": "walkable",
+            "label": "Walkable opportunity",
+            "verification": "INFERRED",
+            "confidence": "LOW",
+            "evidence": [
+              "within_governed_walkable_distance"
+            ]
+          },
+          "eligibilitySnapshot": {
+            "version": "route-iq-closed-now-eligibility-v1",
+            "workspaceId": "fitness_connection",
+            "operatingProfileId": "fitness",
+            "googlePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+            "permanentOperationalStatus": "OPERATIONAL",
+            "status": "OPEN_VERIFIED",
+            "eligible": true,
+            "coverageOnly": false,
+            "selectionTier": 0,
+            "internalMarker": null,
+            "hoursConfidence": "HIGH",
+            "hoursFreshness": "FRESH",
+            "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+            "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+            "evaluatedAt": "2026-07-11T21:21:59.331Z",
+            "businessLocalDate": "2026-07-11",
+            "businessLocalTime": "16:21",
+            "businessTimezone": "America/Chicago",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z",
+            "sourceStatus": "OPEN_VERIFIED",
+            "sourceStatusEvaluatedAt": "2026-07-11T21:21:59.331Z",
+            "provenance": {
+              "sourceSystem": "GOOGLE_PLACES_API_NEW",
+              "sourceMethod": "places.get",
+              "sourcePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+              "retrievedAt": "2026-07-11T21:21:59.331Z",
+              "normalizedAt": "2026-07-11T21:21:59.331Z",
+              "fieldEvidenceIds": []
+            },
+            "failClosed": false,
+            "scoringChanged": false,
+            "explanation": {
+              "recommendationScore": "UNCHANGED",
+              "businessHoursEligibility": "OPEN_VERIFIED",
+              "hoursConfidence": "HIGH",
+              "hoursFreshness": "FRESH",
+              "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+              "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+              "provenance": {
+                "sourceSystem": "GOOGLE_PLACES_API_NEW",
+                "sourceMethod": "places.get",
+                "sourcePlaceId": "ChIJBVBUL9mZQIYRA2_npJzDh94",
+                "retrievedAt": "2026-07-11T21:21:59.331Z",
+                "normalizedAt": "2026-07-11T21:21:59.331Z",
+                "fieldEvidenceIds": []
+              }
+            },
+            "displayLabel": "Verified open"
+          },
+          "recommendationScoreSnapshot": 79.3,
+          "recommendationScoreUsedForOrdering": false,
+          "recommendationScoreChanged": false,
+          "explanation": {
+            "why": "Lone Star Seafood is within the governed walkable range of Fuqua Professional Auto Repair and remains an eligible secondary opportunity.",
+            "evidence": "Walkable opportunity; inferred relationship evidence; approximately 609 feet straight line; verified open.",
+            "confidence": "Low relationship confidence with high business-hours confidence.",
+            "whatChanged": "Nearby Context now evaluates governed commercial-location relationships before treating proximity as ordinary nearby distance.",
+            "nextAction": "After the primary visit, consider Lone Star Seafood as a secondary stop."
+          }
+        }
+      ],
+      "emptyState": null
+    },
+    "coverage": {
+      "suppliedCandidateCount": 450,
+      "scannedCandidateCount": 450,
+      "inputTruncated": false,
+      "eligibleRelationshipCandidateCount": 30,
+      "selectedCandidateCount": 6,
+      "sourcePoolDistribution": {
+        "active": 297,
+        "full": 44,
+        "quarantine": 109
+      },
+      "selectedSourcePoolDistribution": {
+        "active": 6
+      },
+      "selectedGovernanceStageDistribution": {
+        "active_verified_open": 6
+      },
+      "selectedRelationshipDistribution": {
+        "walkable": 6
+      },
+      "selectedHoursStatusDistribution": {
+        "OPEN_VERIFIED": 6
+      },
+      "hoursEvaluation": {
+        "evaluated": 450,
+        "eligible": 334,
+        "excluded": 116,
+        "hoursUnverified": 97,
+        "statuses": {
+          "OPEN_VERIFIED": 237,
+          "CLOSED_VERIFIED": 116,
+          "HOURS_UNKNOWN": 97,
+          "HOURS_STALE": 0,
+          "SPECIAL_HOURS_UNVERIFIED": 0
+        },
+        "reasonCodes": {
+          "VERIFIED_CURRENT_WINDOW_CLOSED": 116,
+          "VERIFIED_CURRENT_WINDOW_OPEN": 237,
+          "HOURS_SOURCE_MISSING": 45,
+          "BUSINESS_HOURS_RECORD_UNAVAILABLE": 52
+        }
+      },
+      "exclusionCount": 420,
+      "exclusionReasonDistribution": {
+        "closed_verified": 75,
+        "forbidden_source_pool": 109,
+        "outside_maximum_search_radius": 226,
+        "outside_nearby_relationship_scope": 9,
+        "primary_business": 1
+      },
+      "nearbyGovernanceExclusionCount": 19,
+      "exclusions": [
+        {
+          "identityKey": "google:ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+          "googlePlaceId": "ChIJeX6hkOGZQIYR3wYTYOv4eO8",
+          "businessName": "Fuqua Professional Auto Repair",
+          "sourcePool": "active",
+          "distanceFeet": 0,
+          "reason": "primary_business",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+          "googlePlaceId": "ChIJ1QsomuGZQIYR7Fri-jqAKGg",
+          "businessName": "Texas Radiators & Mufflers & Vehicles Emissions Inspection",
+          "sourcePool": "active",
+          "distanceFeet": 87.9,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJM34mkuGZQIYRrMDpkli7wjM",
+          "googlePlaceId": "ChIJM34mkuGZQIYRrMDpkli7wjM",
+          "businessName": "Pilgrim Cleaners",
+          "sourcePool": "active",
+          "distanceFeet": 92,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJv7MA7eGZQIYRINIvMqp85nU",
+          "googlePlaceId": "ChIJv7MA7eGZQIYRINIvMqp85nU",
+          "businessName": "Montoya Auto Service",
+          "sourcePool": "active",
+          "distanceFeet": 252,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJSbooCeGZQIYR9TmsVVvSz8I",
+          "googlePlaceId": "ChIJSbooCeGZQIYR9TmsVVvSz8I",
+          "businessName": "Car Wash",
+          "sourcePool": "quarantine",
+          "distanceFeet": 491.3,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJm3a75-GZQIYRLJcoGWMVzwA",
+          "googlePlaceId": "ChIJm3a75-GZQIYRLJcoGWMVzwA",
+          "businessName": "Fuqua Family Practice. Jarrod Drab D.O.",
+          "sourcePool": "quarantine",
+          "distanceFeet": 514.4,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJNVj8V1-XQIYR8qh2NHthalw",
+          "googlePlaceId": "ChIJNVj8V1-XQIYR8qh2NHthalw",
+          "businessName": "Houston Family Dental",
+          "sourcePool": "quarantine",
+          "distanceFeet": 653.8,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJNVj8V1-XQIYRMS7hYrLfy18",
+          "googlePlaceId": "ChIJNVj8V1-XQIYRMS7hYrLfy18",
+          "businessName": "Elias G Khalil DDS",
+          "sourcePool": "quarantine",
+          "distanceFeet": 655.9,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+          "googlePlaceId": "ChIJQUkeUAuZQIYRqGFBgDyAtMc",
+          "businessName": "Social Smoke Hookah Lounge & Bar",
+          "sourcePool": "active",
+          "distanceFeet": 784.5,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJc7enc7CZQIYRSFNExbNUQcw",
+          "googlePlaceId": "ChIJc7enc7CZQIYRSFNExbNUQcw",
+          "businessName": "LUXURIOUS BY VALERIE",
+          "sourcePool": "active",
+          "distanceFeet": 831.2,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJla6Uh2mZQIYRNnoKwL44FIk",
+          "googlePlaceId": "ChIJla6Uh2mZQIYRNnoKwL44FIk",
+          "businessName": "Utopia Beauty Bliss",
+          "sourcePool": "active",
+          "distanceFeet": 831.2,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ6YE_twKZQIYRDL3ojqNupCY",
+          "googlePlaceId": "ChIJ6YE_twKZQIYRDL3ojqNupCY",
+          "businessName": "Clinica San Felipe",
+          "sourcePool": "quarantine",
+          "distanceFeet": 836.6,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJs7kEFF-XQIYRP-gtmBR_190",
+          "googlePlaceId": "ChIJs7kEFF-XQIYRP-gtmBR_190",
+          "businessName": "AutoZone Auto Parts",
+          "sourcePool": "quarantine",
+          "distanceFeet": 859,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJhavu-mCXQIYRMsum7C6Lx9k",
+          "googlePlaceId": "ChIJhavu-mCXQIYRMsum7C6Lx9k",
+          "businessName": "Thang Quang Lam, DDS, PA",
+          "sourcePool": "quarantine",
+          "distanceFeet": 989.2,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJvUYdrliXQIYROvZ-oMwdpoo",
+          "googlePlaceId": "ChIJvUYdrliXQIYROvZ-oMwdpoo",
+          "businessName": "Car - Beamer Auto Repair",
+          "sourcePool": "active",
+          "distanceFeet": 1030.5,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJtST-VOaXQIYRjzBjdVUVLPI",
+          "googlePlaceId": "ChIJtST-VOaXQIYRjzBjdVUVLPI",
+          "businessName": "SRG Tax Services",
+          "sourcePool": "full",
+          "distanceFeet": 1175.5,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJzUaF2JqXQIYRUCnuVxbp7II",
+          "googlePlaceId": "ChIJzUaF2JqXQIYRUCnuVxbp7II",
+          "businessName": "Clinica Medica Fuqua",
+          "sourcePool": "quarantine",
+          "distanceFeet": 1261.8,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ1SBWpSyZQIYRPMTwxCQc3-Q",
+          "googlePlaceId": "ChIJ1SBWpSyZQIYRPMTwxCQc3-Q",
+          "businessName": "Settlers Ranch",
+          "sourcePool": "full",
+          "distanceFeet": 1476,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ77MfoNWZQIYRix9oGe_n-zg",
+          "googlePlaceId": "ChIJ77MfoNWZQIYRix9oGe_n-zg",
+          "businessName": "Advance Modern Dentistry",
+          "sourcePool": "quarantine",
+          "distanceFeet": 1645.9,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJeTi4--aZQIYRwFCOZZMYHAQ",
+          "googlePlaceId": "ChIJeTi4--aZQIYRwFCOZZMYHAQ",
+          "businessName": "Garcia J Carlos DDS",
+          "sourcePool": "quarantine",
+          "distanceFeet": 1645.9,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJoUpYheyZQIYRHX_u7gVQdBo",
+          "googlePlaceId": "ChIJoUpYheyZQIYRHX_u7gVQdBo",
+          "businessName": "Tire Discount",
+          "sourcePool": "active",
+          "distanceFeet": 1807.2,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ12MB9OaZQIYRZMP_cv46dYU",
+          "googlePlaceId": "ChIJ12MB9OaZQIYRZMP_cv46dYU",
+          "businessName": "Bayou City Property Tax",
+          "sourcePool": "full",
+          "distanceFeet": 1815.4,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJjVAWsgCZQIYRaTx5B37C5IE",
+          "googlePlaceId": "ChIJjVAWsgCZQIYRaTx5B37C5IE",
+          "businessName": "BB’s Inspections",
+          "sourcePool": "active",
+          "distanceFeet": 1872.8,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+          "googlePlaceId": "ChIJU_4z0N6ZQIYRmkasCHfZsKA",
+          "businessName": "Uptown Detail",
+          "sourcePool": "active",
+          "distanceFeet": 1946.6,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJbbS2SFOZQIYROMX9-Idcxcc",
+          "googlePlaceId": "ChIJbbS2SFOZQIYROMX9-Idcxcc",
+          "businessName": "Sam's Club Cafe",
+          "sourcePool": "quarantine",
+          "distanceFeet": 1978.2,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJTxUNbOeZQIYRtGp3r7FpcmA",
+          "googlePlaceId": "ChIJTxUNbOeZQIYRtGp3r7FpcmA",
+          "businessName": "Sam's Club Tire & Battery",
+          "sourcePool": "quarantine",
+          "distanceFeet": 1978.2,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJ_zoeQtGZQIYRGFASfbCvtuA",
+          "googlePlaceId": "ChIJ_zoeQtGZQIYRGFASfbCvtuA",
+          "businessName": "All Road Tires & Road Service",
+          "sourcePool": "active",
+          "distanceFeet": 2094.9,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJlfH-rueZQIYR8AFLVRWHTwM",
+          "googlePlaceId": "ChIJlfH-rueZQIYR8AFLVRWHTwM",
+          "businessName": "House of Pies",
+          "sourcePool": "active",
+          "distanceFeet": 2244.5,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJrzwXg-GZQIYRdk9DizYw6JQ",
+          "googlePlaceId": "ChIJrzwXg-GZQIYRdk9DizYw6JQ",
+          "businessName": "Timeout #1 Sports Bar & Grill",
+          "sourcePool": "active",
+          "distanceFeet": 2309.4,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJAd3o1sGZQIYROcashZRHExA",
+          "googlePlaceId": "ChIJAd3o1sGZQIYROcashZRHExA",
+          "businessName": "Universal Barbering Of Houston",
+          "sourcePool": "active",
+          "distanceFeet": 2347.1,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ--7Ksd-ZQIYRxNrP4dxKM04",
+          "googlePlaceId": "ChIJ--7Ksd-ZQIYRxNrP4dxKM04",
+          "businessName": "Almeda Park Apartments",
+          "sourcePool": "full",
+          "distanceFeet": 2399.7,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJwytRLNyZQIYRphFzpaCFqgQ",
+          "googlePlaceId": "ChIJwytRLNyZQIYRphFzpaCFqgQ",
+          "businessName": "Fitness Connection",
+          "sourcePool": "quarantine",
+          "distanceFeet": 2403.8,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJ_SN-8suZQIYRMvP-wvzJKbw",
+          "googlePlaceId": "ChIJ_SN-8suZQIYRMvP-wvzJKbw",
+          "businessName": "Coffee & I",
+          "sourcePool": "active",
+          "distanceFeet": 2427.1,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJJRP3NXGZQIYRwYC1PgNPiZE",
+          "googlePlaceId": "ChIJJRP3NXGZQIYRwYC1PgNPiZE",
+          "businessName": "Fuca",
+          "sourcePool": "active",
+          "distanceFeet": 2450.8,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJGwjdbB6ZQIYRRhw76TUnN_4",
+          "googlePlaceId": "ChIJGwjdbB6ZQIYRRhw76TUnN_4",
+          "businessName": "Rincón Mexicano",
+          "sourcePool": "active",
+          "distanceFeet": 2450.8,
+          "reason": "outside_nearby_relationship_scope",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJUWQoipGZQIYR15Iu-IQshbc",
+          "googlePlaceId": "ChIJUWQoipGZQIYR15Iu-IQshbc",
+          "businessName": "SUPREME SMOKE OPEN 24 HOURS & VAPE & KRATOM & 7OH & THC & HOOKAH & CIGARS & GLASS PIPES & CBD & TATTOO SUPPLIES",
+          "sourcePool": "active",
+          "distanceFeet": 2503,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJnaTY7t2ZQIYRQfuOdzvB9c4",
+          "googlePlaceId": "ChIJnaTY7t2ZQIYRQfuOdzvB9c4",
+          "businessName": "Rock N' Roll It",
+          "sourcePool": "active",
+          "distanceFeet": 2578.7,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJwWcOmp-ZQIYRLeV6ic_OJzU",
+          "googlePlaceId": "ChIJwWcOmp-ZQIYRLeV6ic_OJzU",
+          "businessName": "Edo Japan",
+          "sourcePool": "active",
+          "distanceFeet": 2579.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJgeketQyZQIYRc3VysCl5BD4",
+          "googlePlaceId": "ChIJgeketQyZQIYRc3VysCl5BD4",
+          "businessName": "10950 Tanner Park Ct Apt 802",
+          "sourcePool": "quarantine",
+          "distanceFeet": 2590,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJpwzCjeeZQIYR8lxtMpfL9-g",
+          "googlePlaceId": "ChIJpwzCjeeZQIYR8lxtMpfL9-g",
+          "businessName": "Golden Corral Buffet & Grill",
+          "sourcePool": "active",
+          "distanceFeet": 2677.7,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJSYmp2N2ZQIYR7QO1pAzEXao",
+          "googlePlaceId": "ChIJSYmp2N2ZQIYR7QO1pAzEXao",
+          "businessName": "Estetica Unisex Zaleta",
+          "sourcePool": "active",
+          "distanceFeet": 2684.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJScG3ot2ZQIYR0vW7n0O_7KY",
+          "googlePlaceId": "ChIJScG3ot2ZQIYR0vW7n0O_7KY",
+          "businessName": "Gringo’s Mexican Kitchen {Fuqua}",
+          "sourcePool": "active",
+          "distanceFeet": 2689.3,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJGQVQYuGZQIYRS_mTGpzSmF4",
+          "googlePlaceId": "ChIJGQVQYuGZQIYRS_mTGpzSmF4",
+          "businessName": "Sabo Smoke, Vape, Delta 8 THC and CBD",
+          "sourcePool": "active",
+          "distanceFeet": 2742.5,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJg3eaumCXQIYRlIUFZypreME",
+          "googlePlaceId": "ChIJg3eaumCXQIYRlIUFZypreME",
+          "businessName": "Fox Hair & Nails",
+          "sourcePool": "active",
+          "distanceFeet": 2767.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+          "googlePlaceId": "ChIJC6t4JgCXQIYRBgz3rJu-V3c",
+          "businessName": "Aquexentaris Auto Technician",
+          "sourcePool": "active",
+          "distanceFeet": 2773.6,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+          "googlePlaceId": "ChIJ-adg7WCXQIYR4Ahl4xZpgzw",
+          "businessName": "Kingspoint Mart",
+          "sourcePool": "active",
+          "distanceFeet": 2774,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJLbS2u2CXQIYRbGwtk8auD5g",
+          "googlePlaceId": "ChIJLbS2u2CXQIYRbGwtk8auD5g",
+          "businessName": "Hair By Paul",
+          "sourcePool": "active",
+          "distanceFeet": 2780.1,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJme6lCQGZQIYR9YEQMSI6EXs",
+          "googlePlaceId": "ChIJme6lCQGZQIYR9YEQMSI6EXs",
+          "businessName": "Twin Crab",
+          "sourcePool": "active",
+          "distanceFeet": 2809.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+          "googlePlaceId": "ChIJAeYjG9SXQIYRe_tZTFXkN8w",
+          "businessName": "Tasty Cajun",
+          "sourcePool": "active",
+          "distanceFeet": 2814,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJt1lrMSyXQIYREF_6C3gjXd8",
+          "googlePlaceId": "ChIJt1lrMSyXQIYREF_6C3gjXd8",
+          "businessName": "Blue Moon Beauty Bar",
+          "sourcePool": "active",
+          "distanceFeet": 2817.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJyT26K2CXQIYRp2MTmO2WTv4",
+          "googlePlaceId": "ChIJyT26K2CXQIYRp2MTmO2WTv4",
+          "businessName": "Faded Empire Barbershop",
+          "sourcePool": "active",
+          "distanceFeet": 2817.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJlyrwnt2ZQIYRV8uswt1wsaY",
+          "googlePlaceId": "ChIJlyrwnt2ZQIYRV8uswt1wsaY",
+          "businessName": "888 Chinese Restaurant",
+          "sourcePool": "quarantine",
+          "distanceFeet": 2863.9,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJn2_E_0CZQIYRj9b3w-aFQ3Y",
+          "googlePlaceId": "ChIJn2_E_0CZQIYRj9b3w-aFQ3Y",
+          "businessName": "Adolfo's Barber Shop",
+          "sourcePool": "active",
+          "distanceFeet": 2888.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ",
+          "googlePlaceId": "ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ",
+          "businessName": "Brown Sugar's Bar B Que - The Original",
+          "sourcePool": "active",
+          "distanceFeet": 2888.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJJw0FfN6ZQIYR15IsD9xeCbg",
+          "googlePlaceId": "ChIJJw0FfN6ZQIYR15IsD9xeCbg",
+          "businessName": "Glam Beauty Studio",
+          "sourcePool": "active",
+          "distanceFeet": 2888.9,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJw7r5h4SZQIYRZVVI72FmJ30",
+          "googlePlaceId": "ChIJw7r5h4SZQIYRZVVI72FmJ30",
+          "businessName": "Dreya G Hair Studio",
+          "sourcePool": "active",
+          "distanceFeet": 2894.1,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJfZcQK2CXQIYR5BiP4yln8t4",
+          "googlePlaceId": "ChIJfZcQK2CXQIYR5BiP4yln8t4",
+          "businessName": "Kingspoint Healthcare Services",
+          "sourcePool": "quarantine",
+          "distanceFeet": 2901.7,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJiStQ_umXQIYRfwGt_7S9H1U",
+          "googlePlaceId": "ChIJiStQ_umXQIYRfwGt_7S9H1U",
+          "businessName": "Sphinx Restaurant and grill",
+          "sourcePool": "active",
+          "distanceFeet": 2980.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJTX6yKgCZQIYRyFOneof-itc",
+          "googlePlaceId": "ChIJTX6yKgCZQIYRyFOneof-itc",
+          "businessName": "Windshield Hospital",
+          "sourcePool": "quarantine",
+          "distanceFeet": 2989.5,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJv0BmY-iZQIYRdJ_TcboQoho",
+          "googlePlaceId": "ChIJv0BmY-iZQIYRdJ_TcboQoho",
+          "businessName": "Bayou City Wings®",
+          "sourcePool": "active",
+          "distanceFeet": 3042.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJdwrAdN2ZQIYRIjmoKyAoKkU",
+          "googlePlaceId": "ChIJdwrAdN2ZQIYRIjmoKyAoKkU",
+          "businessName": "12510 S Green Dr Apt 927",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3046.9,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJswEudACXQIYRhBQuIpEl5Vg",
+          "googlePlaceId": "ChIJswEudACXQIYRhBQuIpEl5Vg",
+          "businessName": "Take the Wheel",
+          "sourcePool": "active",
+          "distanceFeet": 3071.3,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJwQA3HumZQIYRa7-lGYv9AHA",
+          "googlePlaceId": "ChIJwQA3HumZQIYRa7-lGYv9AHA",
+          "businessName": "Vigor Health Testosterone and Weight Loss",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3086.8,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJv0BmY-iZQIYRKayYAiC_aXM",
+          "googlePlaceId": "ChIJv0BmY-iZQIYRKayYAiC_aXM",
+          "businessName": "Dr. Phuc T. Nguyen, DDS",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3087,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJp9n7YuiZQIYRo3yt6SGwDII",
+          "googlePlaceId": "ChIJp9n7YuiZQIYRo3yt6SGwDII",
+          "businessName": "SUNNY DENTAL",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3087,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ",
+          "googlePlaceId": "ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ",
+          "businessName": "Level Up tires & Wheels",
+          "sourcePool": "active",
+          "distanceFeet": 3107.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJraCPnBWXQIYR32Q8i6aQBMw",
+          "googlePlaceId": "ChIJraCPnBWXQIYR32Q8i6aQBMw",
+          "businessName": "Cơm Gà Houston South 45",
+          "sourcePool": "active",
+          "distanceFeet": 3132.6,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+          "googlePlaceId": "ChIJIz3I8YGXQIYR9MAt8Z92GaI",
+          "businessName": "Pho Bac | Vietnamese Noodle House",
+          "sourcePool": "active",
+          "distanceFeet": 3132.6,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJv0BmY-iZQIYRYA5YgOcX3fA",
+          "googlePlaceId": "ChIJv0BmY-iZQIYRYA5YgOcX3fA",
+          "businessName": "Up Close Beauty Max LLC",
+          "sourcePool": "active",
+          "distanceFeet": 3132.6,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJv0BmY-iZQIYR9XaRELLpjkw",
+          "googlePlaceId": "ChIJv0BmY-iZQIYR9XaRELLpjkw",
+          "businessName": "Bun Bo Hue Duc Chuong 3",
+          "sourcePool": "active",
+          "distanceFeet": 3154.1,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJqRNSlt6ZQIYRfV1ZR0w2dUw",
+          "googlePlaceId": "ChIJqRNSlt6ZQIYRfV1ZR0w2dUw",
+          "businessName": "EZPAWN",
+          "sourcePool": "active",
+          "distanceFeet": 3212.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJW4FsIQCZQIYRr2oEBbrF9uk",
+          "googlePlaceId": "ChIJW4FsIQCZQIYRr2oEBbrF9uk",
+          "businessName": "Nexaventix AutoGlass Tesla Windshield Repairs",
+          "sourcePool": "active",
+          "distanceFeet": 3249.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ8wHj9kSZQIYRShEClIzydFo",
+          "googlePlaceId": "ChIJ8wHj9kSZQIYRShEClIzydFo",
+          "businessName": "TipsNdBlinks",
+          "sourcePool": "active",
+          "distanceFeet": 3251.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ6UPMER-ZQIYR-7SYI-ZHrnM",
+          "googlePlaceId": "ChIJ6UPMER-ZQIYR-7SYI-ZHrnM",
+          "businessName": "Texas Made Income Tax and Notary, Insurance, Real Estate",
+          "sourcePool": "full",
+          "distanceFeet": 3255.3,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ1x-0nbGZQIYRMBYpBhnmwDg",
+          "googlePlaceId": "ChIJ1x-0nbGZQIYRMBYpBhnmwDg",
+          "businessName": "Volvo Cars Clear Lake",
+          "sourcePool": "active",
+          "distanceFeet": 3305.3,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ36JrFtGZQIYRrATFzwFHAWA",
+          "googlePlaceId": "ChIJ36JrFtGZQIYRrATFzwFHAWA",
+          "businessName": "Ostioneria Michoacan 16 Fuqua",
+          "sourcePool": "active",
+          "distanceFeet": 3325.1,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJUfoS596ZQIYRgRf56Ez4Usc",
+          "googlePlaceId": "ChIJUfoS596ZQIYRgRf56Ez4Usc",
+          "businessName": "Vehicle Wraps",
+          "sourcePool": "active",
+          "distanceFeet": 3332.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJFfRA0t6ZQIYRxk7YPCnC5xw",
+          "googlePlaceId": "ChIJFfRA0t6ZQIYRxk7YPCnC5xw",
+          "businessName": "On The Go Grafix Signs",
+          "sourcePool": "active",
+          "distanceFeet": 3332.5,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJSZv3ae6ZQIYRNbhQy1JZTQE",
+          "googlePlaceId": "ChIJSZv3ae6ZQIYRNbhQy1JZTQE",
+          "businessName": "Carolyn's Detail Spot and Smoke Shop",
+          "sourcePool": "active",
+          "distanceFeet": 3335.2,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJlRAMofSZQIYRWPkQVKsG9g0",
+          "googlePlaceId": "ChIJlRAMofSZQIYRWPkQVKsG9g0",
+          "businessName": "Illumination Barber School",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3347.5,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJu2SeWQCZQIYRH2jRsKeACrk",
+          "googlePlaceId": "ChIJu2SeWQCZQIYRH2jRsKeACrk",
+          "businessName": "Hydrarentix AutoGlass Windshield Repair Experts",
+          "sourcePool": "active",
+          "distanceFeet": 3387.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ4e1yi0qZQIYR1C-E6mg7Sns",
+          "googlePlaceId": "ChIJ4e1yi0qZQIYR1C-E6mg7Sns",
+          "businessName": "X Effects",
+          "sourcePool": "active",
+          "distanceFeet": 3418.7,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJY6Zv_tyZQIYRdCRcyHj0YEE",
+          "googlePlaceId": "ChIJY6Zv_tyZQIYRdCRcyHj0YEE",
+          "businessName": "Quick Lane at Bayway Lincoln",
+          "sourcePool": "active",
+          "distanceFeet": 3429.8,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJC2g2EdyZQIYRscyv10-3rWs",
+          "googlePlaceId": "ChIJC2g2EdyZQIYRscyv10-3rWs",
+          "businessName": "Bayway Lincoln Service Center",
+          "sourcePool": "active",
+          "distanceFeet": 3552.1,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJPw50SOiZQIYR7MqKps8MzJQ",
+          "googlePlaceId": "ChIJPw50SOiZQIYR7MqKps8MzJQ",
+          "businessName": "Olive Garden Italian Restaurant",
+          "sourcePool": "active",
+          "distanceFeet": 3589.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJr2TqFZyZQIYR11m_qFMRqxg",
+          "googlePlaceId": "ChIJr2TqFZyZQIYR11m_qFMRqxg",
+          "businessName": "Apoyo Multiservices",
+          "sourcePool": "full",
+          "distanceFeet": 3593.9,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJxXCCMCibQIYRgAMFLdK49fg",
+          "googlePlaceId": "ChIJxXCCMCibQIYRgAMFLdK49fg",
+          "businessName": "Mobile Notary Services",
+          "sourcePool": "active",
+          "distanceFeet": 3593.9,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJVWrQa-W9QIYRqt3vxrvR5F4",
+          "googlePlaceId": "ChIJVWrQa-W9QIYRqt3vxrvR5F4",
+          "businessName": "Tha Chop Shop",
+          "sourcePool": "active",
+          "distanceFeet": 3612.8,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJhVrfIACXQIYR5fVQz7qew70",
+          "googlePlaceId": "ChIJhVrfIACXQIYR5fVQz7qew70",
+          "businessName": "Purerentaris AutoGlass Windshield Repairs",
+          "sourcePool": "active",
+          "distanceFeet": 3638.5,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJHwDaEQmZQIYR15ibtzM8550",
+          "googlePlaceId": "ChIJHwDaEQmZQIYR15ibtzM8550",
+          "businessName": "Doctors Clinic Houston - South Side",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3646.2,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJbal6C2GXQIYRmpm3VfpXXTc",
+          "googlePlaceId": "ChIJbal6C2GXQIYRmpm3VfpXXTc",
+          "businessName": "P & S Complete Auto Repair",
+          "sourcePool": "active",
+          "distanceFeet": 3650.5,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJS9lIAsiXQIYRbdm45-qM65w",
+          "googlePlaceId": "ChIJS9lIAsiXQIYRbdm45-qM65w",
+          "businessName": "Taylor Auto Express",
+          "sourcePool": "active",
+          "distanceFeet": 3664.2,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJF_53cmGXQIYRg97yhmQZCmU",
+          "googlePlaceId": "ChIJF_53cmGXQIYRg97yhmQZCmU",
+          "businessName": "Taylor Tire & Automotive",
+          "sourcePool": "active",
+          "distanceFeet": 3664.2,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJtYz5yu-ZQIYRbXgjsscutLg",
+          "googlePlaceId": "ChIJtYz5yu-ZQIYRbXgjsscutLg",
+          "businessName": "Montelago Apartments",
+          "sourcePool": "full",
+          "distanceFeet": 3701.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ2yL4fwCZQIYR6WaHTbj6DVE",
+          "googlePlaceId": "ChIJ2yL4fwCZQIYR6WaHTbj6DVE",
+          "businessName": "Purexentaris AutoGlass Windshield Repairs",
+          "sourcePool": "active",
+          "distanceFeet": 3706.7,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJD9lUXLmZQIYRNb1tXP0U-qs",
+          "googlePlaceId": "ChIJD9lUXLmZQIYRNb1tXP0U-qs",
+          "businessName": "Group 1 GMC South Service Center",
+          "sourcePool": "active",
+          "distanceFeet": 3719,
+          "reason": "closed_verified",
+          "hoursStatus": "CLOSED_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJP3RWOnaZQIYR_Lcw_R8ncpg",
+          "googlePlaceId": "ChIJP3RWOnaZQIYR_Lcw_R8ncpg",
+          "businessName": "12303 Gulf Fwy Apt 2409",
+          "sourcePool": "quarantine",
+          "distanceFeet": 3721.1,
+          "reason": "forbidden_source_pool",
+          "hoursStatus": "HOURS_UNKNOWN"
+        },
+        {
+          "identityKey": "google:ChIJT4yW59iZQIYR1X_XRXn-jQM",
+          "googlePlaceId": "ChIJT4yW59iZQIYR1X_XRXn-jQM",
+          "businessName": "AutoNation Ford Gulf Freeway",
+          "sourcePool": "active",
+          "distanceFeet": 3723.8,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJ03Iq3emZQIYRFqH6Aw05bqo",
+          "googlePlaceId": "ChIJ03Iq3emZQIYRFqH6Aw05bqo",
+          "businessName": "Schlotzsky's Deli",
+          "sourcePool": "active",
+          "distanceFeet": 3765.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "OPEN_VERIFIED"
+        },
+        {
+          "identityKey": "google:ChIJsSHWVgCZQIYRtldNk9VaA08",
+          "googlePlaceId": "ChIJsSHWVgCZQIYRtldNk9VaA08",
+          "businessName": "Parc At South Green",
+          "sourcePool": "full",
+          "distanceFeet": 3776.4,
+          "reason": "outside_maximum_search_radius",
+          "hoursStatus": "HOURS_UNKNOWN"
+        }
+      ],
+      "fullPoolFallbackUsed": false,
+      "coverageGapDetected": false,
+      "governedDataInvented": false
+    },
+    "explainabilityModel": {
+      "requiredQuestions": [
+        "why",
+        "evidence",
+        "confidence",
+        "whatChanged",
+        "nextAction"
+      ],
+      "relationshipVerificationVisible": true,
+      "hoursProvenancePreserved": true,
+      "sourcePoolVisible": true,
+      "distanceVisible": true,
+      "internalFormulaExposureAllowed": false,
+      "proprietaryWeightExposureAllowed": false
+    },
+    "validation": {
+      "deterministicOrderingRequired": true,
+      "canonicalBusinessHoursEligibilityPreserved": true,
+      "closedVerifiedExcluded": true,
+      "quarantineExcluded": true,
+      "completedBusinessesExcluded": true,
+      "primaryBusinessExcluded": true,
+      "duplicatePreventionPassed": true,
+      "workspaceIsolationPassed": true,
+      "operatingProfileIsolationPassed": true,
+      "relationshipPriorityPreserved": true,
+      "explanationsComplete": true,
+      "recommendationScoresUsedForOrdering": false,
+      "recommendationScoresChanged": false,
+      "liveGoogleCallsMade": false,
+      "recommendationReplacementActive": false,
+      "productionQueueMutationActive": false,
+      "dashboardConsumerActive": false,
+      "routeScoringWeightsChanged": false,
+      "dashboardRuntimeChanged": false,
+      "dataChanged": false,
+      "crmChanged": false,
+      "companionChanged": false
+    }
+  },
+  "findings": {
+    "texans": {
+      "governedNearbyOpportunityCount": 0,
+      "blackhawkDentalStatus": {
+        "identityKey": "google:ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+        "googlePlaceId": "ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+        "businessName": "Blackhawk Dental",
+        "sourcePool": "quarantine",
+        "distanceFeet": 112.3,
+        "reason": "forbidden_source_pool",
+        "hoursStatus": "CLOSED_VERIFIED"
+      },
+      "eliteDryCleanersGovernedIdentityAvailable": false
+    },
+    "christianBrothers": {
+      "governedNearbyOpportunityCount": 0,
+      "observedNearbyIdentityStatus": "christian_brothers_visit_confirmed_nearby_business_identities_unavailable",
+      "nearestGovernanceExclusion": {
+        "identityKey": "google:ChIJx9GwkjeXQIYRSZUHNH87YV8",
+        "googlePlaceId": "ChIJx9GwkjeXQIYRSZUHNH87YV8",
+        "businessName": "First Texas Dental",
+        "sourcePool": "quarantine",
+        "distanceFeet": 1473.2,
+        "reason": "forbidden_source_pool",
+        "hoursStatus": "CLOSED_VERIFIED"
+      }
+    },
+    "rootCause": [
+      "legacy_runtime_projection_limited_to_route_visible_candidates",
+      "legacy_fixed_500_foot_radius",
+      "commercial_relationship_identifiers_unavailable_in_current_governed_records",
+      "field_observed_adjacent_businesses_absent_or_quarantined"
+    ],
+    "recommendationScoringChangeNeeded": false,
+    "nextSubsystemDependency": "Prometheus Data for governed commercial-center and adjacent-storefront enrichment before Dashboard consumer activation"
+  },
+  "validation": {
+    "config": [],
+    "contract": [],
+    "stressPlans": [],
+    "capabilityProbe": [],
+    "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "recommendationInfluenceActive": false,
+    "dashboardConsumerActive": false,
+    "routeScoringWeightsChanged": false,
+    "dataChanged": false,
+    "stressEvidenceMutated": false,
+    "liveGoogleCallsMade": false
+  }
+}

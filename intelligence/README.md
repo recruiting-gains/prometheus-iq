@@ -16,6 +16,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `read-only-field-session-learning.md`: source admission, threshold, explainability, immutability, and fail-closed architecture for the first archived-session learning layer.
 - `discovery-mode-intelligence-v2.mjs`: deterministic advisory composer for quality-bounded category exploration using canonical business-hours eligibility, existing Active Pool candidates, and authorized read-only evidence maturity.
 - `discovery-mode-intelligence-v2.md`: Discovery queue architecture, category balancing, evidence thresholds, learning impact, explainability, configuration, and activation boundaries.
+- `nearby-context-intelligence-v2.mjs`: deterministic, relationship-aware advisory projection for qualified secondary opportunities around a primary Route IQ arrival.
+- `nearby-context-intelligence-v2.md`: canonical eligibility boundary, commercial relationship model, selection strategy, explainability, field findings, configuration, and activation boundary.
 - `recommendation-explainability-engine.mjs`: explanation-only engine that converts recommendation context into natural-language why, confidence, evidence, change, and next-action answers.
 - `operating-profile-engine.mjs`: configuration-driven profile engine that maps industry-specific field outcomes into normalized evidence without changing production scoring, Dashboard runtime behavior, Mobile beta behavior, CRM runtime behavior, Website behavior, Companion behavior, or Infrastructure.
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
@@ -30,6 +32,9 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `config/discovery-mode-intelligence-v2.json`: governed category taxonomy, concentration limits, quality floor, evidence-policy inheritance, learning objectives, territory overrides, and relaxation policy.
 - `contracts/discovery-mode-intelligence-v2-contracts.json`: advisory-only input, output, composition, isolation, explainability, and protected behavior contracts.
 - `artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json`: deterministic advisory composition report derived from the current Active Pool and authorized read-only learning snapshot.
+- `config/nearby-context-intelligence-v2.json`: governed commercial relationship priority, spatial bounds, fallback order, result limits, and activation safety.
+- `contracts/nearby-context-intelligence-v2-contracts.json`: advisory input, eligibility, relationship, selection, explainability, isolation, and protected behavior contracts.
+- `artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json`: deterministic Texans, Christian Brothers, and governed capability audit derived from current offline runtime data.
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
 - `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, read-only query, Dashboard, CRM, Mobile, Website, Companion, Research, and Sales contracts.
@@ -62,6 +67,7 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - Do not modify Anthony beta behavior from this architecture package.
 - Read-only archived-session learning is active only through `read-only-field-session-learning-contracts-v1`; production recommendation influence remains inactive.
 - Discovery Mode Intelligence v2 is advisory only. It consumes the canonical Route IQ business-hours eligibility decision before category balancing and cannot create a production queue, change candidate scores, or influence recommendations without a separate explicit runtime activation handoff.
+- Nearby Context Intelligence v2 is an Intelligence-owned advisory projection. It applies canonical eligibility before commercial relationship reasoning and cannot change primary recommendations, route scores, queue state, Dashboard runtime, or Data ownership.
 - Do not activate recommendation-affecting field learning, historical replay, raw archive consumption, or archive mutation from this architecture package.
 - Do not create a second route engine, second CRM model, second Research structure, second Sales methodology, or duplicate Companion reasoning layer.
 
@@ -76,6 +82,8 @@ Future offline learning validation must extend `field-learning-offline-evidence-
 Future canonical archived-session learning must extend `read-only-field-session-learning.mjs`, `read-only-field-session-learning.md`, `contracts/read-only-field-session-learning-contracts.json`, and `config/read-only-field-session-learning-policy-v1.json`. Do not create a second Data archive reader, re-normalize Data records, replay historical sessions, parse raw reports directly, hard-code learning thresholds, or activate recommendation influence through the read-only projection.
 
 Future Discovery Mode category-composition work must extend `discovery-mode-intelligence-v2.mjs`, `discovery-mode-intelligence-v2.md`, `config/discovery-mode-intelligence-v2.json`, and `contracts/discovery-mode-intelligence-v2-contracts.json`. Do not add a fixed category rotation, second runtime queue, second business-hours eligibility engine, parallel scoring engine, direct Dashboard consumer, stress-observation learning path, or fallback that bypasses existing Active Pool, canonical eligibility, quality, duplicate, workspace, or explainability controls.
+
+Future Nearby Context work must extend `nearby-context-intelligence-v2.mjs`, `nearby-context-intelligence-v2.md`, `config/nearby-context-intelligence-v2.json`, `contracts/nearby-context-intelligence-v2-contracts.json`, and its canonical audit. Do not create a second nearby engine, second business-hours evaluator, parallel identity rule, live-Google runtime dependency, direct stress-observation learning path, or fallback that admits closed, quarantined, completed, duplicate, or cross-workspace businesses.
 
 Future recommendation explanation work must extend `recommendation-explainability-engine.mjs` and `contracts/recommendation-explainability-contracts.json`. Do not expose scoring formulas, proprietary weights, or create separate Mobile, Dashboard, or Companion explanation contracts.
 

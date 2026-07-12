@@ -172,3 +172,35 @@ test("Discovery Mode v2 is a governed advisory composer without production influ
   assert.equal(plan.validation.canonicalBusinessHoursEligibilityPreserved, true);
   assert.equal(plan.validation.productionQueueConsumerActive, false);
 });
+
+test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () => {
+  const contract = readJson("intelligence/contracts/nearby-context-intelligence-v2-contracts.json");
+  const config = readJson("intelligence/config/nearby-context-intelligence-v2.json");
+  const audit = readJson("intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json");
+
+  assert.equal(contract.status, "advisory_only");
+  assert.equal(contract.outputContract.runtimeConsumptionAuthorized, false);
+  assert.equal(contract.outputContract.recommendationMutationAuthorized, false);
+  assert.equal(contract.eligibilityContract.canonicalImplementation, "intelligence/route-business-hours-eligibility.mjs");
+  assert.equal(contract.eligibilityContract.relationshipClassificationOccursAfterEligibility, true);
+  assert.equal(contract.eligibilityContract.closedVerifiedEligible, false);
+  assert.deepEqual(contract.relationshipContract.priorityOrder, [
+    "same_building",
+    "same_shopping_center",
+    "same_commercial_parcel",
+    "walkable",
+    "nearby"
+  ]);
+  assert.equal(contract.selectionContract.quarantineSelectable, false);
+  assert.equal(contract.selectionContract.completedBusinessesSelectable, false);
+  assert.equal(contract.selectionContract.recommendationScoresUsedForOrdering, false);
+  assert.equal(config.fieldEvidenceBasis.learningInput, false);
+  assert.equal(config.activationSafety.dashboardConsumerActive, false);
+  assert.equal(config.activationSafety.routeScoringWeightsChanged, false);
+  assert.equal(audit.stressContexts.length, 2);
+  assert.equal(audit.stressContexts.every(context => context.plan.status === "coverage_gap"), true);
+  assert.equal(audit.stressContexts.every(context => context.plan.nearbyOpportunities.emptyState.recommendationInvented === false), true);
+  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.count, 6);
+  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), true);
+  assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.recommendationScoreChanged === false), true);
+});

@@ -355,3 +355,28 @@ Evidence classification:
 - Preserve this record under the existing IP-001 evidence history.
 - Preserve proprietary utility calculations, scoring weights, and production ranking details as confidential implementation information.
 - Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.
+
+## 17. Nearby Context Intelligence v2
+
+Status: Engineering expansion documented before implementation
+
+Recorded: 2026-07-12
+
+Supporting record:
+
+- `patents/route-iq/NEARBY_CONTEXT_INTELLIGENCE_V2.md`
+
+Technical relationship:
+
+- Extends radial nearby display into deterministic, relationship-aware arrival-area opportunity reasoning.
+- Applies canonical workspace, pool, quarantine, identity, completion, duplicate, and business-hours governance before relationship classification.
+- Prioritizes same building, same shopping center, same commercial parcel, walkable, and nearby opportunities in that order within the governed source and hours stages.
+- Distinguishes verified structured relationships from conservative geographic inference and exposes confidence and provenance.
+- Uses Active Pool candidates first, governed Full Pool fallback only for insufficient eligible supply, and an explainable coverage-gap state when governed data cannot support a result.
+- Leaves recommendation scoring, primary route ordering, Dashboard behavior, and Data ownership unchanged during advisory activation.
+
+Evidence classification:
+
+- Preserve this record under the existing IP-001 evidence history.
+- Preserve proprietary ranking details and future relationship-confidence calibration as confidential implementation information.
+- Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.

@@ -1,0 +1,224 @@
+{
+  "contractVersion": "nearby-context-intelligence-v2-contracts-v1",
+  "status": "advisory_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "domain": "route_intelligence_nearby_context",
+  "purpose": "Define a deterministic, relationship-aware projection of qualified secondary opportunities around a primary Route IQ arrival without changing recommendation scoring or consumers.",
+  "designEvidence": {
+    "date": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "source": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+    "observationIds": [
+      "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+    ],
+    "stressTestObservationConsumedAsLearning": false,
+    "historicalEvidenceCreated": false,
+    "sourceMutationAllowed": false
+  },
+  "scopePolicy": {
+    "authorizedWorkspaceId": "fitness_connection",
+    "authorizedOperatingProfileId": "fitness",
+    "authorizedRepresentativeIds": [
+      "cruz",
+      "anthony"
+    ],
+    "unknownWorkspaceBehavior": "fail_closed",
+    "operatingProfileMismatchBehavior": "fail_closed",
+    "crossWorkspaceCandidatesAllowed": false,
+    "smoothieDepotInfluence": false
+  },
+  "existingSystemReuse": {
+    "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "governedFullPoolFallbackProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+    "quarantineDiagnostics": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+    "runtimeGovernance": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+    "routeBusinessHoursEligibility": "intelligence/route-business-hours-eligibility.mjs",
+    "routeBusinessHoursEligibilityContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "businessHoursArtifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "continuousRouteQueue": "intelligence/continuous-adaptive-route-replenishment.mjs",
+    "recommendationExplainability": "intelligence/contracts/recommendation-explainability-contracts.json",
+    "duplicateIdentity": "continuous_adaptive_route_replenishment.routeQueueIdentity",
+    "completedVisitSource": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json"
+  },
+  "inputContract": {
+    "primaryRecommendation": "immutable_route_candidate_snapshot",
+    "activeCandidates": "existing_route_eligible_active_pool_projection",
+    "fallbackCandidates": "existing_governed_full_pool_fallback_projection",
+    "diagnosticCandidates": "nonselectable_governance_exclusion_projection",
+    "hoursInput": "canonical_business_hours_eligibility_snapshot",
+    "completedStops": "stable_route_identity_keys",
+    "commercialRelationships": "optional_structured_identifiers_or_conservative_inference",
+    "liveGoogleCalls": false
+  },
+  "eligibilityContract": {
+    "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
+    "canonicalConsumerContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+    "relationshipClassificationOccursAfterEligibility": true,
+    "openVerifiedEligible": true,
+    "closedVerifiedEligible": false,
+    "uncertainStatuses": [
+      "HOURS_UNKNOWN",
+      "HOURS_STALE",
+      "SPECIAL_HOURS_UNVERIFIED"
+    ],
+    "uncertainStatusPolicy": "canonical_conservative_coverage_tier",
+    "requiredPreservedFields": [
+      "status",
+      "eligible",
+      "coverageOnly",
+      "selectionTier",
+      "internalMarker",
+      "hoursConfidence",
+      "hoursFreshness",
+      "reasonCode",
+      "reason",
+      "evaluatedAt",
+      "businessLocalDate",
+      "businessLocalTime",
+      "businessTimezone",
+      "sourceRetrievedAt",
+      "hoursVerifiedAt",
+      "provenance",
+      "explanation",
+      "displayLabel",
+      "scoringChanged"
+    ],
+    "closedCandidateResurrectionAllowed": false,
+    "eligibilityReimplementationAllowed": false
+  },
+  "relationshipContract": {
+    "priorityOrder": [
+      "same_building",
+      "same_shopping_center",
+      "same_commercial_parcel",
+      "walkable",
+      "nearby"
+    ],
+    "adjacentBuildingsEvaluated": true,
+    "sharedParkingAreasEvaluated": true,
+    "verifiedAndInferredRelationshipsDistinguished": true,
+    "relationshipProvenanceRequired": true,
+    "distanceOnlyMayNotClaimVerifiedCenterOrParcel": true,
+    "deterministicOrderingRequired": true
+  },
+  "selectionContract": {
+    "governanceStages": [
+      "active_verified_open",
+      "full_pool_verified_open_fallback",
+      "active_hours_unverified_coverage",
+      "full_pool_hours_unverified_coverage"
+    ],
+    "relationshipPriorityAppliedWithinGovernanceStage": true,
+    "activePoolAuthoritative": true,
+    "fullPoolFallbackGoverned": true,
+    "quarantineSelectable": false,
+    "completedBusinessesSelectable": false,
+    "duplicateBusinessesSelectable": false,
+    "primaryBusinessSelectableAsNearby": false,
+    "recommendationScoresUsedForOrdering": false,
+    "inventedCandidatesAllowed": false
+  },
+  "outputContract": {
+    "artifactType": "nearby_context_intelligence_v2_audit",
+    "canonicalArtifact": "intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json",
+    "consumerTitle": "Nearby Opportunities",
+    "requiredPlanSections": [
+      "architecture",
+      "nearbyOpportunities",
+      "coverage",
+      "explainabilityModel",
+      "validation"
+    ],
+    "emptyPoolBehavior": "explicit_explainable_coverage_gap",
+    "runtimeConsumptionAuthorized": false,
+    "recommendationMutationAuthorized": false
+  },
+  "explainabilityContract": {
+    "requiredFields": [
+      "why",
+      "evidence",
+      "confidence",
+      "whatChanged",
+      "nextAction"
+    ],
+    "relationshipLabelRequired": true,
+    "relationshipVerificationRequired": true,
+    "distanceRequired": true,
+    "hoursStatusRequired": true,
+    "sourcePoolRequired": true,
+    "internalFormulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false
+  },
+  "prohibitions": [
+    "no_dashboard_modification",
+    "no_data_ownership_modification",
+    "no_crm_modification",
+    "no_companion_modification",
+    "no_route_scoring_change",
+    "no_primary_recommendation_replacement",
+    "no_parallel_business_hours_engine",
+    "no_closed_verified_candidate",
+    "no_quarantine_candidate",
+    "no_completed_candidate",
+    "no_duplicate_candidate",
+    "no_cross_workspace_candidate",
+    "no_live_google_runtime_call",
+    "no_stress_observation_learning_promotion",
+    "no_invented_business"
+  ],
+  "protectedBehaviorBaselines": {
+    "dashboard": {
+      "path": "index.html",
+      "sha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3"
+    },
+    "routeScoring": {
+      "path": "scripts/build-route-intelligence-quality-engine.mjs",
+      "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"
+    },
+    "continuousRouteQueue": {
+      "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"
+    },
+    "canonicalHoursEligibility": {
+      "path": "intelligence/route-business-hours-eligibility.mjs",
+      "sha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a"
+    },
+    "canonicalHoursContract": {
+      "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+      "sha256": "b5c4812c9d1d8eb6384b30b939d803b7b5d5486f1b15681972692e78aa3e8e21"
+    },
+    "activePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+    },
+    "governedFullPoolFallbackProjection": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+    },
+    "quarantinePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+    },
+    "businessHoursArtifact": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+    },
+    "founderStressEvidence": {
+      "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+      "sha256": "f66db5694698dcc75728a16a506c5bab66aac559b9913d991df6a6ce9cdcd9f9"
+    }
+  },
+  "activationSafety": {
+    "advisoryProjectionImplemented": true,
+    "dashboardConsumerActive": false,
+    "recommendationReplacementActive": false,
+    "routeScoringWeightsChanged": false,
+    "dashboardRuntimeChanged": false,
+    "dataChanged": false,
+    "crmChanged": false,
+    "companionChanged": false,
+    "futureConsumerActivationRequiresExplicitHandoff": true
+  }
+}
