@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "route-iq-field-session-archive-v1",
+  "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "recordKind": "calculated_field_session_metrics",
+  "calculations": {
+    "firstLoggedVisitAt": "2026-07-11T18:29:37.862Z",
+    "lastLoggedVisitAt": "2026-07-11T19:31:21.937Z",
+    "loggedVisitWindowMinutes": 61.73,
+    "conversationPerVisitRatePercent": 100,
+    "leadPerVisitRatePercent": 75,
+    "unitPerLeadRatePercent": 0,
+    "categoryOutcomes": [
+      {
+        "category": "Auto",
+        "visits": 4,
+        "conversations": 4,
+        "leads": 3,
+        "units": 0,
+        "laterUnits": 0
+      }
+    ]
+  },
+  "calculationProvenance": {
+    "sourceSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+    "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+    "formulasVersion": "route-iq-field-session-metrics-v1",
+    "sessionStartOrEndInferred": false,
+    "membershipCountInferredFromOutcomeLabel": false
+  }
+}

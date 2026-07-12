@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "route-iq-field-session-archive-v1",
+  "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "representativeId": "cruz",
+  "fieldSessionDate": "2026-07-11",
+  "status": "archived",
+  "sourceFinality": "founder_designated_final",
+  "rawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+  "rawByteLength": 1934,
+  "ingestedAt": "2026-07-12T00:36:02.000Z",
+  "artifacts": {
+    "raw": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+    "normalized": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+    "calculatedMetrics": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+    "stressTestEvidence": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json",
+    "historyUpdates": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json"
+  },
+  "recordCounts": {
+    "fieldSessions": 1,
+    "completedVisits": 4,
+    "stressTestObservations": 6,
+    "customerOutcomeHistoryEntries": 4,
+    "categoryOutcomeHistoryEntries": 1
+  },
+  "invariants": {
+    "rawEvidenceAppendOnly": true,
+    "rawAndNormalizedSeparated": true,
+    "verifiedAndCalculatedSeparated": true,
+    "dashboardBehaviorChanged": false,
+    "intelligenceScoringChanged": false,
+    "intelligenceRecommendationsChanged": false,
+    "automaticDashboardTriggerImplemented": false
+  }
+}

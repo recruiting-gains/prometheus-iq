@@ -1,0 +1,897 @@
+import { createHash } from "node:crypto";
+
+export const routeIqFieldSessionArchiveVersion = "route-iq-field-session-archive-v1";
+export const routeIqEndOfDayHandoffContractId = "route-iq-end-of-day-data-handoff-v1";
+export const routeIqFieldSessionStoreBinding = "DATA_ROUTE_IQ_FIELD_SESSION_STORE";
+export const routeIqFieldSessionStorageTechnology = "cloudflare_workers_kv";
+export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
+
+export const supportedFieldSessionWorkspaces = Object.freeze({
+  fitness_connection: Object.freeze({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeIds: Object.freeze(["cruz", "anthony"]),
+    protectedWorkspaceIds: Object.freeze(["smoothie_depot"])
+  })
+});
+
+export class FieldSessionArchiveError extends Error {
+  constructor(message, { code = "field_session_archive_error", status = 422, details = {} } = {}) {
+    super(message);
+    this.name = "FieldSessionArchiveError";
+    this.code = code;
+    this.status = status;
+    this.details = details;
+  }
+}
+
+export class FieldSessionStoreBindingError extends FieldSessionArchiveError {
+  constructor(bindingName, missingMethods = []) {
+    super(`Data field-session store binding ${bindingName} is missing or invalid.`, {
+      code: "field_session_store_binding_missing",
+      status: 503,
+      details: { bindingName, missingMethods: [...missingMethods] }
+    });
+    this.name = "FieldSessionStoreBindingError";
+    this.bindingName = bindingName;
+    this.missingMethods = [...missingMethods];
+  }
+}
+
+export class FieldSessionConflictError extends FieldSessionArchiveError {
+  constructor(sessionId, existingSha256, incomingSha256) {
+    super(`Field session ${sessionId} already exists with different raw evidence.`, {
+      code: "field_session_duplicate_conflict",
+      status: 409,
+      details: { sessionId, existingSha256, incomingSha256 }
+    });
+    this.name = "FieldSessionConflictError";
+  }
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function sha256(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+function requireIso(value, label) {
+  const date = new Date(value);
+  if (typeof value !== "string" || !value || Number.isNaN(date.getTime())) {
+    throw new FieldSessionArchiveError(`${label} must be a valid timestamp.`, {
+      code: "field_session_timestamp_invalid",
+      details: { label, value: value ?? null }
+    });
+  }
+  return date.toISOString();
+}
+
+function requireDate(value, label) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new FieldSessionArchiveError(`${label} must use YYYY-MM-DD.`, {
+      code: "field_session_date_invalid",
+      details: { label, value: value ?? null }
+    });
+  }
+  return value;
+}
+
+function requireNonEmptyString(value, label) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new FieldSessionArchiveError(`${label} is required.`, {
+      code: "field_session_required_field_missing",
+      details: { label }
+    });
+  }
+  return value;
+}
+
+function requireCount(value, label) {
+  if (!Number.isInteger(value) || value < 0) {
+    throw new FieldSessionArchiveError(`${label} must be a non-negative integer.`, {
+      code: "field_session_metric_invalid",
+      details: { label, value: value ?? null }
+    });
+  }
+  return value;
+}
+
+function percentage(numerator, denominator) {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || denominator <= 0) return null;
+  return Number(((numerator / denominator) * 100).toFixed(2));
+}
+
+function assertWorkspace(workspaceId, operatingProfileId, representativeId = "") {
+  const workspace = supportedFieldSessionWorkspaces[workspaceId];
+  if (!workspace) {
+    throw new FieldSessionArchiveError(`Unknown field-session workspace: ${workspaceId || "missing"}.`, {
+      code: "field_session_workspace_unknown",
+      status: 400,
+      details: { workspaceId: workspaceId || null }
+    });
+  }
+  if (operatingProfileId !== workspace.operatingProfileId) {
+    throw new FieldSessionArchiveError(
+      `Operating profile ${operatingProfileId || "missing"} is not valid for ${workspaceId}.`,
+      {
+        code: "field_session_operating_profile_mismatch",
+        status: 400,
+        details: { workspaceId, operatingProfileId: operatingProfileId || null }
+      }
+    );
+  }
+  if (representativeId && !workspace.representativeIds.includes(representativeId)) {
+    throw new FieldSessionArchiveError(`Representative ${representativeId} is not registered for ${workspaceId}.`, {
+      code: "field_session_representative_unknown",
+      status: 400,
+      details: { workspaceId, representativeId }
+    });
+  }
+  return workspace;
+}
+
+function sessionSlugPart(value) {
+  return String(value).trim().toLowerCase().replace(/_/g, "-").replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+export function deterministicFieldSessionId({ workspaceId, operatingProfileId, representativeId, date }) {
+  assertWorkspace(workspaceId, operatingProfileId, representativeId);
+  requireDate(date, "Field-session date");
+  return [
+    "route-iq-field-session",
+    sessionSlugPart(workspaceId),
+    sessionSlugPart(operatingProfileId),
+    sessionSlugPart(representativeId),
+    date
+  ].join("-");
+}
+
+export function validateFinalRouteIqReport(rawReportText, context = {}) {
+  if (typeof rawReportText !== "string" || !rawReportText.trim()) {
+    throw new FieldSessionArchiveError("Raw Route IQ report bytes are required.", {
+      code: "field_session_raw_report_missing"
+    });
+  }
+  if (context.finalExportConfirmed !== true) {
+    throw new FieldSessionArchiveError("Founder confirmation of the final export is required.", {
+      code: "field_session_final_export_unconfirmed",
+      status: 409
+    });
+  }
+
+  let report;
+  try {
+    report = JSON.parse(rawReportText);
+  } catch (error) {
+    throw new FieldSessionArchiveError("Raw Route IQ report is not valid JSON.", {
+      code: "field_session_raw_report_invalid_json",
+      details: { message: error.message }
+    });
+  }
+
+  if (report.app !== "Prometheus IQ" || report.reportType !== "beta-daily-rep-report") {
+    throw new FieldSessionArchiveError("Source is not a supported Prometheus IQ Today report.", {
+      code: "field_session_report_contract_mismatch",
+      details: { app: report.app ?? null, reportType: report.reportType ?? null }
+    });
+  }
+
+  const date = requireDate(report.date, "Report date");
+  const generatedAt = requireIso(report.generatedAt, "Report generatedAt");
+  const representativeId = requireNonEmptyString(report.rep?.id, "Report representative id");
+  const representativeName = requireNonEmptyString(report.rep?.name, "Report representative name");
+  assertWorkspace(context.workspaceId, context.operatingProfileId, representativeId);
+
+  const totals = {
+    visits: requireCount(report.totals?.visits, "Report total visits"),
+    conversations: requireCount(report.totals?.conversations, "Report total conversations"),
+    leads: requireCount(report.totals?.leads, "Report total leads"),
+    units: requireCount(report.totals?.units, "Report total units"),
+    laterUnits: requireCount(report.totals?.laterUnits, "Report total later units")
+  };
+  if (!Array.isArray(report.visits) || report.visits.length !== totals.visits) {
+    throw new FieldSessionArchiveError("Report visit records do not match total visits.", {
+      code: "field_session_visit_count_mismatch",
+      details: { reported: totals.visits, records: Array.isArray(report.visits) ? report.visits.length : null }
+    });
+  }
+
+  const visits = report.visits.map((visit, index) => {
+    const timestamp = requireIso(visit?.timestamp, `Visit ${index + 1} timestamp`);
+    if (requireDate(visit?.date, `Visit ${index + 1} date`) !== date) {
+      throw new FieldSessionArchiveError(`Visit ${index + 1} is outside the report date.`, {
+        code: "field_session_visit_date_mismatch",
+        details: { reportDate: date, visitDate: visit?.date ?? null }
+      });
+    }
+    return {
+      placeName: requireNonEmptyString(visit?.placeName, `Visit ${index + 1} placeName`),
+      placeId: requireNonEmptyString(visit?.placeId, `Visit ${index + 1} placeId`),
+      timestamp,
+      date: visit.date,
+      timeWindow: typeof visit.timeWindow === "string" ? visit.timeWindow : "",
+      outcome: typeof visit.outcome === "string" ? visit.outcome : "",
+      conversations: requireCount(visit.conversations, `Visit ${index + 1} conversations`),
+      leads: requireCount(visit.leads, `Visit ${index + 1} leads`),
+      units: requireCount(visit.units, `Visit ${index + 1} units`),
+      laterUnits: requireCount(visit.laterUnits, `Visit ${index + 1} later units`),
+      notes: typeof visit.notes === "string" ? visit.notes : "",
+      gpsAttached: typeof visit.gpsAttached === "boolean" ? visit.gpsAttached : null
+    };
+  });
+
+  const recomputed = visits.reduce((sum, visit) => {
+    sum.conversations += visit.conversations;
+    sum.leads += visit.leads;
+    sum.units += visit.units;
+    sum.laterUnits += visit.laterUnits;
+    return sum;
+  }, { conversations: 0, leads: 0, units: 0, laterUnits: 0 });
+  for (const key of Object.keys(recomputed)) {
+    if (recomputed[key] !== totals[key]) {
+      throw new FieldSessionArchiveError(`Report ${key} total does not match its visit records.`, {
+        code: "field_session_metric_total_mismatch",
+        details: { metric: key, reported: totals[key], recomputed: recomputed[key] }
+      });
+    }
+  }
+  if (visits.some(visit => new Date(visit.timestamp).getTime() > new Date(generatedAt).getTime())) {
+    throw new FieldSessionArchiveError("Report export timestamp precedes a logged visit.", {
+      code: "field_session_export_precedes_visit"
+    });
+  }
+
+  return {
+    report: clone(report),
+    normalizedReport: {
+      app: report.app,
+      reportType: report.reportType,
+      generatedAt,
+      date,
+      representative: { id: representativeId, name: representativeName },
+      totals,
+      visits
+    },
+    rawSha256: sha256(rawReportText),
+    rawByteLength: Buffer.byteLength(rawReportText, "utf8")
+  };
+}
+
+function runtimeIndexes(runtimePools, activePool, businessHours) {
+  const runtimeRecords = [
+    ...(Array.isArray(runtimePools?.cruz) ? runtimePools.cruz : []),
+    ...(Array.isArray(runtimePools?.anthony) ? runtimePools.anthony : [])
+  ];
+  return {
+    runtimeById: new Map(runtimeRecords.map(record => [record.id, record])),
+    activeByPlaceId: new Map((activePool?.records || []).map(record => [record.googlePlaceId, record])),
+    hoursByPlaceId: new Map((businessHours?.records || []).map(record => [record.googlePlaceId, record]))
+  };
+}
+
+function enrichVisit(visit, index, representativeId, indexes, sourceDatasetVersion) {
+  const runtime = indexes.runtimeById.get(visit.placeId) || null;
+  if (runtime && runtime.repProfileId !== representativeId) {
+    throw new FieldSessionArchiveError(`Visit ${index + 1} resolves to a different representative.`, {
+      code: "field_session_cross_representative_contamination",
+      details: { visitPlaceId: visit.placeId, expected: representativeId, actual: runtime.repProfileId }
+    });
+  }
+  if (runtime && runtime.name !== visit.placeName) {
+    throw new FieldSessionArchiveError(`Visit ${index + 1} business identity does not match governed runtime data.`, {
+      code: "field_session_business_identity_mismatch",
+      details: { visitPlaceId: visit.placeId, reportName: visit.placeName, runtimeName: runtime.name }
+    });
+  }
+
+  const active = runtime?.googlePlaceId ? indexes.activeByPlaceId.get(runtime.googlePlaceId) || null : null;
+  const hours = runtime?.googlePlaceId ? indexes.hoursByPlaceId.get(runtime.googlePlaceId) || null : null;
+  return {
+    exportOrder: index + 1,
+    visitId: `visit-${String(index + 1).padStart(2, "0")}-${sha256(`${visit.placeId}|${visit.timestamp}`).slice(0, 12)}`,
+    sourceReport: clone(visit),
+    governedBusinessIdentity: runtime ? {
+      matchStatus: "exact_runtime_id",
+      runtimeId: runtime.id,
+      googlePlaceId: runtime.googlePlaceId,
+      businessName: runtime.name,
+      address: runtime.address,
+      category: runtime.category,
+      sourceDatasetVersion,
+      currentPoolAtArchive: active ? "active" : "not_active",
+      dataQualityScore: Number.isFinite(runtime.qualityScore) ? runtime.qualityScore : null,
+      dataQualityReason: runtime.qualityReason || null,
+      provenance: {
+        runtimePoolsPath: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+        activePoolPath: "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+      }
+    } : null,
+    governedHoursSnapshot: hours ? {
+      status: hours.currentOpenClosedEligibilityStatus,
+      reasonCode: hours.currentStatusReasonCode,
+      reason: hours.currentStatusReason,
+      evaluatedAt: hours.currentStatusEvaluatedAt,
+      businessTimezone: hours.businessTimezone,
+      freshnessStatus: hours.hoursFreshnessStatus,
+      confidence: hours.hoursConfidence,
+      statusAppliesAtVisitTimestamp: false,
+      provenance: {
+        artifactPath: "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+        googlePlaceId: hours.googlePlaceId,
+        sourceRetrievedAt: hours.sourceRetrievedAt,
+        hoursVerifiedAt: hours.hoursVerifiedAt
+      }
+    } : null,
+    recommendationEvidence: {
+      recommendationScore: null,
+      recommendationExplanation: null,
+      recommendationPoolSource: null,
+      availability: "unavailable_in_final_export"
+    },
+    followUpRequirement: null,
+    objections: null
+  };
+}
+
+function validateStressTestEvidence(evidence, workspaceId, operatingProfileId, sessionId) {
+  if (!evidence) {
+    return {
+      evidenceVersion: "route-iq-field-session-observations-v1",
+      workspaceId,
+      operatingProfileId,
+      sessionId,
+      source: null,
+      observations: [],
+      subsequentRemediation: null,
+      availability: "no_stress_test_evidence_submitted"
+    };
+  }
+  if (evidence.workspaceId !== workspaceId || evidence.operatingProfileId !== operatingProfileId || !Array.isArray(evidence.observations)) {
+    throw new FieldSessionArchiveError("Structured Founder stress-test evidence is missing or cross-workspace.", {
+      code: "field_session_stress_test_evidence_invalid"
+    });
+  }
+  const observations = evidence.observations.map(observation => {
+    requireNonEmptyString(observation.observationId, "Stress-test observation id");
+    requireNonEmptyString(observation.title, "Stress-test observation title");
+    requireNonEmptyString(observation.finding, "Stress-test observation finding");
+    return {
+      ...clone(observation),
+      observedAt: observation.observedAt || null,
+      screenshots: Array.isArray(observation.screenshots) ? observation.screenshots : []
+    };
+  });
+  return {
+    ...clone(evidence),
+    sessionId,
+    observations
+  };
+}
+
+export function createRouteIqFieldSessionArchivePackage(input = {}) {
+  const validated = validateFinalRouteIqReport(input.rawReportText, input);
+  const report = validated.normalizedReport;
+  const sessionId = deterministicFieldSessionId({
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    representativeId: report.representative.id,
+    date: report.date
+  });
+  const ingestedAt = requireIso(input.ingestedAt || new Date().toISOString(), "Archive ingestedAt");
+  const indexes = runtimeIndexes(input.runtimePools, input.activePool, input.businessHours);
+  const sourceDatasetVersion = input.runtimePools?.dataset_version || null;
+  const completedVisits = report.visits.map((visit, index) => {
+    return enrichVisit(visit, index, report.representative.id, indexes, sourceDatasetVersion);
+  });
+  const stressTestEvidence = validateStressTestEvidence(
+    input.stressTestEvidence,
+    input.workspaceId,
+    input.operatingProfileId,
+    sessionId
+  );
+  const territoryId = input.territoryId ? requireNonEmptyString(input.territoryId, "Territory id") : null;
+
+  const unavailableFields = [
+    "sessionStartTime",
+    "sessionEndTime",
+    "initialRoute",
+    "completeRecommendationHistory",
+    "recommendationScores",
+    "recommendationExplanations",
+    "routeReplenishmentEvents",
+    "replacementRecommendations",
+    "completedStopExclusionEvents",
+    "duplicatePreventionEvents",
+    "recommendationPoolSource",
+    "structuredObjections",
+    "structuredFollowUpRequirements",
+    "territoryId",
+    "distanceAndTravelMetrics",
+    "observationTimestamps",
+    "screenshots"
+  ];
+
+  const normalizedRecord = {
+    schemaVersion: routeIqFieldSessionArchiveVersion,
+    handoffContractId: routeIqEndOfDayHandoffContractId,
+    sessionId,
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    recordKind: "verified_field_session",
+    verifiedFields: {
+      representative: report.representative,
+      fieldSessionDate: report.date,
+      territoryId,
+      sourceReportType: report.reportType,
+      exportTimestamp: report.generatedAt,
+      totals: {
+        totalStops: null,
+        totalVisits: report.totals.visits,
+        totalConversations: report.totals.conversations,
+        totalLeads: report.totals.leads,
+        totalUnits: report.totals.units,
+        totalLaterUnits: report.totals.laterUnits,
+        totalMemberships: null
+      },
+      completedVisits
+    },
+    unavailableFields,
+    sourceProvenance: {
+      sourceKind: "founder_exported_final_today_report",
+      originalFileName: input.originalFileName,
+      canonicalRawArtifactPath: input.canonicalRawArtifactPath,
+      rawSha256: validated.rawSha256,
+      rawByteLength: validated.rawByteLength,
+      finalExportConfirmed: true,
+      finalityBasis: input.finalityBasis,
+      sourceGeneratedAt: report.generatedAt,
+      ingestedAt
+    },
+    fieldClassification: {
+      verifiedFieldContainer: "verifiedFields",
+      calculatedFieldsStoredSeparately: true,
+      unavailableValuesRemainNull: true,
+      notesAreNotParsedIntoFollowUpOrObjectionClaims: true
+    }
+  };
+
+  const timestamps = report.visits.map(visit => new Date(visit.timestamp).getTime()).sort((a, b) => a - b);
+  const totalUnits = report.totals.units + report.totals.laterUnits;
+  const categoryMap = new Map();
+  for (const visit of completedVisits) {
+    const category = visit.governedBusinessIdentity?.category;
+    if (!category) continue;
+    const current = categoryMap.get(category) || { category, visits: 0, conversations: 0, leads: 0, units: 0, laterUnits: 0 };
+    current.visits += 1;
+    current.conversations += visit.sourceReport.conversations;
+    current.leads += visit.sourceReport.leads;
+    current.units += visit.sourceReport.units;
+    current.laterUnits += visit.sourceReport.laterUnits;
+    categoryMap.set(category, current);
+  }
+
+  const calculatedMetrics = {
+    schemaVersion: routeIqFieldSessionArchiveVersion,
+    sessionId,
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    recordKind: "calculated_field_session_metrics",
+    calculations: {
+      firstLoggedVisitAt: timestamps.length ? new Date(timestamps[0]).toISOString() : null,
+      lastLoggedVisitAt: timestamps.length ? new Date(timestamps[timestamps.length - 1]).toISOString() : null,
+      loggedVisitWindowMinutes: timestamps.length > 1 ? Number(((timestamps[timestamps.length - 1] - timestamps[0]) / 60_000).toFixed(2)) : null,
+      conversationPerVisitRatePercent: percentage(report.totals.conversations, report.totals.visits),
+      leadPerVisitRatePercent: percentage(report.totals.leads, report.totals.visits),
+      unitPerLeadRatePercent: percentage(totalUnits, report.totals.leads),
+      categoryOutcomes: [...categoryMap.values()].sort((left, right) => left.category.localeCompare(right.category))
+    },
+    calculationProvenance: {
+      sourceSessionId: sessionId,
+      sourceRawSha256: validated.rawSha256,
+      formulasVersion: "route-iq-field-session-metrics-v1",
+      sessionStartOrEndInferred: false,
+      membershipCountInferredFromOutcomeLabel: false
+    }
+  };
+
+  const customerOutcomes = completedVisits.flatMap(visit => {
+    const identity = visit.governedBusinessIdentity;
+    if (!identity?.googlePlaceId) return [];
+    return [{
+      googlePlaceId: identity.googlePlaceId,
+      businessName: identity.businessName,
+      category: identity.category,
+      visitId: visit.visitId,
+      timestamp: visit.sourceReport.timestamp,
+      loggedOutcome: visit.sourceReport.outcome,
+      conversations: visit.sourceReport.conversations,
+      leads: visit.sourceReport.leads,
+      units: visit.sourceReport.units,
+      laterUnits: visit.sourceReport.laterUnits
+    }];
+  });
+  const historyUpdates = {
+    schemaVersion: routeIqFieldSessionArchiveVersion,
+    sessionId,
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    recordKind: "field_session_history_updates",
+    representativeHistory: {
+      representativeId: report.representative.id,
+      fieldSessionDate: report.date,
+      totals: clone(normalizedRecord.verifiedFields.totals)
+    },
+    territoryHistory: {
+      status: territoryId ? "available" : "unavailable",
+      territoryId,
+      reason: territoryId ? null : "The final export does not contain a territory identifier."
+    },
+    customerOutcomeHistory: customerOutcomes,
+    categoryOutcomeHistory: clone(calculatedMetrics.calculations.categoryOutcomes),
+    intelligenceLearningHandoff: {
+      status: "not_authorized",
+      readOnly: true,
+      scoringMutationAllowed: false,
+      reason: "A separate verified Intelligence consumer authorization is required."
+    }
+  };
+
+  return {
+    sessionId,
+    rawReportText: input.rawReportText,
+    rawSha256: validated.rawSha256,
+    rawByteLength: validated.rawByteLength,
+    normalizedRecord,
+    calculatedMetrics,
+    stressTestEvidence,
+    historyUpdates
+  };
+}
+
+export function fieldSessionStorageKeys(workspaceId, sessionId) {
+  assertWorkspace(workspaceId, supportedFieldSessionWorkspaces[workspaceId]?.operatingProfileId || "");
+  const base = `${routeIqFieldSessionStoragePrefix}/workspaces/${workspaceId}/sessions/${sessionId}`;
+  return Object.freeze({
+    base,
+    raw: `${base}/raw-report.json`,
+    normalized: `${base}/normalized-field-session.json`,
+    calculated: `${base}/calculated-metrics.json`,
+    stressTestEvidence: `${base}/stress-test-evidence.json`,
+    historyUpdates: `${base}/history-updates.json`,
+    historyRoot: `${routeIqFieldSessionStoragePrefix}/workspaces/${workspaceId}/histories`,
+    commit: `${base}/commit.json`
+  });
+}
+
+function historyStorageEntries(archivePackage, keys) {
+  const record = archivePackage.normalizedRecord;
+  const history = archivePackage.historyUpdates;
+  const common = {
+    schemaVersion: routeIqFieldSessionArchiveVersion,
+    workspaceId: record.workspaceId,
+    operatingProfileId: record.operatingProfileId,
+    sessionId: record.sessionId
+  };
+  const entries = [{
+    key: `${keys.historyRoot}/representatives/${sessionSlugPart(history.representativeHistory.representativeId)}/sessions/${record.sessionId}.json`,
+    value: {
+      ...common,
+      recordKind: "representative_field_session_history_entry",
+      history: history.representativeHistory
+    }
+  }];
+  if (history.territoryHistory.status === "available" && history.territoryHistory.territoryId) {
+    entries.push({
+      key: `${keys.historyRoot}/territories/${sessionSlugPart(history.territoryHistory.territoryId)}/sessions/${record.sessionId}.json`,
+      value: {
+        ...common,
+        recordKind: "territory_field_session_history_entry",
+        history: history.territoryHistory
+      }
+    });
+  }
+  for (const customer of history.customerOutcomeHistory) {
+    entries.push({
+      key: `${keys.historyRoot}/customers/${encodeURIComponent(customer.googlePlaceId)}/sessions/${record.sessionId}/${customer.visitId}.json`,
+      value: {
+        ...common,
+        recordKind: "customer_field_session_history_entry",
+        history: customer
+      }
+    });
+  }
+  for (const category of history.categoryOutcomeHistory) {
+    entries.push({
+      key: `${keys.historyRoot}/categories/${sessionSlugPart(category.category)}/sessions/${record.sessionId}.json`,
+      value: {
+        ...common,
+        recordKind: "category_field_session_history_entry",
+        history: category
+      }
+    });
+  }
+  return entries;
+}
+
+export function validateFieldSessionStoreBinding(env = {}, options = {}) {
+  const bindingName = options.bindingName || routeIqFieldSessionStoreBinding;
+  const binding = env?.[bindingName];
+  const missingMethods = ["get", "put", "list"].filter(method => typeof binding?.[method] !== "function");
+  return {
+    ok: missingMethods.length === 0,
+    bindingName,
+    storageTechnology: routeIqFieldSessionStorageTechnology,
+    missingMethods
+  };
+}
+
+export function createCloudflareKvFieldSessionStore(env = {}, options = {}) {
+  const validation = validateFieldSessionStoreBinding(env, options);
+  if (!validation.ok) throw new FieldSessionStoreBindingError(validation.bindingName, validation.missingMethods);
+  const binding = env[validation.bindingName];
+  return Object.freeze({
+    bindingName: validation.bindingName,
+    storageTechnology: validation.storageTechnology,
+    get(key) {
+      return binding.get(key);
+    },
+    put(key, value, putOptions) {
+      return binding.put(key, value, putOptions);
+    },
+    list(options) {
+      return binding.list(options);
+    }
+  });
+}
+
+function parseStoredJson(value, key) {
+  if (value === null || value === undefined) return null;
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    throw new FieldSessionArchiveError(`Stored field-session artifact ${key} is corrupt.`, {
+      code: "field_session_stored_artifact_corrupt",
+      status: 500,
+      details: { key, message: error.message }
+    });
+  }
+}
+
+function assertSameSessionArtifact(artifact, workspaceId, sessionId, label) {
+  if (artifact?.workspaceId !== workspaceId || artifact?.sessionId !== sessionId) {
+    throw new FieldSessionArchiveError(`${label} has cross-workspace or cross-session contamination.`, {
+      code: "field_session_stored_artifact_scope_mismatch",
+      status: 500,
+      details: { label, workspaceId, sessionId }
+    });
+  }
+}
+
+export async function persistRouteIqFieldSessionArchive(archivePackage, options = {}) {
+  const normalized = archivePackage?.normalizedRecord;
+  if (!normalized) {
+    throw new FieldSessionArchiveError("A normalized field-session archive package is required.", {
+      code: "field_session_archive_package_missing"
+    });
+  }
+  assertWorkspace(normalized.workspaceId, normalized.operatingProfileId, normalized.verifiedFields?.representative?.id);
+  if (normalized.sessionId !== archivePackage.sessionId) {
+    throw new FieldSessionArchiveError("Archive package session identities do not match.", {
+      code: "field_session_archive_identity_mismatch"
+    });
+  }
+  if (typeof archivePackage.rawReportText !== "string" || sha256(archivePackage.rawReportText) !== archivePackage.rawSha256) {
+    throw new FieldSessionArchiveError("Archive package raw evidence does not match its SHA-256.", {
+      code: "field_session_archive_package_raw_hash_mismatch"
+    });
+  }
+  for (const [label, artifact] of [
+    ["Calculated metrics", archivePackage.calculatedMetrics],
+    ["Stress-test evidence", archivePackage.stressTestEvidence],
+    ["History updates", archivePackage.historyUpdates]
+  ]) {
+    assertSameSessionArtifact(artifact, normalized.workspaceId, archivePackage.sessionId, label);
+  }
+
+  const store = options.store || createCloudflareKvFieldSessionStore(options.env, options);
+  const keys = fieldSessionStorageKeys(normalized.workspaceId, archivePackage.sessionId);
+  const existingCommit = parseStoredJson(await store.get(keys.commit), keys.commit);
+  if (existingCommit) {
+    assertSameSessionArtifact(existingCommit, normalized.workspaceId, archivePackage.sessionId, "Commit marker");
+    if (existingCommit.rawSha256 !== archivePackage.rawSha256) {
+      throw new FieldSessionConflictError(archivePackage.sessionId, existingCommit.rawSha256, archivePackage.rawSha256);
+    }
+    await readRouteIqFieldSessionArchive({
+      workspaceId: normalized.workspaceId,
+      operatingProfileId: normalized.operatingProfileId,
+      sessionId: archivePackage.sessionId
+    }, { store });
+    return {
+      ok: true,
+      persisted: true,
+      duplicate: true,
+      status: "already_archived",
+      sessionId: archivePackage.sessionId,
+      workspaceId: normalized.workspaceId,
+      rawSha256: archivePackage.rawSha256,
+      keys: existingCommit.keys || keys,
+      bindingName: store.bindingName || null,
+      storageTechnology: store.storageTechnology || "custom_store"
+    };
+  }
+
+  const existingRaw = await store.get(keys.raw);
+  if (existingRaw !== null && sha256(existingRaw) !== archivePackage.rawSha256) {
+    throw new FieldSessionConflictError(archivePackage.sessionId, sha256(existingRaw), archivePackage.rawSha256);
+  }
+
+  const persistedAt = requireIso(options.persistedAt || new Date().toISOString(), "Field-session persistedAt");
+  const json = value => JSON.stringify(value, null, 2) + "\n";
+  const historyEntries = historyStorageEntries(archivePackage, keys);
+  if (existingRaw === null) {
+    await store.put(keys.raw, archivePackage.rawReportText, {
+      metadata: {
+        workspaceId: normalized.workspaceId,
+        sessionId: archivePackage.sessionId,
+        rawSha256: archivePackage.rawSha256,
+        appendOnly: true
+      }
+    });
+  }
+  await store.put(keys.normalized, json(archivePackage.normalizedRecord));
+  await store.put(keys.calculated, json(archivePackage.calculatedMetrics));
+  await store.put(keys.stressTestEvidence, json(archivePackage.stressTestEvidence));
+  await store.put(keys.historyUpdates, json(archivePackage.historyUpdates));
+  for (const entry of historyEntries) {
+    await store.put(entry.key, json(entry.value));
+  }
+
+  const commit = {
+    schemaVersion: routeIqFieldSessionArchiveVersion,
+    sessionId: archivePackage.sessionId,
+    workspaceId: normalized.workspaceId,
+    operatingProfileId: normalized.operatingProfileId,
+    rawSha256: archivePackage.rawSha256,
+    rawByteLength: archivePackage.rawByteLength,
+    persistedAt,
+    status: "committed",
+    appendOnlyRawEvidence: true,
+    keys: {
+      ...keys,
+      historyEntries: historyEntries.map(entry => entry.key)
+    }
+  };
+  await store.put(keys.commit, json(commit));
+
+  return {
+    ok: true,
+    persisted: true,
+    duplicate: false,
+    status: "archived",
+    sessionId: archivePackage.sessionId,
+    workspaceId: normalized.workspaceId,
+    rawSha256: archivePackage.rawSha256,
+    keys: commit.keys,
+    bindingName: store.bindingName || null,
+    storageTechnology: store.storageTechnology || "custom_store"
+  };
+}
+
+export async function consumeRouteIqEndOfDayHandoff(input = {}, options = {}) {
+  if (input.handoffContractId !== routeIqEndOfDayHandoffContractId) {
+    throw new FieldSessionArchiveError("End-of-day handoff contract identifier is missing or invalid.", {
+      code: "field_session_handoff_contract_mismatch",
+      status: 400
+    });
+  }
+  if (input.producerSubsystem !== "Prometheus Dashboard") {
+    throw new FieldSessionArchiveError("Only Prometheus Dashboard may produce the automatic end-of-day handoff.", {
+      code: "field_session_handoff_producer_unauthorized",
+      status: 403
+    });
+  }
+  const sourceFinalizedAt = requireIso(input.sourceFinalizedAt, "Handoff sourceFinalizedAt");
+  const validated = validateFinalRouteIqReport(input.rawReportText, input);
+  if (new Date(sourceFinalizedAt).getTime() < new Date(validated.normalizedReport.generatedAt).getTime()) {
+    throw new FieldSessionArchiveError("Dashboard finalization predates the source report export.", {
+      code: "field_session_handoff_finalization_invalid",
+      status: 409
+    });
+  }
+  const sessionId = deterministicFieldSessionId({
+    workspaceId: input.workspaceId,
+    operatingProfileId: input.operatingProfileId,
+    representativeId: validated.normalizedReport.representative.id,
+    date: validated.normalizedReport.date
+  });
+  const rawStorageKey = fieldSessionStorageKeys(input.workspaceId, sessionId).raw;
+  const archivePackage = createRouteIqFieldSessionArchivePackage({
+    ...input,
+    originalFileName: input.originalFileName || `prometheus-iq-${validated.normalizedReport.representative.id}-daily-report-${validated.normalizedReport.date}.json`,
+    canonicalRawArtifactPath: rawStorageKey,
+    finalityBasis: "Dashboard finalized the session through route-iq-end-of-day-data-handoff-v1.",
+    ingestedAt: options.ingestedAt || sourceFinalizedAt,
+    runtimePools: options.runtimePools,
+    activePool: options.activePool,
+    businessHours: options.businessHours,
+    stressTestEvidence: input.stressTestEvidence || null
+  });
+  const persistence = await persistRouteIqFieldSessionArchive(archivePackage, options);
+  return {
+    ...persistence,
+    handoffContractId: routeIqEndOfDayHandoffContractId,
+    sourceFinalizedAt,
+    normalizedRecord: archivePackage.normalizedRecord,
+    calculatedMetrics: archivePackage.calculatedMetrics,
+    historyUpdates: archivePackage.historyUpdates
+  };
+}
+
+export async function readRouteIqFieldSessionArchive(input = {}, options = {}) {
+  const workspace = supportedFieldSessionWorkspaces[input.workspaceId];
+  if (!workspace) assertWorkspace(input.workspaceId, "");
+  assertWorkspace(input.workspaceId, input.operatingProfileId || workspace.operatingProfileId);
+  requireNonEmptyString(input.sessionId, "Field-session id");
+  const store = options.store || createCloudflareKvFieldSessionStore(options.env, options);
+  const keys = fieldSessionStorageKeys(input.workspaceId, input.sessionId);
+  const commit = parseStoredJson(await store.get(keys.commit), keys.commit);
+  if (!commit) return { ok: true, found: false, record: null };
+  assertSameSessionArtifact(commit, input.workspaceId, input.sessionId, "Commit marker");
+
+  const [rawReportText, normalizedText, calculatedText, stressText, historyText] = await Promise.all([
+    store.get(keys.raw),
+    store.get(keys.normalized),
+    store.get(keys.calculated),
+    store.get(keys.stressTestEvidence),
+    store.get(keys.historyUpdates)
+  ]);
+  if ([rawReportText, normalizedText, calculatedText, stressText, historyText].some(value => value === null)) {
+    throw new FieldSessionArchiveError(`Committed field session ${input.sessionId} is incomplete.`, {
+      code: "field_session_committed_record_incomplete",
+      status: 500
+    });
+  }
+  const historyEntryKeys = Array.isArray(commit.keys?.historyEntries) ? commit.keys.historyEntries : [];
+  const historyEntryValues = await Promise.all(historyEntryKeys.map(key => store.get(key)));
+  if (historyEntryValues.some(value => value === null)) {
+    throw new FieldSessionArchiveError(`Committed field session ${input.sessionId} has incomplete history indexes.`, {
+      code: "field_session_history_index_incomplete",
+      status: 500
+    });
+  }
+  if (sha256(rawReportText) !== commit.rawSha256) {
+    throw new FieldSessionArchiveError(`Raw evidence hash mismatch for ${input.sessionId}.`, {
+      code: "field_session_raw_hash_mismatch",
+      status: 500
+    });
+  }
+
+  const normalizedRecord = parseStoredJson(normalizedText, keys.normalized);
+  const calculatedMetrics = parseStoredJson(calculatedText, keys.calculated);
+  const stressTestEvidence = parseStoredJson(stressText, keys.stressTestEvidence);
+  const historyUpdates = parseStoredJson(historyText, keys.historyUpdates);
+  for (const [label, artifact] of [
+    ["Normalized record", normalizedRecord],
+    ["Calculated metrics", calculatedMetrics],
+    ["Stress-test evidence", stressTestEvidence],
+    ["History updates", historyUpdates]
+  ]) {
+    assertSameSessionArtifact(artifact, input.workspaceId, input.sessionId, label);
+  }
+
+  return {
+    ok: true,
+    found: true,
+    record: {
+      commit,
+      rawReportText,
+      normalizedRecord,
+      calculatedMetrics,
+      stressTestEvidence,
+      historyUpdates,
+      historyIndexEntries: historyEntryValues.map((value, index) => parseStoredJson(value, historyEntryKeys[index]))
+    }
+  };
+}

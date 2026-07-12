@@ -1,0 +1,297 @@
+{
+  "schemaVersion": "route-iq-field-session-archive-v1",
+  "handoffContractId": "route-iq-end-of-day-data-handoff-v1",
+  "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "recordKind": "verified_field_session",
+  "verifiedFields": {
+    "representative": {
+      "id": "cruz",
+      "name": "Cruz"
+    },
+    "fieldSessionDate": "2026-07-11",
+    "territoryId": null,
+    "sourceReportType": "beta-daily-rep-report",
+    "exportTimestamp": "2026-07-12T00:25:44.676Z",
+    "totals": {
+      "totalStops": null,
+      "totalVisits": 4,
+      "totalConversations": 4,
+      "totalLeads": 3,
+      "totalUnits": 0,
+      "totalLaterUnits": 0,
+      "totalMemberships": null
+    },
+    "completedVisits": [
+      {
+        "exportOrder": 1,
+        "visitId": "visit-01-ab32d577b882",
+        "sourceReport": {
+          "placeName": "Galachy Tire Shop",
+          "placeId": "cruz-google-330-chij5qnzgugxqiyrbj3drt1qxsu",
+          "timestamp": "2026-07-11T18:29:37.862Z",
+          "date": "2026-07-11",
+          "timeWindow": "Midday",
+          "outcome": "Conversation",
+          "conversations": 3,
+          "leads": 2,
+          "units": 0,
+          "laterUnits": 0,
+          "notes": "Comeback today at 6pm",
+          "gpsAttached": true
+        },
+        "governedBusinessIdentity": {
+          "matchStatus": "exact_runtime_id",
+          "runtimeId": "cruz-google-330-chij5qnzgugxqiyrbj3drt1qxsu",
+          "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+          "businessName": "Galachy Tire Shop",
+          "address": "8774 Almeda Genoa Rd, Houston, TX 77075, USA",
+          "category": "Auto",
+          "sourceDatasetVersion": "google-qualified-businesses-v2",
+          "currentPoolAtArchive": "active",
+          "dataQualityScore": 87.2,
+          "dataQualityReason": "Galachy Tire Shop is a auto candidate 2.3 miles from base with verified Google Place ID, numbered address, and safe Maps directions. Quality score: 87.2.",
+          "provenance": {
+            "runtimePoolsPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+            "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+          }
+        },
+        "governedHoursSnapshot": {
+          "status": "OPEN_VERIFIED",
+          "reasonCode": "VERIFIED_CURRENT_WINDOW_OPEN",
+          "reason": "Verified provider current-hours data show the business open at 16:21 America/Chicago.",
+          "evaluatedAt": "2026-07-11T21:21:59.331Z",
+          "businessTimezone": "America/Chicago",
+          "freshnessStatus": "FRESH",
+          "confidence": "HIGH",
+          "statusAppliesAtVisitTimestamp": false,
+          "provenance": {
+            "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+            "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z"
+          }
+        },
+        "recommendationEvidence": {
+          "recommendationScore": null,
+          "recommendationExplanation": null,
+          "recommendationPoolSource": null,
+          "availability": "unavailable_in_final_export"
+        },
+        "followUpRequirement": null,
+        "objections": null
+      },
+      {
+        "exportOrder": 2,
+        "visitId": "visit-02-c3f943ebaa9c",
+        "sourceReport": {
+          "placeName": "Exxon mechanic shop",
+          "placeId": "cruz-google-332-chijg2vxauibqiyr4ayvbntykiy",
+          "timestamp": "2026-07-11T18:41:40.758Z",
+          "date": "2026-07-11",
+          "timeWindow": "Midday",
+          "outcome": "No contact",
+          "conversations": 0,
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0,
+          "notes": "",
+          "gpsAttached": true
+        },
+        "governedBusinessIdentity": {
+          "matchStatus": "exact_runtime_id",
+          "runtimeId": "cruz-google-332-chijg2vxauibqiyr4ayvbntykiy",
+          "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+          "businessName": "Exxon mechanic shop",
+          "address": "14300 Gulf Fwy, Houston, TX 77034, USA",
+          "category": "Auto",
+          "sourceDatasetVersion": "google-qualified-businesses-v2",
+          "currentPoolAtArchive": "active",
+          "dataQualityScore": 86.9,
+          "dataQualityReason": "Exxon mechanic shop is a auto candidate 2.6 miles from base with verified Google Place ID, numbered address, and safe Maps directions. Quality score: 86.9.",
+          "provenance": {
+            "runtimePoolsPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+            "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+          }
+        },
+        "governedHoursSnapshot": {
+          "status": "HOURS_UNKNOWN",
+          "reasonCode": "HOURS_SOURCE_MISSING",
+          "reason": "No verified business-hours source is available.",
+          "evaluatedAt": "2026-07-11T21:21:59.331Z",
+          "businessTimezone": "America/Chicago",
+          "freshnessStatus": "MISSING",
+          "confidence": "NONE",
+          "statusAppliesAtVisitTimestamp": false,
+          "provenance": {
+            "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+            "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": null
+          }
+        },
+        "recommendationEvidence": {
+          "recommendationScore": null,
+          "recommendationExplanation": null,
+          "recommendationPoolSource": null,
+          "availability": "unavailable_in_final_export"
+        },
+        "followUpRequirement": null,
+        "objections": null
+      },
+      {
+        "exportOrder": 3,
+        "visitId": "visit-03-5da0d1f6c66b",
+        "sourceReport": {
+          "placeName": "Texans Auto Repair - Blackhawk",
+          "placeId": "cruz-google-327-chiji13ubwerqiyrmwr6qanoiz0",
+          "timestamp": "2026-07-11T19:15:59.328Z",
+          "date": "2026-07-11",
+          "timeWindow": "Midday",
+          "outcome": "Membership",
+          "conversations": 1,
+          "leads": 1,
+          "units": 0,
+          "laterUnits": 0,
+          "notes": "",
+          "gpsAttached": false
+        },
+        "governedBusinessIdentity": {
+          "matchStatus": "exact_runtime_id",
+          "runtimeId": "cruz-google-327-chiji13ubwerqiyrmwr6qanoiz0",
+          "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+          "businessName": "Texans Auto Repair - Blackhawk",
+          "address": "10326 Blackhawk Blvd, Houston, TX 77089, USA",
+          "category": "Auto",
+          "sourceDatasetVersion": "google-qualified-businesses-v2",
+          "currentPoolAtArchive": "active",
+          "dataQualityScore": 87.4,
+          "dataQualityReason": "Texans Auto Repair - Blackhawk is a auto candidate 2.2 miles from base with verified Google Place ID, numbered address, and safe Maps directions. Quality score: 87.4.",
+          "provenance": {
+            "runtimePoolsPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+            "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+          }
+        },
+        "governedHoursSnapshot": {
+          "status": "CLOSED_VERIFIED",
+          "reasonCode": "VERIFIED_CURRENT_WINDOW_CLOSED",
+          "reason": "Verified provider current-hours data show the business closed at 16:21 America/Chicago.",
+          "evaluatedAt": "2026-07-11T21:21:59.331Z",
+          "businessTimezone": "America/Chicago",
+          "freshnessStatus": "FRESH",
+          "confidence": "HIGH",
+          "statusAppliesAtVisitTimestamp": false,
+          "provenance": {
+            "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+            "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z"
+          }
+        },
+        "recommendationEvidence": {
+          "recommendationScore": null,
+          "recommendationExplanation": null,
+          "recommendationPoolSource": null,
+          "availability": "unavailable_in_final_export"
+        },
+        "followUpRequirement": null,
+        "objections": null
+      },
+      {
+        "exportOrder": 4,
+        "visitId": "visit-04-32a0b9fb24c2",
+        "sourceReport": {
+          "placeName": "Christian Brothers Automotive Pearland",
+          "placeId": "cruz-google-328-chijiduac7lcqiyr sgbtiajkr0",
+          "timestamp": "2026-07-11T19:31:21.937Z",
+          "date": "2026-07-11",
+          "timeWindow": "Midday",
+          "outcome": "Conversation",
+          "conversations": 0,
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0,
+          "notes": "Business was closed",
+          "gpsAttached": true
+        },
+        "governedBusinessIdentity": {
+          "matchStatus": "exact_runtime_id",
+          "runtimeId": "cruz-google-328-chijiduac7lcqiyr sgbtiajkr0",
+          "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+          "businessName": "Christian Brothers Automotive Pearland",
+          "address": "9245 S Sam Houston Pkwy E, Houston, TX 77075, USA",
+          "category": "Auto",
+          "sourceDatasetVersion": "google-qualified-businesses-v2",
+          "currentPoolAtArchive": "active",
+          "dataQualityScore": 87.4,
+          "dataQualityReason": "Christian Brothers Automotive Pearland is a auto candidate 2.2 miles from base with verified Google Place ID, numbered address, and safe Maps directions. Quality score: 87.4.",
+          "provenance": {
+            "runtimePoolsPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+            "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+          }
+        },
+        "governedHoursSnapshot": {
+          "status": "CLOSED_VERIFIED",
+          "reasonCode": "VERIFIED_CURRENT_WINDOW_CLOSED",
+          "reason": "Verified provider current-hours data show the business closed at 16:21 America/Chicago.",
+          "evaluatedAt": "2026-07-11T21:21:59.331Z",
+          "businessTimezone": "America/Chicago",
+          "freshnessStatus": "FRESH",
+          "confidence": "HIGH",
+          "statusAppliesAtVisitTimestamp": false,
+          "provenance": {
+            "artifactPath": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+            "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+            "sourceRetrievedAt": "2026-07-11T21:21:59.331Z",
+            "hoursVerifiedAt": "2026-07-11T21:21:59.331Z"
+          }
+        },
+        "recommendationEvidence": {
+          "recommendationScore": null,
+          "recommendationExplanation": null,
+          "recommendationPoolSource": null,
+          "availability": "unavailable_in_final_export"
+        },
+        "followUpRequirement": null,
+        "objections": null
+      }
+    ]
+  },
+  "unavailableFields": [
+    "sessionStartTime",
+    "sessionEndTime",
+    "initialRoute",
+    "completeRecommendationHistory",
+    "recommendationScores",
+    "recommendationExplanations",
+    "routeReplenishmentEvents",
+    "replacementRecommendations",
+    "completedStopExclusionEvents",
+    "duplicatePreventionEvents",
+    "recommendationPoolSource",
+    "structuredObjections",
+    "structuredFollowUpRequirements",
+    "territoryId",
+    "distanceAndTravelMetrics",
+    "observationTimestamps",
+    "screenshots"
+  ],
+  "sourceProvenance": {
+    "sourceKind": "founder_exported_final_today_report",
+    "originalFileName": "prometheus-iq-cruz-daily-report-2026-07-11.json",
+    "canonicalRawArtifactPath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+    "rawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+    "rawByteLength": 1934,
+    "finalExportConfirmed": true,
+    "finalityBasis": "Founder-designated final Today report; unique matching local export generated at 2026-07-12T00:25:44.676Z.",
+    "sourceGeneratedAt": "2026-07-12T00:25:44.676Z",
+    "ingestedAt": "2026-07-12T00:36:02.000Z"
+  },
+  "fieldClassification": {
+    "verifiedFieldContainer": "verifiedFields",
+    "calculatedFieldsStoredSeparately": true,
+    "unavailableValuesRemainNull": true,
+    "notesAreNotParsedIntoFollowUpOrObjectionClaims": true
+  }
+}

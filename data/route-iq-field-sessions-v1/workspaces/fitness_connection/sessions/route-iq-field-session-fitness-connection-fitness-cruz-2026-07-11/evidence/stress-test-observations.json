@@ -1,0 +1,128 @@
+{
+  "evidenceVersion": "route-iq-founder-stress-test-findings-v1",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "fieldSessionDate": "2026-07-11",
+  "source": {
+    "sourceType": "founder_engineering_directive",
+    "reportedBy": "Cruz",
+    "reportedRole": "Founder",
+    "reportedAt": null,
+    "verbatimSourceArtifactAvailable": false,
+    "provenanceNote": "Structured from the Founder-provided Route IQ Stress-Test Archive and Automatic End-of-Day Data Handoff v1 directive."
+  },
+  "timestampPolicy": {
+    "observationTimestampsAvailable": false,
+    "relatedVisitTimestampsAreObservationTimestamps": false,
+    "missingObservationTimestampsRemainNull": true
+  },
+  "screenshotPolicy": {
+    "screenshotsLocated": false,
+    "searchScope": "Founder Desktop and Downloads files dated 2026-07-11",
+    "missingScreenshotsRemainUnavailable": true
+  },
+  "observations": [
+    {
+      "observationId": "fitness-2026-07-11-discovery-category-imbalance",
+      "sequence": 1,
+      "title": "Discovery Mode category imbalance",
+      "finding": "Auto recommendations dominated the route despite Discovery Mode.",
+      "observedAt": null,
+      "relatedVisitTimestamp": null,
+      "relatedBusinesses": [],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "not_applicable",
+      "issueStatus": "preserved_unresolved"
+    },
+    {
+      "observationId": "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "sequence": 2,
+      "title": "Nearby Context false negative",
+      "finding": "Texans Auto Repair showed no nearby businesses despite multiple adjacent walk-in businesses, including Elite Dry Cleaners and Blackhawk Dental.",
+      "observedAt": null,
+      "relatedVisitTimestamp": "2026-07-11T19:15:59.328Z",
+      "relatedBusinesses": [
+        "Texans Auto Repair - Blackhawk",
+        "Elite Dry Cleaners",
+        "Blackhawk Dental"
+      ],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "texans_visit_confirmed_adjacent_business_identity_not_fully_archived",
+      "issueStatus": "preserved_unresolved"
+    },
+    {
+      "observationId": "fitness-2026-07-11-premature-best-category-conclusion",
+      "sequence": 3,
+      "title": "Premature category conclusion",
+      "finding": "Auto displayed as Best Category after three visits and zero memberships or units.",
+      "observedAt": null,
+      "relatedVisitTimestamp": null,
+      "relatedBusinesses": [],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "not_applicable",
+      "issueStatus": "preserved_unresolved"
+    },
+    {
+      "observationId": "fitness-2026-07-11-possible-insights-duplicate",
+      "sequence": 4,
+      "title": "Possible duplicate business entry",
+      "finding": "A possible duplicated business appeared in Insights; exact identity remains unconfirmed.",
+      "observedAt": null,
+      "relatedVisitTimestamp": null,
+      "relatedBusinesses": [],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "unconfirmed",
+      "issueStatus": "preserved_unresolved"
+    },
+    {
+      "observationId": "fitness-2026-07-11-christian-brothers-closed-recommendation",
+      "sequence": 5,
+      "title": "Closed-business recommendation",
+      "finding": "Christian Brothers Automotive Pearland was recommended while closed.",
+      "observedAt": null,
+      "relatedVisitTimestamp": "2026-07-11T19:31:21.937Z",
+      "relatedBusinesses": [
+        "Christian Brothers Automotive Pearland"
+      ],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "confirmed_by_final_export_and_governed_google_place_identity",
+      "issueStatus": "preserved_with_separate_remediation_record"
+    },
+    {
+      "observationId": "fitness-2026-07-11-christian-brothers-nearby-context-false-negative",
+      "sequence": 6,
+      "title": "Repeated Nearby Context false negative",
+      "finding": "The Christian Brothers location showed no nearby businesses despite more than five businesses within walking distance.",
+      "observedAt": null,
+      "relatedVisitTimestamp": "2026-07-11T19:31:21.937Z",
+      "relatedBusinesses": [
+        "Christian Brothers Automotive Pearland"
+      ],
+      "screenshots": [],
+      "screenshotAvailability": "unavailable",
+      "identityConfirmation": "christian_brothers_visit_confirmed_nearby_business_identities_unavailable",
+      "issueStatus": "preserved_unresolved"
+    }
+  ],
+  "subsequentRemediation": {
+    "remediationId": "fitness-2026-07-11-closed-now-eligibility-remediation",
+    "relatedObservationId": "fitness-2026-07-11-christian-brothers-closed-recommendation",
+    "reportedStatus": "deployed_and_production_verified",
+    "statusAssertionSource": "Founder task directive",
+    "findingErasedOrSilentlyResolved": false,
+    "repositoryEvidence": {
+      "eligibilityCommit": "be7a04c8df84a68d20868ce53183965495a4fc7d",
+      "canonicalEvidenceCommit": "d4878f9202e01d697f36aa0d3f953432a6ea8aba",
+      "routeQualityReport": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+      "christianBrothersRegressionStatus": "passed"
+    },
+    "deploymentIdentifier": null,
+    "productionVerificationTimestamp": null
+  },
+  "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+}

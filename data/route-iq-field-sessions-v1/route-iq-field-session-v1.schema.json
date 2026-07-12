@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prometheus-data-route-iq-field-session-v1",
+  "title": "Prometheus Data Route IQ Field Session v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "handoffContractId",
+    "sessionId",
+    "workspaceId",
+    "operatingProfileId",
+    "recordKind",
+    "verifiedFields",
+    "unavailableFields",
+    "sourceProvenance",
+    "fieldClassification"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-field-session-archive-v1" },
+    "handoffContractId": { "const": "route-iq-end-of-day-data-handoff-v1" },
+    "sessionId": { "type": "string", "minLength": 1 },
+    "workspaceId": { "const": "fitness_connection" },
+    "operatingProfileId": { "const": "fitness" },
+    "recordKind": { "const": "verified_field_session" },
+    "verifiedFields": {
+      "type": "object",
+      "required": ["representative", "fieldSessionDate", "sourceReportType", "exportTimestamp", "totals", "completedVisits"]
+    },
+    "unavailableFields": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "sourceProvenance": {
+      "type": "object",
+      "required": ["sourceKind", "canonicalRawArtifactPath", "rawSha256", "rawByteLength", "finalExportConfirmed"]
+    },
+    "fieldClassification": {
+      "type": "object",
+      "required": ["verifiedFieldContainer", "calculatedFieldsStoredSeparately", "unavailableValuesRemainNull"]
+    }
+  },
+  "additionalProperties": true
+}

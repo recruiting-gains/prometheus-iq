@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "route-iq-field-session-archive-v1",
+  "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "recordKind": "field_session_history_updates",
+  "representativeHistory": {
+    "representativeId": "cruz",
+    "fieldSessionDate": "2026-07-11",
+    "totals": {
+      "totalStops": null,
+      "totalVisits": 4,
+      "totalConversations": 4,
+      "totalLeads": 3,
+      "totalUnits": 0,
+      "totalLaterUnits": 0,
+      "totalMemberships": null
+    }
+  },
+  "territoryHistory": {
+    "status": "unavailable",
+    "territoryId": null,
+    "reason": "The final export does not contain a territory identifier."
+  },
+  "customerOutcomeHistory": [
+    {
+      "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+      "businessName": "Galachy Tire Shop",
+      "category": "Auto",
+      "visitId": "visit-01-ab32d577b882",
+      "timestamp": "2026-07-11T18:29:37.862Z",
+      "loggedOutcome": "Conversation",
+      "conversations": 3,
+      "leads": 2,
+      "units": 0,
+      "laterUnits": 0
+    },
+    {
+      "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+      "businessName": "Exxon mechanic shop",
+      "category": "Auto",
+      "visitId": "visit-02-c3f943ebaa9c",
+      "timestamp": "2026-07-11T18:41:40.758Z",
+      "loggedOutcome": "No contact",
+      "conversations": 0,
+      "leads": 0,
+      "units": 0,
+      "laterUnits": 0
+    },
+    {
+      "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "businessName": "Texans Auto Repair - Blackhawk",
+      "category": "Auto",
+      "visitId": "visit-03-5da0d1f6c66b",
+      "timestamp": "2026-07-11T19:15:59.328Z",
+      "loggedOutcome": "Membership",
+      "conversations": 1,
+      "leads": 1,
+      "units": 0,
+      "laterUnits": 0
+    },
+    {
+      "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "category": "Auto",
+      "visitId": "visit-04-32a0b9fb24c2",
+      "timestamp": "2026-07-11T19:31:21.937Z",
+      "loggedOutcome": "Conversation",
+      "conversations": 0,
+      "leads": 0,
+      "units": 0,
+      "laterUnits": 0
+    }
+  ],
+  "categoryOutcomeHistory": [
+    {
+      "category": "Auto",
+      "visits": 4,
+      "conversations": 4,
+      "leads": 3,
+      "units": 0,
+      "laterUnits": 0
+    }
+  ],
+  "intelligenceLearningHandoff": {
+    "status": "not_authorized",
+    "readOnly": true,
+    "scoringMutationAllowed": false,
+    "reason": "A separate verified Intelligence consumer authorization is required."
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "app": "Prometheus IQ",
+  "reportType": "beta-daily-rep-report",
+  "generatedAt": "2026-07-12T00:25:44.676Z",
+  "date": "2026-07-11",
+  "rep": {
+    "id": "cruz",
+    "name": "Cruz"
+  },
+  "totals": {
+    "visits": 4,
+    "conversations": 4,
+    "leads": 3,
+    "units": 0,
+    "laterUnits": 0
+  },
+  "visits": [
+    {
+      "placeName": "Galachy Tire Shop",
+      "placeId": "cruz-google-330-chij5qnzgugxqiyrbj3drt1qxsu",
+      "timestamp": "2026-07-11T18:29:37.862Z",
+      "date": "2026-07-11",
+      "timeWindow": "Midday",
+      "outcome": "Conversation",
+      "conversations": 3,
+      "leads": 2,
+      "units": 0,
+      "laterUnits": 0,
+      "notes": "Comeback today at 6pm",
+      "gpsAttached": true
+    },
+    {
+      "placeName": "Exxon mechanic shop",
+      "placeId": "cruz-google-332-chijg2vxauibqiyr4ayvbntykiy",
+      "timestamp": "2026-07-11T18:41:40.758Z",
+      "date": "2026-07-11",
+      "timeWindow": "Midday",
+      "outcome": "No contact",
+      "conversations": 0,
+      "leads": 0,
+      "units": 0,
+      "laterUnits": 0,
+      "notes": "",
+      "gpsAttached": true
+    },
+    {
+      "placeName": "Texans Auto Repair - Blackhawk",
+      "placeId": "cruz-google-327-chiji13ubwerqiyrmwr6qanoiz0",
+      "timestamp": "2026-07-11T19:15:59.328Z",
+      "date": "2026-07-11",
+      "timeWindow": "Midday",
+      "outcome": "Membership",
+      "conversations": 1,
+      "leads": 1,
+      "units": 0,
+      "laterUnits": 0,
+      "notes": "",
+      "gpsAttached": false
+    },
+    {
+      "placeName": "Christian Brothers Automotive Pearland",
+      "placeId": "cruz-google-328-chijiduac7lcqiyr sgbtiajkr0",
+      "timestamp": "2026-07-11T19:31:21.937Z",
+      "date": "2026-07-11",
+      "timeWindow": "Midday",
+      "outcome": "Conversation",
+      "conversations": 0,
+      "leads": 0,
+      "units": 0,
+      "laterUnits": 0,
+      "notes": "Business was closed",
+      "gpsAttached": true
+    }
+  ]
+}

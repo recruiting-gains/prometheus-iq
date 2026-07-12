@@ -57,6 +57,21 @@
     "businessHoursOfflineRefresh": "scripts/refresh-google-business-hours.mjs",
     "businessHoursFocusedTests": "tests/business-hours-governance.test.mjs"
   },
+  "canonicalFieldSessionArtifacts": {
+    "archiveRoot": "data/route-iq-field-sessions-v1",
+    "archiveDocumentation": "data/route-iq-field-sessions-v1/README.md",
+    "fieldSessionSchema": "data/route-iq-field-sessions-v1/route-iq-field-session-v1.schema.json",
+    "archiveRuntime": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "ingestionCommand": "scripts/ingest-route-iq-field-session.mjs",
+    "focusedTests": "tests/route-iq-field-session-archive.test.mjs",
+    "july11FounderSourceEvidence": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+    "july11FounderSessionManifest": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
+    "july11FounderRawExport": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+    "july11FounderNormalizedSession": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+    "july11FounderCalculatedMetrics": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+    "july11FounderHistoryUpdates": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json",
+    "july11FounderStressTestEvidence": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json"
+  },
   "deployMirrorArtifacts": {
     "activePoolDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
     "runtimePoolsDeployMirror": "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
@@ -87,6 +102,111 @@
     ],
     "routeEligibilityActivated": true
   },
+  "expectedFieldSessionMetrics": {
+    "archiveVersion": "route-iq-field-session-archive-v1",
+    "handoffContractId": "route-iq-end-of-day-data-handoff-v1",
+    "archivedSessions": 1,
+    "july11CompletedVisits": 4,
+    "july11Conversations": 4,
+    "july11Leads": 3,
+    "july11Units": 0,
+    "july11LaterUnits": 0,
+    "july11StressTestObservations": 6,
+    "july11RawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
+  },
+  "automaticEndOfDayHandoffContract": {
+    "contractId": "route-iq-end-of-day-data-handoff-v1",
+    "status": "data_foundation_ready_pending_dashboard_trigger_and_production_binding",
+    "producerSubsystem": "Prometheus Dashboard",
+    "consumerSubsystem": "Prometheus Data",
+    "requiredWorkspaceId": "fitness_connection",
+    "requiredOperatingProfileId": "fitness",
+    "supportedCompletionActions": ["end_route", "end_day"],
+    "requiredPayload": [
+      "workspaceId",
+      "operatingProfileId",
+      "finalExportConfirmed",
+      "rawReportText",
+      "sourceFinalizedAt"
+    ],
+    "processingOrder": [
+      "validate_workspace_and_profile",
+      "validate_final_report_contract",
+      "derive_deterministic_session_identity",
+      "verify_idempotency_or_reject_conflict",
+      "archive_append_only_raw_report",
+      "persist_normalized_verified_record",
+      "persist_calculated_metrics_separately",
+      "persist_representative_history",
+      "persist_territory_history_when_source_identity_exists",
+      "persist_customer_and_category_outcome_history",
+      "write_commit_marker_last",
+      "prepare_separately_authorized_read_only_intelligence_handoff"
+    ],
+    "dashboardTriggerImplemented": false,
+    "manualExportBackupMustRemainAvailable": true,
+    "dashboardMayWriteDataArtifactsDirectly": false,
+    "intelligenceLearningConsumptionAuthorized": false,
+    "routeScoringMutationAllowed": false
+  },
+  "intelligenceFieldSessionLearningHandoff": {
+    "status": "defined_not_authorized",
+    "producerSubsystem": "Prometheus Data",
+    "futureConsumerSubsystem": "Prometheus Intelligence Engine",
+    "accessMode": "read_only",
+    "approvedRecordTypes": [
+      "verified_field_session",
+      "calculated_field_session_metrics",
+      "field_session_history_updates"
+    ],
+    "rawEvidenceDirectConsumptionAllowed": false,
+    "workspaceAndOperatingProfileScopeRequired": true,
+    "provenanceRequired": true,
+    "scoringMutationAllowed": false,
+    "recommendationMutationAllowed": false,
+    "independentAuthorizationRequiredBeforeConsumption": true
+  },
+  "fieldSessionPersistenceContract": {
+    "storageTechnology": "cloudflare_workers_kv",
+    "requiredBinding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+    "requiredBindingMethods": ["get", "put", "list"],
+    "bindingProvisionedInCurrentRuntimeConfiguration": false,
+    "bindingProvisioningOwner": "Prometheus Infrastructure",
+    "missingBindingFailsClosedBeforeWrite": true,
+    "unknownWorkspaceFailsClosedBeforeWrite": true,
+    "crossWorkspaceReadsAndWritesAllowed": false,
+    "appendOnlyRawEvidence": true,
+    "deterministicSessionIdentity": true,
+    "identicalReingestionIsIdempotent": true,
+    "sameSessionDifferentRawEvidenceRejected": true,
+    "commitMarkerWrittenLast": true,
+    "committedRecordRequiresAllArtifacts": true,
+    "representativeHistoryUsesWorkspacePartitionedAppendOnlyKeys": true,
+    "territoryHistoryUsesWorkspacePartitionedAppendOnlyKeysWhenAvailable": true,
+    "customerAndCategoryHistoryUseWorkspacePartitionedAppendOnlyKeys": true,
+    "separateRuntimeReadBackRequired": true
+  },
+  "fieldSessionOwnership": {
+    "owningSubsystem": "Prometheus Data",
+    "ownedArtifacts": [
+      "raw_field_session_archive",
+      "normalized_field_session_record",
+      "source_provenance",
+      "operational_metrics",
+      "representative_outcome_history",
+      "territory_outcome_history_when_available",
+      "customer_and_category_outcome_history",
+      "stress_test_evidence"
+    ],
+    "rawAndNormalizedSeparated": true,
+    "verifiedAndCalculatedFieldsSeparated": true,
+    "missingDataRemainsUnavailable": true
+  },
+  "inventionGovernance": {
+    "classification": "operational_improvement",
+    "rationale": "This work archives and governs existing Route IQ evidence without introducing recommendation, scoring, learning, or route-selection logic.",
+    "patentabilityClaimMade": false
+  },
   "consumerRules": {
     "dashboard": {
       "consumerSubsystem": "Prometheus Dashboard",
@@ -98,7 +218,11 @@
       "mayReadOnlyApprovedDataArtifacts": true,
       "mayWriteDataArtifacts": false,
       "mustFailClosedOnMissingArtifact": true,
-      "fixtureOrDemoDataAllowedInProduction": false
+      "fixtureOrDemoDataAllowedInProduction": false,
+      "maySubmitCompletedFieldSessionThroughContract": true,
+      "fieldSessionHandoffContractId": "route-iq-end-of-day-data-handoff-v1",
+      "automaticEndOfDayTriggerImplemented": false,
+      "manualTodayReportExportMustRemainAvailable": true
     },
     "crm": {
       "consumerSubsystem": "Prometheus CRM",
@@ -131,7 +255,10 @@
       "businessHoursInitialRouteGenerationAuthorized": true,
       "businessHoursAdaptiveReplenishmentAuthorized": true,
       "businessHoursExplainabilityAuthorized": true,
-      "businessHoursDataMutationAllowed": false
+      "businessHoursDataMutationAllowed": false,
+      "fieldSessionLearningConsumptionAuthorized": false,
+      "fieldSessionLearningRequiresIndependentAuthorization": true,
+      "fieldSessionHistoryMutationAllowed": false
     },
     "mobile": {
       "consumerSubsystem": "Prometheus Mobile",
@@ -152,6 +279,9 @@
     "fitnessConnectionMayConsumeSmoothieDepotCandidateData": false,
     "smoothieDepotMayConsumeFitnessBusinessHours": false,
     "fitnessBusinessHoursMayContainSmoothieDepotRecords": false,
+    "smoothieDepotMayConsumeFitnessFieldSessions": false,
+    "fitnessFieldSessionsMayContainSmoothieDepotRecords": false,
+    "unknownFieldSessionWorkspaceFailsClosed": true,
     "globalCustomerStateAllowed": false,
     "fixtureDataAllowedInProduction": false,
     "demoDataAllowedInProduction": false,
@@ -172,6 +302,11 @@
     "staleHoursMayBeTreatedAsFresh": false,
     "unverifiedSpecialHoursMayBecomeVerifiedOpen": false,
     "businessTimezoneRequiredForVerifiedHoursStatus": true,
-    "businessHoursRouteEligibilityActivated": true
+    "businessHoursRouteEligibilityActivated": true,
+    "fieldSessionRawEvidenceMustRemainAppendOnly": true,
+    "fieldSessionMissingValuesMayBeInferred": false,
+    "fieldSessionDuplicateConflictMayOverwriteRawEvidence": false,
+    "fieldSessionDashboardTriggerActivated": false,
+    "fieldSessionIntelligenceLearningActivated": false
   }
 }
