@@ -40,6 +40,8 @@ Documentation status: Documented in `DISCLOSURE_PACKAGE_V1.md` and `route-iq/TEC
 
 Continuous adaptive replenishment evidence: `route-iq/CONTINUOUS_ADAPTIVE_ROUTE_REPLENISHMENT_V1.md` documents the 2026-07-11 outcome-driven, representative-scoped route queue maintenance expansion without making patentability claims.
 
+Discovery Mode Intelligence v2 evidence: `route-iq/DISCOVERY_MODE_INTELLIGENCE_V2.md` documents the 2026-07-11 quality-bounded, evidence-adaptive category-composition expansion without making patentability claims.
+
 Invention number: 1
 
 Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
@@ -74,6 +76,7 @@ Known evidence captured:
 - Adaptive field learning and operating profile evidence foundations documented in July 2026 implementation commits.
 - Route IQ technical disclosure and drawing foundation documented in patent-preparation commits `c095e70` and `4bfa427`.
 - Continuous Adaptive Route Replenishment v1 documented on 2026-07-11 before implementation, covering persisted route queues, latest-evidence regeneration, single-flight replenishment, Active Pool priority, governed Full Pool fallback, and explicit exhausted-pool behavior.
+- Discovery Mode Intelligence v2 documented on 2026-07-11 before implementation, covering deterministic category balancing, governed concentration limits, evidence-maturity exploration, explicit relaxation reporting, and advisory-only activation safety.
 
 Attorney-review questions:
 

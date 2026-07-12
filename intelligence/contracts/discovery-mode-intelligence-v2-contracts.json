@@ -1,0 +1,138 @@
+{
+  "contractVersion": "discovery-mode-intelligence-v2-contracts-v1",
+  "status": "advisory_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "domain": "route_intelligence_discovery",
+  "purpose": "Define a deterministic, quality-bounded category-exploration plan without activating production recommendation influence.",
+  "designEvidence": {
+    "date": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "observation": "Founder Discovery Mode field activity concentrated in Automotive businesses while qualified alternatives were passed.",
+    "canonicalLearningEvidence": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "stressTestObservationConsumedAsLearning": false,
+    "historicalEvidenceCreated": false
+  },
+  "scopePolicy": {
+    "authorizedWorkspaceId": "fitness_connection",
+    "authorizedOperatingProfileId": "fitness",
+    "authorizedRepresentativeIds": ["cruz", "anthony"],
+    "unknownWorkspaceBehavior": "fail_closed",
+    "operatingProfileMismatchBehavior": "fail_closed",
+    "crossWorkspaceLearning": false,
+    "smoothieDepotInfluence": false
+  },
+  "existingSystemReuse": {
+    "runtimeData": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "runtimeGovernance": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+    "dashboardRuntimeProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "readOnlyLearningPolicy": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "readOnlyLearningSnapshot": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "continuousRouteQueue": "intelligence/continuous-adaptive-route-replenishment.mjs",
+    "recommendationExplainability": "intelligence/contracts/recommendation-explainability-contracts.json",
+    "duplicateIdentity": "continuous_adaptive_route_replenishment.routeQueueIdentity"
+  },
+  "inputContract": {
+    "candidateInput": "post_governance_post_eligibility_candidate_projection",
+    "existingScoreTreatment": "immutable_input_snapshot",
+    "learningInput": "authorized_read_only_intelligence_snapshot",
+    "territoryInput": "explicit_verified_identity_only",
+    "categoryInput": "governed_taxonomy_mapping",
+    "liveGoogleCalls": false
+  },
+  "outputContract": {
+    "artifactType": "discovery_mode_advisory_queue_plan",
+    "canonicalArtifact": "intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json",
+    "requiredSections": [
+      "discoveryQueueArchitecture",
+      "categoryBalancingStrategy",
+      "evidenceThresholds",
+      "learningImpact",
+      "explainabilityModel",
+      "configurationModel",
+      "queuePlan",
+      "validation"
+    ],
+    "runtimeConsumptionAuthorized": false,
+    "recommendationMutationAuthorized": false
+  },
+  "compositionContract": {
+    "fixedRotationAllowed": false,
+    "categoryConcentrationGoverned": true,
+    "qualityFloorAuthoritative": true,
+    "evidenceMaturityAdaptive": true,
+    "territoryOverridesConfigurationDriven": true,
+    "deterministicOrderingRequired": true,
+    "duplicateBusinessesAllowed": false,
+    "constraintRelaxationsMustBeReported": true,
+    "inventedCandidatesAllowed": false
+  },
+  "explainabilityContract": {
+    "requiredFields": [
+      "why",
+      "evidence",
+      "confidence",
+      "whatChanged",
+      "nextAction"
+    ],
+    "internalFormulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false
+  },
+  "prohibitions": [
+    "no_dashboard_modification",
+    "no_data_modification",
+    "no_companion_modification",
+    "no_crm_modification",
+    "no_website_modification",
+    "no_route_scoring_weight_change",
+    "no_production_recommendation_influence",
+    "no_parallel_runtime_route_queue",
+    "no_stress_observation_learning_promotion",
+    "no_cross_workspace_evidence",
+    "no_fixed_category_rotation"
+  ],
+  "protectedBehaviorBaselines": {
+    "dashboard": {
+      "path": "index.html",
+      "sha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3"
+    },
+    "routeScoring": {
+      "path": "scripts/build-route-intelligence-quality-engine.mjs",
+      "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"
+    },
+    "continuousRouteQueue": {
+      "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
+      "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"
+    },
+    "activePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+    },
+    "runtimeProjection": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+      "sha256": "bc6fdffeda6ddac69bdfe4a82f57e1b92152ed7e5bbc5b770199a3f16db8f4e5"
+    },
+    "runtimeGovernance": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+      "sha256": "5a4fefd493f9c2e04e0314f7ba39e2dec061c03f2ea872fe43f7908944a1e614"
+    },
+    "readOnlyLearningSnapshot": {
+      "path": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+      "sha256": "7ec0bbf1c37537ec5e80c157bcd9c0df64d1b04fa470cd13e348be4c3a02e157"
+    },
+    "readOnlyLearningPolicy": {
+      "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+      "sha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981"
+    }
+  },
+  "activationSafety": {
+    "recommendationInfluenceActive": false,
+    "productionQueueConsumerActive": false,
+    "routeScoringWeightsChanged": false,
+    "dashboardRuntimeChanged": false,
+    "dataChanged": false,
+    "crmChanged": false,
+    "companionChanged": false,
+    "websiteChanged": false,
+    "futureActivationRequiresExplicitHandoff": true
+  }
+}

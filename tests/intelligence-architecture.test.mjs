@@ -144,3 +144,24 @@ test("read-only archived-session learning is independently authorized without re
   assert.equal(snapshot.archiveSafety.archiveMutationPerformed, false);
   assert.equal(snapshot.archiveSafety.historicalReplayPerformed, false);
 });
+
+test("Discovery Mode v2 is a governed advisory composer without production influence", () => {
+  const contract = readJson("intelligence/contracts/discovery-mode-intelligence-v2-contracts.json");
+  const config = readJson("intelligence/config/discovery-mode-intelligence-v2.json");
+  const plan = readJson("intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json");
+
+  assert.equal(contract.status, "advisory_only");
+  assert.equal(contract.outputContract.runtimeConsumptionAuthorized, false);
+  assert.equal(contract.outputContract.recommendationMutationAuthorized, false);
+  assert.equal(contract.compositionContract.fixedRotationAllowed, false);
+  assert.equal(config.queueComposition.fixedCategoryRotation, false);
+  assert.equal(config.queueComposition.preserveExistingScores, true);
+  assert.equal(config.evidencePolicy.singleSessionCategoryPreferenceAllowed, false);
+  assert.equal(config.activationSafety.recommendationInfluenceActive, false);
+  assert.equal(config.activationSafety.routeScoringWeightsChanged, false);
+  assert.equal(plan.queuePlan.plannedSize, 15);
+  assert.ok(plan.queuePlan.compositionMetrics.distinctCategoryCount >= 4);
+  assert.ok(plan.queuePlan.compositionMetrics.maximumCategoryShare <= 0.27);
+  assert.equal(plan.queuePlan.compositionMetrics.duplicateCount, 0);
+  assert.equal(plan.validation.productionQueueConsumerActive, false);
+});

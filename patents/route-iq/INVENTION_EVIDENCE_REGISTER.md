@@ -330,3 +330,28 @@ Evidence classification:
 - Preserve this record under the existing IP-001 evidence history.
 - Preserve scoring weights and proprietary ranking details as confidential implementation information.
 - Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.
+
+## 16. Discovery Mode Intelligence v2
+
+Status: Engineering expansion documented before implementation
+
+Recorded: 2026-07-11
+
+Supporting record:
+
+- `patents/route-iq/DISCOVERY_MODE_INTELLIGENCE_V2.md`
+
+Technical relationship:
+
+- Implements the existing exploration reserve and category-lock-in protections as deterministic, governed queue composition.
+- Preserves existing recommendation quality and scoring outputs as immutable inputs.
+- Uses evidence maturity and territory supply to allocate controlled category exploration without a fixed rotation.
+- Enforces configurable category concentration and consecutive-category limits when sufficient alternatives exist.
+- Reports every constraint relaxation and keeps the output advisory until a future production activation handoff.
+- Preserves workspace isolation, operating-profile scope, Active Pool governance, and explainability requirements.
+
+Evidence classification:
+
+- Preserve this record under the existing IP-001 evidence history.
+- Preserve proprietary utility calculations, scoring weights, and production ranking details as confidential implementation information.
+- Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.

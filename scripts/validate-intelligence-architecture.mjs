@@ -17,6 +17,8 @@ const requiredFiles = [
   "intelligence/field-learning-offline-evidence-harness.mjs",
   "intelligence/read-only-field-session-learning.mjs",
   "intelligence/read-only-field-session-learning.md",
+  "intelligence/discovery-mode-intelligence-v2.mjs",
+  "intelligence/discovery-mode-intelligence-v2.md",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -32,6 +34,9 @@ const requiredFiles = [
   "intelligence/contracts/read-only-field-session-learning-contracts.json",
   "intelligence/config/read-only-field-session-learning-policy-v1.json",
   "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+  "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+  "intelligence/config/discovery-mode-intelligence-v2.json",
+  "intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json",
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
@@ -42,6 +47,7 @@ const requiredFiles = [
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-read-only-field-session-learning.mjs",
+  "scripts/verify-discovery-mode-intelligence-v2.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
@@ -68,6 +74,8 @@ const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation
 const offlineHarness = read("intelligence/field-learning-offline-evidence-harness.mjs");
 const readOnlyFieldSessionLearning = read("intelligence/read-only-field-session-learning.mjs");
 const readOnlyFieldSessionLearningDoc = read("intelligence/read-only-field-session-learning.md");
+const discoveryModeIntelligence = read("intelligence/discovery-mode-intelligence-v2.mjs");
+const discoveryModeIntelligenceDoc = read("intelligence/discovery-mode-intelligence-v2.md");
 const explainabilityEngine = read("intelligence/recommendation-explainability-engine.mjs");
 const operatingProfileEngine = read("intelligence/operating-profile-engine.mjs");
 const fieldEvidenceActivation = read("intelligence/field-evidence-activation-foundation.md");
@@ -83,6 +91,9 @@ const fieldContracts = readJson("intelligence/contracts/field-learning-loop-cont
 const readOnlyFieldSessionLearningContracts = readJson("intelligence/contracts/read-only-field-session-learning-contracts.json");
 const readOnlyFieldSessionLearningPolicy = readJson("intelligence/config/read-only-field-session-learning-policy-v1.json");
 const readOnlyFieldSessionLearningSnapshot = readJson("intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json");
+const discoveryModeContracts = readJson("intelligence/contracts/discovery-mode-intelligence-v2-contracts.json");
+const discoveryModeConfig = readJson("intelligence/config/discovery-mode-intelligence-v2.json");
+const discoveryModePlan = readJson("intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -554,6 +565,35 @@ assert(readOnlyFieldSessionLearningSnapshot.archiveSafety.historicalReplayPerfor
 assert(readOnlyFieldSessionLearningDoc.includes("deterministic read-only snapshot projection"), "Read-only field-session learning doc must describe snapshot projection.");
 assert(readOnlyFieldSessionLearningDoc.includes("No normalization is performed"), "Read-only field-session learning doc must prohibit re-normalization.");
 assert(readOnlyFieldSessionLearningDoc.includes("The first verified session remains observation-only"), "Read-only field-session learning doc must preserve the evidence threshold.");
+assert(discoveryModeContracts.status === "advisory_only", "Discovery Mode v2 contracts must remain advisory only.");
+assert(discoveryModeContracts.outputContract.runtimeConsumptionAuthorized === false, "Discovery Mode v2 must not authorize runtime consumption.");
+assert(discoveryModeContracts.outputContract.recommendationMutationAuthorized === false, "Discovery Mode v2 must not authorize recommendation mutation.");
+assert(discoveryModeContracts.compositionContract.fixedRotationAllowed === false, "Discovery Mode v2 must prohibit fixed category rotation.");
+assert(discoveryModeContracts.compositionContract.qualityFloorAuthoritative === true, "Discovery Mode v2 must preserve the quality floor.");
+assert(discoveryModeContracts.scopePolicy.unknownWorkspaceBehavior === "fail_closed", "Discovery Mode v2 must fail closed for unknown workspaces.");
+assert(discoveryModeContracts.scopePolicy.smoothieDepotInfluence === false, "Discovery Mode v2 must prohibit Smoothie Depot influence.");
+assert(discoveryModeContracts.designEvidence.stressTestObservationConsumedAsLearning === false, "Discovery Mode v2 must not promote stress observations into learned evidence.");
+assert(discoveryModeConfig.queueComposition.fixedCategoryRotation === false, "Discovery Mode v2 configuration must not define a fixed rotation.");
+assert(discoveryModeConfig.queueComposition.targetDistinctCategories >= 6, "Discovery Mode v2 must target broad category coverage.");
+assert(discoveryModeConfig.queueComposition.minimumDistinctCategories >= 4, "Discovery Mode v2 minimum viable category coverage regressed.");
+assert(discoveryModeConfig.queueComposition.categoryConcentration.maximumShare <= 0.27, "Discovery Mode v2 category concentration ceiling regressed.");
+assert(discoveryModeConfig.queueComposition.preserveExistingScores === true, "Discovery Mode v2 must preserve existing scores.");
+assert(discoveryModeConfig.evidencePolicy.thresholdSourcePolicyVersion === readOnlyFieldSessionLearningPolicy.policyVersion, "Discovery Mode v2 must inherit governed learning thresholds.");
+assert(discoveryModeConfig.evidencePolicy.singleSessionCategoryPreferenceAllowed === false, "Discovery Mode v2 must block single-session category preference.");
+assert(discoveryModeConfig.activationSafety.recommendationInfluenceActive === false, "Discovery Mode v2 recommendation influence must remain disabled.");
+assert(discoveryModeConfig.activationSafety.routeScoringWeightsChanged === false, "Discovery Mode v2 must not change route scoring weights.");
+assert(discoveryModeConfig.activationSafety.dashboardRuntimeChanged === false, "Discovery Mode v2 must not change Dashboard runtime.");
+assert(discoveryModePlan.queuePlan.plannedSize === 15, "Discovery Mode v2 canonical advisory plan must contain 15 candidates.");
+assert(discoveryModePlan.queuePlan.compositionMetrics.distinctCategoryCount >= discoveryModeConfig.queueComposition.minimumDistinctCategories, "Discovery Mode v2 canonical advisory plan must meet minimum viable category coverage.");
+assert(discoveryModePlan.queuePlan.compositionMetrics.maximumCategoryShare <= discoveryModeConfig.queueComposition.categoryConcentration.maximumShare, "Discovery Mode v2 canonical category concentration regressed.");
+assert(discoveryModePlan.queuePlan.compositionMetrics.duplicateCount === 0, "Discovery Mode v2 canonical advisory plan contains duplicates.");
+assert(discoveryModePlan.queuePlan.qualityMetrics.existingScoresChanged === false, "Discovery Mode v2 canonical advisory plan changed candidate scores.");
+assert(discoveryModePlan.validation.recommendationInfluenceActive === false, "Discovery Mode v2 canonical plan activated recommendation influence.");
+assert(discoveryModePlan.validation.productionQueueConsumerActive === false, "Discovery Mode v2 canonical plan activated a production queue consumer.");
+assert(discoveryModeIntelligence.includes("export function buildDiscoveryModeAdvisoryPlan"), "Discovery Mode v2 composer export is missing.");
+for (const section of ["Discovery Queue Architecture", "Category Balancing Strategy", "Evidence Thresholds", "Learning Impact", "Explainability Model", "Configuration Model", "Activation Boundary"]) {
+  assert(discoveryModeIntelligenceDoc.includes(section), `Discovery Mode v2 architecture missing ${section}.`);
+}
 assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
 assert(fieldFixtures.productionLearningActive === false, "Field visit fixtures must not activate production learning.");
 assert(explainabilityContracts.status === "explanation_layer_only", "Recommendation Explainability registry must remain explanation_layer_only.");

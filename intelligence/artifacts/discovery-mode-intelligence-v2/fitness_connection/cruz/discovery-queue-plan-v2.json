@@ -1,0 +1,1773 @@
+{
+  "artifactType": "discovery_mode_advisory_queue_plan",
+  "version": "discovery-mode-intelligence-v2",
+  "policyVersion": "discovery-mode-intelligence-v2-policy-v1",
+  "contractVersion": "discovery-mode-intelligence-v2-contracts-v1",
+  "status": "active_advisory_plan",
+  "generatedAt": "2026-07-12T00:36:02.000Z",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "representativeId": "cruz",
+  "territoryId": null,
+  "sourceProvenance": {
+    "activePoolPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "activePoolSha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1",
+    "activePoolGeneratedAt": "2026-07-01T05:45:13.022Z",
+    "activePoolRecordCount": 297,
+    "governanceReportPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/governance-report.json",
+    "governanceReportSha256": "5a4fefd493f9c2e04e0314f7ba39e2dec061c03f2ea872fe43f7908944a1e614",
+    "governanceStatus": "passed",
+    "promotionAllowed": true,
+    "runtimeProjectionPath": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+    "runtimeProjectionSha256": "bc6fdffeda6ddac69bdfe4a82f57e1b92152ed7e5bbc5b770199a3f16db8f4e5",
+    "runtimeProjectionDatasetVersion": "google-qualified-businesses-v2",
+    "learningSnapshotPath": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "learningSnapshotSha256": "7ec0bbf1c37537ec5e80c157bcd9c0df64d1b04fa470cd13e348be4c3a02e157",
+    "learningSnapshotGeneratedAt": "2026-07-12T00:36:02.000Z",
+    "learningPolicyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "learningPolicySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
+    "projectedCandidateCount": 297,
+    "skippedRuntimeProfileCount": 0
+  },
+  "fieldEvidenceBasis": {
+    "observedOn": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "finding": "Discovery Mode concentrated Founder field activity in Automotive businesses while other qualified categories were passed.",
+    "learningInput": false,
+    "recommendationScoreInput": false,
+    "archiveMutationAllowed": false,
+    "purpose": "Shape and validate the category-composition architecture without promoting a stress-test observation into learned evidence."
+  },
+  "discoveryQueueArchitecture": {
+    "inputBoundary": "post_governance_post_eligibility_candidates",
+    "candidateSource": "active",
+    "existingScores": "immutable_input_snapshots",
+    "learningSource": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "composition": "deterministic_bounded_constraints",
+    "runtimeQueueCreated": false,
+    "futureIntegrationTarget": "intelligence/continuous-adaptive-route-replenishment.mjs"
+  },
+  "categoryBalancingStrategy": {
+    "fixedRotation": false,
+    "targetSize": 15,
+    "targetDistinctCategories": 6,
+    "minimumDistinctCategories": 4,
+    "strictCategoryCap": 4,
+    "strictMaximumShare": 0.27,
+    "maximumConsecutive": 2,
+    "selectionPrecedence": [
+      "existing_route_eligibility",
+      "quality_floor",
+      "minimum_distinct_category_coverage",
+      "lowest_current_queue_concentration",
+      "lowest_evidence_maturity",
+      "territory_specific_coverage_gap_when_verified",
+      "existing_quality_rank",
+      "existing_route_order",
+      "stable_business_identity"
+    ],
+    "territoryOverrideApplied": false,
+    "territoryOverrideId": null,
+    "relaxationPolicy": {
+      "reportEveryRelaxation": true,
+      "allowConsecutiveLimitRelaxation": true,
+      "allowConcentrationRelaxation": true,
+      "maximumRelaxedShare": 0.4,
+      "maximumRelaxedCount": 6,
+      "allowQualityFloorRelaxation": false,
+      "allowWorkspaceRelaxation": false,
+      "allowDuplicateRelaxation": false,
+      "allowIneligibleCandidateRelaxation": false,
+      "allowSingleCategoryTargetFill": false,
+      "shortQueueWhenGuardrailsWouldBeViolated": true
+    }
+  },
+  "evidenceThresholds": {
+    "sourcePolicy": "read-only-field-session-learning-policy-v1",
+    "domain": "category",
+    "thresholds": {
+      "minimumVerifiedSessions": 3,
+      "minimumVisits": 8,
+      "minimumConversations": 4,
+      "minimumLeads": 2,
+      "minimumMemberships": 1,
+      "minimumConfidence": 0.7,
+      "requiresTerritoryIdentity": false
+    },
+    "categoryEvidence": [
+      {
+        "categoryId": "automotive",
+        "label": "Automotive",
+        "maturity": "emerging",
+        "metrics": {
+          "verifiedSessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0.6333,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 1,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 4,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 4,
+              "required": 4,
+              "met": true
+            },
+            {
+              "metric": "leads",
+              "actual": 3,
+              "required": 2,
+              "met": true
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0.6333,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "restaurants",
+        "label": "Restaurants",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "retail",
+        "label": "Retail",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "medical",
+        "label": "Medical",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "dental",
+        "label": "Dental",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "fitness",
+        "label": "Fitness",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "salons",
+        "label": "Salons and Personal Care",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "insurance",
+        "label": "Insurance",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "financial",
+        "label": "Financial",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "home_services",
+        "label": "Home Services",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "logistics",
+        "label": "Logistics",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "professional_services",
+        "label": "Professional Services",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "property_services",
+        "label": "Property Services",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "education_community",
+        "label": "Education and Community",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      },
+      {
+        "categoryId": "events",
+        "label": "Events",
+        "maturity": "unobserved",
+        "metrics": {
+          "verifiedSessions": 0,
+          "visits": 0,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null,
+          "units": 0,
+          "laterUnits": 0
+        },
+        "confidence": {
+          "score": 0,
+          "band": "unobserved",
+          "thresholdQualified": false,
+          "checks": [
+            {
+              "metric": "verifiedSessions",
+              "actual": 0,
+              "required": 3,
+              "met": false
+            },
+            {
+              "metric": "visits",
+              "actual": 0,
+              "required": 8,
+              "met": false
+            },
+            {
+              "metric": "conversations",
+              "actual": 0,
+              "required": 4,
+              "met": false
+            },
+            {
+              "metric": "leads",
+              "actual": 0,
+              "required": 2,
+              "met": false
+            },
+            {
+              "metric": "memberships",
+              "actual": null,
+              "required": 1,
+              "met": false
+            },
+            {
+              "metric": "confidence",
+              "actual": 0,
+              "required": 0.7,
+              "met": false
+            }
+          ],
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold"
+          ]
+        },
+        "evidenceUsed": [],
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    ],
+    "singleSessionCategoryPreferenceAllowed": false,
+    "territoryStatus": "unavailable_no_verified_identity"
+  },
+  "learningImpact": {
+    "observedEvidenceCategoryCount": 1,
+    "plannedCategoryCount": 4,
+    "prospectiveCategoryCoverageDelta": 3,
+    "objectives": [
+      {
+        "objective": "representative_strengths",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "representative_weaknesses",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "category_performance",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "territory_performance",
+        "status": "blocked_until_verified_territory_identity"
+      },
+      {
+        "objective": "time_of_day_performance",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "conversation_quality",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "lead_quality",
+        "status": "future_measurement_coverage_enabled"
+      },
+      {
+        "objective": "membership_conversion",
+        "status": "blocked_until_canonical_membership_evidence"
+      },
+      {
+        "objective": "objection_patterns",
+        "status": "future_measurement_coverage_enabled"
+      }
+    ],
+    "productionLearningActivated": false,
+    "recommendationInfluenceActive": false
+  },
+  "explainabilityModel": {
+    "requiredQuestions": [
+      "why",
+      "evidence",
+      "confidence",
+      "whatChanged",
+      "nextAction"
+    ],
+    "naturalLanguageRequired": true,
+    "internalFormulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false,
+    "constraintRelaxationsDisclosed": true
+  },
+  "configurationModel": {
+    "configurationDriven": true,
+    "policyPath": "intelligence/config/discovery-mode-intelligence-v2.json",
+    "categoryFamilyCount": 15,
+    "territoryOverridesConfigured": 0,
+    "unknownCategoryBehavior": "exclude_and_report",
+    "qualityFloorRelaxationAllowed": false
+  },
+  "queuePlan": {
+    "status": "active_advisory_plan",
+    "targetSize": 15,
+    "plannedSize": 15,
+    "entries": [
+      {
+        "candidateId": "cruz-google-5-chijn2 e 0czqiyrj9b3w afq3y",
+        "identityKey": "google:ChIJn2_E_0CZQIYRj9b3w-aFQ3Y",
+        "googlePlaceId": "ChIJn2_E_0CZQIYRj9b3w-aFQ3Y",
+        "businessName": "Adolfo's Barber Shop",
+        "sourceCategory": "Barber",
+        "categoryId": "salons",
+        "categoryLabel": "Salons and Personal Care",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 95.9,
+        "existingRouteOrder": 5,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Adolfo's Barber Shop is an Active Pool Barber candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Excellent with score 95.9.",
+        "existingScoreChanged": false,
+        "position": 1,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Adolfo's Barber Shop remains above the governed quality floor and adds Salons and Personal Care coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Salons and Personal Care visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Salons and Personal Care remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-4-chijnaty7t2zqiyrqfuodzvb9c4",
+        "identityKey": "google:ChIJnaTY7t2ZQIYRQfuOdzvB9c4",
+        "googlePlaceId": "ChIJnaTY7t2ZQIYRQfuOdzvB9c4",
+        "businessName": "Rock N' Roll It",
+        "sourceCategory": "Small Retail",
+        "categoryId": "retail",
+        "categoryLabel": "Retail",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 83.9,
+        "existingRouteOrder": 4,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Rock N' Roll It is an Active Pool Small Retail candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Good with score 83.9.",
+        "existingScoreChanged": false,
+        "position": 2,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Rock N' Roll It remains above the governed quality floor and adds Retail coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Retail visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Retail remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-3-chijkq6t 96zqiyrlklbq5gzcyq",
+        "identityKey": "google:ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ",
+        "googlePlaceId": "ChIJKQ6T-96ZQIYRLkLbQ5GZCYQ",
+        "businessName": "Brown Sugar's Bar B Que - The Original",
+        "sourceCategory": "Restaurant",
+        "categoryId": "restaurants",
+        "categoryLabel": "Restaurants",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 79.9,
+        "existingRouteOrder": 3,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Brown Sugar's Bar B Que - The Original is an Active Pool Restaurant candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for shift lead. Runtime quality is Good with score 79.9.",
+        "existingScoreChanged": false,
+        "position": 3,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Brown Sugar's Bar B Que - The Original remains above the governed quality floor and adds Restaurants coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Restaurants visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Restaurants remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-1-chijd7g1uh2zqiyrriqtrpd5 aq",
+        "identityKey": "google:ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ",
+        "googlePlaceId": "ChIJd7g1Uh2ZQIYRRIQTRPd5-AQ",
+        "businessName": "Level Up tires & Wheels",
+        "sourceCategory": "Auto",
+        "categoryId": "automotive",
+        "categoryLabel": "Automotive",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 89.9,
+        "existingRouteOrder": 1,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Level Up tires & Wheels is an Active Pool Auto candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for service lead. Runtime quality is Excellent with score 89.9.",
+        "existingScoreChanged": false,
+        "position": 4,
+        "evidenceMaturity": "emerging",
+        "explanation": {
+          "why": "Level Up tires & Wheels remains above the governed quality floor and adds Automotive coverage while that category occupies 3 of the configured 4-stop concentration limit.",
+          "evidence": "4 authorized verified Automotive visits, 4 conversations, and 3 leads are available across 1 session. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is insufficient evidence with confidence 63.3%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "The latest authorized snapshot added 4 Automotive visits, but the category remains emerging.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-14-chijad3o1sgzqiyrocashzrhexa",
+        "identityKey": "google:ChIJAd3o1sGZQIYROcashZRHExA",
+        "googlePlaceId": "ChIJAd3o1sGZQIYROcashZRHExA",
+        "businessName": "Universal Barbering Of Houston",
+        "sourceCategory": "Barber",
+        "categoryId": "salons",
+        "categoryLabel": "Salons and Personal Care",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 95.9,
+        "existingRouteOrder": 14,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Universal Barbering Of Houston is an Active Pool Barber candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Excellent with score 95.9.",
+        "existingScoreChanged": false,
+        "position": 5,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Universal Barbering Of Houston remains above the governed quality floor and adds Salons and Personal Care coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Salons and Personal Care visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Salons and Personal Care remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-13-chijqrnslt6zqiyrfv1zr0w2duw",
+        "identityKey": "google:ChIJqRNSlt6ZQIYRfV1ZR0w2dUw",
+        "googlePlaceId": "ChIJqRNSlt6ZQIYRfV1ZR0w2dUw",
+        "businessName": "EZPAWN",
+        "sourceCategory": "Small Retail",
+        "categoryId": "retail",
+        "categoryLabel": "Retail",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 83.9,
+        "existingRouteOrder": 13,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "EZPAWN is an Active Pool Small Retail candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Good with score 83.9.",
+        "existingScoreChanged": false,
+        "position": 6,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "EZPAWN remains above the governed quality floor and adds Retail coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Retail visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Retail remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-12-chij sn 8suzqiyrmvp wvzjkbw",
+        "identityKey": "google:ChIJ_SN-8suZQIYRMvP-wvzJKbw",
+        "googlePlaceId": "ChIJ_SN-8suZQIYRMvP-wvzJKbw",
+        "businessName": "Coffee & I",
+        "sourceCategory": "Restaurant",
+        "categoryId": "restaurants",
+        "categoryLabel": "Restaurants",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 79.9,
+        "existingRouteOrder": 12,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Coffee & I is an Active Pool Restaurant candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Good with score 79.9.",
+        "existingScoreChanged": false,
+        "position": 7,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Coffee & I remains above the governed quality floor and adds Restaurants coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Restaurants visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Restaurants remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-10-chijw4fsiqczqiyrr2oebbrf9uk",
+        "identityKey": "google:ChIJW4FsIQCZQIYRr2oEBbrF9uk",
+        "googlePlaceId": "ChIJW4FsIQCZQIYRr2oEBbrF9uk",
+        "businessName": "Nexaventix AutoGlass Tesla Windshield Repairs",
+        "sourceCategory": "Auto",
+        "categoryId": "automotive",
+        "categoryLabel": "Automotive",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 89.9,
+        "existingRouteOrder": 10,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Nexaventix AutoGlass Tesla Windshield Repairs is an Active Pool Auto candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for service lead. Runtime quality is Excellent with score 89.9.",
+        "existingScoreChanged": false,
+        "position": 8,
+        "evidenceMaturity": "emerging",
+        "explanation": {
+          "why": "Nexaventix AutoGlass Tesla Windshield Repairs remains above the governed quality floor and adds Automotive coverage while that category occupies 3 of the configured 4-stop concentration limit.",
+          "evidence": "4 authorized verified Automotive visits, 4 conversations, and 3 leads are available across 1 session. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is insufficient evidence with confidence 63.3%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "The latest authorized snapshot added 4 Automotive visits, but the category remains emerging.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-23-chijw7r5h4szqiyrzvvi72fmj30",
+        "identityKey": "google:ChIJw7r5h4SZQIYRZVVI72FmJ30",
+        "googlePlaceId": "ChIJw7r5h4SZQIYRZVVI72FmJ30",
+        "businessName": "Dreya G Hair Studio",
+        "sourceCategory": "Barber",
+        "categoryId": "salons",
+        "categoryLabel": "Salons and Personal Care",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 95.9,
+        "existingRouteOrder": 23,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Dreya G Hair Studio is an Active Pool Barber candidate for Founder Discovery. It is 0.1 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Excellent with score 95.9.",
+        "existingScoreChanged": false,
+        "position": 9,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Dreya G Hair Studio remains above the governed quality floor and adds Salons and Personal Care coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Salons and Personal Care visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Salons and Personal Care remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-22-chijszv3ae6zqiyrnbhqy1jztqe",
+        "identityKey": "google:ChIJSZv3ae6ZQIYRNbhQy1JZTQE",
+        "googlePlaceId": "ChIJSZv3ae6ZQIYRNbhQy1JZTQE",
+        "businessName": "Carolyn's Detail Spot and Smoke Shop",
+        "sourceCategory": "Small Retail",
+        "categoryId": "retail",
+        "categoryLabel": "Retail",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 83.8,
+        "existingRouteOrder": 22,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Carolyn's Detail Spot and Smoke Shop is an Active Pool Small Retail candidate for Founder Discovery. It is 0.2 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Good with score 83.8.",
+        "existingScoreChanged": false,
+        "position": 10,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Carolyn's Detail Spot and Smoke Shop remains above the governed quality floor and adds Retail coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Retail visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Retail remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-21-chijscg3ot2zqiyr0vw7n0o 7ky",
+        "identityKey": "google:ChIJScG3ot2ZQIYR0vW7n0O_7KY",
+        "googlePlaceId": "ChIJScG3ot2ZQIYR0vW7n0O_7KY",
+        "businessName": "Gringo’s Mexican Kitchen {Fuqua}",
+        "sourceCategory": "Restaurant",
+        "categoryId": "restaurants",
+        "categoryLabel": "Restaurants",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 79.8,
+        "existingRouteOrder": 21,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Gringo’s Mexican Kitchen {Fuqua} is an Active Pool Restaurant candidate for Founder Discovery. It is 0.2 mi from base, has Walk-in ready access, and asks for shift lead. Runtime quality is Good with score 79.8.",
+        "existingScoreChanged": false,
+        "position": 11,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Gringo’s Mexican Kitchen {Fuqua} remains above the governed quality floor and adds Restaurants coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Restaurants visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Restaurants remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-19-chijy6zv tyzqiyrdcrcyhj0yee",
+        "identityKey": "google:ChIJY6Zv_tyZQIYRdCRcyHj0YEE",
+        "googlePlaceId": "ChIJY6Zv_tyZQIYRdCRcyHj0YEE",
+        "businessName": "Quick Lane at Bayway Lincoln",
+        "sourceCategory": "Auto",
+        "categoryId": "automotive",
+        "categoryLabel": "Automotive",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 89.8,
+        "existingRouteOrder": 19,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Quick Lane at Bayway Lincoln is an Active Pool Auto candidate for Founder Discovery. It is 0.2 mi from base, has Walk-in ready access, and asks for service lead. Runtime quality is Excellent with score 89.8.",
+        "existingScoreChanged": false,
+        "position": 12,
+        "evidenceMaturity": "emerging",
+        "explanation": {
+          "why": "Quick Lane at Bayway Lincoln remains above the governed quality floor and adds Automotive coverage while that category occupies 3 of the configured 4-stop concentration limit.",
+          "evidence": "4 authorized verified Automotive visits, 4 conversations, and 3 leads are available across 1 session. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is insufficient evidence with confidence 63.3%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "The latest authorized snapshot added 4 Automotive visits, but the category remains emerging.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-32-chij4e1yi0qzqiyr1c e6mg7sns",
+        "identityKey": "google:ChIJ4e1yi0qZQIYR1C-E6mg7Sns",
+        "googlePlaceId": "ChIJ4e1yi0qZQIYR1C-E6mg7Sns",
+        "businessName": "X Effects",
+        "sourceCategory": "Barber",
+        "categoryId": "salons",
+        "categoryLabel": "Salons and Personal Care",
+        "qualityClass": "Excellent",
+        "qualityScoreSnapshot": 95.8,
+        "existingRouteOrder": 32,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "X Effects is an Active Pool Barber candidate for Founder Discovery. It is 0.2 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Excellent with score 95.8.",
+        "existingScoreChanged": false,
+        "position": 13,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "X Effects remains above the governed quality floor and adds Salons and Personal Care coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Salons and Personal Care visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Salons and Personal Care remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-31-chijhxwovy zqiyrz0hmpz rxlg",
+        "identityKey": "google:ChIJHXwOvy-ZQIYRZ0hMpZ_rXLg",
+        "googlePlaceId": "ChIJHXwOvy-ZQIYRZ0hMpZ_rXLg",
+        "businessName": "TEXAN SMOKE SHOP",
+        "sourceCategory": "Small Retail",
+        "categoryId": "retail",
+        "categoryLabel": "Retail",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 83.6,
+        "existingRouteOrder": 31,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "TEXAN SMOKE SHOP is an Active Pool Small Retail candidate for Founder Discovery. It is 0.3 mi from base, has Walk-in ready access, and asks for manager. Runtime quality is Good with score 83.6.",
+        "existingScoreChanged": false,
+        "position": 14,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "TEXAN SMOKE SHOP remains above the governed quality floor and adds Retail coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Retail visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Retail remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      },
+      {
+        "candidateId": "cruz-google-30-chijkv4htm2zqiyralwgv0bxq8s",
+        "identityKey": "google:ChIJkV4HtM2ZQIYRALwgv0BXq8s",
+        "googlePlaceId": "ChIJkV4HtM2ZQIYRALwgv0BXq8s",
+        "businessName": "Saraya Resturant",
+        "sourceCategory": "Restaurant",
+        "categoryId": "restaurants",
+        "categoryLabel": "Restaurants",
+        "qualityClass": "Good",
+        "qualityScoreSnapshot": 79.6,
+        "existingRouteOrder": 30,
+        "sourcePool": "active",
+        "territoryId": null,
+        "timeWindow": "Midday",
+        "existingQualityReason": "Saraya Resturant is an Active Pool Restaurant candidate for Founder Discovery. It is 0.3 mi from base, has Walk-in ready access, and asks for shift lead. Runtime quality is Good with score 79.6.",
+        "existingScoreChanged": false,
+        "position": 15,
+        "evidenceMaturity": "unobserved",
+        "explanation": {
+          "why": "Saraya Resturant remains above the governed quality floor and adds Restaurants coverage while that category occupies 4 of the configured 4-stop concentration limit.",
+          "evidence": "No authorized verified Restaurants visit evidence is available yet. Territory variation is unavailable because no verified territory identity is present; no territory was inferred.",
+          "confidence": "Category evidence is unobserved with confidence 0%. This is an exploration-confidence statement, not a production score change.",
+          "whatChanged": "Restaurants remains unobserved in the authorized learning snapshot, so no performance conclusion has been declared.",
+          "nextAction": "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
+          "internalFormulaExposed": false,
+          "proprietaryWeightsExposed": false
+        }
+      }
+    ],
+    "categoryDistribution": {
+      "automotive": 3,
+      "restaurants": 4,
+      "retail": 4,
+      "salons": 4
+    },
+    "sourceCategoryDistribution": {
+      "Auto": 3,
+      "Barber": 4,
+      "Restaurant": 4,
+      "Small Retail": 4
+    },
+    "availableCategoryIds": [
+      "automotive",
+      "restaurants",
+      "retail",
+      "salons"
+    ],
+    "unavailableCategories": [
+      {
+        "categoryId": "medical",
+        "label": "Medical",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "dental",
+        "label": "Dental",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "fitness",
+        "label": "Fitness",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "insurance",
+        "label": "Insurance",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "financial",
+        "label": "Financial",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "home_services",
+        "label": "Home Services",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "logistics",
+        "label": "Logistics",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "professional_services",
+        "label": "Professional Services",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "property_services",
+        "label": "Property Services",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "education_community",
+        "label": "Education and Community",
+        "reason": "no_qualified_active_pool_supply"
+      },
+      {
+        "categoryId": "events",
+        "label": "Events",
+        "reason": "no_qualified_active_pool_supply"
+      }
+    ],
+    "relaxations": [],
+    "failureReasons": [
+      "configured_categories_without_active_pool_supply",
+      "target_distinct_categories_unavailable",
+      "territory_variation_unavailable_no_verified_identity"
+    ],
+    "candidateValidation": {
+      "scannedCount": 297,
+      "acceptedCount": 291,
+      "rejectedCount": 6,
+      "duplicateCount": 0,
+      "inputTruncated": false,
+      "rejectionReasons": {
+        "below_quality_floor": 6
+      }
+    },
+    "compositionMetrics": {
+      "distinctCategoryCount": 4,
+      "targetDistinctCategoriesSatisfied": false,
+      "maximumCategoryCount": 4,
+      "maximumCategoryShare": 0.2667,
+      "strictConcentrationSatisfied": true,
+      "minimumDistinctCategoriesSatisfied": true,
+      "duplicateCount": 0
+    },
+    "qualityMetrics": {
+      "configuredMinimumQualityScore": 75,
+      "minimumSelectedQualityScore": 79.6,
+      "averageSelectedQualityScore": 87.17,
+      "averageAcceptedQualityScore": 86.36,
+      "existingScoresChanged": false,
+      "qualityFloorRelaxed": false
+    }
+  },
+  "validation": {
+    "deterministicOrderingRequired": true,
+    "activePoolOnly": true,
+    "existingRouteEligibilityRequired": true,
+    "duplicatePreventionPassed": true,
+    "workspaceIsolationPassed": true,
+    "operatingProfileIsolationPassed": true,
+    "qualityFloorPassed": true,
+    "existingScoresPreserved": true,
+    "explanationsComplete": true,
+    "territoryInferencePerformed": false,
+    "recommendationInfluenceActive": false,
+    "productionQueueConsumerActive": false,
+    "routeScoringWeightsChanged": false,
+    "dashboardRuntimeChanged": false,
+    "dataChanged": false,
+    "crmChanged": false,
+    "companionChanged": false,
+    "websiteChanged": false
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "policyVersion": "discovery-mode-intelligence-v2-policy-v1",
+  "status": "advisory_only",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "fieldEvidenceBasis": {
+    "observedOn": "2026-07-11",
+    "classification": "founder_verified_design_requirement",
+    "finding": "Discovery Mode concentrated Founder field activity in Automotive businesses while other qualified categories were passed.",
+    "learningInput": false,
+    "recommendationScoreInput": false,
+    "archiveMutationAllowed": false,
+    "purpose": "Shape and validate the category-composition architecture without promoting a stress-test observation into learned evidence."
+  },
+  "candidatePolicy": {
+    "requiredSourcePool": "active",
+    "requiresExistingRouteEligibility": true,
+    "requiresWorkspaceMatch": true,
+    "requiresOperatingProfileMatch": true,
+    "requiresStableBusinessIdentity": true,
+    "allowedQualityClasses": [
+      "Excellent",
+      "Good"
+    ],
+    "minimumQualityScore": 75,
+    "unknownCategoryBehavior": "exclude_and_report",
+    "duplicateBehavior": "retain_highest_quality_identity_once",
+    "maximumCandidateScan": 5000,
+    "liveGoogleCallsAllowed": false
+  },
+  "queueComposition": {
+    "targetSize": 15,
+    "targetDistinctCategories": 6,
+    "minimumDistinctCategories": 4,
+    "categoryConcentration": {
+      "maximumShare": 0.27,
+      "maximumCount": 4,
+      "maximumConsecutive": 2,
+      "enforcement": "when_qualified_alternatives_exist"
+    },
+    "selectionPrecedence": [
+      "existing_route_eligibility",
+      "quality_floor",
+      "minimum_distinct_category_coverage",
+      "lowest_current_queue_concentration",
+      "lowest_evidence_maturity",
+      "territory_specific_coverage_gap_when_verified",
+      "existing_quality_rank",
+      "existing_route_order",
+      "stable_business_identity"
+    ],
+    "fixedCategoryRotation": false,
+    "preserveExistingScores": true,
+    "territoryOverrides": {},
+    "relaxationPolicy": {
+      "reportEveryRelaxation": true,
+      "allowConsecutiveLimitRelaxation": true,
+      "allowConcentrationRelaxation": true,
+      "maximumRelaxedShare": 0.4,
+      "maximumRelaxedCount": 6,
+      "allowQualityFloorRelaxation": false,
+      "allowWorkspaceRelaxation": false,
+      "allowDuplicateRelaxation": false,
+      "allowIneligibleCandidateRelaxation": false,
+      "allowSingleCategoryTargetFill": false,
+      "shortQueueWhenGuardrailsWouldBeViolated": true
+    }
+  },
+  "categoryTaxonomy": {
+    "families": [
+      {
+        "categoryId": "automotive",
+        "label": "Automotive",
+        "sourceCategories": ["Auto", "Tire", "Oil Change", "Car Wash"]
+      },
+      {
+        "categoryId": "restaurants",
+        "label": "Restaurants",
+        "sourceCategories": ["Restaurant", "Food Service"]
+      },
+      {
+        "categoryId": "retail",
+        "label": "Retail",
+        "sourceCategories": ["Retail", "Small Retail", "Other Storefront"]
+      },
+      {
+        "categoryId": "medical",
+        "label": "Medical",
+        "sourceCategories": ["Medical", "Medical Office", "Clinic", "Healthcare"]
+      },
+      {
+        "categoryId": "dental",
+        "label": "Dental",
+        "sourceCategories": ["Dental", "Dental Office"]
+      },
+      {
+        "categoryId": "fitness",
+        "label": "Fitness",
+        "sourceCategories": ["Fitness", "Gym", "Health Club"]
+      },
+      {
+        "categoryId": "salons",
+        "label": "Salons and Personal Care",
+        "sourceCategories": ["Salon", "Spa", "Barber"]
+      },
+      {
+        "categoryId": "insurance",
+        "label": "Insurance",
+        "sourceCategories": ["Insurance"]
+      },
+      {
+        "categoryId": "financial",
+        "label": "Financial",
+        "sourceCategories": ["Financial", "Bank", "Credit Union"]
+      },
+      {
+        "categoryId": "home_services",
+        "label": "Home Services",
+        "sourceCategories": ["Home Services", "Roofing", "Security", "Solar", "HVAC", "Plumbing"]
+      },
+      {
+        "categoryId": "logistics",
+        "label": "Logistics",
+        "sourceCategories": ["Logistics", "Warehouse", "Transit"]
+      },
+      {
+        "categoryId": "professional_services",
+        "label": "Professional Services",
+        "sourceCategories": ["Professional Services", "Commercial Services", "Business Services", "Business", "Office", "Employer", "Local Employer"]
+      },
+      {
+        "categoryId": "property_services",
+        "label": "Property Services",
+        "sourceCategories": ["Apartment", "Property Management", "Hotel"]
+      },
+      {
+        "categoryId": "education_community",
+        "label": "Education and Community",
+        "sourceCategories": ["School", "College", "Community"]
+      },
+      {
+        "categoryId": "events",
+        "label": "Events",
+        "sourceCategories": ["Event"]
+      }
+    ]
+  },
+  "evidencePolicy": {
+    "thresholdSource": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "thresholdSourcePolicyVersion": "read-only-field-session-learning-policy-v1",
+    "thresholdDomain": "category",
+    "requiresAuthorizedReadOnlySnapshot": true,
+    "authorizedSnapshotPath": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "maturityBands": [
+      "unobserved",
+      "emerging",
+      "threshold_qualified"
+    ],
+    "singleSessionCategoryPreferenceAllowed": false,
+    "missingEvidenceBehavior": "treat_as_unobserved_not_negative",
+    "missingTerritoryBehavior": "report_unavailable_do_not_infer",
+    "evidenceDecay": "inherit_from_learning_policy",
+    "recencyWeighting": "inherit_from_learning_policy"
+  },
+  "adaptationPolicy": {
+    "category": "Allocate bounded coverage toward under-observed categories while preserving existing candidate quality.",
+    "representative": "Use only authorized evidence maturity; do not infer strengths or weaknesses from one session.",
+    "territory": "Apply an exact territory override or verified territory-category evidence only when a territory identity exists.",
+    "timeOfDay": "Track candidate-window coverage and outcome evidence without changing production ranking.",
+    "quality": "Never lower the configured quality floor to satisfy diversity.",
+    "supply": "Report unavailable categories and shorten the advisory queue before inventing candidates."
+  },
+  "learningObjectives": [
+    "representative_strengths",
+    "representative_weaknesses",
+    "category_performance",
+    "territory_performance",
+    "time_of_day_performance",
+    "conversation_quality",
+    "lead_quality",
+    "membership_conversion",
+    "objection_patterns"
+  ],
+  "explainability": {
+    "requiredQuestions": [
+      "why",
+      "evidence",
+      "confidence",
+      "whatChanged",
+      "nextAction"
+    ],
+    "naturalLanguageRequired": true,
+    "internalFormulaExposureAllowed": false,
+    "proprietaryWeightExposureAllowed": false,
+    "constraintRelaxationDisclosureRequired": true
+  },
+  "activationSafety": {
+    "recommendationInfluenceActive": false,
+    "productionQueueConsumerActive": false,
+    "routeScoringWeightsChanged": false,
+    "dashboardRuntimeChanged": false,
+    "dataChanged": false,
+    "crmChanged": false,
+    "companionChanged": false,
+    "websiteChanged": false,
+    "humanActivationRequired": true,
+    "futureActivationGate": "separate_explicit_intelligence_runtime_handoff"
+  }
+}
