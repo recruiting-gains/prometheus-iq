@@ -384,7 +384,17 @@ test("existing Data contract remains canonical and does not activate Dashboard o
   assert.equal(contract.automaticEndOfDayHandoffContract.dashboardTriggerImplemented, false);
   assert.equal(contract.automaticEndOfDayHandoffContract.manualExportBackupMustRemainAvailable, true);
   assert.equal(contract.fieldSessionPersistenceContract.requiredBinding, routeIqFieldSessionStoreBinding);
-  assert.equal(contract.fieldSessionPersistenceContract.bindingProvisionedInCurrentRuntimeConfiguration, false);
+  assert.equal(contract.fieldSessionPersistenceContract.bindingProvisionedInCurrentRuntimeConfiguration, true);
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingStatus, "verified_live");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.verifiedAt, "2026-07-12T01:31:32Z");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.verifiedWorker, "prometheus-iq");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.verifiedWorkerVersion, "c7fa9d9b-843e-4080-a6ee-5d15d9bab003");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.bindingVerificationStatus, "passed");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.disposableVerification.status, "passed_and_cleaned_up");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.workspaceIsolationVerification.status, "passed");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.dashboardTriggerActivated, false);
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.intelligenceLearningActivated, false);
+  assert.equal(contract.automaticEndOfDayHandoffContract.status, "data_foundation_ready_pending_dashboard_trigger");
   assert.equal(contract.consumerRules.intelligence.fieldSessionLearningConsumptionAuthorized, false);
   assert.equal(contract.consumerRules.intelligence.fieldSessionHistoryMutationAllowed, false);
   assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessFieldSessions, false);

@@ -116,7 +116,7 @@
   },
   "automaticEndOfDayHandoffContract": {
     "contractId": "route-iq-end-of-day-data-handoff-v1",
-    "status": "data_foundation_ready_pending_dashboard_trigger_and_production_binding",
+    "status": "data_foundation_ready_pending_dashboard_trigger",
     "producerSubsystem": "Prometheus Dashboard",
     "consumerSubsystem": "Prometheus Data",
     "requiredWorkspaceId": "fitness_connection",
@@ -170,7 +170,62 @@
     "storageTechnology": "cloudflare_workers_kv",
     "requiredBinding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
     "requiredBindingMethods": ["get", "put", "list"],
-    "bindingProvisionedInCurrentRuntimeConfiguration": false,
+    "bindingProvisionedInCurrentRuntimeConfiguration": true,
+    "productionBindingStatus": "verified_live",
+    "productionBindingVerification": {
+      "verifiedAt": "2026-07-12T01:31:32Z",
+      "verifiedWorker": "prometheus-iq",
+      "verifiedWorkerVersion": "c7fa9d9b-843e-4080-a6ee-5d15d9bab003",
+      "verifiedCloudflareVersionNumber": 51,
+      "verifiedTrafficPercentage": 100,
+      "verifiedDeploymentCommit": "95f2d5fbf08085fea1cfbffa196d05dd969e80b2",
+      "verificationMethod": [
+        "cloudflare_authoritative_worker_settings_deployments_and_version_apis",
+        "wrangler_remote_binding_scoped_disposable_probe",
+        "independent_overwatch_read_only_production_verification"
+      ],
+      "bindingVerificationStatus": "passed",
+      "dedicatedNamespaceVerificationStatus": "passed",
+      "disposableVerification": {
+        "status": "passed_and_cleaned_up",
+        "startedAt": "2026-07-12T01:31:10Z",
+        "completedAt": "2026-07-12T01:31:32Z",
+        "verificationPrefix": "_infrastructure-verification/route-iq-field-session-store/v1",
+        "writeStatus": "passed",
+        "separateOperationReadBackStatus": "passed",
+        "storedBytesMatchStatus": "passed",
+        "bindingScopedListStatus": "passed",
+        "deleteStatus": "passed",
+        "finalAbsenceConfirmationStatus": "passed",
+        "canonicalSessionKeyspaceTouched": false,
+        "realOperationalDataWritten": false
+      },
+      "workspaceIsolationVerification": {
+        "status": "passed",
+        "requiredWorkspaceId": "fitness_connection",
+        "unknownWorkspaceFailsClosed": true,
+        "smoothieDepotFailsClosed": true,
+        "crossWorkspaceWritesPerformed": false
+      },
+      "repositorySynchronization": {
+        "status": "synchronized",
+        "verifiedCommit": "95f2d5fbf08085fea1cfbffa196d05dd969e80b2",
+        "localHeadMatchedOriginMain": true,
+        "workingTreeClean": true
+      },
+      "currentProductionState": {
+        "status": "binding_verified_live_unused",
+        "canonicalSessionKeyspaceRecordCount": 0,
+        "dashboardTriggerActivated": false,
+        "intelligenceLearningActivated": false,
+        "historicalReplayOrBackfillPerformed": false
+      },
+      "verificationEvidence": {
+        "infrastructureTask": "Deploy Route IQ Field Session Store Binding and Verify Production v1",
+        "overwatchTask": "Independent Production Verification of Route IQ Field Session Store Binding v1",
+        "infrastructureDocumentation": "docs/route-iq-field-session-store-binding-v1.md"
+      }
+    },
     "bindingProvisioningOwner": "Prometheus Infrastructure",
     "missingBindingFailsClosedBeforeWrite": true,
     "unknownWorkspaceFailsClosedBeforeWrite": true,
