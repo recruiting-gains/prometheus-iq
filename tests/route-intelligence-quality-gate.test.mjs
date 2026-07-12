@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { spawnSync } from "node:child_process";
 import {
   buildCurrentGoldenBaseline,
   defaultPaths,
@@ -56,6 +57,9 @@ test("quality gate passes for the reviewed golden Active Pool baseline", () => {
 
   assert.equal(result.passed, true, result.report.failureReasons.join("; "));
   assert.equal(result.report.routeStability.status, "passed");
+  assert.equal(result.report.artifactGovernance.owningSubsystem, "Prometheus Data");
+  assert.equal(result.report.artifactGovernance.verificationWritesCanonicalArtifacts, false);
+  assert.equal(result.report.artifactGovernance.canonicalWritesRequireExplicitGeneration, true);
   assert.equal(result.report.candidateValidation.status, "passed");
   assert.equal(result.report.orderingConsistency.status, "passed");
   assert.equal(result.report.dashboardCompatibility.status, "passed");
@@ -78,6 +82,42 @@ test("quality gate passes for the reviewed golden Active Pool baseline", () => {
   assert.equal(result.report.businessHoursEligibility.queueValidation.routeScoresUnchanged, true);
   assert.equal(result.report.businessHoursEligibility.explainability.status, "passed");
   assert.equal(result.report.runtimeSurface.status, "skipped");
+});
+
+test("command-line verification is read-only and observes the current runtime surface", () => {
+  const reportPath = resolve(root, defaultPaths.qualityReport);
+  const before = readFileSync(reportPath, "utf8");
+  const result = spawnSync(process.execPath, ["scripts/verify-route-intelligence-quality-gate.mjs"], {
+    cwd: root,
+    encoding: "utf8",
+    env: { ...process.env, NO_COLOR: "1" }
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.mode, "read_only_verification");
+  assert.equal(output.canonicalReportWritten, false);
+  assert.equal(output.checkedRuntimeFiles, 32);
+  assert.equal(output.dashboardFetches, 7);
+  assert.equal(readFileSync(reportPath, "utf8"), before);
+});
+
+test("canonical quality evidence matches the governed runtime surface", () => {
+  const report = readJson(defaultPaths.qualityReport);
+
+  assert.equal(report.status, "passed");
+  assert.equal(report.artifactGovernance.owningSubsystem, "Prometheus Data");
+  assert.equal(report.artifactGovernance.verificationWritesCanonicalArtifacts, false);
+  assert.equal(report.runtimeSurface.status, "passed");
+  assert.equal(report.runtimeSurface.checkedRuntimeFiles, 32);
+  assert.equal(report.runtimeSurface.expectedRuntimeFiles, 32);
+  assert.equal(report.runtimeSurface.dashboardFetches, 7);
+  assert.equal(report.runtimeSurface.deployDashboardFetches, 7);
+  assert.equal(report.runtimeSurface.expectedDashboardFetches, 7);
+  assert.equal(report.runtimeSurface.sourceDeployFetchParity, true);
+  assert.equal(report.runtimeSurface.liveGoogleApiCalls, 0);
+  assert.equal(report.governanceReuse.runtimeBehaviorChanged, false);
+  assert.equal(report.governanceReuse.scoringChanged, false);
 });
 
 test("quality gate fails when a quarantined business appears in Active recommendations", () => {

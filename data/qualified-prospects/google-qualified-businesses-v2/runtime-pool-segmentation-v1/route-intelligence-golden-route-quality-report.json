@@ -1,7 +1,14 @@
 {
-  "generatedAt": "2026-07-11T23:28:37.166Z",
+  "generatedAt": "2026-07-12T04:32:56.579Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
+  "artifactGovernance": {
+    "owningSubsystem": "Prometheus Data",
+    "canonicalGenerationCommand": "npm run data:route-quality:generate",
+    "readOnlyVerificationCommand": "npm run intelligence:route-quality:check",
+    "verificationWritesCanonicalArtifacts": false,
+    "canonicalWritesRequireExplicitGeneration": true
+  },
   "dataset": {
     "sourceDatasetVersion": "google-qualified-businesses-v2",
     "segmentationVersion": "runtime-pool-segmentation-v1",
@@ -803,7 +810,7 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 6\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 6\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 7\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 7\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": "",
     "evidence": {
       "status": "passed",
@@ -814,12 +821,12 @@
         {
           "file": "index.html",
           "pattern": "Client fetch",
-          "count": 6
+          "count": 7
         },
         {
           "file": "deploy/cloudflare-pages/index.html",
           "pattern": "Client fetch",
-          "count": 6
+          "count": 7
         },
         {
           "file": "deploy/cloudflare-pages/sw.js",
@@ -844,24 +851,22 @@
     "status": "passed",
     "checkedRuntimeFiles": 32,
     "expectedRuntimeFiles": 32,
-    "dashboardFetches": 6,
-    "deployDashboardFetches": 6,
-    "expectedDashboardFetches": 6,
+    "dashboardFetches": 7,
+    "deployDashboardFetches": 7,
+    "expectedDashboardFetches": 7,
     "sourceDeployFetchParity": true,
     "liveGoogleApiCalls": 0
   },
   "repositoryState": {
-    "status": "passed",
+    "status": "observed",
     "branch": "main",
     "baseRef": "origin/main",
-    "baseCommit": "bb7255498e04cafbe02173b254bec5d39cf14fde",
-    "ahead": 3,
+    "baseCommit": "660904c2dd3dc5ee6e6c2547d6a69393f74a34d3",
+    "ahead": 1,
     "behind": 0,
-    "expectedLocalCommitCount": 3,
+    "expectedLocalCommitCount": null,
     "localCommitSubjects": [
-      "Implement Route IQ closed-now eligibility",
-      "Authorize Intelligence business hours consumption",
-      "Remediate business hours canonical route evidence"
+      "Activate read-only field session learning"
     ]
   },
   "dashboardCompatibility": {

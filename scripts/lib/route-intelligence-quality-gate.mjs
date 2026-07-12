@@ -38,7 +38,7 @@ export const defaultPaths = {
 };
 
 const expectedRuntimeFileCount = 32;
-const expectedDashboardFetchCount = 6;
+const expectedDashboardFetchCount = 7;
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 const dashboardCategories = new Set([
@@ -864,6 +864,13 @@ export function runRouteIntelligenceQualityGate(options = {}) {
     generatedAt: new Date().toISOString(),
     gateVersion,
     status: failures.length ? "failed" : "passed",
+    artifactGovernance: {
+      owningSubsystem: "Prometheus Data",
+      canonicalGenerationCommand: "npm run data:route-quality:generate",
+      readOnlyVerificationCommand: "npm run intelligence:route-quality:check",
+      verificationWritesCanonicalArtifacts: false,
+      canonicalWritesRequireExplicitGeneration: true
+    },
     dataset: {
       sourceDatasetVersion: activePool.sourceDatasetVersion,
       segmentationVersion: activePool.segmentationVersion,

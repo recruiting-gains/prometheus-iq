@@ -62,6 +62,7 @@
     "data:business-hours:dry-run": "node scripts/refresh-google-business-hours.mjs --dry-run",
     "data:business-hours:evaluate": "node scripts/refresh-google-business-hours.mjs --evaluate-only",
     "data:field-session:ingest": "node scripts/ingest-route-iq-field-session.mjs",
+    "data:route-quality:generate": "node scripts/verify-route-intelligence-quality-gate.mjs --write-report",
     "verify:zero-google-api": "node scripts/verify-zero-live-google-api-calls.mjs",
     "verify:production-release": "node scripts/verify-production-release.mjs",
     "verify:authenticated-production": "node scripts/verify-authenticated-production-access.mjs",
