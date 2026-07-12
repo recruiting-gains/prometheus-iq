@@ -13,11 +13,19 @@
     "fieldLearningLoopContracts": "intelligence/contracts/field-learning-loop-contracts.json",
     "recommendationExplainabilityContracts": "intelligence/contracts/recommendation-explainability-contracts.json",
     "customerIntelligenceGraphContracts": "intelligence/contracts/customer-intelligence-graph-contracts.json",
-    "routeBusinessHoursEligibilityContracts": "intelligence/contracts/route-business-hours-eligibility-contracts.json"
+    "routeBusinessHoursEligibilityContracts": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "readOnlyFieldSessionLearningContracts": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "readOnlyFieldSessionLearningPolicy": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "readOnlyFieldSessionLearningSnapshot": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json"
   },
   "authorizedDataReadPaths": {
     "businessHoursDataContract": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
-    "businessHoursDataset": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+    "businessHoursDataset": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "fieldSessionDataContract": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+    "fieldSessionManifest": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
+    "fieldSessionVerifiedRecord": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+    "fieldSessionCalculatedMetrics": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+    "fieldSessionHistoryUpdates": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json"
   },
   "businessHoursAccessRules": {
     "canonicalConsumerIdentifier": "route-iq-closed-now-eligibility-contracts-v1",
@@ -32,6 +40,38 @@
     "unknownConsumerFailsClosed": true,
     "consumerContractMismatchFailsClosed": true
   },
+  "fieldSessionLearningAccessRules": {
+    "canonicalConsumerIdentifier": "read-only-field-session-learning-contracts-v1",
+    "canonicalConsumerContractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "canonicalPolicyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "canonicalSnapshotPath": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "independentAuthorizationId": "fitness-connection-read-only-field-session-learning-authorization-v1",
+    "independentAuthorizationStatus": "AUTHORIZED_ACTIVE",
+    "authorizedDataContractId": "fitness-connection-runtime-artifact-contract-v1",
+    "authorizedDataContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+    "authorizedSessionIds": [
+      "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+    ],
+    "approvedRecordKinds": [
+      "verified_field_session",
+      "calculated_field_session_metrics",
+      "field_session_history_updates"
+    ],
+    "authorizedConsumerSubsystem": "Prometheus Intelligence Engine",
+    "accessMode": "read_only",
+    "rawEvidenceConsumptionAllowed": false,
+    "stressTestObservationConsumptionAllowed": false,
+    "archiveMutationAllowed": false,
+    "archiveDeletionAllowed": false,
+    "historicalReplayAllowed": false,
+    "historicalEvidenceCreationAllowed": false,
+    "recommendationInfluenceActive": false,
+    "routeScoringWeightMutationAllowed": false,
+    "unknownWorkspaceFailsClosed": true,
+    "unknownConsumerFailsClosed": true,
+    "consumerContractMismatchFailsClosed": true,
+    "smoothieDepotConsumptionAllowed": false
+  },
   "interpretationRules": {
     "canReadResearch": false,
     "canReadCrm": true,
@@ -41,6 +81,8 @@
     "canMutateCrm": false,
     "canMutateData": false,
     "productionLearningActive": false,
+    "readOnlyArchivedSessionLearningActive": true,
+    "productionRecommendationLearningInfluenceActive": false,
     "productionScoringChangeRequiresExplicitFutureHandoff": true
   },
   "workspaceIsolationRules": {
@@ -48,6 +90,8 @@
     "smoothieDepotFranchiseLearningInfluenceAllowed": false,
     "fitnessFieldLearningInfluenceOnSmoothieDepotAllowed": false,
     "globalCustomerStateAllowed": false,
+    "smoothieDepotFieldSessionConsumptionAllowed": false,
+    "crossWorkspaceFieldSessionLearningAllowed": false,
     "missingArtifactFailsClosed": true
   },
   "productionRules": {

@@ -5,6 +5,7 @@ import test from "node:test";
 
 import {
   validateFitnessBusinessHoursConsumerLinkage,
+  validateFitnessFieldSessionLearningLinkage,
   verifyCrossSubsystemArtifactContracts
 } from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
 
@@ -139,6 +140,9 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_data_runtime_artifact_contract",
     "fitness_connection_business_hours_data_contract",
     "fitness_connection_route_business_hours_intelligence_consumer_contract",
+    "fitness_connection_read_only_field_session_learning_consumer_contract",
+    "fitness_connection_read_only_field_session_learning_policy",
+    "fitness_connection_read_only_field_session_learning_snapshot",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
@@ -321,6 +325,86 @@ test("Fitness business-hours canonical linkage fails closed for every unauthoriz
     const input = fixture();
     scenario.mutate(input);
     const failures = validateFitnessBusinessHoursConsumerLinkage(input);
+    assert.ok(failures.some(failure => scenario.expected.test(failure)), `${scenario.label}: ${failures.join(" | ")}`);
+  }
+});
+
+test("Fitness read-only field-session learning linkage enforces independent authorization and immutable Data access", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const workspace = result.registry.workspaces.find(candidate => candidate.workspaceId === "fitness_connection");
+  const registrations = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
+  const intelligenceContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_intelligence_consumer_contract.path, "utf8"));
+  const dataContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_data_runtime_artifact_contract.path, "utf8"));
+  const consumerContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_read_only_field_session_learning_consumer_contract.path, "utf8"));
+  const policy = JSON.parse(fs.readFileSync(registrations.fitness_connection_read_only_field_session_learning_policy.path, "utf8"));
+  const snapshot = JSON.parse(fs.readFileSync(registrations.fitness_connection_read_only_field_session_learning_snapshot.path, "utf8"));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const fixture = () => ({
+    workspace: clone(workspace),
+    intelligenceContract: clone(intelligenceContract),
+    dataContract: clone(dataContract),
+    consumerContract: clone(consumerContract),
+    policy: clone(policy),
+    snapshot: clone(snapshot),
+    consumerRegistration: clone(registrations.fitness_connection_read_only_field_session_learning_consumer_contract),
+    policyRegistration: clone(registrations.fitness_connection_read_only_field_session_learning_policy),
+    snapshotRegistration: clone(registrations.fitness_connection_read_only_field_session_learning_snapshot)
+  });
+
+  assert.deepEqual(validateFitnessFieldSessionLearningLinkage(fixture()), []);
+
+  const cases = [
+    {
+      label: "unregistered consumer",
+      mutate: input => { input.consumerRegistration = null; },
+      expected: /must be registered canonically/
+    },
+    {
+      label: "unresolved identifier",
+      mutate: input => { input.consumerRegistration.canonicalIdentifier = "unknown-field-session-consumer"; },
+      expected: /consumer identifier mismatch/
+    },
+    {
+      label: "missing approved read path",
+      mutate: input => {
+        input.workspace.consumerContracts.intelligence.allowedReadPaths = input.workspace.consumerContracts.intelligence.allowedReadPaths
+          .filter(path => !path.endsWith("normalized/history-updates.json"));
+      },
+      expected: /read path missing/
+    },
+    {
+      label: "raw archive access",
+      mutate: input => {
+        input.workspace.consumerContracts.intelligence.allowedReadPaths.push(input.consumerContract.prohibitedSourceArtifacts.rawFieldSession);
+      },
+      expected: /must not receive raw field-session read access/
+    },
+    {
+      label: "archive mutation",
+      mutate: input => { input.intelligenceContract.fieldSessionLearningAccessRules.archiveMutationAllowed = true; },
+      expected: /must remain false: archiveMutationAllowed/
+    },
+    {
+      label: "historical replay",
+      mutate: input => { input.intelligenceContract.fieldSessionLearningAccessRules.historicalReplayAllowed = true; },
+      expected: /must remain false: historicalReplayAllowed/
+    },
+    {
+      label: "protected workspace",
+      mutate: input => { input.consumerContract.workspaceId = "smoothie_depot"; },
+      expected: /workspace is unauthorized/
+    },
+    {
+      label: "recommendation influence",
+      mutate: input => { input.snapshot.recommendationSafety.recommendationBehaviorChanged = true; },
+      expected: /must not change recommendation behavior/
+    }
+  ];
+
+  for (const scenario of cases) {
+    const input = fixture();
+    scenario.mutate(input);
+    const failures = validateFitnessFieldSessionLearningLinkage(input);
     assert.ok(failures.some(failure => scenario.expected.test(failure)), `${scenario.label}: ${failures.join(" | ")}`);
   }
 });

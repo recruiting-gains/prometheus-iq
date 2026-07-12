@@ -124,3 +124,23 @@ test("field learning loop prepares required subsystem contracts without consumpt
 
   assert.ok(handoffs.includes("It does not authorize production integration."));
 });
+
+test("read-only archived-session learning is independently authorized without recommendation activation", () => {
+  const contract = readJson("intelligence/contracts/read-only-field-session-learning-contracts.json");
+  const policy = readJson("intelligence/config/read-only-field-session-learning-policy-v1.json");
+  const snapshot = readJson("intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json");
+
+  assert.equal(contract.status, "active_read_only");
+  assert.equal(contract.independentAuthorization.status, "AUTHORIZED_ACTIVE");
+  assert.equal(contract.independentAuthorization.accessMode, "read_only");
+  assert.equal(contract.allowedOperations.modifyData, false);
+  assert.equal(contract.allowedOperations.replaySessions, false);
+  assert.equal(contract.productionSafety.productionRecommendationInfluenceActive, false);
+  assert.equal(contract.productionSafety.routeScoringWeightsChanged, false);
+  assert.equal(policy.recommendationInfluence.singleSessionInfluenceAllowed, false);
+  assert.equal(policy.recommendationInfluence.activationStatus, "disabled_pending_future_handoff");
+  assert.equal(snapshot.sourceEvidence.verifiedSessionCount, 1);
+  assert.equal(snapshot.recommendationSafety.recommendationEligibleConclusionCount, 0);
+  assert.equal(snapshot.archiveSafety.archiveMutationPerformed, false);
+  assert.equal(snapshot.archiveSafety.historicalReplayPerformed, false);
+});

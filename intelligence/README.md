@@ -12,6 +12,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `future-subsystem-handoffs.md`: prepared handoffs for Dashboard, CRM, Research, Companion, Data, Sales, and future enterprise systems.
 - `field-learning-loop-handoffs.md`: future handoff boundaries for Dashboard, CRM, Research, Companion, and Sales field-learning work.
 - `field-learning-offline-evidence-harness.mjs`: offline-only simulated evidence harness for validating evidence ingestion, learning signals, confidence snapshots, explanations, and human overrides.
+- `read-only-field-session-learning.mjs`: independently authorized, read-only projection engine for verified canonical Data field-session records; it produces governed Intelligence artifacts without replaying sessions or influencing recommendations.
+- `read-only-field-session-learning.md`: source admission, threshold, explainability, immutability, and fail-closed architecture for the first archived-session learning layer.
 - `recommendation-explainability-engine.mjs`: explanation-only engine that converts recommendation context into natural-language why, confidence, evidence, change, and next-action answers.
 - `operating-profile-engine.mjs`: configuration-driven profile engine that maps industry-specific field outcomes into normalized evidence without changing production scoring, Dashboard runtime behavior, Mobile beta behavior, CRM runtime behavior, Website behavior, Companion behavior, or Infrastructure.
 - `field-evidence-activation-foundation.md`: architecture-only activation foundation for real field evidence admission, normalized outcomes, safety controls, and profile-agnostic explainability.
@@ -20,6 +22,9 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `continuous-adaptive-route-replenishment.mjs`: production Route IQ queue controller for outcome-driven, representative-scoped, workspace-safe route maintenance.
 - `contracts/adaptive-intelligence-contracts.json`: machine-readable contract registry for validation and future implementation planning.
 - `contracts/field-learning-loop-contracts.json`: machine-readable Field Learning Loop contract registry for completed-visit evidence, normalized signals, confidence, explainability, and human override review.
+- `contracts/read-only-field-session-learning-contracts.json`: active read-only consumer authorization, source ownership boundary, approved Data record kinds, output contracts, and protected behavior baselines.
+- `config/read-only-field-session-learning-policy-v1.json`: governed evidence minima, confidence bands, recency weighting, evidence decay, and recommendation-influence safeguards.
+- `artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json`: deterministic Intelligence-owned projection of the currently authorized canonical archived session.
 - `contracts/recommendation-explainability-contracts.json`: reusable Mobile, Dashboard, and Companion explanation contracts.
 - `contracts/operating-profile-contracts.json`: reusable Dashboard, CRM, Companion, Mobile, Website, Research, Sales, and Social Media profile contracts.
 - `contracts/customer-intelligence-graph-contracts.json`: reusable graph node, relationship, snapshot, read-only query, Dashboard, CRM, Mobile, Website, Companion, Research, and Sales contracts.
@@ -50,7 +55,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - Do not modify Route Intelligence runtime code from this architecture package.
 - Do not modify Data governance from this architecture package.
 - Do not modify Anthony beta behavior from this architecture package.
-- Do not activate production field learning from this architecture package.
+- Read-only archived-session learning is active only through `read-only-field-session-learning-contracts-v1`; production recommendation influence remains inactive.
+- Do not activate recommendation-affecting field learning, historical replay, raw archive consumption, or archive mutation from this architecture package.
 - Do not create a second route engine, second CRM model, second Research structure, second Sales methodology, or duplicate Companion reasoning layer.
 
 ## Duplicate Prevention
@@ -60,6 +66,8 @@ Future Adaptive Outside Sales Intelligence work must start here and extend these
 Future Adaptive Field Learning Loop work must extend `adaptive-field-learning-loop-foundation.md` and `contracts/field-learning-loop-contracts.json`. Do not create a separate visit-learning store, unreviewed learning pipeline, duplicate confidence model, duplicate explanation model, or alternate human-override mechanism.
 
 Future offline learning validation must extend `field-learning-offline-evidence-harness.mjs` and `fixtures/field-visit-evidence-fixtures.json`. Do not create a separate simulated evidence harness, separate confidence regression suite, or alternate explanation validator.
+
+Future canonical archived-session learning must extend `read-only-field-session-learning.mjs`, `read-only-field-session-learning.md`, `contracts/read-only-field-session-learning-contracts.json`, and `config/read-only-field-session-learning-policy-v1.json`. Do not create a second Data archive reader, re-normalize Data records, replay historical sessions, parse raw reports directly, hard-code learning thresholds, or activate recommendation influence through the read-only projection.
 
 Future recommendation explanation work must extend `recommendation-explainability-engine.mjs` and `contracts/recommendation-explainability-contracts.json`. Do not expose scoring formulas, proprietary weights, or create separate Mobile, Dashboard, or Companion explanation contracts.
 

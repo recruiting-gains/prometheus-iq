@@ -1,0 +1,1608 @@
+{
+  "schemaVersion": "prometheus-intelligence-read-only-field-session-learning-snapshot-v1",
+  "artifactKind": "read_only_field_session_learning_snapshot",
+  "artifactId": "field-session-learning-snapshot-0cc965198bffe9c8ccd3",
+  "generatedAt": "2026-07-12T00:36:02.000Z",
+  "status": "observation_only",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "sourceSubsystem": "Prometheus Data",
+  "sourceAccessMode": "read_only",
+  "learningVersion": {
+    "engine": "read-only-field-session-learning-v1",
+    "contract": "read-only-field-session-learning-contracts-v1",
+    "policy": "read-only-field-session-learning-policy-v1",
+    "sourceArchive": "route-iq-field-session-archive-v1"
+  },
+  "sourceEvidence": {
+    "approvedRecordKinds": [
+      "verified_field_session",
+      "calculated_field_session_metrics",
+      "field_session_history_updates"
+    ],
+    "sessionIds": [
+      "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+    ],
+    "verifiedSessionCount": 1,
+    "rawEvidenceConsumed": false,
+    "stressTestObservationsConsumed": false,
+    "failedSubmissionsConsumed": false,
+    "partialSessionsConsumed": false,
+    "unverifiedEvidenceConsumed": false,
+    "syntheticEvidenceConsumed": false,
+    "sourceMutationDetected": false
+  },
+  "representativeIntelligence": [
+    {
+      "intelligenceId": "representative-intelligence-dceb987b352da63dd8ba",
+      "status": "observation_only_insufficient_evidence",
+      "representativeId": "cruz",
+      "operatingProfileId": "fitness",
+      "industryPerformance": {
+        "status": "observation_only",
+        "profileId": "fitness",
+        "verifiedSessions": 1
+      },
+      "categoryPerformance": {
+        "Auto": {
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "units": 0,
+          "laterUnits": 0
+        }
+      },
+      "conversationOutcomes": {
+        "visits": 4,
+        "conversations": 4,
+        "conversationRatePercent": 100,
+        "outcomes": {
+          "Conversation": 2,
+          "Membership": 1,
+          "No contact": 1
+        }
+      },
+      "leadQuality": {
+        "leads": 3,
+        "leadPerVisitRatePercent": 75,
+        "unitPerLeadRatePercent": 0,
+        "status": "insufficient_evidence"
+      },
+      "followUpBehavior": {
+        "status": "unavailable",
+        "reason": "Structured follow-up requirements are unavailable in the canonical session."
+      },
+      "timeOfDayEffectiveness": {
+        "Midday": {
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "units": 0
+        }
+      },
+      "visitFrequency": {
+        "status": "insufficient_evidence",
+        "verifiedSessions": 1
+      },
+      "closeBehavior": {
+        "units": 0,
+        "laterUnits": 0,
+        "memberships": null,
+        "membershipStatus": "unavailable"
+      },
+      "confidence": {
+        "confidenceId": "learning-confidence-d23e2c3d28a378ce5761",
+        "domain": "representative",
+        "targetId": "cruz",
+        "score": 0.55,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.3333,
+          "visits": 0.3333,
+          "conversations": 0.6667,
+          "leads": 1,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 3,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 4,
+            "required": 12,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 4,
+            "required": 6,
+            "met": false
+          },
+          {
+            "metric": "leads",
+            "actual": 3,
+            "required": 3,
+            "met": true
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 1,
+            "met": false
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "conversations_below_threshold",
+          "memberships_below_threshold",
+          "confidence_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "cruz has 4 verified visits, 4 conversations, and 3 leads across 1 archived session(s).",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.55,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    }
+  ],
+  "territoryIntelligence": [
+    {
+      "intelligenceId": "territory-intelligence-084b72b996aa75a984de",
+      "status": "unavailable",
+      "territoryId": null,
+      "geographicPerformance": {
+        "status": "unavailable"
+      },
+      "shoppingCenterPerformance": {
+        "status": "unavailable"
+      },
+      "commercialCorridorPerformance": {
+        "status": "unavailable"
+      },
+      "categoryDensity": {
+        "status": "unavailable"
+      },
+      "conversionDensity": {
+        "status": "unavailable"
+      },
+      "unavailableReason": "The canonical field-session record contains no territory identifier or geographic grouping evidence.",
+      "confidence": {
+        "confidenceId": "learning-confidence-88f3f37515a972f3ba05",
+        "domain": "territory",
+        "targetId": "territory-unavailable",
+        "score": 0.55,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.3333,
+          "visits": 0.3333,
+          "conversations": 0.6667,
+          "leads": 1,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 3,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 4,
+            "required": 12,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 4,
+            "required": 6,
+            "met": false
+          },
+          {
+            "metric": "leads",
+            "actual": 3,
+            "required": 3,
+            "met": true
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 1,
+            "met": false
+          }
+        ],
+        "territoryIdentityRequired": true,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "conversations_below_threshold",
+          "memberships_below_threshold",
+          "territory_identity_unavailable",
+          "confidence_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Territory intelligence is unavailable because canonical field-session evidence does not identify a territory.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.55,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "memberships_below_threshold",
+            "territory_identity_unavailable",
+            "confidence_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    }
+  ],
+  "categoryIntelligence": [
+    {
+      "intelligenceId": "category-intelligence-9c5c545ba72834cd967c",
+      "status": "observation_only_insufficient_evidence",
+      "category": "Auto",
+      "metrics": {
+        "verifiedSessions": 1,
+        "visits": 4,
+        "conversations": 4,
+        "leads": 3,
+        "memberships": null,
+        "units": 0,
+        "laterUnits": 0,
+        "conversationRatePercent": 100,
+        "leadRatePercent": 75,
+        "conversionRatePercent": 0
+      },
+      "bestCategoryDeclared": false,
+      "confidence": {
+        "confidenceId": "learning-confidence-9915703b9de00e1709b1",
+        "domain": "category",
+        "targetId": "Auto",
+        "score": 0.6333,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.3333,
+          "visits": 0.5,
+          "conversations": 1,
+          "leads": 1,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 3,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 4,
+            "required": 8,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 4,
+            "required": 4,
+            "met": true
+          },
+          {
+            "metric": "leads",
+            "actual": 3,
+            "required": 2,
+            "met": true
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 1,
+            "met": false
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "memberships_below_threshold",
+          "confidence_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Auto has 4 verified visits, 4 conversations, 3 leads, and 0 verified units.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 4,
+          "conversations": 4,
+          "leads": 3,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.6333,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "memberships_below_threshold",
+            "confidence_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-12T00:36:02.000Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    }
+  ],
+  "businessIntelligence": [
+    {
+      "intelligenceId": "business-intelligence-c940540bec8e1b27dcfa",
+      "status": "observation_only_insufficient_evidence",
+      "googlePlaceId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+      "businessName": "Galachy Tire Shop",
+      "category": "Auto",
+      "historicalInteractions": [
+        {
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-01-ab32d577b882",
+          "timestamp": "2026-07-11T18:29:37.862Z",
+          "loggedOutcome": "Conversation",
+          "conversations": 3,
+          "leads": 2,
+          "units": 0,
+          "laterUnits": 0
+        }
+      ],
+      "priorOutcomes": [
+        "Conversation"
+      ],
+      "visitSpacing": {
+        "status": "insufficient_evidence",
+        "intervalsDays": []
+      },
+      "leadHistory": {
+        "leads": 2,
+        "verifiedInteractions": 1
+      },
+      "membershipHistory": {
+        "memberships": null,
+        "status": "unavailable"
+      },
+      "confidence": {
+        "confidenceId": "learning-confidence-0ee66c29537e12ee1578",
+        "domain": "business",
+        "targetId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+        "score": 0.675,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.5,
+          "visits": 0.5,
+          "conversations": 1,
+          "leads": 1,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 3,
+            "required": 1,
+            "met": true
+          },
+          {
+            "metric": "leads",
+            "actual": 2,
+            "required": 1,
+            "met": true
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 0,
+            "met": true
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-01-ab32d577b882"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 3,
+          "leads": 2,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-11T18:29:37.862Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Galachy Tire Shop has 1 verified historical interaction(s), 3 conversations, and 2 leads.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-01-ab32d577b882"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 3,
+          "leads": 2,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.675,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-11T18:29:37.862Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    },
+    {
+      "intelligenceId": "business-intelligence-050e69d47e3bda2cbcdb",
+      "status": "observation_only_insufficient_evidence",
+      "googlePlaceId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+      "businessName": "Exxon mechanic shop",
+      "category": "Auto",
+      "historicalInteractions": [
+        {
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-02-c3f943ebaa9c",
+          "timestamp": "2026-07-11T18:41:40.758Z",
+          "loggedOutcome": "No contact",
+          "conversations": 0,
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0
+        }
+      ],
+      "priorOutcomes": [
+        "No contact"
+      ],
+      "visitSpacing": {
+        "status": "insufficient_evidence",
+        "intervalsDays": []
+      },
+      "leadHistory": {
+        "leads": 0,
+        "verifiedInteractions": 1
+      },
+      "membershipHistory": {
+        "memberships": null,
+        "status": "unavailable"
+      },
+      "confidence": {
+        "confidenceId": "learning-confidence-fb5c0fb1aebb08889f01",
+        "domain": "business",
+        "targetId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+        "score": 0.375,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.5,
+          "visits": 0.5,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 0,
+            "required": 1,
+            "met": false
+          },
+          {
+            "metric": "leads",
+            "actual": 0,
+            "required": 1,
+            "met": false
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 0,
+            "met": true
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "conversations_below_threshold",
+          "leads_below_threshold",
+          "confidence_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-11T18:41:40.758Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Exxon mechanic shop has 1 verified historical interaction(s), 0 conversations, and 0 leads.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.375,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "confidence_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-11T18:41:40.758Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    },
+    {
+      "intelligenceId": "business-intelligence-25f0d1dc33f7a7baca87",
+      "status": "observation_only_insufficient_evidence",
+      "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "businessName": "Texans Auto Repair - Blackhawk",
+      "category": "Auto",
+      "historicalInteractions": [
+        {
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-03-5da0d1f6c66b",
+          "timestamp": "2026-07-11T19:15:59.328Z",
+          "loggedOutcome": "Membership",
+          "conversations": 1,
+          "leads": 1,
+          "units": 0,
+          "laterUnits": 0
+        }
+      ],
+      "priorOutcomes": [
+        "Membership"
+      ],
+      "visitSpacing": {
+        "status": "insufficient_evidence",
+        "intervalsDays": []
+      },
+      "leadHistory": {
+        "leads": 1,
+        "verifiedInteractions": 1
+      },
+      "membershipHistory": {
+        "memberships": null,
+        "status": "unavailable"
+      },
+      "confidence": {
+        "confidenceId": "learning-confidence-42f13834b952602cd489",
+        "domain": "business",
+        "targetId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+        "score": 0.675,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.5,
+          "visits": 0.5,
+          "conversations": 1,
+          "leads": 1,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 1,
+            "required": 1,
+            "met": true
+          },
+          {
+            "metric": "leads",
+            "actual": 1,
+            "required": 1,
+            "met": true
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 0,
+            "met": true
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-03-5da0d1f6c66b"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 1,
+          "leads": 1,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-11T19:15:59.328Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Texans Auto Repair - Blackhawk has 1 verified historical interaction(s), 1 conversations, and 1 leads.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-03-5da0d1f6c66b"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 1,
+          "leads": 1,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.675,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-11T19:15:59.328Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    },
+    {
+      "intelligenceId": "business-intelligence-e25d61ff6f6f817d74d9",
+      "status": "observation_only_insufficient_evidence",
+      "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "businessName": "Christian Brothers Automotive Pearland",
+      "category": "Auto",
+      "historicalInteractions": [
+        {
+          "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+          "visitId": "visit-04-32a0b9fb24c2",
+          "timestamp": "2026-07-11T19:31:21.937Z",
+          "loggedOutcome": "Conversation",
+          "conversations": 0,
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0
+        }
+      ],
+      "priorOutcomes": [
+        "Conversation"
+      ],
+      "visitSpacing": {
+        "status": "insufficient_evidence",
+        "intervalsDays": []
+      },
+      "leadHistory": {
+        "leads": 0,
+        "verifiedInteractions": 1
+      },
+      "membershipHistory": {
+        "memberships": null,
+        "status": "unavailable"
+      },
+      "confidence": {
+        "confidenceId": "learning-confidence-01834411d0866632d03f",
+        "domain": "business",
+        "targetId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+        "score": 0.375,
+        "band": "insufficient_evidence",
+        "thresholdQualified": false,
+        "recommendationInfluenceEligible": false,
+        "recencyWeight": 1,
+        "metricProgress": {
+          "verifiedSessions": 0.5,
+          "visits": 0.5,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": 0,
+          "recency": 1
+        },
+        "thresholdChecks": [
+          {
+            "metric": "verifiedSessions",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "visits",
+            "actual": 1,
+            "required": 2,
+            "met": false
+          },
+          {
+            "metric": "conversations",
+            "actual": 0,
+            "required": 1,
+            "met": false
+          },
+          {
+            "metric": "leads",
+            "actual": 0,
+            "required": 1,
+            "met": false
+          },
+          {
+            "metric": "memberships",
+            "actual": null,
+            "required": 0,
+            "met": true
+          }
+        ],
+        "territoryIdentityRequired": false,
+        "territoryIdentityAvailable": false,
+        "limitingFactors": [
+          "verifiedSessions_below_threshold",
+          "visits_below_threshold",
+          "conversations_below_threshold",
+          "leads_below_threshold",
+          "confidence_below_threshold",
+          "recommendation_influence_disabled_pending_future_handoff"
+        ],
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-04-32a0b9fb24c2"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null
+        },
+        "lastUpdated": "2026-07-11T19:31:21.937Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null,
+        "policyVersion": "read-only-field-session-learning-policy-v1"
+      },
+      "explainability": {
+        "conclusion": "Christian Brothers Automotive Pearland has 1 verified historical interaction(s), 0 conversations, and 0 leads.",
+        "evidenceUsed": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-04-32a0b9fb24c2"
+        ],
+        "evidenceCount": {
+          "sessions": 1,
+          "visits": 1,
+          "conversations": 0,
+          "leads": 0,
+          "memberships": null
+        },
+        "confidence": {
+          "score": 0.375,
+          "band": "insufficient_evidence",
+          "thresholdQualified": false,
+          "recommendationInfluenceEligible": false,
+          "limitingFactors": [
+            "verifiedSessions_below_threshold",
+            "visits_below_threshold",
+            "conversations_below_threshold",
+            "leads_below_threshold",
+            "confidence_below_threshold",
+            "recommendation_influence_disabled_pending_future_handoff"
+          ]
+        },
+        "lastUpdated": "2026-07-11T19:31:21.937Z",
+        "applicableWorkspace": "fitness_connection",
+        "applicableRepresentative": "cruz",
+        "applicableTerritory": null
+      }
+    }
+  ],
+  "learningConfidence": [
+    {
+      "confidenceId": "learning-confidence-d23e2c3d28a378ce5761",
+      "domain": "representative",
+      "targetId": "cruz",
+      "score": 0.55,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.3333,
+        "visits": 0.3333,
+        "conversations": 0.6667,
+        "leads": 1,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 3,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 4,
+          "required": 12,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 4,
+          "required": 6,
+          "met": false
+        },
+        {
+          "metric": "leads",
+          "actual": 3,
+          "required": 3,
+          "met": true
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 1,
+          "met": false
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "conversations_below_threshold",
+        "memberships_below_threshold",
+        "confidence_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 4,
+        "conversations": 4,
+        "leads": 3,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-12T00:36:02.000Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-88f3f37515a972f3ba05",
+      "domain": "territory",
+      "targetId": "territory-unavailable",
+      "score": 0.55,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.3333,
+        "visits": 0.3333,
+        "conversations": 0.6667,
+        "leads": 1,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 3,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 4,
+          "required": 12,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 4,
+          "required": 6,
+          "met": false
+        },
+        {
+          "metric": "leads",
+          "actual": 3,
+          "required": 3,
+          "met": true
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 1,
+          "met": false
+        }
+      ],
+      "territoryIdentityRequired": true,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "conversations_below_threshold",
+        "memberships_below_threshold",
+        "territory_identity_unavailable",
+        "confidence_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 4,
+        "conversations": 4,
+        "leads": 3,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-12T00:36:02.000Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-9915703b9de00e1709b1",
+      "domain": "category",
+      "targetId": "Auto",
+      "score": 0.6333,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.3333,
+        "visits": 0.5,
+        "conversations": 1,
+        "leads": 1,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 3,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 4,
+          "required": 8,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 4,
+          "required": 4,
+          "met": true
+        },
+        {
+          "metric": "leads",
+          "actual": 3,
+          "required": 2,
+          "met": true
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 1,
+          "met": false
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "memberships_below_threshold",
+        "confidence_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 4,
+        "conversations": 4,
+        "leads": 3,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-12T00:36:02.000Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-0ee66c29537e12ee1578",
+      "domain": "business",
+      "targetId": "ChIJ5QnzguGXQIYRBj3DRt1qxSU",
+      "score": 0.675,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.5,
+        "visits": 0.5,
+        "conversations": 1,
+        "leads": 1,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 3,
+          "required": 1,
+          "met": true
+        },
+        {
+          "metric": "leads",
+          "actual": 2,
+          "required": 1,
+          "met": true
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 0,
+          "met": true
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-01-ab32d577b882"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 1,
+        "conversations": 3,
+        "leads": 2,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-11T18:29:37.862Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-fb5c0fb1aebb08889f01",
+      "domain": "business",
+      "targetId": "ChIJG2VxAUibQIYR4ayVbntYkiY",
+      "score": 0.375,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.5,
+        "visits": 0.5,
+        "conversations": 0,
+        "leads": 0,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 0,
+          "required": 1,
+          "met": false
+        },
+        {
+          "metric": "leads",
+          "actual": 0,
+          "required": 1,
+          "met": false
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 0,
+          "met": true
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "conversations_below_threshold",
+        "leads_below_threshold",
+        "confidence_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 1,
+        "conversations": 0,
+        "leads": 0,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-11T18:41:40.758Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-42f13834b952602cd489",
+      "domain": "business",
+      "targetId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "score": 0.675,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.5,
+        "visits": 0.5,
+        "conversations": 1,
+        "leads": 1,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 1,
+          "required": 1,
+          "met": true
+        },
+        {
+          "metric": "leads",
+          "actual": 1,
+          "required": 1,
+          "met": true
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 0,
+          "met": true
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-03-5da0d1f6c66b"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 1,
+        "conversations": 1,
+        "leads": 1,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-11T19:15:59.328Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    },
+    {
+      "confidenceId": "learning-confidence-01834411d0866632d03f",
+      "domain": "business",
+      "targetId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "score": 0.375,
+      "band": "insufficient_evidence",
+      "thresholdQualified": false,
+      "recommendationInfluenceEligible": false,
+      "recencyWeight": 1,
+      "metricProgress": {
+        "verifiedSessions": 0.5,
+        "visits": 0.5,
+        "conversations": 0,
+        "leads": 0,
+        "memberships": 0,
+        "recency": 1
+      },
+      "thresholdChecks": [
+        {
+          "metric": "verifiedSessions",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "visits",
+          "actual": 1,
+          "required": 2,
+          "met": false
+        },
+        {
+          "metric": "conversations",
+          "actual": 0,
+          "required": 1,
+          "met": false
+        },
+        {
+          "metric": "leads",
+          "actual": 0,
+          "required": 1,
+          "met": false
+        },
+        {
+          "metric": "memberships",
+          "actual": null,
+          "required": 0,
+          "met": true
+        }
+      ],
+      "territoryIdentityRequired": false,
+      "territoryIdentityAvailable": false,
+      "limitingFactors": [
+        "verifiedSessions_below_threshold",
+        "visits_below_threshold",
+        "conversations_below_threshold",
+        "leads_below_threshold",
+        "confidence_below_threshold",
+        "recommendation_influence_disabled_pending_future_handoff"
+      ],
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-04-32a0b9fb24c2"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 1,
+        "conversations": 0,
+        "leads": 0,
+        "memberships": null
+      },
+      "lastUpdated": "2026-07-11T19:31:21.937Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null,
+      "policyVersion": "read-only-field-session-learning-policy-v1"
+    }
+  ],
+  "evidenceConfidence": [
+    {
+      "evidenceConfidenceId": "evidence-confidence-1ff0a8e48bd4ea7574d0",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "score": 1,
+      "band": "verified",
+      "checks": {
+        "archived": true,
+        "finalExportConfirmed": true,
+        "sourceHashLinked": true,
+        "verifiedRecordKind": true,
+        "calculatedMetricsSeparated": true,
+        "historySeparated": true,
+        "rawEvidenceConsumed": false,
+        "stressTestObservationsConsumed": false
+      },
+      "evidenceUsed": [
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+      ],
+      "evidenceCount": {
+        "sessions": 1,
+        "visits": 4
+      },
+      "confidence": {
+        "sourceFinality": "founder_designated_final",
+        "rawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+        "approvedRecordKinds": [
+          "verified_field_session",
+          "calculated_field_session_metrics",
+          "field_session_history_updates"
+        ]
+      },
+      "lastUpdated": "2026-07-12T00:36:02.000Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null
+    }
+  ],
+  "learningHistory": [
+    {
+      "historyId": "learning-history-391eafe2a3477a875fcc",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "mode": "read_only_snapshot_contribution",
+      "replayed": false,
+      "historicalEvidenceCreated": false,
+      "representativeId": "cruz",
+      "territoryId": null,
+      "fieldSessionDate": "2026-07-11",
+      "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+      "totals": {
+        "totalStops": null,
+        "totalVisits": 4,
+        "totalConversations": 4,
+        "totalLeads": 3,
+        "totalUnits": 0,
+        "totalLaterUnits": 0,
+        "totalMemberships": null
+      },
+      "lastUpdated": "2026-07-12T00:36:02.000Z",
+      "applicableWorkspace": "fitness_connection",
+      "applicableRepresentative": "cruz",
+      "applicableTerritory": null
+    }
+  ],
+  "recommendationSafety": {
+    "recommendationBehaviorChanged": false,
+    "routeScoringWeightsChanged": false,
+    "recommendationInfluenceActive": false,
+    "thresholdQualifiedConclusionCount": 0,
+    "recommendationEligibleConclusionCount": 0,
+    "noRecommendationDriftWithoutEvidence": true
+  },
+  "archiveSafety": {
+    "archiveMutationPerformed": false,
+    "archiveOverwritePerformed": false,
+    "archiveDeletionPerformed": false,
+    "historicalReplayPerformed": false,
+    "historicalEvidenceCreated": false,
+    "normalizationChangesPerformed": false
+  }
+}

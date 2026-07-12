@@ -1,0 +1,141 @@
+{
+  "policyVersion": "read-only-field-session-learning-policy-v1",
+  "status": "active",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "admission": {
+    "authorizedSessionIds": [
+      "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+    ],
+    "requiredManifestStatus": "archived",
+    "requiredSourceFinality": [
+      "founder_designated_final"
+    ],
+    "requiredRecordKinds": [
+      "verified_field_session",
+      "calculated_field_session_metrics",
+      "field_session_history_updates"
+    ],
+    "requiredFinalExportConfirmed": true,
+    "disallowedIdentifierFragments": [
+      "fixture",
+      "synthetic",
+      "test",
+      "demo"
+    ],
+    "failedSubmissionConsumptionAllowed": false,
+    "partialSessionConsumptionAllowed": false,
+    "unverifiedEvidenceConsumptionAllowed": false,
+    "rawEvidenceConsumptionAllowed": false,
+    "stressTestObservationConsumptionAllowed": false
+  },
+  "evidenceThresholds": {
+    "representative": {
+      "minimumVerifiedSessions": 3,
+      "minimumVisits": 12,
+      "minimumConversations": 6,
+      "minimumLeads": 3,
+      "minimumMemberships": 1,
+      "minimumConfidence": 0.72,
+      "requiresTerritoryIdentity": false
+    },
+    "territory": {
+      "minimumVerifiedSessions": 3,
+      "minimumVisits": 12,
+      "minimumConversations": 6,
+      "minimumLeads": 3,
+      "minimumMemberships": 1,
+      "minimumConfidence": 0.75,
+      "requiresTerritoryIdentity": true
+    },
+    "category": {
+      "minimumVerifiedSessions": 3,
+      "minimumVisits": 8,
+      "minimumConversations": 4,
+      "minimumLeads": 2,
+      "minimumMemberships": 1,
+      "minimumConfidence": 0.7,
+      "requiresTerritoryIdentity": false
+    },
+    "business": {
+      "minimumVerifiedSessions": 2,
+      "minimumVisits": 2,
+      "minimumConversations": 1,
+      "minimumLeads": 1,
+      "minimumMemberships": 0,
+      "minimumConfidence": 0.65,
+      "requiresTerritoryIdentity": false
+    }
+  },
+  "confidenceModel": {
+    "modelVersion": "field-session-learning-confidence-v1",
+    "metricWeights": {
+      "verifiedSessions": 0.25,
+      "visits": 0.2,
+      "conversations": 0.15,
+      "leads": 0.15,
+      "memberships": 0.1,
+      "recency": 0.15
+    },
+    "bands": [
+      {
+        "band": "low",
+        "minimum": 0
+      },
+      {
+        "band": "developing",
+        "minimum": 0.35
+      },
+      {
+        "band": "medium",
+        "minimum": 0.6
+      },
+      {
+        "band": "high",
+        "minimum": 0.8
+      }
+    ],
+    "insufficientEvidenceBand": "insufficient_evidence",
+    "unknownMetricProgress": 0
+  },
+  "recencyWeighting": {
+    "strategy": "exponential_half_life",
+    "halfLifeDays": 90,
+    "minimumWeight": 0.2,
+    "staleAfterDays": 180,
+    "expiresAfterDays": 365,
+    "snapshotAsOf": "latest_source_ingested_at"
+  },
+  "evidenceDecay": {
+    "enabled": true,
+    "appliesTo": [
+      "visits",
+      "conversations",
+      "leads",
+      "memberships"
+    ],
+    "neverChangesArchivedEvidence": true,
+    "affectsLearningConfidenceOnly": true
+  },
+  "recommendationInfluence": {
+    "activationStatus": "disabled_pending_future_handoff",
+    "singleSessionInfluenceAllowed": false,
+    "requiresAllConfiguredThresholds": true,
+    "requiresHumanReview": true,
+    "routeScoringWeightMutationAllowed": false,
+    "recommendationMutationAllowed": false
+  },
+  "outputPolicy": {
+    "artifactMode": "deterministic_read_only_projection",
+    "representativeIntelligenceRequired": true,
+    "territoryIntelligenceRequired": true,
+    "categoryIntelligenceRequired": true,
+    "businessIntelligenceRequired": true,
+    "learningConfidenceRequired": true,
+    "evidenceConfidenceRequired": true,
+    "learningHistoryRequired": true,
+    "learningVersionRequired": true,
+    "unavailableEvidenceMustRemainUnavailable": true
+  }
+}

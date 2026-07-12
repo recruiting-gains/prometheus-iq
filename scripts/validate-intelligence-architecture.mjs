@@ -15,6 +15,8 @@ const requiredFiles = [
   "intelligence/adaptive-outside-sales-intelligence-engine.md",
   "intelligence/adaptive-field-learning-loop-foundation.md",
   "intelligence/field-learning-offline-evidence-harness.mjs",
+  "intelligence/read-only-field-session-learning.mjs",
+  "intelligence/read-only-field-session-learning.md",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -27,6 +29,9 @@ const requiredFiles = [
   "intelligence/fixtures/field-visit-evidence-fixtures.json",
   "intelligence/contracts/adaptive-intelligence-contracts.json",
   "intelligence/contracts/field-learning-loop-contracts.json",
+  "intelligence/contracts/read-only-field-session-learning-contracts.json",
+  "intelligence/config/read-only-field-session-learning-policy-v1.json",
+  "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
   "intelligence/contracts/recommendation-explainability-contracts.json",
   "intelligence/contracts/operating-profile-contracts.json",
   "intelligence/contracts/customer-intelligence-graph-contracts.json",
@@ -36,6 +41,7 @@ const requiredFiles = [
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.md",
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
+  "scripts/verify-read-only-field-session-learning.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
   "COMPANY_IDENTITY.md",
   "PRODUCT_VISION.md",
@@ -60,6 +66,8 @@ for (const file of requiredFiles) {
 const architecture = read("intelligence/adaptive-outside-sales-intelligence-engine.md");
 const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation.md");
 const offlineHarness = read("intelligence/field-learning-offline-evidence-harness.mjs");
+const readOnlyFieldSessionLearning = read("intelligence/read-only-field-session-learning.mjs");
+const readOnlyFieldSessionLearningDoc = read("intelligence/read-only-field-session-learning.md");
 const explainabilityEngine = read("intelligence/recommendation-explainability-engine.mjs");
 const operatingProfileEngine = read("intelligence/operating-profile-engine.mjs");
 const fieldEvidenceActivation = read("intelligence/field-evidence-activation-foundation.md");
@@ -72,6 +80,9 @@ const readme = read("intelligence/README.md");
 const systemMap = read("PROMETHEUS_SYSTEM_MAP.md");
 const contracts = readJson("intelligence/contracts/adaptive-intelligence-contracts.json");
 const fieldContracts = readJson("intelligence/contracts/field-learning-loop-contracts.json");
+const readOnlyFieldSessionLearningContracts = readJson("intelligence/contracts/read-only-field-session-learning-contracts.json");
+const readOnlyFieldSessionLearningPolicy = readJson("intelligence/config/read-only-field-session-learning-policy-v1.json");
+const readOnlyFieldSessionLearningSnapshot = readJson("intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -171,6 +182,21 @@ const requiredOfflineHarnessExports = [
 ];
 for (const exportName of requiredOfflineHarnessExports) {
   assert(offlineHarness.includes(`export function ${exportName}`), `Offline evidence harness missing export ${exportName}`);
+}
+
+const requiredReadOnlyFieldSessionLearningExports = [
+  "loadReadOnlyFieldSessionLearningContract",
+  "loadReadOnlyFieldSessionLearningPolicy",
+  "loadReadOnlyFieldSessionDataContract",
+  "loadCanonicalArchivedFieldSessionPackages",
+  "validateReadOnlyFieldSessionLearningPolicy",
+  "validateReadOnlyFieldSessionLearningContract",
+  "validateArchivedFieldSessionPackage",
+  "buildReadOnlyFieldSessionLearningSnapshot",
+  "validateReadOnlyFieldSessionLearningSnapshot"
+];
+for (const exportName of requiredReadOnlyFieldSessionLearningExports) {
+  assert(readOnlyFieldSessionLearning.includes(`export function ${exportName}`), `Read-only field-session learning engine missing export ${exportName}`);
 }
 
 const requiredExplainabilityExports = [
@@ -497,6 +523,37 @@ assert(fieldContracts.anthonyBetaChanged === false, "Field Learning Loop must no
 assert(fieldContracts.productionLearningActive === false, "Field Learning Loop must not activate production learning.");
 assert(fieldContracts.prohibitions.includes("no_production_learning_activation"), "Field Learning Loop registry must prohibit production learning activation.");
 assert(fieldContracts.requiredActivationGates.includes("human_review_state"), "Field Learning Loop registry must require human review state.");
+assert(readOnlyFieldSessionLearningContracts.status === "active_read_only", "Read-only field-session learning contract must be active read-only.");
+assert(readOnlyFieldSessionLearningContracts.independentAuthorization.status === "AUTHORIZED_ACTIVE", "Read-only field-session learning independent authorization must be active.");
+assert(readOnlyFieldSessionLearningContracts.independentAuthorization.accessMode === "read_only", "Read-only field-session learning authorization must remain read-only.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.modifyData === false, "Read-only field-session learning must not modify Data.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.deleteArchives === false, "Read-only field-session learning must not delete archives.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.rewriteSessions === false, "Read-only field-session learning must not rewrite sessions.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.replaySessions === false, "Read-only field-session learning must not replay sessions.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.createHistoricalEvidence === false, "Read-only field-session learning must not create historical evidence.");
+assert(readOnlyFieldSessionLearningContracts.allowedOperations.consumeRawEvidence === false, "Read-only field-session learning must not consume raw evidence.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.readOnlyArchivedSessionLearningActive === true, "Read-only archived-session learning must be active.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.productionRecommendationInfluenceActive === false, "Read-only field-session learning must not influence production recommendations.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.routeScoringWeightsChanged === false, "Read-only field-session learning must not change route scoring weights.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.dashboardRuntimeChanged === false, "Read-only field-session learning must not change Dashboard runtime.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.dataRuntimeChanged === false, "Read-only field-session learning must not change Data runtime.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.crmRuntimeChanged === false, "Read-only field-session learning must not change CRM runtime.");
+assert(readOnlyFieldSessionLearningContracts.productionSafety.companionRuntimeChanged === false, "Read-only field-session learning must not change Companion runtime.");
+assert(readOnlyFieldSessionLearningPolicy.status === "active", "Read-only field-session learning policy must be active.");
+for (const domain of ["representative", "territory", "category", "business"]) {
+  assert(Boolean(readOnlyFieldSessionLearningPolicy.evidenceThresholds[domain]), `Read-only field-session learning policy missing ${domain} thresholds.`);
+}
+assert(readOnlyFieldSessionLearningPolicy.recommendationInfluence.singleSessionInfluenceAllowed === false, "Read-only field-session learning policy must block single-session influence.");
+assert(readOnlyFieldSessionLearningPolicy.recommendationInfluence.activationStatus === "disabled_pending_future_handoff", "Read-only field-session learning recommendation influence must remain disabled.");
+assert(readOnlyFieldSessionLearningSnapshot.ownerSubsystem === "Prometheus Intelligence Engine", "Read-only field-session learning snapshot must be Intelligence-owned.");
+assert(readOnlyFieldSessionLearningSnapshot.sourceSubsystem === "Prometheus Data", "Read-only field-session learning snapshot must identify Data as source owner.");
+assert(readOnlyFieldSessionLearningSnapshot.sourceAccessMode === "read_only", "Read-only field-session learning snapshot must preserve read-only source access.");
+assert(readOnlyFieldSessionLearningSnapshot.sourceEvidence.verifiedSessionCount === 1, "Read-only field-session learning snapshot must consume the one authorized session.");
+assert(readOnlyFieldSessionLearningSnapshot.recommendationSafety.recommendationEligibleConclusionCount === 0, "Read-only field-session learning snapshot must not contain recommendation-eligible conclusions.");
+assert(readOnlyFieldSessionLearningSnapshot.archiveSafety.historicalReplayPerformed === false, "Read-only field-session learning snapshot must not replay history.");
+assert(readOnlyFieldSessionLearningDoc.includes("deterministic read-only snapshot projection"), "Read-only field-session learning doc must describe snapshot projection.");
+assert(readOnlyFieldSessionLearningDoc.includes("No normalization is performed"), "Read-only field-session learning doc must prohibit re-normalization.");
+assert(readOnlyFieldSessionLearningDoc.includes("The first verified session remains observation-only"), "Read-only field-session learning doc must preserve the evidence threshold.");
 assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
 assert(fieldFixtures.productionLearningActive === false, "Field visit fixtures must not activate production learning.");
 assert(explainabilityContracts.status === "explanation_layer_only", "Recommendation Explainability registry must remain explanation_layer_only.");
@@ -580,6 +637,7 @@ assert(adaptiveReplenishmentContracts.candidatePolicy.primaryPool === "active", 
 assert(adaptiveReplenishmentContracts.candidatePolicy.fallbackPool === "full", "Adaptive route replenishment must preserve Full Pool fallback.");
 assert(adaptiveReplenishmentContracts.candidatePolicy.liveGoogleCalls === false, "Adaptive route replenishment must preserve zero live Google calls.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
+assert(readme.includes("Future canonical archived-session learning must extend"), "Intelligence README must preserve archived-session learning duplicate prevention.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");
 assert(systemMap.includes("Field Learning Loop rule"), "System map must include Field Learning Loop duplicate-prevention guidance.");

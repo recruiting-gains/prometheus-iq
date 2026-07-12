@@ -12,6 +12,18 @@ const fitnessBusinessHoursConsumerPath = "intelligence/contracts/route-business-
 const fitnessBusinessHoursDataContractPath = "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json";
 const fitnessBusinessHoursDatasetPath = "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json";
 const fitnessBusinessHoursConsumerId = "route-iq-closed-now-eligibility-contracts-v1";
+const fitnessFieldSessionLearningConsumerPath = "intelligence/contracts/read-only-field-session-learning-contracts.json";
+const fitnessFieldSessionLearningPolicyPath = "intelligence/config/read-only-field-session-learning-policy-v1.json";
+const fitnessFieldSessionLearningSnapshotPath = "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json";
+const fitnessFieldSessionDataContractPath = "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json";
+const fitnessFieldSessionManifestPath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json";
+const fitnessFieldSessionVerifiedPath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json";
+const fitnessFieldSessionMetricsPath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json";
+const fitnessFieldSessionHistoryPath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json";
+const fitnessFieldSessionRawPath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json";
+const fitnessFieldSessionStressEvidencePath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json";
+const fitnessFieldSessionLearningConsumerId = "read-only-field-session-learning-contracts-v1";
+const fitnessFieldSessionLearningAuthorizationId = "fitness-connection-read-only-field-session-learning-authorization-v1";
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -453,6 +465,137 @@ export function validateFitnessBusinessHoursConsumerLinkage({
   assert(intelligenceContract?.workspaceIsolationRules?.smoothieDepotCandidateDataAllowed === false, "Fitness Intelligence business-hours access must not include Smoothie Depot.", failures);
   assert(intelligenceConsumer?.mustNotInfluenceSmoothieDepot === true, "Fitness Intelligence business-hours evidence must not influence Smoothie Depot.", failures);
   assert(intelligenceConsumer?.mustNotMutateDashboardCrmOrData === true, "Fitness Intelligence business-hours access must not authorize Data mutation.", failures);
+
+  return failures;
+}
+
+export function validateFitnessFieldSessionLearningLinkage({
+  workspace,
+  intelligenceContract,
+  dataContract,
+  consumerContract,
+  policy,
+  snapshot,
+  consumerRegistration,
+  policyRegistration,
+  snapshotRegistration
+} = {}) {
+  const failures = [];
+  const intelligenceConsumer = workspace?.consumerContracts?.intelligence;
+  const requiredReadPaths = [
+    fitnessFieldSessionLearningConsumerPath,
+    fitnessFieldSessionLearningPolicyPath,
+    fitnessFieldSessionLearningSnapshotPath,
+    fitnessFieldSessionManifestPath,
+    fitnessFieldSessionVerifiedPath,
+    fitnessFieldSessionMetricsPath,
+    fitnessFieldSessionHistoryPath
+  ];
+  const expectedRecordKinds = ["verified_field_session", "calculated_field_session_metrics", "field_session_history_updates"];
+  const sameMembers = (actual, expected) => JSON.stringify([...(actual || [])].sort()) === JSON.stringify([...expected].sort());
+
+  assert(Boolean(consumerRegistration), "Fitness read-only field-session learning consumer must be registered canonically.", failures);
+  assert(Boolean(policyRegistration), "Fitness read-only field-session learning policy must be registered canonically.", failures);
+  assert(Boolean(snapshotRegistration), "Fitness read-only field-session learning snapshot must be registered canonically.", failures);
+  assert(Boolean(consumerContract), "Fitness read-only field-session learning consumer identifier could not be resolved.", failures);
+  assert(Boolean(policy), "Fitness read-only field-session learning policy could not be resolved.", failures);
+  assert(Boolean(snapshot), "Fitness read-only field-session learning snapshot could not be resolved.", failures);
+
+  for (const path of requiredReadPaths) {
+    assert(intelligenceConsumer?.allowedReadPaths?.includes(path), `Fitness Intelligence field-session read path missing: ${path}`, failures);
+  }
+  assert(!intelligenceConsumer?.allowedReadPaths?.includes(fitnessFieldSessionRawPath), "Fitness Intelligence must not receive raw field-session read access.", failures);
+  assert(!intelligenceConsumer?.allowedReadPaths?.includes(fitnessFieldSessionStressEvidencePath), "Fitness Intelligence must not receive stress-test observation read access.", failures);
+
+  assert(intelligenceContract?.canonicalIntelligencePaths?.readOnlyFieldSessionLearningContracts === fitnessFieldSessionLearningConsumerPath, "Fitness Intelligence declares a non-canonical field-session learning consumer path.", failures);
+  assert(intelligenceContract?.canonicalIntelligencePaths?.readOnlyFieldSessionLearningPolicy === fitnessFieldSessionLearningPolicyPath, "Fitness Intelligence declares a non-canonical field-session learning policy path.", failures);
+  assert(intelligenceContract?.canonicalIntelligencePaths?.readOnlyFieldSessionLearningSnapshot === fitnessFieldSessionLearningSnapshotPath, "Fitness Intelligence declares a non-canonical field-session learning snapshot path.", failures);
+  assert(intelligenceContract?.authorizedDataReadPaths?.fieldSessionDataContract === fitnessFieldSessionDataContractPath, "Fitness Intelligence field-session Data contract path mismatch.", failures);
+  assert(intelligenceContract?.authorizedDataReadPaths?.fieldSessionManifest === fitnessFieldSessionManifestPath, "Fitness Intelligence field-session manifest path mismatch.", failures);
+  assert(intelligenceContract?.authorizedDataReadPaths?.fieldSessionVerifiedRecord === fitnessFieldSessionVerifiedPath, "Fitness Intelligence verified field-session path mismatch.", failures);
+  assert(intelligenceContract?.authorizedDataReadPaths?.fieldSessionCalculatedMetrics === fitnessFieldSessionMetricsPath, "Fitness Intelligence field-session metrics path mismatch.", failures);
+  assert(intelligenceContract?.authorizedDataReadPaths?.fieldSessionHistoryUpdates === fitnessFieldSessionHistoryPath, "Fitness Intelligence field-session history path mismatch.", failures);
+
+  assert(consumerRegistration?.path === fitnessFieldSessionLearningConsumerPath, "Registered field-session learning consumer path mismatch.", failures);
+  assert(consumerRegistration?.canonicalIdentifier === fitnessFieldSessionLearningConsumerId, "Registered field-session learning consumer identifier mismatch.", failures);
+  assert(consumerRegistration?.ownerSubsystem === "Prometheus Intelligence Engine", "Field-session learning consumer must be Intelligence-owned.", failures);
+  assert(sameMembers(consumerRegistration?.writeAllowed, ["Prometheus Intelligence Engine"]), "Only Intelligence may write its field-session learning contract.", failures);
+  assert(sameMembers(consumerRegistration?.readAllowed, ["Prometheus Intelligence Engine", "Prometheus Overwatch"]), "Field-session learning contract authorizes an unknown consumer.", failures);
+  assert(consumerRegistration?.linkedDataContractId === dataContract?.contractId, "Field-session learning consumer is not linked to the Data contract.", failures);
+  assert(consumerRegistration?.linkedDataContractPath === fitnessFieldSessionDataContractPath, "Field-session learning consumer Data contract path mismatch.", failures);
+
+  assert(policyRegistration?.path === fitnessFieldSessionLearningPolicyPath, "Registered field-session learning policy path mismatch.", failures);
+  assert(policyRegistration?.canonicalIdentifier === policy?.policyVersion, "Registered field-session learning policy identifier mismatch.", failures);
+  assert(policyRegistration?.ownerSubsystem === "Prometheus Intelligence Engine", "Field-session learning policy must be Intelligence-owned.", failures);
+  assert(snapshotRegistration?.path === fitnessFieldSessionLearningSnapshotPath, "Registered field-session learning snapshot path mismatch.", failures);
+  assert(snapshotRegistration?.canonicalIdentifier === snapshot?.schemaVersion, "Registered field-session learning snapshot identifier mismatch.", failures);
+  assert(snapshotRegistration?.ownerSubsystem === "Prometheus Intelligence Engine", "Field-session learning snapshot must be Intelligence-owned.", failures);
+
+  assert(consumerContract?.version === fitnessFieldSessionLearningConsumerId, "Field-session learning canonical consumer identifier could not be resolved.", failures);
+  assert(consumerContract?.status === "active_read_only", "Field-session learning consumer must be active read-only.", failures);
+  assert(consumerContract?.workspaceId === "fitness_connection", "Field-session learning consumer workspace is unauthorized.", failures);
+  assert(consumerContract?.operatingProfileId === "fitness", "Field-session learning consumer operating profile is unauthorized.", failures);
+  assert(consumerContract?.independentAuthorization?.authorizationId === fitnessFieldSessionLearningAuthorizationId, "Field-session learning independent authorization id mismatch.", failures);
+  assert(consumerContract?.independentAuthorization?.status === "AUTHORIZED_ACTIVE", "Field-session learning independent authorization must be active.", failures);
+  assert(consumerContract?.independentAuthorization?.sourceDataContractId === dataContract?.contractId, "Field-session learning independent authorization Data contract mismatch.", failures);
+  assert(consumerContract?.independentAuthorization?.sourceContractIndependentAuthorizationRequirementSatisfied === true, "Field-session learning independent authorization requirement is unsatisfied.", failures);
+  assert(consumerContract?.independentAuthorization?.accessMode === "read_only", "Field-session learning independent authorization must be read-only.", failures);
+  assert(sameMembers(consumerContract?.approvedRecordKinds, expectedRecordKinds), "Field-session learning approved record kinds mismatch.", failures);
+  assert(consumerContract?.canonicalSourceArtifacts?.manifest === fitnessFieldSessionManifestPath, "Field-session learning contract manifest path mismatch.", failures);
+  assert(consumerContract?.canonicalSourceArtifacts?.verifiedFieldSession === fitnessFieldSessionVerifiedPath, "Field-session learning contract verified record path mismatch.", failures);
+  assert(consumerContract?.canonicalSourceArtifacts?.calculatedMetrics === fitnessFieldSessionMetricsPath, "Field-session learning contract metrics path mismatch.", failures);
+  assert(consumerContract?.canonicalSourceArtifacts?.historyUpdates === fitnessFieldSessionHistoryPath, "Field-session learning contract history path mismatch.", failures);
+  assert(consumerContract?.prohibitedSourceArtifacts?.rawFieldSession === fitnessFieldSessionRawPath, "Field-session learning raw-source prohibition path mismatch.", failures);
+  assert(consumerContract?.prohibitedSourceArtifacts?.stressTestObservations === fitnessFieldSessionStressEvidencePath, "Field-session learning stress-evidence prohibition path mismatch.", failures);
+
+  assert(dataContract?.intelligenceFieldSessionLearningHandoff?.status === "defined_not_authorized", "Data field-session source contract state must remain unchanged.", failures);
+  assert(dataContract?.intelligenceFieldSessionLearningHandoff?.accessMode === "read_only", "Data field-session handoff must remain read-only.", failures);
+  assert(dataContract?.intelligenceFieldSessionLearningHandoff?.independentAuthorizationRequiredBeforeConsumption === true, "Data field-session handoff must require independent authorization.", failures);
+  assert(sameMembers(dataContract?.intelligenceFieldSessionLearningHandoff?.approvedRecordTypes, expectedRecordKinds), "Data field-session approved record types mismatch.", failures);
+  assert(dataContract?.consumerRules?.intelligence?.fieldSessionLearningConsumptionAuthorized === false, "Data source contract must not be mutated to self-authorize Intelligence.", failures);
+  assert(dataContract?.consumerRules?.intelligence?.fieldSessionHistoryMutationAllowed === false, "Intelligence must not mutate field-session history.", failures);
+
+  const accessRules = intelligenceContract?.fieldSessionLearningAccessRules;
+  assert(accessRules?.canonicalConsumerIdentifier === fitnessFieldSessionLearningConsumerId, "Fitness Intelligence field-session access rules consumer id mismatch.", failures);
+  assert(accessRules?.canonicalConsumerContractPath === fitnessFieldSessionLearningConsumerPath, "Fitness Intelligence field-session access rules consumer path mismatch.", failures);
+  assert(accessRules?.independentAuthorizationId === fitnessFieldSessionLearningAuthorizationId, "Fitness Intelligence field-session access rules authorization id mismatch.", failures);
+  assert(accessRules?.independentAuthorizationStatus === "AUTHORIZED_ACTIVE", "Fitness Intelligence field-session access authorization is inactive.", failures);
+  assert(accessRules?.authorizedDataContractId === dataContract?.contractId, "Fitness Intelligence field-session access rules Data contract mismatch.", failures);
+  assert(accessRules?.accessMode === "read_only", "Fitness Intelligence field-session access must be read-only.", failures);
+  assert(sameMembers(accessRules?.approvedRecordKinds, expectedRecordKinds), "Fitness Intelligence field-session access record kinds mismatch.", failures);
+  for (const rule of ["rawEvidenceConsumptionAllowed", "stressTestObservationConsumptionAllowed", "archiveMutationAllowed", "archiveDeletionAllowed", "historicalReplayAllowed", "historicalEvidenceCreationAllowed", "recommendationInfluenceActive", "routeScoringWeightMutationAllowed", "smoothieDepotConsumptionAllowed"]) {
+    assert(accessRules?.[rule] === false, `Fitness Intelligence field-session rule must remain false: ${rule}`, failures);
+  }
+  assert(accessRules?.unknownWorkspaceFailsClosed === true, "Fitness Intelligence field-session access must fail closed for unknown workspaces.", failures);
+  assert(accessRules?.unknownConsumerFailsClosed === true, "Fitness Intelligence field-session access must fail closed for unknown consumers.", failures);
+  assert(accessRules?.consumerContractMismatchFailsClosed === true, "Fitness Intelligence field-session access must fail closed for contract mismatch.", failures);
+  assert(intelligenceContract?.interpretationRules?.readOnlyArchivedSessionLearningActive === true, "Fitness read-only archived-session learning must be active.", failures);
+  assert(intelligenceContract?.interpretationRules?.productionRecommendationLearningInfluenceActive === false, "Fitness field-session learning must not influence production recommendations.", failures);
+  assert(intelligenceContract?.interpretationRules?.canMutateData === false, "Fitness field-session learning must not mutate Data.", failures);
+  assert(intelligenceContract?.workspaceIsolationRules?.smoothieDepotFieldSessionConsumptionAllowed === false, "Fitness field-session learning must not consume Smoothie Depot sessions.", failures);
+  assert(intelligenceContract?.workspaceIsolationRules?.crossWorkspaceFieldSessionLearningAllowed === false, "Cross-workspace field-session learning must be prohibited.", failures);
+
+  assert(policy?.status === "active", "Field-session learning policy must be active.", failures);
+  assert(policy?.admission?.rawEvidenceConsumptionAllowed === false, "Field-session learning policy must prohibit raw evidence.", failures);
+  assert(policy?.admission?.unverifiedEvidenceConsumptionAllowed === false, "Field-session learning policy must prohibit unverified evidence.", failures);
+  assert(policy?.recommendationInfluence?.singleSessionInfluenceAllowed === false, "Field-session learning policy must prohibit single-session recommendation influence.", failures);
+  assert(policy?.recommendationInfluence?.activationStatus === "disabled_pending_future_handoff", "Field-session learning recommendation influence must remain disabled.", failures);
+  assert(consumerContract?.learningPolicy?.thresholdsConfigurationDriven === true, "Field-session learning thresholds must be configuration-driven.", failures);
+  assert(consumerContract?.learningPolicy?.recencyConfigurationDriven === true, "Field-session learning recency must be configuration-driven.", failures);
+  assert(consumerContract?.learningPolicy?.evidenceDecayConfigurationDriven === true, "Field-session learning decay must be configuration-driven.", failures);
+
+  assert(snapshot?.ownerSubsystem === "Prometheus Intelligence Engine", "Field-session learning snapshot must be Intelligence-owned.", failures);
+  assert(snapshot?.sourceSubsystem === "Prometheus Data", "Field-session learning snapshot source must be Data.", failures);
+  assert(snapshot?.sourceAccessMode === "read_only", "Field-session learning snapshot source access must be read-only.", failures);
+  assert(snapshot?.sourceEvidence?.verifiedSessionCount === 1, "Field-session learning snapshot verified session count mismatch.", failures);
+  assert(snapshot?.sourceEvidence?.rawEvidenceConsumed === false, "Field-session learning snapshot must not consume raw evidence.", failures);
+  assert(snapshot?.sourceEvidence?.syntheticEvidenceConsumed === false, "Field-session learning snapshot must not consume synthetic evidence.", failures);
+  assert(snapshot?.recommendationSafety?.recommendationBehaviorChanged === false, "Field-session learning snapshot must not change recommendation behavior.", failures);
+  assert(snapshot?.recommendationSafety?.routeScoringWeightsChanged === false, "Field-session learning snapshot must not change route scoring weights.", failures);
+  assert(snapshot?.recommendationSafety?.recommendationEligibleConclusionCount === 0, "Field-session learning snapshot must not contain recommendation-eligible conclusions.", failures);
+  assert(snapshot?.archiveSafety?.archiveMutationPerformed === false, "Field-session learning snapshot must not mutate archives.", failures);
+  assert(snapshot?.archiveSafety?.historicalReplayPerformed === false, "Field-session learning snapshot must not replay history.", failures);
+  for (const output of consumerContract?.requiredOutputs || []) assert(snapshot?.[output] !== undefined, `Field-session learning snapshot missing output: ${output}`, failures);
 
   return failures;
 }
@@ -979,6 +1122,18 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
     && exists(businessHoursDataContract.authorizationMetadata.authorizedConsumerContractPath)
     ? readJson(businessHoursDataContract.authorizationMetadata.authorizedConsumerContractPath)
     : null;
+  const fieldSessionLearningConsumerRegistration = artifacts.fitness_connection_read_only_field_session_learning_consumer_contract;
+  const fieldSessionLearningPolicyRegistration = artifacts.fitness_connection_read_only_field_session_learning_policy;
+  const fieldSessionLearningSnapshotRegistration = artifacts.fitness_connection_read_only_field_session_learning_snapshot;
+  const fieldSessionLearningConsumerContract = fieldSessionLearningConsumerRegistration && exists(fieldSessionLearningConsumerRegistration.path)
+    ? readJson(fieldSessionLearningConsumerRegistration.path)
+    : null;
+  const fieldSessionLearningPolicy = fieldSessionLearningPolicyRegistration && exists(fieldSessionLearningPolicyRegistration.path)
+    ? readJson(fieldSessionLearningPolicyRegistration.path)
+    : null;
+  const fieldSessionLearningSnapshot = fieldSessionLearningSnapshotRegistration && exists(fieldSessionLearningSnapshotRegistration.path)
+    ? readJson(fieldSessionLearningSnapshotRegistration.path)
+    : null;
   const crmContract = readJson(artifacts.fitness_connection_crm_consumer_contract.path);
   const intelligenceContract = readJson(artifacts.fitness_connection_intelligence_consumer_contract.path);
   const dashboardSource = read(artifacts.fitness_connection_dashboard_source.path);
@@ -1045,6 +1200,17 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
     consumerContract: businessHoursConsumerContract,
     dataContractRegistration: businessHoursDataRegistration,
     consumerRegistration: businessHoursConsumerRegistration
+  }));
+  failures.push(...validateFitnessFieldSessionLearningLinkage({
+    workspace,
+    intelligenceContract,
+    dataContract: dataRuntimeArtifactContract,
+    consumerContract: fieldSessionLearningConsumerContract,
+    policy: fieldSessionLearningPolicy,
+    snapshot: fieldSessionLearningSnapshot,
+    consumerRegistration: fieldSessionLearningConsumerRegistration,
+    policyRegistration: fieldSessionLearningPolicyRegistration,
+    snapshotRegistration: fieldSessionLearningSnapshotRegistration
   }));
   assert(operatingProfiles.profiles?.some(profile => profile.profileId === "fitness"), "Operating Profile registry must include Fitness.", failures);
   assert(intelligenceContract.interpretationRules.productionLearningActive === false, "Fitness Intelligence contract must keep production learning inactive.", failures);
