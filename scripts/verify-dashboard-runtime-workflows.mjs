@@ -10,6 +10,7 @@ const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
 const chromePath = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
 const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
+const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 
 const results = [];
 const errors = [];
@@ -72,8 +73,10 @@ function localHttpsCertificate() {
   return localCertificate;
 }
 
-function startStaticServer({ missingActive = false } = {}) {
+function startStaticServer({ missingActive = false, fieldSessionResponses = [] } = {}) {
   const requests = [];
+  const fieldSessionRequests = [];
+  let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
@@ -86,6 +89,62 @@ function startStaticServer({ missingActive = false } = {}) {
     );
     const relativePath = pathname.replace(/^\/+/, "");
     requests.push({ path: relativePath, method: request.method });
+
+    if (relativePath === fieldSessionHandoffPath) {
+      const chunks = [];
+      let size = 0;
+      request.on("data", chunk => {
+        size += chunk.length;
+        if (size <= 1024 * 1024) chunks.push(chunk);
+      });
+      request.on("end", () => {
+        if (request.method !== "POST") {
+          response.writeHead(405, { "content-type": "application/json; charset=utf-8", allow: "POST" });
+          response.end(JSON.stringify({ ok: false, acknowledged: false, message: "Method not allowed." }));
+          return;
+        }
+        let payload;
+        try {
+          payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        } catch (error) {
+          response.writeHead(400, { "content-type": "application/json; charset=utf-8" });
+          response.end(JSON.stringify({ ok: false, acknowledged: false, retryable: false, code: "invalid_json" }));
+          return;
+        }
+        const configured = fieldSessionResponses[fieldSessionAttempt] || { status: 201 };
+        fieldSessionAttempt += 1;
+        fieldSessionRequests.push({ payload, configured, attempt: fieldSessionAttempt });
+        if (configured.status >= 400) {
+          response.writeHead(configured.status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+          response.end(JSON.stringify({
+            ok: false,
+            acknowledged: false,
+            code: configured.code || "field_session_store_unavailable",
+            message: configured.message || "Field-session archive is temporarily unavailable.",
+            retryable: configured.retryable !== false
+          }));
+          return;
+        }
+        const report = JSON.parse(payload.rawReportText);
+        const sessionId = `route-iq-field-session-fitness-connection-fitness-${report.rep.id}-${report.date}`;
+        response.writeHead(configured.status, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
+        response.end(JSON.stringify({
+          ok: true,
+          acknowledged: true,
+          acknowledgment: {
+            contractId: "route-iq-end-of-day-data-handoff-v1",
+            status: configured.archiveStatus || "archived",
+            sessionId,
+            workspaceId: payload.workspaceId,
+            rawSha256: "runtime-harness-sha256",
+            duplicate: configured.duplicate === true,
+            persisted: true,
+            sourceFinalizedAt: payload.sourceFinalizedAt
+          }
+        }));
+      });
+      return;
+    }
 
     if (missingActive && relativePath === activePoolPath) {
       response.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" });
@@ -117,6 +176,7 @@ function startStaticServer({ missingActive = false } = {}) {
       resolveServer({
         origin: `https://127.0.0.1:${address.port}`,
         requests,
+        fieldSessionRequests,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
     });
@@ -475,6 +535,12 @@ async function snapshot(cdp) {
         : [],
       routeQueueRevision: Number(state?.repProfiles?.[activeRepId]?.activeRouteQueue?.revision || 0),
       visitCount: Array.isArray(state?.repProfiles?.[activeRepId]?.visits) ? state.repProfiles[activeRepId].visits.length : 0,
+      handoffStatus: text(document.getElementById("handoffStatus")),
+      endRouteDisabled: document.getElementById("endRoute")?.disabled ?? null,
+      endDayDisabled: document.getElementById("endDay")?.disabled ?? null,
+      retryArchiveVisible: visible(document.getElementById("retryFieldSessionArchive")),
+      manualExportVisible: visible(document.getElementById("exportTodayReport")),
+      manualExportDisabled: document.getElementById("exportTodayReport")?.disabled ?? null,
       territoryText: text(document.getElementById("territoryOverview")),
       territoryVisible: visible(document.getElementById("territoryOverview")),
       territoryRingCount: document.querySelectorAll("#territoryRingList .territory-ring").length,
@@ -515,6 +581,7 @@ async function snapshot(cdp) {
         routeWindowFallback: debug.routeWindowFallback || {},
         routeReplenishment: debug.routeReplenishment || {},
         businessHours: debug.businessHours || {},
+        fieldSessionArchive: debug.fieldSessionArchive || {},
         runtimeFallback: debug.runtimeFallback || {},
         operatingProfile: debug.operatingProfile || {},
         workspace: debug.workspace || {}
@@ -1080,6 +1147,140 @@ async function verifyHamzaRepeatRecommendation(cdp) {
   })()`);
 }
 
+async function verifyFieldSessionCompletion(cdp, completionAction) {
+  return cdp.evaluate(`(async () => {
+    const visible = element => {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden" && element.offsetParent !== null;
+    };
+    localStorage.removeItem(fieldSessionArchiveStoreKey);
+    const place = routeVisiblePlaces()[0];
+    if (!place) throw new Error("No route place is available for the field-session producer check.");
+    state.visits = state.visits.filter(visit => visit.date !== todayKey());
+    state.visits.push({
+      id: id(),
+      placeId: place.id,
+      placeName: place.name,
+      workspaceId: "fitness_connection",
+      date: todayKey(),
+      window: "Midday",
+      conversations: 1,
+      leads: 1,
+      units: 0,
+      laterUnits: 0,
+      quality: "Lead",
+      notes: "Dashboard runtime producer validation.",
+      location: null,
+      createdAt: Date.now() - 1000
+    });
+    persistStateWithoutRender();
+    render();
+    window.confirm = () => true;
+    const result = await endFieldSession(${JSON.stringify(completionAction)});
+    const record = currentFinalizedFieldSession();
+    const frozenReport = JSON.parse(record?.rawReportText || "{}");
+    const beforeBlockedVisitCount = state.visits.length;
+    openModal("quick");
+    const blockedModalOpen = document.getElementById("modal")?.classList.contains("active") || false;
+    const blockedSave = await persistCompletedVisitAndRefreshRoute({
+      id: id(),
+      placeId: place.id,
+      placeName: place.name,
+      workspaceId: "fitness_connection",
+      date: todayKey(),
+      window: "Midday",
+      conversations: 0,
+      leads: 0,
+      units: 0,
+      laterUnits: 0,
+      quality: "No contact",
+      notes: "Must not persist after finalization.",
+      location: null,
+      createdAt: Date.now()
+    });
+    const duplicateResult = await endFieldSession(${JSON.stringify(completionAction === "end_route" ? "end_day" : "end_route")});
+    return {
+      resultStatus: result?.status || "",
+      recordStatus: record?.status || "",
+      completionAction: record?.completionAction || "",
+      attempts: Number(record?.attempts || 0),
+      acknowledgment: record?.acknowledgment || null,
+      frozenReportType: frozenReport.reportType || "",
+      frozenReportRep: frozenReport.rep?.id || "",
+      frozenVisitCount: frozenReport.visits?.length || 0,
+      localRawPreserved: Boolean(record?.rawReportText),
+      handoffStatus: document.getElementById("handoffStatus")?.textContent?.trim() || "",
+      endRouteDisabled: document.getElementById("endRoute")?.disabled ?? null,
+      endDayDisabled: document.getElementById("endDay")?.disabled ?? null,
+      retryVisible: visible(document.getElementById("retryFieldSessionArchive")),
+      manualExportVisible: visible(document.getElementById("exportTodayReport")),
+      manualExportDisabled: document.getElementById("exportTodayReport")?.disabled ?? null,
+      blockedModalOpen,
+      blockedSave,
+      beforeBlockedVisitCount,
+      afterBlockedVisitCount: state.visits.length,
+      duplicateReturnedExisting: duplicateResult?.recordKey === record?.recordKey
+    };
+  })()`);
+}
+
+async function verifyFieldSessionRetry(cdp) {
+  return cdp.evaluate(`(async () => {
+    const visible = element => {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden" && element.offsetParent !== null;
+    };
+    localStorage.removeItem(fieldSessionArchiveStoreKey);
+    const place = routeVisiblePlaces()[0];
+    if (!place) throw new Error("No route place is available for the field-session retry check.");
+    state.visits = state.visits.filter(visit => visit.date !== todayKey());
+    state.visits.push({
+      id: id(),
+      placeId: place.id,
+      placeName: place.name,
+      workspaceId: "fitness_connection",
+      date: todayKey(),
+      window: "Evening",
+      conversations: 1,
+      leads: 0,
+      units: 0,
+      laterUnits: 0,
+      quality: "Conversation",
+      notes: "Dashboard runtime retry validation.",
+      location: null,
+      createdAt: Date.now() - 1000
+    });
+    persistStateWithoutRender();
+    render();
+    window.confirm = () => true;
+    await endFieldSession("end_day");
+    const failed = currentFinalizedFieldSession();
+    const failureState = {
+      status: failed?.status || "",
+      attempts: Number(failed?.attempts || 0),
+      retryable: failed?.retryable,
+      rawReportText: failed?.rawReportText || "",
+      handoffStatus: document.getElementById("handoffStatus")?.textContent?.trim() || "",
+      retryVisible: visible(document.getElementById("retryFieldSessionArchive"))
+    };
+    await retryFieldSessionArchive();
+    const archived = currentFinalizedFieldSession();
+    return {
+      failureState,
+      finalStatus: archived?.status || "",
+      attempts: Number(archived?.attempts || 0),
+      rawReportUnchanged: archived?.rawReportText === failureState.rawReportText,
+      acknowledgment: archived?.acknowledgment || null,
+      handoffStatus: document.getElementById("handoffStatus")?.textContent?.trim() || "",
+      retryVisible: visible(document.getElementById("retryFieldSessionArchive")),
+      manualExportVisible: visible(document.getElementById("exportTodayReport")),
+      manualExportDisabled: document.getElementById("exportTodayReport")?.disabled ?? null
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -1174,6 +1375,13 @@ function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
 async function runHarness() {
   const server = await startStaticServer();
   const fallbackServer = await startStaticServer({ missingActive: true });
+  const fieldSessionServer = await startStaticServer();
+  const fieldSessionRetryServer = await startStaticServer({
+    fieldSessionResponses: [
+      { status: 503, code: "field_session_store_unavailable", retryable: true },
+      { status: 201 }
+    ]
+  });
   const chrome = await launchChrome();
 
   try {
@@ -1328,6 +1536,32 @@ async function runHarness() {
     verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
     verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
 
+    const fieldSession = await runPageScenario(chrome, fieldSessionServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-route", "field-session-end-route");
+    const fieldSessionResult = await verifyFieldSessionCompletion(fieldSession.cdp, "end_route");
+    const fieldSessionRequest = fieldSessionServer.fieldSessionRequests[0]?.payload || {};
+    assertWorkflow("End Route field-session producer", fieldSessionResult.recordStatus === "archived" && fieldSessionResult.completionAction === "end_route" && fieldSessionResult.attempts === 1 && fieldSessionResult.acknowledgment?.status === "archived", `${fieldSessionResult.acknowledgment?.sessionId || "missing session"} acknowledged`, JSON.stringify(fieldSessionResult));
+    assertWorkflow("Field-session canonical payload", fieldSessionServer.fieldSessionRequests.length === 1 && fieldSessionRequest.workspaceId === "fitness_connection" && fieldSessionRequest.operatingProfileId === "fitness" && fieldSessionRequest.finalExportConfirmed === true && fieldSessionRequest.completionAction === "end_route" && JSON.parse(fieldSessionRequest.rawReportText).reportType === "beta-daily-rep-report", "final Fitness report submitted once through the approved endpoint", JSON.stringify(fieldSessionServer.fieldSessionRequests));
+    assertWorkflow("Field-session local finalization and duplicate protection", fieldSessionResult.localRawPreserved && fieldSessionResult.endRouteDisabled && fieldSessionResult.endDayDisabled && !fieldSessionResult.retryVisible && fieldSessionResult.duplicateReturnedExisting && fieldSessionServer.fieldSessionRequests.length === 1, "frozen locally; end actions disabled; repeat action did not resubmit", JSON.stringify(fieldSessionResult));
+    assertWorkflow("Field-session finalized evidence guard", !fieldSessionResult.blockedModalOpen && fieldSessionResult.blockedSave === false && fieldSessionResult.afterBlockedVisitCount === fieldSessionResult.beforeBlockedVisitCount, "post-finalization visit mutation blocked", JSON.stringify(fieldSessionResult));
+    assertWorkflow("Manual Export Today's Report preserved", fieldSessionResult.manualExportVisible && fieldSessionResult.manualExportDisabled === false, "manual JSON export remains available after archive", JSON.stringify(fieldSessionResult));
+    verifyNoErrors("End Route field-session producer", fieldSession.eventLog, await snapshot(fieldSession.cdp));
+
+    const fieldSessionRetry = await runPageScenario(chrome, fieldSessionRetryServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-day-retry", "field-session-end-day-retry", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const retryResult = await verifyFieldSessionRetry(fieldSessionRetry.cdp);
+    const retryRequests = fieldSessionRetryServer.fieldSessionRequests;
+    assertWorkflow("End Day failed submission handling", retryResult.failureState.status === "failed" && retryResult.failureState.attempts === 1 && retryResult.failureState.retryable === true && retryResult.failureState.retryVisible && retryResult.failureState.handoffStatus.includes("preserved on this device"), "failed archive retained locally with retry visible", JSON.stringify(retryResult));
+    assertWorkflow("Field-session retry behavior", retryResult.finalStatus === "archived" && retryResult.attempts === 2 && retryResult.rawReportUnchanged && retryResult.acknowledgment?.status === "archived" && retryRequests.length === 2 && retryRequests[0].payload.rawReportText === retryRequests[1].payload.rawReportText, "second attempt acknowledged using identical frozen report bytes", JSON.stringify({ retryResult, retryRequests }));
+    assertWorkflow("Field-session retry completion state", retryResult.handoffStatus === "Session archived successfully." && !retryResult.retryVisible && retryResult.manualExportVisible && retryResult.manualExportDisabled === false, retryResult.handoffStatus, JSON.stringify(retryResult));
+    verifyMobileFit("Field-session mobile End Day controls", await mobileFitSnapshot(fieldSessionRetry.cdp));
+    verifyNoErrors("End Day field-session retry", fieldSessionRetry.eventLog, await snapshot(fieldSessionRetry.cdp), {
+      allow: ["server responded with a status of 503"]
+    });
+    fieldSession.cdp.close();
+    fieldSessionRetry.cdp.close();
+
     const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
@@ -1369,6 +1603,8 @@ async function runHarness() {
     await chrome.close();
     await server.close();
     await fallbackServer.close();
+    await fieldSessionServer.close();
+    await fieldSessionRetryServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

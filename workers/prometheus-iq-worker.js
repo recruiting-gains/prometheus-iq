@@ -25,12 +25,28 @@ import {
 import {
   persistWorkspaceLeadIntakeWithProductionStore
 } from "../crm/workspace-lead-production-runtime.mjs";
+import {
+  FieldSessionArchiveError,
+  consumeRouteIqEndOfDayHandoff,
+  routeIqEndOfDayHandoffContractId,
+  supportedFieldSessionWorkspaces,
+  validateFieldSessionStoreBinding
+} from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 
 const CALLBACK_PATH = "/api/oauth/meta/instagram/callback";
 const FACEBOOK_BUSINESS_CALLBACK_PATH = "/api/oauth/facebook-business/instagram/callback";
 const STATUS_PATH = "/api/oauth/meta/instagram/status";
 const INSTAGRAM_SNAPSHOT_PATH = "/api/social/instagram/snapshot";
 const INSTAGRAM_REPORT_PATH = "/api/social/instagram/report";
+const ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH = "/api/dashboard/route-iq/field-session";
+const ROUTE_IQ_FIELD_SESSION_MAX_BODY_BYTES = 512 * 1024;
+const ROUTE_IQ_FIELD_SESSION_MAX_ASSET_BYTES = 4 * 1024 * 1024;
+const ROUTE_IQ_FIELD_SESSION_ACTIONS = Object.freeze(["end_route", "end_day"]);
+const ROUTE_IQ_FIELD_SESSION_RUNTIME_ASSETS = Object.freeze({
+  runtimePools: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
+  activePool: "/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+  businessHours: "/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+});
 const CALLBACK_PATHS = Object.freeze([
   CALLBACK_PATH,
   FACEBOOK_BUSINESS_CALLBACK_PATH
@@ -115,6 +131,134 @@ function safeError(error, fallbackMessage) {
     retryable: Boolean(error?.retryable),
     details: error?.details || {}
   };
+}
+
+function fieldSessionRequestError(message, code, status = 400, details = {}) {
+  return new FieldSessionArchiveError(message, { code, status, details });
+}
+
+async function readBoundedJsonRequest(request, maxBytes = ROUTE_IQ_FIELD_SESSION_MAX_BODY_BYTES) {
+  const contentType = (request.headers.get("content-type") || "").toLowerCase();
+  if (!contentType.includes("application/json")) {
+    throw fieldSessionRequestError(
+      "Field-session handoff requires application/json.",
+      "field_session_content_type_invalid",
+      415
+    );
+  }
+
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw fieldSessionRequestError(
+      "Field-session handoff exceeds the maximum request size.",
+      "field_session_request_too_large",
+      413,
+      { maxBytes }
+    );
+  }
+  if (!request.body) {
+    throw fieldSessionRequestError("Field-session handoff body is required.", "field_session_request_body_missing");
+  }
+
+  const reader = request.body.getReader();
+  const chunks = [];
+  let byteLength = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      byteLength += value.byteLength;
+      if (byteLength > maxBytes) {
+        await reader.cancel("Field-session handoff request is too large.");
+        throw fieldSessionRequestError(
+          "Field-session handoff exceeds the maximum request size.",
+          "field_session_request_too_large",
+          413,
+          { maxBytes }
+        );
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  let body;
+  try {
+    body = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  } catch {
+    throw fieldSessionRequestError("Field-session handoff body is not valid JSON.", "field_session_request_json_invalid");
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw fieldSessionRequestError("Field-session handoff body must be a JSON object.", "field_session_request_shape_invalid");
+  }
+  return body;
+}
+
+async function readFieldSessionRuntimeAsset(request, env, pathname) {
+  if (typeof env?.ASSETS?.fetch !== "function") {
+    throw fieldSessionRequestError(
+      "Dashboard runtime assets are unavailable.",
+      "field_session_runtime_assets_unavailable",
+      503
+    );
+  }
+  const assetResponse = await env.ASSETS.fetch(new Request(new URL(pathname, request.url), {
+    method: "GET",
+    headers: { Accept: "application/json" }
+  }));
+  if (!assetResponse.ok) {
+    throw fieldSessionRequestError(
+      "A required Dashboard runtime asset is unavailable.",
+      "field_session_runtime_asset_missing",
+      503,
+      { pathname, status: assetResponse.status }
+    );
+  }
+  const declaredLength = Number(assetResponse.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > ROUTE_IQ_FIELD_SESSION_MAX_ASSET_BYTES) {
+    throw fieldSessionRequestError(
+      "A required Dashboard runtime asset exceeds the supported size.",
+      "field_session_runtime_asset_too_large",
+      503,
+      { pathname }
+    );
+  }
+  const text = await assetResponse.text();
+  if (new TextEncoder().encode(text).byteLength > ROUTE_IQ_FIELD_SESSION_MAX_ASSET_BYTES) {
+    throw fieldSessionRequestError(
+      "A required Dashboard runtime asset exceeds the supported size.",
+      "field_session_runtime_asset_too_large",
+      503,
+      { pathname }
+    );
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw fieldSessionRequestError(
+      "A required Dashboard runtime asset is invalid.",
+      "field_session_runtime_asset_invalid",
+      503,
+      { pathname }
+    );
+  }
+}
+
+async function loadFieldSessionRuntimeContext(request, env) {
+  const [runtimePools, activePool, businessHours] = await Promise.all([
+    readFieldSessionRuntimeAsset(request, env, ROUTE_IQ_FIELD_SESSION_RUNTIME_ASSETS.runtimePools),
+    readFieldSessionRuntimeAsset(request, env, ROUTE_IQ_FIELD_SESSION_RUNTIME_ASSETS.activePool),
+    readFieldSessionRuntimeAsset(request, env, ROUTE_IQ_FIELD_SESSION_RUNTIME_ASSETS.businessHours)
+  ]);
+  return { runtimePools, activePool, businessHours };
 }
 
 function publicStorageStatus(env) {
@@ -405,6 +549,98 @@ async function handlePartnerIntakeWithCrm(request, env) {
   }
 }
 
+async function handleRouteIqFieldSessionHandoff(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse({ ok: false, acknowledged: false, message: "Method not allowed." }, 405, { Allow: "POST" });
+  }
+
+  try {
+    const binding = validateFieldSessionStoreBinding(env);
+    if (!binding.ok) {
+      throw fieldSessionRequestError(
+        "Data field-session storage is unavailable.",
+        "field_session_store_binding_missing",
+        503,
+        { bindingName: binding.bindingName, missingMethods: binding.missingMethods }
+      );
+    }
+
+    const body = await readBoundedJsonRequest(request);
+    if (!ROUTE_IQ_FIELD_SESSION_ACTIONS.includes(body.completionAction)) {
+      throw fieldSessionRequestError(
+        "Field-session completion action must be End Route or End Day.",
+        "field_session_completion_action_invalid",
+        400,
+        { completionAction: body.completionAction || null }
+      );
+    }
+    const workspace = supportedFieldSessionWorkspaces[body.workspaceId];
+    if (!workspace) {
+      throw fieldSessionRequestError(
+        `Unknown field-session workspace: ${body.workspaceId || "missing"}.`,
+        "field_session_workspace_unknown",
+        400
+      );
+    }
+    if (body.operatingProfileId !== workspace.operatingProfileId) {
+      throw fieldSessionRequestError(
+        `Operating profile ${body.operatingProfileId || "missing"} is not valid for ${body.workspaceId}.`,
+        "field_session_operating_profile_mismatch",
+        400
+      );
+    }
+    const runtimeContext = await loadFieldSessionRuntimeContext(request, env);
+
+    const result = await consumeRouteIqEndOfDayHandoff({
+      handoffContractId: routeIqEndOfDayHandoffContractId,
+      producerSubsystem: "Prometheus Dashboard",
+      completionAction: body.completionAction,
+      workspaceId: body.workspaceId,
+      operatingProfileId: body.operatingProfileId,
+      finalExportConfirmed: body.finalExportConfirmed,
+      sourceFinalizedAt: body.sourceFinalizedAt,
+      rawReportText: body.rawReportText
+    }, { env, ...runtimeContext });
+
+    const acknowledgment = {
+      contractId: result.handoffContractId,
+      status: result.status,
+      sessionId: result.sessionId,
+      workspaceId: result.workspaceId,
+      rawSha256: result.rawSha256,
+      duplicate: result.duplicate,
+      persisted: result.persisted,
+      sourceFinalizedAt: result.sourceFinalizedAt
+    };
+    console.log(JSON.stringify({
+      message: "Dashboard Route IQ field session acknowledged.",
+      completionAction: body.completionAction,
+      sessionId: acknowledgment.sessionId,
+      workspaceId: acknowledgment.workspaceId,
+      status: acknowledgment.status,
+      duplicate: acknowledgment.duplicate
+    }));
+    return jsonResponse({ ok: true, acknowledged: true, acknowledgment }, result.duplicate ? 200 : 201);
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    const retryable = status === 429 || status >= 500;
+    const code = error?.code || "field_session_archive_failed";
+    console.error(JSON.stringify({
+      message: "Dashboard Route IQ field-session handoff failed.",
+      code,
+      status,
+      retryable
+    }));
+    return jsonResponse({
+      ok: false,
+      acknowledged: false,
+      code,
+      message: status >= 500 ? "Field-session archive is temporarily unavailable." : error.message,
+      retryable
+    }, status);
+  }
+}
+
 async function handleApiRequest(request, env) {
   const url = new URL(request.url);
   if (url.pathname === PARTNER_INTAKE_PATH) {
@@ -415,6 +651,7 @@ async function handleApiRequest(request, env) {
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
   if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);
   if (url.pathname === INSTAGRAM_REPORT_PATH) return handleMetaInstagramReport(request, env);
+  if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) return handleRouteIqFieldSessionHandoff(request, env);
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
@@ -443,9 +680,11 @@ export {
   FACEBOOK_BUSINESS_CALLBACK_PATH,
   INSTAGRAM_REPORT_PATH,
   INSTAGRAM_SNAPSHOT_PATH,
+  ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   handlePartnerIntakeWithCrm,
+  handleRouteIqFieldSessionHandoff,
   persistMetaInstagramTokenPatch,
   validateTokenStorage
 };

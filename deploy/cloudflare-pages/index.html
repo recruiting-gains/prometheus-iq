@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cnXMQP4JtZej3GuGqmXYLVmBF68jaBqmLkIV6K3zVjw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-URD3AZcQ/bYoRNlE7rl87gmPOzAErKN+PMCLBjACXuQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -361,6 +361,8 @@
       color: var(--bad);
       border: 1px solid #e8c5bf;
     }
+
+    .btn[hidden] { display: none; }
 
     .list {
       display: grid;
@@ -1492,12 +1494,17 @@
           <small id="todayVisitCount">0 logged</small>
         </div>
         <div class="panel pad grid" id="repHandoffPanel">
-          <div class="status-line">Beta handoff: copy or export today’s results before ending the day.</div>
+          <div class="status-line">End the route or day only when today’s field session is complete. Prometheus preserves a local copy before archiving.</div>
+          <div class="action-row">
+            <button class="btn" id="endRoute" type="button">End Route</button>
+            <button class="btn" id="endDay" type="button">End Day</button>
+            <button class="btn secondary" id="retryFieldSessionArchive" type="button" hidden>Retry Archive</button>
+          </div>
           <div class="action-row">
             <button class="btn secondary" id="copyTodaySummary" type="button">Copy Today’s Summary</button>
             <button class="btn secondary" id="exportTodayReport" type="button">Export Today’s Report</button>
           </div>
-          <div class="status-line" id="handoffStatus">No visits logged today yet.</div>
+          <div class="status-line" id="handoffStatus" role="status" aria-live="polite">No visits logged today yet.</div>
         </div>
         <div class="list" id="todayVisits"></div>
       </section>
@@ -1704,10 +1711,13 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-11-route-iq-closed-now-eligibility-v1";
+    const appBuildVersion = "2026-07-11-route-iq-field-session-producer-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v39-route-iq-closed-now-eligibility";
+    const serviceWorkerCacheVersion = "prometheus-v40-route-iq-field-session-producer";
     const launchContextStoreKey = "prometheus-launch-context";
+    const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
+    const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
+    const fieldSessionCompletionActions = new Set(["end_route", "end_day"]);
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
     const runtimeDatasetQuarantinePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json";
@@ -1816,6 +1826,7 @@
     const nearbyOpportunityRadiusFeet = 500;
     const betaRouteTargetSize = 15;
     const routeReplenishmentThreshold = 5;
+    let fieldSessionSubmissionPending = false;
     let routeReplenishmentApi = null;
     let routeReplenishmentCoordinator = null;
     let routeBusinessHoursApi = null;
@@ -19819,6 +19830,265 @@
       };
     }
 
+    function fieldSessionScope() {
+      const workspaceId = currentRouteWorkspaceId();
+      return {
+        workspaceId,
+        operatingProfileId: dashboardWorkspaces[workspaceId]?.operatingProfileId || ""
+      };
+    }
+
+    function fieldSessionRecordKey({ workspaceId, operatingProfileId, representativeId, date }) {
+      return [workspaceId, operatingProfileId, representativeId, date].map(value => encodeURIComponent(String(value || ""))).join(":");
+    }
+
+    function loadFieldSessionArchiveStore() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(fieldSessionArchiveStoreKey) || "null");
+        if (parsed?.version === 1 && parsed.records && typeof parsed.records === "object") return parsed;
+      } catch (error) {}
+      return { version: 1, records: {} };
+    }
+
+    function saveFieldSessionArchiveRecord(record) {
+      const archiveStore = loadFieldSessionArchiveStore();
+      archiveStore.records[record.recordKey] = record;
+      localStorage.setItem(fieldSessionArchiveStoreKey, JSON.stringify(archiveStore));
+      return record;
+    }
+
+    function currentFinalizedFieldSession() {
+      const scope = fieldSessionScope();
+      const recordKey = fieldSessionRecordKey({
+        ...scope,
+        representativeId: activeRepId,
+        date: todayKey()
+      });
+      return loadFieldSessionArchiveStore().records[recordKey] || null;
+    }
+
+    function manualTodayReportText() {
+      const finalized = currentFinalizedFieldSession();
+      return finalized?.rawReportText || JSON.stringify(todayReportPayload(), null, 2);
+    }
+
+    function validateFieldSessionPayload(payload) {
+      if (!fieldSessionCompletionActions.has(payload.completionAction)) throw new Error("Choose End Route or End Day.");
+      if (payload.workspaceId !== defaultWorkspaceId || payload.operatingProfileId !== "fitness") {
+        throw new Error("Field-session archive is not available for this workspace.");
+      }
+      if (payload.finalExportConfirmed !== true) throw new Error("The completed field session must be confirmed before archiving.");
+      const finalizedAt = new Date(payload.sourceFinalizedAt);
+      if (Number.isNaN(finalizedAt.getTime())) throw new Error("Field-session finalization time is invalid.");
+      if (typeof payload.rawReportText !== "string" || !payload.rawReportText.trim()) throw new Error("Today’s report is unavailable.");
+
+      let report;
+      try {
+        report = JSON.parse(payload.rawReportText);
+      } catch (error) {
+        throw new Error("Today’s report could not be validated.");
+      }
+      if (report.app !== "Prometheus IQ" || report.reportType !== "beta-daily-rep-report") throw new Error("Today’s report contract is invalid.");
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(report.date || "") || !report.rep?.id || !report.rep?.name) throw new Error("Today’s report identity is incomplete.");
+      if (!Array.isArray(report.visits) || report.visits.length !== report.totals?.visits) throw new Error("Today’s visit total is incomplete.");
+      const metrics = ["conversations", "leads", "units", "laterUnits"];
+      for (const metric of metrics) {
+        const reported = report.totals?.[metric];
+        const calculated = report.visits.reduce((sum, visit) => sum + Number(visit?.[metric] || 0), 0);
+        if (!Number.isInteger(reported) || reported < 0 || calculated !== reported) throw new Error(`Today’s ${metric} total is invalid.`);
+      }
+      if (report.visits.some(visit => !visit?.placeName || !visit?.placeId || Number.isNaN(new Date(visit?.timestamp).getTime()))) {
+        throw new Error("A completed visit is missing required evidence.");
+      }
+      const generatedAt = new Date(report.generatedAt);
+      if (Number.isNaN(generatedAt.getTime()) || finalizedAt.getTime() < generatedAt.getTime()) {
+        throw new Error("Field-session finalization predates today’s report.");
+      }
+      return report;
+    }
+
+    function renderFieldSessionHandoffStatus(visitCount = todayVisits().length) {
+      const record = currentFinalizedFieldSession();
+      const endRoute = document.getElementById("endRoute");
+      const endDay = document.getElementById("endDay");
+      const retry = document.getElementById("retryFieldSessionArchive");
+      const finalized = Boolean(record);
+      if (endRoute) endRoute.disabled = finalized || fieldSessionSubmissionPending;
+      if (endDay) endDay.disabled = finalized || fieldSessionSubmissionPending;
+      if (retry) {
+        const canRetry = Boolean(record)
+          && record.status !== "archived"
+          && record.retryable !== false
+          && !fieldSessionSubmissionPending;
+        retry.hidden = !canRetry;
+        retry.disabled = !canRetry;
+      }
+
+      if (fieldSessionSubmissionPending) {
+        setHandoffStatus("Saving today’s field session...");
+      } else if (record?.status === "archived") {
+        setHandoffStatus("Session archived successfully.");
+      } else if (record?.status === "failed" && record.retryable === false) {
+        setHandoffStatus("Unable to archive. Session is preserved on this device. Export Today’s Report and contact support.");
+      } else if (record?.status === "failed") {
+        setHandoffStatus("Unable to archive. Session is preserved on this device. Retry?");
+      } else if (record) {
+        setHandoffStatus("Archive status is unconfirmed. Session is preserved on this device. Retry?");
+      } else {
+        setHandoffStatus(visitCount ? "Today’s report is ready to copy, export, or archive." : "No visits logged today yet.");
+      }
+      window.prometheusDebugState.fieldSessionArchive = record ? {
+        status: record.status,
+        completionAction: record.completionAction,
+        attempts: record.attempts,
+        retryable: record.retryable,
+        acknowledged: Boolean(record.acknowledgment),
+        workspaceId: record.workspaceId,
+        representativeId: record.representativeId,
+        reportDate: record.reportDate
+      } : { status: "active", attempts: 0, acknowledged: false };
+    }
+
+    async function submitFinalizedFieldSession(record) {
+      if (!record || fieldSessionSubmissionPending) return record || null;
+      const payload = {
+        completionAction: record.completionAction,
+        workspaceId: record.workspaceId,
+        operatingProfileId: record.operatingProfileId,
+        finalExportConfirmed: true,
+        sourceFinalizedAt: record.sourceFinalizedAt,
+        rawReportText: record.rawReportText
+      };
+      try {
+        validateFieldSessionPayload(payload);
+        const submitting = {
+          ...record,
+          status: "submitting",
+          attempts: Number(record.attempts || 0) + 1,
+          retryable: true,
+          updatedAt: new Date().toISOString()
+        };
+        saveFieldSessionArchiveRecord(submitting);
+        fieldSessionSubmissionPending = true;
+        renderFieldSessionHandoffStatus();
+
+        const response = await fetch(fieldSessionHandoffPath, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok || body.ok !== true || body.acknowledged !== true) {
+          const error = new Error(body.message || "Field-session archive is unavailable.");
+          error.code = body.code || `field_session_http_${response.status}`;
+          error.retryable = body.retryable !== false && (response.status === 429 || response.status >= 500);
+          throw error;
+        }
+        const acknowledgment = body.acknowledgment || {};
+        if (!acknowledgment.sessionId
+          || acknowledgment.workspaceId !== record.workspaceId
+          || !["archived", "already_archived"].includes(acknowledgment.status)) {
+          const error = new Error("Data acknowledgment is incomplete.");
+          error.code = "field_session_acknowledgment_invalid";
+          error.retryable = true;
+          throw error;
+        }
+        const archived = {
+          ...submitting,
+          status: "archived",
+          retryable: false,
+          acknowledgment,
+          archivedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastError: null
+        };
+        saveFieldSessionArchiveRecord(archived);
+        return archived;
+      } catch (error) {
+        const latest = currentFinalizedFieldSession() || record;
+        const failed = {
+          ...latest,
+          status: "failed",
+          retryable: error?.retryable !== false,
+          updatedAt: new Date().toISOString(),
+          lastError: {
+            code: error?.code || "field_session_archive_failed",
+            message: error?.message || "Field-session archive failed."
+          }
+        };
+        try {
+          saveFieldSessionArchiveRecord(failed);
+        } catch (storageError) {}
+        return failed;
+      } finally {
+        fieldSessionSubmissionPending = false;
+        renderFieldSessionHandoffStatus();
+      }
+    }
+
+    async function endFieldSession(completionAction) {
+      if (!fieldSessionCompletionActions.has(completionAction)) return null;
+      const existing = currentFinalizedFieldSession();
+      if (existing) {
+        renderFieldSessionHandoffStatus();
+        return existing;
+      }
+      const label = completionAction === "end_route" ? "End Route" : "End Day";
+      if (!confirm(`${label} and archive today’s completed field session? You will not be able to add more results today.`)) return null;
+
+      try {
+        const report = todayReportPayload();
+        const scope = fieldSessionScope();
+        const sourceFinalizedAt = new Date().toISOString();
+        const payload = {
+          completionAction,
+          ...scope,
+          finalExportConfirmed: true,
+          sourceFinalizedAt,
+          rawReportText: JSON.stringify(report, null, 2)
+        };
+        validateFieldSessionPayload(payload);
+        const record = {
+          schemaVersion: "dashboard-route-iq-finalized-session-v1",
+          recordKey: fieldSessionRecordKey({
+            ...scope,
+            representativeId: report.rep.id,
+            date: report.date
+          }),
+          completionAction,
+          ...scope,
+          representativeId: report.rep.id,
+          reportDate: report.date,
+          finalExportConfirmed: true,
+          sourceFinalizedAt,
+          rawReportText: payload.rawReportText,
+          status: "pending",
+          attempts: 0,
+          retryable: true,
+          createdAt: sourceFinalizedAt,
+          updatedAt: sourceFinalizedAt,
+          acknowledgment: null,
+          lastError: null
+        };
+        saveFieldSessionArchiveRecord(record);
+        renderFieldSessionHandoffStatus();
+        return submitFinalizedFieldSession(record);
+      } catch (error) {
+        setHandoffStatus(`Unable to finalize the session locally. ${error?.message || "Use Export Today’s Report."}`);
+        return null;
+      }
+    }
+
+    async function retryFieldSessionArchive() {
+      const record = currentFinalizedFieldSession();
+      if (!record || record.status === "archived" || record.retryable === false) return record;
+      return submitFinalizedFieldSession(record);
+    }
+
     function formatTodaySummary(report) {
       const vocabulary = activeOperatingVocabulary();
       const lines = [
@@ -19865,7 +20135,7 @@
     }
 
     async function copyTodaySummary() {
-      const text = formatTodaySummary(todayReportPayload());
+      const text = formatTodaySummary(JSON.parse(manualTodayReportText()));
       try {
         if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(text);
@@ -19883,8 +20153,9 @@
     }
 
     function exportTodayReport() {
-      const report = todayReportPayload();
-      const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+      const rawReportText = manualTodayReportText();
+      const report = JSON.parse(rawReportText);
+      const blob = new Blob([rawReportText], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -19893,7 +20164,9 @@
       link.click();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 0);
-      setHandoffStatus("Today’s report exported. Send the JSON file to Cruz.");
+      setHandoffStatus(currentFinalizedFieldSession()
+        ? "Finalized report exported as a manual backup."
+        : "Today’s report exported. Send the JSON file to Cruz.");
     }
 
     function exportData() {
@@ -22762,9 +23035,7 @@
         : `${actualPct}% complete`;
       document.getElementById("goalProgress").style.width = `${progressPct}%`;
       document.getElementById("todayVisitCount").textContent = `${visits.length} logged`;
-      setHandoffStatus(visits.length
-        ? "Today’s report is ready to copy or export."
-        : "No visits logged today yet.");
+      renderFieldSessionHandoffStatus(visits.length);
 
       const routeItems = activeRouteItems();
       const pace = dashboardPaceContext(visits, sums, need, routeItems);
@@ -23641,6 +23912,12 @@
     }
 
     async function persistCompletedVisitAndRefreshRoute(visit) {
+      if (currentFinalizedFieldSession()) {
+        closeModal();
+        setRouteLoopStatus("Today’s field session is finalized. Start a new session tomorrow before logging another result.", "error");
+        renderFieldSessionHandoffStatus();
+        return false;
+      }
       let workspaceId;
       let place;
       try {
@@ -23685,6 +23962,10 @@
     }
 
     function openModal(type, preset = {}) {
+      if (["quick", "visit"].includes(type) && currentFinalizedFieldSession()) {
+        setHandoffStatus("Today’s field session is finalized. Export Today’s Report remains available.");
+        return;
+      }
       const vocabulary = activeOperatingVocabulary();
       const modal = document.getElementById("modal");
       const title = document.getElementById("modalTitle");
@@ -24120,6 +24401,9 @@
     document.getElementById("resetData").addEventListener("click", resetData);
     document.getElementById("copyTodaySummary").addEventListener("click", copyTodaySummary);
     document.getElementById("exportTodayReport").addEventListener("click", exportTodayReport);
+    document.getElementById("endRoute").addEventListener("click", () => endFieldSession("end_route"));
+    document.getElementById("endDay").addEventListener("click", () => endFieldSession("end_day"));
+    document.getElementById("retryFieldSessionArchive").addEventListener("click", retryFieldSessionArchive);
 
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("sw.js").then(registration => {

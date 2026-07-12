@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v39-route-iq-closed-now-eligibility";
+const CACHE_NAME = "prometheus-v40-route-iq-field-session-producer";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
