@@ -1,0 +1,94 @@
+{
+  "evidenceVersion": "commercial-center-founder-field-evidence-v1",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "fieldSessionDate": "2026-07-11",
+  "recordedAt": "2026-07-12T06:29:13Z",
+  "source": {
+    "sourceType": "founder_engineering_directive",
+    "reportedBy": "Cruz",
+    "reportedRole": "Founder",
+    "reportedAt": null,
+    "verbatimSourceArtifactAvailable": false,
+    "provenanceNote": "Recorded from the Founder-provided Commercial Center Intelligence Dataset v1 directive and linked to the canonical July 11 stress-test evidence."
+  },
+  "canonicalStressTestEvidence": {
+    "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+    "observationIds": [
+      "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "fitness-2026-07-11-christian-brothers-nearby-context-false-negative"
+    ]
+  },
+  "globalSiteContextFindings": {
+    "multipleStorefrontsObserved": true,
+    "sharedParkingObserved": true,
+    "shoppingCenterContextObserved": true,
+    "walkableBusinessesObserved": true,
+    "siteSpecificParkingAttributionAvailable": false,
+    "siteSpecificShoppingCenterAttributionAvailable": false,
+    "parcelIdentityAvailable": false,
+    "buildingIdentityAvailable": false,
+    "entranceCoordinatesAvailable": false,
+    "measuredWalkingRoutesAvailable": false
+  },
+  "observations": [
+    {
+      "evidenceId": "commercial-center-evidence-texans-blackhawk-2026-07-11",
+      "linkedObservationId": "fitness-2026-07-11-texans-nearby-context-false-negative",
+      "anchorBusinessName": "Texans Auto Repair - Blackhawk",
+      "anchorGooglePlaceIdProvidedByFounder": null,
+      "finding": "Multiple adjacent walk-in businesses were observed, including Elite Dry Cleaners and Blackhawk Dental, while Nearby Context returned no nearby businesses.",
+      "relatedVisitTimestamp": "2026-07-11T19:15:59.328Z",
+      "relatedVisitTimestampIsObservationTimestamp": false,
+      "namedNearbyBusinesses": [
+        {
+          "businessName": "Elite Dry Cleaners",
+          "googlePlaceIdProvidedByFounder": null
+        },
+        {
+          "businessName": "Blackhawk Dental",
+          "googlePlaceIdProvidedByFounder": null
+        }
+      ],
+      "minimumObservedNearbyBusinessCount": 2,
+      "adjacentStorefrontsObserved": true,
+      "walkableBusinessesObserved": true,
+      "officialShoppingCenterNameAvailable": false,
+      "sharedParcelIdentityAvailable": false,
+      "sharedParkingMembershipAvailable": false,
+      "tenantRelationshipAvailable": false,
+      "entranceProximityAvailable": false,
+      "measuredInternalWalkingDistanceAvailable": false
+    },
+    {
+      "evidenceId": "commercial-center-evidence-christian-brothers-2026-07-11",
+      "linkedObservationId": "fitness-2026-07-11-christian-brothers-nearby-context-false-negative",
+      "anchorBusinessName": "Christian Brothers Automotive Pearland",
+      "anchorGooglePlaceIdProvidedByFounder": null,
+      "finding": "More than five businesses were observed within walking distance while Nearby Context returned no nearby businesses.",
+      "relatedVisitTimestamp": "2026-07-11T19:31:21.937Z",
+      "relatedVisitTimestampIsObservationTimestamp": false,
+      "namedNearbyBusinesses": [],
+      "minimumObservedNearbyBusinessCount": 5,
+      "adjacentStorefrontsObserved": null,
+      "walkableBusinessesObserved": true,
+      "officialShoppingCenterNameAvailable": false,
+      "sharedParcelIdentityAvailable": false,
+      "sharedParkingMembershipAvailable": false,
+      "tenantRelationshipAvailable": false,
+      "entranceProximityAvailable": false,
+      "measuredInternalWalkingDistanceAvailable": false
+    }
+  ],
+  "truthPolicy": {
+    "businessIdentityResolutionRequiresUniqueGovernedMatch": true,
+    "missingGooglePlaceIdsRemainNull": true,
+    "distanceAloneMayVerifyWalkability": false,
+    "distanceAloneMayVerifyShoppingCenter": false,
+    "distanceAloneMayVerifyParcel": false,
+    "distanceAloneMayVerifySharedParking": false,
+    "missingRelationshipsRemainUnknown": true,
+    "quarantinedBusinessesRemainNonselectable": true,
+    "runtimeActivationAuthorized": false
+  }
+}

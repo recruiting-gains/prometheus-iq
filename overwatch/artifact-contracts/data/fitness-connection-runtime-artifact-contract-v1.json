@@ -57,6 +57,16 @@
     "businessHoursOfflineRefresh": "scripts/refresh-google-business-hours.mjs",
     "businessHoursFocusedTests": "tests/business-hours-governance.test.mjs"
   },
+  "canonicalCommercialCenterArtifacts": {
+    "commercialCenterDataContract": "overwatch/artifact-contracts/data/fitness-connection-commercial-center-data-contract-v1.json",
+    "commercialCenterDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/commercial-centers.json",
+    "walkabilityDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/walkability-groups.json",
+    "shoppingCenterDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/shopping-centers.json",
+    "relationshipDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/relationships.json",
+    "sourceEvidence": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
+    "offlineGenerator": "scripts/build-commercial-center-intelligence.mjs",
+    "focusedTests": "tests/commercial-center-intelligence-data.test.mjs"
+  },
   "canonicalFieldSessionArtifacts": {
     "archiveRoot": "data/route-iq-field-sessions-v1",
     "archiveDocumentation": "data/route-iq-field-sessions-v1/README.md",
@@ -101,6 +111,15 @@
       "SPECIAL_HOURS_UNVERIFIED"
     ],
     "routeEligibilityActivated": true
+  },
+  "expectedCommercialCenterMetrics": {
+    "artifactVersion": "commercial-center-intelligence-v1",
+    "qualifiedBusinessCoverage": 398,
+    "commercialContextCount": 2,
+    "walkabilityGroupCount": 2,
+    "verifiedShoppingCenterCount": 0,
+    "relationshipCount": 2,
+    "runtimeConsumptionAuthorized": false
   },
   "expectedFieldSessionMetrics": {
     "archiveVersion": "route-iq-field-session-archive-v1",
@@ -344,7 +363,9 @@
       "businessHoursDataMutationAllowed": false,
       "fieldSessionLearningConsumptionAuthorized": false,
       "fieldSessionLearningRequiresIndependentAuthorization": true,
-      "fieldSessionHistoryMutationAllowed": false
+      "fieldSessionHistoryMutationAllowed": false,
+      "commercialCenterConsumptionAuthorized": false,
+      "nearbyContextCommercialDataActivationRequiresIndependentHandoff": true
     },
     "mobile": {
       "consumerSubsystem": "Prometheus Mobile",
@@ -368,6 +389,9 @@
     "smoothieDepotMayConsumeFitnessFieldSessions": false,
     "fitnessFieldSessionsMayContainSmoothieDepotRecords": false,
     "unknownFieldSessionWorkspaceFailsClosed": true,
+    "smoothieDepotMayConsumeFitnessCommercialCenterData": false,
+    "fitnessCommercialCenterDataMayContainSmoothieDepotRecords": false,
+    "unknownCommercialCenterWorkspaceFailsClosed": true,
     "globalCustomerStateAllowed": false,
     "fixtureDataAllowedInProduction": false,
     "demoDataAllowedInProduction": false,
@@ -393,6 +417,10 @@
     "fieldSessionMissingValuesMayBeInferred": false,
     "fieldSessionDuplicateConflictMayOverwriteRawEvidence": false,
     "fieldSessionDashboardTriggerActivated": true,
-    "fieldSessionIntelligenceLearningActivated": false
+    "fieldSessionIntelligenceLearningActivated": false,
+    "commercialCenterUnknownsMustRemainNull": true,
+    "commercialCenterDistanceOnlyMayVerifyTiers1Through4": false,
+    "commercialCenterRuntimeConsumptionActivated": false,
+    "nearbyContextDashboardConsumptionActivated": false
   }
 }

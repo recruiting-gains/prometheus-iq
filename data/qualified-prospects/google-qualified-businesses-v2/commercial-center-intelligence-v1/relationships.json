@@ -1,0 +1,198 @@
+{
+  "artifactVersion": "commercial-center-intelligence-v1",
+  "artifactType": "commercial_relationship_dataset",
+  "generatedAt": "2026-07-12T06:37:25.660Z",
+  "status": "governed_partial_coverage",
+  "owningSubsystem": "Prometheus Data",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "sourceDatasetVersion": "google-qualified-businesses-v2",
+  "dataContractId": "fitness-connection-commercial-center-data-contract-v1",
+  "sourceArtifacts": {
+    "productionDataset": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+      "sha256": "4ab9f5e1c6a2ef2e2f828ad4ac07861c5bde3e9618a08894ff978358bcdf0870"
+    },
+    "activePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+    },
+    "reservePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+    },
+    "quarantinePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+    },
+    "businessHours": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+    },
+    "stressTestEvidence": {
+      "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+      "sha256": "f66db5694698dcc75728a16a506c5bab66aac559b9913d991df6a6ce9cdcd9f9"
+    },
+    "commercialCenterEvidence": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
+      "sha256": "6554f89b963bf05c2b1e8a1b21e43c6de7c55f055f8890eee66bb33129e4df03"
+    },
+    "dataContract": {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-commercial-center-data-contract-v1.json",
+      "sha256": "deeeb0a777bc4d70872ce427b812086d4c26f162dac7b19ede63a53ed0e56785"
+    }
+  },
+  "runtimeActivation": {
+    "dashboardConsumptionAuthorized": false,
+    "intelligenceConsumptionAuthorized": false,
+    "nearbyContextConsumptionAuthorized": false,
+    "routeScoringChanged": false,
+    "runtimePoolChanged": false,
+    "liveGoogleCallsAdded": false
+  },
+  "relationshipCount": 2,
+  "relationshipTiers": [
+    {
+      "tier": 1,
+      "relationshipType": "SAME_STOREFRONT_OR_BUILDING",
+      "minimumEvidence": "verified_matching_building_or_storefront_identifier"
+    },
+    {
+      "tier": 2,
+      "relationshipType": "SAME_SHOPPING_CENTER",
+      "minimumEvidence": "verified_matching_shopping_center_identifier"
+    },
+    {
+      "tier": 3,
+      "relationshipType": "SAME_PARCEL",
+      "minimumEvidence": "verified_matching_commercial_parcel_identifier"
+    },
+    {
+      "tier": 4,
+      "relationshipType": "WALKABLE_NEARBY",
+      "minimumEvidence": "field_observation_or_verified_walking_route"
+    },
+    {
+      "tier": 5,
+      "relationshipType": "NEARBY_BUSINESS",
+      "minimumEvidence": "governed_coordinates_with_disclosed_straight_line_distance"
+    }
+  ],
+  "calculationPolicy": {
+    "scope": "founder_stress_context_diagnostics_only",
+    "nearbyCoordinateMaximumFeet": 1800,
+    "straightLineMethod": "haversine_wgs84",
+    "straightLineDistanceMayVerifyWalkingDistance": false,
+    "straightLineDistanceMayVerifyCenterParcelOrParking": false
+  },
+  "tierCounts": {
+    "1": 0,
+    "2": 0,
+    "3": 0,
+    "4": 1,
+    "5": 1
+  },
+  "records": [
+    {
+      "relationshipId": "relationship-tier4-texans-blackhawk-dental-2026-07-11",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "tier": 4,
+      "relationshipType": "WALKABLE_NEARBY",
+      "directionality": "UNDIRECTED",
+      "leftBusiness": {
+        "googlePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+        "businessName": "Texans Auto Repair - Blackhawk",
+        "sourcePool": "active"
+      },
+      "rightBusiness": {
+        "googlePlaceId": "ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+        "businessName": "Blackhawk Dental",
+        "sourcePool": "quarantine"
+      },
+      "verificationStatus": "FOUNDER_OBSERVED_NAME_MATCH_CORROBORATED",
+      "confidence": "MODERATE",
+      "straightLineDistanceMeters": 34.2,
+      "straightLineDistanceFeet": 112.3,
+      "internalWalkingDistanceEstimateMeters": null,
+      "sameBuildingVerified": null,
+      "sameShoppingCenterVerified": null,
+      "sameParcelVerified": null,
+      "sharedParkingVerified": null,
+      "fieldObservationCorroborated": true,
+      "relationshipMayOverridePoolGovernance": false,
+      "runtimeConsumptionAuthorized": false,
+      "provenance": [
+        {
+          "provenanceId": "commercial-center-evidence-texans-blackhawk-2026-07-11",
+          "linkedObservationId": "fitness-2026-07-11-texans-nearby-context-false-negative",
+          "evidenceType": "FOUNDER_FIELD_OBSERVATION",
+          "sourceArtifactKey": "commercialCenterEvidence"
+        },
+        {
+          "provenanceId": "coordinate-distance:ChIJI13UBweRQIYRmwr6qAnoIz0:ChIJKYD9MUuXQIYRSHkwCeoSN1Q",
+          "evidenceType": "CALCULATED_STRAIGHT_LINE_DISTANCE",
+          "sourceArtifactKey": "productionDataset",
+          "calculation": "haversine_wgs84"
+        }
+      ],
+      "calculatedAt": "2026-07-12T06:37:25.660Z",
+      "lastVerifiedAt": null
+    },
+    {
+      "relationshipId": "relationship-tier5-christian-brothers-first-texas-dental-v1",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "tier": 5,
+      "relationshipType": "NEARBY_BUSINESS",
+      "directionality": "UNDIRECTED",
+      "leftBusiness": {
+        "googlePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+        "businessName": "Christian Brothers Automotive Pearland",
+        "sourcePool": "active"
+      },
+      "rightBusiness": {
+        "googlePlaceId": "ChIJx9GwkjeXQIYRSZUHNH87YV8",
+        "businessName": "First Texas Dental",
+        "sourcePool": "quarantine"
+      },
+      "verificationStatus": "CALCULATED_COORDINATE_PROXIMITY_ONLY",
+      "confidence": "LOW",
+      "straightLineDistanceMeters": 449,
+      "straightLineDistanceFeet": 1473.2,
+      "internalWalkingDistanceEstimateMeters": null,
+      "sameBuildingVerified": null,
+      "sameShoppingCenterVerified": null,
+      "sameParcelVerified": null,
+      "sharedParkingVerified": null,
+      "fieldObservationCorroborated": false,
+      "relationshipMayOverridePoolGovernance": false,
+      "runtimeConsumptionAuthorized": false,
+      "provenance": [
+        {
+          "provenanceId": "coordinate-distance:ChIJiduac7LCQIYR-sGBtIAjKR0:ChIJx9GwkjeXQIYRSZUHNH87YV8",
+          "evidenceType": "CALCULATED_STRAIGHT_LINE_DISTANCE",
+          "sourceArtifactKey": "productionDataset",
+          "calculation": "haversine_wgs84"
+        }
+      ],
+      "calculatedAt": "2026-07-12T06:37:25.660Z",
+      "lastVerifiedAt": null
+    }
+  ],
+  "unresolvedEvidence": [
+    {
+      "anchorGooglePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "unresolvedBusinessName": "Elite Dry Cleaners",
+      "unresolvedGooglePlaceId": null,
+      "reason": "No unique governed business identity exists in the qualified candidate dataset."
+    },
+    {
+      "anchorGooglePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "unresolvedBusinessName": null,
+      "unresolvedGooglePlaceId": null,
+      "minimumUnresolvedBusinessCount": 5,
+      "reason": "Founder observed more than five walkable businesses, but their identities were not archived."
+    }
+  ]
+}

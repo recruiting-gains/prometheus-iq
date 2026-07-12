@@ -1,0 +1,83 @@
+{
+  "artifactVersion": "commercial-center-intelligence-v1",
+  "artifactType": "shopping_center_dataset",
+  "generatedAt": "2026-07-12T06:37:25.660Z",
+  "status": "governed_partial_coverage",
+  "owningSubsystem": "Prometheus Data",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "sourceDatasetVersion": "google-qualified-businesses-v2",
+  "dataContractId": "fitness-connection-commercial-center-data-contract-v1",
+  "sourceArtifacts": {
+    "productionDataset": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+      "sha256": "4ab9f5e1c6a2ef2e2f828ad4ac07861c5bde3e9618a08894ff978358bcdf0870"
+    },
+    "activePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+      "sha256": "ae5612f34965014c7022e6ef44da95ca7a4c0c049001192e525855b27dad1ec1"
+    },
+    "reservePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+      "sha256": "2b4726377af6ff33b31ddeee3196899e32a6d01de7aa9c82a92f028c9daec6c1"
+    },
+    "quarantinePool": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+      "sha256": "13582777692f720f560da65ca6a5b26de44607fdce833a830a80583e5cf2e509"
+    },
+    "businessHours": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
+    },
+    "stressTestEvidence": {
+      "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+      "sha256": "f66db5694698dcc75728a16a506c5bab66aac559b9913d991df6a6ce9cdcd9f9"
+    },
+    "commercialCenterEvidence": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
+      "sha256": "6554f89b963bf05c2b1e8a1b21e43c6de7c55f055f8890eee66bb33129e4df03"
+    },
+    "dataContract": {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-commercial-center-data-contract-v1.json",
+      "sha256": "deeeb0a777bc4d70872ce427b812086d4c26f162dac7b19ede63a53ed0e56785"
+    }
+  },
+  "runtimeActivation": {
+    "dashboardConsumptionAuthorized": false,
+    "intelligenceConsumptionAuthorized": false,
+    "nearbyContextConsumptionAuthorized": false,
+    "routeScoringChanged": false,
+    "runtimePoolChanged": false,
+    "liveGoogleCallsAdded": false
+  },
+  "verifiedShoppingCenterCount": 0,
+  "records": [],
+  "unresolvedContextCount": 2,
+  "unresolvedContexts": [
+    {
+      "commercialCenterId": "commercial-center-context-fitness-texans-blackhawk-2026-07-11",
+      "anchorGooglePlaceId": "ChIJI13UBweRQIYRmwr6qAnoIz0",
+      "shoppingCenterId": null,
+      "shoppingCenterName": null,
+      "officialNameVerificationStatus": "UNKNOWN",
+      "parcelIdentity": null,
+      "sharedParkingGroupId": null,
+      "reason": "Founder observed commercial context, but official center identity and site-specific parking attribution were not archived."
+    },
+    {
+      "commercialCenterId": "commercial-center-context-fitness-christian-brothers-2026-07-11",
+      "anchorGooglePlaceId": "ChIJiduac7LCQIYR-sGBtIAjKR0",
+      "shoppingCenterId": null,
+      "shoppingCenterName": null,
+      "officialNameVerificationStatus": "UNKNOWN",
+      "parcelIdentity": null,
+      "sharedParkingGroupId": null,
+      "reason": "Founder observed nearby walkable businesses, but their identities and official center identity were not archived."
+    }
+  ],
+  "globalFieldEvidence": {
+    "shoppingCenterContextObservedAtOneOrMoreStressSites": true,
+    "sharedParkingObservedAtOneOrMoreStressSites": true,
+    "siteSpecificAttributionAvailable": false
+  }
+}

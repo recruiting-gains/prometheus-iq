@@ -1,0 +1,142 @@
+{
+  "contractId": "fitness-connection-commercial-center-data-contract-v1",
+  "contractVersion": "commercial-center-intelligence-data-contract-v1",
+  "status": "data_foundation_ready_runtime_consumption_not_authorized",
+  "owningSubsystem": "Prometheus Data",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "purpose": "Govern commercial-center, shopping-center, walkability, and business relationship evidence without changing Route IQ recommendations, scoring, or consumers.",
+  "artifactVersion": "commercial-center-intelligence-v1",
+  "canonicalArtifacts": {
+    "commercialCenterDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/commercial-centers.json",
+    "walkabilityDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/walkability-groups.json",
+    "shoppingCenterDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/shopping-centers.json",
+    "relationshipDataset": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/relationships.json",
+    "sourceEvidence": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
+    "offlineGenerator": "scripts/build-commercial-center-intelligence.mjs",
+    "focusedTests": "tests/commercial-center-intelligence-data.test.mjs"
+  },
+  "sourceArtifacts": {
+    "qualifiedBusinessDataset": "data/qualified-prospects/google-qualified-businesses-v2/google-qualified-businesses-v2.json",
+    "activePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json",
+    "reservePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/reserve-pool.json",
+    "quarantinePool": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/quarantine-pool.json",
+    "businessHoursArtifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+    "canonicalStressTestEvidence": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json"
+  },
+  "requiredBusinessFields": [
+    "googlePlaceId",
+    "businessName",
+    "address",
+    "category",
+    "latitude",
+    "longitude",
+    "sourcePool",
+    "commercialCenterId",
+    "shoppingCenterId",
+    "shoppingCenterName",
+    "commercialParcelId",
+    "sharedParkingGroupId",
+    "walkabilityGroupId",
+    "adjacentStorefrontGroupId",
+    "buildingClusterId",
+    "tenantRelationshipIds",
+    "entranceProximityMeters",
+    "internalWalkingDistanceEstimateMeters",
+    "confidence",
+    "provenance",
+    "lastVerifiedAt"
+  ],
+  "relationshipTiers": [
+    {
+      "tier": 1,
+      "relationshipType": "SAME_STOREFRONT_OR_BUILDING",
+      "minimumEvidence": "verified_matching_building_or_storefront_identifier"
+    },
+    {
+      "tier": 2,
+      "relationshipType": "SAME_SHOPPING_CENTER",
+      "minimumEvidence": "verified_matching_shopping_center_identifier"
+    },
+    {
+      "tier": 3,
+      "relationshipType": "SAME_PARCEL",
+      "minimumEvidence": "verified_matching_commercial_parcel_identifier"
+    },
+    {
+      "tier": 4,
+      "relationshipType": "WALKABLE_NEARBY",
+      "minimumEvidence": "field_observation_or_verified_walking_route"
+    },
+    {
+      "tier": 5,
+      "relationshipType": "NEARBY_BUSINESS",
+      "minimumEvidence": "governed_coordinates_with_disclosed_straight_line_distance"
+    }
+  ],
+  "commercialCenterIdentifierPolicy": {
+    "commercialCenterIdNamespace": "prometheus_internal_observed_context",
+    "partialFieldEvidenceContextAllowed": true,
+    "commercialCenterIdMayBeTreatedAsOfficialShoppingCenterId": false,
+    "commercialCenterIdMayBeTreatedAsParcelId": false,
+    "commercialCenterIdMayBeTreatedAsBuildingId": false,
+    "commercialCenterIdMayBeTreatedAsParkingAreaId": false,
+    "officialIdentifiersRequireSeparateVerifiedProvenance": true
+  },
+  "nullAndEvidencePolicy": {
+    "unknownIdentifiersRemainNull": true,
+    "unknownNamesRemainNull": true,
+    "unknownDistancesRemainNull": true,
+    "unknownRelationshipsRemainEmpty": true,
+    "missingValuesMayBecomeBooleanFalse": false,
+    "distanceOnlyMayVerifyTier1": false,
+    "distanceOnlyMayVerifyTier2": false,
+    "distanceOnlyMayVerifyTier3": false,
+    "distanceOnlyMayVerifyTier4": false,
+    "calculatedStraightLineDistanceMustNotBeLabeledWalkingDistance": true,
+    "officialCenterNamesMayBeInferred": false,
+    "parcelIdsMayBeInferred": false,
+    "parkingMembershipMayBeInferred": false,
+    "tenantRelationshipsMayBeInferred": false
+  },
+  "expectedMetrics": {
+    "qualifiedBusinessCoverage": 398,
+    "commercialContextCount": 2,
+    "walkabilityGroupCount": 2,
+    "verifiedShoppingCenterCount": 0,
+    "unresolvedShoppingCenterContextCount": 2,
+    "relationshipCount": 2,
+    "tier1Count": 0,
+    "tier2Count": 0,
+    "tier3Count": 0,
+    "tier4Count": 1,
+    "tier5Count": 1
+  },
+  "consumerAuthorization": {
+    "dashboardReadAuthorized": false,
+    "intelligenceReadAuthorized": false,
+    "nearbyContextRuntimeConsumptionAuthorized": false,
+    "mobileReadAuthorized": false,
+    "crmReadAuthorized": false,
+    "futureConsumptionRequiresIndependentOverwatchVerification": true,
+    "futureConsumptionRequiresExplicitConsumerContractUpdate": true
+  },
+  "workspaceIsolation": {
+    "requiredWorkspaceId": "fitness_connection",
+    "requiredOperatingProfileId": "fitness",
+    "unknownWorkspaceFailsClosed": true,
+    "smoothieDepotFailsClosed": true,
+    "crossWorkspaceRecordsAllowed": false,
+    "globalCommercialCenterStateAllowed": false
+  },
+  "preservationRules": {
+    "businessIdentityMutationAllowed": false,
+    "businessHoursMutationAllowed": false,
+    "runtimePoolMutationAllowed": false,
+    "routeScoringMutationAllowed": false,
+    "dashboardRuntimeMutationAllowed": false,
+    "intelligenceMutationAllowed": false,
+    "liveGoogleRuntimeCallsAllowed": false,
+    "quarantineEligibilityMayBeOverriddenByRelationship": false
+  }
+}
