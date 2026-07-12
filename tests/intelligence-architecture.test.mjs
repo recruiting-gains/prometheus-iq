@@ -184,6 +184,11 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
   assert.equal(contract.eligibilityContract.canonicalImplementation, "intelligence/route-business-hours-eligibility.mjs");
   assert.equal(contract.eligibilityContract.relationshipClassificationOccursAfterEligibility, true);
   assert.equal(contract.eligibilityContract.closedVerifiedEligible, false);
+  assert.equal(contract.identityContract.canonicalFunction, "routeQueueIdentity");
+  assert.equal(contract.identityContract.googlePlaceIdPriority, true);
+  assert.equal(contract.identityContract.duplicateRemovalBeforeRelationshipInference, true);
+  assert.equal(contract.identityContract.duplicateAliasesContributeToInference, false);
+  assert.equal(contract.identityContract.multiTenantDistinction, "distinct_google_place_ids_remain_distinct");
   assert.deepEqual(contract.relationshipContract.priorityOrder, [
     "same_building",
     "same_shopping_center",
@@ -194,6 +199,9 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
   assert.equal(contract.selectionContract.quarantineSelectable, false);
   assert.equal(contract.selectionContract.completedBusinessesSelectable, false);
   assert.equal(contract.selectionContract.recommendationScoresUsedForOrdering, false);
+  assert.equal(config.identityPolicy.deduplicationPhase, "before_relationship_classification");
+  assert.equal(config.identityPolicy.shoppingCenterInferenceInput, "unique_canonical_businesses_only");
+  assert.equal(config.identityPolicy.duplicateAliasContributionAllowed, false);
   assert.equal(config.fieldEvidenceBasis.learningInput, false);
   assert.equal(config.activationSafety.dashboardConsumerActive, false);
   assert.equal(config.activationSafety.routeScoringWeightsChanged, false);
@@ -203,4 +211,8 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
   assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.count, 6);
   assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), true);
   assert.equal(audit.governedCapabilityProbe.nearbyOpportunities.entries.every(entry => entry.recommendationScoreChanged === false), true);
+  assert.equal(audit.identityIntegrationRegression.aliasProbe.preRelationshipDuplicateCount, 1);
+  assert.equal(audit.identityIntegrationRegression.aliasProbe.relationshipInferenceInputCount, 1);
+  assert.equal(audit.identityIntegrationRegression.aliasProbe.shoppingCenterInferenceSatisfied, false);
+  assert.equal(audit.identityIntegrationRegression.multiTenantProbe.resultCount, 2);
 });

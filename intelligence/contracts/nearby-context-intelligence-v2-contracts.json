@@ -88,6 +88,19 @@
     "closedCandidateResurrectionAllowed": false,
     "eligibilityReimplementationAllowed": false
   },
+  "identityContract": {
+    "integrationVersion": "nearby-context-duplicate-identity-integration-repair-v1",
+    "canonicalImplementation": "intelligence/continuous-adaptive-route-replenishment.mjs",
+    "canonicalFunction": "routeQueueIdentity",
+    "googlePlaceIdPriority": true,
+    "fallbackIdentity": "normalized_name_address",
+    "aliasHandling": "one_canonical_business_per_identity",
+    "multiTenantDistinction": "distinct_google_place_ids_remain_distinct",
+    "duplicateRemovalBeforeRelationshipInference": true,
+    "shoppingCenterInferenceInput": "unique_canonical_businesses_only",
+    "duplicateAliasesContributeToInference": false,
+    "secondIdentityEngineAllowed": false
+  },
   "relationshipContract": {
     "priorityOrder": [
       "same_building",
@@ -100,6 +113,7 @@
     "sharedParkingAreasEvaluated": true,
     "verifiedAndInferredRelationshipsDistinguished": true,
     "relationshipProvenanceRequired": true,
+    "shoppingCenterInferenceUniqueBusinessesOnly": true,
     "distanceOnlyMayNotClaimVerifiedCenterOrParcel": true,
     "deterministicOrderingRequired": true
   },
@@ -116,6 +130,7 @@
     "quarantineSelectable": false,
     "completedBusinessesSelectable": false,
     "duplicateBusinessesSelectable": false,
+    "duplicateRemovalPhase": "before_relationship_inference",
     "primaryBusinessSelectableAsNearby": false,
     "recommendationScoresUsedForOrdering": false,
     "inventedCandidatesAllowed": false
@@ -163,6 +178,8 @@
     "no_quarantine_candidate",
     "no_completed_candidate",
     "no_duplicate_candidate",
+    "no_duplicate_alias_relationship_inference",
+    "no_second_identity_engine",
     "no_cross_workspace_candidate",
     "no_live_google_runtime_call",
     "no_stress_observation_learning_promotion",

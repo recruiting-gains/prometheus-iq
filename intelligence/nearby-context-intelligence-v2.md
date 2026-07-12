@@ -27,6 +27,12 @@ Optional commercial relationship identifiers
 Eligibility and workspace boundary
         |
         v
+Canonical Route IQ identity resolution
+        |
+        v
+Duplicate aliases removed
+        |
+        v
 Commercial relationship resolver
         |
         v
@@ -46,12 +52,14 @@ Candidate processing order is:
 
 1. Workspace and operating-profile scope.
 2. Existing pool and route eligibility.
-3. Stable business identity.
-4. Primary, completed-stop, and duplicate exclusion.
-5. Canonical business-hours eligibility.
-6. Coordinate and bounded search validation.
-7. Commercial relationship classification.
-8. Nearby composition.
+3. Primary and completed-stop identity exclusion.
+4. Canonical business-hours eligibility.
+5. Coordinate and bounded search validation.
+6. Canonical business identity resolution through existing `routeQueueIdentity` behavior.
+7. Duplicate alias removal.
+8. Commercial relationship classification over unique canonical businesses only.
+9. Shopping-center inference.
+10. Walkability and nearby composition.
 
 `CLOSED_VERIFIED` candidates are excluded before relationship classification. `HOURS_UNKNOWN`, `HOURS_STALE`, and `SPECIAL_HOURS_UNVERIFIED` remain eligible only through the canonical conservative coverage tier and retain their hours-not-verified explanation.
 
@@ -76,13 +84,15 @@ Structured `buildingId`, `shoppingCenterId`, `commercialParcelId`, and `parkingA
 
 When structured relationships are absent, the engine may make conservative deterministic inferences from normalized street addresses, governed candidate density, street-number span, and straight-line distance. Inference never receives a verified label. Distance alone cannot claim a verified building, shopping center, or parcel.
 
+Governed candidate density is calculated only after canonical identity deduplication. An alias cannot increase shopping-center membership, cluster density, or any other relationship evidence count.
+
 Adjacent buildings and shared parking are preserved as visible evidence signals. All distance thresholds, cluster membership requirements, result limits, and confidence order are governed in `config/nearby-context-intelligence-v2.json`.
 
 ## Selection Strategy
 
 The composer uses governance stage, relationship priority, relationship confidence, distance, existing route order, and stable identity. Existing recommendation scores are retained only as immutable provenance and are not used to order Nearby Opportunities.
 
-The scan is bounded. A business may appear at most once. The primary business, any completed business, any quarantined record, any cross-workspace record, and any verified-closed record are never selectable.
+The scan is bounded. After eligibility, the existing Route IQ identity function prioritizes Google Place ID and retains one deterministic canonical candidate per identity before any relationship function runs. Distinct Google Place IDs remain distinct, preserving legitimate multi-tenant businesses even when they share a street address. The primary business, any completed business, any quarantined record, any cross-workspace record, and any verified-closed record are never selectable.
 
 Active Pool candidates remain authoritative. Governed Full Pool fallback is available through the same production-safe fallback projection used by existing Route IQ quality validation. Quarantine records may be supplied for diagnostic coverage reporting but cannot enter selection.
 
@@ -139,7 +149,7 @@ A future Dashboard task may consume the output contract only after the required 
 
 ## Duplicate Prevention
 
-Future Nearby Context work must extend this module, policy, contract, audit, and regression suite. It must not create a second nearby engine, second business-hours evaluator, parallel identity rule, ungoverned map lookup, direct stress-observation learning path, or fallback that admits closed, quarantined, completed, duplicate, or cross-workspace businesses.
+Future Nearby Context work must extend this module, policy, contract, audit, and regression suite. It must reuse `routeQueueIdentity`, remove aliases before relationship inference, and keep multi-tenant Place IDs distinct. It must not create a second nearby engine, second business-hours evaluator, parallel identity rule, ungoverned map lookup, direct stress-observation learning path, or fallback that admits closed, quarantined, completed, duplicate, or cross-workspace businesses.
 
 ## Invention Documentation
 

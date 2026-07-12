@@ -38,11 +38,32 @@
     "requiresOperationalBusinessStatus": true,
     "completedStopExclusion": "current_route",
     "primaryBusinessExclusion": true,
-    "duplicateBehavior": "retain_best_governance_stage_once",
+    "duplicateBehavior": "retain_best_governance_stage_once_before_relationship_inference",
     "maximumCandidateScan": 5000,
     "maximumResults": 6,
     "liveGoogleCallsAllowed": false,
     "recommendationScoreUsedForOrdering": false
+  },
+  "identityPolicy": {
+    "integrationVersion": "nearby-context-duplicate-identity-integration-repair-v1",
+    "canonicalImplementation": "intelligence/continuous-adaptive-route-replenishment.mjs",
+    "canonicalFunction": "routeQueueIdentity",
+    "googlePlaceIdPriority": true,
+    "fallbackIdentity": "normalized_name_address",
+    "aliasHandling": "one_canonical_business_per_identity",
+    "multiTenantDistinction": "distinct_google_place_ids_remain_distinct",
+    "deduplicationPhase": "before_relationship_classification",
+    "shoppingCenterInferenceInput": "unique_canonical_businesses_only",
+    "duplicateAliasContributionAllowed": false,
+    "executionOrder": [
+      "eligible_candidates",
+      "canonical_business_identity_resolution",
+      "duplicate_removal",
+      "relationship_classification",
+      "shopping_center_inference",
+      "walkability",
+      "nearby_context_generation"
+    ]
   },
   "businessHoursPolicy": {
     "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
@@ -105,6 +126,8 @@
     "canonical_business_hours_eligibility",
     "canonical_business_hours_selection_stage",
     "source_pool_governance",
+    "canonical_business_identity_resolution",
+    "duplicate_removal",
     "relationship_priority",
     "relationship_confidence",
     "distance_feet",

@@ -6,6 +6,7 @@ import {
   buildNearbyContextAdvisory,
   loadNearbyContextConfig,
   loadNearbyContextContract,
+  nearbyContextDuplicateIdentityIntegrationRepairVersion,
   normalizeCommercialAddress,
   validateNearbyContextAdvisory,
   validateNearbyContextConfig,
@@ -176,6 +177,79 @@ test("bounded street clusters are disclosed as inferred shopping-center context"
   assert.equal(result.nearbyOpportunities.entries.every(entry => entry.relationship.evidence.includes("minimum_governed_cluster_members_met")), true);
 });
 
+test("duplicate aliases are removed before shopping-center inference", () => {
+  const latitude = 29.6;
+  const longitude = -95.25;
+  const primary = candidate(openRecords[0], {
+    name: "Primary Business",
+    address: "100 Identity Repair Blvd, Houston, TX",
+    latitude,
+    longitude
+  });
+  const canonicalBusiness = candidate(openRecords[1], {
+    name: "Canonical Storefront",
+    address: "120 Identity Repair Boulevard, Houston, TX",
+    latitude: latitude + 0.0004,
+    longitude
+  });
+  const duplicateAlias = candidate(openRecords[1], {
+    name: "Storefront Alias",
+    address: "140 Identity Repair Blvd, Houston, TX",
+    latitude: latitude + 0.0008,
+    longitude
+  });
+  const result = plan(primary, [canonicalBusiness, duplicateAlias]);
+
+  assert.equal(result.identityIntegrationVersion, nearbyContextDuplicateIdentityIntegrationRepairVersion);
+  assert.equal(result.coverage.eligibleCandidateCountBeforeIdentityResolution, 2);
+  assert.equal(result.coverage.canonicalUniqueBusinessCount, 1);
+  assert.equal(result.coverage.preRelationshipDuplicateCount, 1);
+  assert.equal(result.coverage.relationshipInferenceInputCount, 1);
+  assert.equal(result.coverage.relationshipInferenceUniqueIdentityCount, 1);
+  assert.equal(result.coverage.duplicateAliasesContributedToInference, false);
+  assert.equal(result.nearbyOpportunities.count, 1);
+  assert.equal(result.nearbyOpportunities.entries[0].businessName, "Canonical Storefront");
+  assert.equal(result.nearbyOpportunities.entries[0].relationship.type, "walkable");
+  assert.notEqual(result.nearbyOpportunities.entries[0].relationship.type, "same_shopping_center");
+  assert.equal(result.validation.duplicatesRemovedBeforeRelationshipInference, true);
+  assert.equal(result.validation.relationshipInferenceUniqueBusinessesOnly, true);
+  assert.equal(result.validation.duplicateAliasesContributedToInference, false);
+  assert.deepEqual(validateNearbyContextAdvisory(result, config), []);
+});
+
+test("legitimate multi-tenant businesses remain distinct canonical identities", () => {
+  const latitude = 29.6;
+  const longitude = -95.25;
+  const primary = candidate(openRecords[0], {
+    name: "Building Anchor",
+    address: "200 Multi Tenant Way Suite P, Houston, TX",
+    latitude,
+    longitude
+  });
+  const result = plan(primary, [
+    candidate(openRecords[1], {
+      name: "Tenant One",
+      address: "200 Multi Tenant Way Suite A, Houston, TX",
+      latitude: latitude + 0.0001,
+      longitude
+    }),
+    candidate(openRecords[2], {
+      name: "Tenant Two",
+      address: "200 Multi Tenant Way Suite B, Houston, TX",
+      latitude: latitude + 0.0002,
+      longitude
+    })
+  ]);
+
+  assert.equal(result.coverage.eligibleCandidateCountBeforeIdentityResolution, 2);
+  assert.equal(result.coverage.canonicalUniqueBusinessCount, 2);
+  assert.equal(result.coverage.preRelationshipDuplicateCount, 0);
+  assert.equal(result.coverage.relationshipInferenceInputCount, 2);
+  assert.equal(result.nearbyOpportunities.count, 2);
+  assert.equal(new Set(result.nearbyOpportunities.entries.map(entry => entry.identityKey)).size, 2);
+  assert.equal(result.nearbyOpportunities.entries.every(entry => entry.relationship.type === "same_building"), true);
+});
+
 test("canonical eligibility, quarantine, completion, identity, and workspace gates run before relationships", () => {
   assert.ok(closedRecord);
   const latitude = 29.6;
@@ -309,6 +383,9 @@ test("canonical audit reproduces field coverage gaps and proves governed nearby 
   assert.equal(result.safety.canonicalBusinessHoursEligibilityPreserved, true);
   assert.equal(result.safety.closedVerifiedExcluded, true);
   assert.equal(result.safety.quarantineExcluded, true);
+  assert.equal(result.identityIntegration.duplicateAliasesRemovedBeforeInference, true);
+  assert.equal(result.identityIntegration.shoppingCenterInferenceRejectedDuplicateInflation, true);
+  assert.equal(result.identityIntegration.multiTenantDistinctnessPreserved, true);
   assert.equal(result.safety.recommendationScoresChanged, false);
   assert.equal(result.failures.length, 0);
 });

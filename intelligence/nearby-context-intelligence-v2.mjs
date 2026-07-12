@@ -11,6 +11,7 @@ import {
 export const nearbyContextIntelligenceVersion = "nearby-context-intelligence-v2";
 export const nearbyContextPolicyVersion = "nearby-context-intelligence-v2-policy-v1";
 export const nearbyContextContractVersion = "nearby-context-intelligence-v2-contracts-v1";
+export const nearbyContextDuplicateIdentityIntegrationRepairVersion = "nearby-context-duplicate-identity-integration-repair-v1";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(moduleDir, "..");
@@ -195,6 +196,23 @@ export function validateNearbyContextConfig(config) {
   fail(candidate.maximumCandidateScan > 0 && candidate.maximumCandidateScan <= 5000, "candidate_scan_must_be_bounded");
   fail(candidate.maximumResults > 0 && candidate.maximumResults <= 15, "nearby_result_limit_invalid");
   fail(candidate.recommendationScoreUsedForOrdering === false, "recommendation_score_ordering_prohibited");
+  fail(config?.identityPolicy?.integrationVersion === nearbyContextDuplicateIdentityIntegrationRepairVersion, "identity_integration_version_mismatch");
+  fail(config?.identityPolicy?.canonicalImplementation === "intelligence/continuous-adaptive-route-replenishment.mjs", "canonical_identity_implementation_mismatch");
+  fail(config?.identityPolicy?.canonicalFunction === "routeQueueIdentity", "canonical_identity_function_mismatch");
+  fail(config?.identityPolicy?.googlePlaceIdPriority === true, "google_place_identity_priority_required");
+  fail(config?.identityPolicy?.deduplicationPhase === "before_relationship_classification", "identity_deduplication_phase_mismatch");
+  fail(config?.identityPolicy?.shoppingCenterInferenceInput === "unique_canonical_businesses_only", "shopping_center_identity_input_mismatch");
+  fail(config?.identityPolicy?.duplicateAliasContributionAllowed === false, "duplicate_alias_relationship_contribution_prohibited");
+  fail(config?.identityPolicy?.multiTenantDistinction === "distinct_google_place_ids_remain_distinct", "multi_tenant_identity_policy_mismatch");
+  fail(JSON.stringify(config?.identityPolicy?.executionOrder) === JSON.stringify([
+    "eligible_candidates",
+    "canonical_business_identity_resolution",
+    "duplicate_removal",
+    "relationship_classification",
+    "shopping_center_inference",
+    "walkability",
+    "nearby_context_generation"
+  ]), "identity_execution_order_mismatch");
   fail(config?.businessHoursPolicy?.canonicalVersion === routeBusinessHoursEligibilityVersion, "canonical_hours_version_mismatch");
   fail(config?.businessHoursPolicy?.closedVerifiedBehavior === "exclude_never_classify", "closed_verified_must_be_excluded_before_relationships");
   fail(JSON.stringify(relationship.priorityOrder) === JSON.stringify([
@@ -239,6 +257,15 @@ export function validateNearbyContextContract(contract) {
   fail(contract?.eligibilityContract?.relationshipClassificationOccursAfterEligibility === true, "eligibility_must_precede_relationships");
   fail(contract?.eligibilityContract?.closedCandidateResurrectionAllowed === false, "closed_candidate_resurrection_prohibited");
   fail(contract?.eligibilityContract?.eligibilityReimplementationAllowed === false, "second_hours_engine_prohibited");
+  fail(contract?.identityContract?.integrationVersion === nearbyContextDuplicateIdentityIntegrationRepairVersion, "identity_contract_integration_version_mismatch");
+  fail(contract?.identityContract?.canonicalImplementation === "intelligence/continuous-adaptive-route-replenishment.mjs", "canonical_identity_contract_implementation_mismatch");
+  fail(contract?.identityContract?.canonicalFunction === "routeQueueIdentity", "canonical_identity_contract_function_mismatch");
+  fail(contract?.identityContract?.googlePlaceIdPriority === true, "identity_contract_google_place_priority_required");
+  fail(contract?.identityContract?.duplicateRemovalBeforeRelationshipInference === true, "identity_contract_deduplication_order_mismatch");
+  fail(contract?.identityContract?.shoppingCenterInferenceInput === "unique_canonical_businesses_only", "identity_contract_shopping_center_input_mismatch");
+  fail(contract?.identityContract?.duplicateAliasesContributeToInference === false, "identity_contract_alias_contribution_prohibited");
+  fail(contract?.identityContract?.multiTenantDistinction === "distinct_google_place_ids_remain_distinct", "identity_contract_multi_tenant_rule_mismatch");
+  fail(contract?.identityContract?.secondIdentityEngineAllowed === false, "second_identity_engine_prohibited");
   fail(JSON.stringify(contract?.relationshipContract?.priorityOrder) === JSON.stringify([
     "same_building",
     "same_shopping_center",
@@ -247,9 +274,11 @@ export function validateNearbyContextContract(contract) {
     "nearby"
   ]), "relationship_contract_priority_mismatch");
   fail(contract?.relationshipContract?.verifiedAndInferredRelationshipsDistinguished === true, "relationship_verification_required");
+  fail(contract?.relationshipContract?.shoppingCenterInferenceUniqueBusinessesOnly === true, "shopping_center_unique_businesses_required");
   fail(contract?.selectionContract?.quarantineSelectable === false, "quarantine_selection_prohibited");
   fail(contract?.selectionContract?.completedBusinessesSelectable === false, "completed_selection_prohibited");
   fail(contract?.selectionContract?.duplicateBusinessesSelectable === false, "duplicate_selection_prohibited");
+  fail(contract?.selectionContract?.duplicateRemovalPhase === "before_relationship_inference", "selection_duplicate_removal_phase_mismatch");
   fail(contract?.selectionContract?.recommendationScoresUsedForOrdering === false, "score_ordering_prohibited");
   fail(contract?.selectionContract?.inventedCandidatesAllowed === false, "invented_candidates_prohibited");
   fail(contract?.outputContract?.runtimeConsumptionAuthorized === false, "runtime_consumption_not_authorized");
@@ -355,6 +384,30 @@ function governanceStage(candidate) {
   if (open && candidate.sourcePool === "full") return { rank: 1, id: "full_pool_verified_open_fallback" };
   if (candidate.sourcePool === "active") return { rank: 2, id: "active_hours_unverified_coverage" };
   return { rank: 3, id: "full_pool_hours_unverified_coverage" };
+}
+
+function canonicalIdentityCandidateOrder(left, right) {
+  const leftRouteOrder = Number.isFinite(left.routeOrderSnapshot) ? left.routeOrderSnapshot : Number.MAX_SAFE_INTEGER;
+  const rightRouteOrder = Number.isFinite(right.routeOrderSnapshot) ? right.routeOrderSnapshot : Number.MAX_SAFE_INTEGER;
+  return governanceStage(left).rank - governanceStage(right).rank
+    || leftRouteOrder - rightRouteOrder
+    || left.sourceOrder - right.sourceOrder
+    || normalizedText(`${left.name} ${left.address}`).localeCompare(normalizedText(`${right.name} ${right.address}`));
+}
+
+function resolveUniqueCanonicalBusinesses(candidates) {
+  const uniqueCandidates = [];
+  const duplicateAliases = [];
+  const seen = new Set();
+  for (const candidate of [...candidates].sort(canonicalIdentityCandidateOrder)) {
+    if (seen.has(candidate.identityKey)) {
+      duplicateAliases.push(candidate);
+      continue;
+    }
+    seen.add(candidate.identityKey);
+    uniqueCandidates.push(candidate);
+  }
+  return { uniqueCandidates, duplicateAliases };
 }
 
 function relationshipRank(candidate, config) {
@@ -555,9 +608,14 @@ export function buildNearbyContextAdvisory({
     eligibleBase.push({ ...candidate, distanceFeet });
   }
 
+  const identityResolution = resolveUniqueCanonicalBusinesses(eligibleBase);
+  for (const duplicate of identityResolution.duplicateAliases) {
+    exclusions.push(exclusion(duplicate, "duplicate_business_identity", duplicate.distanceFeet));
+  }
+
   const related = [];
-  for (const candidate of eligibleBase) {
-    const relationship = resolveRelationship(primaryCandidate, candidate, eligibleBase, config);
+  for (const candidate of identityResolution.uniqueCandidates) {
+    const relationship = resolveRelationship(primaryCandidate, candidate, identityResolution.uniqueCandidates, config);
     if (!relationship) {
       exclusions.push(exclusion(candidate, "outside_nearby_relationship_scope", candidate.distanceFeet));
       continue;
@@ -566,18 +624,7 @@ export function buildNearbyContextAdvisory({
   }
   related.sort((left, right) => sortCandidates(left, right, config));
 
-  const deduplicated = [];
-  const seen = new Set();
-  for (const candidate of related) {
-    if (seen.has(candidate.identityKey)) {
-      exclusions.push(exclusion(candidate, "duplicate_business_identity", candidate.distanceFeet));
-      continue;
-    }
-    seen.add(candidate.identityKey);
-    deduplicated.push(candidate);
-  }
-
-  const selected = deduplicated.slice(0, config.candidatePolicy.maximumResults).map((candidate, index) => ({
+  const selected = related.slice(0, config.candidatePolicy.maximumResults).map((candidate, index) => ({
     order: index + 1,
     identityKey: candidate.identityKey,
     googlePlaceId: candidate.googlePlaceId,
@@ -611,6 +658,11 @@ export function buildNearbyContextAdvisory({
   ]);
   const status = selected.length ? "opportunities_available" : primaryCoordinates ? "coverage_gap" : "primary_context_unavailable";
   const outputEntries = selected.map(entry => deepFreeze(entry));
+  const eligibleIdentityCount = new Set(eligibleBase.map(candidate => candidate.identityKey)).size;
+  const relationshipInferenceIdentities = new Set(identityResolution.uniqueCandidates.map(candidate => candidate.identityKey));
+  const identityResolutionComplete = identityResolution.uniqueCandidates.length === eligibleIdentityCount
+    && identityResolution.uniqueCandidates.length + identityResolution.duplicateAliases.length === eligibleBase.length;
+  const duplicateAliasesContributedToInference = identityResolution.duplicateAliases.some(candidate => identityResolution.uniqueCandidates.includes(candidate));
   const validation = {
     deterministicOrderingRequired: true,
     canonicalBusinessHoursEligibilityPreserved: outputEntries.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion),
@@ -619,6 +671,11 @@ export function buildNearbyContextAdvisory({
     completedBusinessesExcluded: outputEntries.every(entry => !completed.has(entry.identityKey)),
     primaryBusinessExcluded: outputEntries.every(entry => entry.identityKey !== primaryCandidate.identityKey),
     duplicatePreventionPassed: outputEntries.length === selectedIdentitySet.size,
+    canonicalIdentityResolutionPreserved: identityResolution.uniqueCandidates.every(candidate => candidate.identityKey === `google:${candidate.googlePlaceId}`),
+    duplicatesRemovedBeforeRelationshipInference: identityResolutionComplete,
+    relationshipInferenceUniqueBusinessesOnly: identityResolutionComplete
+      && identityResolution.uniqueCandidates.length === relationshipInferenceIdentities.size,
+    duplicateAliasesContributedToInference,
     workspaceIsolationPassed: true,
     operatingProfileIsolationPassed: true,
     relationshipPriorityPreserved: outputOrderingPreserved(outputEntries, config),
@@ -641,6 +698,7 @@ export function buildNearbyContextAdvisory({
     version: nearbyContextIntelligenceVersion,
     policyVersion: config.policyVersion,
     contractVersion: contract.contractVersion,
+    identityIntegrationVersion: nearbyContextDuplicateIdentityIntegrationRepairVersion,
     status,
     generatedAt: cleanText(generatedAt, 40),
     workspaceId: scope.workspaceId,
@@ -658,6 +716,12 @@ export function buildNearbyContextAdvisory({
     architecture: {
       purpose: "secondary_arrival_opportunities_not_recommendation_replacement",
       eligibilityBoundary: "before_relationship_classification",
+      identityBoundary: "after_eligibility_before_relationship_classification",
+      canonicalIdentityImplementation: config.identityPolicy.canonicalImplementation,
+      canonicalIdentityFunction: config.identityPolicy.canonicalFunction,
+      identityIntegrationVersion: nearbyContextDuplicateIdentityIntegrationRepairVersion,
+      relationshipInferenceInput: "unique_canonical_businesses_only",
+      executionOrder: clone(config.identityPolicy.executionOrder),
       canonicalHoursImplementation: config.businessHoursPolicy.canonicalImplementation,
       canonicalHoursVersion: routeBusinessHoursEligibilityVersion,
       activePoolPriority: true,
@@ -687,7 +751,13 @@ export function buildNearbyContextAdvisory({
       suppliedCandidateCount: Array.isArray(candidates) ? candidates.length : 0,
       scannedCandidateCount: input.length,
       inputTruncated,
-      eligibleRelationshipCandidateCount: deduplicated.length,
+      eligibleCandidateCountBeforeIdentityResolution: eligibleBase.length,
+      canonicalUniqueBusinessCount: identityResolution.uniqueCandidates.length,
+      preRelationshipDuplicateCount: identityResolution.duplicateAliases.length,
+      relationshipInferenceInputCount: identityResolution.uniqueCandidates.length,
+      relationshipInferenceUniqueIdentityCount: relationshipInferenceIdentities.size,
+      duplicateAliasesContributedToInference,
+      eligibleRelationshipCandidateCount: related.length,
       selectedCandidateCount: outputEntries.length,
       sourcePoolDistribution: countBy(input, item => item?.sourcePool),
       selectedSourcePoolDistribution: countBy(outputEntries, item => item.sourcePool),
@@ -726,6 +796,7 @@ export function validateNearbyContextAdvisory(plan, config = loadNearbyContextCo
   fail(plan?.version === nearbyContextIntelligenceVersion, "plan_version_mismatch");
   fail(plan?.policyVersion === nearbyContextPolicyVersion, "plan_policy_version_mismatch");
   fail(plan?.contractVersion === nearbyContextContractVersion, "plan_contract_version_mismatch");
+  fail(plan?.identityIntegrationVersion === nearbyContextDuplicateIdentityIntegrationRepairVersion, "plan_identity_integration_version_mismatch");
   fail(plan?.workspaceId === config.workspaceId, "plan_workspace_mismatch");
   fail(plan?.operatingProfileId === config.operatingProfileId, "plan_operating_profile_mismatch");
   for (const section of requiredSections) fail(Boolean(plan?.[section]), `missing_section:${section}`);
@@ -741,6 +812,13 @@ export function validateNearbyContextAdvisory(plan, config = loadNearbyContextCo
   fail(entries.every(entry => entry.recommendationScoreUsedForOrdering === false && entry.recommendationScoreChanged === false), "plan_changed_recommendation_scoring");
   fail(plan?.nearbyOpportunities?.title === config.explainability.title, "consumer_title_mismatch");
   fail(plan?.coverage?.governedDataInvented === false, "governed_data_invention_detected");
+  fail(plan?.architecture?.canonicalIdentityFunction === "routeQueueIdentity", "plan_canonical_identity_function_mismatch");
+  fail(plan?.architecture?.relationshipInferenceInput === "unique_canonical_businesses_only", "plan_relationship_inference_input_mismatch");
+  fail(JSON.stringify(plan?.architecture?.executionOrder) === JSON.stringify(config.identityPolicy.executionOrder), "plan_identity_execution_order_mismatch");
+  fail(plan?.coverage?.eligibleCandidateCountBeforeIdentityResolution === plan?.coverage?.canonicalUniqueBusinessCount + plan?.coverage?.preRelationshipDuplicateCount, "identity_resolution_count_mismatch");
+  fail(plan?.coverage?.canonicalUniqueBusinessCount === plan?.coverage?.relationshipInferenceInputCount, "relationship_inference_received_noncanonical_count");
+  fail(plan?.coverage?.relationshipInferenceInputCount === plan?.coverage?.relationshipInferenceUniqueIdentityCount, "relationship_inference_received_duplicate_identity");
+  fail(plan?.coverage?.duplicateAliasesContributedToInference === false, "duplicate_alias_contributed_to_relationship_inference");
   if (!entries.length) {
     fail(Boolean(plan?.nearbyOpportunities?.emptyState), "empty_state_missing");
     fail(plan?.nearbyOpportunities?.emptyState?.recommendationInvented === false, "empty_state_invented_recommendation");
@@ -752,6 +830,9 @@ export function validateNearbyContextAdvisory(plan, config = loadNearbyContextCo
     "completedBusinessesExcluded",
     "primaryBusinessExcluded",
     "duplicatePreventionPassed",
+    "canonicalIdentityResolutionPreserved",
+    "duplicatesRemovedBeforeRelationshipInference",
+    "relationshipInferenceUniqueBusinessesOnly",
     "workspaceIsolationPassed",
     "operatingProfileIsolationPassed",
     "relationshipPriorityPreserved",
@@ -760,6 +841,7 @@ export function validateNearbyContextAdvisory(plan, config = loadNearbyContextCo
   for (const field of [
     "recommendationScoresUsedForOrdering",
     "recommendationScoresChanged",
+    "duplicateAliasesContributedToInference",
     "liveGoogleCallsMade",
     "recommendationReplacementActive",
     "productionQueueMutationActive",

@@ -9,6 +9,7 @@ import {
   distanceFeetBetweenBusinesses,
   loadNearbyContextConfig,
   loadNearbyContextContract,
+  nearbyContextDuplicateIdentityIntegrationRepairVersion,
   nearbyContextIntelligenceVersion,
   validateNearbyContextAdvisory,
   validateNearbyContextConfig,
@@ -95,6 +96,114 @@ function observedBusinessCoverage(observation, primary, allCandidates) {
   });
 }
 
+function buildIdentityIntegrationRegression(eligibilityProjection, config, contract, generatedAt) {
+  const eligibleOpen = eligibilityProjection.evaluatedCandidates.filter(candidate => candidate.sourcePool === "active"
+    && candidate.routeEligible === true
+    && candidate.eligibilitySnapshot?.status === "OPEN_VERIFIED");
+  if (eligibleOpen.length < 6) throw new Error("Nearby Context identity regression requires six verified-open Active Pool candidates.");
+  const latitude = 29.6;
+  const longitude = -95.25;
+  const primary = {
+    ...eligibleOpen[0],
+    name: "Identity Regression Primary",
+    businessName: "Identity Regression Primary",
+    address: "100 Identity Repair Blvd, Houston, TX",
+    latitude,
+    longitude,
+    commercialRelationships: {}
+  };
+  const canonicalBusiness = {
+    ...eligibleOpen[1],
+    name: "Identity Regression Storefront",
+    businessName: "Identity Regression Storefront",
+    address: "120 Identity Repair Boulevard, Houston, TX",
+    latitude: latitude + 0.0004,
+    longitude,
+    commercialRelationships: {}
+  };
+  const duplicateAlias = {
+    ...eligibleOpen[1],
+    name: "Identity Regression Alias",
+    businessName: "Identity Regression Alias",
+    address: "140 Identity Repair Blvd, Houston, TX",
+    latitude: latitude + 0.0008,
+    longitude,
+    sourceOrder: canonicalBusiness.sourceOrder + 10000,
+    commercialRelationships: {}
+  };
+  const aliasPlan = buildNearbyContextAdvisory({
+    workspaceId: config.workspaceId,
+    operatingProfileId: config.operatingProfileId,
+    representativeId: "cruz",
+    primary,
+    candidates: [canonicalBusiness, duplicateAlias],
+    completedIdentityKeys: [],
+    generatedAt,
+    config,
+    contract,
+    sourceProvenance: { classification: "offline_duplicate_identity_regression" }
+  });
+
+  const multiTenantPrimary = {
+    ...eligibleOpen[3],
+    name: "Multi Tenant Regression Anchor",
+    businessName: "Multi Tenant Regression Anchor",
+    address: "200 Multi Tenant Way Suite P, Houston, TX",
+    latitude,
+    longitude,
+    commercialRelationships: {}
+  };
+  const multiTenantCandidates = eligibleOpen.slice(4, 6).map((candidate, index) => ({
+    ...candidate,
+    name: `Multi Tenant Regression ${index + 1}`,
+    businessName: `Multi Tenant Regression ${index + 1}`,
+    address: `200 Multi Tenant Way Suite ${index === 0 ? "A" : "B"}, Houston, TX`,
+    latitude: latitude + ((index + 1) * 0.0001),
+    longitude,
+    commercialRelationships: {}
+  }));
+  const multiTenantPlan = buildNearbyContextAdvisory({
+    workspaceId: config.workspaceId,
+    operatingProfileId: config.operatingProfileId,
+    representativeId: "cruz",
+    primary: multiTenantPrimary,
+    candidates: multiTenantCandidates,
+    completedIdentityKeys: [],
+    generatedAt,
+    config,
+    contract,
+    sourceProvenance: { classification: "offline_multi_tenant_identity_regression" }
+  });
+
+  return {
+    summary: {
+      integrationVersion: nearbyContextDuplicateIdentityIntegrationRepairVersion,
+      fixtureClassification: "offline_validation_only",
+      aliasProbe: {
+        eligibleInputCount: aliasPlan.coverage.eligibleCandidateCountBeforeIdentityResolution,
+        canonicalUniqueBusinessCount: aliasPlan.coverage.canonicalUniqueBusinessCount,
+        preRelationshipDuplicateCount: aliasPlan.coverage.preRelationshipDuplicateCount,
+        relationshipInferenceInputCount: aliasPlan.coverage.relationshipInferenceInputCount,
+        resultCount: aliasPlan.nearbyOpportunities.count,
+        resultRelationship: aliasPlan.nearbyOpportunities.entries[0]?.relationship.type || null,
+        shoppingCenterInferenceSatisfied: aliasPlan.nearbyOpportunities.entries.some(entry => entry.relationship.type === "same_shopping_center"),
+        duplicateAliasesContributedToInference: aliasPlan.coverage.duplicateAliasesContributedToInference
+      },
+      multiTenantProbe: {
+        eligibleInputCount: multiTenantPlan.coverage.eligibleCandidateCountBeforeIdentityResolution,
+        canonicalUniqueBusinessCount: multiTenantPlan.coverage.canonicalUniqueBusinessCount,
+        preRelationshipDuplicateCount: multiTenantPlan.coverage.preRelationshipDuplicateCount,
+        relationshipInferenceInputCount: multiTenantPlan.coverage.relationshipInferenceInputCount,
+        resultCount: multiTenantPlan.nearbyOpportunities.count,
+        distinctResultIdentityCount: new Set(multiTenantPlan.nearbyOpportunities.entries.map(entry => entry.identityKey)).size,
+        relationshipTypes: [...new Set(multiTenantPlan.nearbyOpportunities.entries.map(entry => entry.relationship.type))].sort()
+      }
+    },
+    aliasPlanValidation: validateNearbyContextAdvisory(aliasPlan, config),
+    multiTenantPlanValidation: validateNearbyContextAdvisory(multiTenantPlan, config)
+  };
+}
+
 export function buildCanonicalNearbyContextAudit() {
   const config = loadNearbyContextConfig();
   const contract = loadNearbyContextContract();
@@ -173,12 +282,19 @@ export function buildCanonicalNearbyContextAudit() {
       canonicalBusinessHours: paths.businessHours
     }
   });
+  const identityIntegrationRegression = buildIdentityIntegrationRegression(
+    eligibilityProjection,
+    config,
+    contract,
+    businessHours.statusEvaluatedAt
+  );
 
   return {
     artifactType: "nearby_context_intelligence_v2_audit",
     version: nearbyContextIntelligenceVersion,
     policyVersion: config.policyVersion,
     contractVersion: contract.contractVersion,
+    identityIntegrationVersion: nearbyContextDuplicateIdentityIntegrationRepairVersion,
     status: "advisory_only",
     generatedAt: businessHours.statusEvaluatedAt,
     workspaceId: config.workspaceId,
@@ -195,6 +311,7 @@ export function buildCanonicalNearbyContextAudit() {
     fieldEvidenceBasis: config.fieldEvidenceBasis,
     stressContexts,
     governedCapabilityProbe: capabilityProbe,
+    identityIntegrationRegression: identityIntegrationRegression.summary,
     findings: {
       texans: {
         governedNearbyOpportunityCount: stressContexts[0].plan.nearbyOpportunities.count,
@@ -220,7 +337,10 @@ export function buildCanonicalNearbyContextAudit() {
       contract: validateNearbyContextContract(contract),
       stressPlans: stressContexts.flatMap(context => validateNearbyContextAdvisory(context.plan, config)),
       capabilityProbe: validateNearbyContextAdvisory(capabilityProbe, config),
+      identityAliasProbe: identityIntegrationRegression.aliasPlanValidation,
+      identityMultiTenantProbe: identityIntegrationRegression.multiTenantPlanValidation,
       canonicalEligibilityVersion: eligibilityProjection.version,
+      duplicateIdentityIntegrationVersion: nearbyContextDuplicateIdentityIntegrationRepairVersion,
       recommendationInfluenceActive: false,
       dashboardConsumerActive: false,
       routeScoringWeightsChanged: false,
@@ -241,7 +361,9 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
     ...first.validation.config,
     ...first.validation.contract,
     ...first.validation.stressPlans,
-    ...first.validation.capabilityProbe
+    ...first.validation.capabilityProbe,
+    ...first.validation.identityAliasProbe,
+    ...first.validation.identityMultiTenantProbe
   ];
   const check = (condition, reason) => { if (!condition) failures.push(reason); };
   const canonicalPath = resolve(repoRoot, paths.canonicalArtifact);
@@ -262,12 +384,14 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
   const [texans, christian] = first.stressContexts;
   const capabilityEntries = first.governedCapabilityProbe.nearbyOpportunities.entries;
   const blackhawk = first.findings.texans.blackhawkDentalStatus;
+  const identityRegression = first.identityIntegrationRegression;
 
   check(stableJson(first) === stableJson(second), "nearby_context_audit_not_deterministic");
   check(Boolean(canonical), "canonical_nearby_context_artifact_missing");
   if (canonical) check(stableJson(canonical) === stableJson(first), "canonical_nearby_context_artifact_stale");
   check(governanceReport.status === "passed" && governanceReport.promotionAllowed === true, "runtime_pool_governance_not_passed");
   check(first.validation.canonicalEligibilityVersion === routeBusinessHoursEligibilityVersion, "canonical_hours_eligibility_not_used");
+  check(first.validation.duplicateIdentityIntegrationVersion === nearbyContextDuplicateIdentityIntegrationRepairVersion, "duplicate_identity_integration_version_mismatch");
   check(first.sourceCounts.active === 297, "active_pool_count_mismatch");
   check(first.sourceCounts.governedFullPoolFallbackProjection === 44, "full_pool_fallback_projection_count_mismatch");
   check(first.sourceCounts.quarantineDiagnostics === 109, "quarantine_diagnostic_count_mismatch");
@@ -287,6 +411,18 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
   check(capabilityEntries.every(entry => entry.eligibilitySnapshot.status === "OPEN_VERIFIED"), "capability_probe_included_non_open_candidate");
   check(capabilityEntries.every(entry => entry.explanation.why && entry.explanation.evidence && entry.explanation.confidence
     && entry.explanation.whatChanged && entry.explanation.nextAction), "capability_probe_explanation_incomplete");
+  check(identityRegression.aliasProbe.eligibleInputCount === 2, "alias_probe_eligible_input_count_mismatch");
+  check(identityRegression.aliasProbe.canonicalUniqueBusinessCount === 1, "duplicate_alias_not_collapsed_to_one_business");
+  check(identityRegression.aliasProbe.preRelationshipDuplicateCount === 1, "duplicate_alias_not_removed_before_relationships");
+  check(identityRegression.aliasProbe.relationshipInferenceInputCount === 1, "relationship_inference_received_duplicate_alias");
+  check(identityRegression.aliasProbe.resultCount === 1, "alias_probe_did_not_return_one_business");
+  check(identityRegression.aliasProbe.resultRelationship === "walkable", "alias_probe_walkability_regressed");
+  check(identityRegression.aliasProbe.shoppingCenterInferenceSatisfied === false, "duplicate_alias_satisfied_shopping_center_inference");
+  check(identityRegression.aliasProbe.duplicateAliasesContributedToInference === false, "duplicate_alias_contributed_to_inference");
+  check(identityRegression.multiTenantProbe.eligibleInputCount === 2, "multi_tenant_input_count_mismatch");
+  check(identityRegression.multiTenantProbe.canonicalUniqueBusinessCount === 2, "multi_tenant_businesses_collapsed");
+  check(identityRegression.multiTenantProbe.preRelationshipDuplicateCount === 0, "multi_tenant_business_marked_duplicate");
+  check(identityRegression.multiTenantProbe.resultCount === 2 && identityRegression.multiTenantProbe.distinctResultIdentityCount === 2, "multi_tenant_distinction_regressed");
   check(first.stressContexts.every(context => context.plan.validation.closedVerifiedExcluded), "closed_verified_candidate_selected");
   check(first.stressContexts.every(context => context.plan.validation.quarantineExcluded), "quarantine_candidate_selected");
   check(first.stressContexts.every(context => context.plan.validation.completedBusinessesExcluded), "completed_candidate_selected");
@@ -322,6 +458,16 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
       relationshipDistribution: first.governedCapabilityProbe.coverage.selectedRelationshipDistribution,
       hoursStatusDistribution: first.governedCapabilityProbe.coverage.selectedHoursStatusDistribution
     },
+    identityIntegration: {
+      version: first.identityIntegrationVersion,
+      duplicateAliasesRemovedBeforeInference: identityRegression.aliasProbe.preRelationshipDuplicateCount === 1
+        && identityRegression.aliasProbe.relationshipInferenceInputCount === 1,
+      shoppingCenterInferenceRejectedDuplicateInflation: identityRegression.aliasProbe.shoppingCenterInferenceSatisfied === false,
+      oneBusinessAliasResultCount: identityRegression.aliasProbe.resultCount,
+      multiTenantDistinctnessPreserved: identityRegression.multiTenantProbe.resultCount === 2
+        && identityRegression.multiTenantProbe.distinctResultIdentityCount === 2,
+      walkabilityPreserved: identityRegression.aliasProbe.resultRelationship === "walkable"
+    },
     safety: {
       deterministic: stableJson(first) === stableJson(second),
       canonicalBusinessHoursEligibilityPreserved: first.stressContexts.every(context => context.plan.validation.canonicalBusinessHoursEligibilityPreserved),
@@ -329,6 +475,8 @@ export function verifyNearbyContextIntelligenceV2({ writeArtifact = false } = {}
       quarantineExcluded: first.stressContexts.every(context => context.plan.validation.quarantineExcluded),
       completedBusinessesExcluded: first.stressContexts.every(context => context.plan.validation.completedBusinessesExcluded),
       duplicatePreventionPassed: first.stressContexts.every(context => context.plan.validation.duplicatePreventionPassed),
+      duplicatesRemovedBeforeRelationshipInference: first.stressContexts.every(context => context.plan.validation.duplicatesRemovedBeforeRelationshipInference)
+        && identityRegression.aliasProbe.duplicateAliasesContributedToInference === false,
       workspaceIsolationPassed: first.stressContexts.every(context => context.plan.validation.workspaceIsolationPassed),
       recommendationScoresChanged: false,
       dashboardRuntimeChanged: false,
