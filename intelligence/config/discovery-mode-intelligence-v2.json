@@ -16,6 +16,11 @@
   "candidatePolicy": {
     "requiredSourcePool": "active",
     "requiresExistingRouteEligibility": true,
+    "requiresCanonicalBusinessHoursEligibility": true,
+    "eligibilityIntegrationVersion": "discovery-mode-eligibility-integration-repair-v1",
+    "canonicalEligibilityVersion": "route-iq-closed-now-eligibility-v1",
+    "preserveEligibilitySelectionTier": true,
+    "closedVerifiedBehavior": "exclude_never_balance",
     "requiresWorkspaceMatch": true,
     "requiresOperatingProfileMatch": true,
     "requiresStableBusinessIdentity": true,
@@ -25,7 +30,7 @@
     ],
     "minimumQualityScore": 75,
     "unknownCategoryBehavior": "exclude_and_report",
-    "duplicateBehavior": "retain_highest_quality_identity_once",
+    "duplicateBehavior": "retain_best_canonical_eligibility_then_highest_quality_identity_once",
     "maximumCandidateScan": 5000,
     "liveGoogleCallsAllowed": false
   },
@@ -41,6 +46,8 @@
     },
     "selectionPrecedence": [
       "existing_route_eligibility",
+      "canonical_business_hours_eligibility_status",
+      "canonical_business_hours_selection_tier",
       "quality_floor",
       "minimum_distinct_category_coverage",
       "lowest_current_queue_concentration",

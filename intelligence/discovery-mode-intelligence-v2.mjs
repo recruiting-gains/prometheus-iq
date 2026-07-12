@@ -2,10 +2,16 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { routeQueueIdentity } from "./continuous-adaptive-route-replenishment.mjs";
+import {
+  evaluateRouteBusinessHoursEligibility,
+  routeBusinessHoursEligibilityVersion,
+  summarizeRouteBusinessHours
+} from "./route-business-hours-eligibility.mjs";
 
 export const discoveryModeIntelligenceVersion = "discovery-mode-intelligence-v2";
 export const discoveryModePolicyVersion = "discovery-mode-intelligence-v2-policy-v1";
 export const discoveryModeContractVersion = "discovery-mode-intelligence-v2-contracts-v1";
+export const discoveryModeEligibilityIntegrationRepairVersion = "discovery-mode-eligibility-integration-repair-v1";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(moduleDir, "..");
@@ -116,6 +122,48 @@ export function loadDiscoveryModeLearningSnapshot(path = defaultPaths.learningSn
   return readJson(path);
 }
 
+export function applyCanonicalBusinessHoursEligibilityToDiscoveryCandidates({
+  candidates = [],
+  businessHoursIndex = null,
+  evaluatedAt = businessHoursIndex?.statusEvaluatedAt,
+  artifactAvailable = Boolean(businessHoursIndex),
+  workspaceId = "fitness_connection",
+  operatingProfileId = "fitness"
+} = {}) {
+  if (!evaluatedAt) throw new Error("Discovery Mode canonical business-hours evaluation time is required.");
+  const recordsByPlaceId = businessHoursIndex?.recordsByPlaceId instanceof Map
+    ? businessHoursIndex.recordsByPlaceId
+    : new Map();
+  const evaluatedCandidates = (Array.isArray(candidates) ? candidates : []).map(candidate => {
+    const hoursRecord = recordsByPlaceId.get(cleanText(candidate?.googlePlaceId, 180)) || null;
+    const eligibilitySnapshot = evaluateRouteBusinessHoursEligibility({
+      record: hoursRecord,
+      candidate,
+      evaluatedAt,
+      policy: businessHoursIndex?.freshnessPolicy,
+      artifactAvailable,
+      workspaceId,
+      operatingProfileId
+    });
+    return {
+      ...clone(candidate),
+      routeEligible: eligibilitySnapshot.eligible === true,
+      eligibilitySnapshot: clone(eligibilitySnapshot)
+    };
+  });
+  const decisions = evaluatedCandidates.map(candidate => candidate.eligibilitySnapshot);
+  return deepFreeze({
+    version: routeBusinessHoursEligibilityVersion,
+    evaluatedAt: new Date(evaluatedAt).toISOString(),
+    workspaceId,
+    operatingProfileId,
+    evaluatedCandidates,
+    eligibleCandidates: evaluatedCandidates.filter(candidate => candidate.routeEligible),
+    excludedCandidates: evaluatedCandidates.filter(candidate => !candidate.routeEligible),
+    summary: summarizeRouteBusinessHours(decisions)
+  });
+}
+
 function taxonomyIndex(config) {
   const aliases = new Map();
   const families = new Map();
@@ -155,6 +203,11 @@ export function validateDiscoveryModeConfig(config) {
   fail(config?.operatingProfileId === "fitness", "operating_profile_policy_mismatch");
   fail(config?.candidatePolicy?.requiredSourcePool === "active", "active_pool_must_remain_primary_input");
   fail(config?.candidatePolicy?.requiresExistingRouteEligibility === true, "existing_route_eligibility_must_be_required");
+  fail(config?.candidatePolicy?.requiresCanonicalBusinessHoursEligibility === true, "canonical_business_hours_eligibility_must_be_required");
+  fail(config?.candidatePolicy?.canonicalEligibilityVersion === routeBusinessHoursEligibilityVersion, "canonical_business_hours_eligibility_version_mismatch");
+  fail(config?.candidatePolicy?.preserveEligibilitySelectionTier === true, "business_hours_selection_tier_must_be_preserved");
+  fail(config?.candidatePolicy?.closedVerifiedBehavior === "exclude_never_balance", "closed_verified_exclusion_policy_missing");
+  fail(config?.candidatePolicy?.eligibilityIntegrationVersion === discoveryModeEligibilityIntegrationRepairVersion, "eligibility_integration_repair_version_mismatch");
   fail(config?.candidatePolicy?.liveGoogleCallsAllowed === false, "live_google_calls_must_remain_disabled");
   fail(Number.isFinite(Number(config?.candidatePolicy?.minimumQualityScore)), "quality_floor_missing");
   fail(Array.isArray(config?.candidatePolicy?.allowedQualityClasses) && config.candidatePolicy.allowedQualityClasses.length > 0, "quality_classes_missing");
@@ -202,6 +255,11 @@ export function validateDiscoveryModeContract(contract) {
   fail(contract?.compositionContract?.qualityFloorAuthoritative === true, "quality_floor_must_be_authoritative");
   fail(contract?.compositionContract?.deterministicOrderingRequired === true, "deterministic_ordering_required");
   fail(contract?.compositionContract?.duplicateBusinessesAllowed === false, "duplicate_businesses_prohibited");
+  fail(contract?.eligibilityContract?.canonicalImplementation === "intelligence/route-business-hours-eligibility.mjs", "canonical_eligibility_implementation_mismatch");
+  fail(contract?.eligibilityContract?.canonicalVersion === routeBusinessHoursEligibilityVersion, "canonical_eligibility_contract_version_mismatch");
+  fail(contract?.eligibilityContract?.integrationVersion === discoveryModeEligibilityIntegrationRepairVersion, "eligibility_integration_contract_version_mismatch");
+  fail(contract?.eligibilityContract?.closedVerifiedEligible === false, "closed_verified_must_be_ineligible");
+  fail(contract?.eligibilityContract?.balancingOccursAfterEligibility === true, "category_balancing_must_follow_eligibility");
   fail(contract?.outputContract?.runtimeConsumptionAuthorized === false, "runtime_consumption_must_remain_unauthorized");
   fail(contract?.outputContract?.recommendationMutationAuthorized === false, "recommendation_mutation_must_remain_unauthorized");
   fail(contract?.designEvidence?.stressTestObservationConsumedAsLearning === false, "stress_observation_learning_prohibited");
@@ -351,7 +409,8 @@ function normalizeCandidates(candidates, config, context) {
   const seen = new Set();
   const source = (Array.isArray(candidates) ? candidates : [])
     .slice(0, candidateLimit)
-    .sort((left, right) => finiteNumber(right?.qualityScore) - finiteNumber(left?.qualityScore)
+    .sort((left, right) => finiteNumber(left?.eligibilitySnapshot?.selectionTier, 99) - finiteNumber(right?.eligibilitySnapshot?.selectionTier, 99)
+      || finiteNumber(right?.qualityScore) - finiteNumber(left?.qualityScore)
       || finiteNumber(left?.seedRouteOrder, 999999) - finiteNumber(right?.seedRouteOrder, 999999)
       || routeQueueIdentity(left).localeCompare(routeQueueIdentity(right)));
 
@@ -360,6 +419,7 @@ function normalizeCandidates(candidates, config, context) {
     const identityKey = cleanText(routeQueueIdentity(candidate), 600);
     const sourceCategory = cleanText(candidate?.sourceCategory || candidate?.category, 120);
     const family = taxonomy.aliases.get(normalizedText(sourceCategory));
+    const eligibility = candidate?.eligibilitySnapshot;
     const reason = !candidateId
       ? "missing_candidate_id"
       : !identityKey
@@ -372,8 +432,22 @@ function normalizeCandidates(candidates, config, context) {
               ? "representative_mismatch"
               : candidate?.sourcePool !== config.candidatePolicy.requiredSourcePool
                 ? "non_active_pool_candidate"
-                : candidate?.routeEligible !== true
-                  ? "existing_route_eligibility_missing"
+                : !eligibility || typeof eligibility !== "object"
+                  ? "canonical_business_hours_eligibility_missing"
+                  : eligibility.version !== config.candidatePolicy.canonicalEligibilityVersion
+                    ? "canonical_business_hours_eligibility_version_mismatch"
+                    : eligibility.workspaceId !== context.workspaceId || eligibility.operatingProfileId !== context.operatingProfileId
+                      ? "canonical_business_hours_eligibility_scope_mismatch"
+                      : eligibility.googlePlaceId && cleanText(eligibility.googlePlaceId, 180) !== cleanText(candidate.googlePlaceId, 180)
+                        ? "canonical_business_hours_eligibility_identity_mismatch"
+                        : eligibility.status === "CLOSED_VERIFIED"
+                          ? "closed_verified_excluded"
+                          : eligibility.eligible !== true || candidate?.routeEligible !== true
+                            ? "canonical_business_hours_ineligible"
+                            : eligibility.scoringChanged !== false
+                              ? "canonical_business_hours_scoring_changed"
+                              : !eligibility.reasonCode || !eligibility.reason || !eligibility.explanation || !eligibility.provenance
+                                ? "canonical_business_hours_provenance_incomplete"
                   : !allowedClasses.has(cleanText(candidate?.qualityClass, 80))
                     ? "quality_class_not_allowed"
                     : finiteNumber(candidate?.qualityScore, -Infinity) < finiteNumber(config.candidatePolicy.minimumQualityScore)
@@ -405,6 +479,7 @@ function normalizeCandidates(candidates, config, context) {
       territoryId: cleanText(candidate.territoryId, 120) || null,
       timeWindow: cleanText(candidate.window || candidate.timeWindow, 80) || "Anytime",
       existingQualityReason: cleanText(candidate.qualityReason, 700),
+      eligibilitySnapshot: clone(eligibility),
       existingScoreChanged: false
     });
   }
@@ -433,7 +508,8 @@ function categoryGroups(candidates, evidence) {
     groups.get(candidate.categoryId).candidates.push(candidate);
   }
   for (const group of groups.values()) {
-    group.candidates.sort((left, right) => right.qualityScoreSnapshot - left.qualityScoreSnapshot
+    group.candidates.sort((left, right) => finiteNumber(left.eligibilitySnapshot?.selectionTier, 99) - finiteNumber(right.eligibilitySnapshot?.selectionTier, 99)
+      || right.qualityScoreSnapshot - left.qualityScoreSnapshot
       || left.existingRouteOrder - right.existingRouteOrder
       || left.identityKey.localeCompare(right.identityKey));
   }
@@ -444,7 +520,10 @@ function selectGroup(groups, entries, composition, countCap, ignoreConsecutive =
   const lastEntry = entries.at(-1);
   let consecutive = 0;
   for (let index = entries.length - 1; index >= 0 && entries[index].categoryId === lastEntry?.categoryId; index -= 1) consecutive += 1;
-  let options = [...groups.values()].filter(group => group.candidates.length > 0 && group.selectedCount < countCap);
+  const allRemaining = [...groups.values()].filter(group => group.candidates.length > 0);
+  const minimumEligibilityTier = Math.min(...allRemaining.map(group => finiteNumber(group.candidates[0]?.eligibilitySnapshot?.selectionTier, 99)));
+  let options = allRemaining.filter(group => group.selectedCount < countCap
+    && finiteNumber(group.candidates[0]?.eligibilitySnapshot?.selectionTier, 99) === minimumEligibilityTier);
   if (!ignoreConsecutive && consecutive >= composition.categoryConcentration.maximumConsecutive) {
     options = options.filter(group => group.categoryId !== lastEntry?.categoryId);
   }
@@ -474,9 +553,11 @@ function explanationFor(entry, evidence, categoryCount, strictCap, context) {
   const territoryText = context.territoryId
     ? `The plan is scoped to verified territory ${context.territoryId}.`
     : "Territory variation is unavailable because no verified territory identity is present; no territory was inferred.";
+  const hours = entry.eligibilitySnapshot;
+  const hoursText = `${hours.displayLabel}. ${hours.reason} Hours confidence is ${hours.hoursConfidence}; freshness is ${hours.hoursFreshness}; status was evaluated for ${hours.businessTimezone || "the governed business timezone"}.`;
   return {
     why: `${entry.businessName} remains above the governed quality floor and adds ${evidence.label} coverage while that category occupies ${categoryCount} of the configured ${strictCap}-stop concentration limit.`,
-    evidence: `${evidenceText} ${territoryText}`,
+    evidence: `${evidenceText} ${territoryText} Business-hours eligibility: ${hoursText}`,
     confidence: `Category evidence is ${evidence.confidence.band.replaceAll("_", " ")} with confidence ${percentage(evidence.confidence.score)}%. This is an exploration-confidence statement, not a production score change.`,
     whatChanged: changed,
     nextAction: "Visit only if the existing route eligibility still holds, then record decision-maker access, conversation quality, lead quality, membership outcome, follow-up need, and objections.",
@@ -558,6 +639,8 @@ export function buildDiscoveryModeAdvisoryPlan({
   const maximumCategoryShare = entries.length ? maximumCategoryCount / entries.length : 0;
   const selectedQualityScores = entries.map(entry => entry.qualityScoreSnapshot);
   const acceptedQualityScores = normalized.accepted.map(entry => entry.qualityScoreSnapshot);
+  const selectedEligibilityStatuses = countBy(entries, entry => entry.eligibilitySnapshot.status);
+  const selectedEligibilityTiers = countBy(entries, entry => String(entry.eligibilitySnapshot.selectionTier));
   const queueWithExplanations = entries.map(entry => ({
     ...entry,
     evidenceMaturity: evidence.get(entry.categoryId).maturity,
@@ -597,6 +680,7 @@ export function buildDiscoveryModeAdvisoryPlan({
     version: discoveryModeIntelligenceVersion,
     policyVersion: config.policyVersion,
     contractVersion: contract.contractVersion,
+    eligibilityIntegrationVersion: discoveryModeEligibilityIntegrationRepairVersion,
     status,
     generatedAt: cleanText(generatedAt, 40),
     workspaceId: scope.workspaceId,
@@ -606,8 +690,11 @@ export function buildDiscoveryModeAdvisoryPlan({
     sourceProvenance: clone(sourceProvenance),
     fieldEvidenceBasis: clone(config.fieldEvidenceBasis),
     discoveryQueueArchitecture: {
-      inputBoundary: "post_governance_post_eligibility_candidates",
+      inputBoundary: "post_governance_canonical_business_hours_eligible_candidates",
       candidateSource: config.candidatePolicy.requiredSourcePool,
+      eligibilityImplementation: contract.eligibilityContract.canonicalImplementation,
+      eligibilityVersion: routeBusinessHoursEligibilityVersion,
+      balancingOccursAfterEligibility: true,
       existingScores: "immutable_input_snapshots",
       learningSource: config.evidencePolicy.authorizedSnapshotPath,
       composition: "deterministic_bounded_constraints",
@@ -680,6 +767,14 @@ export function buildDiscoveryModeAdvisoryPlan({
         inputTruncated: normalized.truncated,
         rejectionReasons: countBy(normalized.failures, item => item.reason)
       },
+      eligibilityMetrics: {
+        canonicalVersion: routeBusinessHoursEligibilityVersion,
+        selectedStatusDistribution: selectedEligibilityStatuses,
+        selectedTierDistribution: selectedEligibilityTiers,
+        selectedCoverageOnlyCount: entries.filter(entry => entry.eligibilitySnapshot.coverageOnly).length,
+        selectedClosedVerifiedCount: entries.filter(entry => entry.eligibilitySnapshot.status === "CLOSED_VERIFIED").length,
+        scoringChanged: entries.some(entry => entry.eligibilitySnapshot.scoringChanged !== false)
+      },
       compositionMetrics: {
         distinctCategoryCount,
         targetDistinctCategoriesSatisfied: distinctCategoryCount >= composition.targetDistinctCategories,
@@ -706,6 +801,17 @@ export function buildDiscoveryModeAdvisoryPlan({
       deterministicOrderingRequired: true,
       activePoolOnly: queueWithExplanations.every(entry => entry.sourcePool === "active"),
       existingRouteEligibilityRequired: true,
+      canonicalBusinessHoursEligibilityRequired: true,
+      canonicalBusinessHoursEligibilityPreserved: queueWithExplanations.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion),
+      closedVerifiedExcluded: queueWithExplanations.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"),
+      conservativeCoverageTierPreserved: queueWithExplanations.every(entry => Number.isInteger(entry.eligibilitySnapshot?.selectionTier)),
+      eligibilityProvenancePreserved: queueWithExplanations.every(entry => entry.eligibilitySnapshot?.reasonCode
+        && entry.eligibilitySnapshot?.reason
+        && entry.eligibilitySnapshot?.explanation
+        && entry.eligibilitySnapshot?.provenance
+        && Object.prototype.hasOwnProperty.call(entry.eligibilitySnapshot, "hoursConfidence")
+        && Object.prototype.hasOwnProperty.call(entry.eligibilitySnapshot, "hoursFreshness")
+        && Object.prototype.hasOwnProperty.call(entry.eligibilitySnapshot, "businessTimezone")),
       duplicatePreventionPassed: queueWithExplanations.length === new Set(queueWithExplanations.map(entry => entry.identityKey)).size,
       workspaceIsolationPassed: true,
       operatingProfileIsolationPassed: true,
@@ -731,6 +837,7 @@ export function validateDiscoveryModeAdvisoryPlan(plan, config = loadDiscoveryMo
   const fail = (condition, reason) => { if (!condition) failures.push(reason); };
   const entries = plan?.queuePlan?.entries || [];
   const metrics = plan?.queuePlan?.compositionMetrics || {};
+  const eligibility = plan?.queuePlan?.eligibilityMetrics || {};
   const quality = plan?.queuePlan?.qualityMetrics || {};
   const validation = plan?.validation || {};
   const requiredSections = [
@@ -745,6 +852,7 @@ export function validateDiscoveryModeAdvisoryPlan(plan, config = loadDiscoveryMo
   ];
   fail(plan?.artifactType === "discovery_mode_advisory_queue_plan", "artifact_type_mismatch");
   fail(plan?.version === discoveryModeIntelligenceVersion, "plan_version_mismatch");
+  fail(plan?.eligibilityIntegrationVersion === discoveryModeEligibilityIntegrationRepairVersion, "plan_eligibility_integration_version_mismatch");
   fail(plan?.workspaceId === config.workspaceId, "plan_workspace_mismatch");
   fail(plan?.operatingProfileId === config.operatingProfileId, "plan_operating_profile_mismatch");
   for (const section of requiredSections) fail(Boolean(plan?.[section]), `missing_section:${section}`);
@@ -752,15 +860,26 @@ export function validateDiscoveryModeAdvisoryPlan(plan, config = loadDiscoveryMo
   fail(entries.length <= config.queueComposition.targetSize, "plan_exceeds_target_size");
   fail(entries.length === new Set(entries.map(entry => entry.identityKey)).size, "plan_contains_duplicate_businesses");
   fail(entries.every(entry => entry.sourcePool === "active"), "plan_contains_non_active_candidate");
+  fail(entries.every(entry => entry.eligibilitySnapshot?.version === routeBusinessHoursEligibilityVersion), "plan_contains_noncanonical_eligibility");
+  fail(entries.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"), "plan_contains_closed_verified_candidate");
+  fail(entries.every(entry => entry.eligibilitySnapshot?.scoringChanged === false), "plan_eligibility_changed_score");
   fail(entries.every(entry => entry.qualityScoreSnapshot >= config.candidatePolicy.minimumQualityScore), "plan_below_quality_floor");
   fail(entries.every(entry => entry.existingScoreChanged === false), "plan_changed_existing_score");
   fail(entries.every(entry => config.explainability.requiredQuestions.every(field => Boolean(entry.explanation?.[field]))), "plan_explanation_incomplete");
   fail(metrics.duplicateCount === 0, "plan_duplicate_metric_failed");
+  fail(eligibility.canonicalVersion === routeBusinessHoursEligibilityVersion, "plan_eligibility_metric_version_mismatch");
+  fail(eligibility.selectedClosedVerifiedCount === 0, "plan_closed_verified_metric_failed");
+  fail(eligibility.scoringChanged === false, "plan_eligibility_scoring_metric_failed");
   fail(quality.existingScoresChanged === false, "quality_score_preservation_failed");
   fail(quality.qualityFloorRelaxed === false, "quality_floor_relaxed");
   for (const field of [
     "activePoolOnly",
     "existingRouteEligibilityRequired",
+    "canonicalBusinessHoursEligibilityRequired",
+    "canonicalBusinessHoursEligibilityPreserved",
+    "closedVerifiedExcluded",
+    "conservativeCoverageTierPreserved",
+    "eligibilityProvenancePreserved",
     "duplicatePreventionPassed",
     "workspaceIsolationPassed",
     "operatingProfileIsolationPassed",

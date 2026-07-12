@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
+  applyCanonicalBusinessHoursEligibilityToDiscoveryCandidates,
   assertDiscoveryModeScope,
   buildDiscoveryModeAdvisoryPlan,
   loadDiscoveryModeConfig,
@@ -15,6 +16,12 @@ import {
   validateDiscoveryModeContract
 } from "../intelligence/discovery-mode-intelligence-v2.mjs";
 import {
+  buildRouteBusinessHoursIndex,
+  hoursNotVerifiedMarker,
+  routeBusinessHoursEligibilityVersion
+} from "../intelligence/route-business-hours-eligibility.mjs";
+import {
+  buildCanonicalDiscoveryModeEligibilityProjection,
   buildCanonicalDiscoveryModePlan,
   verifyDiscoveryModeIntelligenceV2
 } from "../scripts/verify-discovery-mode-intelligence-v2.mjs";
@@ -24,18 +31,87 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const read = path => readFileSync(new URL(path, root));
 const readJson = path => JSON.parse(read(path).toString("utf8"));
 const sha256 = path => createHash("sha256").update(read(path)).digest("hex");
+const businessHoursArtifact = readJson("data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json");
+const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
+
+function fixtureEligibility(googlePlaceId, status = "OPEN_VERIFIED", overrides = {}) {
+  const uncertain = ["HOURS_UNKNOWN", "HOURS_STALE", "SPECIAL_HOURS_UNVERIFIED"].includes(status);
+  const eligible = status !== "CLOSED_VERIFIED";
+  const reasonCode = status === "OPEN_VERIFIED"
+    ? "VERIFIED_CURRENT_WINDOW_OPEN"
+    : status === "CLOSED_VERIFIED"
+      ? "VERIFIED_CURRENT_WINDOW_CLOSED"
+      : status === "HOURS_STALE"
+        ? "HOURS_SOURCE_STALE"
+        : status === "SPECIAL_HOURS_UNVERIFIED"
+          ? "SPECIAL_HOURS_NOT_VERIFIED"
+          : "HOURS_SOURCE_MISSING";
+  const reason = status === "OPEN_VERIFIED"
+    ? "Verified provider current-hours data show this business open."
+    : status === "CLOSED_VERIFIED"
+      ? "Verified provider current-hours data show this business closed."
+      : "Business hours are not verified for the current visit window.";
+  const provenance = {
+    sourceSystem: "TEST_CANONICAL_FIXTURE",
+    sourceMethod: "canonical-decision-fixture",
+    sourcePlaceId: googlePlaceId,
+    retrievedAt: "2026-07-11T21:21:59.331Z",
+    normalizedAt: "2026-07-11T21:21:59.331Z",
+    fieldEvidenceIds: []
+  };
+  return {
+    version: routeBusinessHoursEligibilityVersion,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    googlePlaceId,
+    permanentOperationalStatus: "OPERATIONAL",
+    status,
+    eligible,
+    coverageOnly: uncertain && eligible,
+    selectionTier: status === "OPEN_VERIFIED" ? 0 : status === "CLOSED_VERIFIED" ? 99 : 1,
+    internalMarker: uncertain ? hoursNotVerifiedMarker : status === "CLOSED_VERIFIED" ? "CLOSED_NOW" : null,
+    hoursConfidence: status === "OPEN_VERIFIED" || status === "CLOSED_VERIFIED" ? "HIGH" : "NONE",
+    hoursFreshness: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "FRESH",
+    reasonCode,
+    reason,
+    evaluatedAt: "2026-07-11T21:21:59.331Z",
+    businessLocalDate: "2026-07-11",
+    businessLocalTime: "16:21",
+    businessTimezone: "America/Chicago",
+    sourceRetrievedAt: "2026-07-11T21:21:59.331Z",
+    hoursVerifiedAt: "2026-07-11T21:21:59.331Z",
+    sourceStatus: status,
+    sourceStatusEvaluatedAt: "2026-07-11T21:21:59.331Z",
+    provenance,
+    failClosed: false,
+    scoringChanged: false,
+    explanation: {
+      recommendationScore: "UNCHANGED",
+      businessHoursEligibility: status,
+      hoursConfidence: status === "OPEN_VERIFIED" || status === "CLOSED_VERIFIED" ? "HIGH" : "NONE",
+      hoursFreshness: status === "HOURS_STALE" ? "STALE" : status === "HOURS_UNKNOWN" ? "MISSING" : "FRESH",
+      reasonCode,
+      reason,
+      provenance
+    },
+    displayLabel: status === "OPEN_VERIFIED" ? "Verified open" : uncertain ? "Hours not verified" : "Closed now",
+    ...overrides
+  };
+}
 
 function fixtureCandidate(index, sourceCategory, overrides = {}) {
+  const googlePlaceId = overrides.googlePlaceId || `place-${index}`;
+  const eligibilitySnapshot = overrides.eligibilitySnapshot || fixtureEligibility(googlePlaceId);
   return {
     id: `discovery-${index}`,
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
     representativeId: "cruz",
     sourcePool: "active",
-    routeEligible: true,
+    routeEligible: eligibilitySnapshot.eligible,
     name: `Discovery Candidate ${index}`,
     address: `${1000 + index} Test Street, Houston, TX 77001`,
-    googlePlaceId: `place-${index}`,
+    googlePlaceId,
     sourceCategory,
     category: sourceCategory,
     qualityClass: "Excellent",
@@ -43,7 +119,8 @@ function fixtureCandidate(index, sourceCategory, overrides = {}) {
     seedRouteOrder: index,
     window: index % 2 ? "Morning" : "Midday",
     qualityReason: "Existing governed route quality evidence.",
-    ...overrides
+    ...overrides,
+    eligibilitySnapshot
   };
 }
 
@@ -79,6 +156,11 @@ test("Discovery Mode Intelligence v2 verifier passes on current governed artifac
   assert.equal(result.categoryBalancing.maximumCategoryShare, 0.2667);
   assert.ok(result.categoryBalancing.automotiveCount <= 4);
   assert.deepEqual(result.categoryBalancing.relaxations, []);
+  assert.equal(result.eligibility.version, routeBusinessHoursEligibilityVersion);
+  assert.equal(result.eligibility.evaluatedCandidates, 297);
+  assert.equal(result.eligibility.selectedClosedVerifiedCount, 0);
+  assert.equal(result.safety.canonicalBusinessHoursEligibilityPreserved, true);
+  assert.equal(result.safety.closedVerifiedExcluded, true);
   assert.equal(result.safety.recommendationInfluenceActive, false);
   assert.equal(result.safety.routeScoringWeightsChanged, false);
 });
@@ -97,6 +179,85 @@ test("governed configuration prohibits a fixed rotation and unsafe relaxations",
   assert.equal(config.queueComposition.relaxationPolicy.allowQualityFloorRelaxation, false);
   assert.equal(config.queueComposition.relaxationPolicy.allowWorkspaceRelaxation, false);
   assert.equal(config.queueComposition.relaxationPolicy.allowDuplicateRelaxation, false);
+  assert.equal(config.candidatePolicy.requiresCanonicalBusinessHoursEligibility, true);
+  assert.equal(config.candidatePolicy.canonicalEligibilityVersion, routeBusinessHoursEligibilityVersion);
+  assert.equal(config.candidatePolicy.closedVerifiedBehavior, "exclude_never_balance");
+});
+
+test("canonical Discovery projection includes open, labels uncertain coverage, and excludes closed", () => {
+  const projection = buildCanonicalDiscoveryModeEligibilityProjection();
+  const open = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "OPEN_VERIFIED");
+  const closed = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "CLOSED_VERIFIED");
+  const unknown = projection.evaluatedCandidates.filter(candidate => candidate.eligibilitySnapshot.status === "HOURS_UNKNOWN");
+  const christian = projection.evaluatedCandidates.find(candidate => candidate.googlePlaceId === christianBrothersPlaceId);
+
+  assert.equal(projection.version, routeBusinessHoursEligibilityVersion);
+  assert.equal(projection.evaluatedCandidates.length, 297);
+  assert.ok(open.length > 0);
+  assert.ok(open.every(candidate => candidate.routeEligible && candidate.eligibilitySnapshot.displayLabel === "Verified open"));
+  assert.ok(closed.length > 0);
+  assert.ok(closed.every(candidate => !candidate.routeEligible && candidate.eligibilitySnapshot.eligible === false));
+  assert.ok(unknown.length > 0);
+  assert.ok(unknown.every(candidate => candidate.routeEligible
+    && candidate.eligibilitySnapshot.coverageOnly
+    && candidate.eligibilitySnapshot.selectionTier === 1
+    && candidate.eligibilitySnapshot.internalMarker === hoursNotVerifiedMarker
+    && candidate.eligibilitySnapshot.displayLabel === "Hours not verified"));
+  assert.equal(christian.eligibilitySnapshot.status, "CLOSED_VERIFIED");
+  assert.equal(christian.eligibilitySnapshot.reasonCode, "VERIFIED_CURRENT_WINDOW_CLOSED");
+  assert.ok(christian.eligibilitySnapshot.provenance.fieldEvidenceIds.includes("fitness-2026-07-11-christian-brothers-closed-observation"));
+});
+
+test("canonical Discovery integration preserves stale and special-hours conservative labels", () => {
+  const baseIndex = buildRouteBusinessHoursIndex(businessHoursArtifact);
+  const openRecord = businessHoursArtifact.records.find(record => record.activePoolMember && record.currentOpenClosedEligibilityStatus === "OPEN_VERIFIED");
+  const candidate = fixtureCandidate(9900, openRecord.category, {
+    googlePlaceId: openRecord.googlePlaceId,
+    name: openRecord.businessName,
+    address: openRecord.address
+  });
+  const projectRecord = record => applyCanonicalBusinessHoursEligibilityToDiscoveryCandidates({
+    candidates: [candidate],
+    businessHoursIndex: { ...baseIndex, recordsByPlaceId: new Map([[record.googlePlaceId, record]]) },
+    evaluatedAt: businessHoursArtifact.statusEvaluatedAt
+  }).evaluatedCandidates[0].eligibilitySnapshot;
+  const stale = projectRecord({ ...openRecord, hoursVerifiedAt: "2026-06-01T00:00:00.000Z" });
+  const special = projectRecord({
+    ...openRecord,
+    specialOrHolidayHours: [{
+      date: "2026-07-11",
+      verificationStatus: "UNVERIFIED",
+      periods: null,
+      source: "GOOGLE_PLACES_CURRENT_OPENING_HOURS"
+    }]
+  });
+
+  assert.equal(stale.status, "HOURS_STALE");
+  assert.equal(stale.eligible, true);
+  assert.equal(stale.coverageOnly, true);
+  assert.equal(stale.selectionTier, 1);
+  assert.equal(stale.internalMarker, hoursNotVerifiedMarker);
+  assert.equal(stale.displayLabel, "Hours not verified");
+  assert.equal(stale.reasonCode, "HOURS_SOURCE_STALE");
+  assert.equal(special.status, "SPECIAL_HOURS_UNVERIFIED");
+  assert.equal(special.eligible, true);
+  assert.equal(special.coverageOnly, true);
+  assert.equal(special.selectionTier, 1);
+  assert.equal(special.internalMarker, hoursNotVerifiedMarker);
+  assert.equal(special.displayLabel, "Hours not verified");
+  assert.equal(special.reasonCode, "SPECIAL_HOURS_NOT_VERIFIED");
+});
+
+test("category balancing cannot resurrect canonical closed candidates", () => {
+  const projection = buildCanonicalDiscoveryModeEligibilityProjection();
+  const plan = build(projection.evaluatedCandidates);
+
+  assert.equal(plan.queuePlan.entries.some(entry => entry.eligibilitySnapshot.status === "CLOSED_VERIFIED"), false);
+  assert.equal(plan.queuePlan.entries.some(entry => entry.googlePlaceId === christianBrothersPlaceId), false);
+  assert.equal(plan.queuePlan.candidateValidation.rejectionReasons.closed_verified_excluded, projection.excludedCandidates.length);
+  assert.equal(plan.validation.closedVerifiedExcluded, true);
+  assert.equal(plan.queuePlan.plannedSize, 15);
+  assert.equal(plan.queuePlan.compositionMetrics.minimumDistinctCategoriesSatisfied, true);
 });
 
 test("category taxonomy covers requested industries through configuration", () => {
@@ -160,6 +321,8 @@ test("existing recommendation quality is preserved as an immutable input", () =>
     assert.equal(entry.qualityScoreSnapshot, qualityById.get(entry.candidateId));
     assert.equal(entry.existingScoreChanged, false);
     assert.equal(entry.sourcePool, "active");
+    assert.equal(entry.eligibilitySnapshot.scoringChanged, false);
+    assert.equal(entry.eligibilitySnapshot.explanation.recommendationScore, "UNCHANGED");
   }
   assert.equal(plan.queuePlan.qualityMetrics.existingScoresChanged, false);
   assert.equal(plan.queuePlan.qualityMetrics.qualityFloorRelaxed, false);
@@ -202,6 +365,10 @@ test("every planned stop answers the five explainability questions", () => {
     }
     assert.equal(entry.explanation.internalFormulaExposed, false);
     assert.equal(entry.explanation.proprietaryWeightsExposed, false);
+    for (const field of ["status", "reasonCode", "reason", "hoursConfidence", "hoursFreshness", "businessTimezone", "provenance", "explanation"]) {
+      assert.ok(Object.prototype.hasOwnProperty.call(entry.eligibilitySnapshot, field), `${entry.candidateId}:eligibility:${field}`);
+    }
+    assert.ok(entry.explanation.evidence.includes("Business-hours eligibility"));
   }
   assert.equal(plan.explainabilityModel.internalFormulaExposureAllowed, false);
   assert.equal(plan.explainabilityModel.proprietaryWeightExposureAllowed, false);
@@ -285,6 +452,11 @@ test("contract remains advisory and creates no parallel production queue", () =>
   assert.equal(contract.outputContract.recommendationMutationAuthorized, false);
   assert.equal(contract.activationSafety.recommendationInfluenceActive, false);
   assert.equal(contract.activationSafety.productionQueueConsumerActive, false);
+  assert.equal(contract.eligibilityContract.canonicalImplementation, "intelligence/route-business-hours-eligibility.mjs");
+  assert.equal(contract.eligibilityContract.canonicalVersion, routeBusinessHoursEligibilityVersion);
+  assert.equal(contract.eligibilityContract.balancingOccursAfterEligibility, true);
+  assert.equal(contract.eligibilityContract.closedVerifiedEligible, false);
+  assert.equal(contract.eligibilityContract.eligibilityReimplementationAllowed, false);
   assert.equal(dashboard.includes("discovery-mode-intelligence-v2"), false);
   assert.equal(continuousQueue.includes("discovery-mode-intelligence-v2"), false);
 });

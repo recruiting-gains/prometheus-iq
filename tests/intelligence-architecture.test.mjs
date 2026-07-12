@@ -154,8 +154,12 @@ test("Discovery Mode v2 is a governed advisory composer without production influ
   assert.equal(contract.outputContract.runtimeConsumptionAuthorized, false);
   assert.equal(contract.outputContract.recommendationMutationAuthorized, false);
   assert.equal(contract.compositionContract.fixedRotationAllowed, false);
+  assert.equal(contract.eligibilityContract.canonicalImplementation, "intelligence/route-business-hours-eligibility.mjs");
+  assert.equal(contract.eligibilityContract.balancingOccursAfterEligibility, true);
+  assert.equal(contract.eligibilityContract.closedVerifiedEligible, false);
   assert.equal(config.queueComposition.fixedCategoryRotation, false);
   assert.equal(config.queueComposition.preserveExistingScores, true);
+  assert.equal(config.candidatePolicy.requiresCanonicalBusinessHoursEligibility, true);
   assert.equal(config.evidencePolicy.singleSessionCategoryPreferenceAllowed, false);
   assert.equal(config.activationSafety.recommendationInfluenceActive, false);
   assert.equal(config.activationSafety.routeScoringWeightsChanged, false);
@@ -163,5 +167,8 @@ test("Discovery Mode v2 is a governed advisory composer without production influ
   assert.ok(plan.queuePlan.compositionMetrics.distinctCategoryCount >= 4);
   assert.ok(plan.queuePlan.compositionMetrics.maximumCategoryShare <= 0.27);
   assert.equal(plan.queuePlan.compositionMetrics.duplicateCount, 0);
+  assert.equal(plan.queuePlan.eligibilityMetrics.selectedClosedVerifiedCount, 0);
+  assert.equal(plan.queuePlan.eligibilityMetrics.scoringChanged, false);
+  assert.equal(plan.validation.canonicalBusinessHoursEligibilityPreserved, true);
   assert.equal(plan.validation.productionQueueConsumerActive, false);
 });

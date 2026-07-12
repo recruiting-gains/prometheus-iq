@@ -2,7 +2,7 @@
 
 ## Scope
 
-Discovery Mode Intelligence v2 is an Intelligence-owned, advisory planning layer. It validates how a future Discovery Mode queue can broaden category learning without lowering existing route quality or changing production recommendations.
+Discovery Mode Intelligence v2 is an Intelligence-owned, advisory planning layer. It validates how a future Discovery Mode queue can broaden category learning without lowering existing route quality, bypassing canonical business-hours eligibility, or changing production recommendations.
 
 This phase does not modify Dashboard, Data, CRM, Companion, Website, Active Pool governance, Route IQ scoring weights, or the continuous route queue. No runtime consumer imports the v2 composer.
 
@@ -17,7 +17,7 @@ The Founder finding is a design requirement, not a learned recommendation signal
 The composer sits after existing candidate governance and eligibility:
 
 ```text
-Active Pool + existing route eligibility + immutable quality score
+Active Pool + canonical business-hours eligibility + immutable quality score
                               |
                               v
 Governed category taxonomy and category supply
@@ -34,11 +34,23 @@ Advisory queue plan, explanations, and validation metrics
 
 The composer is not a second runtime queue. A future activation must adapt its category-composition decision into `continuous-adaptive-route-replenishment.mjs` through a separate explicit handoff.
 
+## Canonical Eligibility Integration
+
+Discovery Mode consumes `route-business-hours-eligibility.mjs` directly. It does not assign eligibility, reinterpret hours statuses, or create a second evaluator.
+
+- `OPEN_VERIFIED` candidates are eligible at canonical selection tier 0.
+- `CLOSED_VERIFIED` candidates are excluded before category balancing and cannot be resurrected by a diversity constraint.
+- `HOURS_UNKNOWN`, `HOURS_STALE`, and `SPECIAL_HOURS_UNVERIFIED` remain eligible only as canonical conservative coverage candidates at selection tier 1 with `HOURS_NOT_VERIFIED` labeling.
+- Canonical status, reason code, reason, confidence, freshness, timezone, local evaluation time, provenance, and explanation remain attached to every candidate projection.
+- Existing quality and recommendation scores remain unchanged.
+
+The advisory composer prioritizes the canonical eligibility selection tier before category allocation. Category balancing therefore operates only inside the best currently available governed eligibility tier.
+
 ## Category Balancing Strategy
 
 There is no fixed category rotation. At each bounded selection step, the composer:
 
-1. Keeps only candidates that already passed workspace, operating-profile, route-eligibility, Active Pool, identity, and quality requirements.
+1. Keeps only candidates that already passed workspace, operating-profile, canonical business-hours eligibility, Active Pool, identity, and quality requirements.
 2. Prioritizes enough distinct governed industry categories to reach the configured coverage target when qualified supply exists.
 3. Selects from the category with the lowest current queue concentration.
 4. Uses evidence maturity and verified territory gaps to break category-allocation ties.
@@ -78,13 +90,13 @@ Every planned category exposure answers:
 - What changed since the prior evidence state?
 - What should the representative capture next?
 
-Explanations disclose quality and learning rationale in natural language. They do not expose internal formulas or proprietary weights.
+Explanations disclose quality, canonical hours eligibility, and learning rationale in natural language. They preserve hours confidence, freshness, timezone, reason, and provenance without exposing internal formulas or proprietary weights.
 
 ## Configuration Model
 
 `config/discovery-mode-intelligence-v2.json` governs category aliases, queue size, category concentration, quality floors, evidence-policy inheritance, learning objectives, territory overrides, and explicit relaxation rules. New industries or territory policies are configuration additions; they do not require a fixed code rotation.
 
-Unknown categories are excluded and reported. Unknown workspaces and operating-profile mismatches fail closed. If qualified supply cannot satisfy the target within configured guardrails, the advisory queue is shortened and reports the unmet target instead of inventing a recommendation.
+Unknown categories are excluded and reported. Unknown workspaces, operating-profile mismatches, missing canonical eligibility decisions, and closed verified candidates fail closed. If qualified supply cannot satisfy the target within configured guardrails, the advisory queue is shortened and reports the unmet target instead of inventing a recommendation.
 
 ## Activation Boundary
 

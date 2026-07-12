@@ -27,17 +27,58 @@
     "dashboardRuntimeProjection": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json",
     "readOnlyLearningPolicy": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "readOnlyLearningSnapshot": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "routeBusinessHoursEligibility": "intelligence/route-business-hours-eligibility.mjs",
+    "routeBusinessHoursEligibilityContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "businessHoursArtifact": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
     "continuousRouteQueue": "intelligence/continuous-adaptive-route-replenishment.mjs",
     "recommendationExplainability": "intelligence/contracts/recommendation-explainability-contracts.json",
     "duplicateIdentity": "continuous_adaptive_route_replenishment.routeQueueIdentity"
   },
   "inputContract": {
-    "candidateInput": "post_governance_post_eligibility_candidate_projection",
+    "candidateInput": "post_governance_canonical_business_hours_eligible_candidate_projection",
     "existingScoreTreatment": "immutable_input_snapshot",
     "learningInput": "authorized_read_only_intelligence_snapshot",
     "territoryInput": "explicit_verified_identity_only",
     "categoryInput": "governed_taxonomy_mapping",
     "liveGoogleCalls": false
+  },
+  "eligibilityContract": {
+    "integrationVersion": "discovery-mode-eligibility-integration-repair-v1",
+    "canonicalImplementation": "intelligence/route-business-hours-eligibility.mjs",
+    "canonicalConsumerContract": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+    "canonicalVersion": "route-iq-closed-now-eligibility-v1",
+    "balancingOccursAfterEligibility": true,
+    "openVerifiedEligible": true,
+    "closedVerifiedEligible": false,
+    "uncertainStatuses": [
+      "HOURS_UNKNOWN",
+      "HOURS_STALE",
+      "SPECIAL_HOURS_UNVERIFIED"
+    ],
+    "uncertainStatusPolicy": "canonical_conservative_coverage_tier",
+    "requiredPreservedFields": [
+      "status",
+      "eligible",
+      "coverageOnly",
+      "selectionTier",
+      "internalMarker",
+      "hoursConfidence",
+      "hoursFreshness",
+      "reasonCode",
+      "reason",
+      "evaluatedAt",
+      "businessLocalDate",
+      "businessLocalTime",
+      "businessTimezone",
+      "sourceRetrievedAt",
+      "hoursVerifiedAt",
+      "provenance",
+      "explanation",
+      "displayLabel",
+      "scoringChanged"
+    ],
+    "closedCandidateResurrectionAllowed": false,
+    "eligibilityReimplementationAllowed": false
   },
   "outputContract": {
     "artifactType": "discovery_mode_advisory_queue_plan",
@@ -86,6 +127,9 @@
     "no_route_scoring_weight_change",
     "no_production_recommendation_influence",
     "no_parallel_runtime_route_queue",
+    "no_business_hours_eligibility_bypass",
+    "no_second_eligibility_engine",
+    "no_closed_verified_category_balancing",
     "no_stress_observation_learning_promotion",
     "no_cross_workspace_evidence",
     "no_fixed_category_rotation"
@@ -122,6 +166,18 @@
     "readOnlyLearningPolicy": {
       "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
       "sha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981"
+    },
+    "routeBusinessHoursEligibility": {
+      "path": "intelligence/route-business-hours-eligibility.mjs",
+      "sha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a"
+    },
+    "routeBusinessHoursEligibilityContract": {
+      "path": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
+      "sha256": "b5c4812c9d1d8eb6384b30b939d803b7b5d5486f1b15681972692e78aa3e8e21"
+    },
+    "businessHoursArtifact": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json",
+      "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
     }
   },
   "activationSafety": {

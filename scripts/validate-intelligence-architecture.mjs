@@ -570,6 +570,11 @@ assert(discoveryModeContracts.outputContract.runtimeConsumptionAuthorized === fa
 assert(discoveryModeContracts.outputContract.recommendationMutationAuthorized === false, "Discovery Mode v2 must not authorize recommendation mutation.");
 assert(discoveryModeContracts.compositionContract.fixedRotationAllowed === false, "Discovery Mode v2 must prohibit fixed category rotation.");
 assert(discoveryModeContracts.compositionContract.qualityFloorAuthoritative === true, "Discovery Mode v2 must preserve the quality floor.");
+assert(discoveryModeContracts.eligibilityContract.canonicalImplementation === "intelligence/route-business-hours-eligibility.mjs", "Discovery Mode v2 must reuse canonical business-hours eligibility.");
+assert(discoveryModeContracts.eligibilityContract.canonicalVersion === "route-iq-closed-now-eligibility-v1", "Discovery Mode v2 canonical eligibility version regressed.");
+assert(discoveryModeContracts.eligibilityContract.balancingOccursAfterEligibility === true, "Discovery Mode v2 must balance categories after eligibility.");
+assert(discoveryModeContracts.eligibilityContract.closedVerifiedEligible === false, "Discovery Mode v2 must exclude CLOSED_VERIFIED candidates.");
+assert(discoveryModeContracts.eligibilityContract.eligibilityReimplementationAllowed === false, "Discovery Mode v2 must prohibit a second eligibility engine.");
 assert(discoveryModeContracts.scopePolicy.unknownWorkspaceBehavior === "fail_closed", "Discovery Mode v2 must fail closed for unknown workspaces.");
 assert(discoveryModeContracts.scopePolicy.smoothieDepotInfluence === false, "Discovery Mode v2 must prohibit Smoothie Depot influence.");
 assert(discoveryModeContracts.designEvidence.stressTestObservationConsumedAsLearning === false, "Discovery Mode v2 must not promote stress observations into learned evidence.");
@@ -578,6 +583,9 @@ assert(discoveryModeConfig.queueComposition.targetDistinctCategories >= 6, "Disc
 assert(discoveryModeConfig.queueComposition.minimumDistinctCategories >= 4, "Discovery Mode v2 minimum viable category coverage regressed.");
 assert(discoveryModeConfig.queueComposition.categoryConcentration.maximumShare <= 0.27, "Discovery Mode v2 category concentration ceiling regressed.");
 assert(discoveryModeConfig.queueComposition.preserveExistingScores === true, "Discovery Mode v2 must preserve existing scores.");
+assert(discoveryModeConfig.candidatePolicy.requiresCanonicalBusinessHoursEligibility === true, "Discovery Mode v2 must require canonical business-hours decisions.");
+assert(discoveryModeConfig.candidatePolicy.canonicalEligibilityVersion === discoveryModeContracts.eligibilityContract.canonicalVersion, "Discovery Mode v2 eligibility policy and contract versions must match.");
+assert(discoveryModeConfig.candidatePolicy.closedVerifiedBehavior === "exclude_never_balance", "Discovery Mode v2 CLOSED_VERIFIED policy regressed.");
 assert(discoveryModeConfig.evidencePolicy.thresholdSourcePolicyVersion === readOnlyFieldSessionLearningPolicy.policyVersion, "Discovery Mode v2 must inherit governed learning thresholds.");
 assert(discoveryModeConfig.evidencePolicy.singleSessionCategoryPreferenceAllowed === false, "Discovery Mode v2 must block single-session category preference.");
 assert(discoveryModeConfig.activationSafety.recommendationInfluenceActive === false, "Discovery Mode v2 recommendation influence must remain disabled.");
@@ -588,10 +596,16 @@ assert(discoveryModePlan.queuePlan.compositionMetrics.distinctCategoryCount >= d
 assert(discoveryModePlan.queuePlan.compositionMetrics.maximumCategoryShare <= discoveryModeConfig.queueComposition.categoryConcentration.maximumShare, "Discovery Mode v2 canonical category concentration regressed.");
 assert(discoveryModePlan.queuePlan.compositionMetrics.duplicateCount === 0, "Discovery Mode v2 canonical advisory plan contains duplicates.");
 assert(discoveryModePlan.queuePlan.qualityMetrics.existingScoresChanged === false, "Discovery Mode v2 canonical advisory plan changed candidate scores.");
+assert(discoveryModePlan.discoveryQueueArchitecture.balancingOccursAfterEligibility === true, "Discovery Mode v2 artifact must balance after eligibility.");
+assert(discoveryModePlan.queuePlan.eligibilityMetrics.canonicalVersion === discoveryModeContracts.eligibilityContract.canonicalVersion, "Discovery Mode v2 artifact eligibility version regressed.");
+assert(discoveryModePlan.queuePlan.eligibilityMetrics.selectedClosedVerifiedCount === 0, "Discovery Mode v2 artifact selected CLOSED_VERIFIED candidates.");
+assert(discoveryModePlan.queuePlan.eligibilityMetrics.scoringChanged === false, "Discovery Mode v2 hours eligibility changed scoring.");
+assert(discoveryModePlan.queuePlan.entries.every(entry => entry.eligibilitySnapshot?.status !== "CLOSED_VERIFIED"), "Discovery Mode v2 canonical plan resurrected a closed candidate.");
+assert(discoveryModePlan.queuePlan.entries.every(entry => entry.eligibilitySnapshot?.reasonCode && entry.eligibilitySnapshot?.provenance), "Discovery Mode v2 canonical plan lost eligibility provenance.");
 assert(discoveryModePlan.validation.recommendationInfluenceActive === false, "Discovery Mode v2 canonical plan activated recommendation influence.");
 assert(discoveryModePlan.validation.productionQueueConsumerActive === false, "Discovery Mode v2 canonical plan activated a production queue consumer.");
 assert(discoveryModeIntelligence.includes("export function buildDiscoveryModeAdvisoryPlan"), "Discovery Mode v2 composer export is missing.");
-for (const section of ["Discovery Queue Architecture", "Category Balancing Strategy", "Evidence Thresholds", "Learning Impact", "Explainability Model", "Configuration Model", "Activation Boundary"]) {
+for (const section of ["Discovery Queue Architecture", "Canonical Eligibility Integration", "Category Balancing Strategy", "Evidence Thresholds", "Learning Impact", "Explainability Model", "Configuration Model", "Activation Boundary"]) {
   assert(discoveryModeIntelligenceDoc.includes(section), `Discovery Mode v2 architecture missing ${section}.`);
 }
 assert(fieldFixtures.status === "offline_validation_only", "Field visit fixtures must remain offline_validation_only.");
