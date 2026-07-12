@@ -85,7 +85,10 @@ function publicReport(inspection) {
     developmentStorage: "wrangler_local_kv",
     dataContract: "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
     handoffContract: routeIqEndOfDayHandoffContractId,
-    dashboardTriggerImplemented: false,
+    dashboardProducerStatus: "ACTIVE",
+    dashboardTriggerImplemented: true,
+    dashboardTriggerActivated: true,
+    dashboardProductionState: "dashboard_producer_verified_live",
     intelligenceConsumptionAuthorized: false,
     missingBindingFailsClosed: true,
     workspaceScope: Object.keys(supportedFieldSessionWorkspaces)
@@ -123,12 +126,19 @@ export function inspectRouteIqFieldSessionStoreBinding() {
   assert.equal(dataContract.fieldSessionPersistenceContract.crossWorkspaceReadsAndWritesAllowed, false);
   assert.equal(dataContract.fieldSessionPersistenceContract.appendOnlyRawEvidence, true);
   assert.equal(dataContract.fieldSessionPersistenceContract.commitMarkerWrittenLast, true);
-  assert.equal(dataContract.automaticEndOfDayHandoffContract.dashboardTriggerImplemented, false);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.dashboardTriggerImplemented, true);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.dashboardTriggerActivated, true);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.productionState, "dashboard_producer_verified_live");
+  assert.equal(dataContract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.dashboardTriggerActivated, true);
+  assert.equal(dataContract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.status, "dashboard_producer_verified_live");
   assert.equal(dataContract.consumerRules.intelligence.fieldSessionLearningConsumptionAuthorized, false);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.productionActivationVerification.historicalReplayActivated, false);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.productionActivationVerification.automaticReplayActivated, false);
+  assert.equal(dataContract.automaticEndOfDayHandoffContract.productionActivationVerification.customerDataBackfillActivated, false);
   assert.deepEqual(Object.keys(supportedFieldSessionWorkspaces), ["fitness_connection"]);
   assert.deepEqual(supportedFieldSessionWorkspaces.fitness_connection.protectedWorkspaceIds, ["smoothie_depot"]);
-  assert.equal(workerSource.includes(routeIqEndOfDayHandoffContractId), false, "Dashboard end-of-day trigger must remain unimplemented.");
-  assert.equal(workerSource.includes(routeIqFieldSessionStoreBinding), false, "Worker route logic must not consume the binding before separate authorization.");
+  assert.equal(workerSource.includes("routeIqEndOfDayHandoffContractId"), true, "Dashboard field-session handoff contract must be active in the private Worker.");
+  assert.equal(workerSource.includes("validateFieldSessionStoreBinding(env)"), true, "Dashboard field-session handoff must validate the production Data binding.");
 
   const validRuntime = validateFieldSessionStoreBinding({
     [routeIqFieldSessionStoreBinding]: {

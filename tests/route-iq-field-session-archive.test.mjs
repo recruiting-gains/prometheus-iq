@@ -373,7 +373,7 @@ test("missing bindings, unknown workspaces, and cross-workspace evidence fail cl
   assert.equal(binding.data.size, 0);
 });
 
-test("existing Data contract remains canonical and does not activate Dashboard or Intelligence behavior", () => {
+test("existing Data contract records the live Dashboard producer without activating Intelligence behavior", () => {
   const contract = json("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json");
   const manifest = json(MANIFEST_PATH);
   const routeQuality = json("data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json");
@@ -381,7 +381,14 @@ test("existing Data contract remains canonical and does not activate Dashboard o
   assert.equal(contract.status, "active");
   assert.equal(contract.owningSubsystem, "Prometheus Data");
   assert.equal(contract.automaticEndOfDayHandoffContract.contractId, routeIqEndOfDayHandoffContractId);
-  assert.equal(contract.automaticEndOfDayHandoffContract.dashboardTriggerImplemented, false);
+  assert.equal(contract.automaticEndOfDayHandoffContract.dashboardTriggerImplemented, true);
+  assert.equal(contract.automaticEndOfDayHandoffContract.dashboardTriggerActivated, true);
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionState, "dashboard_producer_verified_live");
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionActivationVerification.verifiedAt, "2026-07-12T02:50:47Z");
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionActivationVerification.verifiedWorker, "prometheus-iq");
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionActivationVerification.verifiedWorkerVersion, "a376d0fa-bddc-498c-8f15-32eb025ee08c");
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionActivationVerification.verifiedDeploymentCommit, "796f59ce7ee91538211f3050dc0b3050889ee935");
+  assert.equal(contract.automaticEndOfDayHandoffContract.productionActivationVerification.activationStatus, "ACTIVE");
   assert.equal(contract.automaticEndOfDayHandoffContract.manualExportBackupMustRemainAvailable, true);
   assert.equal(contract.fieldSessionPersistenceContract.requiredBinding, routeIqFieldSessionStoreBinding);
   assert.equal(contract.fieldSessionPersistenceContract.bindingProvisionedInCurrentRuntimeConfiguration, true);
@@ -392,9 +399,12 @@ test("existing Data contract remains canonical and does not activate Dashboard o
   assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.bindingVerificationStatus, "passed");
   assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.disposableVerification.status, "passed_and_cleaned_up");
   assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.workspaceIsolationVerification.status, "passed");
-  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.dashboardTriggerActivated, false);
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.dashboardTriggerActivated, true);
   assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.intelligenceLearningActivated, false);
-  assert.equal(contract.automaticEndOfDayHandoffContract.status, "data_foundation_ready_pending_dashboard_trigger");
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.automaticReplayActivated, false);
+  assert.equal(contract.fieldSessionPersistenceContract.productionBindingVerification.currentProductionState.customerDataBackfillActivated, false);
+  assert.equal(contract.automaticEndOfDayHandoffContract.status, "dashboard_producer_verified_live");
+  assert.equal(contract.consumerRules.dashboard.automaticEndOfDayTriggerImplemented, true);
   assert.equal(contract.consumerRules.intelligence.fieldSessionLearningConsumptionAuthorized, false);
   assert.equal(contract.consumerRules.intelligence.fieldSessionHistoryMutationAllowed, false);
   assert.equal(contract.workspaceIsolationRules.smoothieDepotMayConsumeFitnessFieldSessions, false);

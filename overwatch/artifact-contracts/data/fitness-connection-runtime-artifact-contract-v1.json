@@ -116,7 +116,7 @@
   },
   "automaticEndOfDayHandoffContract": {
     "contractId": "route-iq-end-of-day-data-handoff-v1",
-    "status": "data_foundation_ready_pending_dashboard_trigger",
+    "status": "dashboard_producer_verified_live",
     "producerSubsystem": "Prometheus Dashboard",
     "consumerSubsystem": "Prometheus Data",
     "requiredWorkspaceId": "fitness_connection",
@@ -143,7 +143,36 @@
       "write_commit_marker_last",
       "prepare_separately_authorized_read_only_intelligence_handoff"
     ],
-    "dashboardTriggerImplemented": false,
+    "dashboardTriggerImplemented": true,
+    "dashboardTriggerActivated": true,
+    "productionState": "dashboard_producer_verified_live",
+    "productionActivationVerification": {
+      "verifiedAt": "2026-07-12T02:50:47Z",
+      "infrastructureVerifiedAt": "2026-07-12T02:46:55Z",
+      "verifiedWorker": "prometheus-iq",
+      "verifiedWorkerVersion": "a376d0fa-bddc-498c-8f15-32eb025ee08c",
+      "verifiedCloudflareVersionNumber": 52,
+      "verifiedDeploymentId": "3824904f-709d-4851-94ea-6bce3b9198bc",
+      "verifiedDeploymentCommit": "796f59ce7ee91538211f3050dc0b3050889ee935",
+      "verifiedTrafficPercentage": 100,
+      "verificationSource": [
+        "Prometheus Infrastructure: Deploy Dashboard End Route / End Day Producer v1",
+        "Overwatch: Independent Verification of Dashboard End Route / End Day Production Deployment v1"
+      ],
+      "verificationMethod": [
+        "cloudflare_authoritative_deployment_and_version_verification",
+        "authenticated_founder_desktop_and_mobile_confirmation_checks",
+        "live_field_session_endpoint_method_gate_verification",
+        "independent_overwatch_read_only_production_verification"
+      ],
+      "activationStatus": "ACTIVE",
+      "manualExportBackupVerified": true,
+      "liveFieldSessionSubmissionPerformed": false,
+      "intelligenceLearningAuthorized": false,
+      "historicalReplayActivated": false,
+      "automaticReplayActivated": false,
+      "customerDataBackfillActivated": false
+    },
     "manualExportBackupMustRemainAvailable": true,
     "dashboardMayWriteDataArtifactsDirectly": false,
     "intelligenceLearningConsumptionAuthorized": false,
@@ -214,11 +243,13 @@
         "workingTreeClean": true
       },
       "currentProductionState": {
-        "status": "binding_verified_live_unused",
+        "status": "dashboard_producer_verified_live",
         "canonicalSessionKeyspaceRecordCount": 0,
-        "dashboardTriggerActivated": false,
+        "dashboardTriggerActivated": true,
         "intelligenceLearningActivated": false,
-        "historicalReplayOrBackfillPerformed": false
+        "historicalReplayOrBackfillPerformed": false,
+        "automaticReplayActivated": false,
+        "customerDataBackfillActivated": false
       },
       "verificationEvidence": {
         "infrastructureTask": "Deploy Route IQ Field Session Store Binding and Verify Production v1",
@@ -276,7 +307,7 @@
       "fixtureOrDemoDataAllowedInProduction": false,
       "maySubmitCompletedFieldSessionThroughContract": true,
       "fieldSessionHandoffContractId": "route-iq-end-of-day-data-handoff-v1",
-      "automaticEndOfDayTriggerImplemented": false,
+      "automaticEndOfDayTriggerImplemented": true,
       "manualTodayReportExportMustRemainAvailable": true
     },
     "crm": {
@@ -361,7 +392,7 @@
     "fieldSessionRawEvidenceMustRemainAppendOnly": true,
     "fieldSessionMissingValuesMayBeInferred": false,
     "fieldSessionDuplicateConflictMayOverwriteRawEvidence": false,
-    "fieldSessionDashboardTriggerActivated": false,
+    "fieldSessionDashboardTriggerActivated": true,
     "fieldSessionIntelligenceLearningActivated": false
   }
 }

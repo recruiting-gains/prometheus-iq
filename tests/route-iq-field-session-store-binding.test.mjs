@@ -75,7 +75,10 @@ test("private Route IQ Worker owns one dedicated field-session binding", () => {
   assert.equal(inspection.report.binding, routeIqFieldSessionStoreBinding);
   assert.equal(inspection.report.publicWorkerBindingPresent, false);
   assert.deepEqual(inspection.report.workspaceScope, ["fitness_connection"]);
-  assert.equal(inspection.report.dashboardTriggerImplemented, false);
+  assert.equal(inspection.report.dashboardProducerStatus, "ACTIVE");
+  assert.equal(inspection.report.dashboardTriggerImplemented, true);
+  assert.equal(inspection.report.dashboardTriggerActivated, true);
+  assert.equal(inspection.report.dashboardProductionState, "dashboard_producer_verified_live");
   assert.equal(inspection.report.intelligenceConsumptionAuthorized, false);
 });
 
