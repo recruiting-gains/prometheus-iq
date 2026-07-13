@@ -63,19 +63,35 @@ test("July 11 archive remains compatible and explicitly excludes unavailable tim
   assert.equal(result.evidence.every(item => item.schemaVersion && item.provenance.sourceRawSha256), true);
 });
 
-test("cutoff is inclusive and future evidence is excluded without leakage", () => {
+test("evidence at the decision timestamp is excluded unless prior availability is separately proven", () => {
   const record = archive();
-  const timestamp = record.normalizedRecord.verifiedFields.completedVisits[0].sourceReport.timestamp;
+  const visit = record.normalizedRecord.verifiedFields.completedVisits[0];
+  const timestamp = visit.sourceReport.timestamp;
+  const sourceRecordId = `${record.normalizedRecord.sessionId}:${visit.visitId}:observed-outcome`;
   const atCutoff = project(record, timestamp);
-  assert.ok(atCutoff.evidence.some(item => item.evidenceTimestamp === timestamp));
+  assert.equal(atCutoff.evidence.some(item => item.evidenceTimestamp === timestamp), false);
+  assert.deepEqual(atCutoff.exclusions.find(item => item.sourceRecordId === sourceRecordId), {
+    sourceRecordId,
+    evidenceKind: "visit_observed_outcome",
+    evidenceTimestamp: timestamp,
+    reason: "at_decision_timestamp_without_prior_availability"
+  });
   assert.ok(atCutoff.exclusions.some(item => item.reason === "after_decision_timestamp"));
-  assert.equal(atCutoff.evidence.every(item => item.evidenceTimestamp <= timestamp), true);
+  assert.equal(atCutoff.evidence.every(item => item.evidenceTimestamp < timestamp), true);
 });
 
 test("corrections and conflicts remain separate append-only outcome observations", () => {
   const record = archive();
   replaceHistory(record, history => {
     history.chronologicalEvidence = [
+      {
+        evidenceKind: "customer_outcome_observation",
+        sourceRecordId: "original-outcome",
+        evidenceTimestamp: "2026-07-12T01:59:00.000Z",
+        context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz", territoryId: null, customerId: "customer-1", customerName: null },
+        payload: { outcome: "original", units: 0 },
+        relation: { type: "original", priorSourceRecordId: null }
+      },
       {
         evidenceKind: "customer_outcome_observation",
         sourceRecordId: "outcome-correction-1",
@@ -95,7 +111,7 @@ test("corrections and conflicts remain separate append-only outcome observations
     ];
   });
   const result = project(record, "2026-07-12T03:00:00.000Z");
-  assert.deepEqual(result.evidence.filter(item => item.sourceRecordId.startsWith("outcome-")).map(item => item.relation.type), ["correction", "conflict"]);
+  assert.deepEqual(result.evidence.filter(item => item.sourceRecordId === "original-outcome" || item.sourceRecordId.startsWith("outcome-")).map(item => item.relation.type), ["original", "correction", "conflict"]);
   assert.ok(result.evidence.some(item => item.evidenceKind === "visit_observed_outcome"));
 });
 
@@ -193,6 +209,7 @@ test("valid late and correction records may reference a prior record outside the
   const record = archive();
   replaceHistory(record, history => {
     history.chronologicalEvidence = [
+      { evidenceKind: "customer_outcome_observation", sourceRecordId: "prior-outside-projection", evidenceTimestamp: "2026-07-13T00:00:00.000Z", context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz" }, payload: { outcome: "future" }, relation: { type: "original", priorSourceRecordId: null } },
       { evidenceKind: "customer_outcome_observation", sourceRecordId: "late-chain", evidenceTimestamp: "2026-07-11T20:00:00.000Z", context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz" }, payload: { outcome: "late" }, relation: { type: "late", priorSourceRecordId: "prior-outside-projection" } },
       { evidenceKind: "customer_outcome_observation", sourceRecordId: "correction-chain", evidenceTimestamp: "2026-07-11T21:00:00.000Z", context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz" }, payload: { outcome: "corrected" }, relation: { type: "correction", priorSourceRecordId: "late-chain" } }
     ];
@@ -202,4 +219,36 @@ test("valid late and correction records may reference a prior record outside the
     { type: "late", priorSourceRecordId: "prior-outside-projection" },
     { type: "correction", priorSourceRecordId: "late-chain" }
   ]);
+  assert.ok(result.exclusions.some(item => item.sourceRecordId === "prior-outside-projection" && item.reason === "after_decision_timestamp"));
+});
+
+test("correction, conflict, and late relations reject nonexistent source records", () => {
+  for (const type of ["correction", "conflict", "late"]) {
+    const record = archive();
+    replaceHistory(record, history => {
+      history.chronologicalEvidence = [{
+        evidenceKind: "customer_outcome_observation",
+        sourceRecordId: `${type}-missing-prior`,
+        evidenceTimestamp: "2026-07-11T20:00:00.000Z",
+        context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz" },
+        payload: { outcome: type },
+        relation: { type, priorSourceRecordId: "does-not-exist" }
+      }];
+    });
+    assert.throws(() => project(record), error => error.code === "field_session_evidence_relation_source_missing"
+      && error.details.priorSourceRecordId === "does-not-exist");
+  }
+
+  const unsupported = archive();
+  replaceHistory(unsupported, history => {
+    history.chronologicalEvidence = [{
+      evidenceKind: "unsupported_outcome_kind",
+      sourceRecordId: "unsupported-correction-missing-prior",
+      evidenceTimestamp: "2026-07-11T20:00:00.000Z",
+      context: { workspaceId: "fitness_connection", operatingProfileId: "fitness", representativeId: "cruz" },
+      payload: null,
+      relation: { type: "correction", priorSourceRecordId: "does-not-exist" }
+    }];
+  });
+  assert.throws(() => project(unsupported), error => error.code === "field_session_evidence_relation_source_missing");
 });

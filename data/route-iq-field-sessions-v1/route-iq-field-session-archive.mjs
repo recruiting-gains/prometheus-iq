@@ -1159,19 +1159,26 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
 
   const included = [];
   const exclusions = [];
-  const seenIds = new Set();
+  const candidateIds = new Set();
+  const preparedCandidates = [];
   for (const candidate of candidates) {
     const id = typeof candidate.sourceRecordId === "string" && candidate.sourceRecordId.trim() ? candidate.sourceRecordId : null;
-    if (!id || seenIds.has(id)) {
+    if (!id || candidateIds.has(id)) {
       throw new FieldSessionArchiveError("Evidence source record IDs must be present and unique.", { code: "field_session_evidence_source_id_invalid", details: { sourceRecordId: id } });
     }
-    seenIds.add(id);
+    candidateIds.add(id);
     const context = candidate.context || {};
     if (context.workspaceId !== record.workspaceId || context.operatingProfileId !== record.operatingProfileId
       || context.representativeId !== representativeId) {
       throw new FieldSessionArchiveError(`Evidence ${id} has cross-scope contamination.`, { code: "field_session_evidence_scope_mismatch", details: { sourceRecordId: id } });
     }
-    if (!routeIqChronologicalEvidenceKinds.includes(candidate.evidenceKind)) {
+    preparedCandidates.push({ candidate, context, id });
+  }
+
+  for (const { candidate, context, id } of preparedCandidates) {
+    const evidenceKindSupported = routeIqChronologicalEvidenceKinds.includes(candidate.evidenceKind);
+    const governedNonOriginalRelation = ["correction", "conflict", "late"].includes(candidate.relation?.type);
+    if (!evidenceKindSupported && !governedNonOriginalRelation) {
       exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind ?? null, reason: "unsupported_evidence_kind" });
       continue;
     }
@@ -1192,11 +1199,25 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
         details: { sourceRecordId: id, relationType: relation?.type ?? null }
       });
     }
+    if (relation.type !== "original" && !candidateIds.has(priorId)) {
+      throw new FieldSessionArchiveError(`Evidence ${id} references a source record that does not exist.`, {
+        code: "field_session_evidence_relation_source_missing",
+        details: { sourceRecordId: id, priorSourceRecordId: priorId }
+      });
+    }
+    if (!evidenceKindSupported) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind ?? null, reason: "unsupported_evidence_kind" });
+      continue;
+    }
     if (candidate.evidenceTimestamp === null || candidate.evidenceTimestamp === undefined) {
       exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, reason: "missing_evidence_timestamp" });
       continue;
     }
     const timestamp = projectionTimestamp(candidate.evidenceTimestamp, `Evidence ${id} timestamp`);
+    if (timestamp.time === cutoff.time) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, evidenceTimestamp: timestamp.iso, reason: "at_decision_timestamp_without_prior_availability" });
+      continue;
+    }
     if (timestamp.time > cutoff.time) {
       exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, evidenceTimestamp: timestamp.iso, reason: "after_decision_timestamp" });
       continue;
