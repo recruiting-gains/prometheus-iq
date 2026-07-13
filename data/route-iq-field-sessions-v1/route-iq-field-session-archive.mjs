@@ -131,7 +131,7 @@ function requireCount(value, label) {
   return value;
 }
 
-function preserveVisitDecisionSource(value, visitNumber) {
+function preserveVisitDecisionSource(value, visitNumber, visitTimestamp) {
   if (value == null || typeof value !== "object" || Array.isArray(value)) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source is required.`, {
       code: "field_session_decision_context_required",
@@ -171,8 +171,18 @@ function preserveVisitDecisionSource(value, visitNumber) {
       details: { visitNumber, sourceId: value.sourceId }
     });
   }
-  requireIso(value.capturedAt, `Visit ${visitNumber} decision source capturedAt`);
+  const capturedAt = requireIso(value.capturedAt, `Visit ${visitNumber} decision source capturedAt`);
+  if (capturedAt !== visitTimestamp) {
+    throw new FieldSessionArchiveError(
+      `Visit ${visitNumber} decision source timestamp must match the completed visit timestamp.`,
+      {
+        code: "field_session_decision_context_timestamp_mismatch",
+        details: { visitNumber, visitTimestamp, capturedAt }
+      }
+    );
+  }
   const preserved = clone(value);
+  preserved.capturedAt = capturedAt;
   if (preserved.sourceId === "unknown") preserved.reason = null;
   return preserved;
 }
@@ -333,7 +343,7 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       units: requireCount(visit.units, `Visit ${index + 1} units`),
       laterUnits: requireCount(visit.laterUnits, `Visit ${index + 1} later units`),
       notes: typeof visit.notes === "string" ? visit.notes : "",
-      visitDecisionSource: preserveVisitDecisionSource(visit.visitDecisionSource, index + 1),
+      visitDecisionSource: preserveVisitDecisionSource(visit.visitDecisionSource, index + 1, timestamp),
       recommendationDecisionContext: preserveRecommendationDecisionContext(visit.recommendationDecisionContext, index + 1),
       gpsAttached: typeof visit.gpsAttached === "boolean" ? visit.gpsAttached : null
     };

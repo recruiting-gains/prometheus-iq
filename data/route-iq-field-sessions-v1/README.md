@@ -28,6 +28,8 @@ For newly normalized field sessions, each canonical `verifiedFields.completedVis
 
 Recommendation IDs are trimmed before validation. `recommendationAvailable: true` requires a non-empty canonical ID, while `false` or `null` requires a null ID. Whitespace-only recommendation IDs and decision evidence fail validation before normalization; accepted and overridden decisions always require the canonical ID.
 
+Decision Source is a post-action observation recorded when the completed visit is submitted. Data requires `visitDecisionSource.capturedAt` to resolve to the same canonical UTC instant as the visit timestamp. It is not a frozen pre-action candidate list and does not contain ranked candidates, probabilities, an evidence cutoff, or a model/rule version. At that timestamp, the chronological projection excludes both Decision Source and the observed outcome; they become eligible as separate historical records only for a strictly later decision cutoff.
+
 The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
 
 ## Chronological shadow-validation evidence
@@ -37,6 +39,12 @@ The immutable July 11 archive remains available through an exact session-ID and 
 Original visit outcomes and any later outcome observations remain distinct records. Governed relations are limited to original, correction, conflict, and late; non-original relations identify a non-empty, non-self source record that must exist in the complete candidate set, but never replace it. The referenced record may sit outside the projection cutoff. Missing timestamps, evidence at the unproven decision boundary, and evidence after the cutoff are explicitly excluded; non-round-tripping calendar timestamps, uncommitted or mismatched commit markers, invalid scope, duplicate source IDs, malformed or dangling relations, cross-representative contamination, and source-byte/hash mismatches fail closed. Candidate scope is validated before unsupported kinds are reported as exclusions. The projection is deeply immutable and its stable SHA-256 makes repeated reads comparable.
 
 This interface supplies evidence only. It does not create recommendations, calculate readiness, replay or backfill sessions, call Google, mutate scoring, or authorize production learning. The July 11 artifacts are unchanged and legitimately contain timestamp-related exclusions.
+
+## BATCH-20260713-002 owner revalidation
+
+Prometheus Data revalidated the cumulative canonical state introduced by `fc8f9c6a8acf04a80e4d5f93485225dfefea9407`, `232e192a9fa5a14641d411896d43a0495a46ae01`, and `13c0bbfb72b72e1b492369fdfe896fffbddefaa6` against frozen integrated base `18ed83effdca1219729e4e71f452eeea8c3b273b`. The previously reported cross-subsystem contract mismatch is closed in that integrated tree: canonical artifact-contract validation passes without modifying an Overwatch-owned contract.
+
+The revalidation preserves the July 11 raw and normalized archive bytes, the exact-hash legacy read exception, append-only retry/replay behavior, workspace and representative isolation, and strict chronological projection. It adds the prospective timestamp invariant above so visit-completion context cannot be backdated and mistaken for evidence available before the representative acted.
 
 ## Governance
 

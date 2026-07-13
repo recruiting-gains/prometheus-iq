@@ -87,6 +87,7 @@
   "$defs": {
     "completedVisit": {
       "type": "object",
+      "description": "Prospective normalized visits require post-action decision context. Runtime validation binds visitDecisionSource.capturedAt to the completed visit timestamp; this record is not a pre-action candidate snapshot.",
       "required": ["visitDecisionSource", "recommendationDecisionContext"],
       "properties": {
         "visitDecisionSource": { "$ref": "#/$defs/visitDecisionSource" },
@@ -128,7 +129,11 @@
           }
         },
         "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-        "capturedAt": { "type": "string", "format": "date-time" }
+        "capturedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Post-action capture time. Runtime validation requires canonical equality with sourceReport.timestamp."
+        }
       },
       "allOf": [
         {
