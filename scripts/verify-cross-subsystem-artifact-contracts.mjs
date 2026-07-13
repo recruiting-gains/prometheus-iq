@@ -94,7 +94,26 @@ function validateRegistryShape(registry, failures) {
     assert(value === true, `Global artifact contract rule ${rule} must remain true.`, failures);
   }
 
+  assert(Array.isArray(registry.governanceArtifacts), "Registry must define governanceArtifacts.", failures);
   assert(Array.isArray(registry.workspaces) && registry.workspaces.length > 0, "Registry must define at least one workspace.", failures);
+}
+
+function validateGovernanceArtifacts(registry, failures) {
+  for (const artifact of registry.governanceArtifacts || []) {
+    assert(artifact.artifactId, "Governance artifact missing artifactId.", failures);
+    assert(artifact.ownerSubsystem === "Prometheus Overwatch", `${artifact.artifactId} must be Overwatch-owned.`, failures);
+    assert(artifact.path, `${artifact.artifactId} missing path.`, failures);
+    assert(exists(artifact.path), `${artifact.artifactId} path does not exist: ${artifact.path}`, failures);
+    assert(exists(artifact.documentationPath), `${artifact.artifactId} documentation path does not exist: ${artifact.documentationPath}`, failures);
+    assert(
+      Array.isArray(artifact.writeAllowed) && artifact.writeAllowed.length === 1 && artifact.writeAllowed[0] === "Prometheus Overwatch",
+      `${artifact.artifactId} must allow writes only by Prometheus Overwatch.`,
+      failures
+    );
+    assert(Array.isArray(artifact.readAllowed) && artifact.readAllowed.includes("Prometheus Overwatch"), `${artifact.artifactId} must be readable by Overwatch.`, failures);
+    assert(artifact.productionConsumer === false, `${artifact.artifactId} must not be a production consumer.`, failures);
+    assert(artifact.failClosedIfMissing === true, `${artifact.artifactId} must fail closed if missing.`, failures);
+  }
 }
 
 function validateCanonicalArtifacts(registry, failures) {
@@ -1638,6 +1657,7 @@ export function verifyCrossSubsystemArtifactContracts() {
   const complianceAudit = readJson(complianceAuditPath);
 
   validateRegistryShape(registry, failures);
+  validateGovernanceArtifacts(registry, failures);
   validateCanonicalArtifacts(registry, failures);
   validateFixturePolicy(registry, failures);
   validateSubsystemWorkspaceComplianceAudit(complianceAudit, failures);
@@ -1693,7 +1713,8 @@ if (invokedPath === new URL(import.meta.url).pathname) {
   }
 
   const workspaceCount = result.registry.workspaces.length;
-  const artifactCount = result.registry.workspaces.reduce((count, workspace) => count + workspace.canonicalArtifacts.length, 0);
+  const artifactCount = result.registry.governanceArtifacts.length
+    + result.registry.workspaces.reduce((count, workspace) => count + workspace.canonicalArtifacts.length, 0);
   const auditedSubsystemCount = result.complianceAudit.subsystems.length;
   const auditedWorkspaceCount = result.complianceAudit.workspaces.length;
   console.log(`Cross-subsystem artifact contracts verified: ${workspaceCount} registered workspace(s), ${artifactCount} canonical artifact(s), ${auditedSubsystemCount} subsystem(s) audited, ${auditedWorkspaceCount} workspace(s) audited, workspace isolation preserved.`);

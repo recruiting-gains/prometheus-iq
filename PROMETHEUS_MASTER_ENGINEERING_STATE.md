@@ -167,7 +167,7 @@ Before every engineering task, identify:
 
 ## Required Subsystem Completion Format
 
-Every engineering subsystem must end with:
+Every implementation task runs inside one Founder-authorized Engineering Batch. Each participating subsystem must freeze its owned work, run its applicable validation, create meaningful owner-attributed local commits, and return automatically to Overwatch using:
 
 ```text
 OVERWATCH HANDOFF
@@ -183,18 +183,32 @@ Remaining blockers:
 Next recommended subsystem:
 ```
 
+Subsystems never push and never deploy. Overwatch is the sole push authority and independently verifies every integrated batch.
+
+## Automatic Commit and Push Governance
+
+The permanent policy is `overwatch/governance/verified-engineering-batch-auto-push-v1.json`, with human operating guidance in `overwatch/governance/verified-engineering-batch-auto-push-v1.md` and enforcement through `scripts/verify-overwatch-auto-push-governance.mjs`.
+
+For a Founder-authorized Engineering Directive, subsystem owners may create meaningful local commits for their owned work. After all owner handoffs are integrated, Overwatch may automatically perform one normal fast-forward push to `origin/main` only when the exact candidate HEAD and tree are frozen, all applicable gates pass against that exact candidate, every commit is owned and reversible, the repository is completely clean, the remote still matches the expected base, and the push cannot trigger deployment or another unauthorized external action.
+
+Production deployment always requires separate Founder approval naming the exact commit, tree, environment, release scope, and rollback plan. Recommendation influence, representative-facing shadow recommendations, material behavior or privacy changes, new architecture or vendors, destructive migration, public publication, material security-boundary changes, legal/IP commitments, incomplete gates, and out-of-scope work require explicit Founder review unless the governing directive already authorized the specific decision.
+
+`INSUFFICIENT_EVIDENCE` can be the correct product-readiness state for an engineering batch that is otherwise safe to commit and push. It is not recommendation readiness.
+
 ## Overwatch Intake Procedure
 
 When an `OVERWATCH HANDOFF` is received:
 
 1. Validate the handoff has all required fields.
-2. Identify the owning subsystem and any cross-subsystem dependencies.
-3. Update this master engineering state.
-4. Record completed work in the completed work log.
-5. Mark duplicate-prone areas so future sessions reuse existing work.
-6. Determine whether another subsystem must continue the work.
-7. If another subsystem is needed, create a clear next task for that subsystem.
-8. If no dependency exists, recommend the highest-priority engineering task.
+2. Confirm the Batch ID, Founder-authorized directive, owning subsystem, changed files, tests, commit, and dependency position.
+3. Reject implementation ownership violations and unrelated or unexplained commits.
+4. Integrate owner commits in the Overwatch-defined dependency order.
+5. Commit any Overwatch-owned governance, verification, reporting, or release-gate work.
+6. Freeze the exact final HEAD and tree and run the complete applicable suite.
+7. Produce and exercise the required forward-revert manifest when the policy requires it.
+8. Fetch and verify the expected remote base, normal fast-forward relationship, and absence of automatic deployment or unauthorized external action.
+9. Return `FOUNDER_REVIEW_REQUIRED`, `PUSH_BLOCKED`, or another failure status when any policy gate requires it.
+10. If eligible, push the exact verified range once, complete post-push verification, and return one consolidated Engineering Batch Report.
 
 ## Active Dependency Tracker
 

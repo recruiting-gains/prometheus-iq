@@ -13,6 +13,20 @@
     "workspaceIsolationRequired": true,
     "customerSpecificGlobalStateProhibited": true
   },
+  "governanceArtifacts": [
+    {
+      "artifactId": "verified-engineering-batch-automatic-commit-push-governance-v1",
+      "artifactType": "overwatch_engineering_release_governance",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "path": "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+      "documentationPath": "overwatch/governance/verified-engineering-batch-auto-push-v1.md",
+      "schema": "VerifiedEngineeringBatchAutomaticCommitPushGovernanceV1",
+      "writeAllowed": ["Prometheus Overwatch"],
+      "readAllowed": ["Prometheus Overwatch"],
+      "productionConsumer": false,
+      "failClosedIfMissing": true
+    }
+  ],
   "workspaces": [
     {
       "workspaceId": "smoothie_depot",

@@ -1,0 +1,257 @@
+{
+  "policyId": "verified-engineering-batch-automatic-commit-push-governance-v1",
+  "version": "1.0.0",
+  "status": "active_after_verified_origin_installation",
+  "permanence": "permanent_until_revoked_or_superseded_by_founder",
+  "owningSubsystem": "Prometheus Overwatch",
+  "installationBatchId": "BATCH-20260713-003",
+  "founderDirective": "Verified Engineering Batch Automatic Commit + Push Governance v1",
+  "purpose": "Allow exact-version verified Engineering Batches to be committed by their owners and fast-forward pushed by Overwatch without routine per-batch Founder push approval while retaining Founder authority over deployment and material decisions.",
+  "activation": {
+    "authorizedStartingCommit": "e17ca09ee3c2bb691f2d6ebd00080160966cd810",
+    "authorizedStartingTree": "5381d35cffd3b95ce8c84056daca0c917147646b",
+    "requiresExactVersionVerification": true,
+    "requiresNormalFastForwardPush": true,
+    "requiresPostPushVerification": true,
+    "finalExternalStatus": "POLICY_ACTIVE_AUTO_PUSH_COMPLETE"
+  },
+  "supersession": {
+    "routineSeparateFounderPushApprovalSuperseded": true,
+    "deploymentAuthorityChanged": false,
+    "FounderDeploymentApprovalAlwaysRequired": true,
+    "FounderMayRevokeRestrictSuspendOrSupersede": true
+  },
+  "roles": {
+    "Founder": [
+      "authorizes_engineering_directives",
+      "approves_deployments",
+      "approves_material_product_decisions",
+      "may_revoke_or_supersede_this_policy"
+    ],
+    "ChiefArchitect": [
+      "defines_architecture_objective_boundaries_and_roi",
+      "does_not_independently_authorize_implementation"
+    ],
+    "PrometheusOverwatch": [
+      "creates_one_engineering_batch",
+      "dispatches_to_existing_subsystem_owners",
+      "independently_verifies_integrated_batch",
+      "owns_governance_release_management_push_and_post_push_verification"
+    ],
+    "SubsystemOwners": [
+      "implement_only_owned_work",
+      "test_and_create_meaningful_local_commits",
+      "return_commits_and_evidence_to_overwatch",
+      "never_push",
+      "never_deploy"
+    ]
+  },
+  "workflow": [
+    "founder_authorizes_engineering_directive",
+    "chief_architect_defines_architecture_and_boundaries",
+    "overwatch_creates_one_engineering_batch",
+    "overwatch_dispatches_by_ownership_and_dependency",
+    "subsystems_implement_test_commit_and_return",
+    "overwatch_independently_verifies_exact_integrated_batch",
+    "overwatch_fast_forward_pushes_only_when_auto_push_eligible",
+    "overwatch_performs_post_push_verification",
+    "overwatch_returns_one_engineering_batch_report",
+    "founder_reviews_deployment_material_decisions_and_next_roi"
+  ],
+  "standingCommitAuthorization": {
+    "enabledForFounderAuthorizedDirectives": true,
+    "subsystemsMayCreateOwnedLocalCommits": true,
+    "subsystemsMayPush": false,
+    "subsystemsMayDeploy": false,
+    "requirements": [
+      "inside_authorized_directive",
+      "correct_owner_attribution",
+      "no_unrelated_work",
+      "applicable_tests_included",
+      "no_secrets_or_unauthorized_information",
+      "dependency_order_preserved",
+      "safe_forward_revert_path"
+    ],
+    "overwatchCommitScope": [
+      "overwatch_governance",
+      "overwatch_verification",
+      "overwatch_reporting",
+      "overwatch_release_gates"
+    ]
+  },
+  "standingPushAuthorization": {
+    "enabled": true,
+    "authorizedPusher": "Prometheus Overwatch",
+    "target": "origin/main",
+    "founderDirectiveMustBeDirectlySubmittedApprovedOrOrdered": true,
+    "chiefArchitectDraftAloneIsAuthorization": false,
+    "exactlyOneBatchMayPushAtATime": true,
+    "normalFastForwardOnly": true
+  },
+  "automaticPushRequirements": {
+    "insideFounderAuthorizedDirective": true,
+    "everyCommitMappedToCorrectOwner": true,
+    "noBlockedFailedUnrelatedUnapprovedOrUnexplainedCommit": true,
+    "ownershipAndProvenanceVerified": true,
+    "directiveAcceptanceCriteriaPass": true,
+    "applicableQualityAndSecurityGatesPass": true,
+    "allTrackedChangesCommittedBeforeFinalVerification": true,
+    "exactFinalHeadAndTreeFrozen": true,
+    "completeApplicableSuitePassesAgainstExactCandidate": true,
+    "headAndTreeUnchangedAcrossVerification": true,
+    "workingTreeCompletelyClean": true,
+    "everyCommitHasDocumentedForwardRevertPath": true,
+    "pushCannotTriggerUnauthorizedExternalAction": true,
+    "recommendationInfluenceRemainsAuthorized": true
+  },
+  "requiredGateFamilies": [
+    "directive_acceptance",
+    "security",
+    "secret_scan",
+    "aegis",
+    "contracts",
+    "workspace_isolation",
+    "lint",
+    "typecheck",
+    "build",
+    "diff_integrity",
+    "index_integrity",
+    "git_integrity",
+    "ownership",
+    "release"
+  ],
+  "founderReviewRequired": {
+    "status": "FOUNDER_REVIEW_REQUIRED",
+    "triggers": [
+      "production_deployment",
+      "recommendation_influence",
+      "representative_facing_shadow_recommendations",
+      "automated_business_actions",
+      "new_or_materially_changed_representative_or_customer_behavior",
+      "mandatory_workflow_changes",
+      "new_pii_collection",
+      "material_privacy_tracking_retention_permission_or_data_sharing_change",
+      "new_subsystem_or_major_architecture",
+      "new_production_event_architecture",
+      "new_vendor_model_provider_external_service_or_material_recurring_cost",
+      "destructive_migration_or_historical_archive_rewrite",
+      "material_authentication_authorization_or_security_boundary_change",
+      "public_release_or_external_publication",
+      "material_legal_licensing_or_intellectual_property_commitment",
+      "waived_failed_or_incomplete_verification_gate",
+      "work_outside_authorized_directive"
+    ],
+    "broadOrUnrelatedDirectiveMayImplyAuthorization": false
+  },
+  "deploymentPolicy": {
+    "separateFounderApprovalAlwaysRequired": true,
+    "requiredApprovalFields": [
+      "exact_commit",
+      "exact_tree",
+      "environment",
+      "release_scope",
+      "rollback_plan"
+    ],
+    "githubPushIsDeploymentApproval": false,
+    "automaticDeploymentFromPushProhibited": true
+  },
+  "exactVersionVerification": {
+    "recordBeforePush": [
+      "candidate_head",
+      "candidate_tree",
+      "expected_origin_main_base",
+      "exact_outgoing_commit_range"
+    ],
+    "requiredSequence": [
+      "run_complete_applicable_suite_against_exact_candidate",
+      "confirm_head_and_tree_unchanged",
+      "confirm_no_tracked_change_after_verification",
+      "fetch_origin_immediately_before_push",
+      "confirm_origin_main_equals_expected_base",
+      "confirm_normal_fast_forward",
+      "confirm_no_git_or_cloudflare_auto_deployment_integration"
+    ],
+    "remoteMovementAction": "PUSH_BLOCKED",
+    "trackedChangeAfterVerificationInvalidatesVerification": true,
+    "trackedFinalHeadReportMayBeModifiedAfterVerification": false,
+    "finalHashesRecordedInExternalHandoff": true
+  },
+  "pushRules": {
+    "onlyOverwatchMayPush": true,
+    "oneBatchAtATime": true,
+    "exactVerifiedRangeOnly": true,
+    "unrelatedCommitsAllowed": false,
+    "forcePushAllowed": false,
+    "amendAllowed": false,
+    "historyRewriteAllowed": false,
+    "squashAllowed": false,
+    "rebaseAllowed": false,
+    "dropOrReorderAllowed": false,
+    "branchProtectionBypassAllowed": false,
+    "remoteBranchDeletionAllowed": false,
+    "publicReleaseCreationAllowed": false,
+    "remoteSettingsChangeAllowed": false
+  },
+  "rollbackPolicy": {
+    "manifestRequiredBeforePush": true,
+    "manifestFields": [
+      "every_outgoing_commit",
+      "reverse_rollback_order",
+      "owning_subsystem",
+      "expected_pre_release_commit_and_tree",
+      "safe_forward_revert_procedure",
+      "data_and_contract_considerations"
+    ],
+    "forwardRevertCommitsOnly": true,
+    "resetAllowed": false,
+    "forcePushAllowed": false,
+    "remoteHistoryRewriteAllowed": false,
+    "isolatedRollbackExerciseRequiredFor": [
+      "runtime",
+      "data",
+      "security",
+      "contract",
+      "migration",
+      "cross_subsystem"
+    ]
+  },
+  "postPushVerification": {
+    "requiredChecks": [
+      "origin_main_equals_candidate_head",
+      "remote_tree_equals_candidate_tree",
+      "local_and_origin_synchronized_zero_zero",
+      "working_tree_clean",
+      "no_additional_commit",
+      "no_deployment",
+      "no_production_migration",
+      "no_unauthorized_external_action",
+      "recommendation_influence_remains_authorized"
+    ],
+    "failureStatus": "POST_PUSH_VERIFICATION_FAILED",
+    "failureSuspendsFurtherAutomaticPushes": true,
+    "historyRewriteOnFailureAllowed": false,
+    "governedRepairOrForwardRevertRequired": true
+  },
+  "finalReleaseStatuses": [
+    "AUTO_PUSH_COMPLETE",
+    "BATCH_PASS_NO_PUSH_REQUIRED",
+    "FOUNDER_REVIEW_REQUIRED",
+    "PUSH_BLOCKED",
+    "BATCH_FAILED",
+    "POST_PUSH_VERIFICATION_FAILED"
+  ],
+  "productReadinessSemantics": {
+    "insufficientEvidenceMayCoexistWithAutoPushEligibility": true,
+    "insufficientEvidenceMayBeCalledRecommendationReadiness": false,
+    "engineeringReleaseStatusSeparateFromProductReadiness": true
+  },
+  "installationBoundary": {
+    "overwatchOwnedChangesOnly": true,
+    "newSubsystemCreated": false,
+    "parallelGovernanceSystemCreated": false,
+    "deploymentAuthorized": false,
+    "recommendationInfluenceActivationAuthorized": false,
+    "productionDataMutationAuthorized": false,
+    "prospectiveShadowEvidenceCollectionAuthorized": false
+  }
+}

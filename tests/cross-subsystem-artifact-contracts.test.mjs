@@ -16,6 +16,20 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
   assert.equal(result.ok, true, result.failures.join("\n"));
   assert.equal(result.registry.contractId, "prometheus-cross-subsystem-artifact-contract-v1");
   assert.equal(result.registry.owningSubsystem, "Prometheus Overwatch");
+  assert.deepEqual(result.registry.governanceArtifacts, [
+    {
+      artifactId: "verified-engineering-batch-automatic-commit-push-governance-v1",
+      artifactType: "overwatch_engineering_release_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+      documentationPath: "overwatch/governance/verified-engineering-batch-auto-push-v1.md",
+      schema: "VerifiedEngineeringBatchAutomaticCommitPushGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
+    }
+  ]);
 });
 
 test("Cross-subsystem artifact registry records current incomplete links and fixture policy", () => {

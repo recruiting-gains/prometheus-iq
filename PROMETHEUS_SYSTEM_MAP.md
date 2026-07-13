@@ -8,6 +8,16 @@ This document is a reference map only. It does not move folders, redesign archit
 
 Every future Prometheus task should identify its primary workstream before work begins. If a request touches multiple workstreams, the session should name the boundaries clearly and avoid mixing unrelated changes in one commit.
 
+## Verified Engineering Batch Automatic Commit + Push Governance v1
+
+The permanent Engineering Batch release policy is defined by `overwatch/governance/verified-engineering-batch-auto-push-v1.json`, documented by `overwatch/governance/verified-engineering-batch-auto-push-v1.md`, registered in `overwatch/artifact-contracts/canonical-artifact-registry.json`, and enforced by `scripts/verify-overwatch-auto-push-governance.mjs`.
+
+Founder-authorized Engineering Directives become one Overwatch batch. Subsystems implement, test, and create meaningful local commits only for their owned work, then return automatically to Overwatch. Subsystems never push or deploy. Overwatch verifies ownership, the exact final HEAD and tree, the complete applicable suite, clean repository state, rollback, remote fast-forward safety, and absence of automatic deployment or other unauthorized external action.
+
+When every automatic-push gate passes, Overwatch may perform one normal fast-forward push of the exact verified batch to `origin/main` without routine separate Founder push approval. Production deployment always requires separate Founder approval naming the exact commit, tree, environment, scope, and rollback plan. Material product, behavior, privacy, architecture, vendor, security-boundary, legal, publication, migration, or recommendation-influence decisions return `FOUNDER_REVIEW_REQUIRED` unless clearly authorized by the governing directive.
+
+`INSUFFICIENT_EVIDENCE` may be a correct product-readiness result while an engineering batch is auto-push eligible. It must never be described as recommendation readiness.
+
 ## Workspace Isolation Rule
 
 Every customer operates inside an isolated Prometheus Workspace.
