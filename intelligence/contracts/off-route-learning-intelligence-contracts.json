@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "29de513d35f785bf5bd415db60bd5988a52bdf21b9c9a8f4b218d3f63159cdcd",
+    "contractSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -101,9 +101,9 @@
     "parseNotesIntoDecisionSource": false
   },
   "protectedBehaviorBaselines": {
-    "dashboardSource": {"path": "index.html", "sha256": "21c2cafdefcfe4422e01416a49cfb670f014b459d84a92db27e609ae58c19bcc"},
-    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "21c2cafdefcfe4422e01416a49cfb670f014b459d84a92db27e609ae58c19bcc"},
-    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "2218b75e1a616ababaa1878b96f54037dadab46aae3fec472e659e81d3398f03"},
+    "dashboardSource": {"path": "index.html", "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"},
+    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1"},
     "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
     "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}

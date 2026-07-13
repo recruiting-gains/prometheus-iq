@@ -23,6 +23,8 @@ const requiredFiles = [
   "intelligence/discovery-mode-intelligence-v2.md",
   "intelligence/nearby-context-intelligence-v2.mjs",
   "intelligence/nearby-context-intelligence-v2.md",
+  "intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs",
+  "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -119,6 +121,7 @@ const discoveryModePlan = readJson("intelligence/artifacts/discovery-mode-intell
 const nearbyContextContracts = readJson("intelligence/contracts/nearby-context-intelligence-v2-contracts.json");
 const nearbyContextConfig = readJson("intelligence/config/nearby-context-intelligence-v2.json");
 const nearbyContextAudit = readJson("intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json");
+const legacyProvenanceEvidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -810,6 +813,29 @@ assert(adaptiveReplenishmentContracts.candidatePolicy.primaryPool === "active", 
 assert(adaptiveReplenishmentContracts.candidatePolicy.fallbackPool === "full", "Adaptive route replenishment must preserve Full Pool fallback.");
 assert(adaptiveReplenishmentContracts.candidatePolicy.liveGoogleCalls === false, "Adaptive route replenishment must preserve zero live Google calls.");
 assert(readme.includes("Duplicate Prevention"), "Intelligence README must include duplicate-prevention guidance.");
+assert(legacyProvenanceEvidence.batchId === "BATCH-20260713-002", "Intelligence provenance evidence must identify the owner-repair batch.");
+assert(legacyProvenanceEvidence.status === "LEGACY_PROVENANCE_GAP", "Legacy mixed ownership must remain explicitly disclosed.");
+assert(legacyProvenanceEvidence.legacyCommit === "049cf583b04900b2cbf38bbffc5f6293252365d0", "Intelligence provenance evidence must identify the mixed-ownership commit.");
+assert(legacyProvenanceEvidence.ownershipStatement.includes("does not claim retroactive Intelligence ownership"), "Intelligence provenance evidence must reject a retroactive ownership claim.");
+assert(legacyProvenanceEvidence.contracts.length === 4, "Intelligence provenance evidence must reconstruct all four affected contracts.");
+assert(legacyProvenanceEvidence.contracts.every(contract => contract.canonicalAfterRepairRawSha256 === contract.reconstructedRawSha256), "Every reconstructed Intelligence contract must prove its post-repair canonical raw hash.");
+assert(legacyProvenanceEvidence.contracts.every(contract => contract.canonicalAfterRepairSemanticSha256 === contract.reconstructedSemanticSha256), "Every reconstructed Intelligence contract must prove its post-repair canonical semantic hash.");
+assert(legacyProvenanceEvidence.contracts.every(contract => contract.byteIdenticalAfterRepair === true), "Every reconstructed Intelligence contract must be byte-identical after repair.");
+assert(legacyProvenanceEvidence.contracts.every(contract => contract.semanticIdenticalAfterRepair === true), "Every reconstructed Intelligence contract must be semantically identical after repair.");
+assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract => contract.canonicalAfterRepairRawSha256 === contract.reconstructedRawSha256), "Every additional protected Intelligence consumer must prove its post-repair canonical raw hash.");
+assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract => contract.canonicalAfterRepairSemanticSha256 === contract.reconstructedSemanticSha256), "Every additional protected Intelligence consumer must prove its post-repair canonical semantic hash.");
+assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract => contract.byteIdenticalAfterRepair === true && contract.semanticIdenticalAfterRepair === true), "Every additional protected Intelligence consumer must be byte- and semantic-identical after repair.");
+assert(legacyProvenanceEvidence.protectedConsumerInventory.includes("intelligence/contracts/shadow-decision-readiness-contracts.json"), "Protected-consumer inventory must include shadow readiness.");
+assert(legacyProvenanceEvidence.methodologyConstraints.requiredEvaluationOutcomes === "97 eligible, linked, scoreable evaluation outcomes after exclusions", "Provenance evidence must preserve the exact 97-outcome methodology.");
+assert(legacyProvenanceEvidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview === false, "The 97-outcome minimum alone must not authorize Founder review eligibility.");
+assert(legacyProvenanceEvidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins === 100, "Five populated calibration bins must require at least 100 supported observations.");
+assert(legacyProvenanceEvidence.methodologyConstraints.sparseOrEmptyBinsMayBypassCoverage === false, "Sparse or empty calibration bins must not bypass evidence gates.");
+assert(legacyProvenanceEvidence.methodologyConstraints.causalUpliftOrRecommendationSuperiorityClaimAllowed === false, "Observational evidence must not claim causal uplift or recommendation superiority.");
+assert(legacyProvenanceEvidence.safety.recommendationInfluence === "OFF", "Provenance repair must keep recommendation influence off.");
+assert(legacyProvenanceEvidence.safety.routeScoringChanged === false, "Provenance repair must not change route scoring.");
+assert(legacyProvenanceEvidence.safety.routeGenerationChanged === false, "Provenance repair must not change route generation.");
+assert(legacyProvenanceEvidence.safety.representativeExposureChanged === false, "Provenance repair must not change representative exposure.");
+assert(legacyProvenanceEvidence.safety.prospectiveShadowCollectionStarted === false, "Provenance repair must not begin prospective shadow collection.");
 assert(readme.includes("Future canonical archived-session learning must extend"), "Intelligence README must preserve archived-session learning duplicate prevention.");
 assert(systemMap.includes("Adaptive Outside Sales Intelligence Engine"), "System map must reference the Adaptive Outside Sales Intelligence Engine foundation.");
 assert(systemMap.includes("Do not create a second learning engine"), "System map must preserve Intelligence duplicate-prevention language.");

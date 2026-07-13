@@ -1,12 +1,25 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import {
+  batchId as provenanceBatchId,
+  legacyProvenanceGapCommit,
+  provenanceStatus,
+  reconstructLegacyProtectedContracts
+} from "../intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
+const sha256 = path => createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+const git = args => {
+  const result = spawnSync("git", args, {cwd: root, encoding: "utf8"});
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  return result.stdout.trim();
+};
 
 test("intelligence architecture validation gate passes", () => {
   const result = spawnSync("node", ["scripts/validate-intelligence-architecture.mjs"], {
@@ -243,4 +256,94 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
   assert.equal(audit.identityIntegrationRegression.aliasProbe.relationshipInferenceInputCount, 1);
   assert.equal(audit.identityIntegrationRegression.aliasProbe.shoppingCenterInferenceSatisfied, false);
   assert.equal(audit.identityIntegrationRegression.multiTenantProbe.resultCount, 2);
+});
+
+test("legacy mixed-ownership Intelligence contracts have independently derived owner evidence", () => {
+  const evidencePath = "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
+  const evidence = readJson(evidencePath);
+  const reconstruction = reconstructLegacyProtectedContracts();
+  const expectedPaths = [
+    "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+    "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+    "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+    "intelligence/contracts/read-only-field-session-learning-contracts.json"
+  ].sort();
+
+  assert.equal(evidence.batchId, provenanceBatchId);
+  assert.equal(evidence.status, provenanceStatus);
+  assert.equal(evidence.legacyCommit, legacyProvenanceGapCommit);
+  assert.match(evidence.ownershipStatement, /does not claim retroactive Intelligence ownership/);
+  assert.deepEqual(evidence.contracts.map(contract => contract.path).sort(), expectedPaths);
+  assert.deepEqual(reconstruction.contracts.map(contract => contract.path).sort(), expectedPaths);
+  assert.deepEqual(evidence.protectedConsumerInventory, reconstruction.discoveredProtectedConsumers);
+
+  const evidenceByPath = new Map(evidence.contracts.map(contract => [contract.path, contract]));
+  for (const contract of reconstruction.contracts) {
+    const recorded = evidenceByPath.get(contract.path);
+    assert.ok(recorded, contract.path);
+    assert.equal(contract.semanticIdentical, true, contract.path);
+    assert.equal(contract.byteIdentical, true, contract.path);
+    assert.equal(contract.preGapMatchesSourceCommit, true, contract.path);
+    assert.equal(recorded.reconstructedRawSha256, contract.reconstructedRawSha256, contract.path);
+    assert.equal(recorded.reconstructedSemanticSha256, contract.reconstructedSemanticSha256, contract.path);
+    assert.equal(recorded.canonicalAfterRepairRawSha256, contract.reconstructedRawSha256, contract.path);
+    assert.equal(recorded.canonicalAfterRepairSemanticSha256, contract.reconstructedSemanticSha256, contract.path);
+    assert.equal(recorded.byteIdenticalAfterRepair, true, contract.path);
+    assert.equal(recorded.semanticIdenticalAfterRepair, true, contract.path);
+    assert.equal(recorded.byteIdenticalBeforeRepair, false, contract.path);
+    assert.equal(recorded.semanticIdenticalBeforeRepair, false, contract.path);
+    assert.notEqual(recorded.canonicalBeforeRepairRawSha256, recorded.canonicalAfterRepairRawSha256, contract.path);
+    assert.equal(sha256(contract.path), contract.reconstructedRawSha256, contract.path);
+    assert.ok(recorded.reconstructionSources.length >= 6, contract.path);
+    for (const source of recorded.reconstructionSources)
+      assert.equal(sha256(source.path), source.sha256, source.path);
+  }
+
+  const evidenceCommit = git(["log", "-1", "--format=%H", "--", evidencePath]);
+  if (evidenceCommit) {
+    assert.match(evidenceCommit, /^[a-f0-9]{40}$/);
+    assert.equal(git(["rev-parse", `${evidenceCommit}^`]), evidence.integratedBase);
+    assert.equal(git(["merge-base", "--is-ancestor", legacyProvenanceGapCommit, evidenceCommit]), "");
+  } else {
+    assert.equal(git(["rev-parse", "HEAD"]), evidence.integratedBase);
+  }
+});
+
+test("every Intelligence protected consumer is synchronized and remains zero influence", () => {
+  const evidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
+  const reconstruction = reconstructLegacyProtectedContracts();
+  const protectedPaths = [
+    ...reconstruction.contracts.map(contract => contract.path),
+    ...reconstruction.additionalProtectedConsumers.map(contract => contract.path)
+  ].sort();
+
+  assert.deepEqual(protectedPaths, reconstruction.discoveredProtectedConsumers);
+  for (const consumer of reconstruction.additionalProtectedConsumers) {
+    const recorded = evidence.additionalProtectedConsumerScan.find(entry => entry.path === consumer.path);
+    assert.ok(recorded, consumer.path);
+    assert.equal(consumer.semanticIdentical, true, consumer.path);
+    assert.equal(consumer.byteIdentical, true, consumer.path);
+    assert.equal(sha256(consumer.path), consumer.reconstructedRawSha256, consumer.path);
+    assert.equal(recorded.canonicalAfterRepairRawSha256, consumer.reconstructedRawSha256, consumer.path);
+    assert.equal(recorded.canonicalAfterRepairSemanticSha256, consumer.reconstructedSemanticSha256, consumer.path);
+    assert.equal(recorded.byteIdenticalAfterRepair, true, consumer.path);
+    assert.equal(recorded.semanticIdenticalAfterRepair, true, consumer.path);
+    assert.equal(recorded.byteIdenticalBeforeRepair, false, consumer.path);
+    assert.equal(recorded.semanticIdenticalBeforeRepair, false, consumer.path);
+  }
+  assert.deepEqual(
+    evidence.additionalProtectedConsumerScan.map(consumer => consumer.path).sort(),
+    reconstruction.additionalProtectedConsumers.map(consumer => consumer.path).sort()
+  );
+  assert.equal(evidence.methodologyConstraints.requiredEvaluationOutcomes, "97 eligible, linked, scoreable evaluation outcomes after exclusions");
+  assert.equal(evidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview, false);
+  assert.equal(evidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins, 100);
+  assert.equal(evidence.methodologyConstraints.sparseOrEmptyBinsMayBypassCoverage, false);
+  assert.equal(evidence.methodologyConstraints.causalUpliftOrRecommendationSuperiorityClaimAllowed, false);
+  assert.equal(evidence.safety.recommendationInfluence, "OFF");
+  assert.equal(evidence.safety.routeScoringChanged, false);
+  assert.equal(evidence.safety.routeGenerationChanged, false);
+  assert.equal(evidence.safety.representativeExposureChanged, false);
+  assert.equal(evidence.safety.prospectiveShadowCollectionStarted, false);
+  assert.equal(evidence.safety.productionConsumerIntroduced, false);
 });

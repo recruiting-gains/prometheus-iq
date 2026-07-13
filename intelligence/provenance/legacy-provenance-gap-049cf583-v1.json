@@ -1,0 +1,318 @@
+{
+  "evidenceVersion": "route-iq-intelligence-owner-provenance-repair-v1",
+  "batchId": "BATCH-20260713-002",
+  "status": "LEGACY_PROVENANCE_GAP",
+  "legacyCommit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
+  "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+  "integratedBase": "a665b1b26db02716240b622d0b4d451d019c2896",
+  "ownershipStatement": "The legacy mixed-ownership commit remains disclosed. This evidence does not claim retroactive Intelligence ownership; it records a new independent Intelligence-owner derivation.",
+  "reconstructionMethod": "Rebuild each affected contract from its pre-gap semantic form, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare the complete result semantically and byte-for-byte with the canonical file.",
+  "protectedConsumerInventory": [
+    "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+    "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+    "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+    "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "intelligence/contracts/shadow-decision-readiness-contracts.json"
+  ],
+  "contracts": [
+    {
+      "id": "read_only_field_session_learning",
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+      "sourceCommit": "9ece009c0b4c23f40d7cd8f8745925a8ccf7b830",
+      "sourceCommitRawSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
+      "preGapMatchesSourceCommit": true,
+      "preGapRawSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
+      "legacyCommitRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
+      "canonicalBeforeRepairRawSha256": "29de513d35f785bf5bd415db60bd5988a52bdf21b9c9a8f4b218d3f63159cdcd",
+      "reconstructedRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42",
+      "reconstructedSemanticSha256": "8777d4b245c6070d7847f03c32ef6430341cc873849ba6966c55a158a3a5ba99",
+      "changedHashFields": [
+        {
+          "path": "protectedBehaviorBaselines.dashboardDeployMirrorSha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dashboardSourceSha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dataArchiveRuntimeSha256",
+          "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
+          "after": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dataRuntimeContractSha256",
+          "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
+          "after": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e"
+        }
+      ],
+      "reconstructionSources": [
+        {
+          "path": "intelligence/read-only-field-session-learning.md",
+          "sha256": "9d91fd2cdf16c60bd969df1e593d04088443ccfcc31be9b03587b2c45e814cd3"
+        },
+        {
+          "path": "intelligence/read-only-field-session-learning.mjs",
+          "sha256": "a082acd62afe5aa4b7aaefd2a2c87c21e32765f702883df849266cba5c654bf0"
+        },
+        {
+          "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+          "sha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981"
+        },
+        {
+          "path": "scripts/verify-read-only-field-session-learning.mjs",
+          "sha256": "7194e692e856193730f4f66097692ac623a082c00b5bb4f1ee8a33587695d2dd"
+        },
+        {
+          "path": "tests/read-only-field-session-learning.test.mjs",
+          "sha256": "66803e833d2aa692cba2da32cd26d3efb2c01dfed478202a935ade1bd28cac3e"
+        },
+        {
+          "path": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+          "sha256": "7ec0bbf1c37537ec5e80c157bcd9c0df64d1b04fa470cd13e348be4c3a02e157"
+        }
+      ],
+      "canonicalBeforeRepairSemanticSha256": "5e5a8ccf309aa6d70af35430aa684ac7e091f7195133a6576b85192945baadc2",
+      "byteIdenticalBeforeRepair": false,
+      "semanticIdenticalBeforeRepair": false,
+      "correctionRequired": true,
+      "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
+      "canonicalAfterRepairRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42",
+      "canonicalAfterRepairSemanticSha256": "8777d4b245c6070d7847f03c32ef6430341cc873849ba6966c55a158a3a5ba99",
+      "byteIdenticalAfterRepair": true,
+      "semanticIdenticalAfterRepair": true
+    },
+    {
+      "id": "off_route_learning",
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+      "sourceCommit": "e341115fa326c83f216175616e89c7334944330e",
+      "sourceCommitRawSha256": "8fa2cee204ad6c96e4c2f04efdc9da3bb7d453c8d8c1640880ceff5fdc3f84f6",
+      "preGapMatchesSourceCommit": true,
+      "preGapRawSha256": "8fa2cee204ad6c96e4c2f04efdc9da3bb7d453c8d8c1640880ceff5fdc3f84f6",
+      "legacyCommitRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
+      "canonicalBeforeRepairRawSha256": "f65baa532f8617630e5d3553b4b4d9a470d82b334ecc8bfce750c4f96a920c7b",
+      "reconstructedRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87",
+      "reconstructedSemanticSha256": "f729d32c05d557006da9cb9f44ebcf3d9f841e3423b2b4409f3c5522569622c9",
+      "changedHashFields": [
+        {
+          "path": "protectedBehaviorBaselines.dashboardDeployMirror.sha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dashboardSource.sha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dataArchiveRuntime.sha256",
+          "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
+          "after": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1"
+        },
+        {
+          "path": "protectedBehaviorBaselines.dataRuntimeContract.sha256",
+          "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
+          "after": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e"
+        },
+        {
+          "path": "upstreamReadOnlyLearning.contractSha256",
+          "before": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
+          "after": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42"
+        }
+      ],
+      "reconstructionSources": [
+        {
+          "path": "intelligence/off-route-learning-intelligence.md",
+          "sha256": "ace7495d5e54072643f442fbaf983ace74866680ca1bc23faa75541828a6ffa9"
+        },
+        {
+          "path": "intelligence/off-route-learning-intelligence.mjs",
+          "sha256": "b23cc4bd1bfa285477c1387aa1fd5a3e57727dc9eec463b375e5006857aab880"
+        },
+        {
+          "path": "intelligence/config/off-route-learning-intelligence-v1.json",
+          "sha256": "54f4c1b8372b4687d70117b05112173a282079e2fab52711dcbe64802827fe8e"
+        },
+        {
+          "path": "scripts/verify-off-route-learning-intelligence.mjs",
+          "sha256": "e968fc011a359c17d8fad8bec0296a4972981092bc1bfbebaa947fc91682e4d8"
+        },
+        {
+          "path": "tests/off-route-learning-intelligence.test.mjs",
+          "sha256": "adcf0e4f95c525876af9a9447f4e34ce55f9973ff6c4aef2dd1c0f31c63e5099"
+        },
+        {
+          "path": "intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json",
+          "sha256": "b083c44d9efe98c50fec96de18c4b8922b21f3f3be2dce650a69e7a8549df4a0"
+        }
+      ],
+      "canonicalBeforeRepairSemanticSha256": "459ed84dd47285f40e986672354131d97643cb6d22ecf4c81103aa1b50d53b88",
+      "byteIdenticalBeforeRepair": false,
+      "semanticIdenticalBeforeRepair": false,
+      "correctionRequired": true,
+      "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
+      "canonicalAfterRepairRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87",
+      "canonicalAfterRepairSemanticSha256": "f729d32c05d557006da9cb9f44ebcf3d9f841e3423b2b4409f3c5522569622c9",
+      "byteIdenticalAfterRepair": true,
+      "semanticIdenticalAfterRepair": true
+    },
+    {
+      "id": "discovery_mode_v2",
+      "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+      "sourceCommit": "9ece009c0b4c23f40d7cd8f8745925a8ccf7b830",
+      "sourceCommitRawSha256": "22cd6556f775623d3afa9be0b3d86a694dc5d5f48b3b58b6f0dbbd2ef7ed35db",
+      "preGapMatchesSourceCommit": true,
+      "preGapRawSha256": "22cd6556f775623d3afa9be0b3d86a694dc5d5f48b3b58b6f0dbbd2ef7ed35db",
+      "legacyCommitRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
+      "canonicalBeforeRepairRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
+      "reconstructedRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189",
+      "reconstructedSemanticSha256": "114028a713be277cfcfbc6845f2f24167a25cfc98e93f5feaa8f98291cf7d46e",
+      "changedHashFields": [
+        {
+          "path": "protectedBehaviorBaselines.dashboard.sha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        }
+      ],
+      "reconstructionSources": [
+        {
+          "path": "intelligence/discovery-mode-intelligence-v2.md",
+          "sha256": "70e831cef4c0c70899eed4c2557772f022f8287b95182d103856afdad591791a"
+        },
+        {
+          "path": "intelligence/discovery-mode-intelligence-v2.mjs",
+          "sha256": "d0f42e8334fed37ba3f4fa0fc632867411fc6df4be8a5f9d53c14f1ba1c5849e"
+        },
+        {
+          "path": "intelligence/config/discovery-mode-intelligence-v2.json",
+          "sha256": "a6497e4a6ae32be5231c68221369ac4039d87b250db8bacf2d914d9b3d847bc9"
+        },
+        {
+          "path": "scripts/verify-discovery-mode-intelligence-v2.mjs",
+          "sha256": "d02a550c90d1d10d6c95ecc1265f6b99faaf5b3d3004768080868e5cc073a1d0"
+        },
+        {
+          "path": "tests/discovery-mode-intelligence-v2.test.mjs",
+          "sha256": "95197a953469613f8cc549a2e84af83f2ee9d99c5c2a66a86c01873d3da60b96"
+        },
+        {
+          "path": "intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json",
+          "sha256": "7212ef0db098ad8ced145f1a845c7da99540add84c0c49a60aa63d0070fd5348"
+        }
+      ],
+      "canonicalBeforeRepairSemanticSha256": "4b09b77d534438c54b971b9b2bc3de15dbd49bf7886d6f30240e4c4a2362d24d",
+      "byteIdenticalBeforeRepair": false,
+      "semanticIdenticalBeforeRepair": false,
+      "correctionRequired": true,
+      "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
+      "canonicalAfterRepairRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189",
+      "canonicalAfterRepairSemanticSha256": "114028a713be277cfcfbc6845f2f24167a25cfc98e93f5feaa8f98291cf7d46e",
+      "byteIdenticalAfterRepair": true,
+      "semanticIdenticalAfterRepair": true
+    },
+    {
+      "id": "nearby_context_v2",
+      "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+      "sourceCommit": "9ece009c0b4c23f40d7cd8f8745925a8ccf7b830",
+      "sourceCommitRawSha256": "8e6c2c0c6357944347b6418923af9ad79f2cad75021adb27580b19cd066ba692",
+      "preGapMatchesSourceCommit": true,
+      "preGapRawSha256": "8e6c2c0c6357944347b6418923af9ad79f2cad75021adb27580b19cd066ba692",
+      "legacyCommitRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
+      "canonicalBeforeRepairRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
+      "reconstructedRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94",
+      "reconstructedSemanticSha256": "f681724c4dd92eb4fc50e093c285cd1f950c0310ed73cbdea66e8551df946f17",
+      "changedHashFields": [
+        {
+          "path": "protectedBehaviorBaselines.dashboard.sha256",
+          "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
+          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+        }
+      ],
+      "reconstructionSources": [
+        {
+          "path": "intelligence/nearby-context-intelligence-v2.md",
+          "sha256": "888b8ced90694220b8feaca7f57eefee89f68da3218f3884ad5dc90495d81ea7"
+        },
+        {
+          "path": "intelligence/nearby-context-intelligence-v2.mjs",
+          "sha256": "7bbdc93dfb846ac8adcbfa530acf0de1ea06f917a7b8b31553b95dd58bb0e70c"
+        },
+        {
+          "path": "intelligence/config/nearby-context-intelligence-v2.json",
+          "sha256": "63590a2a7383e486530f4a697331cebc496eb1e65c35cf4a64bdf7dffb7c76e4"
+        },
+        {
+          "path": "scripts/verify-nearby-context-intelligence-v2.mjs",
+          "sha256": "47a57cc8514f60a46327d99714f03f535dbde002617f41a4069f1b8f93f030c5"
+        },
+        {
+          "path": "tests/nearby-context-intelligence-v2.test.mjs",
+          "sha256": "eabd5090065617daffa3879ad4c704c2b6ab278a34dc0111e92dde1cf2ee0e77"
+        },
+        {
+          "path": "intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json",
+          "sha256": "ce53dead439b004179512ec4685906d811e3d78fbdb16253b596afa8f7706776"
+        }
+      ],
+      "canonicalBeforeRepairSemanticSha256": "5f8df5209a84b9a93b2f97de5521d7b9a9f7eeb32256d9cc643280ce37815de5",
+      "byteIdenticalBeforeRepair": false,
+      "semanticIdenticalBeforeRepair": false,
+      "correctionRequired": true,
+      "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
+      "canonicalAfterRepairRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94",
+      "canonicalAfterRepairSemanticSha256": "f681724c4dd92eb4fc50e093c285cd1f950c0310ed73cbdea66e8551df946f17",
+      "byteIdenticalAfterRepair": true,
+      "semanticIdenticalAfterRepair": true
+    }
+  ],
+  "additionalProtectedConsumerScan": [
+    {
+      "id": "shadow_decision_readiness",
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "generator": "scripts/verify-shadow-decision-readiness.mjs",
+      "canonicalBeforeRepairRawSha256": "1e850b6b9d5f8d89c141ec26929bcecb385bd53d8386b4654cb2e0f7f61e884c",
+      "reconstructedRawSha256": "3ba43bbe7765fcfed358ce1936494153779a1f1c397a48f6027cd575b0874898",
+      "reconstructedSemanticSha256": "c43f24229ae696952a725cda7ca2199cb3c42b87795496d5f0113fe81594a806",
+      "changedHashFields": [],
+      "canonicalBeforeRepairSemanticSha256": "3f6a25338c5677de982f3838289608ba3b96ce0c557e1a242f038d9f338a6785",
+      "byteIdenticalBeforeRepair": false,
+      "semanticIdenticalBeforeRepair": false,
+      "correctionRequired": true,
+      "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
+      "canonicalAfterRepairRawSha256": "3ba43bbe7765fcfed358ce1936494153779a1f1c397a48f6027cd575b0874898",
+      "canonicalAfterRepairSemanticSha256": "c43f24229ae696952a725cda7ca2199cb3c42b87795496d5f0113fe81594a806",
+      "byteIdenticalAfterRepair": true,
+      "semanticIdenticalAfterRepair": true
+    }
+  ],
+  "methodologyConstraints": {
+    "requiredEvaluationOutcomes": "97 eligible, linked, scoreable evaluation outcomes after exclusions",
+    "requiredSampleAloneCanReachFounderReview": false,
+    "additionalRequiredGates": [
+      "chronological_training_evaluation_separation",
+      "calibration",
+      "consecutive_window_stability",
+      "segment_safety",
+      "observational_baseline"
+    ],
+    "calibrationBins": 5,
+    "minimumSupportedObservationsAcrossFivePopulatedBins": 100,
+    "sparseOrEmptyBinsMayBypassCoverage": false,
+    "causalUpliftOrRecommendationSuperiorityClaimAllowed": false,
+    "interpretation": "observational_only"
+  },
+  "safety": {
+    "recommendationInfluence": "OFF",
+    "routeScoringChanged": false,
+    "routeGenerationChanged": false,
+    "representativeExposureChanged": false,
+    "prospectiveShadowCollectionStarted": false,
+    "productionConsumerIntroduced": false
+  }
+}
