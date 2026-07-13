@@ -55,6 +55,49 @@ const average = (values) =>
 const nonblank = (value) =>
   typeof value === "string" && value.trim() === value && value.length > 0;
 const sha256Pattern = /^[a-f0-9]{64}$/;
+const trustedLedgers = new WeakSet();
+const requiredScopeKeys = [
+  "workspaceId",
+  "operatingProfileId",
+  "representativeId",
+];
+
+const withoutKeys = (value, keys) =>
+  Object.fromEntries(
+    Object.entries(value).filter(([key]) => !keys.includes(key)),
+  );
+
+function validateProjectionDigest(projection, decisionTimestamp, scope) {
+  if (
+    !projection ||
+    projection.projectionVersion !==
+      routeIqChronologicalEvidenceProjectionVersion ||
+    projection.decisionTimestamp !== decisionTimestamp ||
+    !sha256Pattern.test(projection.projectionSha256) ||
+    requiredScopeKeys.some((key) => projection.scope?.[key] !== scope[key])
+  )
+    throw new Error("projection_provenance_invalid");
+  const body = withoutKeys(projection, ["projectionSha256"]);
+  if (hash(body) !== projection.projectionSha256)
+    throw new Error("projection_digest_mismatch");
+  return true;
+}
+
+function frozenCandidateSnapshot(record) {
+  return {
+    immutableSourceManifest: clone(record.immutableSourceManifest),
+    candidates: record.rankedCandidateDecisions
+      .map((candidate) => ({
+        decisionId: candidate.decisionId,
+        weight: candidate.weight,
+        availableAt: candidate.availableAt,
+        evidenceSourceIds: clone(candidate.evidenceSourceIds || []),
+        evidenceSourceHashes: clone(candidate.evidenceSourceHashes || []),
+        eligibilityReasons: clone(candidate.eligibilityReasons),
+      }))
+      .sort((a, b) => a.decisionId.localeCompare(b.decisionId)),
+  };
+}
 
 export function loadShadowDecisionConfig() {
   return json("intelligence/config/shadow-decision-readiness-v1.json");
@@ -191,16 +234,11 @@ export function generateShadowDecision({
     opportunity.timestamp,
     "opportunity_timestamp_invalid",
   );
-  const requiredScope = [
-    "workspaceId",
-    "operatingProfileId",
-    "representativeId",
-  ];
   if (
     !nonblank(opportunity.opportunityId) ||
     !Array.isArray(opportunity.candidateSnapshot) ||
     !opportunity.candidateSnapshot.length ||
-    requiredScope.some((key) => !nonblank(opportunity.scope?.[key]))
+    requiredScopeKeys.some((key) => !nonblank(opportunity.scope?.[key]))
   )
     throw new Error("opportunity_context_incomplete");
   if (
@@ -213,19 +251,18 @@ export function generateShadowDecision({
   )
     throw new Error("version_or_projection_provenance_invalid");
   if (
-    requiredScope.some(
+    requiredScopeKeys.some(
       (key) =>
         opportunity.scope[key] === "unknown" ||
         (config.scope?.[key] && opportunity.scope[key] !== config.scope[key]),
     )
   )
     throw new Error("opportunity_scope_not_authorized");
-  if (
-    requiredScope.some(
-      (key) => projection.scope?.[key] !== opportunity.scope[key],
-    )
-  )
-    throw new Error("projection_scope_contaminated");
+  validateProjectionDigest(
+    projection,
+    opportunity.timestamp,
+    opportunity.scope,
+  );
   if (
     projection.decisionTimestamp !== opportunity.timestamp ||
     projection.evidence?.some(
@@ -330,6 +367,12 @@ export function generateShadowDecision({
     tieBreakRule: "probability_desc_then_decision_id_ascending",
   }));
   validateRankedCandidates(ranked);
+  const snapshot = {
+    immutableSourceManifest: sourceManifest,
+    candidates: prepared
+      .map((item) => clone(item))
+      .sort((a, b) => a.decisionId.localeCompare(b.decisionId)),
+  };
   const body = {
     opportunityId: opportunity.opportunityId,
     timestamp: opportunity.timestamp,
@@ -348,6 +391,7 @@ export function generateShadowDecision({
     ],
     exclusionReasons: [],
     immutableSourceManifest: sourceManifest,
+    frozenCandidateSnapshotSha256: hash(snapshot),
     scope: clone(opportunity.scope),
     projectionSha256: projection.projectionSha256,
   };
@@ -358,7 +402,256 @@ export function generateShadowDecision({
   });
 }
 
+export function validateShadowDecisionRecord(
+  record,
+  config = loadShadowDecisionConfig(),
+) {
+  if (
+    !record ||
+    !nonblank(record.opportunityId) ||
+    record.evidenceCutoff !== record.timestamp ||
+    !Array.isArray(record.eligibilityReasons) ||
+    !record.eligibilityReasons.length ||
+    record.eligibilityReasons.some((value) => !nonblank(value)) ||
+    !Array.isArray(record.exclusionReasons) ||
+    record.exclusionReasons.length ||
+    requiredScopeKeys.some(
+      (key) =>
+        !nonblank(record.scope?.[key]) ||
+        record.scope[key] !== config.scope?.[key],
+    ) ||
+    record.versions?.engine !== shadowDecisionReadinessVersion ||
+    record.versions?.projection !==
+      routeIqChronologicalEvidenceProjectionVersion ||
+    record.versions?.ruleModelConfig !== config.configVersion ||
+    !nonblank(record.versions?.evidenceSchema) ||
+    !sha256Pattern.test(record.projectionSha256)
+  )
+    throw new Error("shadow_record_contract_invalid");
+  const cutoff = canonicalTime(record.timestamp, "shadow_timestamp_invalid");
+  validateRankedCandidates(record.rankedCandidateDecisions);
+  const sources = Object.values(record.immutableSourceManifest || {});
+  if (!sources.length) throw new Error("shadow_record_source_manifest_missing");
+  for (const source of sources)
+    if (
+      !nonblank(source?.sourceId) ||
+      !sha256Pattern.test(source?.sha256) ||
+      canonicalTime(
+        source?.availableAt,
+        "shadow_source_available_at_invalid",
+      ) >= cutoff
+    )
+      throw new Error("shadow_record_source_manifest_invalid");
+  for (const candidate of record.rankedCandidateDecisions) {
+    if (
+      canonicalTime(
+        candidate.availableAt,
+        "shadow_candidate_available_at_invalid",
+      ) >= cutoff ||
+      (!candidate.evidenceSourceIds?.length &&
+        !candidate.evidenceSourceHashes?.length) ||
+      candidate.evidenceSourceIds?.some(
+        (id) => !sources.some((source) => source.sourceId === id),
+      ) ||
+      candidate.evidenceSourceHashes?.some(
+        (value) => !sources.some((source) => source.sha256 === value),
+      ) ||
+      !candidate.eligibilityReasons?.length ||
+      candidate.eligibilityReasons.some((value) => !nonblank(value))
+    )
+      throw new Error("shadow_candidate_provenance_invalid");
+  }
+  if (
+    hash(frozenCandidateSnapshot(record)) !==
+    record.frozenCandidateSnapshotSha256
+  )
+    throw new Error("frozen_candidate_snapshot_digest_mismatch");
+  const body = withoutKeys(record, ["shadowDecisionId", "shadowRecordSha256"]);
+  if (
+    hash(body) !== record.shadowRecordSha256 ||
+    stableId("shadow-decision", body) !== record.shadowDecisionId
+  )
+    throw new Error("shadow_record_digest_mismatch");
+  return true;
+}
+
+export function createShadowExclusion({
+  opportunityId,
+  visitId = null,
+  timestamp,
+  reasonCodes,
+  projection,
+  scope,
+  evidenceSchemaVersion,
+  config = loadShadowDecisionConfig(),
+}) {
+  if (
+    !nonblank(opportunityId) ||
+    (visitId !== null && !nonblank(visitId)) ||
+    !Array.isArray(reasonCodes) ||
+    !reasonCodes.length ||
+    reasonCodes.some((value) => !nonblank(value)) ||
+    !nonblank(evidenceSchemaVersion) ||
+    requiredScopeKeys.some(
+      (key) => !nonblank(scope?.[key]) || scope[key] !== config.scope?.[key],
+    )
+  )
+    throw new Error("shadow_exclusion_contract_invalid");
+  canonicalTime(timestamp, "shadow_exclusion_timestamp_invalid");
+  validateProjectionDigest(projection, timestamp, scope);
+  const body = {
+    opportunityId,
+    visitId,
+    timestamp,
+    evidenceCutoff: timestamp,
+    scope: clone(scope),
+    reasonCodes: clone(reasonCodes),
+    versions: {
+      engine: shadowDecisionReadinessVersion,
+      evidenceSchema: evidenceSchemaVersion,
+      projection: projection.projectionVersion,
+      ruleModelConfig: config.configVersion,
+    },
+    projectionSha256: projection.projectionSha256,
+    projectionEvidenceCount: projection.evidence.length,
+    equalOrFutureEvidenceExcluded: projection.exclusions.filter((item) =>
+      [
+        "at_decision_timestamp_without_prior_availability",
+        "after_decision_timestamp",
+      ].includes(item.reason),
+    ).length,
+  };
+  return freeze({
+    exclusionId: stableId("shadow-exclusion", body),
+    ...body,
+    exclusionRecordSha256: hash(body),
+  });
+}
+
+export function validateShadowExclusion(
+  exclusion,
+  config = loadShadowDecisionConfig(),
+) {
+  if (
+    !exclusion ||
+    !nonblank(exclusion.opportunityId) ||
+    exclusion.evidenceCutoff !== exclusion.timestamp ||
+    !Array.isArray(exclusion.reasonCodes) ||
+    !exclusion.reasonCodes.length ||
+    exclusion.reasonCodes.some((value) => !nonblank(value)) ||
+    !Number.isInteger(exclusion.projectionEvidenceCount) ||
+    exclusion.projectionEvidenceCount < 0 ||
+    !Number.isInteger(exclusion.equalOrFutureEvidenceExcluded) ||
+    exclusion.equalOrFutureEvidenceExcluded < 0 ||
+    !sha256Pattern.test(exclusion.projectionSha256) ||
+    exclusion.versions?.engine !== shadowDecisionReadinessVersion ||
+    exclusion.versions?.projection !==
+      routeIqChronologicalEvidenceProjectionVersion ||
+    exclusion.versions?.ruleModelConfig !== config.configVersion ||
+    !nonblank(exclusion.versions?.evidenceSchema) ||
+    requiredScopeKeys.some(
+      (key) =>
+        !nonblank(exclusion.scope?.[key]) ||
+        exclusion.scope[key] !== config.scope?.[key],
+    )
+  )
+    throw new Error("shadow_exclusion_contract_invalid");
+  canonicalTime(exclusion.timestamp, "shadow_exclusion_timestamp_invalid");
+  const body = withoutKeys(exclusion, ["exclusionId", "exclusionRecordSha256"]);
+  if (
+    hash(body) !== exclusion.exclusionRecordSha256 ||
+    stableId("shadow-exclusion", body) !== exclusion.exclusionId
+  )
+    throw new Error("shadow_exclusion_digest_mismatch");
+  return true;
+}
+
+function immutableShadowLedgerBody(ledger) {
+  return {
+    batchId: ledger.batchId,
+    schemaVersion: ledger.schemaVersion,
+    engineVersion: ledger.engineVersion,
+    scope: clone(ledger.scope),
+    opportunityManifest: clone(ledger.opportunityManifest),
+    immutable: ledger.immutable,
+    founderOnly: ledger.founderOnly,
+    readOnly: ledger.readOnly,
+    recommendationInfluence: ledger.recommendationInfluence,
+    records: clone(ledger.records),
+    exclusions: clone(ledger.exclusions),
+  };
+}
+
+function outcomeHashState(shadowLedgerSha256, outcomeLinks) {
+  const outcomeChainSha256 = hash({ shadowLedgerSha256, outcomeLinks });
+  return {
+    outcomeChainSha256,
+    evaluationLedgerSha256: hash({
+      shadowLedgerSha256,
+      outcomeChainSha256,
+      outcomeLinkCount: outcomeLinks.length,
+    }),
+  };
+}
+
+export function sealShadowLedger(ledger, config = loadShadowDecisionConfig()) {
+  if (ledger.outcomeLinks?.length)
+    throw new Error("seal_shadow_ledger_requires_empty_outcome_chain");
+  validateProspectiveLedgerCompleteness(
+    ledger.opportunityManifest,
+    ledger.records,
+    ledger.exclusions,
+    config,
+  );
+  const body = immutableShadowLedgerBody(ledger);
+  const shadowLedgerSha256 = hash(body);
+  const outcomeLinks = clone(ledger.outcomeLinks || []);
+  const outcomeState = outcomeHashState(shadowLedgerSha256, outcomeLinks);
+  const sealed = freeze({
+    ...body,
+    outcomeLinks,
+    shadowLedgerSha256,
+    ledgerSha256: shadowLedgerSha256,
+    ...outcomeState,
+  });
+  trustedLedgers.add(sealed);
+  return sealed;
+}
+
+function validateLedgerDigests(ledger, config = loadShadowDecisionConfig()) {
+  if (trustedLedgers.has(ledger)) return true;
+  const shadowLedgerSha256 = hash(immutableShadowLedgerBody(ledger));
+  if (
+    ledger.shadowLedgerSha256 !== shadowLedgerSha256 ||
+    ledger.ledgerSha256 !== shadowLedgerSha256
+  )
+    throw new Error("shadow_ledger_digest_mismatch");
+  for (const link of ledger.outcomeLinks || []) {
+    const body = withoutKeys(link, ["outcomeLinkSha256"]);
+    if (hash(body) !== link.outcomeLinkSha256)
+      throw new Error("outcome_link_digest_mismatch");
+  }
+  const outcomeState = outcomeHashState(
+    shadowLedgerSha256,
+    ledger.outcomeLinks || [],
+  );
+  if (
+    ledger.outcomeChainSha256 !== outcomeState.outcomeChainSha256 ||
+    ledger.evaluationLedgerSha256 !== outcomeState.evaluationLedgerSha256
+  )
+    throw new Error("outcome_chain_digest_mismatch");
+  validateProspectiveLedgerCompleteness(
+    ledger.opportunityManifest,
+    ledger.records,
+    ledger.exclusions,
+    config,
+  );
+  trustedLedgers.add(ledger);
+  return true;
+}
+
 export function appendOutcomeLink(ledger, link) {
+  validateLedgerDigests(ledger);
   const record = ledger.records.find(
     (item) => item.shadowDecisionId === link?.shadowDecisionId,
   );
@@ -447,8 +740,9 @@ export function appendOutcomeLink(ledger, link) {
     throw new Error("evaluated_decision_id_invalid");
   if (observed.status !== "observed" && observed.evaluatedDecisionId !== null)
     throw new Error("unavailable_outcome_evaluated_decision_must_be_null");
-  const governedLink = {
-    ...clone(link),
+  const suppliedLink = withoutKeys(clone(link), ["outcomeLinkSha256"]);
+  const governedLinkBody = {
+    ...suppliedLink,
     actionDisposition:
       link.actualDecisionId === null
         ? "unavailable"
@@ -471,11 +765,27 @@ export function appendOutcomeLink(ledger, link) {
           ? "ranked"
           : "off_list",
   };
+  const governedLink = freeze({
+    ...governedLinkBody,
+    outcomeLinkSha256: hash(governedLinkBody),
+  });
+  if (
+    link.outcomeLinkSha256 &&
+    link.outcomeLinkSha256 !== governedLink.outcomeLinkSha256
+  )
+    throw new Error("outcome_link_digest_mismatch");
   const originalHashes = ledger.records.map((item) => item.shadowRecordSha256);
+  const outcomeLinks = [...ledger.outcomeLinks, governedLink];
+  const outcomeState = outcomeHashState(
+    ledger.shadowLedgerSha256,
+    outcomeLinks,
+  );
   const next = freeze({
     ...ledger,
-    outcomeLinks: [...ledger.outcomeLinks, freeze(governedLink)],
+    outcomeLinks,
+    ...outcomeState,
   });
+  trustedLedgers.add(next);
   if (
     canonical(originalHashes) !==
     canonical(next.records.map((item) => item.shadowRecordSha256))
@@ -485,10 +795,15 @@ export function appendOutcomeLink(ledger, link) {
 }
 
 export function validateOutcomeLedger(ledger) {
-  let replay = { ...ledger, outcomeLinks: [] };
+  validateLedgerDigests(ledger);
+  let replay = sealShadowLedger({ ...ledger, outcomeLinks: [] });
   for (const link of ledger.outcomeLinks)
     replay = appendOutcomeLink(replay, link);
-  if (canonical(replay.outcomeLinks) !== canonical(ledger.outcomeLinks))
+  if (
+    canonical(replay.outcomeLinks) !== canonical(ledger.outcomeLinks) ||
+    replay.outcomeChainSha256 !== ledger.outcomeChainSha256 ||
+    replay.evaluationLedgerSha256 !== ledger.evaluationLedgerSha256
+  )
     throw new Error("outcome_chain_canonical_mismatch");
   return true;
 }
@@ -532,15 +847,27 @@ export function validateProspectiveLedgerCompleteness(
   opportunityManifest,
   records,
   exclusions,
+  config = loadShadowDecisionConfig(),
 ) {
   if (!Array.isArray(opportunityManifest) || !opportunityManifest.length)
     throw new Error("opportunity_manifest_missing");
   const manifestIds = opportunityManifest.map((item) => item.opportunityId);
   if (
-    manifestIds.some((value) => typeof value !== "string" || !value.trim()) ||
+    opportunityManifest.some(
+      (item) =>
+        !nonblank(item?.opportunityId) ||
+        !Number.isFinite(
+          canonicalTime(
+            item?.timestamp,
+            "opportunity_manifest_timestamp_invalid",
+          ),
+        ),
+    ) ||
     new Set(manifestIds).size !== manifestIds.length
   )
     throw new Error("opportunity_manifest_id_invalid");
+  records.forEach((record) => validateShadowDecisionRecord(record, config));
+  exclusions.forEach((item) => validateShadowExclusion(item, config));
   const recordIds = records.map((item) => item.opportunityId),
     exclusionIds = exclusions.map((item) => item.opportunityId);
   if (
@@ -561,6 +888,17 @@ export function validateProspectiveLedgerCompleteness(
   }
   if ([...recordIds, ...exclusionIds].some((id) => !manifestIds.includes(id)))
     throw new Error("undeclared_opportunity_disposition");
+  for (const manifestItem of opportunityManifest) {
+    const disposition =
+      records.find(
+        (item) => item.opportunityId === manifestItem.opportunityId,
+      ) ||
+      exclusions.find(
+        (item) => item.opportunityId === manifestItem.opportunityId,
+      );
+    if (disposition?.timestamp !== manifestItem.timestamp)
+      throw new Error("opportunity_manifest_timestamp_mismatch");
+  }
   return true;
 }
 
@@ -577,11 +915,17 @@ export function buildProspectiveShadowLedger({
     exclusions = [];
   for (const item of opportunities) {
     if (item.exclusionReason)
-      exclusions.push({
-        opportunityId: item.opportunity.opportunityId,
-        timestamp: item.opportunity.timestamp,
-        reasonCodes: [item.exclusionReason],
-      });
+      exclusions.push(
+        createShadowExclusion({
+          opportunityId: item.opportunity.opportunityId,
+          timestamp: item.opportunity.timestamp,
+          reasonCodes: [item.exclusionReason],
+          projection: item.projection,
+          scope: item.opportunity.scope,
+          evidenceSchemaVersion: item.opportunity.evidenceSchemaVersion,
+          config,
+        }),
+      );
     else
       records.push(
         generateShadowDecision({
@@ -592,17 +936,23 @@ export function buildProspectiveShadowLedger({
       );
   }
   validateProspectiveLedgerCompleteness(manifest, records, exclusions);
-  const body = {
-    batchId,
-    opportunityManifest: manifest,
-    records,
-    exclusions,
-    outcomeLinks: [],
-    recommendationInfluence: "OFF",
-    founderOnly: true,
-    readOnly: true,
-  };
-  return freeze({ ...body, ledgerSha256: hash(body) });
+  return sealShadowLedger(
+    {
+      batchId,
+      schemaVersion: "route-iq-shadow-ledger-v1",
+      engineVersion: shadowDecisionReadinessVersion,
+      scope: clone(config.scope),
+      opportunityManifest: manifest,
+      immutable: true,
+      records,
+      exclusions,
+      outcomeLinks: [],
+      recommendationInfluence: "OFF",
+      founderOnly: true,
+      readOnly: true,
+    },
+    config,
+  );
 }
 
 export function buildShadowLedger({
@@ -628,23 +978,21 @@ export function buildShadowLedger({
       timestamp,
     ]);
     // Historical Data records deliberately are not reinterpreted as frozen prospective candidate snapshots.
-    exclusions.push({
-      opportunityId,
-      visitId: visit.visitId,
-      timestamp,
-      reasonCodes: [
-        "historically_frozen_prospective_candidate_context_missing",
-        "historically_frozen_recommendation_context_missing",
-      ],
-      evidenceCutoff: timestamp,
-      projectionSha256: projection.projectionSha256,
-      equalOrFutureEvidenceExcluded: projection.exclusions.filter((item) =>
-        [
-          "at_decision_timestamp_without_prior_availability",
-          "after_decision_timestamp",
-        ].includes(item.reason),
-      ).length,
-    });
+    exclusions.push(
+      createShadowExclusion({
+        opportunityId,
+        visitId: visit.visitId,
+        timestamp,
+        reasonCodes: [
+          "historically_frozen_prospective_candidate_context_missing",
+          "historically_frozen_recommendation_context_missing",
+        ],
+        projection,
+        scope,
+        evidenceSchemaVersion: "route-iq-field-session-archive-v1",
+        config,
+      }),
+    );
   }
   if (
     records.length + exclusions.length !==
@@ -660,21 +1008,23 @@ export function buildShadowLedger({
     records,
     exclusions,
   );
-  const body = {
-    batchId: contract.batchId,
-    schemaVersion: "route-iq-shadow-ledger-v1",
-    engineVersion: shadowDecisionReadinessVersion,
-    scope,
-    opportunityManifest,
-    immutable: true,
-    founderOnly: true,
-    readOnly: true,
-    recommendationInfluence: "OFF",
-    records,
-    exclusions,
-    outcomeLinks: [],
-  };
-  return freeze({ ...body, ledgerSha256: hash(body) });
+  return sealShadowLedger(
+    {
+      batchId: contract.batchId,
+      schemaVersion: "route-iq-shadow-ledger-v1",
+      engineVersion: shadowDecisionReadinessVersion,
+      scope,
+      opportunityManifest,
+      immutable: true,
+      founderOnly: true,
+      readOnly: true,
+      recommendationInfluence: "OFF",
+      records,
+      exclusions,
+      outcomeLinks: [],
+    },
+    config,
+  );
 }
 
 function effectiveOutcomes(ledger) {
@@ -697,15 +1047,38 @@ function effectiveOutcomes(ledger) {
     .filter(Boolean);
 }
 
+function latestOutcomeLink(ledger, record) {
+  return ledger.outcomeLinks
+    .filter((item) => item.shadowDecisionId === record.shadowDecisionId)
+    .at(-1);
+}
+
 function effectiveActions(ledger) {
   return ledger.records
     .map((record) => {
-      const link = ledger.outcomeLinks
-        .filter((item) => item.shadowDecisionId === record.shadowDecisionId)
-        .at(-1);
+      const link = latestOutcomeLink(ledger, record);
       return link?.actualDecisionId ? { record, link } : null;
     })
     .filter(Boolean);
+}
+
+function eligibleInventory(ledger, windows) {
+  return ledger.records
+    .map((record) => ({
+      record,
+      link: latestOutcomeLink(ledger, record) || null,
+      window: windowFor(record.timestamp, windows),
+    }))
+    .filter((item) => item.window);
+}
+
+function isScoreableSelectedCandidateOutcome(item) {
+  return Boolean(
+    item.link?.observedOutcome?.status === "observed" &&
+    typeof item.link.observedOutcome.value === "boolean" &&
+    item.link.observedOutcome.evaluatedDecisionId ===
+      item.record.rankedCandidateDecisions[0].decisionId,
+  );
 }
 
 function windowFor(timestamp, windows) {
@@ -807,6 +1180,60 @@ function calibration(items, binCount, perBinSupport) {
     calibrationSupport,
   };
 }
+
+function inventoryMetrics(items, config, requiredSupport) {
+  const actions = items.filter(
+    (item) =>
+      item.link?.actualDecisionId !== null &&
+      item.link?.actualDecisionId !== undefined,
+  );
+  const linked = items.filter((item) => item.link !== null);
+  const scoreable = items.filter(isScoreableSelectedCandidateOutcome);
+  const reliability = calibration(
+    scoreable,
+    config.calibrationBinCount,
+    Math.max(1, Math.ceil(requiredSupport / config.calibrationBinCount)),
+  );
+  const eligibleDecisionCount = items.length;
+  const materiallySupported = eligibleDecisionCount >= requiredSupport;
+  const scoreableSupportMet = scoreable.length >= requiredSupport;
+  const accuracy = outcomeAccuracy(scoreable);
+  const brierScore = brier(scoreable);
+  return {
+    eligibleDecisionCount,
+    actualActionLinkCount: actions.length,
+    anyOutcomeLinkCount: linked.length,
+    scoreableSelectedCandidateOutcomeCount: scoreable.length,
+    offListActionCount: actions.filter(
+      (item) => item.link.actionDisposition === "off_list",
+    ).length,
+    actualActionLinkRate: eligibleDecisionCount
+      ? actions.length / eligibleDecisionCount
+      : null,
+    anyOutcomeLinkRate: eligibleDecisionCount
+      ? linked.length / eligibleDecisionCount
+      : null,
+    scoreableSelectedCandidateOutcomeRate: eligibleDecisionCount
+      ? scoreable.length / eligibleDecisionCount
+      : null,
+    decisionAgreement: decisionAgreement(actions),
+    outcomeAccuracy: accuracy,
+    brierScore,
+    ece: reliability.ece,
+    calibrationSupport: reliability.calibrationSupport,
+    calibrationBins: reliability.bins,
+    requiredSupport,
+    materiallySupported,
+    scoreableSupportMet,
+    passes:
+      !materiallySupported ||
+      (scoreableSupportMet &&
+        accuracy >= config.segmentMinimumAccuracy &&
+        brierScore <= config.calibrationMaximumBrierScore &&
+        reliability.calibrationSupport === "SUPPORTED" &&
+        reliability.ece <= config.calibrationMaximumEce),
+  };
+}
 function totalVariation(left, right) {
   const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
   const lt = Object.values(left).reduce((a, b) => a + b, 0),
@@ -836,6 +1263,7 @@ export function evaluateShadowDecisions(
     support = derivedSupport(config),
     outcomes = effectiveOutcomes(ledger);
   const actions = effectiveActions(ledger);
+  const inventory = eligibleInventory(ledger, windows);
   const assigned = outcomes
     .map((item) => ({
       ...item,
@@ -850,6 +1278,31 @@ export function evaluateShadowDecisions(
     .filter((item) => item.window);
   const training = assigned.filter((item) => item.window.kind === "training"),
     evaluationWindows = windows.filter((item) => item.kind === "evaluation");
+  const firstEvaluationStart = evaluationWindows[0].start;
+  const trainingInventory = inventory.filter(
+    (item) => item.window.kind === "training",
+  );
+  for (const item of trainingInventory) {
+    if (
+      Date.parse(item.record.timestamp) >= Date.parse(firstEvaluationStart) ||
+      Object.values(item.record.immutableSourceManifest || {}).some(
+        (source) =>
+          Date.parse(source.availableAt) >= Date.parse(firstEvaluationStart),
+      )
+    )
+      throw new Error("training_evidence_after_evaluation_start");
+    const outcomeLinks = ledger.outcomeLinks.filter(
+      (link) => link.shadowDecisionId === item.record.shadowDecisionId,
+    );
+    if (
+      outcomeLinks.some(
+        (link) =>
+          link.observedOutcome?.status === "observed" &&
+          Date.parse(link.observedAt) >= Date.parse(firstEvaluationStart),
+      )
+    )
+      throw new Error("training_outcome_after_evaluation_start");
+  }
   if (
     training.some((item) =>
       evaluationWindows.some((window) => item.record.timestamp >= window.start),
@@ -858,6 +1311,9 @@ export function evaluateShadowDecisions(
     throw new Error("evaluation_evidence_entered_training");
   const evalGroups = evaluationWindows.map((window) =>
     assigned.filter((item) => item.window.id === window.id),
+  );
+  const evaluationInventoryGroups = evaluationWindows.map((window) =>
+    inventory.filter((item) => item.window.id === window.id),
   );
   const manifestTokens = (item) =>
     Object.values(item.record.immutableSourceManifest || {}).flatMap(
@@ -901,26 +1357,14 @@ export function evaluateShadowDecisions(
               2,
           ),
         );
-  const windowMetrics = evalGroups.map((items, index) => {
-    const reliability = calibration(
-      items,
-      config.calibrationBinCount,
-      Math.ceil(
-        (support.windowMinimums[index] ?? support.windowMinimums.at(-1)) /
-          config.calibrationBinCount,
-      ),
-    );
+  const windowMetrics = evaluationInventoryGroups.map((items, index) => {
+    const requiredSupport =
+      support.windowMinimums[index] ?? support.windowMinimums.at(-1);
+    const metrics = inventoryMetrics(items, config, requiredSupport);
     return {
       windowId: evaluationWindows[index].id,
-      linkedOutcomes: items.length,
-      requiredSupport:
-        support.windowMinimums[index] ?? support.windowMinimums.at(-1),
-      outcomeAccuracy: outcomeAccuracy(items),
-      decisionAgreement: decisionAgreement(items),
-      brierScore: brier(items),
-      ece: reliability.ece,
-      calibrationSupport: reliability.calibrationSupport,
-      calibrationBins: reliability.bins,
+      ...metrics,
+      linkedOutcomes: metrics.scoreableSelectedCandidateOutcomeCount,
       distribution: decisionDistribution(items),
     };
   });
@@ -963,70 +1407,45 @@ export function evaluateShadowDecisions(
   const segments = {};
   for (const dimension of segmentDimensions) {
     const groups = new Map();
-    for (const item of allEval) {
+    for (const item of evaluationInventoryGroups.flat()) {
       const key = item.record.scope[dimension] ?? "unknown";
       groups.set(key, [...(groups.get(key) || []), item]);
     }
     segments[dimension] = groups.size
       ? Object.fromEntries(
           [...groups.entries()].sort().map(([key, items]) => {
-            const reliability = calibration(
-              items,
-              config.calibrationBinCount,
-              Math.ceil(support.perSegment / config.calibrationBinCount),
-            );
-            return [
-              key,
-              {
-                support: items.length,
-                outcomeAccuracy: outcomeAccuracy(items),
-                decisionAgreement: decisionAgreement(items),
-                brierScore: brier(items),
-                ece: reliability.ece,
-                calibrationSupport: reliability.calibrationSupport,
-                materiallySupported: items.length >= support.perSegment,
-                passes:
-                  items.length < support.perSegment ||
-                  (outcomeAccuracy(items) >= config.segmentMinimumAccuracy &&
-                    brier(items) <= config.calibrationMaximumBrierScore &&
-                    reliability.calibrationSupport === "SUPPORTED" &&
-                    reliability.ece <= config.calibrationMaximumEce),
-              },
-            ];
+            return [key, inventoryMetrics(items, config, support.perSegment)];
           }),
         )
       : {
           unknown: {
-            support: 0,
+            eligibleDecisionCount: 0,
+            actualActionLinkCount: 0,
+            anyOutcomeLinkCount: 0,
+            scoreableSelectedCandidateOutcomeCount: 0,
+            offListActionCount: 0,
+            actualActionLinkRate: null,
+            anyOutcomeLinkRate: null,
+            scoreableSelectedCandidateOutcomeRate: null,
             outcomeAccuracy: null,
             decisionAgreement: null,
             brierScore: null,
             ece: null,
             calibrationSupport: "NOT_MET",
+            calibrationBins: calibration(
+              [],
+              config.calibrationBinCount,
+              Math.ceil(support.perSegment / config.calibrationBinCount),
+            ).bins,
+            requiredSupport: support.perSegment,
             materiallySupported: false,
+            scoreableSupportMet: false,
             passes: false,
           },
         };
   }
   segments.timeWindow = Object.fromEntries(
-    windowMetrics.map((item) => [
-      item.windowId,
-      {
-        support: item.linkedOutcomes,
-        outcomeAccuracy: item.outcomeAccuracy,
-        decisionAgreement: item.decisionAgreement,
-        brierScore: item.brierScore,
-        ece: item.ece,
-        calibrationSupport: item.calibrationSupport,
-        materiallySupported: item.linkedOutcomes >= item.requiredSupport,
-        passes:
-          item.linkedOutcomes >= item.requiredSupport &&
-          item.outcomeAccuracy >= config.segmentMinimumAccuracy &&
-          item.brierScore <= config.calibrationMaximumBrierScore &&
-          item.calibrationSupport === "SUPPORTED" &&
-          item.ece <= config.calibrationMaximumEce,
-      },
-    ]),
+    windowMetrics.map((item) => [item.windowId, clone(item)]),
   );
   const consecutivePass =
     windowMetrics.length >= config.minimumConsecutivePassingWindows &&
@@ -1047,11 +1466,27 @@ export function evaluateShadowDecisions(
               item.performanceStability.eceDelta <=
                 config.stabilityMaximumEceDelta)),
       );
-  const segmentPass = Object.values(segments).every((groups) =>
-    Object.values(groups).every((item) => item.passes),
-  );
+  const segmentPass = Object.values(segments).every((groups) => {
+    const material = Object.values(groups).filter(
+      (item) => item.materiallySupported,
+    );
+    return material.length > 0 && material.every((item) => item.passes);
+  });
   const evaluationActions = assignedActions.filter(
     (item) => item.window.kind === "evaluation",
+  );
+  const allLatest = ledger.records.map((record) => ({
+    record,
+    link: latestOutcomeLink(ledger, record) || null,
+  }));
+  const actualActionLinks = allLatest.filter(
+    (item) =>
+      item.link?.actualDecisionId !== null &&
+      item.link?.actualDecisionId !== undefined,
+  );
+  const anyOutcomeLinks = allLatest.filter((item) => item.link !== null);
+  const scoreableOutcomes = allLatest.filter(
+    isScoreableSelectedCandidateOutcome,
   );
   return freeze({
     support,
@@ -1063,8 +1498,17 @@ export function evaluateShadowDecisions(
         ? ledger.records.length /
           (ledger.records.length + ledger.exclusions.length)
         : null,
-    outcomeLinkRate: ledger.records.length
-      ? outcomes.length / ledger.records.length
+    actualActionLinkCount: actualActionLinks.length,
+    anyOutcomeLinkCount: anyOutcomeLinks.length,
+    scoreableSelectedCandidateOutcomeCount: scoreableOutcomes.length,
+    actualActionLinkRate: ledger.records.length
+      ? actualActionLinks.length / ledger.records.length
+      : null,
+    anyOutcomeLinkRate: ledger.records.length
+      ? anyOutcomeLinks.length / ledger.records.length
+      : null,
+    scoreableSelectedCandidateOutcomeRate: ledger.records.length
+      ? scoreableOutcomes.length / ledger.records.length
       : null,
     offListActionCount: evaluationActions.length
       ? evaluationActions.filter(
@@ -1187,8 +1631,22 @@ export function buildFounderReadinessReport(
     reasons.push(`evaluation_sample_below_required_${minimum}`);
   if (evaluation.trainingOutcomeCount < minimum)
     reasons.push(`baseline_training_sample_below_required_${minimum}`);
-  if (evaluation.outcomeLinkRate === null || evaluation.outcomeLinkRate < 1)
-    reasons.push("outcome_link_support_incomplete");
+  if (
+    evaluation.actualActionLinkRate === null ||
+    evaluation.actualActionLinkRate < config.minimumActualActionLinkRate
+  )
+    reasons.push("actual_action_link_coverage_incomplete");
+  if (
+    evaluation.anyOutcomeLinkRate === null ||
+    evaluation.anyOutcomeLinkRate < config.minimumAnyOutcomeLinkRate
+  )
+    reasons.push("outcome_link_coverage_incomplete");
+  if (
+    evaluation.scoreableSelectedCandidateOutcomeRate === null ||
+    evaluation.scoreableSelectedCandidateOutcomeRate <
+      config.minimumScoreableSelectedCandidateOutcomeRate
+  )
+    reasons.push("selected_candidate_outcome_coverage_incomplete");
   if (evaluation.baseline.observedOutcomeRate === null)
     reasons.push("chronologically_prior_observational_baseline_unavailable");
   if (!evaluation.consecutiveCalibrationStabilityPass)
@@ -1208,6 +1666,7 @@ export function buildFounderReadinessReport(
     sufficient = gates.statistical_sufficiency === "PASS";
   const allPass =
     Object.values(gates).every((value) => value === "PASS") &&
+    reasons.length === 0 &&
     evaluation.performanceDeltaFromBaseline >=
       config.accuracyMinimumDeltaFromObservationalBaseline;
   const state =
@@ -1231,7 +1690,14 @@ export function buildFounderReadinessReport(
     eligibilityDoesNotAuthorizeActivation: true,
     metrics: {
       eligibleCoverage: evaluation.eligibleCoverage,
-      outcomeLinkRate: evaluation.outcomeLinkRate,
+      actualActionLinkCount: evaluation.actualActionLinkCount,
+      anyOutcomeLinkCount: evaluation.anyOutcomeLinkCount,
+      scoreableSelectedCandidateOutcomeCount:
+        evaluation.scoreableSelectedCandidateOutcomeCount,
+      actualActionLinkRate: evaluation.actualActionLinkRate,
+      anyOutcomeLinkRate: evaluation.anyOutcomeLinkRate,
+      scoreableSelectedCandidateOutcomeRate:
+        evaluation.scoreableSelectedCandidateOutcomeRate,
       offListActionCount: evaluation.offListActionCount,
       decisionAgreement: evaluation.decisionAgreement,
       outcomeAccuracy: evaluation.outcomeAccuracy,
@@ -1259,6 +1725,11 @@ export function buildFounderReadinessReport(
           "thresholded_selected_candidate_predictions/candidates_with_explicit_binary_outcomes",
         decisionAgreement:
           "top_decision_equals_actual_action/known_actual_actions",
+        actualActionLinkRate: "known_actual_actions/eligible_shadow_decisions",
+        anyOutcomeLinkRate:
+          "shadow_decisions_with_any_append_only_outcome_link/eligible_shadow_decisions",
+        scoreableSelectedCandidateOutcomeRate:
+          "explicit_binary_outcomes_for_selected_candidate/eligible_shadow_decisions",
         performanceStability:
           "absolute consecutive-window accuracy/Brier/ECE deltas",
         distributionDrift:
@@ -1275,7 +1746,10 @@ export function buildFounderReadinessReport(
       canonicalVisits: eligible + ledger.exclusions.length,
       eligibleShadowDecisions: eligible,
       excludedOpportunities: ledger.exclusions.length,
-      linkedOutcomes: evaluation.assignedOutcomeCount,
+      actualActionLinks: evaluation.actualActionLinkCount,
+      anyOutcomeLinks: evaluation.anyOutcomeLinkCount,
+      scoreableSelectedCandidateOutcomes:
+        evaluation.scoreableSelectedCandidateOutcomeCount,
     },
     segments: evaluation.segments,
     segmentRisks:
@@ -1297,10 +1771,13 @@ export function buildFounderReadinessReport(
     evidenceReadinessGates: gates,
     gates,
     evaluationWindows: evaluation.windowMetrics,
-    ledgerSha256: ledger.ledgerSha256,
+    shadowLedgerSha256: ledger.shadowLedgerSha256,
+    outcomeChainSha256: ledger.outcomeChainSha256,
+    evaluatedLedgerSha256: ledger.evaluationLedgerSha256,
+    ledgerSha256: ledger.shadowLedgerSha256,
   });
 }
 
 export function renderFounderReadinessMarkdown(report) {
-  return `# Route IQ Shadow Decision Readiness\n\nBatch: ${report.batchId}\n\nState: ${report.state}\n\nRecommendation influence: OFF. ELIGIBLE_FOR_FOUNDER_REVIEW does not authorize activation.\n\nExact reasons: ${report.reasonCodes.length ? report.reasonCodes.join(", ") : "none"}.\n\nCanonical sample: ${report.sampleLimitations.canonicalVisits} opportunities; ${report.sampleLimitations.eligibleShadowDecisions} eligible shadow decisions; ${report.sampleLimitations.excludedOpportunities} explicit exclusions. Unavailable metrics remain null.\n\nBaseline: ${report.methodology.baseline.description} Evaluation is observational only, with no causal or uplift claim.\n\nEquations: ${Object.values(report.methodology.equations).join("; ")}.\n\nSegment risks: ${report.segmentRisks.length ? report.segmentRisks.join(", ") : "none currently detected"}.\n\nUnresolved risks: ${report.unresolvedRisks.length ? report.unresolvedRisks.join(", ") : "none within this validation gate"}.\n\nRollback: remove or disable only this Intelligence consumer and its artifacts; no production rollback is required because influence is OFF.\n`;
+  return `# Route IQ Shadow Decision Readiness\n\nBatch: ${report.batchId}\n\nState: ${report.state}\n\nRecommendation influence: OFF. ELIGIBLE_FOR_FOUNDER_REVIEW does not authorize activation.\n\nExact reasons: ${report.reasonCodes.length ? report.reasonCodes.join(", ") : "none"}.\n\nCanonical sample: ${report.sampleLimitations.canonicalVisits} opportunities; ${report.sampleLimitations.eligibleShadowDecisions} eligible shadow decisions; ${report.sampleLimitations.excludedOpportunities} explicit exclusions. Action links: ${report.sampleLimitations.actualActionLinks}; outcome links: ${report.sampleLimitations.anyOutcomeLinks}; scoreable selected-candidate outcomes: ${report.sampleLimitations.scoreableSelectedCandidateOutcomes}. Unavailable metrics remain null.\n\nEvaluated ledger: ${report.evaluatedLedgerSha256}. Outcome chain: ${report.outcomeChainSha256}.\n\nBaseline: ${report.methodology.baseline.description} Evaluation is observational only, with no causal or uplift claim.\n\nEquations: ${Object.values(report.methodology.equations).join("; ")}.\n\nSegment risks: ${report.segmentRisks.length ? report.segmentRisks.join(", ") : "none currently detected"}.\n\nUnresolved risks: ${report.unresolvedRisks.length ? report.unresolvedRisks.join(", ") : "none within this validation gate"}.\n\nRollback: remove or disable only this Intelligence consumer and its artifacts; no production rollback is required because influence is OFF.\n`;
 }

@@ -6,15 +6,19 @@ import {
   appendOutcomeLink,
   buildFounderReadinessReport,
   buildProspectiveShadowLedger,
+  createShadowExclusion,
   derivedSupport,
   generateShadowDecision,
   loadShadowDecisionConfig,
   requiredSampleSize,
+  sealShadowLedger,
   validateChronologicalWindows,
   validateProspectiveLedgerCompleteness,
   validateRankedCandidates,
+  validateShadowExclusion,
 } from "../intelligence/shadow-decision-readiness.mjs";
 import {
+  requiredProtectedBehaviorBaselineKeys,
   validateShadowDecisionContractCoherence,
   verifyShadowDecisionReadiness,
 } from "../scripts/verify-shadow-decision-readiness.mjs";
@@ -35,19 +39,39 @@ const scope = {
   decisionType: "next_stop",
 };
 const digest = (value) => createHash("sha256").update(value).digest("hex");
+const stableJson = (value) => {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object")
+    return `{${Object.keys(value)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`)
+      .join(",")}}`;
+  return JSON.stringify(value);
+};
+const rehashProjection = (value) => {
+  const { projectionSha256: _ignored, ...body } = value;
+  return { ...body, projectionSha256: digest(stableJson(body)) };
+};
 const projection = (timestamp) => ({
-  projectionVersion: "route-iq-chronological-evidence-projection-v1",
-  decisionTimestamp: timestamp,
-  scope: {
-    workspaceId: scope.workspaceId,
-    operatingProfileId: scope.operatingProfileId,
-    representativeId: scope.representativeId,
-  },
-  evidence: [
-    { evidenceTimestamp: new Date(Date.parse(timestamp) - 1).toISOString() },
-  ],
-  exclusions: [],
-  projectionSha256: digest(`projection-${timestamp}`),
+  ...(() => {
+    const body = {
+      projectionVersion: "route-iq-chronological-evidence-projection-v1",
+      decisionTimestamp: timestamp,
+      scope: {
+        workspaceId: scope.workspaceId,
+        operatingProfileId: scope.operatingProfileId,
+        representativeId: scope.representativeId,
+      },
+      evidence: [
+        {
+          sourceRecordId: `projection-evidence-${timestamp}`,
+          evidenceTimestamp: new Date(Date.parse(timestamp) - 1).toISOString(),
+        },
+      ],
+      exclusions: [],
+    };
+    return { ...body, projectionSha256: digest(stableJson(body)) };
+  })(),
 });
 const opportunity = (index, timestamp, overrides = {}) => {
   const sourceA = {
@@ -93,21 +117,36 @@ function record(index, timestamp, overrides = {}) {
     config,
   });
 }
+function exclusion(index, timestamp, overrides = {}) {
+  return createShadowExclusion({
+    opportunityId: `fixture-exclusion-${index}`,
+    timestamp,
+    reasonCodes: ["governed_fixture_exclusion"],
+    projection: projection(timestamp),
+    scope,
+    evidenceSchemaVersion: "fixture-v1",
+    config,
+    ...overrides,
+  });
+}
 function ledger(records, exclusions = []) {
-  return {
+  return sealShadowLedger({
     batchId: config.batchId,
+    schemaVersion: "route-iq-shadow-ledger-v1",
+    engineVersion: "route-iq-shadow-decision-readiness-v1",
+    scope: config.scope,
     opportunityManifest: [...records, ...exclusions].map((item) => ({
       opportunityId: item.opportunityId,
       timestamp: item.timestamp,
     })),
+    immutable: true,
     records: Object.freeze(records),
     exclusions,
     outcomeLinks: [],
-    ledgerSha256: "fixture-only",
     recommendationInfluence: "OFF",
     founderOnly: true,
     readOnly: true,
-  };
+  });
 }
 function linkedFixture({
   badSegment = false,
@@ -115,6 +154,9 @@ function linkedFixture({
   trainingCount = 97,
   unstable = false,
   unsupportedBin = false,
+  futureTrainingOutcomes = false,
+  noOutcomeTerritoryCount = 0,
+  skipEvaluationTailCount = 0,
 } = {}) {
   const records = [];
   for (let index = 0; index < trainingCount; index += 1)
@@ -130,7 +172,10 @@ function linkedFixture({
     const segment =
       badSegment && index < 10
         ? { scope: { ...scope, territoryId: "materially-failing" } }
-        : {};
+        : noOutcomeTerritoryCount > 0 &&
+            index >= evaluationCount - noOutcomeTerritoryCount
+          ? { scope: { ...scope, territoryId: "no-outcome-territory" } }
+          : {};
     const timestamp = `2026-07-${String(day).padStart(2, "0")}T${String(Math.floor(index / 6) % 24).padStart(2, "0")}:00:00.000Z`;
     const equalWeights =
       unsupportedBin && index === 0
@@ -153,14 +198,21 @@ function linkedFixture({
     const training = index < trainingCount,
       evaluationIndex = index - trainingCount,
       failing = badSegment && evaluationIndex >= 0 && evaluationIndex < 10,
-      unstableFailure = unstable && evaluationIndex >= 49;
+      unstableFailure = unstable && evaluationIndex >= 49,
+      noOutcomeTerritory =
+        evaluationIndex >= evaluationCount - noOutcomeTerritoryCount,
+      skippedTail =
+        evaluationIndex >= evaluationCount - skipEvaluationTailCount;
+    if (!training && (noOutcomeTerritory || skippedTail)) continue;
     result = appendOutcomeLink(result, {
       linkId: `fixture-outcome-${index}`,
       shadowDecisionId: records[index].shadowDecisionId,
       relation: "original",
       priorLinkId: null,
       observedAt: new Date(
-        Date.parse(records[index].timestamp) + 1000,
+        training && futureTrainingOutcomes
+          ? Date.parse("2026-07-01T00:00:01.000Z")
+          : Date.parse(records[index].timestamp) + 1000,
       ).toISOString(),
       actualDecisionId: training ? "off-list-action" : "A",
       observedOutcome: {
@@ -237,10 +289,10 @@ test("prospective generator is deterministic, internal, normalized, and leakage-
     () =>
       generateShadowDecision({
         opportunity: opportunity(2, timestamp),
-        projection: {
+        projection: rehashProjection({
           ...projection(timestamp),
           evidence: [{ evidenceTimestamp: timestamp }],
-        },
+        }),
         config,
       }),
     /temporal_leakage/,
@@ -249,10 +301,10 @@ test("prospective generator is deterministic, internal, normalized, and leakage-
     () =>
       generateShadowDecision({
         opportunity: opportunity(2, timestamp),
-        projection: {
+        projection: rehashProjection({
           ...projection(timestamp),
           evidence: [{ evidenceTimestamp: "2026-07-02T12:00:01.000Z" }],
-        },
+        }),
         config,
       }),
     /temporal_leakage/,
@@ -499,7 +551,12 @@ test("support is mathematical and overlap fails closed", () => {
 test("prospective manifest enforces exactly one disposition", () => {
   const timestamp = "2026-07-02T12:00:00.000Z",
     generated = record(50, timestamp),
-    manifest = [{ opportunityId: generated.opportunityId }];
+    manifest = [
+      {
+        opportunityId: generated.opportunityId,
+        timestamp: generated.timestamp,
+      },
+    ];
   assert.equal(
     validateProspectiveLedgerCompleteness(manifest, [generated], []),
     true,
@@ -513,7 +570,11 @@ test("prospective manifest enforces exactly one disposition", () => {
       validateProspectiveLedgerCompleteness(
         manifest,
         [generated],
-        [{ opportunityId: generated.opportunityId }],
+        [
+          exclusion(50, timestamp, {
+            opportunityId: generated.opportunityId,
+          }),
+        ],
       ),
     /dual_disposition/,
   );
@@ -685,6 +746,39 @@ test("source manifest equal and future availability fails closed", () => {
   );
 });
 
+test("projection digest is recomputed and frozen candidate snapshots are bound", () => {
+  const timestamp = "2026-07-02T12:00:00.000Z";
+  assert.throws(
+    () =>
+      generateShadowDecision({
+        opportunity: opportunity(515, timestamp),
+        projection: {
+          ...projection(timestamp),
+          projectionSha256: "0".repeat(64),
+        },
+        config,
+      }),
+    /projection_digest_mismatch/,
+  );
+  const generated = record(516, timestamp);
+  const tampered = structuredClone(generated);
+  tampered.rankedCandidateDecisions[0].weight += 1;
+  assert.throws(
+    () =>
+      validateProspectiveLedgerCompleteness(
+        [
+          {
+            opportunityId: tampered.opportunityId,
+            timestamp: tampered.timestamp,
+          },
+        ],
+        [tampered],
+        [],
+      ),
+    /frozen_candidate_snapshot_digest_mismatch|shadow_record_digest_mismatch/,
+  );
+});
+
 test("invalid hashes and blank versions fail closed", () => {
   const timestamp = "2026-07-02T12:00:00.000Z";
   assert.throws(
@@ -767,6 +861,21 @@ test("off-list action outcome is preserved but excluded from candidate scoring",
   assert.equal(value.outcomeLinks[0].decisionAgreement, false);
   assert.equal(report.metrics.decisionAgreement, 0);
   assert.equal(report.metrics.outcomeAccuracy, null);
+  assert.equal(report.metrics.actualActionLinkRate, 1);
+  assert.equal(report.metrics.anyOutcomeLinkRate, 1);
+  assert.equal(report.metrics.scoreableSelectedCandidateOutcomeRate, 0);
+  assert.equal(report.segments.representativeId.cruz.actualActionLinkCount, 1);
+  assert.equal(report.segments.representativeId.cruz.anyOutcomeLinkCount, 1);
+  assert.equal(
+    report.segments.representativeId.cruz
+      .scoreableSelectedCandidateOutcomeCount,
+    0,
+  );
+  assert.equal(report.segments.representativeId.cruz.offListActionCount, 1);
+  assert.equal(
+    report.segments.timeWindow["evaluation-2026-07a"].decisionAgreement,
+    0,
+  );
 });
 
 test("explicit positive and negative selected-candidate outcomes are scored", () => {
@@ -815,6 +924,14 @@ test("action-only link keeps candidate outcome unavailable", () => {
   const report = buildFounderReadinessReport(value, config);
   assert.equal(report.metrics.decisionAgreement, 0);
   assert.equal(report.metrics.outcomeAccuracy, null);
+  assert.equal(report.metrics.actualActionLinkRate, 1);
+  assert.equal(report.metrics.anyOutcomeLinkRate, 1);
+  assert.equal(report.metrics.scoreableSelectedCandidateOutcomeRate, 0);
+  assert.equal(report.segments.territoryId.north.actualActionLinkCount, 1);
+  assert.equal(
+    report.segments.territoryId.north.scoreableSelectedCandidateOutcomeCount,
+    0,
+  );
 });
 
 test("unsupported populated calibration bin makes ECE unavailable", () => {
@@ -832,18 +949,103 @@ test("unsupported populated calibration bin makes ECE unavailable", () => {
 });
 
 test("training and evaluation source overlap fails closed", () => {
-  const value = structuredClone(linkedFixture());
-  value.records[97].immutableSourceManifest = structuredClone(
-    value.records[0].immutableSourceManifest,
-  );
+  const trainingRecord = record(565, "2026-06-01T12:00:00.000Z");
+  const sharedSources = structuredClone(trainingRecord.immutableSourceManifest);
+  const evaluationTimestamp = "2026-07-02T12:00:00.000Z";
+  const evaluationRecord = generateShadowDecision({
+    opportunity: opportunity(566, evaluationTimestamp, {
+      sourceManifest: sharedSources,
+      candidateSnapshot: trainingRecord.rankedCandidateDecisions.map(
+        (candidate) => ({
+          decisionId: candidate.decisionId,
+          weight: candidate.weight,
+          availableAt: candidate.availableAt,
+          evidenceSourceIds: candidate.evidenceSourceIds,
+          evidenceSourceHashes: candidate.evidenceSourceHashes,
+          eligibilityReasons: candidate.eligibilityReasons,
+        }),
+      ),
+    }),
+    projection: projection(evaluationTimestamp),
+    config,
+  });
+  let value = ledger([trainingRecord, evaluationRecord]);
+  for (const [index, candidate] of [trainingRecord, evaluationRecord].entries())
+    value = appendOutcomeLink(value, {
+      linkId: `overlap-${index}`,
+      shadowDecisionId: candidate.shadowDecisionId,
+      relation: "original",
+      priorLinkId: null,
+      observedAt: new Date(
+        Date.parse(candidate.timestamp) + 1000,
+      ).toISOString(),
+      actualDecisionId: "A",
+      observedOutcome: {
+        status: "observed",
+        value: true,
+        evaluatedDecisionId: "A",
+      },
+      scope: candidate.scope,
+    });
   assert.throws(
     () => buildFounderReadinessReport(value, config),
     /training_evaluation_source_overlap/,
   );
 });
 
+test("future-observed training outcomes fail closed before baseline eligibility", () => {
+  const value = linkedFixture({ futureTrainingOutcomes: true });
+  assert.throws(
+    () => buildFounderReadinessReport(value, config),
+    /training_outcome_after_evaluation_start/,
+  );
+});
+
+test("material ten-record territory with no outcomes cannot disappear", () => {
+  const report = buildFounderReadinessReport(
+    linkedFixture({
+      evaluationCount: 107,
+      noOutcomeTerritoryCount: 10,
+    }),
+    config,
+  );
+  const segment = report.segments.territoryId["no-outcome-territory"];
+  assert.equal(segment.eligibleDecisionCount, 10);
+  assert.equal(segment.actualActionLinkCount, 0);
+  assert.equal(segment.anyOutcomeLinkCount, 0);
+  assert.equal(segment.scoreableSelectedCandidateOutcomeCount, 0);
+  assert.equal(segment.materiallySupported, true);
+  assert.equal(segment.scoreableSupportMet, false);
+  assert.equal(segment.passes, false);
+  assert.equal(report.gates.segment_safety, "NOT_MET");
+  assert.notEqual(report.state, "ELIGIBLE_FOR_FOUNDER_REVIEW");
+});
+
+test("incomplete link coverage remains an unresolved readiness risk", () => {
+  const report = buildFounderReadinessReport(
+    linkedFixture({ evaluationCount: 98, skipEvaluationTailCount: 1 }),
+    config,
+  );
+  assert.equal(report.gates.statistical_sufficiency, "PASS");
+  assert.ok(report.metrics.actualActionLinkRate < 1);
+  assert.ok(report.metrics.anyOutcomeLinkRate < 1);
+  assert.ok(report.metrics.scoreableSelectedCandidateOutcomeRate < 1);
+  assert.ok(
+    report.reasonCodes.includes("actual_action_link_coverage_incomplete"),
+  );
+  assert.ok(report.reasonCodes.includes("outcome_link_coverage_incomplete"));
+  assert.ok(
+    report.reasonCodes.includes(
+      "selected_candidate_outcome_coverage_incomplete",
+    ),
+  );
+  assert.equal(report.state, "OBSERVING");
+});
+
 test("report requires explicit opportunity manifest", () => {
-  const value = ledger([record(570, "2026-07-02T12:00:00.000Z")]);
+  const value = structuredClone(
+    ledger([record(570, "2026-07-02T12:00:00.000Z")]),
+  );
   delete value.opportunityManifest;
   assert.throws(
     () => buildFounderReadinessReport(value, config),
@@ -856,7 +1058,12 @@ test("undeclared prospective disposition fails closed", () => {
   assert.throws(
     () =>
       validateProspectiveLedgerCompleteness(
-        [{ opportunityId: "declared" }],
+        [
+          {
+            opportunityId: "declared",
+            timestamp: candidate.timestamp,
+          },
+        ],
         [candidate],
         [],
       ),
@@ -868,7 +1075,12 @@ test("missing manifest disposition fails closed", () => {
   assert.throws(
     () =>
       validateProspectiveLedgerCompleteness(
-        [{ opportunityId: "missing" }],
+        [
+          {
+            opportunityId: "missing",
+            timestamp: "2026-07-02T12:00:00.000Z",
+          },
+        ],
         [],
         [],
       ),
@@ -880,7 +1092,16 @@ test("duplicate manifest opportunity fails closed", () => {
   assert.throws(
     () =>
       validateProspectiveLedgerCompleteness(
-        [{ opportunityId: "duplicate" }, { opportunityId: "duplicate" }],
+        [
+          {
+            opportunityId: "duplicate",
+            timestamp: "2026-07-02T12:00:00.000Z",
+          },
+          {
+            opportunityId: "duplicate",
+            timestamp: "2026-07-02T12:00:00.000Z",
+          },
+        ],
         [],
         [],
       ),
@@ -893,9 +1114,18 @@ test("dual shadow and exclusion disposition fails closed", () => {
   assert.throws(
     () =>
       validateProspectiveLedgerCompleteness(
-        [{ opportunityId: candidate.opportunityId }],
+        [
+          {
+            opportunityId: candidate.opportunityId,
+            timestamp: candidate.timestamp,
+          },
+        ],
         [candidate],
-        [{ opportunityId: candidate.opportunityId }],
+        [
+          exclusion(581, candidate.timestamp, {
+            opportunityId: candidate.opportunityId,
+          }),
+        ],
       ),
     /dual_disposition/,
   );
@@ -955,6 +1185,74 @@ test("relation and observed outcome status inconsistency fails closed", () => {
         scope: candidate.scope,
       }),
     /relation_status_inconsistent/,
+  );
+});
+
+test("outcome links update deterministic chain hashes and tampering fails", () => {
+  const candidate = record(585, "2026-07-02T12:00:00.000Z");
+  const initial = ledger([candidate]);
+  const link = {
+    linkId: "hashed-link",
+    shadowDecisionId: candidate.shadowDecisionId,
+    relation: "original",
+    priorLinkId: null,
+    observedAt: "2026-07-02T12:00:01.000Z",
+    actualDecisionId: "A",
+    observedOutcome: {
+      status: "observed",
+      value: true,
+      evaluatedDecisionId: "A",
+    },
+    scope: candidate.scope,
+  };
+  const first = appendOutcomeLink(initial, link);
+  const second = appendOutcomeLink(initial, structuredClone(link));
+  assert.equal(first.shadowLedgerSha256, initial.shadowLedgerSha256);
+  assert.notEqual(first.outcomeChainSha256, initial.outcomeChainSha256);
+  assert.notEqual(first.evaluationLedgerSha256, initial.evaluationLedgerSha256);
+  assert.equal(first.outcomeChainSha256, second.outcomeChainSha256);
+  assert.equal(first.evaluationLedgerSha256, second.evaluationLedgerSha256);
+  assert.match(first.outcomeLinks[0].outcomeLinkSha256, /^[a-f0-9]{64}$/);
+  const report = buildFounderReadinessReport(first, config);
+  assert.equal(report.shadowLedgerSha256, first.shadowLedgerSha256);
+  assert.equal(report.outcomeChainSha256, first.outcomeChainSha256);
+  assert.equal(report.evaluatedLedgerSha256, first.evaluationLedgerSha256);
+  const tampered = structuredClone(first);
+  tampered.outcomeLinks[0].observedOutcome.value = false;
+  assert.throws(
+    () => buildFounderReadinessReport(tampered, config),
+    /outcome_link_digest_mismatch|outcome_chain_digest_mismatch/,
+  );
+});
+
+test("exclusions require canonical provenance and deterministic hashes", () => {
+  const timestamp = "2026-07-02T12:00:00.000Z";
+  const first = exclusion(586, timestamp);
+  const second = exclusion(586, timestamp);
+  assert.equal(validateShadowExclusion(first, config), true);
+  assert.equal(first.exclusionId, second.exclusionId);
+  assert.equal(first.exclusionRecordSha256, second.exclusionRecordSha256);
+  const malformedTimestamp = structuredClone(first);
+  malformedTimestamp.timestamp = "not-a-timestamp";
+  assert.throws(
+    () => validateShadowExclusion(malformedTimestamp, config),
+    /exclusion_contract_invalid|timestamp_invalid/,
+  );
+  const malformedReason = structuredClone(first);
+  malformedReason.reasonCodes = { reason: "not-an-array" };
+  assert.throws(
+    () =>
+      validateProspectiveLedgerCompleteness(
+        [
+          {
+            opportunityId: malformedReason.opportunityId,
+            timestamp: malformedReason.timestamp,
+          },
+        ],
+        [],
+        [malformedReason],
+      ),
+    /exclusion_contract_invalid/,
   );
 });
 
@@ -1026,5 +1324,38 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
   badScope.scope.representativeId = "anthony";
   assert.throws(() =>
     validateShadowDecisionContractCoherence(badScope, config),
+  );
+  for (const mutation of ["empty", "missing", "extra"]) {
+    const value = structuredClone(contract);
+    if (mutation === "empty") value.protectedBehaviorBaselines = {};
+    if (mutation === "missing") delete value.protectedBehaviorBaselines.worker;
+    if (mutation === "extra")
+      value.protectedBehaviorBaselines.unapproved = {
+        path: "package.json",
+        sha256: digest(readFileSync("package.json")),
+      };
+    assert.throws(
+      () => validateShadowDecisionContractCoherence(value, config),
+      /Expected values to be strictly deep-equal/,
+    );
+  }
+  assert.deepEqual(Object.keys(contract.protectedBehaviorBaselines).sort(), [
+    ...requiredProtectedBehaviorBaselineKeys,
+  ]);
+  assert.equal(
+    contract.protectedBehaviorBaselines.routeScoring.path,
+    "scripts/build-route-intelligence-quality-engine.mjs",
+  );
+});
+
+test("aggregate npm test runs both shadow verifier and focused suite", () => {
+  const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
+  assert.match(
+    packageJson.scripts.test,
+    /npm run intelligence:shadow-readiness:check/,
+  );
+  assert.match(
+    packageJson.scripts.test,
+    /npm run test:intelligence:shadow-readiness/,
   );
 });
