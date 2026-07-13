@@ -16,6 +16,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `read-only-field-session-learning.md`: source admission, threshold, explainability, immutability, and fail-closed architecture for the first archived-session learning layer.
 - `off-route-learning-intelligence.mjs`: deterministic read-only projection for explicit visit-decision sources, recommendation overrides, source success cohorts, and representative-judgment confidence.
 - `off-route-learning-intelligence.md`: source taxonomy, override boundary, unknown-safe historical handling, governed metrics, explainability, and future producer handoff.
+- `shadow-decision-readiness.mjs`: Founder-only deterministic shadow ledger and conservative recommendation-readiness gate over Data chronological evidence; recommendation influence remains OFF.
+- `shadow-decision-readiness.md`: temporal, statistical, segmentation, append-only outcome, isolation, and rollback architecture for Batch `BATCH-20260713-001`.
 - `discovery-mode-intelligence-v2.mjs`: deterministic advisory composer for quality-bounded category exploration using canonical business-hours eligibility, existing Active Pool candidates, and authorized read-only evidence maturity.
 - `discovery-mode-intelligence-v2.md`: Discovery queue architecture, category balancing, evidence thresholds, learning impact, explainability, configuration, and activation boundaries.
 - `nearby-context-intelligence-v2.mjs`: deterministic, relationship-aware advisory projection for qualified secondary opportunities around a primary Route IQ arrival.

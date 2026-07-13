@@ -1,0 +1,392 @@
+{
+  "batchId": "BATCH-20260713-001",
+  "schemaVersion": "route-iq-founder-readiness-report-v1",
+  "state": "INSUFFICIENT_EVIDENCE",
+  "reasonCodes": [
+    "no_eligible_shadow_decisions_with_historically_frozen_prospective_context",
+    "evaluation_sample_below_required_97",
+    "baseline_training_sample_below_required_97",
+    "outcome_link_support_incomplete",
+    "chronologically_prior_observational_baseline_unavailable",
+    "consecutive_calibration_stability_windows_not_passing",
+    "segment_safety_not_demonstrated",
+    "observational_baseline_performance_not_met"
+  ],
+  "recommendationInfluence": "OFF",
+  "eligibilityDoesNotAuthorizeActivation": true,
+  "metrics": {
+    "eligibleCoverage": 0,
+    "outcomeLinkRate": null,
+    "offListActionCount": null,
+    "decisionAgreement": null,
+    "outcomeAccuracy": null,
+    "calibrationBrierScore": null,
+    "calibrationEce": null,
+    "calibrationSupport": "NOT_MET",
+    "calibrationBins": [
+      {
+        "bin": 0,
+        "lowerInclusive": 0,
+        "upperInclusive": 0.2,
+        "support": 0,
+        "predictedMean": null,
+        "observedRate": null,
+        "supported": false
+      },
+      {
+        "bin": 1,
+        "lowerInclusive": 0.2,
+        "upperInclusive": 0.4,
+        "support": 0,
+        "predictedMean": null,
+        "observedRate": null,
+        "supported": false
+      },
+      {
+        "bin": 2,
+        "lowerInclusive": 0.4,
+        "upperInclusive": 0.6,
+        "support": 0,
+        "predictedMean": null,
+        "observedRate": null,
+        "supported": false
+      },
+      {
+        "bin": 3,
+        "lowerInclusive": 0.6,
+        "upperInclusive": 0.8,
+        "support": 0,
+        "predictedMean": null,
+        "observedRate": null,
+        "supported": false
+      },
+      {
+        "bin": 4,
+        "lowerInclusive": 0.8,
+        "upperInclusive": 1,
+        "support": 0,
+        "predictedMean": null,
+        "observedRate": null,
+        "supported": false
+      }
+    ],
+    "performanceStability": {
+      "accuracyDelta": null,
+      "brierDelta": null,
+      "eceDelta": null
+    },
+    "distributionTotalVariation": null,
+    "performanceAgainstObservationalBaseline": null,
+    "brierImprovementFromObservationalBaseline": null
+  },
+  "observationalBaseline": {
+    "id": "prior-selected-candidate-outcome-rate-v1",
+    "trainingWindowOnly": true,
+    "requiredSupport": 97,
+    "actualSupport": 0,
+    "observedOutcomeRate": null,
+    "outcomeAccuracy": null,
+    "brierScore": null
+  },
+  "methodology": {
+    "baseline": {
+      "id": "prior-selected-candidate-outcome-rate-v1",
+      "description": "Chronologically prior explicit binary outcomes for the selected candidate, requiring formula-derived support; observational only, with no counterfactual, causal, or uplift interpretation."
+    },
+    "equations": {
+      "sampleSize": "ceil(z^2*p*(1-p)/margin^2)",
+      "binaryBrier": "mean((selected_candidate_probability-observed_binary_outcome)^2)",
+      "ece": "sum(supported_bin_share*abs(predicted_mean-observed_rate))",
+      "outcomeAccuracy": "thresholded_selected_candidate_predictions/candidates_with_explicit_binary_outcomes",
+      "decisionAgreement": "top_decision_equals_actual_action/known_actual_actions",
+      "performanceStability": "absolute consecutive-window accuracy/Brier/ECE deltas",
+      "distributionDrift": "0.5*sum(abs(window_distribution_t-window_distribution_t-1))",
+      "baselineDelta": "shadow_outcome_accuracy-prior_training_outcome_rate_baseline_accuracy"
+    },
+    "support": {
+      "sample": 97,
+      "perCalibrationBin": 20,
+      "perSegment": 10,
+      "windowMinimums": [
+        49,
+        48
+      ]
+    },
+    "windows": [
+      {
+        "id": "training-2026-h1",
+        "kind": "training",
+        "start": "2026-01-01T00:00:00.000Z",
+        "endExclusive": "2026-07-01T00:00:00.000Z"
+      },
+      {
+        "id": "evaluation-2026-07a",
+        "kind": "evaluation",
+        "start": "2026-07-01T00:00:00.000Z",
+        "endExclusive": "2026-07-08T00:00:00.000Z"
+      },
+      {
+        "id": "evaluation-2026-07b",
+        "kind": "evaluation",
+        "start": "2026-07-08T00:00:00.000Z",
+        "endExclusive": "2026-07-15T00:00:00.000Z"
+      }
+    ],
+    "interpretation": "Observational evaluation only; no counterfactual, causal, or uplift claim."
+  },
+  "sampleLimitations": {
+    "canonicalVisits": 4,
+    "eligibleShadowDecisions": 0,
+    "excludedOpportunities": 4,
+    "linkedOutcomes": 0
+  },
+  "segments": {
+    "representativeId": {
+      "unknown": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      }
+    },
+    "territoryId": {
+      "unknown": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      }
+    },
+    "customerContext": {
+      "unknown": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      }
+    },
+    "decisionType": {
+      "unknown": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      }
+    },
+    "timeWindow": {
+      "evaluation-2026-07a": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      },
+      "evaluation-2026-07b": {
+        "support": 0,
+        "outcomeAccuracy": null,
+        "decisionAgreement": null,
+        "brierScore": null,
+        "ece": null,
+        "calibrationSupport": "NOT_MET",
+        "materiallySupported": false,
+        "passes": false
+      }
+    }
+  },
+  "segmentRisks": [
+    "unknown_segments_explicit",
+    "material_segment_failure_blocks_eligibility",
+    "canonical_prospective_context_absent"
+  ],
+  "unresolvedRisks": [
+    "no_eligible_shadow_decisions_with_historically_frozen_prospective_context",
+    "evaluation_sample_below_required_97",
+    "baseline_training_sample_below_required_97",
+    "outcome_link_support_incomplete",
+    "chronologically_prior_observational_baseline_unavailable",
+    "consecutive_calibration_stability_windows_not_passing",
+    "segment_safety_not_demonstrated",
+    "observational_baseline_performance_not_met"
+  ],
+  "implementationAcceptanceGates": {
+    "prospectiveGenerator": "VERIFIED_BY_SUBSYSTEM_TEST",
+    "strictTemporalCutoff": "VERIFIED_BY_SUBSYSTEM_TEST",
+    "deterministicReplay": "VERIFIED_BY_SUBSYSTEM_TEST",
+    "appendOnlyOutcomeChain": "VERIFIED_BY_SUBSYSTEM_TEST",
+    "protectedZeroInfluenceHashes": "VERIFIED_BY_VERIFIER"
+  },
+  "evidenceReadinessGates": {
+    "zero_influence": "PASS",
+    "temporal_integrity": "PASS",
+    "deterministic_replay": "PASS",
+    "completeness": "PASS",
+    "outcome_integrity": "PASS",
+    "evaluation_validity": "NOT_MET",
+    "statistical_sufficiency": "NOT_MET",
+    "segment_safety": "NOT_MET",
+    "calibration_stability": "NOT_MET",
+    "isolation_compatibility": "PASS"
+  },
+  "gates": {
+    "zero_influence": "PASS",
+    "temporal_integrity": "PASS",
+    "deterministic_replay": "PASS",
+    "completeness": "PASS",
+    "outcome_integrity": "PASS",
+    "evaluation_validity": "NOT_MET",
+    "statistical_sufficiency": "NOT_MET",
+    "segment_safety": "NOT_MET",
+    "calibration_stability": "NOT_MET",
+    "isolation_compatibility": "PASS"
+  },
+  "evaluationWindows": [
+    {
+      "windowId": "evaluation-2026-07a",
+      "linkedOutcomes": 0,
+      "requiredSupport": 49,
+      "outcomeAccuracy": null,
+      "decisionAgreement": null,
+      "brierScore": null,
+      "ece": null,
+      "calibrationSupport": "NOT_MET",
+      "calibrationBins": [
+        {
+          "bin": 0,
+          "lowerInclusive": 0,
+          "upperInclusive": 0.2,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 1,
+          "lowerInclusive": 0.2,
+          "upperInclusive": 0.4,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 2,
+          "lowerInclusive": 0.4,
+          "upperInclusive": 0.6,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 3,
+          "lowerInclusive": 0.6,
+          "upperInclusive": 0.8,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 4,
+          "lowerInclusive": 0.8,
+          "upperInclusive": 1,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        }
+      ],
+      "distribution": {},
+      "distributionTotalVariation": null,
+      "performanceStability": {
+        "accuracyDelta": null,
+        "brierDelta": null,
+        "eceDelta": null
+      }
+    },
+    {
+      "windowId": "evaluation-2026-07b",
+      "linkedOutcomes": 0,
+      "requiredSupport": 48,
+      "outcomeAccuracy": null,
+      "decisionAgreement": null,
+      "brierScore": null,
+      "ece": null,
+      "calibrationSupport": "NOT_MET",
+      "calibrationBins": [
+        {
+          "bin": 0,
+          "lowerInclusive": 0,
+          "upperInclusive": 0.2,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 1,
+          "lowerInclusive": 0.2,
+          "upperInclusive": 0.4,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 2,
+          "lowerInclusive": 0.4,
+          "upperInclusive": 0.6,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 3,
+          "lowerInclusive": 0.6,
+          "upperInclusive": 0.8,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        },
+        {
+          "bin": 4,
+          "lowerInclusive": 0.8,
+          "upperInclusive": 1,
+          "support": 0,
+          "predictedMean": null,
+          "observedRate": null,
+          "supported": false
+        }
+      ],
+      "distribution": {},
+      "distributionTotalVariation": null,
+      "performanceStability": {
+        "accuracyDelta": null,
+        "brierDelta": null,
+        "eceDelta": null
+      }
+    }
+  ],
+  "ledgerSha256": "be8e563f9eadee1a90cd431bd201cf6ca9f167163593038e0a4f43f46c8ab132"
+}

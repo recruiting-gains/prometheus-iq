@@ -1,0 +1,28 @@
+{
+  "batchId": "BATCH-20260713-001",
+  "configVersion": "route-iq-shadow-decision-readiness-config-v1",
+  "status": "validation_only_recommendation_influence_off",
+  "scope": { "workspaceId": "fitness_connection", "operatingProfileId": "fitness", "representativeId": "cruz" },
+  "confidenceLevel": 0.95,
+  "maximumMarginOfError": 0.1,
+  "conservativeProportion": 0.5,
+  "calibrationBinCount": 5,
+  "materialSegmentFraction": 0.1,
+  "minimumEvaluationWindows": 2,
+  "minimumConsecutivePassingWindows": 2,
+  "calibrationMaximumBrierScore": 0.25,
+  "calibrationMaximumEce": 0.15,
+  "stabilityMaximumAccuracyDelta": 0.1,
+  "stabilityMaximumBrierDelta": 0.05,
+  "stabilityMaximumEceDelta": 0.05,
+  "minimumAccuracy": 0.75,
+  "segmentMinimumAccuracy": 0.6,
+  "accuracyMinimumDeltaFromObservationalBaseline": 0,
+  "windows": [
+    { "id": "training-2026-h1", "kind": "training", "start": "2026-01-01T00:00:00.000Z", "endExclusive": "2026-07-01T00:00:00.000Z" },
+    { "id": "evaluation-2026-07a", "kind": "evaluation", "start": "2026-07-01T00:00:00.000Z", "endExclusive": "2026-07-08T00:00:00.000Z" },
+    { "id": "evaluation-2026-07b", "kind": "evaluation", "start": "2026-07-08T00:00:00.000Z", "endExclusive": "2026-07-15T00:00:00.000Z" }
+  ],
+  "observationalBaseline": { "id": "prior-selected-candidate-outcome-rate-v1", "description": "Chronologically prior explicit binary outcomes for the selected candidate, requiring formula-derived support; observational only, with no counterfactual, causal, or uplift interpretation." },
+  "recommendationInfluence": "OFF"
+}
