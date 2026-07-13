@@ -1,0 +1,173 @@
+{
+  "version": "off-route-learning-evidence-v1",
+  "status": "validation_only",
+  "productionConsumptionAllowed": false,
+  "canonicalArtifactGenerationAllowed": false,
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "representativeId": "cruz",
+  "records": [
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-route-recommendation",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-south",
+      "businessId": "validation-business-route",
+      "businessName": "Route Recommended Business",
+      "category": "Retail",
+      "visitOccurredAt": "2026-07-12T14:00:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "route_iq_recommendation",
+        "reason": "The representative selected the active Route IQ recommendation.",
+        "evidence": [{"evidenceType": "route_selection", "sourceRecordId": "recommendation-validation-001"}],
+        "confidence": 1,
+        "capturedAt": "2026-07-12T14:00:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": true, "recommendationId": "recommendation-validation-001", "decision": "accepted"},
+      "outcome": {"label": "Lead", "conversations": 1, "leads": 1, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-nearby-context",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-south",
+      "businessId": "validation-business-nearby",
+      "businessName": "Nearby Context Business",
+      "category": "Restaurant",
+      "visitOccurredAt": "2026-07-12T14:15:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "nearby_context",
+        "reason": "The representative selected a governed Nearby Context opportunity.",
+        "evidence": [{"evidenceType": "nearby_context_selection", "sourceRecordId": "nearby-validation-001"}],
+        "confidence": 1,
+        "capturedAt": "2026-07-12T14:15:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": true, "recommendationId": "recommendation-validation-002", "decision": "overridden"},
+      "outcome": {"label": "No contact", "conversations": 0, "leads": 0, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-saved-place",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-south",
+      "businessId": "validation-business-saved",
+      "businessName": "Saved Place Business",
+      "category": "Medical",
+      "visitOccurredAt": "2026-07-12T14:30:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "representative_saved_place",
+        "reason": "The representative visited a previously saved business.",
+        "evidence": [{"evidenceType": "saved_place_selection", "sourceRecordId": "saved-place-validation-001"}],
+        "confidence": 0.95,
+        "capturedAt": "2026-07-12T14:30:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": true, "recommendationId": "recommendation-validation-003", "decision": "overridden"},
+      "outcome": {"label": "Lead", "conversations": 1, "leads": 1, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-discovery",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-north",
+      "businessId": "validation-business-discovery",
+      "businessName": "Field Discovery Business",
+      "category": "Professional Services",
+      "visitOccurredAt": "2026-07-12T14:45:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "representative_discovery",
+        "reason": "The representative discovered the business while driving.",
+        "evidence": [{"evidenceType": "representative_discovery_capture", "sourceRecordId": "discovery-validation-001"}],
+        "confidence": 0.9,
+        "capturedAt": "2026-07-12T14:45:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": true, "recommendationId": "recommendation-validation-004", "decision": "overridden"},
+      "outcome": {"label": "Lead", "conversations": 1, "leads": 1, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-follow-up",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-north",
+      "businessId": "validation-business-follow-up",
+      "businessName": "Follow-up Business",
+      "category": "Fitness",
+      "visitOccurredAt": "2026-07-12T15:00:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "representative_follow_up",
+        "reason": "The representative returned for an explicit follow-up.",
+        "evidence": [{"evidenceType": "follow_up_selection", "sourceRecordId": "follow-up-validation-001"}],
+        "confidence": 0.95,
+        "capturedAt": "2026-07-12T15:00:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": false, "recommendationId": null, "decision": null},
+      "outcome": {"label": "Appointment", "conversations": 1, "leads": 0, "units": 0, "laterUnits": 0, "appointments": 1, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-manual",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-north",
+      "businessId": "validation-business-manual",
+      "businessName": "Manual Selection Business",
+      "category": "Insurance",
+      "visitOccurredAt": "2026-07-12T15:15:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "manual_selection",
+        "reason": "The representative manually selected the business.",
+        "evidence": [{"evidenceType": "manual_selection", "sourceRecordId": "manual-validation-001"}],
+        "confidence": 0.9,
+        "capturedAt": "2026-07-12T15:15:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": true, "recommendationId": "recommendation-validation-005", "decision": "overridden"},
+      "outcome": {"label": "No contact", "conversations": 0, "leads": 0, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-relationship",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": "validation-territory-south",
+      "businessId": "validation-business-relationship",
+      "businessName": "Existing Relationship Business",
+      "category": "Home Services",
+      "visitOccurredAt": "2026-07-12T15:30:00.000Z",
+      "visitDecisionSource": {
+        "sourceId": "existing_relationship",
+        "reason": "The representative selected an existing business relationship.",
+        "evidence": [{"evidenceType": "relationship_selection", "sourceRecordId": "relationship-validation-001"}],
+        "confidence": 0.9,
+        "capturedAt": "2026-07-12T15:30:00.000Z"
+      },
+      "recommendationDecisionContext": {"recommendationAvailable": false, "recommendationId": null, "decision": null},
+      "outcome": {"label": "Referral", "conversations": 1, "leads": 0, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 1}
+    },
+    {
+      "sessionId": "validation-session-off-route-v1",
+      "visitId": "validation-unknown",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": null,
+      "businessId": "validation-business-unknown",
+      "businessName": "Unknown Source Business",
+      "category": "Other",
+      "visitOccurredAt": "2026-07-12T15:45:00.000Z",
+      "visitDecisionSource": null,
+      "recommendationDecisionContext": null,
+      "outcome": {"label": "Conversation", "conversations": 1, "leads": 0, "units": 0, "laterUnits": 0, "appointments": 0, "sales": 0, "contracts": 0, "referrals": 0}
+    }
+  ]
+}

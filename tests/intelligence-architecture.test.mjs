@@ -145,6 +145,34 @@ test("read-only archived-session learning is independently authorized without re
   assert.equal(snapshot.archiveSafety.historicalReplayPerformed, false);
 });
 
+test("off-route learning is source-aware, unknown-safe, and observation-only", () => {
+  const contract = readJson("intelligence/contracts/off-route-learning-intelligence-contracts.json");
+  const policy = readJson("intelligence/config/off-route-learning-intelligence-v1.json");
+  const snapshot = readJson("intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json");
+
+  assert.equal(contract.status, "active_read_only_observation");
+  assert.equal(contract.upstreamReadOnlyLearning.canonicalArchiveReaderReused, true);
+  assert.equal(contract.decisionSourceContract.unknownFallbackRequired, true);
+  assert.equal(contract.decisionSourceContract.notesMaySupplySource, false);
+  assert.equal(contract.recommendationDecisionContract.overrideRequiresExplicitDecisionContext, true);
+  assert.equal(contract.recommendationDecisionContract.offRouteAutomaticallyMeansOverride, false);
+  assert.equal(contract.validationFixturePolicy.productionConsumptionAllowed, false);
+  assert.equal(contract.readOnlySafety.modifyData, false);
+  assert.equal(contract.readOnlySafety.modifyDashboard, false);
+  assert.equal(contract.readOnlySafety.modifyRecommendationScoring, false);
+  assert.equal(contract.readOnlySafety.activateRecommendationInfluence, false);
+  assert.equal(policy.sourceTaxonomy.length, 8);
+  assert.equal(policy.recommendationInfluence.activationStatus, "disabled_observation_only");
+  assert.equal(snapshot.sourceEvidence.totalVisits, 4);
+  assert.equal(snapshot.sourceEvidence.knownSourceVisits, 0);
+  assert.equal(snapshot.sourceEvidence.unknownSourceVisits, 4);
+  assert.equal(snapshot.recommendationAcceptanceRate.valuePercent, null);
+  assert.equal(snapshot.recommendationOverrideRate.valuePercent, null);
+  assert.equal(snapshot.learningConfidence.recommendationInfluenceEligible, false);
+  assert.equal(snapshot.safety.recommendationScoringChanged, false);
+  assert.equal(snapshot.safety.recommendationBehaviorChanged, false);
+});
+
 test("Discovery Mode v2 is a governed advisory composer without production influence", () => {
   const contract = readJson("intelligence/contracts/discovery-mode-intelligence-v2-contracts.json");
   const config = readJson("intelligence/config/discovery-mode-intelligence-v2.json");

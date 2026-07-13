@@ -380,3 +380,28 @@ Evidence classification:
 - Preserve this record under the existing IP-001 evidence history.
 - Preserve proprietary ranking details and future relationship-confidence calibration as confidential implementation information.
 - Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.
+
+## 18. Off-Route Learning Intelligence v1
+
+Status: Engineering expansion documented before implementation
+
+Recorded: 2026-07-12
+
+Supporting record:
+
+- `patents/route-iq/OFF_ROUTE_LEARNING_INTELLIGENCE_V1.md`
+
+Technical relationship:
+
+- Extends representative outcome learning by preserving why a representative selected each visited business.
+- Separates Route IQ recommendations, Nearby Context, Saved Places, direct discovery, follow-ups, manual selections, existing relationships, and Unknown source evidence.
+- Requires explicit recommendation-decision context before classifying an off-route visit as a verified recommendation override.
+- Produces governed acceptance, override, source-success, representative-judgment, category, territory, and confidence observations.
+- Keeps historical visits with missing source evidence Unknown and excludes them from unsupported rate denominators.
+- Leaves Dashboard behavior, Data ownership, route generation, recommendation scoring, and recommendation influence unchanged.
+
+Evidence classification:
+
+- Preserve this record under the existing IP-001 evidence history.
+- Preserve proprietary recommendation scoring and future cohort-calibration details as confidential implementation information.
+- Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.

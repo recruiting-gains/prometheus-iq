@@ -17,6 +17,8 @@ const requiredFiles = [
   "intelligence/field-learning-offline-evidence-harness.mjs",
   "intelligence/read-only-field-session-learning.mjs",
   "intelligence/read-only-field-session-learning.md",
+  "intelligence/off-route-learning-intelligence.mjs",
+  "intelligence/off-route-learning-intelligence.md",
   "intelligence/discovery-mode-intelligence-v2.mjs",
   "intelligence/discovery-mode-intelligence-v2.md",
   "intelligence/nearby-context-intelligence-v2.mjs",
@@ -36,6 +38,10 @@ const requiredFiles = [
   "intelligence/contracts/read-only-field-session-learning-contracts.json",
   "intelligence/config/read-only-field-session-learning-policy-v1.json",
   "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+  "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+  "intelligence/config/off-route-learning-intelligence-v1.json",
+  "intelligence/fixtures/off-route-learning-evidence-v1.json",
+  "intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json",
   "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
   "intelligence/config/discovery-mode-intelligence-v2.json",
   "intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json",
@@ -52,6 +58,7 @@ const requiredFiles = [
   "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json",
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-read-only-field-session-learning.mjs",
+  "scripts/verify-off-route-learning-intelligence.mjs",
   "scripts/verify-discovery-mode-intelligence-v2.mjs",
   "scripts/verify-nearby-context-intelligence-v2.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
@@ -64,7 +71,8 @@ const requiredFiles = [
   "docs/route-intelligence-v2-architecture.md",
   "docs/continuous-learning-framework.md",
   "scripts/verify-route-intelligence-quality-gate.mjs",
-  "scripts/govern-runtime-pool-refresh.mjs"
+  "scripts/govern-runtime-pool-refresh.mjs",
+  "patents/route-iq/OFF_ROUTE_LEARNING_INTELLIGENCE_V1.md"
 ];
 
 for (const file of requiredFiles) {
@@ -80,6 +88,8 @@ const fieldLearning = read("intelligence/adaptive-field-learning-loop-foundation
 const offlineHarness = read("intelligence/field-learning-offline-evidence-harness.mjs");
 const readOnlyFieldSessionLearning = read("intelligence/read-only-field-session-learning.mjs");
 const readOnlyFieldSessionLearningDoc = read("intelligence/read-only-field-session-learning.md");
+const offRouteLearningIntelligence = read("intelligence/off-route-learning-intelligence.mjs");
+const offRouteLearningIntelligenceDoc = read("intelligence/off-route-learning-intelligence.md");
 const discoveryModeIntelligence = read("intelligence/discovery-mode-intelligence-v2.mjs");
 const discoveryModeIntelligenceDoc = read("intelligence/discovery-mode-intelligence-v2.md");
 const nearbyContextIntelligence = read("intelligence/nearby-context-intelligence-v2.mjs");
@@ -99,6 +109,10 @@ const fieldContracts = readJson("intelligence/contracts/field-learning-loop-cont
 const readOnlyFieldSessionLearningContracts = readJson("intelligence/contracts/read-only-field-session-learning-contracts.json");
 const readOnlyFieldSessionLearningPolicy = readJson("intelligence/config/read-only-field-session-learning-policy-v1.json");
 const readOnlyFieldSessionLearningSnapshot = readJson("intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json");
+const offRouteLearningContracts = readJson("intelligence/contracts/off-route-learning-intelligence-contracts.json");
+const offRouteLearningPolicy = readJson("intelligence/config/off-route-learning-intelligence-v1.json");
+const offRouteLearningFixture = readJson("intelligence/fixtures/off-route-learning-evidence-v1.json");
+const offRouteLearningSnapshot = readJson("intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json");
 const discoveryModeContracts = readJson("intelligence/contracts/discovery-mode-intelligence-v2-contracts.json");
 const discoveryModeConfig = readJson("intelligence/config/discovery-mode-intelligence-v2.json");
 const discoveryModePlan = readJson("intelligence/artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json");
@@ -219,6 +233,22 @@ const requiredReadOnlyFieldSessionLearningExports = [
 ];
 for (const exportName of requiredReadOnlyFieldSessionLearningExports) {
   assert(readOnlyFieldSessionLearning.includes(`export function ${exportName}`), `Read-only field-session learning engine missing export ${exportName}`);
+}
+
+const requiredOffRouteLearningExports = [
+  "loadOffRouteLearningContract",
+  "loadOffRouteLearningPolicy",
+  "loadOffRouteLearningValidationFixture",
+  "validateOffRouteLearningPolicy",
+  "validateOffRouteLearningContract",
+  "projectCanonicalArchivedVisitEvidence",
+  "normalizeVisitDecisionEvidence",
+  "buildOffRouteLearningSnapshot",
+  "buildCanonicalOffRouteLearningSnapshot",
+  "validateOffRouteLearningSnapshot"
+];
+for (const exportName of requiredOffRouteLearningExports) {
+  assert(offRouteLearningIntelligence.includes(`export function ${exportName}`), `Off-route learning engine missing export ${exportName}`);
 }
 
 const requiredExplainabilityExports = [
@@ -576,6 +606,40 @@ assert(readOnlyFieldSessionLearningSnapshot.archiveSafety.historicalReplayPerfor
 assert(readOnlyFieldSessionLearningDoc.includes("deterministic read-only snapshot projection"), "Read-only field-session learning doc must describe snapshot projection.");
 assert(readOnlyFieldSessionLearningDoc.includes("No normalization is performed"), "Read-only field-session learning doc must prohibit re-normalization.");
 assert(readOnlyFieldSessionLearningDoc.includes("The first verified session remains observation-only"), "Read-only field-session learning doc must preserve the evidence threshold.");
+assert(offRouteLearningContracts.status === "active_read_only_observation", "Off-route learning contracts must remain active read-only observations.");
+assert(offRouteLearningContracts.upstreamReadOnlyLearning.canonicalArchiveReaderReused === true, "Off-route learning must reuse the canonical archive reader.");
+assert(offRouteLearningContracts.upstreamReadOnlyLearning.sourceAccessMode === "read_only", "Off-route learning source access must remain read-only.");
+assert(offRouteLearningContracts.decisionSourceContract.unknownFallbackRequired === true, "Off-route learning must preserve Unknown fallback.");
+assert(offRouteLearningContracts.decisionSourceContract.notesMaySupplySource === false, "Off-route learning must not infer source from notes.");
+assert(offRouteLearningContracts.recommendationDecisionContract.overrideRequiresExplicitDecisionContext === true, "Off-route learning overrides must require explicit decision context.");
+assert(offRouteLearningContracts.recommendationDecisionContract.offRouteAutomaticallyMeansOverride === false, "Off-route visits must not automatically become overrides.");
+assert(offRouteLearningContracts.validationFixturePolicy.productionConsumptionAllowed === false, "Off-route learning fixture must not enter production consumption.");
+assert(offRouteLearningContracts.validationFixturePolicy.canonicalArtifactGenerationAllowed === false, "Off-route learning fixture must not generate canonical artifacts.");
+assert(offRouteLearningContracts.readOnlySafety.modifyData === false, "Off-route learning must not modify Data.");
+assert(offRouteLearningContracts.readOnlySafety.modifyDashboard === false, "Off-route learning must not modify Dashboard.");
+assert(offRouteLearningContracts.readOnlySafety.modifyRecommendationScoring === false, "Off-route learning must not modify scoring.");
+assert(offRouteLearningContracts.readOnlySafety.modifyRouteGeneration === false, "Off-route learning must not modify route generation.");
+assert(offRouteLearningContracts.readOnlySafety.activateRecommendationInfluence === false, "Off-route learning must not activate recommendation influence.");
+const offRouteSourceIds = offRouteLearningPolicy.sourceTaxonomy.map(source => source.sourceId);
+for (const sourceId of ["route_iq_recommendation", "nearby_context", "representative_saved_place", "representative_discovery", "representative_follow_up", "manual_selection", "existing_relationship", "unknown"]) {
+  assert(offRouteSourceIds.includes(sourceId), `Off-route learning policy missing source ${sourceId}.`);
+}
+assert(offRouteLearningPolicy.sourceAdmission.explicitStructuredEvidenceRequired === true, "Off-route learning must require explicit source evidence.");
+assert(offRouteLearningPolicy.sourceAdmission.notesInferenceAllowed === false, "Off-route learning policy must prohibit notes inference.");
+assert(offRouteLearningPolicy.recommendationDecisionPolicy.offRouteVisitAutomaticallyCountsAsOverride === false, "Off-route learning policy must prohibit automatic override claims.");
+assert(offRouteLearningPolicy.recommendationInfluence.activationStatus === "disabled_observation_only", "Off-route learning recommendation influence must remain disabled.");
+assert(offRouteLearningFixture.status === "validation_only", "Off-route learning fixture must remain validation-only.");
+assert(offRouteLearningFixture.productionConsumptionAllowed === false, "Off-route learning fixture production consumption must remain blocked.");
+assert(offRouteLearningSnapshot.sourceEvidence.totalVisits === 4, "Off-route learning canonical snapshot must cover four verified visits.");
+assert(offRouteLearningSnapshot.sourceEvidence.knownSourceVisits === 0, "Off-route learning canonical snapshot must not invent known source evidence.");
+assert(offRouteLearningSnapshot.sourceEvidence.unknownSourceVisits === 4, "Off-route learning canonical snapshot must preserve four Unknown source visits.");
+assert(offRouteLearningSnapshot.recommendationAcceptanceRate.valuePercent === null, "Off-route learning must not invent an acceptance rate.");
+assert(offRouteLearningSnapshot.recommendationOverrideRate.valuePercent === null, "Off-route learning must not invent an override rate.");
+assert(offRouteLearningSnapshot.learningConfidence.recommendationInfluenceEligible === false, "Off-route learning confidence must not influence recommendations.");
+assert(offRouteLearningSnapshot.safety.recommendationScoringChanged === false, "Off-route learning canonical snapshot must preserve scoring.");
+for (const section of ["Decision Source Model", "Override Boundary", "Outcome And Success Model", "Representative Judgment Comparison", "Explainability", "Canonical Artifact", "Safety", "Future Producer Handoff"]) {
+  assert(offRouteLearningIntelligenceDoc.includes(section), `Off-route learning architecture missing ${section}.`);
+}
 assert(discoveryModeContracts.status === "advisory_only", "Discovery Mode v2 contracts must remain advisory only.");
 assert(discoveryModeContracts.outputContract.runtimeConsumptionAuthorized === false, "Discovery Mode v2 must not authorize runtime consumption.");
 assert(discoveryModeContracts.outputContract.recommendationMutationAuthorized === false, "Discovery Mode v2 must not authorize recommendation mutation.");

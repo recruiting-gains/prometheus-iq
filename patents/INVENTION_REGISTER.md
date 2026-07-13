@@ -44,6 +44,8 @@ Discovery Mode Intelligence v2 evidence: `route-iq/DISCOVERY_MODE_INTELLIGENCE_V
 
 Nearby Context Intelligence v2 evidence: `route-iq/NEARBY_CONTEXT_INTELLIGENCE_V2.md` documents the 2026-07-12 relationship-prioritized, governance-preserving arrival-area opportunity expansion without making patentability claims.
 
+Off-Route Learning Intelligence v1 evidence: `route-iq/OFF_ROUTE_LEARNING_INTELLIGENCE_V1.md` documents the 2026-07-12 source-aware, unknown-safe representative decision learning expansion without making patentability claims.
+
 Invention number: 1
 
 Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
@@ -80,6 +82,7 @@ Known evidence captured:
 - Continuous Adaptive Route Replenishment v1 documented on 2026-07-11 before implementation, covering persisted route queues, latest-evidence regeneration, single-flight replenishment, Active Pool priority, governed Full Pool fallback, and explicit exhausted-pool behavior.
 - Discovery Mode Intelligence v2 documented on 2026-07-11 before implementation, covering deterministic category balancing, governed concentration limits, evidence-maturity exploration, explicit relaxation reporting, and advisory-only activation safety.
 - Nearby Context Intelligence v2 documented on 2026-07-12 before implementation, covering commercial-location relationship priority, verified-versus-inferred provenance, Active Pool priority, governed Full Pool fallback, canonical hours gating, and explicit coverage-gap behavior.
+- Off-Route Learning Intelligence v1 documented on 2026-07-12 before implementation, covering explicit visit-decision sources, verified recommendation override context, unknown-safe historical handling, representative-versus-system outcome cohorts, governed evidence thresholds, and observation-only recommendation safety.
 
 Attorney-review questions:
 

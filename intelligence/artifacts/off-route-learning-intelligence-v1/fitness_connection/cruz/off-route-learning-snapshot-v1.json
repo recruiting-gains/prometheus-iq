@@ -1,0 +1,790 @@
+{
+  "schemaVersion": "prometheus-intelligence-off-route-learning-snapshot-v1",
+  "artifactKind": "off_route_learning_intelligence_snapshot",
+  "artifactId": "off-route-learning-snapshot-e7fa4453ba40d07e7973",
+  "generatedAt": "2026-07-12T00:36:02.000Z",
+  "status": "observation_only",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "representativeId": "cruz",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "sourceSubsystem": "Prometheus Data",
+  "sourceAccessMode": "read_only",
+  "learningVersion": {
+    "engine": "off-route-learning-intelligence-v1",
+    "contract": "off-route-learning-intelligence-v1-contracts-v1",
+    "policy": "off-route-learning-intelligence-v1-policy-v1",
+    "upstream": "read-only-field-session-learning-v1"
+  },
+  "sourceEvidence": {
+    "mode": "canonical_verified_archive",
+    "totalVisits": 4,
+    "knownSourceVisits": 0,
+    "unknownSourceVisits": 4,
+    "recommendationDecisionVisits": 0,
+    "sourceCoveragePercent": 0,
+    "rawEvidenceConsumed": false,
+    "stressObservationsConsumed": false,
+    "notesParsedIntoSource": false,
+    "sourceMutationDetected": false
+  },
+  "sourceTracking": [
+    {
+      "evidenceId": "visit-decision-evidence-6da1aff5f55cb2c474cd",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-01-ab32d577b882",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": null,
+      "business": {
+        "businessId": "cruz-google-330-chij5qnzgugxqiyrbj3drt1qxsu",
+        "businessName": "Galachy Tire Shop",
+        "category": "Auto"
+      },
+      "visitOccurredAt": "2026-07-11T18:29:37.862Z",
+      "decisionSource": {
+        "sourceId": "unknown",
+        "sourceLabel": "Unknown",
+        "sourceClass": "unknown",
+        "known": false,
+        "offRoute": null,
+        "representativeJudgment": false,
+        "reasonCode": "decision_source_not_recorded",
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-01-ab32d577b882",
+            "availability": "unavailable"
+          }
+        ],
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "capturedAt": "2026-07-11T18:29:37.862Z",
+        "rawSourceId": null
+      },
+      "recommendationDecision": {
+        "status": "unavailable",
+        "recommendationAvailable": null,
+        "recommendationId": null,
+        "decision": null,
+        "acceptance": null,
+        "override": null,
+        "reasonCode": "recommendation_decision_context_not_recorded"
+      },
+      "outcome": {
+        "status": "available",
+        "label": "Conversation",
+        "measurements": {
+          "leads": 2,
+          "units": 0,
+          "laterUnits": 0,
+          "appointments": null,
+          "sales": null,
+          "contracts": null,
+          "referrals": null
+        },
+        "successful": true,
+        "successEvidence": [
+          {
+            "signal": "leads",
+            "observed": 2,
+            "required": 1
+          }
+        ]
+      },
+      "isOffRoute": null,
+      "isRecommendationAcceptance": null,
+      "isRecommendationOverride": null,
+      "representativeJudgment": false,
+      "sourceProvenance": {
+        "sourceSubsystem": "Prometheus Data",
+        "sourceRecordKind": "verified_field_session",
+        "sourceSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+        "sourceVisitId": "visit-01-ab32d577b882",
+        "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+        "readOnly": true
+      },
+      "explainability": {
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-01-ab32d577b882",
+            "availability": "unavailable"
+          }
+        ],
+        "outcome": {
+          "status": "available",
+          "label": "Conversation",
+          "measurements": {
+            "leads": 2,
+            "units": 0,
+            "laterUnits": 0,
+            "appointments": null,
+            "sales": null,
+            "contracts": null,
+            "referrals": null
+          },
+          "successful": true,
+          "successEvidence": [
+            {
+              "signal": "leads",
+              "observed": 2,
+              "required": 1
+            }
+          ]
+        },
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "timestamp": "2026-07-11T18:29:37.862Z",
+        "representative": "cruz",
+        "workspace": "fitness_connection",
+        "territory": null
+      }
+    },
+    {
+      "evidenceId": "visit-decision-evidence-6ed05c37506b230ba719",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-02-c3f943ebaa9c",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": null,
+      "business": {
+        "businessId": "cruz-google-332-chijg2vxauibqiyr4ayvbntykiy",
+        "businessName": "Exxon mechanic shop",
+        "category": "Auto"
+      },
+      "visitOccurredAt": "2026-07-11T18:41:40.758Z",
+      "decisionSource": {
+        "sourceId": "unknown",
+        "sourceLabel": "Unknown",
+        "sourceClass": "unknown",
+        "known": false,
+        "offRoute": null,
+        "representativeJudgment": false,
+        "reasonCode": "decision_source_not_recorded",
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c",
+            "availability": "unavailable"
+          }
+        ],
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "capturedAt": "2026-07-11T18:41:40.758Z",
+        "rawSourceId": null
+      },
+      "recommendationDecision": {
+        "status": "unavailable",
+        "recommendationAvailable": null,
+        "recommendationId": null,
+        "decision": null,
+        "acceptance": null,
+        "override": null,
+        "reasonCode": "recommendation_decision_context_not_recorded"
+      },
+      "outcome": {
+        "status": "available",
+        "label": "No contact",
+        "measurements": {
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0,
+          "appointments": null,
+          "sales": null,
+          "contracts": null,
+          "referrals": null
+        },
+        "successful": false,
+        "successEvidence": []
+      },
+      "isOffRoute": null,
+      "isRecommendationAcceptance": null,
+      "isRecommendationOverride": null,
+      "representativeJudgment": false,
+      "sourceProvenance": {
+        "sourceSubsystem": "Prometheus Data",
+        "sourceRecordKind": "verified_field_session",
+        "sourceSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+        "sourceVisitId": "visit-02-c3f943ebaa9c",
+        "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+        "readOnly": true
+      },
+      "explainability": {
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-02-c3f943ebaa9c",
+            "availability": "unavailable"
+          }
+        ],
+        "outcome": {
+          "status": "available",
+          "label": "No contact",
+          "measurements": {
+            "leads": 0,
+            "units": 0,
+            "laterUnits": 0,
+            "appointments": null,
+            "sales": null,
+            "contracts": null,
+            "referrals": null
+          },
+          "successful": false,
+          "successEvidence": []
+        },
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "timestamp": "2026-07-11T18:41:40.758Z",
+        "representative": "cruz",
+        "workspace": "fitness_connection",
+        "territory": null
+      }
+    },
+    {
+      "evidenceId": "visit-decision-evidence-4d10ee8d7a517bcd12b6",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-03-5da0d1f6c66b",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": null,
+      "business": {
+        "businessId": "cruz-google-327-chiji13ubwerqiyrmwr6qanoiz0",
+        "businessName": "Texans Auto Repair - Blackhawk",
+        "category": "Auto"
+      },
+      "visitOccurredAt": "2026-07-11T19:15:59.328Z",
+      "decisionSource": {
+        "sourceId": "unknown",
+        "sourceLabel": "Unknown",
+        "sourceClass": "unknown",
+        "known": false,
+        "offRoute": null,
+        "representativeJudgment": false,
+        "reasonCode": "decision_source_not_recorded",
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-03-5da0d1f6c66b",
+            "availability": "unavailable"
+          }
+        ],
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "capturedAt": "2026-07-11T19:15:59.328Z",
+        "rawSourceId": null
+      },
+      "recommendationDecision": {
+        "status": "unavailable",
+        "recommendationAvailable": null,
+        "recommendationId": null,
+        "decision": null,
+        "acceptance": null,
+        "override": null,
+        "reasonCode": "recommendation_decision_context_not_recorded"
+      },
+      "outcome": {
+        "status": "available",
+        "label": "Membership",
+        "measurements": {
+          "leads": 1,
+          "units": 0,
+          "laterUnits": 0,
+          "appointments": null,
+          "sales": null,
+          "contracts": null,
+          "referrals": null
+        },
+        "successful": true,
+        "successEvidence": [
+          {
+            "signal": "leads",
+            "observed": 1,
+            "required": 1
+          }
+        ]
+      },
+      "isOffRoute": null,
+      "isRecommendationAcceptance": null,
+      "isRecommendationOverride": null,
+      "representativeJudgment": false,
+      "sourceProvenance": {
+        "sourceSubsystem": "Prometheus Data",
+        "sourceRecordKind": "verified_field_session",
+        "sourceSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+        "sourceVisitId": "visit-03-5da0d1f6c66b",
+        "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+        "readOnly": true
+      },
+      "explainability": {
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-03-5da0d1f6c66b",
+            "availability": "unavailable"
+          }
+        ],
+        "outcome": {
+          "status": "available",
+          "label": "Membership",
+          "measurements": {
+            "leads": 1,
+            "units": 0,
+            "laterUnits": 0,
+            "appointments": null,
+            "sales": null,
+            "contracts": null,
+            "referrals": null
+          },
+          "successful": true,
+          "successEvidence": [
+            {
+              "signal": "leads",
+              "observed": 1,
+              "required": 1
+            }
+          ]
+        },
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "timestamp": "2026-07-11T19:15:59.328Z",
+        "representative": "cruz",
+        "workspace": "fitness_connection",
+        "territory": null
+      }
+    },
+    {
+      "evidenceId": "visit-decision-evidence-a9d5ff7ac10cdfded608",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-04-32a0b9fb24c2",
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "representativeId": "cruz",
+      "territoryId": null,
+      "business": {
+        "businessId": "cruz-google-328-chijiduac7lcqiyr sgbtiajkr0",
+        "businessName": "Christian Brothers Automotive Pearland",
+        "category": "Auto"
+      },
+      "visitOccurredAt": "2026-07-11T19:31:21.937Z",
+      "decisionSource": {
+        "sourceId": "unknown",
+        "sourceLabel": "Unknown",
+        "sourceClass": "unknown",
+        "known": false,
+        "offRoute": null,
+        "representativeJudgment": false,
+        "reasonCode": "decision_source_not_recorded",
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-04-32a0b9fb24c2",
+            "availability": "unavailable"
+          }
+        ],
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "capturedAt": "2026-07-11T19:31:21.937Z",
+        "rawSourceId": null
+      },
+      "recommendationDecision": {
+        "status": "unavailable",
+        "recommendationAvailable": null,
+        "recommendationId": null,
+        "decision": null,
+        "acceptance": null,
+        "override": null,
+        "reasonCode": "recommendation_decision_context_not_recorded"
+      },
+      "outcome": {
+        "status": "available",
+        "label": "Conversation",
+        "measurements": {
+          "leads": 0,
+          "units": 0,
+          "laterUnits": 0,
+          "appointments": null,
+          "sales": null,
+          "contracts": null,
+          "referrals": null
+        },
+        "successful": false,
+        "successEvidence": []
+      },
+      "isOffRoute": null,
+      "isRecommendationAcceptance": null,
+      "isRecommendationOverride": null,
+      "representativeJudgment": false,
+      "sourceProvenance": {
+        "sourceSubsystem": "Prometheus Data",
+        "sourceRecordKind": "verified_field_session",
+        "sourceSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+        "sourceVisitId": "visit-04-32a0b9fb24c2",
+        "sourceRawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+        "readOnly": true
+      },
+      "explainability": {
+        "reason": "The canonical visit does not record why the representative selected this business.",
+        "evidence": [
+          {
+            "evidenceType": "visit_decision_source_availability",
+            "sourceRecordId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11:visit-04-32a0b9fb24c2",
+            "availability": "unavailable"
+          }
+        ],
+        "outcome": {
+          "status": "available",
+          "label": "Conversation",
+          "measurements": {
+            "leads": 0,
+            "units": 0,
+            "laterUnits": 0,
+            "appointments": null,
+            "sales": null,
+            "contracts": null,
+            "referrals": null
+          },
+          "successful": false,
+          "successEvidence": []
+        },
+        "confidence": {
+          "score": 0,
+          "band": "insufficient_evidence",
+          "basis": "decision_source_not_recorded"
+        },
+        "timestamp": "2026-07-11T19:31:21.937Z",
+        "representative": "cruz",
+        "workspace": "fitness_connection",
+        "territory": null
+      }
+    }
+  ],
+  "sourceCohorts": [
+    {
+      "sourceId": "route_iq_recommendation",
+      "label": "Route IQ Recommendation",
+      "sourceClass": "system_recommendation",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": false
+    },
+    {
+      "sourceId": "nearby_context",
+      "label": "Nearby Context",
+      "sourceClass": "system_context",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": false
+    },
+    {
+      "sourceId": "representative_saved_place",
+      "label": "Representative Saved Place",
+      "sourceClass": "representative_judgment",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": true
+    },
+    {
+      "sourceId": "representative_discovery",
+      "label": "Representative Discovery",
+      "sourceClass": "representative_judgment",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": true
+    },
+    {
+      "sourceId": "representative_follow_up",
+      "label": "Representative Follow-up",
+      "sourceClass": "representative_judgment",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": true
+    },
+    {
+      "sourceId": "manual_selection",
+      "label": "Manual Selection",
+      "sourceClass": "representative_judgment",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": true
+    },
+    {
+      "sourceId": "existing_relationship",
+      "label": "Existing Relationship",
+      "sourceClass": "representative_judgment",
+      "visits": 0,
+      "outcomeEvidenceCount": 0,
+      "successes": 0,
+      "successRatePercent": null,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": true
+    },
+    {
+      "sourceId": "unknown",
+      "label": "Unknown",
+      "sourceClass": "unknown",
+      "visits": 4,
+      "outcomeEvidenceCount": 4,
+      "successes": 2,
+      "successRatePercent": 50,
+      "recommendationAcceptances": 0,
+      "recommendationOverrides": 0,
+      "representativeJudgment": false
+    }
+  ],
+  "recommendationAcceptanceRate": {
+    "metricId": "recommendation_acceptance_rate",
+    "label": "Recommendation Acceptance Rate",
+    "valuePercent": null,
+    "numerator": 0,
+    "denominator": 0,
+    "minimumEvidence": 5,
+    "status": "unavailable_no_evidence",
+    "limitingFactors": [
+      "denominator_unavailable"
+    ]
+  },
+  "recommendationOverrideRate": {
+    "metricId": "recommendation_override_rate",
+    "label": "Recommendation Override Rate",
+    "valuePercent": null,
+    "numerator": 0,
+    "denominator": 0,
+    "minimumEvidence": 5,
+    "status": "unavailable_no_evidence",
+    "limitingFactors": [
+      "denominator_unavailable"
+    ]
+  },
+  "overrideSuccessRate": {
+    "metricId": "override_success_rate",
+    "label": "Override Success Rate",
+    "valuePercent": null,
+    "numerator": 0,
+    "denominator": 0,
+    "minimumEvidence": 3,
+    "status": "unavailable_no_evidence",
+    "limitingFactors": [
+      "denominator_unavailable"
+    ]
+  },
+  "discoverySuccessRate": {
+    "metricId": "discovery_success_rate",
+    "label": "Discovery Success Rate",
+    "valuePercent": null,
+    "numerator": 0,
+    "denominator": 0,
+    "minimumEvidence": 3,
+    "status": "unavailable_no_evidence",
+    "limitingFactors": [
+      "denominator_unavailable"
+    ]
+  },
+  "representativeJudgmentConfidence": {
+    "confidenceId": "representative-judgment-confidence-e85b78c7b5ff6bef1b47",
+    "representativeId": "cruz",
+    "score": 0,
+    "band": "insufficient_evidence",
+    "thresholdQualified": false,
+    "recommendationInfluenceEligible": false,
+    "representativeJudgmentOutcomes": 0,
+    "representativeJudgmentSuccesses": 0,
+    "representativeJudgmentSuccessRatePercent": null,
+    "routeRecommendationOutcomes": 0,
+    "routeRecommendationSuccesses": 0,
+    "routeRecommendationSuccessRatePercent": null,
+    "comparison": {
+      "status": "insufficient_evidence",
+      "minimumOutcomesPerCohort": 5,
+      "successRateDifferencePercentagePoints": null,
+      "representativeJudgmentOutperformsRouteIq": null
+    },
+    "evidenceUsed": [],
+    "limitingFactors": [
+      "representative_judgment_evidence_below_threshold",
+      "route_recommendation_comparison_evidence_below_threshold",
+      "confidence_below_threshold",
+      "recommendation_influence_disabled_observation_only"
+    ]
+  },
+  "learningConfidence": {
+    "confidenceId": "off-route-learning-confidence-12c7f2b3b304ef49ff58",
+    "score": 0.2,
+    "band": "insufficient_evidence",
+    "thresholdQualified": false,
+    "recommendationInfluenceEligible": false,
+    "components": {
+      "sourceCoverage": 0,
+      "outcomeCoverage": 1,
+      "recommendationDecisionCoverage": 0,
+      "sampleMaturity": 0
+    },
+    "evidenceCount": {
+      "totalVisits": 4,
+      "knownSourceVisits": 0,
+      "unknownSourceVisits": 4,
+      "outcomeEvidenceVisits": 4,
+      "recommendationDecisionVisits": 0
+    },
+    "limitingFactors": [
+      "known_source_evidence_below_threshold",
+      "recommendation_decision_evidence_below_threshold",
+      "confidence_below_threshold",
+      "recommendation_influence_disabled_observation_only"
+    ]
+  },
+  "overrideObservations": [],
+  "categoryOffRouteIntelligence": [],
+  "territoryOffRouteIntelligence": [],
+  "learningHistory": [
+    {
+      "historyId": "off-route-learning-history-2df2a3baa54e4be6ff23",
+      "evidenceId": "visit-decision-evidence-6da1aff5f55cb2c474cd",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-01-ab32d577b882",
+      "decisionSource": "unknown",
+      "sourceKnown": false,
+      "recommendationDecision": null,
+      "outcomeStatus": "available",
+      "successfulOutcome": true,
+      "representativeId": "cruz",
+      "territoryId": null,
+      "workspaceId": "fitness_connection",
+      "observedAt": "2026-07-11T18:29:37.862Z",
+      "replayed": false,
+      "historicalEvidenceCreated": false,
+      "recommendationInfluenceEligible": false
+    },
+    {
+      "historyId": "off-route-learning-history-d9ff28f68d364f6b8497",
+      "evidenceId": "visit-decision-evidence-6ed05c37506b230ba719",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-02-c3f943ebaa9c",
+      "decisionSource": "unknown",
+      "sourceKnown": false,
+      "recommendationDecision": null,
+      "outcomeStatus": "available",
+      "successfulOutcome": false,
+      "representativeId": "cruz",
+      "territoryId": null,
+      "workspaceId": "fitness_connection",
+      "observedAt": "2026-07-11T18:41:40.758Z",
+      "replayed": false,
+      "historicalEvidenceCreated": false,
+      "recommendationInfluenceEligible": false
+    },
+    {
+      "historyId": "off-route-learning-history-48ff6d38e3a9c3f01c8c",
+      "evidenceId": "visit-decision-evidence-4d10ee8d7a517bcd12b6",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-03-5da0d1f6c66b",
+      "decisionSource": "unknown",
+      "sourceKnown": false,
+      "recommendationDecision": null,
+      "outcomeStatus": "available",
+      "successfulOutcome": true,
+      "representativeId": "cruz",
+      "territoryId": null,
+      "workspaceId": "fitness_connection",
+      "observedAt": "2026-07-11T19:15:59.328Z",
+      "replayed": false,
+      "historicalEvidenceCreated": false,
+      "recommendationInfluenceEligible": false
+    },
+    {
+      "historyId": "off-route-learning-history-240af1902099b1d1094f",
+      "evidenceId": "visit-decision-evidence-a9d5ff7ac10cdfded608",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "visitId": "visit-04-32a0b9fb24c2",
+      "decisionSource": "unknown",
+      "sourceKnown": false,
+      "recommendationDecision": null,
+      "outcomeStatus": "available",
+      "successfulOutcome": false,
+      "representativeId": "cruz",
+      "territoryId": null,
+      "workspaceId": "fitness_connection",
+      "observedAt": "2026-07-11T19:31:21.937Z",
+      "replayed": false,
+      "historicalEvidenceCreated": false,
+      "recommendationInfluenceEligible": false
+    }
+  ],
+  "safety": {
+    "dashboardChanged": false,
+    "dataChanged": false,
+    "dataOwnershipChanged": false,
+    "routeRuntimeChanged": false,
+    "routeGenerationChanged": false,
+    "recommendationScoringChanged": false,
+    "recommendationBehaviorChanged": false,
+    "recommendationInfluenceActive": false,
+    "automaticLearningInfluenceActive": false,
+    "workspaceIsolationPassed": true,
+    "readOnlyLearning": true
+  },
+  "archiveSafety": {
+    "archiveMutationPerformed": false,
+    "archiveOverwritePerformed": false,
+    "archiveDeletionPerformed": false,
+    "historicalReplayPerformed": false,
+    "historicalEvidenceCreated": false,
+    "normalizationChangesPerformed": false
+  }
+}

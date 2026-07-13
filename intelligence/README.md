@@ -14,6 +14,8 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `field-learning-offline-evidence-harness.mjs`: offline-only simulated evidence harness for validating evidence ingestion, learning signals, confidence snapshots, explanations, and human overrides.
 - `read-only-field-session-learning.mjs`: independently authorized, read-only projection engine for verified canonical Data field-session records; it produces governed Intelligence artifacts without replaying sessions or influencing recommendations.
 - `read-only-field-session-learning.md`: source admission, threshold, explainability, immutability, and fail-closed architecture for the first archived-session learning layer.
+- `off-route-learning-intelligence.mjs`: deterministic read-only projection for explicit visit-decision sources, recommendation overrides, source success cohorts, and representative-judgment confidence.
+- `off-route-learning-intelligence.md`: source taxonomy, override boundary, unknown-safe historical handling, governed metrics, explainability, and future producer handoff.
 - `discovery-mode-intelligence-v2.mjs`: deterministic advisory composer for quality-bounded category exploration using canonical business-hours eligibility, existing Active Pool candidates, and authorized read-only evidence maturity.
 - `discovery-mode-intelligence-v2.md`: Discovery queue architecture, category balancing, evidence thresholds, learning impact, explainability, configuration, and activation boundaries.
 - `nearby-context-intelligence-v2.mjs`: deterministic, relationship-aware advisory projection for qualified secondary opportunities around a primary Route IQ arrival.
@@ -29,6 +31,9 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - `contracts/read-only-field-session-learning-contracts.json`: active read-only consumer authorization, source ownership boundary, approved Data record kinds, output contracts, and protected behavior baselines.
 - `config/read-only-field-session-learning-policy-v1.json`: governed evidence minima, confidence bands, recency weighting, evidence decay, and recommendation-influence safeguards.
 - `artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json`: deterministic Intelligence-owned projection of the currently authorized canonical archived session.
+- `config/off-route-learning-intelligence-v1.json`: governed decision-source taxonomy, success policy, evidence thresholds, confidence model, and observation-only safety.
+- `contracts/off-route-learning-intelligence-contracts.json`: read-only source, metric, explainability, isolation, validation-fixture, and protected-baseline contracts.
+- `artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json`: deterministic source-learning projection of the currently authorized canonical archived visits.
 - `config/discovery-mode-intelligence-v2.json`: governed category taxonomy, concentration limits, quality floor, evidence-policy inheritance, learning objectives, territory overrides, and relaxation policy.
 - `contracts/discovery-mode-intelligence-v2-contracts.json`: advisory-only input, output, composition, isolation, explainability, and protected behavior contracts.
 - `artifacts/discovery-mode-intelligence-v2/fitness_connection/cruz/discovery-queue-plan-v2.json`: deterministic advisory composition report derived from the current Active Pool and authorized read-only learning snapshot.
@@ -66,6 +71,7 @@ Prometheus Intelligence Engine is not the Dashboard, CRM, Data refresh engine, R
 - Do not modify Data governance from this architecture package.
 - Do not modify Anthony beta behavior from this architecture package.
 - Read-only archived-session learning is active only through `read-only-field-session-learning-contracts-v1`; production recommendation influence remains inactive.
+- Off-Route Learning Intelligence v1 reuses the authorized archive reader and remains observation-only. It classifies unavailable historical decision sources as Unknown and cannot infer overrides, change scoring, or influence recommendations.
 - Discovery Mode Intelligence v2 is advisory only. It consumes the canonical Route IQ business-hours eligibility decision before category balancing and cannot create a production queue, change candidate scores, or influence recommendations without a separate explicit runtime activation handoff.
 - Nearby Context Intelligence v2 is an Intelligence-owned advisory projection. It applies canonical eligibility and canonical identity deduplication before commercial relationship reasoning and cannot change primary recommendations, route scores, queue state, Dashboard runtime, or Data ownership.
 - Do not activate recommendation-affecting field learning, historical replay, raw archive consumption, or archive mutation from this architecture package.
@@ -80,6 +86,8 @@ Future Adaptive Field Learning Loop work must extend `adaptive-field-learning-lo
 Future offline learning validation must extend `field-learning-offline-evidence-harness.mjs` and `fixtures/field-visit-evidence-fixtures.json`. Do not create a separate simulated evidence harness, separate confidence regression suite, or alternate explanation validator.
 
 Future canonical archived-session learning must extend `read-only-field-session-learning.mjs`, `read-only-field-session-learning.md`, `contracts/read-only-field-session-learning-contracts.json`, and `config/read-only-field-session-learning-policy-v1.json`. Do not create a second Data archive reader, re-normalize Data records, replay historical sessions, parse raw reports directly, hard-code learning thresholds, or activate recommendation influence through the read-only projection.
+
+Future off-route decision learning must extend `off-route-learning-intelligence.mjs`, `off-route-learning-intelligence.md`, `config/off-route-learning-intelligence-v1.json`, and `contracts/off-route-learning-intelligence-contracts.json`. Do not infer decision source from notes, outcome, business origin, or missing recommendation evidence; do not treat every off-route visit as an override; and do not use validation-only fixtures as production evidence.
 
 Future Discovery Mode category-composition work must extend `discovery-mode-intelligence-v2.mjs`, `discovery-mode-intelligence-v2.md`, `config/discovery-mode-intelligence-v2.json`, and `contracts/discovery-mode-intelligence-v2-contracts.json`. Do not add a fixed category rotation, second runtime queue, second business-hours eligibility engine, parallel scoring engine, direct Dashboard consumer, stress-observation learning path, or fallback that bypasses existing Active Pool, canonical eligibility, quality, duplicate, workspace, or explainability controls.
 

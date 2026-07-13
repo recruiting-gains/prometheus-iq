@@ -1,0 +1,145 @@
+{
+  "policyVersion": "off-route-learning-intelligence-v1-policy-v1",
+  "status": "active_read_only_observation",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "sourceTaxonomy": [
+    {
+      "sourceId": "route_iq_recommendation",
+      "label": "Route IQ Recommendation",
+      "sourceClass": "system_recommendation",
+      "offRoute": false,
+      "representativeJudgment": false,
+      "aliases": ["route_iq_recommendation", "Route IQ Recommendation"]
+    },
+    {
+      "sourceId": "nearby_context",
+      "label": "Nearby Context",
+      "sourceClass": "system_context",
+      "offRoute": true,
+      "representativeJudgment": false,
+      "aliases": ["nearby_context", "Nearby Context"]
+    },
+    {
+      "sourceId": "representative_saved_place",
+      "label": "Representative Saved Place",
+      "sourceClass": "representative_judgment",
+      "offRoute": true,
+      "representativeJudgment": true,
+      "aliases": ["representative_saved_place", "Representative Saved Place", "saved_place"]
+    },
+    {
+      "sourceId": "representative_discovery",
+      "label": "Representative Discovery",
+      "sourceClass": "representative_judgment",
+      "offRoute": true,
+      "representativeJudgment": true,
+      "aliases": ["representative_discovery", "Representative Discovery", "field_discovery"]
+    },
+    {
+      "sourceId": "representative_follow_up",
+      "label": "Representative Follow-up",
+      "sourceClass": "representative_judgment",
+      "offRoute": true,
+      "representativeJudgment": true,
+      "aliases": ["representative_follow_up", "Representative Follow-up", "follow_up"]
+    },
+    {
+      "sourceId": "manual_selection",
+      "label": "Manual Selection",
+      "sourceClass": "representative_judgment",
+      "offRoute": true,
+      "representativeJudgment": true,
+      "aliases": ["manual_selection", "Manual Selection"]
+    },
+    {
+      "sourceId": "existing_relationship",
+      "label": "Existing Relationship",
+      "sourceClass": "representative_judgment",
+      "offRoute": true,
+      "representativeJudgment": true,
+      "aliases": ["existing_relationship", "Existing Relationship"]
+    },
+    {
+      "sourceId": "unknown",
+      "label": "Unknown",
+      "sourceClass": "unknown",
+      "offRoute": null,
+      "representativeJudgment": false,
+      "aliases": ["unknown", "Unknown"]
+    }
+  ],
+  "sourceAdmission": {
+    "explicitStructuredEvidenceRequired": true,
+    "requiredKnownSourceFields": ["sourceId", "reason", "evidence", "confidence", "capturedAt"],
+    "minimumKnownSourceConfidence": 0.5,
+    "unknownFallbackRequired": true,
+    "unsupportedSourceFailsToUnknown": true,
+    "notesInferenceAllowed": false,
+    "businessSourceTypeInferenceAllowed": false,
+    "outcomeInferenceAllowed": false,
+    "recommendationAvailabilityInferenceAllowed": false
+  },
+  "recommendationDecisionPolicy": {
+    "decisionValues": ["accepted", "overridden"],
+    "recommendationAvailableRequired": true,
+    "recommendationIdRequired": true,
+    "overrideRequiresOffRouteSource": true,
+    "offRouteVisitAutomaticallyCountsAsOverride": false,
+    "unknownSourceIncludedInDecisionRates": false
+  },
+  "successPolicy": {
+    "strategy": "any_verified_signal_meets_minimum",
+    "signals": {
+      "leads": 1,
+      "units": 1,
+      "laterUnits": 1,
+      "appointments": 1,
+      "sales": 1,
+      "contracts": 1,
+      "referrals": 1
+    },
+    "missingOutcomeRemainsUnknown": true,
+    "outcomeLabelAloneCountsAsSuccess": false
+  },
+  "evidenceThresholds": {
+    "minimumKnownSourceVisits": 5,
+    "minimumRecommendationDecisions": 5,
+    "minimumOverrideOutcomes": 3,
+    "minimumDiscoveryOutcomes": 3,
+    "minimumRepresentativeJudgmentOutcomes": 5,
+    "minimumComparisonOutcomesPerCohort": 5,
+    "minimumLearningConfidence": 0.7,
+    "minimumRepresentativeJudgmentConfidence": 0.7
+  },
+  "confidenceModel": {
+    "weights": {
+      "sourceCoverage": 0.35,
+      "outcomeCoverage": 0.2,
+      "recommendationDecisionCoverage": 0.25,
+      "sampleMaturity": 0.2
+    },
+    "bands": [
+      {"band": "insufficient_evidence", "minimum": 0},
+      {"band": "developing", "minimum": 0.35},
+      {"band": "medium", "minimum": 0.6},
+      {"band": "high", "minimum": 0.8}
+    ]
+  },
+  "recommendationInfluence": {
+    "activationStatus": "disabled_observation_only",
+    "routeScoringWeightMutationAllowed": false,
+    "routeGenerationMutationAllowed": false,
+    "recommendationMutationAllowed": false,
+    "automaticLearningInfluenceAllowed": false
+  },
+  "outputPolicy": {
+    "artifactMode": "deterministic_read_only_projection",
+    "unknownRatesUseNull": true,
+    "zeroDenominatorReportedAsZero": false,
+    "unmetThresholdsRemainVisible": true,
+    "sourceCoverageRequired": true,
+    "overrideExplainabilityRequired": true
+  }
+}

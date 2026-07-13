@@ -1,0 +1,116 @@
+{
+  "version": "off-route-learning-intelligence-v1-contracts-v1",
+  "status": "active_read_only_observation",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "domain": "off_route_learning",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
+  "upstreamReadOnlyLearning": {
+    "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "contractSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
+    "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
+    "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
+    "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
+    "canonicalArchiveReaderReused": true,
+    "sourceAccessMode": "read_only",
+    "rawEvidenceConsumptionAllowed": false,
+    "stressObservationConsumptionAllowed": false,
+    "archiveMutationAllowed": false,
+    "historicalReplayAllowed": false
+  },
+  "decisionSourceContract": {
+    "canonicalField": "visitDecisionSource",
+    "requiredSourceIds": [
+      "route_iq_recommendation",
+      "nearby_context",
+      "representative_saved_place",
+      "representative_discovery",
+      "representative_follow_up",
+      "manual_selection",
+      "existing_relationship",
+      "unknown"
+    ],
+    "requiredFieldsWhenKnown": ["sourceId", "reason", "evidence", "confidence", "capturedAt"],
+    "unknownFallbackRequired": true,
+    "notesMaySupplySource": false,
+    "outcomeMaySupplySource": false,
+    "businessOriginMaySupplyDecisionSource": false,
+    "unavailableRecommendationEvidenceMeansAcceptance": false
+  },
+  "recommendationDecisionContract": {
+    "canonicalField": "recommendationDecisionContext",
+    "requiredFieldsForRates": ["recommendationAvailable", "recommendationId", "decision"],
+    "decisionValues": ["accepted", "overridden"],
+    "overrideRequiresExplicitDecisionContext": true,
+    "offRouteAutomaticallyMeansOverride": false
+  },
+  "requiredOutputs": [
+    "sourceTracking",
+    "recommendationAcceptanceRate",
+    "recommendationOverrideRate",
+    "overrideSuccessRate",
+    "discoverySuccessRate",
+    "representativeJudgmentConfidence",
+    "learningConfidence",
+    "overrideObservations",
+    "categoryOffRouteIntelligence",
+    "territoryOffRouteIntelligence",
+    "learningHistory",
+    "learningVersion"
+  ],
+  "overrideExplainabilityRequiredFields": [
+    "reason",
+    "evidence",
+    "outcome",
+    "confidence",
+    "timestamp",
+    "representative",
+    "workspace"
+  ],
+  "intelligenceOwnedArtifacts": {
+    "engine": "intelligence/off-route-learning-intelligence.mjs",
+    "architecture": "intelligence/off-route-learning-intelligence.md",
+    "policy": "intelligence/config/off-route-learning-intelligence-v1.json",
+    "snapshot": "intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json",
+    "validationFixture": "intelligence/fixtures/off-route-learning-evidence-v1.json",
+    "verifier": "scripts/verify-off-route-learning-intelligence.mjs",
+    "regressionTests": "tests/off-route-learning-intelligence.test.mjs"
+  },
+  "validationFixturePolicy": {
+    "productionConsumptionAllowed": false,
+    "canonicalArtifactGenerationAllowed": false,
+    "recommendationInfluenceAllowed": false
+  },
+  "workspaceIsolation": {
+    "requiredWorkspaceId": "fitness_connection",
+    "requiredOperatingProfileId": "fitness",
+    "protectedWorkspaceIds": ["smoothie_depot"],
+    "unknownWorkspaceFailsClosed": true,
+    "crossWorkspaceAggregationAllowed": false,
+    "globalRepresentativeLearningAllowed": false
+  },
+  "readOnlySafety": {
+    "modifyData": false,
+    "modifyDashboard": false,
+    "modifyRouteRuntime": false,
+    "modifyRecommendationScoring": false,
+    "modifyRouteGeneration": false,
+    "activateRecommendationInfluence": false,
+    "createHistoricalEvidence": false,
+    "parseNotesIntoDecisionSource": false
+  },
+  "protectedBehaviorBaselines": {
+    "dashboardSource": {"path": "index.html", "sha256": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2"},
+    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7"},
+    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b"},
+    "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
+    "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}
+  },
+  "inventionGovernance": {
+    "recordPath": "patents/route-iq/OFF_ROUTE_LEARNING_INTELLIGENCE_V1.md",
+    "documentedBeforeImplementation": true,
+    "patentabilityClaimMade": false
+  }
+}
