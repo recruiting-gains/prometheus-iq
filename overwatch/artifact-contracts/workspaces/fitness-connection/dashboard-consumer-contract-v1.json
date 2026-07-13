@@ -27,8 +27,17 @@
   },
   "repViewContract": {
     "defaultRepId": "anthony",
-    "allowedTabs": ["today", "route"],
-    "blockedTabs": ["places", "stats", "find"],
+    "allowedTabs": ["today", "route", "places"],
+    "blockedTabs": ["stats", "find"],
+    "placesAccess": {
+      "mode": "restricted_places",
+      "restrictions": ["visited_places_only", "active_representative_only"],
+      "currentRepresentativeVisitHistoryOnly": true,
+      "currentRepresentativeCorrectionsOnly": true,
+      "founderProductionMapAllowed": false,
+      "unvisitedBusinessesAllowed": false,
+      "globalStatisticsAllowed": false
+    },
     "workspaceSwitchingAllowed": false,
     "ownerModeAllowed": false,
     "adminControlsAllowed": false

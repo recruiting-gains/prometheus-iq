@@ -1164,8 +1164,27 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   }
   assert(dashboardSource.includes('body[data-session-role="rep"] .manager-only'), "Fitness Dashboard must hide manager controls from rep sessions.", failures);
   assert(dashboardSource.includes('body[data-session-role="rep"] .admin-only'), "Fitness Dashboard must hide admin controls from rep sessions.", failures);
-  assert(dashboardSource.includes('if (appMode === "rep" && ["places", "stats", "find"].includes(name)) name = "today";'), "Fitness Dashboard must guard owner tabs from rep mode.", failures);
+  assert(JSON.stringify(dashboardContract.repViewContract.allowedTabs) === JSON.stringify(["today", "route", "places"]), "Dashboard contract must allow only Today, Route, and restricted Places for rep mode.", failures);
+  assert(JSON.stringify(dashboardContract.repViewContract.blockedTabs) === JSON.stringify(["stats", "find"]), "Dashboard contract must block Stats and Find from rep mode.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.mode === "restricted_places", "Dashboard contract must classify Rep Places as restricted.", failures);
+  assert(JSON.stringify(dashboardContract.repViewContract.placesAccess?.restrictions) === JSON.stringify(["visited_places_only", "active_representative_only"]), "Dashboard contract must restrict Rep Places to visited businesses for the active representative.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.currentRepresentativeVisitHistoryOnly === true, "Dashboard contract must restrict Rep Places to current representative visit history.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.currentRepresentativeCorrectionsOnly === true, "Dashboard contract must restrict Rep Places to current representative corrections.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.founderProductionMapAllowed === false, "Dashboard contract must block the Founder Production Map from rep mode.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.unvisitedBusinessesAllowed === false, "Dashboard contract must block unvisited businesses from rep mode.", failures);
+  assert(dashboardContract.repViewContract.placesAccess?.globalStatisticsAllowed === false, "Dashboard contract must block global statistics from Rep Places.", failures);
+  assert(dashboardSource.includes('if (appMode === "rep" && ["stats", "find"].includes(name)) name = "today";'), "Fitness Dashboard must guard Stats and Find from rep mode.", failures);
+  assert(dashboardSource.includes('<button class="tab" data-tab="places" aria-label="Places">'), "Fitness Dashboard must expose the restricted Places tab to rep mode.", failures);
+  assert(dashboardSource.includes('<button class="tab owner-only" data-tab="stats" aria-label="Insights">'), "Fitness Dashboard must keep Insights owner-only.", failures);
+  assert(dashboardSource.includes('<button class="tab owner-only" data-tab="find" aria-label="Find">'), "Fitness Dashboard must keep Find owner-only.", failures);
+  assert(dashboardSource.includes('const visitedPlaceIds = new Set(state.visits.map(visit => visit.placeId));'), "Fitness Rep Places must derive access from the active representative visit history.", failures);
+  assert(dashboardSource.includes('places = places.filter(place => visitedPlaceIds.has(place.id));'), "Fitness Rep Places must exclude unvisited businesses.", failures);
+  assert(dashboardSource.includes('if (placesTitle) placesTitle.textContent = "Visited Places";'), "Fitness Rep Places must not present the Founder Production Map.", failures);
+  assert(dashboardSource.includes('const visits = effectiveVisitsForProfile().filter(visit => visit.placeId === placeId);'), "Fitness Rep Places statistics must use only the active representative profile.", failures);
+  assert(dashboardSource.includes('.filter(event => event.visitId === visitId && event.workspaceId === defaultWorkspaceId && event.representativeId === profileId)'), "Fitness visit corrections must remain scoped to the current representative.", failures);
   assert(dashboardSource.includes('if (requestedRole === "rep" || sessionRole === "rep") appMode = "rep";'), "Fitness Dashboard must force rep mode for rep sessions.", failures);
+  assert(dashboardContract.repViewContract.workspaceSwitchingAllowed === false, "Dashboard contract must block rep workspace switching.", failures);
+  assert(dashboardContract.repViewContract.ownerModeAllowed === false, "Dashboard contract must block owner mode from rep sessions.", failures);
   assert(dashboardContract.repViewContract.adminControlsAllowed === false, "Dashboard contract must block rep admin controls.", failures);
   assert(dashboardContract.productionRules.anthonyRepAccessMustNotEqualFounderAccess === true, "Dashboard contract must protect Anthony/Founder boundary.", failures);
 
