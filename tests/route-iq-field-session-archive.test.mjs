@@ -32,6 +32,15 @@ const FINDINGS_PATH = `${SESSION_ROOT}/evidence/stress-test-observations.json`;
 const MANIFEST_PATH = `${SESSION_ROOT}/manifest.json`;
 const SOURCE_EVIDENCE_PATH = "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json";
 const EXPECTED_RAW_SHA = "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a";
+const EXPECTED_IMMUTABLE_ARTIFACT_HASHES = Object.freeze({
+  [RAW_PATH]: EXPECTED_RAW_SHA,
+  [NORMALIZED_PATH]: "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8",
+  [CALCULATED_PATH]: "71171b79aa725e533113f5cc1d040b13f6fc5cb3b5b4cdee993e8d4b836de911",
+  [HISTORY_PATH]: "0d3f2508b92290b04a1d7b1cc979ee298eea97c9dda84061dbe66e2bea5b5c09",
+  [FINDINGS_PATH]: "6030bd109659140b00c012fbf09e6a05d63c23f197a58daec8bc63dd2603179e",
+  [MANIFEST_PATH]: "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba",
+  [SOURCE_EVIDENCE_PATH]: "f66db5694698dcc75728a16a506c5bab66aac559b9913d991df6a6ce9cdcd9f9"
+});
 
 function json(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -197,6 +206,9 @@ test("actual Founder final report remains byte-preserved with its deterministic 
     representativeId: "cruz",
     date: "2026-07-11"
   }), SESSION_ID);
+  for (const [path, expectedHash] of Object.entries(EXPECTED_IMMUTABLE_ARTIFACT_HASHES)) {
+    assert.equal(sha(readFileSync(path)), expectedHash, `Historical artifact changed: ${path}`);
+  }
 });
 
 test("historical archive remains readable without weakening new normalization", async () => {
@@ -242,6 +254,28 @@ test("newly normalized visits preserve known sources and canonicalize explicit U
   assert.equal(completedVisits.at(-1).visitDecisionSource.reason, null);
   assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "visitDecisionSource")), true);
   assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "recommendationDecisionContext")), true);
+});
+
+test("decision context is timestamp-bound to the completed visit and canonicalized", () => {
+  const canonical = decisionContextReport();
+  canonical.visits[0].timestamp = "2026-07-11T15:00:00-05:00";
+  canonical.visits[0].visitDecisionSource.capturedAt = "2026-07-11T20:00:00.000Z";
+  const normalized = archivePackage({ rawReportText: JSON.stringify(canonical) })
+    .normalizedRecord.verifiedFields.completedVisits[0];
+  assert.equal(normalized.sourceReport.timestamp, "2026-07-11T20:00:00.000Z");
+  assert.equal(normalized.visitDecisionSource.capturedAt, normalized.sourceReport.timestamp);
+
+  for (const capturedAt of ["2026-07-11T19:59:59.999Z", "2026-07-11T20:00:00.001Z"]) {
+    const mismatched = decisionContextReport();
+    mismatched.visits[0].visitDecisionSource.capturedAt = capturedAt;
+    assert.throws(() => archivePackage({ rawReportText: JSON.stringify(mismatched) }), error => {
+      assert.equal(error instanceof FieldSessionArchiveError, true);
+      assert.equal(error.code, "field_session_decision_context_timestamp_mismatch");
+      assert.equal(error.details.visitTimestamp, mismatched.visits[0].timestamp);
+      assert.equal(error.details.capturedAt, capturedAt);
+      return true;
+    });
+  }
 });
 
 test("new normalization rejects omitted or null canonical decision-context fields", () => {

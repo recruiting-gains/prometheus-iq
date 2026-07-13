@@ -55,6 +55,17 @@ function replaceHistory(record, mutate) {
   record.sourceArtifacts.historyUpdates = { ...record.sourceArtifacts.historyUpdates, text, sha256: hash(text), byteLength: Buffer.byteLength(text) };
 }
 
+function replaceNormalized(record, mutate) {
+  mutate(record.normalizedRecord);
+  const text = JSON.stringify(record.normalizedRecord, null, 2) + "\n";
+  record.sourceArtifacts.normalized = {
+    ...record.sourceArtifacts.normalized,
+    text,
+    sha256: hash(text),
+    byteLength: Buffer.byteLength(text)
+  };
+}
+
 test("July 11 archive remains compatible and explicitly excludes unavailable timestamps", () => {
   const result = project(archive());
   assert.ok(result.evidence.length > 0);
@@ -78,6 +89,52 @@ test("evidence at the decision timestamp is excluded unless prior availability i
   });
   assert.ok(atCutoff.exclusions.some(item => item.reason === "after_decision_timestamp"));
   assert.equal(atCutoff.evidence.every(item => item.evidenceTimestamp < timestamp), true);
+});
+
+test("visit-completion context remains post-action evidence rather than a frozen candidate snapshot", () => {
+  const record = archive();
+  const visit = record.normalizedRecord.verifiedFields.completedVisits[0];
+  const timestamp = visit.sourceReport.timestamp;
+  replaceNormalized(record, normalized => {
+    const completed = normalized.verifiedFields.completedVisits[0];
+    completed.visitDecisionSource = {
+      sourceId: "route_iq_recommendation",
+      reason: "The representative identified the source while logging the completed visit.",
+      evidence: [{ evidenceType: "route_selection", sourceRecordId: `dashboard-visit:${completed.visitId}` }],
+      confidence: 1,
+      capturedAt: timestamp
+    };
+    completed.recommendationDecisionContext = {
+      recommendationAvailable: true,
+      recommendationId: "route-recommendation:historical-observation",
+      decision: "accepted"
+    };
+  });
+
+  const decisionContextId = `${record.normalizedRecord.sessionId}:${visit.visitId}:decision-context`;
+  const observedOutcomeId = `${record.normalizedRecord.sessionId}:${visit.visitId}:observed-outcome`;
+  const atAction = project(record, timestamp);
+  assert.equal(atAction.decisionTimestamp, timestamp);
+  assert.equal(atAction.evidence.some(item => [decisionContextId, observedOutcomeId].includes(item.sourceRecordId)), false);
+  assert.deepEqual(
+    atAction.exclusions.filter(item => [decisionContextId, observedOutcomeId].includes(item.sourceRecordId)),
+    [
+      { sourceRecordId: decisionContextId, evidenceKind: "visit_decision_context", evidenceTimestamp: timestamp, reason: "at_decision_timestamp_without_prior_availability" },
+      { sourceRecordId: observedOutcomeId, evidenceKind: "visit_observed_outcome", evidenceTimestamp: timestamp, reason: "at_decision_timestamp_without_prior_availability" }
+    ]
+  );
+
+  const afterAction = project(record, new Date(Date.parse(timestamp) + 1).toISOString());
+  const decisionContext = afterAction.evidence.find(item => item.sourceRecordId === decisionContextId);
+  const observedOutcome = afterAction.evidence.find(item => item.sourceRecordId === observedOutcomeId);
+  assert.equal(decisionContext.evidenceKind, "visit_decision_context");
+  assert.equal(observedOutcome.evidenceKind, "visit_observed_outcome");
+  assert.ok(decisionContext.evidenceTimestamp < afterAction.decisionTimestamp);
+  assert.equal(decisionContext.payload.visitDecisionSource.capturedAt, timestamp);
+  assert.deepEqual(Object.keys(decisionContext.payload).sort(), ["recommendationDecisionContext", "visitDecisionSource", "visitId"]);
+  for (const preActionField of ["candidateSnapshot", "rankedCandidateDecisions", "probabilities", "evidenceCutoffTimestamp", "modelVersion", "ruleVersion"]) {
+    assert.equal(Object.hasOwn(decisionContext.payload, preActionField), false);
+  }
 });
 
 test("corrections and conflicts remain separate append-only outcome observations", () => {
