@@ -32,7 +32,11 @@
     "placesAccess": {
       "mode": "restricted_representative_places",
       "governanceDecision": "approved",
-      "runtimeAlignmentStatus": "pending_dashboard_alignment",
+      "runtimeAlignmentStatus": "aligned",
+      "alignmentEvidence": {
+        "dashboardCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
+        "dashboardSourceSha256": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2"
+      },
       "sections": {
         "visitedPlaces": {
           "label": "Visited Places",
@@ -70,7 +74,7 @@
         "ownerControlsAllowed": false,
         "administrativeVisibilityAllowed": false
       },
-      "pendingDashboardRequirements": [
+      "verifiedDashboardRequirements": [
         "separate_visited_and_saved_sections",
         "not_yet_visited_label"
       ]

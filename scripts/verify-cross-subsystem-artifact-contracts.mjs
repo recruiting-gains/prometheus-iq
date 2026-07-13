@@ -1170,7 +1170,9 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const placesAccess = dashboardContract.repViewContract.placesAccess;
   assert(placesAccess?.mode === "restricted_representative_places", "Dashboard contract must classify Rep Places as restricted representative-owned places.", failures);
   assert(placesAccess?.governanceDecision === "approved", "Representative Places governance expansion must record Founder approval.", failures);
-  assert(placesAccess?.runtimeAlignmentStatus === "pending_dashboard_alignment", "Representative Places expansion must remain pending until the Dashboard separates and labels Saved Places.", failures);
+  assert(placesAccess?.runtimeAlignmentStatus === "aligned", "Representative Places runtime alignment must be finalized.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "de51401774dc54034418b5feab4cdb2d255cc0ba", "Representative Places alignment must reference the verified Dashboard commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardSourceSha256 === sha256(dashboardSource), "Representative Places alignment must reference the verified Dashboard source hash.", failures);
   assert(placesAccess?.sections?.visitedPlaces?.label === "Visited Places", "Representative Places contract must define the Visited Places section.", failures);
   assert(sameMembers(placesAccess?.sections?.visitedPlaces?.restrictions, ["active_representative_only", "logged_visits_only"]), "Visited Places must contain only logged visits for the active representative.", failures);
   assert(placesAccess?.sections?.visitedPlaces?.outcomesAllowed === true, "Visited Places must expose outcomes.", failures);
@@ -1190,7 +1192,7 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   for (const rule of ["otherRepresentativePlacesAllowed", "founderProductionMapAllowed", "globalSearchAllowed", "globalStatisticsAllowed", "workspaceSwitchingAllowed", "ownerControlsAllowed", "administrativeVisibilityAllowed"]) {
     assert(placesAccess?.securityBoundaries?.[rule] === false, `Representative Places security must prohibit ${rule}.`, failures);
   }
-  assert(sameMembers(placesAccess?.pendingDashboardRequirements, ["separate_visited_and_saved_sections", "not_yet_visited_label"]), "Representative Places must retain both pending Dashboard alignment requirements.", failures);
+  assert(sameMembers(placesAccess?.verifiedDashboardRequirements, ["separate_visited_and_saved_sections", "not_yet_visited_label"]), "Representative Places must record both verified Dashboard requirements.", failures);
   assert(dashboardSource.includes('if (appMode === "rep" && ["stats", "find"].includes(name)) name = "today";'), "Fitness Dashboard must guard Stats and Find from rep mode.", failures);
   assert(dashboardSource.includes('<button class="tab" data-tab="places" aria-label="Places">'), "Fitness Dashboard must expose the restricted Places tab to rep mode.", failures);
   assert(dashboardSource.includes('<button class="tab owner-only" data-tab="stats" aria-label="Insights">'), "Fitness Dashboard must keep Insights owner-only.", failures);
@@ -1200,6 +1202,15 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(dashboardSource.includes('places = places.filter(place => visitedPlaceIds.has(place.id)'), "Fitness Rep Places must preserve the verified-visit boundary.", failures);
   assert(dashboardSource.includes('if (placesTitle) placesTitle.textContent = "Rep Places";'), "Fitness Rep Places must remain distinct from the Founder Production Map.", failures);
   assert(dashboardSource.includes('} else if (placesTitle) {\n        placesTitle.textContent = "Production Map";'), "Fitness Founder Production Map must remain outside rep mode.", failures);
+  assert(dashboardSource.includes('function representativePlacesPresentation('), "Fitness Dashboard must partition representative places through the governed presentation function.", failures);
+  assert(dashboardSource.includes('data-places-section="visited"'), "Fitness Dashboard must render the Visited Places section.", failures);
+  assert(dashboardSource.includes('data-places-section="saved"'), "Fitness Dashboard must render the Saved Places section.", failures);
+  assert(dashboardSource.includes('<h3>Visited Places</h3>'), "Fitness Dashboard must label the Visited Places section.", failures);
+  assert(dashboardSource.includes('<h3>Saved Places</h3>'), "Fitness Dashboard must label the Saved Places section.", failures);
+  assert(dashboardSource.includes('<span class="pill yellow">Not Yet Visited</span>'), "Fitness Dashboard must label every Saved Place as Not Yet Visited.", failures);
+  assert(dashboardSource.includes('&& !visitedPlaceIds.has(place.id));'), "Fitness Saved Places must remain unvisited until promotion.", failures);
+  assert(dashboardSource.includes('function founderProductionPlaces('), "Fitness Dashboard must isolate unvisited Saved Places from the Founder Production Map.", failures);
+  assert(dashboardSource.includes('function placesWithVerifiedVisits('), "Fitness Dashboard must isolate unvisited Saved Places from global statistics.", failures);
   assert(dashboardSource.includes('const visits = effectiveVisitsForProfile().filter(visit => visit.placeId === placeId);'), "Fitness Rep Places statistics must use only the active representative profile.", failures);
   assert(dashboardSource.includes('.filter(event => event.visitId === visitId && event.workspaceId === defaultWorkspaceId && event.representativeId === profileId)'), "Fitness visit corrections must remain scoped to the current representative.", failures);
   assert(dashboardSource.includes('return place?.sourceType === "Google Places API"'), "Fitness route recommendations must reject Dashboard Manual Entry businesses.", failures);
