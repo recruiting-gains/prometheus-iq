@@ -83,6 +83,7 @@ Known evidence captured:
 - Discovery Mode Intelligence v2 documented on 2026-07-11 before implementation, covering deterministic category balancing, governed concentration limits, evidence-maturity exploration, explicit relaxation reporting, and advisory-only activation safety.
 - Nearby Context Intelligence v2 documented on 2026-07-12 before implementation, covering commercial-location relationship priority, verified-versus-inferred provenance, Active Pool priority, governed Full Pool fallback, canonical hours gating, and explicit coverage-gap behavior.
 - Off-Route Learning Intelligence v1 documented on 2026-07-12 before implementation, covering explicit visit-decision sources, verified recommendation override context, unknown-safe historical handling, representative-versus-system outcome cohorts, governed evidence thresholds, and observation-only recommendation safety.
+- Shadow Decision Validation and Recommendation Readiness Gate v1 documented on 2026-07-13 before implementation under BATCH-20260713-001, covering immutable temporal evidence cutoffs, deterministic shadow decisions, append-only action/outcome linkage, chronological observational evaluation, statistical sufficiency, segment safety, calibration and stability, and Founder-only readiness review with recommendation influence off.
 
 Attorney-review questions:
 

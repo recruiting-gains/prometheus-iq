@@ -405,3 +405,37 @@ Evidence classification:
 - Preserve this record under the existing IP-001 evidence history.
 - Preserve proprietary recommendation scoring and future cohort-calibration details as confidential implementation information.
 - Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.
+
+## 19. Shadow Decision Validation and Recommendation Readiness Gate v1
+
+Status: Post-provisional material invention candidate documented before implementation
+
+Batch ID: BATCH-20260713-001
+
+Recorded: 2026-07-13
+
+Date conceived: 2026-07-13
+
+Supporting record:
+
+- `patents/route-iq/SHADOW_DECISION_VALIDATION_AND_RECOMMENDATION_READINESS_GATE_V1.md`
+
+Technical relationship:
+
+- Extends the Route IQ evidence and learning pipeline with zero-influence prospective validation before recommendation influence is considered.
+- Freezes evidence at each eligible decision timestamp and rejects later-available evidence from the original prediction.
+- Records one deterministic, versioned shadow decision or one documented exclusion for every eligible opportunity.
+- Preserves ranked candidate decisions, probabilities, confidence, evidence cutoff, evidence and schema versions, model or rule version, and eligibility or exclusion reasons.
+- Links later representative actions and observed outcomes through append-only evaluation records without rewriting the original shadow decision.
+- Uses chronological, non-overlapping evaluation evidence and a declared observational baseline.
+- Evaluates coverage, outcome linkage, calibration, accuracy, stability, and baseline-relative performance by representative, territory, customer context, decision type, and time window.
+- Uses documented statistical reasoning and segment-safety checks before producing `INSUFFICIENT_EVIDENCE`, `OBSERVING`, or `ELIGIBLE_FOR_FOUNDER_REVIEW`.
+- Keeps route ordering, Discovery Mode, Nearby Context, Saved Places, notifications, representative interfaces, operational workflows, automatic actions, and recommendation influence unchanged.
+
+Evidence classification:
+
+- Preserve this as a separate post-filing Route IQ invention record associated with the IP-001 technical lineage.
+- Do not treat this material as part of, or retroactively add it to, the provisional application filed on 2026-07-09.
+- Preserve detailed decision ranking, probability mapping, calibration, sufficiency, and readiness parameters as confidential implementation information pending review.
+- Present the record to patent counsel as a post-provisional material invention candidate for advice on any future filing strategy.
+- This register makes no conclusion about patentability, claim scope, priority, inventorship, or filing strategy.
