@@ -238,9 +238,15 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   for (const prohibited of ["authoritativeTimestamp", "candidateSetSha256", "decisionSource", "rank", "probability", "readiness", "engineVersion", "notes", "email", "latitude"]) {
     assert.equal(Object.hasOwn(schema.$defs.captureRequest.properties, prohibited), false);
   }
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "data_implementation_defined_collection_inactive");
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.binding, routeIqFieldSessionStoreBinding);
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.newBindingIntroduced, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "data_sqlite_coordinator_defined_runtime_inactive");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.authoritativeTechnology, "cloudflare_sqlite_backed_durable_object");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeAdapterImplemented, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeBindingIntroducedByData, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.binding, routeIqFieldSessionStoreBinding);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.authority, "non_authoritative_cache_only");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.controlsReadinessEvidence, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.authorityBoundary.unkeyedDigestAcceptedAsAuthentication, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.projection.minimumEvidenceState, "SHADOW_DECISION_SEALED");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newPiiCollected, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newRetentionPeriodIntroduced, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.existingRetentionPeriodExtended, false);
@@ -806,83 +812,21 @@ test("stored artifact and commit tamper fail readback without mutation", async (
   await assert.rejects(() => readRouteIqProspectiveLifecycle({ ...second.input.scope, opportunityId: second.input.opportunityId }, { store: commitTamper.adapter() }), error => error.code === "route_iq_prospective_commit_tampered");
 });
 
-test("existing chronological projection carries only strict-before prospective lifecycle evidence", async () => {
+test("Workers KV prospective lifecycle is cache-only and cannot enter chronological readiness evidence", async () => {
   const h = harness();
   const record = await accepted(h, "2501");
-  const actionInput = action(record.input, "2501");
-  await appendRouteIqProspectiveAction(actionInput, {
-    store: h.adapter(), serverContext: trusted("2026-07-13T13:00:02.000Z", { receipt: record.receipt })
-  });
-  const outcomeInput = outcome(record.input, actionInput, "2501");
-  const outcomeResult = await appendRouteIqProspectiveOutcome(outcomeInput, {
-    store: h.adapter(), serverContext: trusted("2026-07-13T13:00:03.000Z")
-  });
-  await appendRouteIqProspectiveCorrection({
-    schemaVersion: routeIqProspectiveCorrectionSchemaVersion,
-    opportunityId: record.input.opportunityId,
-    idempotencyKey: "correction_idempotency_2501",
-    correctionId: "correction_record_00002501",
-    targetRecordId: outcomeResult.artifact.artifactId,
-    targetKind: "outcome",
-    scope: clone(record.input.scope),
-    recordOrigin: "prospective",
-    reasonCode: "verified_outcome_correction",
-    replacement: { evaluatedCandidateId: outcomeResult.artifact.evaluatedCandidateId, observedOutcome: { status: "observed", value: false } },
-    client: { sequence: 13, observedAt: "2026-07-13T13:00:03.500Z", syncMode: "online" }
-  }, { store: h.adapter(), serverContext: trusted("2026-07-13T13:00:04.000Z") });
-  await appendRouteIqProspectiveGovernedExclusion({
-    opportunityId: record.input.opportunityId,
-    idempotencyKey: "manual_exclusion_key_2501",
-    scope: clone(record.input.scope),
-    targetKind: "outcome",
-    targetRecordId: "excluded_outcome_00002501",
-    reasonCodes: ["source_outcome_unavailable"]
-  }, { store: h.adapter(), serverContext: trusted("2026-07-13T13:00:05.000Z") });
   const lifecycle = (await readRouteIqProspectiveLifecycle({ ...record.input.scope, opportunityId: record.input.opportunityId }, { store: h.adapter() })).record;
-  const project = decisionTimestamp => projectRouteIqChronologicalEvidence({
-    archiveRecord: committedArchive(),
-    prospectiveLifecycleRecord: lifecycle,
-    decisionTimestamp,
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    representativeId: "cruz"
-  });
-
-  const atSnapshot = project("2026-07-13T13:00:00.000Z");
-  assert.equal(atSnapshot.evidence.some(item => item.evidenceKind.startsWith("prospective_")), false);
-  assert.ok(atSnapshot.exclusions.some(item => item.sourceRecordId === record.result.artifact.artifactId && item.reason === "at_decision_timestamp_without_prior_availability"));
-
-  const beforeAction = project("2026-07-13T13:00:02.000Z");
-  assert.equal(beforeAction.evidence.filter(item => item.evidenceKind.startsWith("prospective_")).length, 1);
-  assert.ok(beforeAction.exclusions.some(item => item.sourceRecordId === actionInput.actionId && item.reason === "at_decision_timestamp_without_prior_availability"));
-
-  const complete = project("2026-07-13T13:00:06.000Z");
-  const prospective = complete.evidence.filter(item => item.evidenceKind.startsWith("prospective_"));
-  assert.deepEqual(prospective.map(item => item.evidenceKind), [
-    "prospective_opportunity_snapshot",
-    "prospective_opportunity_action",
-    "prospective_opportunity_outcome",
-    "prospective_outcome_correction"
-  ]);
-  assert.deepEqual(prospective.at(-1).relation, { type: "correction", priorSourceRecordId: outcomeResult.artifact.artifactId });
-  assert.equal(prospective.every(item => item.evidenceTimestamp < complete.decisionTimestamp), true);
-  assert.ok(complete.exclusions.some(item => item.reason === "governed_prospective_exclusion" && item.reasonCodes.includes("source_outcome_unavailable")));
-  assert.equal(lifecycle.exclusions.every(item => item.appendOnly === true), true);
-  assert.equal(prospective.find(item => item.evidenceKind === "prospective_opportunity_action").payload.decisionSource, null);
-
-  const tampered = clone(lifecycle);
-  tampered.sourceArtifacts[actionInput.actionId].artifact.text += " ";
   assert.throws(() => projectRouteIqChronologicalEvidence({
     archiveRecord: committedArchive(),
-    prospectiveLifecycleRecord: tampered,
-    decisionTimestamp: "2026-07-13T13:00:06.000Z",
+    prospectiveLifecycleRecord: lifecycle,
+    decisionTimestamp: "2026-07-13T14:00:00.000Z",
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
     representativeId: "cruz"
-  }), error => ["field_session_prospective_lifecycle_digest_mismatch", "field_session_evidence_source_hash_mismatch"].includes(error.code));
+  }), error => error.code === "field_session_prospective_kv_authority_superseded");
 });
 
-test("projection rejects cross-representative lifecycle scope even when historical archive scope is valid", async () => {
+test("KV cache scope contamination cannot bypass superseded authority", async () => {
   const h = harness();
   const record = await accepted(h, "2601");
   const lifecycle = clone((await readRouteIqProspectiveLifecycle({ ...record.input.scope, opportunityId: record.input.opportunityId }, { store: h.adapter() })).record);
@@ -894,5 +838,5 @@ test("projection rejects cross-representative lifecycle scope even when historic
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
     representativeId: "cruz"
-  }), error => error.code === "field_session_evidence_scope_mismatch");
+  }), error => error.code === "field_session_prospective_kv_authority_superseded");
 });

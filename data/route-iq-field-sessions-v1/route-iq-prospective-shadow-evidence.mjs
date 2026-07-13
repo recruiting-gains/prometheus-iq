@@ -19,6 +19,7 @@ export const routeIqProspectiveExclusionSchemaVersion = "route-iq-prospective-ex
 export const routeIqProspectiveConflictSchemaVersion = "route-iq-prospective-conflict-v1";
 export const routeIqProspectiveSealReceiptVersion = "route-iq-shadow-seal-receipt-v1";
 export const routeIqProspectiveStorageSegment = "prospective-shadow-evidence/v1";
+export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveRecordOrigins = Object.freeze([
   "prospective",
   "synthetic",
@@ -662,8 +663,14 @@ function validatePersistedArtifactContract(artifact) {
 }
 
 function buildArtifact(body) {
-  const recordSha256 = sha256(body);
-  return { ...body, recordSha256 };
+  const cacheOnlyBody = {
+    ...body,
+    storageAuthority: routeIqProspectiveKvAuthority,
+    canonicalEvidenceEligible: false,
+    readinessEvidenceEligible: false
+  };
+  const recordSha256 = sha256(cacheOnlyBody);
+  return { ...cacheOnlyBody, recordSha256 };
 }
 
 function buildCommit(artifact, artifactKey, commitKey, committedAt) {
@@ -1450,6 +1457,9 @@ export async function readRouteIqProspectiveLifecycle(input = {}, options = {}) 
     exclusions: exclusions.map(pair => clone(pair.artifact)),
     conflicts: conflicts.map(pair => clone(pair.artifact)),
     sourceArtifacts: Object.fromEntries(pairs.map(pair => [pair.artifact.artifactId, clone(pair.sourceArtifacts)])),
+    authority: routeIqProspectiveKvAuthority,
+    canonicalEvidenceEligible: false,
+    readinessEvidenceEligible: false,
     recommendationInfluence: "off",
     collectionActivation: "inactive_until_infrastructure_and_dashboard_owner_wiring"
   };

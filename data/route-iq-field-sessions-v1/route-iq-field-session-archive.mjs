@@ -1095,6 +1095,15 @@ function evidenceContext(record, visit = null, customer = null) {
 }
 
 function verifyProspectiveLifecycleForProjection(lifecycle, expectedScope) {
+  throw new FieldSessionArchiveError("Workers KV prospective lifecycle records are non-authoritative cache artifacts and cannot supply readiness evidence.", {
+    code: "field_session_prospective_kv_authority_superseded",
+    status: 409,
+    details: {
+      authority: lifecycle?.authority ?? "legacy_workers_kv",
+      requiredAuthority: "sqlite_durable_object_coordinator"
+    }
+  });
+  /* c8 ignore start -- retained only for byte-compatible legacy cache readback. */
   if (!lifecycle || lifecycle.lifecycleVersion !== "route-iq-prospective-shadow-evidence-lifecycle-v1") {
     throw new FieldSessionArchiveError("A canonical prospective lifecycle read record is required.", {
       code: "field_session_prospective_lifecycle_invalid"
@@ -1301,6 +1310,125 @@ function verifyProspectiveLifecycleForProjection(lifecycle, expectedScope) {
     });
   }
   return { candidates, exclusions };
+  /* c8 ignore stop */
+}
+
+function verifyProspectiveCoordinatorProjectionForChronology(record, expectedScope) {
+  if (!record
+    || record.schemaVersion !== "route-iq-prospective-coordinator-schema-v1"
+    || record.authority !== "sqlite_durable_object_coordinator"
+    || !record.projection
+    || !record.commit) {
+    throw new FieldSessionArchiveError("A committed SQLite coordinator projection is required.", {
+      code: "field_session_prospective_coordinator_projection_invalid"
+    });
+  }
+  const { projection, commit } = record;
+  if (projection.projectionVersion !== "route-iq-prospective-coordinator-projection-v1"
+    || projection.authority !== "sqlite_durable_object_coordinator"
+    || typeof projection.territoryId !== "string"
+    || !/^riq_territory_[a-f0-9]{64}$/.test(projection.territoryId)
+    || projection.recommendationInfluence !== "off"
+    || projection.collectionDefault !== "off"
+    || projection.kvAuthority !== "non_authoritative_cache_only") {
+    throw new FieldSessionArchiveError("Prospective coordinator projection authority boundaries are invalid.", {
+      code: "field_session_prospective_coordinator_authority_invalid"
+    });
+  }
+  if (projection.scope?.workspaceId !== expectedScope.workspaceId
+    || projection.scope?.operatingProfileId !== expectedScope.operatingProfileId
+    || projection.scope?.representativeId !== expectedScope.representativeId) {
+    throw new FieldSessionArchiveError("Prospective coordinator scope does not match the chronological projection.", {
+      code: "field_session_evidence_scope_mismatch",
+      details: { source: "prospective_sqlite_coordinator" }
+    });
+  }
+  const projectionSha256 = sha256(stableJson(projection));
+  const commitBody = Object.fromEntries(Object.entries(commit).filter(([key]) => key !== "commitSha256"));
+  if (commit.status !== "committed"
+    || commit.projectionCommitMarkerWrittenLast !== true
+    || commit.projectionSha256 !== projectionSha256
+    || typeof commit.commitSha256 !== "string"
+    || sha256(stableJson(commitBody)) !== commit.commitSha256) {
+    throw new FieldSessionArchiveError("Prospective coordinator projection commit marker is invalid.", {
+      code: "field_session_prospective_coordinator_commit_invalid",
+      status: 500
+    });
+  }
+  const sources = projection.sourceArtifacts || [];
+  if (!Array.isArray(sources)) {
+    throw new FieldSessionArchiveError("Prospective coordinator source artifacts must be an array.", {
+      code: "field_session_evidence_source_artifacts_missing",
+      status: 500
+    });
+  }
+  const sourceById = new Map();
+  for (const source of sources) {
+    if (!source?.artifactId || sourceById.has(source.artifactId)
+      || typeof source.recordSha256 !== "string" || !/^[a-f0-9]{64}$/.test(source.recordSha256)) {
+      throw new FieldSessionArchiveError("Prospective coordinator artifact IDs must be globally unique.", {
+        code: "field_session_prospective_lifecycle_artifact_id_invalid",
+        status: 500
+      });
+    }
+    sourceById.set(source.artifactId, source);
+  }
+  if (projection.readinessEvidenceEligible !== true && (projection.evidence || []).length) {
+    throw new FieldSessionArchiveError("Unsealed or excluded coordinator state cannot carry readiness evidence.", {
+      code: "field_session_prospective_coordinator_unsealed_evidence",
+      status: 500
+    });
+  }
+  const context = {
+    workspaceId: projection.scope.workspaceId,
+    operatingProfileId: projection.scope.operatingProfileId,
+    representativeId: projection.scope.representativeId,
+    territoryId: projection.territoryId,
+    customerId: null,
+    customerName: null
+  };
+  const candidates = (projection.evidence || []).map(item => {
+    const source = sourceById.get(item.sourceRecordId);
+    if (!source || source.recordSha256 !== item.recordSha256
+      || item.canonicalEvidenceEligible !== true
+      || item.recommendationInfluence !== "off") {
+      throw new FieldSessionArchiveError("Coordinator evidence does not match its immutable source registry.", {
+        code: "field_session_evidence_source_hash_mismatch",
+        status: 500,
+        details: { sourceRecordId: item.sourceRecordId }
+      });
+    }
+    return {
+      evidenceKind: item.evidenceKind,
+      sourceRecordId: item.sourceRecordId,
+      evidenceTimestamp: item.evidenceTimestamp,
+      context: {
+        ...context,
+        customerId: item.payload?.selectedCandidateId ?? item.payload?.evaluatedCandidateId ?? null
+      },
+      payload: clone(item.payload),
+      relation: item.evidenceKind === "prospective_outcome_correction"
+        ? { type: "correction", priorSourceRecordId: item.payload?.targetArtifactId ?? null }
+        : { type: "original", priorSourceRecordId: null },
+      provenance: {
+        coordinatorId: projection.coordinatorId,
+        opportunityId: projection.opportunityId,
+        projectionId: commit.projectionId,
+        projectionSha256,
+        recordSha256: item.recordSha256,
+        recordSequence: item.recordSequence,
+        storageAuthority: "sqlite_durable_object_coordinator"
+      }
+    };
+  });
+  const exclusions = (projection.exclusions || []).map(item => ({
+    sourceRecordId: item.sourceRecordId,
+    evidenceKind: null,
+    evidenceTimestamp: item.evidenceTimestamp,
+    reason: item.reason,
+    recordSequence: item.recordSequence
+  }));
+  return { candidates, exclusions };
 }
 
 export function projectRouteIqChronologicalEvidence(input = {}) {
@@ -1417,6 +1545,21 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
     });
     candidates.push(...prospective.candidates);
     lifecycleExclusions.push(...prospective.exclusions);
+  }
+  if (input.prospectiveCoordinatorProjectionRecord) {
+    const prospective = verifyProspectiveCoordinatorProjectionForChronology(input.prospectiveCoordinatorProjectionRecord, {
+      workspaceId: input.workspaceId,
+      operatingProfileId: input.operatingProfileId,
+      representativeId: input.representativeId
+    });
+    candidates.push(...prospective.candidates.filter(candidate => {
+      const timestamp = projectionTimestamp(candidate.evidenceTimestamp, "Prospective coordinator evidence timestamp");
+      return timestamp.time < cutoff.time;
+    }));
+    lifecycleExclusions.push(...prospective.exclusions.filter(exclusion => {
+      const timestamp = projectionTimestamp(exclusion.evidenceTimestamp, "Prospective coordinator governance timestamp");
+      return timestamp.time < cutoff.time;
+    }));
   }
 
   const included = [];
