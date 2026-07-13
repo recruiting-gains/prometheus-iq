@@ -22,6 +22,12 @@ The Data persistence adapter requires `DATA_ROUTE_IQ_FIELD_SESSION_STORE` with C
 
 The repository does not provision or route this binding. Infrastructure must provision it after Overwatch verifies the Data contract. Dashboard trigger work and Intelligence learning consumption require separate subsystem handoffs.
 
+## Decision context
+
+For newly normalized field sessions, each canonical `verifiedFields.completedVisits[]` record preserves `visitDecisionSource` and `recommendationDecisionContext` exactly as submitted after contract validation. Canonical decision sources are Route IQ Recommendation, Nearby Context, Representative Saved Place, Representative Discovery, Representative Follow-up, Existing Relationship, Manual Selection, and Unknown. Explicit Unknown remains Unknown; missing context remains `null` and is never inferred.
+
+This forward-only normalization contract does not rewrite existing archived sessions, authorize historical replay, influence recommendations, or modify route scoring or generation.
+
 ## Governance
 
 - Workspace: `fitness_connection`

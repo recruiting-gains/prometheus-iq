@@ -24,7 +24,13 @@
     "recordKind": { "const": "verified_field_session" },
     "verifiedFields": {
       "type": "object",
-      "required": ["representative", "fieldSessionDate", "sourceReportType", "exportTimestamp", "totals", "completedVisits"]
+      "required": ["representative", "fieldSessionDate", "sourceReportType", "exportTimestamp", "totals", "completedVisits"],
+      "properties": {
+        "completedVisits": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/completedVisit" }
+        }
+      }
     },
     "unavailableFields": {
       "type": "array",
@@ -38,6 +44,70 @@
     "fieldClassification": {
       "type": "object",
       "required": ["verifiedFieldContainer", "calculatedFieldsStoredSeparately", "unavailableValuesRemainNull"]
+    }
+  },
+  "$defs": {
+    "completedVisit": {
+      "type": "object",
+      "properties": {
+        "visitDecisionSource": {
+          "anyOf": [
+            { "$ref": "#/$defs/visitDecisionSource" },
+            { "type": "null" }
+          ]
+        },
+        "recommendationDecisionContext": {
+          "anyOf": [
+            { "$ref": "#/$defs/recommendationDecisionContext" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "visitDecisionSource": {
+      "type": "object",
+      "required": ["sourceId", "reason", "evidence", "confidence", "capturedAt"],
+      "properties": {
+        "sourceId": {
+          "enum": [
+            "route_iq_recommendation",
+            "nearby_context",
+            "representative_saved_place",
+            "representative_discovery",
+            "representative_follow_up",
+            "existing_relationship",
+            "manual_selection",
+            "unknown"
+          ]
+        },
+        "reason": { "type": "string" },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["evidenceType", "sourceRecordId"],
+            "properties": {
+              "evidenceType": { "type": "string", "minLength": 1 },
+              "sourceRecordId": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "capturedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "recommendationDecisionContext": {
+      "type": "object",
+      "required": ["recommendationAvailable", "recommendationId", "decision"],
+      "properties": {
+        "recommendationAvailable": { "type": ["boolean", "null"] },
+        "recommendationId": { "type": ["string", "null"] },
+        "decision": { "enum": ["accepted", "overridden", null] }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": true

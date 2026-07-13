@@ -133,6 +133,37 @@
     "july11StressTestObservations": 6,
     "july11RawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
   },
+  "canonicalVisitDecisionContextContract": {
+    "status": "preserved_for_newly_normalized_field_sessions",
+    "canonicalContainer": "verifiedFields.completedVisits[]",
+    "canonicalFields": [
+      "visitDecisionSource",
+      "recommendationDecisionContext"
+    ],
+    "visitDecisionSourceValues": [
+      { "sourceId": "route_iq_recommendation", "label": "Route IQ Recommendation" },
+      { "sourceId": "nearby_context", "label": "Nearby Context" },
+      { "sourceId": "representative_saved_place", "label": "Representative Saved Place" },
+      { "sourceId": "representative_discovery", "label": "Representative Discovery" },
+      { "sourceId": "representative_follow_up", "label": "Representative Follow-up" },
+      { "sourceId": "existing_relationship", "label": "Existing Relationship" },
+      { "sourceId": "manual_selection", "label": "Manual Selection" },
+      { "sourceId": "unknown", "label": "Unknown" }
+    ],
+    "preservationRules": {
+      "reinterpretationAllowed": false,
+      "inferenceAllowed": false,
+      "unknownRemainsCanonical": true,
+      "missingInputStoredAsNull": true,
+      "historicalArchivesMutated": false,
+      "historicalReplayAuthorized": false
+    },
+    "behaviorAuthorization": {
+      "recommendationInfluenceActivated": false,
+      "routeScoringMutationAllowed": false,
+      "routeGenerationMutationAllowed": false
+    }
+  },
   "automaticEndOfDayHandoffContract": {
     "contractId": "route-iq-end-of-day-data-handoff-v1",
     "status": "dashboard_producer_verified_live",

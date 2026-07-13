@@ -5,6 +5,17 @@ export const routeIqEndOfDayHandoffContractId = "route-iq-end-of-day-data-handof
 export const routeIqFieldSessionStoreBinding = "DATA_ROUTE_IQ_FIELD_SESSION_STORE";
 export const routeIqFieldSessionStorageTechnology = "cloudflare_workers_kv";
 export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
+export const routeIqVisitDecisionSourceIds = Object.freeze([
+  "route_iq_recommendation",
+  "nearby_context",
+  "representative_saved_place",
+  "representative_discovery",
+  "representative_follow_up",
+  "existing_relationship",
+  "manual_selection",
+  "unknown"
+]);
+export const routeIqRecommendationDecisionValues = Object.freeze(["accepted", "overridden"]);
 
 export const supportedFieldSessionWorkspaces = Object.freeze({
   fitness_connection: Object.freeze({
@@ -96,6 +107,71 @@ function requireCount(value, label) {
     });
   }
   return value;
+}
+
+function preserveVisitDecisionSource(value, visitNumber) {
+  if (value == null) return null;
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source must be an object or null.`, {
+      code: "field_session_visit_decision_source_invalid",
+      details: { visitNumber }
+    });
+  }
+  if (!routeIqVisitDecisionSourceIds.includes(value.sourceId)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source is not canonical.`, {
+      code: "field_session_visit_decision_source_invalid",
+      details: { visitNumber, sourceId: value.sourceId ?? null }
+    });
+  }
+  if (typeof value.reason !== "string" || !Array.isArray(value.evidence)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source evidence is malformed.`, {
+      code: "field_session_visit_decision_source_invalid",
+      details: { visitNumber, sourceId: value.sourceId }
+    });
+  }
+  const evidenceValid = value.evidence.every(item => item
+    && typeof item === "object"
+    && !Array.isArray(item)
+    && typeof item.evidenceType === "string"
+    && item.evidenceType.length > 0
+    && typeof item.sourceRecordId === "string"
+    && item.sourceRecordId.length > 0);
+  const knownSourceEvidenceValid = value.sourceId === "unknown"
+    || (value.reason.trim().length > 0 && value.evidence.length > 0);
+  if (!evidenceValid || !knownSourceEvidenceValid
+    || !Number.isFinite(value.confidence)
+    || value.confidence < 0
+    || value.confidence > 1) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source evidence is malformed.`, {
+      code: "field_session_visit_decision_source_invalid",
+      details: { visitNumber, sourceId: value.sourceId }
+    });
+  }
+  requireIso(value.capturedAt, `Visit ${visitNumber} decision source capturedAt`);
+  return clone(value);
+}
+
+function preserveRecommendationDecisionContext(value, visitNumber) {
+  if (value == null) return null;
+  if (typeof value !== "object" || Array.isArray(value)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context must be an object or null.`, {
+      code: "field_session_recommendation_decision_context_invalid",
+      details: { visitNumber }
+    });
+  }
+  const recommendationAvailableValid = [true, false, null].includes(value.recommendationAvailable);
+  const recommendationIdValid = value.recommendationId === null
+    || (typeof value.recommendationId === "string" && value.recommendationId.length > 0);
+  const decisionValid = value.decision === null || routeIqRecommendationDecisionValues.includes(value.decision);
+  const decidedRecommendationValid = value.decision === null
+    || (value.recommendationAvailable === true && typeof value.recommendationId === "string" && value.recommendationId.length > 0);
+  if (!recommendationAvailableValid || !recommendationIdValid || !decisionValid || !decidedRecommendationValid) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context is malformed.`, {
+      code: "field_session_recommendation_decision_context_invalid",
+      details: { visitNumber, decision: value.decision ?? null }
+    });
+  }
+  return clone(value);
 }
 
 function percentage(numerator, denominator) {
@@ -218,6 +294,8 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       units: requireCount(visit.units, `Visit ${index + 1} units`),
       laterUnits: requireCount(visit.laterUnits, `Visit ${index + 1} later units`),
       notes: typeof visit.notes === "string" ? visit.notes : "",
+      visitDecisionSource: preserveVisitDecisionSource(visit.visitDecisionSource, index + 1),
+      recommendationDecisionContext: preserveRecommendationDecisionContext(visit.recommendationDecisionContext, index + 1),
       gpsAttached: typeof visit.gpsAttached === "boolean" ? visit.gpsAttached : null
     };
   });
@@ -288,10 +366,13 @@ function enrichVisit(visit, index, representativeId, indexes, sourceDatasetVersi
 
   const active = runtime?.googlePlaceId ? indexes.activeByPlaceId.get(runtime.googlePlaceId) || null : null;
   const hours = runtime?.googlePlaceId ? indexes.hoursByPlaceId.get(runtime.googlePlaceId) || null : null;
+  const { visitDecisionSource, recommendationDecisionContext, ...sourceReport } = visit;
   return {
     exportOrder: index + 1,
     visitId: `visit-${String(index + 1).padStart(2, "0")}-${sha256(`${visit.placeId}|${visit.timestamp}`).slice(0, 12)}`,
-    sourceReport: clone(visit),
+    sourceReport: clone(sourceReport),
+    visitDecisionSource: clone(visitDecisionSource),
+    recommendationDecisionContext: clone(recommendationDecisionContext),
     governedBusinessIdentity: runtime ? {
       matchStatus: "exact_runtime_id",
       runtimeId: runtime.id,

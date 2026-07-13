@@ -16,6 +16,8 @@ import {
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionArchiveVersion,
   routeIqFieldSessionStoreBinding,
+  routeIqRecommendationDecisionValues,
+  routeIqVisitDecisionSourceIds,
   validateFieldSessionStoreBinding,
   validateFinalRouteIqReport
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
@@ -84,6 +86,52 @@ function archivePackage(overrides = {}) {
   return createRouteIqFieldSessionArchivePackage(packageInput(overrides));
 }
 
+function decisionContextReport() {
+  const report = JSON.parse(readFileSync(RAW_PATH, "utf8"));
+  const template = report.visits[0];
+  report.generatedAt = "2026-07-11T21:00:00.000Z";
+  report.visits = routeIqVisitDecisionSourceIds.map((sourceId, index) => {
+    const timestamp = `2026-07-11T20:${String(index).padStart(2, "0")}:00.000Z`;
+    return {
+      ...template,
+      timestamp,
+      conversations: 0,
+      leads: 0,
+      units: 0,
+      laterUnits: 0,
+      notes: `Decision context preservation fixture: ${sourceId}`,
+      visitDecisionSource: {
+        sourceId,
+        reason: sourceId === "unknown" ? "Decision source was explicitly unknown." : `Verified ${sourceId} source.`,
+        evidence: sourceId === "unknown" ? [] : [{ evidenceType: `${sourceId}_selection`, sourceRecordId: `decision-source-${index}` }],
+        confidence: sourceId === "unknown" ? 0 : 0.9,
+        capturedAt: timestamp
+      },
+      recommendationDecisionContext: index === 0 ? {
+        recommendationAvailable: true,
+        recommendationId: "google:decision-context-test",
+        decision: "accepted"
+      } : index === 1 ? {
+        recommendationAvailable: true,
+        recommendationId: "google:decision-context-test",
+        decision: "overridden"
+      } : {
+        recommendationAvailable: null,
+        recommendationId: null,
+        decision: null
+      }
+    };
+  });
+  report.totals = {
+    visits: report.visits.length,
+    conversations: 0,
+    leads: 0,
+    units: 0,
+    laterUnits: 0
+  };
+  return report;
+}
+
 test("actual Founder final report is archived with its exact bytes and deterministic identity", () => {
   const raw = readFileSync(RAW_PATH, "utf8");
   const manifest = json(MANIFEST_PATH);
@@ -122,6 +170,55 @@ test("unconfirmed exports fail before normalization so partial reports cannot su
   }), error => {
     assert.equal(error instanceof FieldSessionArchiveError, true);
     assert.equal(error.code, "field_session_final_export_unconfirmed");
+    return true;
+  });
+});
+
+test("newly normalized visits preserve every canonical decision source and recommendation context without reinterpretation", () => {
+  const report = decisionContextReport();
+  const result = archivePackage({ rawReportText: JSON.stringify(report, null, 2) });
+  const completedVisits = result.normalizedRecord.verifiedFields.completedVisits;
+
+  assert.deepEqual(completedVisits.map(visit => visit.visitDecisionSource), report.visits.map(visit => visit.visitDecisionSource));
+  assert.deepEqual(completedVisits.map(visit => visit.recommendationDecisionContext), report.visits.map(visit => visit.recommendationDecisionContext));
+  assert.deepEqual(completedVisits.map(visit => visit.visitDecisionSource.sourceId), routeIqVisitDecisionSourceIds);
+  assert.deepEqual(routeIqRecommendationDecisionValues, ["accepted", "overridden"]);
+  assert.equal(completedVisits.at(-1).visitDecisionSource.sourceId, "unknown");
+  assert.equal(completedVisits.at(-1).visitDecisionSource.confidence, 0);
+  assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "visitDecisionSource")), true);
+  assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "recommendationDecisionContext")), true);
+});
+
+test("missing decision context remains unavailable while explicit Unknown remains canonical", () => {
+  const missing = archivePackage().normalizedRecord.verifiedFields.completedVisits;
+  assert.equal(missing.every(visit => Object.hasOwn(visit, "visitDecisionSource") && visit.visitDecisionSource === null), true);
+  assert.equal(missing.every(visit => Object.hasOwn(visit, "recommendationDecisionContext") && visit.recommendationDecisionContext === null), true);
+
+  const report = decisionContextReport();
+  const unknown = report.visits.at(-1).visitDecisionSource;
+  const preserved = archivePackage({ rawReportText: JSON.stringify(report) }).normalizedRecord.verifiedFields.completedVisits.at(-1);
+  assert.deepEqual(preserved.visitDecisionSource, unknown);
+  assert.notEqual(preserved.visitDecisionSource, null);
+});
+
+test("malformed or non-canonical decision context fails before archival", () => {
+  const unsupported = decisionContextReport();
+  unsupported.visits[0].visitDecisionSource.sourceId = "personal_hunch";
+  assert.throws(() => archivePackage({ rawReportText: JSON.stringify(unsupported) }), error => {
+    assert.equal(error instanceof FieldSessionArchiveError, true);
+    assert.equal(error.code, "field_session_visit_decision_source_invalid");
+    return true;
+  });
+
+  const malformed = decisionContextReport();
+  malformed.visits[0].recommendationDecisionContext = {
+    recommendationAvailable: false,
+    recommendationId: null,
+    decision: "accepted"
+  };
+  assert.throws(() => archivePackage({ rawReportText: JSON.stringify(malformed) }), error => {
+    assert.equal(error instanceof FieldSessionArchiveError, true);
+    assert.equal(error.code, "field_session_recommendation_decision_context_invalid");
     return true;
   });
 });
@@ -371,6 +468,26 @@ test("missing bindings, unknown workspaces, and cross-workspace evidence fail cl
     sessionId: SESSION_ID
   }, { env: { [routeIqFieldSessionStoreBinding]: binding } }), /Unknown field-session workspace/);
   assert.equal(binding.data.size, 0);
+});
+
+test("Data schema and contract govern decision context prospectively without mutating the historical archive", () => {
+  const schema = json("data/route-iq-field-sessions-v1/route-iq-field-session-v1.schema.json");
+  const contract = json("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json");
+  const archived = json(NORMALIZED_PATH);
+  const decisionContract = contract.canonicalVisitDecisionContextContract;
+
+  assert.deepEqual(schema.$defs.visitDecisionSource.properties.sourceId.enum, routeIqVisitDecisionSourceIds);
+  assert.deepEqual(schema.$defs.recommendationDecisionContext.properties.decision.enum, ["accepted", "overridden", null]);
+  assert.equal(decisionContract.status, "preserved_for_newly_normalized_field_sessions");
+  assert.equal(decisionContract.canonicalContainer, "verifiedFields.completedVisits[]");
+  assert.deepEqual(decisionContract.canonicalFields, ["visitDecisionSource", "recommendationDecisionContext"]);
+  assert.deepEqual(decisionContract.visitDecisionSourceValues.map(value => value.sourceId), routeIqVisitDecisionSourceIds);
+  assert.equal(decisionContract.preservationRules.unknownRemainsCanonical, true);
+  assert.equal(decisionContract.preservationRules.historicalArchivesMutated, false);
+  assert.equal(decisionContract.behaviorAuthorization.recommendationInfluenceActivated, false);
+  assert.equal(decisionContract.behaviorAuthorization.routeScoringMutationAllowed, false);
+  assert.equal(archived.verifiedFields.completedVisits.every(visit => !Object.hasOwn(visit, "visitDecisionSource")), true);
+  assert.equal(archived.verifiedFields.completedVisits.every(visit => !Object.hasOwn(visit, "recommendationDecisionContext")), true);
 });
 
 test("existing Data contract records the live Dashboard producer without activating Intelligence behavior", () => {
