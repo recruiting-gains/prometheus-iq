@@ -35,7 +35,7 @@
       "runtimeAlignmentStatus": "aligned",
       "alignmentEvidence": {
         "dashboardCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
-        "dashboardSourceSha256": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2"
+        "dashboardSourceSha256": "21c2cafdefcfe4422e01416a49cfb670f014b459d84a92db27e609ae58c19bcc"
       },
       "sections": {
         "visitedPlaces": {
