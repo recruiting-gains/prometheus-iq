@@ -102,7 +102,8 @@ test("visit-completion context remains post-action evidence rather than a frozen
       reason: "The representative identified the source while logging the completed visit.",
       evidence: [{ evidenceType: "route_selection", sourceRecordId: `dashboard-visit:${completed.visitId}` }],
       confidence: 1,
-      capturedAt: timestamp
+      capturedAt: timestamp,
+      temporalClassification: "action_time_observation"
     };
     completed.recommendationDecisionContext = {
       recommendationAvailable: true,
@@ -135,6 +136,45 @@ test("visit-completion context remains post-action evidence rather than a frozen
   for (const preActionField of ["candidateSnapshot", "rankedCandidateDecisions", "probabilities", "evidenceCutoffTimestamp", "modelVersion", "ruleVersion"]) {
     assert.equal(Object.hasOwn(decisionContext.payload, preActionField), false);
   }
+});
+
+test("legacy late Unknown enters projections only after its truthful finalization timestamp", () => {
+  const record = archive();
+  const visit = record.normalizedRecord.verifiedFields.completedVisits[0];
+  const visitTimestamp = visit.sourceReport.timestamp;
+  const capturedAt = new Date(Date.parse(visitTimestamp) + 60_000).toISOString();
+  replaceNormalized(record, normalized => {
+    const completed = normalized.verifiedFields.completedVisits[0];
+    completed.visitDecisionSource = {
+      sourceId: "unknown",
+      reason: null,
+      evidence: [],
+      confidence: 0,
+      capturedAt,
+      temporalClassification: "late_report_finalization_unknown"
+    };
+    completed.recommendationDecisionContext = {
+      recommendationAvailable: null,
+      recommendationId: null,
+      decision: null
+    };
+  });
+
+  const sourceRecordId = `${record.normalizedRecord.sessionId}:${visit.visitId}:decision-context`;
+  const beforeCapture = project(record, new Date(Date.parse(capturedAt) - 1).toISOString());
+  assert.equal(beforeCapture.evidence.some(item => item.sourceRecordId === sourceRecordId), false);
+  assert.equal(beforeCapture.exclusions.find(item => item.sourceRecordId === sourceRecordId).reason, "after_decision_timestamp");
+
+  const atCapture = project(record, capturedAt);
+  assert.equal(atCapture.evidence.some(item => item.sourceRecordId === sourceRecordId), false);
+  assert.equal(atCapture.exclusions.find(item => item.sourceRecordId === sourceRecordId).reason, "at_decision_timestamp_without_prior_availability");
+
+  const afterCapture = project(record, new Date(Date.parse(capturedAt) + 1).toISOString());
+  const included = afterCapture.evidence.find(item => item.sourceRecordId === sourceRecordId);
+  assert.equal(included.evidenceTimestamp, capturedAt);
+  assert.equal(included.payload.visitDecisionSource.temporalClassification, "late_report_finalization_unknown");
+  assert.equal(included.payload.recommendationDecisionContext.decision, null);
+  assert.ok(included.evidenceTimestamp > visitTimestamp);
 });
 
 test("corrections and conflicts remain separate append-only outcome observations", () => {

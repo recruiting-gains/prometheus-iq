@@ -28,7 +28,9 @@ For newly normalized field sessions, each canonical `verifiedFields.completedVis
 
 Recommendation IDs are trimmed before validation. `recommendationAvailable: true` requires a non-empty canonical ID, while `false` or `null` requires a null ID. Whitespace-only recommendation IDs and decision evidence fail validation before normalization; accepted and overridden decisions always require the canonical ID.
 
-Decision Source is a post-action observation recorded when the completed visit is submitted. Data requires `visitDecisionSource.capturedAt` to resolve to the same canonical UTC instant as the visit timestamp. It is not a frozen pre-action candidate list and does not contain ranked candidates, probabilities, an evidence cutoff, or a model/rule version. At that timestamp, the chronological projection excludes both Decision Source and the observed outcome; they become eligible as separate historical records only for a strictly later decision cutoff.
+Decision Source is post-action observational context. Known sources and contemporaneous Unknown values require `visitDecisionSource.capturedAt` to resolve to the same canonical UTC instant as the visit timestamp and receive `temporalClassification: action_time_observation`. A legacy active-session visit that lacks context may receive a report-only Unknown fallback at finalization. Data accepts that fallback only when it has zero confidence, no evidence, no recommendation decision, a timestamp strictly after the visit, and `capturedAt` exactly equal to `report.generatedAt`; Data classifies it as `late_report_finalization_unknown`. Backdated, intermediate, or post-finalization timestamps fail closed.
+
+Neither capture mode is a frozen pre-action candidate list, and neither contains ranked candidates, probabilities, an evidence cutoff, or a model/rule version. At its actual capture timestamp, chronological projection excludes the Decision Source. It becomes eligible only for a strictly later decision cutoff, so a late Unknown cannot satisfy the original visit's decision opportunity or retroactively change what was knowable then.
 
 The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
 
@@ -44,7 +46,7 @@ This interface supplies evidence only. It does not create recommendations, calcu
 
 Prometheus Data revalidated the cumulative canonical state introduced by `fc8f9c6a8acf04a80e4d5f93485225dfefea9407`, `232e192a9fa5a14641d411896d43a0495a46ae01`, and `13c0bbfb72b72e1b492369fdfe896fffbddefaa6` against frozen integrated base `18ed83effdca1219729e4e71f452eeea8c3b273b`. The previously reported cross-subsystem contract mismatch is closed in that integrated tree: canonical artifact-contract validation passes without modifying an Overwatch-owned contract.
 
-The revalidation preserves the July 11 raw and normalized archive bytes, the exact-hash legacy read exception, append-only retry/replay behavior, workspace and representative isolation, and strict chronological projection. It adds the prospective timestamp invariant above so visit-completion context cannot be backdated and mistaken for evidence available before the representative acted.
+The revalidation preserves the July 11 raw and normalized archive bytes, the exact-hash legacy read exception, append-only retry/replay behavior, workspace and representative isolation, and strict chronological projection. It adds the prospective timestamp rules above so known context cannot be shifted and a legacy Unknown remains attributable to its truthful later finalization time rather than being backdated.
 
 ## Governance
 
