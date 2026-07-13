@@ -6,6 +6,7 @@ import test from "node:test";
 import {
   validateFitnessBusinessHoursConsumerLinkage,
   validateFitnessFieldSessionLearningLinkage,
+  validateFitnessShadowDecisionReadinessLinkage,
   verifyCrossSubsystemArtifactContracts
 } from "../scripts/verify-cross-subsystem-artifact-contracts.mjs";
 
@@ -143,6 +144,7 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_read_only_field_session_learning_consumer_contract",
     "fitness_connection_read_only_field_session_learning_policy",
     "fitness_connection_read_only_field_session_learning_snapshot",
+    "fitness_connection_shadow_decision_readiness_contract",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",
@@ -405,6 +407,79 @@ test("Fitness read-only field-session learning linkage enforces independent auth
     const input = fixture();
     scenario.mutate(input);
     const failures = validateFitnessFieldSessionLearningLinkage(input);
+    assert.ok(failures.some(failure => scenario.expected.test(failure)), `${scenario.label}: ${failures.join(" | ")}`);
+  }
+});
+
+test("Fitness shadow decision readiness remains Founder-only, complete, and zero-influence", () => {
+  const result = verifyCrossSubsystemArtifactContracts();
+  const workspace = result.registry.workspaces.find(candidate => candidate.workspaceId === "fitness_connection");
+  const registrations = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
+  const intelligenceContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_intelligence_consumer_contract.path, "utf8"));
+  const readinessContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_shadow_decision_readiness_contract.path, "utf8"));
+  const config = JSON.parse(fs.readFileSync(readinessContract.artifacts.config, "utf8"));
+  const ledger = JSON.parse(fs.readFileSync(readinessContract.artifacts.ledger, "utf8"));
+  const report = JSON.parse(fs.readFileSync(readinessContract.artifacts.report, "utf8"));
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const fixture = () => ({
+    workspace: clone(workspace),
+    intelligenceContract: clone(intelligenceContract),
+    readinessContract: clone(readinessContract),
+    config: clone(config),
+    ledger: clone(ledger),
+    report: clone(report),
+    registration: clone(registrations.fitness_connection_shadow_decision_readiness_contract)
+  });
+
+  assert.deepEqual(validateFitnessShadowDecisionReadinessLinkage(fixture()), []);
+
+  const cases = [
+    {
+      label: "representative-facing consumer",
+      mutate: input => { input.registration.readAllowed.push("Prometheus Dashboard"); },
+      expected: /representative-facing or unknown consumer/
+    },
+    {
+      label: "recommendation influence",
+      mutate: input => { input.intelligenceContract.shadowDecisionReadinessAccessRules.recommendationInfluence = "ON"; },
+      expected: /influence must remain OFF/
+    },
+    {
+      label: "operational workflow path",
+      mutate: input => { input.intelligenceContract.shadowDecisionReadinessAccessRules.operationalWorkflowConsumptionAllowed = true; },
+      expected: /must remain false: operationalWorkflowConsumptionAllowed/
+    },
+    {
+      label: "missing protected baseline",
+      mutate: input => { delete input.readinessContract.protectedBehaviorBaselines.worker; },
+      expected: /missing or undeclared keys/
+    },
+    {
+      label: "incomplete opportunity disposition",
+      mutate: input => { input.ledger.exclusions.pop(); },
+      expected: /exactly one shadow or exclusion/
+    },
+    {
+      label: "fixture promoted to canonical artifact",
+      mutate: input => {
+        input.workspace.canonicalArtifacts.push({
+          artifactId: "invalid_shadow_fixture",
+          path: input.readinessContract.validationFixturePolicy.path
+        });
+      },
+      expected: /must never be a canonical artifact/
+    },
+    {
+      label: "Founder eligibility activates recommendations",
+      mutate: input => { input.report.eligibilityDoesNotAuthorizeActivation = false; },
+      expected: /must not authorize activation/
+    }
+  ];
+
+  for (const scenario of cases) {
+    const input = fixture();
+    scenario.mutate(input);
+    const failures = validateFitnessShadowDecisionReadinessLinkage(input);
     assert.ok(failures.some(failure => scenario.expected.test(failure)), `${scenario.label}: ${failures.join(" | ")}`);
   }
 });

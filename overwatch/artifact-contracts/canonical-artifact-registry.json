@@ -425,6 +425,22 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_shadow_decision_readiness_contract",
+          "artifactType": "intelligence_shadow_decision_readiness_contract",
+          "ownerSubsystem": "Prometheus Intelligence Engine",
+          "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+          "schema": "RouteIqShadowDecisionReadinessContractV1",
+          "canonicalIdentifier": "route-iq-shadow-decision-readiness-contract-v1",
+          "writeAllowed": ["Prometheus Intelligence Engine"],
+          "readAllowed": ["Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": false,
+          "founderOnly": true,
+          "recommendationInfluence": "OFF",
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_crm_consumer_contract",
           "artifactType": "crm_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",
@@ -553,7 +569,13 @@
             "intelligence/contracts/route-business-hours-eligibility-contracts.json",
             "intelligence/contracts/read-only-field-session-learning-contracts.json",
             "intelligence/config/read-only-field-session-learning-policy-v1.json",
-            "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json"
+            "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+            "intelligence/shadow-decision-readiness.mjs",
+            "intelligence/contracts/shadow-decision-readiness-contracts.json",
+            "intelligence/config/shadow-decision-readiness-v1.json",
+            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
+            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
+            "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
           ],
           "allowedReadPaths": [
             "overwatch/artifact-contracts/workspaces/fitness-connection/intelligence-consumer-contract-v1.json",
@@ -565,6 +587,7 @@
             "intelligence/contracts/read-only-field-session-learning-contracts.json",
             "intelligence/config/read-only-field-session-learning-policy-v1.json",
             "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+            "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
             "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
             "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
             "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",

@@ -24,6 +24,16 @@ const fitnessFieldSessionRawPath = "data/route-iq-field-sessions-v1/workspaces/f
 const fitnessFieldSessionStressEvidencePath = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json";
 const fitnessFieldSessionLearningConsumerId = "read-only-field-session-learning-contracts-v1";
 const fitnessFieldSessionLearningAuthorizationId = "fitness-connection-read-only-field-session-learning-authorization-v1";
+const fitnessShadowReadinessContractPath = "intelligence/contracts/shadow-decision-readiness-contracts.json";
+const fitnessShadowReadinessConfigPath = "intelligence/config/shadow-decision-readiness-v1.json";
+const fitnessShadowReadinessLedgerPath = "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json";
+const fitnessShadowReadinessReportPath = "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json";
+const fitnessShadowReadinessHumanReportPath = "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md";
+const fitnessShadowReadinessEnginePath = "intelligence/shadow-decision-readiness.mjs";
+const fitnessShadowReadinessFixturePath = "intelligence/fixtures/shadow-decision-validation-only-v1.json";
+const fitnessShadowReadinessSourcePath = "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+const fitnessShadowReadinessConsumerId = "route-iq-shadow-decision-readiness-contract-v1";
+const fitnessShadowReadinessBatchId = "BATCH-20260713-001";
 
 const read = path => fs.readFileSync(path, "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -45,8 +55,8 @@ function assert(condition, message, failures) {
 
 function validateJsonWorkspaceArtifact(artifact, workspace, failures) {
   const payload = readJson(artifact.path);
-  const workspaceId = payload.workspaceId || payload.workspace_id;
-  const operatingProfileId = payload.operatingProfileId || payload.operating_profile_id;
+  const workspaceId = payload.workspaceId || payload.workspace_id || payload.scope?.workspaceId;
+  const operatingProfileId = payload.operatingProfileId || payload.operating_profile_id || payload.scope?.operatingProfileId;
 
   assert(
     workspaceId === artifact.requiredWorkspaceId,
@@ -600,6 +610,176 @@ export function validateFitnessFieldSessionLearningLinkage({
   return failures;
 }
 
+export function validateFitnessShadowDecisionReadinessLinkage({
+  workspace,
+  intelligenceContract,
+  readinessContract,
+  config,
+  ledger,
+  report,
+  registration
+} = {}) {
+  const failures = [];
+  const intelligenceConsumer = workspace?.consumerContracts?.intelligence;
+  const sameMembers = (actual, expected) => JSON.stringify([...(actual || [])].sort()) === JSON.stringify([...expected].sort());
+  const requiredOwnedPaths = [
+    fitnessShadowReadinessEnginePath,
+    fitnessShadowReadinessContractPath,
+    fitnessShadowReadinessConfigPath,
+    fitnessShadowReadinessLedgerPath,
+    fitnessShadowReadinessReportPath,
+    fitnessShadowReadinessHumanReportPath
+  ];
+  const requiredArtifactPaths = {
+    engine: fitnessShadowReadinessEnginePath,
+    config: fitnessShadowReadinessConfigPath,
+    contract: fitnessShadowReadinessContractPath,
+    fixture: fitnessShadowReadinessFixturePath,
+    ledger: fitnessShadowReadinessLedgerPath,
+    report: fitnessShadowReadinessReportPath,
+    humanReport: fitnessShadowReadinessHumanReportPath
+  };
+  const requiredCanonicalPaths = {
+    shadowDecisionReadinessContracts: fitnessShadowReadinessContractPath,
+    shadowDecisionReadinessConfig: fitnessShadowReadinessConfigPath,
+    shadowDecisionReadinessLedger: fitnessShadowReadinessLedgerPath,
+    shadowDecisionReadinessReport: fitnessShadowReadinessReportPath,
+    shadowDecisionReadinessHumanReport: fitnessShadowReadinessHumanReportPath
+  };
+  const requiredGates = [
+    "zero_influence",
+    "temporal_integrity",
+    "deterministic_replay",
+    "completeness",
+    "outcome_integrity",
+    "evaluation_validity",
+    "statistical_sufficiency",
+    "segment_safety",
+    "calibration_stability",
+    "isolation_compatibility"
+  ];
+  const requiredBaselineKeys = [
+    "activePool",
+    "businessHours",
+    "dashboardDeployMirror",
+    "dashboardSource",
+    "discovery",
+    "nearby",
+    "routeGeneration",
+    "routeQualityGate",
+    "routeScoring",
+    "runtimePools",
+    "worker"
+  ];
+
+  assert(Boolean(registration), "Fitness shadow-readiness contract must be registered canonically.", failures);
+  assert(Boolean(readinessContract), "Fitness shadow-readiness canonical identifier could not be resolved.", failures);
+  assert(Boolean(config), "Fitness shadow-readiness configuration could not be resolved.", failures);
+  assert(Boolean(ledger), "Fitness shadow-readiness ledger could not be resolved.", failures);
+  assert(Boolean(report), "Fitness Founder shadow-readiness report could not be resolved.", failures);
+
+  for (const path of requiredOwnedPaths) {
+    assert(intelligenceConsumer?.ownedWritePaths?.includes(path), `Fitness Intelligence shadow-readiness owned path missing: ${path}`, failures);
+  }
+  assert(intelligenceConsumer?.allowedReadPaths?.includes(fitnessShadowReadinessSourcePath), "Fitness Intelligence shadow-readiness Data projection read path is missing.", failures);
+  for (const [key, path] of Object.entries(requiredCanonicalPaths)) {
+    assert(intelligenceContract?.canonicalIntelligencePaths?.[key] === path, `Fitness Intelligence shadow-readiness canonical path mismatch: ${key}`, failures);
+  }
+
+  assert(registration?.path === fitnessShadowReadinessContractPath, "Registered shadow-readiness contract path mismatch.", failures);
+  assert(registration?.canonicalIdentifier === fitnessShadowReadinessConsumerId, "Registered shadow-readiness identifier mismatch.", failures);
+  assert(registration?.ownerSubsystem === "Prometheus Intelligence Engine", "Shadow-readiness implementation must remain Intelligence-owned.", failures);
+  assert(sameMembers(registration?.writeAllowed, ["Prometheus Intelligence Engine"]), "Only Intelligence may write the shadow-readiness contract.", failures);
+  assert(sameMembers(registration?.readAllowed, ["Prometheus Intelligence Engine", "Prometheus Overwatch"]), "Shadow-readiness contract authorizes a representative-facing or unknown consumer.", failures);
+  assert(registration?.productionConsumer === false, "Shadow-readiness contract must not be a production consumer.", failures);
+  assert(registration?.founderOnly === true, "Shadow-readiness contract must remain Founder-only.", failures);
+  assert(registration?.recommendationInfluence === "OFF", "Shadow-readiness registry recommendation influence must remain OFF.", failures);
+
+  assert(readinessContract?.batchId === fitnessShadowReadinessBatchId, "Shadow-readiness batch id mismatch.", failures);
+  assert(readinessContract?.version === fitnessShadowReadinessConsumerId, "Shadow-readiness canonical contract identifier mismatch.", failures);
+  assert(readinessContract?.ownerSubsystem === "Prometheus Intelligence Engine", "Shadow-readiness contract owner mismatch.", failures);
+  assert(readinessContract?.status === "active_founder_only_read_only", "Shadow-readiness contract must remain Founder-only and read-only.", failures);
+  assert(readinessContract?.sourceApi === "projectRouteIqChronologicalEvidence", "Shadow-readiness must use the canonical chronological Data projection.", failures);
+  assert(readinessContract?.scope?.workspaceId === "fitness_connection", "Shadow-readiness workspace is unauthorized.", failures);
+  assert(readinessContract?.scope?.operatingProfileId === "fitness", "Shadow-readiness operating profile is unauthorized.", failures);
+  assert(readinessContract?.scope?.representativeId === "cruz", "Shadow-readiness representative scope is unauthorized.", failures);
+  for (const [key, path] of Object.entries(requiredArtifactPaths)) {
+    assert(readinessContract?.artifacts?.[key] === path, `Shadow-readiness artifact path mismatch: ${key}`, failures);
+    assert(exists(path), `Shadow-readiness artifact is missing: ${path}`, failures);
+  }
+  assert(sameMembers(readinessContract?.directiveGates, requiredGates), "Shadow-readiness directive gate set is incomplete.", failures);
+  assert(sameMembers(readinessContract?.requiredProtectedBehaviorBaselineKeys, requiredBaselineKeys), "Shadow-readiness protected baseline key set is incomplete.", failures);
+  assert(Object.keys(readinessContract?.protectedBehaviorBaselines || {}).length === requiredBaselineKeys.length, "Shadow-readiness protected baseline set contains missing or undeclared keys.", failures);
+  for (const key of requiredBaselineKeys) {
+    const baseline = readinessContract?.protectedBehaviorBaselines?.[key];
+    assert(Boolean(baseline?.path) && exists(baseline.path), `Shadow-readiness protected baseline path is missing: ${key}`, failures);
+    if (baseline?.path && exists(baseline.path)) {
+      assert(sha256(read(baseline.path)) === baseline.sha256, `Shadow-readiness protected baseline changed: ${key}`, failures);
+    }
+  }
+  assert(readinessContract?.validationFixturePolicy?.path === fitnessShadowReadinessFixturePath, "Shadow-readiness validation fixture path mismatch.", failures);
+  assert(readinessContract?.validationFixturePolicy?.classification === "VALIDATION_ONLY_NON_PRODUCTION_NEVER_CANONICAL", "Shadow-readiness fixture must remain validation-only.", failures);
+  assert(readinessContract?.validationFixturePolicy?.canonicalReadinessContributionAllowed === false, "Validation fixtures must not contribute to canonical readiness.", failures);
+  assert(readinessContract?.isolation?.founderOnly === true, "Shadow outputs must remain Founder-only.", failures);
+  assert(readinessContract?.isolation?.readOnly === true, "Shadow outputs must remain read-only.", failures);
+  for (const rule of ["importPathIntoRouteIqOperations", "writePathIntoRouteIqOperations", "controlPathIntoRouteIqOperations"]) {
+    assert(readinessContract?.isolation?.[rule] === false, `Shadow-readiness operational path must remain false: ${rule}`, failures);
+  }
+  assert(readinessContract?.isolation?.recommendationInfluence === "OFF", "Shadow-readiness contract recommendation influence must remain OFF.", failures);
+
+  const access = intelligenceContract?.shadowDecisionReadinessAccessRules;
+  assert(access?.batchId === fitnessShadowReadinessBatchId, "Fitness Intelligence shadow-readiness access batch mismatch.", failures);
+  assert(access?.canonicalConsumerIdentifier === fitnessShadowReadinessConsumerId, "Fitness Intelligence shadow-readiness access identifier mismatch.", failures);
+  assert(access?.canonicalConsumerContractPath === fitnessShadowReadinessContractPath, "Fitness Intelligence shadow-readiness access path mismatch.", failures);
+  assert(access?.sourceProjectionImplementationPath === fitnessShadowReadinessSourcePath, "Fitness Intelligence shadow-readiness source projection path mismatch.", failures);
+  assert(access?.accessMode === "read_only_founder_only", "Shadow-readiness access must remain read-only and Founder-only.", failures);
+  for (const rule of [
+    "representativeVisibilityAllowed",
+    "operationalWorkflowConsumptionAllowed",
+    "routeOrderingInfluenceAllowed",
+    "discoveryModeInfluenceAllowed",
+    "nearbyContextInfluenceAllowed",
+    "savedPlacesInfluenceAllowed",
+    "notificationInfluenceAllowed",
+    "automaticActionAllowed",
+    "dataMutationAllowed",
+    "eligibilityForFounderReviewAuthorizesActivation",
+    "validationFixtureCanonicalContributionAllowed",
+    "smoothieDepotConsumptionAllowed"
+  ]) {
+    assert(access?.[rule] === false, `Fitness Intelligence shadow-readiness rule must remain false: ${rule}`, failures);
+  }
+  assert(access?.recommendationInfluence === "OFF", "Fitness Intelligence shadow-readiness influence must remain OFF.", failures);
+  assert(access?.unknownWorkspaceFailsClosed === true, "Shadow-readiness must fail closed for unknown workspaces.", failures);
+  assert(access?.unknownConsumerFailsClosed === true, "Shadow-readiness must fail closed for unknown consumers.", failures);
+  assert(access?.consumerContractMismatchFailsClosed === true, "Shadow-readiness must fail closed for contract mismatch.", failures);
+
+  assert(config?.batchId === fitnessShadowReadinessBatchId, "Shadow-readiness config batch mismatch.", failures);
+  assert(config?.status === "validation_only_recommendation_influence_off", "Shadow-readiness config must remain validation-only.", failures);
+  assert(config?.recommendationInfluence === "OFF", "Shadow-readiness config recommendation influence must remain OFF.", failures);
+  assert(ledger?.batchId === fitnessShadowReadinessBatchId, "Shadow-readiness ledger batch mismatch.", failures);
+  assert(ledger?.founderOnly === true && ledger?.readOnly === true, "Shadow-readiness ledger must remain Founder-only and read-only.", failures);
+  assert(ledger?.recommendationInfluence === "OFF", "Shadow-readiness ledger influence must remain OFF.", failures);
+  const opportunityIds = (ledger?.opportunityManifest || []).map(item => item.opportunityId);
+  const dispositionIds = [...(ledger?.records || []), ...(ledger?.exclusions || [])].map(item => item.opportunityId);
+  assert(opportunityIds.length === new Set(opportunityIds).size, "Shadow-readiness opportunity manifest contains duplicates.", failures);
+  assert(dispositionIds.length === new Set(dispositionIds).size, "Shadow-readiness opportunities have multiple dispositions.", failures);
+  assert(sameMembers(dispositionIds, opportunityIds), "Every shadow opportunity must have exactly one shadow or exclusion record.", failures);
+  assert(report?.batchId === fitnessShadowReadinessBatchId, "Founder readiness report batch mismatch.", failures);
+  assert(["INSUFFICIENT_EVIDENCE", "OBSERVING", "ELIGIBLE_FOR_FOUNDER_REVIEW"].includes(report?.state), "Founder readiness report state is invalid.", failures);
+  assert(report?.recommendationInfluence === "OFF", "Founder readiness report influence must remain OFF.", failures);
+  assert(report?.eligibilityDoesNotAuthorizeActivation === true, "Founder review eligibility must not authorize activation.", failures);
+  assert(report?.shadowLedgerSha256 === ledger?.shadowLedgerSha256, "Founder report shadow ledger hash mismatch.", failures);
+  assert(report?.outcomeChainSha256 === ledger?.outcomeChainSha256, "Founder report outcome chain hash mismatch.", failures);
+  assert(report?.evaluatedLedgerSha256 === ledger?.evaluationLedgerSha256, "Founder report evaluated ledger hash mismatch.", failures);
+  assert(intelligenceContract?.interpretationRules?.shadowDecisionValidationActive === true, "Shadow decision validation must be active.", failures);
+  assert(intelligenceContract?.interpretationRules?.shadowDecisionRecommendationInfluenceActive === false, "Shadow decision recommendation influence must remain inactive.", failures);
+  assert(intelligenceContract?.interpretationRules?.productionRecommendationLearningInfluenceActive === false, "Production recommendation learning influence must remain inactive.", failures);
+  assert(!(workspace?.canonicalArtifacts || []).some(artifact => artifact.path === fitnessShadowReadinessFixturePath), "Validation fixture must never be a canonical artifact.", failures);
+
+  return failures;
+}
+
 function validateBusinessHoursDataContract(contract, runtimeContract, failures) {
   validateReferencedPaths(contract.canonicalArtifacts, "Business-hours Data contract", failures);
 
@@ -1135,6 +1315,19 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   const fieldSessionLearningSnapshot = fieldSessionLearningSnapshotRegistration && exists(fieldSessionLearningSnapshotRegistration.path)
     ? readJson(fieldSessionLearningSnapshotRegistration.path)
     : null;
+  const shadowReadinessRegistration = artifacts.fitness_connection_shadow_decision_readiness_contract;
+  const shadowReadinessContract = shadowReadinessRegistration && exists(shadowReadinessRegistration.path)
+    ? readJson(shadowReadinessRegistration.path)
+    : null;
+  const shadowReadinessConfig = exists(fitnessShadowReadinessConfigPath)
+    ? readJson(fitnessShadowReadinessConfigPath)
+    : null;
+  const shadowReadinessLedger = exists(fitnessShadowReadinessLedgerPath)
+    ? readJson(fitnessShadowReadinessLedgerPath)
+    : null;
+  const shadowReadinessReport = exists(fitnessShadowReadinessReportPath)
+    ? readJson(fitnessShadowReadinessReportPath)
+    : null;
   const crmContract = readJson(artifacts.fitness_connection_crm_consumer_contract.path);
   const intelligenceContract = readJson(artifacts.fitness_connection_intelligence_consumer_contract.path);
   const dashboardSource = read(artifacts.fitness_connection_dashboard_source.path);
@@ -1263,6 +1456,15 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
     consumerRegistration: fieldSessionLearningConsumerRegistration,
     policyRegistration: fieldSessionLearningPolicyRegistration,
     snapshotRegistration: fieldSessionLearningSnapshotRegistration
+  }));
+  failures.push(...validateFitnessShadowDecisionReadinessLinkage({
+    workspace,
+    intelligenceContract,
+    readinessContract: shadowReadinessContract,
+    config: shadowReadinessConfig,
+    ledger: shadowReadinessLedger,
+    report: shadowReadinessReport,
+    registration: shadowReadinessRegistration
   }));
   assert(operatingProfiles.profiles?.some(profile => profile.profileId === "fitness"), "Operating Profile registry must include Fitness.", failures);
   assert(intelligenceContract.interpretationRules.productionLearningActive === false, "Fitness Intelligence contract must keep production learning inactive.", failures);

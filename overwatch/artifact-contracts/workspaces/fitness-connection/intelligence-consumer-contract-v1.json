@@ -16,7 +16,12 @@
     "routeBusinessHoursEligibilityContracts": "intelligence/contracts/route-business-hours-eligibility-contracts.json",
     "readOnlyFieldSessionLearningContracts": "intelligence/contracts/read-only-field-session-learning-contracts.json",
     "readOnlyFieldSessionLearningPolicy": "intelligence/config/read-only-field-session-learning-policy-v1.json",
-    "readOnlyFieldSessionLearningSnapshot": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json"
+    "readOnlyFieldSessionLearningSnapshot": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "shadowDecisionReadinessContracts": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+    "shadowDecisionReadinessConfig": "intelligence/config/shadow-decision-readiness-v1.json",
+    "shadowDecisionReadinessLedger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
+    "shadowDecisionReadinessReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
+    "shadowDecisionReadinessHumanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
   },
   "authorizedDataReadPaths": {
     "businessHoursDataContract": "overwatch/artifact-contracts/data/fitness-connection-business-hours-data-contract-v1.json",
@@ -72,6 +77,33 @@
     "consumerContractMismatchFailsClosed": true,
     "smoothieDepotConsumptionAllowed": false
   },
+  "shadowDecisionReadinessAccessRules": {
+    "batchId": "BATCH-20260713-001",
+    "canonicalConsumerIdentifier": "route-iq-shadow-decision-readiness-contract-v1",
+    "canonicalConsumerContractPath": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+    "sourceProjectionApi": "projectRouteIqChronologicalEvidence",
+    "sourceProjectionImplementationPath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "authorizedWorkspaceId": "fitness_connection",
+    "authorizedOperatingProfileId": "fitness",
+    "authorizedRepresentativeId": "cruz",
+    "accessMode": "read_only_founder_only",
+    "representativeVisibilityAllowed": false,
+    "operationalWorkflowConsumptionAllowed": false,
+    "routeOrderingInfluenceAllowed": false,
+    "discoveryModeInfluenceAllowed": false,
+    "nearbyContextInfluenceAllowed": false,
+    "savedPlacesInfluenceAllowed": false,
+    "notificationInfluenceAllowed": false,
+    "automaticActionAllowed": false,
+    "dataMutationAllowed": false,
+    "recommendationInfluence": "OFF",
+    "eligibilityForFounderReviewAuthorizesActivation": false,
+    "validationFixtureCanonicalContributionAllowed": false,
+    "unknownWorkspaceFailsClosed": true,
+    "unknownConsumerFailsClosed": true,
+    "consumerContractMismatchFailsClosed": true,
+    "smoothieDepotConsumptionAllowed": false
+  },
   "interpretationRules": {
     "canReadResearch": false,
     "canReadCrm": true,
@@ -82,6 +114,8 @@
     "canMutateData": false,
     "productionLearningActive": false,
     "readOnlyArchivedSessionLearningActive": true,
+    "shadowDecisionValidationActive": true,
+    "shadowDecisionRecommendationInfluenceActive": false,
     "productionRecommendationLearningInfluenceActive": false,
     "productionScoringChangeRequiresExplicitFutureHandoff": true
   },
