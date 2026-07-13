@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/schemas/route-iq-prospective-opportunity-snapshot-v1.schema.json",
+  "title": "Route IQ Prospective Opportunity Snapshot v1",
+  "description": "Data-owned canonical snapshot for an existing next_stop decision opportunity. The capture request definition intentionally omits server timestamps, hashes, Decision Source, ranking, probability, readiness, engine, PII, raw notes, audio, and precise location fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "lifecycleVersion",
+    "schemaVersion",
+    "artifactKind",
+    "artifactId",
+    "opportunityId",
+    "idempotencyKey",
+    "requestSha256",
+    "opportunityType",
+    "recordOrigin",
+    "canonicality",
+    "scope",
+    "capturedAt",
+    "evidenceCutoff",
+    "candidateSetComplete",
+    "candidateSetSha256",
+    "candidates",
+    "sourceManifest",
+    "context",
+    "client",
+    "versions",
+    "immutable",
+    "appendOnly",
+    "collectionActivation",
+    "recommendationInfluence",
+    "rankingCalculatedByData",
+    "readinessCalculatedByData",
+    "recordSha256"
+  ],
+  "properties": {
+    "lifecycleVersion": { "const": "route-iq-prospective-shadow-evidence-lifecycle-v1" },
+    "schemaVersion": { "const": "route-iq-prospective-opportunity-snapshot-v1" },
+    "artifactKind": { "const": "accepted_snapshot" },
+    "artifactId": { "$ref": "#/$defs/opaqueId" },
+    "opportunityId": { "$ref": "#/$defs/opaqueId" },
+    "idempotencyKey": { "$ref": "#/$defs/opaqueId" },
+    "requestSha256": { "$ref": "#/$defs/sha256" },
+    "opportunityType": { "const": "next_stop" },
+    "recordOrigin": { "const": "prospective" },
+    "canonicality": { "const": "canonical_prospective" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "capturedAt": { "$ref": "#/$defs/canonicalTimestamp" },
+    "evidenceCutoff": { "$ref": "#/$defs/canonicalTimestamp" },
+    "candidateSetComplete": { "const": true },
+    "candidateSetSha256": { "$ref": "#/$defs/sha256" },
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/candidate" }
+    },
+    "sourceManifest": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/sourceManifestEntry" }
+    },
+    "context": { "$ref": "#/$defs/opportunityContext" },
+    "client": { "$ref": "#/$defs/clientContext" },
+    "versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "capture", "source", "dataProjection"],
+      "properties": {
+        "schema": { "const": "route-iq-prospective-opportunity-snapshot-v1" },
+        "capture": { "const": "route-iq-next-stop-capture-v1" },
+        "source": { "$ref": "#/$defs/version" },
+        "dataProjection": { "const": "route-iq-chronological-evidence-projection-v1" }
+      }
+    },
+    "immutable": { "const": true },
+    "appendOnly": { "const": true },
+    "collectionActivation": { "const": "inactive_until_infrastructure_and_dashboard_owner_wiring" },
+    "recommendationInfluence": { "const": "off" },
+    "rankingCalculatedByData": { "const": false },
+    "readinessCalculatedByData": { "const": false },
+    "recordSha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{7,127}$"
+    },
+    "token": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{1,127}$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 96,
+      "pattern": "^[a-z0-9][a-z0-9._-]{1,95}$"
+    },
+    "reasonCode": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 80,
+      "pattern": "^[a-z0-9][a-z0-9_-]{1,79}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "canonicalTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workspaceId", "operatingProfileId", "representativeId", "fieldSessionId"],
+      "properties": {
+        "workspaceId": { "const": "fitness_connection" },
+        "operatingProfileId": { "const": "fitness" },
+        "representativeId": { "enum": ["cruz", "anthony"] },
+        "fieldSessionId": { "$ref": "#/$defs/token" }
+      }
+    },
+    "clientContext": {
+      "description": "Informational only; it never establishes authoritative chronology.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sequence", "observedAt", "syncMode"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 0 },
+        "observedAt": { "$ref": "#/$defs/canonicalTimestamp" },
+        "syncMode": { "enum": ["online", "offline", "late"] }
+      }
+    },
+    "sourceManifestEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sourceRecordId", "availableAt"],
+      "properties": {
+        "sourceRecordId": { "$ref": "#/$defs/token" },
+        "availableAt": { "$ref": "#/$defs/canonicalTimestamp" }
+      }
+    },
+    "eligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reasonCodes", "evaluatedAt"],
+      "properties": {
+        "status": { "const": "eligible" },
+        "reasonCodes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/reasonCode" }
+        },
+        "evaluatedAt": { "$ref": "#/$defs/canonicalTimestamp" }
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateId", "sourceRecordIds", "eligibility"],
+      "properties": {
+        "candidateId": { "$ref": "#/$defs/token" },
+        "sourceRecordIds": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/token" }
+        },
+        "eligibility": { "$ref": "#/$defs/eligibility" }
+      }
+    },
+    "opportunityContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["territory", "time", "permittedRepresentative"],
+      "properties": {
+        "territory": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["territoryId"],
+          "properties": { "territoryId": { "$ref": "#/$defs/token" } }
+        },
+        "time": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["timezone", "windowId", "localDate"],
+          "properties": {
+            "timezone": { "const": "America/Chicago" },
+            "windowId": { "$ref": "#/$defs/token" },
+            "localDate": { "type": "string", "format": "date" }
+          }
+        },
+        "permittedRepresentative": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["representativeId", "registryVersion"],
+          "properties": {
+            "representativeId": { "enum": ["cruz", "anthony"] },
+            "registryVersion": { "$ref": "#/$defs/version" }
+          }
+        }
+      }
+    },
+    "captureRequest": {
+      "description": "Infrastructure-facing allowlisted request. Server timestamps, hashes, seal receipts, Decision Source, rank, probability, readiness, engine/model values, notes, contacts, audio, and precise location are deliberately absent.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "captureVersion",
+        "sourceVersion",
+        "opportunityId",
+        "idempotencyKey",
+        "opportunityType",
+        "recordOrigin",
+        "scope",
+        "candidateSetComplete",
+        "candidates",
+        "sourceManifest",
+        "context",
+        "client"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "route-iq-prospective-opportunity-snapshot-v1" },
+        "captureVersion": { "const": "route-iq-next-stop-capture-v1" },
+        "sourceVersion": { "$ref": "#/$defs/version" },
+        "opportunityId": { "$ref": "#/$defs/opaqueId" },
+        "idempotencyKey": { "$ref": "#/$defs/opaqueId" },
+        "opportunityType": { "const": "next_stop" },
+        "recordOrigin": {
+          "enum": ["prospective", "synthetic", "test", "demo", "fixture", "historical", "backfill"]
+        },
+        "scope": { "$ref": "#/$defs/scope" },
+        "candidateSetComplete": { "const": true },
+        "candidates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/candidate" }
+        },
+        "sourceManifest": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/sourceManifestEntry" }
+        },
+        "context": { "$ref": "#/$defs/opportunityContext" },
+        "client": { "$ref": "#/$defs/clientContext" }
+      }
+    }
+  }
+}

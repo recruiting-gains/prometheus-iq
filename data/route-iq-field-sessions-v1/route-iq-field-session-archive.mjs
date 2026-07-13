@@ -10,7 +10,11 @@ export const routeIqChronologicalEvidenceKinds = Object.freeze([
   "visit_decision_context",
   "visit_observed_outcome",
   "customer_outcome_observation",
-  "stress_test_observation"
+  "stress_test_observation",
+  "prospective_opportunity_snapshot",
+  "prospective_opportunity_action",
+  "prospective_opportunity_outcome",
+  "prospective_outcome_correction"
 ]);
 export const routeIqVisitDecisionSourceIds = Object.freeze([
   "route_iq_recommendation",
@@ -1090,6 +1094,215 @@ function evidenceContext(record, visit = null, customer = null) {
   };
 }
 
+function verifyProspectiveLifecycleForProjection(lifecycle, expectedScope) {
+  if (!lifecycle || lifecycle.lifecycleVersion !== "route-iq-prospective-shadow-evidence-lifecycle-v1") {
+    throw new FieldSessionArchiveError("A canonical prospective lifecycle read record is required.", {
+      code: "field_session_prospective_lifecycle_invalid"
+    });
+  }
+  const scope = lifecycle.scope || {};
+  if (scope.workspaceId !== expectedScope.workspaceId
+    || scope.operatingProfileId !== expectedScope.operatingProfileId
+    || scope.representativeId !== expectedScope.representativeId) {
+    throw new FieldSessionArchiveError("Prospective lifecycle scope does not match the chronological projection.", {
+      code: "field_session_evidence_scope_mismatch",
+      details: { source: "prospective_lifecycle" }
+    });
+  }
+  if (lifecycle.recommendationInfluence !== "off"
+    || lifecycle.collectionActivation !== "inactive_until_infrastructure_and_dashboard_owner_wiring") {
+    throw new FieldSessionArchiveError("Prospective lifecycle activation boundaries are invalid.", {
+      code: "field_session_prospective_lifecycle_activation_invalid"
+    });
+  }
+  const readBody = Object.fromEntries(Object.entries(lifecycle).filter(([key]) => key !== "lifecycleReadSha256"));
+  if (typeof lifecycle.lifecycleReadSha256 !== "string"
+    || sha256(stableJson(readBody)) !== lifecycle.lifecycleReadSha256) {
+    throw new FieldSessionArchiveError("Prospective lifecycle read digest is invalid.", {
+      code: "field_session_prospective_lifecycle_digest_mismatch",
+      status: 500
+    });
+  }
+
+  const artifacts = [
+    ...(lifecycle.records || []),
+    ...(lifecycle.exclusions || []),
+    ...(lifecycle.conflicts || [])
+  ];
+  const artifactIds = new Set();
+  for (const artifact of artifacts) {
+    if (!artifact || typeof artifact.artifactId !== "string" || !artifact.artifactId || artifactIds.has(artifact.artifactId)) {
+      throw new FieldSessionArchiveError("Prospective lifecycle artifact IDs must be present and unique.", {
+        code: "field_session_prospective_lifecycle_artifact_id_invalid"
+      });
+    }
+    artifactIds.add(artifact.artifactId);
+    if (artifact.opportunityId !== lifecycle.opportunityId
+      || artifact.scope?.workspaceId !== scope.workspaceId
+      || artifact.scope?.operatingProfileId !== scope.operatingProfileId
+      || artifact.scope?.representativeId !== scope.representativeId
+      || artifact.scope?.fieldSessionId !== scope.fieldSessionId) {
+      throw new FieldSessionArchiveError("Prospective lifecycle artifact scope is contaminated.", {
+        code: "field_session_evidence_scope_mismatch",
+        details: { sourceRecordId: artifact.artifactId }
+      });
+    }
+    const source = lifecycle.sourceArtifacts?.[artifact.artifactId];
+    if (!source?.artifact || !source?.commit) {
+      throw new FieldSessionArchiveError("Prospective lifecycle source artifacts are incomplete.", {
+        code: "field_session_evidence_source_artifacts_missing",
+        status: 500,
+        details: { sourceRecordId: artifact.artifactId }
+      });
+    }
+    for (const [kind, sourceArtifact] of Object.entries(source)) {
+      if (typeof sourceArtifact.text !== "string" || sha256(sourceArtifact.text) !== sourceArtifact.sha256) {
+        throw new FieldSessionArchiveError("Prospective lifecycle source bytes failed hash verification.", {
+          code: "field_session_evidence_source_hash_mismatch",
+          status: 500,
+          details: { sourceRecordId: artifact.artifactId, artifact: kind }
+        });
+      }
+    }
+    let parsedArtifact;
+    let parsedCommit;
+    try {
+      parsedArtifact = JSON.parse(source.artifact.text);
+      parsedCommit = JSON.parse(source.commit.text);
+    } catch {
+      throw new FieldSessionArchiveError("Prospective lifecycle source bytes are not canonical JSON.", {
+        code: "field_session_evidence_source_hash_mismatch",
+        status: 500,
+        details: { sourceRecordId: artifact.artifactId }
+      });
+    }
+    if (stableJson(parsedArtifact) !== stableJson(artifact)
+      || sha256(stableJson(Object.fromEntries(Object.entries(artifact).filter(([key]) => key !== "recordSha256")))) !== artifact.recordSha256) {
+      throw new FieldSessionArchiveError("Prospective lifecycle parsed evidence differs from immutable bytes.", {
+        code: "field_session_evidence_source_hash_mismatch",
+        status: 500,
+        details: { sourceRecordId: artifact.artifactId, artifact: "artifact" }
+      });
+    }
+    const commitBody = Object.fromEntries(Object.entries(parsedCommit).filter(([key]) => key !== "commitSha256"));
+    if (parsedCommit.status !== "committed"
+      || sha256(stableJson(commitBody)) !== parsedCommit.commitSha256
+      || parsedCommit.recordSha256 !== artifact.recordSha256
+      || parsedCommit.artifactSha256 !== source.artifact.sha256
+      || parsedCommit.artifactId !== artifact.artifactId) {
+      throw new FieldSessionArchiveError("Prospective lifecycle commit is invalid.", {
+        code: "field_session_evidence_commit_mismatch",
+        status: 500,
+        details: { sourceRecordId: artifact.artifactId }
+      });
+    }
+  }
+  if (lifecycle.acceptedSnapshot !== null) {
+    const matchingSnapshot = (lifecycle.records || []).find(item => item.artifactKind === "accepted_snapshot");
+    if (!matchingSnapshot || stableJson(matchingSnapshot) !== stableJson(lifecycle.acceptedSnapshot)) {
+      throw new FieldSessionArchiveError("Prospective lifecycle accepted snapshot does not match its immutable record.", {
+        code: "field_session_prospective_lifecycle_snapshot_mismatch",
+        status: 500
+      });
+    }
+  }
+
+  const snapshot = lifecycle.acceptedSnapshot;
+  const context = {
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    territoryId: snapshot?.context?.territory?.territoryId ?? null,
+    customerId: null,
+    customerName: null
+  };
+  const candidates = [];
+  const exclusions = [];
+  for (const artifact of lifecycle.records || []) {
+    const source = lifecycle.sourceArtifacts[artifact.artifactId];
+    const provenance = {
+      sessionId: scope.fieldSessionId,
+      sourceRawSha256: null,
+      sourceArtifactHashes: {
+        artifact: source.artifact.sha256,
+        commit: source.commit.sha256
+      },
+      prospectiveLifecycleVersion: lifecycle.lifecycleVersion,
+      opportunityId: lifecycle.opportunityId,
+      recordSha256: artifact.recordSha256
+    };
+    if (artifact.recordOrigin !== "prospective" || artifact.immutable !== true || artifact.appendOnly !== true) {
+      exclusions.push({
+        sourceRecordId: artifact.artifactId,
+        evidenceKind: null,
+        reason: "noncanonical_prospective_lifecycle_record"
+      });
+      continue;
+    }
+    if (artifact.artifactKind === "accepted_snapshot") {
+      candidates.push({
+        evidenceKind: "prospective_opportunity_snapshot",
+        sourceRecordId: artifact.artifactId,
+        evidenceTimestamp: artifact.capturedAt,
+        context,
+        payload: clone(artifact),
+        relation: { type: "original", priorSourceRecordId: null },
+        provenance
+      });
+    } else if (artifact.artifactKind === "action") {
+      candidates.push({
+        evidenceKind: "prospective_opportunity_action",
+        sourceRecordId: artifact.artifactId,
+        evidenceTimestamp: artifact.occurredAt,
+        context: { ...context, customerId: artifact.selectedCandidateId ?? null },
+        payload: clone(artifact),
+        relation: { type: "original", priorSourceRecordId: null },
+        provenance
+      });
+    } else if (artifact.artifactKind === "outcome") {
+      candidates.push({
+        evidenceKind: "prospective_opportunity_outcome",
+        sourceRecordId: artifact.artifactId,
+        evidenceTimestamp: artifact.observedAt,
+        context: { ...context, customerId: artifact.evaluatedCandidateId ?? null },
+        payload: clone(artifact),
+        relation: { type: "original", priorSourceRecordId: null },
+        provenance
+      });
+    } else if (artifact.artifactKind === "correction") {
+      candidates.push({
+        evidenceKind: "prospective_outcome_correction",
+        sourceRecordId: artifact.artifactId,
+        evidenceTimestamp: artifact.correctedAt,
+        context: { ...context, customerId: artifact.replacement?.evaluatedCandidateId ?? null },
+        payload: clone(artifact),
+        relation: { type: "correction", priorSourceRecordId: artifact.targetRecordId },
+        provenance
+      });
+    } else {
+      exclusions.push({ sourceRecordId: artifact.artifactId, evidenceKind: null, reason: "unsupported_prospective_lifecycle_kind" });
+    }
+  }
+  for (const artifact of lifecycle.exclusions || []) {
+    exclusions.push({
+      sourceRecordId: artifact.artifactId,
+      evidenceKind: null,
+      evidenceTimestamp: artifact.detectedAt,
+      reason: "governed_prospective_exclusion",
+      reasonCodes: clone(artifact.reasonCodes || [])
+    });
+  }
+  for (const artifact of lifecycle.conflicts || []) {
+    exclusions.push({
+      sourceRecordId: artifact.artifactId,
+      evidenceKind: null,
+      evidenceTimestamp: artifact.detectedAt,
+      reason: "governed_prospective_conflict"
+    });
+  }
+  return { candidates, exclusions };
+}
+
 export function projectRouteIqChronologicalEvidence(input = {}) {
   const archive = input.archiveRecord;
   if (!archive?.normalizedRecord || !archive?.historyUpdates || !archive?.stressTestEvidence) {
@@ -1157,6 +1370,7 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
   }
 
   const candidates = [];
+  const lifecycleExclusions = [];
   for (const visit of record.verifiedFields?.completedVisits || []) {
     candidates.push({
       evidenceKind: "visit_decision_context",
@@ -1195,9 +1409,18 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
     });
   }
   for (const appended of archive.historyUpdates.chronologicalEvidence || []) candidates.push(clone(appended));
+  if (input.prospectiveLifecycleRecord) {
+    const prospective = verifyProspectiveLifecycleForProjection(input.prospectiveLifecycleRecord, {
+      workspaceId: input.workspaceId,
+      operatingProfileId: input.operatingProfileId,
+      representativeId: input.representativeId
+    });
+    candidates.push(...prospective.candidates);
+    lifecycleExclusions.push(...prospective.exclusions);
+  }
 
   const included = [];
-  const exclusions = [];
+  const exclusions = [...lifecycleExclusions];
   const candidateIds = new Set();
   const preparedCandidates = [];
   for (const candidate of candidates) {
@@ -1270,7 +1493,7 @@ export function projectRouteIqChronologicalEvidence(input = {}) {
       context: { workspaceId: context.workspaceId, operatingProfileId: context.operatingProfileId, representativeId: context.representativeId, territoryId: context.territoryId ?? null, customerId: context.customerId ?? null, customerName: context.customerName ?? null },
       payload: clone(candidate.payload ?? null),
       relation: { type: relation.type, priorSourceRecordId: priorId },
-      provenance: { sessionId: record.sessionId, sourceRawSha256: commit.rawSha256, sourceArtifactHashes: Object.fromEntries(Object.entries(sourceArtifacts).map(([name, artifact]) => [name, artifact.sha256])) }
+      provenance: candidate.provenance || { sessionId: record.sessionId, sourceRawSha256: commit.rawSha256, sourceArtifactHashes: Object.fromEntries(Object.entries(sourceArtifacts).map(([name, artifact]) => [name, artifact.sha256])) }
     });
   }
   included.sort((a, b) => a.evidenceTimestamp.localeCompare(b.evidenceTimestamp) || a.sourceRecordId.localeCompare(b.sourceRecordId));
