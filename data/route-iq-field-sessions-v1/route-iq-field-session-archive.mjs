@@ -5,6 +5,13 @@ export const routeIqEndOfDayHandoffContractId = "route-iq-end-of-day-data-handof
 export const routeIqFieldSessionStoreBinding = "DATA_ROUTE_IQ_FIELD_SESSION_STORE";
 export const routeIqFieldSessionStorageTechnology = "cloudflare_workers_kv";
 export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
+export const routeIqChronologicalEvidenceProjectionVersion = "route-iq-chronological-evidence-projection-v1";
+export const routeIqChronologicalEvidenceKinds = Object.freeze([
+  "visit_decision_context",
+  "visit_observed_outcome",
+  "customer_outcome_observation",
+  "stress_test_observation"
+]);
 export const routeIqVisitDecisionSourceIds = Object.freeze([
   "route_iq_recommendation",
   "nearby_context",
@@ -66,6 +73,21 @@ function clone(value) {
 
 function sha256(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.freeze(value);
+  for (const child of Object.values(value)) deepFreeze(child);
+  return value;
 }
 
 function requireIso(value, label) {
@@ -989,7 +1011,231 @@ export async function readRouteIqFieldSessionArchive(input = {}, options = {}) {
       calculatedMetrics,
       stressTestEvidence,
       historyUpdates,
-      historyIndexEntries: historyEntryValues.map((value, index) => parseStoredJson(value, historyEntryKeys[index]))
+      historyIndexEntries: historyEntryValues.map((value, index) => parseStoredJson(value, historyEntryKeys[index])),
+      sourceArtifacts: deepFreeze({
+        raw: { key: keys.raw, sha256: sha256(rawReportText), byteLength: Buffer.byteLength(rawReportText), text: rawReportText },
+        normalized: { key: keys.normalized, sha256: sha256(normalizedText), byteLength: Buffer.byteLength(normalizedText), text: normalizedText },
+        calculated: { key: keys.calculated, sha256: sha256(calculatedText), byteLength: Buffer.byteLength(calculatedText), text: calculatedText },
+        stressTestEvidence: { key: keys.stressTestEvidence, sha256: sha256(stressText), byteLength: Buffer.byteLength(stressText), text: stressText },
+        historyUpdates: { key: keys.historyUpdates, sha256: sha256(historyText), byteLength: Buffer.byteLength(historyText), text: historyText }
+      })
     }
   };
+}
+
+function projectionTimestamp(value, label) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) {
+    throw new FieldSessionArchiveError(`${label} must be a canonical UTC timestamp.`, {
+      code: "field_session_evidence_timestamp_invalid",
+      details: { label, value: value ?? null }
+    });
+  }
+  const time = Date.parse(value);
+  if (!Number.isFinite(time) || new Date(time).toISOString() !== value) {
+    throw new FieldSessionArchiveError(`${label} must be a canonical UTC timestamp.`, {
+      code: "field_session_evidence_timestamp_invalid",
+      details: { label, value }
+    });
+  }
+  return { iso: new Date(time).toISOString(), time };
+}
+
+function evidenceContext(record, visit = null, customer = null) {
+  return {
+    workspaceId: record.workspaceId,
+    operatingProfileId: record.operatingProfileId,
+    representativeId: record.verifiedFields?.representative?.id ?? null,
+    territoryId: record.verifiedFields?.territoryId ?? null,
+    customerId: customer?.googlePlaceId ?? visit?.governedBusinessIdentity?.googlePlaceId ?? null,
+    customerName: customer?.businessName ?? visit?.governedBusinessIdentity?.businessName ?? visit?.sourceReport?.placeName ?? null
+  };
+}
+
+export function projectRouteIqChronologicalEvidence(input = {}) {
+  const archive = input.archiveRecord;
+  if (!archive?.normalizedRecord || !archive?.historyUpdates || !archive?.stressTestEvidence) {
+    throw new FieldSessionArchiveError("A complete committed field-session read record is required.", {
+      code: "field_session_evidence_archive_incomplete"
+    });
+  }
+  const record = archive.normalizedRecord;
+  const representativeId = record.verifiedFields?.representative?.id;
+  assertWorkspace(input.workspaceId, input.operatingProfileId, input.representativeId);
+  if (record.workspaceId !== input.workspaceId || record.operatingProfileId !== input.operatingProfileId
+    || representativeId !== input.representativeId) {
+    throw new FieldSessionArchiveError("Chronological evidence scope does not match the committed field session.", {
+      code: "field_session_evidence_scope_mismatch",
+      details: { requested: { workspaceId: input.workspaceId, operatingProfileId: input.operatingProfileId, representativeId: input.representativeId } }
+    });
+  }
+  const commit = archive.commit;
+  const normalizedRawSha256 = record.sourceProvenance?.rawSha256;
+  const commitScopeMismatch = !commit
+    || commit.status !== "committed"
+    || (commit.workspaceId !== undefined && commit.workspaceId !== record.workspaceId)
+    || (commit.sessionId !== undefined && commit.sessionId !== record.sessionId)
+    || (commit.operatingProfileId !== undefined && commit.operatingProfileId !== record.operatingProfileId);
+  if (commitScopeMismatch || typeof commit.rawSha256 !== "string" || !commit.rawSha256
+    || commit.rawSha256 !== normalizedRawSha256) {
+    throw new FieldSessionArchiveError("Chronological evidence requires a matching committed archive record.", {
+      code: "field_session_evidence_commit_mismatch",
+      status: 500,
+      details: { sessionId: record.sessionId }
+    });
+  }
+  const cutoff = projectionTimestamp(input.decisionTimestamp, "Decision timestamp");
+  const sourceArtifacts = archive.sourceArtifacts || {};
+  const requiredArtifacts = ["raw", "normalized", "calculated", "stressTestEvidence", "historyUpdates"];
+  if (requiredArtifacts.some(name => !sourceArtifacts[name])) {
+    throw new FieldSessionArchiveError("Exact committed source artifacts are required for chronological evidence projection.", {
+      code: "field_session_evidence_source_artifacts_missing",
+      status: 500
+    });
+  }
+  const parsedArtifacts = { normalized: archive.normalizedRecord, calculated: archive.calculatedMetrics, stressTestEvidence: archive.stressTestEvidence, historyUpdates: archive.historyUpdates };
+  for (const [name, artifact] of Object.entries(sourceArtifacts)) {
+    if (typeof artifact?.text !== "string" || sha256(artifact.text) !== artifact.sha256) {
+      throw new FieldSessionArchiveError(`Committed source artifact ${name} failed immutability verification.`, {
+        code: "field_session_evidence_source_hash_mismatch",
+        status: 500,
+        details: { artifact: name }
+      });
+    }
+    if (parsedArtifacts[name] && stableJson(JSON.parse(artifact.text)) !== stableJson(parsedArtifacts[name])) {
+      throw new FieldSessionArchiveError(`Parsed source artifact ${name} differs from its immutable bytes.`, {
+        code: "field_session_evidence_source_hash_mismatch",
+        status: 500,
+        details: { artifact: name }
+      });
+    }
+  }
+  if (sourceArtifacts.raw.sha256 !== commit.rawSha256) {
+    throw new FieldSessionArchiveError("Raw source artifact differs from the commit marker.", {
+      code: "field_session_evidence_source_hash_mismatch",
+      status: 500,
+      details: { artifact: "raw" }
+    });
+  }
+
+  const candidates = [];
+  for (const visit of record.verifiedFields?.completedVisits || []) {
+    candidates.push({
+      evidenceKind: "visit_decision_context",
+      sourceRecordId: `${record.sessionId}:${visit.visitId}:decision-context`,
+      evidenceTimestamp: visit.visitDecisionSource?.capturedAt,
+      context: evidenceContext(record, visit),
+      payload: { visitId: visit.visitId, visitDecisionSource: visit.visitDecisionSource ?? null, recommendationDecisionContext: visit.recommendationDecisionContext ?? null },
+      relation: { type: "original", priorSourceRecordId: null }
+    }, {
+      evidenceKind: "visit_observed_outcome",
+      sourceRecordId: `${record.sessionId}:${visit.visitId}:observed-outcome`,
+      evidenceTimestamp: visit.sourceReport?.timestamp,
+      context: evidenceContext(record, visit),
+      payload: { visitId: visit.visitId, outcome: visit.sourceReport?.outcome ?? null, conversations: visit.sourceReport?.conversations ?? null, leads: visit.sourceReport?.leads ?? null, units: visit.sourceReport?.units ?? null, laterUnits: visit.sourceReport?.laterUnits ?? null },
+      relation: { type: "original", priorSourceRecordId: null }
+    });
+  }
+  for (const outcome of archive.historyUpdates.customerOutcomeHistory || []) {
+    candidates.push({
+      evidenceKind: "customer_outcome_observation",
+      sourceRecordId: outcome.sourceRecordId || `${record.sessionId}:${outcome.visitId}:customer-outcome`,
+      evidenceTimestamp: outcome.evidenceTimestamp || outcome.timestamp,
+      context: evidenceContext(record, null, outcome),
+      payload: clone(outcome),
+      relation: clone(outcome.relation || { type: "original", priorSourceRecordId: null })
+    });
+  }
+  for (const observation of archive.stressTestEvidence.observations || []) {
+    candidates.push({
+      evidenceKind: "stress_test_observation",
+      sourceRecordId: observation.observationId,
+      evidenceTimestamp: observation.observedAt,
+      context: evidenceContext(record),
+      payload: clone(observation),
+      relation: { type: "original", priorSourceRecordId: null }
+    });
+  }
+  for (const appended of archive.historyUpdates.chronologicalEvidence || []) candidates.push(clone(appended));
+
+  const included = [];
+  const exclusions = [];
+  const candidateIds = new Set();
+  const preparedCandidates = [];
+  for (const candidate of candidates) {
+    const id = typeof candidate.sourceRecordId === "string" && candidate.sourceRecordId.trim() ? candidate.sourceRecordId : null;
+    if (!id || candidateIds.has(id)) {
+      throw new FieldSessionArchiveError("Evidence source record IDs must be present and unique.", { code: "field_session_evidence_source_id_invalid", details: { sourceRecordId: id } });
+    }
+    candidateIds.add(id);
+    const context = candidate.context || {};
+    if (context.workspaceId !== record.workspaceId || context.operatingProfileId !== record.operatingProfileId
+      || context.representativeId !== representativeId) {
+      throw new FieldSessionArchiveError(`Evidence ${id} has cross-scope contamination.`, { code: "field_session_evidence_scope_mismatch", details: { sourceRecordId: id } });
+    }
+    preparedCandidates.push({ candidate, context, id });
+  }
+
+  for (const { candidate, context, id } of preparedCandidates) {
+    const evidenceKindSupported = routeIqChronologicalEvidenceKinds.includes(candidate.evidenceKind);
+    const governedNonOriginalRelation = ["correction", "conflict", "late"].includes(candidate.relation?.type);
+    if (!evidenceKindSupported && !governedNonOriginalRelation) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind ?? null, reason: "unsupported_evidence_kind" });
+      continue;
+    }
+    const relation = candidate.relation;
+    const relationTypes = ["original", "correction", "conflict", "late"];
+    const priorId = typeof relation?.priorSourceRecordId === "string"
+      && relation.priorSourceRecordId === relation.priorSourceRecordId.trim()
+      && relation.priorSourceRecordId
+      ? relation.priorSourceRecordId
+      : null;
+    const relationValid = relation && typeof relation === "object" && !Array.isArray(relation)
+      && relationTypes.includes(relation.type)
+      && (relation.type === "original" ? relation.priorSourceRecordId === null : priorId !== null)
+      && priorId !== id;
+    if (!relationValid) {
+      throw new FieldSessionArchiveError(`Evidence ${id} has an invalid append-only relation.`, {
+        code: "field_session_evidence_relation_invalid",
+        details: { sourceRecordId: id, relationType: relation?.type ?? null }
+      });
+    }
+    if (relation.type !== "original" && !candidateIds.has(priorId)) {
+      throw new FieldSessionArchiveError(`Evidence ${id} references a source record that does not exist.`, {
+        code: "field_session_evidence_relation_source_missing",
+        details: { sourceRecordId: id, priorSourceRecordId: priorId }
+      });
+    }
+    if (!evidenceKindSupported) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind ?? null, reason: "unsupported_evidence_kind" });
+      continue;
+    }
+    if (candidate.evidenceTimestamp === null || candidate.evidenceTimestamp === undefined) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, reason: "missing_evidence_timestamp" });
+      continue;
+    }
+    const timestamp = projectionTimestamp(candidate.evidenceTimestamp, `Evidence ${id} timestamp`);
+    if (timestamp.time === cutoff.time) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, evidenceTimestamp: timestamp.iso, reason: "at_decision_timestamp_without_prior_availability" });
+      continue;
+    }
+    if (timestamp.time > cutoff.time) {
+      exclusions.push({ sourceRecordId: id, evidenceKind: candidate.evidenceKind, evidenceTimestamp: timestamp.iso, reason: "after_decision_timestamp" });
+      continue;
+    }
+    included.push({
+      schemaVersion: routeIqFieldSessionArchiveVersion,
+      projectionVersion: routeIqChronologicalEvidenceProjectionVersion,
+      evidenceKind: candidate.evidenceKind,
+      sourceRecordId: id,
+      evidenceTimestamp: timestamp.iso,
+      context: { workspaceId: context.workspaceId, operatingProfileId: context.operatingProfileId, representativeId: context.representativeId, territoryId: context.territoryId ?? null, customerId: context.customerId ?? null, customerName: context.customerName ?? null },
+      payload: clone(candidate.payload ?? null),
+      relation: { type: relation.type, priorSourceRecordId: priorId },
+      provenance: { sessionId: record.sessionId, sourceRawSha256: commit.rawSha256, sourceArtifactHashes: Object.fromEntries(Object.entries(sourceArtifacts).map(([name, artifact]) => [name, artifact.sha256])) }
+    });
+  }
+  included.sort((a, b) => a.evidenceTimestamp.localeCompare(b.evidenceTimestamp) || a.sourceRecordId.localeCompare(b.sourceRecordId));
+  exclusions.sort((a, b) => a.sourceRecordId.localeCompare(b.sourceRecordId));
+  const body = { projectionVersion: routeIqChronologicalEvidenceProjectionVersion, decisionTimestamp: cutoff.iso, scope: { workspaceId: input.workspaceId, operatingProfileId: input.operatingProfileId, representativeId: input.representativeId }, evidence: included, exclusions };
+  return deepFreeze({ ...body, projectionSha256: sha256(stableJson(body)) });
 }
