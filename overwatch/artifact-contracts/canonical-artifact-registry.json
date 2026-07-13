@@ -441,6 +441,19 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_release_provenance_repair_mapping",
+          "artifactType": "overwatch_release_provenance_governance",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json",
+          "schema": "RouteIqReleaseProvenanceRepairV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_crm_consumer_contract",
           "artifactType": "crm_consumer_contract",
           "ownerSubsystem": "Prometheus Overwatch",

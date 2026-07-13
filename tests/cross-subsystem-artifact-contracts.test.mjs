@@ -145,6 +145,7 @@ test("Fitness Connection workspace is registered with role and isolation contrac
     "fitness_connection_read_only_field_session_learning_policy",
     "fitness_connection_read_only_field_session_learning_snapshot",
     "fitness_connection_shadow_decision_readiness_contract",
+    "fitness_connection_release_provenance_repair_mapping",
     "fitness_connection_crm_consumer_contract",
     "fitness_connection_intelligence_consumer_contract",
     "fitness_connection_dashboard_source",

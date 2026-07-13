@@ -22,6 +22,12 @@ Verification Owner: Prometheus Overwatch
 
 The final owner repair commit `dfc12a1` and integrated `8c675cc` resolve to the same tree, `c2fdbe4`. Subsystem implementation originated from the owning subsystem. Overwatch changed only its artifact registry, Fitness Intelligence consumer governance, verification scripts/tests, package verification wiring, and this batch report.
 
+## Release Scope Correction
+
+`c2fdbe4` is only the shared Intelligence owner-repair tree for `dfc12a1` and `8c675cc`; it is not the tree of the final integrated Batch 1 HEAD. Final Batch 1 HEAD `18ed83effdca1219729e4e71f452eeea8c3b273b` resolves to tree `87cb850a77333dbd0e368e2bba4aad5ac3c4a56f`. The trees are distinct.
+
+Batch 1 did not establish a complete exact-final-HEAD verification after its Overwatch governance commit. Its push recommendation is superseded and withheld pending `BATCH-20260713-002`, exact-final-HEAD verification, and separate Founder approval of the representative-facing Decision Source behavior. Final release HEAD and tree must be recorded externally after the repository is frozen to avoid a self-referential report commit.
+
 ## Verification Summary
 
 All ten directive gates are enforced. Zero influence, temporal integrity, deterministic replay, completeness, outcome integrity, and isolation/compatibility pass on current evidence. Evaluation validity, statistical sufficiency, segment safety, and calibration/stability correctly block readiness because current evidence does not meet them.
@@ -55,7 +61,7 @@ Exact blocking reasons:
 
 ## Release Decision
 
-Push recommendation: AUTHORIZE AFTER FOUNDER APPROVAL.
+Push recommendation: WITHHELD PENDING BATCH-20260713-002 EXACT-HEAD VERIFICATION AND FOUNDER BEHAVIOR REVIEW.
 
 Deployment recommendation: DO NOT DEPLOY. There is no production runtime consumer and no deployment is required for this validation-only batch.
 

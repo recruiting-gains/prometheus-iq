@@ -1,0 +1,164 @@
+{
+  "contractId": "route-iq-release-provenance-repair-v1",
+  "version": "1.0.0",
+  "status": "active_governance_only",
+  "owningSubsystem": "Prometheus Overwatch",
+  "batchId": "BATCH-20260713-002",
+  "engineeringDirective": "Route IQ Release Provenance + Exact-HEAD Verification Repair v1",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "legacyProvenanceGap": {
+    "commit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
+    "classification": "LEGACY_PROVENANCE_GAP",
+    "historyPreserved": true,
+    "retroactiveOwnershipClaimed": false,
+    "mixedOwnershipDisclosed": true,
+    "intelligenceOwnerRepairCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
+    "intelligenceOwnerEvidence": "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+    "intelligenceOwnedFiles": [
+      {
+        "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+        "canonicalOwner": "Prometheus Intelligence Engine",
+        "legacyRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
+        "canonicalAfterRepairRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42"
+      },
+      {
+        "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+        "canonicalOwner": "Prometheus Intelligence Engine",
+        "legacyRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
+        "canonicalAfterRepairRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87"
+      },
+      {
+        "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+        "canonicalOwner": "Prometheus Intelligence Engine",
+        "legacyRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
+        "canonicalAfterRepairRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189"
+      },
+      {
+        "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+        "canonicalOwner": "Prometheus Intelligence Engine",
+        "legacyRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
+        "canonicalAfterRepairRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94"
+      }
+    ],
+    "overwatchOwnedFile": {
+      "path": "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+      "canonicalOwner": "Prometheus Overwatch",
+      "validationOwner": "Prometheus Overwatch",
+      "savedPlacesFeatureOriginCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
+      "decisionContextFeatureOriginCommit": "2774d91456e4b1734eb1caa13deaa84de2248f8f",
+      "dashboardOwnerRevalidationCommit": "a665b1b26db02716240b622d0b4d451d019c2896",
+      "dashboardSourceSha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+    }
+  },
+  "ownerRepairChain": {
+    "dataCommits": [
+      "22a65b09c12a220c01ceed589f7b6229d96a1db6",
+      "a1fff1d1d257f0032b38c8ad6959b9d6c6091014"
+    ],
+    "dashboardCommit": "a665b1b26db02716240b622d0b4d451d019c2896",
+    "intelligenceCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
+    "verificationOwner": "Prometheus Overwatch"
+  },
+  "preBatchOwnerValidation": [
+    {
+      "commit": "2774d91456e4b1734eb1caa13deaa84de2248f8f",
+      "owner": "Prometheus Dashboard",
+      "ownerValidationCommits": ["a665b1b26db02716240b622d0b4d451d019c2896"],
+      "status": "OWNER_REVALIDATED_FOUNDER_BEHAVIOR_APPROVAL_REQUIRED"
+    },
+    {
+      "commit": "fc8f9c6a8acf04a80e4d5f93485225dfefea9407",
+      "owner": "Prometheus Data",
+      "ownerValidationCommits": [
+        "22a65b09c12a220c01ceed589f7b6229d96a1db6",
+        "a1fff1d1d257f0032b38c8ad6959b9d6c6091014"
+      ],
+      "status": "OWNER_REVALIDATED_CONTRACT_MISMATCH_CLOSED"
+    },
+    {
+      "commit": "232e192a9fa5a14641d411896d43a0495a46ae01",
+      "owner": "Prometheus Data",
+      "ownerValidationCommits": [
+        "22a65b09c12a220c01ceed589f7b6229d96a1db6",
+        "a1fff1d1d257f0032b38c8ad6959b9d6c6091014"
+      ],
+      "status": "OWNER_REVALIDATED_CONTRACT_MISMATCH_CLOSED"
+    },
+    {
+      "commit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
+      "owner": "Prometheus Data",
+      "ownerValidationCommits": [
+        "22a65b09c12a220c01ceed589f7b6229d96a1db6",
+        "a1fff1d1d257f0032b38c8ad6959b9d6c6091014"
+      ],
+      "status": "OWNER_REVALIDATED_CONTRACT_MISMATCH_CLOSED"
+    },
+    {
+      "commit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
+      "owner": "MIXED_LEGACY_PROVENANCE_GAP",
+      "ownerValidationCommits": ["1bb7d09dff254503d56027a87efe0d526228f35a"],
+      "status": "LEGACY_GAP_DISCLOSED_AND_OWNER_RECONSTRUCTED"
+    }
+  ],
+  "dataOwnerValidation": {
+    "contractMismatchClosed": true,
+    "dataArchiveRuntimePath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "dataArchiveRuntimeSha256": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1",
+    "dataRuntimeContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+    "dataRuntimeContractSha256": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e",
+    "historicalRawArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+    "historicalRawArchiveSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+    "historicalNormalizedArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+    "historicalNormalizedArchiveSha256": "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8",
+    "knownAndContemporaneousUnknownClassification": "action_time_observation",
+    "legacyFallbackClassification": "late_report_finalization_unknown",
+    "lateFallbackMaySatisfyOriginalShadowOpportunity": false,
+    "historicalArchiveRewritten": false,
+    "retryAndReplayRemainIdempotent": true,
+    "workspaceIsolationPreserved": true
+  },
+  "dashboardOwnerValidation": {
+    "evidencePath": "dashboard/decision-context-producer-validation-v1.md",
+    "representativeBehaviorApproval": "FOUNDER_BEHAVIOR_APPROVAL_REQUIRED",
+    "decisionSourceOptional": true,
+    "captureTiming": "visit_submission_post_action",
+    "preActionFrozenCandidateContextProduced": false,
+    "fullShadowCandidateContextPreserved": false,
+    "personallyIdentifiableInformationCollectionExpanded": false,
+    "shadowOutputsVisibleToRepresentatives": false,
+    "recommendationInfluence": "OFF"
+  },
+  "architectureConfirmation": {
+    "newSubsystemIntroduced": false,
+    "parallelProductionEventArchitectureIntroduced": false,
+    "newModelOrVendorDependencyIntroduced": false,
+    "personallyIdentifiableInformationCollectionExpanded": false,
+    "shadowOutputRepresentativeVisibility": false,
+    "recommendationInfluence": "OFF",
+    "routeOrderingInfluenceIntroduced": false,
+    "notificationInfluenceIntroduced": false,
+    "automaticActionInfluenceIntroduced": false,
+    "productionConsumerIntroduced": false,
+    "prospectiveShadowEvidenceCollectionStarted": false,
+    "historicalArchiveRewritten": false
+  },
+  "methodology": {
+    "requiredEvaluationOutcomes": "97 eligible, linked, scoreable evaluation outcomes after exclusions",
+    "requiredSampleAloneCanReachFounderReview": false,
+    "calibrationBins": 5,
+    "minimumSupportedObservationsAcrossFivePopulatedBins": 100,
+    "sparseOrEmptyBinsMayBypassEvidenceCoverage": false,
+    "chronologicalTrainingEvaluationSeparationRequired": true,
+    "calibrationStabilitySegmentSafetyAndBaselineRequired": true,
+    "causalUpliftOrRecommendationSuperiorityClaimAllowed": false
+  },
+  "releaseBoundary": {
+    "pushPerformed": false,
+    "deploymentPerformed": false,
+    "pushRequiresFounderApproval": true,
+    "deploymentRequiresFounderApproval": true,
+    "founderBehaviorApprovalRequired": true,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalOverwatchHandoff": true
+  }
+}

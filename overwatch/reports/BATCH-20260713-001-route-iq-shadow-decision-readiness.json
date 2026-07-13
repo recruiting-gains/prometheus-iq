@@ -141,10 +141,24 @@
     ],
     "recommendationInfluence": "OFF"
   },
+  "releaseScopeCorrection": {
+    "correctedByBatch": "BATCH-20260713-002",
+    "ownerRepairCommits": [
+      "dfc12a1b4c4c86c58e1e1bf8c5249e8c74619bda",
+      "8c675cc4d8b2a38566302da2edb1e0fe1b47f709"
+    ],
+    "ownerRepairTree": "c2fdbe479b92c436b076e954dfa48c0065a673ff",
+    "batchFinalHead": "18ed83effdca1219729e4e71f452eeea8c3b273b",
+    "batchFinalTree": "87cb850a77333dbd0e368e2bba4aad5ac3c4a56f",
+    "ownerRepairTreeEqualsBatchFinalTree": false,
+    "exactFinalHeadVerificationEstablishedByBatch1": false,
+    "priorPushRecommendationSuperseded": true,
+    "externalExactHeadAndTreeHandoffRequired": true
+  },
   "release": {
     "pushPerformed": false,
     "deploymentPerformed": false,
-    "pushRecommendation": "AUTHORIZE_AFTER_FOUNDER_APPROVAL",
+    "pushRecommendation": "WITHHELD_PENDING_BATCH_20260713_002_EXACT_HEAD_AND_FOUNDER_BEHAVIOR_REVIEW",
     "deploymentRecommendation": "DO_NOT_DEPLOY_NO_RUNTIME_CONSUMER",
     "rollback": "Revert the Overwatch governance commit and owner commits in reverse order; no production rollback is required because nothing was deployed and recommendation influence stayed OFF."
   }

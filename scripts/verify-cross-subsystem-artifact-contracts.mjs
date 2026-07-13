@@ -1364,7 +1364,10 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(placesAccess?.mode === "restricted_representative_places", "Dashboard contract must classify Rep Places as restricted representative-owned places.", failures);
   assert(placesAccess?.governanceDecision === "approved", "Representative Places governance expansion must record Founder approval.", failures);
   assert(placesAccess?.runtimeAlignmentStatus === "aligned", "Representative Places runtime alignment must be finalized.", failures);
-  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "de51401774dc54034418b5feab4cdb2d255cc0ba", "Representative Places alignment must reference the verified Dashboard commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "a665b1b26db02716240b622d0b4d451d019c2896", "Representative Places alignment must reference the current Dashboard owner commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.savedPlacesFeatureOriginCommit === "de51401774dc54034418b5feab4cdb2d255cc0ba", "Representative Places alignment must preserve the Saved Places feature-origin commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.decisionContextFeatureOriginCommit === "2774d91456e4b1734eb1caa13deaa84de2248f8f", "Dashboard alignment must preserve the Decision Context feature-origin commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardOwnerRevalidationCommit === "a665b1b26db02716240b622d0b4d451d019c2896", "Dashboard alignment must reference the Dashboard owner revalidation commit.", failures);
   assert(placesAccess?.alignmentEvidence?.dashboardSourceSha256 === sha256(dashboardSource), "Representative Places alignment must reference the verified Dashboard source hash.", failures);
   assert(placesAccess?.sections?.visitedPlaces?.label === "Visited Places", "Representative Places contract must define the Visited Places section.", failures);
   assert(sameMembers(placesAccess?.sections?.visitedPlaces?.restrictions, ["active_representative_only", "logged_visits_only"]), "Visited Places must contain only logged visits for the active representative.", failures);
