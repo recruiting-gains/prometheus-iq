@@ -131,7 +131,11 @@ function requireCount(value, label) {
   return value;
 }
 
-function preserveVisitDecisionSource(value, visitNumber, visitTimestamp) {
+function preserveVisitDecisionSource(
+  value,
+  visitNumber,
+  { visitTimestamp, reportGeneratedAt, recommendationDecisionContext }
+) {
   if (value == null || typeof value !== "object" || Array.isArray(value)) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source is required.`, {
       code: "field_session_decision_context_required",
@@ -172,17 +176,33 @@ function preserveVisitDecisionSource(value, visitNumber, visitTimestamp) {
     });
   }
   const capturedAt = requireIso(value.capturedAt, `Visit ${visitNumber} decision source capturedAt`);
-  if (capturedAt !== visitTimestamp) {
+  const capturedAtTime = Date.parse(capturedAt);
+  const visitTime = Date.parse(visitTimestamp);
+  const reportGeneratedTime = Date.parse(reportGeneratedAt);
+  const actionTimeCapture = capturedAt === visitTimestamp;
+  const lateUnknownCapture = value.sourceId === "unknown"
+    && capturedAtTime > visitTime
+    && capturedAtTime <= reportGeneratedTime
+    && capturedAt === reportGeneratedAt
+    && value.evidence.length === 0
+    && value.confidence === 0
+    && recommendationDecisionContext.recommendationAvailable === null
+    && recommendationDecisionContext.recommendationId === null
+    && recommendationDecisionContext.decision === null;
+  if (!actionTimeCapture && !lateUnknownCapture) {
     throw new FieldSessionArchiveError(
-      `Visit ${visitNumber} decision source timestamp must match the completed visit timestamp.`,
+      `Visit ${visitNumber} decision source timestamp is not valid for its capture mode.`,
       {
         code: "field_session_decision_context_timestamp_mismatch",
-        details: { visitNumber, visitTimestamp, capturedAt }
+        details: { visitNumber, visitTimestamp, capturedAt, reportGeneratedAt }
       }
     );
   }
   const preserved = clone(value);
   preserved.capturedAt = capturedAt;
+  preserved.temporalClassification = lateUnknownCapture
+    ? "late_report_finalization_unknown"
+    : "action_time_observation";
   if (preserved.sourceId === "unknown") preserved.reason = null;
   return preserved;
 }
@@ -331,6 +351,15 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
         details: { visitNumber: index + 1 }
       });
     }
+    const recommendationDecisionContext = preserveRecommendationDecisionContext(
+      visit.recommendationDecisionContext,
+      index + 1
+    );
+    const visitDecisionSource = preserveVisitDecisionSource(visit.visitDecisionSource, index + 1, {
+      visitTimestamp: timestamp,
+      reportGeneratedAt: generatedAt,
+      recommendationDecisionContext
+    });
     return {
       placeName: requireNonEmptyString(visit?.placeName, `Visit ${index + 1} placeName`),
       placeId: requireNonEmptyString(visit?.placeId, `Visit ${index + 1} placeId`),
@@ -343,8 +372,8 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       units: requireCount(visit.units, `Visit ${index + 1} units`),
       laterUnits: requireCount(visit.laterUnits, `Visit ${index + 1} later units`),
       notes: typeof visit.notes === "string" ? visit.notes : "",
-      visitDecisionSource: preserveVisitDecisionSource(visit.visitDecisionSource, index + 1, timestamp),
-      recommendationDecisionContext: preserveRecommendationDecisionContext(visit.recommendationDecisionContext, index + 1),
+      visitDecisionSource,
+      recommendationDecisionContext,
       gpsAttached: typeof visit.gpsAttached === "boolean" ? visit.gpsAttached : null
     };
   });

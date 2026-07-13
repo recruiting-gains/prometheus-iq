@@ -87,12 +87,38 @@
   "$defs": {
     "completedVisit": {
       "type": "object",
-      "description": "Prospective normalized visits require post-action decision context. Runtime validation binds visitDecisionSource.capturedAt to the completed visit timestamp; this record is not a pre-action candidate snapshot.",
+      "description": "Prospective normalized visits require post-action decision context. Known sources are bound to the completed visit timestamp. A legacy Unknown may be captured later only at report finalization and remains late observational evidence. This record is not a pre-action candidate snapshot.",
       "required": ["visitDecisionSource", "recommendationDecisionContext"],
       "properties": {
         "visitDecisionSource": { "$ref": "#/$defs/visitDecisionSource" },
         "recommendationDecisionContext": { "$ref": "#/$defs/recommendationDecisionContext" }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "visitDecisionSource": {
+                "properties": {
+                  "temporalClassification": { "const": "late_report_finalization_unknown" }
+                },
+                "required": ["temporalClassification"]
+              }
+            },
+            "required": ["visitDecisionSource"]
+          },
+          "then": {
+            "properties": {
+              "recommendationDecisionContext": {
+                "properties": {
+                  "recommendationAvailable": { "const": null },
+                  "recommendationId": { "const": null },
+                  "decision": { "const": null }
+                }
+              }
+            }
+          }
+        }
+      ],
       "additionalProperties": true
     },
     "legacyCompletedVisit": {
@@ -101,7 +127,7 @@
     },
     "visitDecisionSource": {
       "type": "object",
-      "required": ["sourceId", "reason", "evidence", "confidence", "capturedAt"],
+      "required": ["sourceId", "reason", "evidence", "confidence", "capturedAt", "temporalClassification"],
       "properties": {
         "sourceId": {
           "enum": [
@@ -132,7 +158,10 @@
         "capturedAt": {
           "type": "string",
           "format": "date-time",
-          "description": "Post-action capture time. Runtime validation requires canonical equality with sourceReport.timestamp."
+          "description": "Post-action capture time. Runtime validation requires action-time equality for known sources or exact report-finalization time for a governed late Unknown."
+        },
+        "temporalClassification": {
+          "enum": ["action_time_observation", "late_report_finalization_unknown"]
         }
       },
       "allOf": [
@@ -150,7 +179,22 @@
           "else": {
             "properties": {
               "reason": { "type": "string", "pattern": ".*\\S.*" },
-              "evidence": { "minItems": 1 }
+              "evidence": { "minItems": 1 },
+              "temporalClassification": { "const": "action_time_observation" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "temporalClassification": { "const": "late_report_finalization_unknown" } },
+            "required": ["temporalClassification"]
+          },
+          "then": {
+            "properties": {
+              "sourceId": { "const": "unknown" },
+              "reason": { "const": null },
+              "evidence": { "maxItems": 0 },
+              "confidence": { "const": 0 }
             }
           }
         }

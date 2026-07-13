@@ -245,18 +245,22 @@ test("newly normalized visits preserve known sources and canonicalize explicit U
   const result = archivePackage({ rawReportText: JSON.stringify(report, null, 2) });
   const completedVisits = result.normalizedRecord.verifiedFields.completedVisits;
 
-  assert.deepEqual(completedVisits.slice(0, -1).map(visit => visit.visitDecisionSource), report.visits.slice(0, -1).map(visit => visit.visitDecisionSource));
+  assert.deepEqual(
+    completedVisits.slice(0, -1).map(visit => ({ ...visit.visitDecisionSource, temporalClassification: undefined })),
+    report.visits.slice(0, -1).map(visit => ({ ...visit.visitDecisionSource, temporalClassification: undefined }))
+  );
   assert.deepEqual(completedVisits.map(visit => visit.recommendationDecisionContext), report.visits.map(visit => visit.recommendationDecisionContext));
   assert.deepEqual(completedVisits.map(visit => visit.visitDecisionSource.sourceId), routeIqVisitDecisionSourceIds);
   assert.deepEqual(routeIqRecommendationDecisionValues, ["accepted", "overridden"]);
   assert.equal(completedVisits.at(-1).visitDecisionSource.sourceId, "unknown");
   assert.equal(completedVisits.at(-1).visitDecisionSource.confidence, 0);
   assert.equal(completedVisits.at(-1).visitDecisionSource.reason, null);
+  assert.equal(completedVisits.every(visit => visit.visitDecisionSource.temporalClassification === "action_time_observation"), true);
   assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "visitDecisionSource")), true);
   assert.equal(completedVisits.every(visit => !Object.hasOwn(visit.sourceReport, "recommendationDecisionContext")), true);
 });
 
-test("decision context is timestamp-bound to the completed visit and canonicalized", () => {
+test("known decision context is timestamp-bound to the completed visit and canonicalized", () => {
   const canonical = decisionContextReport();
   canonical.visits[0].timestamp = "2026-07-11T15:00:00-05:00";
   canonical.visits[0].visitDecisionSource.capturedAt = "2026-07-11T20:00:00.000Z";
@@ -264,6 +268,7 @@ test("decision context is timestamp-bound to the completed visit and canonicaliz
     .normalizedRecord.verifiedFields.completedVisits[0];
   assert.equal(normalized.sourceReport.timestamp, "2026-07-11T20:00:00.000Z");
   assert.equal(normalized.visitDecisionSource.capturedAt, normalized.sourceReport.timestamp);
+  assert.equal(normalized.visitDecisionSource.temporalClassification, "action_time_observation");
 
   for (const capturedAt of ["2026-07-11T19:59:59.999Z", "2026-07-11T20:00:00.001Z"]) {
     const mismatched = decisionContextReport();
@@ -276,6 +281,60 @@ test("decision context is timestamp-bound to the completed visit and canonicaliz
       return true;
     });
   }
+});
+
+test("legacy Unknown is accepted only as a truthful late report-finalization fallback", () => {
+  const report = decisionContextReport();
+  const visit = report.visits[0];
+  visit.visitDecisionSource = {
+    sourceId: "unknown",
+    reason: "Decision source was unavailable in the legacy active session.",
+    evidence: [],
+    confidence: 0,
+    capturedAt: report.generatedAt
+  };
+  visit.recommendationDecisionContext = {
+    recommendationAvailable: null,
+    recommendationId: null,
+    decision: null
+  };
+  const normalized = archivePackage({ rawReportText: JSON.stringify(report) })
+    .normalizedRecord.verifiedFields.completedVisits[0];
+  assert.ok(normalized.visitDecisionSource.capturedAt > normalized.sourceReport.timestamp);
+  assert.equal(normalized.visitDecisionSource.capturedAt, report.generatedAt);
+  assert.equal(normalized.visitDecisionSource.temporalClassification, "late_report_finalization_unknown");
+  assert.equal(normalized.visitDecisionSource.reason, null);
+
+  for (const capturedAt of [
+    "2026-07-11T19:59:59.999Z",
+    "2026-07-11T20:30:00.000Z",
+    "2026-07-11T21:00:00.001Z"
+  ]) {
+    const invalid = decisionContextReport();
+    invalid.visits[0].visitDecisionSource = {
+      sourceId: "unknown",
+      reason: null,
+      evidence: [],
+      confidence: 0,
+      capturedAt
+    };
+    invalid.visits[0].recommendationDecisionContext = {
+      recommendationAvailable: null,
+      recommendationId: null,
+      decision: null
+    };
+    assert.throws(() => archivePackage({ rawReportText: JSON.stringify(invalid) }), error => {
+      assert.equal(error.code, "field_session_decision_context_timestamp_mismatch");
+      return true;
+    });
+  }
+
+  const knownLate = decisionContextReport();
+  knownLate.visits[0].visitDecisionSource.capturedAt = knownLate.generatedAt;
+  assert.throws(() => archivePackage({ rawReportText: JSON.stringify(knownLate) }), error => {
+    assert.equal(error.code, "field_session_decision_context_timestamp_mismatch");
+    return true;
+  });
 });
 
 test("new normalization rejects omitted or null canonical decision-context fields", () => {
@@ -684,6 +743,11 @@ test("Data schema and contract govern decision context prospectively without mut
 
   assert.deepEqual(schema.$defs.completedVisit.required, ["visitDecisionSource", "recommendationDecisionContext"]);
   assert.deepEqual(schema.$defs.visitDecisionSource.properties.sourceId.enum, routeIqVisitDecisionSourceIds);
+  assert.equal(schema.$defs.visitDecisionSource.required.includes("temporalClassification"), true);
+  assert.deepEqual(schema.$defs.visitDecisionSource.properties.temporalClassification.enum, ["action_time_observation", "late_report_finalization_unknown"]);
+  assert.equal(schema.$defs.completedVisit.allOf[0].then.properties.recommendationDecisionContext.properties.recommendationAvailable.const, null);
+  assert.equal(schema.$defs.completedVisit.allOf[0].then.properties.recommendationDecisionContext.properties.recommendationId.const, null);
+  assert.equal(schema.$defs.completedVisit.allOf[0].then.properties.recommendationDecisionContext.properties.decision.const, null);
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.confidence.const, 0);
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.reason.const, null);
   assert.deepEqual(schema.$defs.recommendationDecisionContext.properties.decision.enum, ["accepted", "overridden", null]);
