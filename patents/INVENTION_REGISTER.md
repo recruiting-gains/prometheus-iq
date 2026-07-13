@@ -46,6 +46,8 @@ Nearby Context Intelligence v2 evidence: `route-iq/NEARBY_CONTEXT_INTELLIGENCE_V
 
 Off-Route Learning Intelligence v1 evidence: `route-iq/OFF_ROUTE_LEARNING_INTELLIGENCE_V1.md` documents the 2026-07-12 source-aware, unknown-safe representative decision learning expansion without making patentability claims.
 
+Shadow Decision Validation and Recommendation Readiness Gate v1 evidence: `route-iq/SHADOW_DECISION_VALIDATION_RECOMMENDATION_READINESS_GATE_V1.md` documents the 2026-07-13 post-filing, zero-influence shadow evaluation and governed readiness mechanism before implementation, without making patentability, infringement, validity, or legal conclusions.
+
 Invention number: 1
 
 Evidence status: Evidence register v1 created at `route-iq/INVENTION_EVIDENCE_REGISTER.md`.
@@ -83,6 +85,7 @@ Known evidence captured:
 - Discovery Mode Intelligence v2 documented on 2026-07-11 before implementation, covering deterministic category balancing, governed concentration limits, evidence-maturity exploration, explicit relaxation reporting, and advisory-only activation safety.
 - Nearby Context Intelligence v2 documented on 2026-07-12 before implementation, covering commercial-location relationship priority, verified-versus-inferred provenance, Active Pool priority, governed Full Pool fallback, canonical hours gating, and explicit coverage-gap behavior.
 - Off-Route Learning Intelligence v1 documented on 2026-07-12 before implementation, covering explicit visit-decision sources, verified recommendation override context, unknown-safe historical handling, representative-versus-system outcome cohorts, governed evidence thresholds, and observation-only recommendation safety.
+- Shadow Decision Validation and Recommendation Readiness Gate v1 documented on 2026-07-13 before implementation, covering timestamped evidence freezes, versioned ranked shadow decisions, zero-influence isolation, chronological outcome linkage, calibration/stability/baseline/segment evaluation, and exactly three governed readiness states: `INSUFFICIENT_EVIDENCE`, `OBSERVING`, and `ELIGIBLE_FOR_FOUNDER_REVIEW`. Eligibility for Founder review does not authorize recommendation activation.
 
 Attorney-review questions:
 

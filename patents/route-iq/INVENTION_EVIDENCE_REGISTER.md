@@ -405,3 +405,31 @@ Evidence classification:
 - Preserve this record under the existing IP-001 evidence history.
 - Preserve proprietary recommendation scoring and future cohort-calibration details as confidential implementation information.
 - Ask patent counsel whether later filing review is appropriate; this register makes no patentability conclusion.
+
+## 19. Shadow Decision Validation And Recommendation Readiness Gate v1
+
+Status: Post-filing engineering expansion documented before implementation
+
+Recorded: 2026-07-13
+
+Supporting record:
+
+- `patents/route-iq/SHADOW_DECISION_VALIDATION_RECOMMENDATION_READINESS_GATE_V1.md`
+
+Technical relationship:
+
+- Extends the IP-001 evidence, probability, recommendation, confidence, and outcome-learning architecture with reproducible validation before any recommendation activation decision.
+- Freezes decision-time evidence, candidate eligibility, cutoffs, versions, and exclusions so later evidence cannot leak into historical shadow decisions.
+- Preserves ranked candidates with probability, confidence, model and policy version, evidence cutoff, and exclusion context in a validation-only zero-influence store.
+- Links later verified outcomes chronologically without mutating the frozen ranking.
+- Evaluates calibration, ranking quality, temporal and rerun stability, a declared baseline, evidence coverage, and governed operational segments.
+- Emits exactly `INSUFFICIENT_EVIDENCE`, `OBSERVING`, or `ELIGIBLE_FOR_FOUNDER_REVIEW` as the governed readiness state. Integrity failures, holds, blockers, failed gates, and limitations remain reason codes, gate results, or review flags rather than additional states; `ELIGIBLE_FOR_FOUNDER_REVIEW` does not authorize recommendation activation or exposure.
+- Leaves representative experience, Dashboard behavior, Data ownership, production scoring, runtime routes, recommendation queues, and production learning state unchanged.
+
+Evidence classification and post-filing boundary:
+
+- The application 64/107,865 provisional record filed on 2026-07-09 remains unchanged and is referenced only as historical context.
+- This mechanism is recorded as a 2026-07-13 post-filing development; the record does not state that it was included in the filed provisional.
+- Founder confirmation is required for any earlier conception date, contributors, artifacts, or disclosures specific to this mechanism.
+- Consider confidential handling for thresholds, calibration and baseline methods, segment veto logic, scoring details, access controls, and validation results.
+- Ask patent counsel to review whether a future filing, continuation, continuation-in-part, divisional, or other legally appropriate action should be considered; this register chooses no legal strategy and makes no legal conclusion.

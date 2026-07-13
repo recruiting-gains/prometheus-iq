@@ -1067,6 +1067,38 @@ Each work log entry should include:
 - No patent claims have been drafted, by design.
 - Any USPTO downloadable filing package or uploaded-document package has not yet been preserved if available.
 
+### 2026-07-13 - Route IQ Shadow Decision Validation and Recommendation Readiness Gate v1
+
+Invention or asset affected: IP-001 - Route IQ Adaptive Representative Intelligence System
+
+Dispatch: BATCH-20260713-001, Route IQ Shadow Decision Validation + Recommendation Readiness Gate v1
+
+Documentation created or modified:
+
+- Created `patents/route-iq/SHADOW_DECISION_VALIDATION_RECOMMENDATION_READINESS_GATE_V1.md` before Intelligence implementation.
+- Updated the Route IQ workspace index, invention evidence register, and master invention register.
+
+Technical development recorded:
+
+- Timestamped immutable evidence freezes with scope, versions, cutoffs, candidate eligibility, and exclusion ledgers.
+- Ranked shadow decisions preserving probability, confidence, model and policy version, cutoff, and exclusion context.
+- Validation-only zero-influence isolation with no representative exposure or production recommendation path.
+- Chronological linkage of later verified outcomes without historical-decision mutation.
+- Versioned calibration, ranking, stability, baseline, coverage, and segment evaluation.
+- Exactly three governed readiness states (`INSUFFICIENT_EVIDENCE`, `OBSERVING`, and `ELIGIBLE_FOR_FOUNDER_REVIEW`), with failures, holds, blockers, failed gates, and limitations retained as reason codes, gate results, or review flags rather than states. Eligibility for Founder review does not authorize recommendation activation.
+
+Filing and preservation boundary:
+
+- Preserved the Founder-filed July 9, 2026 provisional application record unchanged and used it only as historical context.
+- Classified this mechanism as a July 13, 2026 post-filing development subject to Founder confirmation of any earlier conception evidence.
+- Recorded trade-secret consideration and patent-counsel review options for future filing, continuation, continuation-in-part, divisional, or other legally appropriate action without selecting legal strategy.
+
+Legal boundary confirmation:
+
+- No patent claims drafted.
+- No patentability, infringement, validity, priority, support, or filing-strategy conclusion made.
+- No USPTO filing or filed-record modification performed.
+
 ## Permanent Route IQ Invention Documentation Rule
 
 Status: Active permanent Founder operating rule.
