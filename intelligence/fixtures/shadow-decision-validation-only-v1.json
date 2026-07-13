@@ -4,13 +4,57 @@
   "canonicalGenerationAllowed": false,
   "cases": [
     { "id": "deterministic-shadow", "expected": "byte_identical_replay" },
-    { "id": "leakage-equal-time", "evidenceTimestamp": "2026-07-10T12:00:00.000Z", "decisionTimestamp": "2026-07-10T12:00:00.000Z", "expected": "fails_closed" },
-    { "id": "leakage-future", "evidenceTimestamp": "2026-07-10T12:00:01.000Z", "decisionTimestamp": "2026-07-10T12:00:00.000Z", "expected": "fails_closed" },
-    { "id": "outcome-relations", "relations": ["missing", "late", "correction", "conflict"], "expected": "append_only" },
+    {
+      "id": "leakage-equal-time",
+      "evidenceTimestamp": "2026-07-10T12:00:00.000Z",
+      "decisionTimestamp": "2026-07-10T12:00:00.000Z",
+      "expected": "fails_closed"
+    },
+    {
+      "id": "leakage-future",
+      "evidenceTimestamp": "2026-07-10T12:00:01.000Z",
+      "decisionTimestamp": "2026-07-10T12:00:00.000Z",
+      "expected": "fails_closed"
+    },
+    { "id": "projection-digest-mismatch", "expected": "fails_closed" },
+    {
+      "id": "future-observed-training-outcomes",
+      "count": 97,
+      "expected": "fails_closed"
+    },
+    {
+      "id": "outcome-relations",
+      "relations": ["missing", "late", "correction", "conflict"],
+      "expected": "append_only"
+    },
+    {
+      "id": "outcome-chain-hash",
+      "expected": "changes_deterministically_on_append"
+    },
+    { "id": "malformed-exclusion", "expected": "fails_closed" },
     { "id": "window-overlap", "expected": "fails_closed" },
     { "id": "segment-material-failure", "expected": "blocks_eligibility" },
-    { "id": "three-states", "states": ["INSUFFICIENT_EVIDENCE", "OBSERVING", "ELIGIBLE_FOR_FOUNDER_REVIEW"] },
-    { "id": "scope-contamination", "scopes": ["smoothie_depot", "cross_representative", "unknown"], "expected": "fails_closed" },
-    { "id": "canonical-isolation", "expected": "fixture_never_changes_founder_report" }
+    {
+      "id": "segment-ten-record-no-outcome",
+      "count": 10,
+      "expected": "blocks_eligibility"
+    },
+    {
+      "id": "three-states",
+      "states": [
+        "INSUFFICIENT_EVIDENCE",
+        "OBSERVING",
+        "ELIGIBLE_FOR_FOUNDER_REVIEW"
+      ]
+    },
+    {
+      "id": "scope-contamination",
+      "scopes": ["smoothie_depot", "cross_representative", "unknown"],
+      "expected": "fails_closed"
+    },
+    {
+      "id": "canonical-isolation",
+      "expected": "fixture_never_changes_founder_report"
+    }
   ]
 }

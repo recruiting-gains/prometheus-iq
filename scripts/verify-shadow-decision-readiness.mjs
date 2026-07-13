@@ -24,6 +24,19 @@ const paths = {
   historyUpdates: `${base}/normalized/history-updates.json`,
 };
 const serialize = (value) => `${JSON.stringify(value, null, 2)}\n`;
+export const requiredProtectedBehaviorBaselineKeys = Object.freeze([
+  "activePool",
+  "businessHours",
+  "dashboardDeployMirror",
+  "dashboardSource",
+  "discovery",
+  "nearby",
+  "routeGeneration",
+  "routeQualityGate",
+  "routeScoring",
+  "runtimePools",
+  "worker",
+]);
 
 export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(contract.batchId, config.batchId);
@@ -76,6 +89,25 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(fixture.canonicalGenerationAllowed, false);
   assert.equal(contract.isolation.recommendationInfluence, "OFF");
   assert.equal(config.recommendationInfluence, "OFF");
+  assert.equal(config.minimumActualActionLinkRate, 1);
+  assert.equal(config.minimumAnyOutcomeLinkRate, 1);
+  assert.equal(config.minimumScoreableSelectedCandidateOutcomeRate, 1);
+  assert.equal(
+    contract.coverageGates.minimumActualActionLinkRate,
+    config.minimumActualActionLinkRate,
+  );
+  assert.equal(
+    contract.coverageGates.minimumAnyOutcomeLinkRate,
+    config.minimumAnyOutcomeLinkRate,
+  );
+  assert.equal(
+    contract.coverageGates.minimumScoreableSelectedCandidateOutcomeRate,
+    config.minimumScoreableSelectedCandidateOutcomeRate,
+  );
+  assert.equal(
+    contract.coverageGates.unresolvedCoverageReasonBlocksEligibility,
+    true,
+  );
   assert.equal(
     contract.statisticalDesign.calibrationBins,
     config.calibrationBinCount,
@@ -84,6 +116,17 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     contract.statisticalDesign.derivedMaterialSegmentSupport,
     Math.ceil(97 * config.materialSegmentFraction),
+  );
+  assert.deepEqual([...contract.requiredProtectedBehaviorBaselineKeys].sort(), [
+    ...requiredProtectedBehaviorBaselineKeys,
+  ]);
+  assert.deepEqual(
+    Object.keys(contract.protectedBehaviorBaselines || {}).sort(),
+    [...requiredProtectedBehaviorBaselineKeys],
+  );
+  assert.equal(
+    contract.protectedBehaviorBaselines.routeScoring.path,
+    "scripts/build-route-intelligence-quality-engine.mjs",
   );
   for (const path of Object.values(contract.artifacts))
     assert.equal(
@@ -100,6 +143,10 @@ export function verifyShadowDecisionReadiness({
   config = loadShadowDecisionConfig(),
 } = {}) {
   validateShadowDecisionContractCoherence(contract, config);
+  assert.deepEqual(
+    Object.keys(contract.protectedBehaviorBaselines || {}).sort(),
+    [...requiredProtectedBehaviorBaselineKeys],
+  );
   for (const [name, baseline] of Object.entries(
     contract.protectedBehaviorBaselines,
   )) {
@@ -121,6 +168,12 @@ export function verifyShadowDecisionReadiness({
   assert.equal(report.state, "INSUFFICIENT_EVIDENCE");
   assert.equal(report.recommendationInfluence, "OFF");
   assert.equal(report.metrics.calibrationBrierScore, null);
+  assert.equal(report.metrics.actualActionLinkRate, null);
+  assert.equal(report.metrics.anyOutcomeLinkRate, null);
+  assert.equal(report.metrics.scoreableSelectedCandidateOutcomeRate, null);
+  assert.equal(report.shadowLedgerSha256, ledger.shadowLedgerSha256);
+  assert.equal(report.outcomeChainSha256, ledger.outcomeChainSha256);
+  assert.equal(report.evaluatedLedgerSha256, ledger.evaluationLedgerSha256);
   for (const [kind, content] of [
     ["ledger", serialize(ledger)],
     ["report", serialize(report)],

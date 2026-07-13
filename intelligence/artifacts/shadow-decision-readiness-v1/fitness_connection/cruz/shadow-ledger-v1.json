@@ -32,54 +32,113 @@
   "records": [],
   "exclusions": [
     {
+      "exclusionId": "shadow-exclusion-9c36d9592d385e56c468",
       "opportunityId": "decision-opportunity-7be4fd64c88477b12e4a",
       "visitId": "visit-01-ab32d577b882",
       "timestamp": "2026-07-11T18:29:37.862Z",
+      "evidenceCutoff": "2026-07-11T18:29:37.862Z",
+      "scope": {
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz"
+      },
       "reasonCodes": [
         "historically_frozen_prospective_candidate_context_missing",
         "historically_frozen_recommendation_context_missing"
       ],
-      "evidenceCutoff": "2026-07-11T18:29:37.862Z",
+      "versions": {
+        "engine": "route-iq-shadow-decision-readiness-v1",
+        "evidenceSchema": "route-iq-field-session-archive-v1",
+        "projection": "route-iq-chronological-evidence-projection-v1",
+        "ruleModelConfig": "route-iq-shadow-decision-readiness-config-v1"
+      },
       "projectionSha256": "75d5a15a8f8b96f0014398b20d0247aaa2679001003e6ad069b96684d178a092",
-      "equalOrFutureEvidenceExcluded": 8
+      "projectionEvidenceCount": 0,
+      "equalOrFutureEvidenceExcluded": 8,
+      "exclusionRecordSha256": "9c36d9592d385e56c46847acb5ce59962cae04e9cbe5449dc6c0a448528fcc3d"
     },
     {
+      "exclusionId": "shadow-exclusion-2eabaa50f9d07742201e",
       "opportunityId": "decision-opportunity-d729d26c318d8f9343d0",
       "visitId": "visit-02-c3f943ebaa9c",
       "timestamp": "2026-07-11T18:41:40.758Z",
+      "evidenceCutoff": "2026-07-11T18:41:40.758Z",
+      "scope": {
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz"
+      },
       "reasonCodes": [
         "historically_frozen_prospective_candidate_context_missing",
         "historically_frozen_recommendation_context_missing"
       ],
-      "evidenceCutoff": "2026-07-11T18:41:40.758Z",
+      "versions": {
+        "engine": "route-iq-shadow-decision-readiness-v1",
+        "evidenceSchema": "route-iq-field-session-archive-v1",
+        "projection": "route-iq-chronological-evidence-projection-v1",
+        "ruleModelConfig": "route-iq-shadow-decision-readiness-config-v1"
+      },
       "projectionSha256": "a79049c7af0a46966e4312386a487b708b3d9dede2f531b6ab18ce3da48ad3a1",
-      "equalOrFutureEvidenceExcluded": 6
+      "projectionEvidenceCount": 2,
+      "equalOrFutureEvidenceExcluded": 6,
+      "exclusionRecordSha256": "2eabaa50f9d07742201e73b6d42f7e56af896e4433a9075df30d772e8d9b8a08"
     },
     {
+      "exclusionId": "shadow-exclusion-245b1fa97b5155ae890a",
       "opportunityId": "decision-opportunity-c64eab8590de3865d7f4",
       "visitId": "visit-03-5da0d1f6c66b",
       "timestamp": "2026-07-11T19:15:59.328Z",
+      "evidenceCutoff": "2026-07-11T19:15:59.328Z",
+      "scope": {
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz"
+      },
       "reasonCodes": [
         "historically_frozen_prospective_candidate_context_missing",
         "historically_frozen_recommendation_context_missing"
       ],
-      "evidenceCutoff": "2026-07-11T19:15:59.328Z",
+      "versions": {
+        "engine": "route-iq-shadow-decision-readiness-v1",
+        "evidenceSchema": "route-iq-field-session-archive-v1",
+        "projection": "route-iq-chronological-evidence-projection-v1",
+        "ruleModelConfig": "route-iq-shadow-decision-readiness-config-v1"
+      },
       "projectionSha256": "a1c314c76489764571db5e6adce98cf837618d74606b18390aa69e7ab9b04634",
-      "equalOrFutureEvidenceExcluded": 4
+      "projectionEvidenceCount": 4,
+      "equalOrFutureEvidenceExcluded": 4,
+      "exclusionRecordSha256": "245b1fa97b5155ae890ac5baa35491d71a32a72cfcfa59acf63b6efd16f19888"
     },
     {
+      "exclusionId": "shadow-exclusion-c328bb92ab91c57cd1ba",
       "opportunityId": "decision-opportunity-4b319447dd9f5ab65dc3",
       "visitId": "visit-04-32a0b9fb24c2",
       "timestamp": "2026-07-11T19:31:21.937Z",
+      "evidenceCutoff": "2026-07-11T19:31:21.937Z",
+      "scope": {
+        "workspaceId": "fitness_connection",
+        "operatingProfileId": "fitness",
+        "representativeId": "cruz"
+      },
       "reasonCodes": [
         "historically_frozen_prospective_candidate_context_missing",
         "historically_frozen_recommendation_context_missing"
       ],
-      "evidenceCutoff": "2026-07-11T19:31:21.937Z",
+      "versions": {
+        "engine": "route-iq-shadow-decision-readiness-v1",
+        "evidenceSchema": "route-iq-field-session-archive-v1",
+        "projection": "route-iq-chronological-evidence-projection-v1",
+        "ruleModelConfig": "route-iq-shadow-decision-readiness-config-v1"
+      },
       "projectionSha256": "7f1b3caba69058b2195e94fb39dd66c3092669708b6386787dd9eea00a7a428a",
-      "equalOrFutureEvidenceExcluded": 2
+      "projectionEvidenceCount": 6,
+      "equalOrFutureEvidenceExcluded": 2,
+      "exclusionRecordSha256": "c328bb92ab91c57cd1ba83386399be98c11965e58ddc24a67a45fcfd002fcc30"
     }
   ],
   "outcomeLinks": [],
-  "ledgerSha256": "be8e563f9eadee1a90cd431bd201cf6ca9f167163593038e0a4f43f46c8ab132"
+  "shadowLedgerSha256": "dc3863f23eee47af9adf46062b85492f0a5a20c9f5cc432c3d9899a7bad890f6",
+  "ledgerSha256": "dc3863f23eee47af9adf46062b85492f0a5a20c9f5cc432c3d9899a7bad890f6",
+  "outcomeChainSha256": "1d4fe538be85bd971b44bcfeb4bd0dd4e501247195bd1cbdc498d38b45f86fa8",
+  "evaluationLedgerSha256": "0ba6e7b09df3538defca63aaf5f615c9e2dc9a17d57c216f34cd2024c32418a7"
 }

@@ -6,7 +6,9 @@
     "no_eligible_shadow_decisions_with_historically_frozen_prospective_context",
     "evaluation_sample_below_required_97",
     "baseline_training_sample_below_required_97",
-    "outcome_link_support_incomplete",
+    "actual_action_link_coverage_incomplete",
+    "outcome_link_coverage_incomplete",
+    "selected_candidate_outcome_coverage_incomplete",
     "chronologically_prior_observational_baseline_unavailable",
     "consecutive_calibration_stability_windows_not_passing",
     "segment_safety_not_demonstrated",
@@ -16,7 +18,12 @@
   "eligibilityDoesNotAuthorizeActivation": true,
   "metrics": {
     "eligibleCoverage": 0,
-    "outcomeLinkRate": null,
+    "actualActionLinkCount": 0,
+    "anyOutcomeLinkCount": 0,
+    "scoreableSelectedCandidateOutcomeCount": 0,
+    "actualActionLinkRate": null,
+    "anyOutcomeLinkRate": null,
+    "scoreableSelectedCandidateOutcomeRate": null,
     "offListActionCount": null,
     "decisionAgreement": null,
     "outcomeAccuracy": null,
@@ -99,6 +106,9 @@
       "ece": "sum(supported_bin_share*abs(predicted_mean-observed_rate))",
       "outcomeAccuracy": "thresholded_selected_candidate_predictions/candidates_with_explicit_binary_outcomes",
       "decisionAgreement": "top_decision_equals_actual_action/known_actual_actions",
+      "actualActionLinkRate": "known_actual_actions/eligible_shadow_decisions",
+      "anyOutcomeLinkRate": "shadow_decisions_with_any_append_only_outcome_link/eligible_shadow_decisions",
+      "scoreableSelectedCandidateOutcomeRate": "explicit_binary_outcomes_for_selected_candidate/eligible_shadow_decisions",
       "performanceStability": "absolute consecutive-window accuracy/Brier/ECE deltas",
       "distributionDrift": "0.5*sum(abs(window_distribution_t-window_distribution_t-1))",
       "baselineDelta": "shadow_outcome_accuracy-prior_training_outcome_rate_baseline_accuracy"
@@ -138,77 +148,433 @@
     "canonicalVisits": 4,
     "eligibleShadowDecisions": 0,
     "excludedOpportunities": 4,
-    "linkedOutcomes": 0
+    "actualActionLinks": 0,
+    "anyOutcomeLinks": 0,
+    "scoreableSelectedCandidateOutcomes": 0
   },
   "segments": {
     "representativeId": {
       "unknown": {
-        "support": 0,
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "outcomeAccuracy": null,
         "decisionAgreement": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 10,
         "materiallySupported": false,
+        "scoreableSupportMet": false,
         "passes": false
       }
     },
     "territoryId": {
       "unknown": {
-        "support": 0,
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "outcomeAccuracy": null,
         "decisionAgreement": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 10,
         "materiallySupported": false,
+        "scoreableSupportMet": false,
         "passes": false
       }
     },
     "customerContext": {
       "unknown": {
-        "support": 0,
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "outcomeAccuracy": null,
         "decisionAgreement": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 10,
         "materiallySupported": false,
+        "scoreableSupportMet": false,
         "passes": false
       }
     },
     "decisionType": {
       "unknown": {
-        "support": 0,
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "outcomeAccuracy": null,
         "decisionAgreement": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 10,
         "materiallySupported": false,
+        "scoreableSupportMet": false,
         "passes": false
       }
     },
     "timeWindow": {
       "evaluation-2026-07a": {
-        "support": 0,
-        "outcomeAccuracy": null,
+        "windowId": "evaluation-2026-07a",
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "decisionAgreement": null,
+        "outcomeAccuracy": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 49,
         "materiallySupported": false,
-        "passes": false
+        "scoreableSupportMet": false,
+        "passes": true,
+        "linkedOutcomes": 0,
+        "distribution": {},
+        "distributionTotalVariation": null,
+        "performanceStability": {
+          "accuracyDelta": null,
+          "brierDelta": null,
+          "eceDelta": null
+        }
       },
       "evaluation-2026-07b": {
-        "support": 0,
-        "outcomeAccuracy": null,
+        "windowId": "evaluation-2026-07b",
+        "eligibleDecisionCount": 0,
+        "actualActionLinkCount": 0,
+        "anyOutcomeLinkCount": 0,
+        "scoreableSelectedCandidateOutcomeCount": 0,
+        "offListActionCount": 0,
+        "actualActionLinkRate": null,
+        "anyOutcomeLinkRate": null,
+        "scoreableSelectedCandidateOutcomeRate": null,
         "decisionAgreement": null,
+        "outcomeAccuracy": null,
         "brierScore": null,
         "ece": null,
         "calibrationSupport": "NOT_MET",
+        "calibrationBins": [
+          {
+            "bin": 0,
+            "lowerInclusive": 0,
+            "upperInclusive": 0.2,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 1,
+            "lowerInclusive": 0.2,
+            "upperInclusive": 0.4,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 2,
+            "lowerInclusive": 0.4,
+            "upperInclusive": 0.6,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 3,
+            "lowerInclusive": 0.6,
+            "upperInclusive": 0.8,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          },
+          {
+            "bin": 4,
+            "lowerInclusive": 0.8,
+            "upperInclusive": 1,
+            "support": 0,
+            "predictedMean": null,
+            "observedRate": null,
+            "supported": false
+          }
+        ],
+        "requiredSupport": 48,
         "materiallySupported": false,
-        "passes": false
+        "scoreableSupportMet": false,
+        "passes": true,
+        "linkedOutcomes": 0,
+        "distribution": {},
+        "distributionTotalVariation": null,
+        "performanceStability": {
+          "accuracyDelta": null,
+          "brierDelta": null,
+          "eceDelta": null
+        }
       }
     }
   },
@@ -221,7 +587,9 @@
     "no_eligible_shadow_decisions_with_historically_frozen_prospective_context",
     "evaluation_sample_below_required_97",
     "baseline_training_sample_below_required_97",
-    "outcome_link_support_incomplete",
+    "actual_action_link_coverage_incomplete",
+    "outcome_link_coverage_incomplete",
+    "selected_candidate_outcome_coverage_incomplete",
     "chronologically_prior_observational_baseline_unavailable",
     "consecutive_calibration_stability_windows_not_passing",
     "segment_safety_not_demonstrated",
@@ -261,10 +629,16 @@
   "evaluationWindows": [
     {
       "windowId": "evaluation-2026-07a",
-      "linkedOutcomes": 0,
-      "requiredSupport": 49,
-      "outcomeAccuracy": null,
+      "eligibleDecisionCount": 0,
+      "actualActionLinkCount": 0,
+      "anyOutcomeLinkCount": 0,
+      "scoreableSelectedCandidateOutcomeCount": 0,
+      "offListActionCount": 0,
+      "actualActionLinkRate": null,
+      "anyOutcomeLinkRate": null,
+      "scoreableSelectedCandidateOutcomeRate": null,
       "decisionAgreement": null,
+      "outcomeAccuracy": null,
       "brierScore": null,
       "ece": null,
       "calibrationSupport": "NOT_MET",
@@ -315,6 +689,11 @@
           "supported": false
         }
       ],
+      "requiredSupport": 49,
+      "materiallySupported": false,
+      "scoreableSupportMet": false,
+      "passes": true,
+      "linkedOutcomes": 0,
       "distribution": {},
       "distributionTotalVariation": null,
       "performanceStability": {
@@ -325,10 +704,16 @@
     },
     {
       "windowId": "evaluation-2026-07b",
-      "linkedOutcomes": 0,
-      "requiredSupport": 48,
-      "outcomeAccuracy": null,
+      "eligibleDecisionCount": 0,
+      "actualActionLinkCount": 0,
+      "anyOutcomeLinkCount": 0,
+      "scoreableSelectedCandidateOutcomeCount": 0,
+      "offListActionCount": 0,
+      "actualActionLinkRate": null,
+      "anyOutcomeLinkRate": null,
+      "scoreableSelectedCandidateOutcomeRate": null,
       "decisionAgreement": null,
+      "outcomeAccuracy": null,
       "brierScore": null,
       "ece": null,
       "calibrationSupport": "NOT_MET",
@@ -379,6 +764,11 @@
           "supported": false
         }
       ],
+      "requiredSupport": 48,
+      "materiallySupported": false,
+      "scoreableSupportMet": false,
+      "passes": true,
+      "linkedOutcomes": 0,
       "distribution": {},
       "distributionTotalVariation": null,
       "performanceStability": {
@@ -388,5 +778,8 @@
       }
     }
   ],
-  "ledgerSha256": "be8e563f9eadee1a90cd431bd201cf6ca9f167163593038e0a4f43f46c8ab132"
+  "shadowLedgerSha256": "dc3863f23eee47af9adf46062b85492f0a5a20c9f5cc432c3d9899a7bad890f6",
+  "outcomeChainSha256": "1d4fe538be85bd971b44bcfeb4bd0dd4e501247195bd1cbdc498d38b45f86fa8",
+  "evaluatedLedgerSha256": "0ba6e7b09df3538defca63aaf5f615c9e2dc9a17d57c216f34cd2024c32418a7",
+  "ledgerSha256": "dc3863f23eee47af9adf46062b85492f0a5a20c9f5cc432c3d9899a7bad890f6"
 }
