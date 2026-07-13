@@ -1108,6 +1108,7 @@ function validateAdministrationOperatingArtifactContract(workspace, failures) {
 }
 
 function validateFitnessConnectionWorkspaceContract(workspace, failures) {
+  const sameMembers = (actual, expected) => JSON.stringify([...(actual || [])].sort()) === JSON.stringify([...expected].sort());
   const artifacts = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
   const identity = readJson(artifacts.fitness_connection_workspace_identity_contract.path);
   const dashboardContract = readJson(artifacts.fitness_connection_dashboard_consumer_contract.path);
@@ -1166,22 +1167,43 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(dashboardSource.includes('body[data-session-role="rep"] .admin-only'), "Fitness Dashboard must hide admin controls from rep sessions.", failures);
   assert(JSON.stringify(dashboardContract.repViewContract.allowedTabs) === JSON.stringify(["today", "route", "places"]), "Dashboard contract must allow only Today, Route, and restricted Places for rep mode.", failures);
   assert(JSON.stringify(dashboardContract.repViewContract.blockedTabs) === JSON.stringify(["stats", "find"]), "Dashboard contract must block Stats and Find from rep mode.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.mode === "restricted_places", "Dashboard contract must classify Rep Places as restricted.", failures);
-  assert(JSON.stringify(dashboardContract.repViewContract.placesAccess?.restrictions) === JSON.stringify(["visited_places_only", "active_representative_only"]), "Dashboard contract must restrict Rep Places to visited businesses for the active representative.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.currentRepresentativeVisitHistoryOnly === true, "Dashboard contract must restrict Rep Places to current representative visit history.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.currentRepresentativeCorrectionsOnly === true, "Dashboard contract must restrict Rep Places to current representative corrections.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.founderProductionMapAllowed === false, "Dashboard contract must block the Founder Production Map from rep mode.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.unvisitedBusinessesAllowed === false, "Dashboard contract must block unvisited businesses from rep mode.", failures);
-  assert(dashboardContract.repViewContract.placesAccess?.globalStatisticsAllowed === false, "Dashboard contract must block global statistics from Rep Places.", failures);
+  const placesAccess = dashboardContract.repViewContract.placesAccess;
+  assert(placesAccess?.mode === "restricted_representative_places", "Dashboard contract must classify Rep Places as restricted representative-owned places.", failures);
+  assert(placesAccess?.governanceDecision === "approved", "Representative Places governance expansion must record Founder approval.", failures);
+  assert(placesAccess?.runtimeAlignmentStatus === "pending_dashboard_alignment", "Representative Places expansion must remain pending until the Dashboard separates and labels Saved Places.", failures);
+  assert(placesAccess?.sections?.visitedPlaces?.label === "Visited Places", "Representative Places contract must define the Visited Places section.", failures);
+  assert(sameMembers(placesAccess?.sections?.visitedPlaces?.restrictions, ["active_representative_only", "logged_visits_only"]), "Visited Places must contain only logged visits for the active representative.", failures);
+  assert(placesAccess?.sections?.visitedPlaces?.outcomesAllowed === true, "Visited Places must expose outcomes.", failures);
+  assert(placesAccess?.sections?.visitedPlaces?.correctionsAllowed === true, "Visited Places must expose corrections.", failures);
+  assert(placesAccess?.sections?.visitedPlaces?.followUpsAllowed === true, "Visited Places must expose follow-ups.", failures);
+  assert(placesAccess?.sections?.visitedPlaces?.learningPipelineEligibility === "eligible_after_verified_visit", "Visited Places learning eligibility must require a verified visit.", failures);
+  assert(placesAccess?.sections?.savedPlaces?.label === "Saved Places", "Representative Places contract must define the Saved Places section.", failures);
+  assert(placesAccess?.sections?.savedPlaces?.requiredStatusLabel === "Not Yet Visited", "Saved Places must require a Not Yet Visited label.", failures);
+  assert(sameMembers(placesAccess?.sections?.savedPlaces?.restrictions, ["active_representative_created_only", "not_yet_visited_only"]), "Saved Places must contain only unvisited businesses created by the active representative.", failures);
+  for (const rule of ["routeIqRecommendation", "activePoolEvidence", "recommendationCandidate", "recommendationInfluence", "automaticIntelligenceLearning", "automaticDataEvidencePromotion"]) {
+    assert(placesAccess?.sections?.savedPlaces?.[rule] === false, `Saved Places must prohibit ${rule}.`, failures);
+  }
+  assert(placesAccess?.promotionRule?.trigger === "verified_visit_recorded", "Saved Place promotion must require a verified visit.", failures);
+  assert(placesAccess?.promotionRule?.from === "saved_places" && placesAccess?.promotionRule?.to === "visited_places", "Saved Place promotion boundary is invalid.", failures);
+  assert(placesAccess?.promotionRule?.promotionBeforeVerifiedVisitAllowed === false, "Saved Places must not be promoted before a verified visit.", failures);
+  assert(placesAccess?.securityBoundaries?.activeRepresentativeOnly === true, "Representative Places must remain active-representative only.", failures);
+  for (const rule of ["otherRepresentativePlacesAllowed", "founderProductionMapAllowed", "globalSearchAllowed", "globalStatisticsAllowed", "workspaceSwitchingAllowed", "ownerControlsAllowed", "administrativeVisibilityAllowed"]) {
+    assert(placesAccess?.securityBoundaries?.[rule] === false, `Representative Places security must prohibit ${rule}.`, failures);
+  }
+  assert(sameMembers(placesAccess?.pendingDashboardRequirements, ["separate_visited_and_saved_sections", "not_yet_visited_label"]), "Representative Places must retain both pending Dashboard alignment requirements.", failures);
   assert(dashboardSource.includes('if (appMode === "rep" && ["stats", "find"].includes(name)) name = "today";'), "Fitness Dashboard must guard Stats and Find from rep mode.", failures);
   assert(dashboardSource.includes('<button class="tab" data-tab="places" aria-label="Places">'), "Fitness Dashboard must expose the restricted Places tab to rep mode.", failures);
   assert(dashboardSource.includes('<button class="tab owner-only" data-tab="stats" aria-label="Insights">'), "Fitness Dashboard must keep Insights owner-only.", failures);
   assert(dashboardSource.includes('<button class="tab owner-only" data-tab="find" aria-label="Find">'), "Fitness Dashboard must keep Find owner-only.", failures);
   assert(dashboardSource.includes('const visitedPlaceIds = new Set(state.visits.map(visit => visit.placeId));'), "Fitness Rep Places must derive access from the active representative visit history.", failures);
-  assert(dashboardSource.includes('places = places.filter(place => visitedPlaceIds.has(place.id));'), "Fitness Rep Places must exclude unvisited businesses.", failures);
-  assert(dashboardSource.includes('if (placesTitle) placesTitle.textContent = "Visited Places";'), "Fitness Rep Places must not present the Founder Production Map.", failures);
+  assert(dashboardSource.includes('place.repProfileId === activeRepId && place.sourceType === "Dashboard Manual Entry"'), "Fitness Saved Places must be limited to manual businesses owned by the active representative.", failures);
+  assert(dashboardSource.includes('places = places.filter(place => visitedPlaceIds.has(place.id)'), "Fitness Rep Places must preserve the verified-visit boundary.", failures);
+  assert(dashboardSource.includes('if (placesTitle) placesTitle.textContent = "Rep Places";'), "Fitness Rep Places must remain distinct from the Founder Production Map.", failures);
+  assert(dashboardSource.includes('} else if (placesTitle) {\n        placesTitle.textContent = "Production Map";'), "Fitness Founder Production Map must remain outside rep mode.", failures);
   assert(dashboardSource.includes('const visits = effectiveVisitsForProfile().filter(visit => visit.placeId === placeId);'), "Fitness Rep Places statistics must use only the active representative profile.", failures);
   assert(dashboardSource.includes('.filter(event => event.visitId === visitId && event.workspaceId === defaultWorkspaceId && event.representativeId === profileId)'), "Fitness visit corrections must remain scoped to the current representative.", failures);
+  assert(dashboardSource.includes('return place?.sourceType === "Google Places API"'), "Fitness route recommendations must reject Dashboard Manual Entry businesses.", failures);
+  assert(dashboardSource.includes('const originalVisits = todayVisits().slice()'), "Fitness Data handoff must derive evidence from logged visits rather than unvisited Saved Places.", failures);
   assert(dashboardSource.includes('if (requestedRole === "rep" || sessionRole === "rep") appMode = "rep";'), "Fitness Dashboard must force rep mode for rep sessions.", failures);
   assert(dashboardContract.repViewContract.workspaceSwitchingAllowed === false, "Dashboard contract must block rep workspace switching.", failures);
   assert(dashboardContract.repViewContract.ownerModeAllowed === false, "Dashboard contract must block owner mode from rep sessions.", failures);

@@ -30,13 +30,50 @@
     "allowedTabs": ["today", "route", "places"],
     "blockedTabs": ["stats", "find"],
     "placesAccess": {
-      "mode": "restricted_places",
-      "restrictions": ["visited_places_only", "active_representative_only"],
-      "currentRepresentativeVisitHistoryOnly": true,
-      "currentRepresentativeCorrectionsOnly": true,
-      "founderProductionMapAllowed": false,
-      "unvisitedBusinessesAllowed": false,
-      "globalStatisticsAllowed": false
+      "mode": "restricted_representative_places",
+      "governanceDecision": "approved",
+      "runtimeAlignmentStatus": "pending_dashboard_alignment",
+      "sections": {
+        "visitedPlaces": {
+          "label": "Visited Places",
+          "restrictions": ["active_representative_only", "logged_visits_only"],
+          "outcomesAllowed": true,
+          "correctionsAllowed": true,
+          "followUpsAllowed": true,
+          "learningPipelineEligibility": "eligible_after_verified_visit"
+        },
+        "savedPlaces": {
+          "label": "Saved Places",
+          "requiredStatusLabel": "Not Yet Visited",
+          "restrictions": ["active_representative_created_only", "not_yet_visited_only"],
+          "routeIqRecommendation": false,
+          "activePoolEvidence": false,
+          "recommendationCandidate": false,
+          "recommendationInfluence": false,
+          "automaticIntelligenceLearning": false,
+          "automaticDataEvidencePromotion": false
+        }
+      },
+      "promotionRule": {
+        "trigger": "verified_visit_recorded",
+        "from": "saved_places",
+        "to": "visited_places",
+        "promotionBeforeVerifiedVisitAllowed": false
+      },
+      "securityBoundaries": {
+        "activeRepresentativeOnly": true,
+        "otherRepresentativePlacesAllowed": false,
+        "founderProductionMapAllowed": false,
+        "globalSearchAllowed": false,
+        "globalStatisticsAllowed": false,
+        "workspaceSwitchingAllowed": false,
+        "ownerControlsAllowed": false,
+        "administrativeVisibilityAllowed": false
+      },
+      "pendingDashboardRequirements": [
+        "separate_visited_and_saved_sections",
+        "not_yet_visited_label"
+      ]
     },
     "workspaceSwitchingAllowed": false,
     "ownerModeAllowed": false,
