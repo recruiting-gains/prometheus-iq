@@ -1237,6 +1237,8 @@ async function verifyDecisionContextProducer(cdp) {
     if (!recommendation || !alternative) throw new Error("Decision context validation requires a recommendation and an alternative business.");
     const recommendationId = routeIdentityKey(recommendation);
     const sourceIds = Object.keys(visitDecisionSourceDefinitions);
+    const routeOrderBeforeEvidence = activeRouteItems().map(item => routeIdentityKey(item.place));
+    const visitsBeforeEvidence = state.visits.length;
     const generated = Object.fromEntries(sourceIds.map((sourceId, index) => {
       const placeId = sourceId === "route_iq_recommendation" ? recommendation.id : alternative.id;
       return [sourceId, createVisitDecisionEvidence({
@@ -1258,6 +1260,15 @@ async function verifyDecisionContextProducer(cdp) {
       recommendationId,
       workspaceId: "fitness_connection"
     });
+    const legacyVisit = {
+      id: "legacy-decision-source-visit",
+      placeId: alternative.id,
+      visitDecisionSource: null,
+      recommendationDecisionContext: null,
+      createdAt: Date.parse("2026-07-12T17:00:00.000Z")
+    };
+    const legacyReportGeneratedAt = "2026-07-12T19:00:00.000Z";
+    const legacyReportContext = visitDecisionContextForReport(legacyVisit, legacyReportGeneratedAt);
     let workspaceBlocked = false;
     try {
       createVisitDecisionEvidence({
@@ -1275,6 +1286,14 @@ async function verifyDecisionContextProducer(cdp) {
     const form = document.getElementById("quickForm");
     if (!form) throw new Error("Quick Result decision source form did not open.");
     form.elements.placeId.value = recommendation.id;
+    form.querySelector('[data-quick-outcome="none"]')?.click();
+    await wait(0);
+    const noContactState = {
+      visitsBefore: visitsBeforeEvidence,
+      visitsAfterOutcomeSelection: state.visits.length,
+      saveRequired: Boolean(form.querySelector('#quickCounts .btn[type="submit"]')),
+      countsVisible: form.querySelector("#quickCounts")?.classList.contains("active") === true
+    };
     form.querySelector('[data-quick-outcome="talk"]')?.click();
     await wait(0);
     const labels = [...form.querySelectorAll('.decision-source-option')].map(label => label.textContent.trim());
@@ -1286,6 +1305,19 @@ async function verifyDecisionContextProducer(cdp) {
       status: form.querySelector('[data-decision-source-status]')?.textContent?.trim() || ""
     };
     routeRadio.click();
+    const evidenceOnlyState = {
+      routeOrderBefore: routeOrderBeforeEvidence,
+      routeOrderAfter: activeRouteItems().map(item => routeIdentityKey(item.place)),
+      visitsBefore: visitsBeforeEvidence,
+      visitsAfter: state.visits.length,
+      decisionSourceRequired: form.querySelector('[name="visitDecisionSourceId"][required]') !== null,
+      capturedAtControlPresent: form.elements.namedItem("capturedAt") !== null,
+      recommendationContextFields: [...form.querySelectorAll('input[type="hidden"]')]
+        .map(input => input.name)
+        .filter(name => name.startsWith("recommendation"))
+        .sort(),
+      representativeShadowOutputVisible: /shadow decision|recommendation readiness/i.test(form.innerText)
+    };
     const submit = form.querySelector('#quickCounts .btn[type="submit"]');
     const modalBody = document.getElementById("modalBody");
     submit.scrollIntoView({ block: "end" });
@@ -1308,7 +1340,36 @@ async function verifyDecisionContextProducer(cdp) {
     const visit = state.visits.find(item => item.date === todayKey());
     const reloaded = normalizeState(JSON.parse(localStorage.getItem(storeKey) || "{}"));
     const reloadedVisit = reloaded.repProfiles?.[activeRepId]?.visits?.find(item => item.id === visit?.id) || null;
+    const activeLegacyVisit = {
+      ...visit,
+      id: "legacy-active-session-visit",
+      placeId: alternative.id,
+      placeName: alternative.name,
+      visitDecisionSource: null,
+      recommendationDecisionContext: null,
+      createdAt: Number(visit.createdAt) + 1
+    };
+    state.visits.push(activeLegacyVisit);
+    persistStateWithoutRender();
     const report = todayReportPayload();
+    const legacyReportVisit = report.visits.find(item => item.visitId === activeLegacyVisit.id) || null;
+    const legacyOriginalAfterReport = state.visits.find(item => item.id === activeLegacyVisit.id) || null;
+    const completionActionsValid = ["end_route", "end_day"].every(completionAction => {
+      const finalizedAt = new Date(Date.parse(report.generatedAt) + 1).toISOString();
+      try {
+        validateFieldSessionPayload({
+          completionAction,
+          workspaceId: "fitness_connection",
+          operatingProfileId: "fitness",
+          finalExportConfirmed: true,
+          sourceFinalizedAt: finalizedAt,
+          rawReportText: JSON.stringify(report)
+        });
+        return true;
+      } catch (error) {
+        return false;
+      }
+    });
     window.confirm = () => true;
     const archive = await endFieldSession("end_route");
     return {
@@ -1317,8 +1378,26 @@ async function verifyDecisionContextProducer(cdp) {
       unknown,
       labels,
       skipState,
+      noContactState,
+      evidenceOnlyState,
       workspaceBlocked,
       visit,
+      decisionSourceKeys: Object.keys(visit?.visitDecisionSource || {}).sort(),
+      recommendationContextKeys: Object.keys(visit?.recommendationDecisionContext || {}).sort(),
+      capturedAtMatchesVisitCreatedAt: Date.parse(visit?.visitDecisionSource?.capturedAt || "") === Number(visit?.createdAt),
+      legacyMissingContext: {
+        visitDecisionSource: normalizeVisitDecisionSource(undefined),
+        recommendationDecisionContext: normalizeRecommendationDecisionContext(undefined),
+        reportContext: legacyReportContext,
+        originalVisitUnchanged: legacyVisit.visitDecisionSource === null && legacyVisit.recommendationDecisionContext === null,
+        capturedAfterOutcome: Date.parse(legacyReportContext.visitDecisionSource.capturedAt) > Number(legacyVisit.createdAt)
+      },
+      legacyFinalization: {
+        completionActionsValid,
+        reportVisit: legacyReportVisit,
+        originalVisitUnchanged: legacyOriginalAfterReport?.visitDecisionSource === null && legacyOriginalAfterReport?.recommendationDecisionContext === null,
+        capturedAfterOutcome: Date.parse(legacyReportVisit?.visitDecisionSource?.capturedAt || "") > Number(activeLegacyVisit.createdAt)
+      },
       reloadedVisit,
       reportVisit: report.visits.find(item => item.visitId === visit?.id) || null,
       archiveStatus: archive?.status || "",
@@ -1331,13 +1410,36 @@ async function verifyDecisionContextProducer(cdp) {
 async function verifyDecisionContextDesktopLayout(cdp) {
   return cdp.evaluate(`(() => {
     openModal("quick");
-    const form = document.getElementById("quickForm");
-    form.querySelector('[data-quick-outcome="talk"]')?.click();
-    const fieldset = form.querySelector('[data-decision-source-capture]');
+    const quickForm = document.getElementById("quickForm");
+    const quickInitiallyHidden = quickForm.querySelector("#quickCounts")?.classList.contains("active") !== true;
+    quickForm.querySelector('[data-quick-outcome="talk"]')?.click();
+    const fieldset = quickForm.querySelector('[data-decision-source-capture]');
     const rect = fieldset?.getBoundingClientRect() || {};
+    const quickCount = quickForm.querySelectorAll('.decision-source-option').length;
+    const quickOptional = quickForm.querySelector('[name="visitDecisionSourceId"][required]') === null;
+    closeModal();
+
+    openModal("visit");
+    const visitForm = document.getElementById("visitForm");
+    const visitCount = visitForm.querySelectorAll('.decision-source-option').length;
+    closeModal();
+
+    openModal("place");
+    const placeForm = document.getElementById("placeForm");
+    const initialVisitFields = document.getElementById("initialVisitFields");
+    const addPlaceInitiallyHidden = initialVisitFields?.hidden === true;
+    placeForm.elements.recordInitialVisit.click();
+    const addPlaceCount = placeForm.querySelectorAll('.decision-source-option').length;
+    const addPlaceVisibleWithVisit = initialVisitFields?.hidden === false;
     const result = {
       viewportWidth: innerWidth,
-      labelCount: form.querySelectorAll('.decision-source-option').length,
+      quickCount,
+      visitCount,
+      addPlaceCount,
+      quickInitiallyHidden,
+      quickOptional,
+      addPlaceInitiallyHidden,
+      addPlaceVisibleWithVisit,
       left: Number(rect.left || 0),
       right: Number(rect.right || 0),
       scrollWidth: document.documentElement.scrollWidth
@@ -2049,7 +2151,7 @@ async function runHarness() {
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     assertWorkflow("Beta Stability Sprint 2 dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
     const decisionDesktop = await verifyDecisionContextDesktopLayout(rep.cdp);
-    assertWorkflow("Decision Context desktop rendering", decisionDesktop.viewportWidth > 390 && decisionDesktop.labelCount === 7 && decisionDesktop.left >= -1 && decisionDesktop.right <= decisionDesktop.viewportWidth + 1 && decisionDesktop.scrollWidth <= decisionDesktop.viewportWidth + 1, "seven optional decision sources fit the desktop Quick Result workflow", JSON.stringify(decisionDesktop));
+    assertWorkflow("Decision Context desktop rendering", decisionDesktop.viewportWidth > 390 && decisionDesktop.quickCount === 7 && decisionDesktop.visitCount === 7 && decisionDesktop.addPlaceCount === 7 && decisionDesktop.quickInitiallyHidden && decisionDesktop.quickOptional && decisionDesktop.addPlaceInitiallyHidden && decisionDesktop.addPlaceVisibleWithVisit && decisionDesktop.left >= -1 && decisionDesktop.right <= decisionDesktop.viewportWidth + 1 && decisionDesktop.scrollWidth <= decisionDesktop.viewportWidth + 1, "seven optional decision sources fit Quick Result, Add Visit, and Add Place initial-visit workflows", JSON.stringify(decisionDesktop));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
     const repRouteSnap = await snapshot(rep.cdp);
@@ -2103,6 +2205,7 @@ async function runHarness() {
     const decisionResult = await verifyDecisionContextProducer(decisionContext.cdp);
     const decisionRequest = decisionContextServer.fieldSessionRequests[0]?.payload || {};
     const decisionRawReport = decisionRequest.rawReportText ? JSON.parse(decisionRequest.rawReportText) : {};
+    const decisionLegacyRawVisit = decisionRawReport.visits?.find(visit => visit.visitId === "legacy-active-session-visit") || null;
     const knownSourcesValid = decisionResult.sourceIds.every(sourceId => {
       const evidence = decisionResult.generated[sourceId]?.visitDecisionSource;
       return evidence?.sourceId === sourceId && evidence.reason && evidence.evidence?.length === 1 && evidence.confidence === 1 && !Number.isNaN(Date.parse(evidence.capturedAt));
@@ -2113,6 +2216,11 @@ async function runHarness() {
     assertWorkflow("Decision Context Route IQ acceptance", decisionResult.generated.route_iq_recommendation?.recommendationDecisionContext?.decision === "accepted" && decisionResult.generated.route_iq_recommendation?.recommendationDecisionContext?.recommendationAvailable === true, "explicit Route IQ selection records accepted recommendation context", JSON.stringify(decisionResult.generated.route_iq_recommendation));
     assertWorkflow("Decision Context off-route context", nonRouteDecisionsValid, "each explicit non-route source records governed override context when a different recommendation is present", JSON.stringify(decisionResult.generated));
     assertWorkflow("Decision Context Skip and Unknown", decisionResult.skipState.selected === "unknown" && decisionResult.skipState.status === "Unknown (default)" && decisionResult.unknown.visitDecisionSource?.sourceId === "unknown" && decisionResult.unknown.visitDecisionSource?.confidence === 0, "Skip remains optional and produces explicit Unknown evidence", JSON.stringify({ skip: decisionResult.skipState, unknown: decisionResult.unknown }));
+    assertWorkflow("Decision Context No Contact workflow disclosure", decisionResult.noContactState.visitsAfterOutcomeSelection === decisionResult.noContactState.visitsBefore && decisionResult.noContactState.saveRequired && decisionResult.noContactState.countsVisible, "No Contact opens the optional Decision Source step and requires Save Result instead of auto-saving", JSON.stringify(decisionResult.noContactState));
+    assertWorkflow("Decision Context zero influence before submission", JSON.stringify(decisionResult.evidenceOnlyState.routeOrderBefore) === JSON.stringify(decisionResult.evidenceOnlyState.routeOrderAfter) && decisionResult.evidenceOnlyState.visitsBefore === decisionResult.evidenceOnlyState.visitsAfter && !decisionResult.evidenceOnlyState.decisionSourceRequired && !decisionResult.evidenceOnlyState.capturedAtControlPresent && !decisionResult.evidenceOnlyState.representativeShadowOutputVisible, "choosing or skipping Decision Source changes no visit, route order, or representative-visible shadow state before Save Result", JSON.stringify(decisionResult.evidenceOnlyState));
+    assertWorkflow("Decision Context post-action boundary", decisionResult.capturedAtMatchesVisitCreatedAt && JSON.stringify(decisionResult.decisionSourceKeys) === JSON.stringify(["capturedAt", "confidence", "evidence", "reason", "sourceId"]) && JSON.stringify(decisionResult.recommendationContextKeys) === JSON.stringify(["decision", "recommendationAvailable", "recommendationId"]) && JSON.stringify(decisionResult.evidenceOnlyState.recommendationContextFields) === JSON.stringify(["recommendationId", "recommendationPlaceId"]), "capturedAt equals visit creation time and the record contains source/outcome linkage only, not a frozen candidate set", JSON.stringify({ capturedAtMatchesVisitCreatedAt: decisionResult.capturedAtMatchesVisitCreatedAt, decisionSourceKeys: decisionResult.decisionSourceKeys, recommendationContextKeys: decisionResult.recommendationContextKeys, recommendationContextFields: decisionResult.evidenceOnlyState.recommendationContextFields }));
+    assertWorkflow("Decision Context legacy load compatibility", decisionResult.legacyMissingContext.visitDecisionSource === null && decisionResult.legacyMissingContext.recommendationDecisionContext === null && decisionResult.legacyMissingContext.reportContext.visitDecisionSource?.sourceId === "unknown" && decisionResult.legacyMissingContext.reportContext.visitDecisionSource?.reason === null && decisionResult.legacyMissingContext.reportContext.visitDecisionSource?.confidence === 0 && decisionResult.legacyMissingContext.reportContext.visitDecisionSource?.capturedAt === "2026-07-12T19:00:00.000Z" && decisionResult.legacyMissingContext.reportContext.recommendationDecisionContext?.recommendationAvailable === null && decisionResult.legacyMissingContext.originalVisitUnchanged && decisionResult.legacyMissingContext.capturedAfterOutcome, "legacy visits remain unchanged in local state while report construction emits explicit post-action Unknown context", JSON.stringify(decisionResult.legacyMissingContext));
+    assertWorkflow("Decision Context legacy End Route and End Day compatibility", decisionResult.legacyFinalization.completionActionsValid && decisionResult.legacyFinalization.originalVisitUnchanged && decisionResult.legacyFinalization.capturedAfterOutcome && decisionResult.legacyFinalization.reportVisit?.visitDecisionSource?.sourceId === "unknown" && decisionResult.legacyFinalization.reportVisit?.recommendationDecisionContext?.recommendationAvailable === null && decisionLegacyRawVisit?.visitDecisionSource?.sourceId === "unknown" && decisionLegacyRawVisit?.recommendationDecisionContext?.recommendationId === null, "legacy active-session visit validates for both completion actions and is acknowledged through the actual End Route handoff as post-action Unknown", JSON.stringify({ finalization: decisionResult.legacyFinalization, raw: decisionLegacyRawVisit }));
     assertWorkflow("Decision Context workspace isolation", decisionResult.workspaceBlocked, "unknown workspace failed closed", JSON.stringify(decisionResult));
     assertWorkflow("Decision Context local persistence", decisionResult.visit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reloadedVisit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reloadedVisit?.recommendationDecisionContext?.decision === "accepted", "decision evidence survives Dashboard state normalization and reload", JSON.stringify({ visit: decisionResult.visit, reloaded: decisionResult.reloadedVisit }));
     assertWorkflow("Decision Context canonical report", decisionResult.reportVisit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reportVisit?.recommendationDecisionContext?.decision === "accepted", "today report carries both governed decision fields", JSON.stringify(decisionResult.reportVisit));

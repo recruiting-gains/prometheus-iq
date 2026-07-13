@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import worker, {
   ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH
 } from "../workers/prometheus-iq-worker.js";
@@ -7,6 +8,17 @@ import {
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionStoreBinding
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+
+const dashboardSource = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const deployedDashboardSource = readFileSync(new URL("../deploy/cloudflare-pages/index.html", import.meta.url), "utf8");
+
+function sourceSection(start, end) {
+  const startIndex = dashboardSource.indexOf(start);
+  const endIndex = dashboardSource.indexOf(end, startIndex + start.length);
+  assert.notEqual(startIndex, -1, `Missing Dashboard source marker: ${start}`);
+  assert.notEqual(endIndex, -1, `Missing Dashboard source marker: ${end}`);
+  return dashboardSource.slice(startIndex, endIndex);
+}
 
 function kvBinding() {
   const data = new Map();
@@ -440,4 +452,152 @@ test("Dashboard producer fails retryably when canonical runtime assets are unava
   assert.equal(body.code, "field_session_runtime_assets_unavailable");
   assert.equal(body.retryable, true);
   assert.equal(binding.writes.length, 0);
+});
+
+test("Dashboard Decision Source remains optional post-action evidence rather than frozen shadow context", () => {
+  assert.equal(deployedDashboardSource, dashboardSource);
+
+  const definitions = sourceSection("const visitDecisionSourceDefinitions", "const visitDecisionSourceIds");
+  const markup = sourceSection("function visitDecisionSourceMarkup", "function attachVisitDecisionSourceControl");
+  const evidenceFactory = sourceSection("function createVisitDecisionEvidence", "const visitOutcomeFields");
+  const recommendationSnapshot = sourceSection("function currentRecommendationDecisionSnapshot", "function visitDecisionSourceMarkup");
+  const sourceLabels = [...definitions.matchAll(/label: "([^"]+)"/g)].map(match => match[1]);
+
+  assert.deepEqual(sourceLabels, [
+    "Route IQ Recommendation",
+    "Nearby Context",
+    "Saved Place",
+    "Discovery",
+    "Existing Relationship",
+    "Follow-up",
+    "Manual"
+  ]);
+  assert.match(markup, /Decision Source is optional/);
+  assert.doesNotMatch(markup, /name="visitDecisionSourceId"[^>]*\brequired\b/);
+  assert.equal((dashboardSource.match(/\$\{visitDecisionSourceMarkup\(\)\}/g) || []).length, 3);
+
+  assert.match(dashboardSource, /const createdAt = Date\.now\(\);\s+const decisionEvidence = visitDecisionEvidenceFromForm\(quickForm, \{ visitId, placeId: values\.placeId, capturedAt: createdAt \}\)/);
+  assert.match(dashboardSource, /const createdAt = Date\.now\(\);\s+const decisionEvidence = visitDecisionEvidenceFromForm\(event\.currentTarget, \{ visitId, placeId: data\.placeId, capturedAt: createdAt \}\)/);
+  assert.match(dashboardSource, /const visitCreatedAt = Date\.now\(\);\s+const decisionEvidence = visitDecisionEvidenceFromValues\(data, \{ visitId, placeId: createdPlace\.id, capturedAt: visitCreatedAt \}\)/);
+  assert.doesNotMatch(markup, /capturedAt/);
+
+  for (const forbidden of [
+    "rankedCandidates",
+    "probabilities",
+    "evidenceCutoffTimestamp",
+    "schemaVersion",
+    "modelVersion",
+    "ruleVersion",
+    "shadowDecisionId"
+  ]) {
+    assert.doesNotMatch(evidenceFactory, new RegExp(forbidden));
+    assert.doesNotMatch(recommendationSnapshot, new RegExp(forbidden));
+  }
+  assert.doesNotMatch(dashboardSource, /intelligence\/shadow-decision-readiness|founder-readiness-report|shadowDecisionId|shadowRecordSha256/);
+  assert.doesNotMatch(evidenceFactory, /contactName|contactPhone|contactEmail|manager|latitude|longitude/);
+  assert.match(recommendationSnapshot, /placeId: recommendation\?\.id \|\| ""/);
+  assert.match(recommendationSnapshot, /recommendationId: recommendation \? routeIdentityKey\(recommendation\) : ""/);
+});
+
+test("Dashboard source records the representative workflow change without silently auto-saving No Contact", () => {
+  const quickWorkflow = sourceSection('} else if (type === "quick")', '} else if (type === "visit")');
+  assert.match(quickWorkflow, /data-quick-outcome="none"/);
+  assert.match(quickWorkflow, /<button class="btn" type="submit">Save Result<\/button>/);
+  assert.doesNotMatch(quickWorkflow, /if \(outcome === "none"\) \{\s*await saveQuickResult/);
+  assert.match(quickWorkflow, /quickForm\.addEventListener\("submit"/);
+});
+
+test("Dashboard report construction upgrades legacy missing context to post-action Unknown without rewriting the visit", () => {
+  const reportBuilder = sourceSection("function visitDecisionContextForReport", "function todayReportPayload");
+  const todayReport = sourceSection("function todayReportPayload", "function fieldSessionScope");
+
+  assert.match(reportBuilder, /sourceId: "unknown"/);
+  assert.match(reportBuilder, /reason: null/);
+  assert.match(reportBuilder, /evidence: \[\]/);
+  assert.match(reportBuilder, /confidence: 0/);
+  assert.match(reportBuilder, /capturedAt: reportGeneratedAt/);
+  assert.match(reportBuilder, /recommendationAvailable: null/);
+  assert.match(reportBuilder, /recommendationId: null/);
+  assert.match(reportBuilder, /decision: null/);
+  assert.match(todayReport, /const reportGeneratedAt = new Date\(\)\.toISOString\(\)/);
+  assert.match(todayReport, /\.\.\.visitDecisionContextForReport\(visit, reportGeneratedAt\)/);
+  assert.match(todayReport, /generatedAt: reportGeneratedAt/);
+  assert.doesNotMatch(reportBuilder, /visit\.visitDecisionSource\s*=|visit\.recommendationDecisionContext\s*=/);
+  assert.doesNotMatch(reportBuilder, /rankedCandidates|probabilities|evidenceCutoffTimestamp|modelVersion|ruleVersion/);
+});
+
+test("Data persists Dashboard legacy fallback as late Unknown without pre-action candidate claims", async () => {
+  const binding = kvBinding();
+  const source = report({
+    visit: {
+      visitDecisionSource: {
+        sourceId: "unknown",
+        reason: null,
+        evidence: [],
+        confidence: 0,
+        capturedAt: "2026-07-11T20:05:00.000Z"
+      },
+      recommendationDecisionContext: {
+        recommendationAvailable: null,
+        recommendationId: null,
+        decision: null
+      }
+    }
+  });
+  const response = await submit(payload({ report: source }), productionEnv(binding));
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.acknowledged, true);
+  const rawKey = [...binding.data.keys()].find(key => key.endsWith("/raw-report.json"));
+  const normalizedKey = [...binding.data.keys()].find(key => key.endsWith("/normalized-field-session.json"));
+  assert.equal(typeof rawKey, "string");
+  assert.equal(typeof normalizedKey, "string");
+  const raw = JSON.parse(binding.data.get(rawKey).value);
+  const normalized = JSON.parse(binding.data.get(normalizedKey).value);
+  const rawVisit = raw.visits[0];
+  const visit = normalized.verifiedFields.completedVisits[0];
+
+  assert.equal(rawVisit.visitDecisionSource.capturedAt, raw.generatedAt);
+  assert.equal(Date.parse(rawVisit.visitDecisionSource.capturedAt) > Date.parse(rawVisit.timestamp), true);
+  assert.deepEqual(Object.keys(rawVisit.visitDecisionSource).sort(), [
+    "capturedAt",
+    "confidence",
+    "evidence",
+    "reason",
+    "sourceId"
+  ]);
+  assert.deepEqual(Object.keys(rawVisit.recommendationDecisionContext).sort(), [
+    "decision",
+    "recommendationAvailable",
+    "recommendationId"
+  ]);
+  assert.equal("temporalClassification" in rawVisit.visitDecisionSource, false);
+  for (const forbidden of [
+    "candidateContext",
+    "candidateSnapshot",
+    "rankedCandidateDecisions",
+    "rankedCandidates",
+    "probabilities",
+    "evidenceCutoffTimestamp",
+    "modelVersion",
+    "ruleVersion",
+    "eligibilityReason",
+    "exclusionReason",
+    "shadowDecisionId"
+  ]) {
+    assert.equal(forbidden in rawVisit, false);
+    assert.equal(forbidden in rawVisit.visitDecisionSource, false);
+    assert.equal(forbidden in rawVisit.recommendationDecisionContext, false);
+  }
+
+  assert.equal(visit.visitDecisionSource.sourceId, "unknown");
+  assert.equal(visit.visitDecisionSource.reason, null);
+  assert.equal(visit.visitDecisionSource.confidence, 0);
+  assert.equal(visit.visitDecisionSource.temporalClassification, "late_report_finalization_unknown");
+  assert.deepEqual(visit.recommendationDecisionContext, {
+    recommendationAvailable: null,
+    recommendationId: null,
+    decision: null
+  });
 });

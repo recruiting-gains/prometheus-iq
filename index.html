@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-xLIW1s2APOXQ4FXOb76KvXown5SCG6OY4QbpRJ/51DM='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-6MB1d1lkCTpCIxgAAvU/nftkhwR3ElU49Xr5rJL8EEo='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1858,9 +1858,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-12-decision-context-producer-v1";
+    const appBuildVersion = "2026-07-13-decision-context-provenance-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v44-decision-context-producer";
+    const serviceWorkerCacheVersion = "prometheus-v45-decision-context-provenance";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
@@ -19949,8 +19949,28 @@
       if (el) el.textContent = message;
     }
 
+    function visitDecisionContextForReport(visit, reportGeneratedAt) {
+      const visitDecisionSource = cloneData(visit?.visitDecisionSource) || null;
+      const recommendationDecisionContext = cloneData(visit?.recommendationDecisionContext) || null;
+      return {
+        visitDecisionSource: visitDecisionSource || {
+          sourceId: "unknown",
+          reason: null,
+          evidence: [],
+          confidence: 0,
+          capturedAt: reportGeneratedAt
+        },
+        recommendationDecisionContext: recommendationDecisionContext || {
+          recommendationAvailable: null,
+          recommendationId: null,
+          decision: null
+        }
+      };
+    }
+
     function todayReportPayload() {
       syncActiveProfile();
+      const reportGeneratedAt = new Date().toISOString();
       const originalVisits = todayVisits().slice().sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
       const visits = originalVisits.map(visit => effectiveVisitOutcome(visit));
       const totals = sumVisits(visits);
@@ -19976,8 +19996,7 @@
           contactName: visit.contactName || "",
           contactPhone: visit.contactPhone || "",
           contactEmail: visit.contactEmail || "",
-          visitDecisionSource: cloneData(visit.visitDecisionSource) || null,
-          recommendationDecisionContext: cloneData(visit.recommendationDecisionContext) || null,
+          ...visitDecisionContextForReport(visit, reportGeneratedAt),
           businessCreation: visit.businessCreatedWithVisit ? {
             source: "dashboard_add_place",
             workspaceId: place?.workspaceId || defaultWorkspaceId,
@@ -19998,7 +20017,7 @@
       return {
         app: "Prometheus IQ",
         reportType: "beta-daily-rep-report",
-        generatedAt: new Date().toISOString(),
+        generatedAt: reportGeneratedAt,
         date: todayKey(),
         rep: {
           id: activeRepId,
