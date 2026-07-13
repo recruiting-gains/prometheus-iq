@@ -163,20 +163,26 @@ function preserveRecommendationDecisionContext(value, visitNumber) {
     });
   }
   const recommendationAvailableValid = [true, false, null].includes(value.recommendationAvailable);
+  const canonicalRecommendationId = typeof value.recommendationId === "string"
+    ? value.recommendationId.trim() || null
+    : null;
   const recommendationIdValid = value.recommendationId === null
-    || (typeof value.recommendationId === "string" && value.recommendationId.length > 0);
+    || (typeof value.recommendationId === "string" && canonicalRecommendationId !== null);
   const decisionValid = value.decision === null || routeIqRecommendationDecisionValues.includes(value.decision);
-  const unavailableRecommendationIdValid = value.recommendationAvailable === true || value.recommendationId === null;
+  const availableRecommendationIdValid = value.recommendationAvailable !== true || canonicalRecommendationId !== null;
+  const unavailableRecommendationIdValid = value.recommendationAvailable === true || canonicalRecommendationId === null;
   const decidedRecommendationValid = value.decision === null
-    || (value.recommendationAvailable === true && typeof value.recommendationId === "string" && value.recommendationId.length > 0);
+    || (value.recommendationAvailable === true && canonicalRecommendationId !== null);
   if (!recommendationAvailableValid || !recommendationIdValid || !decisionValid
-    || !unavailableRecommendationIdValid || !decidedRecommendationValid) {
+    || !availableRecommendationIdValid || !unavailableRecommendationIdValid || !decidedRecommendationValid) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context is malformed.`, {
       code: "field_session_recommendation_decision_context_invalid",
       details: { visitNumber, decision: value.decision ?? null }
     });
   }
-  return clone(value);
+  const preserved = clone(value);
+  preserved.recommendationId = canonicalRecommendationId;
+  return preserved;
 }
 
 function percentage(numerator, denominator) {

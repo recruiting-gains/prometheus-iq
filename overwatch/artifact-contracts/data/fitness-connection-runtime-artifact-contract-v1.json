@@ -134,7 +134,7 @@
     "july11RawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
   },
   "canonicalVisitDecisionContextContract": {
-    "status": "validation_hardened_for_newly_normalized_field_sessions",
+    "status": "validation_final_repair_complete_for_newly_normalized_field_sessions",
     "canonicalContainer": "verifiedFields.completedVisits[]",
     "canonicalFields": [
       "visitDecisionSource",
@@ -164,6 +164,9 @@
         "reason": null
       },
       "unavailableRecommendationRequiresNullId": true,
+      "availableRecommendationRequiresCanonicalId": true,
+      "recommendationIdTrimmedBeforeValidation": true,
+      "whitespaceOnlyRecommendationIdRejected": true,
       "whitespaceOnlyEvidenceRejected": true,
       "historicalArchivesMutated": false,
       "historicalReplayAuthorized": false

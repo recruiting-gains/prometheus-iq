@@ -308,18 +308,57 @@ test("unavailable or unknown recommendations reject non-null recommendation IDs"
   assert.deepEqual(normalized.recommendationDecisionContext, validUnavailable.visits[0].recommendationDecisionContext);
 });
 
-test("accepted or overridden decisions still require an available identified recommendation", () => {
-  const malformed = decisionContextReport();
-  malformed.visits[0].recommendationDecisionContext = {
-    recommendationAvailable: false,
+test("available recommendations require a non-empty canonical recommendation ID", () => {
+  const missingId = decisionContextReport();
+  missingId.visits[0].recommendationDecisionContext = {
+    recommendationAvailable: true,
     recommendationId: null,
-    decision: "accepted"
+    decision: null
   };
-  assert.throws(() => archivePackage({ rawReportText: JSON.stringify(malformed) }), error => {
+  assert.throws(() => archivePackage({ rawReportText: JSON.stringify(missingId) }), error => {
     assert.equal(error instanceof FieldSessionArchiveError, true);
     assert.equal(error.code, "field_session_recommendation_decision_context_invalid");
     return true;
   });
+
+  const paddedId = decisionContextReport();
+  paddedId.visits[0].recommendationDecisionContext.recommendationId = "  google:canonical-id  ";
+  const normalized = archivePackage({ rawReportText: JSON.stringify(paddedId) }).normalizedRecord.verifiedFields.completedVisits[0];
+  assert.equal(normalized.recommendationDecisionContext.recommendationId, "google:canonical-id");
+});
+
+test("whitespace-only and trim-empty recommendation IDs fail closed", () => {
+  for (const recommendationId of ["   ", " \t\n "]) {
+    const malformed = decisionContextReport();
+    malformed.visits[0].recommendationDecisionContext = {
+      recommendationAvailable: true,
+      recommendationId,
+      decision: null
+    };
+    assert.throws(() => archivePackage({ rawReportText: JSON.stringify(malformed) }), error => {
+      assert.equal(error instanceof FieldSessionArchiveError, true);
+      assert.equal(error.code, "field_session_recommendation_decision_context_invalid");
+      return true;
+    });
+  }
+});
+
+test("accepted and overridden recommendations require a canonical recommendation ID", () => {
+  for (const decision of ["accepted", "overridden"]) {
+    for (const recommendationId of [null, "   "]) {
+      const malformed = decisionContextReport();
+      malformed.visits[0].recommendationDecisionContext = {
+        recommendationAvailable: true,
+        recommendationId,
+        decision
+      };
+      assert.throws(() => archivePackage({ rawReportText: JSON.stringify(malformed) }), error => {
+        assert.equal(error instanceof FieldSessionArchiveError, true);
+        assert.equal(error.code, "field_session_recommendation_decision_context_invalid");
+        return true;
+      });
+    }
+  }
 });
 
 test("whitespace-only decision evidence fails closed", () => {
@@ -614,9 +653,12 @@ test("Data schema and contract govern decision context prospectively without mut
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.confidence.const, 0);
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.reason.const, null);
   assert.deepEqual(schema.$defs.recommendationDecisionContext.properties.decision.enum, ["accepted", "overridden", null]);
+  assert.equal(schema.$defs.recommendationDecisionContext.properties.recommendationId.pattern, ".*\\S.*");
+  assert.equal(schema.$defs.recommendationDecisionContext.allOf[0].if.properties.recommendationAvailable.const, true);
+  assert.equal(schema.$defs.recommendationDecisionContext.allOf[0].then.properties.recommendationId.pattern, ".*\\S.*");
   assert.equal(schema.allOf[0].if.properties.sessionId.const, SESSION_ID);
   assert.equal(schema.allOf[0].if.properties.sourceProvenance.properties.rawSha256.const, EXPECTED_RAW_SHA);
-  assert.equal(decisionContract.status, "validation_hardened_for_newly_normalized_field_sessions");
+  assert.equal(decisionContract.status, "validation_final_repair_complete_for_newly_normalized_field_sessions");
   assert.equal(decisionContract.canonicalContainer, "verifiedFields.completedVisits[]");
   assert.deepEqual(decisionContract.canonicalFields, ["visitDecisionSource", "recommendationDecisionContext"]);
   assert.deepEqual(decisionContract.visitDecisionSourceValues.map(value => value.sourceId), routeIqVisitDecisionSourceIds);
@@ -631,6 +673,9 @@ test("Data schema and contract govern decision context prospectively without mut
     reason: null
   });
   assert.equal(decisionContract.preservationRules.unavailableRecommendationRequiresNullId, true);
+  assert.equal(decisionContract.preservationRules.availableRecommendationRequiresCanonicalId, true);
+  assert.equal(decisionContract.preservationRules.recommendationIdTrimmedBeforeValidation, true);
+  assert.equal(decisionContract.preservationRules.whitespaceOnlyRecommendationIdRejected, true);
   assert.equal(decisionContract.preservationRules.whitespaceOnlyEvidenceRejected, true);
   assert.equal(decisionContract.preservationRules.historicalArchivesMutated, false);
   assert.equal(decisionContract.historicalCompatibility.sessionId, SESSION_ID);

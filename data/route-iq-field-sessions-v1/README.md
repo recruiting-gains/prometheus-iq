@@ -26,7 +26,7 @@ The repository does not provision or route this binding. Infrastructure must pro
 
 For newly normalized field sessions, each canonical `verifiedFields.completedVisits[]` record requires both `visitDecisionSource` and `recommendationDecisionContext`. Missing or null fields fail closed. Canonical decision sources are Route IQ Recommendation, Nearby Context, Representative Saved Place, Representative Discovery, Representative Follow-up, Existing Relationship, Manual Selection, and Unknown. Explicit Unknown remains Unknown with confidence `0` and reason `null`; it is never inferred from missing input.
 
-Recommendation IDs are accepted only when `recommendationAvailable` is `true`. Whitespace-only decision evidence fails validation before normalization.
+Recommendation IDs are trimmed before validation. `recommendationAvailable: true` requires a non-empty canonical ID, while `false` or `null` requires a null ID. Whitespace-only recommendation IDs and decision evidence fail validation before normalization; accepted and overridden decisions always require the canonical ID.
 
 The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
 
