@@ -111,8 +111,8 @@
     "zeroLiveGoogleConstraintPreserved": true
   },
   "protectedBehaviorBaselines": {
-    "dashboardSourceSha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3",
-    "dashboardDeployMirrorSha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3",
+    "dashboardSourceSha256": "9ca3d85c05abe43d37da0bbabbcd4af36cbe41ae75093c9fe3f94527d8beff2d",
+    "dashboardDeployMirrorSha256": "9ca3d85c05abe43d37da0bbabbcd4af36cbe41ae75093c9fe3f94527d8beff2d",
     "dataArchiveRuntimeSha256": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
     "dataRuntimeContractSha256": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
     "adaptiveRouteEngineSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",

@@ -137,7 +137,7 @@
   "protectedBehaviorBaselines": {
     "dashboard": {
       "path": "index.html",
-      "sha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3"
+      "sha256": "9ca3d85c05abe43d37da0bbabbcd4af36cbe41ae75093c9fe3f94527d8beff2d"
     },
     "routeScoring": {
       "path": "scripts/build-route-intelligence-quality-engine.mjs",
