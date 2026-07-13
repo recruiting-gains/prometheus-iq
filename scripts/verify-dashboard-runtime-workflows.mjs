@@ -1546,12 +1546,49 @@ async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
     closeModal();
     document.body.dataset.workspaceId = previousWorkspace;
 
+    const foreignSavedPlace = {
+      id: id(),
+      name: "Immediate Outcome Harness Other Rep",
+      category: "Business",
+      window: "Midday",
+      address: "1999 Other Rep Way, Houston, TX 77001",
+      permission: "Unknown",
+      canRevisit: true,
+      repProfileId: "cruz",
+      workspaceId: "fitness_connection",
+      sourceType: "Dashboard Manual Entry",
+      notes: "Representative ownership regression fixture.",
+      createdAt: Date.now()
+    };
+    state.places.push(foreignSavedPlace);
+    persistStateWithoutRender();
+    render();
+
     setTab("places");
     const businessOnlyVisibleInPlaces = document.getElementById("placesList")?.textContent?.includes(businessOnly.place?.name || "") || false;
+    const visitedBeforePromotion = document.querySelector('[data-places-list="visited"]')?.textContent || "";
+    const savedBeforePromotion = document.querySelector('[data-places-list="saved"]')?.textContent || "";
+    const savedStatusCount = document.querySelectorAll('[data-places-list="saved"] [data-saved-place] .pill.yellow').length;
+    const prePromotionReport = todayReportPayload();
+    const founderBeforePromotionIds = founderProductionPlaces(state.places).map(place => place.id);
+    const statisticsBeforePromotionIds = placesWithVerifiedVisits(state.places, teamVisits()).map(place => place.id);
+    const prePromotionIntelligenceHasSavedPlace = Boolean(activeProfile().placePerformance?.[businessOnly.place?.id]);
     openModal("quick");
-    const businessOnlyVisibleInQuickResult = [...(document.getElementById("quickForm")?.elements.placeId?.options || [])]
+    const quickForm = document.getElementById("quickForm");
+    const businessOnlyVisibleInQuickResult = [...(quickForm?.elements.placeId?.options || [])]
       .some(option => option.value === businessOnly.place?.id);
-    closeModal();
+    quickForm.elements.placeId.value = businessOnly.place.id;
+    quickForm.querySelector('[data-quick-outcome="talk"]')?.click();
+    await wait(0);
+    quickForm.requestSubmit();
+    const promotionDeadline = Date.now() + 15000;
+    while (Date.now() < promotionDeadline && document.getElementById("modal")?.classList.contains("active")) await wait(50);
+    setTab("places");
+    const visitedAfterPromotion = document.querySelector('[data-places-list="visited"]')?.textContent || "";
+    const savedAfterPromotion = document.querySelector('[data-places-list="saved"]')?.textContent || "";
+    const founderAfterPromotionIds = founderProductionPlaces(state.places).map(place => place.id);
+    const statisticsAfterPromotionIds = placesWithVerifiedVisits(state.places, teamVisits()).map(place => place.id);
+    const promotionVisit = state.visits.find(visit => visit.placeId === businessOnly.place.id) || null;
     setTab("today");
 
     const mappedOutcomes = Object.fromEntries(Object.entries(initialPlaceVisitOutcomes).map(([key, value]) => [key, { ...value }]));
@@ -1588,6 +1625,23 @@ async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
       workspaceIsolation,
       businessOnlyVisibleInPlaces,
       businessOnlyVisibleInQuickResult,
+      representativePlacesGovernance: {
+        visitedBeforePromotion,
+        savedBeforePromotion,
+        visitedAfterPromotion,
+        savedAfterPromotion,
+        savedStatusCount,
+        foreignSavedVisible: savedBeforePromotion.includes(foreignSavedPlace.name),
+        prePromotionReportContainsSaved: prePromotionReport.visits.some(visit => visit.placeId === businessOnly.place?.id),
+        founderBeforePromotionContainsSaved: founderBeforePromotionIds.includes(businessOnly.place?.id),
+        statisticsBeforePromotionContainsSaved: statisticsBeforePromotionIds.includes(businessOnly.place?.id),
+        prePromotionIntelligenceHasSavedPlace,
+        routeBeforePromotionContainsSaved: routeIdentityBefore.includes(routeIdentityKey(businessOnly.place)),
+        activePoolClassified: Boolean(businessOnly.place?.runtimePool || businessOnly.place?.googlePlaceId),
+        promotionVisit,
+        founderAfterPromotionContainsVisited: founderAfterPromotionIds.includes(businessOnly.place?.id),
+        statisticsAfterPromotionContainsVisited: statisticsAfterPromotionIds.includes(businessOnly.place?.id)
+      },
       correctionCount: state.visitCorrections.length,
       correctedConversation: conversation.visit ? effectiveVisitOutcome(conversation.visit) : null,
       report: {
@@ -1610,6 +1664,47 @@ async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
       bodyScrollWidth: document.body.scrollWidth,
       viewportWidth: innerWidth
     };
+  })()`);
+}
+
+async function verifyDesktopRepresentativePlaces(cdp) {
+  return cdp.evaluate(`(() => {
+    const savedPlace = {
+      id: id(),
+      name: "Desktop Saved Places Harness",
+      category: "Business",
+      window: "Midday",
+      address: "1888 Desktop Test Way, Houston, TX 77001",
+      permission: "Unknown",
+      canRevisit: true,
+      repProfileId: activeRepId,
+      workspaceId: "fitness_connection",
+      sourceType: "Dashboard Manual Entry",
+      notes: "Desktop rendering regression fixture.",
+      createdAt: Date.now()
+    };
+    state.places.push(savedPlace);
+    persistStateWithoutRender();
+    render();
+    setTab("places");
+    const visited = document.querySelector('[data-places-section="visited"]');
+    const saved = document.querySelector('[data-places-section="saved"]');
+    const savedCard = document.querySelector('[data-saved-place="' + savedPlace.id + '"]');
+    const result = {
+      viewportWidth: innerWidth,
+      title: document.getElementById("placesTitle")?.textContent?.trim() || "",
+      visitedHeading: visited?.querySelector("h3")?.textContent?.trim() || "",
+      savedHeading: saved?.querySelector("h3")?.textContent?.trim() || "",
+      savedText: savedCard?.textContent?.trim().replace(/\\s+/g, " ") || "",
+      savedLeft: savedCard?.getBoundingClientRect().left || 0,
+      savedRight: savedCard?.getBoundingClientRect().right || 0,
+      visitedCount: visited?.querySelectorAll(".item").length || 0,
+      savedCount: saved?.querySelectorAll(".item").length || 0
+    };
+    state.places = state.places.filter(place => place.id !== savedPlace.id);
+    persistStateWithoutRender();
+    render();
+    return result;
   })()`);
 }
 
@@ -1850,6 +1945,8 @@ async function runHarness() {
     await clickTab(rep.cdp, "places");
     const repPlaces = await snapshot(rep.cdp);
     assertWorkflow("Rep Places visit review", repPlaces.activeView === "view-places" && repPlaces.placesText.includes("Rep Places") && repPlaces.placesText.includes("View Visit") && repPlaces.placesItems > 0, `${repPlaces.placesItems} visited places available on desktop`, JSON.stringify({ activeView: repPlaces.activeView, placesItems: repPlaces.placesItems, placesText: repPlaces.placesText.slice(0, 500) }));
+    const desktopRepPlaces = await verifyDesktopRepresentativePlaces(rep.cdp);
+    assertWorkflow("Representative Saved Places desktop rendering", desktopRepPlaces.viewportWidth > 390 && desktopRepPlaces.title === "Rep Places" && desktopRepPlaces.visitedHeading === "Visited Places" && desktopRepPlaces.savedHeading === "Saved Places" && desktopRepPlaces.savedText.includes("Not Yet Visited") && desktopRepPlaces.visitedCount > 0 && desktopRepPlaces.savedCount === 1 && desktopRepPlaces.savedLeft >= -1 && desktopRepPlaces.savedRight <= desktopRepPlaces.viewportWidth + 1, "Visited and Saved sections render distinctly on desktop", JSON.stringify(desktopRepPlaces));
     const routeSync = await verifyRouteStateSynchronization(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
@@ -1905,6 +2002,10 @@ async function runHarness() {
     const addPlaceRawReport = addPlaceRequests[0]?.payload?.rawReportText ? JSON.parse(addPlaceRequests[0].payload.rawReportText) : {};
     assertWorkflow("Add Place business creation only", addPlaceResult.addPlaceButtonVisible && addPlaceResult.businessOnly.place?.sourceType === "Dashboard Manual Entry" && addPlaceResult.businessOnly.place?.workspaceId === "fitness_connection" && !addPlaceResult.businessOnly.hasVisit, "representative created a business without recording a visit", JSON.stringify(addPlaceResult));
     assertWorkflow("Add Place later logging access", addPlaceResult.businessOnlyVisibleInPlaces && addPlaceResult.businessOnlyVisibleInQuickResult, "business-only creation remains available in Rep Places and Quick Result without entering Route IQ", JSON.stringify(addPlaceResult));
+    assertWorkflow("Representative Saved Places rendering", addPlaceResult.representativePlacesGovernance.savedBeforePromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.savedBeforePromotion.includes("Not Yet Visited") && !addPlaceResult.representativePlacesGovernance.visitedBeforePromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.savedStatusCount === 1, "unvisited representative-owned business rendered only in Saved Places with required status", JSON.stringify(addPlaceResult.representativePlacesGovernance));
+    assertWorkflow("Representative Saved Places ownership", !addPlaceResult.representativePlacesGovernance.foreignSavedVisible, "other representative's saved business remained hidden", JSON.stringify(addPlaceResult.representativePlacesGovernance));
+    assertWorkflow("Representative Saved Places evidence isolation", !addPlaceResult.representativePlacesGovernance.prePromotionReportContainsSaved && !addPlaceResult.representativePlacesGovernance.founderBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.statisticsBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.prePromotionIntelligenceHasSavedPlace && !addPlaceResult.representativePlacesGovernance.routeBeforePromotionContainsSaved && !addPlaceResult.representativePlacesGovernance.activePoolClassified, "Saved Place absent from Data evidence, Founder map, statistics, Intelligence evidence, Route IQ, and Active Pool classification", JSON.stringify(addPlaceResult.representativePlacesGovernance));
+    assertWorkflow("Representative Saved Places promotion rendering", addPlaceResult.representativePlacesGovernance.promotionVisit?.quality === "Conversation" && addPlaceResult.representativePlacesGovernance.visitedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && !addPlaceResult.representativePlacesGovernance.savedAfterPromotion.includes(addPlaceResult.businessOnly.place.name) && addPlaceResult.representativePlacesGovernance.founderAfterPromotionContainsVisited && addPlaceResult.representativePlacesGovernance.statisticsAfterPromotionContainsVisited, "verified visit moved presentation from Saved to Visited without mutating place ownership", JSON.stringify(addPlaceResult.representativePlacesGovernance));
     assertWorkflow("Add Place initial conversation", addPlaceResult.conversation?.quality === "Conversation" && addPlaceResult.conversation?.conversations === 1 && addPlaceResult.conversation?.manager.includes("Jordan Manager") && addPlaceResult.conversation?.notes.includes("Initial conversation"), "conversation and manager contact captured with business creation", JSON.stringify(addPlaceResult.conversation));
     assertWorkflow("Add Place initial lead", addPlaceResult.lead?.quality === "Lead" && addPlaceResult.lead?.conversations === 1 && addPlaceResult.lead?.leads === 1, "lead captured with business creation", JSON.stringify(addPlaceResult.lead));
     assertWorkflow("Add Place initial membership", addPlaceResult.membership?.quality === "Membership / Unit" && addPlaceResult.membership?.conversations === 1 && addPlaceResult.membership?.units === 1, "membership/unit captured with business creation", JSON.stringify(addPlaceResult.membership));

@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Z8BSjdkVkvzP61oqzMJeeJ3WhxMYMPd37s0bgziTgHE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-cMv0/V4/pRxGYQL3mh5j7B/ic27J/ZERDXZdoufC8UA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -387,6 +387,26 @@
       color: var(--muted);
       font-size: 12px;
       overflow-wrap: anywhere;
+    }
+
+    .rep-place-sections,
+    .rep-place-section {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .rep-place-section + .rep-place-section {
+      margin-top: 10px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .rep-place-section .section-title { margin: 0; }
+
+    .rep-place-section .section-title h3 {
+      margin: 0;
+      font-size: 14px;
     }
 
     .list {
@@ -1579,7 +1599,7 @@
           <h2 id="placesTitle">Production Map</h2>
           <small id="placesCount">0 places</small>
         </div>
-        <div class="toolbar">
+        <div class="toolbar owner-only">
           <button class="seg active" data-filter="all">All</button>
           <button class="seg" data-filter="green" id="placesUnitsFilter">Units</button>
           <button class="seg" data-filter="yellow" id="placesLeadsFilter">Leads</button>
@@ -1761,9 +1781,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-12-add-place-immediate-outcome-v1";
+    const appBuildVersion = "2026-07-12-representative-saved-places-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v42-add-place-immediate-outcome";
+    const serviceWorkerCacheVersion = "prometheus-v43-representative-saved-places";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
@@ -21399,6 +21419,28 @@
       return state.places;
     }
 
+    function representativePlacesPresentation(places = state.places, profileId = activeRepId, visits = state.visits) {
+      const visitedPlaceIds = new Set((Array.isArray(visits) ? visits : []).map(visit => visit.placeId));
+      const representativeOwned = place => !place.repProfileId || place.repProfileId === profileId;
+      const visitedPlaces = (Array.isArray(places) ? places : []).filter(place => visitedPlaceIds.has(place.id) && representativeOwned(place));
+      const savedPlaces = (Array.isArray(places) ? places : []).filter(place => place.repProfileId === profileId
+        && place.sourceType === "Dashboard Manual Entry"
+        && !visitedPlaceIds.has(place.id));
+      return { visitedPlaceIds, visitedPlaces, savedPlaces };
+    }
+
+    function founderProductionPlaces(places = state.places) {
+      const verifiedPlaceIds = new Set(teamVisits().map(visit => visit.placeId));
+      return (Array.isArray(places) ? places : []).filter(place => !(place.repProfileId
+        && place.sourceType === "Dashboard Manual Entry"
+        && !verifiedPlaceIds.has(place.id)));
+    }
+
+    function placesWithVerifiedVisits(places, visits) {
+      const verifiedPlaceIds = new Set((Array.isArray(visits) ? visits : []).map(visit => visit.placeId));
+      return (Array.isArray(places) ? places : []).filter(place => verifiedPlaceIds.has(place.id));
+    }
+
     function routeIdentityKey(place) {
       const googlePlaceId = cleanText(place?.googlePlaceId, 180);
       if (googlePlaceId) return `google:${googlePlaceId}`;
@@ -23842,24 +23884,62 @@
           ${latestVisit ? `<div class="compact-actions"><button class="btn secondary" type="button" data-view-visit="${escapeAttr(latestVisit.id)}">View Visit</button></div>` : ""}
         </article>`;
       };
+      const savedPlaceCard = p => `<article class="item" data-saved-place="${escapeAttr(p.id)}">
+        <div class="item-head">
+          <div>
+            <h3>${escapeHtml(p.name)}</h3>
+            <div class="meta"><span>${escapeHtml(p.category)}</span><span>${escapeHtml(p.window)}</span></div>
+            ${p.address ? `<div class="address-line">${escapeHtml(p.address)}</div>` : ""}
+          </div>
+          <span class="pill yellow">Not Yet Visited</span>
+        </div>
+        ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
+        <div class="compact-actions">
+          <a class="btn secondary" href="${mapsUrl(p)}" target="_blank" rel="noreferrer">Open Map</a>
+          <button class="btn" type="button" data-quick-place="${escapeAttr(p.id)}">Log Result</button>
+        </div>
+      </article>`;
       let places = state.places.slice().sort((a, b) => {
         const bs = getStats(b);
         const as = getStats(a);
         return bs.units - as.units || bs.leads - as.leads || b.createdAt - a.createdAt;
       });
       const placesTitle = document.getElementById("placesTitle");
+      const count = document.getElementById("placesCount");
+      const list = document.getElementById("placesList");
       if (sessionRole === "rep") {
         const visitedPlaceIds = new Set(state.visits.map(visit => visit.placeId));
         places = places.filter(place => visitedPlaceIds.has(place.id)
           || place.repProfileId === activeRepId && place.sourceType === "Dashboard Manual Entry");
         if (placesTitle) placesTitle.textContent = "Rep Places";
+        const sections = representativePlacesPresentation(places, activeRepId, state.visits);
+        count.textContent = `${sections.visitedPlaces.length} visited · ${sections.savedPlaces.length} saved`;
+        list.innerHTML = `<div class="rep-place-sections">
+          <section class="rep-place-section" data-places-section="visited">
+            <div class="section-title"><h3>Visited Places</h3><small>${sections.visitedPlaces.length}</small></div>
+            <div class="list" data-places-list="visited">${sections.visitedPlaces.length ? sections.visitedPlaces.map(placeCard).join("") : `<div class="empty">No verified visits yet.</div>`}</div>
+          </section>
+          <section class="rep-place-section" data-places-section="saved">
+            <div class="section-title"><h3>Saved Places</h3><small>${sections.savedPlaces.length}</small></div>
+            <div class="list" data-places-list="saved">${sections.savedPlaces.length ? sections.savedPlaces.map(savedPlaceCard).join("") : `<div class="empty">No saved places awaiting a visit.</div>`}</div>
+          </section>
+        </div>`;
+        viewRenderState.places = true;
+        window.prometheusDebugState.placesRender = {
+          total: sections.visitedPlaces.length + sections.savedPlaces.length,
+          visited: sections.visitedPlaces.length,
+          saved: sections.savedPlaces.length,
+          rendered: sections.visitedPlaces.length + sections.savedPlaces.length,
+          complete: true,
+          durationMs: Math.round(performance.now() - startedAt)
+        };
+        return;
       } else if (placesTitle) {
         placesTitle.textContent = "Production Map";
+        places = founderProductionPlaces(places);
       }
       if (currentFilter !== "all") places = places.filter(p => statusFromStats(getStats(p)) === currentFilter);
       const total = places.length;
-      const count = document.getElementById("placesCount");
-      const list = document.getElementById("placesList");
       if (!places.length) {
         count.textContent = "0 places";
         list.innerHTML = `<div class="empty">No places in this filter.</div>`;
@@ -23925,7 +24005,7 @@
       document.getElementById("learningStatus").innerHTML = learningStatusInsight(reportVisits, confidence);
       document.getElementById("salesWeightDistribution").innerHTML = salesWeightDistribution(reportVisits);
 
-      const best = state.places.slice().sort((a, b) => {
+      const best = placesWithVerifiedVisits(state.places, reportVisits).sort((a, b) => {
         const bs = viewingTeam ? statsForVisitSet(b.id, reportVisits) : placeStats(b.id);
         const as = viewingTeam ? statsForVisitSet(a.id, reportVisits) : placeStats(a.id);
         return (bs.units + bs.laterUnits) - (as.units + as.laterUnits)

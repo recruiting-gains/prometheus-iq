@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v42-add-place-immediate-outcome";
+const CACHE_NAME = "prometheus-v43-representative-saved-places";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
