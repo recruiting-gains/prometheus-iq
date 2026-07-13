@@ -201,6 +201,36 @@ function correctedReport() {
   return source;
 }
 
+function manuallyCreatedBusinessReport() {
+  return report({
+    visit: {
+      visitId: "dashboard-manual-business-visit",
+      placeName: "Field-Created Test Business",
+      placeId: "dashboard-manual-business-place",
+      outcome: "Appointment",
+      conversations: 1,
+      leads: 1,
+      appointments: 1,
+      units: 0,
+      followUp: "Return Wednesday at 10 AM",
+      manager: "Jordan Manager",
+      notes: "Created and logged from Add Place.",
+      businessCreation: {
+        source: "dashboard_add_place",
+        workspaceId: "fitness_connection",
+        placeId: "dashboard-manual-business-place",
+        name: "Field-Created Test Business",
+        address: "1010 Test Way, Houston, TX 77001",
+        category: "Business",
+        bestWindow: "Midday",
+        permission: "Unknown",
+        canRevisit: true,
+        createdAt: "2026-07-11T19:59:00.000Z"
+      }
+    }
+  });
+}
+
 function handoffRequest(body, method = "POST") {
   return new Request(`https://prometheus-iq.example${ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH}`, {
     method,
@@ -271,6 +301,27 @@ test("Dashboard correction ledger is archived verbatim with the final verified o
   assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.outcome, "Membership/Unit");
   assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.units, 1);
   assert.equal(normalized.verifiedFields.totals.totalUnits, 1);
+});
+
+test("Dashboard Add Place business snapshot and initial visit use the canonical Data handoff", async () => {
+  const binding = kvBinding();
+  const source = manuallyCreatedBusinessReport();
+  const response = await submit(payload({ report: source }), productionEnv(binding));
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.acknowledged, true);
+  assert.equal(body.acknowledgment.contractId, routeIqEndOfDayHandoffContractId);
+  const rawKey = [...binding.data.keys()].find(key => key.endsWith("/raw-report.json"));
+  const normalizedKey = [...binding.data.keys()].find(key => key.endsWith("/normalized-field-session.json"));
+  const storedRaw = JSON.parse(binding.data.get(rawKey).value);
+  const normalized = JSON.parse(binding.data.get(normalizedKey).value);
+  assert.deepEqual(storedRaw.visits[0].businessCreation, source.visits[0].businessCreation);
+  assert.equal(storedRaw.visits[0].appointments, 1);
+  assert.equal(storedRaw.visits[0].manager, "Jordan Manager");
+  assert.equal(normalized.verifiedFields.completedVisits[0].governedBusinessIdentity, null);
+  assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.outcome, "Appointment");
+  assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.leads, 1);
 });
 
 test("Dashboard End Day retry is idempotent and does not write a duplicate archive", async () => {

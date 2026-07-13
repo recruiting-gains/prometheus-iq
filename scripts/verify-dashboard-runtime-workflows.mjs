@@ -1438,6 +1438,181 @@ async function verifyPostVisitOutcomeEditing(cdp) {
   })()`);
 }
 
+async function verifyAddPlaceImmediateOutcomeCapture(cdp) {
+  return cdp.evaluate(`(async () => {
+    const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+    const visible = element => {
+      if (!element) return false;
+      const style = getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden" && element.offsetParent !== null;
+    };
+    localStorage.removeItem(fieldSessionArchiveStoreKey);
+    state.visits = state.visits.filter(visit => visit.date !== todayKey());
+    state.visitCorrections = [];
+    state.places = state.places.filter(place => !String(place.name || "").startsWith("Immediate Outcome Harness"));
+    persistStateWithoutRender();
+    render();
+    const addPlaceButtonVisible = visible(document.querySelector('[data-open="location"]'));
+    const routeIdentityBefore = routeVisiblePlaces().map(routeIdentityKey);
+    let outcomeOptions = [];
+    let mobileReachability = null;
+
+    const submitPlace = async ({ key, outcome = "", manager = "", followUp = "", notes = "" }) => {
+      openModal("location");
+      const form = document.getElementById("placeForm");
+      if (!form) throw new Error("Add Place form did not open.");
+      form.elements.name.value = "Immediate Outcome Harness " + key;
+      form.elements.address.value = (1000 + key.length) + " Test Way, Houston, TX 77001";
+      form.elements.category.value = "Business";
+      form.elements.window.value = "Midday";
+      if (!outcomeOptions.length) outcomeOptions = [...form.elements.initialOutcome.options].map(option => option.textContent.trim());
+      if (outcome) {
+        form.elements.recordInitialVisit.checked = true;
+        form.elements.recordInitialVisit.dispatchEvent(new Event("change", { bubbles: true }));
+        form.elements.initialOutcome.value = outcome;
+        form.elements.initialManagerContact.value = manager;
+        form.elements.initialFollowUp.value = followUp;
+        form.elements.initialVisitNotes.value = notes;
+      }
+      if (!mobileReachability && outcome) {
+        const modalBody = document.getElementById("modalBody");
+        const submit = form.querySelector('button[type="submit"]');
+        submit.scrollIntoView({ block: "end" });
+        await wait(0);
+        const rect = submit.getBoundingClientRect();
+        mobileReachability = {
+          fieldsVisible: !document.getElementById("initialVisitFields").hidden,
+          modalClientHeight: modalBody.clientHeight,
+          modalScrollHeight: modalBody.scrollHeight,
+          modalOverflowY: getComputedStyle(modalBody).overflowY,
+          submitTop: rect.top,
+          submitBottom: rect.bottom,
+          submitLeft: rect.left,
+          submitRight: rect.right,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight
+        };
+      }
+      form.requestSubmit();
+      form.requestSubmit();
+      const deadline = Date.now() + 15000;
+      while (Date.now() < deadline) {
+        const modalClosed = !document.getElementById("modal").classList.contains("active");
+        const status = document.getElementById("placeFormStatus")?.textContent?.trim() || "";
+        if (modalClosed || status) break;
+        await wait(50);
+      }
+      const place = state.places.find(item => item.name === "Immediate Outcome Harness " + key) || null;
+      const visit = place ? state.visits.find(item => item.placeId === place.id) || null : null;
+      const status = document.getElementById("placeFormStatus")?.textContent?.trim() || "";
+      return { place, visit, status };
+    };
+
+    const businessOnly = await submitPlace({ key: "Business Only" });
+    const conversation = await submitPlace({
+      key: "Conversation",
+      outcome: "conversation",
+      manager: "Jordan Manager 713-555-0110",
+      notes: "Initial conversation captured during business creation."
+    });
+    const lead = await submitPlace({ key: "Lead", outcome: "lead" });
+    const membership = await submitPlace({ key: "Membership", outcome: "membership_unit" });
+    const appointment = await submitPlace({ key: "Appointment", outcome: "appointment" });
+    const followUp = await submitPlace({
+      key: "Follow Up",
+      outcome: "follow_up_required",
+      followUp: "Return Wednesday at 10 AM"
+    });
+
+    const beforeExactDuplicatePlaces = state.places.length;
+    const beforeExactDuplicateVisits = state.visits.length;
+    const exactDuplicate = await submitPlace({ key: "Business Only" });
+    const duplicateProtection = {
+      status: exactDuplicate.status,
+      placeCountUnchanged: state.places.length === beforeExactDuplicatePlaces,
+      visitCountUnchanged: state.visits.length === beforeExactDuplicateVisits
+    };
+    closeModal();
+
+    const previousWorkspace = document.body.dataset.workspaceId;
+    document.body.dataset.workspaceId = "smoothie_depot";
+    const beforeIsolationPlaces = state.places.length;
+    const isolated = await submitPlace({ key: "Cross Workspace", outcome: "lead" });
+    const workspaceIsolation = {
+      status: isolated.status,
+      noPlaceCreated: state.places.length === beforeIsolationPlaces && !isolated.place,
+      noVisitCreated: !isolated.visit
+    };
+    closeModal();
+    document.body.dataset.workspaceId = previousWorkspace;
+
+    setTab("places");
+    const businessOnlyVisibleInPlaces = document.getElementById("placesList")?.textContent?.includes(businessOnly.place?.name || "") || false;
+    openModal("quick");
+    const businessOnlyVisibleInQuickResult = [...(document.getElementById("quickForm")?.elements.placeId?.options || [])]
+      .some(option => option.value === businessOnly.place?.id);
+    closeModal();
+    setTab("today");
+
+    const mappedOutcomes = Object.fromEntries(Object.entries(initialPlaceVisitOutcomes).map(([key, value]) => [key, { ...value }]));
+    const originalConversation = conversation.visit ? visitOutcomeSnapshot(conversation.visit) : null;
+    if (conversation.visit) {
+      appendVisitCorrection(conversation.visit.id, {
+        ...originalConversation,
+        quality: "Lead",
+        leads: 1
+      });
+    }
+    const reportBeforeArchive = todayReportPayload();
+    const reloaded = normalizeState(JSON.parse(localStorage.getItem(storeKey) || "{}"));
+    const reloadedVisits = reloaded.repProfiles?.[activeRepId]?.visits || [];
+    const routeIdentityAfter = routeVisiblePlaces().map(routeIdentityKey);
+    window.confirm = () => true;
+    const archive = await endFieldSession("end_route");
+    openModal("location");
+    const initialVisitDisabledAfterArchive = document.getElementById("placeForm")?.elements.recordInitialVisit?.disabled === true;
+    closeModal();
+
+    return {
+      addPlaceButtonVisible,
+      outcomeOptions,
+      mobileReachability,
+      businessOnly: { place: businessOnly.place, hasVisit: Boolean(businessOnly.visit) },
+      conversation: conversation.visit,
+      lead: lead.visit,
+      membership: membership.visit,
+      appointment: appointment.visit,
+      followUp: followUp.visit,
+      mappedOutcomes,
+      duplicateProtection,
+      workspaceIsolation,
+      businessOnlyVisibleInPlaces,
+      businessOnlyVisibleInQuickResult,
+      correctionCount: state.visitCorrections.length,
+      correctedConversation: conversation.visit ? effectiveVisitOutcome(conversation.visit) : null,
+      report: {
+        visitCount: reportBeforeArchive.visits.length,
+        businessCreationCount: reportBeforeArchive.visits.filter(visit => visit.businessCreation?.source === "dashboard_add_place").length,
+        correctionCount: reportBeforeArchive.visitOutcomeEvidence?.correctionEvents?.length || 0,
+        conversationOriginal: reportBeforeArchive.visitOutcomeEvidence?.originalVisits?.find(visit => visit.visitId === conversation.visit?.id) || null,
+        conversationFinal: reportBeforeArchive.visits.find(visit => visit.visitId === conversation.visit?.id) || null
+      },
+      reload: {
+        initialVisitCount: reloadedVisits.filter(visit => visit.businessCreatedWithVisit).length,
+        appointment: reloadedVisits.find(visit => visit.id === appointment.visit?.id) || null,
+        followUp: reloadedVisits.find(visit => visit.id === followUp.visit?.id) || null
+      },
+      routePoolUnchanged: JSON.stringify(routeIdentityBefore) === JSON.stringify(routeIdentityAfter),
+      archiveStatus: archive?.status || "",
+      acknowledgment: archive?.acknowledgment || null,
+      initialVisitDisabledAfterArchive,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      viewportWidth: innerWidth
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -1540,6 +1715,7 @@ async function runHarness() {
     ]
   });
   const visitCorrectionServer = await startStaticServer();
+  const addPlaceServer = await startStaticServer();
   const chrome = await launchChrome();
 
   try {
@@ -1643,6 +1819,7 @@ async function runHarness() {
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
     assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
+    assertWorkflow("Add Place desktop availability", repSnap.todayText.includes("Add Place"), "representative Add Place command visible on desktop", JSON.stringify({ todayText: repSnap.todayText.slice(0, 500) }));
     assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
     assertWorkflow("Beta Route Controls Rep radius adjustable by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === false && repSnap.territoryRepRadiusStatus.includes("Rep adjustment allowed") && repSnap.debug.territoryCoverage.assignedRadiusMiles === 25 && repSnap.debug.territoryCoverage.allowedRadiusMiles === 25 && repSnap.debug.territoryCoverage.repCanAdjust === true, repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus, coverage: repSnap.debug.territoryCoverage }));
     assertWorkflow("Beta Route Controls ring explanation", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Populate outer rings") && repSnap.territoryRingTexts.some(text => text.includes("Add verified Google-qualified businesses")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
@@ -1672,7 +1849,7 @@ async function runHarness() {
     assertWorkflow("Nearby Opportunities rendering", nearbyFlow.cardCount > 0 && nearbyFlow.noEmptyAfter && nearbyFlow.countLabel.includes("within") && nearbyFlow.firstCard.includes("Directions"), `${nearbyFlow.cardCount} nearby cards for ${nearbyFlow.target.name}`, JSON.stringify(nearbyFlow));
     await clickTab(rep.cdp, "places");
     const repPlaces = await snapshot(rep.cdp);
-    assertWorkflow("Rep Places visit review", repPlaces.activeView === "view-places" && repPlaces.placesText.includes("Visited Places") && repPlaces.placesText.includes("View Visit") && repPlaces.placesItems > 0, `${repPlaces.placesItems} visited places available on desktop`, JSON.stringify({ activeView: repPlaces.activeView, placesItems: repPlaces.placesItems, placesText: repPlaces.placesText.slice(0, 500) }));
+    assertWorkflow("Rep Places visit review", repPlaces.activeView === "view-places" && repPlaces.placesText.includes("Rep Places") && repPlaces.placesText.includes("View Visit") && repPlaces.placesItems > 0, `${repPlaces.placesItems} visited places available on desktop`, JSON.stringify({ activeView: repPlaces.activeView, placesItems: repPlaces.placesItems, placesText: repPlaces.placesText.slice(0, 500) }));
     const routeSync = await verifyRouteStateSynchronization(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
@@ -1705,7 +1882,7 @@ async function runHarness() {
     const correctionRequests = visitCorrectionServer.fieldSessionRequests;
     const correctionPayload = correctionRequests[0]?.payload || {};
     const correctionRawReport = correctionPayload.rawReportText ? JSON.parse(correctionPayload.rawReportText) : {};
-    assertWorkflow("Post-visit outcome editing", correctionResult.placesBefore.activeView === "view-places" && correctionResult.placesBefore.title === "Visited Places" && correctionResult.placesBefore.cards === 1 && correctionResult.placesBefore.viewVisitVisible && correctionResult.firstCount === 1, "Rep opened a completed visit from Places and saved the first correction", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit outcome editing", correctionResult.placesBefore.activeView === "view-places" && correctionResult.placesBefore.title === "Rep Places" && correctionResult.placesBefore.cards === 1 && correctionResult.placesBefore.viewVisitVisible && correctionResult.firstCount === 1, "Rep opened a completed visit from Places and saved the first correction", JSON.stringify(correctionResult));
     assertWorkflow("Post-visit multiple corrections", correctionResult.secondCount === 2 && correctionResult.countAfterDuplicate === 2 && correctionResult.sequences.join(",") === "1,2" && new Set(correctionResult.eventIds).size === 2, "two ordered, uniquely identified correction events preserved", JSON.stringify(correctionResult));
     assertWorkflow("Post-visit correction persistence", correctionResult.reloadedCorrectionCount === 2 && correctionResult.reloadedFinalOutcome?.quality === "Membership/Unit" && correctionResult.reloadedFinalOutcome?.units === 1, "both corrections and the final verified outcome survive state normalization", JSON.stringify(correctionResult));
     assertWorkflow("Post-visit append-only audit", correctionResult.originalUnchanged && correctionResult.originalAuditText.includes("Original Visit") && correctionResult.firstAuditText.includes("Correction 1") && correctionResult.secondAuditText.includes("Correction 2") && correctionResult.finalAuditText.includes("Final Verified Outcome"), "original evidence remains unchanged alongside both corrections and the final projection", JSON.stringify(correctionResult));
@@ -1718,6 +1895,31 @@ async function runHarness() {
     assertWorkflow("Post-visit mobile no-horizontal-scroll", correctionResult.documentScrollWidth <= correctionResult.viewportWidth + 1 && correctionResult.bodyScrollWidth <= correctionResult.viewportWidth + 1, `${correctionResult.documentScrollWidth}/${correctionResult.bodyScrollWidth}px within ${correctionResult.viewportWidth}px viewport`, JSON.stringify(correctionResult));
     assertWorkflow("Post-visit mobile form reachability", correctionResult.mobileFormReachability?.modalOverflowY === "auto" && correctionResult.mobileFormReachability.submitTop >= 0 && correctionResult.mobileFormReachability.submitBottom <= correctionResult.mobileFormReachability.viewportHeight + 1 && correctionResult.mobileFormReachability.submitLeft >= -1 && correctionResult.mobileFormReachability.submitRight <= correctionResult.mobileFormReachability.viewportWidth + 1, `Save Correction reachable within ${correctionResult.mobileFormReachability?.viewportWidth || 0}x${correctionResult.mobileFormReachability?.viewportHeight || 0}`, JSON.stringify(correctionResult.mobileFormReachability));
     verifyNoErrors("Post-visit outcome editing", visitCorrection.eventLog, await snapshot(visitCorrection.cdp));
+
+    const addPlace = await runPageScenario(chrome, addPlaceServer, "/?role=rep&rep=anthony&debug=1&harness=add-place-immediate-outcome", "add-place-immediate-outcome", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const addPlaceResult = await verifyAddPlaceImmediateOutcomeCapture(addPlace.cdp);
+    const addPlaceRequests = addPlaceServer.fieldSessionRequests;
+    const addPlaceRawReport = addPlaceRequests[0]?.payload?.rawReportText ? JSON.parse(addPlaceRequests[0].payload.rawReportText) : {};
+    assertWorkflow("Add Place business creation only", addPlaceResult.addPlaceButtonVisible && addPlaceResult.businessOnly.place?.sourceType === "Dashboard Manual Entry" && addPlaceResult.businessOnly.place?.workspaceId === "fitness_connection" && !addPlaceResult.businessOnly.hasVisit, "representative created a business without recording a visit", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place later logging access", addPlaceResult.businessOnlyVisibleInPlaces && addPlaceResult.businessOnlyVisibleInQuickResult, "business-only creation remains available in Rep Places and Quick Result without entering Route IQ", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place initial conversation", addPlaceResult.conversation?.quality === "Conversation" && addPlaceResult.conversation?.conversations === 1 && addPlaceResult.conversation?.manager.includes("Jordan Manager") && addPlaceResult.conversation?.notes.includes("Initial conversation"), "conversation and manager contact captured with business creation", JSON.stringify(addPlaceResult.conversation));
+    assertWorkflow("Add Place initial lead", addPlaceResult.lead?.quality === "Lead" && addPlaceResult.lead?.conversations === 1 && addPlaceResult.lead?.leads === 1, "lead captured with business creation", JSON.stringify(addPlaceResult.lead));
+    assertWorkflow("Add Place initial membership", addPlaceResult.membership?.quality === "Membership / Unit" && addPlaceResult.membership?.conversations === 1 && addPlaceResult.membership?.units === 1, "membership/unit captured with business creation", JSON.stringify(addPlaceResult.membership));
+    assertWorkflow("Add Place initial appointment", addPlaceResult.appointment?.quality === "Appointment" && addPlaceResult.appointment?.leads === 1 && addPlaceResult.appointment?.appointments === 1, "appointment captured with business creation", JSON.stringify(addPlaceResult.appointment));
+    assertWorkflow("Add Place initial follow-up", addPlaceResult.followUp?.quality === "Follow-up Required" && addPlaceResult.followUp?.followUp === "Return Wednesday at 10 AM", "follow-up requirement captured with business creation", JSON.stringify(addPlaceResult.followUp));
+    assertWorkflow("Add Place supported outcomes", ["Visited", "Conversation", "Lead", "Appointment", "Membership / Unit", "Follow-up Required", "Decision Pending", "No Interest", "Closed"].every(label => addPlaceResult.outcomeOptions.includes(label)) && Object.keys(addPlaceResult.mappedOutcomes).length === 9, "all required initial outcomes are available", JSON.stringify({ options: addPlaceResult.outcomeOptions, mapped: addPlaceResult.mappedOutcomes }));
+    assertWorkflow("Add Place duplicate protection", addPlaceResult.duplicateProtection.placeCountUnchanged && addPlaceResult.duplicateProtection.visitCountUnchanged && addPlaceResult.duplicateProtection.status === "This place already exists.", "duplicate submit created neither a business nor a visit", JSON.stringify(addPlaceResult.duplicateProtection));
+    assertWorkflow("Add Place workspace isolation", addPlaceResult.workspaceIsolation.noPlaceCreated && addPlaceResult.workspaceIsolation.noVisitCreated && addPlaceResult.workspaceIsolation.status.includes("outside Fitness Connection"), "cross-workspace creation failed closed", JSON.stringify(addPlaceResult.workspaceIsolation));
+    assertWorkflow("Add Place append-only history", addPlaceResult.correctionCount === 1 && addPlaceResult.correctedConversation?.quality === "Lead" && addPlaceResult.report.correctionCount === 1 && addPlaceResult.report.conversationOriginal?.outcome === "Conversation" && addPlaceResult.report.conversationFinal?.outcome === "Lead", "business creation, initial visit, correction, and final verified outcome remain distinct", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place state persistence", addPlaceResult.reload.initialVisitCount === 5 && addPlaceResult.reload.appointment?.appointments === 1 && addPlaceResult.reload.followUp?.followUp === "Return Wednesday at 10 AM", "initial outcome fields survive state normalization", JSON.stringify(addPlaceResult.reload));
+    assertWorkflow("Add Place canonical field-session contract", addPlaceResult.archiveStatus === "archived" && addPlaceResult.acknowledgment?.status === "archived" && addPlaceRequests.length === 1 && addPlaceResult.report.businessCreationCount === 5 && addPlaceRawReport.visits?.filter(visit => visit.businessCreation?.source === "dashboard_add_place").length === 5, `${addPlaceResult.acknowledgment?.sessionId || "missing session"} acknowledged with five business-creation snapshots`, JSON.stringify({ result: addPlaceResult, request: addPlaceRequests[0] }));
+    assertWorkflow("Add Place Route IQ scoring isolation", addPlaceResult.routePoolUnchanged, "manual businesses stayed outside the governed Google-qualified route pool", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place archived session guard", addPlaceResult.initialVisitDisabledAfterArchive, "initial visit capture is disabled after session finalization", JSON.stringify(addPlaceResult));
+    assertWorkflow("Add Place mobile form reachability", addPlaceResult.mobileReachability?.fieldsVisible && addPlaceResult.mobileReachability.modalOverflowY === "auto" && addPlaceResult.mobileReachability.submitTop >= 0 && addPlaceResult.mobileReachability.submitBottom <= addPlaceResult.mobileReachability.viewportHeight + 1 && addPlaceResult.mobileReachability.submitLeft >= -1 && addPlaceResult.mobileReachability.submitRight <= addPlaceResult.mobileReachability.viewportWidth + 1 && addPlaceResult.documentScrollWidth <= addPlaceResult.viewportWidth + 1 && addPlaceResult.bodyScrollWidth <= addPlaceResult.viewportWidth + 1, `Save Place + Visit reachable within ${addPlaceResult.mobileReachability?.viewportWidth || 0}x${addPlaceResult.mobileReachability?.viewportHeight || 0}`, JSON.stringify(addPlaceResult.mobileReachability));
+    verifyNoErrors("Add Place immediate outcome", addPlace.eventLog, await snapshot(addPlace.cdp));
 
     const fieldSession = await runPageScenario(chrome, fieldSessionServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-route", "field-session-end-route");
     const fieldSessionResult = await verifyFieldSessionCompletion(fieldSession.cdp, "end_route");
@@ -1745,6 +1947,7 @@ async function runHarness() {
     fieldSession.cdp.close();
     fieldSessionRetry.cdp.close();
     visitCorrection.cdp.close();
+    addPlace.cdp.close();
 
     const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -1790,6 +1993,7 @@ async function runHarness() {
     await fieldSessionServer.close();
     await fieldSessionRetryServer.close();
     await visitCorrectionServer.close();
+    await addPlaceServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

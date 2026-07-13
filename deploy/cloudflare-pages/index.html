@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-WU9Dw8iHIyxttA7YhN+2UB6t+jHqTGK4hkDK7HvkKdA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-Z8BSjdkVkvzP61oqzMJeeJ3WhxMYMPd37s0bgziTgHE='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -772,6 +772,31 @@
       font-weight: 800;
     }
 
+    .initial-visit-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .initial-visit-toggle input {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+      margin: 0;
+    }
+
+    .initial-visit-fields {
+      display: grid;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .initial-visit-fields[hidden] { display: none; }
+
     body[data-mode="rep"] .owner-only { display: none !important; }
     body[data-session-role="rep"] .manager-only,
     body[data-session-role="rep"] .admin-only,
@@ -1421,7 +1446,7 @@
           <div class="action-row">
             <button class="btn" data-open="quick">Log Result</button>
             <button class="btn secondary owner-only" data-open="visit">Detailed Visit</button>
-            <button class="btn secondary owner-only" data-open="location">+ Add Place</button>
+            <button class="btn secondary" data-open="location">+ Add Place</button>
             <button class="btn secondary" data-tab="route">View Route</button>
           </div>
           <div class="route-loop-status" id="routeLoopStatusToday" data-state="loading" role="status" aria-live="polite">Preparing today’s route.</div>
@@ -1736,9 +1761,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-12-post-visit-outcome-editing-v1";
+    const appBuildVersion = "2026-07-12-add-place-immediate-outcome-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v41-post-visit-outcome-editing";
+    const serviceWorkerCacheVersion = "prometheus-v42-add-place-immediate-outcome";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
@@ -19844,6 +19869,18 @@
           contactName: visit.contactName || "",
           contactPhone: visit.contactPhone || "",
           contactEmail: visit.contactEmail || "",
+          businessCreation: visit.businessCreatedWithVisit ? {
+            source: "dashboard_add_place",
+            workspaceId: place?.workspaceId || defaultWorkspaceId,
+            placeId: visit.placeId || "",
+            name: place?.name || visit.placeName || "Unknown place",
+            address: place?.address || "",
+            category: place?.category || "Other",
+            bestWindow: place?.window || "Anytime",
+            permission: place?.permission || "Unknown",
+            canRevisit: place?.canRevisit !== false,
+            createdAt: new Date(Number(visit.businessCreatedAt || place?.createdAt || visit.createdAt)).toISOString()
+          } : null,
           gpsAttached: Boolean(visit.location)
         };
       };
@@ -19976,6 +20013,19 @@
       }
       if (report.visits.some(visit => !visit?.placeName || !visit?.placeId || Number.isNaN(new Date(visit?.timestamp).getTime()))) {
         throw new Error("A completed visit is missing required evidence.");
+      }
+      for (const visit of report.visits) {
+        const creation = visit.businessCreation;
+        if (!creation) continue;
+        const createdAt = new Date(creation.createdAt);
+        if (creation.source !== "dashboard_add_place"
+          || creation.workspaceId !== payload.workspaceId
+          || creation.placeId !== visit.placeId
+          || creation.name !== visit.placeName
+          || Number.isNaN(createdAt.getTime())
+          || createdAt.getTime() > new Date(visit.timestamp).getTime()) {
+          throw new Error("Business creation evidence crosses session scope or is incomplete.");
+        }
       }
       const generatedAt = new Date(report.generatedAt);
       if (Number.isNaN(generatedAt.getTime()) || finalizedAt.getTime() < generatedAt.getTime()) {
@@ -20314,6 +20364,21 @@
     }
 
     const visitOutcomeFields = ["quality", "conversations", "leads", "appointments", "units", "laterUnits", "followUp", "notes", "manager", "contactName", "contactPhone", "contactEmail"];
+    const initialPlaceVisitOutcomes = Object.freeze({
+      visited: Object.freeze({ quality: "Visited", conversations: 0, leads: 0, appointments: 0, units: 0 }),
+      conversation: Object.freeze({ quality: "Conversation", conversations: 1, leads: 0, appointments: 0, units: 0 }),
+      lead: Object.freeze({ quality: "Lead", conversations: 1, leads: 1, appointments: 0, units: 0 }),
+      appointment: Object.freeze({ quality: "Appointment", conversations: 1, leads: 1, appointments: 1, units: 0 }),
+      membership_unit: Object.freeze({ quality: "Membership / Unit", conversations: 1, leads: 0, appointments: 0, units: 1 }),
+      follow_up_required: Object.freeze({ quality: "Follow-up Required", conversations: 1, leads: 0, appointments: 0, units: 0 }),
+      decision_pending: Object.freeze({ quality: "Decision Pending", conversations: 1, leads: 0, appointments: 0, units: 0 }),
+      no_interest: Object.freeze({ quality: "No Interest", conversations: 1, leads: 0, appointments: 0, units: 0 }),
+      closed: Object.freeze({ quality: "Closed", conversations: 0, leads: 0, appointments: 0, units: 0 })
+    });
+
+    function initialPlaceVisitOutcome(value) {
+      return initialPlaceVisitOutcomes[cleanText(value, 40)] || initialPlaceVisitOutcomes.visited;
+    }
 
     function visitOutcomeSnapshot(raw = {}) {
       return {
@@ -20682,10 +20747,18 @@
           window: visitWindows.includes(raw.window) ? raw.window : visitWindow(new Date().getHours()),
           conversations: cleanNumber(raw.conversations, 10000),
           leads: cleanNumber(raw.leads, 10000),
+          appointments: cleanNumber(raw.appointments, 10000),
           units: cleanNumber(raw.units, 10000),
           laterUnits: cleanNumber(raw.laterUnits, 10000),
           quality: cleanText(raw.quality, 80),
+          followUp: cleanText(raw.followUp, 1000),
           notes: cleanText(raw.notes, 2000),
+          manager: cleanText(raw.manager, 160),
+          contactName: cleanText(raw.contactName, 160),
+          contactPhone: cleanText(raw.contactPhone, 80),
+          contactEmail: cleanText(raw.contactEmail, 254),
+          businessCreatedWithVisit: raw.businessCreatedWithVisit === true,
+          businessCreatedAt: cleanNumber(raw.businessCreatedAt, Date.now()) || null,
           location: normalizeVisitLocation(raw.location),
           quick: raw.quick === true,
           createdAt
@@ -21316,7 +21389,11 @@
 
     function visiblePlaces() {
       if (sessionRole === "rep") {
-        if (activeRepId === "anthony") return anthonyApprovedRoutePool(state.places);
+        if (activeRepId === "anthony") {
+          const approved = anthonyApprovedRoutePool(state.places);
+          const manual = state.places.filter(place => place.repProfileId === activeRepId && place.sourceType === "Dashboard Manual Entry");
+          return approved.concat(manual.filter(place => !approved.some(item => item.id === place.id)));
+        }
         return state.places.filter(place => !place.repProfileId || place.repProfileId === activeRepId);
       }
       return state.places;
@@ -23773,8 +23850,9 @@
       const placesTitle = document.getElementById("placesTitle");
       if (sessionRole === "rep") {
         const visitedPlaceIds = new Set(state.visits.map(visit => visit.placeId));
-        places = places.filter(place => visitedPlaceIds.has(place.id));
-        if (placesTitle) placesTitle.textContent = "Visited Places";
+        places = places.filter(place => visitedPlaceIds.has(place.id)
+          || place.repProfileId === activeRepId && place.sourceType === "Dashboard Manual Entry");
+        if (placesTitle) placesTitle.textContent = "Rep Places";
       } else if (placesTitle) {
         placesTitle.textContent = "Production Map";
       }
@@ -24544,6 +24622,7 @@
         });
       } else {
         title.textContent = "Add Place";
+        const initialVisitUnavailable = Boolean(currentFinalizedFieldSession());
         body.innerHTML = `<form id="placeForm">
           <label>Place name<input name="name" value="${escapeAttr(preset.name || "")}" placeholder="Example: Oak Ridge Apartments" required></label>
           <label>Address or map search<input name="address" value="${escapeAttr(preset.address || "")}" placeholder="Example: AutoZone near 12338 Gulf Freeway"></label>
@@ -24565,25 +24644,132 @@
             </select></label>
           </div>
           <label>Notes<textarea name="notes" placeholder="Gate code, manager name, setup spot, shift change, permission">${escapeHtml(preset.notes || "")}</textarea></label>
+          <label class="initial-visit-toggle">
+            <input name="recordInitialVisit" type="checkbox" value="true" ${initialVisitUnavailable ? "disabled" : ""}>
+            <span>Record initial visit outcome</span>
+          </label>
+          <div class="initial-visit-fields" id="initialVisitFields" hidden>
+            <label>Initial outcome<select name="initialOutcome">
+              <option value="visited">Visited</option>
+              <option value="conversation">Conversation</option>
+              <option value="lead">Lead</option>
+              <option value="appointment">Appointment</option>
+              <option value="membership_unit">Membership / Unit</option>
+              <option value="follow_up_required">Follow-up Required</option>
+              <option value="decision_pending">Decision Pending</option>
+              <option value="no_interest">No Interest</option>
+              <option value="closed">Closed</option>
+            </select></label>
+            <label>Manager Contact<input name="initialManagerContact" placeholder="Name or contact detail"></label>
+            <label>Follow-up<textarea name="initialFollowUp" placeholder="Next action and timing"></textarea></label>
+            <label>Visit Notes<textarea name="initialVisitNotes" placeholder="What happened during this first interaction"></textarea></label>
+            ${visitLocationMarkup()}
+          </div>
+          <div class="status-line" id="placeFormStatus" role="status" aria-live="polite">${initialVisitUnavailable ? "Today’s field session is finalized. The business can still be saved without an initial visit." : ""}</div>
           <button class="btn" type="submit">Save Place</button>
         </form>`;
-        body.querySelector("form").addEventListener("submit", event => {
+        const placeForm = body.querySelector("#placeForm");
+        const initialVisitToggle = placeForm.elements.recordInitialVisit;
+        const initialVisitFields = body.querySelector("#initialVisitFields");
+        const submitButton = placeForm.querySelector('button[type="submit"]');
+        attachVisitLocationControl(placeForm);
+        initialVisitToggle.addEventListener("change", () => {
+          initialVisitFields.hidden = !initialVisitToggle.checked;
+          submitButton.textContent = initialVisitToggle.checked ? "Save Place + Visit" : "Save Place";
+          if (initialVisitToggle.checked) requestAnimationFrame(() => initialVisitFields.scrollIntoView({ block: "nearest" }));
+        });
+        let placeSubmitPending = false;
+        placeForm.addEventListener("submit", async event => {
           event.preventDefault();
+          if (placeSubmitPending) return;
           const data = Object.fromEntries(new FormData(event.currentTarget).entries());
-          state.places.push({
-            id: id(),
-            name: data.name.trim(),
-            category: data.category,
-            window: data.window,
-            address: data.address.trim(),
-            permission: data.permission,
-            canRevisit: data.canRevisit === "true",
-            repProfileId: sessionRole === "rep" ? activeRepId : "",
-            notes: data.notes.trim(),
-            createdAt: Date.now()
-          });
-          closeModal();
-          save();
+          const controls = event.currentTarget.querySelectorAll("button, select, input, textarea");
+          const status = document.getElementById("placeFormStatus");
+          placeSubmitPending = true;
+          controls.forEach(control => { control.disabled = true; });
+          let createdPlace = null;
+          try {
+            const workspaceId = currentRouteWorkspaceId();
+            if (workspaceId !== defaultWorkspaceId) throw new Error("Add Place is unavailable outside Fitness Connection.");
+            if (state.places.length >= MAX_PLACES) throw new Error("Place storage limit reached.");
+            const name = cleanText(data.name, 160);
+            const address = cleanText(data.address, 300);
+            if (!name) throw new Error("Place name is required.");
+            const duplicate = state.places.some(place => queueCandidateWorkspace(place) === workspaceId
+              && normalizeKey(place.name) === normalizeKey(name)
+              && normalizeKey(place.address) === normalizeKey(address));
+            if (duplicate) throw new Error("This place already exists.");
+            const includeInitialVisit = data.recordInitialVisit === "true";
+            if (includeInitialVisit && currentFinalizedFieldSession()) throw new Error("Today’s field session is finalized. Save the business without an initial visit.");
+            const createdAt = Date.now();
+            createdPlace = {
+              id: id(),
+              name,
+              category: placeCategories.includes(data.category) ? data.category : "Other",
+              window: visitWindows.includes(data.window) ? data.window : "Anytime",
+              address,
+              permission: permissionValues.includes(data.permission) ? data.permission : "Unknown",
+              canRevisit: data.canRevisit === "true",
+              repProfileId: sessionRole === "rep" ? activeRepId : "",
+              workspaceId,
+              sourceType: "Dashboard Manual Entry",
+              notes: cleanText(data.notes, 2000),
+              createdAt
+            };
+            state.places.push(createdPlace);
+            invalidateDashboardComputationCache();
+            if (!includeInitialVisit) {
+              closeModal();
+              save();
+              return;
+            }
+            const outcome = initialPlaceVisitOutcome(data.initialOutcome);
+            const followUp = cleanText(data.initialFollowUp, 1000)
+              || (data.initialOutcome === "follow_up_required" ? "Follow-up required." : "");
+            const initialVisit = {
+              id: id(),
+              placeId: createdPlace.id,
+              placeName: createdPlace.name,
+              workspaceId,
+              date: todayKey(),
+              window: visitWindow(new Date().getHours()),
+              conversations: outcome.conversations,
+              leads: outcome.leads,
+              appointments: outcome.appointments,
+              units: outcome.units,
+              laterUnits: 0,
+              quality: outcome.quality,
+              followUp,
+              notes: cleanText(data.initialVisitNotes, 2000),
+              manager: cleanText(data.initialManagerContact, 160),
+              contactName: "",
+              contactPhone: "",
+              contactEmail: "",
+              location: locationFromForm(placeForm),
+              businessCreatedWithVisit: true,
+              businessCreatedAt: createdAt,
+              createdAt: Date.now()
+            };
+            persistStateWithoutRender();
+            await persistCompletedVisitAndRefreshRoute(initialVisit);
+            if (!state.visits.some(visit => visit.id === initialVisit.id)) {
+              state.places = state.places.filter(place => place.id !== createdPlace.id);
+              invalidateDashboardComputationCache();
+              persistStateWithoutRender();
+              render();
+              throw new Error("The business and initial visit could not be saved together.");
+            }
+          } catch (error) {
+            if (createdPlace && !state.visits.some(visit => visit.placeId === createdPlace.id)) {
+              state.places = state.places.filter(place => place.id !== createdPlace.id);
+              invalidateDashboardComputationCache();
+              persistStateWithoutRender();
+              render();
+            }
+            placeSubmitPending = false;
+            controls.forEach(control => { control.disabled = control === initialVisitToggle && initialVisitUnavailable; });
+            if (status) status.textContent = error?.message || "Place could not be saved.";
+          }
         });
       }
       modal.classList.add("active");

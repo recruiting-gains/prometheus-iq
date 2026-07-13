@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v41-post-visit-outcome-editing";
+const CACHE_NAME = "prometheus-v42-add-place-immediate-outcome";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
