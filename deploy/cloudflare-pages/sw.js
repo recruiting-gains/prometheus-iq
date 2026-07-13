@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v43-representative-saved-places";
+const CACHE_NAME = "prometheus-v44-decision-context-producer";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

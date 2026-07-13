@@ -1225,6 +1225,128 @@ async function verifyFieldSessionCompletion(cdp, completionAction) {
   })()`);
 }
 
+async function verifyDecisionContextProducer(cdp) {
+  return cdp.evaluate(`(async () => {
+    const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+    localStorage.removeItem(fieldSessionArchiveStoreKey);
+    state.visits = state.visits.filter(visit => visit.date !== todayKey());
+    persistStateWithoutRender();
+    render();
+    const recommendation = routeRecommendation();
+    const alternative = routeVisiblePlaces().find(place => place.id !== recommendation?.id);
+    if (!recommendation || !alternative) throw new Error("Decision context validation requires a recommendation and an alternative business.");
+    const recommendationId = routeIdentityKey(recommendation);
+    const sourceIds = Object.keys(visitDecisionSourceDefinitions);
+    const generated = Object.fromEntries(sourceIds.map((sourceId, index) => {
+      const placeId = sourceId === "route_iq_recommendation" ? recommendation.id : alternative.id;
+      return [sourceId, createVisitDecisionEvidence({
+        sourceId,
+        visitId: "decision-source-validation-" + index,
+        placeId,
+        capturedAt: "2026-07-12T18:" + String(index).padStart(2, "0") + ":00.000Z",
+        recommendationPlaceId: recommendation.id,
+        recommendationId,
+        workspaceId: "fitness_connection"
+      })];
+    }));
+    const unknown = createVisitDecisionEvidence({
+      sourceId: "unknown",
+      visitId: "decision-source-validation-unknown",
+      placeId: alternative.id,
+      capturedAt: "2026-07-12T18:59:00.000Z",
+      recommendationPlaceId: recommendation.id,
+      recommendationId,
+      workspaceId: "fitness_connection"
+    });
+    let workspaceBlocked = false;
+    try {
+      createVisitDecisionEvidence({
+        sourceId: "manual_selection",
+        visitId: "decision-source-cross-workspace",
+        placeId: alternative.id,
+        capturedAt: Date.now(),
+        workspaceId: "smoothie_depot"
+      });
+    } catch (error) {
+      workspaceBlocked = /outside Fitness Connection/.test(error.message);
+    }
+
+    openModal("quick", { placeId: recommendation.id });
+    const form = document.getElementById("quickForm");
+    if (!form) throw new Error("Quick Result decision source form did not open.");
+    form.elements.placeId.value = recommendation.id;
+    form.querySelector('[data-quick-outcome="talk"]')?.click();
+    await wait(0);
+    const labels = [...form.querySelectorAll('.decision-source-option')].map(label => label.textContent.trim());
+    const routeRadio = form.querySelector('[name="visitDecisionSourceId"][value="route_iq_recommendation"]');
+    routeRadio.click();
+    form.querySelector('[data-decision-source-skip]')?.click();
+    const skipState = {
+      selected: form.querySelector('[name="visitDecisionSourceId"]:checked')?.value || "unknown",
+      status: form.querySelector('[data-decision-source-status]')?.textContent?.trim() || ""
+    };
+    routeRadio.click();
+    const submit = form.querySelector('#quickCounts .btn[type="submit"]');
+    const modalBody = document.getElementById("modalBody");
+    submit.scrollIntoView({ block: "end" });
+    await wait(0);
+    const submitRect = submit.getBoundingClientRect();
+    const layout = {
+      viewportWidth: innerWidth,
+      viewportHeight: innerHeight,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      modalOverflowY: getComputedStyle(modalBody).overflowY,
+      submitTop: submitRect.top,
+      submitBottom: submitRect.bottom,
+      submitLeft: submitRect.left,
+      submitRight: submitRect.right
+    };
+    form.requestSubmit();
+    const deadline = Date.now() + 15000;
+    while (document.getElementById("modal")?.classList.contains("active") && Date.now() < deadline) await wait(50);
+    const visit = state.visits.find(item => item.date === todayKey());
+    const reloaded = normalizeState(JSON.parse(localStorage.getItem(storeKey) || "{}"));
+    const reloadedVisit = reloaded.repProfiles?.[activeRepId]?.visits?.find(item => item.id === visit?.id) || null;
+    const report = todayReportPayload();
+    window.confirm = () => true;
+    const archive = await endFieldSession("end_route");
+    return {
+      sourceIds,
+      generated,
+      unknown,
+      labels,
+      skipState,
+      workspaceBlocked,
+      visit,
+      reloadedVisit,
+      reportVisit: report.visits.find(item => item.visitId === visit?.id) || null,
+      archiveStatus: archive?.status || "",
+      acknowledgment: archive?.acknowledgment || null,
+      layout
+    };
+  })()`);
+}
+
+async function verifyDecisionContextDesktopLayout(cdp) {
+  return cdp.evaluate(`(() => {
+    openModal("quick");
+    const form = document.getElementById("quickForm");
+    form.querySelector('[data-quick-outcome="talk"]')?.click();
+    const fieldset = form.querySelector('[data-decision-source-capture]');
+    const rect = fieldset?.getBoundingClientRect() || {};
+    const result = {
+      viewportWidth: innerWidth,
+      labelCount: form.querySelectorAll('.decision-source-option').length,
+      left: Number(rect.left || 0),
+      right: Number(rect.right || 0),
+      scrollWidth: document.documentElement.scrollWidth
+    };
+    closeModal();
+    return result;
+  })()`);
+}
+
 async function verifyFieldSessionRetry(cdp) {
   return cdp.evaluate(`(async () => {
     const visible = element => {
@@ -1811,6 +1933,7 @@ async function runHarness() {
   });
   const visitCorrectionServer = await startStaticServer();
   const addPlaceServer = await startStaticServer();
+  const decisionContextServer = await startStaticServer();
   const chrome = await launchChrome();
 
   try {
@@ -1925,6 +2048,8 @@ async function runHarness() {
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
     assertWorkflow("Anthony beta readiness", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.activeRepId === "anthony" && repSnap.anthonyProfileExists && repSnap.anthonyPoolCount >= 6 && repSnap.debug.runtimeDataPool === "active" && repSnap.appBuildVersion && repSnap.storedAppBuildVersion === repSnap.appBuildVersion, `Anthony profile ready, ${repSnap.anthonyPoolCount} approved route targets, build ${repSnap.appBuildVersion}`, JSON.stringify(repSnap));
     assertWorkflow("Beta Stability Sprint 2 dashboard performance", Number(founderSnap.debug.renderTimings.total || 0) < 5000 && Number(repSnap.debug.renderTimings.total || 0) < 5000 && Number(founderSnap.performance.activeResourceDuration || 0) < 5000 && founder.routeLoadMs < 10000, `founder render ${founderSnap.debug.renderTimings.total || 0}ms, rep render ${repSnap.debug.renderTimings.total || 0}ms, active fetch ${founderSnap.performance.activeResourceDuration || 0}ms, route ready ${founder.routeLoadMs}ms`, JSON.stringify({ founderRender: founderSnap.debug.renderTimings, repRender: repSnap.debug.renderTimings, founderPerformance: founderSnap.performance, routeLoadMs: founder.routeLoadMs }));
+    const decisionDesktop = await verifyDecisionContextDesktopLayout(rep.cdp);
+    assertWorkflow("Decision Context desktop rendering", decisionDesktop.viewportWidth > 390 && decisionDesktop.labelCount === 7 && decisionDesktop.left >= -1 && decisionDesktop.right <= decisionDesktop.viewportWidth + 1 && decisionDesktop.scrollWidth <= decisionDesktop.viewportWidth + 1, "seven optional decision sources fit the desktop Quick Result workflow", JSON.stringify(decisionDesktop));
     verifyNoErrors("Rep", rep.eventLog, repSnap);
     await clickTab(rep.cdp, "route");
     const repRouteSnap = await snapshot(rep.cdp);
@@ -1970,6 +2095,30 @@ async function runHarness() {
     const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");
     verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
     verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
+
+    const decisionContext = await runPageScenario(chrome, decisionContextServer, "/?role=rep&rep=anthony&debug=1&harness=decision-context-producer", "decision-context-producer", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const decisionResult = await verifyDecisionContextProducer(decisionContext.cdp);
+    const decisionRequest = decisionContextServer.fieldSessionRequests[0]?.payload || {};
+    const decisionRawReport = decisionRequest.rawReportText ? JSON.parse(decisionRequest.rawReportText) : {};
+    const knownSourcesValid = decisionResult.sourceIds.every(sourceId => {
+      const evidence = decisionResult.generated[sourceId]?.visitDecisionSource;
+      return evidence?.sourceId === sourceId && evidence.reason && evidence.evidence?.length === 1 && evidence.confidence === 1 && !Number.isNaN(Date.parse(evidence.capturedAt));
+    });
+    const nonRouteDecisionsValid = decisionResult.sourceIds.filter(sourceId => sourceId !== "route_iq_recommendation")
+      .every(sourceId => decisionResult.generated[sourceId]?.recommendationDecisionContext?.decision === "overridden");
+    assertWorkflow("Decision Context supported sources", decisionResult.sourceIds.length === 7 && knownSourcesValid && decisionResult.labels.includes("Route IQ Recommendation") && decisionResult.labels.includes("Nearby Context") && decisionResult.labels.includes("Saved Place") && decisionResult.labels.includes("Discovery") && decisionResult.labels.includes("Existing Relationship") && decisionResult.labels.includes("Follow-up") && decisionResult.labels.includes("Manual"), "all seven governed decision sources produce complete structured evidence", JSON.stringify(decisionResult));
+    assertWorkflow("Decision Context Route IQ acceptance", decisionResult.generated.route_iq_recommendation?.recommendationDecisionContext?.decision === "accepted" && decisionResult.generated.route_iq_recommendation?.recommendationDecisionContext?.recommendationAvailable === true, "explicit Route IQ selection records accepted recommendation context", JSON.stringify(decisionResult.generated.route_iq_recommendation));
+    assertWorkflow("Decision Context off-route context", nonRouteDecisionsValid, "each explicit non-route source records governed override context when a different recommendation is present", JSON.stringify(decisionResult.generated));
+    assertWorkflow("Decision Context Skip and Unknown", decisionResult.skipState.selected === "unknown" && decisionResult.skipState.status === "Unknown (default)" && decisionResult.unknown.visitDecisionSource?.sourceId === "unknown" && decisionResult.unknown.visitDecisionSource?.confidence === 0, "Skip remains optional and produces explicit Unknown evidence", JSON.stringify({ skip: decisionResult.skipState, unknown: decisionResult.unknown }));
+    assertWorkflow("Decision Context workspace isolation", decisionResult.workspaceBlocked, "unknown workspace failed closed", JSON.stringify(decisionResult));
+    assertWorkflow("Decision Context local persistence", decisionResult.visit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reloadedVisit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reloadedVisit?.recommendationDecisionContext?.decision === "accepted", "decision evidence survives Dashboard state normalization and reload", JSON.stringify({ visit: decisionResult.visit, reloaded: decisionResult.reloadedVisit }));
+    assertWorkflow("Decision Context canonical report", decisionResult.reportVisit?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionResult.reportVisit?.recommendationDecisionContext?.decision === "accepted", "today report carries both governed decision fields", JSON.stringify(decisionResult.reportVisit));
+    assertWorkflow("Decision Context Data acknowledgment", decisionResult.archiveStatus === "archived" && decisionResult.acknowledgment?.status === "archived" && decisionContextServer.fieldSessionRequests.length === 1 && decisionRawReport.visits?.[0]?.visitDecisionSource?.sourceId === "route_iq_recommendation" && decisionRawReport.visits?.[0]?.recommendationDecisionContext?.decision === "accepted", `${decisionResult.acknowledgment?.sessionId || "missing session"} acknowledged with decision context`, JSON.stringify({ result: decisionResult, request: decisionRequest }));
+    assertWorkflow("Decision Context mobile reachability", decisionResult.layout.modalOverflowY === "auto" && decisionResult.layout.submitTop >= 0 && decisionResult.layout.submitBottom <= decisionResult.layout.viewportHeight + 1 && decisionResult.layout.submitLeft >= -1 && decisionResult.layout.submitRight <= decisionResult.layout.viewportWidth + 1 && decisionResult.layout.documentScrollWidth <= decisionResult.layout.viewportWidth + 1 && decisionResult.layout.bodyScrollWidth <= decisionResult.layout.viewportWidth + 1, `Decision Source and Save Result reachable within ${decisionResult.layout.viewportWidth}x${decisionResult.layout.viewportHeight}`, JSON.stringify(decisionResult.layout));
+    verifyNoErrors("Decision Context producer", decisionContext.eventLog, await snapshot(decisionContext.cdp));
 
     const visitCorrection = await runPageScenario(chrome, visitCorrectionServer, "/?role=rep&rep=anthony&debug=1&harness=post-visit-outcome-editing", "post-visit-outcome-editing", {
       standalone: true,
@@ -2049,6 +2198,7 @@ async function runHarness() {
     fieldSessionRetry.cdp.close();
     visitCorrection.cdp.close();
     addPlace.cdp.close();
+    decisionContext.cdp.close();
 
     const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -2095,6 +2245,7 @@ async function runHarness() {
     await fieldSessionRetryServer.close();
     await visitCorrectionServer.close();
     await addPlaceServer.close();
+    await decisionContextServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

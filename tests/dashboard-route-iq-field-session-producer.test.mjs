@@ -88,6 +88,18 @@ function report(overrides = {}) {
     units: 0,
     laterUnits: 0,
     notes: "Synthetic Dashboard contract test only.",
+    visitDecisionSource: {
+      sourceId: "route_iq_recommendation",
+      reason: "The representative explicitly selected the active Route IQ recommendation.",
+      evidence: [{ evidenceType: "route_selection", sourceRecordId: "dashboard-visit:dashboard-producer-test-visit" }],
+      confidence: 1,
+      capturedAt: "2026-07-11T20:00:00.000Z"
+    },
+    recommendationDecisionContext: {
+      recommendationAvailable: true,
+      recommendationId: "google:ChIJDashboardProducerTest",
+      decision: "accepted"
+    },
     gpsAttached: true,
     ...(overrides.visit || {})
   };
@@ -273,10 +285,14 @@ test("Dashboard End Route producer receives a committed Data acknowledgment", as
   assert.equal(body.acknowledgment.sessionId, "route-iq-field-session-fitness-connection-fitness-anthony-2026-07-11");
   assert.equal(body.acknowledgment.duplicate, false);
   assert.equal(binding.writes.at(-1).key.endsWith("/commit.json"), true);
+  const rawKey = [...binding.data.keys()].find(key => key.endsWith("/raw-report.json"));
   const normalizedKey = [...binding.data.keys()].find(key => key.endsWith("/normalized-field-session.json"));
   const historyKey = [...binding.data.keys()].find(key => key.endsWith("/history-updates.json"));
+  const storedRaw = JSON.parse(binding.data.get(rawKey).value);
   const normalized = JSON.parse(binding.data.get(normalizedKey).value);
   const history = JSON.parse(binding.data.get(historyKey).value);
+  assert.equal(storedRaw.visits[0].visitDecisionSource.sourceId, "route_iq_recommendation");
+  assert.equal(storedRaw.visits[0].recommendationDecisionContext.decision, "accepted");
   assert.equal(normalized.verifiedFields.completedVisits[0].governedBusinessIdentity.googlePlaceId, "ChIJDashboardProducerTest");
   assert.equal(history.customerOutcomeHistory.length, 1);
   assert.equal(history.categoryOutcomeHistory[0].category, "Business");
