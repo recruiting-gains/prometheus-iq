@@ -28,7 +28,11 @@ For newly normalized field sessions, each canonical `verifiedFields.completedVis
 
 Recommendation IDs are trimmed before validation. `recommendationAvailable: true` requires a non-empty canonical ID, while `false` or `null` requires a null ID. Whitespace-only recommendation IDs and decision evidence fail validation before normalization; accepted and overridden decisions always require the canonical ID.
 
+Decision Source is captured atomically with the completed visit. New normalization canonicalizes `capturedAt` to UTC and requires it to equal the visit timestamp. Earlier or later values fail closed. This makes Decision Source post-action observational context: it may describe the representative's reported source after the visit is logged, but it is not timestamp-frozen pre-action candidate evidence and does not preserve the candidate set, ranking, probabilities, eligibility state, or source manifest required by the shadow-decision contract.
+
 The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
+
+The cumulative owner revalidation for `fc8f9c6`, `232e192`, and `13c0bbf` is recorded in `DECISION_CONTEXT_CUMULATIVE_VALIDATION_V1.md`.
 
 ## Chronological shadow-validation evidence
 

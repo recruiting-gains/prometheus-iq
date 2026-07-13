@@ -32,6 +32,14 @@ const FINDINGS_PATH = `${SESSION_ROOT}/evidence/stress-test-observations.json`;
 const MANIFEST_PATH = `${SESSION_ROOT}/manifest.json`;
 const SOURCE_EVIDENCE_PATH = "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json";
 const EXPECTED_RAW_SHA = "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a";
+const EXPECTED_ARCHIVE_SHAS = Object.freeze({
+  [RAW_PATH]: EXPECTED_RAW_SHA,
+  [NORMALIZED_PATH]: "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8",
+  [CALCULATED_PATH]: "71171b79aa725e533113f5cc1d040b13f6fc5cb3b5b4cdee993e8d4b836de911",
+  [HISTORY_PATH]: "0d3f2508b92290b04a1d7b1cc979ee298eea97c9dda84061dbe66e2bea5b5c09",
+  [FINDINGS_PATH]: "6030bd109659140b00c012fbf09e6a05d63c23f197a58daec8bc63dd2603179e",
+  [MANIFEST_PATH]: "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba"
+});
 
 function json(path) {
   return JSON.parse(readFileSync(path, "utf8"));
@@ -191,6 +199,9 @@ test("actual Founder final report remains byte-preserved with its deterministic 
   });
   assert.equal(manifest.rawSha256, EXPECTED_RAW_SHA);
   assert.equal(manifest.sourceFinality, "founder_designated_final");
+  for (const [path, expectedSha] of Object.entries(EXPECTED_ARCHIVE_SHAS)) {
+    assert.equal(sha(readFileSync(path)), expectedSha, `${path} must remain byte-identical`);
+  }
   assert.equal(deterministicFieldSessionId({
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
@@ -393,6 +404,26 @@ test("Unknown rejects positive confidence and normalizes its reason to null", ()
     confidence: 0,
     reason: null
   });
+});
+
+test("decision context is canonical post-action evidence captured with visit completion", () => {
+  const canonical = decisionContextReport();
+  canonical.visits[0].timestamp = "2026-07-11T20:00:00.000Z";
+  canonical.visits[0].visitDecisionSource.capturedAt = "2026-07-11T15:00:00.000-05:00";
+  const normalized = archivePackage({ rawReportText: JSON.stringify(canonical) }).normalizedRecord.verifiedFields.completedVisits[0];
+  assert.equal(normalized.sourceReport.timestamp, "2026-07-11T20:00:00.000Z");
+  assert.equal(normalized.visitDecisionSource.capturedAt, "2026-07-11T20:00:00.000Z");
+
+  for (const capturedAt of ["2026-07-11T19:59:59.999Z", "2026-07-11T20:00:00.001Z"]) {
+    const mismatched = decisionContextReport();
+    mismatched.visits[0].timestamp = "2026-07-11T20:00:00.000Z";
+    mismatched.visits[0].visitDecisionSource.capturedAt = capturedAt;
+    assert.throws(() => archivePackage({ rawReportText: JSON.stringify(mismatched) }), error => {
+      assert.equal(error instanceof FieldSessionArchiveError, true);
+      assert.equal(error.code, "field_session_decision_context_timestamp_mismatch");
+      return true;
+    });
+  }
 });
 
 test("normalized record preserves all four visits and exact governed identity joins", () => {
@@ -649,6 +680,8 @@ test("Data schema and contract govern decision context prospectively without mut
   const decisionContract = contract.canonicalVisitDecisionContextContract;
 
   assert.deepEqual(schema.$defs.completedVisit.required, ["visitDecisionSource", "recommendationDecisionContext"]);
+  assert.match(schema.$defs.completedVisit.description, /post-action observational evidence/);
+  assert.match(schema.$defs.visitDecisionSource.description, /capturedAt to equal the completed visit timestamp/);
   assert.deepEqual(schema.$defs.visitDecisionSource.properties.sourceId.enum, routeIqVisitDecisionSourceIds);
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.confidence.const, 0);
   assert.equal(schema.$defs.visitDecisionSource.allOf[0].then.properties.reason.const, null);

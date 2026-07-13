@@ -80,6 +80,43 @@ test("evidence at the decision timestamp is excluded unless prior availability i
   assert.equal(atCutoff.evidence.every(item => item.evidenceTimestamp < timestamp), true);
 });
 
+test("post-action decision context never substitutes for frozen pre-action candidate evidence", () => {
+  const record = archive();
+  const visit = record.normalizedRecord.verifiedFields.completedVisits[0];
+  const sourceRecordId = `${record.normalizedRecord.sessionId}:${visit.visitId}:decision-context`;
+  const capturedAt = visit.visitDecisionSource?.capturedAt;
+
+  assert.equal(capturedAt, undefined);
+  assert.deepEqual(project(record, visit.sourceReport.timestamp).exclusions.find(item => item.sourceRecordId === sourceRecordId), {
+    sourceRecordId,
+    evidenceKind: "visit_decision_context",
+    reason: "missing_evidence_timestamp"
+  });
+
+  const prospective = archive();
+  const prospectiveVisit = prospective.normalizedRecord.verifiedFields.completedVisits[0];
+  prospectiveVisit.visitDecisionSource = {
+    sourceId: "manual_selection",
+    reason: "Captured with visit completion.",
+    evidence: [{ evidenceType: "manual_selection", sourceRecordId: "dashboard-visit:visit-1" }],
+    confidence: 1,
+    capturedAt: prospectiveVisit.sourceReport.timestamp
+  };
+  prospectiveVisit.recommendationDecisionContext = { recommendationAvailable: false, recommendationId: null, decision: null };
+  const text = JSON.stringify(prospective.normalizedRecord, null, 2) + "\n";
+  prospective.sourceArtifacts.normalized = { ...prospective.sourceArtifacts.normalized, text, sha256: hash(text), byteLength: Buffer.byteLength(text) };
+
+  const atAction = project(prospective, prospectiveVisit.sourceReport.timestamp);
+  assert.ok(atAction.exclusions.some(item => item.sourceRecordId === sourceRecordId && item.reason === "at_decision_timestamp_without_prior_availability"));
+  const afterAction = project(prospective, new Date(Date.parse(prospectiveVisit.sourceReport.timestamp) + 1).toISOString());
+  const evidence = afterAction.evidence.find(item => item.sourceRecordId === sourceRecordId);
+  assert.equal(evidence.evidenceKind, "visit_decision_context");
+  assert.deepEqual(Object.keys(evidence.payload).sort(), ["recommendationDecisionContext", "visitDecisionSource", "visitId"]);
+  assert.equal(Object.hasOwn(evidence.payload, "candidateSnapshot"), false);
+  assert.equal(Object.hasOwn(evidence.payload, "rankedCandidateDecisions"), false);
+  assert.equal(Object.hasOwn(evidence.payload, "probabilities"), false);
+});
+
 test("corrections and conflicts remain separate append-only outcome observations", () => {
   const record = archive();
   replaceHistory(record, history => {

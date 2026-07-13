@@ -87,6 +87,7 @@
   "$defs": {
     "completedVisit": {
       "type": "object",
+      "description": "A newly normalized completed visit. Decision context is captured with visit completion and is post-action observational evidence, not a frozen pre-action candidate snapshot.",
       "required": ["visitDecisionSource", "recommendationDecisionContext"],
       "properties": {
         "visitDecisionSource": { "$ref": "#/$defs/visitDecisionSource" },
@@ -100,6 +101,7 @@
     },
     "visitDecisionSource": {
       "type": "object",
+      "description": "Representative-reported decision source captured atomically with the completed visit. Runtime normalization requires capturedAt to equal the completed visit timestamp.",
       "required": ["sourceId", "reason", "evidence", "confidence", "capturedAt"],
       "properties": {
         "sourceId": {
