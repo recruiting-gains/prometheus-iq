@@ -110,10 +110,9 @@ function requireCount(value, label) {
 }
 
 function preserveVisitDecisionSource(value, visitNumber) {
-  if (value == null) return null;
-  if (typeof value !== "object" || Array.isArray(value)) {
-    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source must be an object or null.`, {
-      code: "field_session_visit_decision_source_invalid",
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source is required.`, {
+      code: "field_session_decision_context_required",
       details: { visitNumber }
     });
   }
@@ -123,7 +122,10 @@ function preserveVisitDecisionSource(value, visitNumber) {
       details: { visitNumber, sourceId: value.sourceId ?? null }
     });
   }
-  if (typeof value.reason !== "string" || !Array.isArray(value.evidence)) {
+  const reasonValid = value.sourceId === "unknown"
+    ? value.reason === null || typeof value.reason === "string"
+    : typeof value.reason === "string" && value.reason.trim().length > 0;
+  if (!reasonValid || !Array.isArray(value.evidence)) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source evidence is malformed.`, {
       code: "field_session_visit_decision_source_invalid",
       details: { visitNumber, sourceId: value.sourceId }
@@ -133,29 +135,30 @@ function preserveVisitDecisionSource(value, visitNumber) {
     && typeof item === "object"
     && !Array.isArray(item)
     && typeof item.evidenceType === "string"
-    && item.evidenceType.length > 0
+    && item.evidenceType.trim().length > 0
     && typeof item.sourceRecordId === "string"
-    && item.sourceRecordId.length > 0);
-  const knownSourceEvidenceValid = value.sourceId === "unknown"
-    || (value.reason.trim().length > 0 && value.evidence.length > 0);
-  if (!evidenceValid || !knownSourceEvidenceValid
-    || !Number.isFinite(value.confidence)
-    || value.confidence < 0
-    || value.confidence > 1) {
+    && item.sourceRecordId.trim().length > 0);
+  const knownSourceEvidenceValid = value.sourceId === "unknown" || value.evidence.length > 0;
+  const confidenceValid = Number.isFinite(value.confidence)
+    && value.confidence >= 0
+    && value.confidence <= 1
+    && (value.sourceId !== "unknown" || value.confidence === 0);
+  if (!evidenceValid || !knownSourceEvidenceValid || !confidenceValid) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} decision source evidence is malformed.`, {
       code: "field_session_visit_decision_source_invalid",
       details: { visitNumber, sourceId: value.sourceId }
     });
   }
   requireIso(value.capturedAt, `Visit ${visitNumber} decision source capturedAt`);
-  return clone(value);
+  const preserved = clone(value);
+  if (preserved.sourceId === "unknown") preserved.reason = null;
+  return preserved;
 }
 
 function preserveRecommendationDecisionContext(value, visitNumber) {
-  if (value == null) return null;
-  if (typeof value !== "object" || Array.isArray(value)) {
-    throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context must be an object or null.`, {
-      code: "field_session_recommendation_decision_context_invalid",
+  if (value == null || typeof value !== "object" || Array.isArray(value)) {
+    throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context is required.`, {
+      code: "field_session_decision_context_required",
       details: { visitNumber }
     });
   }
@@ -163,9 +166,11 @@ function preserveRecommendationDecisionContext(value, visitNumber) {
   const recommendationIdValid = value.recommendationId === null
     || (typeof value.recommendationId === "string" && value.recommendationId.length > 0);
   const decisionValid = value.decision === null || routeIqRecommendationDecisionValues.includes(value.decision);
+  const unavailableRecommendationIdValid = value.recommendationAvailable === true || value.recommendationId === null;
   const decidedRecommendationValid = value.decision === null
     || (value.recommendationAvailable === true && typeof value.recommendationId === "string" && value.recommendationId.length > 0);
-  if (!recommendationAvailableValid || !recommendationIdValid || !decisionValid || !decidedRecommendationValid) {
+  if (!recommendationAvailableValid || !recommendationIdValid || !decisionValid
+    || !unavailableRecommendationIdValid || !decidedRecommendationValid) {
     throw new FieldSessionArchiveError(`Visit ${visitNumber} recommendation decision context is malformed.`, {
       code: "field_session_recommendation_decision_context_invalid",
       details: { visitNumber, decision: value.decision ?? null }
@@ -280,6 +285,12 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       throw new FieldSessionArchiveError(`Visit ${index + 1} is outside the report date.`, {
         code: "field_session_visit_date_mismatch",
         details: { reportDate: date, visitDate: visit?.date ?? null }
+      });
+    }
+    if (!Object.hasOwn(visit, "visitDecisionSource") || !Object.hasOwn(visit, "recommendationDecisionContext")) {
+      throw new FieldSessionArchiveError(`Visit ${index + 1} is missing canonical decision context.`, {
+        code: "field_session_decision_context_required",
+        details: { visitNumber: index + 1 }
       });
     }
     return {

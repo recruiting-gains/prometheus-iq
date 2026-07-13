@@ -24,9 +24,11 @@ The repository does not provision or route this binding. Infrastructure must pro
 
 ## Decision context
 
-For newly normalized field sessions, each canonical `verifiedFields.completedVisits[]` record preserves `visitDecisionSource` and `recommendationDecisionContext` exactly as submitted after contract validation. Canonical decision sources are Route IQ Recommendation, Nearby Context, Representative Saved Place, Representative Discovery, Representative Follow-up, Existing Relationship, Manual Selection, and Unknown. Explicit Unknown remains Unknown; missing context remains `null` and is never inferred.
+For newly normalized field sessions, each canonical `verifiedFields.completedVisits[]` record requires both `visitDecisionSource` and `recommendationDecisionContext`. Missing or null fields fail closed. Canonical decision sources are Route IQ Recommendation, Nearby Context, Representative Saved Place, Representative Discovery, Representative Follow-up, Existing Relationship, Manual Selection, and Unknown. Explicit Unknown remains Unknown with confidence `0` and reason `null`; it is never inferred from missing input.
 
-This forward-only normalization contract does not rewrite existing archived sessions, authorize historical replay, influence recommendations, or modify route scoring or generation.
+Recommendation IDs are accepted only when `recommendationAvailable` is `true`. Whitespace-only decision evidence fails validation before normalization.
+
+The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
 
 ## Governance
 

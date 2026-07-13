@@ -27,8 +27,7 @@
       "required": ["representative", "fieldSessionDate", "sourceReportType", "exportTimestamp", "totals", "completedVisits"],
       "properties": {
         "completedVisits": {
-          "type": "array",
-          "items": { "$ref": "#/$defs/completedVisit" }
+          "type": "array"
         }
       }
     },
@@ -46,23 +45,57 @@
       "required": ["verifiedFieldContainer", "calculatedFieldsStoredSeparately", "unavailableValuesRemainNull"]
     }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "sessionId": { "const": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11" },
+          "sourceProvenance": {
+            "type": "object",
+            "required": ["rawSha256"],
+            "properties": {
+              "rawSha256": { "const": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a" }
+            }
+          }
+        },
+        "required": ["sessionId", "sourceProvenance"]
+      },
+      "then": {
+        "properties": {
+          "verifiedFields": {
+            "properties": {
+              "completedVisits": {
+                "items": { "$ref": "#/$defs/legacyCompletedVisit" }
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "verifiedFields": {
+            "properties": {
+              "completedVisits": {
+                "items": { "$ref": "#/$defs/completedVisit" }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
   "$defs": {
     "completedVisit": {
       "type": "object",
+      "required": ["visitDecisionSource", "recommendationDecisionContext"],
       "properties": {
-        "visitDecisionSource": {
-          "anyOf": [
-            { "$ref": "#/$defs/visitDecisionSource" },
-            { "type": "null" }
-          ]
-        },
-        "recommendationDecisionContext": {
-          "anyOf": [
-            { "$ref": "#/$defs/recommendationDecisionContext" },
-            { "type": "null" }
-          ]
-        }
+        "visitDecisionSource": { "$ref": "#/$defs/visitDecisionSource" },
+        "recommendationDecisionContext": { "$ref": "#/$defs/recommendationDecisionContext" }
       },
+      "additionalProperties": true
+    },
+    "legacyCompletedVisit": {
+      "type": "object",
       "additionalProperties": true
     },
     "visitDecisionSource": {
@@ -81,15 +114,15 @@
             "unknown"
           ]
         },
-        "reason": { "type": "string" },
+        "reason": { "type": ["string", "null"] },
         "evidence": {
           "type": "array",
           "items": {
             "type": "object",
             "required": ["evidenceType", "sourceRecordId"],
             "properties": {
-              "evidenceType": { "type": "string", "minLength": 1 },
-              "sourceRecordId": { "type": "string", "minLength": 1 }
+              "evidenceType": { "type": "string", "pattern": ".*\\S.*" },
+              "sourceRecordId": { "type": "string", "pattern": ".*\\S.*" }
             },
             "additionalProperties": true
           }
@@ -97,6 +130,26 @@
         "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
         "capturedAt": { "type": "string", "format": "date-time" }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "sourceId": { "const": "unknown" } },
+            "required": ["sourceId"]
+          },
+          "then": {
+            "properties": {
+              "reason": { "const": null },
+              "confidence": { "const": 0 }
+            }
+          },
+          "else": {
+            "properties": {
+              "reason": { "type": "string", "pattern": ".*\\S.*" },
+              "evidence": { "minItems": 1 }
+            }
+          }
+        }
+      ],
       "additionalProperties": true
     },
     "recommendationDecisionContext": {
@@ -107,6 +160,29 @@
         "recommendationId": { "type": ["string", "null"] },
         "decision": { "enum": ["accepted", "overridden", null] }
       },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "recommendationAvailable": { "enum": [false, null] } },
+            "required": ["recommendationAvailable"]
+          },
+          "then": {
+            "properties": { "recommendationId": { "type": "null" } }
+          }
+        },
+        {
+          "if": {
+            "properties": { "decision": { "enum": ["accepted", "overridden"] } },
+            "required": ["decision"]
+          },
+          "then": {
+            "properties": {
+              "recommendationAvailable": { "const": true },
+              "recommendationId": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ],
       "additionalProperties": true
     }
   },

@@ -134,7 +134,7 @@
     "july11RawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
   },
   "canonicalVisitDecisionContextContract": {
-    "status": "preserved_for_newly_normalized_field_sessions",
+    "status": "validation_hardened_for_newly_normalized_field_sessions",
     "canonicalContainer": "verifiedFields.completedVisits[]",
     "canonicalFields": [
       "visitDecisionSource",
@@ -154,9 +154,26 @@
       "reinterpretationAllowed": false,
       "inferenceAllowed": false,
       "unknownRemainsCanonical": true,
-      "missingInputStoredAsNull": true,
+      "canonicalFieldsRequired": true,
+      "missingInputFailsClosed": true,
+      "nullCanonicalFieldsAllowed": false,
+      "unknownCanonicalOutput": {
+        "sourceId": "unknown",
+        "label": "Unknown",
+        "confidence": 0,
+        "reason": null
+      },
+      "unavailableRecommendationRequiresNullId": true,
+      "whitespaceOnlyEvidenceRejected": true,
       "historicalArchivesMutated": false,
       "historicalReplayAuthorized": false
+    },
+    "historicalCompatibility": {
+      "mode": "read_only_exact_archive_exception",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "rawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+      "newNormalizationExemptionAllowed": false,
+      "rewriteAllowed": false
     },
     "behaviorAuthorization": {
       "recommendationInfluenceActivated": false,
