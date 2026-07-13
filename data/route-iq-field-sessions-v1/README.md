@@ -30,6 +30,14 @@ Recommendation IDs are trimmed before validation. `recommendationAvailable: true
 
 The immutable July 11 archive remains available through an exact session-ID and raw-hash read compatibility rule. That exception cannot be used for new normalization and does not rewrite existing evidence, authorize historical replay, influence recommendations, or modify route scoring or generation.
 
+## Chronological shadow-validation evidence
+
+`projectRouteIqChronologicalEvidence` is a read-only, deterministic projection of a committed archive read. It returns only evidence whose canonical UTC timestamp is at or before the supplied decision timestamp. Every included item carries its source record ID, archive and projection versions, exact committed-artifact hashes, session provenance, and explicit workspace, profile, representative, territory, and customer fields (using `null` when unavailable).
+
+Original visit outcomes and any later outcome observations remain distinct records. Governed relations are limited to original, correction, conflict, and late; non-original relations identify a non-empty, non-self prior record but never replace it, and that prior record may sit outside the projection cutoff. Missing timestamps and evidence after the cutoff are explicitly excluded; non-round-tripping calendar timestamps, uncommitted or mismatched commit markers, invalid scope, duplicate source IDs, malformed relations, cross-representative contamination, and source-byte/hash mismatches fail closed. Candidate scope is validated before unsupported kinds are reported as exclusions. The projection is deeply immutable and its stable SHA-256 makes repeated reads comparable.
+
+This interface supplies evidence only. It does not create recommendations, calculate readiness, replay or backfill sessions, call Google, mutate scoring, or authorize production learning. The July 11 artifacts are unchanged and legitimately contain timestamp-related exclusions.
+
 ## Governance
 
 - Workspace: `fitness_connection`
