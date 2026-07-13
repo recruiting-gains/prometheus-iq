@@ -1281,6 +1281,163 @@ async function verifyFieldSessionRetry(cdp) {
   })()`);
 }
 
+async function verifyPostVisitOutcomeEditing(cdp) {
+  return cdp.evaluate(`(async () => {
+    const wait = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
+    localStorage.removeItem(fieldSessionArchiveStoreKey);
+    state.visits = state.visits.filter(visit => visit.date !== todayKey());
+    state.visitCorrections = [];
+    const place = routeVisiblePlaces()[0];
+    if (!place) throw new Error("No route place is available for visit correction validation.");
+    const seededVisitId = id();
+    state.visits.push({
+      id: seededVisitId,
+      placeId: place.id,
+      placeName: place.name,
+      workspaceId: "fitness_connection",
+      date: todayKey(),
+      window: "Midday",
+      conversations: 1,
+      leads: 0,
+      units: 0,
+      laterUnits: 0,
+      quality: "Conversation",
+      notes: "Original visit evidence.",
+      location: null,
+      createdAt: Date.now() - 2000
+    });
+    persistStateWithoutRender();
+    render();
+    const visitId = seededVisitId;
+    const originalBefore = JSON.stringify(state.visits.find(visit => visit.id === visitId));
+    const routeStatsBefore = placeStats(place.id);
+    setTab("places");
+    const placesBefore = {
+      activeView: document.querySelector(".view.active")?.id || "",
+      title: document.getElementById("placesTitle")?.textContent?.trim() || "",
+      cards: document.querySelectorAll("#placesList .item").length,
+      viewVisitVisible: Boolean(document.querySelector('[data-view-visit="' + visitId + '"]'))
+    };
+    document.querySelector('[data-view-visit="' + visitId + '"]')?.click();
+    const originalAuditText = document.getElementById("modalBody")?.textContent?.trim().replace(/\\s+/g, " ") || "";
+
+    let mobileFormReachability = null;
+    const submitCorrection = async values => {
+      document.querySelector('[data-update-visit="' + visitId + '"]')?.click();
+      const form = document.getElementById("visitCorrectionForm");
+      if (!form) throw new Error("Visit correction form did not open.");
+      if (!mobileFormReachability) {
+        const modalBody = document.getElementById("modalBody");
+        const submit = form.querySelector('button[type="submit"]');
+        submit?.scrollIntoView({ block: "end" });
+        await wait(0);
+        const submitRect = submit?.getBoundingClientRect() || {};
+        mobileFormReachability = {
+          modalClientHeight: modalBody?.clientHeight || 0,
+          modalScrollHeight: modalBody?.scrollHeight || 0,
+          modalOverflowY: modalBody ? getComputedStyle(modalBody).overflowY : "",
+          submitTop: Number(submitRect.top || 0),
+          submitBottom: Number(submitRect.bottom || 0),
+          submitLeft: Number(submitRect.left || 0),
+          submitRight: Number(submitRect.right || 0),
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight
+        };
+      }
+      for (const [name, value] of Object.entries(values)) {
+        if (form.elements[name]) form.elements[name].value = String(value);
+      }
+      form.requestSubmit();
+      await wait(50);
+      return document.getElementById("modalBody")?.textContent?.trim().replace(/\\s+/g, " ") || "";
+    };
+
+    const firstAuditText = await submitCorrection({
+      quality: "Appointment",
+      leads: 1,
+      appointments: 1,
+      followUp: "Call tomorrow at 10 AM",
+      manager: "Jordan Manager",
+      contactName: "Taylor Contact",
+      contactPhone: "713-555-0100",
+      contactEmail: "taylor@example.com"
+    });
+    const firstCount = state.visitCorrections.length;
+    const secondAuditText = await submitCorrection({
+      quality: "Membership/Unit",
+      units: 1,
+      notes: "Employee came outside and completed signup."
+    });
+    const secondCount = state.visitCorrections.length;
+    const eventIds = state.visitCorrections.map(event => event.eventId);
+    const sequences = state.visitCorrections.map(event => event.sequence);
+    const reloadedState = normalizeState(JSON.parse(localStorage.getItem(storeKey) || "{}"));
+    const reloadedCorrections = reloadedState.repProfiles?.[activeRepId]?.visitCorrections || [];
+
+    document.querySelector('[data-update-visit="' + visitId + '"]')?.click();
+    const duplicateForm = document.getElementById("visitCorrectionForm");
+    duplicateForm?.requestSubmit();
+    await wait(30);
+    const duplicateStatus = document.getElementById("visitCorrectionStatus")?.textContent?.trim() || "";
+    const countAfterDuplicate = state.visitCorrections.length;
+
+    openModal("visit-detail", { visitId });
+    const finalAuditText = document.getElementById("modalBody")?.textContent?.trim().replace(/\\s+/g, " ") || "";
+    const originalAfter = JSON.stringify(state.visits.find(visit => visit.id === visitId));
+    const verified = effectiveVisitOutcome(state.visits.find(visit => visit.id === visitId));
+    const routeStatsAfter = placeStats(place.id);
+    const report = todayReportPayload();
+    const evidence = report.visitOutcomeEvidence;
+    const finalReportVisit = report.visits.find(visit => visit.visitId === visitId);
+
+    window.confirm = () => true;
+    const archiveResult = await endFieldSession("end_route");
+    openModal("visit-detail", { visitId });
+    const correctionButtonAfterArchive = Boolean(document.querySelector('[data-update-visit="' + visitId + '"]'));
+    let archivedMutationBlocked = false;
+    try {
+      appendVisitCorrection(visitId, { ...verified, units: 2 });
+    } catch (error) {
+      archivedMutationBlocked = /Archived sessions/.test(error.message);
+    }
+
+    return {
+      placesBefore,
+      originalAuditText,
+      firstAuditText,
+      secondAuditText,
+      finalAuditText,
+      firstCount,
+      secondCount,
+      countAfterDuplicate,
+      duplicateStatus,
+      eventIds,
+      sequences,
+      reloadedCorrectionCount: reloadedCorrections.length,
+      reloadedFinalOutcome: reloadedCorrections.at(-1)?.finalVerifiedOutcome || null,
+      mobileFormReachability,
+      originalUnchanged: originalBefore === originalAfter,
+      verified,
+      routeStatsBefore,
+      routeStatsAfter,
+      report: {
+        finalVisit: finalReportVisit,
+        originalVisit: evidence?.originalVisits?.find(visit => visit.visitId === visitId) || null,
+        correctionCount: evidence?.correctionEvents?.length || 0,
+        finalOutcome: evidence?.finalVerifiedOutcomes?.find(outcome => outcome.visitId === visitId) || null,
+        auditModel: evidence?.auditModel || ""
+      },
+      archiveStatus: archiveResult?.status || "",
+      acknowledgment: archiveResult?.acknowledgment || null,
+      correctionButtonAfterArchive,
+      archivedMutationBlocked,
+      documentScrollWidth: document.documentElement.scrollWidth,
+      bodyScrollWidth: document.body.scrollWidth,
+      viewportWidth: window.innerWidth
+    };
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
@@ -1315,7 +1472,7 @@ function verifyRepOnly(label, snap) {
   const repOnly = snap.sessionRole === "rep"
     && snap.mode === "rep"
     && snap.activeRepId === "anthony"
-    && snap.visibleTabs.join(",") === "today,route"
+    && snap.visibleTabs.join(",") === "today,route,places"
     && snap.visibleOwnerControls.length === 0
     && snap.profileButtonLabels.length === 0
     && !snap.modeButtonLabels.includes("Owner");
@@ -1382,6 +1539,7 @@ async function runHarness() {
       { status: 201 }
     ]
   });
+  const visitCorrectionServer = await startStaticServer();
   const chrome = await launchChrome();
 
   try {
@@ -1484,12 +1642,12 @@ async function runHarness() {
 
     const rep = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=runtime-workflows-rep", "rep");
     const repSnap = rep.initial;
-    assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && !repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
+    assertWorkflow("Rep Mode", repSnap.sessionRole === "rep" && repSnap.mode === "rep" && repSnap.visibleTabs.includes("places") && !repSnap.visibleTabs.includes("stats") && !repSnap.visibleTabs.includes("find"), `rep tabs visible: ${repSnap.visibleTabs.join(", ")}`, JSON.stringify({ sessionRole: repSnap.sessionRole, mode: repSnap.mode, visibleTabs: repSnap.visibleTabs }));
     assertWorkflow("Beta Stability Sprint 2 Rep radius/ring visibility", repSnap.territoryVisible && repSnap.territoryRingCount > 0 && repSnap.territoryText.includes("Assigned Territory Radius") && repSnap.territoryText.includes("Ring"), `${repSnap.territoryRingCount} territory rings visible for ${repSnap.activeRepId}`, JSON.stringify({ territoryVisible: repSnap.territoryVisible, territoryRingCount: repSnap.territoryRingCount, territoryText: repSnap.territoryText.slice(0, 400) }));
     assertWorkflow("Beta Route Controls Rep radius adjustable by default", repSnap.territoryRepRadiusVisible && repSnap.territoryRepRadiusDisabled === false && repSnap.territoryRepRadiusStatus.includes("Rep adjustment allowed") && repSnap.debug.territoryCoverage.assignedRadiusMiles === 25 && repSnap.debug.territoryCoverage.allowedRadiusMiles === 25 && repSnap.debug.territoryCoverage.repCanAdjust === true, repSnap.territoryRepRadiusStatus, JSON.stringify({ territoryRepRadiusVisible: repSnap.territoryRepRadiusVisible, territoryRepRadiusDisabled: repSnap.territoryRepRadiusDisabled, status: repSnap.territoryRepRadiusStatus, coverage: repSnap.debug.territoryCoverage }));
     assertWorkflow("Beta Route Controls ring explanation", Array.isArray(repSnap.debug.territoryCoverage.ringTotals) && repSnap.debug.territoryCoverage.ringTotals[0] > 0 && repSnap.debug.territoryCoverage.routeUsesOnlyRingOne === true && repSnap.debug.territoryCoverage.outerRingEmptyReason.includes("Populate outer rings") && repSnap.territoryRingTexts.some(text => text.includes("Add verified Google-qualified businesses")), repSnap.debug.territoryCoverage.outerRingEmptyReason, JSON.stringify({ coverage: repSnap.debug.territoryCoverage, ringTexts: repSnap.territoryRingTexts }));
     assertWorkflow("Rep startup defers owner-only views", repSnap.placesItems === 0 && repSnap.debug.deferredOwnerViews.places === false && repSnap.debug.deferredOwnerViews.stats === false && repSnap.debug.deferredOwnerViews.find === false, `owner-only views deferred; render total ${repSnap.debug.renderTimings.total || 0}ms`, JSON.stringify({ placesItems: repSnap.placesItems, renderTimings: repSnap.debug.renderTimings, deferredOwnerViews: repSnap.debug.deferredOwnerViews }));
-    await clickTab(rep.cdp, "places");
+    await rep.cdp.evaluate(`setTab("stats")`);
     const repAfterOwnerTab = await snapshot(rep.cdp);
     assertWorkflow("Rep owner-tab guard", repAfterOwnerTab.activeView === "view-today", "rep remains on Today when owner tab is requested", JSON.stringify({ activeView: repAfterOwnerTab.activeView }));
     assertWorkflow("Rep route quality", repSnap.debug.rendererReceived && repSnap.bestNextMove && repSnap.bestMoveDirections.includes("destination_place_id=") && repSnap.dailyRouteCards > 0, `${repSnap.bestNextMove} with Google Place directions and ${repSnap.dailyRouteCards} route cards`, JSON.stringify({ bestNextMove: repSnap.bestNextMove, directions: repSnap.bestMoveDirections, dailyRouteCards: repSnap.dailyRouteCards }));
@@ -1512,6 +1670,9 @@ async function runHarness() {
     assertWorkflow("Nearby Opportunities location acquisition", nearbyFlow.latestVisitHasLocation && nearbyFlow.locationButtonLabel === "Location Attached" && nearbyFlow.locationStatus.includes("Device-reported visit location attached"), nearbyFlow.locationStatus, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities Active Pool query", nearbyFlow.beforeRuntimePool === "active" && nearbyFlow.runtimePool === "active" && nearbyFlow.nearbyDebug.originSource === "visit-location", `${nearbyFlow.nearbyDebug.count} nearby from ${nearbyFlow.nearbyDebug.originSource}`, JSON.stringify(nearbyFlow));
     assertWorkflow("Nearby Opportunities rendering", nearbyFlow.cardCount > 0 && nearbyFlow.noEmptyAfter && nearbyFlow.countLabel.includes("within") && nearbyFlow.firstCard.includes("Directions"), `${nearbyFlow.cardCount} nearby cards for ${nearbyFlow.target.name}`, JSON.stringify(nearbyFlow));
+    await clickTab(rep.cdp, "places");
+    const repPlaces = await snapshot(rep.cdp);
+    assertWorkflow("Rep Places visit review", repPlaces.activeView === "view-places" && repPlaces.placesText.includes("Visited Places") && repPlaces.placesText.includes("View Visit") && repPlaces.placesItems > 0, `${repPlaces.placesItems} visited places available on desktop`, JSON.stringify({ activeView: repPlaces.activeView, placesItems: repPlaces.placesItems, placesText: repPlaces.placesText.slice(0, 500) }));
     const routeSync = await verifyRouteStateSynchronization(rep.cdp);
     assertWorkflow("Beta Stability Sprint 2 route state synchronization", !routeSync.routePoolStillContainsLogged && !routeSync.routeListStillContainsLogged && !routeSync.dailyRouteStillContainsLogged && !routeSync.bestNextStillLogged, `${routeSync.loggedName} removed from route pool/list/daily/best-next after logging`, JSON.stringify(routeSync));
     verifyNoErrors("Nearby Opportunities", rep.eventLog, await snapshot(rep.cdp));
@@ -1535,6 +1696,28 @@ async function runHarness() {
     const anthonyRefresh = await navigateExistingScenario(anthonyPwa.cdp, server, "/?pwa=founder&debug=1&harness=anthony-pwa-refresh");
     verifyRepOnly("Anthony PWA refresh preserves Rep-only", anthonyRefresh);
     verifyNoErrors("Anthony PWA", anthonyPwa.eventLog, anthonyRefresh);
+
+    const visitCorrection = await runPageScenario(chrome, visitCorrectionServer, "/?role=rep&rep=anthony&debug=1&harness=post-visit-outcome-editing", "post-visit-outcome-editing", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const correctionResult = await verifyPostVisitOutcomeEditing(visitCorrection.cdp);
+    const correctionRequests = visitCorrectionServer.fieldSessionRequests;
+    const correctionPayload = correctionRequests[0]?.payload || {};
+    const correctionRawReport = correctionPayload.rawReportText ? JSON.parse(correctionPayload.rawReportText) : {};
+    assertWorkflow("Post-visit outcome editing", correctionResult.placesBefore.activeView === "view-places" && correctionResult.placesBefore.title === "Visited Places" && correctionResult.placesBefore.cards === 1 && correctionResult.placesBefore.viewVisitVisible && correctionResult.firstCount === 1, "Rep opened a completed visit from Places and saved the first correction", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit multiple corrections", correctionResult.secondCount === 2 && correctionResult.countAfterDuplicate === 2 && correctionResult.sequences.join(",") === "1,2" && new Set(correctionResult.eventIds).size === 2, "two ordered, uniquely identified correction events preserved", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit correction persistence", correctionResult.reloadedCorrectionCount === 2 && correctionResult.reloadedFinalOutcome?.quality === "Membership/Unit" && correctionResult.reloadedFinalOutcome?.units === 1, "both corrections and the final verified outcome survive state normalization", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit append-only audit", correctionResult.originalUnchanged && correctionResult.originalAuditText.includes("Original Visit") && correctionResult.firstAuditText.includes("Correction 1") && correctionResult.secondAuditText.includes("Correction 2") && correctionResult.finalAuditText.includes("Final Verified Outcome"), "original evidence remains unchanged alongside both corrections and the final projection", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit final verified outcome", correctionResult.verified.quality === "Membership/Unit" && correctionResult.verified.leads === 1 && correctionResult.verified.appointments === 1 && correctionResult.verified.units === 1 && correctionResult.verified.followUp.includes("Call tomorrow") && correctionResult.verified.contactEmail === "taylor@example.com", "final verified outcome combines the ordered correction history", JSON.stringify(correctionResult.verified));
+    assertWorkflow("Post-visit duplicate protection", correctionResult.duplicateStatus === "No outcome changes to save." && correctionResult.countAfterDuplicate === correctionResult.secondCount, "unchanged resubmission did not create another correction", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit Route IQ scoring isolation", JSON.stringify(correctionResult.routeStatsBefore) === JSON.stringify(correctionResult.routeStatsAfter) && correctionResult.routeStatsAfter.units === 0 && correctionResult.verified.units === 1, "Route IQ continues to use original visit evidence while the verified display/report uses corrections", JSON.stringify({ before: correctionResult.routeStatsBefore, after: correctionResult.routeStatsAfter, verified: correctionResult.verified }));
+    assertWorkflow("Post-visit canonical report audit", correctionResult.report.auditModel === "append_only_original_correction_final" && correctionResult.report.originalVisit.units === 0 && correctionResult.report.correctionCount === 2 && correctionResult.report.finalOutcome.units === 1 && correctionResult.report.finalVisit.units === 1, "canonical report contains original evidence, corrections, and final verified outcome", JSON.stringify(correctionResult.report));
+    assertWorkflow("Post-visit Data acknowledgment", correctionResult.archiveStatus === "archived" && correctionResult.acknowledgment?.status === "archived" && correctionRequests.length === 1 && correctionRawReport.visitOutcomeEvidence?.correctionEvents?.length === 2, `${correctionResult.acknowledgment?.sessionId || "missing session"} acknowledged with correction evidence`, JSON.stringify({ result: correctionResult, request: correctionPayload }));
+    assertWorkflow("Post-visit archived session guard", !correctionResult.correctionButtonAfterArchive && correctionResult.archivedMutationBlocked, "archived visit is read-only after Data acknowledgment", JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit mobile no-horizontal-scroll", correctionResult.documentScrollWidth <= correctionResult.viewportWidth + 1 && correctionResult.bodyScrollWidth <= correctionResult.viewportWidth + 1, `${correctionResult.documentScrollWidth}/${correctionResult.bodyScrollWidth}px within ${correctionResult.viewportWidth}px viewport`, JSON.stringify(correctionResult));
+    assertWorkflow("Post-visit mobile form reachability", correctionResult.mobileFormReachability?.modalOverflowY === "auto" && correctionResult.mobileFormReachability.submitTop >= 0 && correctionResult.mobileFormReachability.submitBottom <= correctionResult.mobileFormReachability.viewportHeight + 1 && correctionResult.mobileFormReachability.submitLeft >= -1 && correctionResult.mobileFormReachability.submitRight <= correctionResult.mobileFormReachability.viewportWidth + 1, `Save Correction reachable within ${correctionResult.mobileFormReachability?.viewportWidth || 0}x${correctionResult.mobileFormReachability?.viewportHeight || 0}`, JSON.stringify(correctionResult.mobileFormReachability));
+    verifyNoErrors("Post-visit outcome editing", visitCorrection.eventLog, await snapshot(visitCorrection.cdp));
 
     const fieldSession = await runPageScenario(chrome, fieldSessionServer, "/?role=rep&rep=anthony&debug=1&harness=field-session-end-route", "field-session-end-route");
     const fieldSessionResult = await verifyFieldSessionCompletion(fieldSession.cdp, "end_route");
@@ -1561,6 +1744,7 @@ async function runHarness() {
     });
     fieldSession.cdp.close();
     fieldSessionRetry.cdp.close();
+    visitCorrection.cdp.close();
 
     const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -1605,6 +1789,7 @@ async function runHarness() {
     await fallbackServer.close();
     await fieldSessionServer.close();
     await fieldSessionRetryServer.close();
+    await visitCorrectionServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

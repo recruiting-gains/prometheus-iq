@@ -124,6 +124,83 @@ function payload(overrides = {}) {
   };
 }
 
+function correctedReport() {
+  const visitId = "dashboard-visit-correction-test";
+  const source = report({
+    visit: {
+      visitId,
+      outcome: "Membership/Unit",
+      leads: 1,
+      units: 1,
+      notes: "Employee came outside and completed signup."
+    }
+  });
+  const originalVisit = {
+    ...source.visits[0],
+    outcome: "Conversation",
+    leads: 0,
+    units: 0,
+    notes: "Original visit evidence."
+  };
+  source.visitOutcomeEvidence = {
+    schemaVersion: "dashboard-visit-outcome-corrections-v1",
+    auditModel: "append_only_original_correction_final",
+    originalVisits: [originalVisit],
+    correctionEvents: [{
+      schemaVersion: "dashboard-visit-outcome-corrections-v1",
+      eventId: "dashboard-correction-event-1",
+      eventType: "visit_outcome_correction",
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      representativeId: "anthony",
+      visitId,
+      placeId: source.visits[0].placeId,
+      sequence: 1,
+      correctedAt: "2026-07-11T20:03:00.000Z",
+      source: "representative_post_visit_update",
+      previousOutcome: {
+        quality: "Conversation",
+        conversations: 1,
+        leads: 0,
+        appointments: 0,
+        units: 0,
+        laterUnits: 0,
+        followUp: "",
+        notes: "Original visit evidence.",
+        manager: "",
+        contactName: "",
+        contactPhone: "",
+        contactEmail: ""
+      },
+      changes: {
+        quality: { before: "Conversation", after: "Membership/Unit" },
+        leads: { before: 0, after: 1 },
+        units: { before: 0, after: 1 },
+        notes: { before: "Original visit evidence.", after: "Employee came outside and completed signup." }
+      },
+      finalVerifiedOutcome: {
+        quality: "Membership/Unit",
+        conversations: 1,
+        leads: 1,
+        appointments: 0,
+        units: 1,
+        laterUnits: 0,
+        followUp: "",
+        notes: "Employee came outside and completed signup.",
+        manager: "",
+        contactName: "",
+        contactPhone: "",
+        contactEmail: ""
+      }
+    }],
+    finalVerifiedOutcomes: [{
+      visitId,
+      ...source.visits[0]
+    }]
+  };
+  return source;
+}
+
 function handoffRequest(body, method = "POST") {
   return new Request(`https://prometheus-iq.example${ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH}`, {
     method,
@@ -173,6 +250,27 @@ test("Dashboard End Route producer receives a committed Data acknowledgment", as
   assert.equal(normalized.verifiedFields.completedVisits[0].governedBusinessIdentity.googlePlaceId, "ChIJDashboardProducerTest");
   assert.equal(history.customerOutcomeHistory.length, 1);
   assert.equal(history.categoryOutcomeHistory[0].category, "Business");
+});
+
+test("Dashboard correction ledger is archived verbatim with the final verified outcome", async () => {
+  const binding = kvBinding();
+  const source = correctedReport();
+  const response = await submit(payload({ report: source }), productionEnv(binding));
+  const body = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.equal(body.acknowledged, true);
+  const rawKey = [...binding.data.keys()].find(key => key.endsWith("/raw-report.json"));
+  const normalizedKey = [...binding.data.keys()].find(key => key.endsWith("/normalized-field-session.json"));
+  const storedRaw = JSON.parse(binding.data.get(rawKey).value);
+  const normalized = JSON.parse(binding.data.get(normalizedKey).value);
+  assert.deepEqual(storedRaw.visitOutcomeEvidence, source.visitOutcomeEvidence);
+  assert.equal(storedRaw.visitOutcomeEvidence.originalVisits[0].units, 0);
+  assert.equal(storedRaw.visitOutcomeEvidence.correctionEvents.length, 1);
+  assert.equal(storedRaw.visitOutcomeEvidence.finalVerifiedOutcomes[0].units, 1);
+  assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.outcome, "Membership/Unit");
+  assert.equal(normalized.verifiedFields.completedVisits[0].sourceReport.units, 1);
+  assert.equal(normalized.verifiedFields.totals.totalUnits, 1);
 });
 
 test("Dashboard End Day retry is idempotent and does not write a duplicate archive", async () => {

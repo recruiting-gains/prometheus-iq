@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-URD3AZcQ/bYoRNlE7rl87gmPOzAErKN+PMCLBjACXuQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-WU9Dw8iHIyxttA7YhN+2UB6t+jHqTGK4hkDK7HvkKdA='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -363,6 +363,31 @@
     }
 
     .btn[hidden] { display: none; }
+
+    .visit-audit {
+      display: grid;
+      gap: 10px;
+    }
+
+    .visit-audit-event {
+      border-left: 3px solid var(--accent);
+      padding: 8px 0 8px 12px;
+      min-width: 0;
+    }
+
+    .visit-audit-event.original { border-left-color: var(--blue); }
+
+    .visit-audit-event h3 {
+      margin: 0 0 5px;
+      font-size: 14px;
+    }
+
+    .visit-audit-event p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
 
     .list {
       display: grid;
@@ -1524,9 +1549,9 @@
         <div class="list" id="routeList"></div>
       </section>
 
-      <section class="view owner-only" id="view-places">
+      <section class="view" id="view-places">
         <div class="section-title">
-          <h2>Production Map</h2>
+          <h2 id="placesTitle">Production Map</h2>
           <small id="placesCount">0 places</small>
         </div>
         <div class="toolbar">
@@ -1676,7 +1701,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h6a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h7"/></svg>
           Route
         </button>
-        <button class="tab owner-only" data-tab="places" aria-label="Places">
+        <button class="tab" data-tab="places" aria-label="Places">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s7-5.1 7-12a7 7 0 1 0-14 0c0 6.9 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
           Places
         </button>
@@ -1711,9 +1736,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-11-route-iq-field-session-producer-v1";
+    const appBuildVersion = "2026-07-12-post-visit-outcome-editing-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v40-route-iq-field-session-producer";
+    const serviceWorkerCacheVersion = "prometheus-v41-post-visit-outcome-editing";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
@@ -1802,6 +1827,8 @@
     const MAX_BACKUP_BYTES = 2 * 1024 * 1024;
     const MAX_PLACES = 2000;
     const MAX_VISITS = 10000;
+    const MAX_VISIT_CORRECTIONS = 20000;
+    const visitCorrectionSchemaVersion = "dashboard-visit-outcome-corrections-v1";
     const placeCategories = ["Apartment","Auto","Tire","Oil Change","Car Wash","Warehouse","Restaurant","Retail","Small Retail","Office","School","Barber","Salon","Clinic","Medical Office","Dental Office","College","Community","Transit","Employer","Business","Business Services","Hotel","Event","Other"];
     const visitWindows = ["Morning","Midday","Evening","Anytime","Afternoon"];
     const permissionValues = ["Unknown","Allowed table","Allowed flyers/cards","Allowed shift change","Allowed staff talk","Allowed resident email","Come back later","No"];
@@ -19749,6 +19776,7 @@
       return withAnthonyApprovedRoute({
         places: productionPlaces.map(place => ({ id: id(), notes: "", createdAt: Date.now(), ...place })),
         visits: [],
+        visitCorrections: [],
         routeHistory: [],
         activeRepId: "cruz",
         territoryPolicies: normalizeTerritoryPolicies(),
@@ -19791,9 +19819,36 @@
 
     function todayReportPayload() {
       syncActiveProfile();
-      const visits = todayVisits().slice().sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+      const originalVisits = todayVisits().slice().sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0));
+      const visits = originalVisits.map(visit => effectiveVisitOutcome(visit));
       const totals = sumVisits(visits);
       const profile = activeProfile();
+      const toReportVisit = visit => {
+        const place = state.places.find(item => item.id === visit.placeId);
+        return {
+          visitId: visit.id,
+          placeName: place?.name || visit.placeName || "Unknown place",
+          placeId: visit.placeId || "",
+          timestamp: visit.createdAt ? new Date(visit.createdAt).toISOString() : "",
+          date: visit.date || todayKey(),
+          timeWindow: visit.window || place?.window || "",
+          outcome: visit.quality || "",
+          conversations: Number(visit.conversations || 0),
+          leads: Number(visit.leads || 0),
+          appointments: Number(visit.appointments || 0),
+          units: Number(visit.units || 0),
+          laterUnits: Number(visit.laterUnits || 0),
+          followUp: visit.followUp || "",
+          notes: visit.notes || "",
+          manager: visit.manager || "",
+          contactName: visit.contactName || "",
+          contactPhone: visit.contactPhone || "",
+          contactEmail: visit.contactEmail || "",
+          gpsAttached: Boolean(visit.location)
+        };
+      };
+      const visitIds = new Set(originalVisits.map(visit => visit.id));
+      const correctionEvents = (state.visitCorrections || []).filter(event => visitIds.has(event.visitId));
       return {
         app: "Prometheus IQ",
         reportType: "beta-daily-rep-report",
@@ -19810,23 +19865,18 @@
           units: totals.units,
           laterUnits: totals.laterUnits
         },
-        visits: visits.map(visit => {
-          const place = state.places.find(item => item.id === visit.placeId);
-          return {
-            placeName: place?.name || visit.placeName || "Unknown place",
-            placeId: visit.placeId || "",
-            timestamp: visit.createdAt ? new Date(visit.createdAt).toISOString() : "",
-            date: visit.date || todayKey(),
-            timeWindow: visit.window || place?.window || "",
-            outcome: visit.quality || "",
-            conversations: Number(visit.conversations || 0),
-            leads: Number(visit.leads || 0),
-            units: Number(visit.units || 0),
-            laterUnits: Number(visit.laterUnits || 0),
-            notes: visit.notes || "",
-            gpsAttached: Boolean(visit.location)
-          };
-        })
+        visits: visits.map(toReportVisit),
+        visitOutcomeEvidence: {
+          schemaVersion: visitCorrectionSchemaVersion,
+          auditModel: "append_only_original_correction_final",
+          originalVisits: originalVisits.map(toReportVisit),
+          correctionEvents: cloneData(correctionEvents) || [],
+          finalVerifiedOutcomes: visits.map(visit => ({
+            visitId: visit.id,
+            ...visitOutcomeSnapshot(visit),
+            correctionCount: Number(visit.correctionCount || 0)
+          }))
+        }
       };
     }
 
@@ -19891,6 +19941,33 @@
       if (report.app !== "Prometheus IQ" || report.reportType !== "beta-daily-rep-report") throw new Error("Today’s report contract is invalid.");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(report.date || "") || !report.rep?.id || !report.rep?.name) throw new Error("Today’s report identity is incomplete.");
       if (!Array.isArray(report.visits) || report.visits.length !== report.totals?.visits) throw new Error("Today’s visit total is incomplete.");
+      const correctionEvidence = report.visitOutcomeEvidence;
+      if (correctionEvidence) {
+        if (correctionEvidence.schemaVersion !== visitCorrectionSchemaVersion
+          || correctionEvidence.auditModel !== "append_only_original_correction_final"
+          || !Array.isArray(correctionEvidence.originalVisits)
+          || !Array.isArray(correctionEvidence.correctionEvents)
+          || !Array.isArray(correctionEvidence.finalVerifiedOutcomes)
+          || correctionEvidence.originalVisits.length !== report.visits.length
+          || correctionEvidence.finalVerifiedOutcomes.length !== report.visits.length) {
+          throw new Error("Visit correction evidence is incomplete.");
+        }
+        const visitIds = new Set(correctionEvidence.originalVisits.map(visit => visit.visitId));
+        const eventIds = new Set();
+        for (const event of correctionEvidence.correctionEvents) {
+          if (event.schemaVersion !== visitCorrectionSchemaVersion
+            || event.eventType !== "visit_outcome_correction"
+            || event.workspaceId !== payload.workspaceId
+            || event.operatingProfileId !== payload.operatingProfileId
+            || event.representativeId !== report.rep.id
+            || !visitIds.has(event.visitId)
+            || !event.eventId
+            || eventIds.has(event.eventId)) {
+            throw new Error("Visit correction evidence crosses session scope or contains a duplicate.");
+          }
+          eventIds.add(event.eventId);
+        }
+      }
       const metrics = ["conversations", "leads", "units", "laterUnits"];
       for (const metric of metrics) {
         const reported = report.totals?.[metric];
@@ -20114,6 +20191,10 @@
           lines.push(`   Time: ${visit.timestamp || "Not recorded"}`);
           lines.push(`   Outcome: ${visit.outcome || "Not specified"}`);
           lines.push(`   ${vocabulary.activityPlural}: ${visit.conversations} | ${vocabulary.pipelinePlural}: ${visit.leads} | ${vocabulary.progressPlural}: ${visit.units} | ${vocabulary.deferredPlural}: ${visit.laterUnits}`);
+          if (visit.appointments) lines.push(`   Appointments: ${visit.appointments}`);
+          if (visit.followUp) lines.push(`   Follow-up: ${visit.followUp}`);
+          const contact = [visit.manager, visit.contactName, visit.contactPhone, visit.contactEmail].filter(Boolean).join(" | ");
+          if (contact) lines.push(`   Contact: ${contact}`);
           if (visit.notes) lines.push(`   Notes: ${visit.notes}`);
           lines.push(`   GPS attached: ${visit.gpsAttached ? "yes" : "no"}`);
         });
@@ -20232,6 +20313,93 @@
       return Number.isFinite(number) ? Math.min(max, Math.max(0, number)) : 0;
     }
 
+    const visitOutcomeFields = ["quality", "conversations", "leads", "appointments", "units", "laterUnits", "followUp", "notes", "manager", "contactName", "contactPhone", "contactEmail"];
+
+    function visitOutcomeSnapshot(raw = {}) {
+      return {
+        quality: cleanText(raw.quality, 80),
+        conversations: Math.floor(cleanNumber(raw.conversations, 10000)),
+        leads: Math.floor(cleanNumber(raw.leads, 10000)),
+        appointments: Math.floor(cleanNumber(raw.appointments, 10000)),
+        units: Math.floor(cleanNumber(raw.units, 10000)),
+        laterUnits: Math.floor(cleanNumber(raw.laterUnits, 10000)),
+        followUp: cleanText(raw.followUp, 1000),
+        notes: cleanText(raw.notes, 2000),
+        manager: cleanText(raw.manager, 160),
+        contactName: cleanText(raw.contactName, 160),
+        contactPhone: cleanText(raw.contactPhone, 80),
+        contactEmail: cleanText(raw.contactEmail, 254)
+      };
+    }
+
+    function visitCorrectionsFor(visitId, profileId = activeRepId) {
+      const corrections = profileId === activeRepId
+        ? state.visitCorrections
+        : state.repProfiles?.[profileId]?.visitCorrections;
+      return (Array.isArray(corrections) ? corrections : [])
+        .filter(event => event.visitId === visitId && event.workspaceId === defaultWorkspaceId && event.representativeId === profileId)
+        .slice()
+        .sort((left, right) => Number(left.sequence || 0) - Number(right.sequence || 0) || String(left.correctedAt).localeCompare(String(right.correctedAt)));
+    }
+
+    function effectiveVisitOutcome(visit, profileId = activeRepId) {
+      const corrections = visitCorrectionsFor(visit.id, profileId);
+      const finalVerifiedOutcome = corrections.length
+        ? visitOutcomeSnapshot(corrections.at(-1).finalVerifiedOutcome)
+        : visitOutcomeSnapshot(visit);
+      return {
+        ...visit,
+        ...finalVerifiedOutcome,
+        correctionCount: corrections.length,
+        finalVerified: corrections.length > 0
+      };
+    }
+
+    function effectiveVisitsForProfile(profileId = activeRepId) {
+      const visits = profileId === activeRepId ? state.visits : state.repProfiles?.[profileId]?.visits;
+      return (Array.isArray(visits) ? visits : []).map(visit => effectiveVisitOutcome(visit, profileId));
+    }
+
+    function appendVisitCorrection(visitId, nextOutcome) {
+      if (currentFinalizedFieldSession()) throw new Error("Archived sessions cannot be changed.");
+      if (currentRouteWorkspaceId() !== defaultWorkspaceId) throw new Error("Visit corrections are unavailable outside Fitness Connection.");
+      const originalVisit = state.visits.find(visit => visit.id === visitId);
+      if (!originalVisit || originalVisit.workspaceId !== defaultWorkspaceId) throw new Error("Original visit evidence is unavailable.");
+      if (originalVisit.date !== todayKey()) throw new Error("Historical visits are read-only.");
+      const existing = visitCorrectionsFor(visitId);
+      const previousOutcome = visitOutcomeSnapshot(effectiveVisitOutcome(originalVisit));
+      const finalVerifiedOutcome = visitOutcomeSnapshot(nextOutcome);
+      const changes = {};
+      for (const field of visitOutcomeFields) {
+        if (previousOutcome[field] !== finalVerifiedOutcome[field]) {
+          changes[field] = { before: previousOutcome[field], after: finalVerifiedOutcome[field] };
+        }
+      }
+      if (!Object.keys(changes).length) return { ok: false, duplicate: true, event: existing.at(-1) || null };
+      if ((state.visitCorrections || []).length >= MAX_VISIT_CORRECTIONS) throw new Error("Visit correction storage limit reached.");
+      const correctedAt = new Date().toISOString();
+      const event = {
+        schemaVersion: visitCorrectionSchemaVersion,
+        eventId: typeof crypto?.randomUUID === "function" ? crypto.randomUUID() : `visit-correction-${Date.now()}-${id()}`,
+        eventType: "visit_outcome_correction",
+        workspaceId: defaultWorkspaceId,
+        operatingProfileId: "fitness",
+        representativeId: activeRepId,
+        visitId: originalVisit.id,
+        placeId: originalVisit.placeId,
+        sequence: existing.length + 1,
+        correctedAt,
+        source: "representative_post_visit_update",
+        previousOutcome,
+        changes,
+        finalVerifiedOutcome
+      };
+      state.visitCorrections = Array.isArray(state.visitCorrections) ? state.visitCorrections : [];
+      state.visitCorrections.push(event);
+      persistStateWithoutRender();
+      return { ok: true, duplicate: false, event };
+    }
+
     function cleanDate(value) {
       const text = cleanText(value, 10);
       return /^\d{4}-\d{2}-\d{2}$/.test(text) && !Number.isNaN(Date.parse(`${text}T00:00:00`)) ? text : todayKey();
@@ -20290,6 +20458,7 @@
       const profile = {
         ...template,
         visits: Array.isArray(visits) ? visits : [],
+        visitCorrections: [],
         routeHistory: Array.isArray(routeHistory) ? routeHistory : [],
         activeRouteQueue: null,
         adaptiveIntelligence: null,
@@ -20367,6 +20536,7 @@
       if (!state || !state.repProfiles || !activeRepId) return;
       const profile = activeProfile();
       profile.visits = Array.isArray(state.visits) ? state.visits : [];
+      profile.visitCorrections = Array.isArray(state.visitCorrections) ? state.visitCorrections : [];
       profile.routeHistory = Array.isArray(state.routeHistory) ? state.routeHistory : [];
       profile.updatedAt = Date.now();
       state.activeRepId = activeRepId;
@@ -20376,6 +20546,7 @@
       const profile = repProfiles?.anthony;
       if (!profile || profile.learningResetVersion === anthonyLearningResetVersion) return;
       profile.visits = [];
+      profile.visitCorrections = [];
       profile.routeHistory = [];
       profile.recommendationHistory = [];
       profile.placePerformance = {};
@@ -20396,6 +20567,7 @@
       const profile = repProfiles?.cruz;
       if (!profile || profile.learningResetVersion === founderLearningResetVersion) return;
       profile.visits = [];
+      profile.visitCorrections = [];
       profile.routeHistory = [];
       profile.recommendationHistory = [];
       profile.placePerformance = {};
@@ -20419,6 +20591,7 @@
       state.activeRepId = activeRepId;
       const profile = activeProfile();
       state.visits = profile.visits || [];
+      state.visitCorrections = profile.visitCorrections || [];
       state.routeHistory = profile.routeHistory || [];
       invalidateDashboardComputationCache();
       localStorage.setItem(activeRepStoreKey, activeRepId);
@@ -20440,7 +20613,7 @@
       if (!input || typeof input !== "object" || !Array.isArray(input.places) || !Array.isArray(input.visits)) {
         throw new Error("Invalid backup");
       }
-      if (input.places.length > MAX_PLACES || input.visits.length > MAX_VISITS) {
+      if (input.places.length > MAX_PLACES || input.visits.length > MAX_VISITS || (input.visitCorrections || []).length > MAX_VISIT_CORRECTIONS) {
         throw new Error("Backup exceeds app limits");
       }
 
@@ -20520,6 +20693,72 @@
       });
       };
 
+      const outcomeFields = ["quality", "conversations", "leads", "appointments", "units", "laterUnits", "followUp", "notes", "manager", "contactName", "contactPhone", "contactEmail"];
+      const normalizeOutcomeSnapshot = raw => ({
+        quality: cleanText(raw?.quality, 80),
+        conversations: Math.floor(cleanNumber(raw?.conversations, 10000)),
+        leads: Math.floor(cleanNumber(raw?.leads, 10000)),
+        appointments: Math.floor(cleanNumber(raw?.appointments, 10000)),
+        units: Math.floor(cleanNumber(raw?.units, 10000)),
+        laterUnits: Math.floor(cleanNumber(raw?.laterUnits, 10000)),
+        followUp: cleanText(raw?.followUp, 1000),
+        notes: cleanText(raw?.notes, 2000),
+        manager: cleanText(raw?.manager, 160),
+        contactName: cleanText(raw?.contactName, 160),
+        contactPhone: cleanText(raw?.contactPhone, 80),
+        contactEmail: cleanText(raw?.contactEmail, 254)
+      });
+      const normalizeVisitCorrections = (list, visits, representativeId) => {
+        if (!Array.isArray(list)) return [];
+        if (list.length > MAX_VISIT_CORRECTIONS) throw new Error("Backup exceeds visit correction limits");
+        const correctionsIds = new Set();
+        const visitsById = new Map(visits.map(visit => [visit.id, visit]));
+        return list.map(raw => {
+          if (!raw || typeof raw !== "object") throw new Error("Invalid visit correction");
+          const eventId = cleanText(raw.eventId, 128);
+          if (!/^[A-Za-z0-9_-]+$/.test(eventId) || correctionsIds.has(eventId)) throw new Error("Invalid visit correction identity");
+          correctionsIds.add(eventId);
+          const visitId = cleanText(raw.visitId, 128);
+          const visit = visitsById.get(visitId);
+          if (!visit) throw new Error("Visit correction references missing evidence");
+          const workspaceId = cleanText(raw.workspaceId, 80) || defaultWorkspaceId;
+          const eventRepresentativeId = cleanText(raw.representativeId, 60);
+          if (workspaceId !== defaultWorkspaceId || eventRepresentativeId !== representativeId) throw new Error("Visit correction crosses workspace or representative scope");
+          const placeId = placeIdMap.get(cleanText(raw.placeId, 128)) || cleanText(raw.placeId, 128);
+          if (placeId !== visit.placeId) throw new Error("Visit correction business identity mismatch");
+          const correctedAt = cleanText(raw.correctedAt, 40);
+          if (!correctedAt || Number.isNaN(Date.parse(correctedAt))) throw new Error("Visit correction timestamp is invalid");
+          const previousOutcome = normalizeOutcomeSnapshot(raw.previousOutcome);
+          const finalVerifiedOutcome = normalizeOutcomeSnapshot(raw.finalVerifiedOutcome);
+          const changes = {};
+          for (const field of outcomeFields) {
+            if (raw.changes && Object.hasOwn(raw.changes, field)) {
+              changes[field] = {
+                before: previousOutcome[field],
+                after: finalVerifiedOutcome[field]
+              };
+            }
+          }
+          if (!Object.keys(changes).length) throw new Error("Visit correction has no changed fields");
+          return {
+            schemaVersion: visitCorrectionSchemaVersion,
+            eventId,
+            eventType: "visit_outcome_correction",
+            workspaceId,
+            operatingProfileId: "fitness",
+            representativeId,
+            visitId,
+            placeId,
+            sequence: Math.max(1, Math.floor(cleanNumber(raw.sequence, MAX_VISIT_CORRECTIONS))),
+            correctedAt: new Date(correctedAt).toISOString(),
+            source: "representative_post_visit_update",
+            previousOutcome,
+            changes,
+            finalVerifiedOutcome
+          };
+        });
+      };
+
       const normalizeRouteHistory = list => Array.isArray(list)
         ? list.slice(-routeHistoryLimit).map(raw => {
             if (!raw || typeof raw !== "object") return null;
@@ -20538,12 +20777,15 @@
         : [];
 
       const legacyVisits = normalizeVisitsList(input.visits);
+      const legacyRepresentativeId = cleanText(input.activeRepId, 60) || "cruz";
+      const legacyVisitCorrections = normalizeVisitCorrections(input.visitCorrections, legacyVisits, legacyRepresentativeId);
       const legacyRouteHistory = normalizeRouteHistory(input.routeHistory);
       const repProfiles = {};
 
       if (input.repProfiles && typeof input.repProfiles === "object") {
         Object.entries(input.repProfiles).forEach(([profileId, rawProfile]) => {
           const safeProfileId = cleanText(profileId, 60) || "future-rep";
+          const profileVisits = normalizeVisitsList(rawProfile?.visits);
           const template = repProfileTemplates[safeProfileId] || {
             id: safeProfileId,
             name: cleanText(rawProfile?.name || safeProfileId, 60) || "Future Rep",
@@ -20553,7 +20795,8 @@
           };
           repProfiles[safeProfileId] = {
             ...template,
-            visits: normalizeVisitsList(rawProfile?.visits),
+            visits: profileVisits,
+            visitCorrections: normalizeVisitCorrections(rawProfile?.visitCorrections, profileVisits, safeProfileId),
             routeHistory: normalizeRouteHistory(rawProfile?.routeHistory),
             recommendationHistory: Array.isArray(rawProfile?.recommendationHistory) ? rawProfile.recommendationHistory.slice(-routeHistoryLimit) : [],
             placePerformance: rawProfile?.placePerformance && typeof rawProfile.placePerformance === "object" ? cloneData(rawProfile.placePerformance) : {},
@@ -20573,7 +20816,11 @@
         });
       }
 
-      if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", legacyVisits, legacyRouteHistory);
+      if (!repProfiles[legacyRepresentativeId]) {
+        repProfiles[legacyRepresentativeId] = createRepProfile(legacyRepresentativeId, legacyVisits, legacyRouteHistory);
+        repProfiles[legacyRepresentativeId].visitCorrections = legacyVisitCorrections;
+      }
+      if (!repProfiles.cruz) repProfiles.cruz = createRepProfile("cruz", [], []);
       if (!repProfiles.anthony) repProfiles.anthony = createRepProfile("anthony", [], []);
       resetFounderLearningProfile(repProfiles);
       resetAnthonyLearningProfile(repProfiles);
@@ -20588,6 +20835,7 @@
       return withAnthonyApprovedRoute({
         places,
         visits: active.visits,
+        visitCorrections: active.visitCorrections || [],
         routeHistory: active.routeHistory,
         activeRepId: activeId,
         territoryPolicies: normalizeTerritoryPolicies(input.territoryPolicies),
@@ -20616,9 +20864,11 @@
         if (placeId) ids.add(placeId);
       });
       collect(nextState?.visits);
+      collect(nextState?.visitCorrections);
       collect(nextState?.routeHistory);
       Object.values(nextState?.repProfiles || {}).forEach(profile => {
         collect(profile?.visits);
+        collect(profile?.visitCorrections);
         collect(profile?.routeHistory);
       });
       return ids;
@@ -20635,9 +20885,11 @@
     function remapStatePlaceReferences(nextState, idMap) {
       if (!idMap.size) return nextState;
       nextState.visits = remapPlaceReferences(nextState.visits, idMap);
+      nextState.visitCorrections = remapPlaceReferences(nextState.visitCorrections, idMap);
       nextState.routeHistory = remapPlaceReferences(nextState.routeHistory, idMap);
       Object.values(nextState.repProfiles || {}).forEach(profile => {
         profile.visits = remapPlaceReferences(profile.visits, idMap);
+        profile.visitCorrections = remapPlaceReferences(profile.visitCorrections, idMap);
         profile.routeHistory = remapPlaceReferences(profile.routeHistory, idMap);
         if (Array.isArray(profile.activeRouteQueue?.entries)) {
           profile.activeRouteQueue.entries = profile.activeRouteQueue.entries.map(entry => {
@@ -21043,6 +21295,23 @@
       dashboardComputationCache.todayVisitsKey = key;
       dashboardComputationCache.todayVisits = visits;
       return visits;
+    }
+
+    function verifiedTodayVisits() {
+      return todayVisits().map(visit => effectiveVisitOutcome(visit));
+    }
+
+    function verifiedPlaceStats(placeId) {
+      const visits = effectiveVisitsForProfile().filter(visit => visit.placeId === placeId);
+      return visits.reduce((acc, visit) => {
+        acc.visits += 1;
+        acc.conversations += Number(visit.conversations || 0);
+        acc.leads += Number(visit.leads || 0);
+        acc.appointments += Number(visit.appointments || 0);
+        acc.units += Number(visit.units || 0);
+        acc.laterUnits += Number(visit.laterUnits || 0);
+        return acc;
+      }, { visits: 0, conversations: 0, leads: 0, appointments: 0, units: 0, laterUnits: 0 });
     }
 
     function visiblePlaces() {
@@ -22885,7 +23154,7 @@
     }
 
     function renderActiveDeferredView(name = activeTabName()) {
-      if (name === "places" && canUseOwnerMode()) renderPlaces();
+      if (name === "places") renderPlaces();
       else if (name === "stats" && canUseOwnerMode()) renderStats();
       else if (name === "find" && canUseOwnerMode()) renderFind();
       else if (name === "route") renderRoute();
@@ -22986,7 +23255,7 @@
       measureDashboardRender("today", renderToday);
       measureDashboardRender("route", renderRoute);
       const activeView = activeTabName();
-      if (canUseOwnerMode() && ["places", "stats", "find"].includes(activeView)) {
+      if (activeView === "places" || canUseOwnerMode() && ["stats", "find"].includes(activeView)) {
         renderActiveDeferredView(activeView);
       }
       window.prometheusDebugState.renderTimings = window.prometheusDebugState.renderTimings || {};
@@ -23019,7 +23288,8 @@
 
     function renderToday() {
       const vocabulary = activeOperatingVocabulary();
-      const visits = todayVisits();
+      const routeVisits = todayVisits();
+      const visits = verifiedTodayVisits();
       const sums = sumVisits(visits);
       const need = Math.max(0, GOAL - sums.units);
       const actualPct = Math.round((sums.units / GOAL) * 100);
@@ -23056,7 +23326,8 @@
           ? `<div><b>${need} ${escapeHtml(vocabulary.progressPlural.toLowerCase())} left.</b> Estimated completion probability is <b>${pace.probability}%</b> using verified route quality and early field evidence.</div><div><b>Discovery Mode:</b> Prometheus is testing varied verified categories before declaring a best lane.</div>`
           : `<div><b>${need} ${escapeHtml(vocabulary.progressPlural.toLowerCase())} left.</b> Estimated completion probability is <b>${pace.probability}%</b> using today's production, available route quality, and current profile history.</div><div>Plan roughly <b>${needVisits}</b> more outside stops or <b>${needTalks}</b> more ${escapeHtml(vocabulary.activityPlural.toLowerCase())}. Highest-probability category right now: <b>${topCategory}</b>.</div>`;
 
-      renderRouteIntelligence(visits, sums, need);
+      const routeSums = sumVisits(routeVisits);
+      renderRouteIntelligence(routeVisits, routeSums, Math.max(0, GOAL - routeSums.units));
       renderDailyRoute();
       renderNearbyOpportunities();
       renderTerritoryOverview();
@@ -23349,6 +23620,7 @@
 
     function visitCard(v) {
       const vocabulary = activeOperatingVocabulary();
+      const verified = effectiveVisitOutcome(v);
       const place = state.places.find(p => p.id === v.placeId);
       const title = place ? place.name : v.placeName || "Unknown place";
       const locationLabel = v.location
@@ -23361,16 +23633,19 @@
             <div class="meta">
               ${place?.distance ? `<span>${escapeHtml(place.distance)}</span>` : ""}
               <span>${escapeHtml(v.window)}</span>
-              <span>${Number(v.conversations || 0)} ${escapeHtml(vocabulary.activityPlural.toLowerCase())}</span>
-              <span>${Number(v.leads || 0)} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span>
-              ${v.quality ? `<span>${escapeHtml(v.quality)}</span>` : ""}
+              <span>${Number(verified.conversations || 0)} ${escapeHtml(vocabulary.activityPlural.toLowerCase())}</span>
+              <span>${Number(verified.leads || 0)} ${escapeHtml(vocabulary.pipelinePlural.toLowerCase())}</span>
+              ${Number(verified.appointments || 0) ? `<span>${Number(verified.appointments)} appointments</span>` : ""}
+              ${verified.quality ? `<span>${escapeHtml(verified.quality)}</span>` : ""}
+              ${verified.correctionCount ? `<span>${verified.correctionCount} ${verified.correctionCount === 1 ? "correction" : "corrections"}</span>` : ""}
               ${locationLabel ? `<span>${escapeHtml(locationLabel)}</span>` : ""}
             </div>
           </div>
-          <span class="pill green">${Number(v.units || 0) + Number(v.laterUnits || 0)} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
+          <span class="pill green">${Number(verified.units || 0) + Number(verified.laterUnits || 0)} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
         </div>
-        ${Number(v.laterUnits || 0) ? `<div class="meta">${Number(v.units || 0)} same-day · ${Number(v.laterUnits || 0)} ${escapeHtml(vocabulary.deferredPlural.toLowerCase())}</div>` : ""}
-        ${v.notes ? `<div class="meta">${escapeHtml(v.notes)}</div>` : ""}
+        ${Number(verified.laterUnits || 0) ? `<div class="meta">${Number(verified.units || 0)} same-day · ${Number(verified.laterUnits || 0)} ${escapeHtml(vocabulary.deferredPlural.toLowerCase())}</div>` : ""}
+        ${verified.notes ? `<div class="meta">${escapeHtml(verified.notes)}</div>` : ""}
+        <div class="compact-actions"><button class="btn secondary" type="button" data-view-visit="${escapeAttr(v.id)}">View Visit</button></div>
       </article>`;
     }
 
@@ -23456,7 +23731,7 @@
       const startedAt = performance.now();
       const statsCache = new Map();
       const getStats = place => {
-        if (!statsCache.has(place.id)) statsCache.set(place.id, placeStats(place.id));
+        if (!statsCache.has(place.id)) statsCache.set(place.id, verifiedPlaceStats(place.id));
         return statsCache.get(place.id);
       };
       const statusFromStats = stats => {
@@ -23468,6 +23743,7 @@
       const placeCard = p => {
         const stats = getStats(p);
         const status = statusFromStats(stats);
+        const latestVisit = state.visits.filter(visit => visit.placeId === p.id).sort((left, right) => Number(right.createdAt || 0) - Number(left.createdAt || 0))[0] || null;
         return `<article class="item">
           <div class="item-head">
             <div>
@@ -23486,6 +23762,7 @@
             <span class="pill ${status}">${stats.units + stats.laterUnits} ${escapeHtml(vocabulary.progressPlural.toLowerCase())}</span>
           </div>
           ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
+          ${latestVisit ? `<div class="compact-actions"><button class="btn secondary" type="button" data-view-visit="${escapeAttr(latestVisit.id)}">View Visit</button></div>` : ""}
         </article>`;
       };
       let places = state.places.slice().sort((a, b) => {
@@ -23493,6 +23770,14 @@
         const as = getStats(a);
         return bs.units - as.units || bs.leads - as.leads || b.createdAt - a.createdAt;
       });
+      const placesTitle = document.getElementById("placesTitle");
+      if (sessionRole === "rep") {
+        const visitedPlaceIds = new Set(state.visits.map(visit => visit.placeId));
+        places = places.filter(place => visitedPlaceIds.has(place.id));
+        if (placesTitle) placesTitle.textContent = "Visited Places";
+      } else if (placesTitle) {
+        placesTitle.textContent = "Production Map";
+      }
       if (currentFilter !== "all") places = places.filter(p => statusFromStats(getStats(p)) === currentFilter);
       const total = places.length;
       const count = document.getElementById("placesCount");
@@ -23874,6 +24159,106 @@
       </div>`;
     }
 
+    function visitOutcomeSummary(outcome) {
+      const items = [
+        `${Number(outcome.conversations || 0)} conversations`,
+        `${Number(outcome.leads || 0)} leads`,
+        `${Number(outcome.appointments || 0)} appointments`,
+        `${Number(outcome.units || 0)} units`,
+        `${Number(outcome.laterUnits || 0)} follow-up units`
+      ];
+      if (outcome.quality) items.unshift(outcome.quality);
+      return items.join(" · ");
+    }
+
+    function visitContactSummary(outcome) {
+      return [
+        outcome.manager ? `Manager: ${outcome.manager}` : "",
+        outcome.contactName ? `Contact: ${outcome.contactName}` : "",
+        outcome.contactPhone || "",
+        outcome.contactEmail || "",
+        outcome.followUp ? `Follow-up: ${outcome.followUp}` : ""
+      ].filter(Boolean).join(" · ");
+    }
+
+    function visitAuditMarkup(visit) {
+      const original = visitOutcomeSnapshot(visit);
+      const verified = effectiveVisitOutcome(visit);
+      const corrections = visitCorrectionsFor(visit.id);
+      const place = state.places.find(item => item.id === visit.placeId);
+      const canCorrect = visit.date === todayKey() && !currentFinalizedFieldSession();
+      const changeLabels = {
+        quality: "Outcome",
+        conversations: "Conversations",
+        leads: "Leads",
+        appointments: "Appointments",
+        units: "Units",
+        laterUnits: "Follow-up units",
+        followUp: "Follow-up",
+        notes: "Notes",
+        manager: "Manager",
+        contactName: "Contact",
+        contactPhone: "Phone",
+        contactEmail: "Email"
+      };
+      const history = corrections.map(event => {
+        const changes = Object.entries(event.changes || {}).map(([field, values]) => {
+          const before = values.before === "" ? "Not recorded" : values.before;
+          const after = values.after === "" ? "Cleared" : values.after;
+          return `${changeLabels[field] || field}: ${before} → ${after}`;
+        }).join(" · ");
+        return `<div class="visit-audit-event" data-correction-event="${escapeAttr(event.eventId)}">
+          <h3>Correction ${Number(event.sequence || 0)}</h3>
+          <p>${escapeHtml(new Date(event.correctedAt).toLocaleString())}</p>
+          <p>${escapeHtml(changes)}</p>
+        </div>`;
+      }).join("");
+      return `<div class="visit-audit" data-visit-audit="${escapeAttr(visit.id)}">
+        <div class="visit-audit-event original">
+          <h3>Original Visit</h3>
+          <p>${escapeHtml(place?.name || visit.placeName || "Unknown place")} · ${escapeHtml(new Date(visit.createdAt).toLocaleString())}</p>
+          <p>${escapeHtml(visitOutcomeSummary(original))}</p>
+          ${original.notes ? `<p>${escapeHtml(original.notes)}</p>` : ""}
+        </div>
+        ${history}
+        <div class="visit-audit-event">
+          <h3>Final Verified Outcome</h3>
+          <p>${escapeHtml(visitOutcomeSummary(verified))}</p>
+          ${visitContactSummary(verified) ? `<p>${escapeHtml(visitContactSummary(verified))}</p>` : ""}
+          ${verified.notes ? `<p>${escapeHtml(verified.notes)}</p>` : ""}
+        </div>
+        ${canCorrect
+          ? `<button class="btn" type="button" data-update-visit="${escapeAttr(visit.id)}">Update Outcome</button>`
+          : `<div class="status-line">This visit is read-only.</div>`}
+      </div>`;
+    }
+
+    function visitCorrectionFormMarkup(visit) {
+      const current = effectiveVisitOutcome(visit);
+      const options = ["No Contact", "Conversation", "Lead", "Appointment", "Membership/Unit", "Follow-up"];
+      if (current.quality && !options.includes(current.quality)) options.unshift(current.quality);
+      return `<form id="visitCorrectionForm" data-correction-visit="${escapeAttr(visit.id)}">
+        <label>Verified Outcome<select name="quality">${options.map(option => `<option ${current.quality === option ? "selected" : ""}>${escapeHtml(option)}</option>`).join("")}</select></label>
+        <div class="grid two">
+          <label>Conversations<input name="conversations" type="number" inputmode="numeric" min="0" value="${Number(current.conversations || 0)}"></label>
+          <label>Leads<input name="leads" type="number" inputmode="numeric" min="0" value="${Number(current.leads || 0)}"></label>
+          <label>Appointments<input name="appointments" type="number" inputmode="numeric" min="0" value="${Number(current.appointments || 0)}"></label>
+          <label>Memberships / Units<input name="units" type="number" inputmode="numeric" min="0" value="${Number(current.units || 0)}"></label>
+          <label>Follow-up Units<input name="laterUnits" type="number" inputmode="numeric" min="0" value="${Number(current.laterUnits || 0)}"></label>
+        </div>
+        <label>Follow-up<textarea name="followUp" placeholder="Next action and timing">${escapeHtml(current.followUp || "")}</textarea></label>
+        <label>Notes<textarea name="notes">${escapeHtml(current.notes || "")}</textarea></label>
+        <div class="grid two">
+          <label>Manager<input name="manager" value="${escapeAttr(current.manager || "")}"></label>
+          <label>Contact<input name="contactName" value="${escapeAttr(current.contactName || "")}"></label>
+          <label>Phone<input name="contactPhone" type="tel" value="${escapeAttr(current.contactPhone || "")}"></label>
+          <label>Email<input name="contactEmail" type="email" value="${escapeAttr(current.contactEmail || "")}"></label>
+        </div>
+        <div class="status-line" id="visitCorrectionStatus" role="status" aria-live="polite"></div>
+        <button class="btn" type="submit">Save Correction</button>
+      </form>`;
+    }
+
     function attachVisitLocationControl(form) {
       const button = form.querySelector("[data-verify-location]");
       const status = form.querySelector("[data-location-status]");
@@ -23970,7 +24355,59 @@
       const modal = document.getElementById("modal");
       const title = document.getElementById("modalTitle");
       const body = document.getElementById("modalBody");
-      if (type === "nearby") {
+      if (type === "visit-detail") {
+        const visit = state.visits.find(item => item.id === preset.visitId);
+        const place = visit ? state.places.find(item => item.id === visit.placeId) : null;
+        title.textContent = place?.name || visit?.placeName || "Visit";
+        body.innerHTML = visit ? visitAuditMarkup(visit) : `<div class="empty">Visit evidence is unavailable.</div>`;
+      } else if (type === "visit-correction") {
+        const visit = state.visits.find(item => item.id === preset.visitId);
+        const place = visit ? state.places.find(item => item.id === visit.placeId) : null;
+        title.textContent = `Update ${place?.name || visit?.placeName || "Visit"}`;
+        if (!visit || visit.date !== todayKey() || currentFinalizedFieldSession()) {
+          body.innerHTML = `<div class="empty">This visit is read-only.</div>`;
+        } else {
+          body.innerHTML = visitCorrectionFormMarkup(visit);
+          const form = body.querySelector("#visitCorrectionForm");
+          let correctionPending = false;
+          form.addEventListener("submit", event => {
+            event.preventDefault();
+            if (correctionPending) return;
+            correctionPending = true;
+            const data = Object.fromEntries(new FormData(form).entries());
+            const controls = form.querySelectorAll("button, select, input, textarea");
+            controls.forEach(control => { control.disabled = true; });
+            try {
+              const result = appendVisitCorrection(visit.id, {
+                quality: data.quality,
+                conversations: data.conversations,
+                leads: data.leads,
+                appointments: data.appointments,
+                units: data.units,
+                laterUnits: data.laterUnits,
+                followUp: data.followUp,
+                notes: data.notes,
+                manager: data.manager,
+                contactName: data.contactName,
+                contactPhone: data.contactPhone,
+                contactEmail: data.contactEmail
+              });
+              if (result.duplicate) {
+                document.getElementById("visitCorrectionStatus").textContent = "No outcome changes to save.";
+                correctionPending = false;
+                controls.forEach(control => { control.disabled = false; });
+                return;
+              }
+              render();
+              openModal("visit-detail", { visitId: visit.id });
+            } catch (error) {
+              document.getElementById("visitCorrectionStatus").textContent = error?.message || "Outcome correction could not be saved.";
+              correctionPending = false;
+              controls.forEach(control => { control.disabled = false; });
+            }
+          });
+        }
+      } else if (type === "nearby") {
         const place = state.places.find(item => item.id === preset.placeId) || routeVisiblePlaces().find(item => item.id === preset.placeId);
         title.textContent = "Nearby Context";
         body.innerHTML = nearbyContextMarkup(place);
@@ -24157,7 +24594,7 @@
     }
 
     function setTab(name) {
-      if (appMode === "rep" && ["places", "stats", "find"].includes(name)) name = "today";
+      if (appMode === "rep" && ["stats", "find"].includes(name)) name = "today";
       document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${name}`));
       document.querySelectorAll(".tab[data-tab]").forEach(tab => tab.classList.toggle("active", tab.dataset.tab === name));
       renderActiveDeferredView(name);
@@ -24307,6 +24744,12 @@
 
       const nearbyPlace = event.target.closest("[data-nearby-place]");
       if (nearbyPlace && nearbyPlace.dataset.nearbyPlace) openModal("nearby", { placeId: nearbyPlace.dataset.nearbyPlace });
+
+      const viewVisit = event.target.closest("[data-view-visit]");
+      if (viewVisit?.dataset.viewVisit) openModal("visit-detail", { visitId: viewVisit.dataset.viewVisit });
+
+      const updateVisit = event.target.closest("[data-update-visit]");
+      if (updateVisit?.dataset.updateVisit) openModal("visit-correction", { visitId: updateVisit.dataset.updateVisit });
 
       if (event.target.closest("#closeModal")) closeModal();
       if (event.target.id === "modal") closeModal();
