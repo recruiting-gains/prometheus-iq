@@ -1,0 +1,288 @@
+{
+  "batchId": "BATCH-20260713-004",
+  "engineeringDirective": "Route IQ Prospective Shadow Evidence Collection Runtime v1 and Strongly Consistent Prospective Shadow Evidence Coordinator Repair v1",
+  "owningProduct": "Route IQ",
+  "status": "SOURCE_COMPLETE_PENDING_EXACT_FINAL_HEAD_EXTERNAL_HANDOFF",
+  "trackedReportBoundary": "The exact final HEAD, tree, Overwatch commit, push facts, and verification timestamps are recorded only in the external Overwatch handoff after the repository is frozen.",
+  "patentBoundary": "WITHIN_EXISTING_DOCUMENTED_SCOPE",
+  "dispatchAudit": {
+    "ownershipRespected": true,
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchStartedAt": "2026-07-13T17:00:00-05:00",
+    "subsystems": [
+      {
+        "subsystem": "Prometheus Data",
+        "implementationOwner": "Prometheus Data",
+        "commits": [
+          "7970f240d881fb52f964a7a89bf7e0336edfb25c",
+          "968212e235ee1701b0a0fc21499b831de565f669",
+          "ce9f642c88921a2d0779f1b90323985c53fb371e",
+          "88b8490cb96c7065623e2e23b924c261828165ea",
+          "89e9ae46d1605c7d054f0b3332e816abdc266aef",
+          "9b53a213e7e070e60c8ccadf27f164d83ad932d1",
+          "b7896a68830f42232ccc5861bb61742cf375c3d9",
+          "f4ecc7e83fae547fa7cfca6857f4f6f08d14006b",
+          "8dbf0bc98b1a2218322f8d33381477455e33f36a",
+          "e47a5253cc3cadd0252894fa31278409b7fa73cb",
+          "b388849c21051262e0f80e4c24875147cf9889dd",
+          "84319f9c70004edd50e1531e48ea1d0d7b501089",
+          "00a7e68251ac597f40e35bcfcff942d3e4648a65",
+          "704537ded300cb674e53c047859eda19525a168d"
+        ],
+        "files": [
+          "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+          "data/route-iq-field-sessions-v1/README.md",
+          "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+          "data/route-iq-field-sessions-v1/route-iq-field-session-v1.schema.json",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-opportunity-snapshot-v1.schema.json",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-evidence.mjs",
+          "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+          "scripts/lib/route-intelligence-quality-gate.mjs",
+          "tests/route-intelligence-quality-gate.test.mjs",
+          "tests/route-iq-field-session-archive.test.mjs",
+          "tests/route-iq-prospective-shadow-allocator.test.mjs",
+          "tests/route-iq-prospective-shadow-evidence-coordinator.test.mjs",
+          "tests/route-iq-prospective-shadow-evidence.test.mjs"
+        ]
+      },
+      {
+        "subsystem": "Prometheus Infrastructure",
+        "implementationOwner": "Prometheus Infrastructure",
+        "commits": [
+          "628d8462fc209585dfa0a261e29f393e626a2d92",
+          "d89b4df27fe6e5e4b714f647eb09eeaf73c1755c",
+          "31be4c6a8b4e2091ac64dab05375256db4e28159",
+          "1db9a8ee1220430e1053dde34d8cf7a1d9f82426",
+          "74e53f378bc1cbd9fea3891cb90c5d20f2d8eb6f",
+          "509a7bc0d3b4d2911d6b6b189985cccfa2536241"
+        ],
+        "files": [
+          "docs/route-iq-prospective-shadow-infrastructure-v1.md",
+          "package-lock.json",
+          "package.json",
+          "scripts/verify-route-iq-prospective-shadow-infrastructure.mjs",
+          "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+          "workers/infrastructure/route-iq-prospective-shadow-access.js",
+          "workers/infrastructure/route-iq-prospective-shadow-authority.js",
+          "workers/infrastructure/route-iq-prospective-shadow-contract.js",
+          "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
+          "workers/infrastructure/route-iq-prospective-shadow-orchestration.js",
+          "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+          "workers/prometheus-iq-worker.js",
+          "wrangler.jsonc"
+        ]
+      },
+      {
+        "subsystem": "Prometheus Intelligence Engine",
+        "implementationOwner": "Prometheus Intelligence Engine",
+        "commits": [
+          "4e666673415d69d075f0ae15a5b7987dc7061dac",
+          "fd0f306387664e8cd3cb1d957b81d3d7dda5dc8e",
+          "cd0a504328b0870aa695731230e6c43dd4698e3c",
+          "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+        ],
+        "files": [
+          "intelligence/config/shadow-decision-readiness-v1.json",
+          "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+          "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+          "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+          "intelligence/contracts/read-only-field-session-learning-contracts.json",
+          "intelligence/contracts/shadow-decision-readiness-contracts.json",
+          "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+          "intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs",
+          "intelligence/route-iq-committed-outcome-evaluation.mjs",
+          "intelligence/shadow-decision-readiness-runtime.mjs",
+          "intelligence/shadow-decision-readiness.md",
+          "scripts/verify-shadow-decision-readiness.mjs",
+          "tests/route-iq-committed-outcome-evaluation.test.mjs",
+          "tests/shadow-decision-readiness-runtime.test.mjs",
+          "tests/shadow-decision-readiness.test.mjs"
+        ]
+      },
+      {
+        "subsystem": "Prometheus Dashboard",
+        "implementationOwner": "Prometheus Dashboard",
+        "commits": ["6c7671cb3f9387fdac29961432412dfe70088b2e"],
+        "files": [
+          "_headers",
+          "deploy/cloudflare-pages/_headers",
+          "deploy/cloudflare-pages/index.html",
+          "deploy/cloudflare-pages/sw.js",
+          "index.html",
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "sw.js",
+          "tests/dashboard-route-iq-field-session-producer.test.mjs"
+        ]
+      }
+    ],
+    "overwatchOwnedFiles": [
+      "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json",
+      "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json",
+      "overwatch/reports/BATCH-20260713-004-route-iq-prospective-shadow-runtime.json",
+      "package.json",
+      "scripts/verify-cross-subsystem-artifact-contracts.mjs",
+      "scripts/verify-overwatch-route-iq-prospective-runtime-gate.mjs",
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/overwatch-route-iq-prospective-runtime-gate.test.mjs"
+    ],
+    "overwatchChangeClassification": "governance, verification, reporting, and release wiring only",
+    "overwatchModifiedSubsystemImplementation": false
+  },
+  "architecture": {
+    "newSubsystem": false,
+    "parallelProductionEventArchitecture": false,
+    "newModelOrVendor": false,
+    "newThirdPartyTransmission": false,
+    "durableObjectBinding": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+    "durableObjectClass": "RouteIqProspectiveShadowCoordinator",
+    "migrationTag": "route-iq-prospective-shadow-sqlite-v1",
+    "migrationType": "new_sqlite_classes",
+    "coordinatorScope": "authenticated workspace + operating profile + representative",
+    "workersKvAuthority": "non_authoritative_cache_only"
+  },
+  "lifecycle": [
+    "DECISION_OPPORTUNITY",
+    "PRE_ACTION_SNAPSHOT",
+    "SHADOW_DECISION_SEALED",
+    "REPRESENTATIVE_ACTION",
+    "OBSERVED_OUTCOME",
+    "READINESS_EVALUATION"
+  ],
+  "supportedOpportunityTypes": ["next_stop"],
+  "actionBoundary": "The existing rank-one Directions click is the representative action boundary. The client signal is informational and never establishes canonical identity or time; the opportunity is eligible only when the server proves the shadow decision was sealed strictly before that click.",
+  "fields": {
+    "browserBeforeAction": ["eventKind", "informationalSequence", "informationalObservedAt"],
+    "serverBeforeAction": [
+      "server-derived workspace, operating profile, representative, session, and opportunity IDs",
+      "complete governed candidate manifest and source provenance",
+      "evidence cutoff, schema, producer, contract, projection, engine, rule, model, and configuration versions",
+      "eligibility, ranks, probabilities, confidence, canonical hashes, server timestamps, and keyed seals"
+    ],
+    "afterAction": [
+      "append-only canonical action and selected candidate identity",
+      "optional Decision Source as post-action supporting information",
+      "later committed outcome, correction, conflict, exclusion, and evaluation records"
+    ],
+    "prohibitedFromSnapshot": ["Decision Source", "action", "outcome", "correction", "future evidence", "raw notes", "PII"]
+  },
+  "privacyAndRetention": {
+    "newPii": false,
+    "newContactInformation": false,
+    "newAudioOrMicrophone": false,
+    "newBackgroundTracking": false,
+    "newPreciseLocationSampling": false,
+    "newRetentionPeriod": false,
+    "existingRetentionExtended": false,
+    "productionRetentionAuthorized": false,
+    "activationCondition": "A Data-owned retention policy and Founder deployment authorization are required before collection can be enabled."
+  },
+  "timestampAndSeal": {
+    "authoritativeTime": "server and coordinator only",
+    "clientTime": "informational only",
+    "monotonicSequence": true,
+    "algorithm": "HMAC-SHA-256",
+    "keyVersionRequired": true,
+    "secretInSourceLogsReportsOrEvidence": false,
+    "pendingOrInterruptedSealFailsClosed": true
+  },
+  "idempotencyAndFailureIsolation": {
+    "oneCanonicalSnapshot": true,
+    "identicalRetryReturnsOriginalReceipt": true,
+    "changedRetryRecordsDurableConflict": true,
+    "stateAndOutboxTransactional": true,
+    "projectionCommitMarkerLast": true,
+    "recoveryBound": 128,
+    "poisonRecordIsolation": true,
+    "representativeWorkflowNonblocking": true
+  },
+  "killSwitch": {
+    "environmentVariable": "ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION",
+    "default": "OFF",
+    "missingOrInvalid": "OFF",
+    "workspaceAndCohortScoped": true,
+    "authenticatedAndAuditable": true,
+    "independentFromRecommendationInfluence": true,
+    "currentState": "OFF"
+  },
+  "acceptanceGates": {
+    "ownership": "PASS",
+    "architecture": "PASS",
+    "zeroInfluence": "PASS",
+    "preActionIntegrity": "PASS",
+    "completeness": "PASS",
+    "idempotency": "PASS",
+    "deterministicReplay": "PASS",
+    "actionAndOutcomeIntegrity": "PASS",
+    "failureIsolation": "PASS",
+    "killSwitch": "PASS",
+    "privacyAndIsolation": "PASS",
+    "canonicality": "PASS",
+    "compatibility": "PASS",
+    "readiness": "PASS_ENFORCED_CURRENT_STATE_INSUFFICIENT_EVIDENCE",
+    "deploymentBoundary": "PASS",
+    "recommendationBoundary": "PASS"
+  },
+  "adversarialCoverage": {
+    "status": "PASS",
+    "cases": [
+      "action before snapshot acceptance",
+      "action after snapshot but before seal",
+      "equal timestamps and invalid clocks",
+      "offline and delayed synchronization",
+      "outcome before action",
+      "duplicate and conflicting snapshot, action, and outcome",
+      "changed or incomplete candidate set",
+      "missing or tampered seal and hashes",
+      "restart, timeout, crash, partial persistence, and poison record",
+      "missing, invalid, or disabled kill switch",
+      "cross-workspace and cross-representative access",
+      "representative shadow-output access",
+      "client-forged authoritative fields",
+      "late retry after action",
+      "synthetic or historical evidence admission",
+      "Decision Source entering the pre-action snapshot"
+    ]
+  },
+  "currentState": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "productionConsumer": "INACTIVE_NOT_DEPLOYED",
+    "productionProspectiveRecords": 0,
+    "productionEvaluations": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutput": false,
+    "productionDataMutated": false
+  },
+  "operatingCost": {
+    "currentIncrementalMonthlyCostUsd": 0,
+    "reason": "Collection is OFF and the disabled fast path performs no Durable Object, SQLite, Access/JWKS, Aegis KV, or asset work.",
+    "initialEnabledProjection": "Expected to remain within existing Workers Paid included Durable Object allowances for the initial single-representative cohort; pricing and expected request volume must be rechecked before activation.",
+    "budgetLimits": {
+      "eventsPerDay": 1024,
+      "opportunitiesPerSession": 128,
+      "pendingOutbox": 128,
+      "candidateCount": 64,
+      "rowsReadPerRpc": 2048,
+      "rowsWrittenPerRpc": 256,
+      "sqlStatementsPerRpc": 256,
+      "storageBytesPerCoordinator": 33554432
+    }
+  },
+  "rollback": {
+    "sourceRollback": "Create forward-revert commits in reverse commit order; never reset or rewrite remote history.",
+    "preDeployment": "Revert source wiring, binding declaration, and unapplied migration entry together.",
+    "postDeployment": "Set collection OFF first, then forward-revert endpoint/runtime code while retaining the binding, migration, class, and data until an authorized retirement plan exists.",
+    "dataDeletionAutomatic": false,
+    "migrationHistoryRewriteAllowed": false
+  },
+  "release": {
+    "authorizedStartingCommit": "4411763be449e171674f2952d558153773cd0845",
+    "authorizedStartingTree": "1f66b72e2e9980c5f2e7a2677fda5748fc91d906",
+    "exactFinalHeadAndTree": "EXTERNAL_OVERWATCH_HANDOFF_REQUIRED",
+    "automaticPushEligibleAfterExactVerification": true,
+    "deploymentAuthorized": false,
+    "deploymentRecommendation": "ELIGIBLE_FOR_FOUNDER_DEPLOYMENT_REVIEW",
+    "activationRecommendation": "DO_NOT_ENABLE_UNTIL_RETENTION_POLICY_AND_EXACT_FOUNDER_DEPLOYMENT_AUTHORIZATION"
+  }
+}

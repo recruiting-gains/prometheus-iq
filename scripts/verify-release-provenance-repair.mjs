@@ -7,6 +7,11 @@ const batchId = "BATCH-20260713-002";
 const legacyCommit = "049cf583b04900b2cbf38bbffc5f6293252365d0";
 const intelligenceRepairCommit = "1bb7d09dff254503d56027a87efe0d526228f35a";
 const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
+const dashboardProspectiveCommit = "6c7671cb3f9387fdac29961432412dfe70088b2e";
+const currentIntelligenceSuccessorCommits = [
+  "cd0a504328b0870aa695731230e6c43dd4698e3c",
+  "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+];
 const mappingPath = "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const dashboardContractPath = "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json";
@@ -45,6 +50,33 @@ const expectedIntelligenceRepairPaths = [
   "scripts/validate-intelligence-architecture.mjs",
   "tests/intelligence-architecture.test.mjs"
 ].sort();
+
+const expectedCurrentIntelligenceSuccessorPaths = new Map([
+  [
+    currentIntelligenceSuccessorCommits[0],
+    [
+      "intelligence/config/shadow-decision-readiness-v1.json",
+      "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+      "intelligence/shadow-decision-readiness.md",
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ].sort()
+  ],
+  [
+    currentIntelligenceSuccessorCommits[1],
+    [
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+      "scripts/verify-shadow-decision-readiness.mjs",
+      "tests/shadow-decision-readiness.test.mjs"
+    ].sort()
+  ]
+]);
 
 const read = path => fs.readFileSync(path);
 const readJson = path => JSON.parse(read(path));
@@ -95,9 +127,14 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(gap.retroactiveOwnershipClaimed, false);
   assert.equal(gap.mixedOwnershipDisclosed, true);
   assert.equal(gap.intelligenceOwnerRepairCommit, intelligenceRepairCommit);
+  assert.deepEqual(gap.currentIntelligenceSuccessorCommits, currentIntelligenceSuccessorCommits);
   assert.deepEqual(changedPaths(legacyCommit), expectedLegacyPaths);
   assert.deepEqual(changedPaths(intelligenceRepairCommit), expectedIntelligenceRepairPaths);
   assert.equal(git("merge-base", "--is-ancestor", legacyCommit, intelligenceRepairCommit), "");
+  for (const commit of currentIntelligenceSuccessorCommits) {
+    assert.deepEqual(changedPaths(commit), expectedCurrentIntelligenceSuccessorPaths.get(commit));
+    assert.equal(git("merge-base", "--is-ancestor", intelligenceRepairCommit, commit), "");
+  }
 
   assert.equal(intelligenceEvidence.status, "LEGACY_PROVENANCE_GAP");
   assert.equal(intelligenceEvidence.legacyCommit, legacyCommit);
@@ -138,9 +175,11 @@ export function verifyReleaseProvenanceRepair() {
   const dashboardAlignment = dashboardContract.repViewContract.placesAccess.alignmentEvidence;
   assert.equal(gap.overwatchOwnedFile.path, dashboardContractPath);
   assert.equal(gap.overwatchOwnedFile.canonicalOwner, "Prometheus Overwatch");
-  assert.equal(gap.overwatchOwnedFile.dashboardOwnerRevalidationCommit, dashboardRepairCommit);
-  assert.equal(dashboardAlignment.dashboardCommit, dashboardRepairCommit);
-  assert.equal(dashboardAlignment.dashboardOwnerRevalidationCommit, dashboardRepairCommit);
+  assert.equal(gap.overwatchOwnedFile.dashboardOwnerRevalidationCommit, dashboardProspectiveCommit);
+  assert.equal(gap.overwatchOwnedFile.prospectiveShadowSeamCommit, dashboardProspectiveCommit);
+  assert.equal(dashboardAlignment.dashboardCommit, dashboardProspectiveCommit);
+  assert.equal(dashboardAlignment.dashboardOwnerRevalidationCommit, dashboardProspectiveCommit);
+  assert.equal(dashboardAlignment.prospectiveShadowSeamCommit, dashboardProspectiveCommit);
   assert.equal(dashboardAlignment.decisionContextFeatureOriginCommit, "2774d91456e4b1734eb1caa13deaa84de2248f8f");
   assert.equal(sha256(read("index.html")), dashboardAlignment.dashboardSourceSha256);
   assert.equal(sha256(read("deploy/cloudflare-pages/index.html")), dashboardAlignment.dashboardSourceSha256);
@@ -187,6 +226,9 @@ export function verifyReleaseProvenanceRepair() {
   }
   assert.equal(mapping.preBatchOwnerValidation[4].owner, "MIXED_LEGACY_PROVENANCE_GAP");
   assert.equal(mapping.preBatchOwnerValidation[4].status, "LEGACY_GAP_DISCLOSED_AND_OWNER_RECONSTRUCTED");
+  assert.equal(mapping.ownerRepairChain.dashboardCommit, dashboardRepairCommit);
+  assert.equal(mapping.ownerRepairChain.currentDashboardSuccessorCommit, dashboardProspectiveCommit);
+  assert.deepEqual(mapping.ownerRepairChain.currentIntelligenceSuccessorCommits, currentIntelligenceSuccessorCommits);
 
   const dataValidation = mapping.dataOwnerValidation;
   assert.equal(dataValidation.contractMismatchClosed, true);

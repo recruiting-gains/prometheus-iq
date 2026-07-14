@@ -14,31 +14,35 @@
     "retroactiveOwnershipClaimed": false,
     "mixedOwnershipDisclosed": true,
     "intelligenceOwnerRepairCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
+    "currentIntelligenceSuccessorCommits": [
+      "cd0a504328b0870aa695731230e6c43dd4698e3c",
+      "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+    ],
     "intelligenceOwnerEvidence": "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
     "intelligenceOwnedFiles": [
       {
         "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
-        "canonicalAfterRepairRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42"
+        "canonicalAfterRepairRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889"
       },
       {
         "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
-        "canonicalAfterRepairRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87"
+        "canonicalAfterRepairRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e"
       },
       {
         "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
-        "canonicalAfterRepairRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189"
+        "canonicalAfterRepairRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3"
       },
       {
         "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
-        "canonicalAfterRepairRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94"
+        "canonicalAfterRepairRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f"
       }
     ],
     "overwatchOwnedFile": {
@@ -47,8 +51,9 @@
       "validationOwner": "Prometheus Overwatch",
       "savedPlacesFeatureOriginCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
       "decisionContextFeatureOriginCommit": "2774d91456e4b1734eb1caa13deaa84de2248f8f",
-      "dashboardOwnerRevalidationCommit": "a665b1b26db02716240b622d0b4d451d019c2896",
-      "dashboardSourceSha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+      "dashboardOwnerRevalidationCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
+      "prospectiveShadowSeamCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
+      "dashboardSourceSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
     }
   },
   "ownerRepairChain": {
@@ -57,7 +62,12 @@
       "a1fff1d1d257f0032b38c8ad6959b9d6c6091014"
     ],
     "dashboardCommit": "a665b1b26db02716240b622d0b4d451d019c2896",
+    "currentDashboardSuccessorCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
     "intelligenceCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
+    "currentIntelligenceSuccessorCommits": [
+      "cd0a504328b0870aa695731230e6c43dd4698e3c",
+      "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+    ],
     "verificationOwner": "Prometheus Overwatch"
   },
   "preBatchOwnerValidation": [
@@ -104,9 +114,9 @@
   "dataOwnerValidation": {
     "contractMismatchClosed": true,
     "dataArchiveRuntimePath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-    "dataArchiveRuntimeSha256": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1",
+    "dataArchiveRuntimeSha256": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb",
     "dataRuntimeContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-    "dataRuntimeContractSha256": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e",
+    "dataRuntimeContractSha256": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35",
     "historicalRawArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
     "historicalRawArchiveSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
     "historicalNormalizedArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
