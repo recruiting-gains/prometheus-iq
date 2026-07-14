@@ -4,7 +4,7 @@
 
 This layer activates the first Intelligence-owned projection over verified Route IQ field sessions. Prometheus Data remains the source owner. Intelligence reads canonical archived records, calculates governed confidence, and publishes a deterministic learning snapshot without changing archived evidence, Route IQ scoring, or recommendation behavior.
 
-`BATCH-20260714-003` pins Data's cumulative retention policy through `4803d7aca5810abfc1cbca84eb2f461046a10da4`. Archived-session learning cannot promote prospective evidence. The exact July 14 automation-smoke archive remains hash-only audit evidence and is excluded from learning and every downstream metric, while unrelated undisposed zero-visit sessions are not excluded by inference.
+`BATCH-20260714-004` pins Data's final retention policy through `c73118ddb262d3010bbc94a900f8506fb2f56192`. Archived-session learning cannot promote prospective evidence; any future prospective use requires Data-authenticated, hash-bound admission with an authoritative legal-hold ledger, an 18 UTC calendar-month maximum from canonical creation, and customer shortening only. The exact July 14 automation-smoke archive remains hash-only audit evidence and is excluded from learning and every downstream metric, while unrelated undisposed zero-visit sessions are not excluded by inference.
 
 ## Authorization Boundary
 

@@ -47,11 +47,11 @@
   },
   "protectedDataRuntimeBaseline": {
     "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-    "sha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
-    "sourceCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "sha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85",
+    "sourceCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
     "sourceOwnerSubsystem": "Prometheus Data",
     "synchronizedBySubsystem": "Prometheus Intelligence Engine",
-    "synchronizedInBatch": "BATCH-20260714-003",
+    "synchronizedInBatch": "BATCH-20260714-004",
     "predecessor": {
       "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
       "sourceCommit": "84319f9c70004edd50e1531e48ea1d0d7b501089",
@@ -85,25 +85,25 @@
     },
     "dataCoordinator": {
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-      "sha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
-      "sourceCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+      "sha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85",
+      "sourceCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
       "sourceOwnerSubsystem": "Prometheus Data"
     },
     "dataArchiveRuntime": {
       "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-      "sha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b"
+      "sha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"
     },
     "dataRuntimeContract": {
       "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-      "sha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e"
+      "sha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259"
     },
     "infrastructureAuthority": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-authority.js",
-      "sha256": "938fe6bbd3356d38b56aee64ad2d603f4508bab298382135373b15abc6d5a26f"
+      "sha256": "308eabdc9658cfb772da25d1c46bd0342b54a3cf0c052fd10b63287ce57985c1"
     },
     "infrastructureRuntime": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
-      "sha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
+      "sha256": "70af4a724797b5a9261f1fb3e3aea122974daa3c8fad4f5fe708ad9836e0cacd",
       "sourceCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
       "sourceOwnerSubsystem": "Prometheus Infrastructure",
       "predecessor": {
@@ -269,24 +269,25 @@
     }
   },
   "prospectiveRetentionAdmission": {
-    "batchId": "BATCH-20260714-003",
+    "batchId": "BATCH-20260714-004",
     "admissionVersion": "route-iq-prospective-intelligence-retention-admission-v1",
     "dataPolicyVersion": "route-iq-prospective-shadow-retention-policy-v1",
+    "dataPolicySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
     "dataFoundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
-    "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
-    "dataCoordinatorAdmissionSuccessorCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "dataExactKeySuccessorCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "dataCoordinatorAdmissionSuccessorCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
     "infrastructureRetentionFailClosedSuccessorCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
     "protectedDataSources": {
       "retentionPolicy": {
         "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
-        "sha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
-        "sourceCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+        "sha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+        "sourceCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
         "sourceOwnerSubsystem": "Prometheus Data"
       },
       "retentionEvaluator": {
         "path": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
-        "sha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313",
-        "sourceCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+        "sha256": "6b831aa261bd6d61ab184ee22163341d385f3051e2cf3ec8ca88fdc1bc87b28e",
+        "sourceCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
         "sourceOwnerSubsystem": "Prometheus Data"
       }
     },
@@ -305,6 +306,14 @@
     "noncanonicalOriginAdmissionAllowed": false,
     "unknownOrActiveLegalHoldAdmissionAllowed": false,
     "derivedProjectionMayOutliveSource": false,
+    "dataAuthenticatedAndHashBoundRequired": true,
+    "authoritativeLegalHoldLedgerRequired": true,
+    "maximumCalendarMonths": 18,
+    "customerMayOnlyShorten": true,
+    "customerMayExpand": false,
+    "historicalSyntheticReplayAdmissionAllowed": false,
+    "indefiniteRawRetentionAllowed": false,
+    "indefiniteAggregateRequiresExactDataAttestation": true,
     "administrativelyDisposedSessionAdmissionAllowed": false,
     "historicalArchiveRewriteAllowed": false,
     "productionAuthenticatedRetentionEnvelopeProducerAvailable": false,

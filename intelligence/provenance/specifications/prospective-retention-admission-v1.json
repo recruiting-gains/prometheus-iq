@@ -1,120 +1,52 @@
 {
-  "version": "route-iq-intelligence-prospective-retention-admission-spec-v1",
-  "batchId": "BATCH-20260714-003",
+  "version": "route-iq-intelligence-prospective-retention-admission-spec-v2",
+  "batchId": "BATCH-20260714-004",
   "ownerSubsystem": "Prometheus Intelligence Engine",
-  "purpose": "Independently consume the Data-owned prospective retention policy, bind it to the existing Intelligence evaluation boundary, and prove that expired, noncanonical, disposed, or over-retained evidence cannot influence learning or readiness.",
+  "purpose": "Consume only the final Data-authenticated and hash-bound prospective retention admission before any Intelligence learning, shadow evaluation, readiness, calibration, baseline, segment, or recommendation-input use.",
   "dataOwnerLineage": {
-    "foundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
-    "exactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
-    "coordinatorAdmissionSuccessorCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
-    "coordinatorSha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
-    "runtimeContractSha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e",
-    "archiveRuntimeSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
-    "retentionPolicySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
-    "retentionEvaluatorSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313"
+    "finalRetentionCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "retentionPolicyPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+    "retentionPolicySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+    "retentionEvaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+    "retentionEvaluatorSha256": "6b831aa261bd6d61ab184ee22163341d385f3051e2cf3ec8ca88fdc1bc87b28e",
+    "retentionGovernancePath": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+    "retentionGovernanceSha256": "b58ed4cb3bad768fb07c8e4cd627ade8fd26b4ba4fc5c684661e1a52224f79cd",
+    "coordinatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+    "coordinatorSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85"
   },
-  "infrastructureOwnerLineage": {
-    "retentionFailClosedSuccessorCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
-    "runtimeSha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
-    "productionAuthenticatedRetentionEnvelopeProducerAvailable": false,
-    "missingAuthenticatedRetentionMayAdmitEvaluation": false,
-    "browserMaySupplyRetentionAuthority": false,
-    "noncanonicalRetentionTestHookAvailableInProduction": false
-  },
-  "admissionRules": {
-    "dataSemanticParityRequired": true,
-    "exactTopLevelAndBoundaryAllowlistRequired": true,
-    "missingExpiredUnknownStaleMalformedOrUnauthorizedAllowed": false,
-    "noncanonicalOriginAllowed": false,
-    "unknownOrActiveLegalHoldAllowed": false,
-    "derivedProjectionMayOutliveSource": false,
-    "sourceCoordinatorSessionBindingRequired": true,
-    "sourceFieldSessionAndRawHashBindingRequired": true,
-    "canonicalEvaluationRecordRetentionAdmissionRequired": true,
-    "authoritativeAdmissionTimeExpiryRequired": true,
-    "strictCoordinatorKeyAllowlistRequired": true,
-    "evaluationConstructionRequiresRetentionResolution": true,
-    "validNoncanonicalRetentionCompatibilityRequired": true,
-    "evaluationRecordCarriesHashOnlyRetentionEvidence": true,
-    "representativeOutputAllowed": false,
-    "recommendationInfluenceAllowed": false
+  "dataAdmission": {
+    "dataAuthenticatedAndHashBoundRequired": true,
+    "authoritativeLegalHoldLedgerRequired": true,
+    "canonicalCreationTimeRequired": true,
+    "maximumCalendarMonths": 18,
+    "customerMayOnlyShorten": true,
+    "customerMayExpand": false,
+    "authorizedReleaseMayExtendOriginalExpiry": false,
+    "expiredOverRetainedTamperedCrossScopeHistoricalSyntheticReplayAllowed": false,
+    "indefiniteRawRetentionAllowed": false,
+    "indefiniteAggregateRequiresExactDataAttestation": true,
+    "aggregateMayIdentifyRepresentativeCustomerVisitOrPreciseLocationTrail": false
   },
   "administrativeDisposition": {
     "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
     "sourceRawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
-    "state": "EXCLUDED_FROM_ANALYTICS",
-    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
-    "originalRecordCount": 7,
-    "sourceArchiveRewriteAllowed": false,
     "auditVisibility": "hash_only",
-    "auditProjectionAllowedFields": [
-      "sourceRawSha256",
-      "dispositionRecordSha256"
-    ],
-    "automaticZeroVisitExclusionAllowed": false,
-    "unrelatedUndisposedZeroVisitSessionEligible": true,
-    "excludedDomains": [
-      "learning",
-      "readiness",
-      "evaluation",
-      "representative_performance",
-      "territory_metrics",
-      "customer_metrics",
-      "productivity_counts",
-      "dashboards",
-      "leaderboards",
-      "baselines",
-      "calibration",
-      "recommendation_inputs"
-    ]
+    "admissionAllowed": false,
+    "excludedConsumers": ["learning", "shadow_training", "evaluation", "readiness", "calibration", "baselines", "segments", "recommendation_inputs"]
   },
   "consumerMatrix": {
-    "read_only_field_session_learning": {
-      "access": "direct_data_partition_and_contract_validation",
-      "disposedAdmissionAllowed": false,
-      "prospectivePromotionAllowed": false
-    },
-    "off_route_learning": {
-      "access": "inherited_read_only_field_session_learning",
-      "disposedAdmissionAllowed": false,
-      "recommendationInputProjectionAllowed": false
-    },
-    "shadow_training": {
-      "access": "data_chronological_projection_with_learning_admission",
-      "disposedAdmissionAllowed": false,
-      "historicalPromotionAllowed": false
-    },
-    "shadow_evaluation": {
-      "access": "direct_retention_admission_before_evaluation_record",
-      "disposedAdmissionAllowed": false,
-      "expiredOrUnknownAdmissionAllowed": false
-    },
-    "shadow_readiness_calibration_and_baselines": {
-      "access": "only_validated_immutable_evaluation_records",
-      "disposedAdmissionAllowed": false,
-      "retentionAdmissionRequired": true
-    },
-    "discovery_mode": {
-      "access": "inherited_learning_snapshot_only",
-      "disposedAdmissionAllowed": false,
-      "recommendationInfluence": "OFF"
-    },
-    "nearby_context": {
-      "access": "inherited_governed_inputs_only",
-      "disposedAdmissionAllowed": false,
-      "recommendationInfluence": "OFF"
-    }
+    "read_only_field_session_learning": "Data admission required; prospective promotion remains blocked.",
+    "off_route_learning": "Inherits blocked read-only admission; no recommendation inputs.",
+    "shadow_training_evaluation_readiness": "Exact Data admission required before every governed record.",
+    "aggregate_retention": "Only exact Data-attested, hash-bound de-identified aggregates may retain indefinitely."
   },
   "currentState": {
-    "readiness": "INSUFFICIENT_EVIDENCE",
     "collection": "OFF",
     "activeCohorts": 0,
-    "productionProspectiveRecords": 0,
-    "productionEvaluations": 0,
+    "readiness": "INSUFFICIENT_EVIDENCE",
     "recommendationInfluence": "OFF",
-    "representativeShadowOutput": false,
-    "newConsumerActivated": false,
+    "routeOrUiInfluenceChanged": false,
     "deploymentPerformed": false,
-    "productionAccessPerformed": false
+    "productionMutationPerformed": false
   }
 }

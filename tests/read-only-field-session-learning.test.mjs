@@ -82,7 +82,7 @@ test("canonical contract and governed policy activate only read-only Intelligenc
   assert.deepEqual(contract.administrativeDispositionAdmission.auditProjectionAllowedFields, ["sourceRawSha256", "dispositionRecordSha256"]);
   assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(contract.prospectiveRetentionAdmission.dataFoundationCommit, "a5bd1d431e778cec045d1e8412efb396674ea321");
-  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
   for (const field of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     assert.equal(contract.prospectiveRetentionAdmission[field], false, field);
   }

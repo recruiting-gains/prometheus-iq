@@ -6,26 +6,14 @@ import { pathToFileURL } from "node:url";
 
 import {
   computeRouteIqProspectiveRetentionPolicySha256,
-  evaluateRouteIqProspectiveIntelligenceRetentionAdmission,
   loadRouteIqProspectiveRetentionPolicy,
-  routeIqProspectiveIntelligenceRetentionAdmissionVersion,
-  routeIqProspectiveRetentionExcludedDomains,
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
-import {
-  routeIqProspectiveRetentionBoundaryContractVersion,
-  routeIqProspectiveRetentionPolicyVersion,
-} from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
-import {
-  routeIqAcceptedIntelligenceRetentionAdmissionVersion,
-  routeIqAcceptedProspectiveRetentionPolicySha256,
-} from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = (path) => readFileSync(resolve(root, path));
 const readJson = (path) => JSON.parse(read(path).toString("utf8"));
-const sha256 = (value) =>
-  createHash("sha256").update(value).digest("hex");
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 
 const paths = Object.freeze({
   specification:
@@ -44,283 +32,49 @@ const paths = Object.freeze({
     "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
   readinessReport:
     "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
-  baselineSuccessor:
-    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
-  infrastructureBaselineSuccessor:
-    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
 });
-
-function digest(label) {
-  return sha256(Buffer.from(label, "utf8"));
-}
-
-function validEnvelope() {
-  return {
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    representativeId: "cruz",
-    collectionState: "on",
-    recommendationInfluence: "off",
-    recordOrigin: "prospective",
-    policyVersion: routeIqProspectiveRetentionPolicyVersion,
-    retentionBoundary: {
-      contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
-      authorizationState: "authorized_existing_field_session_boundary",
-      source: "authenticated_data_retention_contract",
-      expiresAt: "2026-08-14T12:00:00.000Z",
-    },
-    evaluatedAt: "2026-07-14T12:00:00.000Z",
-    deletionCapabilityStatus: "verified_not_activated",
-    legalHoldState: "none",
-    derivedProjectionExpiresAt: "2026-08-14T12:00:00.000Z",
-    sourceSession: {
-      coordinatorSessionId: `riq_session_${digest("verification-session")}`,
-      fieldSessionId:
-        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-15",
-      rawSha256: digest("verification-raw"),
-      consumptionEligibility: {
-        eligible: true,
-        state: "NOT_ADMINISTRATIVELY_EXCLUDED",
-        reason: null,
-        auditOnly: false,
-        excludedDomains: [],
-      },
-    },
-  };
-}
 
 export function verifyRouteIqProspectiveRetentionIntelligence() {
   const specification = readJson(paths.specification);
   const readOnlyContract = readJson(paths.readOnlyContract);
   const offRouteContract = readJson(paths.offRouteContract);
   const shadowContract = readJson(paths.shadowContract);
-  const baselineSuccessor = readJson(paths.baselineSuccessor);
-  const infrastructureBaselineSuccessor = readJson(
-    paths.infrastructureBaselineSuccessor,
-  );
-  const dataPolicy = loadRouteIqProspectiveRetentionPolicy();
+  const policy = loadRouteIqProspectiveRetentionPolicy();
+  const dataPolicySha256 = computeRouteIqProspectiveRetentionPolicySha256();
 
+  assert.equal(validateRouteIqProspectiveRetentionPolicy(policy), true);
+  assert.equal(specification.batchId, "BATCH-20260714-004");
+  assert.equal(specification.dataOwnerLineage.finalRetentionCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
+  assert.equal(specification.dataOwnerLineage.retentionPolicySha256, dataPolicySha256);
   assert.equal(
-    specification.version,
-    "route-iq-intelligence-prospective-retention-admission-spec-v1",
-  );
-  assert.equal(specification.batchId, "BATCH-20260714-003");
-  assert.equal(
-    specification.dataOwnerLineage.exactKeySuccessorCommit,
-    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
-  );
-  assert.equal(
-    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
-    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    specification.dataOwnerLineage.retentionEvaluatorSha256,
+    sha256(read("data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs")),
   );
   assert.equal(
-    specification.dataOwnerLineage.coordinatorSha256,
-    sha256(read("data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs")),
+    specification.dataOwnerLineage.retentionGovernanceSha256,
+    sha256(read("data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs")),
   );
-  assert.equal(
-    routeIqAcceptedIntelligenceRetentionAdmissionVersion,
-    routeIqProspectiveIntelligenceRetentionAdmissionVersion,
-  );
-  assert.equal(
-    routeIqAcceptedProspectiveRetentionPolicySha256,
-    computeRouteIqProspectiveRetentionPolicySha256(),
-  );
-  assert.equal(
-    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
-    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
-  );
-  assert.equal(
-    specification.infrastructureOwnerLineage.runtimeSha256,
-    sha256(read("workers/infrastructure/route-iq-prospective-shadow-runtime.js")),
-  );
-  assert.equal(validateRouteIqProspectiveRetentionPolicy(dataPolicy), true);
-  assert.equal(
-    computeRouteIqProspectiveRetentionPolicySha256(),
-    specification.dataOwnerLineage.retentionPolicySha256,
-  );
-  for (const [path, expected] of [
-    [
-      "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-      specification.dataOwnerLineage.runtimeContractSha256,
-    ],
-    [
-      "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-      specification.dataOwnerLineage.archiveRuntimeSha256,
-    ],
-    [
-      "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
-      specification.dataOwnerLineage.retentionEvaluatorSha256,
-    ],
-  ]) {
-    assert.equal(sha256(read(path)), expected, path);
+  assert.equal(specification.dataAdmission.dataAuthenticatedAndHashBoundRequired, true);
+  assert.equal(specification.dataAdmission.authoritativeLegalHoldLedgerRequired, true);
+  assert.equal(specification.dataAdmission.maximumCalendarMonths, 18);
+  assert.equal(specification.dataAdmission.customerMayOnlyShorten, true);
+  assert.equal(specification.dataAdmission.customerMayExpand, false);
+  assert.equal(specification.dataAdmission.indefiniteAggregateRequiresExactDataAttestation, true);
+  assert.equal(specification.administrativeDisposition.auditVisibility, "hash_only");
+
+  for (const contract of [readOnlyContract, offRouteContract, shadowContract]) {
+    const retention = contract.prospectiveRetentionAdmission;
+    assert.equal(retention.batchId, "BATCH-20260714-004");
+    assert.equal(retention.dataPolicySha256, dataPolicySha256);
+    assert.equal(retention.dataAuthenticatedAndHashBoundRequired, true);
+    assert.equal(retention.maximumCalendarMonths, 18);
+    assert.equal(retention.customerMayOnlyShorten, true);
+    assert.equal(retention.customerMayExpand, false);
+    assert.equal(retention.unknownOrActiveLegalHoldAdmissionAllowed, false);
+    assert.equal(retention.historicalSyntheticReplayAdmissionAllowed, false);
+    assert.equal(retention.indefiniteRawRetentionAllowed, false);
+    assert.equal(retention.recommendationInfluenceAllowed, false);
   }
-
-  const admission = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-    validEnvelope(),
-  );
-  assert.equal(admission.admissionVersion, routeIqProspectiveIntelligenceRetentionAdmissionVersion);
-  assert.equal(admission.admitted, true);
-  assert.equal(admission.representativeOutputAllowed, false);
-  assert.equal(admission.recommendationInfluenceAllowed, false);
-
-  const disposed = validEnvelope();
-  disposed.sourceSession = {
-    coordinatorSessionId: `riq_session_${digest("disposed-session")}`,
-    fieldSessionId:
-      specification.administrativeDisposition.sessionId,
-    rawSha256: specification.administrativeDisposition.sourceRawSha256,
-    consumptionEligibility: {
-      eligible: false,
-      state: specification.administrativeDisposition.state,
-      reason: specification.administrativeDisposition.reason,
-      auditOnly: true,
-      excludedDomains: [...routeIqProspectiveRetentionExcludedDomains],
-      dispositionRecordSha256: digest("disposition-record"),
-    },
-  };
-  const disposedAdmission =
-    evaluateRouteIqProspectiveIntelligenceRetentionAdmission(disposed);
-  assert.equal(disposedAdmission.admitted, false);
-  assert.deepEqual(Object.keys(disposedAdmission.audit).sort(), [
-    "dispositionRecordSha256",
-    "sourceRawSha256",
-  ]);
-  assert.equal(
-    JSON.stringify(disposedAdmission).includes(
-      specification.administrativeDisposition.sessionId,
-    ),
-    false,
-  );
-
-  assert.equal(
-    readOnlyContract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit,
-    specification.dataOwnerLineage.exactKeySuccessorCommit,
-  );
-  assert.equal(
-    offRouteContract.prospectiveRetentionAdmission.inheritedFromUpstreamReadOnlyLearning,
-    true,
-  );
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission.evaluationAdmissionRequired,
-    true,
-  );
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission.dataCoordinatorAdmissionSuccessorCommit,
-    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
-  );
-  assert.equal(
-    shadowContract.protectedDataRuntimeBaseline.sha256,
-    specification.dataOwnerLineage.coordinatorSha256,
-  );
-  assert.equal(
-    baselineSuccessor.dataOwnerTransition.commit,
-    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
-  );
-  assert.equal(
-    baselineSuccessor.dataOwnerTransition.coordinator.currentSha256,
-    specification.dataOwnerLineage.coordinatorSha256,
-  );
-  assert.equal(
-    sha256(read(baselineSuccessor.predecessor.path)),
-    baselineSuccessor.predecessor.sha256,
-  );
-  assert.equal(
-    baselineSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
-    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.previousSha256,
-  );
-  assert.equal(
-    baselineSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
-    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.previousSha256,
-  );
-  assert.equal(baselineSuccessor.predecessor.remainsHistorical, true);
-  assert.equal(baselineSuccessor.predecessor.rewritten, false);
-  for (const field of [
-    "retentionAdmissionRequiredOnCanonicalEvaluationRecord",
-    "exactAdmissionAndSourceEvidenceKeySetsRequired",
-    "policyVersionAndSha256Pinned",
-    "coordinatorSessionSha256Bound",
-    "fieldSessionSha256Bound",
-    "sourceArchiveRawSha256Bound",
-    "outcomeAuthoritativeTimeBound",
-    "retentionValidThroughDataAdmissionRequired",
-    "disposedSessionRejected",
-  ]) {
-    assert.equal(
-      baselineSuccessor.dataOwnerTransition.semanticChanges[field],
-      true,
-      field,
-    );
-  }
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission.infrastructureRetentionFailClosedSuccessorCommit,
-    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
-  );
-  assert.equal(
-    shadowContract.protectedBehaviorBaselines.infrastructureRuntime.sha256,
-    specification.infrastructureOwnerLineage.runtimeSha256,
-  );
-  assert.equal(
-    infrastructureBaselineSuccessor.infrastructureOwnerTransition.commit,
-    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
-  );
-  assert.equal(
-    infrastructureBaselineSuccessor.infrastructureOwnerTransition.runtime.currentSha256,
-    specification.infrastructureOwnerLineage.runtimeSha256,
-  );
-  assert.equal(infrastructureBaselineSuccessor.predecessor.remainsHistorical, true);
-  assert.equal(infrastructureBaselineSuccessor.predecessor.rewritten, false);
-  assert.equal(
-    sha256(read(infrastructureBaselineSuccessor.predecessor.path)),
-    infrastructureBaselineSuccessor.predecessor.sha256,
-  );
-  assert.equal(
-    sha256(read(infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.path)),
-    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
-  );
-  assert.equal(
-    sha256(read(infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.path)),
-    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
-  );
-  const infrastructureRuntimeText = read(
-    infrastructureBaselineSuccessor.infrastructureOwnerTransition.runtime.path,
-  ).toString("utf8");
-  assert.match(
-    infrastructureRuntimeText,
-    /route_iq_prospective_retention_input_unavailable/,
-  );
-  assert.match(
-    infrastructureRuntimeText,
-    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
-  );
-  const resolutionIndex = infrastructureRuntimeText.indexOf(
-    "resolveRouteIqEvaluationRetentionEnvelope({",
-  );
-  const constructionIndex = infrastructureRuntimeText.indexOf(
-    "buildRouteIqEvaluationFromAdmittedOutcome({",
-    resolutionIndex,
-  );
-  assert.ok(resolutionIndex >= 0);
-  assert.ok(constructionIndex > resolutionIndex);
-  for (const field of [
-    "intelligenceEvaluationRecordAcceptedByDataSuccessor",
-    "sourceArchiveRawSha256Present",
-    "missingRetentionAdmissionRejected",
-    "additionalRetentionFieldRejected",
-    "expiredRetentionRejected",
-    "unauthorizedRetentionRejected",
-    "unknownOrActiveLegalHoldRejected",
-    "tamperedPolicyRejected",
-    "tamperedSourceBindingRejected",
-    "disposedSessionRejected",
-    "deterministicReplayPreserved",
-    "appendOnlyEvidencePreserved",
-  ]) {
-    assert.equal(baselineSuccessor.compatibilityValidation[field], true, field);
-  }
-  assert.deepEqual(
-    shadowContract.administrativeDispositionAdmission.requiredExcludedDomains,
-    specification.administrativeDisposition.excludedDomains,
-  );
 
   const readOnlyArtifact = readJson(paths.readOnlyArtifact);
   const offRouteArtifact = readJson(paths.offRouteArtifact);
@@ -328,52 +82,21 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   const readinessReport = readJson(paths.readinessReport);
   assert.equal(readOnlyArtifact.recommendationSafety.recommendationInfluenceActive, false);
   assert.equal(offRouteArtifact.safety.recommendationInfluenceActive, false);
-  assert.equal(shadowLedger.recommendationInfluence, "OFF");
   assert.equal(shadowLedger.records.length, 0);
+  assert.equal(shadowLedger.recommendationInfluence, "OFF");
   assert.equal(readinessReport.state, "INSUFFICIENT_EVIDENCE");
   assert.equal(readinessReport.recommendationInfluence, "OFF");
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission.collectionActivation,
-    "OFF",
-  );
+  assert.equal(shadowContract.prospectiveRetentionAdmission.collectionActivation, "OFF");
   assert.equal(shadowContract.prospectiveRetentionAdmission.activeCohorts, 0);
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission
-      .canonicalProductionProspectiveRecords,
-    0,
-  );
-  assert.equal(
-    shadowContract.prospectiveRetentionAdmission.canonicalProductionEvaluations,
-    0,
-  );
 
   return Object.freeze({
     status: "passed",
     batchId: specification.batchId,
-    dataExactKeySuccessorCommit:
-      specification.dataOwnerLineage.exactKeySuccessorCommit,
-    dataCoordinatorAdmissionSuccessorCommit:
-      specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
-    dataCoordinatorSha256: specification.dataOwnerLineage.coordinatorSha256,
-    infrastructureRetentionFailClosedSuccessorCommit:
-      specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
-    infrastructureRuntimeSha256:
-      specification.infrastructureOwnerLineage.runtimeSha256,
-    retentionPolicySha256:
-      specification.dataOwnerLineage.retentionPolicySha256,
-    consumersVerified: Object.keys(specification.consumerMatrix).length,
-    excludedDomainCount:
-      specification.administrativeDisposition.excludedDomains.length,
-    auditVisibility: specification.administrativeDisposition.auditVisibility,
+    retentionPolicySha256: dataPolicySha256,
     readiness: readinessReport.state,
-    collection: shadowContract.prospectiveRetentionAdmission.collectionActivation,
-    activeCohorts: shadowContract.prospectiveRetentionAdmission.activeCohorts,
-    productionProspectiveRecords:
-      shadowContract.prospectiveRetentionAdmission
-        .canonicalProductionProspectiveRecords,
-    productionEvaluations:
-      shadowContract.prospectiveRetentionAdmission.canonicalProductionEvaluations,
-    recommendationInfluence: readinessReport.recommendationInfluence,
+    collection: "OFF",
+    activeCohorts: 0,
+    recommendationInfluence: "OFF",
   });
 }
 

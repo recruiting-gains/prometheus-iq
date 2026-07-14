@@ -1698,8 +1698,7 @@ export function validateRouteIqEvaluationRecord(record) {
       "reasonCodes",
       "sourceEvidence",
       "evaluatedAt",
-      "expiresAt",
-      "legalHoldState",
+      "retentionBoundary",
       "collectionState",
       "recommendationInfluence",
       "audit",
@@ -1715,6 +1714,7 @@ export function validateRouteIqEvaluationRecord(record) {
       "coordinatorSessionSha256",
       "fieldSessionSha256",
       "sourceRawSha256",
+      "sourceRecordSha256",
       "retentionBoundarySha256",
     ],
     "route_iq_evaluation_record_retention_invalid",
@@ -1821,7 +1821,6 @@ export function validateRouteIqEvaluationRecord(record) {
     record.retentionAdmission.admitted !== true ||
     !Array.isArray(record.retentionAdmission.reasonCodes) ||
     record.retentionAdmission.reasonCodes.length !== 0 ||
-    record.retentionAdmission.legalHoldState !== "none" ||
     record.retentionAdmission.collectionState !== "on" ||
     record.retentionAdmission.recommendationInfluence !== "off" ||
     record.retentionAdmission.audit !== null ||
@@ -1855,7 +1854,7 @@ export function validateRouteIqEvaluationRecord(record) {
       .time,
   );
   const retentionExpiry = canonicalTimestamp(
-    record.retentionAdmission.expiresAt,
+    record.retentionAdmission.retentionBoundary?.expiresAt,
     "route_iq_evaluation_record_retention_invalid",
   ).time;
   const retentionEvaluation = canonicalTimestamp(
@@ -1888,6 +1887,7 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
       "scoreableOutcome",
       "outcomeReceipt",
       "retentionEnvelope",
+      "retentionGovernanceLedger",
     ],
     "route_iq_evaluation_input_invalid",
   );
@@ -1913,6 +1913,7 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
     retentionAdmission =
       requireRouteIqProspectiveIntelligenceRetentionAdmission(
         input.retentionEnvelope,
+        { retentionGovernanceLedger: input.retentionGovernanceLedger },
       );
   } catch (error) {
     fail("route_iq_evaluation_retention_admission_blocked", {
@@ -1933,11 +1934,11 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
     outcomeReceipt.evaluatedCandidateId !== context.candidate.candidateId ||
     outcomeReceipt.evaluationContextSha256 !==
       reconciliation.link.evaluationContextSha256 ||
-    input.retentionEnvelope.sourceSession.coordinatorSessionId !==
+    input.retentionEnvelope.dataAdmission.sourceSession.coordinatorSessionId !==
       outcomeReceipt.sessionId ||
-    input.retentionEnvelope.sourceSession.rawSha256 !==
+    input.retentionEnvelope.dataAdmission.sourceSession.rawSha256 !==
       outcome.sourceArchiveRawSha256 ||
-    input.retentionEnvelope.evaluatedAt !==
+    input.retentionEnvelope.dataAdmission.envelope.evaluatedAt !==
       outcomeReceipt.authoritativeRecordTime
   ) {
     fail("route_iq_evaluation_context_outcome_binding_invalid");

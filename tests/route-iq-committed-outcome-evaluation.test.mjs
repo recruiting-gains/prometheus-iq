@@ -21,6 +21,10 @@ import {
   routeIqProspectiveRetentionPolicyVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
 import {
+  calculateRouteIqRetentionBoundary,
+  openRouteIqRetentionGovernanceLedger,
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
+import {
   buildRouteIqEvaluationAdmissionClaims,
   buildRouteIqEvaluationFromAdmittedOutcome,
   buildRouteIqScoreableOutcomeAdmissionClaims,
@@ -36,6 +40,10 @@ import {
   validateRouteIqEvaluationRecord,
   validateRouteIqScoreableOutcomeRecord,
 } from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
+import {
+  createRetentionAuthority,
+  createRetentionStore,
+} from "./route-iq-retention-test-support.mjs";
 
 const TIMES = Object.freeze({
   snapshotAccepted: "2026-07-13T16:58:00.000Z",
@@ -55,6 +63,28 @@ const SCOPE = Object.freeze({
   workspaceId: "fitness_connection",
   operatingProfileId: "fitness",
   representativeId: "cruz",
+});
+
+const retentionSubject = Object.freeze({
+  workspaceId: SCOPE.workspaceId,
+  operatingProfileId: SCOPE.operatingProfileId,
+  recordClass: "prospective_shadow_evidence",
+  sourceRecordSha256: "e98ec40fb12f4ab97a0ab482073b1cc0fe7e4cbb3a5b96a52bd6e4c5a8bd133a",
+});
+const retentionAuthority = createRetentionAuthority(
+  "committed-outcome-retention-test-authority-key-material-v1",
+);
+const retentionGovernanceLedger = await openRouteIqRetentionGovernanceLedger({
+  store: createRetentionStore(),
+  subject: retentionSubject,
+  authorityVerifier: retentionAuthority.verifier,
+});
+const canonicalRetentionBoundary = calculateRouteIqRetentionBoundary({
+  subject: retentionSubject,
+  customerAccountId: "fitness_connection",
+  createdAt: TIMES.snapshotAccepted,
+  customerContractExpiresAt: null,
+  customerOverrideAuthority: null,
 });
 
 function digest(value) {
@@ -411,35 +441,32 @@ function evaluationInput(derived) {
     ),
     scoreableOutcome: derived.scoreableOutcome,
     outcomeReceipt,
+    retentionGovernanceLedger,
     retentionEnvelope: {
-      workspaceId: SCOPE.workspaceId,
-      operatingProfileId: SCOPE.operatingProfileId,
-      representativeId: SCOPE.representativeId,
-      collectionState: "on",
-      recommendationInfluence: "off",
-      recordOrigin: "prospective",
-      policyVersion: routeIqProspectiveRetentionPolicyVersion,
-      retentionBoundary: {
-        contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
-        authorizationState: "authorized_existing_field_session_boundary",
-        source: "authenticated_data_retention_contract",
-        expiresAt: "2026-08-13T17:07:00.000Z",
-      },
-      evaluatedAt: outcomeReceipt.authoritativeRecordTime,
-      deletionCapabilityStatus: "verified_not_activated",
-      legalHoldState: "none",
-      derivedProjectionExpiresAt: "2026-08-13T17:07:00.000Z",
-      sourceSession: {
-        coordinatorSessionId: outcomeReceipt.sessionId,
-        fieldSessionId:
-          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-13",
-        rawSha256: derived.scoreableOutcome.sourceArchiveRawSha256,
-        consumptionEligibility: {
-          eligible: true,
-          state: "NOT_ADMINISTRATIVELY_EXCLUDED",
-          reason: null,
-          auditOnly: false,
-          excludedDomains: [],
+      dataAdmission: {
+        dataPolicySha256: "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+        envelope: {
+          policyVersion: routeIqProspectiveRetentionPolicyVersion,
+          collectionState: "on",
+          recommendationInfluence: "off",
+          recordOrigin: "prospective",
+          workspaceId: SCOPE.workspaceId,
+          operatingProfileId: SCOPE.operatingProfileId,
+          representativeId: SCOPE.representativeId,
+          evaluatedAt: outcomeReceipt.authoritativeRecordTime,
+          retentionBoundary: {
+            contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+            authorizationState: "founder_authorized_18_month_maximum",
+            source: "authenticated_data_retention_contract",
+            ...canonicalRetentionBoundary,
+          },
+          derivedProjectionExpiresAt: "2027-01-13T17:07:00.000Z",
+        },
+        sourceSession: {
+          coordinatorSessionId: outcomeReceipt.sessionId,
+          fieldSessionId:
+            "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-13",
+          rawSha256: derived.scoreableOutcome.sourceArchiveRawSha256,
         },
       },
     },
@@ -678,9 +705,10 @@ test("canonical nonproduction fixture matches Data full evaluation record and pr
     true,
   );
   const first = buildRouteIqEvaluationFromAdmittedOutcome(input);
-  const replay = buildRouteIqEvaluationFromAdmittedOutcome(
-    structuredClone(input),
-  );
+  const replay = buildRouteIqEvaluationFromAdmittedOutcome({
+    ...input,
+    retentionEnvelope: structuredClone(input.retentionEnvelope),
+  });
   assert.deepEqual(replay, first);
   assert.equal(first.schemaVersion, routeIqEvaluationRecordSchemaVersion);
   assert.equal(first.evaluationContractVersion, routeIqEvaluationContractVersion);
@@ -718,26 +746,26 @@ test("evaluation admission fails closed on invalid retention or disposed source 
   });
   const cases = [
     (input) => {
-      input.retentionEnvelope.retentionBoundary = null;
+      input.retentionEnvelope.dataAdmission.envelope.retentionBoundary = null;
     },
     (input) => {
-      input.retentionEnvelope.retentionBoundary.expiresAt =
-        input.retentionEnvelope.evaluatedAt;
+      input.retentionEnvelope.dataAdmission.envelope.retentionBoundary.expiresAt =
+        input.retentionEnvelope.dataAdmission.envelope.evaluatedAt;
     },
     (input) => {
-      input.retentionEnvelope.recordOrigin = "historical";
+      input.retentionEnvelope.dataAdmission.envelope.recordOrigin = "historical";
     },
     (input) => {
-      input.retentionEnvelope.legalHoldState = "unknown";
+      input.retentionGovernanceLedger = undefined;
     },
     (input) => {
-      input.retentionEnvelope.derivedProjectionExpiresAt =
-        "2026-08-13T17:07:00.001Z";
+      input.retentionEnvelope.dataAdmission.envelope.derivedProjectionExpiresAt =
+        "2028-02-13T17:07:00.001Z";
     },
     (input) => {
-      input.retentionEnvelope.sourceSession.fieldSessionId =
+      input.retentionEnvelope.dataAdmission.sourceSession.fieldSessionId =
         "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14";
-      input.retentionEnvelope.sourceSession.rawSha256 =
+      input.retentionEnvelope.dataAdmission.sourceSession.rawSha256 =
         "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765";
     },
   ];
@@ -843,7 +871,7 @@ test("record tampering fails and emitted evaluation has no PII, causal, uplift, 
     "route_iq_evaluation_record_invalid",
   );
   const retentionTamper = structuredClone(evaluation);
-  retentionTamper.retentionAdmission.expiresAt =
+  retentionTamper.retentionAdmission.retentionBoundary.expiresAt =
     retentionTamper.retentionAdmission.evaluatedAt;
   assertErrorCode(
     () => validateRouteIqEvaluationRecord(retentionTamper),

@@ -377,10 +377,23 @@ export function validateOffRouteLearningContract(contract, upstreamContract = lo
   assert(JSON.stringify(contract?.administrativeDispositionAdmission?.auditProjectionAllowedFields) === JSON.stringify(["sourceRawSha256", "dispositionRecordSha256"]), "contract_disposed_audit_projection_not_hash_only");
   assert(contract?.administrativeDispositionAdmission?.auditProjectionRawPayloadAllowed === false, "contract_disposed_audit_raw_payload_allowed");
   assert(contract?.prospectiveRetentionAdmission?.inheritedFromUpstreamReadOnlyLearning === true, "contract_retention_boundary_not_inherited");
-  assert(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "contract_retention_exact_key_commit_mismatch");
+  assert(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "c73118ddb262d3010bbc94a900f8506fb2f56192", "contract_retention_exact_key_commit_mismatch");
   for (const key of ["prospectiveEvidenceObservationAllowed", "expiredOrUnknownEvidenceObservationAllowed", "disposedSessionObservationAllowed", "derivedProjectionMayOutliveSource", "recommendationInputProjectionAllowed", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     assert(contract?.prospectiveRetentionAdmission?.[key] === false, `contract_retention_boundary_enabled:${key}`);
   }
+  for (const [key, value] of Object.entries({
+    batchId: "BATCH-20260714-004",
+    dataAuthenticatedAndHashBoundRequired: true,
+    authoritativeLegalHoldLedgerRequired: true,
+    maximumCalendarMonths: 18,
+    customerMayOnlyShorten: true,
+    customerMayExpand: false,
+    unknownOrActiveLegalHoldAdmissionAllowed: false,
+    historicalSyntheticReplayAdmissionAllowed: false,
+    indefiniteRawRetentionAllowed: false,
+    indefiniteAggregateRequiresExactDataAttestation: true,
+    recommendationInfluenceAllowed: false,
+  })) assert(contract?.prospectiveRetentionAdmission?.[key] === value, `contract_retention_final_contract_invalid:${key}`);
   assert(contract?.validationFixturePolicy?.productionConsumptionAllowed === false, "contract_fixture_production_consumption_allowed");
   assert(contract?.validationFixturePolicy?.canonicalArtifactGenerationAllowed === false, "contract_fixture_canonical_generation_allowed");
   return failures;

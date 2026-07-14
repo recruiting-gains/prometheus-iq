@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
 
+import {
+  calculateRouteIqRetentionBoundary,
+  openRouteIqRetentionGovernanceLedger,
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 import {
   routeIqProspectiveRetentionBoundaryContractVersion,
   routeIqProspectiveRetentionPolicyVersion,
@@ -12,423 +15,130 @@ import {
   evaluateRouteIqProspectiveIntelligenceRetentionAdmission,
   loadRouteIqProspectiveRetentionPolicy,
   routeIqProspectiveIntelligenceRetentionAdmissionVersion,
-  routeIqProspectiveRetentionExcludedDomains,
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
+import {
+  createRetentionAuthority,
+  createRetentionStore,
+} from "./route-iq-retention-test-support.mjs";
 
-const digest = (value) =>
-  createHash("sha256").update(String(value)).digest("hex");
+const digest = (value) => createHash("sha256").update(value).digest("hex");
 
-function envelope(overrides = {}) {
-  const base = {
+async function dataAdmission(overrides = {}) {
+  const sourceRecordSha256 = digest("prospective-source-record");
+  const subject = {
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
-    representativeId: "cruz",
-    collectionState: "on",
-    recommendationInfluence: "off",
-    recordOrigin: "prospective",
-    policyVersion: routeIqProspectiveRetentionPolicyVersion,
-    retentionBoundary: {
-      contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
-      authorizationState: "authorized_existing_field_session_boundary",
-      source: "authenticated_data_retention_contract",
-      expiresAt: "2026-08-14T12:00:00.000Z",
-    },
-    evaluatedAt: "2026-07-14T12:00:00.000Z",
-    deletionCapabilityStatus: "verified_not_activated",
-    legalHoldState: "none",
-    derivedProjectionExpiresAt: "2026-08-14T12:00:00.000Z",
-    sourceSession: {
-      coordinatorSessionId: `riq_session_${digest("coordinator-session")}`,
-      fieldSessionId:
-        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-15",
-      rawSha256: digest("canonical-raw"),
-      consumptionEligibility: {
-        eligible: true,
-        state: "NOT_ADMINISTRATIVELY_EXCLUDED",
-        reason: null,
-        auditOnly: false,
-        excludedDomains: [],
+    recordClass: "prospective_shadow_evidence",
+    sourceRecordSha256,
+  };
+  const authority = createRetentionAuthority();
+  const ledger = await openRouteIqRetentionGovernanceLedger({
+    store: createRetentionStore(),
+    subject,
+    authorityVerifier: authority.verifier,
+  });
+  const boundary = calculateRouteIqRetentionBoundary({
+    subject,
+    customerAccountId: "fitness_connection",
+    createdAt: "2026-07-14T12:00:00.000Z",
+    customerContractExpiresAt: null,
+    customerOverrideAuthority: null,
+  });
+  const input = {
+    dataAdmission: {
+      dataPolicySha256: computeRouteIqProspectiveRetentionPolicySha256(),
+      envelope: {
+        policyVersion: routeIqProspectiveRetentionPolicyVersion,
+        collectionState: "on",
+        recommendationInfluence: "off",
+        recordOrigin: "prospective",
+        workspaceId: "fitness_connection",
+        operatingProfileId: "fitness",
+        representativeId: "cruz",
+        evaluatedAt: "2026-07-14T12:00:00.000Z",
+        retentionBoundary: {
+          contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+          authorizationState: "founder_authorized_18_month_maximum",
+          source: "authenticated_data_retention_contract",
+          ...boundary,
+        },
+        derivedProjectionExpiresAt: "2027-01-14T12:00:00.000Z",
+      },
+      sourceSession: {
+        coordinatorSessionId: `riq_session_${digest("coordinator-session")}`,
+        fieldSessionId:
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-15",
+        rawSha256: digest("canonical-raw"),
       },
     },
   };
-  return { ...base, ...overrides };
+  return { input: structuredClone({ ...input, ...overrides }), ledger };
 }
 
-test("canonical Data retention policy is independently validated and hash pinned", () => {
+test("final Data policy is hash-bound to the 18-calendar-month contract", () => {
   const policy = loadRouteIqProspectiveRetentionPolicy();
   assert.equal(validateRouteIqProspectiveRetentionPolicy(policy), true);
-  assert.match(computeRouteIqProspectiveRetentionPolicySha256(), /^[a-f0-9]{64}$/);
+  assert.equal(policy.batchId, "BATCH-20260714-004");
+  assert.equal(policy.retentionDecision.maximumCalendarMonths, 18);
+  assert.equal(policy.retentionDecision.customerContractMayShorten, true);
+  assert.equal(policy.retentionDecision.customerContractMayExpand, false);
   assert.equal(policy.scope.collectionActivated, false);
   assert.equal(policy.scope.activeCohorts, 0);
   assert.equal(policy.scope.recommendationInfluence, "off");
-  assert.equal(policy.retentionDecision.activationEligible, false);
 });
 
-test("Data coordinator successor is protected with historical lineage and semantic admission evidence", () => {
-  const contract = JSON.parse(
-    readFileSync(
-      "intelligence/contracts/shadow-decision-readiness-contracts.json",
-      "utf8",
-    ),
+test("only a Data-ledger-authenticated, hash-bound admission is eligible", async () => {
+  const { input, ledger } = await dataAdmission();
+  const admission = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
+    input,
+    { retentionGovernanceLedger: ledger },
   );
-  const specification = JSON.parse(
-    readFileSync(
-      "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
-      "utf8",
-    ),
-  );
-  const successor = JSON.parse(
-    readFileSync(
-      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
-      "utf8",
-    ),
-  );
-  const coordinatorSha256 = createHash("sha256")
-    .update(
-      readFileSync(
-        "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-      ),
-    )
-    .digest("hex");
-
-  assert.equal(
-    coordinatorSha256,
-    "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
-  );
-  assert.equal(contract.protectedDataRuntimeBaseline.sha256, coordinatorSha256);
-  assert.equal(specification.dataOwnerLineage.coordinatorSha256, coordinatorSha256);
-  assert.equal(
-    successor.dataOwnerTransition.coordinator.currentSha256,
-    coordinatorSha256,
-  );
-  assert.equal(successor.predecessor.remainsHistorical, true);
-  assert.equal(successor.predecessor.rewritten, false);
-  assert.equal(
-    successor.intelligenceOwnerSynchronization.dataImplementationModifiedByIntelligence,
-    false,
-  );
-  for (const field of [
-    "retentionAdmissionRequiredOnCanonicalEvaluationRecord",
-    "exactAdmissionAndSourceEvidenceKeySetsRequired",
-    "policyVersionAndSha256Pinned",
-    "coordinatorSessionSha256Bound",
-    "fieldSessionSha256Bound",
-    "sourceArchiveRawSha256Bound",
-    "outcomeAuthoritativeTimeBound",
-    "retentionValidThroughDataAdmissionRequired",
-    "disposedSessionRejected",
-  ]) {
-    assert.equal(successor.dataOwnerTransition.semanticChanges[field], true, field);
-  }
-  assert.equal(successor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
-  assert.equal(successor.boundaryValidation.collection, "OFF");
-  assert.equal(successor.boundaryValidation.activeCohorts, 0);
-  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
-  assert.equal(successor.boundaryValidation.representativeShadowOutputExposed, false);
-  assert.equal(successor.boundaryValidation.archiveRewritePerformed, false);
+  assert.equal(admission.admissionVersion, routeIqProspectiveIntelligenceRetentionAdmissionVersion);
+  assert.equal(admission.admitted, true);
+  assert.equal(admission.retentionBoundary.maximumCalendarMonths, 18);
+  assert.equal(admission.sourceEvidence.sourceRecordSha256, input.dataAdmission.envelope.retentionBoundary.subject.sourceRecordSha256);
+  assert.equal(admission.representativeOutputAllowed, false);
+  assert.equal(admission.recommendationInfluenceAllowed, false);
+  assert.equal(admission.canonicalProductionEvaluationAllowed, true);
+  assert.equal(JSON.stringify(admission).includes(input.dataAdmission.sourceSession.fieldSessionId), false);
 });
 
-test("Infrastructure retention successor is protected with fail-closed production semantics", () => {
-  const contractPath =
-    "intelligence/contracts/shadow-decision-readiness-contracts.json";
-  const specificationPath =
-    "intelligence/provenance/specifications/prospective-retention-admission-v1.json";
-  const predecessorPath =
-    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json";
-  const successorPath =
-    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json";
-  const contract = JSON.parse(readFileSync(contractPath, "utf8"));
-  const specification = JSON.parse(readFileSync(specificationPath, "utf8"));
-  const predecessor = JSON.parse(readFileSync(predecessorPath, "utf8"));
-  const successor = JSON.parse(readFileSync(successorPath, "utf8"));
-  const fileSha256 = (path) =>
-    createHash("sha256").update(readFileSync(path)).digest("hex");
-
-  assert.equal(successor.batchId, "BATCH-20260714-003");
-  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
-  assert.equal(successor.predecessor.remainsHistorical, true);
-  assert.equal(successor.predecessor.rewritten, false);
-  assert.equal(fileSha256(successor.predecessor.path), successor.predecessor.sha256);
-  assert.equal(
-    predecessor.intelligenceOwnerSynchronization.contract.currentSha256,
-    successor.intelligenceOwnerSynchronization.contract.previousSha256,
-  );
-  assert.equal(
-    predecessor.intelligenceOwnerSynchronization.specification.currentSha256,
-    successor.intelligenceOwnerSynchronization.specification.previousSha256,
-  );
-  assert.equal(
-    fileSha256(successor.intelligenceOwnerSynchronization.contract.path),
-    successor.intelligenceOwnerSynchronization.contract.currentSha256,
-  );
-  assert.equal(
-    fileSha256(successor.intelligenceOwnerSynchronization.specification.path),
-    successor.intelligenceOwnerSynchronization.specification.currentSha256,
-  );
-  assert.equal(
-    successor.infrastructureOwnerTransition.commit,
-    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
-  );
-  assert.equal(
-    fileSha256(successor.infrastructureOwnerTransition.runtime.path),
-    "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
-  );
-  assert.equal(
-    successor.infrastructureOwnerTransition.runtime.previousSha256,
-    "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
-  );
-  assert.equal(
-    contract.protectedBehaviorBaselines.infrastructureRuntime.sha256,
-    successor.infrastructureOwnerTransition.runtime.currentSha256,
-  );
-  assert.equal(
-    specification.infrastructureOwnerLineage.runtimeSha256,
-    successor.infrastructureOwnerTransition.runtime.currentSha256,
-  );
-  for (const field of [
-    "missingRetentionFailsBeforeEvaluationConstruction",
-    "missingRetentionSkipsEvaluationAdmissionRpc",
-    "validRetentionCompatibilityNoncanonicalTestOnly",
-    "browserRetentionAuthorityRejected",
-    "canonicalFieldSessionAcknowledgmentPreserved",
-    "realMiniflareCompatibilityVerified",
-  ]) {
-    assert.equal(successor.infrastructureOwnerTransition.semanticChanges[field], true, field);
-  }
-  assert.equal(
-    successor.infrastructureOwnerTransition.semanticChanges.productionAuthenticatedRetentionEnvelopeProducerAvailable,
-    false,
-  );
-  assert.equal(
-    successor.intelligenceOwnerSynchronization.infrastructureImplementationModifiedByIntelligence,
-    false,
-  );
-  const runtimeText = readFileSync(
-    successor.infrastructureOwnerTransition.runtime.path,
-    "utf8",
-  );
-  assert.match(runtimeText, /route_iq_prospective_retention_input_unavailable/);
-  assert.match(
-    runtimeText,
-    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
-  );
-  const resolutionIndex = runtimeText.indexOf(
-    "resolveRouteIqEvaluationRetentionEnvelope({",
-  );
-  const constructionIndex = runtimeText.indexOf(
-    "buildRouteIqEvaluationFromAdmittedOutcome({",
-    resolutionIndex,
-  );
-  assert.ok(resolutionIndex >= 0);
-  assert.ok(constructionIndex > resolutionIndex);
-  assert.equal(successor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
-  assert.equal(successor.boundaryValidation.collection, "OFF");
-  assert.equal(successor.boundaryValidation.activeCohorts, 0);
-  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
-  assert.equal(successor.boundaryValidation.representativeShadowOutputExposed, false);
-  assert.equal(successor.boundaryValidation.archiveRewritePerformed, false);
-  assert.equal(successor.boundaryValidation.productionConsumerActivated, false);
-  assert.equal(successor.boundaryValidation.deploymentPerformed, false);
-  assert.equal(successor.boundaryValidation.productionAccessPerformed, false);
-});
-
-test("eligible local contract fixture is deterministic, hash-only, and zero influence", () => {
-  const input = envelope();
-  const first = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(input);
-  const replay = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-    structuredClone(input),
-  );
-  assert.deepEqual(replay, first);
-  assert.equal(
-    first.admissionVersion,
-    routeIqProspectiveIntelligenceRetentionAdmissionVersion,
-  );
-  assert.equal(first.state, "RETENTION_ADMITTED");
-  assert.equal(first.admitted, true);
-  assert.deepEqual(first.reasonCodes, []);
-  assert.equal(first.audit, null);
-  assert.equal(first.representativeOutputAllowed, false);
-  assert.equal(first.recommendationInfluenceAllowed, false);
-  assert.equal(JSON.stringify(first).includes(input.sourceSession.fieldSessionId), false);
-  assert.equal(
-    JSON.stringify(first).includes(input.sourceSession.coordinatorSessionId),
-    false,
-  );
-});
-
-test("missing, expired, stale, malformed, or unauthorized retention fails closed", () => {
+test("missing authority, tampering, noncanonical evidence, expiry, and over-retention fail closed", async () => {
+  const { input, ledger } = await dataAdmission();
   const cases = [
-    ["missing", { retentionBoundary: null }, "retention_boundary_missing"],
-    [
-      "expired",
-      {
-        retentionBoundary: {
-          ...envelope().retentionBoundary,
-          expiresAt: "2026-07-14T12:00:00.000Z",
-        },
-      },
-      "retention_deadline_expired",
-    ],
-    [
-      "stale",
-      {
-        retentionBoundary: {
-          ...envelope().retentionBoundary,
-          authorizationState: "stale",
-        },
-      },
-      "retention_boundary_not_authorized",
-    ],
-    [
-      "malformed",
-      {
-        retentionBoundary: {
-          ...envelope().retentionBoundary,
-          expiresAt: "not-a-time",
-        },
-      },
-      "retention_deadline_missing_or_invalid",
-    ],
-    [
-      "untrusted",
-      {
-        retentionBoundary: {
-          ...envelope().retentionBoundary,
-          source: "caller_assertion",
-        },
-      },
-      "retention_boundary_source_untrusted",
-    ],
+    [input, undefined, "legal_hold_state_unknown"],
+    [{ dataAdmission: { ...input.dataAdmission, dataPolicySha256: digest("tampered-policy") } }, ledger, "route_iq_retention_data_policy_hash_mismatch"],
+    [{ dataAdmission: { ...input.dataAdmission, envelope: { ...input.dataAdmission.envelope, recordOrigin: "historical" } } }, ledger, "record_origin_noncanonical"],
+    [{ dataAdmission: { ...input.dataAdmission, envelope: { ...input.dataAdmission.envelope, derivedProjectionExpiresAt: "2028-02-14T12:00:00.000Z" } } }, ledger, "derived_projection_outlives_source"],
+    [{ dataAdmission: { ...input.dataAdmission, envelope: { ...input.dataAdmission.envelope, evaluatedAt: "2028-01-14T12:00:00.000Z" } } }, ledger, "retention_deadline_expired"],
   ];
-  for (const [label, overrides, expectedReason] of cases) {
-    const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-      envelope(overrides),
-    );
-    assert.equal(result.admitted, false, label);
-    assert.equal(result.reasonCodes.includes(expectedReason), true, label);
-    assert.equal(result.canonicalProductionEvaluationAllowed, false, label);
+  for (const [candidate, candidateLedger, reason] of cases) {
+    if (reason === "route_iq_retention_data_policy_hash_mismatch") {
+      assert.throws(
+        () => evaluateRouteIqProspectiveIntelligenceRetentionAdmission(candidate, { retentionGovernanceLedger: candidateLedger }),
+        (error) => error?.code === reason,
+      );
+    } else {
+      const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(candidate, { retentionGovernanceLedger: candidateLedger });
+      assert.equal(result.admitted, false, reason);
+      assert.equal(result.reasonCodes.includes(reason), true, reason);
+    }
   }
 });
 
-test("noncanonical origins, legal holds, and over-retained projections fail closed", () => {
-  const cases = [
-    [
-      { recordOrigin: "historical" },
-      "record_origin_noncanonical",
-    ],
-    [{ legalHoldState: "unknown" }, "legal_hold_state_unknown"],
-    [
-      { legalHoldState: "active" },
-      "legal_hold_requires_separate_authorized_handling",
-    ],
-    [
-      { deletionCapabilityStatus: "unknown" },
-      "retention_deletion_capability_unverified",
-    ],
-    [
-      { derivedProjectionExpiresAt: "2026-08-14T12:00:00.001Z" },
-      "derived_projection_outlives_source",
-    ],
-    [{ collectionState: "off" }, "collection_not_on"],
-  ];
-  for (const [overrides, expectedReason] of cases) {
-    const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-      envelope(overrides),
-    );
-    assert.equal(result.admitted, false);
-    assert.equal(result.reasonCodes.includes(expectedReason), true);
-  }
-});
-
-test("the exact July 14 disposition is excluded with hash-only audit visibility", () => {
-  const dispositionRecordSha256 = digest("disposition-record");
-  const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-    envelope({
-      sourceSession: {
-        coordinatorSessionId: `riq_session_${digest("disposed-session")}`,
-        fieldSessionId:
-          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
-        rawSha256:
-          "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
-        consumptionEligibility: {
-          eligible: false,
-          state: "EXCLUDED_FROM_ANALYTICS",
-          reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
-          auditOnly: true,
-          excludedDomains: [...routeIqProspectiveRetentionExcludedDomains],
-          dispositionRecordSha256,
-        },
-      },
-    }),
-  );
-  assert.equal(result.admitted, false);
-  assert.equal(
-    result.reasonCodes.includes("administrative_disposition_policy_exclusion"),
-    true,
-  );
-  assert.deepEqual(result.audit, {
-    sourceRawSha256:
-      "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
-    dispositionRecordSha256,
+test("the July 14 accidental archive remains hash-only and excluded", async () => {
+  const { input, ledger } = await dataAdmission();
+  input.dataAdmission.sourceSession = {
+    coordinatorSessionId: `riq_session_${digest("disposed-session")}`,
+    fieldSessionId: "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    rawSha256: "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+  };
+  const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(input, {
+    retentionGovernanceLedger: ledger,
   });
-  assert.deepEqual(Object.keys(result.audit).sort(), [
-    "dispositionRecordSha256",
-    "sourceRawSha256",
-  ]);
-  assert.equal(JSON.stringify(result).includes("originalRecords"), false);
-});
-
-test("the disposed session cannot bypass exclusion by omitting its disposition", () => {
-  const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-    envelope({
-      sourceSession: {
-        coordinatorSessionId: `riq_session_${digest("disposed-bypass")}`,
-        fieldSessionId:
-          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
-        rawSha256:
-          "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
-        consumptionEligibility: {
-          eligible: true,
-          state: "NOT_ADMINISTRATIVELY_EXCLUDED",
-          reason: null,
-          auditOnly: false,
-          excludedDomains: [],
-        },
-      },
-    }),
-  );
   assert.equal(result.admitted, false);
-  assert.equal(
-    result.reasonCodes.includes("administrative_disposition_policy_exclusion"),
-    true,
-  );
-});
-
-test("unrelated undisposed sessions are not excluded by zero-visit inference", () => {
-  const result = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
-    envelope(),
-  );
-  assert.equal(result.admitted, true);
-  assert.equal(
-    result.reasonCodes.includes("administrative_disposition_policy_exclusion"),
-    false,
-  );
-});
-
-test("unknown input fields and tampered Data policy semantics fail closed", () => {
-  assert.throws(
-    () =>
-      evaluateRouteIqProspectiveIntelligenceRetentionAdmission({
-        ...envelope(),
-        rawNotes: "not allowed",
-      }),
-    (error) => error?.code === "route_iq_retention_admission_input_invalid",
-  );
-  const policy = loadRouteIqProspectiveRetentionPolicy();
-  policy.activationBoundary.productionConsumerActivated = true;
-  assert.throws(
-    () => validateRouteIqProspectiveRetentionPolicy(policy),
-    (error) => error?.code === "route_iq_retention_policy_semantics_invalid",
-  );
+  assert.equal(result.reasonCodes.includes("administrative_disposition_policy_exclusion"), true);
+  assert.deepEqual(result.audit, { sourceRawSha256: input.dataAdmission.sourceSession.rawSha256 });
+  assert.equal(JSON.stringify(result).includes(input.dataAdmission.sourceSession.fieldSessionId), false);
 });

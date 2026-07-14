@@ -10,6 +10,12 @@ import {
   routeIqProspectiveRetentionEnvelopeKeys,
   routeIqProspectiveRetentionPolicyVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
+import {
+  evaluateRouteIqDeidentifiedAggregateRetention,
+  routeIqDeidentifiedAggregateAttestationVersion,
+  routeIqDeidentifiedAggregateVersion,
+  routeIqRetentionMaximumCalendarMonths,
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 
 export const routeIqProspectiveIntelligenceRetentionAdmissionVersion =
   "route-iq-prospective-intelligence-retention-admission-v1";
@@ -22,14 +28,10 @@ const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const SESSION_ID_PATTERN =
   /^route-iq-field-session-fitness-connection-fitness-[a-z0-9_-]+-\d{4}-\d{2}-\d{2}$/;
 const COORDINATOR_SESSION_ID_PATTERN = /^riq_session_[a-f0-9]{64}$/;
-const REPRESENTATIVE_IDS = new Set(["anthony", "cruz"]);
-const LEGAL_HOLD_STATES = new Set(["none", "active", "unknown"]);
 const DISPOSED_SESSION_ID =
   "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14";
 const DISPOSED_RAW_SHA256 =
   "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765";
-const DISPOSITION_STATE = "EXCLUDED_FROM_ANALYTICS";
-const DISPOSITION_REASON = "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION";
 const REQUIRED_EXCLUDED_DOMAINS = Object.freeze([
   "learning",
   "readiness",
@@ -58,14 +60,6 @@ function fail(code, details = {}) {
   throw new RouteIqProspectiveIntelligenceRetentionError(code, details);
 }
 
-function deepFreeze(value) {
-  if (value && typeof value === "object" && !Object.isFrozen(value)) {
-    Object.freeze(value);
-    Object.values(value).forEach(deepFreeze);
-  }
-  return value;
-}
-
 function canonical(value) {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") {
@@ -81,6 +75,14 @@ function sha256(value) {
   return createHash("sha256")
     .update(typeof value === "string" ? value : canonical(value))
     .digest("hex");
+}
+
+function deepFreeze(value) {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    Object.values(value).forEach(deepFreeze);
+  }
+  return value;
 }
 
 function isPlainObject(value) {
@@ -103,14 +105,8 @@ function assertExactKeys(value, keys, code) {
 function canonicalTimestamp(value) {
   if (typeof value !== "string") return null;
   const time = Date.parse(value);
-  if (!Number.isFinite(time) || new Date(time).toISOString() !== value) {
-    return null;
-  }
+  if (!Number.isFinite(time) || new Date(time).toISOString() !== value) return null;
   return { iso: value, time };
-}
-
-function arrayEqual(left, right) {
-  return canonical(left) === canonical(right);
 }
 
 export function loadRouteIqProspectiveRetentionPolicy() {
@@ -128,43 +124,40 @@ export function computeRouteIqProspectiveRetentionPolicySha256() {
 export function validateRouteIqProspectiveRetentionPolicy(policy) {
   if (
     policy?.policyVersion !== routeIqProspectiveRetentionPolicyVersion ||
+    policy?.batchId !== "BATCH-20260714-004" ||
     policy?.owningSubsystem !== "Prometheus Data" ||
     policy?.status !==
-      "defined_fail_closed_pending_explicit_retention_boundary" ||
-    policy?.scope?.workspaceId !== "fitness_connection" ||
-    policy?.scope?.operatingProfileId !== "fitness" ||
-    policy?.scope?.opportunityType !== "next_stop" ||
+      "founder_authorized_18_month_maximum_runtime_deletion_inactive" ||
     policy?.scope?.collectionActivated !== false ||
     policy?.scope?.activeCohorts !== 0 ||
     policy?.scope?.recommendationInfluence !== "off" ||
+    policy?.retentionDecision?.maximumCalendarMonths !==
+      routeIqRetentionMaximumCalendarMonths ||
+    policy?.retentionDecision?.creationTimeBasis !==
+      "canonical_authoritative_source_record_time" ||
+    policy?.retentionDecision?.customerContractMayShorten !== true ||
+    policy?.retentionDecision?.customerContractMayExpand !== false ||
     policy?.retentionDecision?.activationEligible !== false ||
-    policy?.retentionDecision?.durationDays !== null ||
-    policy?.retentionDecision?.numericDurationSelected !== false ||
-    policy?.retentionDecision?.missingBoundaryBehavior !==
-      "fail_closed_no_collection" ||
     policy?.canonicality?.allowedRecordOrigin !== "prospective" ||
-    !arrayEqual(
-      policy?.canonicality?.topLevelEnvelopeExactAllowlist,
-      routeIqProspectiveRetentionEnvelopeKeys,
-    ) ||
-    !arrayEqual(
-      policy?.canonicality?.retentionBoundaryExactAllowlist,
-      routeIqProspectiveRetentionBoundaryKeys,
-    ) ||
-    policy?.canonicality?.additionalPropertiesAllowed !== false ||
-    policy?.canonicality?.unknownFieldValuesPersistedOrEchoed !== false ||
-    policy?.canonicality
-      ?.syntheticTestDemoFixtureHistoricalBackfillReplayExcluded !== true ||
-    policy?.canonicality?.historicalPromotionAllowed !== false ||
-    policy?.canonicality?.identicalReplayReturnsOriginal !== true ||
-    policy?.canonicality?.changedReplayCreatesDurableConflict !== true ||
-    policy?.expiryAndDeletion?.expiredEvidenceEvaluationAllowed !== false ||
+    canonical(policy?.canonicality?.topLevelEnvelopeExactAllowlist) !==
+      canonical(routeIqProspectiveRetentionEnvelopeKeys) ||
+    canonical(policy?.canonicality?.retentionBoundaryExactAllowlist) !==
+      canonical(routeIqProspectiveRetentionBoundaryKeys) ||
+    policy?.canonicality?.syntheticTestDemoFixtureHistoricalBackfillReplayExcluded !==
+      true ||
+    policy?.expiryAndDeletion?.expiredEvidenceAdmissionAllowed !== false ||
     policy?.expiryAndDeletion?.derivedProjectionMayOutliveSource !== false ||
-    policy?.expiryAndDeletion?.unknownExpiryBehavior !== "fail_closed" ||
     policy?.legalHold?.unknownStateBehavior !==
-      "fail_closed_no_collection_or_deletion" ||
+      "fail_closed_no_mutation_or_admission" ||
     policy?.legalHold?.activeHoldMayAuthorizeAnalytics !== false ||
-    policy?.activationBoundary?.collectionDefault !== "off" ||
+    policy?.aggregateRetention?.indefiniteRetentionAllowed !== true ||
+    policy?.aggregateRetention?.artifactHashAndAttestationBindingRequired !== true ||
+    policy?.aggregateRetention?.sourceSetAndLegalHoldLedgerBindingRequired !==
+      true ||
+    policy?.aggregateRetention?.representativeIdentificationAllowed !== false ||
+    policy?.aggregateRetention?.customerIdentificationAllowed !== false ||
+    policy?.aggregateRetention?.specificVisitIdentificationAllowed !== false ||
+    policy?.aggregateRetention?.preciseLocationTrailAllowed !== false ||
     policy?.activationBoundary?.productionConsumerActivated !== false ||
     policy?.activationBoundary?.productionEvidenceRecords !== 0 ||
     policy?.activationBoundary?.deploymentPerformed !== false ||
@@ -172,16 +165,12 @@ export function validateRouteIqProspectiveRetentionPolicy(policy) {
   ) {
     fail("route_iq_retention_policy_semantics_invalid");
   }
-
   const disposition = policy.administrativeDispositionConsumerBoundary;
   if (
     disposition?.sessionId !== DISPOSED_SESSION_ID ||
     disposition?.rawSha256 !== DISPOSED_RAW_SHA256 ||
-    disposition?.originalRecordCount !== 7 ||
-    disposition?.state !== DISPOSITION_STATE ||
-    disposition?.reason !== DISPOSITION_REASON ||
-    disposition?.originalRecordsRemainImmutable !== true ||
-    disposition?.auditReadRemainsAvailable !== true ||
+    disposition?.state !== "EXCLUDED_FROM_ANALYTICS" ||
+    disposition?.reason !== "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION" ||
     disposition?.analyticsLearningReadinessBaselineProductivityAdmissionAllowed !==
       false
   ) {
@@ -190,250 +179,114 @@ export function validateRouteIqProspectiveRetentionPolicy(policy) {
   return true;
 }
 
-function independentRetentionReasons(input) {
-  const reasons = [];
-  if (
-    input.workspaceId !== "fitness_connection" ||
-    input.operatingProfileId !== "fitness"
-  ) {
-    reasons.push("scope_unauthorized");
-  } else if (!REPRESENTATIVE_IDS.has(input.representativeId)) {
-    reasons.push("representative_unauthorized");
-  }
-  if (input.collectionState !== "on") reasons.push("collection_not_on");
-  if (input.recommendationInfluence !== "off") {
-    reasons.push("recommendation_influence_not_off");
-  }
-  if (input.recordOrigin !== "prospective") {
-    reasons.push("record_origin_noncanonical");
-  }
-  if (input.policyVersion !== routeIqProspectiveRetentionPolicyVersion) {
-    reasons.push("retention_policy_version_invalid");
-  }
-
-  const boundary = input.retentionBoundary;
-  if (!isPlainObject(boundary)) {
-    reasons.push("retention_boundary_missing");
-  } else {
-    if (
-      boundary.contractVersion !==
-      routeIqProspectiveRetentionBoundaryContractVersion
-    ) {
-      reasons.push("retention_boundary_contract_invalid");
-    }
-    if (
-      boundary.authorizationState !==
-      "authorized_existing_field_session_boundary"
-    ) {
-      reasons.push("retention_boundary_not_authorized");
-    }
-    if (boundary.source !== "authenticated_data_retention_contract") {
-      reasons.push("retention_boundary_source_untrusted");
-    }
-  }
-
-  const evaluatedAt = canonicalTimestamp(input.evaluatedAt);
-  const expiresAt = canonicalTimestamp(boundary?.expiresAt);
-  if (!evaluatedAt) reasons.push("retention_evaluation_time_invalid");
-  if (!expiresAt) reasons.push("retention_deadline_missing_or_invalid");
-  if (evaluatedAt && expiresAt && expiresAt.time <= evaluatedAt.time) {
-    reasons.push("retention_deadline_expired");
-  }
-  if (input.deletionCapabilityStatus !== "verified_not_activated") {
-    reasons.push("retention_deletion_capability_unverified");
-  }
-  if (!LEGAL_HOLD_STATES.has(input.legalHoldState)) {
-    reasons.push("legal_hold_state_invalid");
-  } else if (input.legalHoldState === "unknown") {
-    reasons.push("legal_hold_state_unknown");
-  } else if (input.legalHoldState === "active") {
-    reasons.push("legal_hold_requires_separate_authorized_handling");
-  }
-  if (
-    input.derivedProjectionExpiresAt !== null &&
-    input.derivedProjectionExpiresAt !== undefined
-  ) {
-    const projectionExpiry = canonicalTimestamp(input.derivedProjectionExpiresAt);
-    if (!projectionExpiry) {
-      reasons.push("derived_projection_deadline_invalid");
-    } else if (expiresAt && projectionExpiry.time > expiresAt.time) {
-      reasons.push("derived_projection_outlives_source");
-    }
-  }
-  return [...new Set(reasons)];
-}
-
-function validateSourceSession(sourceSession) {
+function validateDataAuthenticatedSource(sourceSession) {
   assertExactKeys(
     sourceSession,
-    [
-      "coordinatorSessionId",
-      "fieldSessionId",
-      "rawSha256",
-      "consumptionEligibility",
-    ],
-    "route_iq_retention_source_session_invalid",
+    ["coordinatorSessionId", "fieldSessionId", "rawSha256"],
+    "route_iq_retention_data_source_binding_invalid",
   );
   if (
-    typeof sourceSession.coordinatorSessionId !== "string" ||
-    !COORDINATOR_SESSION_ID_PATTERN.test(
-      sourceSession.coordinatorSessionId,
-    ) ||
-    typeof sourceSession.fieldSessionId !== "string" ||
+    !COORDINATOR_SESSION_ID_PATTERN.test(sourceSession.coordinatorSessionId) ||
     !SESSION_ID_PATTERN.test(sourceSession.fieldSessionId) ||
-    typeof sourceSession.rawSha256 !== "string" ||
     !SHA256_PATTERN.test(sourceSession.rawSha256)
   ) {
-    fail("route_iq_retention_source_session_invalid");
-  }
-  const eligibility = sourceSession.consumptionEligibility;
-  if (!isPlainObject(eligibility)) {
-    fail("route_iq_retention_source_eligibility_invalid");
-  }
-  const allowedKeys = new Set([
-    "eligible",
-    "state",
-    "reason",
-    "auditOnly",
-    "excludedDomains",
-    "dispositionRecordSha256",
-  ]);
-  if (Object.keys(eligibility).some((key) => !allowedKeys.has(key))) {
-    fail("route_iq_retention_source_eligibility_invalid");
-  }
-
-  const policyDisposedSession =
-    sourceSession.fieldSessionId === DISPOSED_SESSION_ID;
-  if (policyDisposedSession && sourceSession.rawSha256 !== DISPOSED_RAW_SHA256) {
-    fail("route_iq_retention_disposed_session_hash_mismatch");
-  }
-  if (policyDisposedSession) {
-    return {
-      admitted: false,
-      reason: "administrative_disposition_policy_exclusion",
-      audit: {
-        sourceRawSha256: sourceSession.rawSha256,
-        dispositionRecordSha256:
-          typeof eligibility.dispositionRecordSha256 === "string" &&
-          SHA256_PATTERN.test(eligibility.dispositionRecordSha256)
-            ? eligibility.dispositionRecordSha256
-            : null,
-      },
-    };
-  }
-
-  if (eligibility.eligible === false) {
-    if (
-      eligibility.state !== DISPOSITION_STATE ||
-      eligibility.auditOnly !== true ||
-      !arrayEqual(eligibility.excludedDomains, REQUIRED_EXCLUDED_DOMAINS) ||
-      typeof eligibility.dispositionRecordSha256 !== "string" ||
-      !SHA256_PATTERN.test(eligibility.dispositionRecordSha256)
-    ) {
-      fail("route_iq_retention_source_eligibility_invalid");
-    }
-    return {
-      admitted: false,
-      reason: "administratively_disposed_session_excluded",
-      audit: {
-        sourceRawSha256: sourceSession.rawSha256,
-        dispositionRecordSha256: eligibility.dispositionRecordSha256,
-      },
-    };
+    fail("route_iq_retention_data_source_binding_invalid");
   }
   if (
-    eligibility.eligible !== true ||
-    eligibility.state !== "NOT_ADMINISTRATIVELY_EXCLUDED" ||
-    eligibility.reason !== null ||
-    eligibility.auditOnly !== false ||
-    !Array.isArray(eligibility.excludedDomains) ||
-    eligibility.excludedDomains.length !== 0 ||
-    Object.hasOwn(eligibility, "dispositionRecordSha256")
+    sourceSession.fieldSessionId === DISPOSED_SESSION_ID &&
+    sourceSession.rawSha256 !== DISPOSED_RAW_SHA256
   ) {
-    fail("route_iq_retention_source_eligibility_invalid");
+    fail("route_iq_retention_disposed_session_hash_mismatch");
   }
-  return { admitted: true, reason: null, audit: null };
+  return sourceSession;
+}
+
+function validateDataAdmission(input) {
+  assertExactKeys(
+    input,
+    ["envelope", "sourceSession", "dataPolicySha256"],
+    "route_iq_retention_data_admission_invalid",
+  );
+  assertExactKeys(
+    input.envelope,
+    routeIqProspectiveRetentionEnvelopeKeys,
+    "route_iq_retention_data_envelope_invalid",
+  );
+  assertExactKeys(
+    input.envelope.retentionBoundary,
+    routeIqProspectiveRetentionBoundaryKeys,
+    "route_iq_retention_data_boundary_invalid",
+  );
+  if (input.dataPolicySha256 !== computeRouteIqProspectiveRetentionPolicySha256()) {
+    fail("route_iq_retention_data_policy_hash_mismatch");
+  }
+  return {
+    envelope: input.envelope,
+    sourceSession: validateDataAuthenticatedSource(input.sourceSession),
+  };
+}
+
+function disposalAudit(sourceSession) {
+  if (
+    sourceSession.fieldSessionId !== DISPOSED_SESSION_ID &&
+    sourceSession.rawSha256 !== DISPOSED_RAW_SHA256
+  ) {
+    return null;
+  }
+  return { sourceRawSha256: sourceSession.rawSha256 };
 }
 
 export function evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
   input = {},
-  { policy = loadRouteIqProspectiveRetentionPolicy() } = {},
+  { policy = loadRouteIqProspectiveRetentionPolicy(), retentionGovernanceLedger } = {},
 ) {
   validateRouteIqProspectiveRetentionPolicy(policy);
   assertExactKeys(
     input,
-    [
-      "workspaceId",
-      "operatingProfileId",
-      "representativeId",
-      "collectionState",
-      "recommendationInfluence",
-      "recordOrigin",
-      "policyVersion",
-      "retentionBoundary",
-      "evaluatedAt",
-      "deletionCapabilityStatus",
-      "legalHoldState",
-      "derivedProjectionExpiresAt",
-      "sourceSession",
-    ],
+    ["dataAdmission"],
     "route_iq_retention_admission_input_invalid",
   );
-
-  const independentReasons = independentRetentionReasons(input);
-  const dataResult = evaluateRouteIqProspectiveRetentionEnvelope({
-    policyVersion: input.policyVersion,
-    collectionState: input.collectionState,
-    recommendationInfluence: input.recommendationInfluence,
-    recordOrigin: input.recordOrigin,
-    workspaceId: input.workspaceId,
-    operatingProfileId: input.operatingProfileId,
-    representativeId: input.representativeId,
-    evaluatedAt: input.evaluatedAt,
-    retentionBoundary: input.retentionBoundary,
-    legalHoldState: input.legalHoldState,
-    deletionCapabilityStatus: input.deletionCapabilityStatus,
-    derivedProjectionExpiresAt: input.derivedProjectionExpiresAt,
-  });
-  if (
-    !arrayEqual([...dataResult.reasons].sort(), [...independentReasons].sort()) ||
-    dataResult.eligible !== (independentReasons.length === 0)
-  ) {
-    fail("route_iq_retention_data_semantic_parity_failed");
+  const dataAdmission = validateDataAdmission(input.dataAdmission);
+  let dataResult;
+  try {
+    dataResult = evaluateRouteIqProspectiveRetentionEnvelope(
+      dataAdmission.envelope,
+      { retentionGovernanceLedger },
+    );
+  } catch (error) {
+    dataResult = {
+      eligible: false,
+      reasons: [error?.code || "data_retention_admission_unavailable"],
+      sourceRecordSha256: null,
+      evaluatedAt: null,
+    };
   }
-
-  const source = validateSourceSession(input.sourceSession);
+  const audit = disposalAudit(dataAdmission.sourceSession);
   const reasonCodes = [
-    ...independentReasons,
-    ...(source.reason ? [source.reason] : []),
+    ...dataResult.reasons,
+    ...(audit ? ["administrative_disposition_policy_exclusion"] : []),
   ];
-  const admitted = reasonCodes.length === 0 && source.admitted;
-  const boundary = input.retentionBoundary;
+  const admitted = dataResult.eligible === true && audit === null;
+  const boundary = dataAdmission.envelope.retentionBoundary;
   const result = {
     admissionVersion: routeIqProspectiveIntelligenceRetentionAdmissionVersion,
     dataPolicyVersion: routeIqProspectiveRetentionPolicyVersion,
     dataPolicySha256: computeRouteIqProspectiveRetentionPolicySha256(),
     state: admitted ? "RETENTION_ADMITTED" : "RETENTION_EXCLUDED",
     admitted,
-    reasonCodes,
+    reasonCodes: [...new Set(reasonCodes)],
     sourceEvidence: {
-      coordinatorSessionSha256: sha256(
-        input.sourceSession.coordinatorSessionId,
-      ),
-      fieldSessionSha256: sha256(input.sourceSession.fieldSessionId),
-      sourceRawSha256: input.sourceSession.rawSha256,
-      retentionBoundarySha256: isPlainObject(boundary)
-        ? sha256(boundary)
-        : null,
+      coordinatorSessionSha256: sha256(dataAdmission.sourceSession.coordinatorSessionId),
+      fieldSessionSha256: sha256(dataAdmission.sourceSession.fieldSessionId),
+      sourceRawSha256: dataAdmission.sourceSession.rawSha256,
+      sourceRecordSha256: dataResult.sourceRecordSha256,
+      retentionBoundarySha256: sha256(boundary),
     },
-    evaluatedAt: canonicalTimestamp(input.evaluatedAt)?.iso ?? null,
-    expiresAt: canonicalTimestamp(boundary?.expiresAt)?.iso ?? null,
-    legalHoldState: LEGAL_HOLD_STATES.has(input.legalHoldState)
-      ? input.legalHoldState
-      : "unknown",
-    collectionState: input.collectionState ?? null,
-    recommendationInfluence: input.recommendationInfluence ?? null,
-    audit: source.audit,
+    evaluatedAt: dataResult.evaluatedAt,
+    retentionBoundary: boundary,
+    collectionState: dataAdmission.envelope.collectionState,
+    recommendationInfluence: dataAdmission.envelope.recommendationInfluence,
+    audit,
     representativeOutputAllowed: false,
     recommendationInfluenceAllowed: false,
     canonicalProductionEvaluationAllowed: admitted,
@@ -441,8 +294,14 @@ export function evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
   return deepFreeze(result);
 }
 
-export function requireRouteIqProspectiveIntelligenceRetentionAdmission(input) {
-  const admission = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(input);
+export function requireRouteIqProspectiveIntelligenceRetentionAdmission(
+  input,
+  options,
+) {
+  const admission = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(
+    input,
+    options,
+  );
   if (!admission.admitted) {
     fail("route_iq_retention_admission_blocked", {
       reasonCodes: [...admission.reasonCodes],
@@ -452,5 +311,39 @@ export function requireRouteIqProspectiveIntelligenceRetentionAdmission(input) {
   return admission;
 }
 
-export const routeIqProspectiveRetentionExcludedDomains =
-  REQUIRED_EXCLUDED_DOMAINS;
+export async function evaluateRouteIqIndefiniteAggregateIntelligenceAdmission(
+  input = {},
+  { authorityVerifier } = {},
+) {
+  assertExactKeys(
+    input,
+    ["artifactBytes", "artifactSha256", "attestation", "sourceGovernance"],
+    "route_iq_aggregate_admission_input_invalid",
+  );
+  const result = await evaluateRouteIqDeidentifiedAggregateRetention(input, {
+    authorityVerifier,
+  });
+  if (
+    result.state !== "DEIDENTIFIED_AGGREGATE_RETENTION_ELIGIBLE" ||
+    result.indefiniteRetentionEligible !== true
+  ) {
+    fail("route_iq_aggregate_admission_blocked", { reasonCodes: result.reasons });
+  }
+  return deepFreeze({
+    admissionVersion: routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+    aggregateArtifactVersion: routeIqDeidentifiedAggregateVersion,
+    aggregateAttestationVersion: routeIqDeidentifiedAggregateAttestationVersion,
+    dataPolicySha256: computeRouteIqProspectiveRetentionPolicySha256(),
+    admitted: true,
+    state: "DEIDENTIFIED_AGGREGATE_ADMITTED",
+    artifactSha256: result.artifactSha256,
+    attestationSha256: result.attestationSha256,
+    authorityAuditEventSha256: result.authorityAuditEventSha256,
+    sourceSetSha256: result.sourceSetSha256,
+    legalHoldLedgerSetSha256: result.legalHoldLedgerSetSha256,
+    representativeOutputAllowed: false,
+    recommendationInfluenceAllowed: false,
+  });
+}
+
+export const routeIqProspectiveRetentionExcludedDomains = REQUIRED_EXCLUDED_DOMAINS;

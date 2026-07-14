@@ -1453,14 +1453,14 @@ test("prospective retention admission remains fail closed and inactive", () => {
     ),
   );
   const retention = contract.prospectiveRetentionAdmission;
-  assert.equal(retention.batchId, "BATCH-20260714-003");
+  assert.equal(retention.batchId, "BATCH-20260714-004");
   assert.equal(
     retention.dataExactKeySuccessorCommit,
-    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
     retention.dataCoordinatorAdmissionSuccessorCommit,
-    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
     retention.infrastructureRetentionFailClosedSuccessorCommit,
@@ -1481,6 +1481,25 @@ test("prospective retention admission remains fail closed and inactive", () => {
   ]) {
     assert.equal(retention[field], true, field);
   }
+  assert.deepEqual({
+    dataAuthenticatedAndHashBoundRequired: retention.dataAuthenticatedAndHashBoundRequired,
+    authoritativeLegalHoldLedgerRequired: retention.authoritativeLegalHoldLedgerRequired,
+    maximumCalendarMonths: retention.maximumCalendarMonths,
+    customerMayOnlyShorten: retention.customerMayOnlyShorten,
+    customerMayExpand: retention.customerMayExpand,
+    historicalSyntheticReplayAdmissionAllowed: retention.historicalSyntheticReplayAdmissionAllowed,
+    indefiniteRawRetentionAllowed: retention.indefiniteRawRetentionAllowed,
+    indefiniteAggregateRequiresExactDataAttestation: retention.indefiniteAggregateRequiresExactDataAttestation,
+  }, {
+    dataAuthenticatedAndHashBoundRequired: true,
+    authoritativeLegalHoldLedgerRequired: true,
+    maximumCalendarMonths: 18,
+    customerMayOnlyShorten: true,
+    customerMayExpand: false,
+    historicalSyntheticReplayAdmissionAllowed: false,
+    indefiniteRawRetentionAllowed: false,
+    indefiniteAggregateRequiresExactDataAttestation: true,
+  });
   assert.deepEqual(Object.keys(retention.protectedDataSources).sort(), [
     "retentionEvaluator",
     "retentionPolicy",

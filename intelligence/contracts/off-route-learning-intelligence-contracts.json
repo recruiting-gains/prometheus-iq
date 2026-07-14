@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "cb9e70024609f67cc5763f858566f2a4a2ac83ea8c0ac184bf1104ee1ccf047f",
+    "contractSha256": "553eda39b7f28eb0b1d66af85222191cab059575e84644a103df2ef52e2f5e0e",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -39,15 +39,27 @@
     "auditProjectionRawPayloadAllowed": false
   },
   "prospectiveRetentionAdmission": {
+    "batchId": "BATCH-20260714-004",
     "inheritedFromUpstreamReadOnlyLearning": true,
-    "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "dataExactKeySuccessorCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "dataPolicySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+    "dataAuthenticatedAndHashBoundRequired": true,
+    "authoritativeLegalHoldLedgerRequired": true,
+    "maximumCalendarMonths": 18,
+    "customerMayOnlyShorten": true,
+    "customerMayExpand": false,
     "prospectiveEvidenceObservationAllowed": false,
     "expiredOrUnknownEvidenceObservationAllowed": false,
     "disposedSessionObservationAllowed": false,
     "derivedProjectionMayOutliveSource": false,
+    "unknownOrActiveLegalHoldAdmissionAllowed": false,
+    "historicalSyntheticReplayAdmissionAllowed": false,
+    "indefiniteRawRetentionAllowed": false,
+    "indefiniteAggregateRequiresExactDataAttestation": true,
     "recommendationInputProjectionAllowed": false,
     "automaticZeroVisitExclusionAllowed": false,
     "productionActivationEligible": false
+    ,"recommendationInfluenceAllowed": false
   },
   "decisionSourceContract": {
     "canonicalField": "visitDecisionSource",
@@ -134,8 +146,8 @@
   "protectedBehaviorBaselines": {
     "dashboardSource": {"path": "index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
     "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
-    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b"},
-    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"},
+    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
     "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}
   },

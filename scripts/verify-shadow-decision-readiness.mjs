@@ -122,7 +122,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceCommit,
-    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceOwnerSubsystem,
@@ -134,7 +134,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.synchronizedInBatch,
-    "BATCH-20260714-003",
+    "BATCH-20260714-004",
   );
   assert.deepEqual(contract.protectedDataRuntimeBaseline.predecessor, {
     sha256: "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
@@ -224,11 +224,11 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit,
-    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
     contract.prospectiveRetentionAdmission.dataCoordinatorAdmissionSuccessorCommit,
-    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
   );
   assert.equal(
     contract.prospectiveRetentionAdmission.infrastructureRetentionFailClosedSuccessorCommit,
@@ -258,6 +258,16 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   ]) {
     assert.equal(contract.prospectiveRetentionAdmission[field], true, field);
   }
+  for (const [field, expected] of Object.entries({
+    dataAuthenticatedAndHashBoundRequired: true,
+    authoritativeLegalHoldLedgerRequired: true,
+    maximumCalendarMonths: 18,
+    customerMayOnlyShorten: true,
+    customerMayExpand: false,
+    historicalSyntheticReplayAdmissionAllowed: false,
+    indefiniteRawRetentionAllowed: false,
+    indefiniteAggregateRequiresExactDataAttestation: true,
+  })) assert.equal(contract.prospectiveRetentionAdmission[field], expected, field);
   for (const field of [
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
     "noncanonicalOriginAdmissionAllowed",
@@ -650,7 +660,7 @@ export function verifyShadowDecisionReadiness({
   );
   assert.match(
     infrastructureRuntimeText,
-    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
+    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+readNoncanonicalDataRetentionAdmission[\s\S]+verifyRouteIqProspectiveDataRetentionAdmission/,
   );
   const retentionResolutionIndex = infrastructureRuntimeText.indexOf(
     "resolveRouteIqEvaluationRetentionEnvelope({",

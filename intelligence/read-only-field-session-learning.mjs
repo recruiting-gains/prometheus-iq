@@ -213,15 +213,26 @@ export function validateReadOnlyFieldSessionLearningContract(contract, dataContr
   fail(contract?.administrativeDispositionAdmission?.exactExcludedRawSha256 === "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765", "administrative_disposition_raw_hash_mismatch");
   fail(JSON.stringify(contract?.administrativeDispositionAdmission?.auditProjectionAllowedFields) === JSON.stringify(["sourceRawSha256", "dispositionRecordSha256"]), "administrative_disposition_audit_projection_not_hash_only");
   fail(contract?.administrativeDispositionAdmission?.auditProjectionRawPayloadAllowed === false, "administrative_disposition_raw_audit_payload_allowed");
-  fail(contract?.prospectiveRetentionAdmission?.batchId === "BATCH-20260714-003", "prospective_retention_batch_mismatch");
+  fail(contract?.prospectiveRetentionAdmission?.batchId === "BATCH-20260714-004", "prospective_retention_batch_mismatch");
   fail(contract?.prospectiveRetentionAdmission?.dataFoundationCommit === "a5bd1d431e778cec045d1e8412efb396674ea321", "prospective_retention_foundation_commit_mismatch");
-  fail(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "prospective_retention_exact_key_commit_mismatch");
+  fail(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "c73118ddb262d3010bbc94a900f8506fb2f56192", "prospective_retention_exact_key_commit_mismatch");
   for (const key of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     fail(contract?.prospectiveRetentionAdmission?.[key] === false, `prospective_retention_boundary_enabled:${key}`);
   }
+  for (const [key, value] of Object.entries({
+    dataAuthenticatedAndHashBoundRequired: true,
+    authoritativeLegalHoldLedgerRequired: true,
+    maximumCalendarMonths: 18,
+    customerMayOnlyShorten: true,
+    customerMayExpand: false,
+    historicalSyntheticReplayAdmissionAllowed: false,
+    indefiniteRawRetentionAllowed: false,
+    indefiniteAggregateRequiresExactDataAttestation: true,
+    recommendationInfluenceAllowed: false,
+  })) fail(contract?.prospectiveRetentionAdmission?.[key] === value, `prospective_retention_final_contract_invalid:${key}`);
   const retention = dataContract?.prospectiveShadowEvidenceLifecycleContract?.retentionAndCollection;
   fail(retention?.retentionPolicyProvided === true, "data_retention_policy_missing");
-  fail(retention?.retentionPolicyStatus === "defined_fail_closed_pending_explicit_retention_boundary", "data_retention_policy_status_invalid");
+  fail(retention?.retentionPolicyStatus === "founder_authorized_18_month_maximum_runtime_deletion_inactive", "data_retention_policy_status_invalid");
   fail(retention?.activationEligibleUnderRetentionPolicy === false, "data_retention_policy_activation_enabled");
   fail(retention?.productionCollectionActivated === false, "data_prospective_collection_active");
   fail(retention?.productionEvidenceRecords === 0, "data_prospective_records_nonzero");

@@ -255,7 +255,7 @@ test("administrative dispositions are inherited as a fail-closed upstream admiss
   assert.deepEqual(contract.administrativeDispositionAdmission.auditProjectionAllowedFields, ["sourceRawSha256", "dispositionRecordSha256"]);
   assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(contract.prospectiveRetentionAdmission.inheritedFromUpstreamReadOnlyLearning, true);
-  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
   for (const field of ["prospectiveEvidenceObservationAllowed", "expiredOrUnknownEvidenceObservationAllowed", "disposedSessionObservationAllowed", "derivedProjectionMayOutliveSource", "recommendationInputProjectionAllowed", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
     assert.equal(contract.prospectiveRetentionAdmission[field], false, field);
   }

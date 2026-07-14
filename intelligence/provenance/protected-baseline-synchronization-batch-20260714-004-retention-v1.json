@@ -1,0 +1,34 @@
+{
+  "version": "route-iq-intelligence-retention-protected-baseline-v2",
+  "batchId": "BATCH-20260714-004",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "status": "OWNER_VALIDATED_NO_PRODUCTION_ACTIVATION",
+  "purpose": "Preserve Intelligence evidence of the final Data retention contract without altering Data, Infrastructure, Dashboard, or Overwatch artifacts.",
+  "dataOwnerLineage": {
+    "commit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "artifacts": [
+      {"path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json", "sha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601"},
+      {"path": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs", "sha256": "6b831aa261bd6d61ab184ee22163341d385f3051e2cf3ec8ca88fdc1bc87b28e"},
+      {"path": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs", "sha256": "b58ed4cb3bad768fb07c8e4cd627ade8fd26b4ba4fc5c684661e1a52224f79cd"},
+      {"path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs", "sha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85"},
+      {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"},
+      {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259"}
+    ],
+    "dataImplementationModifiedByIntelligence": false
+  },
+  "intelligenceSynchronization": {
+    "admissionRuntime": {"path": "intelligence/route-iq-prospective-retention-admission.mjs", "sha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780"},
+    "evaluationRuntime": {"path": "intelligence/route-iq-committed-outcome-evaluation.mjs", "sha256": "2f5a513564b94998e426d29aa72ee7807983ea6ded3d5e08e216706f2b073e53"},
+    "specification": {"path": "intelligence/provenance/specifications/prospective-retention-admission-v1.json", "sha256": "02e224ca961c5b36a3a31df75d02f749b3935c6e8379c7a4b3b7940d3ea3caf5"}
+  },
+  "protectedBehavior": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "recommendationInfluence": "OFF",
+    "routeOrUiInfluenceChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "exactJuly14ArchiveHashOnlyAudit": true
+  }
+}
