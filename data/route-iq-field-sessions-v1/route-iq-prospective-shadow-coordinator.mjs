@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
   FieldSessionArchiveError,
+  routeIqFieldSessionOutcomeProjectionVersion,
   routeIqChronologicalEvidenceProjectionVersion,
   routeIqVisitDecisionSourceIds,
   supportedFieldSessionWorkspaces
@@ -16,6 +17,8 @@ export const routeIqCandidateManifestSchemaVersion = "route-iq-next-stop-candida
 export const routeIqCandidateSourceSchemaVersion = "route-iq-candidate-source-record-v1";
 export const routeIqCandidateSourceVersion = "route-iq-candidate-source-v1";
 export const routeIqProspectiveServerAllocatorContractVersion = "route-iq-prospective-server-allocator-v1";
+export const routeIqProspectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
+export const routeIqFieldSessionOutcomeProjectionContractVersion = "route-iq-field-session-outcome-projection-v1";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
 export const routeIqProspectiveRecommendationInfluence = "off";
@@ -53,6 +56,9 @@ const HASH_ID_PATTERNS = Object.freeze({
   outbox: /^riq_outbox_[a-f0-9]{64}$/,
   projection: /^riq_projection_[a-f0-9]{64}$/,
   projection_commit: /^riq_projection_commit_[a-f0-9]{64}$/,
+  field_outcome: /^riq_field_outcome_[a-f0-9]{64}$/,
+  reconciliation: /^riq_reconciliation_[a-f0-9]{64}$/,
+  reconciliation_conflict: /^riq_reconciliation_conflict_[a-f0-9]{64}$/,
   seal: /^riq_seal_[a-f0-9]{64}$/,
   key: /^riq_key_[a-f0-9]{64}$/
 });
@@ -119,6 +125,17 @@ CREATE TABLE IF NOT EXISTS canonical_session_events (
   receipt_sha256 TEXT,
   UNIQUE (session_id, event_kind),
   UNIQUE (event_kind, request_sha256)
+);
+
+CREATE TABLE IF NOT EXISTS canonical_session_contexts (
+  session_id TEXT PRIMARY KEY REFERENCES canonical_sessions(session_id),
+  territory_status TEXT NOT NULL CHECK (territory_status IN ('known','unknown','legacy_unavailable')),
+  territory_id TEXT NOT NULL,
+  territory_source_record_sha256 TEXT,
+  territory_source_contract_version TEXT,
+  territory_source_available_at TEXT,
+  canonical_json TEXT NOT NULL,
+  record_sha256 TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS opportunities (
@@ -205,6 +222,47 @@ CREATE TABLE IF NOT EXISTS candidate_manifests (
   manifest_record_sha256 TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS field_session_outcome_links (
+  link_id TEXT PRIMARY KEY REFERENCES artifact_registry(artifact_id),
+  opportunity_id TEXT NOT NULL UNIQUE REFERENCES opportunities(opportunity_id),
+  action_artifact_id TEXT NOT NULL UNIQUE REFERENCES lifecycle_events(artifact_id),
+  candidate_id TEXT NOT NULL,
+  source_projection_sha256 TEXT NOT NULL,
+  source_archive_raw_sha256 TEXT NOT NULL,
+  source_archive_session_sha256 TEXT NOT NULL,
+  source_visit_record_sha256 TEXT NOT NULL UNIQUE,
+  visit_event_time TEXT NOT NULL,
+  archive_committed_at TEXT NOT NULL,
+  evidence_json TEXT NOT NULL,
+  evidence_sha256 TEXT NOT NULL UNIQUE,
+  linked_sequence INTEGER NOT NULL UNIQUE,
+  linked_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS field_session_reconciliation_receipts (
+  reconciliation_id TEXT PRIMARY KEY,
+  source_projection_sha256 TEXT NOT NULL UNIQUE,
+  source_archive_raw_sha256 TEXT NOT NULL UNIQUE,
+  source_archive_session_sha256 TEXT NOT NULL UNIQUE,
+  receipt_json TEXT NOT NULL,
+  receipt_sha256 TEXT NOT NULL,
+  created_sequence INTEGER NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS field_session_reconciliation_conflicts (
+  conflict_id TEXT PRIMARY KEY,
+  source_archive_raw_sha256 TEXT NOT NULL,
+  original_projection_sha256 TEXT NOT NULL,
+  competing_projection_sha256 TEXT NOT NULL,
+  offending_digest TEXT NOT NULL,
+  canonical_json TEXT NOT NULL,
+  record_sha256 TEXT NOT NULL,
+  created_sequence INTEGER NOT NULL UNIQUE,
+  created_at TEXT NOT NULL,
+  UNIQUE (source_archive_raw_sha256, competing_projection_sha256)
+);
+
 CREATE TABLE IF NOT EXISTS projection_outbox (
   outbox_id TEXT PRIMARY KEY REFERENCES artifact_registry(artifact_id),
   opportunity_id TEXT NOT NULL REFERENCES opportunities(opportunity_id),
@@ -278,7 +336,7 @@ WHEN NEW.opportunity_id IS NOT OLD.opportunity_id
     OR (OLD.state = 'SNAPSHOT_PENDING_SEAL' AND NEW.state IN ('SNAPSHOT_SEALED','EXCLUDED'))
     OR (OLD.state = 'SNAPSHOT_SEALED' AND NEW.state IN ('SHADOW_DECISION_SEALED','EXCLUDED'))
     OR (OLD.state = 'SHADOW_DECISION_SEALED' AND NEW.state IN ('ACTION_LINKED','EXCLUDED'))
-    OR (OLD.state = 'ACTION_LINKED' AND NEW.state IN ('OUTCOME_LINKED','EXCLUDED'))
+    OR (OLD.state = 'ACTION_LINKED' AND NEW.state IN ('ACTION_LINKED','OUTCOME_LINKED','EXCLUDED'))
     OR (OLD.state = 'OUTCOME_LINKED' AND NEW.state IN ('OUTCOME_LINKED','EVALUATED','EXCLUDED'))
     OR (OLD.state = 'EVALUATED' AND NEW.state IN ('EVALUATED','EXCLUDED'))
     OR (OLD.state = 'EXCLUDED' AND NEW.state = 'EXCLUDED')
@@ -294,6 +352,10 @@ CREATE TRIGGER IF NOT EXISTS canonical_session_events_no_update
 BEFORE UPDATE ON canonical_session_events BEGIN SELECT RAISE(ABORT, 'canonical_session_events_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS canonical_session_events_no_delete
 BEFORE DELETE ON canonical_session_events BEGIN SELECT RAISE(ABORT, 'canonical_session_events_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS canonical_session_contexts_no_update
+BEFORE UPDATE ON canonical_session_contexts BEGIN SELECT RAISE(ABORT, 'canonical_session_contexts_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS canonical_session_contexts_no_delete
+BEFORE DELETE ON canonical_session_contexts BEGIN SELECT RAISE(ABORT, 'canonical_session_contexts_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS artifact_registry_no_update
 BEFORE UPDATE ON artifact_registry BEGIN SELECT RAISE(ABORT, 'artifact_registry_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS artifact_registry_no_delete
@@ -314,6 +376,18 @@ CREATE TRIGGER IF NOT EXISTS candidate_manifests_no_update
 BEFORE UPDATE ON candidate_manifests BEGIN SELECT RAISE(ABORT, 'candidate_manifests_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS candidate_manifests_no_delete
 BEFORE DELETE ON candidate_manifests BEGIN SELECT RAISE(ABORT, 'candidate_manifests_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_outcome_links_no_update
+BEFORE UPDATE ON field_session_outcome_links BEGIN SELECT RAISE(ABORT, 'field_session_outcome_links_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_outcome_links_no_delete
+BEFORE DELETE ON field_session_outcome_links BEGIN SELECT RAISE(ABORT, 'field_session_outcome_links_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_receipts_no_update
+BEFORE UPDATE ON field_session_reconciliation_receipts BEGIN SELECT RAISE(ABORT, 'field_session_reconciliation_receipts_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_receipts_no_delete
+BEFORE DELETE ON field_session_reconciliation_receipts BEGIN SELECT RAISE(ABORT, 'field_session_reconciliation_receipts_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_conflicts_no_update
+BEFORE UPDATE ON field_session_reconciliation_conflicts BEGIN SELECT RAISE(ABORT, 'field_session_reconciliation_conflicts_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_conflicts_no_delete
+BEFORE DELETE ON field_session_reconciliation_conflicts BEGIN SELECT RAISE(ABORT, 'field_session_reconciliation_conflicts_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS projection_outbox_no_update
 BEFORE UPDATE ON projection_outbox BEGIN SELECT RAISE(ABORT, 'projection_outbox_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS projection_outbox_no_delete
@@ -472,7 +546,10 @@ function hashId(kind, identity) {
     conflict: "riq_conflict",
     outbox: "riq_outbox",
     projection: "riq_projection",
-    projection_commit: "riq_projection_commit"
+    projection_commit: "riq_projection_commit",
+    field_outcome: "riq_field_outcome",
+    reconciliation: "riq_reconciliation",
+    reconciliation_conflict: "riq_reconciliation_conflict"
   }[kind];
   if (!prefix) fail("route_iq_coordinator_identifier_kind_invalid", "Identifier kind is not governed.", { kind }, 500);
   return `${prefix}_${sha256({ kind, identity })}`;
@@ -531,11 +608,12 @@ function normalizeScopeClaims(claims) {
       status: "unknown",
       territoryId: null,
       sourceRecordSha256: null,
-      sourceContractVersion: null
+      sourceContractVersion: null,
+      availableAt: null
     };
   } else {
     assertExactKeys(claims.territoryContext, [
-      "status", "territoryId", "sourceRecordSha256", "sourceContractVersion"
+      "status", "territoryId", "sourceRecordSha256", "sourceContractVersion", "availableAt"
     ], "verifiedScopeClaims.territoryContext");
     if (claims.territoryContext.status !== "known") {
       fail("route_iq_coordinator_territory_context_invalid", "A supplied territory context must be canonically known.", {
@@ -546,8 +624,14 @@ function normalizeScopeClaims(claims) {
       status: "known",
       territoryId: requireHashId(claims.territoryContext.territoryId, "territory", "verifiedScopeClaims.territoryContext.territoryId"),
       sourceRecordSha256: requireSha(claims.territoryContext.sourceRecordSha256, "verifiedScopeClaims.territoryContext.sourceRecordSha256"),
-      sourceContractVersion: requireVersion(claims.territoryContext.sourceContractVersion, "verifiedScopeClaims.territoryContext.sourceContractVersion")
+      sourceContractVersion: requireVersion(claims.territoryContext.sourceContractVersion, "verifiedScopeClaims.territoryContext.sourceContractVersion"),
+      availableAt: canonicalTimestamp(claims.territoryContext.availableAt, "verifiedScopeClaims.territoryContext.availableAt").iso
     };
+    if (Date.parse(territoryContext.availableAt) >= Date.parse(issuedAt)) {
+      fail("route_iq_coordinator_territory_context_future", "Territory context must be available before the authenticated coordinator scope is issued.", {
+        paths: ["verifiedScopeClaims.territoryContext.availableAt"]
+      }, 403);
+    }
   }
   assertNoPiiLikeStrings(territoryContext, "verifiedScopeClaims.territoryContext");
   return {
@@ -728,6 +812,8 @@ function eventPrefix(eventKind) {
     OUTCOME_LINKED: "outcome",
     EVALUATED: "evaluation",
     CORRECTION_APPENDED: "correction",
+    FIELD_SESSION_OUTCOME_EVIDENCE_LINKED: "field_outcome",
+    FIELD_SESSION_OUTCOME_CORRECTION_LINKED: "correction",
     EXCLUSION_RECORDED: "exclusion",
     CONFLICT_RECORDED: "conflict"
   }[eventKind];
@@ -1506,6 +1592,232 @@ function normalizeSessionCloseClaims(claims, scope) {
   return deepFreeze(clone(claims));
 }
 
+function normalizeScopeOnlyRuntimeClaims(claims, scope, purpose, extraKeys = []) {
+  assertExactKeys(claims, [
+    "purpose", "workspaceId", "operatingProfileId", "representativeId",
+    "authoritativeRecordTime", ...extraKeys
+  ], `verifiedRuntimeClaims.${purpose}`);
+  if (claims.purpose !== purpose || !sameScope(claims, scope)) {
+    fail("route_iq_runtime_scope_invalid", "Runtime claims do not match the authenticated coordinator scope.", {}, 403);
+  }
+  canonicalTimestamp(claims.authoritativeRecordTime, `verifiedRuntimeClaims.${purpose}.authoritativeRecordTime`);
+  assertNoPiiLikeStrings(claims, `verifiedRuntimeClaims.${purpose}`);
+  return deepFreeze(clone(claims));
+}
+
+function canonicalRuntimeContext(repository, scope, coordinatorId) {
+  const session = activeCanonicalSession(repository);
+  if (!session) {
+    fail("route_iq_runtime_active_session_missing", "No active canonical field session is available.", {}, 409);
+  }
+  const opportunity = currentAllocatedOpportunity(repository, session.session_id);
+  if (!opportunity) {
+    fail("route_iq_runtime_active_opportunity_missing", "No canonical next-stop opportunity is available.", {}, 409);
+  }
+  const sessionContext = readCanonicalSessionContext(repository, session.session_id);
+  if (!sessionContext) {
+    fail("route_iq_runtime_session_context_missing", "Canonical session context is unavailable.", {}, 409);
+  }
+  const actionRows = repositoryRows(repository, `
+    SELECT canonical_json, record_sha256
+    FROM lifecycle_events
+    WHERE session_id = ? AND event_kind = 'ACTION_LINKED'
+    ORDER BY record_sequence, artifact_id
+  `, [session.session_id]);
+  const completedCandidateIds = [];
+  const completed = new Set();
+  for (const row of actionRows) {
+    const action = parseCanonicalJson(row.canonical_json, row.record_sha256, "canonical action history");
+    const candidateId = requireHashId(action.payload?.selectedCandidateId, "candidate", "canonicalAction.selectedCandidateId");
+    if (!completed.has(candidateId)) {
+      completed.add(candidateId);
+      completedCandidateIds.push(candidateId);
+    }
+  }
+  const body = {
+    runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+    authority: "sqlite_durable_object_coordinator",
+    coordinatorId,
+    scope: {
+      workspaceId: scope.workspaceId,
+      operatingProfileId: scope.operatingProfileId,
+      representativeId: scope.representativeId
+    },
+    opportunityId: opportunity.opportunity_id,
+    opportunityType: "next_stop",
+    state: opportunity.state,
+    canonicalContext: {
+      territoryId: opportunity.territory_id,
+      canonicalSessionRecordSha256: opportunity.canonical_session_record_sha256,
+      sessionEventSequence: Number(session.session_event_sequence),
+      opportunityEventSequence: Number(opportunity.opportunity_event_sequence),
+      triggerRecordSha256: opportunity.trigger_record_sha256,
+      canonicalEventBoundarySha256: opportunity.trigger_boundary_sha256
+    },
+    completedCandidateIds,
+    territorySource: {
+      status: sessionContext.territoryStatus,
+      sourceRecordSha256: sessionContext.territorySourceRecordSha256,
+      sourceContractVersion: sessionContext.territorySourceContractVersion,
+      availableAt: sessionContext.territorySourceAvailableAt
+    },
+    candidateCompletenessStatus: opportunity.current_manifest_sha256
+      ? "authenticated_intelligence_manifest_present"
+      : "pending_authenticated_intelligence_manifest",
+    recommendationInfluence: "off",
+    collectionDefault: "off"
+  };
+  return deepFreeze({
+    ...body,
+    runtimeContextReceiptSha256: sha256(body)
+  });
+}
+
+function internalOperationClaims({ scope, session, opportunity, purpose, authoritativeRecordTime, boundary, content }) {
+  return {
+    purpose,
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    territoryId: opportunity.territory_id,
+    canonicalSessionRecordSha256: opportunity.canonical_session_record_sha256,
+    sessionEventSequence: Number(session.session_event_sequence),
+    opportunityEventSequence: Number(opportunity.opportunity_event_sequence),
+    triggerRecordSha256: opportunity.trigger_record_sha256,
+    canonicalEventBoundarySha256: sha256(boundary),
+    clientEventSequence: 0,
+    clientContentSha256: sha256(content),
+    authoritativeRecordTime,
+    recordOrigin: "prospective",
+    uncertainChronology: false
+  };
+}
+
+function normalizeFieldSessionOutcomeProjection(value, scope) {
+  assertExactKeys(value, [
+    "schemaVersion", "authority", "recordOrigin", "scope", "sourceArchive", "outcomes",
+    "privacy", "recommendationInfluence", "scoreableOutcomeDerivedByData", "projectionSha256"
+  ], "fieldSessionOutcomeProjection");
+  if (value.schemaVersion !== routeIqFieldSessionOutcomeProjectionVersion
+    || value.authority !== "prometheus_data_committed_field_session"
+    || value.recordOrigin !== "prospective"
+    || value.recommendationInfluence !== "off"
+    || value.scoreableOutcomeDerivedByData !== false) {
+    fail("route_iq_field_outcome_projection_not_canonical", "Field-session outcome projection is not canonical.", {}, 409);
+  }
+  assertExactKeys(value.scope, ["workspaceId", "operatingProfileId", "representativeId"], "fieldSessionOutcomeProjection.scope");
+  if (!sameScope(value.scope, scope)) fail("route_iq_field_outcome_projection_cross_scope", "Field-session projection crosses coordinator scope.", {}, 403);
+  assertExactKeys(value.sourceArchive, [
+    "handoffContractId", "sourceArchiveSessionSha256", "rawSha256", "normalizedSha256", "archiveCommittedAt"
+  ], "fieldSessionOutcomeProjection.sourceArchive");
+  if (value.sourceArchive.handoffContractId !== "route-iq-end-of-day-data-handoff-v1") {
+    fail("route_iq_field_outcome_projection_handoff_invalid", "Field-session projection does not bind the canonical handoff.");
+  }
+  for (const field of ["sourceArchiveSessionSha256", "rawSha256", "normalizedSha256"]) {
+    requireSha(value.sourceArchive[field], `fieldSessionOutcomeProjection.sourceArchive.${field}`);
+  }
+  canonicalTimestamp(value.sourceArchive.archiveCommittedAt, "fieldSessionOutcomeProjection.sourceArchive.archiveCommittedAt");
+  assertExactKeys(value.privacy, ["namesIncluded", "addressesIncluded", "contactsIncluded", "notesIncluded", "preciseLocationIncluded"], "fieldSessionOutcomeProjection.privacy");
+  if (Object.values(value.privacy).some(flag => flag !== false)) {
+    fail("route_iq_field_outcome_projection_privacy_invalid", "Field-session projection may not contain PII or precise location.");
+  }
+  if (!Array.isArray(value.outcomes)) fail("route_iq_field_outcome_projection_records_invalid", "Field-session outcomes must be an array.");
+  const sourceVisitIds = new Set();
+  const normalizedOutcomes = value.outcomes.map((outcome, index) => {
+    const path = `fieldSessionOutcomeProjection.outcomes[${index}]`;
+    assertExactKeys(outcome, [
+      "sourceVisitRecordSha256", "candidateId", "candidateIdentityStatus", "actionEventTime",
+      "eventTimeAuthority", "authoritativeRecordTime", "outcomeEvidence", "decisionSource",
+      "recommendationDecisionContext", "evidenceSha256"
+    ], path);
+    requireSha(outcome.sourceVisitRecordSha256, `${path}.sourceVisitRecordSha256`);
+    requireSha(outcome.evidenceSha256, `${path}.evidenceSha256`);
+    if (sourceVisitIds.has(outcome.sourceVisitRecordSha256)) fail("route_iq_field_outcome_projection_duplicate_visit", "Field-session projection contains a duplicate visit.");
+    sourceVisitIds.add(outcome.sourceVisitRecordSha256);
+    if (outcome.candidateId !== null) requireHashId(outcome.candidateId, "candidate", `${path}.candidateId`);
+    if (!["derived_from_exact_governed_google_place_identity", "unavailable"].includes(outcome.candidateIdentityStatus)
+      || (outcome.candidateId === null) !== (outcome.candidateIdentityStatus === "unavailable")) {
+      fail("route_iq_field_outcome_projection_candidate_invalid", "Field-session candidate identity status is inconsistent.");
+    }
+    const actionTime = canonicalTimestamp(outcome.actionEventTime, `${path}.actionEventTime`);
+    const recordTime = canonicalTimestamp(outcome.authoritativeRecordTime, `${path}.authoritativeRecordTime`);
+    if (outcome.eventTimeAuthority !== "dashboard_recorded_visit_time_in_committed_handoff"
+      || recordTime.time !== Date.parse(value.sourceArchive.archiveCommittedAt)
+      || actionTime.time >= recordTime.time) {
+      fail("route_iq_field_outcome_projection_chronology_invalid", "Field-session action and archive times are invalid.");
+    }
+    assertExactKeys(outcome.outcomeEvidence, [
+      "status", "originalOutcomeSignal", "finalOutcomeSignal", "corrections", "correctionState",
+      "conflictState", "scoreableOutcome", "scoreableOutcomeDerivedByData"
+    ], `${path}.outcomeEvidence`);
+    if (outcome.outcomeEvidence.status !== "verified_unscored_signals"
+      || outcome.outcomeEvidence.scoreableOutcome !== null
+      || outcome.outcomeEvidence.scoreableOutcomeDerivedByData !== false
+      || outcome.outcomeEvidence.conflictState !== "none"
+      || !["corrected", "uncorrected"].includes(outcome.outcomeEvidence.correctionState)
+      || !Array.isArray(outcome.outcomeEvidence.corrections)) {
+      fail("route_iq_field_outcome_projection_evidence_invalid", "Field-session outcome signals are not governed.");
+    }
+    let priorCorrectionTime = actionTime.time;
+    outcome.outcomeEvidence.corrections.forEach((correction, correctionIndex) => {
+      assertExactKeys(correction, [
+        "sourceCorrectionRecordSha256", "sequence", "correctedAt", "previousOutcomeSignal",
+        "finalOutcomeSignal", "changedSignalFields", "appendOnly"
+      ], `${path}.outcomeEvidence.corrections[${correctionIndex}]`);
+      requireSha(correction.sourceCorrectionRecordSha256, `${path}.outcomeEvidence.corrections[${correctionIndex}].sourceCorrectionRecordSha256`);
+      const correctedAt = canonicalTimestamp(correction.correctedAt, `${path}.outcomeEvidence.corrections[${correctionIndex}].correctedAt`);
+      if (correction.sequence !== correctionIndex + 1 || correctedAt.time <= priorCorrectionTime || correctedAt.time >= recordTime.time || correction.appendOnly !== true) {
+        fail("route_iq_field_outcome_projection_correction_invalid", "Field-session correction chronology or sequence is invalid.");
+      }
+      priorCorrectionTime = correctedAt.time;
+    });
+    const evidenceBody = Object.fromEntries(Object.entries(outcome).filter(([key]) => key !== "evidenceSha256"));
+    if (sha256(evidenceBody) !== outcome.evidenceSha256) {
+      fail("route_iq_field_outcome_projection_evidence_hash_invalid", "Field-session outcome evidence hash is invalid.");
+    }
+    return clone(outcome);
+  });
+  const body = Object.fromEntries(Object.entries(value).filter(([key]) => key !== "projectionSha256"));
+  requireSha(value.projectionSha256, "fieldSessionOutcomeProjection.projectionSha256");
+  if (sha256(body) !== value.projectionSha256) {
+    fail("route_iq_field_outcome_projection_hash_invalid", "Field-session outcome projection hash is invalid.");
+  }
+  return deepFreeze({ ...clone(value), outcomes: normalizedOutcomes });
+}
+
+function parseReconciliationReceipt(row) {
+  if (!row) return null;
+  return deepFreeze(parseCanonicalJson(row.receipt_json, row.receipt_sha256, "field-session reconciliation receipt"));
+}
+
+function canonicalSessionForCommittedHandoff(repository, projection) {
+  const matching = [];
+  for (const row of repositoryRows(repository, `
+    SELECT e.*, s.*
+    FROM canonical_session_events e
+    JOIN canonical_sessions s ON s.session_id = e.session_id
+    WHERE e.event_kind = 'CLOSED'
+    ORDER BY e.record_sequence, e.event_id
+  `)) {
+    const event = parseCanonicalJson(row.canonical_json, row.record_sha256, "canonical session close");
+    if (event.payload?.handoffContractVersion === projection.sourceArchive.handoffContractId
+      && event.payload?.endOfDayHandoffSha256 === projection.sourceArchive.rawSha256) {
+      matching.push(row);
+    }
+  }
+  if (matching.length !== 1) {
+    fail(
+      matching.length
+        ? "route_iq_field_outcome_session_handoff_ambiguous"
+        : "route_iq_field_outcome_session_handoff_unbound",
+      "Field-session outcome projection must bind exactly one authenticated canonical session close.",
+      { matchingSessionCount: matching.length },
+      409
+    );
+  }
+  return matching[0];
+}
+
 function unknownAllocatorTerritoryId() {
   return hashId("territory", {
     status: "unknown",
@@ -1520,8 +1832,56 @@ function allocatorTerritoryContext(scope) {
     status: "unknown",
     territoryId: unknownAllocatorTerritoryId(),
     sourceRecordSha256: null,
-    sourceContractVersion: null
+    sourceContractVersion: null,
+    availableAt: null
   };
+}
+
+function persistCanonicalSessionContext(repository, { sessionId, territoryContext }) {
+  const canonical = {
+    runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+    sessionId,
+    territoryStatus: territoryContext.status,
+    territoryId: territoryContext.territoryId,
+    territorySourceRecordSha256: territoryContext.sourceRecordSha256,
+    territorySourceContractVersion: territoryContext.sourceContractVersion,
+    territorySourceAvailableAt: territoryContext.availableAt,
+    immutable: true,
+    appendOnly: true
+  };
+  const canonicalJson = canonicalText(canonical);
+  repositoryRows(repository, `
+    INSERT INTO canonical_session_contexts (
+      session_id, territory_status, territory_id, territory_source_record_sha256,
+      territory_source_contract_version, territory_source_available_at,
+      canonical_json, record_sha256
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    sessionId,
+    territoryContext.status,
+    territoryContext.territoryId,
+    territoryContext.sourceRecordSha256,
+    territoryContext.sourceContractVersion,
+    territoryContext.availableAt,
+    canonicalJson,
+    sha256(canonicalJson)
+  ]);
+  return deepFreeze(canonical);
+}
+
+function readCanonicalSessionContext(repository, sessionId) {
+  const row = repositoryOne(repository, "SELECT * FROM canonical_session_contexts WHERE session_id = ?", [sessionId]);
+  if (!row) return null;
+  const canonical = parseCanonicalJson(row.canonical_json, row.record_sha256, "canonical session context");
+  if (canonical.sessionId !== sessionId
+    || canonical.territoryId !== row.territory_id
+    || canonical.territoryStatus !== row.territory_status
+    || canonical.territorySourceRecordSha256 !== row.territory_source_record_sha256
+    || canonical.territorySourceContractVersion !== row.territory_source_contract_version
+    || canonical.territorySourceAvailableAt !== row.territory_source_available_at) {
+    fail("route_iq_coordinator_session_context_poisoned", "Canonical session context columns do not match immutable bytes.", {}, 500);
+  }
+  return canonical;
 }
 
 function nextMonotonicCoordinatorTime(repository, requestedTime) {
@@ -1807,7 +2167,8 @@ function createCanonicalSession(repository, { coordinatorId, scope, authoritativ
     identityAuthority: "authenticated_server_scope_and_sqlite_state",
     territoryContextStatus: territoryContext.status,
     territorySourceRecordSha256: territoryContext.sourceRecordSha256,
-    territorySourceContractVersion: territoryContext.sourceContractVersion
+    territorySourceContractVersion: territoryContext.sourceContractVersion,
+    territorySourceAvailableAt: territoryContext.availableAt
   });
   const createdSequence = allocateSequence(repository);
   repositoryRows(repository, `
@@ -1824,6 +2185,7 @@ function createCanonicalSession(repository, { coordinatorId, scope, authoritativ
     createdSequence,
     authoritativeRecordTime
   ]);
+  persistCanonicalSessionContext(repository, { sessionId, territoryContext });
   const openRequestSha256 = sha256({
     allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
     coordinatorId,
@@ -1843,6 +2205,7 @@ function createCanonicalSession(repository, { coordinatorId, scope, authoritativ
       territoryContextStatus: territoryContext.status,
       territorySourceRecordSha256: territoryContext.sourceRecordSha256,
       territorySourceContractVersion: territoryContext.sourceContractVersion,
+      territorySourceAvailableAt: territoryContext.availableAt,
       sessionEventSequence,
       identityAuthority: "authenticated_server_scope_and_sqlite_state"
     }
@@ -2044,6 +2407,754 @@ class RouteIqProspectiveCoordinatorCore {
         fail("route_iq_coordinator_caller_authority_prohibited", `${path}.${prohibited} must not be caller supplied.`, { paths: [`${path}.${prohibited}`] }, 403);
       }
     }
+  }
+
+  async readCanonicalRuntimeContext(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "runtimeContextReadRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "runtime_context_read",
+      coordinatorId: this.coordinatorId
+    });
+    normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "runtime_context_read");
+    return this.repository.transactionSync(() => canonicalRuntimeContext(
+      this.repository,
+      this.scope,
+      this.coordinatorId
+    ));
+  }
+
+  async recordRuntimeStageExclusion(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "runtimeStageExclusionRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "runtime_stage_exclusion",
+      coordinatorId: this.coordinatorId
+    });
+    const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "runtime_stage_exclusion", [
+      "runtimeContextReceiptSha256", "stage", "reasonCodes", "offendingDigest"
+    ]);
+    requireSha(claims.runtimeContextReceiptSha256, "verifiedRuntimeClaims.runtime_stage_exclusion.runtimeContextReceiptSha256");
+    requireSha(claims.offendingDigest, "verifiedRuntimeClaims.runtime_stage_exclusion.offendingDigest");
+    if (![
+      "candidate_manifest", "snapshot_seal", "shadow_decision", "action",
+      "outcome_reconciliation", "evaluation", "runtime_orchestration"
+    ].includes(claims.stage)) {
+      fail("route_iq_runtime_exclusion_stage_invalid", "Runtime exclusion stage is not governed.", { paths: ["verifiedRuntimeClaims.runtime_stage_exclusion.stage"] });
+    }
+    if (!Array.isArray(claims.reasonCodes) || claims.reasonCodes.length < 1 || claims.reasonCodes.length > 8) {
+      fail("route_iq_runtime_exclusion_reasons_invalid", "Runtime exclusion requires one to eight governed reason codes.");
+    }
+    const reasonCodes = claims.reasonCodes.map((reason, index) => requireReason(reason, `verifiedRuntimeClaims.runtime_stage_exclusion.reasonCodes[${index}]`));
+    const result = this.repository.transactionSync(() => {
+      const context = canonicalRuntimeContext(this.repository, this.scope, this.coordinatorId);
+      const session = activeCanonicalSession(this.repository);
+      const opportunity = getOpportunity(this.repository, context.opportunityId);
+      const operationClaims = internalOperationClaims({
+        scope: this.scope,
+        session,
+        opportunity,
+        purpose: "runtime_stage_exclusion",
+        authoritativeRecordTime: claims.authoritativeRecordTime,
+        boundary: {
+          runtimeContextReceiptSha256: claims.runtimeContextReceiptSha256,
+          stage: claims.stage
+        },
+        content: { reasonCodes: [...new Set(reasonCodes)].sort(), offendingDigest: claims.offendingDigest }
+      });
+      const identities = identitiesForClaims(this.coordinatorId, operationClaims);
+      const canonicalRequest = {
+        runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+        runtimeContextReceiptSha256: claims.runtimeContextReceiptSha256,
+        stage: claims.stage,
+        reasonCodes: [...new Set(reasonCodes)].sort(),
+        offendingDigest: claims.offendingDigest
+      };
+      const requestSha256 = exclusionRequestSha(reasonCodes, operationClaims, claims.offendingDigest);
+      const existing = existingReceiptDecision(this.repository, {
+        identities,
+        operationKind: "runtime_stage_exclusion",
+        requestSha256,
+        claims: operationClaims,
+        canonicalRequest
+      });
+      if (existing?.type === "retry") return existing.receipt;
+      if (existing?.type === "conflict") return { conflictDecision: existing };
+      if (context.runtimeContextReceiptSha256 !== claims.runtimeContextReceiptSha256) {
+        fail("route_iq_runtime_context_receipt_stale", "Runtime exclusion does not bind the current canonical context.", {}, 409);
+      }
+      return persistExclusion(this.repository, {
+        coordinatorId: this.coordinatorId,
+        identities,
+        claims: operationClaims,
+        operationKind: "runtime_stage_exclusion",
+        reasonCodes,
+        incomingDigest: claims.offendingDigest,
+        requestSha256Override: requestSha256,
+        canonicalRequest
+      });
+    });
+    return transitionResult(result);
+  }
+
+  async linkServerDerivedNextStopAction(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "serverDerivedActionRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "server_action_signal",
+      coordinatorId: this.coordinatorId
+    });
+    const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "server_action_signal", [
+      "runtimeContextReceiptSha256", "eventKind"
+    ]);
+    requireSha(claims.runtimeContextReceiptSha256, "verifiedRuntimeClaims.server_action_signal.runtimeContextReceiptSha256");
+    if (claims.eventKind !== "representative_action_observed") {
+      fail("route_iq_runtime_action_signal_invalid", "Only the governed representative action event may link a next-stop action.");
+    }
+    const result = this.repository.transactionSync(() => {
+      const context = canonicalRuntimeContext(this.repository, this.scope, this.coordinatorId);
+      const opportunity = getOpportunity(this.repository, context.opportunityId);
+      const existingActionReceipt = repositoryOne(this.repository, `
+        SELECT * FROM operation_receipts
+        WHERE opportunity_id = ? AND operation_kind = 'server_derived_action'
+        ORDER BY created_sequence LIMIT 1
+      `, [opportunity.opportunity_id]);
+      if (existingActionReceipt) return receiptFromRow(existingActionReceipt);
+      if (context.runtimeContextReceiptSha256 !== claims.runtimeContextReceiptSha256) {
+        fail("route_iq_runtime_context_receipt_stale", "Action signal does not bind the current canonical context.", {}, 409);
+      }
+      const session = activeCanonicalSession(this.repository);
+      const actionTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      const operationClaims = internalOperationClaims({
+        scope: this.scope,
+        session,
+        opportunity,
+        purpose: "server_action_signal",
+        authoritativeRecordTime: actionTime,
+        boundary: {
+          runtimeContextReceiptSha256: claims.runtimeContextReceiptSha256,
+          eventKind: claims.eventKind
+        },
+        content: { eventKind: claims.eventKind }
+      });
+      const identities = identitiesForClaims(this.coordinatorId, operationClaims);
+      if (opportunity.state !== "SHADOW_DECISION_SEALED" || opportunity.canonical_eligible !== 1) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: operationClaims,
+          operationKind: "server_derived_action",
+          reasonCodes: [opportunity.state === "EXCLUDED"
+            ? "opportunity_permanently_excluded"
+            : "shadow_not_sealed_before_action"],
+          incomingDigest: operationClaims.clientContentSha256
+        });
+      }
+      const manifestRow = repositoryOne(this.repository, "SELECT * FROM candidate_manifests WHERE opportunity_id = ?", [opportunity.opportunity_id]);
+      const manifest = manifestRow
+        ? parseCanonicalJson(manifestRow.manifest_json, manifestRow.manifest_record_sha256, "candidate manifest")
+        : null;
+      const rankOne = manifest?.candidates?.filter(candidate => candidate.rankingContext?.ordinal === 1) || [];
+      if (rankOne.length !== 1) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: operationClaims,
+          operationKind: "server_derived_action",
+          reasonCodes: [rankOne.length ? "rank_one_candidate_ambiguous" : "rank_one_candidate_missing"],
+          incomingDigest: manifestRow?.complete_manifest_sha256 || operationClaims.clientContentSha256
+        });
+      }
+      const selectedCandidateId = requireHashId(rankOne[0].candidateId, "candidate", "canonicalManifest.rankOne.candidateId");
+      const canonicalRequest = {
+        runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+        eventKind: claims.eventKind,
+        runtimeContextReceiptSha256: claims.runtimeContextReceiptSha256,
+        selectedCandidateDerivedFrom: "accepted_manifest_unique_ordinal_1",
+        selectedCandidateId
+      };
+      const requestSha256 = sha256(canonicalRequest);
+      const existing = existingReceiptDecision(this.repository, {
+        identities,
+        operationKind: "server_derived_action",
+        requestSha256,
+        claims: operationClaims,
+        canonicalRequest
+      });
+      if (existing?.type === "retry") return existing.receipt;
+      if (existing?.type === "conflict") return { conflictDecision: existing };
+      insertAttempt(this.repository, {
+        identities,
+        claims: operationClaims,
+        operationKind: "server_derived_action",
+        requestSha256,
+        canonicalRequest
+      });
+      const event = appendLifecycleEvent(this.repository, {
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        opportunityId: opportunity.opportunity_id,
+        operationKey: identities.operationKey,
+        requestSha256,
+        logicalBoundarySha256: operationClaims.canonicalEventBoundarySha256,
+        authoritativeRecordTime: operationClaims.authoritativeRecordTime,
+        eventKind: "ACTION_LINKED",
+        artifactKind: "action",
+        fromState: "SHADOW_DECISION_SEALED",
+        toState: "ACTION_LINKED",
+        payload: {
+          selectedCandidateId,
+          selectionAuthority: "accepted_manifest_unique_ordinal_1",
+          browserCandidateIdentityAccepted: false,
+          eventKind: claims.eventKind,
+          decisionSource: null
+        },
+        canonicalEvidenceEligible: true
+      });
+      updateOpportunityState(this.repository, opportunity.opportunity_id, event, "ACTION_LINKED");
+      return insertReceipt(this.repository, {
+        identities,
+        operationKind: "server_derived_action",
+        requestSha256,
+        event,
+        state: "ACTION_LINKED",
+        details: {
+          selectedCandidateId,
+          selectedCandidateDerivedFrom: "accepted_manifest_unique_ordinal_1",
+          browserCandidateIdentityAccepted: false
+        }
+      });
+    });
+    return transitionResult(result);
+  }
+
+  async reconcileCommittedFieldSessionOutcomes(input = {}) {
+    this.assertInput(input, ["authorityEnvelope", "projection"], "fieldSessionOutcomeReconciliationRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "field_session_reconciliation",
+      coordinatorId: this.coordinatorId
+    });
+    const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "field_session_reconciliation", [
+      "projectionSha256", "sourceArchiveRawSha256", "sourceArchiveSessionSha256"
+    ]);
+    requireSha(claims.projectionSha256, "verifiedRuntimeClaims.field_session_reconciliation.projectionSha256");
+    requireSha(claims.sourceArchiveRawSha256, "verifiedRuntimeClaims.field_session_reconciliation.sourceArchiveRawSha256");
+    requireSha(claims.sourceArchiveSessionSha256, "verifiedRuntimeClaims.field_session_reconciliation.sourceArchiveSessionSha256");
+    const projection = normalizeFieldSessionOutcomeProjection(input.projection, this.scope);
+    if (claims.projectionSha256 !== projection.projectionSha256
+      || claims.sourceArchiveRawSha256 !== projection.sourceArchive.rawSha256
+      || claims.sourceArchiveSessionSha256 !== projection.sourceArchive.sourceArchiveSessionSha256) {
+      fail("route_iq_field_outcome_reconciliation_binding_invalid", "Reconciliation authority does not bind the exact Data projection.", {}, 409);
+    }
+    const result = this.repository.transactionSync(() => {
+      const existing = repositoryOne(this.repository, `
+        SELECT * FROM field_session_reconciliation_receipts WHERE source_projection_sha256 = ?
+      `, [projection.projectionSha256]);
+      if (existing) return { receipt: parseReconciliationReceipt(existing) };
+      const prior = repositoryOne(this.repository, `
+        SELECT * FROM field_session_reconciliation_receipts
+        WHERE source_archive_raw_sha256 = ? OR source_archive_session_sha256 = ?
+        ORDER BY created_sequence LIMIT 1
+      `, [projection.sourceArchive.rawSha256, projection.sourceArchive.sourceArchiveSessionSha256]);
+      if (prior) {
+        const conflictAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+        const conflictId = hashId("reconciliation_conflict", {
+          sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+          originalProjectionSha256: prior.source_projection_sha256,
+          competingProjectionSha256: projection.projectionSha256
+        });
+        const canonical = {
+          contractVersion: routeIqFieldSessionOutcomeProjectionContractVersion,
+          conflictId,
+          sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256,
+          originalProjectionSha256: prior.source_projection_sha256,
+          competingProjectionSha256: projection.projectionSha256,
+          offendingDigest: projection.projectionSha256,
+          createdAt: conflictAt,
+          overwritePerformed: false,
+          priorEvidencePreserved: true,
+          recommendationInfluence: "off"
+        };
+        const sequence = allocateSequence(this.repository);
+        const canonicalJson = canonicalText(canonical);
+        registerArtifact(this.repository, {
+          artifactId: conflictId,
+          artifactKind: "field_session_reconciliation_conflict",
+          recordSequence: sequence,
+          registeredAt: conflictAt
+        });
+        repositoryRows(this.repository, `
+          INSERT INTO field_session_reconciliation_conflicts (
+            conflict_id, source_archive_raw_sha256, original_projection_sha256,
+            competing_projection_sha256, offending_digest, canonical_json,
+            record_sha256, created_sequence, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          conflictId,
+          projection.sourceArchive.rawSha256,
+          prior.source_projection_sha256,
+          projection.projectionSha256,
+          projection.projectionSha256,
+          canonicalJson,
+          sha256(canonicalJson),
+          sequence,
+          conflictAt
+        ]);
+        return { conflict: canonical };
+      }
+
+      const session = canonicalSessionForCommittedHandoff(this.repository, projection);
+      const actionRows = repositoryRows(this.repository, `
+        SELECT e.*
+        FROM lifecycle_events e
+        LEFT JOIN field_session_outcome_links linked ON linked.action_artifact_id = e.artifact_id
+        WHERE e.session_id = ? AND e.event_kind = 'ACTION_LINKED' AND linked.link_id IS NULL
+        ORDER BY e.record_sequence, e.artifact_id
+      `, [session.session_id]);
+      const availableActions = actionRows.map(eventFromRow);
+      const linked = [];
+      const excluded = [];
+
+      for (const outcome of projection.outcomes) {
+        if (outcome.candidateId === null) {
+          excluded.push({ sourceVisitRecordSha256: outcome.sourceVisitRecordSha256, reasonCode: "candidate_identity_unavailable" });
+          continue;
+        }
+        const matches = availableActions.filter(action => action.canonical.payload.selectedCandidateId === outcome.candidateId);
+        if (matches.length !== 1) {
+          excluded.push({
+            sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+            reasonCode: matches.length ? "candidate_action_binding_ambiguous" : "candidate_action_binding_missing"
+          });
+          continue;
+        }
+        const action = matches[0];
+        const opportunity = getOpportunity(this.repository, action.canonical.opportunityId);
+        const shadowSeal = latestEvent(this.repository, opportunity.opportunity_id, "SHADOW_DECISION_SEALED");
+        if (!shadowSeal
+          || Date.parse(shadowSeal.authoritativeRecordTime) >= Date.parse(action.authoritativeRecordTime)
+          || Date.parse(action.authoritativeRecordTime) >= Date.parse(outcome.actionEventTime)
+          || Date.parse(outcome.actionEventTime) >= Date.parse(projection.sourceArchive.archiveCommittedAt)
+          || opportunity.state !== "ACTION_LINKED"
+          || opportunity.canonical_eligible !== 1) {
+          excluded.push({ sourceVisitRecordSha256: outcome.sourceVisitRecordSha256, reasonCode: "action_outcome_chronology_invalid" });
+          continue;
+        }
+        const linkAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+        const operationClaims = internalOperationClaims({
+          scope: this.scope,
+          session,
+          opportunity,
+          purpose: "field_session_outcome_evidence",
+          authoritativeRecordTime: linkAt,
+          boundary: {
+            sourceProjectionSha256: projection.projectionSha256,
+            sourceVisitRecordSha256: outcome.sourceVisitRecordSha256
+          },
+          content: { evidenceSha256: outcome.evidenceSha256, candidateId: outcome.candidateId }
+        });
+        const identities = identitiesForClaims(this.coordinatorId, operationClaims);
+        const canonicalRequest = {
+          contractVersion: routeIqFieldSessionOutcomeProjectionContractVersion,
+          projectionSha256: projection.projectionSha256,
+          sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+          evidenceSha256: outcome.evidenceSha256,
+          candidateId: outcome.candidateId,
+          actionArtifactId: action.artifactId
+        };
+        const requestSha256 = sha256(canonicalRequest);
+        insertAttempt(this.repository, {
+          identities,
+          claims: operationClaims,
+          operationKind: "field_session_outcome_evidence",
+          requestSha256,
+          canonicalRequest
+        });
+        const event = appendLifecycleEvent(this.repository, {
+          coordinatorId: this.coordinatorId,
+          sessionId: session.session_id,
+          opportunityId: opportunity.opportunity_id,
+          operationKey: identities.operationKey,
+          requestSha256,
+          logicalBoundarySha256: operationClaims.canonicalEventBoundarySha256,
+          authoritativeRecordTime: linkAt,
+          eventKind: "FIELD_SESSION_OUTCOME_EVIDENCE_LINKED",
+          artifactKind: "field_session_outcome_evidence",
+          fromState: "ACTION_LINKED",
+          toState: "ACTION_LINKED",
+          payload: {
+            candidateId: outcome.candidateId,
+            actionArtifactId: action.artifactId,
+            sourceProjectionSha256: projection.projectionSha256,
+            sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+            evidenceSha256: outcome.evidenceSha256,
+            actionEventTime: outcome.actionEventTime,
+            archiveCommittedAt: projection.sourceArchive.archiveCommittedAt,
+            outcomeEvidence: clone(outcome.outcomeEvidence),
+            decisionSource: clone(outcome.decisionSource),
+            scoreableOutcome: null,
+            scoreableOutcomeDerivedByData: false
+          },
+          canonicalEvidenceEligible: false
+        });
+        updateOpportunityState(this.repository, opportunity.opportunity_id, event, "ACTION_LINKED");
+        const evidenceJson = canonicalText(outcome);
+        repositoryRows(this.repository, `
+          INSERT INTO field_session_outcome_links (
+            link_id, opportunity_id, action_artifact_id, candidate_id,
+            source_projection_sha256, source_archive_raw_sha256,
+            source_archive_session_sha256, source_visit_record_sha256,
+            visit_event_time, archive_committed_at, evidence_json, evidence_sha256,
+            linked_sequence, linked_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          event.artifactId,
+          opportunity.opportunity_id,
+          action.artifactId,
+          outcome.candidateId,
+          projection.projectionSha256,
+          projection.sourceArchive.rawSha256,
+          projection.sourceArchive.sourceArchiveSessionSha256,
+          outcome.sourceVisitRecordSha256,
+          outcome.actionEventTime,
+          projection.sourceArchive.archiveCommittedAt,
+          evidenceJson,
+          outcome.evidenceSha256,
+          event.recordSequence,
+          event.authoritativeRecordTime
+        ]);
+        let priorEvent = event;
+        for (const correction of outcome.outcomeEvidence.corrections) {
+          const correctionAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+          const correctionOperationKey = hashId("idempotency", {
+            coordinatorId: this.coordinatorId,
+            opportunityId: opportunity.opportunity_id,
+            purpose: "field_session_outcome_correction",
+            sourceCorrectionRecordSha256: correction.sourceCorrectionRecordSha256
+          });
+          const correctionRequestSha256 = sha256({
+            sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+            sourceCorrectionRecordSha256: correction.sourceCorrectionRecordSha256,
+            evidenceSha256: outcome.evidenceSha256
+          });
+          const correctionEvent = appendLifecycleEvent(this.repository, {
+            coordinatorId: this.coordinatorId,
+            sessionId: session.session_id,
+            opportunityId: opportunity.opportunity_id,
+            operationKey: correctionOperationKey,
+            requestSha256: correctionRequestSha256,
+            logicalBoundarySha256: sha256({
+              sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+              sourceCorrectionRecordSha256: correction.sourceCorrectionRecordSha256
+            }),
+            authoritativeRecordTime: correctionAt,
+            eventKind: "FIELD_SESSION_OUTCOME_CORRECTION_LINKED",
+            artifactKind: "field_session_outcome_correction",
+            fromState: "ACTION_LINKED",
+            toState: "ACTION_LINKED",
+            payload: {
+              targetArtifactId: priorEvent.artifactId,
+              candidateId: outcome.candidateId,
+              sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+              sourceCorrectionRecordSha256: correction.sourceCorrectionRecordSha256,
+              sequence: correction.sequence,
+              correctedAt: correction.correctedAt,
+              previousOutcomeSignal: clone(correction.previousOutcomeSignal),
+              finalOutcomeSignal: clone(correction.finalOutcomeSignal),
+              changedSignalFields: clone(correction.changedSignalFields),
+              priorHistoryPreserved: true
+            },
+            canonicalEvidenceEligible: false
+          });
+          updateOpportunityState(this.repository, opportunity.opportunity_id, correctionEvent, "ACTION_LINKED");
+          priorEvent = correctionEvent;
+        }
+        linked.push({
+          sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
+          opportunityId: opportunity.opportunity_id,
+          candidateId: outcome.candidateId,
+          evidenceSha256: outcome.evidenceSha256,
+          actionArtifactId: action.artifactId,
+          outcomeEvidenceArtifactId: event.artifactId
+        });
+        availableActions.splice(availableActions.indexOf(action), 1);
+      }
+
+      const createdAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      const reconciliationId = hashId("reconciliation", { projectionSha256: projection.projectionSha256 });
+      const receipt = {
+        contractVersion: routeIqFieldSessionOutcomeProjectionContractVersion,
+        reconciliationId,
+        status: "reconciled",
+        coordinatorId: this.coordinatorId,
+        sourceProjectionSha256: projection.projectionSha256,
+        sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+        sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256,
+        linked,
+        exclusions: excluded,
+        outcomeValuesInferredByData: false,
+        recommendationInfluence: "off",
+        createdAt
+      };
+      const sequence = allocateSequence(this.repository);
+      const receiptJson = canonicalText(receipt);
+      registerArtifact(this.repository, {
+        artifactId: reconciliationId,
+        artifactKind: "field_session_reconciliation_receipt",
+        recordSequence: sequence,
+        registeredAt: createdAt
+      });
+      repositoryRows(this.repository, `
+        INSERT INTO field_session_reconciliation_receipts (
+          reconciliation_id, source_projection_sha256, source_archive_raw_sha256,
+          source_archive_session_sha256, receipt_json, receipt_sha256,
+          created_sequence, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        reconciliationId,
+        projection.projectionSha256,
+        projection.sourceArchive.rawSha256,
+        projection.sourceArchive.sourceArchiveSessionSha256,
+        receiptJson,
+        sha256(receiptJson),
+        sequence,
+        createdAt
+      ]);
+      return { receipt: deepFreeze(receipt) };
+    });
+    if (result.conflict) {
+      throw new RouteIqProspectiveCoordinatorConflictError("A changed field-session outcome projection was durably rejected.", {
+        conflictId: result.conflict.conflictId,
+        overwritePerformed: false,
+        priorEvidencePreserved: true
+      });
+    }
+    return result.receipt;
+  }
+
+  async admitIntelligenceScoreableOutcome(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "scoreableOutcomeAdmissionRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "scoreable_outcome_admission",
+      coordinatorId: this.coordinatorId,
+      producer: true
+    });
+    const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "scoreable_outcome_admission", [
+      "sourceOutcomeEvidenceSha256", "outcomeDerivationContractVersion", "observedOutcome"
+    ]);
+    requireSha(claims.sourceOutcomeEvidenceSha256, "verifiedRuntimeClaims.scoreable_outcome_admission.sourceOutcomeEvidenceSha256");
+    requireVersion(claims.outcomeDerivationContractVersion, "verifiedRuntimeClaims.scoreable_outcome_admission.outcomeDerivationContractVersion");
+    assertExactKeys(claims.observedOutcome, ["status", "value"], "verifiedRuntimeClaims.scoreable_outcome_admission.observedOutcome");
+    if (!["observed", "missing"].includes(claims.observedOutcome.status)
+      || (claims.observedOutcome.status === "observed" && typeof claims.observedOutcome.value !== "boolean")
+      || (claims.observedOutcome.status === "missing" && claims.observedOutcome.value !== null)) {
+      fail("route_iq_scoreable_outcome_invalid", "Intelligence scoreable outcome is invalid.");
+    }
+    const result = this.repository.transactionSync(() => {
+      const link = repositoryOne(this.repository, "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?", [claims.sourceOutcomeEvidenceSha256]);
+      if (!link) fail("route_iq_scoreable_outcome_source_missing", "Scoreable outcome does not bind admitted field-session evidence.", {}, 409);
+      const opportunity = getOpportunity(this.repository, link.opportunity_id);
+      const session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id]);
+      const recordTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      const operationClaims = internalOperationClaims({
+        scope: this.scope,
+        session,
+        opportunity,
+        purpose: "scoreable_outcome_admission",
+        authoritativeRecordTime: recordTime,
+        boundary: {
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion
+        },
+        content: { observedOutcome: claims.observedOutcome }
+      });
+      const identities = identitiesForClaims(this.coordinatorId, operationClaims);
+      const canonicalRequest = {
+        sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+        outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion,
+        observedOutcome: clone(claims.observedOutcome),
+        candidateId: link.candidate_id,
+        actionArtifactId: link.action_artifact_id
+      };
+      const requestSha256 = sha256(canonicalRequest);
+      const existing = existingReceiptDecision(this.repository, {
+        identities,
+        operationKind: "scoreable_outcome_admission",
+        requestSha256,
+        claims: operationClaims,
+        canonicalRequest
+      });
+      if (existing?.type === "retry") return existing.receipt;
+      if (existing?.type === "conflict") return { conflictDecision: existing };
+      if (opportunity.state !== "ACTION_LINKED" || opportunity.canonical_eligible !== 1) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: operationClaims,
+          operationKind: "scoreable_outcome_admission",
+          reasonCodes: ["scoreable_outcome_action_binding_invalid"],
+          incomingDigest: claims.sourceOutcomeEvidenceSha256,
+          canonicalRequest
+        });
+      }
+      const action = latestEvent(this.repository, opportunity.opportunity_id, "ACTION_LINKED");
+      if (!action || action.artifactId !== link.action_artifact_id || action.canonical.payload.selectedCandidateId !== link.candidate_id) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: operationClaims,
+          operationKind: "scoreable_outcome_admission",
+          reasonCodes: ["scoreable_outcome_candidate_binding_invalid"],
+          incomingDigest: claims.sourceOutcomeEvidenceSha256,
+          canonicalRequest
+        });
+      }
+      insertAttempt(this.repository, {
+        identities,
+        claims: operationClaims,
+        operationKind: "scoreable_outcome_admission",
+        requestSha256,
+        canonicalRequest
+      });
+      const event = appendLifecycleEvent(this.repository, {
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        opportunityId: opportunity.opportunity_id,
+        operationKey: identities.operationKey,
+        requestSha256,
+        logicalBoundarySha256: operationClaims.canonicalEventBoundarySha256,
+        authoritativeRecordTime: recordTime,
+        eventKind: "OUTCOME_LINKED",
+        artifactKind: "outcome",
+        fromState: "ACTION_LINKED",
+        toState: "OUTCOME_LINKED",
+        payload: {
+          evaluatedCandidateId: link.candidate_id,
+          actionArtifactId: link.action_artifact_id,
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion,
+          observedOutcome: clone(claims.observedOutcome),
+          calculatedByData: false,
+          unchosenCandidateOutcomeAssignmentAllowed: false
+        },
+        canonicalEvidenceEligible: true
+      });
+      updateOpportunityState(this.repository, opportunity.opportunity_id, event, "OUTCOME_LINKED");
+      return insertReceipt(this.repository, {
+        identities,
+        operationKind: "scoreable_outcome_admission",
+        requestSha256,
+        event,
+        state: "OUTCOME_LINKED",
+        details: {
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluatedCandidateId: link.candidate_id,
+          calculatedByData: false
+        }
+      });
+    });
+    return transitionResult(result);
+  }
+
+  async admitIntelligenceEvaluation(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "evaluationAdmissionRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "evaluation_admission",
+      coordinatorId: this.coordinatorId,
+      producer: true
+    });
+    const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "evaluation_admission", [
+      "sourceOutcomeEvidenceSha256", "evaluationRecordSha256", "evaluationContractVersion"
+    ]);
+    requireSha(claims.sourceOutcomeEvidenceSha256, "verifiedRuntimeClaims.evaluation_admission.sourceOutcomeEvidenceSha256");
+    requireSha(claims.evaluationRecordSha256, "verifiedRuntimeClaims.evaluation_admission.evaluationRecordSha256");
+    requireVersion(claims.evaluationContractVersion, "verifiedRuntimeClaims.evaluation_admission.evaluationContractVersion");
+    const result = this.repository.transactionSync(() => {
+      const link = repositoryOne(this.repository, "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?", [claims.sourceOutcomeEvidenceSha256]);
+      if (!link) fail("route_iq_evaluation_source_missing", "Evaluation does not bind admitted field-session evidence.", {}, 409);
+      const opportunity = getOpportunity(this.repository, link.opportunity_id);
+      const session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id]);
+      const recordTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      const operationClaims = internalOperationClaims({
+        scope: this.scope,
+        session,
+        opportunity,
+        purpose: "evaluation_admission",
+        authoritativeRecordTime: recordTime,
+        boundary: {
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContractVersion: claims.evaluationContractVersion
+        },
+        content: { evaluationRecordSha256: claims.evaluationRecordSha256 }
+      });
+      const identities = identitiesForClaims(this.coordinatorId, operationClaims);
+      const canonicalRequest = {
+        sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+        evaluationRecordSha256: claims.evaluationRecordSha256,
+        evaluationContractVersion: claims.evaluationContractVersion
+      };
+      const requestSha256 = sha256(canonicalRequest);
+      const existing = existingReceiptDecision(this.repository, {
+        identities,
+        operationKind: "evaluation_admission",
+        requestSha256,
+        claims: operationClaims,
+        canonicalRequest
+      });
+      if (existing?.type === "retry") return existing.receipt;
+      if (existing?.type === "conflict") return { conflictDecision: existing };
+      if (opportunity.state !== "OUTCOME_LINKED" || opportunity.canonical_eligible !== 1) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: operationClaims,
+          operationKind: "evaluation_admission",
+          reasonCodes: ["evaluation_outcome_binding_invalid"],
+          incomingDigest: claims.evaluationRecordSha256,
+          canonicalRequest
+        });
+      }
+      insertAttempt(this.repository, {
+        identities,
+        claims: operationClaims,
+        operationKind: "evaluation_admission",
+        requestSha256,
+        canonicalRequest
+      });
+      const event = appendLifecycleEvent(this.repository, {
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        opportunityId: opportunity.opportunity_id,
+        operationKey: identities.operationKey,
+        requestSha256,
+        logicalBoundarySha256: operationClaims.canonicalEventBoundarySha256,
+        authoritativeRecordTime: recordTime,
+        eventKind: "EVALUATED",
+        artifactKind: "evaluation",
+        fromState: "OUTCOME_LINKED",
+        toState: "EVALUATED",
+        payload: {
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationRecordSha256: claims.evaluationRecordSha256,
+          evaluationContractVersion: claims.evaluationContractVersion,
+          calculatedByData: false,
+          recommendationInfluence: "off"
+        },
+        canonicalEvidenceEligible: true
+      });
+      updateOpportunityState(this.repository, opportunity.opportunity_id, event, "EVALUATED");
+      return insertReceipt(this.repository, {
+        identities,
+        operationKind: "evaluation_admission",
+        requestSha256,
+        event,
+        state: "EVALUATED",
+        details: {
+          sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationRecordSha256: claims.evaluationRecordSha256,
+          calculatedByData: false
+        }
+      });
+    });
+    return transitionResult(result);
   }
 
   async allocateNextStopOpportunity(input = {}) {
@@ -2264,6 +3375,19 @@ class RouteIqProspectiveCoordinatorCore {
           sessionSequence,
           claims.authoritativeRecordTime
         ]);
+        const scopeTerritory = allocatorTerritoryContext(this.scope);
+        persistCanonicalSessionContext(this.repository, {
+          sessionId: identities.sessionId,
+          territoryContext: scopeTerritory.status === "known" && scopeTerritory.territoryId === claims.territoryId
+            ? scopeTerritory
+            : {
+                status: "legacy_unavailable",
+                territoryId: claims.territoryId,
+                sourceRecordSha256: null,
+                sourceContractVersion: null,
+                availableAt: null
+              }
+        });
         session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [identities.sessionId]);
       } else if (session.coordinator_id !== this.coordinatorId
         || session.canonical_session_record_sha256 !== claims.canonicalSessionRecordSha256

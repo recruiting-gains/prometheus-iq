@@ -9,9 +9,11 @@ import {
   createCloudflareKvFieldSessionStore,
   createRouteIqFieldSessionArchivePackage,
   consumeRouteIqEndOfDayHandoff,
+  deriveRouteIqCandidateIdFromGooglePlaceId,
   deterministicFieldSessionId,
   fieldSessionStorageKeys,
   persistRouteIqFieldSessionArchive,
+  projectCommittedRouteIqFieldSessionOutcomes,
   readRouteIqFieldSessionArchive,
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionArchiveVersion,
@@ -735,13 +737,92 @@ test("missing bindings, unknown workspaces, and cross-workspace evidence fail cl
   assert.equal(binding.data.size, 0);
 });
 
+test("committed prospective handoff projects strict PII-free unscored outcome evidence", async () => {
+  const binding = kvBinding();
+  const input = archivePackage();
+  await persistRouteIqFieldSessionArchive(input, {
+    env: { [routeIqFieldSessionStoreBinding]: binding }
+  });
+  const archived = await readRouteIqFieldSessionArchive({
+    workspaceId: input.normalizedRecord.workspaceId,
+    operatingProfileId: input.normalizedRecord.operatingProfileId,
+    sessionId: input.normalizedRecord.sessionId
+  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
+  const projection = projectCommittedRouteIqFieldSessionOutcomes({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeId: "cruz",
+    archiveRecord: archived.record
+  });
+  assert.equal(projection.authority, "prometheus_data_committed_field_session");
+  assert.equal(projection.recordOrigin, "prospective");
+  assert.equal(projection.scoreableOutcomeDerivedByData, false);
+  assert.deepEqual(projection.privacy, {
+    namesIncluded: false,
+    addressesIncluded: false,
+    contactsIncluded: false,
+    notesIncluded: false,
+    preciseLocationIncluded: false
+  });
+  assert.equal(projection.outcomes.length, input.normalizedRecord.verifiedFields.completedVisits.length);
+  for (const [index, outcome] of projection.outcomes.entries()) {
+    const source = input.normalizedRecord.verifiedFields.completedVisits[index];
+    assert.equal(outcome.outcomeEvidence.scoreableOutcome, null);
+    assert.equal(outcome.outcomeEvidence.scoreableOutcomeDerivedByData, false);
+    assert.equal(outcome.decisionSource.temporalClassification, "post_action_supporting_information");
+    assert.equal(outcome.decisionSource.preActionEvidence, false);
+    assert.equal(outcome.decisionSource.sameShadowDecisionInput, false);
+    if (source.governedBusinessIdentity.matchStatus === "exact_runtime_id") {
+      assert.equal(outcome.candidateId, deriveRouteIqCandidateIdFromGooglePlaceId(source.governedBusinessIdentity.googlePlaceId));
+    } else {
+      assert.equal(outcome.candidateId, null);
+    }
+  }
+  const serialized = JSON.stringify(projection);
+  for (const prohibited of ["notes", "managerName", "managerEmail", "managerPhone", "formattedAddress", "businessName"]) {
+    assert.equal(serialized.includes(`\"${prohibited}\":`), false, prohibited);
+  }
+  assert.throws(
+    () => deriveRouteIqCandidateIdFromGooglePlaceId("123 Main Street"),
+    error => error instanceof FieldSessionArchiveError && error.code === "field_session_candidate_identity_invalid"
+  );
+});
+
+test("historical or uncommitted field-session records cannot enter prospective outcome projection", async () => {
+  const historical = {
+    normalizedRecord: json(NORMALIZED_PATH),
+    commit: {
+      status: "committed",
+      workspaceId: "fitness_connection",
+      sessionId: SESSION_ID,
+      rawSha256: EXPECTED_RAW_SHA,
+      persistedAt: "2026-07-12T00:36:02.000Z"
+    },
+    sourceArtifacts: {
+      normalized: {
+        text: readFileSync(NORMALIZED_PATH, "utf8"),
+        sha256: EXPECTED_IMMUTABLE_ARTIFACT_HASHES[NORMALIZED_PATH]
+      }
+    }
+  };
+  assert.throws(
+    () => projectCommittedRouteIqFieldSessionOutcomes({
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      representativeId: "cruz",
+      archiveRecord: historical
+    }),
+    error => error instanceof FieldSessionArchiveError && error.code === "field_session_outcome_projection_not_canonical"
+  );
+});
+
 test("Data schema and contract govern decision context prospectively without mutating the historical archive", () => {
   const schema = json("data/route-iq-field-sessions-v1/route-iq-field-session-v1.schema.json");
   const contract = json("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json");
   const archived = json(NORMALIZED_PATH);
   const decisionContract = contract.canonicalVisitDecisionContextContract;
 
-  assert.deepEqual(schema.$defs.completedVisit.required, ["visitDecisionSource", "recommendationDecisionContext"]);
+  assert.deepEqual(schema.$defs.completedVisit.required, ["visitDecisionSource", "recommendationDecisionContext", "outcomeAudit"]);
   assert.deepEqual(schema.$defs.visitDecisionSource.properties.sourceId.enum, routeIqVisitDecisionSourceIds);
   assert.equal(schema.$defs.visitDecisionSource.required.includes("temporalClassification"), true);
   assert.deepEqual(schema.$defs.visitDecisionSource.properties.temporalClassification.enum, ["action_time_observation", "late_report_finalization_unknown"]);

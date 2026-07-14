@@ -88,10 +88,11 @@
     "completedVisit": {
       "type": "object",
       "description": "Prospective normalized visits require post-action decision context. Known sources are bound to the completed visit timestamp. A legacy Unknown may be captured later only at report finalization and remains late observational evidence. This record is not a pre-action candidate snapshot.",
-      "required": ["visitDecisionSource", "recommendationDecisionContext"],
+      "required": ["visitDecisionSource", "recommendationDecisionContext", "outcomeAudit"],
       "properties": {
         "visitDecisionSource": { "$ref": "#/$defs/visitDecisionSource" },
-        "recommendationDecisionContext": { "$ref": "#/$defs/recommendationDecisionContext" }
+        "recommendationDecisionContext": { "$ref": "#/$defs/recommendationDecisionContext" },
+        "outcomeAudit": { "$ref": "#/$defs/outcomeAudit" }
       },
       "allOf": [
         {
@@ -242,6 +243,36 @@
         }
       ],
       "additionalProperties": true
+    },
+    "outcomeAudit": {
+      "type": "object",
+      "required": ["schemaVersion", "state", "originalOutcomeSignal", "corrections", "finalOutcomeSignal", "conflictState", "sourceEvidencePresent"],
+      "properties": {
+        "schemaVersion": { "const": "route-iq-field-session-outcome-audit-v1" },
+        "state": { "enum": ["uncorrected", "corrected"] },
+        "corrections": { "type": "array" },
+        "conflictState": { "const": "none" },
+        "sourceEvidencePresent": { "type": "boolean" },
+        "originalOutcomeSignal": { "$ref": "#/$defs/outcomeSignal" },
+        "finalOutcomeSignal": { "$ref": "#/$defs/outcomeSignal" }
+      },
+      "additionalProperties": false
+    },
+    "outcomeSignal": {
+      "type": "object",
+      "required": ["outcomeCode", "outcomeCodeStatus", "conversations", "leads", "appointments", "units", "laterUnits", "scoreableOutcome", "scoreableOutcomeDerivedByData"],
+      "properties": {
+        "outcomeCode": { "type": ["string", "null"] },
+        "outcomeCodeStatus": { "enum": ["verified_allowlisted", "unsupported"] },
+        "conversations": { "type": "integer", "minimum": 0 },
+        "leads": { "type": "integer", "minimum": 0 },
+        "appointments": { "type": "integer", "minimum": 0 },
+        "units": { "type": "integer", "minimum": 0 },
+        "laterUnits": { "type": "integer", "minimum": 0 },
+        "scoreableOutcome": { "const": null },
+        "scoreableOutcomeDerivedByData": { "const": false }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": true

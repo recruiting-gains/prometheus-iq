@@ -15,6 +15,8 @@ import {
   routeIqCandidateProducerEnvelopeVersion,
   routeIqCandidateSourceSchemaVersion,
   routeIqCandidateSourceVersion,
+  routeIqFieldSessionOutcomeProjectionContractVersion,
+  routeIqProspectiveRuntimeContextContractVersion,
   routeIqProspectiveServerAllocatorContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 
@@ -111,11 +113,15 @@ function canonicalDatabaseDump(repository) {
     "artifact_registry",
     "canonical_sessions",
     "canonical_session_events",
+    "canonical_session_contexts",
     "opportunities",
     "operation_attempts",
     "operation_receipts",
     "lifecycle_events",
     "candidate_manifests",
+    "field_session_outcome_links",
+    "field_session_reconciliation_receipts",
+    "field_session_reconciliation_conflicts",
     "projection_outbox",
     "projection_artifacts",
     "projection_commits"
@@ -128,7 +134,8 @@ function knownTerritoryContext(suffix = "default") {
     status: "known",
     territoryId: `riq_territory_${digest(`trusted-territory:${suffix}`)}`,
     sourceRecordSha256: digest(`trusted-territory-source:${suffix}`),
-    sourceContractVersion: "route-iq-trusted-territory-context-v1"
+    sourceContractVersion: "route-iq-trusted-territory-context-v1",
+    availableAt: iso(-1_000)
   };
 }
 
@@ -197,6 +204,98 @@ function allocatorEvent(sequence = undefined, observedAt = undefined) {
     ...(sequence === undefined ? {} : { informationalSequence: sequence }),
     ...(observedAt === undefined ? {} : { informationalObservedAt: observedAt })
   };
+}
+
+function runtimeClaims(harness, purpose, authoritativeRecordTime, extra = {}) {
+  return {
+    purpose,
+    workspaceId: harness.scope.workspaceId,
+    operatingProfileId: harness.scope.operatingProfileId,
+    representativeId: harness.scope.representativeId,
+    authoritativeRecordTime,
+    ...extra
+  };
+}
+
+function outcomeSignal(code, conversations = 0, leads = 0) {
+  return {
+    outcomeCode: code,
+    conversations,
+    leads,
+    appointments: 0,
+    units: 0,
+    laterUnits: 0,
+    scoreableOutcome: null,
+    scoreableOutcomeDerivedByData: false
+  };
+}
+
+function outcomeProjection(harness, {
+  rawSha256,
+  archiveCommittedAt,
+  outcomes,
+  sourceArchiveSessionSha256 = digest("canonical-source-field-session"),
+  normalizedSha256 = digest("canonical-normalized-field-session")
+}) {
+  const normalizedOutcomes = outcomes.map((outcome, index) => {
+    const canonical = {
+      sourceVisitRecordSha256: outcome.sourceVisitRecordSha256 || digest(`source-visit:${index}:${outcome.candidateId}`),
+      candidateId: outcome.candidateId,
+      candidateIdentityStatus: "derived_from_exact_governed_google_place_identity",
+      actionEventTime: outcome.actionEventTime,
+      eventTimeAuthority: "dashboard_recorded_visit_time_in_committed_handoff",
+      authoritativeRecordTime: archiveCommittedAt,
+      outcomeEvidence: {
+        status: "verified_unscored_signals",
+        originalOutcomeSignal: outcome.originalOutcomeSignal || outcomeSignal("conversation", 1, 0),
+        finalOutcomeSignal: outcome.finalOutcomeSignal || outcomeSignal("lead", 1, 1),
+        corrections: outcome.corrections || [],
+        correctionState: outcome.corrections?.length ? "corrected" : "uncorrected",
+        conflictState: "none",
+        scoreableOutcome: null,
+        scoreableOutcomeDerivedByData: false
+      },
+      decisionSource: {
+        sourceId: "unknown",
+        confidence: 0,
+        capturedAt: outcome.actionEventTime,
+        temporalClassification: "post_action_supporting_information",
+        preActionEvidence: false,
+        sameShadowDecisionInput: false,
+        scoreableOutcome: false
+      },
+      recommendationDecisionContext: null
+    };
+    return { ...canonical, evidenceSha256: digest(canonical) };
+  });
+  const body = {
+    schemaVersion: "route-iq-field-session-outcome-projection-v1",
+    authority: "prometheus_data_committed_field_session",
+    recordOrigin: "prospective",
+    scope: {
+      workspaceId: harness.scope.workspaceId,
+      operatingProfileId: harness.scope.operatingProfileId,
+      representativeId: harness.scope.representativeId
+    },
+    sourceArchive: {
+      handoffContractId: "route-iq-end-of-day-data-handoff-v1",
+      sourceArchiveSessionSha256,
+      rawSha256,
+      normalizedSha256,
+      archiveCommittedAt
+    },
+    outcomes: normalizedOutcomes,
+    privacy: {
+      namesIncluded: false,
+      addressesIncluded: false,
+      contactsIncluded: false,
+      notesIncluded: false,
+      preciseLocationIncluded: false
+    },
+    recommendationInfluence: "off",
+    scoreableOutcomeDerivedByData: false
+  };
+  return { ...body, projectionSha256: digest(body) };
 }
 
 function identityFromReceipt(receipt) {
@@ -359,6 +458,29 @@ async function sealShadowDecision(harness, allocation, accepted, snapshotSeal, r
     authorityEnvelope: harness.authority.sign(claims),
     sealEnvelope: harness.authority.sign(sealClaims)
   });
+}
+
+async function completeServerDerivedAction(harness, allocation, suffix, {
+  manifestAt,
+  snapshotAt,
+  shadowAt,
+  actionAt,
+  sequence
+}) {
+  const accepted = await acceptManifest(harness, allocation, suffix, manifestAt, sequence);
+  const snapshot = await sealSnapshot(harness, allocation, accepted, snapshotAt, sequence + 1);
+  await sealShadowDecision(harness, allocation, accepted, snapshot, shadowAt, sequence + 2);
+  const context = await harness.coordinator.readCanonicalRuntimeContext({
+    authorityEnvelope: harness.authority.sign(runtimeClaims(harness, "runtime_context_read", shadowAt))
+  });
+  const actionClaims = runtimeClaims(harness, "server_action_signal", actionAt, {
+    runtimeContextReceiptSha256: context.runtimeContextReceiptSha256,
+    eventKind: "representative_action_observed"
+  });
+  const action = await harness.coordinator.linkServerDerivedNextStopAction({
+    authorityEnvelope: harness.authority.sign(actionClaims)
+  });
+  return { accepted, snapshot, context, actionClaims, action };
 }
 
 test("server allocator contract and pending candidate boundary are explicit", async () => {
@@ -673,6 +795,372 @@ test("allocation chronology and committed as-of projections exclude future gover
   assert.ok(events.every((event, index) => index === 0
     || (event.record_sequence > events[index - 1].record_sequence
       && Date.parse(event.authoritative_record_time) > Date.parse(events[index - 1].authoritative_record_time))));
+});
+
+test("runtime context exposes trusted territory and only server-derived completed candidates", async () => {
+  const territory = knownTerritoryContext("runtime-context");
+  const h = await openHarness({ territoryContext: territory });
+  const first = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1, iso(0)) });
+  const lifecycle = await completeServerDerivedAction(h, first, "runtime-context", {
+    manifestAt: iso(10_000),
+    snapshotAt: iso(20_000),
+    shadowAt: iso(30_000),
+    actionAt: iso(40_000),
+    sequence: 10
+  });
+  assert.equal(lifecycle.context.runtimeContextContractVersion, routeIqProspectiveRuntimeContextContractVersion);
+  assert.deepEqual(lifecycle.context.territorySource, {
+    status: "known",
+    sourceRecordSha256: territory.sourceRecordSha256,
+    sourceContractVersion: territory.sourceContractVersion,
+    availableAt: territory.availableAt
+  });
+  assert.equal(lifecycle.action.selectedCandidateId, lifecycle.accepted.manifest.candidateId);
+  assert.equal(lifecycle.action.selectedCandidateDerivedFrom, "accepted_manifest_unique_ordinal_1");
+  assert.equal(lifecycle.action.browserCandidateIdentityAccepted, false);
+
+  const retry = await h.coordinator.linkServerDerivedNextStopAction({
+    authorityEnvelope: h.authority.sign({
+      ...lifecycle.actionClaims,
+      authoritativeRecordTime: iso(50_000)
+    })
+  });
+  assert.deepEqual(retry, lifecycle.action);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'ACTION_LINKED'").count, 1);
+
+  const second = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(999, iso(90_000)) });
+  const secondContext = await h.coordinator.readCanonicalRuntimeContext({
+    authorityEnvelope: h.authority.sign(runtimeClaims(h, "runtime_context_read", iso(90_001)))
+  });
+  assert.equal(secondContext.opportunityId, second.opportunityId);
+  assert.deepEqual(secondContext.completedCandidateIds, [lifecycle.accepted.manifest.candidateId]);
+  assert.equal(secondContext.candidateCompletenessStatus, "pending_authenticated_intelligence_manifest");
+  await assert.rejects(
+    () => h.coordinator.linkServerDerivedNextStopAction({
+      candidateId: lifecycle.accepted.manifest.candidateId,
+      authorityEnvelope: h.authority.sign(runtimeClaims(h, "server_action_signal", iso(100_000), {
+        runtimeContextReceiptSha256: secondContext.runtimeContextReceiptSha256,
+        eventKind: "representative_action_observed"
+      }))
+    }),
+    error => error.code === "route_iq_coordinator_field_not_allowlisted"
+  );
+});
+
+test("server-derived action before seal and missing rank-one evidence fail closed", async t => {
+  await t.test("action before seal", async () => {
+    const h = await openHarness({ territoryContext: knownTerritoryContext("premature-server-action") });
+    await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const context = await h.coordinator.readCanonicalRuntimeContext({
+      authorityEnvelope: h.authority.sign(runtimeClaims(h, "runtime_context_read", iso(1_000)))
+    });
+    const claims = runtimeClaims(h, "server_action_signal", iso(2_000), {
+      runtimeContextReceiptSha256: context.runtimeContextReceiptSha256,
+      eventKind: "representative_action_observed"
+    });
+    const excluded = await h.coordinator.linkServerDerivedNextStopAction({
+      authorityEnvelope: h.authority.sign(claims)
+    });
+    assert.equal(excluded.status, "excluded");
+    assert.deepEqual(excluded.reasonCodes, ["shadow_not_sealed_before_action"]);
+    const retry = await h.coordinator.linkServerDerivedNextStopAction({
+      authorityEnvelope: h.authority.sign({ ...claims, authoritativeRecordTime: iso(90_000) })
+    });
+    assert.deepEqual(retry, excluded);
+  });
+
+  await t.test("manifest without a unique rank one", async () => {
+    const h = await openHarness({ territoryContext: knownTerritoryContext("missing-rank-one") });
+    const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const manifest = candidateManifest(h, allocation, "missing-rank-one");
+    manifest.claims.candidates[0].rankingContext.ordinal = 2;
+    const excluded = await h.coordinator.acceptCandidateManifest({
+      authorityEnvelope: h.authority.sign(operationClaims(h, allocation, "candidate_manifest", iso(10_000), 10, {
+        expectedCandidateCount: manifest.hashes.candidateCount,
+        expectedSourceCount: manifest.hashes.sourceCount,
+        expectedCompleteManifestSha256: manifest.hashes.completeManifestSha256
+      })),
+      producerEnvelope: h.authority.sign(manifest.claims, "producer")
+    });
+    assert.equal(excluded.status, "excluded");
+    assert.deepEqual(excluded.reasonCodes, ["candidate_manifest_incomplete_or_tampered"]);
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM candidate_manifests").count, 0);
+    assert.equal(h.repository.one("SELECT state FROM opportunities").state, "EXCLUDED");
+  });
+});
+
+test("runtime exclusion is append-only, idempotent, and records changed content as conflict", async () => {
+  const h = await openHarness({ territoryContext: knownTerritoryContext("runtime-exclusion") });
+  await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const context = await h.coordinator.readCanonicalRuntimeContext({
+    authorityEnvelope: h.authority.sign(runtimeClaims(h, "runtime_context_read", iso(1_000)))
+  });
+  const base = runtimeClaims(h, "runtime_stage_exclusion", iso(2_000), {
+    runtimeContextReceiptSha256: context.runtimeContextReceiptSha256,
+    stage: "runtime_orchestration",
+    reasonCodes: ["runtime_dependency_unavailable"],
+    offendingDigest: digest("runtime-dependency-unavailable")
+  });
+  const first = await h.coordinator.recordRuntimeStageExclusion({
+    authorityEnvelope: h.authority.sign(base)
+  });
+  const retry = await h.coordinator.recordRuntimeStageExclusion({
+    authorityEnvelope: h.authority.sign({ ...base, authoritativeRecordTime: iso(90_000) })
+  });
+  assert.deepEqual(retry, first);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EXCLUSION_RECORDED'").count, 1);
+  await assert.rejects(
+    () => h.coordinator.recordRuntimeStageExclusion({
+      authorityEnvelope: h.authority.sign({
+        ...base,
+        authoritativeRecordTime: iso(90_001),
+        reasonCodes: ["runtime_dependency_tampered"],
+        offendingDigest: digest("runtime-dependency-tampered")
+      })
+    }),
+    error => error.code === "route_iq_coordinator_conflict"
+  );
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 1);
+  assert.equal(h.repository.one("SELECT state FROM opportunities").state, "EXCLUDED");
+});
+
+test("committed handoff reconciliation binds multiple actions, appends corrections, and replays exactly once", async () => {
+  const h = await openHarness({ territoryContext: knownTerritoryContext("field-handoff") });
+  const first = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const firstLifecycle = await completeServerDerivedAction(h, first, "field-handoff-first", {
+    manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+  });
+  const second = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(2) });
+  const secondLifecycle = await completeServerDerivedAction(h, second, "field-handoff-second", {
+    manifestAt: iso(50_000), snapshotAt: iso(60_000), shadowAt: iso(70_000), actionAt: iso(80_000), sequence: 20
+  });
+  const rawSha256 = digest("committed-end-day-handoff");
+  await h.coordinator.closeCanonicalSession({
+    authorityEnvelope: h.authority.sign({
+      purpose: "close_session",
+      workspaceId: h.scope.workspaceId,
+      operatingProfileId: h.scope.operatingProfileId,
+      representativeId: h.scope.representativeId,
+      closeReason: "end_day",
+      handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+      endOfDayHandoffSha256: rawSha256,
+      authoritativeRecordTime: iso(90_000)
+    })
+  });
+  const correction = {
+    sourceCorrectionRecordSha256: digest("first-outcome-correction"),
+    sequence: 1,
+    correctedAt: iso(65_000),
+    previousOutcomeSignal: outcomeSignal("conversation", 1, 0),
+    finalOutcomeSignal: outcomeSignal("lead", 1, 1),
+    changedSignalFields: ["outcomeCode", "leads"],
+    appendOnly: true
+  };
+  const projection = outcomeProjection(h, {
+    rawSha256,
+    archiveCommittedAt: iso(100_000),
+    outcomes: [
+      {
+        candidateId: firstLifecycle.accepted.manifest.candidateId,
+        actionEventTime: iso(45_000),
+        corrections: [correction]
+      },
+      {
+        candidateId: secondLifecycle.accepted.manifest.candidateId,
+        actionEventTime: iso(85_000)
+      }
+    ]
+  });
+  const claims = runtimeClaims(h, "field_session_reconciliation", iso(110_000), {
+    projectionSha256: projection.projectionSha256,
+    sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+    sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+  });
+  const receipt = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+    authorityEnvelope: h.authority.sign(claims),
+    projection
+  });
+  const restarted = await openHarness({
+    repository: h.repository,
+    authority: h.authority,
+    issuedAt: iso(120_000),
+    territoryContext: knownTerritoryContext("field-handoff")
+  });
+  const replay = await restarted.coordinator.reconcileCommittedFieldSessionOutcomes({
+    authorityEnvelope: restarted.authority.sign({ ...claims, authoritativeRecordTime: iso(120_000) }),
+    projection
+  });
+  assert.equal(receipt.contractVersion, routeIqFieldSessionOutcomeProjectionContractVersion);
+  assert.deepEqual(replay, receipt);
+  assert.equal(receipt.linked.length, 2);
+  assert.deepEqual(receipt.exclusions, []);
+  assert.equal(receipt.outcomeValuesInferredByData, false);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_outcome_links").count, 2);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'FIELD_SESSION_OUTCOME_CORRECTION_LINKED'").count, 1);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_reconciliation_receipts").count, 1);
+  const admitted = await restarted.coordinator.admitIntelligenceScoreableOutcome({
+    authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "scoreable_outcome_admission", iso(130_000), {
+      sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+      outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+      observedOutcome: { status: "observed", value: true }
+    }), "producer")
+  });
+  assert.equal(admitted.state, "OUTCOME_LINKED");
+  assert.equal(admitted.evaluatedCandidateId, firstLifecycle.accepted.manifest.candidateId);
+  assert.equal(admitted.calculatedByData, false);
+  await assert.rejects(
+    () => restarted.coordinator.admitIntelligenceScoreableOutcome({
+      candidateId: secondLifecycle.accepted.manifest.candidateId,
+      authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "scoreable_outcome_admission", iso(130_001), {
+        sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+        outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+        observedOutcome: { status: "observed", value: true }
+      }), "producer")
+    }),
+    error => error.code === "route_iq_coordinator_field_not_allowlisted"
+  );
+  const evaluated = await restarted.coordinator.admitIntelligenceEvaluation({
+    authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "evaluation_admission", iso(140_000), {
+      sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+      evaluationRecordSha256: digest("intelligence-evaluation-record"),
+      evaluationContractVersion: "route-iq-shadow-evaluation-v1"
+    }), "producer")
+  });
+  assert.equal(evaluated.state, "EVALUATED");
+  assert.equal(evaluated.sourceOutcomeEvidenceSha256, receipt.linked[0].evidenceSha256);
+  const events = h.repository.query("SELECT authoritative_record_time FROM lifecycle_events ORDER BY record_sequence");
+  assert.ok(events.every((event, index) => index === 0
+    || Date.parse(event.authoritative_record_time) > Date.parse(events[index - 1].authoritative_record_time)));
+});
+
+test("handoff reconciliation rejects unbound, wrong, equal-time, cross-scope, and changed evidence", async t => {
+  await t.test("handoff before an action or with a wrong candidate is excluded", async () => {
+    const h = await openHarness({ territoryContext: knownTerritoryContext("handoff-before-action") });
+    const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const accepted = await acceptManifest(h, allocation, "handoff-before-action", iso(10_000), 10);
+    const rawSha256 = digest("handoff-before-action");
+    await h.coordinator.closeCanonicalSession({
+      authorityEnvelope: h.authority.sign({
+        purpose: "close_session",
+        workspaceId: h.scope.workspaceId,
+        operatingProfileId: h.scope.operatingProfileId,
+        representativeId: h.scope.representativeId,
+        closeReason: "end_route",
+        handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+        endOfDayHandoffSha256: rawSha256,
+        authoritativeRecordTime: iso(20_000)
+      })
+    });
+    const projection = outcomeProjection(h, {
+      rawSha256,
+      archiveCommittedAt: iso(40_000),
+      outcomes: [{ candidateId: accepted.manifest.candidateId, actionEventTime: iso(30_000) }]
+    });
+    const receipt = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+      authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(50_000), {
+        projectionSha256: projection.projectionSha256,
+        sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+        sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+      })),
+      projection
+    });
+    assert.deepEqual(receipt.linked, []);
+    assert.deepEqual(receipt.exclusions.map(value => value.reasonCode), ["candidate_action_binding_missing"]);
+  });
+
+  await t.test("equal action/outcome chronology is excluded and changed archive projection is a durable conflict", async () => {
+    const h = await openHarness({ territoryContext: knownTerritoryContext("handoff-conflict") });
+    const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const lifecycle = await completeServerDerivedAction(h, allocation, "handoff-conflict", {
+      manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+    });
+    const rawSha256 = digest("handoff-conflict");
+    await h.coordinator.closeCanonicalSession({
+      authorityEnvelope: h.authority.sign({
+        purpose: "close_session",
+        workspaceId: h.scope.workspaceId,
+        operatingProfileId: h.scope.operatingProfileId,
+        representativeId: h.scope.representativeId,
+        closeReason: "end_day",
+        handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+        endOfDayHandoffSha256: rawSha256,
+        authoritativeRecordTime: iso(50_000)
+      })
+    });
+    const projection = outcomeProjection(h, {
+      rawSha256,
+      archiveCommittedAt: iso(60_000),
+      outcomes: [{ candidateId: lifecycle.accepted.manifest.candidateId, actionEventTime: lifecycle.action.authoritativeRecordTime }]
+    });
+    const claims = runtimeClaims(h, "field_session_reconciliation", iso(70_000), {
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    });
+    const first = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+      authorityEnvelope: h.authority.sign(claims),
+      projection
+    });
+    assert.deepEqual(first.exclusions.map(value => value.reasonCode), ["action_outcome_chronology_invalid"]);
+    const changed = outcomeProjection(h, {
+      rawSha256,
+      archiveCommittedAt: iso(60_000),
+      outcomes: [{
+        candidateId: lifecycle.accepted.manifest.candidateId,
+        actionEventTime: lifecycle.action.authoritativeRecordTime,
+        finalOutcomeSignal: outcomeSignal("closed", 0, 0)
+      }]
+    });
+    await assert.rejects(
+      () => h.coordinator.reconcileCommittedFieldSessionOutcomes({
+        authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(80_000), {
+          projectionSha256: changed.projectionSha256,
+          sourceArchiveRawSha256: changed.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: changed.sourceArchive.sourceArchiveSessionSha256
+        })),
+        projection: changed
+      }),
+      error => error.code === "route_iq_coordinator_conflict"
+    );
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_reconciliation_conflicts").count, 1);
+  });
+
+  await t.test("cross-scope and PII-bearing caller fields are rejected without reconciliation", async () => {
+    const h = await openHarness({ territoryContext: knownTerritoryContext("handoff-scope") });
+    await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const projection = outcomeProjection(h, {
+      rawSha256: digest("handoff-scope"),
+      archiveCommittedAt: iso(40_000),
+      outcomes: [{ candidateId: `riq_candidate_${digest("scope-candidate")}`, actionEventTime: iso(30_000) }]
+    });
+    const crossScope = structuredClone(projection);
+    crossScope.scope.representativeId = "anthony";
+    const body = Object.fromEntries(Object.entries(crossScope).filter(([key]) => key !== "projectionSha256"));
+    crossScope.projectionSha256 = digest(body);
+    await assert.rejects(
+      () => h.coordinator.reconcileCommittedFieldSessionOutcomes({
+        authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(50_000), {
+          projectionSha256: crossScope.projectionSha256,
+          sourceArchiveRawSha256: crossScope.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: crossScope.sourceArchive.sourceArchiveSessionSha256
+        })),
+        projection: crossScope
+      }),
+      error => error.code === "route_iq_field_outcome_projection_cross_scope"
+    );
+    await assert.rejects(
+      () => h.coordinator.reconcileCommittedFieldSessionOutcomes({
+        authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(50_000), {
+          projectionSha256: projection.projectionSha256,
+          sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+        })),
+        projection,
+        address: "123 Main Street"
+      }),
+      error => error.code === "route_iq_coordinator_field_not_allowlisted"
+    );
+  });
 });
 
 test("allocation and authenticated session close roll back at every SQLite persistence boundary", async t => {

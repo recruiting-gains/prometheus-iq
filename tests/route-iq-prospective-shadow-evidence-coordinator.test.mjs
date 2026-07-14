@@ -486,7 +486,9 @@ function committedHistoricalArchive() {
 function canonicalDatabaseDump(repository) {
   const tables = [
     "coordinator_meta", "artifact_registry", "canonical_sessions", "opportunities",
+    "canonical_session_contexts", "canonical_session_events",
     "operation_attempts", "operation_receipts", "lifecycle_events", "candidate_manifests",
+    "field_session_outcome_links", "field_session_reconciliation_receipts", "field_session_reconciliation_conflicts",
     "projection_outbox", "projection_artifacts", "projection_commits"
   ];
   return stableJson(Object.fromEntries(tables.map(table => [

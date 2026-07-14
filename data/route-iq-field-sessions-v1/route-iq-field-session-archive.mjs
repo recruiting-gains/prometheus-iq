@@ -6,6 +6,7 @@ export const routeIqFieldSessionStoreBinding = "DATA_ROUTE_IQ_FIELD_SESSION_STOR
 export const routeIqFieldSessionStorageTechnology = "cloudflare_workers_kv";
 export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
 export const routeIqChronologicalEvidenceProjectionVersion = "route-iq-chronological-evidence-projection-v1";
+export const routeIqFieldSessionOutcomeProjectionVersion = "route-iq-field-session-outcome-projection-v1";
 export const routeIqChronologicalEvidenceKinds = Object.freeze([
   "visit_decision_context",
   "visit_observed_outcome",
@@ -27,6 +28,18 @@ export const routeIqVisitDecisionSourceIds = Object.freeze([
   "unknown"
 ]);
 export const routeIqRecommendationDecisionValues = Object.freeze(["accepted", "overridden"]);
+const ROUTE_IQ_OUTCOME_LABELS = Object.freeze({
+  visited: "visited",
+  conversation: "conversation",
+  lead: "lead",
+  appointment: "appointment",
+  "membership/unit": "membership_or_unit",
+  membership: "membership_or_unit",
+  "follow-up required": "follow_up_required",
+  "decision pending": "decision_pending",
+  "no interest": "no_interest",
+  closed: "closed"
+});
 
 export const supportedFieldSessionWorkspaces = Object.freeze({
   fitness_connection: Object.freeze({
@@ -92,6 +105,161 @@ function deepFreeze(value) {
   Object.freeze(value);
   for (const child of Object.values(value)) deepFreeze(child);
   return value;
+}
+
+export function deriveRouteIqCandidateIdFromGooglePlaceId(value) {
+  if (typeof value !== "string" || !/^[A-Za-z0-9_-]{6,256}$/.test(value)) {
+    throw new FieldSessionArchiveError("Governed Google Place identity is not a strict opaque identifier.", {
+      code: "field_session_candidate_identity_invalid"
+    });
+  }
+  const identityKey = `google:${value}`;
+  return `riq_candidate_${sha256(stableJson({ kind: "candidate", value: { identityKey } }))}`;
+}
+
+function governedOutcomeSignal(value, label) {
+  const sourceLabel = typeof value?.quality === "string"
+    ? value.quality
+    : typeof value?.outcome === "string"
+      ? value.outcome
+      : "";
+  const normalizedLabel = sourceLabel.trim().toLowerCase();
+  return {
+    outcomeCode: ROUTE_IQ_OUTCOME_LABELS[normalizedLabel] || null,
+    outcomeCodeStatus: ROUTE_IQ_OUTCOME_LABELS[normalizedLabel] ? "verified_allowlisted" : "unsupported",
+    conversations: requireCount(value?.conversations ?? 0, `${label} conversations`),
+    leads: requireCount(value?.leads ?? 0, `${label} leads`),
+    appointments: requireCount(value?.appointments ?? 0, `${label} appointments`),
+    units: requireCount(value?.units ?? 0, `${label} units`),
+    laterUnits: requireCount(value?.laterUnits ?? 0, `${label} later units`),
+    scoreableOutcome: null,
+    scoreableOutcomeDerivedByData: false
+  };
+}
+
+function normalizeVisitOutcomeAudits(report, visits, generatedAt, context) {
+  const evidence = report.visitOutcomeEvidence;
+  if (evidence === undefined || evidence === null) {
+    return visits.map((visit, index) => {
+      const signal = governedOutcomeSignal(visit, `Visit ${index + 1}`);
+      return {
+        schemaVersion: "route-iq-field-session-outcome-audit-v1",
+        state: "uncorrected",
+        originalOutcomeSignal: signal,
+        corrections: [],
+        finalOutcomeSignal: clone(signal),
+        conflictState: "none",
+        sourceEvidencePresent: false
+      };
+    });
+  }
+  if (!evidence || evidence.schemaVersion !== "dashboard-visit-outcome-corrections-v1"
+    || evidence.auditModel !== "append_only_original_correction_final"
+    || !Array.isArray(evidence.originalVisits)
+    || !Array.isArray(evidence.correctionEvents)
+    || !Array.isArray(evidence.finalVerifiedOutcomes)
+    || evidence.originalVisits.length !== visits.length
+    || evidence.finalVerifiedOutcomes.length !== visits.length) {
+    throw new FieldSessionArchiveError("Visit outcome correction evidence is incomplete.", {
+      code: "field_session_outcome_audit_invalid"
+    });
+  }
+  const rawVisitIds = report.visits.map((visit, index) => requireNonEmptyString(visit.visitId, `Visit ${index + 1} visitId`));
+  if (new Set(rawVisitIds).size !== rawVisitIds.length) {
+    throw new FieldSessionArchiveError("Visit outcome evidence contains duplicate visit identities.", {
+      code: "field_session_outcome_audit_identity_conflict"
+    });
+  }
+  const indexByVisitId = new Map(rawVisitIds.map((visitId, index) => [visitId, index]));
+  const originalByVisitId = new Map();
+  const finalByVisitId = new Map();
+  for (const original of evidence.originalVisits) {
+    const visitId = requireNonEmptyString(original?.visitId, "Original outcome visitId");
+    if (!indexByVisitId.has(visitId) || originalByVisitId.has(visitId)) {
+      throw new FieldSessionArchiveError("Original outcome evidence does not map one-to-one to completed visits.", {
+        code: "field_session_outcome_audit_identity_conflict"
+      });
+    }
+    originalByVisitId.set(visitId, governedOutcomeSignal(original, `Original outcome ${visitId}`));
+  }
+  for (const finalOutcome of evidence.finalVerifiedOutcomes) {
+    const visitId = requireNonEmptyString(finalOutcome?.visitId, "Final outcome visitId");
+    if (!indexByVisitId.has(visitId) || finalByVisitId.has(visitId)) {
+      throw new FieldSessionArchiveError("Final outcome evidence does not map one-to-one to completed visits.", {
+        code: "field_session_outcome_audit_identity_conflict"
+      });
+    }
+    finalByVisitId.set(visitId, governedOutcomeSignal(finalOutcome, `Final outcome ${visitId}`));
+  }
+  const correctionsByVisitId = new Map(rawVisitIds.map(visitId => [visitId, []]));
+  const correctionIds = new Set();
+  for (const correction of evidence.correctionEvents) {
+    const eventId = requireNonEmptyString(correction?.eventId, "Correction eventId");
+    const visitId = requireNonEmptyString(correction?.visitId, "Correction visitId");
+    if (correctionIds.has(eventId) || !indexByVisitId.has(visitId)
+      || correction.eventType !== "visit_outcome_correction"
+      || correction.workspaceId !== context.workspaceId
+      || correction.operatingProfileId !== context.operatingProfileId
+      || correction.representativeId !== report.rep.id) {
+      throw new FieldSessionArchiveError("Visit correction evidence crosses scope or contains a duplicate.", {
+        code: "field_session_outcome_audit_identity_conflict"
+      });
+    }
+    correctionIds.add(eventId);
+    const correctedAt = requireIso(correction.correctedAt, `Correction ${eventId} correctedAt`);
+    const visitIndex = indexByVisitId.get(visitId);
+    if (Date.parse(correctedAt) <= Date.parse(visits[visitIndex].timestamp)
+      || Date.parse(correctedAt) > Date.parse(generatedAt)) {
+      throw new FieldSessionArchiveError("Visit correction chronology is invalid.", {
+        code: "field_session_outcome_audit_chronology_invalid"
+      });
+    }
+    const sequence = requireCount(correction.sequence, `Correction ${eventId} sequence`);
+    const previousOutcomeSignal = governedOutcomeSignal(correction.previousOutcome, `Correction ${eventId} previous outcome`);
+    const finalOutcomeSignal = governedOutcomeSignal(correction.finalVerifiedOutcome, `Correction ${eventId} final outcome`);
+    const changedSignalFields = Object.keys(correction.changes || {})
+      .filter(field => ["quality", "conversations", "leads", "appointments", "units", "laterUnits"].includes(field))
+      .map(field => field === "quality" ? "outcomeCode" : field)
+      .sort();
+    if (!changedSignalFields.length) {
+      throw new FieldSessionArchiveError("Visit correction contains no permitted outcome-signal change.", {
+        code: "field_session_outcome_audit_change_invalid"
+      });
+    }
+    correctionsByVisitId.get(visitId).push({
+      sourceCorrectionRecordSha256: sha256(stableJson({ eventId, visitId, sequence, correctedAt, previousOutcomeSignal, finalOutcomeSignal })),
+      sequence,
+      correctedAt,
+      previousOutcomeSignal,
+      finalOutcomeSignal,
+      changedSignalFields,
+      appendOnly: true
+    });
+  }
+  return rawVisitIds.map((visitId, index) => {
+    const corrections = correctionsByVisitId.get(visitId).sort((left, right) => left.sequence - right.sequence);
+    if (corrections.some((correction, correctionIndex) => correction.sequence !== correctionIndex + 1)) {
+      throw new FieldSessionArchiveError("Visit correction sequence is not contiguous.", {
+        code: "field_session_outcome_audit_sequence_invalid"
+      });
+    }
+    const finalSignal = governedOutcomeSignal(visits[index], `Visit ${index + 1} final outcome`);
+    if (stableJson(finalByVisitId.get(visitId)) !== stableJson(finalSignal)
+      || (corrections.length && stableJson(corrections.at(-1).finalOutcomeSignal) !== stableJson(finalSignal))) {
+      throw new FieldSessionArchiveError("Final verified outcome does not match the append-only correction history.", {
+        code: "field_session_outcome_audit_final_mismatch"
+      });
+    }
+    return {
+      schemaVersion: "route-iq-field-session-outcome-audit-v1",
+      state: corrections.length ? "corrected" : "uncorrected",
+      originalOutcomeSignal: originalByVisitId.get(visitId),
+      corrections,
+      finalOutcomeSignal: finalSignal,
+      conflictState: "none",
+      sourceEvidencePresent: true
+    };
+  });
 }
 
 function requireIso(value, label) {
@@ -373,6 +541,7 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       outcome: typeof visit.outcome === "string" ? visit.outcome : "",
       conversations: requireCount(visit.conversations, `Visit ${index + 1} conversations`),
       leads: requireCount(visit.leads, `Visit ${index + 1} leads`),
+      appointments: requireCount(visit.appointments ?? 0, `Visit ${index + 1} appointments`),
       units: requireCount(visit.units, `Visit ${index + 1} units`),
       laterUnits: requireCount(visit.laterUnits, `Visit ${index + 1} later units`),
       notes: typeof visit.notes === "string" ? visit.notes : "",
@@ -380,6 +549,11 @@ export function validateFinalRouteIqReport(rawReportText, context = {}) {
       recommendationDecisionContext,
       gpsAttached: typeof visit.gpsAttached === "boolean" ? visit.gpsAttached : null
     };
+  });
+
+  const outcomeAudits = normalizeVisitOutcomeAudits(report, visits, generatedAt, context);
+  visits.forEach((visit, index) => {
+    visit.outcomeAudit = outcomeAudits[index];
   });
 
   const recomputed = visits.reduce((sum, visit) => {
@@ -448,13 +622,14 @@ function enrichVisit(visit, index, representativeId, indexes, sourceDatasetVersi
 
   const active = runtime?.googlePlaceId ? indexes.activeByPlaceId.get(runtime.googlePlaceId) || null : null;
   const hours = runtime?.googlePlaceId ? indexes.hoursByPlaceId.get(runtime.googlePlaceId) || null : null;
-  const { visitDecisionSource, recommendationDecisionContext, ...sourceReport } = visit;
+  const { visitDecisionSource, recommendationDecisionContext, outcomeAudit, ...sourceReport } = visit;
   return {
     exportOrder: index + 1,
     visitId: `visit-${String(index + 1).padStart(2, "0")}-${sha256(`${visit.placeId}|${visit.timestamp}`).slice(0, 12)}`,
     sourceReport: clone(sourceReport),
     visitDecisionSource: clone(visitDecisionSource),
     recommendationDecisionContext: clone(recommendationDecisionContext),
+    outcomeAudit: clone(outcomeAudit),
     governedBusinessIdentity: runtime ? {
       matchStatus: "exact_runtime_id",
       runtimeId: runtime.id,
@@ -610,7 +785,9 @@ export function createRouteIqFieldSessionArchivePackage(input = {}) {
       finalExportConfirmed: true,
       finalityBasis: input.finalityBasis,
       sourceGeneratedAt: report.generatedAt,
-      ingestedAt
+      ingestedAt,
+      recordOrigin: "prospective",
+      canonicalProductionEvidence: true
     },
     fieldClassification: {
       verifiedFieldContainer: "verifiedFields",
@@ -1064,6 +1241,149 @@ export async function readRouteIqFieldSessionArchive(input = {}, options = {}) {
       })
     }
   };
+}
+
+export function projectCommittedRouteIqFieldSessionOutcomes(input = {}) {
+  const archive = input.archiveRecord;
+  const record = archive?.normalizedRecord;
+  const commit = archive?.commit;
+  const representativeId = record?.verifiedFields?.representative?.id;
+  assertWorkspace(input.workspaceId, input.operatingProfileId, input.representativeId);
+  if (!record || !commit || commit.status !== "committed"
+    || record.workspaceId !== input.workspaceId
+    || record.operatingProfileId !== input.operatingProfileId
+    || representativeId !== input.representativeId
+    || commit.workspaceId !== record.workspaceId
+    || commit.sessionId !== record.sessionId
+    || commit.rawSha256 !== record.sourceProvenance?.rawSha256
+    || record.sourceProvenance?.recordOrigin !== "prospective"
+    || record.sourceProvenance?.canonicalProductionEvidence !== true) {
+    throw new FieldSessionArchiveError("Prospective outcome projection requires an exact committed canonical field-session record.", {
+      code: "field_session_outcome_projection_not_canonical",
+      status: 409
+    });
+  }
+  const normalizedSource = archive.sourceArtifacts?.normalized;
+  if (typeof normalizedSource?.text !== "string"
+    || sha256(normalizedSource.text) !== normalizedSource.sha256
+    || stableJson(JSON.parse(normalizedSource.text)) !== stableJson(record)) {
+    throw new FieldSessionArchiveError("Normalized field-session bytes failed immutable source verification.", {
+      code: "field_session_outcome_projection_source_mismatch",
+      status: 500
+    });
+  }
+  const archiveCommittedAt = requireIso(commit.persistedAt, "Field-session archive persistedAt");
+  const sourceArchiveSessionSha256 = sha256(record.sessionId);
+  const outcomes = (record.verifiedFields.completedVisits || []).map((visit, index) => {
+    const eventTime = requireIso(visit.sourceReport?.timestamp, `Completed visit ${index + 1} timestamp`);
+    if (Date.parse(eventTime) >= Date.parse(archiveCommittedAt)) {
+      throw new FieldSessionArchiveError("Completed visit time must precede the authoritative archive commit.", {
+        code: "field_session_outcome_projection_chronology_invalid"
+      });
+    }
+    const audit = visit.outcomeAudit;
+    if (!audit || audit.schemaVersion !== "route-iq-field-session-outcome-audit-v1"
+      || !["uncorrected", "corrected"].includes(audit.state)
+      || audit.conflictState !== "none"
+      || !Array.isArray(audit.corrections)
+      || audit.finalOutcomeSignal?.scoreableOutcome !== null
+      || audit.finalOutcomeSignal?.scoreableOutcomeDerivedByData !== false) {
+      throw new FieldSessionArchiveError("Completed visit outcome audit is missing or not governed.", {
+        code: "field_session_outcome_projection_audit_invalid"
+      });
+    }
+    const googlePlaceId = visit.governedBusinessIdentity?.matchStatus === "exact_runtime_id"
+      ? visit.governedBusinessIdentity.googlePlaceId
+      : null;
+    let candidateId = null;
+    let candidateIdentityStatus = "unavailable";
+    if (googlePlaceId !== null) {
+      candidateId = deriveRouteIqCandidateIdFromGooglePlaceId(googlePlaceId);
+      candidateIdentityStatus = "derived_from_exact_governed_google_place_identity";
+    }
+    const corrections = audit.corrections.map(correction => ({
+      sourceCorrectionRecordSha256: correction.sourceCorrectionRecordSha256,
+      sequence: correction.sequence,
+      correctedAt: correction.correctedAt,
+      previousOutcomeSignal: clone(correction.previousOutcomeSignal),
+      finalOutcomeSignal: clone(correction.finalOutcomeSignal),
+      changedSignalFields: clone(correction.changedSignalFields),
+      appendOnly: true
+    }));
+    const canonical = {
+      sourceVisitRecordSha256: sha256(stableJson({
+        sourceArchiveSessionSha256,
+        visitId: visit.visitId,
+        eventTime,
+        candidateId,
+        outcomeAudit: audit
+      })),
+      candidateId,
+      candidateIdentityStatus,
+      actionEventTime: eventTime,
+      eventTimeAuthority: "dashboard_recorded_visit_time_in_committed_handoff",
+      authoritativeRecordTime: archiveCommittedAt,
+      outcomeEvidence: {
+        status: "verified_unscored_signals",
+        originalOutcomeSignal: clone(audit.originalOutcomeSignal),
+        finalOutcomeSignal: clone(audit.finalOutcomeSignal),
+        corrections,
+        correctionState: audit.state,
+        conflictState: audit.conflictState,
+        scoreableOutcome: null,
+        scoreableOutcomeDerivedByData: false
+      },
+      decisionSource: visit.visitDecisionSource ? {
+        sourceId: visit.visitDecisionSource.sourceId,
+        confidence: visit.visitDecisionSource.confidence,
+        capturedAt: visit.visitDecisionSource.capturedAt,
+        temporalClassification: "post_action_supporting_information",
+        preActionEvidence: false,
+        sameShadowDecisionInput: false,
+        scoreableOutcome: false
+      } : null,
+      recommendationDecisionContext: visit.recommendationDecisionContext ? {
+        recommendationAvailable: visit.recommendationDecisionContext.recommendationAvailable,
+        decision: visit.recommendationDecisionContext.decision,
+        temporalClassification: "post_action_supporting_information"
+      } : null
+    };
+    return {
+      ...canonical,
+      evidenceSha256: sha256(stableJson(canonical))
+    };
+  });
+  const body = {
+    schemaVersion: routeIqFieldSessionOutcomeProjectionVersion,
+    authority: "prometheus_data_committed_field_session",
+    recordOrigin: "prospective",
+    scope: {
+      workspaceId: record.workspaceId,
+      operatingProfileId: record.operatingProfileId,
+      representativeId
+    },
+    sourceArchive: {
+      handoffContractId: record.handoffContractId,
+      sourceArchiveSessionSha256,
+      rawSha256: commit.rawSha256,
+      normalizedSha256: normalizedSource.sha256,
+      archiveCommittedAt
+    },
+    outcomes,
+    privacy: {
+      namesIncluded: false,
+      addressesIncluded: false,
+      contactsIncluded: false,
+      notesIncluded: false,
+      preciseLocationIncluded: false
+    },
+    recommendationInfluence: "off",
+    scoreableOutcomeDerivedByData: false
+  };
+  return deepFreeze({
+    ...body,
+    projectionSha256: sha256(stableJson(body))
+  });
 }
 
 function projectionTimestamp(value, label) {
