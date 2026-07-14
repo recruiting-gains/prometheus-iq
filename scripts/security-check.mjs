@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { relative, resolve } from "node:path";
 import { Script } from "node:vm";
+import {
+  scanTrackedRepository,
+  verifyLocalSecretArtifacts
+} from "./check-cloudflare-unattended-secret-presence.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -92,10 +96,17 @@ function walk(directory) {
 
 walk(root);
 
+for (const finding of scanTrackedRepository({ root })) {
+  failures.push(`${finding.path}:${finding.line} contains a high-confidence ${finding.kind}.`);
+}
+for (const failure of verifyLocalSecretArtifacts({ root })) {
+  failures.push(`Cloudflare unattended local-secret protection failed: ${failure}.`);
+}
+
 if (failures.length) {
   console.error("Security checks failed:");
   failures.forEach(failure => console.error(`- ${failure}`));
   process.exitCode = 1;
 } else {
-  console.log("Security checks passed: CSP, deployment sync, navigation caching, GPS fields, identifiers, headers, and secret patterns.");
+  console.log("Security checks passed: CSP, deployment sync, navigation caching, GPS fields, identifiers, headers, secret patterns, and unattended Cloudflare secret protections.");
 }

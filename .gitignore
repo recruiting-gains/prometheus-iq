@@ -10,6 +10,12 @@ env.example
 .dev.vars
 .dev.vars.*
 .wrangler/
+.cloudflare-unattended/
+.cloudflare-unattended-control*.json
+.cloudflare-unattended-credentials*
+cloudflare-unattended-deployment-control*.json
+cloudflare-api-token*
+cloudflare-access-service-token*
 *.pem
 *.key
 *.p12

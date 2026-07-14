@@ -2,6 +2,14 @@
 
 This is the standard Infrastructure/Auth method for verifying Cloudflare Access-protected Prometheus production deployments without weakening Access policy or committing session material.
 
+## Unattended Status
+
+The future unattended architecture is defined in `docs/cloudflare-unattended-deployment-access-v1.md` and is currently `NOT_CONFIGURED`.
+
+Unattended verification must use a separate Cloudflare Access Service Token exposed to the smoke child process only as `CLOUDFLARE_ACCESS_CLIENT_ID` and `CLOUDFLARE_ACCESS_CLIENT_SECRET`. It must never use a Founder browser cookie, password, MFA code, username, or Global API Key.
+
+An Access Service Token authenticates a service principal but does not make HTTP read-only. Therefore unattended smoke remains blocked until a separately authorized server-side guard enforces `GET`/`HEAD` and an explicit read-only path allowlist, with a default-deny smoke client proving zero attempted writes. This batch does not change Access policy or runtime behavior.
+
 ## Scope
 
 Supported deployments:
@@ -11,7 +19,7 @@ Supported deployments:
 
 Verification coverage is provided by `scripts/verify-production-release.mjs` and includes runtime headers, private route availability, build marker parity, service worker version, PWA manifest, Dashboard/Mobile startup, Intelligence/runtime route initialization, console/runtime/network health, CSP/security headers, cache behavior, and unintended Google API failure detection.
 
-## Preferred Method: Authenticated Local CDP Session
+## Founder-Attended Method: Authenticated Local CDP Session
 
 Use an isolated Chrome profile bound to localhost. Complete Cloudflare Access login in that browser, then let the verifier read only the required Cloudflare Access cookies and browser runtime state through CDP.
 
@@ -46,9 +54,9 @@ npm run verify:authenticated-production -- \
 
 Close the isolated Chrome window when verification is complete.
 
-## Alternate Method: Environment-Only Access Cookies
+## Legacy Founder-Attended Fallback: Environment-Only Access Cookies
 
-Use this only when CDP is unavailable. Do not pass cookies as command-line arguments because they can land in shell history or process listings.
+Use this only when CDP is unavailable and the Founder is attending the verification. This method is prohibited for unattended operation. Do not pass cookies as command-line arguments because they can land in shell history or process listings.
 
 ```bash
 export PROMETHEUS_ACCESS_COOKIE='<private Cloudflare Access Cookie header>'
@@ -70,6 +78,8 @@ The authenticated wrapper rejects `--auth-cookie` intentionally. The underlying 
 ## Security Rules
 
 - Do not remove, bypass, or weaken Cloudflare Access.
+- Never use Founder browser cookies for unattended verification.
+- Keep deployment API-token and Access Service Token credentials separate.
 - Do not commit cookies, OTPs, Access tokens, service tokens, screenshots containing credentials, or `.env` values.
 - Do not paste cookie values into reports or chat.
 - Use an approved Access identity or approved test identity with least privilege.
