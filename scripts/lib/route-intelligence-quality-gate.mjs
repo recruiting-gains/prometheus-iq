@@ -38,7 +38,7 @@ export const defaultPaths = {
 };
 
 const expectedRuntimeFileCount = 32;
-const expectedDashboardFetchCount = 8;
+const expectedDashboardFetchCount = 9;
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 const dashboardCategories = new Set([

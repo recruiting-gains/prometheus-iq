@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T04:54:59.259Z",
+  "generatedAt": "2026-07-14T12:56:18.286Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "artifactGovernance": {
@@ -810,7 +810,7 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 8\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 8\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 9\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 9\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": "",
     "evidence": {
       "status": "passed",
@@ -821,12 +821,12 @@
         {
           "file": "index.html",
           "pattern": "Client fetch",
-          "count": 8
+          "count": 9
         },
         {
           "file": "deploy/cloudflare-pages/index.html",
           "pattern": "Client fetch",
-          "count": 8
+          "count": 9
         },
         {
           "file": "deploy/cloudflare-pages/sw.js",
@@ -851,9 +851,9 @@
     "status": "passed",
     "checkedRuntimeFiles": 32,
     "expectedRuntimeFiles": 32,
-    "dashboardFetches": 8,
-    "deployDashboardFetches": 8,
-    "expectedDashboardFetches": 8,
+    "dashboardFetches": 9,
+    "deployDashboardFetches": 9,
+    "expectedDashboardFetches": 9,
     "sourceDeployFetchParity": true,
     "liveGoogleApiCalls": 0
   },
@@ -861,34 +861,16 @@
     "status": "observed",
     "branch": "main",
     "baseRef": "origin/main",
-    "baseCommit": "4411763be449e171674f2952d558153773cd0845",
-    "ahead": 23,
+    "baseCommit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d",
+    "ahead": 5,
     "behind": 0,
     "expectedLocalCommitCount": null,
     "localCommitSubjects": [
-      "Implement Route IQ prospective shadow evidence lifecycle",
-      "Repair Route IQ evidence with SQLite coordinator",
-      "Harden Route IQ coordinator identity and chronology",
-      "Persist same-time Route IQ trigger conflicts",
-      "Implement Route IQ SQLite coordinator infrastructure",
-      "Allocate canonical Route IQ prospective opportunities",
-      "Integrate Route IQ prospective allocator runtime",
-      "Repair prospective allocator session and time invariants",
-      "Isolate prospective close from field-session acknowledgment",
-      "Make prospective chronology Cloudflare compatible",
-      "Implement governed Route IQ shadow intelligence",
-      "Complete prospective field evidence lifecycle",
-      "Implement Route IQ prospective shadow lifecycle",
-      "Repair Route IQ lifecycle temporal integrity",
-      "Bind prospective outcomes to immutable evaluations",
-      "Bind committed Route IQ outcomes to evaluations",
-      "Synchronize prospective runtime boundary test",
-      "Wire invisible Route IQ prospective signals",
-      "Recover exact committed outcome projections",
-      "Minimize prospective evaluation projection scope",
-      "Complete prospective outcome evaluation runtime",
-      "Synchronize prospective runtime contract metadata",
-      "Synchronize prospective Intelligence baselines"
+      "Add read-only prospective collection bootstrap",
+      "Suppress prospective writes while collection is off",
+      "Synchronize collection-off Dashboard governance",
+      "Synchronize Intelligence collection suppression baselines",
+      "Resolve Intelligence protected baseline successor"
     ]
   },
   "dashboardCompatibility": {
