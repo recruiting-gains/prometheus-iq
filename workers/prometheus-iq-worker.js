@@ -728,7 +728,7 @@ export default {
     const url = new URL(request.url);
     try {
       if (isRouteIqProspectiveShadowPath(url.pathname)
-        && !getRouteIqProspectiveActivation(env).active) {
+        && (!getRouteIqProspectiveActivation(env).active || request.method === "GET")) {
         return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
       }
       if (url.pathname.startsWith("/api/")) {

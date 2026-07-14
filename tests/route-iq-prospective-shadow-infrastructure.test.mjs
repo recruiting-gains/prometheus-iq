@@ -34,7 +34,8 @@ import {
   routeIqProspectiveCoordinatorProjectionVersion,
   routeIqProspectiveCoordinatorSchemaVersion,
   routeIqProspectiveKvAuthority,
-  routeIqProspectiveRecommendationInfluence
+  routeIqProspectiveRecommendationInfluence,
+  routeIqProspectiveRuntimeContextContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 import {
   routeIqProspectiveCohortConfigVersion,
@@ -47,6 +48,8 @@ import {
 import {
   ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
+  ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION,
+  ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION,
   ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING,
@@ -413,6 +416,16 @@ function eventRequest(body, token = null, headers = {}) {
       ...headers
     },
     body: JSON.stringify(body)
+  });
+}
+
+function bootstrapRequest(token = null, pathname = ROUTE_IQ_PROSPECTIVE_SHADOW_PATH) {
+  return new Request(`https://private.invalid${pathname}`, {
+    method: "GET",
+    headers: {
+      Accept: "application/json",
+      ...(token ? { "Cf-Access-Jwt-Assertion": token } : {})
+    }
   });
 }
 
@@ -957,6 +970,17 @@ test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or
   });
   assert.equal(storageCalls, 0);
 
+  const disabledBootstrap = await worker.fetch(bootstrapRequest(), inactiveEnv);
+  assert.equal(disabledBootstrap.status, 202);
+  assert.deepEqual(await disabledBootstrap.json(), {
+    ok: true,
+    acknowledged: true,
+    status: "disabled",
+    collection: "OFF",
+    recommendationInfluence: "OFF"
+  });
+  assert.equal(storageCalls, 0);
+
   const invalidActivation = await handleRouteIqProspectiveShadowRequest(
     eventRequest({ eventKind: "next_stop_requested" }),
     { [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "on" }
@@ -968,6 +992,104 @@ test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or
     { [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON" }
   );
   assert.equal(missingCohort.status, 202);
+});
+
+test("authenticated GET bootstrap is strict, short-lived, no-store, and storage-free", async () => {
+  const fixture = await accessFixture();
+  const response = await handleRouteIqProspectiveShadowRequest(
+    bootstrapRequest(fixture.token),
+    fixture.env,
+    { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+  );
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
+  assert.equal(response.headers.get("cross-origin-resource-policy"), "same-origin");
+  assert.deepEqual(await response.json(), {
+    bootstrapContractVersion: ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION,
+    ok: true,
+    acknowledged: true,
+    status: "enabled",
+    collection: "ON",
+    recommendationInfluence: "OFF",
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeId: "cruz",
+    activeCohort: true,
+    supportedOpportunityTypes: ["next_stop"],
+    eventContractVersion: ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION,
+    runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+    coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+    issuedAt: "2026-07-13T20:00:00.000Z",
+    expiresAt: "2026-07-13T20:01:00.000Z"
+  });
+  assert.deepEqual(fixture.calls, ["access_signature"]);
+  assert.deepEqual(fixture.names, []);
+  assert.deepEqual(fixture.commands, []);
+});
+
+test("active GET bypasses Aegis storage but still requires Access before any Durable Object lookup", async () => {
+  const fixture = await accessFixture();
+  let aegisStorageCalls = 0;
+  fixture.env.AEGIS_RATE_LIMITS = {
+    async get() {
+      aegisStorageCalls += 1;
+      throw new Error("Bootstrap reached Aegis KV.");
+    },
+    async put() {
+      aegisStorageCalls += 1;
+      throw new Error("Bootstrap reached Aegis KV.");
+    }
+  };
+  const response = await worker.fetch(bootstrapRequest(), fixture.env);
+  assert.equal(response.status, 403);
+  assert.equal((await response.json()).code, "route_iq_prospective_access_token_missing");
+  assert.equal(aegisStorageCalls, 0);
+  assert.equal(fixture.calls.includes("do_lookup"), false);
+});
+
+test("bootstrap fails closed for invalid path, expired Access, and unauthorized cohort", async () => {
+  const invalidPathFixture = await accessFixture();
+  const invalidPath = await handleRouteIqProspectiveShadowRequest(
+    bootstrapRequest(invalidPathFixture.token, `${ROUTE_IQ_PROSPECTIVE_SHADOW_PATH}/unsupported`),
+    invalidPathFixture.env,
+    { noncanonicalTestHooks: invalidPathFixture.noncanonicalTestHooks }
+  );
+  assert.equal(invalidPath.status, 405);
+  assert.equal(invalidPathFixture.calls.includes("do_lookup"), false);
+
+  const expiredFixture = await accessFixture({ expired: true });
+  const expired = await handleRouteIqProspectiveShadowRequest(
+    bootstrapRequest(expiredFixture.token),
+    expiredFixture.env,
+    { noncanonicalTestHooks: expiredFixture.noncanonicalTestHooks }
+  );
+  assert.equal(expired.status, 403);
+  assert.equal(expiredFixture.calls.includes("do_lookup"), false);
+
+  const unauthorizedFixture = await accessFixture({ cohortRepresentativeId: "anthony" });
+  const unauthorized = await handleRouteIqProspectiveShadowRequest(
+    bootstrapRequest(unauthorizedFixture.token),
+    unauthorizedFixture.env,
+    { noncanonicalTestHooks: unauthorizedFixture.noncanonicalTestHooks }
+  );
+  assert.equal(unauthorized.status, 403);
+  assert.equal(unauthorizedFixture.calls.includes("do_lookup"), false);
+
+  for (const missing of ["authority", "coordinator", "assets"]) {
+    const fixture = await accessFixture();
+    if (missing === "authority") delete fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.authorityKey];
+    if (missing === "coordinator") delete fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING];
+    if (missing === "assets") delete fixture.env.ASSETS;
+    const response = await handleRouteIqProspectiveShadowRequest(
+      bootstrapRequest(fixture.token),
+      fixture.env,
+      { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+    );
+    assert.equal(response.status, 503, missing);
+    assert.equal(fixture.calls.includes("do_lookup"), false, missing);
+    assert.deepEqual(fixture.commands, [], missing);
+  }
 });
 
 test("valid Access precedes scope-only allocation and returns only opaque acknowledgments", async () => {

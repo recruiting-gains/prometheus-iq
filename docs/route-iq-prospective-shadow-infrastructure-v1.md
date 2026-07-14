@@ -55,6 +55,25 @@ Missing or invalid global activation/cohort configuration is `OFF`. Once globall
 
 Infrastructure and Intelligence producer authority envelopes use keyed HMAC-SHA-256 through Web Crypto. The protected key is required at runtime and never appears in source, logs, reports, or documentation. The key version produces a non-secret key identifier. Production timestamps use `Date`; clock and key hooks are explicit noncanonical test inputs.
 
+## Authenticated read-only bootstrap
+
+`BATCH-20260714-002` adds an Infrastructure-owned bootstrap on `GET /api/dashboard/route-iq/prospective/event`. It does not add an endpoint, service, binding, vendor, storage system, PII category, or production activation.
+
+When collection is `OFF`, missing, or malformed, GET and POST retain the existing opaque `202 disabled` response before Access/JWKS, Aegis KV, Durable Object lookup, assets, or any storage. When collection is `ON`, GET verifies the existing Cloudflare Access JWT and the server-owned principal/cohort mapping. Only an exact governed workspace, operating profile, internal representative, active cohort, and supported `next_stop` opportunity can receive an enabled bootstrap.
+
+The enabled response is `Cache-Control: no-store` and contains only:
+
+- `bootstrapContractVersion = route-iq-prospective-browser-bootstrap-v1`;
+- `status = enabled`, `collection = ON`, and `recommendationInfluence = OFF`;
+- the authorized internal workspace, operating-profile, and representative IDs;
+- `activeCohort = true` and `supportedOpportunityTypes = [next_stop]`;
+- the browser-event, runtime-context, and coordinator contract versions;
+- authoritative `issuedAt` and `expiresAt` timestamps.
+
+The freshness window is at most 60 seconds and never extends past the verified Access token expiration. Missing, expired, unmapped, cross-cohort, or malformed authentication/configuration cannot produce an enabled response. A consuming Dashboard must require the exact versions, scope, cohort, opportunity type, ON/OFF boundaries, and unexpired timestamps; any absent, unknown, stale, malformed, or mismatched value is disabled.
+
+The GET branch returns before the write-capable path. It verifies that the existing coordinator, protected authority-key configuration, and governed asset binding are available, but never calls the Durable Object binding, creates a stub, reads or writes KV/Data/DO, fetches assets, generates candidates, emits evidence, registers background work, or drains retries/outboxes. It also bypasses the storage-writing Aegis rate-limit operation while retaining the Aegis no-store/security response headers and Cloudflare Access enforcement. Active POST behavior retains its existing Aegis, Access, authority, coordinator, and fail-closed controls.
+
 ## Browser and action boundary
 
 The body is limited to 2 KiB and exactly `eventKind`, optional bounded `informationalSequence`, and optional canonical `informationalObservedAt`. The supported kinds are `next_stop_requested`, `representative_action_observed`, and `representative_outcome_observed`.

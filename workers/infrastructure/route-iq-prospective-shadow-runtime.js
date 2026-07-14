@@ -4,6 +4,10 @@ import {
   readRouteIqFieldSessionArchive
 } from "../../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  routeIqProspectiveCoordinatorContractVersion,
+  routeIqProspectiveRuntimeContextContractVersion
+} from "../../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
+import {
   buildRouteIqEvaluationAdmissionClaims,
   buildRouteIqEvaluationFromAdmittedOutcome,
   buildRouteIqScoreableOutcomeAdmissionClaims,
@@ -13,6 +17,9 @@ import {
 import {
   ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
+  ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION,
+  ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_TTL_SECONDS,
+  ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION,
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS,
   ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
@@ -20,6 +27,7 @@ import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH_PREFIX,
+  ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES,
   assertExactKeys,
   canonicalIsoTimestamp,
   failRouteIqProspective,
@@ -27,9 +35,11 @@ import {
 } from "./route-iq-prospective-shadow-contract.js";
 import {
   getRouteIqProspectiveActivation,
-  verifyRouteIqProspectiveAccess
+  verifyRouteIqProspectiveAccess,
+  verifyRouteIqProspectiveBootstrapAccess
 } from "./route-iq-prospective-shadow-access.js";
 import {
+  assertRouteIqProspectiveAuthorityConfig,
   createRouteIqProspectiveAuthorityEnvelope
 } from "./route-iq-prospective-shadow-authority.js";
 import {
@@ -143,6 +153,58 @@ function runtimeNow(noncanonicalTestHooks) {
   return new Date().toISOString();
 }
 
+function assertRouteIqProspectiveBootstrapRuntime(env) {
+  assertRouteIqProspectiveAuthorityConfig(env);
+  const coordinator = env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING];
+  if (!coordinator || typeof coordinator.getByName !== "function") {
+    failRouteIqProspective(
+      "Prospective coordinator binding is unavailable.",
+      "route_iq_prospective_coordinator_binding_missing",
+      503
+    );
+  }
+  if (typeof env?.ASSETS?.fetch !== "function") {
+    failRouteIqProspective(
+      "Governed candidate source artifacts are unavailable.",
+      "route_iq_prospective_source_binding_missing",
+      503
+    );
+  }
+}
+
+function routeIqProspectiveBootstrapResponse({ scope, accessExpiresAt }, noncanonicalTestHooks) {
+  const issuedAt = runtimeNow(noncanonicalTestHooks);
+  const expiresAtMs = Math.min(
+    Date.parse(issuedAt) + (ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_TTL_SECONDS * 1000),
+    Date.parse(accessExpiresAt)
+  );
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.parse(issuedAt)) {
+    failRouteIqProspective(
+      "Prospective bootstrap authentication is no longer fresh.",
+      "route_iq_prospective_bootstrap_auth_stale",
+      403
+    );
+  }
+  return jsonResponse({
+    bootstrapContractVersion: ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION,
+    ok: true,
+    acknowledged: true,
+    status: "enabled",
+    collection: "ON",
+    recommendationInfluence: "OFF",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    activeCohort: true,
+    supportedOpportunityTypes: ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES,
+    eventContractVersion: ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION,
+    runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+    coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+    issuedAt,
+    expiresAt: new Date(expiresAtMs).toISOString()
+  });
+}
+
 async function coordinatorStubName(scope) {
   const digest = await sha256Hex({
     version: "route-iq-prospective-shadow-coordinator-route-v1",
@@ -253,6 +315,15 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, {
   if (!activation.active) return routeIqProspectiveShadowDisabledResponse();
 
   try {
+    const pathname = new URL(request.url).pathname;
+    if (request.method === "GET" && pathname === ROUTE_IQ_PROSPECTIVE_SHADOW_PATH) {
+      const access = await verifyRouteIqProspectiveBootstrapAccess(request, env, {
+        cohortConfig: activation.cohortConfig,
+        noncanonicalTestHooks
+      });
+      assertRouteIqProspectiveBootstrapRuntime(env);
+      return routeIqProspectiveBootstrapResponse(access, noncanonicalTestHooks);
+    }
     const scope = await verifyRouteIqProspectiveAccess(request, env, {
       cohortConfig: activation.cohortConfig,
       noncanonicalTestHooks
@@ -263,9 +334,9 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, {
         acknowledged: false,
         code: "route_iq_prospective_method_not_allowed",
         recommendationInfluence: "OFF"
-      }, 405, { Allow: "POST" });
+      }, 405, { Allow: "GET, POST" });
     }
-    if (new URL(request.url).pathname !== ROUTE_IQ_PROSPECTIVE_SHADOW_PATH) {
+    if (pathname !== ROUTE_IQ_PROSPECTIVE_SHADOW_PATH) {
       return jsonResponse({
         ok: false,
         acknowledged: false,

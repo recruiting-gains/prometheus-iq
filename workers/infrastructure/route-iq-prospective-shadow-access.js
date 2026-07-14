@@ -244,7 +244,7 @@ function scopeInCohort(scope, cohortConfig) {
     && candidate.representativeId === scope.representativeId);
 }
 
-export async function verifyRouteIqProspectiveAccess(request, env, {
+async function verifyRouteIqProspectiveAccessContext(request, env, {
   cohortConfig,
   noncanonicalTestHooks
 } = {}) {
@@ -265,5 +265,16 @@ export async function verifyRouteIqProspectiveAccess(request, env, {
   if (!cohortConfig || !scopeInCohort(scope, cohortConfig)) {
     failRouteIqProspective("Mapped principal is outside the enabled cohort.", "route_iq_prospective_cohort_scope_blocked", 403);
   }
-  return scope;
+  return Object.freeze({
+    scope,
+    accessExpiresAt: new Date(payload.exp * 1000).toISOString()
+  });
+}
+
+export async function verifyRouteIqProspectiveAccess(request, env, options = {}) {
+  return (await verifyRouteIqProspectiveAccessContext(request, env, options)).scope;
+}
+
+export async function verifyRouteIqProspectiveBootstrapAccess(request, env, options = {}) {
+  return verifyRouteIqProspectiveAccessContext(request, env, options);
 }

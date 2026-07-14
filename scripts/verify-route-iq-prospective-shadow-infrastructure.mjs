@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
+const startupSuppressionBatchId = "BATCH-20260714-002";
 const infrastructureBaseCommit = "84319f9c70004edd50e1531e48ea1d0d7b501089";
 const dataCommits = Object.freeze([
   "7970f240",
@@ -78,9 +79,14 @@ assert.doesNotMatch(publicConfig, /ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR|Route
 
 assert.match(worker, /export \{\s*RouteIqProspectiveShadowCoordinator\s*\}/u);
 assert.match(worker, /!getRouteIqProspectiveActivation\(env\)\.active/u);
+assert.match(worker, /request\.method === "GET"/u);
 assert.ok(
   worker.indexOf("!getRouteIqProspectiveActivation(env).active") < worker.indexOf("await enforceAegisControls(request, env)"),
   "OFF prospective handling must precede Aegis storage"
+);
+assert.ok(
+  worker.indexOf('request.method === "GET"') < worker.indexOf("await enforceAegisControls(request, env)"),
+  "Read-only prospective bootstrap must precede Aegis storage"
 );
 assert.match(worker, /isRouteIqProspectiveShadowPath/u);
 assert.match(
@@ -172,6 +178,31 @@ for (const prohibited of [
 }
 
 assert.doesNotMatch(`${contract}\n${runtime}`, /route_iq_prospective_data_server_allocator_required/u);
+for (const required of [
+  "ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION",
+  "ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_TTL_SECONDS",
+  "ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION",
+  "ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES",
+  "verifyRouteIqProspectiveBootstrapAccess",
+  "assertRouteIqProspectiveBootstrapRuntime",
+  "assertRouteIqProspectiveAuthorityConfig",
+  'status: "enabled"',
+  'collection: "ON"',
+  'activeCohort: true',
+  "supportedOpportunityTypes",
+  "eventContractVersion",
+  "runtimeContextContractVersion",
+  "coordinatorContractVersion",
+  "issuedAt",
+  "expiresAt"
+]) {
+  assert.ok(`${contract}\n${access}\n${runtime}`.includes(required), `Bootstrap must include ${required}`);
+}
+assert.match(runtime, /request\.method === "GET" && pathname === ROUTE_IQ_PROSPECTIVE_SHADOW_PATH/u);
+assert.ok(
+  runtime.indexOf("return routeIqProspectiveBootstrapResponse") < runtime.indexOf("const scope = await verifyRouteIqProspectiveAccess"),
+  "Bootstrap must return before the write-capable coordinator path"
+);
 assert.match(runtime, /namespace\.getByName\(await coordinatorStubName\(scope\)\)/u);
 assert.match(
   runtime,
@@ -232,6 +263,9 @@ assert.doesNotMatch(orchestration, /lifecycleTime|allocationTime\s*\+\s*[1-9]|ba
 assert.doesNotMatch(`${runtime}\n${orchestration}`, /localStorage|sessionStorage|indexedDB/u);
 
 for (const required of [
+  "authenticated GET bootstrap is strict, short-lived, no-store, and storage-free",
+  "active GET bypasses Aegis storage but still requires Access before any Durable Object lookup",
+  "bootstrap fails closed for invalid path, expired Access, and unauthorized cohort",
   "production lifecycle samples server Date at every stage",
   "explicit noncanonical lifecycle clock is sampled per stage",
   "lifecycle_server_clock",
@@ -269,6 +303,7 @@ assert.equal(
 
 for (const required of [
   batchId,
+  startupSuppressionBatchId,
   "b388849c21051262e0f80e4c24875147cf9889dd",
   "84319f9c70004edd50e1531e48ea1d0d7b501089",
   "OFF = $0 incremental",
@@ -303,6 +338,7 @@ for (const required of [
 console.log(JSON.stringify({
   status: "passed",
   batchId,
+  startupSuppressionBatchId,
   dataCommits,
   intelligenceCommits,
   binding: "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
@@ -311,6 +347,8 @@ console.log(JSON.stringify({
   publicWorkerBindingPresent: false,
   collectionDefault: "OFF",
   recommendationInfluence: "OFF",
+  bootstrapContractVersion: "route-iq-prospective-browser-bootstrap-v1",
+  bootstrapStorageAccess: false,
   allocatorIntegration: "allocateNextStopOpportunity",
   intelligenceLifecycle: "manifest_snapshot_shadow_decision_sealed",
   actionIntegration: "linkServerDerivedNextStopAction",

@@ -3,6 +3,14 @@ export const ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS = "RouteIqProspectiveShadowCoordi
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_PATH = "/api/dashboard/route-iq/prospective/event";
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_PATH_PREFIX = "/api/dashboard/route-iq/prospective/";
 export const ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT = "route-iq-end-of-day-data-handoff-v1";
+export const ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_CONTRACT_VERSION =
+  "route-iq-prospective-browser-bootstrap-v1";
+export const ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION =
+  "route-iq-prospective-browser-event-v1";
+export const ROUTE_IQ_PROSPECTIVE_BOOTSTRAP_TTL_SECONDS = 60;
+export const ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES = Object.freeze([
+  "next_stop"
+]);
 
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_ENV = Object.freeze({
   accessAudience: "ROUTE_IQ_PROSPECTIVE_SHADOW_ACCESS_AUDIENCE",
