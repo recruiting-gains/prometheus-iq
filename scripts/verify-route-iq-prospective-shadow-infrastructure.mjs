@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
 const startupSuppressionBatchId = "BATCH-20260714-002";
+const activationReadinessBatchId = "BATCH-20260714-003";
 const infrastructureBaseCommit = "84319f9c70004edd50e1531e48ea1d0d7b501089";
 const dataCommits = Object.freeze([
   "7970f240",
@@ -36,11 +37,15 @@ const paths = Object.freeze({
   authority: "workers/infrastructure/route-iq-prospective-shadow-authority.js",
   durableObject: "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
   orchestration: "workers/infrastructure/route-iq-prospective-shadow-orchestration.js",
+  readiness: "workers/infrastructure/route-iq-prospective-shadow-readiness.js",
   runtime: "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+  activationTemplate: "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json",
   privateConfig: "wrangler.jsonc",
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
+  dataRuntimeContract: "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
   test: "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
-  documentation: "docs/route-iq-prospective-shadow-infrastructure-v1.md"
+  documentation: "docs/route-iq-prospective-shadow-infrastructure-v1.md",
+  activationRunbook: "docs/route-iq-prospective-collection-activation-runbook-v1.md"
 });
 
 for (const path of Object.values(paths)) {
@@ -53,11 +58,15 @@ const access = read(paths.access);
 const authority = read(paths.authority);
 const durableObject = read(paths.durableObject);
 const orchestration = read(paths.orchestration);
+const readiness = read(paths.readiness);
 const runtime = read(paths.runtime);
+const activationTemplate = JSON.parse(read(paths.activationTemplate));
 const privateConfig = read(paths.privateConfig);
 const publicConfig = read(paths.publicConfig);
+const dataRuntimeContract = JSON.parse(read(paths.dataRuntimeContract));
 const testSource = read(paths.test);
 const documentation = read(paths.documentation);
+const activationRunbook = read(paths.activationRunbook);
 const packageJson = JSON.parse(read("package.json"));
 
 for (const commit of dataCommits) {
@@ -76,6 +85,7 @@ assert.match(privateConfig, /"class_name": "RouteIqProspectiveShadowCoordinator"
 assert.equal((privateConfig.match(/"new_sqlite_classes"/gu) || []).length, 1);
 assert.match(privateConfig, /"tag": "route-iq-prospective-shadow-sqlite-v1"/u);
 assert.doesNotMatch(publicConfig, /ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR|RouteIqProspectiveShadowCoordinator/u);
+assert.doesNotMatch(privateConfig, /ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION|ROUTE_IQ_PROSPECTIVE_SHADOW_COHORT_CONFIG/u);
 
 assert.match(worker, /export \{\s*RouteIqProspectiveShadowCoordinator\s*\}/u);
 assert.match(worker, /!getRouteIqProspectiveActivation\(env\)\.active/u);
@@ -198,6 +208,24 @@ for (const required of [
 ]) {
   assert.ok(`${contract}\n${access}\n${runtime}`.includes(required), `Bootstrap must include ${required}`);
 }
+for (const required of [
+  "route-iq-prospective-cohort-config-v2",
+  "validateRouteIqProspectiveCohortConfig",
+  "state",
+  "issuedAt",
+  "expiresAt",
+  "supportedOpportunityTypes",
+  "ROUTE_IQ_PROSPECTIVE_MAX_ACTIVE_REPRESENTATIVES",
+  "ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_MAX_LIFETIME_SECONDS",
+  "route_iq_prospective_cohort_config_stale",
+  "ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES"
+]) {
+  assert.ok(`${contract}\n${access}`.includes(required), `Activation cohort validation must include ${required}`);
+}
+assert.match(access, /config\.scopes\.length !== ROUTE_IQ_PROSPECTIVE_MAX_ACTIVE_REPRESENTATIVES/u);
+assert.match(access, /expiresAtMs <= nowMs/u);
+assert.match(access, /expiresAtMs - issuedAtMs > ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_MAX_LIFETIME_SECONDS/u);
+assert.match(access, /value\.some\(\(entry, index\) => entry !== ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES\[index\]\)/u);
 assert.match(runtime, /request\.method === "GET" && pathname === ROUTE_IQ_PROSPECTIVE_SHADOW_PATH/u);
 assert.ok(
   runtime.indexOf("return routeIqProspectiveBootstrapResponse") < runtime.indexOf("const scope = await verifyRouteIqProspectiveAccess"),
@@ -301,6 +329,79 @@ assert.equal(
   "node scripts/verify-route-iq-prospective-shadow-infrastructure.mjs && node --test tests/route-iq-prospective-shadow-infrastructure.test.mjs"
 );
 
+assert.equal(activationTemplate.templateVersion, "route-iq-prospective-shadow-activation-template-v1");
+assert.equal(activationTemplate.templateState, "INERT_DEFAULT_OFF");
+assert.equal(activationTemplate.collection, "OFF");
+assert.equal(activationTemplate.recommendationInfluence, "OFF");
+assert.equal(activationTemplate.activeCohortCount, 0);
+assert.equal(activationTemplate.runtimeCohortConfigTemplate.version, "route-iq-prospective-cohort-config-v2");
+assert.equal(activationTemplate.runtimeCohortConfigTemplate.scopes.length, 1);
+assert.equal(activationTemplate.activationGuards.maximumActiveRepresentatives, 1);
+assert.equal(activationTemplate.activationGuards.maximumConfigLifetimeHours, 24);
+assert.equal(activationTemplate.activationGuards.productionUseOfThisTemplateIsProhibited, true);
+
+for (const required of [
+  "route-iq-prospective-activation-readiness-v1",
+  "auditRouteIqProspectiveActivationReadiness",
+  "attemptedApplicationWrites",
+  "durableObjectInstanceCount",
+  "kvWriteCount",
+  "prospectiveRecordCount",
+  "conflictCount",
+  "exclusionCount",
+  "evaluationCount",
+  "archiveDispositionConsumerExclusionVerified",
+  "productionAccessUsed",
+  "activationAuthorized: false",
+  "productionVerified: false",
+  "preactivation_write_attempt_detected"
+]) {
+  assert.ok(readiness.includes(required), `Activation readiness audit must include ${required}`);
+}
+for (const budget of [
+  "browserBodyBytes",
+  "candidateCount",
+  "domainCommandBytes",
+  "eventsPerDay",
+  "opportunitiesPerSession",
+  "pendingOutbox",
+  "principals",
+  "rowsReadPerRpc",
+  "rowsWrittenPerRpc",
+  "sourceArtifactBytes",
+  "sourceArtifactTotalBytes",
+  "sourceCount",
+  "sqlStatementsPerRpc",
+  "storageBytesPerCoordinator"
+]) {
+  assert.ok(readiness.includes(budget), `Activation readiness audit must enforce ${budget}`);
+}
+
+const disposition = dataRuntimeContract.fieldSessionAdministrativeDispositionContract;
+assert.equal(disposition.contractVersion, "route-iq-field-session-administrative-disposition-v1");
+assert.equal(disposition.authorizedDisposition.reason, "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION");
+assert.equal(disposition.authorizedDisposition.state, "EXCLUDED_FROM_ANALYTICS");
+for (const domain of [
+  "learning",
+  "readiness",
+  "evaluation",
+  "representative_performance",
+  "territory_metrics",
+  "customer_metrics",
+  "productivity_counts",
+  "dashboards",
+  "leaderboards",
+  "baselines",
+  "calibration",
+  "recommendation_inputs"
+]) {
+  assert.equal(disposition.excludedDomains.includes(domain), true, `Disposition must exclude ${domain}`);
+}
+assert.equal(disposition.consumerRules.consumptionEligibilityCheckRequired, true);
+assert.equal(disposition.consumerRules.chronologicalEvidenceProjectionFailsClosed, true);
+assert.equal(disposition.consumerRules.committedOutcomeProjectionFailsClosed, true);
+assert.equal(disposition.consumerRules.recommendationInfluenceAllowed, false);
+
 for (const required of [
   batchId,
   startupSuppressionBatchId,
@@ -335,10 +436,31 @@ for (const required of [
   assert.ok(documentation.includes(required), `Documentation must include ${required}`);
 }
 
+for (const required of [
+  activationReadinessBatchId,
+  "INERT_DEFAULT_OFF",
+  "route-iq-prospective-cohort-config-v2",
+  "exactly one governed workspace, operating profile, and internal representative scope",
+  "24 hours",
+  "Founder kill switch",
+  "Immediate disable procedure",
+  "productionVerified = false",
+  "npx wrangler whoami",
+  "npx wrangler deploy --dry-run --strict --keep-vars --config wrangler.jsonc",
+  "npx wrangler deploy --keep-vars --config wrangler.jsonc",
+  "exactly 390x844",
+  "Dark deployment does not authorize collection",
+  "Native Cloudflare rollback is prohibited",
+  "new forward-revert commits only"
+]) {
+  assert.ok(activationRunbook.includes(required), `Activation runbook must include ${required}`);
+}
+
 console.log(JSON.stringify({
   status: "passed",
   batchId,
   startupSuppressionBatchId,
+  activationReadinessBatchId,
   dataCommits,
   intelligenceCommits,
   binding: "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
@@ -346,7 +468,12 @@ console.log(JSON.stringify({
   migration: "route-iq-prospective-shadow-sqlite-v1",
   publicWorkerBindingPresent: false,
   collectionDefault: "OFF",
+  activationTemplateState: "INERT_DEFAULT_OFF",
+  activeCohortCount: 0,
+  cohortConfigVersion: "route-iq-prospective-cohort-config-v2",
+  activationConfigMaxLifetimeHours: 24,
   recommendationInfluence: "OFF",
+  productionAccessUsed: false,
   bootstrapContractVersion: "route-iq-prospective-browser-bootstrap-v1",
   bootstrapStorageAccess: false,
   allocatorIntegration: "allocateNextStopOpportunity",

@@ -1,0 +1,34 @@
+{
+  "templateVersion": "route-iq-prospective-shadow-activation-template-v1",
+  "templateState": "INERT_DEFAULT_OFF",
+  "collection": "OFF",
+  "recommendationInfluence": "OFF",
+  "activeCohortCount": 0,
+  "runtimeCohortConfigTemplate": {
+    "version": "route-iq-prospective-cohort-config-v2",
+    "state": "ACTIVE",
+    "issuedAt": "<canonical-server-issued-timestamp>",
+    "expiresAt": "<within-24-hours-of-issuedAt>",
+    "supportedOpportunityTypes": [
+      "next_stop"
+    ],
+    "scopes": [
+      {
+        "workspaceId": "<trusted-workspace-id>",
+        "operatingProfileId": "<trusted-operating-profile-id>",
+        "representativeId": "<trusted-internal-representative-id>"
+      }
+    ]
+  },
+  "activationGuards": {
+    "founderDeploymentApprovalRequired": true,
+    "founderActivationApprovalRequired": true,
+    "authenticatedChangeRequired": true,
+    "auditRecordRequired": true,
+    "globalKillSwitchRequired": true,
+    "missingOrInvalidConfigurationMeansOff": true,
+    "maximumActiveRepresentatives": 1,
+    "maximumConfigLifetimeHours": 24,
+    "productionUseOfThisTemplateIsProhibited": true
+  }
+}

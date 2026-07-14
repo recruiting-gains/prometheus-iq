@@ -53,6 +53,10 @@ Required runtime setting names, with no values in source control:
 
 Missing or invalid global activation/cohort configuration is `OFF`. Once globally enabled, missing or invalid Access configuration/token/map, governed territory provenance, authority key/version, binding, or scope fails closed. Collection activation is independent of recommendation influence, which remains `OFF`.
 
+`BATCH-20260714-003` tightens the future cohort contract to `route-iq-prospective-cohort-config-v2`. A valid activation value must be explicitly `ACTIVE`, contain canonical issue/expiry timestamps with a positive lifetime no longer than 24 hours, allow exactly `next_stop`, and contain exactly one governed internal representative scope. Future-issued, expired, multi-scope, unknown-scope, extra-field, unsupported-opportunity, missing, or malformed values remain `OFF`. The source-controlled activation template is `INERT_DEFAULT_OFF`, contains no real cohort identity, and is intentionally invalid for direct production use.
+
+The pure local readiness auditor reports endpoint state, attempted application writes, active cohort count, Durable Object/KV/prospective/conflict/exclusion/evaluation counts, archive-disposition consumer exclusion, and every governed budget. It performs no Cloudflare or storage access and always reports `activationAuthorized: false` and `productionVerified: false`. The authenticated deployment, immediate-disable, separate activation, monitoring, and forward-rollback procedure is documented in `docs/route-iq-prospective-collection-activation-runbook-v1.md`.
+
 Infrastructure and Intelligence producer authority envelopes use keyed HMAC-SHA-256 through Web Crypto. The protected key is required at runtime and never appears in source, logs, reports, or documentation. The key version produces a non-secret key identifier. Production timestamps use `Date`; clock and key hooks are explicit noncanonical test inputs.
 
 ## Authenticated read-only bootstrap

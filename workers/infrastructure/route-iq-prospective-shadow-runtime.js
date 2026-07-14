@@ -311,7 +311,9 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, {
   executionContext,
   noncanonicalTestHooks
 } = {}) {
-  const activation = getRouteIqProspectiveActivation(env);
+  const activation = getRouteIqProspectiveActivation(env, {
+    now: runtimeNow(noncanonicalTestHooks)
+  });
   if (!activation.active) return routeIqProspectiveShadowDisabledResponse();
 
   try {
@@ -668,7 +670,9 @@ export async function closeRouteIqProspectiveSessionFromHandoff(request, env, {
   handoffResult,
   noncanonicalTestHooks
 } = {}) {
-  const activation = getRouteIqProspectiveActivation(env);
+  const activation = getRouteIqProspectiveActivation(env, {
+    now: runtimeNow(noncanonicalTestHooks)
+  });
   if (!activation.active) return { status: "disabled" };
   if (!["end_route", "end_day"].includes(completionAction)) {
     failRouteIqProspective(
@@ -699,7 +703,9 @@ export async function reconcileAndCloseRouteIqProspectiveSessionFromHandoff(requ
   handoffResult,
   noncanonicalTestHooks
 } = {}) {
-  const activation = getRouteIqProspectiveActivation(env);
+  const activation = getRouteIqProspectiveActivation(env, {
+    now: runtimeNow(noncanonicalTestHooks)
+  });
   if (!activation.active) return { status: "disabled" };
   if (!["end_route", "end_day"].includes(completionAction)) {
     failRouteIqProspective(

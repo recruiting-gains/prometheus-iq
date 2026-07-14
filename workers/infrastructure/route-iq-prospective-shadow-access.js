@@ -2,8 +2,12 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 
 import { supportedFieldSessionWorkspaces } from "../../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_CLOCK_SKEW_SECONDS,
+  ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_MAX_LIFETIME_SECONDS,
+  ROUTE_IQ_PROSPECTIVE_MAX_ACTIVE_REPRESENTATIVES,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_ENV,
+  ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES,
   assertExactKeys,
   canonicalIsoTimestamp,
   failRouteIqProspective,
@@ -14,7 +18,7 @@ import {
 } from "./route-iq-prospective-shadow-contract.js";
 
 export const routeIqProspectivePrincipalMapVersion = "route-iq-prospective-access-principal-map-v1";
-export const routeIqProspectiveCohortConfigVersion = "route-iq-prospective-cohort-config-v1";
+export const routeIqProspectiveCohortConfigVersion = "route-iq-prospective-cohort-config-v2";
 
 let cachedJwksUrl = null;
 let cachedRemoteJwks = null;
@@ -85,15 +89,74 @@ function validateTerritoryContext(value, path) {
   });
 }
 
-function parseCohortConfig(value) {
+function activationNowMs(now) {
+  const candidate = now === undefined
+    ? new Date()
+    : now instanceof Date
+      ? now
+      : new Date(now);
+  if (Number.isNaN(candidate.getTime())) {
+    failRouteIqProspective(
+      "Cohort configuration verification time is invalid.",
+      "route_iq_prospective_cohort_config_invalid",
+      403
+    );
+  }
+  return candidate.getTime();
+}
+
+function validateOpportunityTypes(value) {
+  if (!Array.isArray(value)
+    || value.length !== ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES.length
+    || value.some((entry, index) => entry !== ROUTE_IQ_PROSPECTIVE_SUPPORTED_OPPORTUNITY_TYPES[index])) {
+    failRouteIqProspective(
+      "Cohort configuration opportunity types are invalid.",
+      "route_iq_prospective_cohort_opportunity_types_invalid",
+      403
+    );
+  }
+  return Object.freeze([...value]);
+}
+
+export function validateRouteIqProspectiveCohortConfig(value, { now } = {}) {
   const config = parseBoundedJson(value, "cohortConfig", 32 * 1024);
-  assertExactKeys(config, ["version", "scopes"], "cohortConfig");
+  assertExactKeys(config, [
+    "version",
+    "state",
+    "issuedAt",
+    "expiresAt",
+    "supportedOpportunityTypes",
+    "scopes"
+  ], "cohortConfig");
   if (config.version !== routeIqProspectiveCohortConfigVersion
+    || config.state !== "ACTIVE"
     || !Array.isArray(config.scopes)
-    || config.scopes.length < 1
+    || config.scopes.length !== ROUTE_IQ_PROSPECTIVE_MAX_ACTIVE_REPRESENTATIVES
     || config.scopes.length > ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.principals) {
     failRouteIqProspective("Cohort configuration is invalid.", "route_iq_prospective_cohort_config_invalid", 403);
   }
+  const issuedAt = canonicalIsoTimestamp(config.issuedAt, "cohortConfig.issuedAt", { status: 403 });
+  const expiresAt = canonicalIsoTimestamp(config.expiresAt, "cohortConfig.expiresAt", { status: 403 });
+  const issuedAtMs = Date.parse(issuedAt);
+  const expiresAtMs = Date.parse(expiresAt);
+  const nowMs = activationNowMs(now);
+  if (issuedAtMs > nowMs + (ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_CLOCK_SKEW_SECONDS * 1000)
+    || expiresAtMs <= issuedAtMs
+    || expiresAtMs - issuedAtMs > ROUTE_IQ_PROSPECTIVE_COHORT_CONFIG_MAX_LIFETIME_SECONDS * 1000) {
+    failRouteIqProspective(
+      "Cohort configuration validity window is invalid.",
+      "route_iq_prospective_cohort_config_invalid",
+      403
+    );
+  }
+  if (expiresAtMs <= nowMs) {
+    failRouteIqProspective(
+      "Cohort configuration is stale.",
+      "route_iq_prospective_cohort_config_stale",
+      403
+    );
+  }
+  const supportedOpportunityTypes = validateOpportunityTypes(config.supportedOpportunityTypes);
   const unique = new Set();
   const scopes = config.scopes.map((scope, index) => {
     const normalized = validateGovernedScope(scope, `cohortConfig.scopes[${index}]`, [
@@ -108,21 +171,45 @@ function parseCohortConfig(value) {
     unique.add(key);
     return Object.freeze(normalized);
   });
-  return Object.freeze({ version: config.version, scopes: Object.freeze(scopes) });
+  return Object.freeze({
+    version: config.version,
+    state: config.state,
+    issuedAt,
+    expiresAt,
+    supportedOpportunityTypes,
+    scopes: Object.freeze(scopes)
+  });
 }
 
-export function getRouteIqProspectiveActivation(env) {
+export function getRouteIqProspectiveActivation(env, { now } = {}) {
   if (env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection] !== "ON") {
-    return Object.freeze({ active: false, reason: "global_off", cohortConfig: null });
+    return Object.freeze({
+      active: false,
+      reason: "global_off",
+      activeCohortCount: 0,
+      cohortConfig: null
+    });
   }
   try {
+    const cohortConfig = validateRouteIqProspectiveCohortConfig(
+      env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig],
+      { now }
+    );
     return Object.freeze({
       active: true,
       reason: "global_on",
-      cohortConfig: parseCohortConfig(env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig])
+      activeCohortCount: cohortConfig.scopes.length,
+      cohortConfig
     });
-  } catch {
-    return Object.freeze({ active: false, reason: "cohort_config_off", cohortConfig: null });
+  } catch (error) {
+    return Object.freeze({
+      active: false,
+      reason: error?.code === "route_iq_prospective_cohort_config_stale"
+        ? "cohort_config_stale"
+        : "cohort_config_off",
+      activeCohortCount: 0,
+      cohortConfig: null
+    });
   }
 }
 

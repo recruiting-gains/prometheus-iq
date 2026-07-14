@@ -577,7 +577,11 @@ function scheduleRouteIqProspectiveSessionClose(request, env, {
   executionContext,
   prospectiveTestHooks
 }) {
-  if (!getRouteIqProspectiveActivation(env).active) return null;
+  if (!getRouteIqProspectiveActivation(env, {
+    now: prospectiveTestHooks?.enabled === true
+      ? prospectiveTestHooks.currentDate
+      : undefined
+  }).active) return null;
   const closePromise = Promise.resolve()
     .then(() => reconcileAndCloseRouteIqProspectiveSessionFromHandoff(request, env, {
       completionAction,

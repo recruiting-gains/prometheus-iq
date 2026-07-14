@@ -38,8 +38,10 @@ import {
   routeIqProspectiveRuntimeContextContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 import {
+  getRouteIqProspectiveActivation,
   routeIqProspectiveCohortConfigVersion,
-  routeIqProspectivePrincipalMapVersion
+  routeIqProspectivePrincipalMapVersion,
+  validateRouteIqProspectiveCohortConfig
 } from "../workers/infrastructure/route-iq-prospective-shadow-access.js";
 import {
   createRouteIqProspectiveAuthorityEnvelope,
@@ -52,11 +54,16 @@ import {
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_CONTRACT_VERSION,
   ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+  ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING,
   ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_ENV,
   sha256Hex
 } from "../workers/infrastructure/route-iq-prospective-shadow-contract.js";
+import {
+  auditRouteIqProspectiveActivationReadiness,
+  routeIqProspectiveActivationReadinessVersion
+} from "../workers/infrastructure/route-iq-prospective-shadow-readiness.js";
 import {
   closeRouteIqProspectiveSessionFromHandoff,
   admitRouteIqProspectiveIntelligenceOutcomes,
@@ -102,11 +109,67 @@ function scope(representativeId = "cruz") {
   };
 }
 
-function cohortConfig(representativeId = "cruz") {
+function cohortConfig(representativeId = "cruz", {
+  now = testNow,
+  state = "ACTIVE",
+  supportedOpportunityTypes = ["next_stop"],
+  scopes = [scope(representativeId)],
+  issuedAt = now.toISOString(),
+  expiresAt = new Date(now.getTime() + (60 * 60 * 1000)).toISOString(),
+  version = routeIqProspectiveCohortConfigVersion
+} = {}) {
   return JSON.stringify({
-    version: routeIqProspectiveCohortConfigVersion,
-    scopes: [scope(representativeId)]
+    version,
+    state,
+    issuedAt,
+    expiresAt,
+    supportedOpportunityTypes,
+    scopes
   });
+}
+
+function readinessObservation({
+  fixtureKind = "collection_off",
+  endpointState = "disabled",
+  endpointHttpStatus = 202,
+  activeCohortCount = 0,
+  overrides = {},
+  usage = {}
+} = {}) {
+  return {
+    fixtureKind,
+    productionAccessUsed: false,
+    endpointState,
+    endpointHttpStatus,
+    attemptedApplicationWrites: 0,
+    activeCohortCount,
+    durableObjectInstanceCount: 0,
+    kvWriteCount: 0,
+    prospectiveRecordCount: 0,
+    conflictCount: 0,
+    exclusionCount: 0,
+    evaluationCount: 0,
+    archiveDispositionConsumerExclusionVerified: true,
+    recommendationInfluence: "OFF",
+    usage: {
+      browserBodyBytes: 0,
+      candidateCount: 0,
+      domainCommandBytes: 0,
+      eventsPerDay: 0,
+      opportunitiesPerSession: 0,
+      pendingOutbox: 0,
+      principals: 0,
+      rowsReadPerRpc: 0,
+      rowsWrittenPerRpc: 0,
+      sourceArtifactBytes: 0,
+      sourceArtifactTotalBytes: 0,
+      sourceCount: 0,
+      sqlStatementsPerRpc: 0,
+      storageBytesPerCoordinator: 0,
+      ...usage
+    },
+    ...overrides
+  };
 }
 
 function territoryContext(representativeId = "cruz") {
@@ -994,6 +1057,183 @@ test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or
   assert.equal(missingCohort.status, 202);
 });
 
+test("one-representative cohort configuration is versioned, bounded, fresh, and opportunity-scoped", async () => {
+  const valid = validateRouteIqProspectiveCohortConfig(cohortConfig(), { now: testNow });
+  assert.equal(valid.version, "route-iq-prospective-cohort-config-v2");
+  assert.equal(valid.state, "ACTIVE");
+  assert.equal(valid.issuedAt, testNow.toISOString());
+  assert.equal(valid.expiresAt, "2026-07-13T21:00:00.000Z");
+  assert.deepEqual(valid.supportedOpportunityTypes, ["next_stop"]);
+  assert.deepEqual(valid.scopes, [scope()]);
+
+  const invalidConfigs = [
+    cohortConfig("cruz", { state: "OFF" }),
+    cohortConfig("cruz", { version: "route-iq-prospective-cohort-config-v1" }),
+    cohortConfig("cruz", { supportedOpportunityTypes: ["nearby_context"] }),
+    cohortConfig("cruz", { scopes: [scope("cruz"), scope("anthony")] }),
+    cohortConfig("cruz", {
+      issuedAt: "2026-07-13T20:01:00.000Z",
+      expiresAt: "2026-07-13T21:01:00.000Z"
+    }),
+    cohortConfig("cruz", {
+      issuedAt: "2026-07-12T19:59:59.000Z",
+      expiresAt: "2026-07-13T20:00:01.000Z"
+    }),
+    cohortConfig("cruz", { expiresAt: "2026-07-13T20:00:00.000Z" }),
+    cohortConfig("unknown")
+  ];
+  for (const config of invalidConfigs) {
+    const activation = getRouteIqProspectiveActivation({
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: config
+    }, { now: testNow });
+    assert.equal(activation.active, false);
+    assert.equal(activation.activeCohortCount, 0);
+  }
+
+  const staleActivation = getRouteIqProspectiveActivation({
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: cohortConfig("cruz", {
+      issuedAt: "2026-07-13T18:00:00.000Z",
+      expiresAt: "2026-07-13T19:00:00.000Z"
+    })
+  }, { now: testNow });
+  assert.equal(staleActivation.active, false);
+  assert.equal(staleActivation.reason, "cohort_config_stale");
+
+  let coordinatorLookups = 0;
+  const staleResponse = await handleRouteIqProspectiveShadowRequest(
+    eventRequest({ eventKind: "next_stop_requested" }),
+    {
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: cohortConfig("cruz", {
+        issuedAt: "2026-07-13T18:00:00.000Z",
+        expiresAt: "2026-07-13T19:00:00.000Z"
+      }),
+      get [ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING]() {
+        coordinatorLookups += 1;
+        throw new Error("Stale cohort reached coordinator binding.");
+      }
+    },
+    { noncanonicalTestHooks: { enabled: true, currentDate: testNow } }
+  );
+  assert.equal(staleResponse.status, 202);
+  assert.equal(coordinatorLookups, 0);
+});
+
+test("source activation template is inert and cannot activate a cohort", () => {
+  const template = JSON.parse(readFileSync(
+    join(root, "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json"),
+    "utf8"
+  ));
+  assert.equal(template.templateState, "INERT_DEFAULT_OFF");
+  assert.equal(template.collection, "OFF");
+  assert.equal(template.recommendationInfluence, "OFF");
+  assert.equal(template.activeCohortCount, 0);
+  assert.equal(template.activationGuards.maximumActiveRepresentatives, 1);
+  assert.equal(template.activationGuards.maximumConfigLifetimeHours, 24);
+  assert.equal(template.activationGuards.productionUseOfThisTemplateIsProhibited, true);
+  const activation = getRouteIqProspectiveActivation({
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: template.collection,
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: JSON.stringify(template.runtimeCohortConfigTemplate)
+  }, { now: testNow });
+  assert.equal(activation.active, false);
+  assert.equal(activation.reason, "global_off");
+});
+
+test("local activation readiness audit proves OFF silence and one-scope hypothetical ON readiness", () => {
+  const offAudit = auditRouteIqProspectiveActivationReadiness({
+    env: {},
+    observation: readinessObservation(),
+    now: testNow
+  });
+  assert.equal(offAudit.auditVersion, routeIqProspectiveActivationReadinessVersion);
+  assert.equal(offAudit.status, "PASS");
+  assert.equal(offAudit.mode, "COLLECTION_OFF");
+  assert.equal(offAudit.collection, "OFF");
+  assert.equal(offAudit.activeCohortCount, 0);
+  assert.equal(offAudit.activationAuthorized, false);
+  assert.equal(offAudit.productionVerified, false);
+  assert.deepEqual(offAudit.blockers, []);
+
+  const onEnv = {
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
+    [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: cohortConfig()
+  };
+  const onAudit = auditRouteIqProspectiveActivationReadiness({
+    env: onEnv,
+    observation: readinessObservation({
+      fixtureKind: "hypothetical_on",
+      endpointState: "enabled",
+      endpointHttpStatus: 200,
+      activeCohortCount: 1,
+      usage: { principals: 1 }
+    }),
+    now: testNow
+  });
+  assert.equal(onAudit.status, "PASS");
+  assert.equal(onAudit.mode, "HYPOTHETICAL_ON");
+  assert.equal(onAudit.activeCohortCount, 1);
+  assert.equal(onAudit.recommendationInfluence, "OFF");
+  assert.deepEqual(onAudit.blockers, []);
+});
+
+test("activation readiness audit reports writes, records, budgets, production access, and governance blockers", () => {
+  const blockedOff = auditRouteIqProspectiveActivationReadiness({
+    env: {},
+    observation: readinessObservation({
+      overrides: {
+        productionAccessUsed: true,
+        attemptedApplicationWrites: 1,
+        durableObjectInstanceCount: 1,
+        kvWriteCount: 1,
+        prospectiveRecordCount: 1,
+        conflictCount: 1,
+        exclusionCount: 1,
+        evaluationCount: 1,
+        archiveDispositionConsumerExclusionVerified: false,
+        recommendationInfluence: "ON"
+      },
+      usage: {
+        eventsPerDay: 1,
+        pendingOutbox: ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.pendingOutbox + 1
+      }
+    }),
+    now: testNow
+  });
+  assert.equal(blockedOff.status, "BLOCKED");
+  for (const blocker of [
+    "production_access_prohibited",
+    "attemptedApplicationWrites_nonzero_while_off",
+    "durableObjectInstanceCount_nonzero_while_off",
+    "kvWriteCount_nonzero_while_off",
+    "prospectiveRecordCount_nonzero_while_off",
+    "conflictCount_nonzero_while_off",
+    "exclusionCount_nonzero_while_off",
+    "evaluationCount_nonzero_while_off",
+    "archive_disposition_consumer_exclusion_unverified",
+    "recommendation_influence_not_off",
+    "eventsPerDay_nonzero_while_off",
+    "pendingOutbox_budget_exceeded"
+  ]) {
+    assert.equal(blockedOff.blockers.includes(blocker), true, blocker);
+  }
+
+  const staleAudit = auditRouteIqProspectiveActivationReadiness({
+    env: {
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
+      [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig]: cohortConfig("cruz", {
+        issuedAt: "2026-07-13T18:00:00.000Z",
+        expiresAt: "2026-07-13T19:00:00.000Z"
+      })
+    },
+    observation: readinessObservation(),
+    now: testNow
+  });
+  assert.equal(staleAudit.status, "BLOCKED");
+  assert.equal(staleAudit.blockers.includes("activation_cohort_config_stale"), true);
+});
+
 test("authenticated GET bootstrap is strict, short-lived, no-store, and storage-free", async () => {
   const fixture = await accessFixture();
   const response = await handleRouteIqProspectiveShadowRequest(
@@ -1030,6 +1270,7 @@ test("authenticated GET bootstrap is strict, short-lived, no-store, and storage-
 
 test("active GET bypasses Aegis storage but still requires Access before any Durable Object lookup", async () => {
   const fixture = await accessFixture();
+  fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.cohortConfig] = cohortConfig("cruz", { now: new Date() });
   let aegisStorageCalls = 0;
   fixture.env.AEGIS_RATE_LIMITS = {
     async get() {
