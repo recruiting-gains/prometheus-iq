@@ -88,6 +88,23 @@ class NodeSqliteRepository {
   }
 }
 
+class CloudflareCompatibleSqliteRepository extends NodeSqliteRepository {
+  constructor(location = ":memory:") {
+    super(location);
+    this.maximumTimeQueryCount = 0;
+  }
+
+  execute(sql, bindings = []) {
+    if (/\bUNION(?:\s+ALL)?\b/iu.test(sql)) {
+      throw new Error("cloudflare_compatibility_too_many_terms_in_compound_select");
+    }
+    if (/SELECT\s+MAX\([^)]*\)\s+AS\s+maximum_record_time/iu.test(sql)) {
+      this.maximumTimeQueryCount += 1;
+    }
+    return super.execute(sql, bindings);
+  }
+}
+
 function canonicalDatabaseDump(repository) {
   const tables = [
     "coordinator_meta",
@@ -506,7 +523,11 @@ test("only ACTION_LINKED or later permits another next_stop opportunity in the o
 });
 
 test("allocator time advances beyond the maximum canonical time across opportunities", async () => {
-  const h = await openHarness({ territoryContext: knownTerritoryContext("global-time") });
+  const repository = new CloudflareCompatibleSqliteRepository();
+  const h = await openHarness({
+    repository,
+    territoryContext: knownTerritoryContext("global-time")
+  });
   const first = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
   const firstManifest = await acceptManifest(h, first, "global-time-first", iso(10_000), 10);
   const firstSnapshotSeal = await sealSnapshot(h, first, firstManifest, iso(20_000), 11);
@@ -550,6 +571,7 @@ test("allocator time advances beyond the maximum canonical time across opportuni
   const third = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(3, iso(90_000)) });
   assert.ok(Date.parse(third.authoritativeRecordTime) > Date.parse(futureRecordTime));
   assert.equal(third.canonicalContext.opportunityEventSequence, 2);
+  assert.ok(repository.maximumTimeQueryCount >= 30);
 });
 
 test("unknown territory remains governed and cannot admit a selectable snapshot", async () => {

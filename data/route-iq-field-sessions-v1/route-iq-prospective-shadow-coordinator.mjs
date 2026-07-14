@@ -1526,24 +1526,26 @@ function allocatorTerritoryContext(scope) {
 
 function nextMonotonicCoordinatorTime(repository, requestedTime) {
   const requested = canonicalTimestamp(requestedTime, "serverAllocator.authoritativeRecordTime");
-  const maximum = repositoryOne(repository, `
-    SELECT MAX(record_time) AS maximum_record_time
-    FROM (
-      SELECT created_at AS record_time FROM coordinator_meta
-      UNION ALL SELECT created_at FROM canonical_sessions
-      UNION ALL SELECT authoritative_record_time FROM canonical_session_events
-      UNION ALL SELECT registered_at FROM artifact_registry
-      UNION ALL SELECT authoritative_record_time FROM operation_attempts
-      UNION ALL SELECT created_at FROM operation_receipts
-      UNION ALL SELECT authoritative_record_time FROM lifecycle_events
-      UNION ALL SELECT authoritative_record_time FROM projection_outbox
-      UNION ALL SELECT as_of_record_time FROM projection_artifacts
-      UNION ALL SELECT committed_at FROM projection_commits
-    ) canonical_record_times
-    WHERE record_time IS NOT NULL
-  `);
-  if (!maximum?.maximum_record_time) return requested.iso;
-  const prior = canonicalTimestamp(maximum.maximum_record_time, "coordinator.maximumAuthoritativeRecordTime");
+  const canonicalTimeQueries = [
+    ["coordinator_meta", "SELECT MAX(created_at) AS maximum_record_time FROM coordinator_meta"],
+    ["canonical_sessions", "SELECT MAX(created_at) AS maximum_record_time FROM canonical_sessions"],
+    ["canonical_session_events", "SELECT MAX(authoritative_record_time) AS maximum_record_time FROM canonical_session_events"],
+    ["artifact_registry", "SELECT MAX(registered_at) AS maximum_record_time FROM artifact_registry"],
+    ["operation_attempts", "SELECT MAX(authoritative_record_time) AS maximum_record_time FROM operation_attempts"],
+    ["operation_receipts", "SELECT MAX(created_at) AS maximum_record_time FROM operation_receipts"],
+    ["lifecycle_events", "SELECT MAX(authoritative_record_time) AS maximum_record_time FROM lifecycle_events"],
+    ["projection_outbox", "SELECT MAX(authoritative_record_time) AS maximum_record_time FROM projection_outbox"],
+    ["projection_artifacts", "SELECT MAX(as_of_record_time) AS maximum_record_time FROM projection_artifacts"],
+    ["projection_commits", "SELECT MAX(committed_at) AS maximum_record_time FROM projection_commits"]
+  ];
+  let prior = null;
+  for (const [source, query] of canonicalTimeQueries) {
+    const value = repositoryOne(repository, query)?.maximum_record_time;
+    if (!value) continue;
+    const candidate = canonicalTimestamp(value, `coordinator.maximumAuthoritativeRecordTime.${source}`);
+    if (!prior || candidate.time > prior.time) prior = candidate;
+  }
+  if (!prior) return requested.iso;
   if (requested.time > prior.time) return requested.iso;
   return new Date(prior.time + 1).toISOString();
 }
