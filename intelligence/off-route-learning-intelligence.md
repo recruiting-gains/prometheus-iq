@@ -4,6 +4,8 @@
 
 Off-Route Learning Intelligence identifies why a representative visited each business and measures explicit representative decisions separately from Route IQ recommendations. It is a read-only Intelligence projection. It does not change Dashboard behavior, Data ownership, route generation, recommendation scoring, or recommendation influence.
 
+Prospective retention and administrative-disposition admission are inherited from the canonical read-only archive boundary. Expired, noncanonical, disposed, or over-retained evidence cannot become a source cohort, representative-judgment metric, recommendation input, baseline, or calibration record. Audit visibility is hash-only.
+
 ## Existing Architecture Reused
 
 - Canonical archived field sessions are loaded through `read-only-field-session-learning.mjs`.

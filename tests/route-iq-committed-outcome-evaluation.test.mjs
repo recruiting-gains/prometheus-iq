@@ -17,6 +17,10 @@ import {
   routeIqFieldSessionOutcomeProjectionVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  routeIqProspectiveRetentionBoundaryContractVersion,
+  routeIqProspectiveRetentionPolicyVersion,
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
+import {
   buildRouteIqEvaluationAdmissionClaims,
   buildRouteIqEvaluationFromAdmittedOutcome,
   buildRouteIqScoreableOutcomeAdmissionClaims,
@@ -295,7 +299,7 @@ function outcomeAdmissionReceipt(scoreableOutcome) {
     coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
     status: "recorded",
     coordinatorId: "route-iq-test-coordinator",
-    sessionId: "route-iq-test-session",
+    sessionId: id("session", "coordinator"),
     opportunityId: scoreableOutcome.opportunityId,
     operationKey: "scoreable-outcome:test",
     operationKind: "scoreable_outcome_admission",
@@ -407,6 +411,38 @@ function evaluationInput(derived) {
     ),
     scoreableOutcome: derived.scoreableOutcome,
     outcomeReceipt,
+    retentionEnvelope: {
+      workspaceId: SCOPE.workspaceId,
+      operatingProfileId: SCOPE.operatingProfileId,
+      representativeId: SCOPE.representativeId,
+      collectionState: "on",
+      recommendationInfluence: "off",
+      recordOrigin: "prospective",
+      policyVersion: routeIqProspectiveRetentionPolicyVersion,
+      retentionBoundary: {
+        contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+        authorizationState: "authorized_existing_field_session_boundary",
+        source: "authenticated_data_retention_contract",
+        expiresAt: "2026-08-13T17:07:00.000Z",
+      },
+      evaluatedAt: outcomeReceipt.authoritativeRecordTime,
+      deletionCapabilityStatus: "verified_not_activated",
+      legalHoldState: "none",
+      derivedProjectionExpiresAt: "2026-08-13T17:07:00.000Z",
+      sourceSession: {
+        coordinatorSessionId: outcomeReceipt.sessionId,
+        fieldSessionId:
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-13",
+        rawSha256: derived.scoreableOutcome.sourceArchiveRawSha256,
+        consumptionEligibility: {
+          eligible: true,
+          state: "NOT_ADMINISTRATIVELY_EXCLUDED",
+          reason: null,
+          auditOnly: false,
+          excludedDomains: [],
+        },
+      },
+    },
   };
 }
 
@@ -676,6 +712,45 @@ test("canonical nonproduction fixture matches Data full evaluation record and pr
   assert.deepEqual(claims.evaluationRecord, first);
 });
 
+test("evaluation admission fails closed on invalid retention or disposed source evidence", () => {
+  const derived = deriveFixture({
+    finalSignal: allowlistedSignal("lead", { leads: 1 }),
+  });
+  const cases = [
+    (input) => {
+      input.retentionEnvelope.retentionBoundary = null;
+    },
+    (input) => {
+      input.retentionEnvelope.retentionBoundary.expiresAt =
+        input.retentionEnvelope.evaluatedAt;
+    },
+    (input) => {
+      input.retentionEnvelope.recordOrigin = "historical";
+    },
+    (input) => {
+      input.retentionEnvelope.legalHoldState = "unknown";
+    },
+    (input) => {
+      input.retentionEnvelope.derivedProjectionExpiresAt =
+        "2026-08-13T17:07:00.001Z";
+    },
+    (input) => {
+      input.retentionEnvelope.sourceSession.fieldSessionId =
+        "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14";
+      input.retentionEnvelope.sourceSession.rawSha256 =
+        "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765";
+    },
+  ];
+  for (const mutate of cases) {
+    const input = evaluationInput(derived);
+    mutate(input);
+    assertErrorCode(
+      () => buildRouteIqEvaluationFromAdmittedOutcome(input),
+      "route_iq_evaluation_retention_admission_blocked",
+    );
+  }
+});
+
 test("missing scoreable outcomes never enter evaluation or readiness counts", () => {
   const derived = deriveFixture({
     finalSignal: allowlistedSignal("conversation", { conversations: 1 }),
@@ -765,6 +840,13 @@ test("record tampering fails and emitted evaluation has no PII, causal, uplift, 
   tamperedEvaluation.acceptedCandidate.probability = 0.1;
   assertErrorCode(
     () => validateRouteIqEvaluationRecord(tamperedEvaluation),
+    "route_iq_evaluation_record_invalid",
+  );
+  const retentionTamper = structuredClone(evaluation);
+  retentionTamper.retentionAdmission.expiresAt =
+    retentionTamper.retentionAdmission.evaluatedAt;
+  assertErrorCode(
+    () => validateRouteIqEvaluationRecord(retentionTamper),
     "route_iq_evaluation_record_invalid",
   );
 });

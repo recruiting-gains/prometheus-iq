@@ -34,7 +34,10 @@ const git = args => {
   return result.stdout.trim();
 };
 const gitBytes = args => {
-  const result = spawnSync("git", args, {cwd: root});
+  const result = spawnSync("git", args, {
+    cwd: root,
+    maxBuffer: 20 * 1024 * 1024,
+  });
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   return result.stdout;
 };
@@ -168,6 +171,9 @@ test("read-only archived-session learning is independently authorized without re
   assert.equal(contract.allowedOperations.replaySessions, false);
   assert.equal(contract.productionSafety.productionRecommendationInfluenceActive, false);
   assert.equal(contract.productionSafety.routeScoringWeightsChanged, false);
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  assert.equal(contract.prospectiveRetentionAdmission.productionActivationEligible, false);
+  assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(policy.recommendationInfluence.singleSessionInfluenceAllowed, false);
   assert.equal(policy.recommendationInfluence.activationStatus, "disabled_pending_future_handoff");
   assert.equal(snapshot.sourceEvidence.verifiedSessionCount, 1);
@@ -192,6 +198,9 @@ test("off-route learning is source-aware, unknown-safe, and observation-only", (
   assert.equal(contract.readOnlySafety.modifyDashboard, false);
   assert.equal(contract.readOnlySafety.modifyRecommendationScoring, false);
   assert.equal(contract.readOnlySafety.activateRecommendationInfluence, false);
+  assert.equal(contract.prospectiveRetentionAdmission.inheritedFromUpstreamReadOnlyLearning, true);
+  assert.equal(contract.prospectiveRetentionAdmission.productionActivationEligible, false);
+  assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(policy.sourceTaxonomy.length, 8);
   assert.equal(policy.recommendationInfluence.activationStatus, "disabled_observation_only");
   assert.equal(snapshot.sourceEvidence.totalVisits, 4);
@@ -383,6 +392,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const routeQualitySuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
   );
+  const retentionSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+  );
   const expectedPaths = [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
     "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -402,19 +414,19 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.deepEqual(successor.synchronizedConsumers.map(consumer => consumer.path).sort(), expectedPaths);
   for (const consumer of successor.synchronizedConsumers) {
-    if (consumer.path === "intelligence/contracts/shadow-decision-readiness-contracts.json") {
-      assert.equal(
-        sha256Bytes(gitBytes(["show", `${routeQualitySuccessor.predecessor.commit}:${consumer.path}`])),
-        consumer.currentSha256,
-        consumer.path,
-      );
-    } else {
-      assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
-    }
+    assert.equal(
+      sha256Bytes(gitBytes(["show", `${routeQualitySuccessor.predecessor.commit}:${consumer.path}`])),
+      consumer.currentSha256,
+      consumer.path,
+    );
     assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
   }
   for (const source of successor.protectedSourceTransitions) {
-    assert.equal(sha256(source.path), source.currentSha256, source.path);
+    assert.equal(
+      sha256Bytes(gitBytes(["show", `${routeQualitySuccessor.predecessor.commit}:${source.path}`])),
+      source.currentSha256,
+      source.path,
+    );
     assert.notEqual(source.previousSha256, source.currentSha256, source.path);
   }
   const historicalEvidenceCommit = git([
@@ -468,8 +480,18 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.equal(routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences.length, 1);
   const affectedReference = routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences[0];
+  const routeQualityEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
+  ]);
   assert.equal(affectedReference.consumerPath, "intelligence/contracts/shadow-decision-readiness-contracts.json");
-  assert.equal(sha256(affectedReference.consumerPath), affectedReference.currentConsumerSha256);
+  assert.equal(
+    sha256Bytes(gitBytes(["show", `${routeQualityEvidenceCommit}:${affectedReference.consumerPath}`])),
+    affectedReference.currentConsumerSha256,
+  );
   assert.equal(affectedReference.currentProtectedSha256, routeQualitySuccessor.dataOwnerTransition.routeQualityGate.currentSha256);
   assert.equal(routeQualitySuccessor.protectedReferenceAudit.canonicalReportPinnedByIntelligence, false);
   assert.deepEqual(routeQualitySuccessor.protectedReferenceAudit.canonicalReportReferenceMatches, []);
@@ -483,6 +505,55 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(routeQualitySuccessor.boundaryValidation.routeScoringChanged, false);
   assert.equal(routeQualitySuccessor.boundaryValidation.routeGenerationChanged, false);
   assert.equal(routeQualitySuccessor.boundaryValidation.zeroLiveGooglePreserved, true);
+  assert.equal(retentionSuccessor.batchId, "BATCH-20260714-003");
+  assert.equal(
+    retentionSuccessor.status,
+    "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
+  );
+  assert.equal(
+    retentionSuccessor.ownerSubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  assert.equal(
+    retentionSuccessor.dataOwnerLineage.foundationCommit,
+    "a5bd1d431e778cec045d1e8412efb396674ea321",
+  );
+  assert.equal(
+    retentionSuccessor.dataOwnerLineage.exactKeySuccessorCommit,
+    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+  );
+  for (const transition of retentionSuccessor.dataOwnerLineage.transitions) {
+    assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
+  }
+  assert.equal(
+    retentionSuccessor.infrastructureOwnerLineage.activationReadinessCommit,
+    "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+  );
+  for (const transition of retentionSuccessor.infrastructureOwnerLineage.transitions) {
+    assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
+  }
+  for (const ownerChange of retentionSuccessor.intelligenceOwnerChanges) {
+    assert.equal(sha256(ownerChange.path), ownerChange.currentSha256, ownerChange.path);
+  }
+  assert.equal(retentionSuccessor.consumerExclusionMatrix.excludedDomainCount, 12);
+  assert.equal(retentionSuccessor.consumerExclusionMatrix.auditVisibility, "hash_only");
+  assert.equal(
+    retentionSuccessor.consumerExclusionMatrix.automaticZeroVisitExclusionAllowed,
+    false,
+  );
+  assert.equal(retentionSuccessor.consumerExclusionMatrix.allConsumersAccountedFor, true);
+  assert.equal(retentionSuccessor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(retentionSuccessor.boundaryValidation.collection, "OFF");
+  assert.equal(retentionSuccessor.boundaryValidation.activeCohorts, 0);
+  assert.equal(retentionSuccessor.boundaryValidation.productionProspectiveRecords, 0);
+  assert.equal(retentionSuccessor.boundaryValidation.productionEvaluations, 0);
+  assert.equal(retentionSuccessor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(retentionSuccessor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(retentionSuccessor.boundaryValidation.routeScoringChanged, false);
+  assert.equal(retentionSuccessor.boundaryValidation.routeGenerationChanged, false);
+  assert.equal(retentionSuccessor.boundaryValidation.newConsumerActivated, false);
+  assert.equal(retentionSuccessor.boundaryValidation.deploymentPerformed, false);
+  assert.equal(retentionSuccessor.boundaryValidation.productionAccessPerformed, false);
   assert.equal(evidence.methodologyConstraints.requiredEvaluationOutcomes, "97 eligible, linked, scoreable evaluation outcomes after exclusions");
   assert.equal(evidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview, false);
   assert.equal(evidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins, 100);

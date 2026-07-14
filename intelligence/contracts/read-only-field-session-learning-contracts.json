@@ -61,7 +61,31 @@
       "baselines",
       "calibration",
       "recommendation_inputs"
-    ]
+    ],
+    "exactExcludedSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "exactExcludedRawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "auditProjectionAllowedFields": [
+      "sourceRawSha256",
+      "dispositionRecordSha256"
+    ],
+    "auditProjectionRawPayloadAllowed": false
+  },
+  "prospectiveRetentionAdmission": {
+    "batchId": "BATCH-20260714-003",
+    "dataFoundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
+    "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "dataPolicyPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+    "dataPolicySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
+    "dataEvaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+    "dataEvaluatorSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313",
+    "intelligenceAdmissionPath": "intelligence/route-iq-prospective-retention-admission.mjs",
+    "prospectiveEvidencePromotionByArchivedLearningAllowed": false,
+    "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed": false,
+    "noncanonicalOriginAdmissionAllowed": false,
+    "unknownOrActiveLegalHoldAdmissionAllowed": false,
+    "derivedProjectionMayOutliveSource": false,
+    "automaticZeroVisitExclusionAllowed": false,
+    "productionActivationEligible": false
   },
   "learningPolicy": {
     "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
@@ -138,8 +162,8 @@
   "protectedBehaviorBaselines": {
     "dashboardSourceSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
     "dashboardDeployMirrorSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
-    "dataArchiveRuntimeSha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365",
-    "dataRuntimeContractSha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc",
+    "dataArchiveRuntimeSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
+    "dataRuntimeContractSha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e",
     "adaptiveRouteEngineSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
     "businessHoursEligibilitySha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
     "goldenRouteBaselineSha256": "6f419252b3623977f449e2feb02cea8c343e080d9002417db67dc53f1e5d42d2"

@@ -77,6 +77,19 @@ test("canonical contract and governed policy activate only read-only Intelligenc
   assert.equal(contract.administrativeDispositionAdmission.auditRecordRetentionRequired, true);
   assert.equal(contract.administrativeDispositionAdmission.automaticZeroVisitExclusionAllowed, false);
   assert.equal(contract.administrativeDispositionAdmission.unrelatedUndisposedZeroVisitSessionEligible, true);
+  assert.equal(contract.administrativeDispositionAdmission.exactExcludedSessionId, "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14");
+  assert.equal(contract.administrativeDispositionAdmission.exactExcludedRawSha256, "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765");
+  assert.deepEqual(contract.administrativeDispositionAdmission.auditProjectionAllowedFields, ["sourceRawSha256", "dispositionRecordSha256"]);
+  assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
+  assert.equal(contract.prospectiveRetentionAdmission.dataFoundationCommit, "a5bd1d431e778cec045d1e8412efb396674ea321");
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  for (const field of ["prospectiveEvidencePromotionByArchivedLearningAllowed", "missingExpiredUnknownOrMalformedBoundaryAdmissionAllowed", "noncanonicalOriginAdmissionAllowed", "unknownOrActiveLegalHoldAdmissionAllowed", "derivedProjectionMayOutliveSource", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
+    assert.equal(contract.prospectiveRetentionAdmission[field], false, field);
+  }
+  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyProvided, true);
+  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.activationEligibleUnderRetentionPolicy, false);
+  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionCollectionActivated, false);
+  assert.equal(dataContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionEvidenceRecords, 0);
   assert.deepEqual(
     contract.administrativeDispositionAdmission.requiredExcludedDomains,
     dataContract.fieldSessionAdministrativeDispositionContract.excludedDomains

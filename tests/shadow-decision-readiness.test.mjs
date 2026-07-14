@@ -1416,6 +1416,19 @@ test("administrative disposition contract excludes readiness, evaluation, calibr
   assert.equal(admission.auditRecordRetentionRequired, true);
   assert.equal(admission.automaticZeroVisitExclusionAllowed, false);
   assert.equal(admission.unrelatedUndisposedZeroVisitSessionEligible, true);
+  assert.equal(
+    admission.exactExcludedSessionId,
+    "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+  );
+  assert.equal(
+    admission.exactExcludedRawSha256,
+    "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+  );
+  assert.deepEqual(admission.auditProjectionAllowedFields, [
+    "sourceRawSha256",
+    "dispositionRecordSha256",
+  ]);
+  assert.equal(admission.auditProjectionRawPayloadAllowed, false);
   assert.deepEqual(admission.requiredExcludedDomains, [
     "learning",
     "readiness",
@@ -1430,6 +1443,53 @@ test("administrative disposition contract excludes readiness, evaluation, calibr
     "calibration",
     "recommendation_inputs",
   ]);
+});
+
+test("prospective retention admission remains fail closed and inactive", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const retention = contract.prospectiveRetentionAdmission;
+  assert.equal(retention.batchId, "BATCH-20260714-003");
+  assert.equal(
+    retention.dataExactKeySuccessorCommit,
+    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+  );
+  assert.equal(retention.evaluationAdmissionRequired, true);
+  assert.equal(retention.exactEnvelopeAndBoundaryAllowlistRequired, true);
+  assert.equal(retention.dataSemanticParityRequired, true);
+  assert.deepEqual(Object.keys(retention.protectedDataSources).sort(), [
+    "retentionEvaluator",
+    "retentionPolicy",
+  ]);
+  for (const source of Object.values(retention.protectedDataSources)) {
+    assert.equal(
+      createHash("sha256").update(readFileSync(source.path)).digest("hex"),
+      source.sha256,
+    );
+    assert.equal(source.sourceCommit, retention.dataExactKeySuccessorCommit);
+    assert.equal(source.sourceOwnerSubsystem, "Prometheus Data");
+  }
+  assert.equal(retention.auditVisibility, "hash_only");
+  for (const field of [
+    "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
+    "noncanonicalOriginAdmissionAllowed",
+    "unknownOrActiveLegalHoldAdmissionAllowed",
+    "derivedProjectionMayOutliveSource",
+    "administrativelyDisposedSessionAdmissionAllowed",
+    "representativeOutputAllowed",
+    "recommendationInfluenceAllowed",
+    "productionActivationEligible",
+  ]) {
+    assert.equal(retention[field], false, field);
+  }
+  assert.equal(retention.collectionActivation, "OFF");
+  assert.equal(retention.activeCohorts, 0);
+  assert.equal(retention.canonicalProductionProspectiveRecords, 0);
+  assert.equal(retention.canonicalProductionEvaluations, 0);
 });
 
 test("aggregate npm test runs both shadow verifier and focused suite", () => {

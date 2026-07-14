@@ -18,6 +18,11 @@ import {
   routeIqChronologicalEvidenceProjectionVersion,
   routeIqFieldSessionOutcomeProjectionVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+import {
+  computeRouteIqProspectiveRetentionPolicySha256,
+  requireRouteIqProspectiveIntelligenceRetentionAdmission,
+  routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+} from "./route-iq-prospective-retention-admission.mjs";
 export const routeIqScoreableOutcomeDerivationContractVersion =
   "route-iq-committed-scoreable-outcome-derivation-v1";
 export const routeIqScoreableOutcomeRecordSchemaVersion =
@@ -1583,6 +1588,7 @@ export function validateRouteIqEvaluationRecord(record) {
       "scoreableOutcome",
       "chronology",
       "readinessObservation",
+      "retentionAdmission",
       "boundaries",
       "canonicalProductionEvidenceEligible",
       "recommendationInfluence",
@@ -1637,6 +1643,7 @@ export function validateRouteIqEvaluationRecord(record) {
       "outcomeRecordSha256",
       "sourceOutcomeEvidenceSha256",
       "scoreableOutcomeRecordSha256",
+      "sourceArchiveRawSha256",
       "outcomeDerivationContractVersion",
       "observedOutcome",
       "admittedAt",
@@ -1681,6 +1688,38 @@ export function validateRouteIqEvaluationRecord(record) {
     "route_iq_evaluation_record_readiness_invalid",
   );
   assertExactKeys(
+    record.retentionAdmission,
+    [
+      "admissionVersion",
+      "dataPolicyVersion",
+      "dataPolicySha256",
+      "state",
+      "admitted",
+      "reasonCodes",
+      "sourceEvidence",
+      "evaluatedAt",
+      "expiresAt",
+      "legalHoldState",
+      "collectionState",
+      "recommendationInfluence",
+      "audit",
+      "representativeOutputAllowed",
+      "recommendationInfluenceAllowed",
+      "canonicalProductionEvaluationAllowed",
+    ],
+    "route_iq_evaluation_record_retention_invalid",
+  );
+  assertExactKeys(
+    record.retentionAdmission.sourceEvidence,
+    [
+      "coordinatorSessionSha256",
+      "fieldSessionSha256",
+      "sourceRawSha256",
+      "retentionBoundarySha256",
+    ],
+    "route_iq_evaluation_record_retention_invalid",
+  );
+  assertExactKeys(
     record.boundaries,
     [
       "decisionSourceUsed",
@@ -1715,6 +1754,12 @@ export function validateRouteIqEvaluationRecord(record) {
     record.scoreableOutcome.outcomeRecordSha256,
     record.scoreableOutcome.sourceOutcomeEvidenceSha256,
     record.scoreableOutcome.scoreableOutcomeRecordSha256,
+    record.scoreableOutcome.sourceArchiveRawSha256,
+    record.retentionAdmission.dataPolicySha256,
+    record.retentionAdmission.sourceEvidence.coordinatorSessionSha256,
+    record.retentionAdmission.sourceEvidence.fieldSessionSha256,
+    record.retentionAdmission.sourceEvidence.sourceRawSha256,
+    record.retentionAdmission.sourceEvidence.retentionBoundarySha256,
     record.evaluationRecordSha256,
   ]) {
     requireSha(hash, "route_iq_evaluation_record_hash_invalid");
@@ -1768,6 +1813,25 @@ export function validateRouteIqEvaluationRecord(record) {
       record.acceptedCandidate.candidateId ||
     record.readinessObservation.scoreableSelectedCandidateOutcome !== true ||
     record.readinessObservation.readinessCountEligible !== true ||
+    record.retentionAdmission.admissionVersion !==
+      routeIqProspectiveIntelligenceRetentionAdmissionVersion ||
+    record.retentionAdmission.dataPolicySha256 !==
+      computeRouteIqProspectiveRetentionPolicySha256() ||
+    record.retentionAdmission.state !== "RETENTION_ADMITTED" ||
+    record.retentionAdmission.admitted !== true ||
+    !Array.isArray(record.retentionAdmission.reasonCodes) ||
+    record.retentionAdmission.reasonCodes.length !== 0 ||
+    record.retentionAdmission.legalHoldState !== "none" ||
+    record.retentionAdmission.collectionState !== "on" ||
+    record.retentionAdmission.recommendationInfluence !== "off" ||
+    record.retentionAdmission.audit !== null ||
+    record.retentionAdmission.representativeOutputAllowed !== false ||
+    record.retentionAdmission.recommendationInfluenceAllowed !== false ||
+    record.retentionAdmission.canonicalProductionEvaluationAllowed !== true ||
+    record.retentionAdmission.sourceEvidence.sourceRawSha256 !==
+      record.scoreableOutcome.sourceArchiveRawSha256 ||
+    record.retentionAdmission.evaluatedAt !==
+      record.chronology.outcomeAdmittedAt ||
     canonical(record.boundaries) !== canonical(boundaries) ||
     record.canonicalProductionEvidenceEligible !== true ||
     record.recommendationInfluence !== "OFF" ||
@@ -1790,6 +1854,14 @@ export function validateRouteIqEvaluationRecord(record) {
     canonicalTimestamp(value, "route_iq_evaluation_record_chronology_invalid")
       .time,
   );
+  const retentionExpiry = canonicalTimestamp(
+    record.retentionAdmission.expiresAt,
+    "route_iq_evaluation_record_retention_invalid",
+  ).time;
+  const retentionEvaluation = canonicalTimestamp(
+    record.retentionAdmission.evaluatedAt,
+    "route_iq_evaluation_record_retention_invalid",
+  ).time;
   if (
     orderedTimes.some(
       (time, index) => index > 0 && time <= orderedTimes[index - 1],
@@ -1799,7 +1871,8 @@ export function validateRouteIqEvaluationRecord(record) {
     record.scoreableOutcome.admittedAt !==
       record.chronology.outcomeAdmittedAt ||
     record.shadowContext.sealedAt !== record.chronology.shadowSealedAt ||
-    record.action.linkedAt !== record.chronology.actionLinkedAt
+    record.action.linkedAt !== record.chronology.actionLinkedAt ||
+    retentionExpiry <= retentionEvaluation
   ) {
     fail("route_iq_evaluation_record_chronology_invalid");
   }
@@ -1814,6 +1887,7 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
       "committedProjection",
       "scoreableOutcome",
       "outcomeReceipt",
+      "retentionEnvelope",
     ],
     "route_iq_evaluation_input_invalid",
   );
@@ -1834,6 +1908,18 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
     input.scoreableOutcome,
     outcomeReceipt,
   );
+  let retentionAdmission;
+  try {
+    retentionAdmission =
+      requireRouteIqProspectiveIntelligenceRetentionAdmission(
+        input.retentionEnvelope,
+      );
+  } catch (error) {
+    fail("route_iq_evaluation_retention_admission_blocked", {
+      cause: error?.code ?? error?.message ?? "unknown",
+      reasonCodes: error?.details?.reasonCodes ?? [],
+    });
+  }
   const context = reconciliation.context;
   const outcome = input.scoreableOutcome;
   if (
@@ -1846,7 +1932,13 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
     outcomeReceipt.opportunityId !== context.opportunityId ||
     outcomeReceipt.evaluatedCandidateId !== context.candidate.candidateId ||
     outcomeReceipt.evaluationContextSha256 !==
-      reconciliation.link.evaluationContextSha256
+      reconciliation.link.evaluationContextSha256 ||
+    input.retentionEnvelope.sourceSession.coordinatorSessionId !==
+      outcomeReceipt.sessionId ||
+    input.retentionEnvelope.sourceSession.rawSha256 !==
+      outcome.sourceArchiveRawSha256 ||
+    input.retentionEnvelope.evaluatedAt !==
+      outcomeReceipt.authoritativeRecordTime
   ) {
     fail("route_iq_evaluation_context_outcome_binding_invalid");
   }
@@ -1895,6 +1987,7 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
       sourceOutcomeEvidenceSha256: outcome.sourceOutcomeEvidenceSha256,
       scoreableOutcomeRecordSha256:
         outcome.scoreableOutcomeRecordSha256,
+      sourceArchiveRawSha256: outcome.sourceArchiveRawSha256,
       outcomeDerivationContractVersion:
         outcome.outcomeDerivationContractVersion,
       observedOutcome: clone(outcome.observedOutcome),
@@ -1913,6 +2006,7 @@ export function buildRouteIqEvaluationFromAdmittedOutcome(input = {}) {
       scoreableSelectedCandidateOutcome: true,
       readinessCountEligible: true,
     },
+    retentionAdmission: clone(retentionAdmission),
     boundaries: {
       decisionSourceUsed: false,
       futureEvidenceUsed: false,

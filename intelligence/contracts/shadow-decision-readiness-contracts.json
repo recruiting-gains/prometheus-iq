@@ -29,6 +29,7 @@
     "engine": "intelligence/shadow-decision-readiness.mjs",
     "runtimeAdapter": "intelligence/shadow-decision-readiness-runtime.mjs",
     "committedOutcomeEvaluation": "intelligence/route-iq-committed-outcome-evaluation.mjs",
+    "retentionAdmission": "intelligence/route-iq-prospective-retention-admission.mjs",
     "config": "intelligence/config/shadow-decision-readiness-v1.json",
     "contract": "intelligence/contracts/shadow-decision-readiness-contracts.json",
     "documentation": "intelligence/shadow-decision-readiness.md",
@@ -37,6 +38,7 @@
     "tests": "tests/shadow-decision-readiness.test.mjs",
     "prospectiveRuntimeTests": "tests/shadow-decision-readiness-runtime.test.mjs",
     "committedOutcomeEvaluationTests": "tests/route-iq-committed-outcome-evaluation.test.mjs",
+    "retentionAdmissionTests": "tests/route-iq-prospective-retention-intelligence.test.mjs",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
     "humanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
@@ -61,7 +63,9 @@
     },
     "worker": {
       "path": "workers/prometheus-iq-worker.js",
-      "sha256": "d20c60418cde292fa5394156f8fca8fee6b4fa457b0484c9cac4ad4e1f4b0119"
+      "sha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+      "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "routeGeneration": {
       "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
@@ -77,11 +81,11 @@
     },
     "dataArchiveRuntime": {
       "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-      "sha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"
+      "sha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b"
     },
     "dataRuntimeContract": {
       "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-      "sha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"
+      "sha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e"
     },
     "infrastructureAuthority": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-authority.js",
@@ -89,7 +93,9 @@
     },
     "infrastructureRuntime": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
-      "sha256": "9b6734143fcb8990edd212170fa51b993ebfece0648a0decaf9d24108d53ee89"
+      "sha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+      "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure"
     },
     "infrastructureDurableObject": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
@@ -246,6 +252,45 @@
       "recommendationInfluence": "OFF"
     }
   },
+  "prospectiveRetentionAdmission": {
+    "batchId": "BATCH-20260714-003",
+    "admissionVersion": "route-iq-prospective-intelligence-retention-admission-v1",
+    "dataPolicyVersion": "route-iq-prospective-shadow-retention-policy-v1",
+    "dataFoundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
+    "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "protectedDataSources": {
+      "retentionPolicy": {
+        "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+        "sha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
+        "sourceCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+        "sourceOwnerSubsystem": "Prometheus Data"
+      },
+      "retentionEvaluator": {
+        "path": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+        "sha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313",
+        "sourceCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+        "sourceOwnerSubsystem": "Prometheus Data"
+      }
+    },
+    "evaluationAdmissionRequired": true,
+    "exactEnvelopeAndBoundaryAllowlistRequired": true,
+    "dataSemanticParityRequired": true,
+    "sourceCoordinatorSessionBindingRequired": true,
+    "sourceFieldSessionAndRawHashBindingRequired": true,
+    "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed": false,
+    "noncanonicalOriginAdmissionAllowed": false,
+    "unknownOrActiveLegalHoldAdmissionAllowed": false,
+    "derivedProjectionMayOutliveSource": false,
+    "administrativelyDisposedSessionAdmissionAllowed": false,
+    "auditVisibility": "hash_only",
+    "representativeOutputAllowed": false,
+    "recommendationInfluenceAllowed": false,
+    "productionActivationEligible": false,
+    "collectionActivation": "OFF",
+    "activeCohorts": 0,
+    "canonicalProductionProspectiveRecords": 0,
+    "canonicalProductionEvaluations": 0
+  },
   "committedOutcomeEvaluation": {
     "derivationContractVersion": "route-iq-committed-scoreable-outcome-derivation-v1",
     "scoreableOutcomeRecordSchemaVersion": "route-iq-committed-scoreable-outcome-record-v1",
@@ -294,6 +339,8 @@
         "selected_action_record",
         "admitted_scoreable_outcome_record_and_receipt",
         "committed_projection_and_outcome_derivation_versions",
+        "data_retention_policy_and_exact_key_semantic_parity",
+        "source_session_raw_hash_and_retention_boundary",
         "immutable_context_sha256",
         "strict_end_to_end_chronology"
       ],
@@ -333,7 +380,14 @@
       "baselines",
       "calibration",
       "recommendation_inputs"
-    ]
+    ],
+    "exactExcludedSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "exactExcludedRawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "auditProjectionAllowedFields": [
+      "sourceRawSha256",
+      "dispositionRecordSha256"
+    ],
+    "auditProjectionRawPayloadAllowed": false
   },
   "outcomes": {
     "appendOnly": true,

@@ -19,6 +19,7 @@ const requiredFiles = [
   "intelligence/read-only-field-session-learning.md",
   "intelligence/off-route-learning-intelligence.mjs",
   "intelligence/off-route-learning-intelligence.md",
+  "intelligence/route-iq-prospective-retention-admission.mjs",
   "intelligence/discovery-mode-intelligence-v2.mjs",
   "intelligence/discovery-mode-intelligence-v2.md",
   "intelligence/nearby-context-intelligence-v2.mjs",
@@ -27,6 +28,8 @@ const requiredFiles = [
   "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+  "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -63,6 +66,7 @@ const requiredFiles = [
   "scripts/verify-field-learning-offline-evidence-harness.mjs",
   "scripts/verify-read-only-field-session-learning.mjs",
   "scripts/verify-off-route-learning-intelligence.mjs",
+  "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
   "scripts/verify-discovery-mode-intelligence-v2.mjs",
   "scripts/verify-nearby-context-intelligence-v2.mjs",
   "scripts/verify-recommendation-explainability-engine.mjs",
@@ -126,6 +130,8 @@ const nearbyContextAudit = readJson("intelligence/artifacts/nearby-context-intel
 const legacyProvenanceEvidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
 const protectedBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json");
 const routeQualityBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json");
+const prospectiveRetentionAdmissionSpec = readJson("intelligence/provenance/specifications/prospective-retention-admission-v1.json");
+const prospectiveRetentionBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -598,6 +604,10 @@ assert(readOnlyFieldSessionLearningContracts.productionSafety.dashboardRuntimeCh
 assert(readOnlyFieldSessionLearningContracts.productionSafety.dataRuntimeChanged === false, "Read-only field-session learning must not change Data runtime.");
 assert(readOnlyFieldSessionLearningContracts.productionSafety.crmRuntimeChanged === false, "Read-only field-session learning must not change CRM runtime.");
 assert(readOnlyFieldSessionLearningContracts.productionSafety.companionRuntimeChanged === false, "Read-only field-session learning must not change Companion runtime.");
+assert(readOnlyFieldSessionLearningContracts.prospectiveRetentionAdmission.dataExactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "Read-only learning must pin the cumulative Data exact-key successor.");
+assert(readOnlyFieldSessionLearningContracts.prospectiveRetentionAdmission.productionActivationEligible === false, "Read-only learning must not activate prospective retention consumption.");
+assert(readOnlyFieldSessionLearningContracts.administrativeDispositionAdmission.exactExcludedSessionId === "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14", "Read-only learning must retain the exact disposed-session boundary.");
+assert(readOnlyFieldSessionLearningContracts.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed === false, "Read-only learning audit visibility must remain hash-only.");
 assert(readOnlyFieldSessionLearningPolicy.status === "active", "Read-only field-session learning policy must be active.");
 for (const domain of ["representative", "territory", "category", "business"]) {
   assert(Boolean(readOnlyFieldSessionLearningPolicy.evidenceThresholds[domain]), `Read-only field-session learning policy missing ${domain} thresholds.`);
@@ -627,6 +637,9 @@ assert(offRouteLearningContracts.readOnlySafety.modifyDashboard === false, "Off-
 assert(offRouteLearningContracts.readOnlySafety.modifyRecommendationScoring === false, "Off-route learning must not modify scoring.");
 assert(offRouteLearningContracts.readOnlySafety.modifyRouteGeneration === false, "Off-route learning must not modify route generation.");
 assert(offRouteLearningContracts.readOnlySafety.activateRecommendationInfluence === false, "Off-route learning must not activate recommendation influence.");
+assert(offRouteLearningContracts.prospectiveRetentionAdmission.inheritedFromUpstreamReadOnlyLearning === true, "Off-route learning must inherit the canonical retention boundary.");
+assert(offRouteLearningContracts.prospectiveRetentionAdmission.productionActivationEligible === false, "Off-route learning must remain inactive for prospective retention consumption.");
+assert(offRouteLearningContracts.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed === false, "Off-route audit visibility must remain hash-only.");
 const offRouteSourceIds = offRouteLearningPolicy.sourceTaxonomy.map(source => source.sourceId);
 for (const sourceId of ["route_iq_recommendation", "nearby_context", "representative_saved_place", "representative_discovery", "representative_follow_up", "manual_selection", "existing_relationship", "unknown"]) {
   assert(offRouteSourceIds.includes(sourceId), `Off-route learning policy missing source ${sourceId}.`);
@@ -855,6 +868,28 @@ assert(routeQualityBaselineSuccessor.boundaryValidation.collectionDefaultState =
 assert(routeQualityBaselineSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Route-quality synchronization must keep recommendation influence OFF.");
 assert(routeQualityBaselineSuccessor.boundaryValidation.routeScoringChanged === false, "Route-quality synchronization must not change scoring.");
 assert(routeQualityBaselineSuccessor.boundaryValidation.routeGenerationChanged === false, "Route-quality synchronization must not change route generation.");
+assert(prospectiveRetentionAdmissionSpec.batchId === "BATCH-20260714-003", "Prospective retention admission specification must identify the activation-readiness batch.");
+assert(prospectiveRetentionAdmissionSpec.ownerSubsystem === "Prometheus Intelligence Engine", "Prospective retention admission specification must remain Intelligence-owned.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.foundationCommit === "a5bd1d431e778cec045d1e8412efb396674ea321", "Prospective retention specification must preserve the Data foundation commit.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.exactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "Prospective retention specification must derive from the final Data exact-key successor.");
+assert(prospectiveRetentionAdmissionSpec.admissionRules.dataSemanticParityRequired === true, "Prospective retention admission must require Data semantic parity.");
+assert(prospectiveRetentionAdmissionSpec.admissionRules.representativeOutputAllowed === false, "Prospective retention admission must not expose representative output.");
+assert(prospectiveRetentionAdmissionSpec.admissionRules.recommendationInfluenceAllowed === false, "Prospective retention admission must not influence recommendations.");
+assert(prospectiveRetentionAdmissionSpec.administrativeDisposition.auditVisibility === "hash_only", "Disposed-session audit visibility must remain hash-only.");
+assert(prospectiveRetentionAdmissionSpec.administrativeDisposition.automaticZeroVisitExclusionAllowed === false, "Prospective retention admission must not introduce blanket zero-visit exclusion.");
+assert(prospectiveRetentionAdmissionSpec.currentState.readiness === "INSUFFICIENT_EVIDENCE", "Prospective retention readiness must remain insufficient evidence.");
+assert(prospectiveRetentionAdmissionSpec.currentState.collection === "OFF" && prospectiveRetentionAdmissionSpec.currentState.activeCohorts === 0, "Prospective retention collection must remain OFF with zero cohorts.");
+assert(prospectiveRetentionAdmissionSpec.currentState.recommendationInfluence === "OFF", "Prospective retention recommendation influence must remain OFF.");
+assert(prospectiveRetentionBaselineSuccessor.batchId === "BATCH-20260714-003", "Prospective retention baseline successor must identify the activation-readiness batch.");
+assert(prospectiveRetentionBaselineSuccessor.status === "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH", "Prospective retention baseline successor must await Overwatch verification.");
+assert(prospectiveRetentionBaselineSuccessor.ownerSubsystem === "Prometheus Intelligence Engine", "Prospective retention baseline successor must remain Intelligence-owned.");
+assert(prospectiveRetentionBaselineSuccessor.dataOwnerLineage.exactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "Prospective retention successor must pin the final Data exact-key commit.");
+assert(prospectiveRetentionBaselineSuccessor.infrastructureOwnerLineage.activationReadinessCommit === "2280c6dae9d07bcfd744e99e9d28126188653eb2", "Prospective retention successor must pin the Infrastructure owner commit.");
+assert(prospectiveRetentionBaselineSuccessor.consumerExclusionMatrix.allConsumersAccountedFor === true, "Prospective retention successor must account for every Intelligence consumer.");
+assert(prospectiveRetentionBaselineSuccessor.consumerExclusionMatrix.auditVisibility === "hash_only", "Prospective retention successor audit visibility must remain hash-only.");
+assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.collection === "OFF" && prospectiveRetentionBaselineSuccessor.boundaryValidation.activeCohorts === 0, "Prospective retention successor must keep collection OFF with zero cohorts.");
+assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Prospective retention successor must keep recommendation influence OFF.");
+assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.newConsumerActivated === false, "Prospective retention successor must not activate a new consumer.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredEvaluationOutcomes === "97 eligible, linked, scoreable evaluation outcomes after exclusions", "Provenance evidence must preserve the exact 97-outcome methodology.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview === false, "The 97-outcome minimum alone must not authorize Founder review eligibility.");
 assert(legacyProvenanceEvidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins === 100, "Five populated calibration bins must require at least 100 supported observations.");

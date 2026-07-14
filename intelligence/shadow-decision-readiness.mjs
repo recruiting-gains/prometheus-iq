@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  assertRouteIqFieldSessionConsumptionEligible,
   projectRouteIqChronologicalEvidence,
   routeIqChronologicalEvidenceProjectionVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
@@ -960,6 +961,7 @@ export function buildShadowLedger({
   contract = loadShadowDecisionContract(),
   config = loadShadowDecisionConfig(),
 }) {
+  assertRouteIqFieldSessionConsumptionEligible(archiveRecord, "readiness");
   validateChronologicalWindows(config.windows);
   const records = [],
     exclusions = [],

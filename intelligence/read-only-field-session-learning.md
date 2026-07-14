@@ -4,6 +4,8 @@
 
 This layer activates the first Intelligence-owned projection over verified Route IQ field sessions. Prometheus Data remains the source owner. Intelligence reads canonical archived records, calculates governed confidence, and publishes a deterministic learning snapshot without changing archived evidence, Route IQ scoring, or recommendation behavior.
 
+`BATCH-20260714-003` pins Data's cumulative retention policy through `4803d7aca5810abfc1cbca84eb2f461046a10da4`. Archived-session learning cannot promote prospective evidence. The exact July 14 automation-smoke archive remains hash-only audit evidence and is excluded from learning and every downstream metric, while unrelated undisposed zero-visit sessions are not excluded by inference.
+
 ## Authorization Boundary
 
 The Data field-session handoff requires a separate independent consumer authorization. `read-only-field-session-learning-contracts-v1` supplies that authorization for the registered Fitness Connection repository archive only. It does not alter the Data contract, grant access to the Data persistence binding, or authorize raw evidence consumption.

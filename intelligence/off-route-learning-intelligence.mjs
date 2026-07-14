@@ -372,6 +372,15 @@ export function validateOffRouteLearningContract(contract, upstreamContract = lo
   assert(contract?.administrativeDispositionAdmission?.recommendationInputProjectionAllowed === false, "contract_disposed_recommendation_input_allowed");
   assert(contract?.administrativeDispositionAdmission?.automaticZeroVisitExclusionAllowed === false, "contract_automatic_zero_visit_exclusion_allowed");
   assert(contract?.administrativeDispositionAdmission?.unrelatedUndisposedZeroVisitSessionEligible === true, "contract_unrelated_zero_visit_session_blanket_excluded");
+  assert(contract?.administrativeDispositionAdmission?.exactExcludedSessionId === "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14", "contract_disposed_session_id_mismatch");
+  assert(contract?.administrativeDispositionAdmission?.exactExcludedRawSha256 === "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765", "contract_disposed_raw_hash_mismatch");
+  assert(JSON.stringify(contract?.administrativeDispositionAdmission?.auditProjectionAllowedFields) === JSON.stringify(["sourceRawSha256", "dispositionRecordSha256"]), "contract_disposed_audit_projection_not_hash_only");
+  assert(contract?.administrativeDispositionAdmission?.auditProjectionRawPayloadAllowed === false, "contract_disposed_audit_raw_payload_allowed");
+  assert(contract?.prospectiveRetentionAdmission?.inheritedFromUpstreamReadOnlyLearning === true, "contract_retention_boundary_not_inherited");
+  assert(contract?.prospectiveRetentionAdmission?.dataExactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "contract_retention_exact_key_commit_mismatch");
+  for (const key of ["prospectiveEvidenceObservationAllowed", "expiredOrUnknownEvidenceObservationAllowed", "disposedSessionObservationAllowed", "derivedProjectionMayOutliveSource", "recommendationInputProjectionAllowed", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
+    assert(contract?.prospectiveRetentionAdmission?.[key] === false, `contract_retention_boundary_enabled:${key}`);
+  }
   assert(contract?.validationFixturePolicy?.productionConsumptionAllowed === false, "contract_fixture_production_consumption_allowed");
   assert(contract?.validationFixturePolicy?.canonicalArtifactGenerationAllowed === false, "contract_fixture_canonical_generation_allowed");
   return failures;

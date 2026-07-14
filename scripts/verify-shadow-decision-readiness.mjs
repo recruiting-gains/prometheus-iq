@@ -24,6 +24,12 @@ import {
   routeIqScoreableOutcomeDerivationContractVersion,
   routeIqScoreableOutcomeRecordSchemaVersion,
 } from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
+import {
+  computeRouteIqProspectiveRetentionPolicySha256,
+  loadRouteIqProspectiveRetentionPolicy,
+  routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+  validateRouteIqProspectiveRetentionPolicy,
+} from "../intelligence/route-iq-prospective-retention-admission.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const base =
@@ -72,6 +78,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     shadowDecisionReadinessVersion,
     "route-iq-shadow-decision-readiness-v1",
+  );
+  assert.deepEqual(
+    Object.keys(contract.protectedBehaviorBaselines || {}).sort(),
+    [...requiredProtectedBehaviorBaselineKeys],
   );
   assert.equal(
     contract.sourceProjectionVersion,
@@ -169,6 +179,77 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     contract.committedOutcomeEvaluation.evaluation.recordSchemaVersion,
     routeIqEvaluationRecordSchemaVersion,
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.admissionVersion,
+    routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.dataFoundationCommit,
+    "a5bd1d431e778cec045d1e8412efb396674ea321",
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit,
+    "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.evaluationAdmissionRequired,
+    true,
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.exactEnvelopeAndBoundaryAllowlistRequired,
+    true,
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.dataSemanticParityRequired,
+    true,
+  );
+  for (const field of [
+    "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
+    "noncanonicalOriginAdmissionAllowed",
+    "unknownOrActiveLegalHoldAdmissionAllowed",
+    "derivedProjectionMayOutliveSource",
+    "administrativelyDisposedSessionAdmissionAllowed",
+    "representativeOutputAllowed",
+    "recommendationInfluenceAllowed",
+    "productionActivationEligible",
+  ]) {
+    assert.equal(contract.prospectiveRetentionAdmission[field], false);
+  }
+  assert.equal(contract.prospectiveRetentionAdmission.auditVisibility, "hash_only");
+  assert.equal(contract.prospectiveRetentionAdmission.collectionActivation, "OFF");
+  assert.equal(contract.prospectiveRetentionAdmission.activeCohorts, 0);
+  assert.equal(
+    contract.prospectiveRetentionAdmission.canonicalProductionProspectiveRecords,
+    0,
+  );
+  assert.equal(
+    contract.prospectiveRetentionAdmission.canonicalProductionEvaluations,
+    0,
+  );
+  assert.equal(
+    computeRouteIqProspectiveRetentionPolicySha256(),
+    contract.prospectiveRetentionAdmission.protectedDataSources.retentionPolicy
+      .sha256,
+  );
+  for (const source of Object.values(
+    contract.prospectiveRetentionAdmission.protectedDataSources,
+  )) {
+    const actual = createHash("sha256")
+      .update(readFileSync(resolve(root, source.path)))
+      .digest("hex");
+    assert.equal(actual, source.sha256);
+    assert.equal(
+      source.sourceCommit,
+      contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit,
+    );
+    assert.equal(source.sourceOwnerSubsystem, "Prometheus Data");
+  }
+  assert.equal(
+    validateRouteIqProspectiveRetentionPolicy(
+      loadRouteIqProspectiveRetentionPolicy(),
+    ),
+    true,
   );
   assert.equal(
     contract.committedOutcomeEvaluation
@@ -407,6 +488,23 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     contract.administrativeDispositionAdmission
       .unrelatedUndisposedZeroVisitSessionEligible,
     true,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission.exactExcludedSessionId,
+    "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission.exactExcludedRawSha256,
+    "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+  );
+  assert.deepEqual(
+    contract.administrativeDispositionAdmission.auditProjectionAllowedFields,
+    ["sourceRawSha256", "dispositionRecordSha256"],
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .auditProjectionRawPayloadAllowed,
+    false,
   );
   assert.equal(
     contract.statisticalDesign.calibrationBins,

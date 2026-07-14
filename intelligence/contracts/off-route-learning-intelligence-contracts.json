@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "b30ed04063b41248f8131eaa0251662d518324c662821be443902b2244075662",
+    "contractSha256": "cb9e70024609f67cc5763f858566f2a4a2ac83ea8c0ac184bf1104ee1ccf047f",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -29,7 +29,25 @@
     "territoryOrCustomerMetricProjectionAllowed": false,
     "recommendationInputProjectionAllowed": false,
     "automaticZeroVisitExclusionAllowed": false,
-    "unrelatedUndisposedZeroVisitSessionEligible": true
+    "unrelatedUndisposedZeroVisitSessionEligible": true,
+    "exactExcludedSessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "exactExcludedRawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "auditProjectionAllowedFields": [
+      "sourceRawSha256",
+      "dispositionRecordSha256"
+    ],
+    "auditProjectionRawPayloadAllowed": false
+  },
+  "prospectiveRetentionAdmission": {
+    "inheritedFromUpstreamReadOnlyLearning": true,
+    "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "prospectiveEvidenceObservationAllowed": false,
+    "expiredOrUnknownEvidenceObservationAllowed": false,
+    "disposedSessionObservationAllowed": false,
+    "derivedProjectionMayOutliveSource": false,
+    "recommendationInputProjectionAllowed": false,
+    "automaticZeroVisitExclusionAllowed": false,
+    "productionActivationEligible": false
   },
   "decisionSourceContract": {
     "canonicalField": "visitDecisionSource",
@@ -116,8 +134,8 @@
   "protectedBehaviorBaselines": {
     "dashboardSource": {"path": "index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
     "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
-    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"},
-    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b"},
+    "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
     "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}
   },

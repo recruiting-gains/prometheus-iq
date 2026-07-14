@@ -250,6 +250,15 @@ test("administrative dispositions are inherited as a fail-closed upstream admiss
   assert.equal(contract.administrativeDispositionAdmission.territoryOrCustomerMetricProjectionAllowed, false);
   assert.equal(contract.administrativeDispositionAdmission.recommendationInputProjectionAllowed, false);
   assert.equal(contract.administrativeDispositionAdmission.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.exactExcludedSessionId, "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14");
+  assert.equal(contract.administrativeDispositionAdmission.exactExcludedRawSha256, "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765");
+  assert.deepEqual(contract.administrativeDispositionAdmission.auditProjectionAllowedFields, ["sourceRawSha256", "dispositionRecordSha256"]);
+  assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
+  assert.equal(contract.prospectiveRetentionAdmission.inheritedFromUpstreamReadOnlyLearning, true);
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  for (const field of ["prospectiveEvidenceObservationAllowed", "expiredOrUnknownEvidenceObservationAllowed", "disposedSessionObservationAllowed", "derivedProjectionMayOutliveSource", "recommendationInputProjectionAllowed", "automaticZeroVisitExclusionAllowed", "productionActivationEligible"]) {
+    assert.equal(contract.prospectiveRetentionAdmission[field], false, field);
+  }
   assert.throws(
     () => buildCanonicalOffRouteLearningSnapshot({ archivePackages: packages }),
     /administratively_disposed_session_excluded|administratively_ineligible_session_excluded/

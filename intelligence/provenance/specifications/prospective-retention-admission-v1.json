@@ -1,0 +1,105 @@
+{
+  "version": "route-iq-intelligence-prospective-retention-admission-spec-v1",
+  "batchId": "BATCH-20260714-003",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Independently consume the Data-owned prospective retention policy, bind it to the existing Intelligence evaluation boundary, and prove that expired, noncanonical, disposed, or over-retained evidence cannot influence learning or readiness.",
+  "dataOwnerLineage": {
+    "foundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
+    "exactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "runtimeContractSha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e",
+    "archiveRuntimeSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
+    "retentionPolicySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
+    "retentionEvaluatorSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313"
+  },
+  "admissionRules": {
+    "dataSemanticParityRequired": true,
+    "exactTopLevelAndBoundaryAllowlistRequired": true,
+    "missingExpiredUnknownStaleMalformedOrUnauthorizedAllowed": false,
+    "noncanonicalOriginAllowed": false,
+    "unknownOrActiveLegalHoldAllowed": false,
+    "derivedProjectionMayOutliveSource": false,
+    "sourceCoordinatorSessionBindingRequired": true,
+    "sourceFieldSessionAndRawHashBindingRequired": true,
+    "evaluationRecordCarriesHashOnlyRetentionEvidence": true,
+    "representativeOutputAllowed": false,
+    "recommendationInfluenceAllowed": false
+  },
+  "administrativeDisposition": {
+    "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "sourceRawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "state": "EXCLUDED_FROM_ANALYTICS",
+    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "originalRecordCount": 7,
+    "sourceArchiveRewriteAllowed": false,
+    "auditVisibility": "hash_only",
+    "auditProjectionAllowedFields": [
+      "sourceRawSha256",
+      "dispositionRecordSha256"
+    ],
+    "automaticZeroVisitExclusionAllowed": false,
+    "unrelatedUndisposedZeroVisitSessionEligible": true,
+    "excludedDomains": [
+      "learning",
+      "readiness",
+      "evaluation",
+      "representative_performance",
+      "territory_metrics",
+      "customer_metrics",
+      "productivity_counts",
+      "dashboards",
+      "leaderboards",
+      "baselines",
+      "calibration",
+      "recommendation_inputs"
+    ]
+  },
+  "consumerMatrix": {
+    "read_only_field_session_learning": {
+      "access": "direct_data_partition_and_contract_validation",
+      "disposedAdmissionAllowed": false,
+      "prospectivePromotionAllowed": false
+    },
+    "off_route_learning": {
+      "access": "inherited_read_only_field_session_learning",
+      "disposedAdmissionAllowed": false,
+      "recommendationInputProjectionAllowed": false
+    },
+    "shadow_training": {
+      "access": "data_chronological_projection_with_learning_admission",
+      "disposedAdmissionAllowed": false,
+      "historicalPromotionAllowed": false
+    },
+    "shadow_evaluation": {
+      "access": "direct_retention_admission_before_evaluation_record",
+      "disposedAdmissionAllowed": false,
+      "expiredOrUnknownAdmissionAllowed": false
+    },
+    "shadow_readiness_calibration_and_baselines": {
+      "access": "only_validated_immutable_evaluation_records",
+      "disposedAdmissionAllowed": false,
+      "retentionAdmissionRequired": true
+    },
+    "discovery_mode": {
+      "access": "inherited_learning_snapshot_only",
+      "disposedAdmissionAllowed": false,
+      "recommendationInfluence": "OFF"
+    },
+    "nearby_context": {
+      "access": "inherited_governed_inputs_only",
+      "disposedAdmissionAllowed": false,
+      "recommendationInfluence": "OFF"
+    }
+  },
+  "currentState": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "productionProspectiveRecords": 0,
+    "productionEvaluations": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutput": false,
+    "newConsumerActivated": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false
+  }
+}

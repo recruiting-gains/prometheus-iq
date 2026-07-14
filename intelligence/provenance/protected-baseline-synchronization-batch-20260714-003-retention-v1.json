@@ -1,0 +1,113 @@
+{
+  "version": "route-iq-intelligence-retention-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260714-003",
+  "status": "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Record the Intelligence-owned admission implementation and protected baseline synchronization derived from final Data and Infrastructure owner commits without modifying their implementation.",
+  "dataOwnerLineage": {
+    "foundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
+    "exactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "transitions": [
+      {
+        "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        "previousSha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365",
+        "currentSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b"
+      },
+      {
+        "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+        "previousSha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc",
+        "currentSha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e"
+      },
+      {
+        "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+        "previousSha256": null,
+        "currentSha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c"
+      },
+      {
+        "path": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+        "previousSha256": null,
+        "currentSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313"
+      }
+    ]
+  },
+  "infrastructureOwnerLineage": {
+    "activationReadinessCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+    "transitions": [
+      {
+        "path": "workers/prometheus-iq-worker.js",
+        "previousSha256": "d20c60418cde292fa5394156f8fca8fee6b4fa457b0484c9cac4ad4e1f4b0119",
+        "currentSha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+        "previousSha256": "9b6734143fcb8990edd212170fa51b993ebfece0648a0decaf9d24108d53ee89",
+        "currentSha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d"
+      }
+    ]
+  },
+  "intelligenceOwnerChanges": [
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "previousSha256": "b30ed04063b41248f8131eaa0251662d518324c662821be443902b2244075662",
+      "currentSha256": "cb9e70024609f67cc5763f858566f2a4a2ac83ea8c0ac184bf1104ee1ccf047f"
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "previousSha256": "92d5e0956b817a20192ff51b377276b07bc5d9dcec0e38ac8688a1b9932b64bb",
+      "currentSha256": "6e409a72106e4f6bcc49b7a5a4fbaa6e26c20e6beda242ec6a1b08264ee31a07"
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSha256": "f17eda4bf90f0cb739e6fa059610bea098a082c514b150b853a4a4153e55afa3",
+      "currentSha256": "0c534e552ac7671d197c8de97f552bf704374d1fc2a69852834d32655dcf2738"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-retention-admission.mjs",
+      "previousSha256": null,
+      "currentSha256": "39210e5d636477db7575679a8d787d06b5f17d0baadd7f85325031e1d1e32d9c"
+    },
+    {
+      "path": "intelligence/route-iq-committed-outcome-evaluation.mjs",
+      "previousSha256": "ff128a549732d4bcfe91cdda5738fe44a50297d53323ee39d152066e6747a6db",
+      "currentSha256": "2bb043a1375954f18b1cfb220c6ba4a3f81f707ce5dd8dc98127df4a7491c5df"
+    },
+    {
+      "path": "intelligence/shadow-decision-readiness.mjs",
+      "previousSha256": "be115bcbf21e9062a11150b0431de27736c7c21497a28a45780274e570c2a7d2",
+      "currentSha256": "519b4b7dde8d7d0efad006b3a35bcedbaa8f26225f29d599afc6c99adbda5650"
+    }
+  ],
+  "consumerExclusionMatrix": {
+    "directConsumers": [
+      "read_only_field_session_learning",
+      "shadow_training",
+      "shadow_evaluation"
+    ],
+    "inheritedConsumers": [
+      "off_route_learning",
+      "shadow_readiness",
+      "shadow_calibration",
+      "shadow_baselines",
+      "discovery_mode",
+      "nearby_context"
+    ],
+    "excludedDomainCount": 12,
+    "auditVisibility": "hash_only",
+    "automaticZeroVisitExclusionAllowed": false,
+    "allConsumersAccountedFor": true
+  },
+  "boundaryValidation": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "productionProspectiveRecords": 0,
+    "productionEvaluations": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeScoringChanged": false,
+    "routeGenerationChanged": false,
+    "newConsumerActivated": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false
+  }
+}
