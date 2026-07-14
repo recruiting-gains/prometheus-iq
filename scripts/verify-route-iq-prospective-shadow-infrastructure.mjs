@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
-const dataCommits = Object.freeze(["7970f240", "968212e", "ce9f642", "88b8490"]);
+const dataCommits = Object.freeze(["7970f240", "968212e", "ce9f642", "88b8490", "89e9ae46"]);
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -62,6 +62,10 @@ assert.ok(
   "OFF prospective handling must precede Aegis storage"
 );
 assert.match(worker, /isRouteIqProspectiveShadowPath/u);
+assert.match(
+  worker,
+  /const result = await consumeRouteIqEndOfDayHandoff[\s\S]+await closeRouteIqProspectiveSessionFromHandoff/u
+);
 
 for (const required of [
   "Cf-Access-Jwt-Assertion",
@@ -96,6 +100,9 @@ for (const required of [
   "transactionSync(callback)",
   "this.sql.databaseSize",
   "extends DurableObjectBase",
+  "allocateNextStopOpportunity",
+  "noteGovernedRepresentativeSignal",
+  "closeCanonicalSession",
   "applyTrustedTrigger",
   "applyTrustedCandidateManifest",
   "recoverNextProjection",
@@ -124,9 +131,16 @@ for (const prohibited of [
   assert.ok(testSource.includes(`"${prohibited}"`), `Tests must reject ${prohibited}`);
 }
 
-assert.match(contract, /route_iq_prospective_data_server_allocator_required/u);
+assert.doesNotMatch(`${contract}\n${runtime}`, /route_iq_prospective_data_server_allocator_required/u);
 assert.match(runtime, /namespace\.getByName\(await coordinatorStubName\(scope\)\)/u);
-assert.ok(runtime.indexOf("verifyRouteIqProspectiveAccess") < runtime.indexOf("namespace.getByName"));
+assert.match(
+  runtime,
+  /const scope = await verifyRouteIqProspectiveAccess[\s\S]+const stub = await coordinatorStubForScope/u
+);
+assert.match(runtime, /await stub\.allocateNextStopOpportunity/u);
+assert.match(runtime, /await stub\.noteGovernedRepresentativeSignal/u);
+assert.match(runtime, /await stub\.closeCanonicalSession/u);
+assert.doesNotMatch(runtime, /applyTrustedCandidateManifest|applyTrustedShadowDecision/u);
 assert.doesNotMatch(runtime, /localStorage|sessionStorage|indexedDB/u);
 
 for (const budget of [
@@ -161,6 +175,9 @@ for (const required of [
   "Cf-Access-Jwt-Assertion",
   "HMAC-SHA-256",
   "Prometheus Data",
+  "allocateNextStopOpportunity",
+  "closeCanonicalSession",
+  "governed_noop",
   "forward-revert",
   "never auto-delete data",
   "No push, deploy, or activation"
@@ -178,5 +195,6 @@ console.log(JSON.stringify({
   publicWorkerBindingPresent: false,
   collectionDefault: "OFF",
   recommendationInfluence: "OFF",
-  dataOwnerDependency: "route_iq_prospective_data_server_allocator_required"
+  allocatorIntegration: "allocateNextStopOpportunity",
+  sessionClosureIntegration: "closeCanonicalSession"
 }, null, 2));

@@ -1,7 +1,9 @@
 import { AEGIS_API_HEADERS } from "./aegis-security-controls.js";
 import {
+  ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS,
-  ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER,
+  ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
+  ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
@@ -134,6 +136,29 @@ async function coordinatorStubName(scope) {
   return `route-iq-prospective-shadow-v1-${digest}`;
 }
 
+async function createScopeEnvelope(scope, env, noncanonicalTestHooks) {
+  return createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "coordinator_scope",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    registryVersion: scope.registryVersion,
+    issuedAt: runtimeNow(noncanonicalTestHooks)
+  }, env);
+}
+
+async function coordinatorStubForScope(scope, env) {
+  const namespace = env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING];
+  if (!namespace || typeof namespace.getByName !== "function") {
+    failRouteIqProspective(
+      "Prospective coordinator binding is unavailable.",
+      "route_iq_prospective_coordinator_binding_missing",
+      503
+    );
+  }
+  return namespace.getByName(await coordinatorStubName(scope));
+}
+
 function recordMetric(outcome, status, eventKind = undefined) {
   console.log(JSON.stringify({
     message: "Route IQ prospective infrastructure request.",
@@ -189,29 +214,90 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, { nonc
     }
 
     const event = validateBrowserEvent(await readBoundedJson(request));
-    const scopeEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
-      purpose: "coordinator_scope",
-      workspaceId: scope.workspaceId,
-      operatingProfileId: scope.operatingProfileId,
-      representativeId: scope.representativeId,
-      registryVersion: scope.registryVersion,
-      issuedAt: runtimeNow(noncanonicalTestHooks)
-    }, env);
-    const namespace = env?.[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING];
-    if (!namespace || typeof namespace.getByName !== "function") {
-      failRouteIqProspective(
-        "Prospective coordinator binding is unavailable.",
-        "route_iq_prospective_coordinator_binding_missing",
-        503
-      );
+    const scopeEnvelope = await createScopeEnvelope(scope, env, noncanonicalTestHooks);
+    const stub = await coordinatorStubForScope(scope, env);
+    if (event.eventKind === "next_stop_requested") {
+      await stub.allocateNextStopOpportunity({ scopeEnvelope, event });
+      recordMetric("allocated", 202, event.eventKind);
+      return jsonResponse(ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT, 202);
     }
-    const stub = namespace.getByName(await coordinatorStubName(scope));
-    const result = await stub.noteBrowserSignalBlocked({ scopeEnvelope, event });
-    recordMetric("owner_dependency", 503, event.eventKind);
-    return jsonResponse({ ...ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER, ...result }, 503);
+    await stub.noteGovernedRepresentativeSignal({ scopeEnvelope, event });
+    recordMetric("governed_noop", 202, event.eventKind);
+    return jsonResponse(ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT, 202);
   } catch (error) {
     return safeErrorResponse(error);
   }
+}
+
+function validateCanonicalHandoffResult(handoffResult) {
+  const normalized = handoffResult?.normalizedRecord;
+  if (handoffResult?.handoffContractId !== ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT
+    || typeof handoffResult?.rawSha256 !== "string"
+    || !/^[a-f0-9]{64}$/u.test(handoffResult.rawSha256)
+    || normalized?.handoffContractId !== ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT
+    || typeof normalized?.workspaceId !== "string"
+    || typeof normalized?.operatingProfileId !== "string"
+    || typeof normalized?.verifiedFields?.representative?.id !== "string") {
+    failRouteIqProspective(
+      "Canonical field-session handoff result is invalid.",
+      "route_iq_prospective_handoff_result_invalid",
+      500
+    );
+  }
+  return {
+    workspaceId: normalized.workspaceId,
+    operatingProfileId: normalized.operatingProfileId,
+    representativeId: normalized.verifiedFields.representative.id,
+    endOfDayHandoffSha256: handoffResult.rawSha256
+  };
+}
+
+export async function closeRouteIqProspectiveSessionFromHandoff(request, env, {
+  completionAction,
+  handoffResult,
+  noncanonicalTestHooks
+} = {}) {
+  const activation = getRouteIqProspectiveActivation(env);
+  if (!activation.active) return { status: "disabled" };
+  if (!["end_route", "end_day"].includes(completionAction)) {
+    failRouteIqProspective(
+      "Prospective session close reason is invalid.",
+      "route_iq_prospective_close_reason_invalid",
+      400
+    );
+  }
+
+  const canonicalHandoff = validateCanonicalHandoffResult(handoffResult);
+  const scope = await verifyRouteIqProspectiveAccess(request, env, {
+    cohortConfig: activation.cohortConfig,
+    noncanonicalTestHooks
+  });
+  if (scope.workspaceId !== canonicalHandoff.workspaceId
+    || scope.operatingProfileId !== canonicalHandoff.operatingProfileId
+    || scope.representativeId !== canonicalHandoff.representativeId) {
+    failRouteIqProspective(
+      "Authenticated scope does not own the canonical field-session handoff.",
+      "route_iq_prospective_handoff_scope_mismatch",
+      403
+    );
+  }
+
+  const authoritativeRecordTime = runtimeNow(noncanonicalTestHooks);
+  const scopeEnvelope = await createScopeEnvelope(scope, env, noncanonicalTestHooks);
+  const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "close_session",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    closeReason: completionAction,
+    handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+    endOfDayHandoffSha256: canonicalHandoff.endOfDayHandoffSha256,
+    authoritativeRecordTime
+  }, env);
+  const stub = await coordinatorStubForScope(scope, env);
+  const result = await stub.closeCanonicalSession({ scopeEnvelope, authorityEnvelope });
+  recordMetric("session_closed", 200);
+  return result;
 }
 
 export {

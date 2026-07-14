@@ -21,13 +21,16 @@ import {
   createRouteIqProspectiveAuthorityVerifier
 } from "../workers/infrastructure/route-iq-prospective-shadow-authority.js";
 import {
-  ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER,
+  ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
+  ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
+  ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING,
   ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_ENV,
   sha256Hex
 } from "../workers/infrastructure/route-iq-prospective-shadow-contract.js";
 import {
+  closeRouteIqProspectiveSessionFromHandoff,
   handleRouteIqProspectiveShadowRequest
 } from "../workers/infrastructure/route-iq-prospective-shadow-runtime.js";
 
@@ -95,6 +98,7 @@ async function accessFixture({
     .sign(accessKeys.privateKey);
   const names = [];
   const calls = [];
+  const commands = [];
   const env = {
     ...authorityEnv(),
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
@@ -107,10 +111,32 @@ async function accessFixture({
         calls.push("do_lookup");
         names.push(name);
         return {
-          async noteBrowserSignalBlocked(command) {
-            calls.push("do_rpc");
-            assert.deepEqual(command.event.eventKind.length > 0, true);
-            return { ...ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER };
+          async allocateNextStopOpportunity(command) {
+            calls.push("allocator_rpc");
+            commands.push(command);
+            assert.equal(command.event.eventKind, "next_stop_requested");
+            return {
+              status: "recorded",
+              sessionId: `riq_session_${digest("private-session")}`,
+              opportunityId: `riq_opportunity_${digest("private-opportunity")}`,
+              candidateCompletenessStatus: "pending_authenticated_intelligence_manifest"
+            };
+          },
+          async noteGovernedRepresentativeSignal(command) {
+            calls.push("governed_noop_rpc");
+            commands.push(command);
+            assert.match(command.event.eventKind, /^representative_(action|outcome)_observed$/u);
+            return { status: "governed_noop" };
+          },
+          async closeCanonicalSession(command) {
+            calls.push("close_rpc");
+            commands.push(command);
+            assert.equal(command.authorityEnvelope.claims.purpose, "close_session");
+            return {
+              status: "closed",
+              sessionId: `riq_session_${digest("private-session")}`,
+              requestSha256: digest("private-close-receipt")
+            };
           }
         };
       }
@@ -124,7 +150,7 @@ async function accessFixture({
       return keyResolver(...args);
     }
   };
-  return { env, token, names, calls, noncanonicalTestHooks };
+  return { env, token, names, calls, commands, noncanonicalTestHooks };
 }
 
 function eventRequest(body, token = null, headers = {}) {
@@ -137,6 +163,19 @@ function eventRequest(body, token = null, headers = {}) {
     },
     body: JSON.stringify(body)
   });
+}
+
+function canonicalHandoff(representativeId = "cruz") {
+  return {
+    handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+    rawSha256: digest(`canonical-handoff-${representativeId}`),
+    normalizedRecord: {
+      handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      verifiedFields: { representative: { id: representativeId } }
+    }
+  };
 }
 
 test("private config owns one SQLite class migration and public config remains unbound", () => {
@@ -154,6 +193,9 @@ test("private config owns one SQLite class migration and public config remains u
   for (const prohibited of ["fetch", "execute", "executeSchema", "get", "put", "list", "sql"]) {
     assert.equal(rpcNames.includes(prohibited), false, `DO must not expose generic ${prohibited} RPC`);
   }
+  assert.ok(rpcNames.includes("allocateNextStopOpportunity"));
+  assert.ok(rpcNames.includes("noteGovernedRepresentativeSignal"));
+  assert.ok(rpcNames.includes("closeCanonicalSession"));
   assert.ok(rpcNames.includes("applyTrustedTrigger"));
   assert.ok(rpcNames.includes("readCommittedProjectionAsOf"));
 });
@@ -199,7 +241,7 @@ test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or
   assert.equal(missingCohort.status, 202);
 });
 
-test("valid Access precedes scope-only DO lookup and exposes only the Data-owner blocker", async () => {
+test("valid Access precedes scope-only allocation and returns only opaque acknowledgments", async () => {
   const fixture = await accessFixture();
   const first = await handleRouteIqProspectiveShadowRequest(
     eventRequest({ eventKind: "next_stop_requested", informationalSequence: 9 }, fixture.token),
@@ -207,9 +249,10 @@ test("valid Access precedes scope-only DO lookup and exposes only the Data-owner
     { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
   );
   const firstBody = await first.json();
-  assert.equal(first.status, 503);
-  assert.deepEqual(firstBody, ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER);
+  assert.equal(first.status, 202);
+  assert.deepEqual(firstBody, ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT);
   assert.ok(fixture.calls.indexOf("access_signature") < fixture.calls.indexOf("do_lookup"));
+  assert.equal(fixture.calls.includes("allocator_rpc"), true);
 
   const second = await handleRouteIqProspectiveShadowRequest(
     eventRequest({
@@ -219,9 +262,19 @@ test("valid Access precedes scope-only DO lookup and exposes only the Data-owner
     fixture.env,
     { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
   );
-  assert.equal(second.status, 503);
-  assert.equal(fixture.names.length, 2);
+  assert.equal(second.status, 202);
+  assert.deepEqual(await second.json(), ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT);
+  assert.equal(fixture.calls.includes("governed_noop_rpc"), true);
+  const third = await handleRouteIqProspectiveShadowRequest(
+    eventRequest({ eventKind: "representative_outcome_observed" }, fixture.token),
+    fixture.env,
+    { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+  );
+  assert.equal(third.status, 202);
+  assert.deepEqual(await third.json(), ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT);
+  assert.equal(fixture.names.length, 3);
   assert.equal(fixture.names[0], fixture.names[1]);
+  assert.equal(fixture.names[1], fixture.names[2]);
 
   const representativeResponse = JSON.stringify(firstBody);
   for (const prohibited of [
@@ -238,6 +291,57 @@ test("valid Access precedes scope-only DO lookup and exposes only the Data-owner
   ]) {
     assert.equal(representativeResponse.includes(prohibited), false);
   }
+});
+
+test("canonical handoff closure is Access-mapped, digest-bound, and disabled without a DO call", async () => {
+  const fixture = await accessFixture();
+  const handoff = canonicalHandoff();
+  const closed = await closeRouteIqProspectiveSessionFromHandoff(
+    eventRequest({ eventKind: "next_stop_requested" }, fixture.token),
+    fixture.env,
+    {
+      completionAction: "end_route",
+      handoffResult: handoff,
+      noncanonicalTestHooks: fixture.noncanonicalTestHooks
+    }
+  );
+  assert.equal(closed.status, "closed");
+  assert.ok(fixture.calls.indexOf("access_signature") < fixture.calls.indexOf("do_lookup"));
+  assert.equal(fixture.calls.includes("close_rpc"), true);
+  assert.deepEqual(fixture.commands.at(-1).authorityEnvelope.claims, {
+    purpose: "close_session",
+    ...scope(),
+    closeReason: "end_route",
+    handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+    endOfDayHandoffSha256: handoff.rawSha256,
+    authoritativeRecordTime: testNow.toISOString()
+  });
+
+  const mismatched = await accessFixture();
+  await assert.rejects(
+    closeRouteIqProspectiveSessionFromHandoff(
+      eventRequest({ eventKind: "next_stop_requested" }, mismatched.token),
+      mismatched.env,
+      {
+        completionAction: "end_day",
+        handoffResult: canonicalHandoff("anthony"),
+        noncanonicalTestHooks: mismatched.noncanonicalTestHooks
+      }
+    ),
+    error => error.code === "route_iq_prospective_handoff_scope_mismatch"
+  );
+  assert.equal(mismatched.calls.includes("do_lookup"), false);
+
+  const disabled = await closeRouteIqProspectiveSessionFromHandoff(
+    eventRequest({ eventKind: "next_stop_requested" }),
+    {
+      get [ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING]() {
+        throw new Error("disabled closure reached DO");
+      }
+    },
+    { completionAction: "end_route", handoffResult: handoff }
+  );
+  assert.deepEqual(disabled, { status: "disabled" });
 });
 
 test("invalid Access, unmapped scope, missing key, and caller routing all fail before DO lookup", async () => {
@@ -406,7 +510,9 @@ const miniflareHarnessScript = `
 export { RouteIqProspectiveShadowCoordinator } from "./workers/infrastructure/route-iq-prospective-shadow-durable-object.js";
 
 const methods = new Set([
-  "noteBrowserSignalBlocked",
+  "allocateNextStopOpportunity",
+  "noteGovernedRepresentativeSignal",
+  "closeCanonicalSession",
   "applyTrustedTrigger",
   "applyTrustedCandidateManifest",
   "recoverNextProjection",
@@ -471,94 +577,109 @@ async function scopeEnvelopeFor(env, representativeId = "cruz") {
   }, env);
 }
 
-function triggerClaims(overrides = {}) {
-  return {
-    purpose: "trigger",
-    ...scope(),
-    territoryId: `riq_territory_${digest("noncanonical-territory")}`,
-    canonicalSessionRecordSha256: digest("noncanonical-session"),
-    sessionEventSequence: 4,
-    opportunityEventSequence: 7,
-    triggerRecordSha256: digest("noncanonical-trigger"),
-    canonicalEventBoundarySha256: digest("noncanonical-boundary"),
-    clientEventSequence: 11,
-    clientContentSha256: digest("noncanonical-client-content"),
-    authoritativeRecordTime: "2026-07-13T20:00:01.000Z",
-    recordOrigin: "prospective",
-    uncertainChronology: false,
-    ...overrides
-  };
-}
-
-test("real Miniflare SQLite DO converges concurrently, preserves conflict, scope, and restart state", async () => {
+test("real Miniflare SQLite allocator converges, closes, isolates scope, and survives restart", async () => {
   const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-do-"));
   const env = authorityEnv();
   const instanceName = `noncanonical-scope-${randomUUID()}`;
   const originalScopeEnvelope = await scopeEnvelopeFor(env);
-  const originalAuthorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope(triggerClaims(), env);
   const originalCommand = {
     scopeEnvelope: originalScopeEnvelope,
-    input: { authorityEnvelope: originalAuthorityEnvelope }
+    event: {
+      eventKind: "next_stop_requested",
+      informationalSequence: 1,
+      informationalObservedAt: "2026-07-13T20:00:00.000Z"
+    }
   };
   let miniflare = createMiniflare(env, persistencePath);
   let originalReceipt;
+  let reopenedReceipt;
   try {
     const [left, right] = await Promise.all([
-      doRpc(miniflare, instanceName, "applyTrustedTrigger", originalCommand),
-      doRpc(miniflare, instanceName, "applyTrustedTrigger", originalCommand)
+      doRpc(miniflare, instanceName, "allocateNextStopOpportunity", originalCommand),
+      doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+        scopeEnvelope: originalScopeEnvelope,
+        event: {
+          eventKind: "next_stop_requested",
+          informationalSequence: 999,
+          informationalObservedAt: "2026-07-13T20:02:00.000Z"
+        }
+      })
     ]);
     assert.equal(left.status, 200);
     assert.equal(right.status, 200);
     assert.deepEqual(left.body.result, right.body.result);
-    assert.equal(left.body.result.status, "recorded");
-    assert.equal(left.body.result.recoveryOutboxPersisted, true);
+    assert.equal(left.body.result.serverDerivedCanonicalIdentity, true);
+    assert.match(left.body.result.sessionId, /^riq_session_[a-f0-9]{64}$/u);
+    assert.match(left.body.result.opportunityId, /^riq_opportunity_[a-f0-9]{64}$/u);
     originalReceipt = left.body.result;
 
-    const competingClaims = triggerClaims({
-      canonicalSessionRecordSha256: digest("changed-canonical-session"),
-      clientContentSha256: digest("changed-client-content")
-    });
-    const competingCommand = {
+    const governedNoop = await doRpc(miniflare, instanceName, "noteGovernedRepresentativeSignal", {
       scopeEnvelope: originalScopeEnvelope,
-      input: {
-        authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope(competingClaims, env)
-      }
-    };
-    const conflict = await doRpc(miniflare, instanceName, "applyTrustedTrigger", competingCommand);
-    assert.equal(conflict.status, 599);
-    assert.match(conflict.body.message, /durably preserved as a conflict/u);
+      event: { eventKind: "representative_action_observed", informationalSequence: 2 }
+    });
+    assert.equal(governedNoop.status, 200);
+    assert.deepEqual(governedNoop.body.result, { status: "governed_noop" });
 
-    const crossScope = await doRpc(miniflare, instanceName, "noteBrowserSignalBlocked", {
+    const afterNoop = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", originalCommand);
+    assert.deepEqual(afterNoop.body.result, originalReceipt);
+
+    const crossScope = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
       scopeEnvelope: await scopeEnvelopeFor(env, "anthony"),
       event: { eventKind: "next_stop_requested", informationalSequence: 1 }
     });
     assert.equal(crossScope.status, 599);
     assert.match(crossScope.body.message, /scope does not own|scope/u);
 
-    const candidateBudgetClaims = {
-      ...triggerClaims({ purpose: "candidate_manifest", authoritativeRecordTime: "2026-07-13T20:00:02.000Z" }),
-      expectedCandidateCount: 65,
-      expectedSourceCount: 1,
-      expectedCompleteManifestSha256: digest("oversized-manifest")
+    const genericRpc = await doRpc(miniflare, instanceName, "execute", { sql: "SELECT 1" });
+    assert.equal(genericRpc.status, 400);
+
+    const closeClaims = {
+      purpose: "close_session",
+      ...scope(),
+      closeReason: "end_route",
+      handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+      endOfDayHandoffSha256: digest("miniflare-canonical-handoff"),
+      authoritativeRecordTime: "2026-07-13T20:03:00.000Z"
     };
-    const budgetBlocked = await doRpc(miniflare, instanceName, "applyTrustedCandidateManifest", {
+    const closed = await doRpc(miniflare, instanceName, "closeCanonicalSession", {
       scopeEnvelope: originalScopeEnvelope,
-      input: {
-        authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope(candidateBudgetClaims, env),
-        producerEnvelope: null
-      }
+      authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope(closeClaims, env)
     });
-    assert.equal(budgetBlocked.status, 599);
-    assert.match(budgetBlocked.body.message, /Candidate budget exceeded/u);
+    const closeRetry = await doRpc(miniflare, instanceName, "closeCanonicalSession", {
+      scopeEnvelope: originalScopeEnvelope,
+      authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        ...closeClaims,
+        authoritativeRecordTime: "2026-07-13T20:04:00.000Z"
+      }, env)
+    });
+    assert.equal(closed.status, 200);
+    assert.deepEqual(closeRetry.body.result, closed.body.result);
+    assert.equal(closed.body.result.status, "closed");
+
+    const reopened = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+      scopeEnvelope: originalScopeEnvelope,
+      event: { eventKind: "next_stop_requested", informationalSequence: 3 }
+    });
+    assert.equal(reopened.status, 200);
+    assert.notEqual(reopened.body.result.sessionId, originalReceipt.sessionId);
+    assert.notEqual(reopened.body.result.opportunityId, originalReceipt.opportunityId);
+    reopenedReceipt = reopened.body.result;
   } finally {
     await miniflare.dispose();
   }
 
   miniflare = createMiniflare(env, persistencePath);
   try {
-    const afterRestart = await doRpc(miniflare, instanceName, "applyTrustedTrigger", originalCommand);
+    const afterRestart = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+      scopeEnvelope: originalScopeEnvelope,
+      event: {
+        eventKind: "next_stop_requested",
+        informationalSequence: 500,
+        informationalObservedAt: "2026-07-13T20:10:00.000Z"
+      }
+    });
     assert.equal(afterRestart.status, 200);
-    assert.deepEqual(afterRestart.body.result, originalReceipt);
+    assert.deepEqual(afterRestart.body.result, reopenedReceipt);
   } finally {
     await miniflare.dispose();
     rmSync(persistencePath, { recursive: true, force: true });

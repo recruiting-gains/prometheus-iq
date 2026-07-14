@@ -2,6 +2,7 @@ export const ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING = "ROUTE_IQ_PROSPECTIVE_SHADOW_
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_CLASS = "RouteIqProspectiveShadowCoordinator";
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_PATH = "/api/dashboard/route-iq/prospective/event";
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_PATH_PREFIX = "/api/dashboard/route-iq/prospective/";
+export const ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT = "route-iq-end-of-day-data-handoff-v1";
 
 export const ROUTE_IQ_PROSPECTIVE_SHADOW_ENV = Object.freeze({
   accessAudience: "ROUTE_IQ_PROSPECTIVE_SHADOW_ACCESS_AUDIENCE",
@@ -34,15 +35,20 @@ export const ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS = Object.freeze([
   "representative_outcome_observed"
 ]);
 
-export const ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER = Object.freeze({
-  ok: false,
-  acknowledged: false,
-  status: "blocked_owner_dependency",
-  code: "route_iq_prospective_data_server_allocator_required",
-  ownerSubsystem: "Prometheus Data",
-  dependency: "server-derived canonical session and opportunity allocator plus governed candidate-context handoff",
-  recommendationInfluence: "OFF",
-  retryable: false
+export const ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT = Object.freeze({
+  ok: true,
+  acknowledged: true,
+  status: "accepted",
+  collection: "ON",
+  recommendationInfluence: "OFF"
+});
+
+export const ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT = Object.freeze({
+  ok: true,
+  acknowledged: true,
+  status: "governed_noop",
+  collection: "ON",
+  recommendationInfluence: "OFF"
 });
 
 export class RouteIqProspectiveInfrastructureError extends Error {

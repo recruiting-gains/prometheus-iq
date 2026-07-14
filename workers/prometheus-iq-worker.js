@@ -24,6 +24,7 @@ import {
 } from "./infrastructure/shared-lead-intake-pipeline.js";
 import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
+  closeRouteIqProspectiveSessionFromHandoff,
   getRouteIqProspectiveActivation,
   handleRouteIqProspectiveShadowRequest,
   isRouteIqProspectiveShadowPath
@@ -555,7 +556,7 @@ async function handlePartnerIntakeWithCrm(request, env) {
   }
 }
 
-async function handleRouteIqFieldSessionHandoff(request, env) {
+async function handleRouteIqFieldSessionHandoff(request, env, { prospectiveTestHooks } = {}) {
   if (request.method !== "POST") {
     return jsonResponse({ ok: false, acknowledged: false, message: "Method not allowed." }, 405, { Allow: "POST" });
   }
@@ -607,6 +608,12 @@ async function handleRouteIqFieldSessionHandoff(request, env) {
       sourceFinalizedAt: body.sourceFinalizedAt,
       rawReportText: body.rawReportText
     }, { env, ...runtimeContext });
+
+    await closeRouteIqProspectiveSessionFromHandoff(request, env, {
+      completionAction: body.completionAction,
+      handoffResult: result,
+      noncanonicalTestHooks: prospectiveTestHooks
+    });
 
     const acknowledgment = {
       contractId: result.handoffContractId,

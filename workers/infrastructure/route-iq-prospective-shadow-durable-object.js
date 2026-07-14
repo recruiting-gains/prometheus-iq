@@ -4,7 +4,6 @@ import {
 } from "../../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 import {
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS,
-  ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER,
   ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   assertExactKeys,
   canonicalIsoTimestamp,
@@ -101,7 +100,7 @@ export class CloudflareRouteIqProspectiveSqliteRepository {
     return this.execute(sql, bindings)[0] || null;
   }
 
-  assertOperationalBudgets({ claims = null, now = new Date(), recovery = false } = {}) {
+  assertOperationalBudgets({ claims = null, now = new Date(), recovery = false, allocation = false } = {}) {
     const databaseSize = Number(this.sql.databaseSize);
     if (!Number.isSafeInteger(databaseSize)
       || databaseSize < 0
@@ -141,6 +140,41 @@ export class CloudflareRouteIqProspectiveSqliteRepository {
       `, [claims.canonicalSessionRecordSha256, claims.sessionEventSequence])?.count || 0);
       if (opportunities >= this.budgets.opportunitiesPerSession) {
         failRouteIqProspective("Session opportunity budget exceeded.", "route_iq_prospective_session_budget_exceeded", 429);
+      }
+    }
+
+    if (allocation) {
+      const activeSession = this.one(`
+        SELECT s.session_id
+        FROM canonical_sessions s
+        LEFT JOIN canonical_session_events closed
+          ON closed.session_id = s.session_id AND closed.event_kind = 'CLOSED'
+        WHERE closed.event_id IS NULL
+        ORDER BY s.created_sequence DESC
+        LIMIT 1
+      `);
+      if (activeSession) {
+        const current = this.one(`
+          SELECT state
+          FROM opportunities
+          WHERE session_id = ?
+          ORDER BY opportunity_event_sequence DESC
+          LIMIT 1
+        `, [activeSession.session_id]);
+        const opportunities = Number(this.one(`
+          SELECT COUNT(*) AS count
+          FROM opportunities
+          WHERE session_id = ?
+        `, [activeSession.session_id])?.count || 0);
+        const retryableOpenState = [
+          "TRIGGERED",
+          "SNAPSHOT_PENDING_SEAL",
+          "SNAPSHOT_SEALED",
+          "SHADOW_DECISION_SEALED"
+        ].includes(current?.state);
+        if (opportunities >= this.budgets.opportunitiesPerSession && !retryableOpenState) {
+          failRouteIqProspective("Session opportunity budget exceeded.", "route_iq_prospective_session_budget_exceeded", 429);
+        }
       }
     }
   }
@@ -227,13 +261,51 @@ export class RouteIqProspectiveShadowCoordinator extends DurableObjectBase {
     return coordinator[method](command.input);
   }
 
-  async noteBrowserSignalBlocked(command) {
+  async allocateNextStopOpportunity(command) {
     assertExactKeys(command, ["scopeEnvelope", "event"], "browserSignalCommand");
     assertCommandBytes(command);
     validateBrowserEvent(command.event);
+    if (command.event.eventKind !== "next_stop_requested") {
+      failRouteIqProspective(
+        "Only next-stop requests may allocate an opportunity.",
+        "route_iq_prospective_allocator_event_invalid",
+        400
+      );
+    }
+    const repository = new CloudflareRouteIqProspectiveSqliteRepository(this.ctx.storage);
+    const { coordinator } = await this.openCoordinator(command.scopeEnvelope, repository);
+    repository.assertOperationalBudgets({ allocation: true });
+    return coordinator.allocateNextStopOpportunity({ event: command.event });
+  }
+
+  async noteGovernedRepresentativeSignal(command) {
+    assertExactKeys(command, ["scopeEnvelope", "event"], "governedRepresentativeSignalCommand");
+    assertCommandBytes(command);
+    validateBrowserEvent(command.event);
+    if (![
+      "representative_action_observed",
+      "representative_outcome_observed"
+    ].includes(command.event.eventKind)) {
+      failRouteIqProspective(
+        "Representative signal kind is invalid.",
+        "route_iq_prospective_governed_noop_event_invalid",
+        400
+      );
+    }
     const repository = new CloudflareRouteIqProspectiveSqliteRepository(this.ctx.storage);
     await this.openCoordinator(command.scopeEnvelope, repository);
-    return { ...ROUTE_IQ_PROSPECTIVE_DATA_ALLOCATOR_BLOCKER };
+    repository.assertOperationalBudgets();
+    return { status: "governed_noop" };
+  }
+
+  async closeCanonicalSession(command) {
+    assertExactKeys(command, ["scopeEnvelope", "authorityEnvelope"], "closeCanonicalSessionCommand");
+    assertCommandBytes(command);
+    const repository = new CloudflareRouteIqProspectiveSqliteRepository(this.ctx.storage);
+    const { authorityVerifier, coordinator } = await this.openCoordinator(command.scopeEnvelope, repository);
+    const verification = await authorityVerifier.verify(command.authorityEnvelope, { purpose: "close_session" });
+    repository.assertOperationalBudgets({ claims: verification.claims });
+    return coordinator.closeCanonicalSession({ authorityEnvelope: command.authorityEnvelope });
   }
 
   async applyTrustedTrigger(command) {
