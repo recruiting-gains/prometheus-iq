@@ -15,6 +15,7 @@ export const routeIqCandidateProducerContractVersion = "route-iq-next-stop-candi
 export const routeIqCandidateManifestSchemaVersion = "route-iq-next-stop-candidate-manifest-v1";
 export const routeIqCandidateSourceSchemaVersion = "route-iq-candidate-source-record-v1";
 export const routeIqCandidateSourceVersion = "route-iq-candidate-source-v1";
+export const routeIqProspectiveServerAllocatorContractVersion = "route-iq-prospective-server-allocator-v1";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
 export const routeIqProspectiveRecommendationInfluence = "off";
@@ -103,6 +104,21 @@ CREATE TABLE IF NOT EXISTS canonical_sessions (
   created_at TEXT NOT NULL,
   UNIQUE (session_id, canonical_session_record_sha256),
   UNIQUE (coordinator_id, canonical_session_record_sha256, session_event_sequence)
+);
+
+CREATE TABLE IF NOT EXISTS canonical_session_events (
+  event_id TEXT PRIMARY KEY REFERENCES artifact_registry(artifact_id),
+  session_id TEXT NOT NULL REFERENCES canonical_sessions(session_id),
+  event_kind TEXT NOT NULL CHECK (event_kind IN ('OPENED','CLOSED')),
+  request_sha256 TEXT NOT NULL,
+  record_sequence INTEGER NOT NULL UNIQUE,
+  authoritative_record_time TEXT NOT NULL,
+  canonical_json TEXT NOT NULL,
+  record_sha256 TEXT NOT NULL,
+  receipt_json TEXT,
+  receipt_sha256 TEXT,
+  UNIQUE (session_id, event_kind),
+  UNIQUE (event_kind, request_sha256)
 );
 
 CREATE TABLE IF NOT EXISTS opportunities (
@@ -274,6 +290,10 @@ CREATE TRIGGER IF NOT EXISTS canonical_sessions_no_update
 BEFORE UPDATE ON canonical_sessions BEGIN SELECT RAISE(ABORT, 'canonical_sessions_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS canonical_sessions_no_delete
 BEFORE DELETE ON canonical_sessions BEGIN SELECT RAISE(ABORT, 'canonical_sessions_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS canonical_session_events_no_update
+BEFORE UPDATE ON canonical_session_events BEGIN SELECT RAISE(ABORT, 'canonical_session_events_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS canonical_session_events_no_delete
+BEFORE DELETE ON canonical_session_events BEGIN SELECT RAISE(ABORT, 'canonical_session_events_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS artifact_registry_no_update
 BEFORE UPDATE ON artifact_registry BEGIN SELECT RAISE(ABORT, 'artifact_registry_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS artifact_registry_no_delete
@@ -437,6 +457,7 @@ function hashId(kind, identity) {
   const prefix = {
     coordinator: "riq_coord",
     session: "riq_session",
+    territory: "riq_territory",
     opportunity: "riq_opportunity",
     idempotency: "riq_idempotency",
     trigger: "riq_trigger",
@@ -490,7 +511,8 @@ export function initializeRouteIqProspectiveCoordinatorSchema(repositoryInput) {
 
 function normalizeScopeClaims(claims) {
   assertExactKeys(claims, [
-    "purpose", "workspaceId", "operatingProfileId", "representativeId", "registryVersion", "issuedAt"
+    "purpose", "workspaceId", "operatingProfileId", "representativeId", "registryVersion", "issuedAt",
+    "territoryContext"
   ], "verifiedScopeClaims");
   if (claims.purpose !== "coordinator_scope") {
     fail("route_iq_coordinator_scope_purpose_invalid", "Scope attestation purpose is invalid.", {}, 403);
@@ -503,12 +525,38 @@ function normalizeScopeClaims(claims) {
   }
   const registryVersion = requireVersion(claims.registryVersion, "verifiedScopeClaims.registryVersion");
   const issuedAt = canonicalTimestamp(claims.issuedAt, "verifiedScopeClaims.issuedAt").iso;
+  let territoryContext;
+  if (claims.territoryContext === undefined || claims.territoryContext === null) {
+    territoryContext = {
+      status: "unknown",
+      territoryId: null,
+      sourceRecordSha256: null,
+      sourceContractVersion: null
+    };
+  } else {
+    assertExactKeys(claims.territoryContext, [
+      "status", "territoryId", "sourceRecordSha256", "sourceContractVersion"
+    ], "verifiedScopeClaims.territoryContext");
+    if (claims.territoryContext.status !== "known") {
+      fail("route_iq_coordinator_territory_context_invalid", "A supplied territory context must be canonically known.", {
+        paths: ["verifiedScopeClaims.territoryContext.status"]
+      }, 403);
+    }
+    territoryContext = {
+      status: "known",
+      territoryId: requireHashId(claims.territoryContext.territoryId, "territory", "verifiedScopeClaims.territoryContext.territoryId"),
+      sourceRecordSha256: requireSha(claims.territoryContext.sourceRecordSha256, "verifiedScopeClaims.territoryContext.sourceRecordSha256"),
+      sourceContractVersion: requireVersion(claims.territoryContext.sourceContractVersion, "verifiedScopeClaims.territoryContext.sourceContractVersion")
+    };
+  }
+  assertNoPiiLikeStrings(territoryContext, "verifiedScopeClaims.territoryContext");
   return {
     workspaceId: claims.workspaceId,
     operatingProfileId: claims.operatingProfileId,
     representativeId: claims.representativeId,
     registryVersion,
-    issuedAt
+    issuedAt,
+    territoryContext
   };
 }
 
@@ -1413,6 +1461,400 @@ function canonicalRequestForClaims(claims, authority, extra = {}) {
   };
 }
 
+function normalizeInformationalBrowserEvent(event) {
+  assertExactKeys(event, ["eventKind", "informationalSequence", "informationalObservedAt"], "informationalBrowserEvent");
+  if (event.eventKind !== "next_stop_requested") {
+    fail("route_iq_server_allocator_event_not_supported", "Only the existing next_stop request seam may allocate an opportunity.", {
+      paths: ["informationalBrowserEvent.eventKind"]
+    }, 409);
+  }
+  const informationalSequence = event.informationalSequence === undefined
+    ? null
+    : requireSequence(event.informationalSequence, "informationalBrowserEvent.informationalSequence");
+  const informationalObservedAt = event.informationalObservedAt === undefined
+    ? null
+    : canonicalTimestamp(event.informationalObservedAt, "informationalBrowserEvent.informationalObservedAt").iso;
+  assertNoPiiLikeStrings({ eventKind: event.eventKind, informationalSequence, informationalObservedAt }, "informationalBrowserEvent");
+  return deepFreeze({
+    eventKind: "next_stop_requested",
+    informationalSequence,
+    informationalObservedAt
+  });
+}
+
+function normalizeSessionCloseClaims(claims, scope) {
+  assertExactKeys(claims, [
+    "purpose", "workspaceId", "operatingProfileId", "representativeId",
+    "closeReason", "handoffContractVersion", "endOfDayHandoffSha256", "authoritativeRecordTime"
+  ], "verifiedSessionCloseClaims");
+  if (claims.purpose !== "close_session" || !sameScope(claims, scope)) {
+    fail("route_iq_server_allocator_close_scope_invalid", "Session close claims do not match the coordinator.", {}, 403);
+  }
+  if (!["end_route", "end_day"].includes(claims.closeReason)) {
+    fail("route_iq_server_allocator_close_reason_invalid", "Session close reason is not governed.", {
+      paths: ["verifiedSessionCloseClaims.closeReason"]
+    });
+  }
+  if (claims.handoffContractVersion !== "route-iq-end-of-day-data-handoff-v1") {
+    fail("route_iq_server_allocator_handoff_contract_invalid", "Session close must bind the canonical End Route/End Day handoff contract.", {
+      paths: ["verifiedSessionCloseClaims.handoffContractVersion"]
+    }, 403);
+  }
+  requireSha(claims.endOfDayHandoffSha256, "verifiedSessionCloseClaims.endOfDayHandoffSha256");
+  canonicalTimestamp(claims.authoritativeRecordTime, "verifiedSessionCloseClaims.authoritativeRecordTime");
+  assertNoPiiLikeStrings(claims, "verifiedSessionCloseClaims");
+  return deepFreeze(clone(claims));
+}
+
+function unknownAllocatorTerritoryId() {
+  return hashId("territory", {
+    status: "unknown",
+    meaning: "canonical_territory_context_unavailable",
+    version: routeIqProspectiveServerAllocatorContractVersion
+  });
+}
+
+function allocatorTerritoryContext(scope) {
+  if (scope.territoryContext.status === "known") return scope.territoryContext;
+  return {
+    status: "unknown",
+    territoryId: unknownAllocatorTerritoryId(),
+    sourceRecordSha256: null,
+    sourceContractVersion: null
+  };
+}
+
+function nextMonotonicCoordinatorTime(repository, requestedTime) {
+  const requested = canonicalTimestamp(requestedTime, "serverAllocator.authoritativeRecordTime");
+  const last = repositoryOne(repository, `
+    SELECT registered_at FROM artifact_registry
+    ORDER BY registered_sequence DESC, registered_at DESC, artifact_id DESC
+    LIMIT 1
+  `);
+  if (!last) return requested.iso;
+  const prior = canonicalTimestamp(last.registered_at, "artifactRegistry.registeredAt");
+  if (requested.time > prior.time) return requested.iso;
+  return new Date(prior.time + 1).toISOString();
+}
+
+function activeCanonicalSession(repository) {
+  return repositoryOne(repository, `
+    SELECT s.*
+    FROM canonical_sessions s
+    JOIN canonical_session_events opened
+      ON opened.session_id = s.session_id AND opened.event_kind = 'OPENED'
+    LEFT JOIN canonical_session_events closed
+      ON closed.session_id = s.session_id AND closed.event_kind = 'CLOSED'
+    WHERE closed.event_id IS NULL
+    ORDER BY s.session_event_sequence DESC
+    LIMIT 1
+  `);
+}
+
+function currentAllocatedOpportunity(repository, sessionId) {
+  return repositoryOne(repository, `
+    SELECT o.*
+    FROM opportunities o
+    WHERE o.session_id = ?
+    ORDER BY o.opportunity_event_sequence DESC
+    LIMIT 1
+  `, [sessionId]);
+}
+
+function allocationReceiptForOpportunity(repository, opportunityId) {
+  const row = repositoryOne(repository, `
+    SELECT * FROM operation_receipts
+    WHERE opportunity_id = ? AND operation_kind = 'server_allocate_next_stop'
+    ORDER BY created_sequence ASC
+    LIMIT 1
+  `, [opportunityId]);
+  if (!row) fail("route_iq_server_allocator_receipt_missing", "Canonical allocation receipt is missing.", {}, 500);
+  return receiptFromRow(row);
+}
+
+function authenticatedMaterialManifestRotationAllowed(repository, opportunityId) {
+  const exclusion = latestEvent(repository, opportunityId, "EXCLUSION_RECORDED");
+  const reasons = exclusion?.canonical?.payload?.reasonCodes;
+  if (!Array.isArray(reasons)
+    || reasons.length !== 1
+    || reasons[0] !== "candidate_manifest_materially_changed") return false;
+  const manifest = repositoryOne(repository, `
+    SELECT * FROM candidate_manifests WHERE opportunity_id = ?
+  `, [opportunityId]);
+  if (!manifest) return false;
+  const canonical = parseCanonicalJson(manifest.manifest_json, manifest.manifest_record_sha256, "preserved candidate manifest");
+  return canonical.completeManifestSha256 === manifest.complete_manifest_sha256
+    && exclusion.canonical.payload.requestContentPersisted === false
+    && exclusion.canonical.payload.permanent === true
+    && exclusion.canonical.payload.mayBePromotedLater === false;
+}
+
+function isAllocationOpenState(state) {
+  return ["TRIGGERED", "SNAPSHOT_PENDING_SEAL", "SNAPSHOT_SEALED", "SHADOW_DECISION_SEALED"].includes(state);
+}
+
+function appendCanonicalSessionEvent(repository, {
+  coordinatorId,
+  sessionId,
+  eventKind,
+  requestSha256,
+  authoritativeRecordTime,
+  payload,
+  receipt = null
+}) {
+  const recordSequence = allocateSequence(repository);
+  const eventId = `riq_session_event_${sha256({ coordinatorId, sessionId, eventKind, requestSha256 })}`;
+  const canonical = {
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    eventId,
+    eventKind,
+    coordinatorId,
+    sessionId,
+    requestSha256,
+    recordSequence,
+    authoritativeRecordTime,
+    payload: clone(payload),
+    immutable: true,
+    appendOnly: true,
+    recommendationInfluence: "off"
+  };
+  const canonicalJson = canonicalText(canonical);
+  const recordSha256 = sha256(canonicalJson);
+  const receiptJson = receipt ? canonicalText(receipt) : null;
+  registerArtifact(repository, {
+    artifactId: eventId,
+    artifactKind: `canonical_session_${eventKind.toLowerCase()}`,
+    recordSequence,
+    registeredAt: authoritativeRecordTime
+  });
+  repositoryRows(repository, `
+    INSERT INTO canonical_session_events (
+      event_id, session_id, event_kind, request_sha256, record_sequence,
+      authoritative_record_time, canonical_json, record_sha256, receipt_json, receipt_sha256
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    eventId,
+    sessionId,
+    eventKind,
+    requestSha256,
+    recordSequence,
+    authoritativeRecordTime,
+    canonicalJson,
+    recordSha256,
+    receiptJson,
+    receiptJson ? sha256(receiptJson) : null
+  ]);
+  return { eventId, recordSequence, authoritativeRecordTime, recordSha256, canonical };
+}
+
+function parseSessionEventReceipt(row) {
+  if (!row?.receipt_json || !row.receipt_sha256) return null;
+  return deepFreeze(parseCanonicalJson(row.receipt_json, row.receipt_sha256, "canonical session receipt"));
+}
+
+function createCanonicalSession(repository, { coordinatorId, scope, authoritativeRecordTime }) {
+  const sessionEventSequence = Number(repositoryOne(repository, `
+    SELECT COALESCE(MAX(session_event_sequence), -1) + 1 AS next_sequence
+    FROM canonical_sessions WHERE coordinator_id = ?
+  `, [coordinatorId])?.next_sequence ?? 0);
+  requireSequence(sessionEventSequence, "serverAllocator.sessionEventSequence");
+  const sessionId = hashId("session", { coordinatorId, sessionEventSequence });
+  const territoryContext = allocatorTerritoryContext(scope);
+  const territoryId = territoryContext.territoryId;
+  const canonicalSessionRecordSha256 = sha256({
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    coordinatorId,
+    sessionId,
+    sessionEventSequence,
+    territoryId,
+    openedAt: authoritativeRecordTime,
+    identityAuthority: "authenticated_server_scope_and_sqlite_state",
+    territoryContextStatus: territoryContext.status,
+    territorySourceRecordSha256: territoryContext.sourceRecordSha256,
+    territorySourceContractVersion: territoryContext.sourceContractVersion
+  });
+  const createdSequence = allocateSequence(repository);
+  repositoryRows(repository, `
+    INSERT INTO canonical_sessions (
+      session_id, coordinator_id, canonical_session_record_sha256, territory_id,
+      session_event_sequence, created_sequence, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `, [
+    sessionId,
+    coordinatorId,
+    canonicalSessionRecordSha256,
+    territoryId,
+    sessionEventSequence,
+    createdSequence,
+    authoritativeRecordTime
+  ]);
+  const openRequestSha256 = sha256({
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    coordinatorId,
+    sessionId,
+    canonicalSessionRecordSha256,
+    eventKind: "OPENED"
+  });
+  appendCanonicalSessionEvent(repository, {
+    coordinatorId,
+    sessionId,
+    eventKind: "OPENED",
+    requestSha256: openRequestSha256,
+    authoritativeRecordTime,
+    payload: {
+      canonicalSessionRecordSha256,
+      territoryId,
+      territoryContextStatus: territoryContext.status,
+      territorySourceRecordSha256: territoryContext.sourceRecordSha256,
+      territorySourceContractVersion: territoryContext.sourceContractVersion,
+      sessionEventSequence,
+      identityAuthority: "authenticated_server_scope_and_sqlite_state"
+    }
+  });
+  return repositoryOne(repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [sessionId]);
+}
+
+function serverDerivedTriggerClaims({ coordinatorId, scope, session, opportunityEventSequence, authoritativeRecordTime, event }) {
+  const triggerRecordSha256 = sha256({
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    coordinatorId,
+    sessionId: session.session_id,
+    opportunityEventSequence,
+    opportunityType: "next_stop",
+    captureSource: "dashboard_next_stop_requested"
+  });
+  return {
+    purpose: "trigger",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    territoryId: session.territory_id,
+    canonicalSessionRecordSha256: session.canonical_session_record_sha256,
+    sessionEventSequence: Number(session.session_event_sequence),
+    opportunityEventSequence,
+    triggerRecordSha256,
+    canonicalEventBoundarySha256: sha256({
+      allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+      sessionId: session.session_id,
+      opportunityEventSequence,
+      triggerRecordSha256
+    }),
+    clientEventSequence: event.informationalSequence ?? 0,
+    clientContentSha256: sha256({
+      eventKind: event.eventKind,
+      informationalSequence: event.informationalSequence,
+      informationalObservedAt: event.informationalObservedAt
+    }),
+    authoritativeRecordTime,
+    recordOrigin: "prospective",
+    uncertainChronology: false
+  };
+}
+
+function createServerAllocatedOpportunity(repository, {
+  coordinatorId,
+  scope,
+  scopeAuthority,
+  session,
+  authoritativeRecordTime,
+  event
+}) {
+  const opportunityEventSequence = Number(repositoryOne(repository, `
+    SELECT COALESCE(MAX(opportunity_event_sequence), -1) + 1 AS next_sequence
+    FROM opportunities WHERE session_id = ?
+  `, [session.session_id])?.next_sequence ?? 0);
+  requireSequence(opportunityEventSequence, "serverAllocator.opportunityEventSequence");
+  const claims = serverDerivedTriggerClaims({
+    coordinatorId,
+    scope,
+    session,
+    opportunityEventSequence,
+    authoritativeRecordTime,
+    event
+  });
+  const identities = identitiesForClaims(coordinatorId, claims);
+  repositoryRows(repository, `
+    INSERT INTO opportunities (
+      opportunity_id, coordinator_id, session_id, canonical_session_record_sha256,
+      territory_id, opportunity_type, opportunity_event_sequence, trigger_record_sha256,
+      trigger_boundary_sha256, state, canonical_eligible, current_manifest_sha256,
+      last_record_sequence, last_record_time
+    ) VALUES (?, ?, ?, ?, ?, 'next_stop', ?, ?, ?, 'TRIGGERED', 1, NULL, 0, NULL)
+  `, [
+    identities.opportunityId,
+    coordinatorId,
+    session.session_id,
+    session.canonical_session_record_sha256,
+    session.territory_id,
+    opportunityEventSequence,
+    claims.triggerRecordSha256,
+    claims.canonicalEventBoundarySha256
+  ]);
+  const canonicalRequest = canonicalRequestForClaims(claims, scopeAuthority, {
+    identityAuthority: "authenticated_server_scope_and_sqlite_state",
+    informationalBrowserFieldsExcludedFromIdentity: true
+  });
+  const requestSha256 = sha256(canonicalRequest);
+  insertAttempt(repository, {
+    identities,
+    claims,
+    operationKind: "server_allocate_next_stop",
+    requestSha256,
+    canonicalRequest
+  });
+  const lifecycle = appendLifecycleEvent(repository, {
+    coordinatorId,
+    sessionId: session.session_id,
+    opportunityId: identities.opportunityId,
+    operationKey: identities.operationKey,
+    requestSha256,
+    logicalBoundarySha256: claims.canonicalEventBoundarySha256,
+    authoritativeRecordTime,
+    eventKind: "TRIGGERED",
+    artifactKind: "opportunity_trigger",
+    fromState: null,
+    toState: "TRIGGERED",
+    payload: {
+      opportunityType: "next_stop",
+      territoryId: session.territory_id,
+      canonicalSessionRecordSha256: session.canonical_session_record_sha256,
+      sessionEventSequence: Number(session.session_event_sequence),
+      opportunityEventSequence,
+      triggerRecordSha256: claims.triggerRecordSha256,
+      captureSource: "dashboard_next_stop_requested",
+      informationalClientEvent: clone(event),
+      informationalFieldsControlIdentity: false,
+      candidateCompletenessStatus: "pending_authenticated_intelligence_manifest",
+      snapshotAccepted: false,
+      recordOrigin: "prospective"
+    },
+    canonicalEvidenceEligible: false
+  });
+  updateOpportunityState(repository, identities.opportunityId, lifecycle, "TRIGGERED");
+  return insertReceipt(repository, {
+    identities,
+    operationKind: "server_allocate_next_stop",
+    requestSha256,
+    event: lifecycle,
+    state: "TRIGGERED",
+    details: {
+      allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+      serverDerivedCanonicalIdentity: true,
+      informationalBrowserFieldsControlIdentity: false,
+      candidateCompletenessStatus: "pending_authenticated_intelligence_manifest",
+      snapshotAccepted: false,
+      canonicalContext: {
+        territoryId: session.territory_id,
+        canonicalSessionRecordSha256: session.canonical_session_record_sha256,
+        sessionEventSequence: Number(session.session_event_sequence),
+        opportunityEventSequence,
+        triggerRecordSha256: claims.triggerRecordSha256,
+        canonicalEventBoundarySha256: claims.canonicalEventBoundarySha256
+      }
+    }
+  });
+}
+
 function validateSealClaims(claims, scope, purpose, expected) {
   const extra = purpose === "shadow_decision_seal" ? ["shadowDecisionRecordSha256"] : [];
   assertExactKeys(claims, [
@@ -1442,9 +1884,10 @@ function validateSealClaims(claims, scope, purpose, expected) {
 }
 
 class RouteIqProspectiveCoordinatorCore {
-  constructor({ repository, authorityVerifier, scope, coordinatorId }) {
+  constructor({ repository, authorityVerifier, scopeAuthority, scope, coordinatorId }) {
     this.repository = repository;
     this.authorityVerifier = authorityVerifier;
+    this.scopeAuthority = scopeAuthority;
     this.scope = deepFreeze(clone(scope));
     this.coordinatorId = coordinatorId;
   }
@@ -1465,6 +1908,154 @@ class RouteIqProspectiveCoordinatorCore {
         fail("route_iq_coordinator_caller_authority_prohibited", `${path}.${prohibited} must not be caller supplied.`, { paths: [`${path}.${prohibited}`] }, 403);
       }
     }
+  }
+
+  async allocateNextStopOpportunity(input = {}) {
+    this.assertInput(input, ["event"], "serverAllocatorRequest");
+    const event = normalizeInformationalBrowserEvent(input.event);
+    const result = this.repository.transactionSync(() => {
+      let session = activeCanonicalSession(this.repository);
+      if (!session) {
+        const openedAt = nextMonotonicCoordinatorTime(this.repository, this.scope.issuedAt);
+        session = createCanonicalSession(this.repository, {
+          coordinatorId: this.coordinatorId,
+          scope: this.scope,
+          authoritativeRecordTime: openedAt
+        });
+      }
+
+      const current = currentAllocatedOpportunity(this.repository, session.session_id);
+      if (current) {
+        if (isAllocationOpenState(current.state)) return allocationReceiptForOpportunity(this.repository, current.opportunity_id);
+        if (current.state === "EXCLUDED") {
+          if (!authenticatedMaterialManifestRotationAllowed(this.repository, current.opportunity_id)) {
+            return allocationReceiptForOpportunity(this.repository, current.opportunity_id);
+          }
+        } else if (!["ACTION_LINKED", "OUTCOME_LINKED", "EVALUATED"].includes(current.state)) {
+          fail("route_iq_server_allocator_prior_lifecycle_incomplete", "A new next_stop opportunity requires a trusted linked action or later lifecycle state.", {
+            priorState: current.state
+          }, 409);
+        }
+      }
+
+      const allocatedAt = nextMonotonicCoordinatorTime(this.repository, this.scope.issuedAt);
+      return createServerAllocatedOpportunity(this.repository, {
+        coordinatorId: this.coordinatorId,
+        scope: this.scope,
+        scopeAuthority: this.scopeAuthority,
+        session,
+        authoritativeRecordTime: allocatedAt,
+        event
+      });
+    });
+    return transitionResult(result);
+  }
+
+  async closeCanonicalSession(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "serverSessionCloseRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "close_session",
+      coordinatorId: this.coordinatorId
+    });
+    const claims = normalizeSessionCloseClaims(authority.claims, this.scope);
+    const logicalClaims = clone(claims);
+    delete logicalClaims.authoritativeRecordTime;
+    const requestSha256 = sha256({
+      allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+      logicalClaims,
+      authority: {
+        verificationType: authority.verificationType,
+        keyId: authority.keyId,
+        algorithm: authority.algorithm
+      }
+    });
+    const result = this.repository.transactionSync(() => {
+      const existing = repositoryOne(this.repository, `
+        SELECT * FROM canonical_session_events
+        WHERE event_kind = 'CLOSED' AND request_sha256 = ?
+      `, [requestSha256]);
+      if (existing) return parseSessionEventReceipt(existing);
+
+      const session = activeCanonicalSession(this.repository);
+      if (!session) {
+        fail("route_iq_server_allocator_active_session_missing", "No active canonical field session is available to close.", {}, 409);
+      }
+      const current = currentAllocatedOpportunity(this.repository, session.session_id);
+      if (current && isAllocationOpenState(current.state)) {
+        const exclusionAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+        const exclusionClaims = {
+          purpose: "allocator_session_close",
+          workspaceId: this.scope.workspaceId,
+          operatingProfileId: this.scope.operatingProfileId,
+          representativeId: this.scope.representativeId,
+          territoryId: current.territory_id,
+          canonicalSessionRecordSha256: current.canonical_session_record_sha256,
+          sessionEventSequence: Number(session.session_event_sequence),
+          opportunityEventSequence: Number(current.opportunity_event_sequence),
+          triggerRecordSha256: current.trigger_record_sha256,
+          canonicalEventBoundarySha256: sha256({
+            endOfDayHandoffSha256: claims.endOfDayHandoffSha256,
+            opportunityId: current.opportunity_id
+          }),
+          clientEventSequence: 0,
+          clientContentSha256: sha256({ closeReason: claims.closeReason }),
+          authoritativeRecordTime: exclusionAt,
+          recordOrigin: "prospective",
+          uncertainChronology: false
+        };
+        const identities = identitiesForClaims(this.coordinatorId, exclusionClaims);
+        const exclusion = persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims: exclusionClaims,
+          operationKind: "allocator_session_close",
+          reasonCodes: ["session_closed_before_lifecycle_complete"],
+          incomingDigest: requestSha256,
+          canonicalRequest: {
+            allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+            closeRequestSha256: requestSha256
+          }
+        });
+        if (exclusion?.conflictDecision) return { conflictDecision: exclusion.conflictDecision };
+      }
+
+      const closedAt = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
+      const eventId = `riq_session_event_${sha256({
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        eventKind: "CLOSED",
+        requestSha256
+      })}`;
+      const receipt = {
+        allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+        status: "closed",
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        closeEventId: eventId,
+        closeReason: claims.closeReason,
+        requestSha256,
+        authoritativeRecordTime: closedAt,
+        priorEvidencePreserved: true,
+        recommendationInfluence: "off",
+        collectionDefault: "off"
+      };
+      appendCanonicalSessionEvent(this.repository, {
+        coordinatorId: this.coordinatorId,
+        sessionId: session.session_id,
+        eventKind: "CLOSED",
+        requestSha256,
+        authoritativeRecordTime: closedAt,
+        payload: {
+          closeReason: claims.closeReason,
+          handoffContractVersion: claims.handoffContractVersion,
+          endOfDayHandoffSha256: claims.endOfDayHandoffSha256,
+          priorEvidencePreserved: true
+        },
+        receipt
+      });
+      return deepFreeze(receipt);
+    });
+    return transitionResult(result);
   }
 
   async trigger(input = {}) {
@@ -1672,6 +2263,43 @@ class RouteIqProspectiveCoordinatorCore {
       if (existing?.type === "conflict") return { conflictDecision: existing };
       assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
       assertMonotonicRecordTime(opportunity, verified.claims);
+      if (opportunity.territory_id === unknownAllocatorTerritoryId()) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities: verified.identities,
+          claims: verified.claims,
+          operationKind: "candidate_manifest",
+          reasonCodes: ["territory_context_unavailable"],
+          incomingDigest: requestSha256,
+          requestSha256Override: requestSha256,
+          canonicalRequest
+        });
+      }
+      const priorManifest = repositoryOne(this.repository, `
+        SELECT * FROM candidate_manifests WHERE opportunity_id = ?
+      `, [verified.identities.opportunityId]);
+      if (priorManifest) {
+        if (priorManifest.complete_manifest_sha256 === manifest.completeManifestSha256) {
+          const priorReceipt = repositoryOne(this.repository, `
+            SELECT * FROM operation_receipts
+            WHERE opportunity_id = ? AND operation_kind = 'candidate_manifest'
+            ORDER BY created_sequence ASC
+            LIMIT 1
+          `, [verified.identities.opportunityId]);
+          if (!priorReceipt) fail("route_iq_candidate_manifest_receipt_missing", "Canonical candidate-manifest receipt is missing.", {}, 500);
+          return receiptFromRow(priorReceipt);
+        }
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities: verified.identities,
+          claims: verified.claims,
+          operationKind: "candidate_manifest",
+          reasonCodes: ["candidate_manifest_materially_changed"],
+          incomingDigest: requestSha256,
+          requestSha256Override: requestSha256,
+          canonicalRequest
+        });
+      }
       const exclusionReason = stateReason(opportunity, "TRIGGERED") || originReason(opportunity, verified.claims);
       if (exclusionReason) {
         return persistExclusion(this.repository, {
@@ -2618,6 +3246,7 @@ export async function openRouteIqProspectiveCoordinator(input = {}) {
   return new RouteIqProspectiveCoordinatorCore({
     repository,
     authorityVerifier: input.authorityVerifier,
+    scopeAuthority,
     scope,
     coordinatorId
   });

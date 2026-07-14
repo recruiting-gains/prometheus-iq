@@ -256,7 +256,7 @@
     "routeScoringMutationAllowed": false
   },
   "prospectiveShadowEvidenceLifecycleContract": {
-    "status": "data_sqlite_coordinator_defined_runtime_inactive",
+    "status": "data_server_allocator_ready_runtime_inactive",
     "batchId": "BATCH-20260713-004",
     "owningSubsystem": "Prometheus Data",
     "workspaceId": "fitness_connection",
@@ -271,12 +271,13 @@
     "candidateManifestSchemaVersion": "route-iq-next-stop-candidate-manifest-v1",
     "candidateSourceSchemaVersion": "route-iq-candidate-source-record-v1",
     "candidateSourceVersion": "route-iq-candidate-source-v1",
+    "serverAllocatorContractVersion": "route-iq-prospective-server-allocator-v1",
     "storage": {
       "authoritativeTechnology": "cloudflare_sqlite_backed_durable_object",
       "coordinatorScope": "authenticated workspace + operating profile + representative",
       "dataCorePath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
       "runtimeAdapterOwner": "Prometheus Infrastructure",
-      "runtimeAdapterImplemented": false,
+      "runtimeAdapterImplemented": true,
       "runtimeBindingIntroducedByData": false,
       "repositoryContract": [
         "executeSchema(sql)",
@@ -317,6 +318,8 @@
     "dataInterfaces": {
       "schema": "initializeRouteIqProspectiveCoordinatorSchema",
       "openCoordinator": "openRouteIqProspectiveCoordinator",
+      "serverAllocator": "allocateNextStopOpportunity",
+      "trustedSessionClose": "closeCanonicalSession",
       "candidateDigest": "computeRouteIqCandidateManifestDigests",
       "transitions": [
         "trigger",
@@ -345,6 +348,16 @@
     },
     "canonicalIdentity": {
       "coordinatorIncludesWorkspaceProfileAndRepresentative": true,
+      "activeSessionAllocatedInsideCoordinator": true,
+      "pendingNextStopOpportunityAllocatedInsideCoordinator": true,
+      "browserEventMaySignalButCannotEstablishIdentity": true,
+      "informationalClientSequenceOrTimeControlsIdentity": false,
+      "excludedOpportunityMayBeRehabilitatedByLateBrowserRetry": false,
+      "territoryDerivedFromWorkspaceProfileOrRepresentative": false,
+      "knownTerritoryRequiresSignedSourceRecordAndContract": true,
+      "unknownTerritoryUsesGovernedNonsemanticSentinel": true,
+      "unknownTerritoryMayAdmitCandidateSnapshot": false,
+      "materialAuthenticatedManifestChangeCreatesNewOpportunityInsteadOfRewrite": true,
       "sessionIdDerivedFromCoordinatorAndSessionEventSequence": true,
       "canonicalSessionRecordSha256PersistedOnSessionAndOpportunity": true,
       "canonicalSessionRecordSha256CompositeForeignKeyRequired": true,
@@ -358,6 +371,33 @@
       "sourceRecordIdFormat": "riq_source_<64 lowercase hex>",
       "artifactIdUniqueAcrossAllKinds": true,
       "logicalBoundaryAndClientLineageBindPermanentExclusions": true
+    },
+    "serverAllocator": {
+      "input": ["authenticated coordinator scope envelope", "informational next_stop_requested browser event"],
+      "browserAllowedFields": ["eventKind", "informationalSequence", "informationalObservedAt"],
+      "browserCanonicalIdentityFieldsAllowed": false,
+      "authoritativeTimeSource": "verified scope envelope issuedAt with coordinator monotonic sequencing",
+      "sessionReuse": "one open canonical session per coordinator",
+      "opportunityReuse": "one open pending next_stop opportunity per canonical session",
+      "candidateCompletenessAtAllocation": "pending_authenticated_intelligence_manifest",
+      "snapshotAcceptedAtAllocation": false,
+      "newOpportunityAfterTrustedActionLifecycle": true,
+      "newOpportunityAfterAuthenticatedMaterialManifestChange": true,
+      "newOpportunityAfterTrustedSessionClose": true,
+      "newOpportunityAfterOrdinaryExclusionOrLateRetry": false,
+      "materialManifestRotationRequiresExactLatestReason": "candidate_manifest_materially_changed",
+      "materialManifestRotationRequiresPreservedVerifiedPriorManifest": true,
+      "malformedOrIncompleteManifestRotationAllowed": false,
+      "sessionAndAllocationHistoryAppendOnly": true,
+      "allocationAuditUsesExistingOpportunityLifecycleAndReceiptLedger": true,
+      "duplicateAllocationTableIntroduced": false,
+      "sessionCloseHandoffContractVersion": "route-iq-end-of-day-data-handoff-v1",
+      "sessionCloseBindsAuthenticatedHandoffDigest": true,
+      "sessionCloseExcludesUnfinishedOpportunityAtomically": true,
+      "sessionCloseRefreshedTimeRetryReturnsOriginalReceipt": true,
+      "runtimeIntegrationOwner": "Prometheus Infrastructure",
+      "candidateManifestOwner": "Prometheus Intelligence Engine",
+      "runtimeIntegrated": false
     },
     "candidateManifest": {
       "canonicalIntelligenceProducerEnvelopeRequired": true,
