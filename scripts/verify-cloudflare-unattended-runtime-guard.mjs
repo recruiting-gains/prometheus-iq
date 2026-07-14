@@ -8,7 +8,9 @@ import {
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
 import {
-  CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES
+  CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES,
+  CLOUDFLARE_UNATTENDED_WRANGLER_MODULE,
+  CLOUDFLARE_UNATTENDED_WRANGLER_VERSION
 } from "./lib/cloudflare-unattended-launcher.mjs";
 import {
   CLOUDFLARE_UNATTENDED_SMOKE_ALLOWED_METHODS,
@@ -32,11 +34,14 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   const smokeClient = read("scripts/run-cloudflare-unattended-smoke.mjs");
   const control = read("scripts/lib/cloudflare-unattended-control.mjs");
   const launcher = read("scripts/lib/cloudflare-unattended-launcher.mjs");
+  const secretScanner = read("scripts/check-cloudflare-unattended-secret-presence.mjs");
   const documentation = read("docs/cloudflare-unattended-deployment-access-v1.md");
   const authenticatedDocumentation = read("docs/authenticated-production-verification-access.md");
   const wrangler = read("wrangler.jsonc");
   const publicWrangler = read("wrangler.prometheusrouteiq-website.jsonc");
   const packageJson = readJson("package.json");
+  const packageLock = readJson("package-lock.json");
+  const installedWrangler = readJson("node_modules/wrangler/package.json");
 
   assert.equal(contract.batchId, "BATCH-20260714-006");
   assert.equal(contract.owner, "Prometheus Infrastructure");
@@ -93,7 +98,18 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
 
   assert.deepEqual(contract.auditedKeychainLauncher.fixedProfiles, CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES);
   assert.equal(contract.auditedKeychainLauncher.arbitraryCommandAllowed, false);
-  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerModule, "node_modules/wrangler/bin/wrangler.js");
+  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerModule, CLOUDFLARE_UNATTENDED_WRANGLER_MODULE);
+  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerVersion, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(contract.auditedKeychainLauncher.wranglerIsExactDirectDevDependency, true);
+  assert.equal(packageJson.devDependencies.wrangler, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(packageLock.packages[""].devDependencies.wrangler, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(
+    packageLock.packages["node_modules/wrangler"].version,
+    CLOUDFLARE_UNATTENDED_WRANGLER_VERSION
+  );
+  assert.equal(packageLock.packages["node_modules/wrangler"].bin.wrangler, "bin/wrangler.js");
+  assert.equal(installedWrangler.version, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(installedWrangler.bin.wrangler, "./bin/wrangler.js");
   assert.equal(contract.auditedKeychainLauncher.nodeOptionsAllowed, false);
   assert.equal(contract.auditedKeychainLauncher.presenceChecksReadValues, false);
   assert.equal(contract.auditedKeychainLauncher.checkOnlyConsumesNonce, false);
@@ -105,6 +121,15 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
   assert.match(launcher, /node_modules\/wrangler\/bin\/wrangler\.js/u);
   assert.match(launcher, /stdio: "ignore"/u);
   assert.doesNotMatch(launcher, /shell:\s*true|\beval\(|new Function/u);
+
+  assert.equal(contract.secretSafety.trackedRegularFilesAllExtensionsAndSizes, true);
+  assert.equal(contract.secretSafety.trackedWorktreeMustMatchIndex, true);
+  assert.equal(contract.secretSafety.binarySkipCriterion, "NUL_byte_only");
+  assert.equal(contract.secretSafety.matchedValuesMayBeReported, false);
+  assert.match(secretScanner, /\["ls-files", "--stage", "-z"\]/u);
+  assert.match(secretScanner, /buffer\.includes\(0\)/u);
+  assert.match(secretScanner, /tracked_worktree_does_not_match_index/u);
+  assert.doesNotMatch(secretScanner, /sourceExtensions|extname|2_000_000/u);
 
   assert.equal(contract.founderDeploymentControl.regularFileRequired, true);
   assert.equal(contract.founderDeploymentControl.symlinkAllowed, false);
@@ -149,6 +174,8 @@ export function verifyCloudflareUnattendedRuntimeGuard() {
     "marker alone never authorizes",
     "exact mode `0600`",
     "exclusive `0600` consumed marker",
+    "exact direct dev dependency at `4.110.0`",
+    "without extension or size exemptions",
     "no Access policy or production Worker change is authorized"
   ]) {
     assert.ok(documentation.includes(required), `documentation missing ${required}`);

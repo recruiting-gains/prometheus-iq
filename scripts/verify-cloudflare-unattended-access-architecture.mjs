@@ -32,8 +32,11 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   const documentation = read(documentationPath);
   const authenticatedVerification = read(authenticatedVerificationPath);
   const packageJson = readJson("package.json");
+  const packageLock = readJson("package-lock.json");
+  const installedWrangler = readJson("node_modules/wrangler/package.json");
   const gitignore = read(".gitignore");
   const securityCheck = read("scripts/security-check.mjs");
+  const secretScanner = read("scripts/check-cloudflare-unattended-secret-presence.mjs");
   const wrangler = read("wrangler.jsonc");
 
   assert.equal(contract.contractVersion, "cloudflare-unattended-deployment-access-v1");
@@ -106,6 +109,15 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   assert.equal(contract.founderDeploymentControl.founderDirectiveStillRequired, true);
   assert.equal(contract.deploymentGates.automaticEngineeringPushIsDeploymentAuthorization, false);
 
+  assert.equal(packageJson.devDependencies.wrangler, "4.110.0");
+  assert.equal(packageLock.packages[""].devDependencies.wrangler, "4.110.0");
+  assert.equal(packageLock.packages["node_modules/wrangler"].version, "4.110.0");
+  assert.equal(packageLock.packages["node_modules/wrangler"].bin.wrangler, "bin/wrangler.js");
+  assert.equal(installedWrangler.version, "4.110.0");
+  assert.equal(installedWrangler.bin.wrangler, "./bin/wrangler.js");
+  assert.equal(contract.auditedKeychainLauncher.pinnedWranglerVersion, "4.110.0");
+  assert.equal(contract.auditedKeychainLauncher.wranglerIsExactDirectDevDependency, true);
+
   assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
   assert.equal(contract.servicePrincipalReadOnlyGuard.sourceImplemented, true);
   assert.equal(contract.servicePrincipalReadOnlyGuard.productionConfigured, false);
@@ -142,6 +154,14 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   assert.equal(contract.runtimeBoundaries.recommendationInfluence, "OFF");
   assert.equal(contract.runtimeBoundaries.cohortActivation, "OFF");
   assert.equal(contract.runtimeBoundaries.prospectiveCollection, "OFF");
+  assert.equal(contract.secretSafety.trackedRegularFilesAllExtensionsAndSizes, true);
+  assert.equal(contract.secretSafety.trackedWorktreeMustMatchIndex, true);
+  assert.equal(contract.secretSafety.binarySkipCriterion, "NUL_byte_only");
+  assert.equal(contract.secretSafety.matchedValuesMayBeReported, false);
+  assert.match(secretScanner, /\["ls-files", "--stage", "-z"\]/u);
+  assert.match(secretScanner, /buffer\.includes\(0\)/u);
+  assert.match(secretScanner, /tracked_worktree_does_not_match_index/u);
+  assert.doesNotMatch(secretScanner, /sourceExtensions|extname|2_000_000/u);
   if (requireReady) {
     assert.equal(contract.setupStatus, "CONFIGURED_VERIFIED");
     assert.equal(contract.unattendedDeploymentReady, true);

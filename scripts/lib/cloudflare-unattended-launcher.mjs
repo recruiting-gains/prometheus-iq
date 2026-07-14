@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { realpathSync, statSync } from "node:fs";
+import { readFileSync, realpathSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -20,6 +20,9 @@ export const CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES = Object.freeze([
   "smoke-read-only",
   "deployment-release"
 ]);
+export const CLOUDFLARE_UNATTENDED_WRANGLER_VERSION = "4.110.0";
+export const CLOUDFLARE_UNATTENDED_WRANGLER_MODULE =
+  "node_modules/wrangler/bin/wrangler.js";
 
 const SAFE_ENVIRONMENT_NAMES = Object.freeze([
   "HOME",
@@ -107,10 +110,18 @@ function presence(names, keychain) {
 }
 
 function fixedCommands(root) {
-  const expectedWrangler = resolve(root, "node_modules/wrangler/bin/wrangler.js");
+  const expectedWrangler = resolve(root, CLOUDFLARE_UNATTENDED_WRANGLER_MODULE);
   const linkedWrangler = realpathSync(resolve(root, "node_modules/.bin/wrangler"));
   const wrangler = realpathSync(expectedWrangler);
-  if (linkedWrangler !== wrangler || wrangler !== expectedWrangler || !statSync(wrangler).isFile()) {
+  const wranglerPackage = JSON.parse(readFileSync(
+    resolve(root, "node_modules/wrangler/package.json"),
+    "utf8"
+  ));
+  if (linkedWrangler !== wrangler
+    || wrangler !== expectedWrangler
+    || !statSync(wrangler).isFile()
+    || wranglerPackage.version !== CLOUDFLARE_UNATTENDED_WRANGLER_VERSION
+    || wranglerPackage.bin?.wrangler !== "./bin/wrangler.js") {
     throw new Error("pinned_wrangler_executable_invalid");
   }
   const smoke = resolve(root, "scripts/run-cloudflare-unattended-smoke.mjs");

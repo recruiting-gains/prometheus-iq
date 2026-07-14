@@ -5,10 +5,13 @@ import test from "node:test";
 import {
   ENVIRONMENT_CREDENTIAL_NAMES,
   KEYCHAIN_ITEMS,
+  assertTrackedWorktreeMatchesIndex,
   formatPresenceReport,
   inspectEnvironmentPresence,
   inspectKeychainPresence,
+  parseTrackedRegularFileIndex,
   presenceRequirementFailures,
+  scanTrackedRepository,
   scanTextForCloudflareSecrets,
   verifyLocalSecretArtifacts
 } from "../scripts/check-cloudflare-unattended-secret-presence.mjs";
@@ -147,6 +150,55 @@ test("tracked-source scanner detects literal assignments and permits references"
   assert.equal(assigned.length, 1);
   assert.equal(assigned[0].kind, "literal Cloudflare credential assignment");
   assert.deepEqual(references, []);
+});
+
+test("tracked scanner covers TypeScript, unknown extensions, and text larger than two megabytes", () => {
+  const literal = ["scanner", "fixture", "credential"].join("-");
+  const assignment = ["CLOUDFLARE_API_TOKEN", literal].join("=");
+  const fixtures = new Map([
+    ["fixture.ts", Buffer.from(assignment)],
+    ["fixture.tsx", Buffer.from(assignment)],
+    ["fixture.unrecognized-extension", Buffer.from(assignment)],
+    ["canonical-large.json", Buffer.from(`${"x".repeat(2_100_000)}\n${assignment}`)]
+  ]);
+  const findings = scanTrackedRepository({
+    root,
+    trackedFiles: [...fixtures.keys()],
+    readFile: path => fixtures.get(path)
+  });
+
+  assert.deepEqual(
+    findings.map(finding => finding.path).sort(),
+    [...fixtures.keys()].sort()
+  );
+  assert.equal(JSON.stringify(findings).includes(literal), false);
+});
+
+test("tracked scanner derives regular files from the index and skips only NUL-bearing content", () => {
+  const objectId = "a".repeat(40);
+  const index = [
+    `100644 ${objectId} 0\tregular.opaque`,
+    `100755 ${objectId} 0\texecutable`,
+    `120000 ${objectId} 0\tsymlink`,
+    `160000 ${objectId} 0\tgitlink`
+  ].join("\0") + "\0";
+  assert.deepEqual(parseTrackedRegularFileIndex(index), ["regular.opaque", "executable"]);
+
+  const literal = ["binary", "fixture", "credential"].join("-");
+  const binary = Buffer.from(`prefix\0CLOUDFLARE_API_TOKEN=${literal}`);
+  assert.deepEqual(scanTrackedRepository({
+    root,
+    trackedFiles: ["fixture.binary"],
+    readFile: () => binary
+  }), []);
+});
+
+test("tracked scanner refuses a worktree that differs from the index", () => {
+  assert.doesNotThrow(() => assertTrackedWorktreeMatchesIndex(root, () => ({ status: 0 })));
+  assert.throws(
+    () => assertTrackedWorktreeMatchesIndex(root, () => ({ status: 1 })),
+    /tracked_worktree_does_not_match_index/u
+  );
 });
 
 test("secret-like local artifacts are ignored and untracked", () => {

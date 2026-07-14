@@ -6,6 +6,8 @@ import {
   existsSync,
   linkSync,
   mkdtempSync,
+  readFileSync,
+  realpathSync,
   readdirSync,
   rmSync,
   symlinkSync,
@@ -38,6 +40,8 @@ import {
   validateFounderControl
 } from "../scripts/lib/cloudflare-unattended-control.mjs";
 import {
+  CLOUDFLARE_UNATTENDED_WRANGLER_MODULE,
+  CLOUDFLARE_UNATTENDED_WRANGLER_VERSION,
   runCloudflareUnattendedLauncher
 } from "../scripts/lib/cloudflare-unattended-launcher.mjs";
 import {
@@ -516,6 +520,27 @@ test("launcher presence and dry-run checks neither read values nor consume autho
   assert.equal(spawns, 0);
 });
 
+test("launcher pins the npm-supplied Wrangler version and executable path", () => {
+  const packageJson = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+  const packageLock = JSON.parse(readFileSync(resolve(root, "package-lock.json"), "utf8"));
+  const installed = JSON.parse(readFileSync(resolve(root, "node_modules/wrangler/package.json"), "utf8"));
+  const expectedModule = resolve(root, CLOUDFLARE_UNATTENDED_WRANGLER_MODULE);
+
+  assert.equal(packageJson.devDependencies.wrangler, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(
+    packageLock.packages[""].devDependencies.wrangler,
+    CLOUDFLARE_UNATTENDED_WRANGLER_VERSION
+  );
+  assert.equal(
+    packageLock.packages["node_modules/wrangler"].version,
+    CLOUDFLARE_UNATTENDED_WRANGLER_VERSION
+  );
+  assert.equal(installed.version, CLOUDFLARE_UNATTENDED_WRANGLER_VERSION);
+  assert.equal(installed.bin.wrangler, "./bin/wrangler.js");
+  assert.equal(realpathSync(resolve(root, "node_modules/.bin/wrangler")), expectedModule);
+  assert.equal(realpathSync(expectedModule), expectedModule);
+});
+
 test("launcher consumes before fixed children and isolates deployment from smoke credentials", () => {
   const directory = mkdtempSync(join(tmpdir(), "prometheus-launcher-"));
   const controlPath = join(directory, "control.json");
@@ -568,13 +593,20 @@ test("launcher consumes before fixed children and isolates deployment from smoke
     assert.deepEqual(commands[2].args.slice(-1), ["--execute-fixed-profile"]);
     for (const command of commands) {
       assert.equal(command.options.stdio, "ignore");
+      assert.equal(command.options.env.PATH, "/usr/bin:/bin:/usr/sbin:/sbin");
       assert.equal(Object.hasOwn(command.options.env, "UNRELATED_SECRET"), false);
       assert.equal(Object.hasOwn(command.options.env, "NODE_OPTIONS"), false);
     }
-    assert.equal(commands[0].options.env.CLOUDFLARE_API_TOKEN, syntheticValues.CLOUDFLARE_API_TOKEN);
-    assert.equal(Object.hasOwn(commands[0].options.env, "CLOUDFLARE_ACCESS_CLIENT_SECRET"), false);
-    assert.equal(commands[2].options.env.CLOUDFLARE_ACCESS_CLIENT_SECRET, syntheticValues.CLOUDFLARE_ACCESS_CLIENT_SECRET);
+    for (const command of commands.slice(0, 2)) {
+      assert.equal(command.options.env.CLOUDFLARE_API_TOKEN, syntheticValues.CLOUDFLARE_API_TOKEN);
+      assert.equal(command.options.env.CLOUDFLARE_ACCOUNT_ID, syntheticValues.CLOUDFLARE_ACCOUNT_ID);
+      assert.equal(Object.hasOwn(command.options.env, "CLOUDFLARE_ACCESS_CLIENT_ID"), false);
+      assert.equal(Object.hasOwn(command.options.env, "CLOUDFLARE_ACCESS_CLIENT_SECRET"), false);
+    }
     assert.equal(Object.hasOwn(commands[2].options.env, "CLOUDFLARE_API_TOKEN"), false);
+    assert.equal(Object.hasOwn(commands[2].options.env, "CLOUDFLARE_ACCOUNT_ID"), false);
+    assert.equal(commands[2].options.env.CLOUDFLARE_ACCESS_CLIENT_ID, syntheticValues.CLOUDFLARE_ACCESS_CLIENT_ID);
+    assert.equal(commands[2].options.env.CLOUDFLARE_ACCESS_CLIENT_SECRET, syntheticValues.CLOUDFLARE_ACCESS_CLIENT_SECRET);
     const auditOutput = JSON.stringify(result);
     for (const value of Object.values(syntheticValues)) assert.equal(auditOutput.includes(value), false);
   } finally {

@@ -1,7 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { extname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 export const ENVIRONMENT_CREDENTIAL_NAMES = Object.freeze([
   "CLOUDFLARE_API_TOKEN",
@@ -51,21 +51,7 @@ const assignmentNames = Object.freeze([
   "CF_APPSESSION"
 ]);
 
-const sourceExtensions = new Set([
-  "",
-  ".css",
-  ".html",
-  ".js",
-  ".json",
-  ".jsonc",
-  ".md",
-  ".mjs",
-  ".sh",
-  ".toml",
-  ".txt",
-  ".yaml",
-  ".yml"
-]);
+const TRACKED_REGULAR_FILE_MODES = new Set(["100644", "100755"]);
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -122,29 +108,52 @@ export function scanTextForCloudflareSecrets(content, path = "synthetic-input") 
   return findings;
 }
 
+export function parseTrackedRegularFileIndex(indexOutput) {
+  const paths = [];
+  for (const entry of String(indexOutput).split("\0").filter(Boolean)) {
+    const separator = entry.indexOf("\t");
+    if (separator < 0) throw new Error("tracked_index_entry_invalid");
+    const [mode, _objectId, stage, ...unexpected] = entry.slice(0, separator).split(" ");
+    if (!mode || !stage || unexpected.length) throw new Error("tracked_index_entry_invalid");
+    if (stage !== "0") throw new Error("tracked_index_contains_unmerged_entry");
+    if (TRACKED_REGULAR_FILE_MODES.has(mode)) paths.push(entry.slice(separator + 1));
+  }
+  return paths;
+}
+
 export function listTrackedFiles(root) {
-  return execFileSync("git", ["ls-files", "-z"], {
+  const indexOutput = execFileSync("/usr/bin/git", ["ls-files", "--stage", "-z"], {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"]
-  }).split("\0").filter(Boolean);
+  });
+  return parseTrackedRegularFileIndex(indexOutput);
+}
+
+export function assertTrackedWorktreeMatchesIndex(root, spawn = spawnSync) {
+  const result = spawn(
+    "/usr/bin/git",
+    ["diff", "--quiet", "--no-ext-diff", "--"],
+    { cwd: root, stdio: "ignore" }
+  );
+  if (result.error || result.status !== 0) {
+    throw new Error("tracked_worktree_does_not_match_index");
+  }
 }
 
 export function scanTrackedRepository({
   root,
-  trackedFiles = listTrackedFiles(root),
-  readFile = path => readFileSync(resolve(root, path))
+  trackedFiles,
+  readFile
 }) {
+  const injectedSurface = trackedFiles !== undefined || readFile !== undefined;
+  if (!injectedSurface) assertTrackedWorktreeMatchesIndex(root);
+  const files = trackedFiles ?? listTrackedFiles(root);
+  const load = readFile ?? (path => readFileSync(resolve(root, path)));
   const findings = [];
-  for (const path of trackedFiles) {
-    if (!sourceExtensions.has(extname(path)) && !path.endsWith("_headers")) continue;
-    const absolute = resolve(root, path);
-    try {
-      if (statSync(absolute).size > 2_000_000) continue;
-    } catch {
-      continue;
-    }
-    const buffer = readFile(path);
+  for (const path of files) {
+    const content = load(path);
+    const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content);
     if (buffer.includes(0)) continue;
     findings.push(...scanTextForCloudflareSecrets(buffer.toString("utf8"), path));
   }

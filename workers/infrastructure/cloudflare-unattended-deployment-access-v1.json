@@ -260,6 +260,8 @@
     "status": "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED",
     "arbitraryCommandAllowed": false,
     "pinnedWranglerModule": "node_modules/wrangler/bin/wrangler.js",
+    "pinnedWranglerVersion": "4.110.0",
+    "wranglerIsExactDirectDevDependency": true,
     "nodeOptionsAllowed": false,
     "fixedProfiles": [
       "presence",
@@ -322,6 +324,11 @@
     "defaultAbsenceIsFailure": false,
     "requirePresentModeAvailableForFuturePreflight": true,
     "trackedSourceScanRequired": true,
+    "trackedRegularFilesAllExtensionsAndSizes": true,
+    "trackedFileSource": "git_index_regular_file_list_with_clean_worktree_bytes",
+    "trackedWorktreeMustMatchIndex": true,
+    "binarySkipCriterion": "NUL_byte_only",
+    "matchedValuesMayBeReported": false,
     "localSecretArtifactsMustBeIgnoredAndUntracked": true
   },
   "rotationAndRevocation": {
