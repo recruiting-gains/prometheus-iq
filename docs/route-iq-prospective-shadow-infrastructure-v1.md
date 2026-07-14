@@ -2,11 +2,11 @@
 
 Batch: `BATCH-20260713-004`
 
-Status: server-side lifecycle implemented and locally verified; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed.
+Status: server-side lifecycle implemented and locally verified from Infrastructure base ancestor `84319f9c70004edd50e1531e48ea1d0d7b501089`; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed.
 
 ## Ownership and dependency boundary
 
-Infrastructure wraps Prometheus Data coordinator commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, `89e9ae46`, `9b53a21`, `b7896a6`, and `f4ecc7e`, plus Intelligence runtime commit `4e66667`. It does not alter Data or Intelligence schema/domain behavior and never creates caller-derived canonical identity.
+Infrastructure wraps clean main ancestor `84319f9c70004edd50e1531e48ea1d0d7b501089`, Prometheus Data coordinator commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, `89e9ae46`, `9b53a21`, `b7896a6`, `f4ecc7e`, `b388849c21051262e0f80e4c24875147cf9889dd`, and `84319f9c70004edd50e1531e48ea1d0d7b501089`, plus Intelligence runtime commit `4e66667`. It does not alter Data or Intelligence schema/domain behavior and never creates caller-derived canonical identity.
 
 The private endpoint is `/api/dashboard/route-iq/prospective/event`. While collection is `OFF`, it returns a nonblocking disabled acknowledgment before Aegis, Access/JWKS, Durable Object lookup, asset reads, or storage. When a governed cohort is explicitly enabled, `next_stop_requested` first calls Data `allocateNextStopOpportunity({ event })`. Only after that canonical allocation succeeds does Infrastructure return an opaque `202 accepted` response and register a caught server-only lifecycle promise with `executionContext.waitUntil`.
 
@@ -31,9 +31,9 @@ Every lifecycle timestamp is sampled from production `new Date()` at the stage t
 - Stub name: SHA-256 of only the verified internal scope mapping and routing version
 - Public Worker: unchanged and unbound
 
-The thin repository adapter implements Data's synchronous `executeSchema(sql)`, `execute(sql, bindings)`, and `transactionSync(callback)` shape with `ctx.storage.sql`. Schema initialization is guarded by `blockConcurrencyWhile`.
+The thin repository adapter implements Data's synchronous `executeSchema(sql)`, `execute(sql, bindings)`, and `transactionSync(callback)` shape with `ctx.storage.sql`. Schema initialization is guarded by `blockConcurrencyWhile`. Infrastructure preflights every schema/execute call before `sql.exec`: reject SQL above `96 KiB` and reject more than `96 bindings`.
 
-The DO exposes domain RPCs only: `allocateNextStopOpportunity`, `noteGovernedRepresentativeSignal`, `closeCanonicalSession`, trusted manifest/snapshot/decision adapters, `readCanonicalRuntimeContext`, `recordRuntimeStageExclusion`, `linkServerDerivedNextStopAction`, `reconcileCommittedFieldSessionOutcomes`, `admitIntelligenceScoreableOutcome`, and `admitIntelligenceEvaluation`. There is no generic SQL, KV, storage, or `fetch()` RPC.
+The DO exposes domain RPCs only: `allocateNextStopOpportunity`, `noteGovernedRepresentativeSignal`, `closeCanonicalSession`, trusted manifest/snapshot/decision adapters, `readCanonicalRuntimeContext`, `recordRuntimeStageExclusion`, `linkServerDerivedNextStopAction`, `reconcileCommittedFieldSessionOutcomes`, `admitIntelligenceScoreableOutcome`, `admitIntelligenceEvaluation`, `recoverNextProjection`, `readCommittedProjectionAsOf`, and `readCommittedProjectionForOutcomeArtifact`. There is no generic SQL, KV, storage, or `fetch()` RPC.
 
 ## Access, scope, and authority
 
@@ -71,16 +71,21 @@ After `/api/dashboard/route-iq/field-session` has successfully persisted its can
 
 Data `reconcileCommittedFieldSessionOutcomes` requires a matching canonical `CLOSED` event. Infrastructure therefore constructs the projection first, HMAC-binds and calls idempotent `closeCanonicalSession`, then HMAC-binds and admits that exact projection through `reconcileCommittedFieldSessionOutcomes`. This owner-contract ordering preserves the archive digest and closure recovery semantics. Success, projection failure, reconciliation rejection, timeout, missing key, missing binding, and `waitUntil` registration failure never replace or delay the original field-session `200`/`201` acknowledgment.
 
-The DO already exposes `admitIntelligenceScoreableOutcome` and `admitIntelligenceEvaluation`, but Infrastructure does not call them yet. Intelligence currently lacks the pure canonical builders needed to derive those claims from admitted committed evidence. The exact Intelligence owner handback is:
+After reconciliation, Infrastructure processes `reconciliationReceipt.linked` in deterministic order, one link at a time, and isolates failures per link so one poisoned record cannot block later outcomes. For each link it:
 
-- Export `deriveRouteIqScoreableOutcomeFromCommittedEvidence({ projectionOutcome, reconciliationLink })`, accepting exactly one PII-free Data projection outcome and its matching reconciled link, and returning only `{ sourceOutcomeEvidenceSha256, outcomeDerivationContractVersion, observedOutcome: { status, value } }`. Status is `observed` or `missing`, an observed value is boolean, and the digest must equal the admitted link's `evidenceSha256`.
-- Export `buildRouteIqEvaluationFromAdmittedOutcome({ projectionOutcome, reconciliationLink, scoreableOutcomeAdmission })`, accepting only those canonical PII-free records and returning `{ sourceOutcomeEvidenceSha256, evaluationRecordSha256, evaluationContractVersion }`, with a deterministic canonical evaluation record bound to the same admitted evidence and scoreable outcome.
+1. Uses Intelligence `deriveRouteIqScoreableOutcomeFromCommittedEvidence` and `buildRouteIqScoreableOutcomeAdmissionClaims`.
+2. Signs producer-channel claims with the existing protected Infrastructure authority key/version and calls DO `admitIntelligenceScoreableOutcome`.
+3. Reads the exact committed projection only through DO `readCommittedProjectionForOutcomeArtifact({ scopeEnvelope, input: { authorityEnvelope } })` with producer purpose `committed_outcome_projection_read`, binding only `sourceOutcomeEvidenceSha256` and the exact `outcomeReceipt`.
+4. If Data throws `route_iq_coordinator_projection_recovery_pending`, calls DO `recoverNextProjection` one operation at a time and retries the exact read after each recovery.
+5. Uses the governed Infrastructure hard bound `pendingOutbox = 128` recoveries. If the exact projection is still pending after that bound, the link fails closed and later links continue.
+6. Never reads latest/current runtime context for outcome projection or evaluation.
+7. For observed scoreable outcomes only, uses Intelligence `buildRouteIqEvaluationFromAdmittedOutcome`, `isRouteIqEvaluationReadinessCountEligible`, and `buildRouteIqEvaluationAdmissionClaims`, then calls DO `admitIntelligenceEvaluation`.
 
-Both builders must be pure, versioned Intelligence authority functions with deterministic hashes and tests. Until they exist, the lifecycle stops truthfully after PII-free reconciliation; Infrastructure does not infer success, scoreability, or evaluation.
+Deterministic retries return existing receipts. Changed-content retries fail closed as durable Data conflicts. A missing/non-scoreable outcome still admits the scoreable outcome record, but skips evaluation admission. Per-link failures emit only redacted Infrastructure telemetry and never alter the Dashboard End Route/End Day acknowledgment.
 
 ## Budgets, privacy, and metrics
 
-Controls bound browser/domain-command bytes, each source artifact (4 MiB), aggregate source artifacts (8 MiB), candidate/source counts, SQL statements, rows read/written, opportunities per session, events per UTC day, pending outbox entries, principals/cohorts, and coordinator database size. SQL cursors stop at row budgets and there are no unbounded Infrastructure reads.
+Controls bound browser/domain-command bytes, each source artifact (4 MiB), aggregate source artifacts (8 MiB), candidate/source counts, SQL statements, rows read/written, opportunities per session, events per UTC day, pending outbox entries, principals/cohorts, and coordinator database size. The governed recovery ceiling is `pendingOutbox = 128`. SQL cursors stop at row budgets and there are no unbounded Infrastructure reads.
 
 Structured metrics contain an allowlisted event kind, outcome, status, error code, phase, and retryability only. They contain no email, JWT, Access subject, internal scope ID, key material, browser content, candidate/recommendation detail, archive content, or shadow payload. This adds no PII category or retention period.
 
@@ -94,7 +99,7 @@ API/config choices follow current Cloudflare guidance for [Durable Object RPC](h
 
 ## Verification
 
-`npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and 22 Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, production per-stage server clock sampling, same-millisecond logical monotonicity, stale/future allocation and client-clock isolation, concurrent allocation through real manifest/snapshot/decision seals, action before/after seal, source failure exclusions, archive projection/reconciliation, unchanged field-session acknowledgments under success/rejection/timeout/missing binding/missing key, HMAC tamper rejection, stable scope routing, cross-scope rejection, blocked generic RPC, and restart persistence.
+`npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and focused Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, production per-stage server clock sampling, same-millisecond logical monotonicity, stale/future allocation and client-clock isolation, concurrent allocation through real manifest/snapshot/decision seals, action before/after seal, source failure exclusions, archive projection/reconciliation, exact producer-only committed projection read/recovery, valid outcome admission, missing/non-scoreable skip, retry/restart, projection interruption and late retry, durable conflict isolation, 128-recovery success and governed exhaustion failure, two-opportunity same-session restart coverage, unchanged field-session acknowledgments under success/rejection/timeout/missing binding/missing key, HMAC tamper rejection, stable scope routing, cross-scope rejection, blocked generic RPC, and restart persistence.
 
 Release validation also runs Data coordinator/field-session tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler 4.110.0 config validation and dry-run, secret scan, and owned-diff checks.
 

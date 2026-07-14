@@ -19,9 +19,23 @@ import {
   deriveRouteIqCandidateIdFromGooglePlaceId,
   projectCommittedRouteIqFieldSessionOutcomes,
   readRouteIqFieldSessionArchive,
+  routeIqChronologicalEvidenceProjectionVersion,
   routeIqEndOfDayHandoffContractId,
+  routeIqFieldSessionOutcomeProjectionVersion,
   routeIqFieldSessionStoreBinding
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+import {
+  routeIqCandidateManifestSchemaVersion,
+  routeIqCandidateProducerContractVersion,
+  routeIqEvaluationContextSchemaVersion,
+  routeIqFieldSessionOutcomeProjectionContractVersion,
+  routeIqProspectiveCollectionDefault,
+  routeIqProspectiveCoordinatorContractVersion,
+  routeIqProspectiveCoordinatorProjectionVersion,
+  routeIqProspectiveCoordinatorSchemaVersion,
+  routeIqProspectiveKvAuthority,
+  routeIqProspectiveRecommendationInfluence
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 import {
   routeIqProspectiveCohortConfigVersion,
   routeIqProspectivePrincipalMapVersion
@@ -42,12 +56,23 @@ import {
 } from "../workers/infrastructure/route-iq-prospective-shadow-contract.js";
 import {
   closeRouteIqProspectiveSessionFromHandoff,
+  admitRouteIqProspectiveIntelligenceOutcomes,
   handleRouteIqProspectiveShadowRequest
 } from "../workers/infrastructure/route-iq-prospective-shadow-runtime.js";
+import {
+  CloudflareRouteIqProspectiveSqliteRepository
+} from "../workers/infrastructure/route-iq-prospective-shadow-durable-object.js";
 import {
   linkRouteIqProspectiveServerAction,
   orchestrateRouteIqProspectiveNextStop
 } from "../workers/infrastructure/route-iq-prospective-shadow-orchestration.js";
+import {
+  buildRouteIqEvaluationAdmissionClaims,
+  buildRouteIqEvaluationFromAdmittedOutcome,
+  buildRouteIqScoreableOutcomeAdmissionClaims,
+  computeRouteIqCommittedOutcomeSha256,
+  deriveRouteIqScoreableOutcomeFromCommittedEvidence
+} from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const testNow = new Date("2026-07-13T20:00:00.000Z");
@@ -110,6 +135,10 @@ async function accessFixture({
   tokenAudience = accessAudience,
   closeImplementation = null,
   reconciliationImplementation = null,
+  scoreableOutcomeAdmissionImplementation = null,
+  evaluationAdmissionImplementation = null,
+  committedProjectionReadImplementation = null,
+  recoverProjectionImplementation = null,
   allocationAuthoritativeRecordTime = testNow.toISOString(),
   lifecycleDates = null
 } = {}) {
@@ -259,7 +288,80 @@ async function accessFixture({
             calls.push("field_session_reconciliation_rpc");
             commands.push(command);
             if (reconciliationImplementation) return reconciliationImplementation(command);
-            return { status: "reconciled", linked: [], exclusions: [] };
+            return {
+              status: "reconciled",
+              linked: [],
+              exclusions: [],
+              createdAt: testNow.toISOString()
+            };
+          },
+          async admitIntelligenceScoreableOutcome(command) {
+            calls.push("scoreable_outcome_admission_rpc");
+            commands.push(command);
+            if (scoreableOutcomeAdmissionImplementation) return scoreableOutcomeAdmissionImplementation(command);
+            return {
+              coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+              status: "recorded",
+              coordinatorId: `riq_coordinator_${digest("private-coordinator")}`,
+              sessionId: `riq_session_${digest("private-session")}`,
+              opportunityId,
+              operationKey: "scoreable-outcome:test",
+              operationKind: "scoreable_outcome_admission",
+              requestSha256: digest("private-scoreable-request"),
+              artifactId: committedId("outcome", "private"),
+              recordSha256: committedDigest("private-outcome-record"),
+              recordSequence: 8,
+              authoritativeRecordTime: committedOutcomeTimes.outcomeAdmitted,
+              state: "OUTCOME_LINKED",
+              recoveryOutboxPersisted: true,
+              recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+              collectionDefault: routeIqProspectiveCollectionDefault,
+              sourceOutcomeEvidenceSha256: command.input.authorityEnvelope.claims.sourceOutcomeEvidenceSha256,
+              evaluationContextSha256: command.input.authorityEnvelope.claims.evaluationContextSha256,
+              evaluatedCandidateId: committedId("candidate", "private"),
+              calculatedByData: false
+            };
+          },
+          async admitIntelligenceEvaluation(command) {
+            calls.push("evaluation_admission_rpc");
+            commands.push(command);
+            if (evaluationAdmissionImplementation) return evaluationAdmissionImplementation(command);
+            return {
+              coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+              status: "recorded",
+              coordinatorId: `riq_coordinator_${digest("private-coordinator")}`,
+              sessionId: `riq_session_${digest("private-session")}`,
+              opportunityId,
+              operationKey: "evaluation:test",
+              operationKind: "evaluation_admission",
+              requestSha256: digest("private-evaluation-request"),
+              artifactId: committedId("evaluation", "private"),
+              recordSha256: committedDigest("private-evaluation-record"),
+              recordSequence: 9,
+              authoritativeRecordTime: "2026-07-13T20:10:00.000Z",
+              state: "EVALUATED",
+              recoveryOutboxPersisted: true,
+              recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+              collectionDefault: routeIqProspectiveCollectionDefault,
+              sourceOutcomeEvidenceSha256: command.input.authorityEnvelope.claims.sourceOutcomeEvidenceSha256,
+              evaluationContextSha256: command.input.authorityEnvelope.claims.evaluationContextSha256,
+              fullEvaluationPersisted: true
+            };
+          },
+          async readCommittedProjectionForOutcomeArtifact(command) {
+            calls.push("exact_outcome_projection_read_rpc");
+            commands.push(command);
+            if (committedProjectionReadImplementation) return committedProjectionReadImplementation(command);
+            throw Object.assign(new Error("Noncanonical exact outcome projection read missing."), {
+              code: "route_iq_exact_outcome_projection_source_missing",
+              status: 409
+            });
+          },
+          async recoverNextProjection(command) {
+            calls.push("projection_recovery_rpc");
+            commands.push(command);
+            if (recoverProjectionImplementation) return recoverProjectionImplementation(command);
+            return { recovered: false };
           },
           async noteGovernedRepresentativeSignal(command) {
             calls.push("governed_noop_rpc");
@@ -344,6 +446,329 @@ function canonicalHandoff(representativeId = "cruz") {
       workspaceId: "fitness_connection",
       operatingProfileId: "fitness",
       verifiedFields: { representative: { id: representativeId } }
+    }
+  };
+}
+
+const committedOutcomeTimes = Object.freeze({
+  snapshotAccepted: "2026-07-13T20:01:00.000Z",
+  snapshotSealed: "2026-07-13T20:02:00.000Z",
+  shadowSealed: "2026-07-13T20:03:00.000Z",
+  actionLinked: "2026-07-13T20:04:00.000Z",
+  actionEvent: "2026-07-13T20:05:00.000Z",
+  archiveCommitted: "2026-07-13T20:06:00.000Z",
+  fieldEvidenceLinked: "2026-07-13T20:07:00.000Z",
+  reconciled: "2026-07-13T20:08:00.000Z",
+  outcomeAdmitted: "2026-07-13T20:09:00.000Z"
+});
+
+function committedDigest(value) {
+  return computeRouteIqCommittedOutcomeSha256(value);
+}
+
+function committedId(kind, label) {
+  return `riq_${kind}_${committedDigest(`${kind}:${label}`)}`;
+}
+
+function outcomeSignal(overrides = {}) {
+  return {
+    outcomeCode: null,
+    outcomeCodeStatus: "unsupported",
+    conversations: 0,
+    leads: 0,
+    appointments: 0,
+    units: 0,
+    laterUnits: 0,
+    scoreableOutcome: null,
+    scoreableOutcomeDerivedByData: false,
+    ...overrides
+  };
+}
+
+function allowlistedOutcomeSignal(outcomeCode, overrides = {}) {
+  return outcomeSignal({
+    outcomeCode,
+    outcomeCodeStatus: "verified_allowlisted",
+    ...overrides
+  });
+}
+
+function withCommittedHash(body, hashField) {
+  return { ...body, [hashField]: committedDigest(body) };
+}
+
+function immutableEvaluationContextFixture({ opportunityId, candidateId, actionArtifactId, outcome }) {
+  const evaluationContext = {
+    schemaVersion: routeIqEvaluationContextSchemaVersion,
+    opportunityId,
+    acceptedSnapshotManifest: {
+      artifactId: committedId("snapshot", candidateId),
+      recordSha256: committedDigest(`snapshot-record:${candidateId}`),
+      manifestRecordSha256: committedDigest(`manifest-record:${candidateId}`),
+      acceptedAt: committedOutcomeTimes.snapshotAccepted
+    },
+    snapshotSeal: {
+      artifactId: committedId("snapshot_seal", candidateId),
+      recordSha256: committedDigest(`snapshot-seal-record:${candidateId}`),
+      sealedAt: committedOutcomeTimes.snapshotSealed
+    },
+    manifest: {
+      candidateManifestSha256: committedDigest(`candidate-manifest:${candidateId}`),
+      completeManifestSha256: committedDigest(`complete-manifest:${candidateId}`),
+      producerContractVersion: routeIqCandidateProducerContractVersion,
+      candidateSchemaVersion: routeIqCandidateManifestSchemaVersion,
+      dataProjectionVersion: routeIqChronologicalEvidenceProjectionVersion
+    },
+    candidate: {
+      candidateId,
+      acceptedRank: 1,
+      probability: 0.625,
+      rankingBasisVersion: "route-iq-governed-score-ranking-v1"
+    },
+    shadowDecision: {
+      shadowDecisionRecordSha256: committedDigest(`shadow-decision-record:${candidateId}`),
+      sealArtifactId: committedId("shadow_seal", candidateId),
+      sealRecordSha256: committedDigest(`shadow-seal-record:${candidateId}`),
+      sealedAt: committedOutcomeTimes.shadowSealed
+    },
+    action: {
+      artifactId: actionArtifactId,
+      recordSha256: committedDigest(`action-record:${candidateId}`),
+      selectedCandidateId: candidateId,
+      linkedAt: committedOutcomeTimes.actionLinked
+    },
+    sourceOutcome: {
+      evidenceSha256: outcome.evidenceSha256,
+      correctionState: outcome.outcomeEvidence.correctionState,
+      correctionCount: outcome.outcomeEvidence.corrections.length,
+      correctionRecordSha256s: outcome.outcomeEvidence.corrections.map(
+        correction => correction.sourceCorrectionRecordSha256
+      )
+    },
+    recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+    immutable: true
+  };
+  return {
+    evaluationContextArtifactId: committedId("evaluation_context", candidateId),
+    evaluationContextSha256: committedDigest(evaluationContext),
+    evaluationContext
+  };
+}
+
+function committedOutcomeEntry(visitLabel, finalSignal) {
+  const sourceVisitRecordSha256 = committedDigest(`visit:${visitLabel}`);
+  const candidateId = committedId("candidate", visitLabel);
+  const opportunityId = committedId("opportunity", visitLabel);
+  const actionArtifactId = committedId("action", visitLabel);
+  const outcomeEvidenceArtifactId = committedId("field_outcome", visitLabel);
+  const outcome = withCommittedHash({
+    sourceVisitRecordSha256,
+    candidateId,
+    candidateIdentityStatus: "derived_from_exact_governed_google_place_identity",
+    actionEventTime: committedOutcomeTimes.actionEvent,
+    eventTimeAuthority: "dashboard_recorded_visit_time_in_committed_handoff",
+    authoritativeRecordTime: committedOutcomeTimes.archiveCommitted,
+    outcomeEvidence: {
+      status: "verified_unscored_signals",
+      originalOutcomeSignal: structuredClone(finalSignal),
+      finalOutcomeSignal: structuredClone(finalSignal),
+      corrections: [],
+      correctionState: "uncorrected",
+      conflictState: "none",
+      scoreableOutcome: null,
+      scoreableOutcomeDerivedByData: false
+    },
+    decisionSource: {
+      sourceId: "unknown",
+      confidence: 0,
+      capturedAt: committedOutcomeTimes.actionEvent,
+      temporalClassification: "post_action_supporting_information",
+      preActionEvidence: false,
+      sameShadowDecisionInput: false,
+      scoreableOutcome: false
+    },
+    recommendationDecisionContext: null
+  }, "evidenceSha256");
+  const context = immutableEvaluationContextFixture({
+    opportunityId,
+    candidateId,
+    actionArtifactId,
+    outcome
+  });
+  return {
+    sourceVisitRecordSha256,
+    candidateId,
+    opportunityId,
+    actionArtifactId,
+    outcomeEvidenceArtifactId,
+    outcome,
+    link: {
+      sourceVisitRecordSha256,
+      opportunityId,
+      candidateId,
+      evidenceSha256: outcome.evidenceSha256,
+      actionArtifactId,
+      outcomeEvidenceArtifactId,
+      ...context
+    }
+  };
+}
+
+function committedOutcomeBatchFixture(definitions, representativeId = "cruz") {
+  const entries = definitions.map(({ visitLabel, finalSignal }) =>
+    committedOutcomeEntry(visitLabel, finalSignal)
+  );
+  const fieldSessionOutcomeProjection = withCommittedHash({
+    schemaVersion: routeIqFieldSessionOutcomeProjectionVersion,
+    authority: "prometheus_data_committed_field_session",
+    recordOrigin: "prospective",
+    scope: scope(representativeId),
+    sourceArchive: {
+      handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+      sourceArchiveSessionSha256: committedDigest(`archive-session:${representativeId}:batch`),
+      rawSha256: committedDigest(`archive-raw:${representativeId}:batch`),
+      normalizedSha256: committedDigest(`archive-normalized:${representativeId}:batch`),
+      archiveCommittedAt: committedOutcomeTimes.archiveCommitted
+    },
+    outcomes: entries.map(entry => entry.outcome),
+    privacy: {
+      namesIncluded: false,
+      addressesIncluded: false,
+      contactsIncluded: false,
+      notesIncluded: false,
+      preciseLocationIncluded: false
+    },
+    recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+    scoreableOutcomeDerivedByData: false
+  }, "projectionSha256");
+  const reconciliationReceipt = {
+    contractVersion: routeIqFieldSessionOutcomeProjectionContractVersion,
+    reconciliationId: committedId("reconciliation", `${representativeId}:batch`),
+    status: "reconciled",
+    coordinatorId: committedId("coordinator", representativeId),
+    sourceProjectionSha256: fieldSessionOutcomeProjection.projectionSha256,
+    sourceArchiveRawSha256: fieldSessionOutcomeProjection.sourceArchive.rawSha256,
+    sourceArchiveSessionSha256: fieldSessionOutcomeProjection.sourceArchive.sourceArchiveSessionSha256,
+    linked: entries.map(entry => entry.link),
+    exclusions: [],
+    outcomeValuesInferredByData: false,
+    recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+    createdAt: committedOutcomeTimes.reconciled
+  };
+  return {
+    fieldSessionOutcomeProjection,
+    reconciliationReceipt,
+    links: reconciliationReceipt.linked
+  };
+}
+
+function committedOutcomeFixture({
+  representativeId = "cruz",
+  visitLabel = "selected",
+  finalSignal = allowlistedOutcomeSignal("lead", { leads: 1 })
+} = {}) {
+  const batch = committedOutcomeBatchFixture([{ visitLabel, finalSignal }], representativeId);
+  return {
+    ...batch,
+    link: batch.links[0]
+  };
+}
+
+function outcomeReceiptFixture(scoreableOutcome, overrides = {}) {
+  return {
+    coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+    status: "recorded",
+    coordinatorId: committedId("coordinator", scoreableOutcome.scope.representativeId),
+    sessionId: committedId("session", scoreableOutcome.scope.representativeId),
+    opportunityId: scoreableOutcome.opportunityId,
+    operationKey: `scoreable-outcome:${scoreableOutcome.sourceOutcomeEvidenceSha256}`,
+    operationKind: "scoreable_outcome_admission",
+    requestSha256: committedDigest(`scoreable-request:${scoreableOutcome.sourceOutcomeEvidenceSha256}`),
+    artifactId: committedId("outcome", scoreableOutcome.sourceOutcomeEvidenceSha256),
+    recordSha256: committedDigest(`outcome-record:${scoreableOutcome.sourceOutcomeEvidenceSha256}`),
+    recordSequence: 8,
+    authoritativeRecordTime: committedOutcomeTimes.outcomeAdmitted,
+    state: "OUTCOME_LINKED",
+    recoveryOutboxPersisted: true,
+    recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+    collectionDefault: routeIqProspectiveCollectionDefault,
+    sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+    evaluationContextSha256: scoreableOutcome.evaluationContextSha256,
+    evaluatedCandidateId: scoreableOutcome.candidateId,
+    calculatedByData: false,
+    ...overrides
+  };
+}
+
+function committedProjectionRecordFixture(scoreableOutcome, outcomeReceipt) {
+  const projection = {
+    schemaVersion: routeIqProspectiveCoordinatorSchemaVersion,
+    projectionVersion: routeIqProspectiveCoordinatorProjectionVersion,
+    authority: "sqlite_durable_object_coordinator",
+    coordinatorId: committedId("coordinator", scoreableOutcome.scope.representativeId),
+    scope: structuredClone(scoreableOutcome.scope),
+    canonicalSessionRecordSha256: committedDigest(`canonical-session:${scoreableOutcome.scope.representativeId}`),
+    territoryId: territoryContext(scoreableOutcome.scope.representativeId).territoryId,
+    opportunityId: scoreableOutcome.opportunityId,
+    opportunityType: "next_stop",
+    asOfRecordSequence: outcomeReceipt.recordSequence,
+    asOfRecordTime: outcomeReceipt.authoritativeRecordTime,
+    state: "OUTCOME_LINKED",
+    readinessEvidenceEligible: true,
+    evidence: [{
+      sourceRecordId: outcomeReceipt.artifactId,
+      evidenceKind: "prospective_opportunity_outcome",
+      evidenceTimestamp: outcomeReceipt.authoritativeRecordTime,
+      recordSequence: outcomeReceipt.recordSequence,
+      recordSha256: outcomeReceipt.recordSha256,
+      payload: {
+        evaluatedCandidateId: scoreableOutcome.candidateId,
+        actionArtifactId: scoreableOutcome.actionArtifactId,
+        sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+        evaluationContextSha256: scoreableOutcome.evaluationContextSha256,
+        outcomeDerivationContractVersion: scoreableOutcome.outcomeDerivationContractVersion,
+        observedOutcome: structuredClone(scoreableOutcome.observedOutcome),
+        calculatedByData: false,
+        unchosenCandidateOutcomeAssignmentAllowed: false
+      },
+      canonicalEvidenceEligible: true,
+      recommendationInfluence: routeIqProspectiveRecommendationInfluence
+    }],
+    exclusions: [],
+    sourceArtifacts: [{
+      artifactId: scoreableOutcome.outcomeEvidenceArtifactId,
+      artifactKind: "field_session_outcome_evidence",
+      eventKind: "FIELD_SESSION_OUTCOME_EVIDENCE_LINKED",
+      recordSequence: 7,
+      authoritativeRecordTime: committedOutcomeTimes.fieldEvidenceLinked,
+      recordSha256: committedDigest(`field-evidence-record:${scoreableOutcome.sourceOutcomeEvidenceSha256}`)
+    }, {
+      artifactId: outcomeReceipt.artifactId,
+      artifactKind: "outcome",
+      eventKind: "OUTCOME_LINKED",
+      recordSequence: outcomeReceipt.recordSequence,
+      authoritativeRecordTime: outcomeReceipt.authoritativeRecordTime,
+      recordSha256: outcomeReceipt.recordSha256
+    }],
+    recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+    collectionDefault: routeIqProspectiveCollectionDefault,
+    kvAuthority: routeIqProspectiveKvAuthority
+  };
+  const commitBody = {
+    commitId: committedId("projection_commit", scoreableOutcome.sourceOutcomeEvidenceSha256),
+    projectionId: committedId("projection", scoreableOutcome.sourceOutcomeEvidenceSha256),
+    outboxId: committedId("projection_outbox", scoreableOutcome.sourceOutcomeEvidenceSha256),
+    status: "committed",
+    projectionSha256: committedDigest(projection),
+    committedSequence: projection.asOfRecordSequence,
+    committedAt: projection.asOfRecordTime,
+    projectionCommitMarkerWrittenLast: true
+  };
+  return {
+    projection,
+    commit: {
+      ...commitBody,
+      commitSha256: committedDigest(commitBody)
     }
   };
 }
@@ -501,6 +926,7 @@ test("private config owns one SQLite class migration and public config remains u
   }
   assert.ok(rpcNames.includes("applyTrustedTrigger"));
   assert.ok(rpcNames.includes("readCommittedProjectionAsOf"));
+  assert.ok(rpcNames.includes("readCommittedProjectionForOutcomeArtifact"));
 });
 
 test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or storage", async () => {
@@ -851,6 +1277,422 @@ test("field-session acknowledgment isolates prospective timeout, rejection, miss
   });
 });
 
+test("committed outcome helper derives producer admissions from exact projections and skips missing evaluations", async t => {
+  await t.test("observed scoreable outcome admits evaluation without recovery", async () => {
+    const fixture = committedOutcomeFixture();
+    const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+    });
+    let expectedOutcomeReceipt = null;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        expectedOutcomeReceipt = outcomeReceiptFixture(expectedScoreableOutcome, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        const expectedClaims = buildRouteIqScoreableOutcomeAdmissionClaims({
+          scope: scope(),
+          scoreableOutcome: expectedScoreableOutcome,
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        assert.deepEqual(command.input.authorityEnvelope.claims, expectedClaims);
+        assert.equal(command.input.authorityEnvelope.channel, "producer");
+        return expectedOutcomeReceipt;
+      },
+      committedProjectionReadImplementation(command) {
+        assert.equal(command.input.authorityEnvelope.channel, "producer");
+        assert.equal(
+          command.input.authorityEnvelope.claims.sourceOutcomeEvidenceSha256,
+          expectedScoreableOutcome.sourceOutcomeEvidenceSha256
+        );
+        assert.deepEqual(command.input.authorityEnvelope.claims.outcomeReceipt, expectedOutcomeReceipt);
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(expectedScoreableOutcome, expectedOutcomeReceipt)
+        };
+      },
+      evaluationAdmissionImplementation(command) {
+        const committedProjection = committedProjectionRecordFixture(expectedScoreableOutcome, expectedOutcomeReceipt);
+        const expectedEvaluation = buildRouteIqEvaluationFromAdmittedOutcome({
+          reconciliationReceipt: fixture.reconciliationReceipt,
+          committedProjection,
+          scoreableOutcome: expectedScoreableOutcome,
+          outcomeReceipt: expectedOutcomeReceipt
+        });
+        const expectedClaims = buildRouteIqEvaluationAdmissionClaims({
+          scope: scope(),
+          evaluation: expectedEvaluation,
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        assert.deepEqual(command.input.authorityEnvelope.claims, expectedClaims);
+        assert.equal(command.input.authorityEnvelope.channel, "producer");
+        return {
+          coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+          status: "recorded",
+          coordinatorId: committedId("coordinator", "cruz"),
+          sessionId: committedId("session", "cruz"),
+          opportunityId: expectedScoreableOutcome.opportunityId,
+          operationKey: `evaluation:${expectedScoreableOutcome.sourceOutcomeEvidenceSha256}`,
+          operationKind: "evaluation_admission",
+          requestSha256: committedDigest(`evaluation-request:${expectedScoreableOutcome.sourceOutcomeEvidenceSha256}`),
+          artifactId: committedId("evaluation", expectedScoreableOutcome.sourceOutcomeEvidenceSha256),
+          recordSha256: committedDigest(`evaluation-record:${expectedScoreableOutcome.sourceOutcomeEvidenceSha256}`),
+          recordSequence: 9,
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime,
+          state: "EVALUATED",
+          recoveryOutboxPersisted: true,
+          recommendationInfluence: routeIqProspectiveRecommendationInfluence,
+          collectionDefault: routeIqProspectiveCollectionDefault,
+          sourceOutcomeEvidenceSha256: expectedScoreableOutcome.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: expectedScoreableOutcome.evaluationContextSha256,
+          fullEvaluationPersisted: true
+        };
+      }
+    });
+    const scopeEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+      purpose: "coordinator_scope",
+      ...scope(),
+      registryVersion: "noncanonical-test-registry-v1",
+      issuedAt: testNow.toISOString(),
+      territoryContext: territoryContext()
+    }, access.env);
+    const result = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("observed"),
+      scopeEnvelope,
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(result.status, "processed");
+    assert.deepEqual(result.totals, {
+      linkedCount: 1,
+      admittedOutcomeCount: 1,
+      admittedEvaluationCount: 1,
+      skippedEvaluationCount: 0,
+      failedLinkCount: 0
+    });
+    assert.equal(access.calls.includes("projection_recovery_rpc"), false);
+  });
+
+  await t.test("missing scoreable outcome records no evaluation", async () => {
+    const fixture = committedOutcomeFixture({
+      visitLabel: "missing",
+      finalSignal: allowlistedOutcomeSignal("conversation", { conversations: 1 })
+    });
+    const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+    });
+    let expectedOutcomeReceipt = null;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        expectedOutcomeReceipt = outcomeReceiptFixture(expectedScoreableOutcome, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        return expectedOutcomeReceipt;
+      },
+      committedProjectionReadImplementation() {
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(expectedScoreableOutcome, expectedOutcomeReceipt)
+        };
+      },
+      evaluationAdmissionImplementation() {
+        throw new Error("missing outcomes must not admit evaluations");
+      }
+    });
+    const result = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("missing"),
+      scopeEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "coordinator_scope",
+        ...scope(),
+        registryVersion: "noncanonical-test-registry-v1",
+        issuedAt: testNow.toISOString(),
+        territoryContext: territoryContext()
+      }, access.env),
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(result.status, "processed");
+    assert.deepEqual(result.totals, {
+      linkedCount: 1,
+      admittedOutcomeCount: 1,
+      admittedEvaluationCount: 0,
+      skippedEvaluationCount: 1,
+      failedLinkCount: 0
+    });
+    assert.equal(access.calls.includes("evaluation_admission_rpc"), false);
+  });
+});
+
+test("committed outcome helper continues later links after poisoned failures and enforces the governed recovery bound", async t => {
+  await t.test("poisoned first link does not block a later valid link", async () => {
+    const batch = committedOutcomeBatchFixture([
+      { visitLabel: "poisoned", finalSignal: allowlistedOutcomeSignal("lead", { leads: 1 }) },
+      { visitLabel: "valid", finalSignal: allowlistedOutcomeSignal("lead", { leads: 1 }) }
+    ]);
+    const firstScoreable = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: batch.fieldSessionOutcomeProjection,
+      reconciliationReceipt: batch.reconciliationReceipt,
+      sourceVisitRecordSha256: batch.links[0].sourceVisitRecordSha256
+    });
+    const secondScoreable = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: batch.fieldSessionOutcomeProjection,
+      reconciliationReceipt: batch.reconciliationReceipt,
+      sourceVisitRecordSha256: batch.links[1].sourceVisitRecordSha256
+    });
+    let secondOutcomeReceipt = null;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        const evidenceSha = command.input.authorityEnvelope.claims.sourceOutcomeEvidenceSha256;
+        if (evidenceSha === firstScoreable.sourceOutcomeEvidenceSha256) {
+          throw Object.assign(new Error("poisoned first link"), {
+            code: "route_iq_coordinator_conflict",
+            status: 409
+          });
+        }
+        secondOutcomeReceipt = outcomeReceiptFixture(secondScoreable, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        return secondOutcomeReceipt;
+      },
+      committedProjectionReadImplementation(command) {
+        assert.equal(
+          command.input.authorityEnvelope.claims.sourceOutcomeEvidenceSha256,
+          secondScoreable.sourceOutcomeEvidenceSha256
+        );
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(secondScoreable, secondOutcomeReceipt)
+        };
+      },
+      evaluationAdmissionImplementation(command) {
+        const expectedEvaluation = buildRouteIqEvaluationFromAdmittedOutcome({
+          reconciliationReceipt: batch.reconciliationReceipt,
+          committedProjection: committedProjectionRecordFixture(secondScoreable, secondOutcomeReceipt),
+          scoreableOutcome: secondScoreable,
+          outcomeReceipt: secondOutcomeReceipt
+        });
+        assert.deepEqual(
+          command.input.authorityEnvelope.claims,
+          buildRouteIqEvaluationAdmissionClaims({
+            scope: scope(),
+            evaluation: expectedEvaluation,
+            authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+          })
+        );
+        return {
+          state: "EVALUATED",
+          sourceOutcomeEvidenceSha256: secondScoreable.sourceOutcomeEvidenceSha256
+        };
+      }
+    });
+    const result = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("poisoned-first"),
+      scopeEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "coordinator_scope",
+        ...scope(),
+        registryVersion: "noncanonical-test-registry-v1",
+        issuedAt: testNow.toISOString(),
+        territoryContext: territoryContext()
+      }, access.env),
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: batch.fieldSessionOutcomeProjection,
+      reconciliationReceipt: batch.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(result.status, "processed_with_failures");
+    assert.deepEqual(result.totals, {
+      linkedCount: 2,
+      admittedOutcomeCount: 1,
+      admittedEvaluationCount: 1,
+      skippedEvaluationCount: 0,
+      failedLinkCount: 1
+    });
+    assert.deepEqual(result.processedLinks.map(entry => entry.status), ["failed", "processed"]);
+  });
+
+  await t.test("128 recoveries can reach the exact projection and exhaustion fails closed after the governed bound", async () => {
+    const fixture = committedOutcomeFixture({ visitLabel: "recovery-bound" });
+    const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+    });
+    let recoveries = 0;
+    let outcomeReceipt = null;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        outcomeReceipt = outcomeReceiptFixture(expectedScoreableOutcome, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        return outcomeReceipt;
+      },
+      committedProjectionReadImplementation() {
+        if (recoveries < 128) {
+          throw Object.assign(new Error("pending exact projection"), {
+            code: "route_iq_coordinator_projection_recovery_pending",
+            status: 409
+          });
+        }
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(expectedScoreableOutcome, outcomeReceipt)
+        };
+      },
+      recoverProjectionImplementation() {
+        recoveries += 1;
+        return { recovered: true };
+      },
+      evaluationAdmissionImplementation() {
+        return { state: "EVALUATED" };
+      }
+    });
+    const success = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("recovery-128"),
+      scopeEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "coordinator_scope",
+        ...scope(),
+        registryVersion: "noncanonical-test-registry-v1",
+        issuedAt: testNow.toISOString(),
+        territoryContext: territoryContext()
+      }, access.env),
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(success.status, "processed");
+    assert.equal(success.totals.failedLinkCount, 0);
+    assert.equal(recoveries, 128);
+
+    let exhaustedRecoveries = 0;
+    const exhausted = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        return outcomeReceiptFixture(expectedScoreableOutcome, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+      },
+      committedProjectionReadImplementation() {
+        throw Object.assign(new Error("still pending"), {
+          code: "route_iq_coordinator_projection_recovery_pending",
+          status: 409
+        });
+      },
+      recoverProjectionImplementation() {
+        exhaustedRecoveries += 1;
+        return { recovered: true };
+      }
+    });
+    const failed = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: exhausted.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("recovery-exhausted"),
+      scopeEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "coordinator_scope",
+        ...scope(),
+        registryVersion: "noncanonical-test-registry-v1",
+        issuedAt: testNow.toISOString(),
+        territoryContext: territoryContext()
+      }, exhausted.env),
+      scope: scope(),
+      env: exhausted.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: exhausted.noncanonicalTestHooks
+    });
+    assert.equal(failed.status, "processed_with_failures");
+    assert.equal(failed.totals.failedLinkCount, 1);
+    assert.equal(failed.processedLinks[0].code, "route_iq_prospective_projection_recovery_exhausted");
+    assert.equal(exhaustedRecoveries, 128);
+  });
+
+  await t.test("late retry reuses the exact outcome receipt and committed projection without new recovery", async () => {
+    const fixture = committedOutcomeFixture({ visitLabel: "late-retry" });
+    const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+    });
+    const stableOutcomeReceipt = outcomeReceiptFixture(expectedScoreableOutcome, {
+      authoritativeRecordTime: "2026-07-13T20:08:00.001Z"
+    });
+    let projectionReady = false;
+    let recoveryCalls = 0;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation() {
+        return stableOutcomeReceipt;
+      },
+      committedProjectionReadImplementation() {
+        if (!projectionReady) {
+          throw Object.assign(new Error("projection not committed yet"), {
+            code: "route_iq_coordinator_projection_recovery_pending",
+            status: 409
+          });
+        }
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(expectedScoreableOutcome, stableOutcomeReceipt)
+        };
+      },
+      recoverProjectionImplementation() {
+        recoveryCalls += 1;
+        return { recovered: false };
+      },
+      evaluationAdmissionImplementation() {
+        return { state: "EVALUATED" };
+      }
+    });
+    const scopeEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+      purpose: "coordinator_scope",
+      ...scope(),
+      registryVersion: "noncanonical-test-registry-v1",
+      issuedAt: testNow.toISOString(),
+      territoryContext: territoryContext()
+    }, access.env);
+    const first = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("late-retry"),
+      scopeEnvelope,
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(first.status, "processed_with_failures");
+    assert.equal(first.totals.failedLinkCount, 1);
+    assert.equal(recoveryCalls, 1);
+
+    projectionReady = true;
+    const beforeRetryRecoveries = recoveryCalls;
+    const second = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("late-retry"),
+      scopeEnvelope,
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      noncanonicalTestHooks: access.noncanonicalTestHooks
+    });
+    assert.equal(second.status, "processed");
+    assert.equal(second.totals.failedLinkCount, 0);
+    assert.equal(recoveryCalls, beforeRetryRecoveries);
+    assert.deepEqual(second.processedLinks[0].outcomeReceipt, stableOutcomeReceipt);
+  });
+});
+
 test("invalid Access, unmapped scope, missing key, and caller routing all fail before DO lookup", async () => {
   const invalidTokenFixture = await accessFixture();
   const tokenParts = invalidTokenFixture.token.split(".");
@@ -1028,6 +1870,57 @@ test("HMAC authority envelopes require the protected key and reject tampering", 
   );
 });
 
+test("SQLite preflight enforces conservative statement and binding limits before sql.exec", () => {
+  let execCalls = 0;
+  const storage = {
+    sql: {
+      databaseSize: 0,
+      exec() {
+        execCalls += 1;
+        return {
+          rowsRead: 0,
+          rowsWritten: 0,
+          next() {
+            return { done: true, value: undefined };
+          }
+        };
+      }
+    },
+    transactionSync(callback) {
+      return callback();
+    }
+  };
+  const repository = new CloudflareRouteIqProspectiveSqliteRepository(storage);
+
+  const configuredStatementBytes = 96 * 1024;
+  const documentedThresholdBytes = 100_000;
+  const boundarySql = "SELECT " + "a".repeat(configuredStatementBytes - "SELECT ".length);
+  assert.doesNotThrow(() => repository.executeSchema(boundarySql));
+  assert.equal(execCalls, 1);
+
+  assert.throws(
+    () => repository.executeSchema(boundarySql + "a"),
+    error => error?.code === "route_iq_prospective_sql_statement_too_large"
+  );
+  assert.equal(execCalls, 1);
+
+  const documentedThresholdSql = "SELECT " + "b".repeat(documentedThresholdBytes - "SELECT ".length);
+  assert.throws(
+    () => repository.execute(documentedThresholdSql),
+    error => error?.code === "route_iq_prospective_sql_statement_too_large"
+  );
+  assert.equal(execCalls, 1);
+
+  assert.doesNotThrow(() => repository.execute("SELECT " + Array(96).fill("?").join(","), Array(96).fill(1)));
+  assert.equal(execCalls, 2);
+
+  assert.throws(
+    () => repository.execute("SELECT " + Array(97).fill("?").join(","), Array(97).fill(1)),
+    error => error?.code === "route_iq_prospective_sql_bindings_too_large"
+  );
+  assert.equal(execCalls, 2);
+});
+
 const miniflareHarnessScript = `
 export { RouteIqProspectiveShadowCoordinator } from "./workers/infrastructure/route-iq-prospective-shadow-durable-object.js";
 
@@ -1046,7 +1939,8 @@ const methods = new Set([
   "applyTrustedSnapshotSeal",
   "applyTrustedShadowDecisionSeal",
   "recoverNextProjection",
-  "readCommittedProjectionAsOf"
+  "readCommittedProjectionAsOf",
+  "readCommittedProjectionForOutcomeArtifact"
 ]);
 
 export default {
@@ -1419,6 +2313,259 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
     assert.equal(reconciled.body.result.linked.length, 1);
     assert.deepEqual(reconciled.body.result.exclusions, []);
     assert.equal(reconciled.body.result.outcomeValuesInferredByData, false);
+  } finally {
+    await miniflare.dispose();
+    rmSync(persistencePath, { recursive: true, force: true });
+  }
+});
+
+test("real Miniflare restart processes two same-session reconciliation links against their own exact projections", async () => {
+  const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-two-link-restart-do-"));
+  const authority = authorityEnv();
+  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const instanceName = `noncanonical-two-link-restart-${randomUUID()}`;
+  let firstAllocation;
+  let secondAllocation;
+  let projection;
+  let reconciliationReceipt;
+  let miniflare = createMiniflare(authority, persistencePath);
+  try {
+    const scopeEnvelope = await scopeEnvelopeFor(authority);
+    const stub = miniflareStub(miniflare, instanceName);
+    firstAllocation = (await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+      scopeEnvelope,
+      event: { eventKind: "next_stop_requested", informationalSequence: 1 }
+    })).body.result;
+    await orchestrateRouteIqProspectiveNextStop({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      allocationReceipt: firstAllocation,
+      assetOrigin: "https://private.invalid/",
+      env: runtimeEnv,
+      noncanonicalTestHooks: {
+        enabled: true,
+        currentDate: new Date(firstAllocation.authoritativeRecordTime)
+      }
+    });
+    const firstAction = await linkRouteIqProspectiveServerAction({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      eventKind: "representative_action_observed",
+      authoritativeRecordTime: new Date(testNow.getTime() + 60_000).toISOString(),
+      env: runtimeEnv
+    });
+
+    secondAllocation = (await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+      scopeEnvelope,
+      event: { eventKind: "next_stop_requested", informationalSequence: 2 }
+    })).body.result;
+    await orchestrateRouteIqProspectiveNextStop({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      allocationReceipt: secondAllocation,
+      assetOrigin: "https://private.invalid/",
+      env: runtimeEnv,
+      noncanonicalTestHooks: {
+        enabled: true,
+        currentDate: new Date(secondAllocation.authoritativeRecordTime)
+      }
+    });
+    const secondAction = await linkRouteIqProspectiveServerAction({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      eventKind: "representative_action_observed",
+      authoritativeRecordTime: new Date(testNow.getTime() + 120_000).toISOString(),
+      env: runtimeEnv
+    });
+
+    const runtimePools = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+    ), "utf8"));
+    const firstSelected = runtimePools.cruz.find(record =>
+      deriveRouteIqCandidateIdFromGooglePlaceId(record.googlePlaceId) === firstAction.selectedCandidateId);
+    const secondSelected = runtimePools.cruz.find(record =>
+      deriveRouteIqCandidateIdFromGooglePlaceId(record.googlePlaceId) === secondAction.selectedCandidateId);
+    assert.ok(firstSelected);
+    assert.ok(secondSelected);
+    assert.notEqual(firstAction.selectedCandidateId, secondAction.selectedCandidateId);
+
+    const store = fieldSessionStore();
+    const generatedAt = new Date(testNow.getTime() + 240_000).toISOString();
+    const finalizedAt = new Date(testNow.getTime() + 300_000).toISOString();
+    const rawReportText = JSON.stringify({
+      app: "Prometheus IQ",
+      reportType: "beta-daily-rep-report",
+      generatedAt,
+      date: "2026-07-13",
+      rep: { id: "cruz", name: "Cruz" },
+      totals: { visits: 2, conversations: 2, leads: 2, units: 0, laterUnits: 0 },
+      visits: [
+        {
+          placeName: firstSelected.name,
+          placeId: firstSelected.id,
+          timestamp: new Date(testNow.getTime() + 180_000).toISOString(),
+          date: "2026-07-13",
+          timeWindow: "Evening",
+          outcome: "Lead",
+          conversations: 1,
+          leads: 1,
+          units: 0,
+          laterUnits: 0,
+          notes: "",
+          gpsAttached: false,
+          visitDecisionSource: {
+            sourceId: "unknown",
+            reason: null,
+            evidence: [],
+            confidence: 0,
+            capturedAt: generatedAt
+          },
+          recommendationDecisionContext: {
+            recommendationAvailable: null,
+            recommendationId: null,
+            decision: null
+          }
+        },
+        {
+          placeName: secondSelected.name,
+          placeId: secondSelected.id,
+          timestamp: new Date(testNow.getTime() + 210_000).toISOString(),
+          date: "2026-07-13",
+          timeWindow: "Evening",
+          outcome: "Lead",
+          conversations: 1,
+          leads: 1,
+          units: 0,
+          laterUnits: 0,
+          notes: "",
+          gpsAttached: false,
+          visitDecisionSource: {
+            sourceId: "unknown",
+            reason: null,
+            evidence: [],
+            confidence: 0,
+            capturedAt: generatedAt
+          },
+          recommendationDecisionContext: {
+            recommendationAvailable: null,
+            recommendationId: null,
+            decision: null
+          }
+        }
+      ]
+    });
+    const activePool = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+    ), "utf8"));
+    const businessHours = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+    ), "utf8"));
+    const handoff = await consumeRouteIqEndOfDayHandoff({
+      handoffContractId: routeIqEndOfDayHandoffContractId,
+      producerSubsystem: "Prometheus Dashboard",
+      completionAction: "end_day",
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      finalExportConfirmed: true,
+      sourceFinalizedAt: finalizedAt,
+      rawReportText
+    }, {
+      env: { [routeIqFieldSessionStoreBinding]: store },
+      runtimePools,
+      activePool,
+      businessHours,
+      ingestedAt: finalizedAt
+    });
+    const archived = await readRouteIqFieldSessionArchive({
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      sessionId: handoff.sessionId
+    }, { env: { [routeIqFieldSessionStoreBinding]: store } });
+    projection = projectCommittedRouteIqFieldSessionOutcomes({
+      ...scope(),
+      archiveRecord: archived.record
+    });
+    const postArchiveBase = Date.parse(projection.sourceArchive.archiveCommittedAt);
+    const closed = await doRpc(miniflare, instanceName, "closeCanonicalSession", {
+      scopeEnvelope,
+      authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "close_session",
+        ...scope(),
+        closeReason: "end_day",
+        handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+        endOfDayHandoffSha256: handoff.rawSha256,
+        authoritativeRecordTime: new Date(postArchiveBase + 60_000).toISOString()
+      }, authority)
+    });
+    assert.equal(closed.status, 200, JSON.stringify(closed.body));
+    const reconciled = await doRpc(miniflare, instanceName, "reconcileCommittedFieldSessionOutcomes", {
+      scopeEnvelope,
+      input: {
+        authorityEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+          purpose: "field_session_reconciliation",
+          ...scope(),
+          authoritativeRecordTime: new Date(postArchiveBase + 120_000).toISOString(),
+          projectionSha256: projection.projectionSha256,
+          sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+        }, authority),
+        projection
+      }
+    });
+    assert.equal(reconciled.status, 200, JSON.stringify(reconciled.body));
+    reconciliationReceipt = reconciled.body.result;
+    assert.equal(reconciliationReceipt.linked.length, 2);
+    assert.ok(
+      Date.parse(reconciliationReceipt.createdAt) >
+        Date.parse(projection.sourceArchive.archiveCommittedAt),
+      JSON.stringify({
+        reconciledAt: reconciliationReceipt.createdAt,
+        archiveCommittedAt: projection.sourceArchive.archiveCommittedAt
+      })
+    );
+  } finally {
+    await miniflare.dispose();
+  }
+
+  miniflare = createMiniflare(authority, persistencePath);
+  try {
+    const processed = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: miniflareStub(miniflare, instanceName),
+      scopeEnvelope: await scopeEnvelopeFor(authority),
+      scope: scope(),
+      env: authority,
+      fieldSessionOutcomeProjection: projection,
+      reconciliationReceipt,
+      noncanonicalTestHooks: {
+        enabled: true,
+        currentDate: testNow
+      }
+    });
+    assert.equal(processed.status, "processed");
+    assert.deepEqual(processed.totals, {
+      linkedCount: 2,
+      admittedOutcomeCount: 2,
+      admittedEvaluationCount: 2,
+      skippedEvaluationCount: 0,
+      failedLinkCount: 0
+    });
+    assert.equal(processed.processedLinks[0].outcomeReceipt.opportunityId, firstAllocation.opportunityId);
+    assert.equal(processed.processedLinks[1].outcomeReceipt.opportunityId, secondAllocation.opportunityId);
+    assert.equal(processed.processedLinks[0].committedProjection.projection.opportunityId, firstAllocation.opportunityId);
+    assert.equal(processed.processedLinks[1].committedProjection.projection.opportunityId, secondAllocation.opportunityId);
+    assert.notEqual(
+      processed.processedLinks[0].committedProjection.projection.opportunityId,
+      processed.processedLinks[1].committedProjection.projection.opportunityId
+    );
+    assert.equal(processed.processedLinks[0].evaluation.recommendationInfluence, "OFF");
+    assert.equal(processed.processedLinks[1].evaluation.recommendationInfluence, "OFF");
   } finally {
     await miniflare.dispose();
     rmSync(persistencePath, { recursive: true, force: true });

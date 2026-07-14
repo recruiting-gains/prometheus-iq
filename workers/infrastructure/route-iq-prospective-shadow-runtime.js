@@ -4,6 +4,13 @@ import {
   readRouteIqFieldSessionArchive
 } from "../../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
+  buildRouteIqEvaluationAdmissionClaims,
+  buildRouteIqEvaluationFromAdmittedOutcome,
+  buildRouteIqScoreableOutcomeAdmissionClaims,
+  deriveRouteIqScoreableOutcomeFromCommittedEvidence,
+  isRouteIqEvaluationReadinessCountEligible
+} from "../../intelligence/route-iq-committed-outcome-evaluation.mjs";
+import {
   ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS,
@@ -169,6 +176,8 @@ async function coordinatorStubForScope(scope, env) {
   }
   return namespace.getByName(await coordinatorStubName(scope));
 }
+
+const ROUTE_IQ_PROSPECTIVE_RECOVERY_HARD_BOUND = ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.pendingOutbox;
 
 function recordMetric(outcome, status, eventKind = undefined) {
   console.log(JSON.stringify({
@@ -346,6 +355,219 @@ async function authenticatedHandoffCoordinator(request, env, activation, handoff
   return { canonicalHandoff, scope, scopeEnvelope, stub };
 }
 
+function createMonotonicRuntimeSequencer(anchorIso, noncanonicalTestHooks) {
+  canonicalIsoTimestamp(anchorIso, "reconciliationReceipt.createdAt", { status: 500 });
+  let priorTime = Date.parse(anchorIso);
+  return () => {
+    const sampledTime = Date.parse(runtimeNow(noncanonicalTestHooks));
+    const nextTime = Math.max(sampledTime, priorTime + 1);
+    priorTime = nextTime;
+    return new Date(nextTime).toISOString();
+  };
+}
+
+async function createProducerAuthorityEnvelope(claims, env) {
+  return createRouteIqProspectiveAuthorityEnvelope(claims, env, { channel: "producer" });
+}
+
+function redactedLinkFailure(error, linkIndex) {
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  return Object.freeze({
+    status: "failed",
+    linkIndex,
+    code: backgroundErrorCode(error),
+    retryable: status === 429 || status >= 500
+  });
+}
+
+async function readExactCommittedProjectionWithRecovery({
+  stub,
+  scopeEnvelope,
+  env,
+  scope,
+  sourceOutcomeEvidenceSha256,
+  outcomeReceipt,
+  nextAuthoritativeRecordTime
+}) {
+  const readOnce = async () => stub.readCommittedProjectionForOutcomeArtifact({
+    scopeEnvelope,
+    input: {
+      authorityEnvelope: await createProducerAuthorityEnvelope({
+        purpose: "committed_outcome_projection_read",
+        workspaceId: scope.workspaceId,
+        operatingProfileId: scope.operatingProfileId,
+        representativeId: scope.representativeId,
+        authoritativeRecordTime: nextAuthoritativeRecordTime(),
+        sourceOutcomeEvidenceSha256,
+        outcomeReceipt
+      }, env)
+    }
+  });
+
+  try {
+    return await readOnce();
+  } catch (error) {
+    if (error?.code !== "route_iq_coordinator_projection_recovery_pending") throw error;
+  }
+
+  for (let attempt = 1; attempt <= ROUTE_IQ_PROSPECTIVE_RECOVERY_HARD_BOUND; attempt += 1) {
+    const recovered = await stub.recoverNextProjection({ scopeEnvelope });
+    if (recovered?.recovered !== true) {
+      failRouteIqProspective(
+        "Committed outcome projection recovery did not advance.",
+        "route_iq_prospective_projection_recovery_exhausted",
+        409,
+        { attempt }
+      );
+    }
+    try {
+      return await readOnce();
+    } catch (error) {
+      if (error?.code !== "route_iq_coordinator_projection_recovery_pending") throw error;
+    }
+  }
+
+  failRouteIqProspective(
+    "Committed outcome projection recovery exceeded its hard bound.",
+    "route_iq_prospective_projection_recovery_exhausted",
+    409,
+    { recoveryHardBound: ROUTE_IQ_PROSPECTIVE_RECOVERY_HARD_BOUND }
+  );
+}
+
+export async function admitRouteIqProspectiveIntelligenceOutcomes({
+  stub,
+  scopeEnvelope,
+  scope,
+  env,
+  fieldSessionOutcomeProjection,
+  reconciliationReceipt,
+  noncanonicalTestHooks
+}) {
+  canonicalIsoTimestamp(reconciliationReceipt?.createdAt, "reconciliationReceipt.createdAt", { status: 500 });
+  const nextAuthoritativeRecordTime = createMonotonicRuntimeSequencer(
+    reconciliationReceipt.createdAt,
+    noncanonicalTestHooks
+  );
+  const processedLinks = [];
+  let admittedOutcomeCount = 0;
+  let admittedEvaluationCount = 0;
+  let skippedEvaluationCount = 0;
+  let failedLinkCount = 0;
+  for (const [linkIndex, link] of (reconciliationReceipt.linked || []).entries()) {
+    try {
+      const scoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+        fieldSessionOutcomeProjection,
+        reconciliationReceipt,
+        sourceVisitRecordSha256: link.sourceVisitRecordSha256
+      });
+      if (scoreableOutcome.sourceOutcomeEvidenceSha256 !== link.evidenceSha256) {
+        failRouteIqProspective(
+          "Committed outcome evidence binding changed before evaluation admission.",
+          "route_iq_prospective_outcome_evidence_binding_invalid",
+          409
+        );
+      }
+      const scoreableOutcomeClaims = buildRouteIqScoreableOutcomeAdmissionClaims({
+        scope,
+        scoreableOutcome,
+        authoritativeRecordTime: nextAuthoritativeRecordTime()
+      });
+      const outcomeReceipt = await stub.admitIntelligenceScoreableOutcome({
+        scopeEnvelope,
+        input: {
+          authorityEnvelope: await createProducerAuthorityEnvelope(scoreableOutcomeClaims, env)
+        }
+      });
+      admittedOutcomeCount += 1;
+      const committedProjectionRead = await readExactCommittedProjectionWithRecovery({
+        stub,
+        scopeEnvelope,
+        env,
+        scope,
+        sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+        outcomeReceipt,
+        nextAuthoritativeRecordTime
+      });
+      if (committedProjectionRead?.ok !== true || committedProjectionRead?.found !== true || !committedProjectionRead.record) {
+        failRouteIqProspective(
+          "Committed outcome projection is unavailable for evaluation.",
+          "route_iq_prospective_committed_projection_missing",
+          409
+        );
+      }
+      const committedProjection = committedProjectionRead.record;
+      let evaluation = null;
+      let evaluationReceipt = null;
+      let evaluationSkipped = false;
+      if (scoreableOutcome.observedOutcome.status === "observed") {
+        evaluation = buildRouteIqEvaluationFromAdmittedOutcome({
+          reconciliationReceipt,
+          committedProjection,
+          scoreableOutcome,
+          outcomeReceipt
+        });
+        if (!isRouteIqEvaluationReadinessCountEligible(evaluation)) {
+          failRouteIqProspective(
+            "Committed outcome evaluation is not readiness-count eligible.",
+            "route_iq_prospective_evaluation_readiness_ineligible",
+            409
+          );
+        }
+        const evaluationClaims = buildRouteIqEvaluationAdmissionClaims({
+          scope,
+          evaluation,
+          authoritativeRecordTime: nextAuthoritativeRecordTime()
+        });
+        evaluationReceipt = await stub.admitIntelligenceEvaluation({
+          scopeEnvelope,
+          input: {
+            authorityEnvelope: await createProducerAuthorityEnvelope(evaluationClaims, env)
+          }
+        });
+        admittedEvaluationCount += 1;
+      } else {
+        evaluationSkipped = true;
+        skippedEvaluationCount += 1;
+      }
+      processedLinks.push({
+        status: "processed",
+        linkIndex,
+        sourceVisitRecordSha256: link.sourceVisitRecordSha256,
+        sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+        scoreableOutcome,
+        outcomeReceipt,
+        committedProjection,
+        evaluation,
+        evaluationReceipt,
+        evaluationSkipped
+      });
+    } catch (error) {
+      const failure = redactedLinkFailure(error, linkIndex);
+      failedLinkCount += 1;
+      processedLinks.push(failure);
+      console.error(JSON.stringify({
+        message: "Route IQ prospective committed outcome link failed.",
+        metric: "route_iq_prospective_background_failure",
+        eventKind: "field_session_handoff",
+        phase: "committed_outcome_evaluation",
+        ...failure
+      }));
+    }
+  }
+  return {
+    status: failedLinkCount > 0 ? "processed_with_failures" : "processed",
+    totals: {
+      linkedCount: (reconciliationReceipt.linked || []).length,
+      admittedOutcomeCount,
+      admittedEvaluationCount,
+      skippedEvaluationCount,
+      failedLinkCount
+    },
+    processedLinks
+  };
+}
+
 async function closeAuthenticatedHandoff({
   completionAction,
   canonicalHandoff,
@@ -480,15 +702,24 @@ export async function reconcileAndCloseRouteIqProspectiveSessionFromHandoff(requ
       sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
       sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
     }, env);
-    await authenticated.stub.reconcileCommittedFieldSessionOutcomes({
+    const reconciliationReceipt = await authenticated.stub.reconcileCommittedFieldSessionOutcomes({
       scopeEnvelope: authenticated.scopeEnvelope,
       input: { authorityEnvelope, projection }
     });
     recordMetric("field_session_reconciled", 200);
+    await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: authenticated.stub,
+      scopeEnvelope: authenticated.scopeEnvelope,
+      scope: authenticated.scope,
+      env,
+      fieldSessionOutcomeProjection: projection,
+      reconciliationReceipt,
+      noncanonicalTestHooks
+    });
   } catch (error) {
     const status = Number.isInteger(error?.status) ? error.status : 500;
     console.error(JSON.stringify({
-      message: "Route IQ prospective field-session reconciliation failed after canonical close.",
+      message: "Route IQ prospective field-session reconciliation or evaluation failed after canonical close.",
       metric: "route_iq_prospective_background_failure",
       eventKind: "field_session_handoff",
       code: backgroundErrorCode(error),

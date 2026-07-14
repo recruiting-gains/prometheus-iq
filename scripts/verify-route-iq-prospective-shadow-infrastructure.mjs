@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
+const infrastructureBaseCommit = "84319f9c70004edd50e1531e48ea1d0d7b501089";
 const dataCommits = Object.freeze([
   "7970f240",
   "968212e",
@@ -13,7 +14,9 @@ const dataCommits = Object.freeze([
   "89e9ae46",
   "9b53a21",
   "b7896a6",
-  "f4ecc7e"
+  "f4ecc7e",
+  "b388849",
+  "84319f9"
 ]);
 const intelligenceCommits = Object.freeze(["4e66667"]);
 
@@ -64,6 +67,8 @@ for (const commit of intelligenceCommits) {
   git("rev-parse", "--verify", `${commit}^{commit}`);
   execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"], { cwd: root });
 }
+git("rev-parse", "--verify", `${infrastructureBaseCommit}^{commit}`);
+execFileSync("git", ["merge-base", "--is-ancestor", infrastructureBaseCommit, "HEAD"], { cwd: root });
 
 assert.match(privateConfig, /"name": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR"/u);
 assert.match(privateConfig, /"class_name": "RouteIqProspectiveShadowCoordinator"/u);
@@ -140,7 +145,8 @@ for (const required of [
   "admitIntelligenceScoreableOutcome",
   "admitIntelligenceEvaluation",
   "recoverNextProjection",
-  "readCommittedProjectionAsOf"
+  "readCommittedProjectionAsOf",
+  "readCommittedProjectionForOutcomeArtifact"
 ]) {
   assert.ok(durableObject.includes(required), `Durable Object adapter must include ${required}`);
 }
@@ -178,6 +184,25 @@ assert.match(runtime, /executionContext\.waitUntil\(caught\)/u);
 assert.match(runtime, /readRouteIqFieldSessionArchive/u);
 assert.match(runtime, /projectCommittedRouteIqFieldSessionOutcomes/u);
 assert.match(runtime, /reconcileCommittedFieldSessionOutcomes/u);
+for (const required of [
+  "deriveRouteIqScoreableOutcomeFromCommittedEvidence",
+  "buildRouteIqScoreableOutcomeAdmissionClaims",
+  "buildRouteIqEvaluationFromAdmittedOutcome",
+  "buildRouteIqEvaluationAdmissionClaims",
+  "isRouteIqEvaluationReadinessCountEligible",
+  "readCommittedProjectionForOutcomeArtifact",
+  'purpose: "committed_outcome_projection_read"',
+  "recoverNextProjection",
+  "ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.pendingOutbox",
+  "processed_with_failures"
+]) {
+  assert.ok(runtime.includes(required), `Runtime reconciliation lifecycle must include ${required}`);
+}
+assert.match(runtime, /for \(const \[linkIndex, link\] of \(reconciliationReceipt\.linked \|\| \[\]\)\.entries\(\)\)/u);
+assert.match(runtime, /Committed outcome projection recovery exceeded its hard bound/u);
+assert.match(runtime, /Route IQ prospective committed outcome link failed\./u);
+assert.match(runtime, /const recovered = await stub\.recoverNextProjection/u);
+assert.match(runtime, /const readOnce = async \(\) => stub\.readCommittedProjectionForOutcomeArtifact/u);
 
 for (const required of [
   "env.ASSETS.fetch",
@@ -232,6 +257,8 @@ for (const budget of [
 ]) {
   assert.ok(contract.includes(budget), `Budget ${budget} must be configured`);
 }
+assert.match(durableObject, /ROUTE_IQ_PROSPECTIVE_SQLITE_STATEMENT_BYTES_MAX = 96 \* 1024/u);
+assert.match(durableObject, /ROUTE_IQ_PROSPECTIVE_SQLITE_BINDINGS_MAX = 96/u);
 
 assert.equal(packageJson.dependencies?.jose !== undefined, true);
 assert.equal(packageJson.devDependencies?.miniflare !== undefined, true);
@@ -242,6 +269,8 @@ assert.equal(
 
 for (const required of [
   batchId,
+  "b388849c21051262e0f80e4c24875147cf9889dd",
+  "84319f9c70004edd50e1531e48ea1d0d7b501089",
   "OFF = $0 incremental",
   "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
   "RouteIqProspectiveShadowCoordinator",
@@ -255,6 +284,13 @@ for (const required of [
   "reconcileCommittedFieldSessionOutcomes",
   "admitIntelligenceScoreableOutcome",
   "admitIntelligenceEvaluation",
+  "readCommittedProjectionForOutcomeArtifact",
+  "recoverNextProjection",
+  "committed_outcome_projection_read",
+  "pendingOutbox = 128",
+  "96 KiB",
+  "96 bindings",
+  "two-opportunity same-session restart coverage",
   "closeCanonicalSession",
   "governed_noop",
   "forward-revert",

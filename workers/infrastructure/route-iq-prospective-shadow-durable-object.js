@@ -24,11 +24,39 @@ const DurableObjectBase = globalThis.navigator?.userAgent === "Cloudflare-Worker
     }
   };
 
+const ROUTE_IQ_PROSPECTIVE_SQLITE_STATEMENT_BYTES_MAX = 96 * 1024;
+const ROUTE_IQ_PROSPECTIVE_SQLITE_BINDINGS_MAX = 96;
+
 function requireSqlBinding(value, path) {
   if (value !== null && typeof value !== "string" && typeof value !== "number" && !(value instanceof ArrayBuffer)) {
     failRouteIqProspective(`${path} is not a supported SQLite binding.`, "route_iq_prospective_sql_binding_invalid", 500);
   }
   return value;
+}
+
+function assertSqliteExecPreflight(sql, bindings, reason = "SQLite operation") {
+  if (typeof sql !== "string") {
+    failRouteIqProspective(`${reason} is invalid.`, "route_iq_prospective_sql_operation_invalid", 500);
+  }
+  if (utf8ByteLength(sql) > ROUTE_IQ_PROSPECTIVE_SQLITE_STATEMENT_BYTES_MAX) {
+    failRouteIqProspective(
+      `${reason} exceeds the SQLite statement length limit.`,
+      "route_iq_prospective_sql_statement_too_large",
+      500
+    );
+  }
+  if (bindings !== undefined) {
+    if (!Array.isArray(bindings)) {
+      failRouteIqProspective(`${reason} is invalid.`, "route_iq_prospective_sql_operation_invalid", 500);
+    }
+    if (bindings.length > ROUTE_IQ_PROSPECTIVE_SQLITE_BINDINGS_MAX) {
+      failRouteIqProspective(
+        `${reason} exceeds the SQLite bound-parameter limit.`,
+        "route_iq_prospective_sql_bindings_too_large",
+        500
+      );
+    }
+  }
 }
 
 export class CloudflareRouteIqProspectiveSqliteRepository {
@@ -49,9 +77,7 @@ export class CloudflareRouteIqProspectiveSqliteRepository {
   }
 
   executeSchema(sql) {
-    if (typeof sql !== "string" || utf8ByteLength(sql) > 512 * 1024) {
-      failRouteIqProspective("Coordinator schema is invalid.", "route_iq_prospective_schema_invalid", 500);
-    }
+    assertSqliteExecPreflight(sql, [], "Coordinator schema");
     const cursor = this.sql.exec(sql);
     while (!cursor.next().done) {
       // Schema initialization must fully consume the final statement cursor.
@@ -59,9 +85,7 @@ export class CloudflareRouteIqProspectiveSqliteRepository {
   }
 
   execute(sql, bindings = []) {
-    if (typeof sql !== "string" || !Array.isArray(bindings) || bindings.length > 512) {
-      failRouteIqProspective("SQLite operation is invalid.", "route_iq_prospective_sql_operation_invalid", 500);
-    }
+    assertSqliteExecPreflight(sql, bindings);
     this.statements += 1;
     if (this.statements > this.budgets.sqlStatementsPerRpc) {
       failRouteIqProspective("SQLite statement budget exceeded.", "route_iq_prospective_sql_budget_exceeded", 429);
@@ -393,5 +417,12 @@ export class RouteIqProspectiveShadowCoordinator extends DurableObjectBase {
 
   async readCommittedProjectionAsOf(command) {
     return this.invokeDataDomain(command, { method: "readCommittedProjectionAsOf", purpose: "projection_read" });
+  }
+
+  async readCommittedProjectionForOutcomeArtifact(command) {
+    return this.invokeDataDomain(command, {
+      method: "readCommittedProjectionForOutcomeArtifact",
+      purpose: "committed_outcome_projection_read"
+    });
   }
 }
