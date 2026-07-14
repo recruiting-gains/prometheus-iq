@@ -19,6 +19,9 @@ export const routeIqCandidateSourceVersion = "route-iq-candidate-source-v1";
 export const routeIqProspectiveServerAllocatorContractVersion = "route-iq-prospective-server-allocator-v1";
 export const routeIqProspectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
 export const routeIqFieldSessionOutcomeProjectionContractVersion = "route-iq-field-session-outcome-projection-v1";
+export const routeIqEvaluationContextSchemaVersion = "route-iq-immutable-evaluation-context-v1";
+export const routeIqIntelligenceEvaluationRecordSchemaVersion = "route-iq-admitted-shadow-evaluation-record-v1";
+export const routeIqIntelligenceEvaluationContractVersion = "route-iq-admitted-shadow-evaluation-v1";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
 export const routeIqProspectiveRecommendationInfluence = "off";
@@ -59,6 +62,7 @@ const HASH_ID_PATTERNS = Object.freeze({
   field_outcome: /^riq_field_outcome_[a-f0-9]{64}$/,
   reconciliation: /^riq_reconciliation_[a-f0-9]{64}$/,
   reconciliation_conflict: /^riq_reconciliation_conflict_[a-f0-9]{64}$/,
+  evaluation_context: /^riq_evaluation_context_[a-f0-9]{64}$/,
   seal: /^riq_seal_[a-f0-9]{64}$/,
   key: /^riq_key_[a-f0-9]{64}$/
 });
@@ -239,6 +243,17 @@ CREATE TABLE IF NOT EXISTS field_session_outcome_links (
   linked_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS field_session_evaluation_contexts (
+  context_id TEXT PRIMARY KEY REFERENCES artifact_registry(artifact_id),
+  link_id TEXT NOT NULL UNIQUE REFERENCES field_session_outcome_links(link_id),
+  opportunity_id TEXT NOT NULL UNIQUE REFERENCES opportunities(opportunity_id),
+  source_outcome_evidence_sha256 TEXT NOT NULL UNIQUE,
+  context_json TEXT NOT NULL,
+  context_sha256 TEXT NOT NULL UNIQUE,
+  created_sequence INTEGER NOT NULL UNIQUE,
+  created_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS field_session_reconciliation_receipts (
   reconciliation_id TEXT PRIMARY KEY,
   source_projection_sha256 TEXT NOT NULL UNIQUE,
@@ -380,6 +395,10 @@ CREATE TRIGGER IF NOT EXISTS field_session_outcome_links_no_update
 BEFORE UPDATE ON field_session_outcome_links BEGIN SELECT RAISE(ABORT, 'field_session_outcome_links_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS field_session_outcome_links_no_delete
 BEFORE DELETE ON field_session_outcome_links BEGIN SELECT RAISE(ABORT, 'field_session_outcome_links_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_evaluation_contexts_no_update
+BEFORE UPDATE ON field_session_evaluation_contexts BEGIN SELECT RAISE(ABORT, 'field_session_evaluation_contexts_append_only'); END;
+CREATE TRIGGER IF NOT EXISTS field_session_evaluation_contexts_no_delete
+BEFORE DELETE ON field_session_evaluation_contexts BEGIN SELECT RAISE(ABORT, 'field_session_evaluation_contexts_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_receipts_no_update
 BEFORE UPDATE ON field_session_reconciliation_receipts BEGIN SELECT RAISE(ABORT, 'field_session_reconciliation_receipts_append_only'); END;
 CREATE TRIGGER IF NOT EXISTS field_session_reconciliation_receipts_no_delete
@@ -549,7 +568,8 @@ function hashId(kind, identity) {
     projection_commit: "riq_projection_commit",
     field_outcome: "riq_field_outcome",
     reconciliation: "riq_reconciliation",
-    reconciliation_conflict: "riq_reconciliation_conflict"
+    reconciliation_conflict: "riq_reconciliation_conflict",
+    evaluation_context: "riq_evaluation_context"
   }[kind];
   if (!prefix) fail("route_iq_coordinator_identifier_kind_invalid", "Identifier kind is not governed.", { kind }, 500);
   return `${prefix}_${sha256({ kind, identity })}`;
@@ -1790,6 +1810,274 @@ function parseReconciliationReceipt(row) {
   return deepFreeze(parseCanonicalJson(row.receipt_json, row.receipt_sha256, "field-session reconciliation receipt"));
 }
 
+function deriveImmutableEvaluationContext(repository, { opportunity, manifestRow, action, outcome }) {
+  if (!manifestRow) {
+    fail("route_iq_evaluation_context_manifest_missing", "Evaluation context requires the accepted canonical candidate manifest.", {}, 409);
+  }
+  const snapshot = eventFromRow(repositoryOne(repository, `
+    SELECT * FROM lifecycle_events
+    WHERE artifact_id = ? AND opportunity_id = ? AND event_kind = 'SNAPSHOT_PENDING_SEAL'
+  `, [manifestRow.snapshot_artifact_id, opportunity.opportunity_id]));
+  const snapshotSeal = latestEvent(repository, opportunity.opportunity_id, "SNAPSHOT_SEALED");
+  const shadowSeal = latestEvent(repository, opportunity.opportunity_id, "SHADOW_DECISION_SEALED");
+  if (!snapshot || !snapshotSeal || !shadowSeal || !action) {
+    fail("route_iq_evaluation_context_lifecycle_incomplete", "Evaluation context requires the complete sealed pre-action lifecycle.", {}, 409);
+  }
+  const manifest = parseCanonicalJson(manifestRow.manifest_json, manifestRow.manifest_record_sha256, "candidate manifest");
+  const accepted = manifest.candidates.filter(candidate => candidate.candidateId === outcome.candidateId);
+  if (accepted.length !== 1) {
+    fail("route_iq_evaluation_context_candidate_ambiguous", "Outcome candidate must bind exactly one accepted manifest candidate.", {}, 409);
+  }
+  const candidate = accepted[0];
+  if (candidate.rankingContext?.ordinal !== 1
+    || action.canonical.payload?.selectedCandidateId !== candidate.candidateId
+    || action.canonical.payload?.selectionAuthority !== "accepted_manifest_unique_ordinal_1"
+    || snapshotSeal.canonical.payload?.sealedArtifactId !== snapshot.artifactId
+    || snapshotSeal.canonical.payload?.sealedRecordSha256 !== snapshot.recordSha256
+    || shadowSeal.canonical.payload?.sealedArtifactId !== snapshotSeal.artifactId
+    || shadowSeal.canonical.payload?.sealedRecordSha256 !== snapshotSeal.recordSha256
+    || snapshotSeal.canonical.payload?.candidateManifestSha256 !== manifest.candidateManifestSha256
+    || shadowSeal.canonical.payload?.candidateManifestSha256 !== manifest.candidateManifestSha256) {
+    fail("route_iq_evaluation_context_binding_invalid", "Evaluation context lifecycle bindings are inconsistent.", {}, 409);
+  }
+  requireSha(shadowSeal.canonical.payload?.shadowDecisionRecordSha256, "evaluationContext.shadowDecision.shadowDecisionRecordSha256");
+  const correctionRecordSha256s = outcome.outcomeEvidence.corrections.map(correction => correction.sourceCorrectionRecordSha256);
+  const context = {
+    schemaVersion: routeIqEvaluationContextSchemaVersion,
+    opportunityId: opportunity.opportunity_id,
+    acceptedSnapshotManifest: {
+      artifactId: snapshot.artifactId,
+      recordSha256: snapshot.recordSha256,
+      manifestRecordSha256: manifestRow.manifest_record_sha256,
+      acceptedAt: snapshot.authoritativeRecordTime
+    },
+    snapshotSeal: {
+      artifactId: snapshotSeal.artifactId,
+      recordSha256: snapshotSeal.recordSha256,
+      sealedAt: snapshotSeal.authoritativeRecordTime
+    },
+    manifest: {
+      candidateManifestSha256: manifest.candidateManifestSha256,
+      completeManifestSha256: manifest.completeManifestSha256,
+      producerContractVersion: manifest.producerContractVersion,
+      candidateSchemaVersion: manifest.schemaVersion,
+      dataProjectionVersion: manifest.dataProjectionVersion
+    },
+    candidate: {
+      candidateId: candidate.candidateId,
+      acceptedRank: candidate.rankingContext.ordinal,
+      probability: candidate.rankingContext.probability,
+      rankingBasisVersion: candidate.rankingContext.basisVersion
+    },
+    shadowDecision: {
+      shadowDecisionRecordSha256: shadowSeal.canonical.payload.shadowDecisionRecordSha256,
+      sealArtifactId: shadowSeal.artifactId,
+      sealRecordSha256: shadowSeal.recordSha256,
+      sealedAt: shadowSeal.authoritativeRecordTime
+    },
+    action: {
+      artifactId: action.artifactId,
+      recordSha256: action.recordSha256,
+      selectedCandidateId: action.canonical.payload.selectedCandidateId,
+      linkedAt: action.authoritativeRecordTime
+    },
+    sourceOutcome: {
+      evidenceSha256: outcome.evidenceSha256,
+      correctionState: outcome.outcomeEvidence.correctionState,
+      correctionCount: correctionRecordSha256s.length,
+      correctionRecordSha256s
+    },
+    recommendationInfluence: "off",
+    immutable: true
+  };
+  assertNoPiiLikeStrings(context, "evaluationContext");
+  return deepFreeze({
+    context,
+    evaluationContextSha256: sha256(context)
+  });
+}
+
+function persistEvaluationContext(repository, { opportunity, linkId, outcome, derived, createdAt }) {
+  const contextId = hashId("evaluation_context", {
+    opportunityId: opportunity.opportunity_id,
+    sourceOutcomeEvidenceSha256: outcome.evidenceSha256,
+    evaluationContextSha256: derived.evaluationContextSha256
+  });
+  const sequence = allocateSequence(repository);
+  const contextJson = canonicalText(derived.context);
+  registerArtifact(repository, {
+    artifactId: contextId,
+    artifactKind: "field_session_evaluation_context",
+    opportunityId: opportunity.opportunity_id,
+    recordSequence: sequence,
+    registeredAt: createdAt
+  });
+  repositoryRows(repository, `
+    INSERT INTO field_session_evaluation_contexts (
+      context_id, link_id, opportunity_id, source_outcome_evidence_sha256,
+      context_json, context_sha256, created_sequence, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    contextId,
+    linkId,
+    opportunity.opportunity_id,
+    outcome.evidenceSha256,
+    contextJson,
+    derived.evaluationContextSha256,
+    sequence,
+    createdAt
+  ]);
+  return deepFreeze({
+    evaluationContextArtifactId: contextId,
+    evaluationContextSha256: derived.evaluationContextSha256,
+    evaluationContext: clone(derived.context)
+  });
+}
+
+function readEvaluationContext(repository, sourceOutcomeEvidenceSha256) {
+  const row = repositoryOne(repository, `
+    SELECT * FROM field_session_evaluation_contexts
+    WHERE source_outcome_evidence_sha256 = ?
+  `, [sourceOutcomeEvidenceSha256]);
+  if (!row) {
+    fail("route_iq_evaluation_context_missing", "Immutable evaluation context is unavailable for the admitted outcome evidence.", {}, 409);
+  }
+  const context = parseCanonicalJson(row.context_json, row.context_sha256, "field-session evaluation context");
+  if (context.schemaVersion !== routeIqEvaluationContextSchemaVersion
+    || context.opportunityId !== row.opportunity_id
+    || context.sourceOutcome?.evidenceSha256 !== row.source_outcome_evidence_sha256) {
+    fail("route_iq_evaluation_context_poisoned", "Evaluation context columns do not match immutable context bytes.", {}, 500);
+  }
+  return { row, context };
+}
+
+function evaluationRecordBody(record) {
+  return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "evaluationRecordSha256"));
+}
+
+function validateFullIntelligenceEvaluationRecord(record, expected) {
+  assertExactKeys(record, [
+    "schemaVersion", "evaluationContractVersion", "authority", "recordOrigin", "scope",
+    "opportunityId", "evaluationContextSha256", "sourceProjection", "shadowContext",
+    "acceptedCandidate", "action", "scoreableOutcome", "chronology", "readinessObservation",
+    "boundaries", "canonicalProductionEvidenceEligible", "recommendationInfluence", "immutable",
+    "evaluationRecordSha256"
+  ], "evaluationRecord");
+  assertExactKeys(record.scope, ["workspaceId", "operatingProfileId", "representativeId"], "evaluationRecord.scope");
+  if (record.schemaVersion !== routeIqIntelligenceEvaluationRecordSchemaVersion
+    || record.evaluationContractVersion !== routeIqIntelligenceEvaluationContractVersion
+    || record.authority !== "prometheus_intelligence_pure_evaluation"
+    || record.recordOrigin !== "prospective"
+    || !sameScope(record.scope, expected.scope)
+    || record.opportunityId !== expected.context.opportunityId
+    || record.evaluationContextSha256 !== expected.contextSha256
+    || record.canonicalProductionEvidenceEligible !== true
+    || record.recommendationInfluence !== "OFF"
+    || record.immutable !== true) {
+    fail("route_iq_evaluation_record_boundary_invalid", "Evaluation record violates the canonical Data admission boundary.", {}, 409);
+  }
+  assertExactKeys(record.sourceProjection, [
+    "projectionId", "projectionCommitId", "projectionSha256", "asOfRecordSequence", "asOfRecordTime"
+  ], "evaluationRecord.sourceProjection");
+  assertExactKeys(record.shadowContext, ["sealArtifactId", "sealEventRecordSha256", "sealedAt"], "evaluationRecord.shadowContext");
+  assertExactKeys(record.acceptedCandidate, [
+    "candidateId", "rank", "probability", "rankingBasisVersion", "candidateManifestSha256", "completeManifestSha256"
+  ], "evaluationRecord.acceptedCandidate");
+  assertExactKeys(record.action, [
+    "candidateId", "actionArtifactId", "actionRecordSha256", "linkedAt", "selectionAuthority"
+  ], "evaluationRecord.action");
+  assertExactKeys(record.scoreableOutcome, [
+    "outcomeArtifactId", "outcomeRecordSha256", "sourceOutcomeEvidenceSha256",
+    "scoreableOutcomeRecordSha256", "outcomeDerivationContractVersion", "observedOutcome", "admittedAt"
+  ], "evaluationRecord.scoreableOutcome");
+  assertExactKeys(record.scoreableOutcome.observedOutcome, ["status", "value"], "evaluationRecord.scoreableOutcome.observedOutcome");
+  assertExactKeys(record.chronology, [
+    "snapshotAcceptedAt", "shadowSealedAt", "actionLinkedAt", "visitActionEventTime",
+    "archiveCommittedAt", "fieldEvidenceLinkedAt", "reconciledAt", "outcomeAdmittedAt"
+  ], "evaluationRecord.chronology");
+  assertExactKeys(record.readinessObservation, [
+    "actualDecisionId", "evaluatedDecisionId", "selectedCandidateProbability", "selectedCandidateRank",
+    "observedOutcome", "scoreableSelectedCandidateOutcome", "readinessCountEligible"
+  ], "evaluationRecord.readinessObservation");
+  assertExactKeys(record.readinessObservation.observedOutcome, [
+    "status", "value", "evaluatedDecisionId"
+  ], "evaluationRecord.readinessObservation.observedOutcome");
+  assertExactKeys(record.boundaries, [
+    "decisionSourceUsed", "futureEvidenceUsed", "observationalOnly", "causalClaimAllowed",
+    "upliftClaimAllowed", "recommendationInfluenceAllowed"
+  ], "evaluationRecord.boundaries");
+  requireSha(record.evaluationRecordSha256, "evaluationRecord.evaluationRecordSha256");
+  requireSha(record.scoreableOutcome.scoreableOutcomeRecordSha256, "evaluationRecord.scoreableOutcome.scoreableOutcomeRecordSha256");
+  if (sha256(evaluationRecordBody(record)) !== record.evaluationRecordSha256) {
+    fail("route_iq_evaluation_record_hash_invalid", "Evaluation record hash does not match its canonical bytes.", {}, 409);
+  }
+  const c = expected.context;
+  const exactBindings = [
+    [record.sourceProjection, expected.sourceProjection],
+    [record.shadowContext, {
+      sealArtifactId: c.shadowDecision.sealArtifactId,
+      sealEventRecordSha256: c.shadowDecision.sealRecordSha256,
+      sealedAt: c.shadowDecision.sealedAt
+    }],
+    [record.acceptedCandidate, {
+      candidateId: c.candidate.candidateId,
+      rank: c.candidate.acceptedRank,
+      probability: c.candidate.probability,
+      rankingBasisVersion: c.candidate.rankingBasisVersion,
+      candidateManifestSha256: c.manifest.candidateManifestSha256,
+      completeManifestSha256: c.manifest.completeManifestSha256
+    }],
+    [record.action, {
+      candidateId: c.action.selectedCandidateId,
+      actionArtifactId: c.action.artifactId,
+      actionRecordSha256: c.action.recordSha256,
+      linkedAt: c.action.linkedAt,
+      selectionAuthority: "accepted_manifest_unique_ordinal_1"
+    }],
+    [record.scoreableOutcome.outcomeArtifactId, expected.outcomeEvent.artifactId],
+    [record.scoreableOutcome.outcomeRecordSha256, expected.outcomeEvent.recordSha256],
+    [record.scoreableOutcome.sourceOutcomeEvidenceSha256, c.sourceOutcome.evidenceSha256],
+    [record.scoreableOutcome.outcomeDerivationContractVersion, expected.outcomeEvent.canonical.payload.outcomeDerivationContractVersion],
+    [record.scoreableOutcome.observedOutcome, expected.outcomeEvent.canonical.payload.observedOutcome],
+    [record.scoreableOutcome.admittedAt, expected.outcomeEvent.authoritativeRecordTime],
+    [record.chronology, expected.chronology],
+    [record.readinessObservation, {
+      actualDecisionId: c.action.selectedCandidateId,
+      evaluatedDecisionId: c.candidate.candidateId,
+      selectedCandidateProbability: c.candidate.probability,
+      selectedCandidateRank: c.candidate.acceptedRank,
+      observedOutcome: {
+        ...clone(expected.outcomeEvent.canonical.payload.observedOutcome),
+        evaluatedDecisionId: c.candidate.candidateId
+      },
+      scoreableSelectedCandidateOutcome: true,
+      readinessCountEligible: true
+    }],
+    [record.boundaries, {
+      decisionSourceUsed: false,
+      futureEvidenceUsed: false,
+      observationalOnly: true,
+      causalClaimAllowed: false,
+      upliftClaimAllowed: false,
+      recommendationInfluenceAllowed: false
+    }]
+  ];
+  if (exactBindings.some(([actual, wanted]) => stableJson(actual) !== stableJson(wanted))) {
+    fail("route_iq_evaluation_record_binding_invalid", "Evaluation record does not exactly bind the canonical context and admitted outcome.", {}, 409);
+  }
+  if (record.acceptedCandidate.rank !== 1
+    || typeof record.acceptedCandidate.probability !== "number"
+    || !Number.isFinite(record.acceptedCandidate.probability)
+    || record.acceptedCandidate.probability < 0
+    || record.acceptedCandidate.probability > 1
+    || record.scoreableOutcome.observedOutcome.status !== "observed"
+    || typeof record.scoreableOutcome.observedOutcome.value !== "boolean") {
+    fail("route_iq_evaluation_record_not_scoreable", "Evaluation record is not a selected-candidate observed outcome.", {}, 409);
+  }
+  assertNoPiiLikeStrings(record, "evaluationRecord");
+  return deepFreeze(clone(record));
+}
+
 function canonicalSessionForCommittedHandoff(repository, projection) {
   const matching = [];
   for (const row of repositoryRows(repository, `
@@ -2867,13 +3155,27 @@ class RouteIqProspectiveCoordinatorCore {
           updateOpportunityState(this.repository, opportunity.opportunity_id, correctionEvent, "ACTION_LINKED");
           priorEvent = correctionEvent;
         }
+        const derivedEvaluationContext = deriveImmutableEvaluationContext(this.repository, {
+          opportunity,
+          manifestRow: repositoryOne(this.repository, "SELECT * FROM candidate_manifests WHERE opportunity_id = ?", [opportunity.opportunity_id]),
+          action,
+          outcome
+        });
+        const persistedEvaluationContext = persistEvaluationContext(this.repository, {
+          opportunity,
+          linkId: event.artifactId,
+          outcome,
+          derived: derivedEvaluationContext,
+          createdAt: nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime)
+        });
         linked.push({
           sourceVisitRecordSha256: outcome.sourceVisitRecordSha256,
           opportunityId: opportunity.opportunity_id,
           candidateId: outcome.candidateId,
           evidenceSha256: outcome.evidenceSha256,
           actionArtifactId: action.artifactId,
-          outcomeEvidenceArtifactId: event.artifactId
+          outcomeEvidenceArtifactId: event.artifactId,
+          ...persistedEvaluationContext
         });
         availableActions.splice(availableActions.indexOf(action), 1);
       }
@@ -2938,9 +3240,10 @@ class RouteIqProspectiveCoordinatorCore {
       producer: true
     });
     const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "scoreable_outcome_admission", [
-      "sourceOutcomeEvidenceSha256", "outcomeDerivationContractVersion", "observedOutcome"
+      "sourceOutcomeEvidenceSha256", "evaluationContextSha256", "outcomeDerivationContractVersion", "observedOutcome"
     ]);
     requireSha(claims.sourceOutcomeEvidenceSha256, "verifiedRuntimeClaims.scoreable_outcome_admission.sourceOutcomeEvidenceSha256");
+    requireSha(claims.evaluationContextSha256, "verifiedRuntimeClaims.scoreable_outcome_admission.evaluationContextSha256");
     requireVersion(claims.outcomeDerivationContractVersion, "verifiedRuntimeClaims.scoreable_outcome_admission.outcomeDerivationContractVersion");
     assertExactKeys(claims.observedOutcome, ["status", "value"], "verifiedRuntimeClaims.scoreable_outcome_admission.observedOutcome");
     if (!["observed", "missing"].includes(claims.observedOutcome.status)
@@ -2951,6 +3254,10 @@ class RouteIqProspectiveCoordinatorCore {
     const result = this.repository.transactionSync(() => {
       const link = repositoryOne(this.repository, "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?", [claims.sourceOutcomeEvidenceSha256]);
       if (!link) fail("route_iq_scoreable_outcome_source_missing", "Scoreable outcome does not bind admitted field-session evidence.", {}, 409);
+      const evaluationContext = readEvaluationContext(this.repository, claims.sourceOutcomeEvidenceSha256);
+      if (evaluationContext.row.context_sha256 !== claims.evaluationContextSha256) {
+        fail("route_iq_scoreable_outcome_context_mismatch", "Scoreable outcome does not bind the immutable Data evaluation context.", {}, 409);
+      }
       const opportunity = getOpportunity(this.repository, link.opportunity_id);
       const session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id]);
       const recordTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
@@ -2962,6 +3269,7 @@ class RouteIqProspectiveCoordinatorCore {
         authoritativeRecordTime: recordTime,
         boundary: {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion
         },
         content: { observedOutcome: claims.observedOutcome }
@@ -2969,6 +3277,7 @@ class RouteIqProspectiveCoordinatorCore {
       const identities = identitiesForClaims(this.coordinatorId, operationClaims);
       const canonicalRequest = {
         sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+        evaluationContextSha256: claims.evaluationContextSha256,
         outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion,
         observedOutcome: clone(claims.observedOutcome),
         candidateId: link.candidate_id,
@@ -3030,6 +3339,7 @@ class RouteIqProspectiveCoordinatorCore {
           evaluatedCandidateId: link.candidate_id,
           actionArtifactId: link.action_artifact_id,
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           outcomeDerivationContractVersion: claims.outcomeDerivationContractVersion,
           observedOutcome: clone(claims.observedOutcome),
           calculatedByData: false,
@@ -3046,6 +3356,7 @@ class RouteIqProspectiveCoordinatorCore {
         state: "OUTCOME_LINKED",
         details: {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           evaluatedCandidateId: link.candidate_id,
           calculatedByData: false
         }
@@ -3062,16 +3373,26 @@ class RouteIqProspectiveCoordinatorCore {
       producer: true
     });
     const claims = normalizeScopeOnlyRuntimeClaims(authority.claims, this.scope, "evaluation_admission", [
-      "sourceOutcomeEvidenceSha256", "evaluationRecordSha256", "evaluationContractVersion"
+      "sourceOutcomeEvidenceSha256", "evaluationContextSha256", "evaluationRecordSha256",
+      "evaluationContractVersion", "evaluationRecord"
     ]);
     requireSha(claims.sourceOutcomeEvidenceSha256, "verifiedRuntimeClaims.evaluation_admission.sourceOutcomeEvidenceSha256");
+    requireSha(claims.evaluationContextSha256, "verifiedRuntimeClaims.evaluation_admission.evaluationContextSha256");
     requireSha(claims.evaluationRecordSha256, "verifiedRuntimeClaims.evaluation_admission.evaluationRecordSha256");
-    requireVersion(claims.evaluationContractVersion, "verifiedRuntimeClaims.evaluation_admission.evaluationContractVersion");
+    if (claims.evaluationContractVersion !== routeIqIntelligenceEvaluationContractVersion) {
+      fail("route_iq_evaluation_contract_invalid", "Evaluation contract version is not the admitted Intelligence contract.", {}, 409);
+    }
+    assertObject(claims.evaluationRecord, "verifiedRuntimeClaims.evaluation_admission.evaluationRecord");
     const result = this.repository.transactionSync(() => {
       const link = repositoryOne(this.repository, "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?", [claims.sourceOutcomeEvidenceSha256]);
       if (!link) fail("route_iq_evaluation_source_missing", "Evaluation does not bind admitted field-session evidence.", {}, 409);
+      const evaluationContext = readEvaluationContext(this.repository, claims.sourceOutcomeEvidenceSha256);
       const opportunity = getOpportunity(this.repository, link.opportunity_id);
       const session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id]);
+      const outcomeEvent = latestEvent(this.repository, opportunity.opportunity_id, "OUTCOME_LINKED");
+      if (!outcomeEvent || Date.parse(claims.authoritativeRecordTime) <= Date.parse(outcomeEvent.authoritativeRecordTime)) {
+        fail("route_iq_evaluation_chronology_invalid", "Evaluation admission must be strictly later than the admitted outcome.", {}, 409);
+      }
       const recordTime = nextMonotonicCoordinatorTime(this.repository, claims.authoritativeRecordTime);
       const operationClaims = internalOperationClaims({
         scope: this.scope,
@@ -3081,15 +3402,21 @@ class RouteIqProspectiveCoordinatorCore {
         authoritativeRecordTime: recordTime,
         boundary: {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           evaluationContractVersion: claims.evaluationContractVersion
         },
-        content: { evaluationRecordSha256: claims.evaluationRecordSha256 }
+        content: {
+          evaluationRecordSha256: claims.evaluationRecordSha256,
+          evaluationRecord: claims.evaluationRecord
+        }
       });
       const identities = identitiesForClaims(this.coordinatorId, operationClaims);
       const canonicalRequest = {
         sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+        evaluationContextSha256: claims.evaluationContextSha256,
         evaluationRecordSha256: claims.evaluationRecordSha256,
-        evaluationContractVersion: claims.evaluationContractVersion
+        evaluationContractVersion: claims.evaluationContractVersion,
+        evaluationRecord: clone(claims.evaluationRecord)
       };
       const requestSha256 = sha256(canonicalRequest);
       const existing = existingReceiptDecision(this.repository, {
@@ -3101,6 +3428,10 @@ class RouteIqProspectiveCoordinatorCore {
       });
       if (existing?.type === "retry") return existing.receipt;
       if (existing?.type === "conflict") return { conflictDecision: existing };
+      if (evaluationContext.row.context_sha256 !== claims.evaluationContextSha256
+        || claims.evaluationRecordSha256 !== claims.evaluationRecord.evaluationRecordSha256) {
+        fail("route_iq_evaluation_context_mismatch", "Evaluation does not bind the immutable Data evaluation context and record hash.", {}, 409);
+      }
       if (opportunity.state !== "OUTCOME_LINKED" || opportunity.canonical_eligible !== 1) {
         return persistExclusion(this.repository, {
           coordinatorId: this.coordinatorId,
@@ -3112,6 +3443,55 @@ class RouteIqProspectiveCoordinatorCore {
           canonicalRequest
         });
       }
+      if (outcomeEvent.canonical.payload?.sourceOutcomeEvidenceSha256 !== claims.sourceOutcomeEvidenceSha256
+        || outcomeEvent.canonical.payload?.evaluationContextSha256 !== claims.evaluationContextSha256
+        || outcomeEvent.canonical.payload?.evaluatedCandidateId !== link.candidate_id
+        || outcomeEvent.canonical.payload?.actionArtifactId !== link.action_artifact_id) {
+        fail("route_iq_evaluation_outcome_binding_invalid", "Evaluation does not bind the canonical admitted outcome.", {}, 409);
+      }
+      const committedProjection = repositoryOne(this.repository, `
+        SELECT p.projection_id, p.projection_sha256, p.as_of_record_sequence, p.as_of_record_time,
+               c.commit_id
+        FROM projection_outbox o
+        JOIN projection_artifacts p ON p.outbox_id = o.outbox_id
+        JOIN projection_commits c ON c.outbox_id = o.outbox_id AND c.projection_id = p.projection_id
+        WHERE o.source_artifact_id = ?
+      `, [outcomeEvent.artifactId]);
+      if (!committedProjection) {
+        fail("route_iq_evaluation_projection_commit_missing", "The admitted outcome projection must be committed before evaluation.", {}, 409);
+      }
+      const reconciliation = repositoryOne(this.repository, `
+        SELECT created_at FROM field_session_reconciliation_receipts
+        WHERE source_projection_sha256 = ?
+      `, [link.source_projection_sha256]);
+      if (!reconciliation) {
+        fail("route_iq_evaluation_reconciliation_missing", "The source reconciliation receipt is unavailable.", {}, 500);
+      }
+      const context = evaluationContext.context;
+      const expected = {
+        scope: this.scope,
+        context,
+        contextSha256: evaluationContext.row.context_sha256,
+        outcomeEvent,
+        sourceProjection: {
+          projectionId: committedProjection.projection_id,
+          projectionCommitId: committedProjection.commit_id,
+          projectionSha256: committedProjection.projection_sha256,
+          asOfRecordSequence: Number(committedProjection.as_of_record_sequence),
+          asOfRecordTime: committedProjection.as_of_record_time
+        },
+        chronology: {
+          snapshotAcceptedAt: context.acceptedSnapshotManifest.acceptedAt,
+          shadowSealedAt: context.shadowDecision.sealedAt,
+          actionLinkedAt: context.action.linkedAt,
+          visitActionEventTime: link.visit_event_time,
+          archiveCommittedAt: link.archive_committed_at,
+          fieldEvidenceLinkedAt: link.linked_at,
+          reconciledAt: reconciliation.created_at,
+          outcomeAdmittedAt: outcomeEvent.authoritativeRecordTime
+        }
+      };
+      const evaluationRecord = validateFullIntelligenceEvaluationRecord(claims.evaluationRecord, expected);
       insertAttempt(this.repository, {
         identities,
         claims: operationClaims,
@@ -3133,8 +3513,11 @@ class RouteIqProspectiveCoordinatorCore {
         toState: "EVALUATED",
         payload: {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
           evaluationContractVersion: claims.evaluationContractVersion,
+          evaluationRecord: clone(evaluationRecord),
+          fullEvaluationPersisted: true,
           calculatedByData: false,
           recommendationInfluence: "off"
         },
@@ -3149,7 +3532,9 @@ class RouteIqProspectiveCoordinatorCore {
         state: "EVALUATED",
         details: {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
+          evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
+          fullEvaluationPersisted: true,
           calculatedByData: false
         }
       });
@@ -4142,6 +4527,7 @@ function projectionEvidenceKind(eventKind) {
     SNAPSHOT_PENDING_SEAL: "prospective_opportunity_snapshot",
     ACTION_LINKED: "prospective_opportunity_action",
     OUTCOME_LINKED: "prospective_opportunity_outcome",
+    EVALUATED: "prospective_opportunity_evaluation",
     CORRECTION_APPENDED: "prospective_outcome_correction"
   }[eventKind] || null;
 }

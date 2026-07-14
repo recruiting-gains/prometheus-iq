@@ -15,7 +15,10 @@ import {
   routeIqCandidateProducerEnvelopeVersion,
   routeIqCandidateSourceSchemaVersion,
   routeIqCandidateSourceVersion,
+  routeIqEvaluationContextSchemaVersion,
   routeIqFieldSessionOutcomeProjectionContractVersion,
+  routeIqIntelligenceEvaluationContractVersion,
+  routeIqIntelligenceEvaluationRecordSchemaVersion,
   routeIqProspectiveRuntimeContextContractVersion,
   routeIqProspectiveServerAllocatorContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
@@ -120,6 +123,7 @@ function canonicalDatabaseDump(repository) {
     "lifecycle_events",
     "candidate_manifests",
     "field_session_outcome_links",
+    "field_session_evaluation_contexts",
     "field_session_reconciliation_receipts",
     "field_session_reconciliation_conflicts",
     "projection_outbox",
@@ -481,6 +485,184 @@ async function completeServerDerivedAction(harness, allocation, suffix, {
     authorityEnvelope: harness.authority.sign(actionClaims)
   });
   return { accepted, snapshot, context, actionClaims, action };
+}
+
+function drainProjectionOutbox(harness) {
+  while (harness.coordinator.recoverNextProjection().recovered) {
+    // Projection commit markers are deliberately written last by the coordinator.
+  }
+}
+
+function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcomeReceipt) {
+  const context = link.evaluationContext;
+  const projection = harness.repository.one(`
+    SELECT p.projection_id, p.projection_sha256, p.as_of_record_sequence, p.as_of_record_time,
+           c.commit_id
+    FROM projection_outbox o
+    JOIN projection_artifacts p ON p.outbox_id = o.outbox_id
+    JOIN projection_commits c ON c.outbox_id = o.outbox_id AND c.projection_id = p.projection_id
+    WHERE o.source_artifact_id = ?
+  `, outcomeReceipt.artifactId);
+  const sourceLink = harness.repository.one(
+    "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?",
+    link.evidenceSha256
+  );
+  const observedOutcome = { status: "observed", value: true };
+  const body = {
+    schemaVersion: routeIqIntelligenceEvaluationRecordSchemaVersion,
+    evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
+    authority: "prometheus_intelligence_pure_evaluation",
+    recordOrigin: "prospective",
+    scope: {
+      workspaceId: harness.scope.workspaceId,
+      operatingProfileId: harness.scope.operatingProfileId,
+      representativeId: harness.scope.representativeId
+    },
+    opportunityId: context.opportunityId,
+    evaluationContextSha256: link.evaluationContextSha256,
+    sourceProjection: {
+      projectionId: projection.projection_id,
+      projectionCommitId: projection.commit_id,
+      projectionSha256: projection.projection_sha256,
+      asOfRecordSequence: Number(projection.as_of_record_sequence),
+      asOfRecordTime: projection.as_of_record_time
+    },
+    shadowContext: {
+      sealArtifactId: context.shadowDecision.sealArtifactId,
+      sealEventRecordSha256: context.shadowDecision.sealRecordSha256,
+      sealedAt: context.shadowDecision.sealedAt
+    },
+    acceptedCandidate: {
+      candidateId: context.candidate.candidateId,
+      rank: context.candidate.acceptedRank,
+      probability: context.candidate.probability,
+      rankingBasisVersion: context.candidate.rankingBasisVersion,
+      candidateManifestSha256: context.manifest.candidateManifestSha256,
+      completeManifestSha256: context.manifest.completeManifestSha256
+    },
+    action: {
+      candidateId: context.action.selectedCandidateId,
+      actionArtifactId: context.action.artifactId,
+      actionRecordSha256: context.action.recordSha256,
+      linkedAt: context.action.linkedAt,
+      selectionAuthority: "accepted_manifest_unique_ordinal_1"
+    },
+    scoreableOutcome: {
+      outcomeArtifactId: outcomeReceipt.artifactId,
+      outcomeRecordSha256: outcomeReceipt.recordSha256,
+      sourceOutcomeEvidenceSha256: link.evidenceSha256,
+      scoreableOutcomeRecordSha256: digest(`scoreable:${link.evidenceSha256}`),
+      outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+      observedOutcome,
+      admittedAt: outcomeReceipt.authoritativeRecordTime
+    },
+    chronology: {
+      snapshotAcceptedAt: context.acceptedSnapshotManifest.acceptedAt,
+      shadowSealedAt: context.shadowDecision.sealedAt,
+      actionLinkedAt: context.action.linkedAt,
+      visitActionEventTime: sourceLink.visit_event_time,
+      archiveCommittedAt: sourceLink.archive_committed_at,
+      fieldEvidenceLinkedAt: sourceLink.linked_at,
+      reconciledAt: reconciliationReceipt.createdAt,
+      outcomeAdmittedAt: outcomeReceipt.authoritativeRecordTime
+    },
+    readinessObservation: {
+      actualDecisionId: context.action.selectedCandidateId,
+      evaluatedDecisionId: context.candidate.candidateId,
+      selectedCandidateProbability: context.candidate.probability,
+      selectedCandidateRank: context.candidate.acceptedRank,
+      observedOutcome: { ...observedOutcome, evaluatedDecisionId: context.candidate.candidateId },
+      scoreableSelectedCandidateOutcome: true,
+      readinessCountEligible: true
+    },
+    boundaries: {
+      decisionSourceUsed: false,
+      futureEvidenceUsed: false,
+      observationalOnly: true,
+      causalClaimAllowed: false,
+      upliftClaimAllowed: false,
+      recommendationInfluenceAllowed: false
+    },
+    canonicalProductionEvidenceEligible: true,
+    recommendationInfluence: "OFF",
+    immutable: true
+  };
+  return { ...body, evaluationRecordSha256: digest(body) };
+}
+
+async function prepareReconciledEvaluationSource(suffix, { corrections = [] } = {}) {
+  const h = await openHarness({ territoryContext: knownTerritoryContext(`evaluation-${suffix}`) });
+  const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const lifecycle = await completeServerDerivedAction(h, allocation, `evaluation-${suffix}`, {
+    manifestAt: iso(10_000),
+    snapshotAt: iso(20_000),
+    shadowAt: iso(30_000),
+    actionAt: iso(40_000),
+    sequence: 10
+  });
+  const rawSha256 = digest(`evaluation-handoff:${suffix}`);
+  await h.coordinator.closeCanonicalSession({
+    authorityEnvelope: h.authority.sign({
+      purpose: "close_session",
+      workspaceId: h.scope.workspaceId,
+      operatingProfileId: h.scope.operatingProfileId,
+      representativeId: h.scope.representativeId,
+      closeReason: "end_day",
+      handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+      endOfDayHandoffSha256: rawSha256,
+      authoritativeRecordTime: iso(50_000)
+    })
+  });
+  const projection = outcomeProjection(h, {
+    rawSha256,
+    archiveCommittedAt: iso(60_000),
+    outcomes: [{
+      candidateId: lifecycle.accepted.manifest.candidateId,
+      actionEventTime: iso(45_000),
+      corrections
+    }]
+  });
+  const receipt = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+    authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(70_000), {
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    })),
+    projection
+  });
+  return { h, allocation, lifecycle, projection, receipt, link: receipt.linked[0] };
+}
+
+async function admitPreparedScoreable(source) {
+  const outcomeReceipt = await source.h.coordinator.admitIntelligenceScoreableOutcome({
+    authorityEnvelope: source.h.authority.sign(runtimeClaims(source.h, "scoreable_outcome_admission", iso(80_000), {
+      sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+      evaluationContextSha256: source.link.evaluationContextSha256,
+      outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+      observedOutcome: { status: "observed", value: true }
+    }), "producer")
+  });
+  drainProjectionOutbox(source.h);
+  return {
+    ...source,
+    outcomeReceipt,
+    evaluationRecord: buildFullEvaluationRecord(source.h, source.receipt, source.link, outcomeReceipt)
+  };
+}
+
+function evaluationAdmissionClaims(source, record, authoritativeRecordTime = iso(90_000)) {
+  return runtimeClaims(source.h, "evaluation_admission", authoritativeRecordTime, {
+    sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+    evaluationContextSha256: source.link.evaluationContextSha256,
+    evaluationRecordSha256: record.evaluationRecordSha256,
+    evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
+    evaluationRecord: record
+  });
+}
+
+function rehashEvaluationRecord(record) {
+  const body = Object.fromEntries(Object.entries(record).filter(([key]) => key !== "evaluationRecordSha256"));
+  return { ...body, evaluationRecordSha256: digest(body) };
 }
 
 test("server allocator contract and pending candidate boundary are explicit", async () => {
@@ -996,41 +1178,280 @@ test("committed handoff reconciliation binds multiple actions, appends correctio
   assert.deepEqual(receipt.exclusions, []);
   assert.equal(receipt.outcomeValuesInferredByData, false);
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_outcome_links").count, 2);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_evaluation_contexts").count, 2);
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'FIELD_SESSION_OUTCOME_CORRECTION_LINKED'").count, 1);
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_reconciliation_receipts").count, 1);
+  const evaluationContext = receipt.linked[0].evaluationContext;
+  assert.equal(evaluationContext.schemaVersion, routeIqEvaluationContextSchemaVersion);
+  assert.equal(receipt.linked[0].evaluationContextSha256, digest(evaluationContext));
+  assert.equal(evaluationContext.opportunityId, first.opportunityId);
+  assert.equal(evaluationContext.candidate.candidateId, firstLifecycle.accepted.manifest.candidateId);
+  assert.equal(evaluationContext.candidate.acceptedRank, 1);
+  assert.equal(evaluationContext.candidate.probability, 0.6);
+  assert.equal(evaluationContext.action.selectedCandidateId, firstLifecycle.accepted.manifest.candidateId);
+  assert.equal(evaluationContext.sourceOutcome.correctionState, "corrected");
+  assert.deepEqual(evaluationContext.sourceOutcome.correctionRecordSha256s, [correction.sourceCorrectionRecordSha256]);
+  assert.equal(evaluationContext.recommendationInfluence, "off");
+  assert.throws(
+    () => h.repository.db.exec("UPDATE field_session_evaluation_contexts SET context_sha256 = lower(hex(randomblob(32)))"),
+    /field_session_evaluation_contexts_append_only/
+  );
+  assert.throws(
+    () => h.repository.db.exec("DELETE FROM field_session_evaluation_contexts"),
+    /field_session_evaluation_contexts_append_only/
+  );
   const admitted = await restarted.coordinator.admitIntelligenceScoreableOutcome({
     authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "scoreable_outcome_admission", iso(130_000), {
       sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+      evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
       outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
       observedOutcome: { status: "observed", value: true }
     }), "producer")
   });
   assert.equal(admitted.state, "OUTCOME_LINKED");
   assert.equal(admitted.evaluatedCandidateId, firstLifecycle.accepted.manifest.candidateId);
+  assert.equal(admitted.evaluationContextSha256, receipt.linked[0].evaluationContextSha256);
   assert.equal(admitted.calculatedByData, false);
   await assert.rejects(
     () => restarted.coordinator.admitIntelligenceScoreableOutcome({
       candidateId: secondLifecycle.accepted.manifest.candidateId,
       authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "scoreable_outcome_admission", iso(130_001), {
         sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+        evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
         outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
         observedOutcome: { status: "observed", value: true }
       }), "producer")
     }),
     error => error.code === "route_iq_coordinator_field_not_allowlisted"
   );
+  drainProjectionOutbox(restarted);
+  const evaluationRecord = buildFullEvaluationRecord(restarted, receipt, receipt.linked[0], admitted);
   const evaluated = await restarted.coordinator.admitIntelligenceEvaluation({
     authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "evaluation_admission", iso(140_000), {
       sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
-      evaluationRecordSha256: digest("intelligence-evaluation-record"),
-      evaluationContractVersion: "route-iq-shadow-evaluation-v1"
+      evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
+      evaluationRecordSha256: evaluationRecord.evaluationRecordSha256,
+      evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
+      evaluationRecord
     }), "producer")
   });
   assert.equal(evaluated.state, "EVALUATED");
   assert.equal(evaluated.sourceOutcomeEvidenceSha256, receipt.linked[0].evidenceSha256);
+  assert.equal(evaluated.evaluationContextSha256, receipt.linked[0].evaluationContextSha256);
+  assert.equal(evaluated.fullEvaluationPersisted, true);
+  const replayedEvaluation = await restarted.coordinator.admitIntelligenceEvaluation({
+    authorityEnvelope: restarted.authority.sign(runtimeClaims(restarted, "evaluation_admission", iso(150_000), {
+      sourceOutcomeEvidenceSha256: receipt.linked[0].evidenceSha256,
+      evaluationContextSha256: receipt.linked[0].evaluationContextSha256,
+      evaluationRecordSha256: evaluationRecord.evaluationRecordSha256,
+      evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
+      evaluationRecord
+    }), "producer")
+  });
+  assert.deepEqual(replayedEvaluation, evaluated);
+  drainProjectionOutbox(restarted);
+  const evaluationProjection = h.repository.one(`
+    SELECT p.projection_json
+    FROM projection_outbox o
+    JOIN projection_artifacts p ON p.outbox_id = o.outbox_id
+    WHERE o.source_artifact_id = ?
+  `, evaluated.artifactId);
+  const projected = JSON.parse(evaluationProjection.projection_json);
+  const projectedEvaluation = projected.evidence.find(item => item.evidenceKind === "prospective_opportunity_evaluation");
+  assert.equal(projectedEvaluation.payload.evaluationRecordSha256, evaluationRecord.evaluationRecordSha256);
+  assert.deepEqual(projectedEvaluation.payload.evaluationRecord, evaluationRecord);
   const events = h.repository.query("SELECT authoritative_record_time FROM lifecycle_events ORDER BY record_sequence");
   assert.ok(events.every((event, index) => index === 0
     || Date.parse(event.authoritative_record_time) > Date.parse(events[index - 1].authoritative_record_time)));
+});
+
+test("scoreable admission requires the exact immutable evaluation context", async () => {
+  const source = await prepareReconciledEvaluationSource("context-binding");
+  await assert.rejects(
+    () => source.h.coordinator.admitIntelligenceScoreableOutcome({
+      authorityEnvelope: source.h.authority.sign(runtimeClaims(source.h, "scoreable_outcome_admission", iso(80_000), {
+        sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+        evaluationContextSha256: digest("tampered-evaluation-context"),
+        outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+        observedOutcome: { status: "observed", value: true }
+      }), "producer")
+    }),
+    error => error.code === "route_iq_scoreable_outcome_context_mismatch"
+  );
+  const admitted = await admitPreparedScoreable(source);
+  assert.equal(admitted.outcomeReceipt.evaluationContextSha256, source.link.evaluationContextSha256);
+});
+
+test("full evaluation admission rejects context, rank, probability, candidate, chronology, scope, PII, and hash tampering", async t => {
+  const cases = [
+    {
+      name: "context hash",
+      mutate(record) {
+        record.evaluationContextSha256 = digest("wrong-context");
+      },
+      mutateClaims(claims) {
+        claims.evaluationContextSha256 = claims.evaluationRecord.evaluationContextSha256;
+      },
+      code: "route_iq_evaluation_context_mismatch"
+    },
+    {
+      name: "accepted rank",
+      mutate(record) {
+        record.acceptedCandidate.rank = 2;
+        record.readinessObservation.selectedCandidateRank = 2;
+      },
+      code: "route_iq_evaluation_record_binding_invalid"
+    },
+    {
+      name: "probability",
+      mutate(record) {
+        record.acceptedCandidate.probability = 0.7;
+        record.readinessObservation.selectedCandidateProbability = 0.7;
+      },
+      code: "route_iq_evaluation_record_binding_invalid"
+    },
+    {
+      name: "unchosen candidate",
+      mutate(record) {
+        const candidateId = `riq_candidate_${digest("unchosen-candidate")}`;
+        record.acceptedCandidate.candidateId = candidateId;
+        record.action.candidateId = candidateId;
+        record.readinessObservation.evaluatedDecisionId = candidateId;
+        record.readinessObservation.observedOutcome.evaluatedDecisionId = candidateId;
+      },
+      code: "route_iq_evaluation_record_binding_invalid"
+    },
+    {
+      name: "future chronology",
+      mutate(record) {
+        record.chronology.snapshotAcceptedAt = iso(200_000);
+      },
+      code: "route_iq_evaluation_record_binding_invalid"
+    },
+    {
+      name: "cross scope",
+      mutate(record) {
+        record.scope.representativeId = "anthony";
+      },
+      code: "route_iq_evaluation_record_boundary_invalid"
+    },
+    {
+      name: "PII field",
+      mutate(record) {
+        record.acceptedCandidate.customerName = "Prohibited Customer";
+      },
+      code: "route_iq_coordinator_privacy_field_prohibited",
+      preserveHash: true
+    },
+    {
+      name: "record hash",
+      mutate(record) {
+        record.readinessObservation.readinessCountEligible = false;
+      },
+      code: "route_iq_evaluation_record_hash_invalid",
+      preserveHash: true
+    }
+  ];
+  for (const entry of cases) {
+    await t.test(entry.name, async () => {
+      const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource(`tamper-${entry.name.replaceAll(" ", "-")}`));
+      const changed = structuredClone(source.evaluationRecord);
+      entry.mutate(changed);
+      const record = entry.preserveHash ? changed : rehashEvaluationRecord(changed);
+      const claims = evaluationAdmissionClaims(source, record);
+      entry.mutateClaims?.(claims);
+      await assert.rejects(
+        () => source.h.coordinator.admitIntelligenceEvaluation({
+          authorityEnvelope: source.h.authority.sign(claims, "producer")
+        }),
+        error => error.code === entry.code
+      );
+    });
+  }
+});
+
+test("evaluation admission is strictly later, idempotent across restart, and records changed content as a durable conflict", async () => {
+  const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("evaluation-replay"));
+  await assert.rejects(
+    () => source.h.coordinator.admitIntelligenceEvaluation({
+      authorityEnvelope: source.h.authority.sign(
+        evaluationAdmissionClaims(source, source.evaluationRecord, source.outcomeReceipt.authoritativeRecordTime),
+        "producer"
+      )
+    }),
+    error => error.code === "route_iq_evaluation_chronology_invalid"
+  );
+  const first = await source.h.coordinator.admitIntelligenceEvaluation({
+    authorityEnvelope: source.h.authority.sign(evaluationAdmissionClaims(source, source.evaluationRecord), "producer")
+  });
+  const restarted = await openHarness({
+    repository: source.h.repository,
+    authority: source.h.authority,
+    issuedAt: iso(100_000),
+    territoryContext: knownTerritoryContext("evaluation-evaluation-replay")
+  });
+  const replay = await restarted.coordinator.admitIntelligenceEvaluation({
+    authorityEnvelope: restarted.authority.sign({
+      ...evaluationAdmissionClaims({ ...source, h: restarted }, source.evaluationRecord, iso(100_000))
+    }, "producer")
+  });
+  assert.deepEqual(replay, first);
+
+  const changed = structuredClone(source.evaluationRecord);
+  changed.scoreableOutcome.scoreableOutcomeRecordSha256 = digest("changed-scoreable-record");
+  const changedRecord = rehashEvaluationRecord(changed);
+  await assert.rejects(
+    () => restarted.coordinator.admitIntelligenceEvaluation({
+      authorityEnvelope: restarted.authority.sign(
+        evaluationAdmissionClaims({ ...source, h: restarted }, changedRecord, iso(110_000)),
+        "producer"
+      )
+    }),
+    error => error.code === "route_iq_coordinator_conflict"
+  );
+  assert.equal(source.h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'").count, 1);
+  assert.equal(source.h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 1);
+  const original = source.h.repository.one("SELECT canonical_json FROM lifecycle_events WHERE event_kind = 'EVALUATED'");
+  assert.equal(JSON.parse(original.canonical_json).payload.evaluationRecordSha256, source.evaluationRecord.evaluationRecordSha256);
+});
+
+test("missing shadow seal cannot produce an evaluation context", async () => {
+  const h = await openHarness({ territoryContext: knownTerritoryContext("missing-seal-context") });
+  const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const lifecycle = await completeServerDerivedAction(h, allocation, "missing-seal-context", {
+    manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+  });
+  const rawSha256 = digest("missing-seal-context-handoff");
+  await h.coordinator.closeCanonicalSession({
+    authorityEnvelope: h.authority.sign({
+      purpose: "close_session",
+      workspaceId: h.scope.workspaceId,
+      operatingProfileId: h.scope.operatingProfileId,
+      representativeId: h.scope.representativeId,
+      closeReason: "end_day",
+      handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+      endOfDayHandoffSha256: rawSha256,
+      authoritativeRecordTime: iso(50_000)
+    })
+  });
+  h.repository.db.exec("DROP TRIGGER lifecycle_events_no_update");
+  h.repository.db.exec("UPDATE lifecycle_events SET event_kind = 'TEST_REMOVED_SHADOW_SEAL' WHERE event_kind = 'SHADOW_DECISION_SEALED'");
+  const projection = outcomeProjection(h, {
+    rawSha256,
+    archiveCommittedAt: iso(60_000),
+    outcomes: [{ candidateId: lifecycle.accepted.manifest.candidateId, actionEventTime: iso(45_000) }]
+  });
+  const receipt = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+    authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(70_000), {
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    })),
+    projection
+  });
+  assert.deepEqual(receipt.linked, []);
+  assert.deepEqual(receipt.exclusions.map(item => item.reasonCode), ["action_outcome_chronology_invalid"]);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_evaluation_contexts").count, 0);
 });
 
 test("handoff reconciliation rejects unbound, wrong, equal-time, cross-scope, and changed evidence", async t => {
