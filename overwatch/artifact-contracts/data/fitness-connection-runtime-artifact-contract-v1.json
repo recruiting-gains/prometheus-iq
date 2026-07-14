@@ -256,15 +256,29 @@
     "routeScoringMutationAllowed": false
   },
   "prospectiveShadowEvidenceLifecycleContract": {
-    "status": "data_server_allocator_ready_runtime_inactive",
+    "status": "source_complete_deployable_runtime_inactive",
     "batchId": "BATCH-20260713-004",
     "owningSubsystem": "Prometheus Data",
     "workspaceId": "fitness_connection",
     "operatingProfileId": "fitness",
     "opportunityType": "next_stop",
+    "ownerCommitReferences": {
+      "dashboardInvisibleNextStopSeam": "6c7671cb3f9387fdac29961432412dfe70088b2e",
+      "dataExactOutcomeProjectionRead": "b388849c21051262e0f80e4c24875147cf9889dd",
+      "dataEvaluationProjectionScopeRepair": "84319f9c70004edd50e1531e48ea1d0d7b501089",
+      "infrastructureOutcomeEvaluationRuntime": "509a7bc0d3b4d2911d6b6b189985cccfa2536241"
+    },
+    "dependencyBoundary": {
+      "dashboard": "invisible representative-only next_stop trigger and action signal; no browser outcome emission",
+      "data": "canonical coordinator state, reconciliation, exact committed outcome projection, scoreable-outcome admission, and evaluation admission",
+      "intelligence": "canonical candidate manifest, shadow decision, scoreable-outcome derivation, evaluation, and readiness interpretation",
+      "infrastructure": "authenticated server orchestration, server-side End Route and End Day reconciliation, Durable Object adapter, and failure isolation",
+      "productionActivationRequiresSeparateFounderAuthorization": true
+    },
     "coordinatorSchemaVersion": "route-iq-prospective-coordinator-schema-v1",
     "coordinatorContractVersion": "route-iq-prospective-coordinator-contract-v1",
     "coordinatorProjectionVersion": "route-iq-prospective-coordinator-projection-v1",
+    "exactOutcomeProjectionReadContractVersion": "route-iq-committed-outcome-projection-read-v1",
     "dataProjectionVersion": "route-iq-chronological-evidence-projection-v1",
     "candidateProducerEnvelopeVersion": "route-iq-intelligence-candidate-envelope-v1",
     "candidateProducerContractVersion": "route-iq-next-stop-candidate-producer-v1",
@@ -279,6 +293,10 @@
       "runtimeAdapterOwner": "Prometheus Infrastructure",
       "runtimeAdapterImplemented": true,
       "runtimeBindingIntroducedByData": false,
+      "sourceRuntimeBindingDeclared": true,
+      "productionDurableObjectBindingActivated": false,
+      "productionDurableObjectResourceActivated": false,
+      "productionMigrationApplied": false,
       "repositoryContract": [
         "executeSchema(sql)",
         "execute(sql, bindings)",
@@ -332,7 +350,11 @@
         "appendCorrection"
       ],
       "projectionRecovery": "recoverNextProjection",
-      "projectionRead": "readCommittedProjectionAsOf"
+      "projectionRead": "readCommittedProjectionAsOf",
+      "exactOutcomeProjectionRead": "readCommittedProjectionForOutcomeArtifact",
+      "fieldSessionOutcomeReconciliation": "reconcileCommittedFieldSessionOutcomes",
+      "scoreableOutcomeAdmission": "admitIntelligenceScoreableOutcome",
+      "evaluationAdmission": "admitIntelligenceEvaluation"
     },
     "authorityBoundary": {
       "scopeDerivedOnlyFromAuthenticatedServerEnvelope": true,
@@ -403,7 +425,10 @@
       "sessionCloseRefreshedTimeRetryReturnsOriginalReceipt": true,
       "runtimeIntegrationOwner": "Prometheus Infrastructure",
       "candidateManifestOwner": "Prometheus Intelligence Engine",
-      "runtimeIntegrated": false
+      "runtimeIntegrated": true,
+      "runtimeIntegrationScope": "source_and_deployable_runtime_wiring",
+      "runtimeDeployed": false,
+      "runtimeActivated": false
     },
     "candidateManifest": {
       "canonicalIntelligenceProducerEnvelopeRequired": true,
@@ -446,7 +471,9 @@
       "unsealedOrIncompleteEvidenceAllowed": false,
       "minimumEvidenceState": "SHADOW_DECISION_SEALED",
       "sourceArtifactsRepresentedAsUniqueArray": true,
-      "projectionAndCommitHashesVerified": true
+      "projectionAndCommitHashesVerified": true,
+      "evaluationScopeFields": ["workspaceId", "operatingProfileId", "representativeId"],
+      "coordinatorAuthorityMetadataExcludedFromEvaluationProjection": true
     },
     "privacyAllowlist": {
       "explicitRecursiveAllowlistRequired": true,
@@ -511,19 +538,40 @@
       "productionCollectionActivated": false,
       "productionEvidenceRecords": 0
     },
+    "sourceIntegration": {
+      "infrastructureRuntimeWiringComplete": true,
+      "dashboardCollectionSeamSourceComplete": true,
+      "dashboardSeamRepresentativeOnly": true,
+      "browserOutcomeEmissionAllowed": false,
+      "endRouteEndDayReconciliation": "server_side_only",
+      "intelligenceSourceIntegrationAuthorized": true,
+      "intelligenceCandidateManifestImplementationComplete": true,
+      "intelligenceShadowDecisionImplementationComplete": true,
+      "intelligenceEvaluationImplementationComplete": true,
+      "sourceDeployable": true,
+      "productionDeployed": false,
+      "productionConsumerActivated": false
+    },
     "ownershipBoundaries": {
       "data": ["SQLite schema", "transactional state machine", "canonical normalization", "privacy and scope enforcement", "append-only persistence", "integrity", "chronological projection"],
       "intelligence": ["canonical candidate producer", "ranking", "probability", "evaluation", "readiness"],
-      "infrastructure": ["Durable Object class", "runtime binding", "repository adapter", "production clock", "keyed attestation and receipt verification"],
-      "dashboard": ["future collection trigger and action/outcome wiring"],
+      "infrastructure": ["Durable Object class", "runtime binding", "repository adapter", "production clock", "keyed attestation and receipt verification", "server-side End Route and End Day reconciliation"],
+      "dashboard": ["implemented invisible representative-only next_stop trigger and action seam", "browser outcome emission prohibited"],
       "overwatch": ["authorization", "independent verification"]
     },
     "activation": {
       "productionCollectionActivated": false,
-      "infrastructureWiringComplete": false,
-      "dashboardCollectionComplete": false,
-      "intelligenceConsumerAuthorized": false,
+      "infrastructureWiringComplete": true,
+      "dashboardCollectionSeamSourceComplete": true,
+      "intelligenceSourceIntegrationAuthorized": true,
+      "intelligenceManifestShadowEvaluationComplete": true,
+      "productionConsumerActivated": false,
+      "productionConsumerStatus": "inactive_not_deployed",
+      "intelligenceProductionConsumerAuthorized": false,
+      "durableObjectProductionBindingActivated": false,
+      "durableObjectProductionResourceActivated": false,
       "recommendationInfluenceActivated": false,
+      "recommendationInfluenceState": "OFF",
       "routeScoringMutationAllowed": false,
       "routeGenerationMutationAllowed": false,
       "representativeBehaviorInfluenceAllowed": false
