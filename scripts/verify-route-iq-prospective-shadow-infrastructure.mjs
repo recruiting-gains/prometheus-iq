@@ -181,6 +181,13 @@ assert.match(runtime, /reconcileCommittedFieldSessionOutcomes/u);
 
 for (const required of [
   "env.ASSETS.fetch",
+  "canonicalAllocationTime",
+  "sampleServerDate",
+  "new Date()",
+  "createServerMonotonicSequencer",
+  "Math.max(sampledTime, lastRecordTime + 1)",
+  "route_iq_prospective_allocation_time_future",
+  "noncanonicalTestHooks?.enabled === true",
   "produceRouteIqNextStopCandidateManifest",
   "buildCandidateManifestCoordinatorClaims",
   "applyTrustedCandidateManifest",
@@ -196,7 +203,17 @@ for (const required of [
 ]) {
   assert.ok(orchestration.includes(required), `Server orchestration must include ${required}`);
 }
+assert.doesNotMatch(orchestration, /lifecycleTime|allocationTime\s*\+\s*[1-9]|base\s*\+\s*offset/u);
 assert.doesNotMatch(`${runtime}\n${orchestration}`, /localStorage|sessionStorage|indexedDB/u);
+
+for (const required of [
+  "production lifecycle samples server Date at every stage",
+  "explicit noncanonical lifecycle clock is sampled per stage",
+  "lifecycle_server_clock",
+  "2099-01-01T00:00:00.000Z"
+]) {
+  assert.ok(testSource.includes(required), `Temporal regression coverage must include ${required}`);
+}
 
 for (const budget of [
   "browserBodyBytes",

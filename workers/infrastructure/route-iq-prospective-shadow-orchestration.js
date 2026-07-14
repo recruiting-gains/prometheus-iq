@@ -22,16 +22,61 @@ export const ROUTE_IQ_PROSPECTIVE_SOURCE_ARTIFACTS = Object.freeze({
   businessHours: "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
 });
 
-function lifecycleTime(allocation, offset) {
-  const base = Date.parse(allocation?.authoritativeRecordTime);
-  if (!Number.isFinite(base)) {
+function canonicalAllocationTime(allocation) {
+  const value = allocation?.authoritativeRecordTime;
+  const parsed = Date.parse(value);
+  if (typeof value !== "string"
+    || !Number.isFinite(parsed)
+    || new Date(parsed).toISOString() !== value) {
     failRouteIqProspective(
       "Canonical allocation time is unavailable.",
       "route_iq_prospective_allocation_receipt_invalid",
       500
     );
   }
-  return new Date(base + offset).toISOString();
+  return parsed;
+}
+
+function sampleServerDate(noncanonicalTestHooks) {
+  let sampled;
+  if (noncanonicalTestHooks?.enabled === true) {
+    sampled = typeof noncanonicalTestHooks.lifecycleNow === "function"
+      ? noncanonicalTestHooks.lifecycleNow()
+      : noncanonicalTestHooks.currentDate;
+  } else {
+    sampled = new Date();
+  }
+  if (!(sampled instanceof Date) || Number.isNaN(sampled.getTime())) {
+    failRouteIqProspective(
+      "Lifecycle server clock is unavailable.",
+      "route_iq_prospective_lifecycle_clock_invalid",
+      500
+    );
+  }
+  return sampled.getTime();
+}
+
+function createServerMonotonicSequencer(allocationReceipt, noncanonicalTestHooks) {
+  const allocationTime = canonicalAllocationTime(allocationReceipt);
+  let lastRecordTime = allocationTime;
+  let sampledAllocationBoundary = false;
+  return function nextServerRecordTime() {
+    const sampledTime = sampleServerDate(noncanonicalTestHooks);
+    if (!sampledAllocationBoundary) {
+      if (allocationTime > sampledTime) {
+        failRouteIqProspective(
+          "Canonical allocation time is ahead of the server clock.",
+          "route_iq_prospective_allocation_time_future",
+          409
+        );
+      }
+      sampledAllocationBoundary = true;
+    }
+    // Same-millisecond server samples advance only enough to preserve Data's strict chronology.
+    const recordTime = Math.max(sampledTime, lastRecordTime + 1);
+    lastRecordTime = recordTime;
+    return new Date(recordTime).toISOString();
+  };
 }
 
 async function readBoundedAssetText(response, path) {
@@ -240,11 +285,16 @@ export async function orchestrateRouteIqProspectiveNextStop({
   scope,
   allocationReceipt,
   assetOrigin,
-  env
+  env,
+  noncanonicalTestHooks
 }) {
+  const nextServerRecordTime = createServerMonotonicSequencer(
+    allocationReceipt,
+    noncanonicalTestHooks
+  );
   let stage = "runtime_orchestration";
   try {
-    const readAt = lifecycleTime(allocationReceipt, 1);
+    const readAt = nextServerRecordTime();
     let context = await readRuntimeContext(stub, scopeEnvelope, scope, env, readAt);
     const opportunity = canonicalOpportunity(context);
     stage = "candidate_manifest";
@@ -253,8 +303,8 @@ export async function orchestrateRouteIqProspectiveNextStop({
       canonicalOpportunity: opportunity,
       sourceArtifacts,
       completedCandidateIds: context.completedCandidateIds,
-      eligibilityEvaluatedAt: lifecycleTime(allocationReceipt, 1),
-      evidenceCutoff: lifecycleTime(allocationReceipt, 2),
+      eligibilityEvaluatedAt: nextServerRecordTime(),
+      evidenceCutoff: nextServerRecordTime(),
       targetSize: defaultRouteQueueTarget
     });
     if (manifestResult.disposition !== "MANIFEST_READY") {
@@ -267,7 +317,7 @@ export async function orchestrateRouteIqProspectiveNextStop({
         stage,
         reasonCodes: manifestResult.reasonCodes,
         offendingDigest: manifestResult.exclusionRecordSha256,
-        authoritativeRecordTime: lifecycleTime(allocationReceipt, 3)
+        authoritativeRecordTime: nextServerRecordTime()
       });
       return { status: "excluded" };
     }
@@ -275,7 +325,7 @@ export async function orchestrateRouteIqProspectiveNextStop({
     const manifestClaims = buildCandidateManifestCoordinatorClaims({
       canonicalOpportunity: opportunity,
       manifestResult,
-      authoritativeRecordTime: lifecycleTime(allocationReceipt, 3)
+      authoritativeRecordTime: nextServerRecordTime()
     });
     const candidateManifestReceipt = await stub.applyTrustedCandidateManifest({
       scopeEnvelope,
@@ -291,7 +341,7 @@ export async function orchestrateRouteIqProspectiveNextStop({
       canonicalOpportunity: opportunity,
       manifestResult,
       candidateManifestReceipt,
-      sealedAt: lifecycleTime(allocationReceipt, 4)
+      sealedAt: nextServerRecordTime()
     });
     const snapshotSealReceipt = await stub.applyTrustedSnapshotSeal({
       scopeEnvelope,
@@ -315,7 +365,7 @@ export async function orchestrateRouteIqProspectiveNextStop({
       acceptedSnapshot,
       shadowDecision,
       snapshotSealReceipt,
-      sealedAt: lifecycleTime(allocationReceipt, 5)
+      sealedAt: nextServerRecordTime()
     });
     const shadowDecisionSealReceipt = await stub.applyTrustedShadowDecisionSeal({
       scopeEnvelope,
@@ -327,13 +377,19 @@ export async function orchestrateRouteIqProspectiveNextStop({
     if (terminalReceipt(shadowDecisionSealReceipt)) return { status: "excluded" };
     return { status: "shadow_decision_sealed" };
   } catch (error) {
+    let failureRecordTime;
+    try {
+      failureRecordTime = nextServerRecordTime();
+    } catch {
+      throw error;
+    }
     await tryRecordFailure({
       stub,
       scopeEnvelope,
       scope,
       env,
       stage,
-      authoritativeRecordTime: lifecycleTime(allocationReceipt, 6)
+      authoritativeRecordTime: failureRecordTime
     }, error);
     throw error;
   }

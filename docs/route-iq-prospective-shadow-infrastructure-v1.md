@@ -20,6 +20,8 @@ The background lifecycle:
 
 Every lifecycle failure is caught. Infrastructure attempts Data `recordRuntimeStageExclusion` where canonical state permits and emits only structured, non-PII telemetry. No background failure changes the representative acknowledgment.
 
+Every lifecycle timestamp is sampled from production `new Date()` at the stage that records it. The allocation receipt is used only as the required prior canonical boundary; it is never incremented into a fabricated lifecycle timeline. A server-side monotonic sequencer chooses the current sample or, when samples collide in the same millisecond, the immediately following logical millisecond needed for Data's strict ordering. If the allocation receipt is ahead of the first server sample, orchestration fails closed before runtime-context, manifest, or seal RPCs. Stale allocation times and browser informational times cannot set seal chronology. Deterministic clocks are available only under explicitly enabled `noncanonicalTestHooks` and are never production inputs.
+
 ## Binding and migration
 
 - Private Worker binding: `ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR`
@@ -92,7 +94,7 @@ API/config choices follow current Cloudflare guidance for [Durable Object RPC](h
 
 ## Verification
 
-`npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and 20 Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, concurrent allocation through real manifest/snapshot/decision seals, action before/after seal, source failure exclusions, archive projection/reconciliation, unchanged field-session acknowledgments under success/rejection/timeout/missing binding/missing key, HMAC tamper rejection, stable scope routing, cross-scope rejection, blocked generic RPC, and restart persistence.
+`npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and 22 Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, production per-stage server clock sampling, same-millisecond logical monotonicity, stale/future allocation and client-clock isolation, concurrent allocation through real manifest/snapshot/decision seals, action before/after seal, source failure exclusions, archive projection/reconciliation, unchanged field-session acknowledgments under success/rejection/timeout/missing binding/missing key, HMAC tamper rejection, stable scope routing, cross-scope rejection, blocked generic RPC, and restart persistence.
 
 Release validation also runs Data coordinator/field-session tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler 4.110.0 config validation and dry-run, secret scan, and owned-diff checks.
 

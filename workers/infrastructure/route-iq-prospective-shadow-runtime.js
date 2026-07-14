@@ -276,7 +276,8 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, {
         scope,
         allocationReceipt,
         assetOrigin: request.url,
-        env
+        env,
+        noncanonicalTestHooks
       }), event.eventKind);
       recordMetric("allocated", 202, event.eventKind);
       return jsonResponse(ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT, 202);

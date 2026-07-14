@@ -109,7 +109,9 @@ async function accessFixture({
   expired = false,
   tokenAudience = accessAudience,
   closeImplementation = null,
-  reconciliationImplementation = null
+  reconciliationImplementation = null,
+  allocationAuthoritativeRecordTime = testNow.toISOString(),
+  lifecycleDates = null
 } = {}) {
   const subject = randomUUID();
   const publicJwk = await exportJWK(accessKeys.publicKey);
@@ -179,7 +181,7 @@ async function accessFixture({
               sessionId: `riq_session_${digest("private-session")}`,
               opportunityId,
               operationKind: "server_allocate_next_stop",
-              authoritativeRecordTime: testNow.toISOString(),
+              authoritativeRecordTime: allocationAuthoritativeRecordTime,
               candidateCompletenessStatus: "pending_authenticated_intelligence_manifest",
               canonicalContext
             };
@@ -283,6 +285,15 @@ async function accessFixture({
   const noncanonicalTestHooks = {
     enabled: true,
     currentDate: testNow,
+    lifecycleNow() {
+      calls.push("lifecycle_server_clock");
+      if (!lifecycleDates?.length) return new Date(testNow);
+      const index = Math.min(
+        calls.filter(call => call === "lifecycle_server_clock").length - 1,
+        lifecycleDates.length - 1
+      );
+      return new Date(lifecycleDates[index]);
+    },
     async keyResolver(...args) {
       calls.push("access_signature");
       return keyResolver(...args);
@@ -301,6 +312,26 @@ function eventRequest(body, token = null, headers = {}) {
     },
     body: JSON.stringify(body)
   });
+}
+
+function lifecycleRecordTimes(commands) {
+  const runtimeContext = commands.find(command =>
+    command.input?.authorityEnvelope?.claims?.purpose === "runtime_context_read");
+  const manifest = commands.find(command =>
+    command.input?.authorityEnvelope?.claims?.purpose === "candidate_manifest");
+  const snapshot = commands.find(command =>
+    command.input?.authorityEnvelope?.claims?.purpose === "snapshot_seal_record");
+  const shadow = commands.find(command =>
+    command.input?.authorityEnvelope?.claims?.purpose === "shadow_decision_seal_record");
+  assert.ok(runtimeContext && manifest && snapshot && shadow, "complete lifecycle commands must exist");
+  return [
+    runtimeContext.input.authorityEnvelope.claims.authoritativeRecordTime,
+    manifest.input.producerEnvelope.claims.candidates[0].eligibility.evaluatedAt,
+    manifest.input.producerEnvelope.claims.evidenceCutoff,
+    manifest.input.authorityEnvelope.claims.authoritativeRecordTime,
+    snapshot.input.authorityEnvelope.claims.authoritativeRecordTime,
+    shadow.input.authorityEnvelope.claims.authoritativeRecordTime
+  ];
 }
 
 function canonicalHandoff(representativeId = "cruz") {
@@ -534,6 +565,7 @@ test("valid Access precedes scope-only allocation and returns only opaque acknow
   for (const call of ["runtime_context_rpc", "candidate_manifest_rpc", "snapshot_seal_rpc", "shadow_decision_seal_rpc"]) {
     assert.equal(fixture.calls.includes(call), true, call);
   }
+  assert.equal(fixture.calls.filter(call => call === "lifecycle_server_clock").length, 6);
 
   const actionContext = executionContextFixture();
   const second = await handleRouteIqProspectiveShadowRequest(
@@ -578,6 +610,97 @@ test("valid Access precedes scope-only allocation and returns only opaque acknow
   ]) {
     assert.equal(representativeResponse.includes(prohibited), false);
   }
+});
+
+test("production lifecycle samples server Date at every stage and ignores stale allocation and client time", async () => {
+  const fixture = await accessFixture();
+  const stub = fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("production-clock-regression");
+  const scopeEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "coordinator_scope",
+    ...scope(),
+    registryVersion: "noncanonical-test-registry-v1",
+    issuedAt: new Date(Date.now() - 120_000).toISOString(),
+    territoryContext: territoryContext()
+  }, fixture.env);
+  const allocationReceipt = await stub.allocateNextStopOpportunity({
+    scopeEnvelope,
+    event: {
+      eventKind: "next_stop_requested",
+      informationalObservedAt: "2099-01-01T00:00:00.000Z"
+    }
+  });
+  allocationReceipt.authoritativeRecordTime = new Date(Date.now() - 60_000).toISOString();
+  fixture.commands.length = 0;
+  const before = Date.now();
+  const result = await orchestrateRouteIqProspectiveNextStop({
+    stub,
+    scopeEnvelope,
+    scope: scope(),
+    allocationReceipt,
+    assetOrigin: "https://private.invalid/",
+    env: fixture.env
+  });
+  const after = Date.now();
+  assert.deepEqual(result, { status: "shadow_decision_sealed" });
+  const times = lifecycleRecordTimes(fixture.commands);
+  assert.equal(times.length, 6);
+  assert.equal(times.every((value, index) => index === 0 || Date.parse(value) > Date.parse(times[index - 1])), true);
+  assert.equal(Date.parse(times[0]) >= before, true);
+  assert.equal(Date.parse(times.at(-1)) <= after + times.length, true);
+  assert.equal(times.includes(allocationReceipt.authoritativeRecordTime), false);
+  assert.equal(times.includes("2099-01-01T00:00:00.000Z"), false);
+});
+
+test("explicit noncanonical lifecycle clock is sampled per stage and future allocation fails before lifecycle RPC", async () => {
+  const sampledDates = [
+    "2026-07-13T20:00:10.000Z",
+    "2026-07-13T20:00:10.000Z",
+    "2026-07-13T20:00:10.000Z",
+    "2026-07-13T20:00:11.000Z",
+    "2026-07-13T20:00:11.000Z",
+    "2026-07-13T20:00:12.000Z"
+  ];
+  const fixture = await accessFixture({
+    allocationAuthoritativeRecordTime: "2026-07-13T19:00:00.000Z",
+    lifecycleDates: sampledDates
+  });
+  const context = executionContextFixture();
+  const response = await handleRouteIqProspectiveShadowRequest(
+    eventRequest({
+      eventKind: "next_stop_requested",
+      informationalObservedAt: "2099-01-01T00:00:00.000Z"
+    }, fixture.token),
+    fixture.env,
+    { executionContext: context, noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+  );
+  assert.equal(response.status, 202);
+  assert.deepEqual(await context.promises[0], { status: "shadow_decision_sealed" });
+  assert.deepEqual(lifecycleRecordTimes(fixture.commands), [
+    "2026-07-13T20:00:10.000Z",
+    "2026-07-13T20:00:10.001Z",
+    "2026-07-13T20:00:10.002Z",
+    "2026-07-13T20:00:11.000Z",
+    "2026-07-13T20:00:11.001Z",
+    "2026-07-13T20:00:12.000Z"
+  ]);
+  assert.equal(fixture.calls.filter(call => call === "lifecycle_server_clock").length, 6);
+
+  const futureFixture = await accessFixture({
+    allocationAuthoritativeRecordTime: "2026-07-13T20:01:00.000Z",
+    lifecycleDates: ["2026-07-13T20:00:00.000Z"]
+  });
+  const futureContext = executionContextFixture();
+  const futureResponse = await handleRouteIqProspectiveShadowRequest(
+    eventRequest({ eventKind: "next_stop_requested" }, futureFixture.token),
+    futureFixture.env,
+    { executionContext: futureContext, noncanonicalTestHooks: futureFixture.noncanonicalTestHooks }
+  );
+  assert.equal(futureResponse.status, 202);
+  assert.deepEqual(await futureContext.promises[0], { status: "failure_isolated" });
+  assert.equal(futureFixture.calls.includes("runtime_context_rpc"), false);
+  assert.equal(futureFixture.calls.includes("candidate_manifest_rpc"), false);
+  assert.equal(futureFixture.calls.includes("snapshot_seal_rpc"), false);
+  assert.equal(futureFixture.calls.includes("shadow_decision_seal_rpc"), false);
 });
 
 test("canonical handoff closure is Access-mapped, digest-bound, and disabled without a DO call", async () => {
@@ -1046,7 +1169,11 @@ test("real Miniflare seals the complete Intelligence lifecycle, links action, an
       scope: scope(),
       allocationReceipt: left.body.result,
       assetOrigin: "https://private.invalid/",
-      env: runtimeEnv
+      env: runtimeEnv,
+      noncanonicalTestHooks: {
+        enabled: true,
+        currentDate: new Date(left.body.result.authoritativeRecordTime)
+      }
     });
     assert.deepEqual(sealed, { status: "shadow_decision_sealed" });
     const action = await linkRouteIqProspectiveServerAction({
@@ -1130,6 +1257,10 @@ test("real Miniflare records governed exclusions for action before seal and sour
         env: {
           ...authority,
           ASSETS: { async fetch() { return new Response("missing", { status: 404 }); } }
+        },
+        noncanonicalTestHooks: {
+          enabled: true,
+          currentDate: new Date(allocation.body.result.authoritativeRecordTime)
         }
       }), error => error.code === "route_iq_prospective_source_artifact_unavailable");
       const context = await miniflareRuntimeContext(
@@ -1166,7 +1297,11 @@ test("real Miniflare reconciles an exact committed PII-free field-session projec
       scope: scope(),
       allocationReceipt: allocation.body.result,
       assetOrigin: "https://private.invalid/",
-      env: runtimeEnv
+      env: runtimeEnv,
+      noncanonicalTestHooks: {
+        enabled: true,
+        currentDate: new Date(allocation.body.result.authoritativeRecordTime)
+      }
     });
     const action = await linkRouteIqProspectiveServerAction({
       stub,
