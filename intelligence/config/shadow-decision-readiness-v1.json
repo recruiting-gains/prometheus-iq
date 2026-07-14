@@ -49,5 +49,27 @@
     "id": "prior-selected-candidate-outcome-rate-v1",
     "description": "Chronologically prior explicit binary outcomes for the selected candidate, requiring formula-derived support; observational only, with no counterfactual, causal, or uplift interpretation."
   },
+  "prospectiveRuntime": {
+    "implementationBatchId": "BATCH-20260713-004",
+    "runtimeVersion": "route-iq-prospective-shadow-decision-runtime-v2",
+    "dispositionSchemaVersion": "route-iq-prospective-shadow-disposition-v2",
+    "ruleVersion": "route-iq-governed-score-normalization-shadow-rule-v1",
+    "candidateWeightRule": "unchanged_governed_recommendation_score_normalized_over_complete_eligible_active_queue",
+    "tieRule": "business_hours_tier_then_active_before_full_then_score_desc_then_candidate_id_ascending",
+    "authoritativeTimestampSource": "infrastructure_hmac_and_sqlite_coordinator_only",
+    "candidateTargetSize": 15,
+    "candidateSourcePools": [
+      "active",
+      "full"
+    ],
+    "coordinatorDurability": "sqlite_durable_object",
+    "keyedSealAlgorithm": "HMAC-SHA-256_or_Ed25519",
+    "collectionActivation": "inactive_until_infrastructure_and_dashboard_owner_wiring",
+    "canonicalProductionProspectiveRecords": 0,
+    "founderOnly": true,
+    "representativeReadable": false,
+    "browserStorageAllowed": false,
+    "activationPathAvailable": false
+  },
   "recommendationInfluence": "OFF"
 }

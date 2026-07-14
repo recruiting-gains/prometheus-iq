@@ -12,6 +12,11 @@ import {
   renderFounderReadinessMarkdown,
   shadowDecisionReadinessVersion,
 } from "../intelligence/shadow-decision-readiness.mjs";
+import {
+  shadowDecisionProspectiveDispositionSchemaVersion,
+  shadowDecisionProspectiveRuleVersion,
+  shadowDecisionProspectiveRuntimeVersion,
+} from "../intelligence/shadow-decision-readiness-runtime.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const base =
@@ -27,10 +32,14 @@ const serialize = (value) => `${JSON.stringify(value, null, 2)}\n`;
 export const requiredProtectedBehaviorBaselineKeys = Object.freeze([
   "activePool",
   "businessHours",
+  "businessHoursEligibility",
   "dashboardDeployMirror",
   "dashboardSource",
+  "dataCoordinator",
   "discovery",
+  "infrastructureAuthority",
   "nearby",
+  "quarantinePool",
   "routeGeneration",
   "routeQualityGate",
   "routeScoring",
@@ -56,6 +65,132 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     contract.sourceProjectionVersion,
     "route-iq-chronological-evidence-projection-v1",
+  );
+  assert.equal(contract.implementationDispatch.batchId, "BATCH-20260713-004");
+  assert.equal(
+    contract.implementationDispatch.integratedDataCommit,
+    "b7896a68830f42232ccc5861bb61742cf375c3d9",
+  );
+  assert.equal(
+    contract.prospectiveSourceApi,
+    "RouteIqProspectiveCoordinator.acceptCandidateManifest_sealSnapshot_sealShadowDecision",
+  );
+  assert.equal(
+    contract.prospectiveSourcePath,
+    "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+  );
+  assert.equal(
+    contract.protectedDataRuntimeBaseline.path,
+    contract.prospectiveSourcePath,
+  );
+  assert.equal(
+    contract.protectedDataRuntimeBaseline.sourceCommit,
+    contract.implementationDispatch.integratedDataCommit,
+  );
+  assert.equal(
+    contract.protectedDataRuntimeBaseline.sourceOwnerSubsystem,
+    "Prometheus Data",
+  );
+  assert.equal(
+    contract.protectedDataRuntimeBaseline.synchronizedBySubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  assert.equal(
+    contract.protectedDataRuntimeBaseline.synchronizedInBatch,
+    contract.implementationDispatch.batchId,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.runtimeVersion,
+    shadowDecisionProspectiveRuntimeVersion,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.dispositionSchemaVersion,
+    shadowDecisionProspectiveDispositionSchemaVersion,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.ruleVersion,
+    shadowDecisionProspectiveRuleVersion,
+  );
+  assert.equal(
+    config.prospectiveRuntime.runtimeVersion,
+    shadowDecisionProspectiveRuntimeVersion,
+  );
+  assert.equal(
+    config.prospectiveRuntime.dispositionSchemaVersion,
+    shadowDecisionProspectiveDispositionSchemaVersion,
+  );
+  assert.equal(
+    config.prospectiveRuntime.ruleVersion,
+    shadowDecisionProspectiveRuleVersion,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.durability.sqliteOnly,
+    true,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.durability.processLocalStateIntroduced,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.durability.newKvBindingIntroduced,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.representativeBoundary.opaque,
+    true,
+  );
+  for (const field of [
+    "rankingExposed",
+    "probabilityExposed",
+    "confidenceExposed",
+    "eligibilityExposed",
+    "readinessExposed",
+    "engineInternalsExposed",
+    "recommendationExposed",
+  ]) {
+    assert.equal(
+      contract.prospectiveRuntimeAdapter.representativeBoundary[field],
+      false,
+    );
+  }
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.readModel.founderOnly,
+    true,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.readModel.representativeReadable,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.readModel.keyedFounderCapabilityRequired,
+    true,
+  );
+  assert.equal(contract.prospectiveRuntimeAdapter.readModel.aggregateOnly, true);
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.readModel.browserStorageAllowed,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.readiness,
+    "INSUFFICIENT_EVIDENCE",
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState
+      .canonicalProductionProspectiveRecords,
+    0,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(config.prospectiveRuntime.candidateTargetSize, 15);
+  assert.deepEqual(config.prospectiveRuntime.candidateSourcePools, [
+    "active",
+    "full",
+  ]);
+  assert.equal(
+    config.prospectiveRuntime.coordinatorDurability,
+    "sqlite_durable_object",
   );
   assert.deepEqual(contract.states, [...readinessStates]);
   assert.deepEqual(contract.directiveGates, [
@@ -143,6 +278,27 @@ export function verifyShadowDecisionReadiness({
   config = loadShadowDecisionConfig(),
 } = {}) {
   validateShadowDecisionContractCoherence(contract, config);
+  const dataRuntime = contract.protectedDataRuntimeBaseline;
+  const actualDataRuntimeSha256 = createHash("sha256")
+    .update(readFileSync(resolve(root, dataRuntime.path)))
+    .digest("hex");
+  assert.equal(
+    actualDataRuntimeSha256,
+    dataRuntime.sha256,
+    "Protected Data prospective runtime changed without Intelligence provenance synchronization",
+  );
+  const runtimeAdapterText = readFileSync(
+    resolve(root, contract.artifacts.runtimeAdapter),
+    "utf8",
+  );
+  assert.match(runtimeAdapterText, /computeRouteIqCandidateManifestDigests/);
+  assert.match(runtimeAdapterText, /buildSnapshotSealCoordinatorClaims/);
+  assert.match(runtimeAdapterText, /buildShadowDecisionSealCoordinatorClaims/);
+  assert.match(runtimeAdapterText, /immutable_accepted_snapshot/);
+  assert.doesNotMatch(
+    runtimeAdapterText,
+    /createCloudflareKvFieldSessionStore|runtimeAppendLocks|localStorage|sessionStorage|indexedDB/,
+  );
   assert.deepEqual(
     Object.keys(contract.protectedBehaviorBaselines || {}).sort(),
     [...requiredProtectedBehaviorBaselineKeys],

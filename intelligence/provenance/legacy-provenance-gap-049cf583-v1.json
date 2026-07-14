@@ -4,7 +4,7 @@
   "status": "LEGACY_PROVENANCE_GAP",
   "legacyCommit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
   "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
-  "integratedBase": "a665b1b26db02716240b622d0b4d451d019c2896",
+  "integratedBase": "b7896a68830f42232ccc5861bb61742cf375c3d9",
   "ownershipStatement": "The legacy mixed-ownership commit remains disclosed. This evidence does not claim retroactive Intelligence ownership; it records a new independent Intelligence-owner derivation.",
   "reconstructionMethod": "Rebuild each affected contract from its pre-gap semantic form, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare the complete result semantically and byte-for-byte with the canonical file.",
   "protectedConsumerInventory": [
@@ -25,8 +25,8 @@
       "preGapRawSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
       "legacyCommitRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
       "canonicalBeforeRepairRawSha256": "29de513d35f785bf5bd415db60bd5988a52bdf21b9c9a8f4b218d3f63159cdcd",
-      "reconstructedRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42",
-      "reconstructedSemanticSha256": "8777d4b245c6070d7847f03c32ef6430341cc873849ba6966c55a158a3a5ba99",
+      "reconstructedRawSha256": "dd127ba382486cc02243cb94ffb097d0209f86635a7a41bbf2dc970c675aecb0",
+      "reconstructedSemanticSha256": "29172fdcecfa3435e391f9af917cce99d43a55231683f0e5576c4e5624e192ed",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirrorSha256",
@@ -41,12 +41,12 @@
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntimeSha256",
           "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
-          "after": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1"
+          "after": "82b2ec67eb8498d2bdcdf98d8e57d5d90faa8f9d8d69286f15fe0beff892425c"
         },
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContractSha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e"
+          "after": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733"
         }
       ],
       "reconstructionSources": [
@@ -80,8 +80,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42",
-      "canonicalAfterRepairSemanticSha256": "8777d4b245c6070d7847f03c32ef6430341cc873849ba6966c55a158a3a5ba99",
+      "canonicalAfterRepairRawSha256": "dd127ba382486cc02243cb94ffb097d0209f86635a7a41bbf2dc970c675aecb0",
+      "canonicalAfterRepairSemanticSha256": "29172fdcecfa3435e391f9af917cce99d43a55231683f0e5576c4e5624e192ed",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -95,8 +95,8 @@
       "preGapRawSha256": "8fa2cee204ad6c96e4c2f04efdc9da3bb7d453c8d8c1640880ceff5fdc3f84f6",
       "legacyCommitRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
       "canonicalBeforeRepairRawSha256": "f65baa532f8617630e5d3553b4b4d9a470d82b334ecc8bfce750c4f96a920c7b",
-      "reconstructedRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87",
-      "reconstructedSemanticSha256": "f729d32c05d557006da9cb9f44ebcf3d9f841e3423b2b4409f3c5522569622c9",
+      "reconstructedRawSha256": "2454ac22d985688096af5fe2ae6a238f0d4bbbbf937de4d3ec4b57b62be07003",
+      "reconstructedSemanticSha256": "4ca880c5d2ec5bb47e472ebd54560b160baf0079a53bee401f212f03fe96dc5f",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirror.sha256",
@@ -111,17 +111,17 @@
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntime.sha256",
           "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
-          "after": "2e16177bfba3752b05773cd9192811173321e9bcec695a96133ae903ce12c1e1"
+          "after": "82b2ec67eb8498d2bdcdf98d8e57d5d90faa8f9d8d69286f15fe0beff892425c"
         },
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContract.sha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "520ace6a74d4d448dc9e64d07976c736b6587ef6b299f6284f39361a3a5e560e"
+          "after": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733"
         },
         {
           "path": "upstreamReadOnlyLearning.contractSha256",
           "before": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
-          "after": "67a051684511c05531d9e718b5f3fa343a7dd3e1d02f2f923f72ac1df0766e42"
+          "after": "dd127ba382486cc02243cb94ffb097d0209f86635a7a41bbf2dc970c675aecb0"
         }
       ],
       "reconstructionSources": [
@@ -155,8 +155,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "7371ef6171e77aaabd4cd77feec3460f9c64d5a87d70da01193a6b487a5d1f87",
-      "canonicalAfterRepairSemanticSha256": "f729d32c05d557006da9cb9f44ebcf3d9f841e3423b2b4409f3c5522569622c9",
+      "canonicalAfterRepairRawSha256": "2454ac22d985688096af5fe2ae6a238f0d4bbbbf937de4d3ec4b57b62be07003",
+      "canonicalAfterRepairSemanticSha256": "4ca880c5d2ec5bb47e472ebd54560b160baf0079a53bee401f212f03fe96dc5f",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -277,16 +277,16 @@
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
       "generator": "scripts/verify-shadow-decision-readiness.mjs",
       "canonicalBeforeRepairRawSha256": "1e850b6b9d5f8d89c141ec26929bcecb385bd53d8386b4654cb2e0f7f61e884c",
-      "reconstructedRawSha256": "3ba43bbe7765fcfed358ce1936494153779a1f1c397a48f6027cd575b0874898",
-      "reconstructedSemanticSha256": "c43f24229ae696952a725cda7ca2199cb3c42b87795496d5f0113fe81594a806",
+      "reconstructedRawSha256": "8c51c10c1468f1fc6e8b53a4c27ea0dfa13a129f1315b1d9df100e265e69f71e",
+      "reconstructedSemanticSha256": "d9a4bd507a0117e336740e4de324923e0d8a114c5e6d5f41e755af56b9da0d16",
       "changedHashFields": [],
       "canonicalBeforeRepairSemanticSha256": "3f6a25338c5677de982f3838289608ba3b96ce0c557e1a242f038d9f338a6785",
       "byteIdenticalBeforeRepair": false,
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "3ba43bbe7765fcfed358ce1936494153779a1f1c397a48f6027cd575b0874898",
-      "canonicalAfterRepairSemanticSha256": "c43f24229ae696952a725cda7ca2199cb3c42b87795496d5f0113fe81594a806",
+      "canonicalAfterRepairRawSha256": "8c51c10c1468f1fc6e8b53a4c27ea0dfa13a129f1315b1d9df100e265e69f71e",
+      "canonicalAfterRepairSemanticSha256": "d9a4bd507a0117e336740e4de324923e0d8a114c5e6d5f41e755af56b9da0d16",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     }

@@ -1,5 +1,21 @@
 # Route IQ Shadow Decision Validation and Readiness Gate v1
 
+## Prospective runtime v2
+
+`BATCH-20260713-004` adds the pure Intelligence producer at `intelligence/shadow-decision-readiness-runtime.mjs`. It introduces no KV, process-local lock, storage adapter, browser read shape, model vendor, or operational recommendation path. Data's SQLite coordinator is the only durable authority and Infrastructure's HMAC/Ed25519 verifier is the only keyed authority. Production collection remains inactive and recommendation influence remains `OFF`.
+
+The candidate producer accepts only a server-assembled canonical `next_stop` opportunity, exact governed source artifact bytes, opaque completed candidate IDs, and strictly pre-cutoff server times. Active Pool membership is primary, Full Pool is fallback, quarantine is excluded, territory limits are enforced, business-hours eligibility uses `route-business-hours-eligibility.mjs`, and duplicate/completed identities are removed. The target remains 15. Existing `qualityScore` values are copied without adjustment; ordering is business-hours tier, Active before Full, score descending, then opaque candidate ID. Probabilities normalize those unchanged scores over the complete admitted queue.
+
+Every manifest includes candidate/source counts, all candidate and source records, exact source-byte SHA-256 hashes, source availability, evidence cutoff, producer/schema/projection versions, and Data-computed candidate/source/complete hashes. Every candidate references the territory, Active Pool, Full Pool, quarantine, and business-hours sources used to establish completeness. Missing territory, source bytes, version provenance, completeness, or strictly prior availability returns one governed `EXCLUDED` disposition.
+
+Infrastructure signs the returned operation, producer, snapshot-seal, and shadow-decision-seal claims with its protected key. Data validates and persists them through `acceptCandidateManifest`, `sealSnapshot`, and `sealShadowDecision`. Intelligence does not issue credentials or receipts. Data's state machine provides one sealed decision or permanent exclusion, idempotent retry, conflict retention, seal-before-action enforcement, and restart durability.
+
+The shadow decision function accepts exactly one receipt-bound immutable `SNAPSHOT_SEALED` value. It recomputes Data's manifest hashes and uses only frozen candidate ordinals, probabilities, eligibility reasons, source IDs, cutoff, versions, and seal bindings. Action, outcome, future evidence, Decision Source, selected-candidate input, and unknown fields are rejected. Deterministic replay produces the same complete ranking, probabilities, confidence, and decision-record hash.
+
+Founder readiness is exposed only as an aggregate after an Infrastructure-verified keyed Founder capability. There is no role-only context factory, representative read function, candidate record response, or browser storage shape. The methodology remains unchanged: 97 linked scoreable outcomes after exclusions, five bins with at least 20 supported observations each, at least 100 observations to support all five bins, chronological windows, stability, segment, coverage, and prior observational-baseline gates. Current canonical production prospective evidence is zero, readiness is `INSUFFICIENT_EVIDENCE`, and recommendation influence is `OFF`.
+
+The protected Data coordinator hash is `018680bcfdb6a084f3a07da4fd357fbdd40c861123a6dd0f7d79561710243300` from Data commit `b7896a68830f42232ccc5861bb61742cf375c3d9`. Intelligence verifies that committed source and never rewrites it.
+
 This Intelligence-owned, Founder-only read path extends the governed field-session learning architecture and calls Data's `projectRouteIqChronologicalEvidence` at each eligible visit opportunity. It creates exactly one immutable shadow record or explicit exclusion per opportunity. It has no operational import, write, or control path; recommendation influence is OFF in every state.
 
 The canonical July 11 archive contains four visits but no historically frozen prospective candidate list or recommendation context, so all four opportunities are excluded and readiness is `INSUFFICIENT_EVIDENCE`. Validation-only fixtures are labeled non-production and are never inputs to the canonical generator.
@@ -24,4 +40,4 @@ Every exclusion has a canonical timestamp and cutoff, authorized scope, nonempty
 
 Rollback removes or disables only this Intelligence consumer and its artifacts. No production rollback is needed because recommendation influence remains OFF.
 
-The verifier requires the exact protected baseline key set and checks SHA-256 baselines for Dashboard source and deploy mirror, Worker, route generation, Discovery, Nearby, Active Pool, runtime pools, business hours, the established route-scoring implementation, and the route-quality gate. These files are never written by this subsystem.
+The verifier requires the exact protected baseline key set and checks SHA-256 baselines for Dashboard source and deploy mirror, Worker, Data's coordinator, Infrastructure's authority verifier, route generation, business-hours eligibility, Discovery, Nearby, Active/Full/quarantine pools, business-hours data, the established route-scoring implementation, and the route-quality gate. These files are never written by this subsystem.
