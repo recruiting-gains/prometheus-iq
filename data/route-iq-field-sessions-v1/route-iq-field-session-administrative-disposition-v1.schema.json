@@ -15,6 +15,7 @@
     "state",
     "recordedAt",
     "authorization",
+    "retentionOperationReceiptSha256",
     "appendOnly",
     "auditOnly",
     "historicalArchiveRewriteAllowed",
@@ -29,11 +30,8 @@
     "recordKind": { "const": "field_session_administrative_disposition" },
     "workspaceId": { "const": "fitness_connection" },
     "operatingProfileId": { "const": "fitness" },
-    "sessionId": {
-      "type": "string",
-      "pattern": "^route-iq-field-session-fitness-connection-fitness-[a-z0-9_-]+-[0-9]{4}-[0-9]{2}-[0-9]{2}$"
-    },
-    "sourceRawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sessionId": { "const": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14" },
+    "sourceRawSha256": { "const": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765" },
     "reason": { "const": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION" },
     "state": { "const": "EXCLUDED_FROM_ANALYTICS" },
     "recordedAt": { "type": "string", "format": "date-time" },
@@ -47,6 +45,7 @@
         "scope": { "const": "single_explicit_session" }
       }
     },
+    "retentionOperationReceiptSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "appendOnly": { "const": true },
     "auditOnly": { "const": true },
     "historicalArchiveRewriteAllowed": { "const": false },
@@ -67,10 +66,11 @@
         "recommendation_inputs"
       ]
     },
-    "protectedArtifactCount": { "type": "integer", "minimum": 1 },
+    "protectedArtifactCount": { "const": 7 },
     "preservedArchiveArtifacts": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 7,
+      "maxItems": 7,
       "items": {
         "type": "object",
         "additionalProperties": false,

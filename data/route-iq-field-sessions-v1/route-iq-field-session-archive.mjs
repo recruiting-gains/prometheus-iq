@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import {
   calculateRouteIqRetentionBoundary,
-  evaluateRouteIqRetentionOperation,
-  routeIqRetentionOperationAuthorizationVersion
+  routeIqRetentionAdministrativeDispositionTarget,
+  validateRouteIqRetentionOperationReceipt
 } from "./route-iq-retention-governance.mjs";
 
 export const routeIqFieldSessionArchiveVersion = "route-iq-field-session-archive-v1";
@@ -13,9 +13,16 @@ export const routeIqFieldSessionStoragePrefix = "route-iq-field-sessions/v1";
 export const routeIqChronologicalEvidenceProjectionVersion = "route-iq-chronological-evidence-projection-v1";
 export const routeIqFieldSessionOutcomeProjectionVersion = "route-iq-field-session-outcome-projection-v1";
 export const routeIqFieldSessionAdministrativeDispositionVersion = "route-iq-field-session-administrative-disposition-v1";
-export const routeIqFieldSessionAdministrativeDispositionReason = "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION";
-export const routeIqFieldSessionAdministrativeDispositionState = "EXCLUDED_FROM_ANALYTICS";
-export const routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId = "BATCH-20260714-001";
+export const routeIqFieldSessionAdministrativeDispositionReason = routeIqRetentionAdministrativeDispositionTarget.reason;
+export const routeIqFieldSessionAdministrativeDispositionState = routeIqRetentionAdministrativeDispositionTarget.state;
+export const routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId =
+  routeIqRetentionAdministrativeDispositionTarget.authorizationBatchId;
+export const routeIqFieldSessionAdministrativeDispositionSessionId =
+  routeIqRetentionAdministrativeDispositionTarget.sessionId;
+export const routeIqFieldSessionAdministrativeDispositionRawSha256 =
+  routeIqRetentionAdministrativeDispositionTarget.sourceRawSha256;
+export const routeIqFieldSessionAdministrativeDispositionProtectedArtifactCount =
+  routeIqRetentionAdministrativeDispositionTarget.protectedArtifactCount;
 export const routeIqFieldSessionAdministrativeExclusionDomains = Object.freeze([
   "learning",
   "readiness",
@@ -982,12 +989,20 @@ function canonicalAdministrativeDispositionRequest(input = {}) {
     "recordedAt",
     "authorizationBatchId"
   ]);
-  const unknownKeys = Object.keys(input).filter(key => !allowedKeys.has(key));
-  if (unknownKeys.length) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new FieldSessionArchiveError("Administrative disposition input is invalid.", {
+      code: "field_session_administrative_disposition_input_invalid",
+      status: 400
+    });
+  }
+  const unknownFieldCount = Reflect.ownKeys(input)
+    .filter(key => typeof key !== "string" || !allowedKeys.has(key))
+    .length;
+  if (unknownFieldCount > 0) {
     throw new FieldSessionArchiveError("Administrative disposition input contains unsupported fields.", {
       code: "field_session_administrative_disposition_input_invalid",
       status: 400,
-      details: { unknownKeys }
+      details: { unknownFieldCount }
     });
   }
   assertWorkspace(input.workspaceId, input.operatingProfileId);
@@ -1012,6 +1027,15 @@ function canonicalAdministrativeDispositionRequest(input = {}) {
       status: 403
     });
   }
+  if (input.workspaceId !== "fitness_connection"
+    || input.operatingProfileId !== "fitness"
+    || input.sessionId !== routeIqFieldSessionAdministrativeDispositionSessionId
+    || input.rawSha256 !== routeIqFieldSessionAdministrativeDispositionRawSha256) {
+    throw new FieldSessionArchiveError("Founder disposition authorization is limited to the exact accidental archive.", {
+      code: "field_session_administrative_disposition_target_unauthorized",
+      status: 403
+    });
+  }
   return {
     workspaceId: input.workspaceId,
     operatingProfileId: input.operatingProfileId,
@@ -1028,23 +1052,72 @@ function administrativeDispositionBody(record) {
   return Object.fromEntries(Object.entries(record).filter(([key]) => key !== "recordSha256"));
 }
 
+function hasExactKeys(value, expectedKeys) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const actualKeys = Reflect.ownKeys(value);
+  return actualKeys.length === expectedKeys.size
+    && actualKeys.every(key => typeof key === "string" && expectedKeys.has(key));
+}
+
 function validateAdministrativeDispositionRecord(record) {
+  const recordKeys = new Set([
+    "schemaVersion",
+    "recordKind",
+    "workspaceId",
+    "operatingProfileId",
+    "sessionId",
+    "sourceRawSha256",
+    "reason",
+    "state",
+    "recordedAt",
+    "authorization",
+    "retentionOperationReceiptSha256",
+    "appendOnly",
+    "auditOnly",
+    "historicalArchiveRewriteAllowed",
+    "automaticZeroVisitExclusion",
+    "excludedDomains",
+    "protectedArtifactCount",
+    "preservedArchiveArtifacts",
+    "recordSha256"
+  ]);
   const artifacts = record?.preservedArchiveArtifacts;
   const artifactKeys = Array.isArray(artifacts) ? artifacts.map(artifact => artifact?.key) : [];
   const scopePrefix = `${routeIqFieldSessionStoragePrefix}/workspaces/${record?.workspaceId || ""}/`;
   const dispositionKey = record?.workspaceId && record?.sessionId
     ? fieldSessionAdministrativeDispositionStorageKey(record.workspaceId, record.sessionId)
     : null;
+  const storageKeys = record?.workspaceId && record?.sessionId
+    ? fieldSessionStorageKeys(record.workspaceId, record.sessionId)
+    : null;
+  const requiredArtifactKeys = storageKeys ? [
+    storageKeys.raw,
+    storageKeys.normalized,
+    storageKeys.calculated,
+    storageKeys.stressTestEvidence,
+    storageKeys.historyUpdates,
+    storageKeys.commit
+  ] : [];
+  const rawArtifact = storageKeys
+    ? artifacts?.find(artifact => artifact?.key === storageKeys.raw)
+    : null;
+  const sessionArtifactPrefix = storageKeys ? `${storageKeys.base}/` : "";
+  const historySessionMarker = record?.sessionId ? `/sessions/${record.sessionId}` : "";
   const exactDomains = Array.isArray(record?.excludedDomains)
     && record.excludedDomains.length === routeIqFieldSessionAdministrativeExclusionDomains.length
     && record.excludedDomains.every((domain, index) => domain === routeIqFieldSessionAdministrativeExclusionDomains[index]);
   const artifactsValid = Array.isArray(artifacts)
     && artifacts.length > 0
     && artifactKeys.length === new Set(artifactKeys).size
+    && artifactKeys.every((key, index) => index === 0 || artifactKeys[index - 1].localeCompare(key) < 0)
+    && requiredArtifactKeys.every(key => artifactKeys.includes(key))
     && artifacts.every(artifact => artifact
+      && hasExactKeys(artifact, new Set(["key", "sha256", "byteLength"]))
       && typeof artifact.key === "string"
       && artifact.key.startsWith(scopePrefix)
       && artifact.key !== dispositionKey
+      && (artifact.key.startsWith(sessionArtifactPrefix)
+        || (artifact.key.startsWith(`${storageKeys.historyRoot}/`) && artifact.key.includes(historySessionMarker)))
       && typeof artifact.sha256 === "string"
       && /^[a-f0-9]{64}$/.test(artifact.sha256)
       && Number.isInteger(artifact.byteLength)
@@ -1053,24 +1126,31 @@ function validateAdministrativeDispositionRecord(record) {
     ? administrativeDispositionBody(record)
     : null;
   const valid = body
+    && hasExactKeys(record, recordKeys)
     && record.schemaVersion === routeIqFieldSessionAdministrativeDispositionVersion
     && record.recordKind === "field_session_administrative_disposition"
     && supportedFieldSessionWorkspaces[record.workspaceId]?.operatingProfileId === record.operatingProfileId
-    && typeof record.sessionId === "string"
+    && record.workspaceId === "fitness_connection"
+    && record.operatingProfileId === "fitness"
+    && record.sessionId === routeIqFieldSessionAdministrativeDispositionSessionId
     && dispositionKey !== null
-    && typeof record.sourceRawSha256 === "string"
-    && /^[a-f0-9]{64}$/.test(record.sourceRawSha256)
+    && record.sourceRawSha256 === routeIqFieldSessionAdministrativeDispositionRawSha256
     && record.reason === routeIqFieldSessionAdministrativeDispositionReason
     && record.state === routeIqFieldSessionAdministrativeDispositionState
     && record.authorization?.batchId === routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId
     && record.authorization?.authority === "prometheus_founder"
     && record.authorization?.scope === "single_explicit_session"
+    && hasExactKeys(record.authorization, new Set(["batchId", "authority", "scope"]))
+    && typeof record.retentionOperationReceiptSha256 === "string"
+    && /^[a-f0-9]{64}$/.test(record.retentionOperationReceiptSha256)
     && record.appendOnly === true
     && record.auditOnly === true
     && record.historicalArchiveRewriteAllowed === false
     && record.automaticZeroVisitExclusion === false
-    && record.protectedArtifactCount === artifacts?.length
+    && record.protectedArtifactCount === routeIqFieldSessionAdministrativeDispositionProtectedArtifactCount
+    && artifacts?.length === routeIqFieldSessionAdministrativeDispositionProtectedArtifactCount
     && artifactsValid
+    && rawArtifact?.sha256 === record.sourceRawSha256
     && exactDomains
     && typeof record.recordedAt === "string"
     && requireIso(record.recordedAt, "Stored administrative disposition recordedAt") === record.recordedAt
@@ -1100,6 +1180,7 @@ async function capturePreservedArchiveArtifacts(store, workspaceId, sessionId, c
     ...historyEntryKeys
   ];
   if (protectedKeys.length !== new Set(protectedKeys).size
+    || protectedKeys.length !== routeIqFieldSessionAdministrativeDispositionProtectedArtifactCount
     || historyEntryKeys.some(key => typeof key !== "string" || !key.startsWith(`${keys.historyRoot}/`))) {
     throw new FieldSessionArchiveError("Committed field-session archive keys are invalid for administrative disposition.", {
       code: "field_session_administrative_disposition_archive_keys_invalid",
@@ -1417,39 +1498,69 @@ export async function persistRouteIqFieldSessionAdministrativeDisposition(input 
     });
   }
   const sourceCreatedAt = requireIso(
-    archived.record.commit.persistedAt,
+    archived.record.normalizedRecord.sourceProvenance?.ingestedAt,
     "Administrative disposition source creation time"
   );
+  const archiveCommittedAt = requireIso(
+    archived.record.commit.persistedAt,
+    "Administrative disposition archive commit time"
+  );
+  if (Date.parse(sourceCreatedAt) > Date.parse(archiveCommittedAt)) {
+    throw new FieldSessionArchiveError("Field-session creation time cannot follow its archive commit.", {
+      code: "field_session_administrative_disposition_creation_time_invalid",
+      status: 409,
+      details: { sessionId: request.sessionId }
+    });
+  }
+  const retentionSubject = {
+    workspaceId: request.workspaceId,
+    operatingProfileId: request.operatingProfileId,
+    recordClass: "field_session_raw_evidence",
+    sourceRecordSha256: request.rawSha256
+  };
   const retentionBoundary = calculateRouteIqRetentionBoundary({
+    subject: retentionSubject,
+    customerAccountId: "fitness_connection",
     createdAt: sourceCreatedAt,
-    customerContractExpiresAt: null
+    customerContractExpiresAt: null,
+    customerOverrideAuthority: null
   });
-  const retentionOperation = evaluateRouteIqRetentionOperation({
+  if (!options.retentionGovernanceLedger
+    || typeof options.retentionGovernanceLedger.appendOperationReceipt !== "function") {
+    throw new FieldSessionArchiveError("Administrative disposition requires the authoritative Data retention ledger.", {
+      code: "field_session_administrative_disposition_retention_ledger_missing",
+      status: 409
+    });
+  }
+  const retentionReceipt = await options.retentionGovernanceLedger.appendOperationReceipt({
     operation: "administrative_disposition",
     requestedAt: request.recordedAt,
-    sourceCreatedAt,
-    effectiveExpiresAt: retentionBoundary.expiresAt,
-    subject: {
-      workspaceId: request.workspaceId,
-      operatingProfileId: request.operatingProfileId,
-      recordClass: "field_session_raw_evidence",
-      sourceRecordSha256: request.rawSha256
-    },
-    legalHoldEvents: options.retentionGovernanceEvents,
-    authorization: {
-      version: routeIqRetentionOperationAuthorizationVersion,
-      authority: "prometheus_founder",
-      authorizationReference: `riq_retention_auth_${sha256(request.authorizationBatchId)}`,
-      scope: "single_explicit_append_only_disposition"
-    }
+    subject: retentionSubject,
+    retentionBoundary,
+    administrativeDispositionTarget: routeIqRetentionAdministrativeDispositionTarget,
+    authorization: options.retentionOperationAuthorization
   });
-  if (!retentionOperation.allowed) {
+  let verifiedRetentionReceipt;
+  try {
+    verifiedRetentionReceipt = validateRouteIqRetentionOperationReceipt(
+      retentionReceipt,
+      options.retentionGovernanceLedger
+    );
+  } catch (error) {
+    throw new FieldSessionArchiveError("Administrative disposition retention receipt is not durably authorized.", {
+      code: "field_session_administrative_disposition_retention_receipt_invalid",
+      status: 409,
+      details: { retentionErrorCode: error?.code || "unknown" }
+    });
+  }
+  if (!verifiedRetentionReceipt.decision.allowed) {
     throw new FieldSessionArchiveError("Administrative disposition is blocked by Data retention governance.", {
       code: "field_session_administrative_disposition_retention_blocked",
       status: 409,
       details: {
-        reasons: retentionOperation.reasons,
-        legalHoldState: retentionOperation.legalHoldState
+        reasons: verifiedRetentionReceipt.decision.reasons,
+        legalHoldState: verifiedRetentionReceipt.legalHoldSnapshot.state,
+        retentionReceiptSha256: verifiedRetentionReceipt.recordSha256
       }
     });
   }
@@ -1474,6 +1585,7 @@ export async function persistRouteIqFieldSessionAdministrativeDisposition(input 
       authority: "prometheus_founder",
       scope: "single_explicit_session"
     },
+    retentionOperationReceiptSha256: verifiedRetentionReceipt.recordSha256,
     appendOnly: true,
     auditOnly: true,
     historicalArchiveRewriteAllowed: false,

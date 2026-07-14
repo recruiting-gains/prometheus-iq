@@ -1,0 +1,350 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "route-iq-retention-operation-receipt-v1.schema.json",
+  "title": "Route IQ Retention Operation Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordKind",
+    "receiptId",
+    "ledgerSequence",
+    "recordedAt",
+    "operationInput",
+    "decision",
+    "legalHoldSnapshot",
+    "auditOwner",
+    "payloadRetained",
+    "appendOnly",
+    "historicalArchiveRewriteAllowed",
+    "physicalMutationPerformed",
+    "productionMutationAuthorized",
+    "previousRecordSha256",
+    "recordSha256"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "route-iq-retention-operation-receipt-v1"
+    },
+    "recordKind": {
+      "const": "route_iq_retention_operation_receipt"
+    },
+    "receiptId": {
+      "type": "string",
+      "pattern": "^riq_retention_receipt_[a-f0-9]{64}$"
+    },
+    "ledgerSequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recordedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "operationInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "requestedAt",
+        "subject",
+        "retentionBoundary",
+        "administrativeDispositionTarget",
+        "authorization"
+      ],
+      "properties": {
+        "operation": {
+          "enum": ["administrative_disposition", "physical_deletion"]
+        },
+        "requestedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "retentionBoundary": {
+          "$ref": "#/$defs/retentionBoundary"
+        },
+        "administrativeDispositionTarget": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/administrativeDispositionTarget" }
+          ]
+        },
+        "authorization": {
+          "$ref": "#/$defs/founderAuthorityAssertion"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "operation": { "const": "administrative_disposition" } }
+          },
+          "then": {
+            "properties": {
+              "administrativeDispositionTarget": {
+                "$ref": "#/$defs/administrativeDispositionTarget"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "administrativeDispositionTarget": { "type": "null" }
+            }
+          }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowed", "state", "reasons"],
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        },
+        "state": {
+          "enum": ["RETENTION_OPERATION_AUTHORIZED", "RETENTION_OPERATION_BLOCKED"]
+        },
+        "reasons": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "legal_hold_active",
+              "operation_precedes_source_creation",
+              "retention_not_expired",
+              "physical_deletion_not_implemented_or_activated"
+            ]
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "allowed": { "const": true } }
+          },
+          "then": {
+            "properties": {
+              "state": { "const": "RETENTION_OPERATION_AUTHORIZED" },
+              "reasons": { "maxItems": 0 }
+            }
+          },
+          "else": {
+            "properties": {
+              "state": { "const": "RETENTION_OPERATION_BLOCKED" },
+              "reasons": { "minItems": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "legalHoldSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "asOf",
+        "recordCount",
+        "lastRecordSha256",
+        "ledgerSha256",
+        "authoritative",
+        "subjectBound"
+      ],
+      "properties": {
+        "state": {
+          "enum": ["none", "active"]
+        },
+        "asOf": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "recordCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lastRecordSha256": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          ]
+        },
+        "ledgerSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "authoritative": {
+          "const": true
+        },
+        "subjectBound": {
+          "const": true
+        }
+      }
+    },
+    "auditOwner": {
+      "const": "prometheus_data"
+    },
+    "payloadRetained": {
+      "const": false
+    },
+    "appendOnly": {
+      "const": true
+    },
+    "historicalArchiveRewriteAllowed": {
+      "const": false
+    },
+    "physicalMutationPerformed": {
+      "const": false
+    },
+    "productionMutationAuthorized": {
+      "const": false
+    },
+    "previousRecordSha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "recordSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "$defs": {
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workspaceId", "operatingProfileId", "recordClass", "sourceRecordSha256"],
+      "properties": {
+        "workspaceId": { "const": "fitness_connection" },
+        "operatingProfileId": { "const": "fitness" },
+        "recordClass": {
+          "enum": ["field_session_raw_evidence", "prospective_shadow_evidence"]
+        },
+        "sourceRecordSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "authorityAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "authority",
+        "authorizationReference",
+        "keyVersion",
+        "auditEventSha256",
+        "signature"
+      ],
+      "properties": {
+        "version": { "const": "route-iq-retention-authority-assertion-v1" },
+        "authority": { "type": "string" },
+        "authorizationReference": {
+          "type": "string",
+          "pattern": "^riq_retention_auth_[a-f0-9]{64}$"
+        },
+        "keyVersion": {
+          "type": "string",
+          "pattern": "^riq_retention_key_[a-f0-9]{64}$"
+        },
+        "auditEventSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "founderAuthorityAssertion": {
+      "allOf": [
+        { "$ref": "#/$defs/authorityAssertion" },
+        {
+          "properties": {
+            "authority": { "const": "prometheus_founder" }
+          }
+        }
+      ]
+    },
+    "customerOverrideAuthorityAssertion": {
+      "allOf": [
+        { "$ref": "#/$defs/authorityAssertion" },
+        {
+          "properties": {
+            "authority": { "const": "prometheus_data_customer_contract_authority" }
+          }
+        }
+      ]
+    },
+    "retentionBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "customerAccountId",
+        "creationTimeBasis",
+        "createdAt",
+        "maximumCalendarMonths",
+        "policyMaximumExpiresAt",
+        "customerOverrideState",
+        "customerContractExpiresAt",
+        "customerOverrideAuthority",
+        "expiresAt"
+      ],
+      "properties": {
+        "subject": { "$ref": "#/$defs/subject" },
+        "customerAccountId": { "const": "fitness_connection" },
+        "creationTimeBasis": { "const": "canonical_authoritative_source_record_time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "maximumCalendarMonths": { "const": 18 },
+        "policyMaximumExpiresAt": { "type": "string", "format": "date-time" },
+        "customerOverrideState": { "enum": ["none", "authenticated_shortening"] },
+        "customerContractExpiresAt": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "format": "date-time" }
+          ]
+        },
+        "customerOverrideAuthority": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/customerOverrideAuthorityAssertion" }
+          ]
+        },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "administrativeDispositionTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspaceId",
+        "operatingProfileId",
+        "sessionId",
+        "sourceRawSha256",
+        "authorizationBatchId",
+        "reason",
+        "state",
+        "protectedArtifactCount"
+      ],
+      "properties": {
+        "workspaceId": { "const": "fitness_connection" },
+        "operatingProfileId": { "const": "fitness" },
+        "sessionId": {
+          "const": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14"
+        },
+        "sourceRawSha256": {
+          "const": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765"
+        },
+        "authorizationBatchId": { "const": "BATCH-20260714-001" },
+        "reason": { "const": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION" },
+        "state": { "const": "EXCLUDED_FROM_ANALYTICS" },
+        "protectedArtifactCount": { "const": 7 }
+      }
+    }
+  }
+}

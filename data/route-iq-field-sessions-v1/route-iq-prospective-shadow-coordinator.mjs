@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 
 import {
   FieldSessionArchiveError,
+  routeIqFieldSessionAdministrativeDispositionRawSha256,
+  routeIqFieldSessionAdministrativeDispositionSessionId,
   routeIqFieldSessionOutcomeProjectionVersion,
   routeIqChronologicalEvidenceProjectionVersion,
   routeIqVisitDecisionSourceIds,
@@ -9,11 +11,13 @@ import {
 } from "./route-iq-field-session-archive.mjs";
 import {
   routeIqProspectiveRetentionBoundaryContractVersion,
+  routeIqProspectiveRetentionBoundaryKeys,
   routeIqProspectiveRetentionPolicyVersion
 } from "./route-iq-prospective-retention-policy.mjs";
 import {
-  calculateRouteIqRetentionBoundary,
-  routeIqRetentionEmptyLegalHoldLedgerSha256
+  readAuthoritativeRouteIqRetentionLegalHoldSnapshot,
+  readRouteIqRetentionLegalHoldSnapshot,
+  validateRouteIqRetentionBoundaryForLedger
 } from "./route-iq-retention-governance.mjs";
 
 export const routeIqProspectiveCoordinatorSchemaVersion = "route-iq-prospective-coordinator-schema-v1";
@@ -32,7 +36,7 @@ export const routeIqEvaluationContextSchemaVersion = "route-iq-immutable-evaluat
 export const routeIqIntelligenceEvaluationRecordSchemaVersion = "route-iq-admitted-shadow-evaluation-record-v1";
 export const routeIqIntelligenceEvaluationContractVersion = "route-iq-admitted-shadow-evaluation-v1";
 export const routeIqAcceptedIntelligenceRetentionAdmissionVersion = "route-iq-prospective-intelligence-retention-admission-v1";
-export const routeIqAcceptedProspectiveRetentionPolicySha256 = "d12d466dcfce16d38dbbe195d373b224e2c4988f1dfd521281957f40b56f8dc6";
+export const routeIqAcceptedProspectiveRetentionPolicySha256 = "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
 export const routeIqProspectiveRecommendationInfluence = "off";
@@ -1977,18 +1981,23 @@ function evaluationRecordBody(record) {
 function validateIntelligenceRetentionAdmission(admission, expected) {
   assertExactKeys(admission, [
     "admissionVersion", "dataPolicyVersion", "dataPolicySha256", "state", "admitted",
-    "reasonCodes", "sourceEvidence", "evaluatedAt", "createdAt", "policyMaximumExpiresAt",
-    "customerOverrideState", "customerContractExpiresAt", "expiresAt", "legalHoldState",
-    "legalHoldLedgerSha256",
+    "reasonCodes", "sourceEvidence", "evaluatedAt", "retentionBoundary",
     "collectionState", "recommendationInfluence", "audit", "representativeOutputAllowed",
     "recommendationInfluenceAllowed", "canonicalProductionEvaluationAllowed"
   ], "evaluationRecord.retentionAdmission");
   assertExactKeys(admission.sourceEvidence, [
-    "coordinatorSessionSha256", "fieldSessionSha256", "sourceRawSha256", "retentionBoundarySha256"
+    "coordinatorSessionSha256", "fieldSessionSha256", "sourceRawSha256",
+    "sourceRecordSha256", "retentionBoundarySha256"
   ], "evaluationRecord.retentionAdmission.sourceEvidence");
+  assertExactKeys(
+    admission.retentionBoundary,
+    routeIqProspectiveRetentionBoundaryKeys,
+    "evaluationRecord.retentionAdmission.retentionBoundary"
+  );
   for (const field of [
-    "dataPolicySha256", "legalHoldLedgerSha256", "sourceEvidence.coordinatorSessionSha256",
+    "dataPolicySha256", "sourceEvidence.coordinatorSessionSha256",
     "sourceEvidence.fieldSessionSha256", "sourceEvidence.sourceRawSha256",
+    "sourceEvidence.sourceRecordSha256",
     "sourceEvidence.retentionBoundarySha256"
   ]) {
     const value = field.startsWith("sourceEvidence.")
@@ -2000,14 +2009,31 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     admission.evaluatedAt,
     "evaluationRecord.retentionAdmission.evaluatedAt"
   );
+  const expectedBoundary = validateRouteIqRetentionBoundaryForLedger(
+    Object.fromEntries(Object.entries(admission.retentionBoundary).filter(([key]) => ![
+      "contractVersion", "authorizationState", "source"
+    ].includes(key))),
+    expected.retentionGovernanceLedger,
+    expected.retentionSubject
+  );
   const expiresAt = canonicalTimestamp(
-    admission.expiresAt,
+    expectedBoundary.expiresAt,
     "evaluationRecord.retentionAdmission.expiresAt"
   );
   const admittedAt = canonicalTimestamp(
     expected.admissionRecordTime,
     "evaluationRecord.retentionAdmission.authoritativeAdmissionTime"
   );
+  if (expected.retentionLegalHoldSnapshot.state !== "none"
+    || expected.retentionLegalHoldSnapshot.authoritative !== true
+    || expected.retentionLegalHoldSnapshot.subjectBound !== true) {
+    fail(
+      "route_iq_evaluation_retention_legal_hold_blocked",
+      "An active or unknown legal hold blocks Data evaluation admission.",
+      {},
+      409
+    );
+  }
   if (expiresAt.time <= evaluatedAt.time || expiresAt.time <= admittedAt.time) {
     fail(
       "route_iq_evaluation_retention_expired",
@@ -2016,14 +2042,10 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
       409
     );
   }
-  const expectedBoundary = calculateRouteIqRetentionBoundary({
-    createdAt: admission.createdAt,
-    customerContractExpiresAt: admission.customerContractExpiresAt
-  });
-  if (admission.createdAt !== expected.sourceArchiveCreatedAt
-    || admission.policyMaximumExpiresAt !== expectedBoundary.policyMaximumExpiresAt
-    || admission.customerOverrideState !== expectedBoundary.customerOverrideState
-    || admission.expiresAt !== expectedBoundary.expiresAt) {
+  if (admission.retentionBoundary.contractVersion !== routeIqProspectiveRetentionBoundaryContractVersion
+    || admission.retentionBoundary.authorizationState !== "founder_authorized_18_month_maximum"
+    || admission.retentionBoundary.source !== "authenticated_data_retention_contract"
+    || expectedBoundary.createdAt !== expected.sourceEvidenceCreatedAt) {
     fail(
       "route_iq_evaluation_retention_boundary_invalid",
       "Retention admission does not match the Data-owned 18-month maximum and shortening-only boundary.",
@@ -2038,8 +2060,6 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     || admission.admitted !== true
     || !Array.isArray(admission.reasonCodes)
     || admission.reasonCodes.length !== 0
-    || admission.legalHoldState !== "none"
-    || admission.legalHoldLedgerSha256 !== routeIqRetentionEmptyLegalHoldLedgerSha256
     || admission.collectionState !== "on"
     || admission.recommendationInfluence !== "off"
     || admission.audit !== null
@@ -2054,21 +2074,11 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     );
   }
   const source = admission.sourceEvidence;
-  const expectedRetentionBoundarySha256 = sha256({
-    contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
-    authorizationState: "founder_authorized_18_month_maximum",
-    source: "authenticated_data_retention_contract",
-    creationTimeBasis: expectedBoundary.creationTimeBasis,
-    createdAt: expectedBoundary.createdAt,
-    maximumCalendarMonths: expectedBoundary.maximumCalendarMonths,
-    policyMaximumExpiresAt: expectedBoundary.policyMaximumExpiresAt,
-    customerOverrideState: expectedBoundary.customerOverrideState,
-    customerContractExpiresAt: expectedBoundary.customerContractExpiresAt,
-    expiresAt: admission.expiresAt
-  });
+  const expectedRetentionBoundarySha256 = sha256(admission.retentionBoundary);
   if (source.coordinatorSessionSha256 !== sha256(expected.coordinatorSessionId)
     || source.fieldSessionSha256 !== expected.sourceArchiveSessionSha256
     || source.sourceRawSha256 !== expected.sourceArchiveRawSha256
+    || source.sourceRecordSha256 !== expected.retentionSubject.sourceRecordSha256
     || source.retentionBoundarySha256 !== expectedRetentionBoundarySha256
     || admission.evaluatedAt !== expected.outcomeEvent.authoritativeRecordTime) {
     fail(
@@ -2078,10 +2088,8 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
       409
     );
   }
-  const disposedFieldSessionSha256 = sha256(
-    "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14"
-  );
-  if (source.sourceRawSha256 === "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765"
+  const disposedFieldSessionSha256 = sha256(routeIqFieldSessionAdministrativeDispositionSessionId);
+  if (source.sourceRawSha256 === routeIqFieldSessionAdministrativeDispositionRawSha256
     || source.fieldSessionSha256 === disposedFieldSessionSha256) {
     fail(
       "route_iq_evaluation_retention_disposition_excluded",
@@ -3508,7 +3516,7 @@ class RouteIqProspectiveCoordinatorCore {
   }
 
   async admitIntelligenceEvaluation(input = {}) {
-    this.assertInput(input, ["authorityEnvelope"], "evaluationAdmissionRequest");
+    this.assertInput(input, ["authorityEnvelope", "retentionGovernanceLedger"], "evaluationAdmissionRequest");
     const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
       purpose: "evaluation_admission",
       coordinatorId: this.coordinatorId,
@@ -3525,6 +3533,25 @@ class RouteIqProspectiveCoordinatorCore {
       fail("route_iq_evaluation_contract_invalid", "Evaluation contract version is not the admitted Intelligence contract.", {}, 409);
     }
     assertObject(claims.evaluationRecord, "verifiedRuntimeClaims.evaluation_admission.evaluationRecord");
+    const retentionSubject = {
+      workspaceId: this.scope.workspaceId,
+      operatingProfileId: this.scope.operatingProfileId,
+      recordClass: "prospective_shadow_evidence",
+      sourceRecordSha256: claims.sourceOutcomeEvidenceSha256
+    };
+    const requestedHoldSnapshot = await readAuthoritativeRouteIqRetentionLegalHoldSnapshot(
+      input.retentionGovernanceLedger,
+      retentionSubject,
+      claims.authoritativeRecordTime
+    );
+    if (requestedHoldSnapshot.state !== "none") {
+      fail(
+        "route_iq_evaluation_retention_legal_hold_blocked",
+        "An active legal hold blocks Data evaluation admission.",
+        {},
+        409
+      );
+    }
     const result = this.repository.transactionSync(() => {
       const link = repositoryOne(this.repository, "SELECT * FROM field_session_outcome_links WHERE evidence_sha256 = ?", [claims.sourceOutcomeEvidenceSha256]);
       if (!link) fail("route_iq_evaluation_source_missing", "Evaluation does not bind admitted field-session evidence.", {}, 409);
@@ -3618,8 +3645,15 @@ class RouteIqProspectiveCoordinatorCore {
         coordinatorSessionId: session.session_id,
         sourceArchiveRawSha256: link.source_archive_raw_sha256,
         sourceArchiveSessionSha256: link.source_archive_session_sha256,
-        sourceArchiveCreatedAt: link.archive_committed_at,
+        sourceEvidenceCreatedAt: outcomeEvent.authoritativeRecordTime,
         admissionRecordTime: recordTime,
+        retentionGovernanceLedger: input.retentionGovernanceLedger,
+        retentionSubject,
+        retentionLegalHoldSnapshot: readRouteIqRetentionLegalHoldSnapshot(
+          input.retentionGovernanceLedger,
+          retentionSubject,
+          recordTime
+        ),
         sourceProjection: {
           projectionId: committedProjection.projection_id,
           projectionCommitId: committedProjection.commit_id,
@@ -3663,6 +3697,7 @@ class RouteIqProspectiveCoordinatorCore {
           evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
           evaluationContractVersion: claims.evaluationContractVersion,
+          retentionLegalHoldLedgerSha256: expected.retentionLegalHoldSnapshot.ledgerSha256,
           evaluationRecord: clone(evaluationRecord),
           fullEvaluationPersisted: true,
           calculatedByData: false,
@@ -3681,6 +3716,7 @@ class RouteIqProspectiveCoordinatorCore {
           sourceOutcomeEvidenceSha256: claims.sourceOutcomeEvidenceSha256,
           evaluationContextSha256: claims.evaluationContextSha256,
           evaluationRecordSha256: claims.evaluationRecordSha256,
+          retentionLegalHoldLedgerSha256: expected.retentionLegalHoldSnapshot.ledgerSha256,
           fullEvaluationPersisted: true,
           calculatedByData: false
         }

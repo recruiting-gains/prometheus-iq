@@ -9,16 +9,17 @@
     "recordKind",
     "eventId",
     "eventType",
-    "recordSequence",
+    "ledgerSequence",
     "recordedAt",
     "authority",
     "subject",
     "stateBefore",
     "stateAfter",
     "reasonCode",
-    "previousEventSha256",
+    "auditOwner",
     "appendOnly",
     "historicalArchiveRewriteAllowed",
+    "previousRecordSha256",
     "recordSha256"
   ],
   "properties": {
@@ -35,7 +36,7 @@
     "eventType": {
       "enum": ["LEGAL_HOLD_APPLIED", "LEGAL_HOLD_RELEASED"]
     },
-    "recordSequence": {
+    "ledgerSequence": {
       "type": "integer",
       "minimum": 1
     },
@@ -46,17 +47,72 @@
     "authority": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "authorizationReference"],
+      "required": [
+        "version",
+        "authority",
+        "authorizationReference",
+        "keyVersion",
+        "auditEventSha256",
+        "signature"
+      ],
       "properties": {
-        "type": {
+        "version": {
+          "const": "route-iq-retention-authority-assertion-v1"
+        },
+        "authority": {
           "enum": ["prometheus_founder", "authorized_counsel"]
         },
         "authorizationReference": {
           "type": "string",
           "pattern": "^riq_retention_auth_[a-f0-9]{64}$"
+        },
+        "keyVersion": {
+          "type": "string",
+          "pattern": "^riq_retention_key_[a-f0-9]{64}$"
+        },
+        "auditEventSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
         }
       }
     },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "stateBefore": {
+      "enum": ["none", "active"]
+    },
+    "stateAfter": {
+      "enum": ["none", "active"]
+    },
+    "reasonCode": {
+      "enum": ["LEGAL_HOLD_REQUIRED", "LEGAL_HOLD_RELEASED_BY_AUTHORITY"]
+    },
+    "auditOwner": {
+      "const": "prometheus_data"
+    },
+    "appendOnly": {
+      "const": true
+    },
+    "historicalArchiveRewriteAllowed": {
+      "const": false
+    },
+    "previousRecordSha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      ]
+    },
+    "recordSha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "$defs": {
     "subject": {
       "type": "object",
       "additionalProperties": false,
@@ -76,31 +132,6 @@
           "pattern": "^[a-f0-9]{64}$"
         }
       }
-    },
-    "stateBefore": {
-      "enum": ["none", "active"]
-    },
-    "stateAfter": {
-      "enum": ["none", "active"]
-    },
-    "reasonCode": {
-      "enum": ["LEGAL_HOLD_REQUIRED", "LEGAL_HOLD_RELEASED_BY_AUTHORITY"]
-    },
-    "previousEventSha256": {
-      "oneOf": [
-        { "type": "null" },
-        { "type": "string", "pattern": "^[a-f0-9]{64}$" }
-      ]
-    },
-    "appendOnly": {
-      "const": true
-    },
-    "historicalArchiveRewriteAllowed": {
-      "const": false
-    },
-    "recordSha256": {
-      "type": "string",
-      "pattern": "^[a-f0-9]{64}$"
     }
   }
 }

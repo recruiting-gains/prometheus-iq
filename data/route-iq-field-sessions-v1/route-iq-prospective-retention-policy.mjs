@@ -4,11 +4,13 @@ import {
 } from "./route-iq-field-session-archive.mjs";
 import {
   calculateRouteIqRetentionBoundary,
-  routeIqRetentionMaximumCalendarMonths
+  readRouteIqRetentionLegalHoldSnapshot,
+  routeIqRetentionMaximumCalendarMonths,
+  validateRouteIqRetentionBoundaryForLedger
 } from "./route-iq-retention-governance.mjs";
 
 export const routeIqProspectiveRetentionPolicyVersion = "route-iq-prospective-shadow-retention-policy-v1";
-export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v2";
+export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v3";
 export const routeIqProspectiveRetentionCurrentState = "founder_retention_authorized_runtime_deletion_still_inactive";
 export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
   "policyVersion",
@@ -20,26 +22,24 @@ export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
   "representativeId",
   "evaluatedAt",
   "retentionBoundary",
-  "legalHoldState",
-  "legalHoldLedgerSha256",
-  "deletionCapabilityStatus",
   "derivedProjectionExpiresAt"
 ]);
 export const routeIqProspectiveRetentionBoundaryKeys = Object.freeze([
   "contractVersion",
   "authorizationState",
   "source",
+  "subject",
+  "customerAccountId",
   "creationTimeBasis",
   "createdAt",
   "maximumCalendarMonths",
   "policyMaximumExpiresAt",
   "customerOverrideState",
   "customerContractExpiresAt",
+  "customerOverrideAuthority",
   "expiresAt"
 ]);
 
-const CANONICAL_RECORD_ORIGIN = "prospective";
-const LEGAL_HOLD_STATES = new Set(["none", "active", "unknown"]);
 const ENVELOPE_KEY_SET = new Set(routeIqProspectiveRetentionEnvelopeKeys);
 const BOUNDARY_KEY_SET = new Set(routeIqProspectiveRetentionBoundaryKeys);
 
@@ -50,11 +50,19 @@ function deepFreeze(value) {
   return value;
 }
 
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function canonicalIso(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return null;
-  const parsed = Date.parse(value);
-  if (!Number.isFinite(parsed) || new Date(parsed).toISOString() !== value) return null;
-  return { iso: value, milliseconds: parsed };
+  const milliseconds = Date.parse(value);
+  if (!Number.isFinite(milliseconds) || new Date(milliseconds).toISOString() !== value) return null;
+  return { iso: value, milliseconds };
 }
 
 export class RouteIqProspectiveRetentionPolicyError extends FieldSessionArchiveError {
@@ -65,6 +73,12 @@ export class RouteIqProspectiveRetentionPolicyError extends FieldSessionArchiveE
 }
 
 function assertExactKeys(value, allowedKeys, envelopeLevel) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new RouteIqProspectiveRetentionPolicyError("Prospective retention input has an invalid structure.", {
+      code: "route_iq_prospective_retention_structure_invalid",
+      details: { envelopeLevel }
+    });
+  }
   const unknownFieldCount = Reflect.ownKeys(value)
     .filter(key => typeof key !== "string" || !allowedKeys.has(key))
     .length;
@@ -83,11 +97,27 @@ function scopeReason(input) {
   return null;
 }
 
-export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
+function boundaryRecord(boundary) {
+  return {
+    subject: boundary.subject,
+    customerAccountId: boundary.customerAccountId,
+    creationTimeBasis: boundary.creationTimeBasis,
+    createdAt: boundary.createdAt,
+    maximumCalendarMonths: boundary.maximumCalendarMonths,
+    policyMaximumExpiresAt: boundary.policyMaximumExpiresAt,
+    customerOverrideState: boundary.customerOverrideState,
+    customerContractExpiresAt: boundary.customerContractExpiresAt,
+    customerOverrideAuthority: boundary.customerOverrideAuthority,
+    expiresAt: boundary.expiresAt
+  };
+}
+
+export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}, options = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new RouteIqProspectiveRetentionPolicyError("A prospective retention envelope is required.");
   }
   assertExactKeys(input, ENVELOPE_KEY_SET, "top_level");
+  assertExactKeys(options, new Set(["retentionGovernanceLedger"]), "options");
   if (input.retentionBoundary && typeof input.retentionBoundary === "object" && !Array.isArray(input.retentionBoundary)) {
     assertExactKeys(input.retentionBoundary, BOUNDARY_KEY_SET, "retention_boundary");
   }
@@ -101,7 +131,7 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
   if (scopeFailure) reasons.push(scopeFailure);
   if (input.collectionState !== "on") reasons.push("collection_not_on");
   if (input.recommendationInfluence !== "off") reasons.push("recommendation_influence_not_off");
-  if (input.recordOrigin !== CANONICAL_RECORD_ORIGIN) reasons.push("record_origin_noncanonical");
+  if (input.recordOrigin !== "prospective") reasons.push("record_origin_noncanonical");
   if (input.policyVersion !== routeIqProspectiveRetentionPolicyVersion) reasons.push("retention_policy_version_invalid");
 
   const boundary = input.retentionBoundary;
@@ -121,11 +151,16 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
     if (boundary.source !== "authenticated_data_retention_contract") {
       reasons.push("retention_boundary_source_untrusted");
     }
-    if (boundary.creationTimeBasis !== "canonical_authoritative_server_record_time") {
+    if (boundary.creationTimeBasis !== "canonical_authoritative_source_record_time") {
       reasons.push("retention_creation_time_basis_invalid");
     }
     if (boundary.maximumCalendarMonths !== routeIqRetentionMaximumCalendarMonths) {
       reasons.push("retention_maximum_months_invalid");
+    }
+    if (boundary.subject?.workspaceId !== input.workspaceId
+      || boundary.subject?.operatingProfileId !== input.operatingProfileId
+      || boundary.subject?.recordClass !== "prospective_shadow_evidence") {
+      reasons.push("retention_boundary_subject_invalid");
     }
   }
 
@@ -140,45 +175,64 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
   if (createdAt && evaluatedAt && evaluatedAt.milliseconds < createdAt.milliseconds) {
     reasons.push("retention_evaluation_precedes_creation");
   }
-  if (createdAt && policyMaximumExpiresAt && expiresAt) {
+
+  let verifiedBoundary = null;
+  if (boundary && createdAt && policyMaximumExpiresAt && expiresAt) {
     try {
-      const expectedBoundary = calculateRouteIqRetentionBoundary({
-        createdAt: createdAt.iso,
-        customerContractExpiresAt: boundary.customerContractExpiresAt ?? null
-      });
-      if (boundary.policyMaximumExpiresAt !== expectedBoundary.policyMaximumExpiresAt) {
-        reasons.push("retention_policy_maximum_deadline_mismatch");
-      }
-      if (boundary.customerOverrideState !== expectedBoundary.customerOverrideState) {
-        reasons.push("retention_customer_override_state_mismatch");
-      }
-      if ((boundary.customerContractExpiresAt ?? null) !== expectedBoundary.customerContractExpiresAt) {
-        reasons.push("retention_customer_override_deadline_mismatch");
-      }
-      if (boundary.expiresAt !== expectedBoundary.expiresAt) {
-        reasons.push("retention_effective_deadline_mismatch");
+      verifiedBoundary = options.retentionGovernanceLedger
+        ? validateRouteIqRetentionBoundaryForLedger(
+          boundaryRecord(boundary),
+          options.retentionGovernanceLedger,
+          boundary.subject
+        )
+        : calculateRouteIqRetentionBoundary({
+          subject: boundary.subject,
+          customerAccountId: boundary.customerAccountId,
+          createdAt: createdAt.iso,
+          customerContractExpiresAt: boundary.customerContractExpiresAt,
+          customerOverrideAuthority: boundary.customerOverrideAuthority
+        });
+      const canonicalBoundary = {
+        contractVersion: boundary.contractVersion,
+        authorizationState: boundary.authorizationState,
+        source: boundary.source,
+        ...verifiedBoundary
+      };
+      if (stableJson(canonicalBoundary) !== stableJson(boundary)) {
+        reasons.push("retention_boundary_mismatch");
       }
     } catch (error) {
-      reasons.push(error?.code || "retention_boundary_calculation_invalid");
+      reasons.push(error?.code === "route_iq_retention_boundary_mismatch"
+        ? "retention_boundary_mismatch"
+        : error?.code || "retention_boundary_calculation_invalid");
     }
   }
-  if (evaluatedAt && expiresAt && expiresAt.milliseconds <= evaluatedAt.milliseconds) {
+  if (evaluatedAt && expiresAt && evaluatedAt.milliseconds >= expiresAt.milliseconds) {
     reasons.push("retention_deadline_expired");
   }
 
-  if (input.deletionCapabilityStatus !== "local_governance_verified_runtime_not_deployed") {
-    reasons.push("retention_deletion_capability_unverified");
-  }
-  if (!LEGAL_HOLD_STATES.has(input.legalHoldState)) {
-    reasons.push("legal_hold_state_invalid");
-  } else if (input.legalHoldState === "unknown") {
+  let legalHoldSnapshot = {
+    state: "unknown",
+    ledgerSha256: null,
+    authoritative: false,
+    subjectBound: false
+  };
+  if (!options.retentionGovernanceLedger || !boundary?.subject || !evaluatedAt) {
     reasons.push("legal_hold_state_unknown");
-  }
-  if (typeof input.legalHoldLedgerSha256 !== "string" || !/^[a-f0-9]{64}$/.test(input.legalHoldLedgerSha256)) {
-    reasons.push("legal_hold_ledger_hash_invalid");
+  } else {
+    try {
+      legalHoldSnapshot = readRouteIqRetentionLegalHoldSnapshot(
+        options.retentionGovernanceLedger,
+        boundary.subject,
+        evaluatedAt.iso
+      );
+      if (legalHoldSnapshot.state === "active") reasons.push("legal_hold_active");
+    } catch {
+      reasons.push("legal_hold_state_unknown");
+    }
   }
 
-  if (input.derivedProjectionExpiresAt !== null && input.derivedProjectionExpiresAt !== undefined) {
+  if (input.derivedProjectionExpiresAt !== null) {
     const projectionExpiry = canonicalIso(input.derivedProjectionExpiresAt);
     if (!projectionExpiry) {
       reasons.push("derived_projection_deadline_invalid");
@@ -201,18 +255,18 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
     collectionState: input.collectionState ?? null,
     recommendationInfluence: input.recommendationInfluence ?? null,
     recordOrigin: input.recordOrigin ?? null,
+    sourceRecordSha256: verifiedBoundary?.subject.sourceRecordSha256 ?? null,
     createdAt: createdAt?.iso ?? null,
     policyMaximumExpiresAt: policyMaximumExpiresAt?.iso ?? null,
-    customerOverrideState: boundary?.customerOverrideState ?? null,
-    customerContractExpiresAt: canonicalIso(boundary?.customerContractExpiresAt)?.iso ?? null,
+    customerOverrideState: verifiedBoundary?.customerOverrideState ?? null,
+    customerContractExpiresAt: verifiedBoundary?.customerContractExpiresAt ?? null,
     expiresAt: expiresAt?.iso ?? null,
+    expiryExclusive: true,
     evaluatedAt: evaluatedAt?.iso ?? null,
-    legalHoldState: LEGAL_HOLD_STATES.has(input.legalHoldState) ? input.legalHoldState : "unknown",
-    legalHoldLedgerSha256: typeof input.legalHoldLedgerSha256 === "string" && /^[a-f0-9]{64}$/.test(input.legalHoldLedgerSha256)
-      ? input.legalHoldLedgerSha256
-      : null,
-    deletionPausedByLegalHold: input.legalHoldState === "active",
-    deletionCapabilityStatus: input.deletionCapabilityStatus ?? null,
+    legalHoldState: legalHoldSnapshot.state,
+    legalHoldLedgerSha256: legalHoldSnapshot.ledgerSha256,
+    deletionPausedByLegalHold: legalHoldSnapshot.state === "active",
+    deletionCapabilityStatus: "runtime_not_deployed",
     currentProductionActivationAuthorized: false
   });
 }

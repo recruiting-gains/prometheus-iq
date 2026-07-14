@@ -4,7 +4,6 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import {
   FieldSessionArchiveError,
-  FieldSessionAdministrativeDispositionConflictError,
   FieldSessionAdministrativeExclusionError,
   FieldSessionConflictError,
   FieldSessionStoreBindingError,
@@ -37,9 +36,7 @@ import {
   validateFieldSessionStoreBinding,
   validateFinalRouteIqReport
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
-import {
-  createRouteIqRetentionLegalHoldEvent
-} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
+import { routeIqRetentionAdministrativeDispositionTarget } from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 
 const SESSION_ID = "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11";
 const SESSION_ROOT = `data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/${SESSION_ID}`;
@@ -67,6 +64,14 @@ function json(path) {
 
 function sha(value) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function kvBinding() {
@@ -142,10 +147,46 @@ function dispositionInput(archive, recordedAt = "2026-07-15T01:00:00.000Z") {
   };
 }
 
-function dispositionOptions(binding, retentionGovernanceEvents = []) {
+function exactAdministrativeDispositionRecord() {
+  const target = routeIqRetentionAdministrativeDispositionTarget;
+  const keys = fieldSessionStorageKeys(target.workspaceId, target.sessionId);
+  const historyKey = `${keys.historyRoot}/representatives/cruz/sessions/${target.sessionId}.json`;
+  const preservedArchiveArtifacts = [
+    { key: keys.raw, sha256: target.sourceRawSha256, byteLength: 4096 },
+    { key: keys.normalized, sha256: sha("exact-normalized-record"), byteLength: 2048 },
+    { key: keys.calculated, sha256: sha("exact-calculated-record"), byteLength: 1024 },
+    { key: keys.stressTestEvidence, sha256: sha("exact-stress-test-record"), byteLength: 512 },
+    { key: keys.historyUpdates, sha256: sha("exact-history-updates-record"), byteLength: 1024 },
+    { key: keys.commit, sha256: sha("exact-commit-record"), byteLength: 512 },
+    { key: historyKey, sha256: sha("exact-representative-history-record"), byteLength: 1024 }
+  ].sort((left, right) => left.key.localeCompare(right.key));
+  const body = {
+    schemaVersion: routeIqFieldSessionAdministrativeDispositionVersion,
+    recordKind: "field_session_administrative_disposition",
+    workspaceId: target.workspaceId,
+    operatingProfileId: target.operatingProfileId,
+    sessionId: target.sessionId,
+    sourceRawSha256: target.sourceRawSha256,
+    reason: target.reason,
+    state: target.state,
+    recordedAt: "2026-07-15T01:00:00.000Z",
+    authorization: {
+      batchId: target.authorizationBatchId,
+      authority: "prometheus_founder",
+      scope: "single_explicit_session"
+    },
+    retentionOperationReceiptSha256: sha("durable-retention-operation-receipt"),
+    appendOnly: true,
+    auditOnly: true,
+    historicalArchiveRewriteAllowed: false,
+    automaticZeroVisitExclusion: false,
+    excludedDomains: [...routeIqFieldSessionAdministrativeExclusionDomains],
+    protectedArtifactCount: target.protectedArtifactCount,
+    preservedArchiveArtifacts
+  };
   return {
-    env: { [routeIqFieldSessionStoreBinding]: binding },
-    retentionGovernanceEvents
+    ...body,
+    recordSha256: sha(stableJson(body))
   };
 }
 
@@ -642,223 +683,157 @@ test("history updates preserve representative and customer outcomes while territ
   assert.equal(history.intelligenceLearningHandoff.scoringMutationAllowed, false);
 });
 
-test("administrative disposition appends one audit record while preserving all seven existing archive records", async () => {
-  const binding = kvBinding();
-  const archive = zeroVisitArchivePackage("2026-07-14");
-  await persistRouteIqFieldSessionArchive(archive, {
-    env: { [routeIqFieldSessionStoreBinding]: binding },
-    persistedAt: "2026-07-15T00:00:00.000Z"
-  });
-  assert.equal(binding.data.size, 7);
-  const before = new Map([...binding.data].map(([key, stored]) => [key, stored.value]));
-  const writesBefore = binding.writes.length;
-  const key = fieldSessionAdministrativeDispositionStorageKey("fitness_connection", archive.sessionId);
-  const absent = await readRouteIqFieldSessionAdministrativeDisposition({
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    sessionId: archive.sessionId
-  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
-  assert.equal(absent.found, false);
-
-  const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
-    ...dispositionOptions(binding)
-  });
-  assert.equal(first.status, "administrative_disposition_recorded");
-  assert.equal(first.duplicate, false);
-  assert.equal(first.key, key);
-  assert.equal(first.record.schemaVersion, routeIqFieldSessionAdministrativeDispositionVersion);
-  assert.equal(first.record.protectedArtifactCount, 7);
-  assert.equal(first.record.preservedArchiveArtifacts.length, 7);
-  assert.equal(first.record.automaticZeroVisitExclusion, false);
-  assert.deepEqual(first.record.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
-  assert.equal(binding.data.size, 8);
-  assert.equal(binding.writes.length, writesBefore + 1);
-  for (const [existingKey, existingValue] of before) {
-    assert.equal(binding.data.get(existingKey)?.value, existingValue, `Existing archive record changed: ${existingKey}`);
-  }
-
-  const readBack = await readRouteIqFieldSessionArchive({
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    sessionId: archive.sessionId
-  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
-  assert.equal(readBack.record.administrativeDisposition.recordSha256, first.record.recordSha256);
-  assert.deepEqual(readBack.record.consumptionEligibility, {
+test("the exact sealed disposition excludes every governed consumer domain without exposing payload", () => {
+  const disposition = exactAdministrativeDispositionRecord();
+  const archiveRecord = {
+    workspaceId: disposition.workspaceId,
+    operatingProfileId: disposition.operatingProfileId,
+    sessionId: disposition.sessionId,
+    administrativeDisposition: disposition
+  };
+  const rawArtifact = disposition.preservedArchiveArtifacts.find(artifact => (
+    artifact.key === fieldSessionStorageKeys(disposition.workspaceId, disposition.sessionId).raw
+  ));
+  assert.equal(disposition.protectedArtifactCount, 7);
+  assert.equal(disposition.preservedArchiveArtifacts.length, 7);
+  assert.equal(rawArtifact.sha256, disposition.sourceRawSha256);
+  assert.deepEqual(getRouteIqFieldSessionConsumptionEligibility(archiveRecord), {
     eligible: false,
-    state: "EXCLUDED_FROM_ANALYTICS",
-    reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    state: routeIqFieldSessionAdministrativeDispositionState,
+    reason: routeIqFieldSessionAdministrativeDispositionReason,
     auditOnly: true,
     excludedDomains: [...routeIqFieldSessionAdministrativeExclusionDomains],
-    dispositionRecordSha256: first.record.recordSha256
+    dispositionRecordSha256: disposition.recordSha256
   });
-  assert.deepEqual(getRouteIqFieldSessionConsumptionEligibility(readBack.record), readBack.record.consumptionEligibility);
+
   for (const domain of routeIqFieldSessionAdministrativeExclusionDomains) {
     assert.throws(
-      () => assertRouteIqFieldSessionConsumptionEligible(readBack.record, domain),
+      () => assertRouteIqFieldSessionConsumptionEligible(archiveRecord, domain),
       error => error instanceof FieldSessionAdministrativeExclusionError
         && error.code === "field_session_administratively_excluded"
         && error.details.requestedDomain === domain
     );
-    const partition = partitionRouteIqFieldSessionArchivesForConsumption([readBack.record], domain);
+    const partition = partitionRouteIqFieldSessionArchivesForConsumption([archiveRecord], domain);
     assert.equal(partition.includedRecords.length, 0);
     assert.deepEqual(partition.excludedAuditRecords, [{
-      sessionId: archive.sessionId,
-      workspaceId: "fitness_connection",
-      operatingProfileId: "fitness",
-      state: "EXCLUDED_FROM_ANALYTICS",
-      reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+      sessionId: disposition.sessionId,
+      workspaceId: disposition.workspaceId,
+      operatingProfileId: disposition.operatingProfileId,
+      state: disposition.state,
+      reason: disposition.reason,
       requestedDomain: domain,
       auditOnly: true,
-      sourceRawSha256: archive.rawSha256,
-      dispositionRecordSha256: first.record.recordSha256,
+      sourceRawSha256: disposition.sourceRawSha256,
+      dispositionRecordSha256: disposition.recordSha256,
       protectedArtifactCount: 7
     }]);
-    assert.equal(Object.hasOwn(partition.excludedAuditRecords[0], "rawReportText"), false);
-    assert.equal(Object.hasOwn(partition.excludedAuditRecords[0], "normalizedRecord"), false);
+    assert.equal(Object.hasOwn(partition.excludedAuditRecords[0], "preservedArchiveArtifacts"), false);
   }
   assert.throws(
     () => projectCommittedRouteIqFieldSessionOutcomes({
-      workspaceId: "fitness_connection",
-      operatingProfileId: "fitness",
+      workspaceId: disposition.workspaceId,
+      operatingProfileId: disposition.operatingProfileId,
       representativeId: "cruz",
-      archiveRecord: readBack.record
+      archiveRecord
     }),
     error => error instanceof FieldSessionAdministrativeExclusionError
   );
   assert.throws(
     () => projectRouteIqChronologicalEvidence({
-      workspaceId: "fitness_connection",
-      operatingProfileId: "fitness",
+      workspaceId: disposition.workspaceId,
+      operatingProfileId: disposition.operatingProfileId,
       representativeId: "cruz",
       decisionTimestamp: "2026-07-16T00:00:00.000Z",
-      archiveRecord: readBack.record
+      archiveRecord
     }),
     error => error instanceof FieldSessionAdministrativeExclusionError
   );
 
-  const writeCount = binding.writes.length;
-  const retry = await persistRouteIqFieldSessionAdministrativeDisposition(
-    dispositionInput(archive, "2026-07-15T02:00:00.000Z"),
-    dispositionOptions(binding)
+  const mismatchedRawArtifact = structuredClone(disposition);
+  const rawIndex = mismatchedRawArtifact.preservedArchiveArtifacts.findIndex(artifact => artifact.key === rawArtifact.key);
+  mismatchedRawArtifact.preservedArchiveArtifacts[rawIndex].sha256 = "0".repeat(64);
+  delete mismatchedRawArtifact.recordSha256;
+  mismatchedRawArtifact.recordSha256 = sha(stableJson(mismatchedRawArtifact));
+  assert.throws(
+    () => getRouteIqFieldSessionConsumptionEligibility({ administrativeDisposition: mismatchedRawArtifact }),
+    error => error.code === "field_session_administrative_disposition_corrupt"
   );
-  assert.equal(retry.status, "administrative_disposition_already_recorded");
-  assert.equal(retry.duplicate, true);
-  assert.equal(retry.record.recordedAt, "2026-07-15T01:00:00.000Z");
-  assert.equal(binding.writes.length, writeCount);
 });
 
-test("administrative disposition fails closed for missing or active legal-hold state and succeeds after authorized release", async () => {
+test("the exact Founder disposition cannot be generalized to a synthetic July 14 lookalike", async () => {
   const binding = kvBinding();
   const archive = zeroVisitArchivePackage("2026-07-14");
   await persistRouteIqFieldSessionArchive(archive, {
     env: { [routeIqFieldSessionStoreBinding]: binding },
     persistedAt: "2026-07-15T00:00:00.000Z"
   });
+  const before = new Map([...binding.data].map(([key, stored]) => [key, stored.value]));
   const writesBefore = binding.writes.length;
-  const subject = {
-    workspaceId: "fitness_connection",
-    operatingProfileId: "fitness",
-    recordClass: "field_session_raw_evidence",
-    sourceRecordSha256: archive.rawSha256
-  };
-  const hold = createRouteIqRetentionLegalHoldEvent({
-    eventType: "LEGAL_HOLD_APPLIED",
-    recordedAt: "2026-07-15T00:15:00.000Z",
-    authority: "prometheus_founder",
-    authorizationReference: `riq_retention_auth_${"a".repeat(64)}`,
-    subject
-  });
+  assert.equal(binding.data.size, 7);
+  assert.notEqual(archive.rawSha256, routeIqRetentionAdministrativeDispositionTarget.sourceRawSha256);
 
   await assert.rejects(
     () => persistRouteIqFieldSessionAdministrativeDisposition(
       dispositionInput(archive),
       { env: { [routeIqFieldSessionStoreBinding]: binding } }
     ),
-    error => error.code === "field_session_administrative_disposition_retention_blocked"
-      && error.details.reasons.includes("legal_hold_state_unknown")
+    error => error.code === "field_session_administrative_disposition_target_unauthorized"
   );
-  await assert.rejects(
-    () => persistRouteIqFieldSessionAdministrativeDisposition(
-      dispositionInput(archive),
-      dispositionOptions(binding, [hold])
-    ),
-    error => error.code === "field_session_administrative_disposition_retention_blocked"
-      && error.details.reasons.includes("legal_hold_active")
-  );
-  assert.equal(binding.writes.length, writesBefore);
-
-  const release = createRouteIqRetentionLegalHoldEvent({
-    eventType: "LEGAL_HOLD_RELEASED",
-    recordedAt: "2026-07-15T00:30:00.000Z",
-    authority: "authorized_counsel",
-    authorizationReference: `riq_retention_auth_${"b".repeat(64)}`,
-    subject
-  }, [hold]);
-  const result = await persistRouteIqFieldSessionAdministrativeDisposition(
-    dispositionInput(archive),
-    dispositionOptions(binding, [hold, release])
-  );
-  assert.equal(result.status, "administrative_disposition_recorded");
-  assert.equal(binding.writes.length, writesBefore + 1);
-});
-
-test("administrative disposition rejects unauthorized values and changed source identity without overwrite", async () => {
-  const binding = kvBinding();
-  const archive = zeroVisitArchivePackage("2026-07-14");
-  await persistRouteIqFieldSessionArchive(archive, {
-    env: { [routeIqFieldSessionStoreBinding]: binding },
-    persistedAt: "2026-07-15T00:00:00.000Z"
-  });
-  const initialSize = binding.data.size;
   await assert.rejects(
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
       reason: "ZERO_VISIT_SESSION"
-    }, dispositionOptions(binding)),
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
     error => error instanceof FieldSessionArchiveError
       && error.code === "field_session_administrative_disposition_value_unauthorized"
   );
   await assert.rejects(
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
-      zeroVisit: true
-    }, dispositionOptions(binding)),
-    error => error instanceof FieldSessionArchiveError
-      && error.code === "field_session_administrative_disposition_input_invalid"
+      representativeName: "private value"
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    error => {
+      assert.equal(error instanceof FieldSessionArchiveError, true);
+      assert.equal(error.code, "field_session_administrative_disposition_input_invalid");
+      assert.deepEqual(error.details, { unknownFieldCount: 1 });
+      assert.equal(JSON.stringify(error).includes("representativeName"), false);
+      assert.equal(JSON.stringify(error).includes("private value"), false);
+      return true;
+    }
   );
-  assert.equal(binding.data.size, initialSize);
+  const symbolExpandedInput = dispositionInput(archive);
+  symbolExpandedInput[Symbol("private")] = "private value";
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition(
+      symbolExpandedInput,
+      { env: { [routeIqFieldSessionStoreBinding]: binding } }
+    ),
+    error => error.code === "field_session_administrative_disposition_input_invalid"
+      && error.details.unknownFieldCount === 1
+  );
 
-  const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
-    ...dispositionOptions(binding)
-  });
-  const dispositionBytes = binding.data.get(first.key).value;
   await assert.rejects(
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
-      rawSha256: "0".repeat(64)
-    }, dispositionOptions(binding)),
-    error => error instanceof FieldSessionAdministrativeDispositionConflictError
-      && error.code === "field_session_administrative_disposition_conflict"
+      rawSha256: routeIqRetentionAdministrativeDispositionTarget.sourceRawSha256
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    error => error.code === "field_session_administrative_disposition_archive_hash_mismatch"
   );
-  assert.equal(binding.data.get(first.key).value, dispositionBytes);
+  assert.equal(binding.writes.length, writesBefore);
+  assert.equal(binding.data.has(fieldSessionAdministrativeDispositionStorageKey(
+    routeIqRetentionAdministrativeDispositionTarget.workspaceId,
+    routeIqRetentionAdministrativeDispositionTarget.sessionId
+  )), false);
+  for (const [key, value] of before) assert.equal(binding.data.get(key)?.value, value);
 });
 
 test("an undisposed zero-visit session remains eligible and is not caught by a broad rule", async () => {
   const binding = kvBinding();
-  const disposed = zeroVisitArchivePackage("2026-07-14");
   const unaffected = zeroVisitArchivePackage("2026-07-15");
-  await persistRouteIqFieldSessionArchive(disposed, {
-    env: { [routeIqFieldSessionStoreBinding]: binding },
-    persistedAt: "2026-07-15T00:00:00.000Z"
-  });
   await persistRouteIqFieldSessionArchive(unaffected, {
     env: { [routeIqFieldSessionStoreBinding]: binding },
     persistedAt: "2026-07-16T00:00:00.000Z"
   });
-  await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(disposed), {
-    ...dispositionOptions(binding)
-  });
-
   const unaffectedRead = await readRouteIqFieldSessionArchive({
     workspaceId: "fitness_connection",
     operatingProfileId: "fitness",
@@ -903,6 +878,8 @@ test("administrative disposition schema and Data contract pin only the explicitl
   assert.equal(dispositionContract.persistenceRules.dataRetentionGovernanceCheckRequiredBeforeNewDisposition, true);
   assert.equal(dispositionContract.persistenceRules.activeOrUnknownLegalHoldBlocksNewDisposition, true);
   assert.equal(dispositionContract.persistenceRules.legalHoldReleaseRequiresFounderOrAuthorizedCounsel, true);
+  assert.equal(dispositionContract.persistenceRules.dispositionRecordIsAppendOnlyAuditReceipt, true);
+  assert.equal(dispositionContract.persistenceRules.retentionOperationReceiptMayRewriteDisposition, false);
   assert.equal(dispositionContract.persistenceRules.productionMutationAuthorizedBySourceCommit, false);
   assert.deepEqual(dispositionContract.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
   assert.equal(dispositionContract.consumerRules.centralDataConsumerPartitionFunction, "partitionRouteIqFieldSessionArchivesForConsumption");
