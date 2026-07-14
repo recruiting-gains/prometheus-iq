@@ -10,6 +10,8 @@ const dashboardRepairCommit = "a665b1b26db02716240b622d0b4d451d019c2896";
 const dashboardProspectiveCommit = "6c7671cb3f9387fdac29961432412dfe70088b2e";
 const dashboardCollectionOffCommit = "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd";
 const protectedBaselineSuccessorCommit = "536d166e4a39a9caf4071e96f92a1598c00e7119";
+const routeQualitySuccessorCommit = "73b477a0fdec725beb7fe6de795ec35fd457ef32";
+const routeQualityDataCommit = "26b07905926662e3323e557d77c608db0cbc23ed";
 const currentIntelligenceSuccessorCommits = [
   "cd0a504328b0870aa695731230e6c43dd4698e3c",
   "ed46fb0964187a207468cd89fbdc1fbbb8426748",
@@ -24,6 +26,8 @@ const dashboardContractPath = "overwatch/artifact-contracts/workspaces/fitness-c
 const intelligenceEvidencePath = "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
 const protectedBaselineSuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json";
+const routeQualitySuccessorPath =
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json";
 const batchOneReportPath = "overwatch/reports/BATCH-20260713-001-route-iq-shadow-decision-readiness.json";
 const dashboardEvidencePath = "dashboard/decision-context-producer-validation-v1.md";
 const expectedPreBatchCommits = [
@@ -68,6 +72,21 @@ const expectedProtectedBaselineSuccessorPaths = [
   protectedBaselineSuccessorPath,
   "scripts/validate-intelligence-architecture.mjs",
   "tests/intelligence-architecture.test.mjs"
+].sort();
+
+const expectedRouteQualityDataPaths = [
+  "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+  "scripts/lib/route-intelligence-quality-gate.mjs",
+  "tests/route-intelligence-quality-gate.test.mjs"
+].sort();
+
+const expectedRouteQualitySuccessorPaths = [
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  routeQualitySuccessorPath,
+  "scripts/validate-intelligence-architecture.mjs",
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/intelligence-architecture.test.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
 ].sort();
 
 const expectedCurrentIntelligenceSuccessorPaths = new Map([
@@ -154,6 +173,7 @@ export function verifyReleaseProvenanceRepair() {
   const dashboardContract = readJson(dashboardContractPath);
   const intelligenceEvidence = readJson(intelligenceEvidencePath);
   const protectedBaselineSuccessor = readJson(protectedBaselineSuccessorPath);
+  const routeQualitySuccessor = readJson(routeQualitySuccessorPath);
   const batchOneReport = readJson(batchOneReportPath);
   const dashboardEvidence = read(dashboardEvidencePath).toString("utf8");
 
@@ -183,6 +203,10 @@ export function verifyReleaseProvenanceRepair() {
   }
   assert.deepEqual(changedPaths(protectedBaselineSuccessorCommit), expectedProtectedBaselineSuccessorPaths);
   assert.equal(git("merge-base", "--is-ancestor", currentIntelligenceOwnerSuccessorCommit, protectedBaselineSuccessorCommit), "");
+  assert.deepEqual(changedPaths(routeQualityDataCommit), expectedRouteQualityDataPaths);
+  assert.deepEqual(changedPaths(routeQualitySuccessorCommit), expectedRouteQualitySuccessorPaths);
+  assert.equal(git("merge-base", "--is-ancestor", protectedBaselineSuccessorCommit, routeQualityDataCommit), "");
+  assert.equal(git("merge-base", "--is-ancestor", routeQualityDataCommit, routeQualitySuccessorCommit), "");
 
   assert.equal(intelligenceEvidence.status, "LEGACY_PROVENANCE_GAP");
   assert.equal(intelligenceEvidence.legacyCommit, legacyCommit);
@@ -346,11 +370,10 @@ export function verifyReleaseProvenanceRepair() {
       consumer.previousSha256,
       `${consumer.path} previous protected baseline drifted.`
     );
-    assert.equal(sha256(read(consumer.path)), consumer.currentSha256, `${consumer.path} current protected baseline drifted.`);
     assert.equal(
       sha256(gitBytes("show", `${protectedBaselineSuccessorCommit}:${consumer.path}`)),
       consumer.currentSha256,
-      `${consumer.path} owner successor commit does not match the canonical file.`
+      `${consumer.path} first owner successor commit drifted.`
     );
   }
   assert.equal(protectedBaselineSuccessor.advisoryArtifacts.regenerationRequired, false);
@@ -370,6 +393,80 @@ export function verifyReleaseProvenanceRepair() {
     zeroLiveGooglePreserved: true
   })) {
     assert.equal(protectedBaselineSuccessor.boundaryValidation[field], expected, `${field} successor boundary drifted.`);
+  }
+
+  assert.equal(routeQualitySuccessor.version, "route-iq-intelligence-route-quality-protected-baseline-successor-v1");
+  assert.equal(routeQualitySuccessor.batchId, "BATCH-20260714-002");
+  assert.equal(routeQualitySuccessor.status, "OWNER_VALIDATED_SUCCESSOR");
+  assert.equal(routeQualitySuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(routeQualitySuccessor.predecessor.path, protectedBaselineSuccessorPath);
+  assert.equal(routeQualitySuccessor.predecessor.commit, protectedBaselineSuccessorCommit);
+  assert.equal(
+    routeQualitySuccessor.predecessor.sha256,
+    sha256(gitBytes("show", `${protectedBaselineSuccessorCommit}:${protectedBaselineSuccessorPath}`))
+  );
+  assert.equal(routeQualitySuccessor.predecessor.remainsHistorical, true);
+  assert.equal(routeQualitySuccessor.predecessor.rewritten, false);
+
+  const dataTransition = routeQualitySuccessor.dataOwnerTransition;
+  assert.equal(dataTransition.commit, routeQualityDataCommit);
+  assert.equal(dataTransition.tree, git("rev-parse", `${routeQualityDataCommit}^{tree}`));
+  assert.equal(dataTransition.ownerSubsystem, "Prometheus Data");
+  assert.deepEqual(dataTransition.dashboardFetchEvidence, {
+    previousSourceFetches: 8,
+    previousDeployFetches: 8,
+    currentSourceFetches: 9,
+    currentDeployFetches: 9
+  });
+  for (const transition of [dataTransition.routeQualityGate, dataTransition.canonicalRouteQualityReport]) {
+    assert.equal(
+      sha256(gitBytes("show", `${routeQualityDataCommit}^:${transition.path}`)),
+      transition.previousSha256,
+      `${transition.path} previous Data hash drifted.`
+    );
+    assert.equal(
+      sha256(gitBytes("show", `${routeQualityDataCommit}:${transition.path}`)),
+      transition.currentSha256,
+      `${transition.path} Data owner commit hash drifted.`
+    );
+    assert.equal(sha256(read(transition.path)), transition.currentSha256, `${transition.path} canonical Data hash drifted.`);
+  }
+
+  const affectedReferences = routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences;
+  assert.equal(affectedReferences.length, 1);
+  const routeQualityReference = affectedReferences[0];
+  assert.equal(routeQualityReference.consumerPath, "intelligence/contracts/shadow-decision-readiness-contracts.json");
+  assert.equal(routeQualityReference.protectedSourcePath, dataTransition.routeQualityGate.path);
+  assert.equal(
+    sha256(gitBytes("show", `${routeQualitySuccessorCommit}^:${routeQualityReference.consumerPath}`)),
+    routeQualityReference.previousConsumerSha256
+  );
+  assert.equal(
+    sha256(gitBytes("show", `${routeQualitySuccessorCommit}:${routeQualityReference.consumerPath}`)),
+    routeQualityReference.currentConsumerSha256
+  );
+  assert.equal(sha256(read(routeQualityReference.consumerPath)), routeQualityReference.currentConsumerSha256);
+  assert.equal(routeQualityReference.previousProtectedSha256, dataTransition.routeQualityGate.previousSha256);
+  assert.equal(routeQualityReference.currentProtectedSha256, dataTransition.routeQualityGate.currentSha256);
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.canonicalReportPinnedByIntelligence, false);
+  assert.deepEqual(routeQualitySuccessor.protectedReferenceAudit.canonicalReportReferenceMatches, []);
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.allAffectedReferencesAccountedFor, true);
+  assert.equal(routeQualitySuccessor.advisoryArtifacts.regenerationRequired, false);
+  for (const [field, expected] of Object.entries({
+    collectionDefaultState: "OFF",
+    recommendationInfluence: "OFF",
+    readinessState: "INSUFFICIENT_EVIDENCE",
+    representativeShadowOutputExposed: false,
+    routeOrderingChanged: false,
+    candidateVisibilityChanged: false,
+    routeScoringChanged: false,
+    routeGenerationChanged: false,
+    dashboardBehaviorChanged: false,
+    dataBehaviorChangedByIntelligence: false,
+    infrastructureBehaviorChangedByIntelligence: false,
+    zeroLiveGooglePreserved: true
+  })) {
+    assert.equal(routeQualitySuccessor.boundaryValidation[field], expected, `${field} route-quality successor boundary drifted.`);
   }
 
   const dataValidation = mapping.dataOwnerValidation;
@@ -427,7 +524,8 @@ export function verifyReleaseProvenanceRepair() {
     recommendationInfluence: "OFF",
     productionConsumerIntroduced: false,
     currentIntelligenceOwnerSuccessor: currentIntelligenceOwnerSuccessorCommit,
-    protectedBaselineSuccessor: protectedBaselineSuccessorCommit
+    protectedBaselineSuccessor: protectedBaselineSuccessorCommit,
+    routeQualitySuccessor: routeQualitySuccessorCommit
   };
 }
 
