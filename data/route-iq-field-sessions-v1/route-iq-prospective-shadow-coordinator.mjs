@@ -694,6 +694,14 @@ function sameScope(left, right) {
     && left.representativeId === right.representativeId;
 }
 
+function canonicalEvaluationScope(scope) {
+  return {
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId
+  };
+}
+
 const OPERATION_BASE_KEYS = [
   "purpose",
   "workspaceId",
@@ -4645,7 +4653,7 @@ function buildAsOfProjection(repository, scope, coordinatorId, opportunityId, as
     projectionVersion: routeIqProspectiveCoordinatorProjectionVersion,
     authority: "sqlite_durable_object_coordinator",
     coordinatorId,
-    scope: clone(scope),
+    scope: canonicalEvaluationScope(scope),
     canonicalSessionRecordSha256: opportunity.canonical_session_record_sha256,
     territoryId: opportunity.territory_id,
     opportunityId,
@@ -4672,6 +4680,11 @@ function buildAsOfProjection(repository, scope, coordinatorId, opportunityId, as
 
 function verifyProjectionRow(row) {
   const projection = parseCanonicalJson(row.projection_json, row.projection_sha256, "coordinator projection");
+  assertExactKeys(
+    projection.scope,
+    ["workspaceId", "operatingProfileId", "representativeId"],
+    "coordinatorProjection.scope"
+  );
   if (projection.projectionVersion !== routeIqProspectiveCoordinatorProjectionVersion
     || projection.authority !== "sqlite_durable_object_coordinator"
     || typeof projection.canonicalSessionRecordSha256 !== "string"

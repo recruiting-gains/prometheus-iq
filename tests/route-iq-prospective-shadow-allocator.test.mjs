@@ -1406,6 +1406,14 @@ test("producer-only exact outcome projection reads survive multi-opportunity rec
     assert.equal(firstRead.record.projection.state, "OUTCOME_LINKED");
     assert.equal(firstRead.record.projection.recommendationInfluence, "off");
     assert.equal(firstRead.record.projection.collectionDefault, "off");
+    assert.deepEqual(firstRead.record.projection.scope, {
+      workspaceId: restarted.scope.workspaceId,
+      operatingProfileId: restarted.scope.operatingProfileId,
+      representativeId: restarted.scope.representativeId
+    });
+    assert.equal(Object.hasOwn(firstRead.record.projection.scope, "registryVersion"), false);
+    assert.equal(Object.hasOwn(firstRead.record.projection.scope, "issuedAt"), false);
+    assert.equal(Object.hasOwn(firstRead.record.projection.scope, "territoryContext"), false);
     assert.equal(firstRead.record.commit.projectionCommitMarkerWrittenLast, true);
     assert.equal(firstRead.record.projection.sourceArtifacts.filter(source =>
       source.artifactId === outcomeReceipt.artifactId
@@ -1416,6 +1424,10 @@ test("producer-only exact outcome projection reads survive multi-opportunity rec
   }
   assert.notEqual(records[0].projection.opportunityId, records[1].projection.opportunityId);
   assert.ok(records[0].projection.asOfRecordSequence < records[1].projection.asOfRecordSequence);
+  assert.equal(restartedRepository.one("SELECT registry_version FROM coordinator_meta WHERE singleton = 1").registry_version,
+    restarted.scope.registryVersion);
+  assert.equal(restartedRepository.one("SELECT territory_status FROM canonical_session_contexts LIMIT 1").territory_status,
+    "known");
   restartedRepository.close();
 });
 
@@ -1552,6 +1564,40 @@ test("exact outcome projection read fails closed for pending, wrong, cross-coord
         authorityEnvelope: source.h.authority.sign(claims)
       }),
       error => error.code === "route_iq_coordinator_keyed_authentication_required"
+    );
+  });
+
+  await t.test("expanded coordinator authority metadata cannot enter evaluation scope", async () => {
+    const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("exact-read-minimal-scope"));
+    drainProjectionOutbox(source.h);
+    const row = source.h.repository.one(`
+      SELECT p.projection_id, p.projection_json
+      FROM projection_outbox o
+      JOIN projection_artifacts p ON p.outbox_id = o.outbox_id
+      WHERE o.source_artifact_id = ?
+    `, source.outcomeReceipt.artifactId);
+    const expanded = JSON.parse(row.projection_json);
+    expanded.scope.registryVersion = source.h.scope.registryVersion;
+    expanded.scope.issuedAt = source.h.scope.issuedAt;
+    expanded.scope.territoryContext = structuredClone(source.h.scope.territoryContext);
+    const expandedJson = stableJson(expanded);
+    source.h.repository.db.exec("DROP TRIGGER projection_artifacts_no_update");
+    source.h.repository.db.prepare(`
+      UPDATE projection_artifacts SET projection_json = ?, projection_sha256 = ? WHERE projection_id = ?
+    `).run(expandedJson, digest(expandedJson), row.projection_id);
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: source.h.authority.sign(exactOutcomeProjectionReadClaims(
+          source.h,
+          source.outcomeReceipt,
+          source.link.evidenceSha256,
+          iso(100_000)
+        ), "producer")
+      }),
+      error => error.code === "route_iq_coordinator_field_not_allowlisted"
+        && error.details.paths.includes("coordinatorProjection.scope.registryVersion")
+        && error.details.paths.includes("coordinatorProjection.scope.issuedAt")
+        && error.details.paths.includes("coordinatorProjection.scope.territoryContext")
     );
   });
 });
