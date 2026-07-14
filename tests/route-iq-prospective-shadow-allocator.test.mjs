@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash, createHmac } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -18,6 +18,8 @@ import {
   routeIqCommittedOutcomeProjectionReadContractVersion,
   routeIqEvaluationContextSchemaVersion,
   routeIqFieldSessionOutcomeProjectionContractVersion,
+  routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+  routeIqAcceptedProspectiveRetentionPolicySha256,
   routeIqIntelligenceEvaluationContractVersion,
   routeIqIntelligenceEvaluationRecordSchemaVersion,
   routeIqProspectiveRuntimeContextContractVersion,
@@ -25,6 +27,8 @@ import {
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 
 const BASE_TIME = Date.parse("2026-07-13T18:00:00.000Z");
+const DISPOSED_FIELD_SESSION_ID = "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14";
+const DISPOSED_RAW_SHA256 = "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765";
 
 function iso(offset) {
   return new Date(BASE_TIME + offset).toISOString();
@@ -41,6 +45,13 @@ function stableJson(value) {
 function digest(value) {
   return createHash("sha256").update(typeof value === "string" ? value : stableJson(value)).digest("hex");
 }
+
+test("Data retention policy hash pin matches the canonical policy artifact", () => {
+  assert.equal(
+    digest(readFileSync("data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json", "utf8")),
+    routeIqAcceptedProspectiveRetentionPolicySha256
+  );
+});
 
 class NodeSqliteRepository {
   constructor(location = ":memory:") {
@@ -560,6 +571,7 @@ function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcome
       outcomeRecordSha256: outcomeReceipt.recordSha256,
       sourceOutcomeEvidenceSha256: link.evidenceSha256,
       scoreableOutcomeRecordSha256: digest(`scoreable:${link.evidenceSha256}`),
+      sourceArchiveRawSha256: sourceLink.source_archive_raw_sha256,
       outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
       observedOutcome,
       admittedAt: outcomeReceipt.authoritativeRecordTime
@@ -583,6 +595,34 @@ function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcome
       scoreableSelectedCandidateOutcome: true,
       readinessCountEligible: true
     },
+    retentionAdmission: {
+      admissionVersion: routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+      dataPolicyVersion: "route-iq-prospective-shadow-retention-policy-v1",
+      dataPolicySha256: routeIqAcceptedProspectiveRetentionPolicySha256,
+      state: "RETENTION_ADMITTED",
+      admitted: true,
+      reasonCodes: [],
+      sourceEvidence: {
+        coordinatorSessionSha256: digest(outcomeReceipt.sessionId),
+        fieldSessionSha256: sourceLink.source_archive_session_sha256,
+        sourceRawSha256: sourceLink.source_archive_raw_sha256,
+        retentionBoundarySha256: digest({
+          contractVersion: "route-iq-field-session-retention-boundary-v1",
+          authorizationState: "authorized_existing_field_session_boundary",
+          source: "authenticated_data_retention_contract",
+          expiresAt: new Date(Date.parse(outcomeReceipt.authoritativeRecordTime) + 86_400_000).toISOString()
+        })
+      },
+      evaluatedAt: outcomeReceipt.authoritativeRecordTime,
+      expiresAt: new Date(Date.parse(outcomeReceipt.authoritativeRecordTime) + 86_400_000).toISOString(),
+      legalHoldState: "none",
+      collectionState: "on",
+      recommendationInfluence: "off",
+      audit: null,
+      representativeOutputAllowed: false,
+      recommendationInfluenceAllowed: false,
+      canonicalProductionEvaluationAllowed: true
+    },
     boundaries: {
       decisionSourceUsed: false,
       futureEvidenceUsed: false,
@@ -598,7 +638,11 @@ function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcome
   return { ...body, evaluationRecordSha256: digest(body) };
 }
 
-async function prepareReconciledEvaluationSource(suffix, { corrections = [] } = {}) {
+async function prepareReconciledEvaluationSource(suffix, {
+  corrections = [],
+  rawSha256 = digest(`evaluation-handoff:${suffix}`),
+  sourceArchiveSessionSha256 = digest("canonical-source-field-session")
+} = {}) {
   const h = await openHarness({ territoryContext: knownTerritoryContext(`evaluation-${suffix}`) });
   const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
   const lifecycle = await completeServerDerivedAction(h, allocation, `evaluation-${suffix}`, {
@@ -608,7 +652,6 @@ async function prepareReconciledEvaluationSource(suffix, { corrections = [] } = 
     actionAt: iso(40_000),
     sequence: 10
   });
-  const rawSha256 = digest(`evaluation-handoff:${suffix}`);
   await h.coordinator.closeCanonicalSession({
     authorityEnvelope: h.authority.sign({
       purpose: "close_session",
@@ -623,6 +666,7 @@ async function prepareReconciledEvaluationSource(suffix, { corrections = [] } = 
   });
   const projection = outcomeProjection(h, {
     rawSha256,
+    sourceArchiveSessionSha256,
     archiveCommittedAt: iso(60_000),
     outcomes: [{
       candidateId: lifecycle.accepted.manifest.candidateId,
@@ -1732,6 +1776,159 @@ test("full evaluation admission rejects context, rank, probability, candidate, c
       );
     });
   }
+});
+
+test("evaluation retention admission fails closed for missing, extra, expired, unauthorized, held, and tampered evidence", async t => {
+  const cases = [
+    {
+      name: "missing admission",
+      mutate(record) { delete record.retentionAdmission; },
+      code: "route_iq_coordinator_object_required"
+    },
+    {
+      name: "extra admission field",
+      mutate(record) { record.retentionAdmission.unsupportedEvidence = true; },
+      code: "route_iq_coordinator_field_not_allowlisted"
+    },
+    {
+      name: "expired admission",
+      mutate(record) { record.retentionAdmission.expiresAt = record.retentionAdmission.evaluatedAt; },
+      code: "route_iq_evaluation_retention_expired"
+    },
+    {
+      name: "expired before Data admission",
+      mutate(record) {
+        record.retentionAdmission.expiresAt = iso(85_000);
+        record.retentionAdmission.sourceEvidence.retentionBoundarySha256 = digest({
+          contractVersion: "route-iq-field-session-retention-boundary-v1",
+          authorizationState: "authorized_existing_field_session_boundary",
+          source: "authenticated_data_retention_contract",
+          expiresAt: iso(85_000)
+        });
+      },
+      code: "route_iq_evaluation_retention_expired"
+    },
+    {
+      name: "unknown legal hold",
+      mutate(record) { record.retentionAdmission.legalHoldState = "unknown"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "active legal hold",
+      mutate(record) { record.retentionAdmission.legalHoldState = "active"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "collection unauthorized",
+      mutate(record) { record.retentionAdmission.collectionState = "off"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "recommendation influence unauthorized",
+      mutate(record) { record.retentionAdmission.recommendationInfluence = "on"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "malformed reason codes",
+      mutate(record) { record.retentionAdmission.reasonCodes = "none"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "policy hash tamper",
+      mutate(record) { record.retentionAdmission.dataPolicySha256 = digest("wrong-policy"); },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "admission version tamper",
+      mutate(record) { record.retentionAdmission.admissionVersion = "route-iq-prospective-intelligence-retention-admission-v0"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "policy version tamper",
+      mutate(record) { record.retentionAdmission.dataPolicyVersion = "route-iq-prospective-shadow-retention-policy-v0"; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "representative output allowed",
+      mutate(record) { record.retentionAdmission.representativeOutputAllowed = true; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "recommendation influence allowed",
+      mutate(record) { record.retentionAdmission.recommendationInfluenceAllowed = true; },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "coordinator session tamper",
+      mutate(record) { record.retentionAdmission.sourceEvidence.coordinatorSessionSha256 = digest("wrong-coordinator-session"); },
+      code: "route_iq_evaluation_retention_source_binding_invalid"
+    },
+    {
+      name: "field session tamper",
+      mutate(record) { record.retentionAdmission.sourceEvidence.fieldSessionSha256 = digest("wrong-field-session"); },
+      code: "route_iq_evaluation_retention_source_binding_invalid"
+    },
+    {
+      name: "source archive tamper",
+      mutate(record) { record.retentionAdmission.sourceEvidence.sourceRawSha256 = digest("wrong-source-archive"); },
+      code: "route_iq_evaluation_retention_source_binding_invalid"
+    },
+    {
+      name: "retention boundary hash tamper",
+      mutate(record) { record.retentionAdmission.sourceEvidence.retentionBoundarySha256 = digest("wrong-retention-boundary"); },
+      code: "route_iq_evaluation_retention_source_binding_invalid"
+    },
+    {
+      name: "evaluation time tamper",
+      mutate(record) { record.retentionAdmission.evaluatedAt = iso(81_000); },
+      code: "route_iq_evaluation_retention_source_binding_invalid"
+    },
+    {
+      name: "scoreable archive tamper",
+      mutate(record) { record.scoreableOutcome.sourceArchiveRawSha256 = digest("wrong-scoreable-archive"); },
+      code: "route_iq_evaluation_record_binding_invalid"
+    }
+  ];
+  for (const entry of cases) {
+    await t.test(entry.name, async () => {
+      const source = await admitPreparedScoreable(
+        await prepareReconciledEvaluationSource(`retention-${entry.name.replaceAll(" ", "-")}`)
+      );
+      const changed = structuredClone(source.evaluationRecord);
+      entry.mutate(changed);
+      const record = rehashEvaluationRecord(changed);
+      await assert.rejects(
+        () => source.h.coordinator.admitIntelligenceEvaluation({
+          authorityEnvelope: source.h.authority.sign(evaluationAdmissionClaims(source, record), "producer")
+        }),
+        error => error.code === entry.code
+      );
+      assert.equal(
+        source.h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'").count,
+        0
+      );
+    });
+  }
+});
+
+test("administratively disposed field-session evidence cannot enter canonical evaluation", async () => {
+  const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("disposed-retention", {
+    rawSha256: DISPOSED_RAW_SHA256,
+    sourceArchiveSessionSha256: digest(DISPOSED_FIELD_SESSION_ID)
+  }));
+  await assert.rejects(
+    () => source.h.coordinator.admitIntelligenceEvaluation({
+      authorityEnvelope: source.h.authority.sign(
+        evaluationAdmissionClaims(source, source.evaluationRecord),
+        "producer"
+      )
+    }),
+    error => error.code === "route_iq_evaluation_retention_disposition_excluded"
+  );
+  assert.equal(
+    source.h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EVALUATED'").count,
+    0
+  );
 });
 
 test("evaluation admission is strictly later, idempotent across restart, and records changed content as a durable conflict", async () => {
