@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
-const dataCommits = Object.freeze(["7970f240", "968212e", "ce9f642", "88b8490", "89e9ae46"]);
+const dataCommits = Object.freeze(["7970f240", "968212e", "ce9f642", "88b8490", "89e9ae46", "9b53a21"]);
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -64,8 +64,14 @@ assert.ok(
 assert.match(worker, /isRouteIqProspectiveShadowPath/u);
 assert.match(
   worker,
-  /const result = await consumeRouteIqEndOfDayHandoff[\s\S]+await closeRouteIqProspectiveSessionFromHandoff/u
+  /const result = await consumeRouteIqEndOfDayHandoff[\s\S]+scheduleRouteIqProspectiveSessionClose/u
 );
+assert.doesNotMatch(worker, /await closeRouteIqProspectiveSessionFromHandoff/u);
+assert.match(worker, /executionContext\.waitUntil\(closePromise\)/u);
+assert.match(worker, /async fetch\(request, env, executionContext\)/u);
+assert.match(worker, /handleApiRequest\(request, env, executionContext\)/u);
+assert.match(worker, /closeRouteIqProspectiveSessionFromHandoff[\s\S]+\.catch\(error =>/u);
+assert.match(worker, /route_iq_prospective_session_close_failure/u);
 
 for (const required of [
   "Cf-Access-Jwt-Assertion",

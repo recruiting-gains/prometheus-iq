@@ -556,7 +556,52 @@ async function handlePartnerIntakeWithCrm(request, env) {
   }
 }
 
-async function handleRouteIqFieldSessionHandoff(request, env, { prospectiveTestHooks } = {}) {
+function logRouteIqProspectiveCloseFailure(error, phase = "close") {
+  const status = Number.isInteger(error?.status) ? error.status : 500;
+  const code = typeof error?.code === "string" && /^route_iq_[a-z0-9_]+$/u.test(error.code)
+    ? error.code
+    : "route_iq_prospective_session_close_failed";
+  console.error(JSON.stringify({
+    message: "Route IQ prospective session close failed after canonical handoff success.",
+    metric: "route_iq_prospective_session_close_failure",
+    phase,
+    code,
+    status,
+    retryable: status === 429 || status >= 500
+  }));
+}
+
+function scheduleRouteIqProspectiveSessionClose(request, env, {
+  completionAction,
+  handoffResult,
+  executionContext,
+  prospectiveTestHooks
+}) {
+  if (!getRouteIqProspectiveActivation(env).active) return null;
+  const closePromise = Promise.resolve()
+    .then(() => closeRouteIqProspectiveSessionFromHandoff(request, env, {
+      completionAction,
+      handoffResult,
+      noncanonicalTestHooks: prospectiveTestHooks
+    }))
+    .catch(error => {
+      logRouteIqProspectiveCloseFailure(error);
+      return { status: "failure_isolated" };
+    });
+  if (typeof executionContext?.waitUntil === "function") {
+    try {
+      executionContext.waitUntil(closePromise);
+    } catch (error) {
+      logRouteIqProspectiveCloseFailure(error, "wait_until_registration");
+    }
+  }
+  return closePromise;
+}
+
+async function handleRouteIqFieldSessionHandoff(request, env, {
+  executionContext,
+  prospectiveTestHooks
+} = {}) {
   if (request.method !== "POST") {
     return jsonResponse({ ok: false, acknowledged: false, message: "Method not allowed." }, 405, { Allow: "POST" });
   }
@@ -609,11 +654,16 @@ async function handleRouteIqFieldSessionHandoff(request, env, { prospectiveTestH
       rawReportText: body.rawReportText
     }, { env, ...runtimeContext });
 
-    await closeRouteIqProspectiveSessionFromHandoff(request, env, {
-      completionAction: body.completionAction,
-      handoffResult: result,
-      noncanonicalTestHooks: prospectiveTestHooks
-    });
+    try {
+      scheduleRouteIqProspectiveSessionClose(request, env, {
+        completionAction: body.completionAction,
+        handoffResult: result,
+        executionContext,
+        prospectiveTestHooks
+      });
+    } catch (error) {
+      logRouteIqProspectiveCloseFailure(error, "schedule");
+    }
 
     const acknowledgment = {
       contractId: result.handoffContractId,
@@ -654,7 +704,7 @@ async function handleRouteIqFieldSessionHandoff(request, env, { prospectiveTestH
   }
 }
 
-async function handleApiRequest(request, env) {
+async function handleApiRequest(request, env, executionContext) {
   const url = new URL(request.url);
   if (url.pathname === PARTNER_INTAKE_PATH) {
     const result = await handlePartnerIntakeWithCrm(request, env);
@@ -664,13 +714,15 @@ async function handleApiRequest(request, env) {
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
   if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);
   if (url.pathname === INSTAGRAM_REPORT_PATH) return handleMetaInstagramReport(request, env);
-  if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) return handleRouteIqFieldSessionHandoff(request, env);
+  if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) {
+    return handleRouteIqFieldSessionHandoff(request, env, { executionContext });
+  }
   if (isRouteIqProspectiveShadowPath(url.pathname)) return handleRouteIqProspectiveShadowRequest(request, env);
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, executionContext) {
     const url = new URL(request.url);
     try {
       if (isRouteIqProspectiveShadowPath(url.pathname)
@@ -680,7 +732,7 @@ export default {
       if (url.pathname.startsWith("/api/")) {
         const aegis = await enforceAegisControls(request, env);
         if (!aegis.ok) return aegis.response;
-        return withAegisHeaders(await handleApiRequest(request, env), aegis);
+        return withAegisHeaders(await handleApiRequest(request, env, executionContext), aegis);
       }
       return env.ASSETS.fetch(request);
     } catch {

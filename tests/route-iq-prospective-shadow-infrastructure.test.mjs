@@ -9,9 +9,15 @@ import { Miniflare } from "miniflare";
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
 
 import worker, {
+  ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
-  RouteIqProspectiveShadowCoordinator
+  RouteIqProspectiveShadowCoordinator,
+  handleRouteIqFieldSessionHandoff
 } from "../workers/prometheus-iq-worker.js";
+import {
+  routeIqEndOfDayHandoffContractId,
+  routeIqFieldSessionStoreBinding
+} from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
 import {
   routeIqProspectiveCohortConfigVersion,
   routeIqProspectivePrincipalMapVersion
@@ -81,7 +87,8 @@ async function accessFixture({
   mappedRepresentativeId = "cruz",
   cohortRepresentativeId = "cruz",
   expired = false,
-  tokenAudience = accessAudience
+  tokenAudience = accessAudience,
+  closeImplementation = null
 } = {}) {
   const subject = randomUUID();
   const publicJwk = await exportJWK(accessKeys.publicKey);
@@ -132,6 +139,7 @@ async function accessFixture({
             calls.push("close_rpc");
             commands.push(command);
             assert.equal(command.authorityEnvelope.claims.purpose, "close_session");
+            if (closeImplementation) return closeImplementation(command);
             return {
               status: "closed",
               sessionId: `riq_session_${digest("private-session")}`,
@@ -176,6 +184,129 @@ function canonicalHandoff(representativeId = "cruz") {
       verifiedFields: { representative: { id: representativeId } }
     }
   };
+}
+
+const canonicalFieldSessionReport = (() => {
+  const source = JSON.parse(readFileSync(join(
+    root,
+    "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions",
+    "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw",
+    "prometheus-iq-cruz-daily-report-2026-07-11.json"
+  ), "utf8"));
+  source.visits = source.visits.map(visit => ({
+    ...visit,
+    visitDecisionSource: {
+      sourceId: "unknown",
+      reason: null,
+      evidence: [],
+      confidence: 0,
+      capturedAt: source.generatedAt
+    },
+    recommendationDecisionContext: {
+      recommendationAvailable: null,
+      recommendationId: null,
+      decision: null
+    }
+  }));
+  return JSON.stringify(source, null, 2);
+})();
+
+function fieldSessionStore() {
+  const data = new Map();
+  return {
+    data,
+    async get(key) {
+      return data.get(key) ?? null;
+    },
+    async put(key, value) {
+      data.set(key, String(value));
+    },
+    async list({ prefix = "" } = {}) {
+      return {
+        keys: [...data.keys()].filter(key => key.startsWith(prefix)).sort().map(name => ({ name })),
+        list_complete: true,
+        cacheStatus: null
+      };
+    }
+  };
+}
+
+function fieldSessionAssets() {
+  return {
+    async fetch(request) {
+      const pathname = new URL(request.url).pathname.replace(/^\/+/, "");
+      try {
+        return new Response(readFileSync(join(root, "deploy/cloudflare-pages", pathname)), { status: 200 });
+      } catch {
+        return new Response("Not found", { status: 404 });
+      }
+    }
+  };
+}
+
+function fieldSessionRequest(token, completionAction = "end_route") {
+  return new Request(`https://private.invalid${ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH}`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      "Cf-Access-Jwt-Assertion": token
+    },
+    body: JSON.stringify({
+      completionAction,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      finalExportConfirmed: true,
+      sourceFinalizedAt: "2026-07-12T00:26:00.000Z",
+      rawReportText: canonicalFieldSessionReport
+    })
+  });
+}
+
+function executionContextFixture() {
+  const promises = [];
+  return {
+    promises,
+    waitUntil(promise) {
+      promises.push(Promise.resolve(promise));
+    }
+  };
+}
+
+function assertCanonicalFieldSessionAcknowledgment(response, body, expectedStatus) {
+  assert.equal(response.status, expectedStatus);
+  assert.equal(body.ok, true);
+  assert.equal(body.acknowledged, true);
+  assert.equal(body.acknowledgment.contractId, routeIqEndOfDayHandoffContractId);
+  assert.equal(body.acknowledgment.status, expectedStatus === 200 ? "already_archived" : "archived");
+  const serialized = JSON.stringify(body);
+  for (const prohibited of [
+    "prospective",
+    "shadow",
+    "candidate",
+    "opportunity",
+    "readiness",
+    "recommendationInfluence"
+  ]) {
+    assert.equal(serialized.includes(prohibited), false, prohibited);
+  }
+}
+
+async function submitFieldSession(fixture, store, executionContext, completionAction = "end_route") {
+  const env = {
+    ...fixture.env,
+    [routeIqFieldSessionStoreBinding]: store,
+    ASSETS: fieldSessionAssets()
+  };
+  const response = await handleRouteIqFieldSessionHandoff(
+    fieldSessionRequest(fixture.token, completionAction),
+    env,
+    {
+      executionContext,
+      prospectiveTestHooks: fixture.noncanonicalTestHooks
+    }
+  );
+  return { response, body: await response.json(), env };
 }
 
 test("private config owns one SQLite class migration and public config remains unbound", () => {
@@ -342,6 +473,86 @@ test("canonical handoff closure is Access-mapped, digest-bound, and disabled wit
     { completionAction: "end_route", handoffResult: handoff }
   );
   assert.deepEqual(disabled, { status: "disabled" });
+});
+
+test("field-session success acknowledgment is unchanged while prospective close runs in waitUntil", async () => {
+  const fixture = await accessFixture();
+  const store = fieldSessionStore();
+  const firstContext = executionContextFixture();
+  const first = await submitFieldSession(fixture, store, firstContext);
+  assertCanonicalFieldSessionAcknowledgment(first.response, first.body, 201);
+  assert.equal(firstContext.promises.length, 1);
+  await firstContext.promises[0];
+  assert.equal(fixture.calls.includes("close_rpc"), true);
+
+  const retryContext = executionContextFixture();
+  const retry = await submitFieldSession(fixture, store, retryContext);
+  assertCanonicalFieldSessionAcknowledgment(retry.response, retry.body, 200);
+  assert.equal(retryContext.promises.length, 1);
+  await retryContext.promises[0];
+});
+
+test("field-session acknowledgment isolates prospective timeout, rejection, missing binding, and missing key", async t => {
+  await t.test("timeout", async () => {
+    let rejectClose;
+    let markStarted;
+    const started = new Promise(resolve => {
+      markStarted = resolve;
+    });
+    const fixture = await accessFixture({
+      closeImplementation() {
+        markStarted();
+        return new Promise((_, reject) => {
+          rejectClose = reject;
+        });
+      }
+    });
+    const context = executionContextFixture();
+    const submission = await submitFieldSession(fixture, fieldSessionStore(), context);
+    assertCanonicalFieldSessionAcknowledgment(submission.response, submission.body, 201);
+    assert.equal(context.promises.length, 1);
+    await started;
+    const timeout = Object.assign(new Error("Noncanonical close timeout."), {
+      code: "route_iq_prospective_close_timeout",
+      status: 504
+    });
+    rejectClose(timeout);
+    assert.deepEqual(await context.promises[0], { status: "failure_isolated" });
+  });
+
+  await t.test("rejection", async () => {
+    const fixture = await accessFixture({
+      closeImplementation() {
+        throw Object.assign(new Error("Noncanonical close rejection."), {
+          code: "route_iq_prospective_close_rejected",
+          status: 503
+        });
+      }
+    });
+    const context = executionContextFixture();
+    const submission = await submitFieldSession(fixture, fieldSessionStore(), context);
+    assertCanonicalFieldSessionAcknowledgment(submission.response, submission.body, 201);
+    assert.deepEqual(await context.promises[0], { status: "failure_isolated" });
+  });
+
+  await t.test("missing binding", async () => {
+    const fixture = await accessFixture();
+    delete fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING];
+    const context = executionContextFixture();
+    const submission = await submitFieldSession(fixture, fieldSessionStore(), context);
+    assertCanonicalFieldSessionAcknowledgment(submission.response, submission.body, 201);
+    assert.deepEqual(await context.promises[0], { status: "failure_isolated" });
+  });
+
+  await t.test("missing key", async () => {
+    const fixture = await accessFixture();
+    delete fixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.authorityKey];
+    const context = executionContextFixture();
+    const submission = await submitFieldSession(fixture, fieldSessionStore(), context);
+    assertCanonicalFieldSessionAcknowledgment(submission.response, submission.body, 201);
+    assert.deepEqual(await context.promises[0], { status: "failure_isolated" });
+    assert.equal(fixture.calls.includes("do_lookup"), false);
+  });
 });
 
 test("invalid Access, unmapped scope, missing key, and caller routing all fail before DO lookup", async () => {
@@ -605,8 +816,8 @@ test("real Miniflare SQLite allocator converges, closes, isolates scope, and sur
         }
       })
     ]);
-    assert.equal(left.status, 200);
-    assert.equal(right.status, 200);
+    assert.equal(left.status, 200, JSON.stringify(left.body));
+    assert.equal(right.status, 200, JSON.stringify(right.body));
     assert.deepEqual(left.body.result, right.body.result);
     assert.equal(left.body.result.serverDerivedCanonicalIdentity, true);
     assert.match(left.body.result.sessionId, /^riq_session_[a-f0-9]{64}$/u);

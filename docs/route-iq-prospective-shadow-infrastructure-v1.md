@@ -2,11 +2,11 @@
 
 Batch: `BATCH-20260713-004`
 
-Status: implemented and locally verified; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed.
+Status: failure isolation implemented and locally verified; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed. Full workerd allocator validation is blocked by the Data-owned issue recorded under Verification.
 
 ## Ownership and dependency boundary
 
-Infrastructure wraps the Prometheus Data coordinator verified at commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, and allocator successor `89e9ae46`. It does not alter Data schema or domain behavior and does not create canonical candidate context or caller-derived session/opportunity identity.
+Infrastructure wraps the Prometheus Data coordinator verified at commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, allocator successor `89e9ae46`, and Data invariant successor `9b53a21`. It does not alter Data schema or domain behavior and does not create canonical candidate context or caller-derived session/opportunity identity.
 
 The browser endpoint is `/api/dashboard/route-iq/prospective/event`. While collection is `OFF`, it returns a nonblocking disabled acknowledgment before Aegis, Access/JWKS, Durable Object lookup, or storage. When explicitly enabled with a valid cohort, `next_stop_requested` calls Prometheus Data `allocateNextStopOpportunity({ event })`; Data alone derives and persists the canonical session/opportunity identity. Infrastructure discards the private allocator receipt and returns only an opaque `202 accepted` acknowledgment. `representative_action_observed` and `representative_outcome_observed` call a scope-verifying domain RPC that returns `governed_noop` without accepting a selected candidate or outcome as canonical.
 
@@ -55,9 +55,9 @@ The representative response contains only disabled, accepted, or `governed_noop`
 
 ## Canonical session closure
 
-The existing `/api/dashboard/route-iq/field-session` success path now invokes prospective closure only after `consumeRouteIqEndOfDayHandoff` has persisted and returned the canonical Data handoff. When prospective collection is `ON`, Infrastructure verifies Cloudflare Access, maps the principal to governed internal scope, and requires that scope to match the Data-normalized workspace, profile, and representative. Only then does it HMAC-sign `close_session` claims binding `end_route` or `end_day`, `route-iq-end-of-day-data-handoff-v1`, the persisted handoff `rawSha256`, and a server `Date` timestamp. Access verification precedes Durable Object lookup. Duplicate handoffs safely retry Data's idempotent `closeCanonicalSession` operation.
+The existing `/api/dashboard/route-iq/field-session` success path schedules prospective closure only after `consumeRouteIqEndOfDayHandoff` has persisted and returned the canonical Data handoff. The closure promise is caught and logged without scope or payload details, and is registered with `executionContext.waitUntil` when available. Success, rejection, timeout, missing key, missing binding, and `waitUntil` registration failure can never replace or delay the canonical field-session 200/201 acknowledgment. When prospective collection is `ON`, Infrastructure verifies Cloudflare Access, maps the principal to governed internal scope, and requires that scope to match the Data-normalized workspace, profile, and representative. Only then does it HMAC-sign `close_session` claims binding `end_route` or `end_day`, `route-iq-end-of-day-data-handoff-v1`, the persisted handoff `rawSha256`, and a server `Date` timestamp. Access verification precedes Durable Object lookup. Duplicate handoffs safely retry Data's idempotent `closeCanonicalSession` operation.
 
-When collection is `OFF`, the existing handoff behavior is unchanged and no prospective Access/DO/storage call occurs. A closure failure after a successful archive is surfaced as retryable where appropriate; retrying the duplicate handoff reuses the same persisted digest. No Dashboard or Data file was modified for this integration.
+When collection is `OFF`, the existing handoff behavior is unchanged and no prospective Access/DO/storage call occurs. A closure failure after a successful archive is isolated to structured Infrastructure telemetry; retrying a later duplicate handoff can safely reuse the same persisted digest. No Dashboard or Data file was modified for this integration.
 
 ## Budgets, privacy, and metrics
 
@@ -75,9 +75,11 @@ API and configuration choices follow current Cloudflare guidance for [SQLite Dur
 
 ## Verification
 
-`npm run infrastructure:route-iq-prospective-shadow:check` verifies source/config invariants and runs Node plus real Miniflare SQLite DO tests. The suite covers OFF zero-call behavior, RS256 Access signature/issuer/audience/expiry validation, principal/cohort mapping, Access-before-DO order, caller authority rejection, opaque responses, action/outcome `governed_noop`, digest-bound handoff closure, stable scope-only routing, missing secret/config behavior, HMAC tamper rejection, concurrent allocator convergence, closure retries, cross-scope rejection, blocked generic RPC, and restart persistence.
+`npm run infrastructure:route-iq-prospective-shadow:check` verifies source/config invariants and runs Node plus real Miniflare SQLite DO tests. The suite covers OFF zero-call behavior, RS256 Access signature/issuer/audience/expiry validation, principal/cohort mapping, Access-before-DO order, caller authority rejection, opaque responses, action/outcome `governed_noop`, digest-bound handoff closure, unchanged canonical 200/201 handoff acknowledgments under close success/timeout/rejection/missing binding/missing key, stable scope-only routing, missing secret/config behavior, HMAC tamper rejection, concurrent allocator convergence, closure retries, cross-scope rejection, blocked generic RPC, and restart persistence.
 
 Release validation also requires Data coordinator tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler config validation and dry-run, secret scan, and owned-diff checks.
+
+Current owner blocker: `npm run infrastructure:route-iq-prospective-shadow:check` passes the verifier and 13 of 14 Infrastructure tests, including every field-session failure-isolation case, but the real Miniflare allocator case stops in Data commit `9b53a21` with `too many terms in compound SELECT: SQLITE_ERROR`. The failing query is Data's canonical maximum-time `UNION ALL` query; Data's Node SQLite suite passes 64 of 64, while workerd applies its SQLite execution limits. Infrastructure does not rewrite or special-case Data SQL. Data must provide a workerd-compatible query before the full Infrastructure harness can return green.
 
 ## Rollback
 
