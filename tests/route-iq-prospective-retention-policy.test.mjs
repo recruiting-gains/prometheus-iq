@@ -5,7 +5,9 @@ import { readFileSync } from "node:fs";
 import {
   evaluateRouteIqProspectiveRetentionEnvelope,
   routeIqProspectiveRetentionBoundaryContractVersion,
+  routeIqProspectiveRetentionBoundaryKeys,
   routeIqProspectiveRetentionCurrentState,
+  routeIqProspectiveRetentionEnvelopeKeys,
   routeIqProspectiveRetentionPolicyVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
 
@@ -37,6 +39,19 @@ function envelope(overrides = {}) {
     derivedProjectionExpiresAt: "2026-08-14T12:00:00.000Z",
     ...overrides
   };
+}
+
+function assertUnknownFieldRejected(input, envelopeLevel) {
+  assert.throws(
+    () => evaluateRouteIqProspectiveRetentionEnvelope(input),
+    error => {
+      assert.equal(error.code, "route_iq_prospective_retention_fields_invalid");
+      assert.equal(error.message, "Prospective retention input contains unsupported fields.");
+      assert.deepEqual(error.details, { envelopeLevel, unknownFieldCount: 1 });
+      assert.deepEqual(Object.keys(error.details).sort(), ["envelopeLevel", "unknownFieldCount"]);
+      return true;
+    }
+  );
 }
 
 test("Data policy defines a fail-closed retention envelope without selecting or extending a duration", () => {
@@ -77,6 +92,43 @@ test("field-level policy uses only governed opaque or structured evidence and pr
   }
   assert.equal(policy.auditExceptions.prospectiveIndefiniteRetentionAllowed, false);
   assert.equal(policy.auditExceptions.administrativeDispositionArchiveRetentionExpandedByThisPolicy, false);
+  assert.deepEqual(policy.canonicality.topLevelEnvelopeExactAllowlist, routeIqProspectiveRetentionEnvelopeKeys);
+  assert.deepEqual(policy.canonicality.retentionBoundaryExactAllowlist, routeIqProspectiveRetentionBoundaryKeys);
+  assert.equal(policy.canonicality.additionalPropertiesAllowed, false);
+  assert.equal(policy.canonicality.unknownFieldValuesPersistedOrEchoed, false);
+});
+
+test("top-level additional fields are rejected before eligibility without echoing names or values", () => {
+  const adversarialFields = [
+    ["name", "Founder Name"],
+    ["address", "123 Private Street"],
+    ["notes", "unrestricted free text"],
+    ["contact", { email: "private@example.com" }],
+    ["rawPayload", { arbitrary: "payload" }],
+    ["arbitraryText", "anything"]
+  ];
+
+  for (const [key, value] of adversarialFields) {
+    assertUnknownFieldRejected({ ...envelope(), [key]: value }, "top_level");
+  }
+});
+
+test("nested retention-boundary additions are rejected before eligibility and cannot carry PII", () => {
+  const adversarialFields = [
+    ["name", "Founder Name"],
+    ["address", "123 Private Street"],
+    ["notes", "unrestricted free text"],
+    ["contact", { phone: "555-555-5555" }],
+    ["rawPayload", { arbitrary: "payload" }],
+    ["arbitraryText", "anything"]
+  ];
+
+  for (const [key, value] of adversarialFields) {
+    const input = envelope({
+      retentionBoundary: { ...envelope().retentionBoundary, [key]: value }
+    });
+    assertUnknownFieldRejected(input, "retention_boundary");
+  }
 });
 
 test("current OFF, missing, malformed, expired, and unauthorized envelopes fail closed", () => {

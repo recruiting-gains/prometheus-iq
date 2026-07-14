@@ -6,9 +6,31 @@ import {
 export const routeIqProspectiveRetentionPolicyVersion = "route-iq-prospective-shadow-retention-policy-v1";
 export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v1";
 export const routeIqProspectiveRetentionCurrentState = "blocked_pending_explicit_retention_boundary";
+export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
+  "policyVersion",
+  "collectionState",
+  "recommendationInfluence",
+  "recordOrigin",
+  "workspaceId",
+  "operatingProfileId",
+  "representativeId",
+  "evaluatedAt",
+  "retentionBoundary",
+  "legalHoldState",
+  "deletionCapabilityStatus",
+  "derivedProjectionExpiresAt"
+]);
+export const routeIqProspectiveRetentionBoundaryKeys = Object.freeze([
+  "contractVersion",
+  "authorizationState",
+  "source",
+  "expiresAt"
+]);
 
 const CANONICAL_RECORD_ORIGIN = "prospective";
 const LEGAL_HOLD_STATES = new Set(["none", "active", "unknown"]);
+const ENVELOPE_KEY_SET = new Set(routeIqProspectiveRetentionEnvelopeKeys);
+const BOUNDARY_KEY_SET = new Set(routeIqProspectiveRetentionBoundaryKeys);
 
 function deepFreeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
@@ -31,6 +53,18 @@ export class RouteIqProspectiveRetentionPolicyError extends FieldSessionArchiveE
   }
 }
 
+function assertExactKeys(value, allowedKeys, envelopeLevel) {
+  const unknownFieldCount = Reflect.ownKeys(value)
+    .filter(key => typeof key !== "string" || !allowedKeys.has(key))
+    .length;
+  if (unknownFieldCount > 0) {
+    throw new RouteIqProspectiveRetentionPolicyError("Prospective retention input contains unsupported fields.", {
+      code: "route_iq_prospective_retention_fields_invalid",
+      details: { envelopeLevel, unknownFieldCount }
+    });
+  }
+}
+
 function scopeReason(input) {
   const workspace = supportedFieldSessionWorkspaces[input.workspaceId];
   if (!workspace || workspace.operatingProfileId !== input.operatingProfileId) return "scope_unauthorized";
@@ -41,6 +75,10 @@ function scopeReason(input) {
 export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new RouteIqProspectiveRetentionPolicyError("A prospective retention envelope is required.");
+  }
+  assertExactKeys(input, ENVELOPE_KEY_SET, "top_level");
+  if (input.retentionBoundary && typeof input.retentionBoundary === "object" && !Array.isArray(input.retentionBoundary)) {
+    assertExactKeys(input.retentionBoundary, BOUNDARY_KEY_SET, "retention_boundary");
   }
 
   const reasons = [];
