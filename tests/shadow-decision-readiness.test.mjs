@@ -1458,9 +1458,23 @@ test("prospective retention admission remains fail closed and inactive", () => {
     retention.dataExactKeySuccessorCommit,
     "4803d7aca5810abfc1cbca84eb2f461046a10da4",
   );
+  assert.equal(
+    retention.dataCoordinatorAdmissionSuccessorCommit,
+    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+  );
   assert.equal(retention.evaluationAdmissionRequired, true);
   assert.equal(retention.exactEnvelopeAndBoundaryAllowlistRequired, true);
   assert.equal(retention.dataSemanticParityRequired, true);
+  for (const field of [
+    "canonicalEvaluationRecordRetentionAdmissionRequired",
+    "sourceArchiveRawSha256BindingRequired",
+    "authoritativeAdmissionTimeExpiryRequired",
+    "strictCoordinatorKeyAllowlistRequired",
+    "sourceCoordinatorSessionBindingRequired",
+    "sourceFieldSessionAndRawHashBindingRequired",
+  ]) {
+    assert.equal(retention[field], true, field);
+  }
   assert.deepEqual(Object.keys(retention.protectedDataSources).sort(), [
     "retentionEvaluator",
     "retentionPolicy",
@@ -1480,6 +1494,7 @@ test("prospective retention admission remains fail closed and inactive", () => {
     "unknownOrActiveLegalHoldAdmissionAllowed",
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
+    "historicalArchiveRewriteAllowed",
     "representativeOutputAllowed",
     "recommendationInfluenceAllowed",
     "productionActivationEligible",

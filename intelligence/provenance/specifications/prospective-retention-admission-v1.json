@@ -6,6 +6,8 @@
   "dataOwnerLineage": {
     "foundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
     "exactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "coordinatorAdmissionSuccessorCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "coordinatorSha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
     "runtimeContractSha256": "7b8c03d87b326475591f06f27227afab0f75ab1bc50f6bd6672b45854f8d402e",
     "archiveRuntimeSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
     "retentionPolicySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
@@ -20,6 +22,9 @@
     "derivedProjectionMayOutliveSource": false,
     "sourceCoordinatorSessionBindingRequired": true,
     "sourceFieldSessionAndRawHashBindingRequired": true,
+    "canonicalEvaluationRecordRetentionAdmissionRequired": true,
+    "authoritativeAdmissionTimeExpiryRequired": true,
+    "strictCoordinatorKeyAllowlistRequired": true,
     "evaluationRecordCarriesHashOnlyRetentionEvidence": true,
     "representativeOutputAllowed": false,
     "recommendationInfluenceAllowed": false

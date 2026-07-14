@@ -122,7 +122,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceCommit,
-    contract.implementationDispatch.dataCoordinatorCommit,
+    "fdacf00da221ae5cc473fb57173a7940483deeb7",
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceOwnerSubsystem,
@@ -134,7 +134,25 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.synchronizedInBatch,
-    contract.implementationDispatch.batchId,
+    "BATCH-20260714-003",
+  );
+  assert.deepEqual(contract.protectedDataRuntimeBaseline.predecessor, {
+    sha256: "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
+    sourceCommit: contract.implementationDispatch.dataCoordinatorCommit,
+    remainsHistorical: true,
+    rewritten: false,
+  });
+  assert.equal(
+    contract.protectedBehaviorBaselines.dataCoordinator.sha256,
+    contract.protectedDataRuntimeBaseline.sha256,
+  );
+  assert.equal(
+    contract.protectedBehaviorBaselines.dataCoordinator.sourceCommit,
+    contract.protectedDataRuntimeBaseline.sourceCommit,
+  );
+  assert.equal(
+    contract.protectedBehaviorBaselines.dataCoordinator.sourceOwnerSubsystem,
+    "Prometheus Data",
   );
   assert.equal(
     contract.prospectiveRuntimeAdapter.runtimeVersion,
@@ -193,6 +211,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "4803d7aca5810abfc1cbca84eb2f461046a10da4",
   );
   assert.equal(
+    contract.prospectiveRetentionAdmission.dataCoordinatorAdmissionSuccessorCommit,
+    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+  );
+  assert.equal(
     contract.prospectiveRetentionAdmission.evaluationAdmissionRequired,
     true,
   );
@@ -205,11 +227,22 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     true,
   );
   for (const field of [
+    "canonicalEvaluationRecordRetentionAdmissionRequired",
+    "sourceArchiveRawSha256BindingRequired",
+    "authoritativeAdmissionTimeExpiryRequired",
+    "strictCoordinatorKeyAllowlistRequired",
+    "sourceCoordinatorSessionBindingRequired",
+    "sourceFieldSessionAndRawHashBindingRequired",
+  ]) {
+    assert.equal(contract.prospectiveRetentionAdmission[field], true, field);
+  }
+  for (const field of [
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed",
     "noncanonicalOriginAdmissionAllowed",
     "unknownOrActiveLegalHoldAdmissionAllowed",
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
+    "historicalArchiveRewriteAllowed",
     "representativeOutputAllowed",
     "recommendationInfluenceAllowed",
     "productionActivationEligible",

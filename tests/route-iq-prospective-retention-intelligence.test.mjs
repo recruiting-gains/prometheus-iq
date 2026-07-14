@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import {
   routeIqProspectiveRetentionBoundaryContractVersion,
@@ -62,6 +63,70 @@ test("canonical Data retention policy is independently validated and hash pinned
   assert.equal(policy.scope.activeCohorts, 0);
   assert.equal(policy.scope.recommendationInfluence, "off");
   assert.equal(policy.retentionDecision.activationEligible, false);
+});
+
+test("Data coordinator successor is protected with historical lineage and semantic admission evidence", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const specification = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "utf8",
+    ),
+  );
+  const successor = JSON.parse(
+    readFileSync(
+      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+      "utf8",
+    ),
+  );
+  const coordinatorSha256 = createHash("sha256")
+    .update(
+      readFileSync(
+        "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+      ),
+    )
+    .digest("hex");
+
+  assert.equal(
+    coordinatorSha256,
+    "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
+  );
+  assert.equal(contract.protectedDataRuntimeBaseline.sha256, coordinatorSha256);
+  assert.equal(specification.dataOwnerLineage.coordinatorSha256, coordinatorSha256);
+  assert.equal(
+    successor.dataOwnerTransition.coordinator.currentSha256,
+    coordinatorSha256,
+  );
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(
+    successor.intelligenceOwnerSynchronization.dataImplementationModifiedByIntelligence,
+    false,
+  );
+  for (const field of [
+    "retentionAdmissionRequiredOnCanonicalEvaluationRecord",
+    "exactAdmissionAndSourceEvidenceKeySetsRequired",
+    "policyVersionAndSha256Pinned",
+    "coordinatorSessionSha256Bound",
+    "fieldSessionSha256Bound",
+    "sourceArchiveRawSha256Bound",
+    "outcomeAuthoritativeTimeBound",
+    "retentionValidThroughDataAdmissionRequired",
+    "disposedSessionRejected",
+  ]) {
+    assert.equal(successor.dataOwnerTransition.semanticChanges[field], true, field);
+  }
+  assert.equal(successor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(successor.boundaryValidation.collection, "OFF");
+  assert.equal(successor.boundaryValidation.activeCohorts, 0);
+  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(successor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(successor.boundaryValidation.archiveRewritePerformed, false);
 });
 
 test("eligible local contract fixture is deterministic, hash-only, and zero influence", () => {

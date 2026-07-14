@@ -395,6 +395,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const retentionSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
   );
+  const coordinatorSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+  );
   const expectedPaths = [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
     "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -532,8 +535,19 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   for (const transition of retentionSuccessor.infrastructureOwnerLineage.transitions) {
     assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
   }
+  const retentionEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+  ]);
   for (const ownerChange of retentionSuccessor.intelligenceOwnerChanges) {
-    assert.equal(sha256(ownerChange.path), ownerChange.currentSha256, ownerChange.path);
+    assert.equal(
+      sha256Bytes(gitBytes(["show", `${retentionEvidenceCommit}:${ownerChange.path}`])),
+      ownerChange.currentSha256,
+      ownerChange.path,
+    );
   }
   assert.equal(retentionSuccessor.consumerExclusionMatrix.excludedDomainCount, 12);
   assert.equal(retentionSuccessor.consumerExclusionMatrix.auditVisibility, "hash_only");
@@ -549,6 +563,37 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(retentionSuccessor.boundaryValidation.productionEvaluations, 0);
   assert.equal(retentionSuccessor.boundaryValidation.recommendationInfluence, "OFF");
   assert.equal(retentionSuccessor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(coordinatorSuccessor.batchId, "BATCH-20260714-003");
+  assert.equal(coordinatorSuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(coordinatorSuccessor.predecessor.remainsHistorical, true);
+  assert.equal(coordinatorSuccessor.predecessor.rewritten, false);
+  assert.equal(
+    sha256(coordinatorSuccessor.predecessor.path),
+    coordinatorSuccessor.predecessor.sha256,
+  );
+  assert.equal(coordinatorSuccessor.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
+  assert.equal(
+    sha256(coordinatorSuccessor.dataOwnerTransition.coordinator.path),
+    coordinatorSuccessor.dataOwnerTransition.coordinator.currentSha256,
+  );
+  assert.equal(
+    sha256(coordinatorSuccessor.intelligenceOwnerSynchronization.contract.path),
+    coordinatorSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
+  );
+  assert.equal(
+    sha256(coordinatorSuccessor.intelligenceOwnerSynchronization.specification.path),
+    coordinatorSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
+  );
+  assert.equal(
+    coordinatorSuccessor.intelligenceOwnerSynchronization.dataImplementationModifiedByIntelligence,
+    false,
+  );
+  assert.equal(coordinatorSuccessor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(coordinatorSuccessor.boundaryValidation.collection, "OFF");
+  assert.equal(coordinatorSuccessor.boundaryValidation.activeCohorts, 0);
+  assert.equal(coordinatorSuccessor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(coordinatorSuccessor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(coordinatorSuccessor.boundaryValidation.archiveRewritePerformed, false);
   assert.equal(retentionSuccessor.boundaryValidation.routeScoringChanged, false);
   assert.equal(retentionSuccessor.boundaryValidation.routeGenerationChanged, false);
   assert.equal(retentionSuccessor.boundaryValidation.newConsumerActivated, false);

@@ -132,6 +132,7 @@ const protectedBaselineSuccessor = readJson("intelligence/provenance/protected-b
 const routeQualityBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json");
 const prospectiveRetentionAdmissionSpec = readJson("intelligence/provenance/specifications/prospective-retention-admission-v1.json");
 const prospectiveRetentionBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json");
+const prospectiveRetentionCoordinatorSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -872,6 +873,8 @@ assert(prospectiveRetentionAdmissionSpec.batchId === "BATCH-20260714-003", "Pros
 assert(prospectiveRetentionAdmissionSpec.ownerSubsystem === "Prometheus Intelligence Engine", "Prospective retention admission specification must remain Intelligence-owned.");
 assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.foundationCommit === "a5bd1d431e778cec045d1e8412efb396674ea321", "Prospective retention specification must preserve the Data foundation commit.");
 assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.exactKeySuccessorCommit === "4803d7aca5810abfc1cbca84eb2f461046a10da4", "Prospective retention specification must derive from the final Data exact-key successor.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.coordinatorAdmissionSuccessorCommit === "fdacf00da221ae5cc473fb57173a7940483deeb7", "Prospective retention specification must pin the Data coordinator admission successor.");
+assert(prospectiveRetentionAdmissionSpec.dataOwnerLineage.coordinatorSha256 === "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18", "Prospective retention specification must pin the validated Data coordinator hash.");
 assert(prospectiveRetentionAdmissionSpec.admissionRules.dataSemanticParityRequired === true, "Prospective retention admission must require Data semantic parity.");
 assert(prospectiveRetentionAdmissionSpec.admissionRules.representativeOutputAllowed === false, "Prospective retention admission must not expose representative output.");
 assert(prospectiveRetentionAdmissionSpec.admissionRules.recommendationInfluenceAllowed === false, "Prospective retention admission must not influence recommendations.");
@@ -890,6 +893,21 @@ assert(prospectiveRetentionBaselineSuccessor.consumerExclusionMatrix.auditVisibi
 assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.collection === "OFF" && prospectiveRetentionBaselineSuccessor.boundaryValidation.activeCohorts === 0, "Prospective retention successor must keep collection OFF with zero cohorts.");
 assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Prospective retention successor must keep recommendation influence OFF.");
 assert(prospectiveRetentionBaselineSuccessor.boundaryValidation.newConsumerActivated === false, "Prospective retention successor must not activate a new consumer.");
+assert(prospectiveRetentionCoordinatorSuccessor.batchId === "BATCH-20260714-003", "Data coordinator successor must remain in the activation-readiness batch.");
+assert(prospectiveRetentionCoordinatorSuccessor.status === "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH", "Data coordinator successor must await independent Overwatch verification.");
+assert(prospectiveRetentionCoordinatorSuccessor.ownerSubsystem === "Prometheus Intelligence Engine", "Data coordinator successor mapping must remain Intelligence-owned.");
+assert(prospectiveRetentionCoordinatorSuccessor.predecessor.remainsHistorical === true && prospectiveRetentionCoordinatorSuccessor.predecessor.rewritten === false, "The prior retention checkpoint must remain historical and unmodified.");
+assert(prospectiveRetentionCoordinatorSuccessor.dataOwnerTransition.ownerSubsystem === "Prometheus Data", "The coordinator implementation transition must remain Data-owned.");
+assert(prospectiveRetentionCoordinatorSuccessor.dataOwnerTransition.commit === "fdacf00da221ae5cc473fb57173a7940483deeb7", "The coordinator successor must pin the Data owner repair commit.");
+assert(prospectiveRetentionCoordinatorSuccessor.dataOwnerTransition.coordinator.currentSha256 === prospectiveRetentionAdmissionSpec.dataOwnerLineage.coordinatorSha256, "The specification and successor must pin the same Data coordinator hash.");
+assert(prospectiveRetentionCoordinatorSuccessor.intelligenceOwnerSynchronization.dataImplementationModifiedByIntelligence === false, "Intelligence must not modify the Data coordinator.");
+assert(prospectiveRetentionCoordinatorSuccessor.intelligenceOwnerSynchronization.historicalCheckpointModified === false, "Intelligence must preserve the historical checkpoint.");
+assert(prospectiveRetentionCoordinatorSuccessor.intelligenceOwnerSynchronization.allAffectedProtectedReferencesAccountedFor === true, "Every affected Intelligence protection must be accounted for.");
+assert(prospectiveRetentionCoordinatorSuccessor.boundaryValidation.readiness === "INSUFFICIENT_EVIDENCE", "Coordinator synchronization must preserve insufficient evidence.");
+assert(prospectiveRetentionCoordinatorSuccessor.boundaryValidation.collection === "OFF" && prospectiveRetentionCoordinatorSuccessor.boundaryValidation.activeCohorts === 0, "Coordinator synchronization must keep collection OFF with zero cohorts.");
+assert(prospectiveRetentionCoordinatorSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Coordinator synchronization must keep recommendation influence OFF.");
+assert(prospectiveRetentionCoordinatorSuccessor.boundaryValidation.representativeShadowOutputExposed === false, "Coordinator synchronization must expose no shadow output.");
+assert(prospectiveRetentionCoordinatorSuccessor.boundaryValidation.archiveRewritePerformed === false, "Coordinator synchronization must not rewrite archives.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredEvaluationOutcomes === "97 eligible, linked, scoreable evaluation outcomes after exclusions", "Provenance evidence must preserve the exact 97-outcome methodology.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview === false, "The 97-outcome minimum alone must not authorize Founder review eligibility.");
 assert(legacyProvenanceEvidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins === 100, "Five populated calibration bins must require at least 100 supported observations.");

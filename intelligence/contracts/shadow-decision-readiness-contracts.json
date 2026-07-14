@@ -39,18 +39,25 @@
     "prospectiveRuntimeTests": "tests/shadow-decision-readiness-runtime.test.mjs",
     "committedOutcomeEvaluationTests": "tests/route-iq-committed-outcome-evaluation.test.mjs",
     "retentionAdmissionTests": "tests/route-iq-prospective-retention-intelligence.test.mjs",
+    "retentionBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
     "humanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
   },
   "protectedDataRuntimeBaseline": {
     "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-    "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
-    "sourceCommit": "84319f9c70004edd50e1531e48ea1d0d7b501089",
+    "sha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
+    "sourceCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
     "sourceOwnerSubsystem": "Prometheus Data",
     "synchronizedBySubsystem": "Prometheus Intelligence Engine",
-    "synchronizedInBatch": "BATCH-20260713-004",
-    "provenance": "Hash computed from the final committed Data-owned SQLite coordinator after exact outcome projection and projection-scope repair; Intelligence consumes its contracts and never rewrites the coordinator."
+    "synchronizedInBatch": "BATCH-20260714-003",
+    "predecessor": {
+      "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
+      "sourceCommit": "84319f9c70004edd50e1531e48ea1d0d7b501089",
+      "remainsHistorical": true,
+      "rewritten": false
+    },
+    "provenance": "Hash computed from the Data-owned retention-admission coordinator successor. The historical BATCH-20260713-004 coordinator checkpoint remains recorded; Intelligence verifies the successor and never rewrites Data."
   },
   "protectedBehaviorBaselines": {
     "dashboardSource": {
@@ -77,7 +84,9 @@
     },
     "dataCoordinator": {
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-      "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943"
+      "sha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18",
+      "sourceCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+      "sourceOwnerSubsystem": "Prometheus Data"
     },
     "dataArchiveRuntime": {
       "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
@@ -258,6 +267,7 @@
     "dataPolicyVersion": "route-iq-prospective-shadow-retention-policy-v1",
     "dataFoundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
     "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+    "dataCoordinatorAdmissionSuccessorCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
     "protectedDataSources": {
       "retentionPolicy": {
         "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
@@ -275,6 +285,10 @@
     "evaluationAdmissionRequired": true,
     "exactEnvelopeAndBoundaryAllowlistRequired": true,
     "dataSemanticParityRequired": true,
+    "canonicalEvaluationRecordRetentionAdmissionRequired": true,
+    "sourceArchiveRawSha256BindingRequired": true,
+    "authoritativeAdmissionTimeExpiryRequired": true,
+    "strictCoordinatorKeyAllowlistRequired": true,
     "sourceCoordinatorSessionBindingRequired": true,
     "sourceFieldSessionAndRawHashBindingRequired": true,
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed": false,
@@ -282,6 +296,7 @@
     "unknownOrActiveLegalHoldAdmissionAllowed": false,
     "derivedProjectionMayOutliveSource": false,
     "administrativelyDisposedSessionAdmissionAllowed": false,
+    "historicalArchiveRewriteAllowed": false,
     "auditVisibility": "hash_only",
     "representativeOutputAllowed": false,
     "recommendationInfluenceAllowed": false,

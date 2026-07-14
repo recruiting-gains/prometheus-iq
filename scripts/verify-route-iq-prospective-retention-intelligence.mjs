@@ -16,6 +16,10 @@ import {
   routeIqProspectiveRetentionBoundaryContractVersion,
   routeIqProspectiveRetentionPolicyVersion,
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
+import {
+  routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+  routeIqAcceptedProspectiveRetentionPolicySha256,
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = (path) => readFileSync(resolve(root, path));
@@ -40,6 +44,8 @@ const paths = Object.freeze({
     "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
   readinessReport:
     "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
+  baselineSuccessor:
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
 });
 
 function digest(label) {
@@ -86,6 +92,7 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   const readOnlyContract = readJson(paths.readOnlyContract);
   const offRouteContract = readJson(paths.offRouteContract);
   const shadowContract = readJson(paths.shadowContract);
+  const baselineSuccessor = readJson(paths.baselineSuccessor);
   const dataPolicy = loadRouteIqProspectiveRetentionPolicy();
 
   assert.equal(
@@ -96,6 +103,22 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   assert.equal(
     specification.dataOwnerLineage.exactKeySuccessorCommit,
     "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+  );
+  assert.equal(
+    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
+    "fdacf00da221ae5cc473fb57173a7940483deeb7",
+  );
+  assert.equal(
+    specification.dataOwnerLineage.coordinatorSha256,
+    sha256(read("data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs")),
+  );
+  assert.equal(
+    routeIqAcceptedIntelligenceRetentionAdmissionVersion,
+    routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+  );
+  assert.equal(
+    routeIqAcceptedProspectiveRetentionPolicySha256,
+    computeRouteIqProspectiveRetentionPolicySha256(),
   );
   assert.equal(validateRouteIqProspectiveRetentionPolicy(dataPolicy), true);
   assert.equal(
@@ -168,6 +191,69 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
     shadowContract.prospectiveRetentionAdmission.evaluationAdmissionRequired,
     true,
   );
+  assert.equal(
+    shadowContract.prospectiveRetentionAdmission.dataCoordinatorAdmissionSuccessorCommit,
+    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
+  );
+  assert.equal(
+    shadowContract.protectedDataRuntimeBaseline.sha256,
+    specification.dataOwnerLineage.coordinatorSha256,
+  );
+  assert.equal(
+    baselineSuccessor.dataOwnerTransition.commit,
+    specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
+  );
+  assert.equal(
+    baselineSuccessor.dataOwnerTransition.coordinator.currentSha256,
+    specification.dataOwnerLineage.coordinatorSha256,
+  );
+  assert.equal(
+    sha256(read(baselineSuccessor.predecessor.path)),
+    baselineSuccessor.predecessor.sha256,
+  );
+  assert.equal(
+    sha256(read(baselineSuccessor.intelligenceOwnerSynchronization.contract.path)),
+    baselineSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
+  );
+  assert.equal(
+    sha256(read(baselineSuccessor.intelligenceOwnerSynchronization.specification.path)),
+    baselineSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
+  );
+  assert.equal(baselineSuccessor.predecessor.remainsHistorical, true);
+  assert.equal(baselineSuccessor.predecessor.rewritten, false);
+  for (const field of [
+    "retentionAdmissionRequiredOnCanonicalEvaluationRecord",
+    "exactAdmissionAndSourceEvidenceKeySetsRequired",
+    "policyVersionAndSha256Pinned",
+    "coordinatorSessionSha256Bound",
+    "fieldSessionSha256Bound",
+    "sourceArchiveRawSha256Bound",
+    "outcomeAuthoritativeTimeBound",
+    "retentionValidThroughDataAdmissionRequired",
+    "disposedSessionRejected",
+  ]) {
+    assert.equal(
+      baselineSuccessor.dataOwnerTransition.semanticChanges[field],
+      true,
+      field,
+    );
+  }
+  for (const field of [
+    "intelligenceEvaluationRecordAcceptedByDataSuccessor",
+    "sourceArchiveRawSha256Present",
+    "missingRetentionAdmissionRejected",
+    "additionalRetentionFieldRejected",
+    "expiredRetentionRejected",
+    "unauthorizedRetentionRejected",
+    "unknownOrActiveLegalHoldRejected",
+    "tamperedPolicyRejected",
+    "tamperedSourceBindingRejected",
+    "disposedSessionRejected",
+    "deterministicReplayPreserved",
+    "appendOnlyEvidencePreserved",
+  ]) {
+    assert.equal(baselineSuccessor.compatibilityValidation[field], true, field);
+  }
   assert.deepEqual(
     shadowContract.administrativeDispositionAdmission.requiredExcludedDomains,
     specification.administrativeDisposition.excludedDomains,
@@ -203,6 +289,9 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
     batchId: specification.batchId,
     dataExactKeySuccessorCommit:
       specification.dataOwnerLineage.exactKeySuccessorCommit,
+    dataCoordinatorAdmissionSuccessorCommit:
+      specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
+    dataCoordinatorSha256: specification.dataOwnerLineage.coordinatorSha256,
     retentionPolicySha256:
       specification.dataOwnerLineage.retentionPolicySha256,
     consumersVerified: Object.keys(specification.consumerMatrix).length,
