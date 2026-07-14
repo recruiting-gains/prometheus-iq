@@ -308,6 +308,48 @@ export class RouteIqProspectiveShadowCoordinator extends DurableObjectBase {
     return coordinator.closeCanonicalSession({ authorityEnvelope: command.authorityEnvelope });
   }
 
+  async readCanonicalRuntimeContext(command) {
+    return this.invokeDataDomain(command, {
+      method: "readCanonicalRuntimeContext",
+      purpose: "runtime_context_read"
+    });
+  }
+
+  async recordRuntimeStageExclusion(command) {
+    return this.invokeDataDomain(command, {
+      method: "recordRuntimeStageExclusion",
+      purpose: "runtime_stage_exclusion"
+    });
+  }
+
+  async linkServerDerivedNextStopAction(command) {
+    return this.invokeDataDomain(command, {
+      method: "linkServerDerivedNextStopAction",
+      purpose: "server_action_signal"
+    });
+  }
+
+  async reconcileCommittedFieldSessionOutcomes(command) {
+    return this.invokeDataDomain(command, {
+      method: "reconcileCommittedFieldSessionOutcomes",
+      purpose: "field_session_reconciliation"
+    });
+  }
+
+  async admitIntelligenceScoreableOutcome(command) {
+    return this.invokeDataDomain(command, {
+      method: "admitIntelligenceScoreableOutcome",
+      purpose: "scoreable_outcome_admission"
+    });
+  }
+
+  async admitIntelligenceEvaluation(command) {
+    return this.invokeDataDomain(command, {
+      method: "admitIntelligenceEvaluation",
+      purpose: "evaluation_admission"
+    });
+  }
+
   async applyTrustedTrigger(command) {
     return this.invokeDataDomain(command, { method: "trigger", purpose: "trigger" });
   }

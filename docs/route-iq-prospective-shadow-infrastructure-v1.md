@@ -2,15 +2,23 @@
 
 Batch: `BATCH-20260713-004`
 
-Status: failure isolation implemented and locally verified; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed. Full workerd allocator validation is blocked by the Data-owned issue recorded under Verification.
+Status: server-side lifecycle implemented and locally verified; collection `OFF`; recommendation influence `OFF`. No push, deploy, or activation was performed.
 
 ## Ownership and dependency boundary
 
-Infrastructure wraps the Prometheus Data coordinator verified at commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, allocator successor `89e9ae46`, and Data invariant successor `9b53a21`. It does not alter Data schema or domain behavior and does not create canonical candidate context or caller-derived session/opportunity identity.
+Infrastructure wraps Prometheus Data coordinator commits `7970f240`, `968212e`, `ce9f642`, `88b8490`, `89e9ae46`, `9b53a21`, `b7896a6`, and `f4ecc7e`, plus Intelligence runtime commit `4e66667`. It does not alter Data or Intelligence schema/domain behavior and never creates caller-derived canonical identity.
 
-The browser endpoint is `/api/dashboard/route-iq/prospective/event`. While collection is `OFF`, it returns a nonblocking disabled acknowledgment before Aegis, Access/JWKS, Durable Object lookup, or storage. When explicitly enabled with a valid cohort, `next_stop_requested` calls Prometheus Data `allocateNextStopOpportunity({ event })`; Data alone derives and persists the canonical session/opportunity identity. Infrastructure discards the private allocator receipt and returns only an opaque `202 accepted` acknowledgment. `representative_action_observed` and `representative_outcome_observed` call a scope-verifying domain RPC that returns `governed_noop` without accepting a selected candidate or outcome as canonical.
+The private endpoint is `/api/dashboard/route-iq/prospective/event`. While collection is `OFF`, it returns a nonblocking disabled acknowledgment before Aegis, Access/JWKS, Durable Object lookup, asset reads, or storage. When a governed cohort is explicitly enabled, `next_stop_requested` first calls Data `allocateNextStopOpportunity({ event })`. Only after that canonical allocation succeeds does Infrastructure return an opaque `202 accepted` response and register a caught server-only lifecycle promise with `executionContext.waitUntil`.
 
-Infrastructure does not call candidate-manifest or shadow-decision APIs from the browser path. Authenticated Intelligence producers remain the only future owners of candidate and decision evidence.
+The background lifecycle:
+
+1. Calls Data `readCanonicalRuntimeContext` for the allocated scope and canonical receipt.
+2. Reads exactly the active pool, full pool, quarantine pool, and business-hours JSON artifacts through the existing `ASSETS` binding under individual and aggregate byte limits.
+3. Uses Intelligence `produceRouteIqNextStopCandidateManifest` and `buildCandidateManifestCoordinatorClaims`, applies a producer-keyed manifest envelope through Data, and does not expose the manifest.
+4. Uses Intelligence `buildSnapshotSealCoordinatorClaims` and `createImmutableAcceptedCandidateSnapshot`, then applies the keyed snapshot seal through Data.
+5. Uses Intelligence `produceShadowDecisionFromAcceptedSnapshot` and `buildShadowDecisionSealCoordinatorClaims`, then applies the keyed decision seal through Data.
+
+Every lifecycle failure is caught. Infrastructure attempts Data `recordRuntimeStageExclusion` where canonical state permits and emits only structured, non-PII telemetry. No background failure changes the representative acknowledgment.
 
 ## Binding and migration
 
@@ -19,15 +27,19 @@ Infrastructure does not call candidate-manifest or shadow-decision APIs from the
 - Additive migration: `route-iq-prospective-shadow-sqlite-v1` using `new_sqlite_classes`
 - Instance boundary: one object per authenticated workspace + operating profile + internal representative
 - Stub name: SHA-256 of only the verified internal scope mapping and routing version
-- Public Worker configuration: unchanged; no Durable Object binding or migration
+- Public Worker: unchanged and unbound
 
-The adapter implements Data's synchronous `executeSchema(sql)`, `execute(sql, bindings)`, and `transactionSync(callback)` repository shape with `ctx.storage.sql` and `ctx.storage.transactionSync`. Schema initialization runs under `blockConcurrencyWhile`. Browser allocation uses the domain-only `allocateNextStopOpportunity` RPC; trusted handoff closure uses `closeCanonicalSession`; representative observations use `noteGovernedRepresentativeSignal`. There is no generic SQL, KV, storage, or `fetch()` RPC.
+The thin repository adapter implements Data's synchronous `executeSchema(sql)`, `execute(sql, bindings)`, and `transactionSync(callback)` shape with `ctx.storage.sql`. Schema initialization is guarded by `blockConcurrencyWhile`.
 
-## Access and authority
+The DO exposes domain RPCs only: `allocateNextStopOpportunity`, `noteGovernedRepresentativeSignal`, `closeCanonicalSession`, trusted manifest/snapshot/decision adapters, `readCanonicalRuntimeContext`, `recordRuntimeStageExclusion`, `linkServerDerivedNextStopAction`, `reconcileCommittedFieldSessionOutcomes`, `admitIntelligenceScoreableOutcome`, and `admitIntelligenceEvaluation`. There is no generic SQL, KV, storage, or `fetch()` RPC.
 
-The active endpoint requires `Cf-Access-Jwt-Assertion`. `jose` verifies the RS256 signature against the configured team JWKS, exact issuer, application audience, subject, issued-at time, and expiry. Header presence without cryptographic verification is rejected. The verified Access subject is SHA-256 matched to a server-side principal map; raw subject, email, and JWT are never logged or persisted. The map resolves only to internal IDs already present in governed Data records.
+## Access, scope, and authority
 
-Required runtime settings are intentionally named but not valued in source control:
+The active endpoint requires `Cf-Access-Jwt-Assertion`. `jose` verifies an RS256 signature against the configured Cloudflare Access JWKS, exact issuer/team domain, application audience, subject, issued-at time, and expiry. Header presence alone is rejected. The verified Access subject is SHA-256 matched to a server-side governed principal map. Raw subject, email, and JWT are never logged or persisted.
+
+Each mapped principal must include an exact `territoryContext` with status `known`, internal territory ID, `sourceRecordSha256`, `sourceContractVersion`, and canonical `availableAt`. `createScopeEnvelope` binds that provenance into every Data coordinator opening. Missing, malformed, stale-shaped, or unmapped territory provenance fails closed before canonical manifest production. No PII is added.
+
+Required runtime setting names, with no values in source control:
 
 - `ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION`
 - `ROUTE_IQ_PROSPECTIVE_SHADOW_COHORT_CONFIG`
@@ -37,49 +49,52 @@ Required runtime settings are intentionally named but not valued in source contr
 - `ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY`
 - `ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY_VERSION`
 
-Missing or invalid global activation/cohort configuration is `OFF`. Once the global and cohort gates are validly `ON`, missing or invalid Access configuration, token, principal map, key, key version, binding, or scope fails closed. Collection activation is independent from recommendation influence, which remains `OFF` in every response and domain receipt.
+Missing or invalid global activation/cohort configuration is `OFF`. Once globally enabled, missing or invalid Access configuration/token/map, governed territory provenance, authority key/version, binding, or scope fails closed. Collection activation is independent of recommendation influence, which remains `OFF`.
 
-Infrastructure authority envelopes use keyed HMAC-SHA-256 through Web Crypto. The protected key is required at runtime; the key version produces a non-secret key identifier. No key value appears in source, logs, reports, or documentation. Production timestamps use `Date`; the test suite's clock and generated key material are explicitly noncanonical and never production inputs.
+Infrastructure and Intelligence producer authority envelopes use keyed HMAC-SHA-256 through Web Crypto. The protected key is required at runtime and never appears in source, logs, reports, or documentation. The key version produces a non-secret key identifier. Production timestamps use `Date`; clock and key hooks are explicit noncanonical test inputs.
 
-## Browser boundary
+## Browser and action boundary
 
-The body is limited to 2 KiB and exactly these fields:
+The body is limited to 2 KiB and exactly `eventKind`, optional bounded `informationalSequence`, and optional canonical `informationalObservedAt`. The supported kinds are `next_stop_requested`, `representative_action_observed`, and `representative_outcome_observed`.
 
-- `eventKind`: `next_stop_requested`, `representative_action_observed`, or `representative_outcome_observed`
-- `informationalSequence`: optional bounded integer
-- `informationalObservedAt`: optional canonical ISO timestamp, informational only
+Callers cannot provide workspace/profile/representative/session/opportunity/candidate IDs, authoritative timestamps, hashes, eligibility, provenance, source manifests, seals, engine/readiness fields, outcome assertions, or recommendation data. Access verification always precedes DO lookup. Stub naming never consumes browser identity, session, opportunity, sequence, or time.
 
-Unknown fields are rejected. In particular, callers cannot provide workspace/profile/representative/session/opportunity IDs, authoritative timestamps, hashes, candidate/source context, eligibility, provenance, seals, engine fields, readiness fields, or recommendation data. Access verification precedes Durable Object lookup. Stub naming never consumes request body identity, session, or opportunity values.
+At the explicit `representative_action_observed` next-stop seam, Infrastructure reads Data's canonical runtime context and calls `linkServerDerivedNextStopAction` with only the canonical runtime-context receipt, event kind, and server `Date` time. Data links the unique ordinal-one candidate only after the canonical decision seal; action before seal is a governed exclusion. The browser cannot select a candidate. The response is opaque `202 accepted`, and failure is isolated in `waitUntil`.
 
-The representative response contains only disabled, accepted, or `governed_noop` state. It does not contain coordinator/session/opportunity IDs, candidates, rankings, probability, confidence, eligibility, readiness, engine internals, seals, or recommendation details. Rotated informational sequence/time fields do not change Data's receipt for an already-open opportunity, but that receipt never crosses the representative response boundary.
+`representative_outcome_observed` remains a `governed_noop`; browser outcome assertions are never canonical. No response contains session/opportunity/candidate/shadow/readiness/seal details, and no representative-visible shadow data is stored in browser storage.
 
-## Canonical session closure
+## Committed outcome reconciliation
 
-The existing `/api/dashboard/route-iq/field-session` success path schedules prospective closure only after `consumeRouteIqEndOfDayHandoff` has persisted and returned the canonical Data handoff. The closure promise is caught and logged without scope or payload details, and is registered with `executionContext.waitUntil` when available. Success, rejection, timeout, missing key, missing binding, and `waitUntil` registration failure can never replace or delay the canonical field-session 200/201 acknowledgment. When prospective collection is `ON`, Infrastructure verifies Cloudflare Access, maps the principal to governed internal scope, and requires that scope to match the Data-normalized workspace, profile, and representative. Only then does it HMAC-sign `close_session` claims binding `end_route` or `end_day`, `route-iq-end-of-day-data-handoff-v1`, the persisted handoff `rawSha256`, and a server `Date` timestamp. Access verification precedes Durable Object lookup. Duplicate handoffs safely retry Data's idempotent `closeCanonicalSession` operation.
+After `/api/dashboard/route-iq/field-session` has successfully persisted its canonical End Route/End Day handoff, Infrastructure schedules one caught prospective task. It reads the exact committed archive from `DATA_ROUTE_IQ_FIELD_SESSION_STORE`, verifies the committed digest, and uses Data `projectCommittedRouteIqFieldSessionOutcomes` to produce the PII-free projection.
 
-When collection is `OFF`, the existing handoff behavior is unchanged and no prospective Access/DO/storage call occurs. A closure failure after a successful archive is isolated to structured Infrastructure telemetry; retrying a later duplicate handoff can safely reuse the same persisted digest. No Dashboard or Data file was modified for this integration.
+Data `reconcileCommittedFieldSessionOutcomes` requires a matching canonical `CLOSED` event. Infrastructure therefore constructs the projection first, HMAC-binds and calls idempotent `closeCanonicalSession`, then HMAC-binds and admits that exact projection through `reconcileCommittedFieldSessionOutcomes`. This owner-contract ordering preserves the archive digest and closure recovery semantics. Success, projection failure, reconciliation rejection, timeout, missing key, missing binding, and `waitUntil` registration failure never replace or delay the original field-session `200`/`201` acknowledgment.
+
+The DO already exposes `admitIntelligenceScoreableOutcome` and `admitIntelligenceEvaluation`, but Infrastructure does not call them yet. Intelligence currently lacks the pure canonical builders needed to derive those claims from admitted committed evidence. The exact Intelligence owner handback is:
+
+- Export `deriveRouteIqScoreableOutcomeFromCommittedEvidence({ projectionOutcome, reconciliationLink })`, accepting exactly one PII-free Data projection outcome and its matching reconciled link, and returning only `{ sourceOutcomeEvidenceSha256, outcomeDerivationContractVersion, observedOutcome: { status, value } }`. Status is `observed` or `missing`, an observed value is boolean, and the digest must equal the admitted link's `evidenceSha256`.
+- Export `buildRouteIqEvaluationFromAdmittedOutcome({ projectionOutcome, reconciliationLink, scoreableOutcomeAdmission })`, accepting only those canonical PII-free records and returning `{ sourceOutcomeEvidenceSha256, evaluationRecordSha256, evaluationContractVersion }`, with a deterministic canonical evaluation record bound to the same admitted evidence and scoreable outcome.
+
+Both builders must be pure, versioned Intelligence authority functions with deterministic hashes and tests. Until they exist, the lifecycle stops truthfully after PII-free reconciliation; Infrastructure does not infer success, scoreability, or evaluation.
 
 ## Budgets, privacy, and metrics
 
-Per-request and per-object controls bound browser bytes, domain command bytes, SQL statements, rows read/written, candidate/source counts, opportunities per session, events per UTC day, pending outbox entries, principals/cohorts, and database bytes. SQL cursors stop at the row budget, projection recovery processes one outbox entry, and storage uses Cloudflare's `sql.databaseSize` value. There are no unbounded Infrastructure reads.
+Controls bound browser/domain-command bytes, each source artifact (4 MiB), aggregate source artifacts (8 MiB), candidate/source counts, SQL statements, rows read/written, opportunities per session, events per UTC day, pending outbox entries, principals/cohorts, and coordinator database size. SQL cursors stop at row budgets and there are no unbounded Infrastructure reads.
 
-Structured metrics contain an outcome, HTTP status, and allowlisted event kind only. They contain no email, JWT, Access subject, internal representative ID, key material, candidate/recommendation details, or browser content. This change adds no PII category or retention period. Data stores only the allowlisted next-stop informational event alongside its server-derived allocation; representative action/outcome observations remain noncanonical no-ops and are not persisted as lifecycle evidence.
+Structured metrics contain an allowlisted event kind, outcome, status, error code, phase, and retryability only. They contain no email, JWT, Access subject, internal scope ID, key material, browser content, candidate/recommendation detail, archive content, or shadow payload. This adds no PII category or retention period.
 
 ## Cost assumptions
 
-`OFF = $0 incremental` for this subsystem: the fast path performs no JWKS request, Durable Object RPC, Durable Object compute/storage operation, Aegis KV operation, or additional bound-service call. The ordinary private Worker request remains part of the existing Worker baseline.
+`OFF = $0 incremental`: the fast path performs no JWKS request, Aegis KV call, Durable Object RPC/compute/storage operation, asset read, or added bound-service call. The ordinary private Worker request remains in the existing baseline.
 
-When later enabled, each DO RPC is billable as a Durable Object request. Current official paid-plan assumptions are 1 million requests and 400,000 GB-s included monthly, then `$0.15` per million requests and `$12.50` per million GB-s. SQLite includes 25 billion rows read, 50 million rows written, and 5 GB-month monthly, then `$0.001` per million rows read, `$1.00` per million rows written, and `$0.20` per GB-month. Free-plan daily limits are 100,000 requests, 13,000 GB-s, 5 million rows read, and 100,000 rows written, with 5 GB total storage. Pricing must be rechecked before activation against [Cloudflare Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/).
+When later enabled, each DO RPC and SQLite operation is billable under the active Cloudflare plan. Current official assumptions are the Workers Paid included allowance followed by Durable Object request/duration charges, plus SQLite rows-read, rows-written, and stored-data charges. Free-plan daily limits also apply. Pricing must be rechecked before activation against [Cloudflare Durable Objects pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/).
 
-API and configuration choices follow current Cloudflare guidance for [SQLite Durable Object storage](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/), [Durable Object migrations](https://developers.cloudflare.com/durable-objects/reference/durable-objects-migrations/), [Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/), [Workers best practices](https://developers.cloudflare.com/workers/best-practices/workers-best-practices/), and [Wrangler configuration](https://developers.cloudflare.com/workers/wrangler/configuration/).
+API/config choices follow current Cloudflare guidance for [Durable Object RPC](https://developers.cloudflare.com/durable-objects/best-practices/create-durable-object-stubs-and-send-requests/), [SQLite storage](https://developers.cloudflare.com/durable-objects/api/sqlite-storage-api/), [migrations](https://developers.cloudflare.com/durable-objects/reference/durable-objects-migrations/), [static assets bindings](https://developers.cloudflare.com/workers/static-assets/binding/), [Access JWT validation](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/), [Workers best practices](https://developers.cloudflare.com/workers/best-practices/workers-best-practices/), and [Wrangler configuration](https://developers.cloudflare.com/workers/wrangler/configuration/).
 
 ## Verification
 
-`npm run infrastructure:route-iq-prospective-shadow:check` verifies source/config invariants and runs Node plus real Miniflare SQLite DO tests. The suite covers OFF zero-call behavior, RS256 Access signature/issuer/audience/expiry validation, principal/cohort mapping, Access-before-DO order, caller authority rejection, opaque responses, action/outcome `governed_noop`, digest-bound handoff closure, unchanged canonical 200/201 handoff acknowledgments under close success/timeout/rejection/missing binding/missing key, stable scope-only routing, missing secret/config behavior, HMAC tamper rejection, concurrent allocator convergence, closure retries, cross-scope rejection, blocked generic RPC, and restart persistence.
+`npm run infrastructure:route-iq-prospective-shadow:check` runs source/config invariants and 20 Node/real-Miniflare tests. Coverage includes OFF zero-call behavior, Access signature/issuer/audience/expiry, strict territory provenance, Access-before-DO, authority rejection, opaque responses, concurrent allocation through real manifest/snapshot/decision seals, action before/after seal, source failure exclusions, archive projection/reconciliation, unchanged field-session acknowledgments under success/rejection/timeout/missing binding/missing key, HMAC tamper rejection, stable scope routing, cross-scope rejection, blocked generic RPC, and restart persistence.
 
-Release validation also requires Data coordinator tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler config validation and dry-run, secret scan, and owned-diff checks.
-
-Current owner blocker: `npm run infrastructure:route-iq-prospective-shadow:check` passes the verifier and 13 of 14 Infrastructure tests, including every field-session failure-isolation case, but the real Miniflare allocator case stops in Data commit `9b53a21` with `too many terms in compound SELECT: SQLITE_ERROR`. The failing query is Data's canonical maximum-time `UNION ALL` query; Data's Node SQLite suite passes 64 of 64, while workerd applies its SQLite execution limits. Infrastructure does not rewrite or special-case Data SQL. Data must provide a workerd-compatible query before the full Infrastructure harness can return green.
+Release validation also runs Data coordinator/field-session tests, existing Worker tests, Aegis/security checks, lint/typecheck/build, Wrangler 4.110.0 config validation and dry-run, secret scan, and owned-diff checks.
 
 ## Rollback
 

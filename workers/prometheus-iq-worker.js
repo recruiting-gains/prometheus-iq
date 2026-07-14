@@ -24,10 +24,10 @@ import {
 } from "./infrastructure/shared-lead-intake-pipeline.js";
 import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
-  closeRouteIqProspectiveSessionFromHandoff,
   getRouteIqProspectiveActivation,
   handleRouteIqProspectiveShadowRequest,
-  isRouteIqProspectiveShadowPath
+  isRouteIqProspectiveShadowPath,
+  reconcileAndCloseRouteIqProspectiveSessionFromHandoff
 } from "./infrastructure/route-iq-prospective-shadow-runtime.js";
 import {
   persistWorkspaceLeadIntakeWithProductionStore
@@ -579,7 +579,7 @@ function scheduleRouteIqProspectiveSessionClose(request, env, {
 }) {
   if (!getRouteIqProspectiveActivation(env).active) return null;
   const closePromise = Promise.resolve()
-    .then(() => closeRouteIqProspectiveSessionFromHandoff(request, env, {
+    .then(() => reconcileAndCloseRouteIqProspectiveSessionFromHandoff(request, env, {
       completionAction,
       handoffResult,
       noncanonicalTestHooks: prospectiveTestHooks
@@ -717,7 +717,9 @@ async function handleApiRequest(request, env, executionContext) {
   if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) {
     return handleRouteIqFieldSessionHandoff(request, env, { executionContext });
   }
-  if (isRouteIqProspectiveShadowPath(url.pathname)) return handleRouteIqProspectiveShadowRequest(request, env);
+  if (isRouteIqProspectiveShadowPath(url.pathname)) {
+    return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
+  }
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
@@ -727,7 +729,7 @@ export default {
     try {
       if (isRouteIqProspectiveShadowPath(url.pathname)
         && !getRouteIqProspectiveActivation(env).active) {
-        return handleRouteIqProspectiveShadowRequest(request, env);
+        return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
       }
       if (url.pathname.startsWith("/api/")) {
         const aegis = await enforceAegisControls(request, env);

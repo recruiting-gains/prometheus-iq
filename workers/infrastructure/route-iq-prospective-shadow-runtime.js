@@ -1,5 +1,10 @@
 import { AEGIS_API_HEADERS } from "./aegis-security-controls.js";
 import {
+  projectCommittedRouteIqFieldSessionOutcomes,
+  readRouteIqFieldSessionArchive
+} from "../../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+import {
+  ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS,
   ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
@@ -20,6 +25,11 @@ import {
 import {
   createRouteIqProspectiveAuthorityEnvelope
 } from "./route-iq-prospective-shadow-authority.js";
+import {
+  linkRouteIqProspectiveServerAction,
+  orchestrateRouteIqProspectiveNextStop,
+  recordRouteIqProspectiveStageFailure
+} from "./route-iq-prospective-shadow-orchestration.js";
 
 function jsonResponse(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
@@ -143,7 +153,8 @@ async function createScopeEnvelope(scope, env, noncanonicalTestHooks) {
     operatingProfileId: scope.operatingProfileId,
     representativeId: scope.representativeId,
     registryVersion: scope.registryVersion,
-    issuedAt: runtimeNow(noncanonicalTestHooks)
+    issuedAt: runtimeNow(noncanonicalTestHooks),
+    territoryContext: scope.territoryContext
   }, env);
 }
 
@@ -187,7 +198,48 @@ function safeErrorResponse(error) {
   }, status);
 }
 
-export async function handleRouteIqProspectiveShadowRequest(request, env, { noncanonicalTestHooks } = {}) {
+function backgroundErrorCode(error) {
+  return typeof error?.code === "string" && /^route_iq_[a-z0-9_]+$/u.test(error.code)
+    ? error.code
+    : "route_iq_prospective_background_failed";
+}
+
+function scheduleBackgroundWork(executionContext, work, eventKind) {
+  const caught = Promise.resolve()
+    .then(() => work)
+    .catch(error => {
+      const status = Number.isInteger(error?.status) ? error.status : 500;
+      console.error(JSON.stringify({
+        message: "Route IQ prospective background lifecycle failed.",
+        metric: "route_iq_prospective_background_failure",
+        eventKind,
+        code: backgroundErrorCode(error),
+        status,
+        retryable: status === 429 || status >= 500
+      }));
+      return { status: "failure_isolated" };
+    });
+  if (typeof executionContext?.waitUntil === "function") {
+    try {
+      executionContext.waitUntil(caught);
+    } catch (error) {
+      console.error(JSON.stringify({
+        message: "Route IQ prospective background registration failed.",
+        metric: "route_iq_prospective_background_failure",
+        eventKind,
+        code: backgroundErrorCode(error),
+        status: 500,
+        retryable: true
+      }));
+    }
+  }
+  return caught;
+}
+
+export async function handleRouteIqProspectiveShadowRequest(request, env, {
+  executionContext,
+  noncanonicalTestHooks
+} = {}) {
   const activation = getRouteIqProspectiveActivation(env);
   if (!activation.active) return routeIqProspectiveShadowDisabledResponse();
 
@@ -217,9 +269,29 @@ export async function handleRouteIqProspectiveShadowRequest(request, env, { nonc
     const scopeEnvelope = await createScopeEnvelope(scope, env, noncanonicalTestHooks);
     const stub = await coordinatorStubForScope(scope, env);
     if (event.eventKind === "next_stop_requested") {
-      await stub.allocateNextStopOpportunity({ scopeEnvelope, event });
+      const allocationReceipt = await stub.allocateNextStopOpportunity({ scopeEnvelope, event });
+      scheduleBackgroundWork(executionContext, orchestrateRouteIqProspectiveNextStop({
+        stub,
+        scopeEnvelope,
+        scope,
+        allocationReceipt,
+        assetOrigin: request.url,
+        env
+      }), event.eventKind);
       recordMetric("allocated", 202, event.eventKind);
       return jsonResponse(ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT, 202);
+    }
+    if (event.eventKind === "representative_action_observed") {
+      scheduleBackgroundWork(executionContext, linkRouteIqProspectiveServerAction({
+        stub,
+        scopeEnvelope,
+        scope,
+        eventKind: event.eventKind,
+        authoritativeRecordTime: runtimeNow(noncanonicalTestHooks),
+        env
+      }), event.eventKind);
+      recordMetric("action_scheduled", 202, event.eventKind);
+      return jsonResponse(ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT, 202);
     }
     await stub.noteGovernedRepresentativeSignal({ scopeEnvelope, event });
     recordMetric("governed_noop", 202, event.eventKind);
@@ -248,8 +320,53 @@ function validateCanonicalHandoffResult(handoffResult) {
     workspaceId: normalized.workspaceId,
     operatingProfileId: normalized.operatingProfileId,
     representativeId: normalized.verifiedFields.representative.id,
+    sessionId: handoffResult.sessionId,
     endOfDayHandoffSha256: handoffResult.rawSha256
   };
+}
+
+async function authenticatedHandoffCoordinator(request, env, activation, handoffResult, noncanonicalTestHooks) {
+  const canonicalHandoff = validateCanonicalHandoffResult(handoffResult);
+  const scope = await verifyRouteIqProspectiveAccess(request, env, {
+    cohortConfig: activation.cohortConfig,
+    noncanonicalTestHooks
+  });
+  if (scope.workspaceId !== canonicalHandoff.workspaceId
+    || scope.operatingProfileId !== canonicalHandoff.operatingProfileId
+    || scope.representativeId !== canonicalHandoff.representativeId) {
+    failRouteIqProspective(
+      "Authenticated scope does not own the canonical field-session handoff.",
+      "route_iq_prospective_handoff_scope_mismatch",
+      403
+    );
+  }
+  const scopeEnvelope = await createScopeEnvelope(scope, env, noncanonicalTestHooks);
+  const stub = await coordinatorStubForScope(scope, env);
+  return { canonicalHandoff, scope, scopeEnvelope, stub };
+}
+
+async function closeAuthenticatedHandoff({
+  completionAction,
+  canonicalHandoff,
+  scope,
+  scopeEnvelope,
+  stub,
+  env,
+  authoritativeRecordTime
+}) {
+  const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "close_session",
+    workspaceId: scope.workspaceId,
+    operatingProfileId: scope.operatingProfileId,
+    representativeId: scope.representativeId,
+    closeReason: completionAction,
+    handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+    endOfDayHandoffSha256: canonicalHandoff.endOfDayHandoffSha256,
+    authoritativeRecordTime
+  }, env);
+  const result = await stub.closeCanonicalSession({ scopeEnvelope, authorityEnvelope });
+  recordMetric("session_closed", 200);
+  return result;
 }
 
 export async function closeRouteIqProspectiveSessionFromHandoff(request, env, {
@@ -267,37 +384,118 @@ export async function closeRouteIqProspectiveSessionFromHandoff(request, env, {
     );
   }
 
-  const canonicalHandoff = validateCanonicalHandoffResult(handoffResult);
-  const scope = await verifyRouteIqProspectiveAccess(request, env, {
-    cohortConfig: activation.cohortConfig,
+  const authoritativeRecordTime = runtimeNow(noncanonicalTestHooks);
+  const authenticated = await authenticatedHandoffCoordinator(
+    request,
+    env,
+    activation,
+    handoffResult,
     noncanonicalTestHooks
+  );
+  return closeAuthenticatedHandoff({
+    completionAction,
+    ...authenticated,
+    env,
+    authoritativeRecordTime
   });
-  if (scope.workspaceId !== canonicalHandoff.workspaceId
-    || scope.operatingProfileId !== canonicalHandoff.operatingProfileId
-    || scope.representativeId !== canonicalHandoff.representativeId) {
+}
+
+export async function reconcileAndCloseRouteIqProspectiveSessionFromHandoff(request, env, {
+  completionAction,
+  handoffResult,
+  noncanonicalTestHooks
+} = {}) {
+  const activation = getRouteIqProspectiveActivation(env);
+  if (!activation.active) return { status: "disabled" };
+  if (!["end_route", "end_day"].includes(completionAction)) {
     failRouteIqProspective(
-      "Authenticated scope does not own the canonical field-session handoff.",
-      "route_iq_prospective_handoff_scope_mismatch",
-      403
+      "Prospective session close reason is invalid.",
+      "route_iq_prospective_close_reason_invalid",
+      400
     );
   }
-
-  const authoritativeRecordTime = runtimeNow(noncanonicalTestHooks);
-  const scopeEnvelope = await createScopeEnvelope(scope, env, noncanonicalTestHooks);
-  const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
-    purpose: "close_session",
-    workspaceId: scope.workspaceId,
-    operatingProfileId: scope.operatingProfileId,
-    representativeId: scope.representativeId,
-    closeReason: completionAction,
-    handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
-    endOfDayHandoffSha256: canonicalHandoff.endOfDayHandoffSha256,
-    authoritativeRecordTime
-  }, env);
-  const stub = await coordinatorStubForScope(scope, env);
-  const result = await stub.closeCanonicalSession({ scopeEnvelope, authorityEnvelope });
-  recordMetric("session_closed", 200);
-  return result;
+  const authenticated = await authenticatedHandoffCoordinator(
+    request,
+    env,
+    activation,
+    handoffResult,
+    noncanonicalTestHooks
+  );
+  const reconciliationTime = runtimeNow(noncanonicalTestHooks);
+  let projection = null;
+  try {
+    const archived = await readRouteIqFieldSessionArchive({
+      workspaceId: authenticated.scope.workspaceId,
+      operatingProfileId: authenticated.scope.operatingProfileId,
+      sessionId: authenticated.canonicalHandoff.sessionId
+    }, { env });
+    if (!archived.found || archived.record?.commit?.rawSha256 !== authenticated.canonicalHandoff.endOfDayHandoffSha256) {
+      failRouteIqProspective(
+        "Committed field-session archive is unavailable for prospective reconciliation.",
+        "route_iq_prospective_handoff_archive_missing",
+        409
+      );
+    }
+    projection = projectCommittedRouteIqFieldSessionOutcomes({
+      workspaceId: authenticated.scope.workspaceId,
+      operatingProfileId: authenticated.scope.operatingProfileId,
+      representativeId: authenticated.scope.representativeId,
+      archiveRecord: archived.record
+    });
+  } catch (error) {
+    await recordRouteIqProspectiveStageFailure({
+      stub: authenticated.stub,
+      scopeEnvelope: authenticated.scopeEnvelope,
+      scope: authenticated.scope,
+      env,
+      stage: "outcome_reconciliation",
+      authoritativeRecordTime: reconciliationTime
+    }, error);
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    console.error(JSON.stringify({
+      message: "Route IQ prospective field-session reconciliation failed.",
+      metric: "route_iq_prospective_background_failure",
+      eventKind: "field_session_handoff",
+      code: backgroundErrorCode(error),
+      status,
+      retryable: status === 429 || status >= 500
+    }));
+  }
+  const closeResult = await closeAuthenticatedHandoff({
+    completionAction,
+    ...authenticated,
+    env,
+    authoritativeRecordTime: runtimeNow(noncanonicalTestHooks)
+  });
+  if (!projection) return closeResult;
+  try {
+    const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+      purpose: "field_session_reconciliation",
+      workspaceId: authenticated.scope.workspaceId,
+      operatingProfileId: authenticated.scope.operatingProfileId,
+      representativeId: authenticated.scope.representativeId,
+      authoritativeRecordTime: runtimeNow(noncanonicalTestHooks),
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    }, env);
+    await authenticated.stub.reconcileCommittedFieldSessionOutcomes({
+      scopeEnvelope: authenticated.scopeEnvelope,
+      input: { authorityEnvelope, projection }
+    });
+    recordMetric("field_session_reconciled", 200);
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    console.error(JSON.stringify({
+      message: "Route IQ prospective field-session reconciliation failed after canonical close.",
+      metric: "route_iq_prospective_background_failure",
+      eventKind: "field_session_handoff",
+      code: backgroundErrorCode(error),
+      status,
+      retryable: status === 429 || status >= 500
+    }));
+  }
+  return closeResult;
 }
 
 export {

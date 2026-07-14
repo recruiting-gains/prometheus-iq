@@ -5,7 +5,17 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const batchId = "BATCH-20260713-004";
-const dataCommits = Object.freeze(["7970f240", "968212e", "ce9f642", "88b8490", "89e9ae46", "9b53a21"]);
+const dataCommits = Object.freeze([
+  "7970f240",
+  "968212e",
+  "ce9f642",
+  "88b8490",
+  "89e9ae46",
+  "9b53a21",
+  "b7896a6",
+  "f4ecc7e"
+]);
+const intelligenceCommits = Object.freeze(["4e66667"]);
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -21,6 +31,7 @@ const paths = Object.freeze({
   access: "workers/infrastructure/route-iq-prospective-shadow-access.js",
   authority: "workers/infrastructure/route-iq-prospective-shadow-authority.js",
   durableObject: "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
+  orchestration: "workers/infrastructure/route-iq-prospective-shadow-orchestration.js",
   runtime: "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
   privateConfig: "wrangler.jsonc",
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
@@ -37,6 +48,7 @@ const contract = read(paths.contract);
 const access = read(paths.access);
 const authority = read(paths.authority);
 const durableObject = read(paths.durableObject);
+const orchestration = read(paths.orchestration);
 const runtime = read(paths.runtime);
 const privateConfig = read(paths.privateConfig);
 const publicConfig = read(paths.publicConfig);
@@ -45,6 +57,10 @@ const documentation = read(paths.documentation);
 const packageJson = JSON.parse(read("package.json"));
 
 for (const commit of dataCommits) {
+  git("rev-parse", "--verify", `${commit}^{commit}`);
+  execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"], { cwd: root });
+}
+for (const commit of intelligenceCommits) {
   git("rev-parse", "--verify", `${commit}^{commit}`);
   execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"], { cwd: root });
 }
@@ -66,11 +82,11 @@ assert.match(
   worker,
   /const result = await consumeRouteIqEndOfDayHandoff[\s\S]+scheduleRouteIqProspectiveSessionClose/u
 );
-assert.doesNotMatch(worker, /await closeRouteIqProspectiveSessionFromHandoff/u);
+assert.doesNotMatch(worker, /await reconcileAndCloseRouteIqProspectiveSessionFromHandoff/u);
 assert.match(worker, /executionContext\.waitUntil\(closePromise\)/u);
 assert.match(worker, /async fetch\(request, env, executionContext\)/u);
 assert.match(worker, /handleApiRequest\(request, env, executionContext\)/u);
-assert.match(worker, /closeRouteIqProspectiveSessionFromHandoff[\s\S]+\.catch\(error =>/u);
+assert.match(worker, /reconcileAndCloseRouteIqProspectiveSessionFromHandoff[\s\S]+\.catch\(error =>/u);
 assert.match(worker, /route_iq_prospective_session_close_failure/u);
 
 for (const required of [
@@ -82,7 +98,11 @@ for (const required of [
   "issuer",
   "audience",
   "accessSubjectSha256",
-  "supportedFieldSessionWorkspaces"
+  "supportedFieldSessionWorkspaces",
+  "territoryContext",
+  "sourceRecordSha256",
+  "sourceContractVersion",
+  "availableAt"
 ]) {
   assert.ok(access.includes(required), `Access control must include ${required}`);
 }
@@ -111,6 +131,14 @@ for (const required of [
   "closeCanonicalSession",
   "applyTrustedTrigger",
   "applyTrustedCandidateManifest",
+  "applyTrustedSnapshotSeal",
+  "applyTrustedShadowDecisionSeal",
+  "readCanonicalRuntimeContext",
+  "recordRuntimeStageExclusion",
+  "linkServerDerivedNextStopAction",
+  "reconcileCommittedFieldSessionOutcomes",
+  "admitIntelligenceScoreableOutcome",
+  "admitIntelligenceEvaluation",
   "recoverNextProjection",
   "readCommittedProjectionAsOf"
 ]) {
@@ -146,8 +174,29 @@ assert.match(
 assert.match(runtime, /await stub\.allocateNextStopOpportunity/u);
 assert.match(runtime, /await stub\.noteGovernedRepresentativeSignal/u);
 assert.match(runtime, /await stub\.closeCanonicalSession/u);
-assert.doesNotMatch(runtime, /applyTrustedCandidateManifest|applyTrustedShadowDecision/u);
-assert.doesNotMatch(runtime, /localStorage|sessionStorage|indexedDB/u);
+assert.match(runtime, /executionContext\.waitUntil\(caught\)/u);
+assert.match(runtime, /readRouteIqFieldSessionArchive/u);
+assert.match(runtime, /projectCommittedRouteIqFieldSessionOutcomes/u);
+assert.match(runtime, /reconcileCommittedFieldSessionOutcomes/u);
+
+for (const required of [
+  "env.ASSETS.fetch",
+  "produceRouteIqNextStopCandidateManifest",
+  "buildCandidateManifestCoordinatorClaims",
+  "applyTrustedCandidateManifest",
+  "buildSnapshotSealCoordinatorClaims",
+  "applyTrustedSnapshotSeal",
+  "createImmutableAcceptedCandidateSnapshot",
+  "produceShadowDecisionFromAcceptedSnapshot",
+  "buildShadowDecisionSealCoordinatorClaims",
+  "applyTrustedShadowDecisionSeal",
+  "readCanonicalRuntimeContext",
+  "recordRuntimeStageExclusion",
+  "linkServerDerivedNextStopAction"
+]) {
+  assert.ok(orchestration.includes(required), `Server orchestration must include ${required}`);
+}
+assert.doesNotMatch(`${runtime}\n${orchestration}`, /localStorage|sessionStorage|indexedDB/u);
 
 for (const budget of [
   "browserBodyBytes",
@@ -159,6 +208,8 @@ for (const budget of [
   "rowsReadPerRpc",
   "rowsWrittenPerRpc",
   "sourceCount",
+  "sourceArtifactBytes",
+  "sourceArtifactTotalBytes",
   "sqlStatementsPerRpc",
   "storageBytesPerCoordinator"
 ]) {
@@ -182,6 +233,11 @@ for (const required of [
   "HMAC-SHA-256",
   "Prometheus Data",
   "allocateNextStopOpportunity",
+  "readCanonicalRuntimeContext",
+  "linkServerDerivedNextStopAction",
+  "reconcileCommittedFieldSessionOutcomes",
+  "admitIntelligenceScoreableOutcome",
+  "admitIntelligenceEvaluation",
   "closeCanonicalSession",
   "governed_noop",
   "forward-revert",
@@ -195,6 +251,7 @@ console.log(JSON.stringify({
   status: "passed",
   batchId,
   dataCommits,
+  intelligenceCommits,
   binding: "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
   className: "RouteIqProspectiveShadowCoordinator",
   migration: "route-iq-prospective-shadow-sqlite-v1",
@@ -202,5 +259,8 @@ console.log(JSON.stringify({
   collectionDefault: "OFF",
   recommendationInfluence: "OFF",
   allocatorIntegration: "allocateNextStopOpportunity",
+  intelligenceLifecycle: "manifest_snapshot_shadow_decision_sealed",
+  actionIntegration: "linkServerDerivedNextStopAction",
+  outcomeIntegration: "reconcileCommittedFieldSessionOutcomes",
   sessionClosureIntegration: "closeCanonicalSession"
 }, null, 2));

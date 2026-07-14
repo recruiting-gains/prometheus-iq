@@ -5,6 +5,7 @@ import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS,
   ROUTE_IQ_PROSPECTIVE_SHADOW_ENV,
   assertExactKeys,
+  canonicalIsoTimestamp,
   failRouteIqProspective,
   requireBoundedString,
   requireSha256,
@@ -50,6 +51,38 @@ function validateGovernedScope(scope, path, allowedKeys) {
     failRouteIqProspective("Access identity maps outside governed server records.", "route_iq_prospective_access_scope_invalid", 403);
   }
   return { workspaceId, operatingProfileId, representativeId };
+}
+
+function validateTerritoryContext(value, path) {
+  assertExactKeys(value, [
+    "status",
+    "territoryId",
+    "sourceRecordSha256",
+    "sourceContractVersion",
+    "availableAt"
+  ], path);
+  if (value.status !== "known") {
+    failRouteIqProspective("Territory context must be canonically known.", "route_iq_prospective_territory_config_invalid", 403, { path });
+  }
+  const territoryId = requireBoundedString(value.territoryId, `${path}.territoryId`, {
+    min: 78,
+    max: 78,
+    pattern: /^riq_territory_[a-f0-9]{64}$/u
+  });
+  const sourceRecordSha256 = requireSha256(value.sourceRecordSha256, `${path}.sourceRecordSha256`);
+  const sourceContractVersion = requireBoundedString(value.sourceContractVersion, `${path}.sourceContractVersion`, {
+    min: 2,
+    max: 96,
+    pattern: /^[a-z0-9][a-z0-9._-]+$/u
+  });
+  const availableAt = canonicalIsoTimestamp(value.availableAt, `${path}.availableAt`, { status: 403 });
+  return Object.freeze({
+    status: "known",
+    territoryId,
+    sourceRecordSha256,
+    sourceContractVersion,
+    availableAt
+  });
 }
 
 function parseCohortConfig(value) {
@@ -188,18 +221,20 @@ function parsePrincipalMap(value) {
       "workspaceId",
       "operatingProfileId",
       "representativeId",
-      "registryVersion"
+      "registryVersion",
+      "territoryContext"
     ]);
     const accessSubjectSha256 = requireSha256(entry.accessSubjectSha256, `${path}.accessSubjectSha256`);
     const registryVersion = requireBoundedString(entry.registryVersion, `${path}.registryVersion`, {
       max: 96,
       pattern: /^[A-Za-z0-9][A-Za-z0-9._-]+$/u
     });
+    const territoryContext = validateTerritoryContext(entry.territoryContext, `${path}.territoryContext`);
     if (subjects.has(accessSubjectSha256)) {
       failRouteIqProspective("Principal map contains a duplicate identity.", "route_iq_prospective_principal_map_invalid", 403);
     }
     subjects.add(accessSubjectSha256);
-    return Object.freeze({ accessSubjectSha256, registryVersion, ...scope });
+    return Object.freeze({ accessSubjectSha256, registryVersion, territoryContext, ...scope });
   });
 }
 
@@ -224,7 +259,8 @@ export async function verifyRouteIqProspectiveAccess(request, env, {
     workspaceId: mapping.workspaceId,
     operatingProfileId: mapping.operatingProfileId,
     representativeId: mapping.representativeId,
-    registryVersion: mapping.registryVersion
+    registryVersion: mapping.registryVersion,
+    territoryContext: mapping.territoryContext
   });
   if (!cohortConfig || !scopeInCohort(scope, cohortConfig)) {
     failRouteIqProspective("Mapped principal is outside the enabled cohort.", "route_iq_prospective_cohort_scope_blocked", 403);

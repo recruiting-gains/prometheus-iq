@@ -24,6 +24,8 @@ export const ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS = Object.freeze({
   principals: 64,
   rowsReadPerRpc: 2048,
   rowsWrittenPerRpc: 256,
+  sourceArtifactBytes: 4 * 1024 * 1024,
+  sourceArtifactTotalBytes: 8 * 1024 * 1024,
   sourceCount: 128,
   sqlStatementsPerRpc: 256,
   storageBytesPerCoordinator: 32 * 1024 * 1024
@@ -36,6 +38,14 @@ export const ROUTE_IQ_PROSPECTIVE_BROWSER_EVENT_KINDS = Object.freeze([
 ]);
 
 export const ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT = Object.freeze({
+  ok: true,
+  acknowledged: true,
+  status: "accepted",
+  collection: "ON",
+  recommendationInfluence: "OFF"
+});
+
+export const ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT = Object.freeze({
   ok: true,
   acknowledged: true,
   status: "accepted",

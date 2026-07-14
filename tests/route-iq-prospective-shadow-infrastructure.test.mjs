@@ -15,6 +15,10 @@ import worker, {
   handleRouteIqFieldSessionHandoff
 } from "../workers/prometheus-iq-worker.js";
 import {
+  consumeRouteIqEndOfDayHandoff,
+  deriveRouteIqCandidateIdFromGooglePlaceId,
+  projectCommittedRouteIqFieldSessionOutcomes,
+  readRouteIqFieldSessionArchive,
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionStoreBinding
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
@@ -27,6 +31,7 @@ import {
   createRouteIqProspectiveAuthorityVerifier
 } from "../workers/infrastructure/route-iq-prospective-shadow-authority.js";
 import {
+  ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT,
   ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
@@ -39,6 +44,10 @@ import {
   closeRouteIqProspectiveSessionFromHandoff,
   handleRouteIqProspectiveShadowRequest
 } from "../workers/infrastructure/route-iq-prospective-shadow-runtime.js";
+import {
+  linkRouteIqProspectiveServerAction,
+  orchestrateRouteIqProspectiveNextStop
+} from "../workers/infrastructure/route-iq-prospective-shadow-orchestration.js";
 
 const root = resolve(import.meta.dirname, "..");
 const testNow = new Date("2026-07-13T20:00:00.000Z");
@@ -72,13 +81,24 @@ function cohortConfig(representativeId = "cruz") {
   });
 }
 
+function territoryContext(representativeId = "cruz") {
+  return {
+    status: "known",
+    territoryId: `riq_territory_${digest(`territory:${representativeId}`)}`,
+    sourceRecordSha256: digest(`territory-source:${representativeId}`),
+    sourceContractVersion: "route-iq-trusted-territory-context-v1",
+    availableAt: "2026-07-12T18:00:00.000Z"
+  };
+}
+
 async function principalMap(subject, representativeId = "cruz") {
   return JSON.stringify({
     version: routeIqProspectivePrincipalMapVersion,
     principals: [{
       accessSubjectSha256: await sha256Hex(subject),
       ...scope(representativeId),
-      registryVersion: "noncanonical-test-registry-v1"
+      registryVersion: "noncanonical-test-registry-v1",
+      territoryContext: territoryContext(representativeId)
     }]
   });
 }
@@ -88,7 +108,8 @@ async function accessFixture({
   cohortRepresentativeId = "cruz",
   expired = false,
   tokenAudience = accessAudience,
-  closeImplementation = null
+  closeImplementation = null,
+  reconciliationImplementation = null
 } = {}) {
   const subject = randomUUID();
   const publicJwk = await exportJWK(accessKeys.publicKey);
@@ -106,6 +127,36 @@ async function accessFixture({
   const names = [];
   const calls = [];
   const commands = [];
+  const opportunityId = `riq_opportunity_${digest("private-opportunity")}`;
+  const canonicalContext = {
+    territoryId: territoryContext(mappedRepresentativeId).territoryId,
+    canonicalSessionRecordSha256: digest("private-session-record"),
+    sessionEventSequence: 0,
+    opportunityEventSequence: 0,
+    triggerRecordSha256: digest("private-trigger-record"),
+    canonicalEventBoundarySha256: digest("private-trigger-boundary")
+  };
+  let runtimeState = "TRIGGERED";
+  const runtimeContext = () => {
+    const body = {
+      runtimeContextContractVersion: "route-iq-prospective-runtime-context-v1",
+      authority: "sqlite_durable_object_coordinator",
+      coordinatorId: `riq_coordinator_${digest("private-coordinator")}`,
+      scope: scope(mappedRepresentativeId),
+      opportunityId,
+      opportunityType: "next_stop",
+      state: runtimeState,
+      canonicalContext,
+      completedCandidateIds: [],
+      territorySource: territoryContext(mappedRepresentativeId),
+      candidateCompletenessStatus: runtimeState === "TRIGGERED"
+        ? "pending_authenticated_intelligence_manifest"
+        : "authenticated_intelligence_manifest_present",
+      recommendationInfluence: "off",
+      collectionDefault: "off"
+    };
+    return { ...body, runtimeContextReceiptSha256: digest(JSON.stringify(body)) };
+  };
   const env = {
     ...authorityEnv(),
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.collection]: "ON",
@@ -113,6 +164,7 @@ async function accessFixture({
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.accessTeamDomain]: testIssuer,
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.accessAudience]: accessAudience,
     [ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.principalMap]: await principalMap(subject, mappedRepresentativeId),
+    ASSETS: fieldSessionAssets(),
     [ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING]: {
       getByName(name) {
         calls.push("do_lookup");
@@ -125,9 +177,87 @@ async function accessFixture({
             return {
               status: "recorded",
               sessionId: `riq_session_${digest("private-session")}`,
-              opportunityId: `riq_opportunity_${digest("private-opportunity")}`,
-              candidateCompletenessStatus: "pending_authenticated_intelligence_manifest"
+              opportunityId,
+              operationKind: "server_allocate_next_stop",
+              authoritativeRecordTime: testNow.toISOString(),
+              candidateCompletenessStatus: "pending_authenticated_intelligence_manifest",
+              canonicalContext
             };
+          },
+          async readCanonicalRuntimeContext(command) {
+            calls.push("runtime_context_rpc");
+            commands.push(command);
+            return runtimeContext();
+          },
+          async recordRuntimeStageExclusion(command) {
+            calls.push("runtime_exclusion_rpc");
+            commands.push(command);
+            runtimeState = "EXCLUDED";
+            return { status: "excluded", state: "EXCLUDED" };
+          },
+          async applyTrustedCandidateManifest(command) {
+            calls.push("candidate_manifest_rpc");
+            commands.push(command);
+            const claims = command.input.producerEnvelope.claims;
+            runtimeState = "SNAPSHOT_PENDING_SEAL";
+            return {
+              coordinatorContractVersion: "route-iq-prospective-coordinator-contract-v1",
+              operationKind: "candidate_manifest",
+              state: runtimeState,
+              opportunityId,
+              artifactId: `riq_snapshot_${digest("private-snapshot")}`,
+              recordSha256: digest("private-snapshot-record"),
+              authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime,
+              candidateManifestSha256: claims.candidateManifestSha256,
+              completeManifestSha256: claims.completeManifestSha256,
+              recommendationInfluence: "off",
+              collectionDefault: "off"
+            };
+          },
+          async applyTrustedSnapshotSeal(command) {
+            calls.push("snapshot_seal_rpc");
+            commands.push(command);
+            runtimeState = "SNAPSHOT_SEALED";
+            return {
+              coordinatorContractVersion: "route-iq-prospective-coordinator-contract-v1",
+              operationKind: "snapshot_seal",
+              state: runtimeState,
+              opportunityId,
+              artifactId: `riq_snapshot_seal_${digest("private-snapshot-seal")}`,
+              recordSha256: digest("private-snapshot-seal-record"),
+              authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime,
+              keyedSealVerified: true,
+              recommendationInfluence: "off",
+              collectionDefault: "off"
+            };
+          },
+          async applyTrustedShadowDecisionSeal(command) {
+            calls.push("shadow_decision_seal_rpc");
+            commands.push(command);
+            runtimeState = "SHADOW_DECISION_SEALED";
+            return {
+              coordinatorContractVersion: "route-iq-prospective-coordinator-contract-v1",
+              operationKind: "shadow_decision_seal",
+              state: runtimeState,
+              opportunityId,
+              artifactId: `riq_seal_${digest("private-shadow-seal")}`,
+              recordSha256: digest("private-shadow-seal-record"),
+              authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime,
+              recommendationInfluence: "off",
+              collectionDefault: "off"
+            };
+          },
+          async linkServerDerivedNextStopAction(command) {
+            calls.push("server_action_rpc");
+            commands.push(command);
+            runtimeState = "ACTION_LINKED";
+            return { status: "recorded", state: runtimeState };
+          },
+          async reconcileCommittedFieldSessionOutcomes(command) {
+            calls.push("field_session_reconciliation_rpc");
+            commands.push(command);
+            if (reconciliationImplementation) return reconciliationImplementation(command);
+            return { status: "reconciled", linked: [], exclusions: [] };
           },
           async noteGovernedRepresentativeSignal(command) {
             calls.push("governed_noop_rpc");
@@ -176,6 +306,7 @@ function eventRequest(body, token = null, headers = {}) {
 function canonicalHandoff(representativeId = "cruz") {
   return {
     handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+    sessionId: `route-iq-field-session-fitness-connection-fitness-${representativeId}-2026-07-11`,
     rawSha256: digest(`canonical-handoff-${representativeId}`),
     normalizedRecord: {
       handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
@@ -327,6 +458,16 @@ test("private config owns one SQLite class migration and public config remains u
   assert.ok(rpcNames.includes("allocateNextStopOpportunity"));
   assert.ok(rpcNames.includes("noteGovernedRepresentativeSignal"));
   assert.ok(rpcNames.includes("closeCanonicalSession"));
+  for (const method of [
+    "readCanonicalRuntimeContext",
+    "recordRuntimeStageExclusion",
+    "linkServerDerivedNextStopAction",
+    "reconcileCommittedFieldSessionOutcomes",
+    "admitIntelligenceScoreableOutcome",
+    "admitIntelligenceEvaluation"
+  ]) {
+    assert.ok(rpcNames.includes(method), method);
+  }
   assert.ok(rpcNames.includes("applyTrustedTrigger"));
   assert.ok(rpcNames.includes("readCommittedProjectionAsOf"));
 });
@@ -374,28 +515,43 @@ test("OFF and invalid activation acknowledge without Access, Aegis, JWKS, DO, or
 
 test("valid Access precedes scope-only allocation and returns only opaque acknowledgments", async () => {
   const fixture = await accessFixture();
+  const allocationContext = executionContextFixture();
   const first = await handleRouteIqProspectiveShadowRequest(
     eventRequest({ eventKind: "next_stop_requested", informationalSequence: 9 }, fixture.token),
     fixture.env,
-    { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+    {
+      executionContext: allocationContext,
+      noncanonicalTestHooks: fixture.noncanonicalTestHooks
+    }
   );
   const firstBody = await first.json();
   assert.equal(first.status, 202);
   assert.deepEqual(firstBody, ROUTE_IQ_PROSPECTIVE_ALLOCATOR_ACKNOWLEDGMENT);
   assert.ok(fixture.calls.indexOf("access_signature") < fixture.calls.indexOf("do_lookup"));
   assert.equal(fixture.calls.includes("allocator_rpc"), true);
+  assert.equal(allocationContext.promises.length, 1);
+  assert.deepEqual(await allocationContext.promises[0], { status: "shadow_decision_sealed" });
+  for (const call of ["runtime_context_rpc", "candidate_manifest_rpc", "snapshot_seal_rpc", "shadow_decision_seal_rpc"]) {
+    assert.equal(fixture.calls.includes(call), true, call);
+  }
 
+  const actionContext = executionContextFixture();
   const second = await handleRouteIqProspectiveShadowRequest(
     eventRequest({
       eventKind: "representative_action_observed",
       informationalObservedAt: "2026-07-13T19:59:59.000Z"
     }, fixture.token),
     fixture.env,
-    { noncanonicalTestHooks: fixture.noncanonicalTestHooks }
+    {
+      executionContext: actionContext,
+      noncanonicalTestHooks: fixture.noncanonicalTestHooks
+    }
   );
   assert.equal(second.status, 202);
-  assert.deepEqual(await second.json(), ROUTE_IQ_PROSPECTIVE_GOVERNED_NOOP_ACKNOWLEDGMENT);
-  assert.equal(fixture.calls.includes("governed_noop_rpc"), true);
+  assert.deepEqual(await second.json(), ROUTE_IQ_PROSPECTIVE_ACTION_ACKNOWLEDGMENT);
+  assert.equal(actionContext.promises.length, 1);
+  assert.equal((await actionContext.promises[0]).state, "ACTION_LINKED");
+  assert.equal(fixture.calls.includes("server_action_rpc"), true);
   const third = await handleRouteIqProspectiveShadowRequest(
     eventRequest({ eventKind: "representative_outcome_observed" }, fixture.token),
     fixture.env,
@@ -493,6 +649,23 @@ test("field-session success acknowledgment is unchanged while prospective close 
 });
 
 test("field-session acknowledgment isolates prospective timeout, rejection, missing binding, and missing key", async t => {
+  await t.test("reconciliation rejection", async () => {
+    const fixture = await accessFixture({
+      reconciliationImplementation() {
+        throw Object.assign(new Error("Noncanonical reconciliation rejection."), {
+          code: "route_iq_prospective_reconciliation_rejected",
+          status: 503
+        });
+      }
+    });
+    const context = executionContextFixture();
+    const submission = await submitFieldSession(fixture, fieldSessionStore(), context);
+    assertCanonicalFieldSessionAcknowledgment(submission.response, submission.body, 201);
+    assert.equal((await context.promises[0]).status, "closed");
+    assert.equal(fixture.calls.includes("field_session_reconciliation_rpc"), true);
+    assert.equal(fixture.calls.includes("close_rpc"), true);
+  });
+
   await t.test("timeout", async () => {
     let rejectClose;
     let markStarted;
@@ -615,6 +788,21 @@ test("invalid Access, unmapped scope, missing key, and caller routing all fail b
   assert.equal(missingMap.status, 403);
   assert.equal(missingMapFixture.calls.includes("do_lookup"), false);
 
+  for (const mutation of ["missing", "invalid"]) {
+    const territoryFixture = await accessFixture();
+    const config = JSON.parse(territoryFixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.principalMap]);
+    if (mutation === "missing") delete config.principals[0].territoryContext;
+    else config.principals[0].territoryContext.availableAt = "not-a-time";
+    territoryFixture.env[ROUTE_IQ_PROSPECTIVE_SHADOW_ENV.principalMap] = JSON.stringify(config);
+    const response = await handleRouteIqProspectiveShadowRequest(
+      eventRequest({ eventKind: "next_stop_requested" }, territoryFixture.token),
+      territoryFixture.env,
+      { noncanonicalTestHooks: territoryFixture.noncanonicalTestHooks }
+    );
+    assert.equal(response.status, mutation === "missing" ? 400 : 403, mutation);
+    assert.equal(territoryFixture.calls.includes("do_lookup"), false, mutation);
+  }
+
   const crossScopeFixture = await accessFixture({ cohortRepresentativeId: "anthony" });
   const crossScope = await handleRouteIqProspectiveShadowRequest(
     eventRequest({ eventKind: "next_stop_requested" }, crossScopeFixture.token),
@@ -724,8 +912,16 @@ const methods = new Set([
   "allocateNextStopOpportunity",
   "noteGovernedRepresentativeSignal",
   "closeCanonicalSession",
+  "readCanonicalRuntimeContext",
+  "recordRuntimeStageExclusion",
+  "linkServerDerivedNextStopAction",
+  "reconcileCommittedFieldSessionOutcomes",
+  "admitIntelligenceScoreableOutcome",
+  "admitIntelligenceEvaluation",
   "applyTrustedTrigger",
   "applyTrustedCandidateManifest",
+  "applyTrustedSnapshotSeal",
+  "applyTrustedShadowDecisionSeal",
   "recoverNextProjection",
   "readCommittedProjectionAsOf"
 ]);
@@ -784,9 +980,315 @@ async function scopeEnvelopeFor(env, representativeId = "cruz") {
     purpose: "coordinator_scope",
     ...scope(representativeId),
     registryVersion: "noncanonical-test-registry-v1",
-    issuedAt: testNow.toISOString()
+    issuedAt: testNow.toISOString(),
+    territoryContext: territoryContext(representativeId)
   }, env);
 }
+
+function miniflareStub(miniflare, instanceName) {
+  return new Proxy({}, {
+    get(_target, method) {
+      return async command => {
+        const response = await doRpc(miniflare, instanceName, String(method), command);
+        if (response.status === 200 && response.body.ok) return response.body.result;
+        throw Object.assign(new Error(response.body.message || "Noncanonical Miniflare RPC failed."), {
+          code: response.body.code || "route_iq_prospective_miniflare_rpc_failed",
+          status: response.body.status || 500
+        });
+      };
+    }
+  });
+}
+
+async function miniflareRuntimeContext(miniflare, instanceName, env, scopeEnvelope, at) {
+  const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "runtime_context_read",
+    ...scope(),
+    authoritativeRecordTime: at
+  }, env);
+  const response = await doRpc(miniflare, instanceName, "readCanonicalRuntimeContext", {
+    scopeEnvelope,
+    input: { authorityEnvelope }
+  });
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  return response.body.result;
+}
+
+test("real Miniflare seals the complete Intelligence lifecycle, links action, and persists restart state", async () => {
+  const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-lifecycle-do-"));
+  const authority = authorityEnv();
+  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const instanceName = `noncanonical-lifecycle-${randomUUID()}`;
+  const scopeEnvelope = await scopeEnvelopeFor(authority);
+  const allocationCommand = {
+    scopeEnvelope,
+    event: {
+      eventKind: "next_stop_requested",
+      informationalSequence: 1,
+      informationalObservedAt: testNow.toISOString()
+    }
+  };
+  let miniflare = createMiniflare(authority, persistencePath);
+  try {
+    const [left, right] = await Promise.all([
+      doRpc(miniflare, instanceName, "allocateNextStopOpportunity", allocationCommand),
+      doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+        ...allocationCommand,
+        event: { eventKind: "next_stop_requested", informationalSequence: 999 }
+      })
+    ]);
+    assert.equal(left.status, 200, JSON.stringify(left.body));
+    assert.deepEqual(right.body.result, left.body.result);
+    const stub = miniflareStub(miniflare, instanceName);
+    const sealed = await orchestrateRouteIqProspectiveNextStop({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      allocationReceipt: left.body.result,
+      assetOrigin: "https://private.invalid/",
+      env: runtimeEnv
+    });
+    assert.deepEqual(sealed, { status: "shadow_decision_sealed" });
+    const action = await linkRouteIqProspectiveServerAction({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      eventKind: "representative_action_observed",
+      authoritativeRecordTime: new Date(testNow.getTime() + 100).toISOString(),
+      env: runtimeEnv
+    });
+    assert.equal(action.state, "ACTION_LINKED");
+    assert.equal(action.browserCandidateIdentityAccepted, false);
+    assert.match(action.selectedCandidateId, /^riq_candidate_[a-f0-9]{64}$/u);
+  } finally {
+    await miniflare.dispose();
+  }
+
+  miniflare = createMiniflare(authority, persistencePath);
+  try {
+    const context = await miniflareRuntimeContext(
+      miniflare,
+      instanceName,
+      authority,
+      scopeEnvelope,
+      new Date(testNow.getTime() + 200).toISOString()
+    );
+    assert.equal(context.state, "ACTION_LINKED");
+    assert.equal(context.completedCandidateIds.length, 1);
+  } finally {
+    await miniflare.dispose();
+    rmSync(persistencePath, { recursive: true, force: true });
+  }
+});
+
+test("real Miniflare records governed exclusions for action before seal and source failure", async t => {
+  await t.test("action before seal", async () => {
+    const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-premature-action-do-"));
+    const authority = authorityEnv();
+    const instanceName = `noncanonical-premature-action-${randomUUID()}`;
+    const scopeEnvelope = await scopeEnvelopeFor(authority);
+    const miniflare = createMiniflare(authority, persistencePath);
+    try {
+      const allocation = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+        scopeEnvelope,
+        event: { eventKind: "next_stop_requested", informationalSequence: 1 }
+      });
+      assert.equal(allocation.status, 200, JSON.stringify(allocation.body));
+      const result = await linkRouteIqProspectiveServerAction({
+        stub: miniflareStub(miniflare, instanceName),
+        scopeEnvelope,
+        scope: scope(),
+        eventKind: "representative_action_observed",
+        authoritativeRecordTime: new Date(testNow.getTime() + 10).toISOString(),
+        env: authority
+      });
+      assert.equal(result.status, "excluded");
+      assert.deepEqual(result.reasonCodes, ["shadow_not_sealed_before_action"]);
+    } finally {
+      await miniflare.dispose();
+      rmSync(persistencePath, { recursive: true, force: true });
+    }
+  });
+
+  await t.test("source artifact failure", async () => {
+    const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-source-failure-do-"));
+    const authority = authorityEnv();
+    const instanceName = `noncanonical-source-failure-${randomUUID()}`;
+    const scopeEnvelope = await scopeEnvelopeFor(authority);
+    const miniflare = createMiniflare(authority, persistencePath);
+    try {
+      const allocation = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+        scopeEnvelope,
+        event: { eventKind: "next_stop_requested", informationalSequence: 1 }
+      });
+      await assert.rejects(() => orchestrateRouteIqProspectiveNextStop({
+        stub: miniflareStub(miniflare, instanceName),
+        scopeEnvelope,
+        scope: scope(),
+        allocationReceipt: allocation.body.result,
+        assetOrigin: "https://private.invalid/",
+        env: {
+          ...authority,
+          ASSETS: { async fetch() { return new Response("missing", { status: 404 }); } }
+        }
+      }), error => error.code === "route_iq_prospective_source_artifact_unavailable");
+      const context = await miniflareRuntimeContext(
+        miniflare,
+        instanceName,
+        authority,
+        scopeEnvelope,
+        new Date(testNow.getTime() + 20).toISOString()
+      );
+      assert.equal(context.state, "EXCLUDED");
+    } finally {
+      await miniflare.dispose();
+      rmSync(persistencePath, { recursive: true, force: true });
+    }
+  });
+});
+
+test("real Miniflare reconciles an exact committed PII-free field-session projection", async () => {
+  const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-reconciliation-do-"));
+  const authority = authorityEnv();
+  const runtimeEnv = { ...authority, ASSETS: fieldSessionAssets() };
+  const instanceName = `noncanonical-reconciliation-${randomUUID()}`;
+  const scopeEnvelope = await scopeEnvelopeFor(authority);
+  const miniflare = createMiniflare(authority, persistencePath);
+  try {
+    const allocation = await doRpc(miniflare, instanceName, "allocateNextStopOpportunity", {
+      scopeEnvelope,
+      event: { eventKind: "next_stop_requested", informationalSequence: 1 }
+    });
+    const stub = miniflareStub(miniflare, instanceName);
+    await orchestrateRouteIqProspectiveNextStop({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      allocationReceipt: allocation.body.result,
+      assetOrigin: "https://private.invalid/",
+      env: runtimeEnv
+    });
+    const action = await linkRouteIqProspectiveServerAction({
+      stub,
+      scopeEnvelope,
+      scope: scope(),
+      eventKind: "representative_action_observed",
+      authoritativeRecordTime: new Date(testNow.getTime() + 100).toISOString(),
+      env: runtimeEnv
+    });
+    const runtimePools = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json"
+    ), "utf8"));
+    const selected = runtimePools.cruz.find(record =>
+      deriveRouteIqCandidateIdFromGooglePlaceId(record.googlePlaceId) === action.selectedCandidateId);
+    assert.ok(selected, "rank-one action must resolve to the governed runtime pool");
+    const visitAt = new Date(testNow.getTime() + 60_000).toISOString();
+    const generatedAt = new Date(testNow.getTime() + 120_000).toISOString();
+    const finalizedAt = new Date(testNow.getTime() + 180_000).toISOString();
+    const rawReportText = JSON.stringify({
+      app: "Prometheus IQ",
+      reportType: "beta-daily-rep-report",
+      generatedAt,
+      date: "2026-07-13",
+      rep: { id: "cruz", name: "Cruz" },
+      totals: { visits: 1, conversations: 1, leads: 0, units: 0, laterUnits: 0 },
+      visits: [{
+        placeName: selected.name,
+        placeId: selected.id,
+        timestamp: visitAt,
+        date: "2026-07-13",
+        timeWindow: "Evening",
+        outcome: "Conversation",
+        conversations: 1,
+        leads: 0,
+        units: 0,
+        laterUnits: 0,
+        notes: "",
+        gpsAttached: false,
+        visitDecisionSource: {
+          sourceId: "unknown",
+          reason: null,
+          evidence: [],
+          confidence: 0,
+          capturedAt: generatedAt
+        },
+        recommendationDecisionContext: {
+          recommendationAvailable: null,
+          recommendationId: null,
+          decision: null
+        }
+      }]
+    });
+    const store = fieldSessionStore();
+    const activePool = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json"
+    ), "utf8"));
+    const businessHours = JSON.parse(readFileSync(join(
+      root,
+      "deploy/cloudflare-pages/data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/business-hours.json"
+    ), "utf8"));
+    const handoff = await consumeRouteIqEndOfDayHandoff({
+      handoffContractId: routeIqEndOfDayHandoffContractId,
+      producerSubsystem: "Prometheus Dashboard",
+      completionAction: "end_route",
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      finalExportConfirmed: true,
+      sourceFinalizedAt: finalizedAt,
+      rawReportText
+    }, {
+      env: { [routeIqFieldSessionStoreBinding]: store },
+      runtimePools,
+      activePool,
+      businessHours,
+      ingestedAt: finalizedAt
+    });
+    const archived = await readRouteIqFieldSessionArchive({
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      sessionId: handoff.sessionId
+    }, { env: { [routeIqFieldSessionStoreBinding]: store } });
+    const projection = projectCommittedRouteIqFieldSessionOutcomes({
+      ...scope(),
+      archiveRecord: archived.record
+    });
+    assert.equal(JSON.stringify(projection).includes(selected.name), false);
+    const closeAuthorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+      purpose: "close_session",
+      ...scope(),
+      closeReason: "end_route",
+      handoffContractVersion: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
+      endOfDayHandoffSha256: handoff.rawSha256,
+      authoritativeRecordTime: new Date(testNow.getTime() + 210_000).toISOString()
+    }, authority);
+    const closed = await doRpc(miniflare, instanceName, "closeCanonicalSession", {
+      scopeEnvelope,
+      authorityEnvelope: closeAuthorityEnvelope
+    });
+    assert.equal(closed.status, 200, JSON.stringify(closed.body));
+    const authorityEnvelope = await createRouteIqProspectiveAuthorityEnvelope({
+      purpose: "field_session_reconciliation",
+      ...scope(),
+      authoritativeRecordTime: new Date(testNow.getTime() + 240_000).toISOString(),
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    }, authority);
+    const reconciled = await doRpc(miniflare, instanceName, "reconcileCommittedFieldSessionOutcomes", {
+      scopeEnvelope,
+      input: { authorityEnvelope, projection }
+    });
+    assert.equal(reconciled.status, 200, JSON.stringify(reconciled.body));
+    assert.equal(reconciled.body.result.linked.length, 1);
+    assert.deepEqual(reconciled.body.result.exclusions, []);
+    assert.equal(reconciled.body.result.outcomeValuesInferredByData, false);
+  } finally {
+    await miniflare.dispose();
+    rmSync(persistencePath, { recursive: true, force: true });
+  }
+});
 
 test("real Miniflare SQLite allocator converges, closes, isolates scope, and survives restart", async () => {
   const persistencePath = mkdtempSync(join(tmpdir(), "prometheus-route-iq-do-"));
