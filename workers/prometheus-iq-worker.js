@@ -23,6 +23,12 @@ import {
   handlePartnerIntakeRequest
 } from "./infrastructure/shared-lead-intake-pipeline.js";
 import {
+  ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
+  getRouteIqProspectiveActivation,
+  handleRouteIqProspectiveShadowRequest,
+  isRouteIqProspectiveShadowPath
+} from "./infrastructure/route-iq-prospective-shadow-runtime.js";
+import {
   persistWorkspaceLeadIntakeWithProductionStore
 } from "../crm/workspace-lead-production-runtime.mjs";
 import {
@@ -652,6 +658,7 @@ async function handleApiRequest(request, env) {
   if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);
   if (url.pathname === INSTAGRAM_REPORT_PATH) return handleMetaInstagramReport(request, env);
   if (url.pathname === ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH) return handleRouteIqFieldSessionHandoff(request, env);
+  if (isRouteIqProspectiveShadowPath(url.pathname)) return handleRouteIqProspectiveShadowRequest(request, env);
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
@@ -659,6 +666,10 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     try {
+      if (isRouteIqProspectiveShadowPath(url.pathname)
+        && !getRouteIqProspectiveActivation(env).active) {
+        return handleRouteIqProspectiveShadowRequest(request, env);
+      }
       if (url.pathname.startsWith("/api/")) {
         const aegis = await enforceAegisControls(request, env);
         if (!aegis.ok) return aegis.response;
@@ -681,10 +692,16 @@ export {
   INSTAGRAM_REPORT_PATH,
   INSTAGRAM_SNAPSHOT_PATH,
   ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
+  ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   handlePartnerIntakeWithCrm,
   handleRouteIqFieldSessionHandoff,
+  handleRouteIqProspectiveShadowRequest,
   persistMetaInstagramTokenPatch,
   validateTokenStorage
 };
+
+export {
+  RouteIqProspectiveShadowCoordinator
+} from "./infrastructure/route-iq-prospective-shadow-durable-object.js";
