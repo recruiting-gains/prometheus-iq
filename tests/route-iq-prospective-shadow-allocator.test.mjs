@@ -192,13 +192,13 @@ function identityFromReceipt(receipt) {
   };
 }
 
-function operationClaims(harness, receipt, purpose, recordTime, clientEventSequence, extra = {}) {
+function operationClaimsForIdentity(harness, identity, purpose, recordTime, clientEventSequence, extra = {}) {
   return {
     purpose,
     workspaceId: harness.scope.workspaceId,
     operatingProfileId: harness.scope.operatingProfileId,
     representativeId: harness.scope.representativeId,
-    ...identityFromReceipt(receipt),
+    ...identity,
     canonicalEventBoundarySha256: digest(`${purpose}:${recordTime}:${clientEventSequence}`),
     clientEventSequence,
     clientContentSha256: digest(`${purpose}:content:${clientEventSequence}`),
@@ -206,6 +206,26 @@ function operationClaims(harness, receipt, purpose, recordTime, clientEventSeque
     recordOrigin: "prospective",
     uncertainChronology: false,
     ...extra
+  };
+}
+
+function operationClaims(harness, receipt, purpose, recordTime, clientEventSequence, extra = {}) {
+  return operationClaimsForIdentity(
+    harness,
+    identityFromReceipt(receipt),
+    purpose,
+    recordTime,
+    clientEventSequence,
+    extra
+  );
+}
+
+function receiptViewForIdentity(identity, canonicalEventBoundarySha256) {
+  return {
+    canonicalContext: {
+      ...identity,
+      canonicalEventBoundarySha256
+    }
   };
 }
 
@@ -336,6 +356,45 @@ test("server allocator contract and pending candidate boundary are explicit", as
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM candidate_manifests").count, 0);
 });
 
+test("allocator adopts one retained trigger session without creating a second session or opportunity", async () => {
+  const territoryContext = knownTerritoryContext("retained-trigger");
+  const h = await openHarness({ territoryContext });
+  const identity = {
+    territoryId: territoryContext.territoryId,
+    canonicalSessionRecordSha256: digest("retained-trigger-session-record"),
+    sessionEventSequence: 0,
+    opportunityEventSequence: 0,
+    triggerRecordSha256: digest("retained-trigger-record")
+  };
+  const triggerClaims = operationClaimsForIdentity(h, identity, "trigger", iso(10_000), 1);
+  const triggerReceipt = await h.coordinator.trigger({
+    authorityEnvelope: h.authority.sign(triggerClaims)
+  });
+
+  const adopted = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(999, iso(90_000)) });
+  const retry = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1000, iso(120_000)) });
+  assert.equal(adopted.sessionId, triggerReceipt.sessionId);
+  assert.equal(adopted.opportunityId, triggerReceipt.opportunityId);
+  assert.equal(adopted.operationKind, "server_allocate_next_stop");
+  assert.equal(adopted.allocatorContractVersion, routeIqProspectiveServerAllocatorContractVersion);
+  assert.equal(adopted.status, "adopted");
+  assert.equal(adopted.legacyTriggerAdoptedWithoutRewrite, true);
+  assert.equal(adopted.serverDerivedCanonicalIdentity, true);
+  assert.equal(adopted.candidateCompletenessStatus, "pending_authenticated_intelligence_manifest");
+  assert.equal(adopted.snapshotAccepted, false);
+  assert.equal(adopted.canonicalContext.territoryId, identity.territoryId);
+  assert.equal(adopted.canonicalContext.canonicalSessionRecordSha256, identity.canonicalSessionRecordSha256);
+  assert.equal(adopted.canonicalContext.sessionEventSequence, identity.sessionEventSequence);
+  assert.equal(adopted.canonicalContext.opportunityEventSequence, identity.opportunityEventSequence);
+  assert.equal(adopted.canonicalContext.triggerRecordSha256, identity.triggerRecordSha256);
+  assert.deepEqual(retry, adopted);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM canonical_sessions").count, 1);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM opportunities").count, 1);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM canonical_session_events").count, 0);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_receipts WHERE operation_kind = 'trigger'").count, 1);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_receipts WHERE operation_kind = 'server_allocate_next_stop'").count, 1);
+});
+
 test("concurrent requests, retries, and rotating informational metadata converge on one allocation", async () => {
   const h = await openHarness();
   const receipts = await Promise.all([
@@ -444,6 +503,53 @@ test("only ACTION_LINKED or later permits another next_stop opportunity in the o
   assert.equal(second.sessionId, first.sessionId);
   assert.equal(second.canonicalContext.opportunityEventSequence, 1);
   assert.equal(second.snapshotAccepted, false);
+});
+
+test("allocator time advances beyond the maximum canonical time across opportunities", async () => {
+  const h = await openHarness({ territoryContext: knownTerritoryContext("global-time") });
+  const first = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const firstManifest = await acceptManifest(h, first, "global-time-first", iso(10_000), 10);
+  const firstSnapshotSeal = await sealSnapshot(h, first, firstManifest, iso(20_000), 11);
+  await sealShadowDecision(h, first, firstManifest, firstSnapshotSeal, iso(30_000), 12);
+  const futureRecordTime = iso(3_600_000);
+  const firstActionClaims = operationClaims(h, first, "action", futureRecordTime, 13, {
+    selectedCandidateId: firstManifest.manifest.candidateId,
+    decisionSource: null
+  });
+  await h.coordinator.linkAction({ authorityEnvelope: h.authority.sign(firstActionClaims) });
+
+  const legacyIdentity = {
+    territoryId: first.canonicalContext.territoryId,
+    canonicalSessionRecordSha256: first.canonicalContext.canonicalSessionRecordSha256,
+    sessionEventSequence: first.canonicalContext.sessionEventSequence,
+    opportunityEventSequence: 1,
+    triggerRecordSha256: digest("global-time-later-sequence-trigger")
+  };
+  const legacyTriggerClaims = operationClaimsForIdentity(h, legacyIdentity, "trigger", iso(40_000), 20);
+  await h.coordinator.trigger({ authorityEnvelope: h.authority.sign(legacyTriggerClaims) });
+  const legacyReceiptView = receiptViewForIdentity(
+    legacyIdentity,
+    legacyTriggerClaims.canonicalEventBoundarySha256
+  );
+  const legacyManifest = await acceptManifest(h, legacyReceiptView, "global-time-second", iso(50_000), 21);
+  const legacySnapshotSeal = await sealSnapshot(h, legacyReceiptView, legacyManifest, iso(60_000), 22);
+  await sealShadowDecision(h, legacyReceiptView, legacyManifest, legacySnapshotSeal, iso(70_000), 23);
+  const legacyActionClaims = operationClaims(h, legacyReceiptView, "action", iso(80_000), 24, {
+    selectedCandidateId: legacyManifest.manifest.candidateId,
+    decisionSource: null
+  });
+  await h.coordinator.linkAction({ authorityEnvelope: h.authority.sign(legacyActionClaims) });
+
+  const latestBySequence = h.repository.one(`
+    SELECT authoritative_record_time FROM lifecycle_events
+    ORDER BY record_sequence DESC LIMIT 1
+  `).authoritative_record_time;
+  assert.equal(latestBySequence, iso(80_000));
+  assert.equal(h.repository.one("SELECT MAX(authoritative_record_time) AS maximum FROM lifecycle_events").maximum, futureRecordTime);
+
+  const third = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(3, iso(90_000)) });
+  assert.ok(Date.parse(third.authoritativeRecordTime) > Date.parse(futureRecordTime));
+  assert.equal(third.canonicalContext.opportunityEventSequence, 2);
 });
 
 test("unknown territory remains governed and cannot admit a selectable snapshot", async () => {

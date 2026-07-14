@@ -1526,29 +1526,55 @@ function allocatorTerritoryContext(scope) {
 
 function nextMonotonicCoordinatorTime(repository, requestedTime) {
   const requested = canonicalTimestamp(requestedTime, "serverAllocator.authoritativeRecordTime");
-  const last = repositoryOne(repository, `
-    SELECT registered_at FROM artifact_registry
-    ORDER BY registered_sequence DESC, registered_at DESC, artifact_id DESC
-    LIMIT 1
+  const maximum = repositoryOne(repository, `
+    SELECT MAX(record_time) AS maximum_record_time
+    FROM (
+      SELECT created_at AS record_time FROM coordinator_meta
+      UNION ALL SELECT created_at FROM canonical_sessions
+      UNION ALL SELECT authoritative_record_time FROM canonical_session_events
+      UNION ALL SELECT registered_at FROM artifact_registry
+      UNION ALL SELECT authoritative_record_time FROM operation_attempts
+      UNION ALL SELECT created_at FROM operation_receipts
+      UNION ALL SELECT authoritative_record_time FROM lifecycle_events
+      UNION ALL SELECT authoritative_record_time FROM projection_outbox
+      UNION ALL SELECT as_of_record_time FROM projection_artifacts
+      UNION ALL SELECT committed_at FROM projection_commits
+    ) canonical_record_times
+    WHERE record_time IS NOT NULL
   `);
-  if (!last) return requested.iso;
-  const prior = canonicalTimestamp(last.registered_at, "artifactRegistry.registeredAt");
+  if (!maximum?.maximum_record_time) return requested.iso;
+  const prior = canonicalTimestamp(maximum.maximum_record_time, "coordinator.maximumAuthoritativeRecordTime");
   if (requested.time > prior.time) return requested.iso;
   return new Date(prior.time + 1).toISOString();
 }
 
 function activeCanonicalSession(repository) {
-  return repositoryOne(repository, `
+  const sessions = repositoryRows(repository, `
     SELECT s.*
     FROM canonical_sessions s
-    JOIN canonical_session_events opened
-      ON opened.session_id = s.session_id AND opened.event_kind = 'OPENED'
-    LEFT JOIN canonical_session_events closed
-      ON closed.session_id = s.session_id AND closed.event_kind = 'CLOSED'
-    WHERE closed.event_id IS NULL
-    ORDER BY s.session_event_sequence DESC
-    LIMIT 1
+    WHERE NOT EXISTS (
+      SELECT 1 FROM canonical_session_events closed
+      WHERE closed.session_id = s.session_id AND closed.event_kind = 'CLOSED'
+    )
+      AND (
+        EXISTS (
+          SELECT 1 FROM canonical_session_events opened
+          WHERE opened.session_id = s.session_id AND opened.event_kind = 'OPENED'
+        )
+        OR EXISTS (
+          SELECT 1 FROM opportunities opportunity
+          WHERE opportunity.session_id = s.session_id
+        )
+      )
+    ORDER BY s.session_event_sequence DESC, s.created_sequence DESC
+    LIMIT 2
   `);
+  if (sessions.length > 1) {
+    fail("route_iq_server_allocator_multiple_open_sessions", "Multiple unclosed canonical field sessions cannot be adopted safely.", {
+      sessionIds: sessions.map(session => session.session_id)
+    }, 409);
+  }
+  return sessions[0] || null;
 }
 
 function currentAllocatedOpportunity(repository, sessionId) {
@@ -1561,15 +1587,123 @@ function currentAllocatedOpportunity(repository, sessionId) {
   `, [sessionId]);
 }
 
-function allocationReceiptForOpportunity(repository, opportunityId) {
+function allocationReceiptForOpportunity(repository, opportunityId, adoption = null) {
   const row = repositoryOne(repository, `
     SELECT * FROM operation_receipts
     WHERE opportunity_id = ? AND operation_kind = 'server_allocate_next_stop'
     ORDER BY created_sequence ASC
     LIMIT 1
   `, [opportunityId]);
-  if (!row) fail("route_iq_server_allocator_receipt_missing", "Canonical allocation receipt is missing.", {}, 500);
-  return receiptFromRow(row);
+  if (row) return receiptFromRow(row);
+  if (!adoption) fail("route_iq_server_allocator_receipt_missing", "Canonical allocation receipt is missing.", {}, 500);
+
+  const opportunity = getOpportunity(repository, opportunityId);
+  const session = opportunity
+    ? repositoryOne(repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id])
+    : null;
+  const triggerRow = repositoryOne(repository, `
+    SELECT * FROM operation_receipts
+    WHERE opportunity_id = ? AND operation_kind = 'trigger'
+    ORDER BY created_sequence ASC
+    LIMIT 1
+  `, [opportunityId]);
+  if (!opportunity || !session || !triggerRow) {
+    fail("route_iq_server_allocator_legacy_adoption_invalid", "A retained trigger opportunity cannot be adopted without its canonical session and trigger receipt.", {}, 500);
+  }
+  const triggerReceipt = receiptFromRow(triggerRow);
+  const adoptedAt = nextMonotonicCoordinatorTime(repository, adoption.requestedTime);
+  const operationKey = hashId("idempotency", {
+    coordinatorId: opportunity.coordinator_id,
+    opportunityId,
+    purpose: "server_allocate_next_stop_legacy_adoption",
+    triggerReceiptSha256: triggerRow.receipt_sha256
+  });
+  const canonicalRequest = {
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    operation: "adopt_retained_trigger_opportunity",
+    coordinatorId: opportunity.coordinator_id,
+    sessionId: opportunity.session_id,
+    opportunityId,
+    triggerReceiptSha256: triggerRow.receipt_sha256,
+    informationalBrowserFieldsExcludedFromIdentity: true
+  };
+  const requestSha256 = sha256(canonicalRequest);
+  const clientContentSha256 = sha256({
+    eventKind: adoption.event.eventKind,
+    informationalSequence: adoption.event.informationalSequence,
+    informationalObservedAt: adoption.event.informationalObservedAt
+  });
+  const attemptId = `riq_attempt_${sha256({ operationKey, requestSha256 })}`;
+  repositoryRows(repository, `
+    INSERT INTO operation_attempts (
+      attempt_id, operation_key, opportunity_id, operation_kind, request_sha256,
+      canonical_request_json, privacy_redacted, authoritative_record_time,
+      client_event_sequence, client_content_sha256
+    ) VALUES (?, ?, ?, 'server_allocate_next_stop', ?, ?, 0, ?, ?, ?)
+  `, [
+    attemptId,
+    operationKey,
+    opportunityId,
+    requestSha256,
+    canonicalText(canonicalRequest),
+    adoptedAt,
+    adoption.event.informationalSequence ?? 0,
+    clientContentSha256
+  ]);
+  const adoptionRecordSequence = allocateSequence(repository);
+  const receipt = {
+    coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
+    allocatorContractVersion: routeIqProspectiveServerAllocatorContractVersion,
+    status: "adopted",
+    coordinatorId: opportunity.coordinator_id,
+    sessionId: opportunity.session_id,
+    opportunityId,
+    operationKey,
+    operationKind: "server_allocate_next_stop",
+    requestSha256,
+    artifactId: triggerReceipt.artifactId,
+    recordSha256: triggerReceipt.recordSha256,
+    recordSequence: triggerReceipt.recordSequence,
+    authoritativeRecordTime: triggerReceipt.authoritativeRecordTime,
+    adoptionRecordSequence,
+    adoptionAuthoritativeRecordTime: adoptedAt,
+    state: opportunity.state,
+    recoveryOutboxPersisted: true,
+    recommendationInfluence: "off",
+    collectionDefault: "off",
+    serverDerivedCanonicalIdentity: true,
+    identityAuthority: "retained_authenticated_trigger",
+    legacyTriggerAdoptedWithoutRewrite: true,
+    informationalBrowserFieldsControlIdentity: false,
+    candidateCompletenessStatus: opportunity.current_manifest_sha256
+      ? "authenticated_intelligence_manifest_present"
+      : "pending_authenticated_intelligence_manifest",
+    snapshotAccepted: opportunity.current_manifest_sha256 !== null,
+    canonicalContext: {
+      territoryId: opportunity.territory_id,
+      canonicalSessionRecordSha256: opportunity.canonical_session_record_sha256,
+      sessionEventSequence: Number(session.session_event_sequence),
+      opportunityEventSequence: Number(opportunity.opportunity_event_sequence),
+      triggerRecordSha256: opportunity.trigger_record_sha256,
+      canonicalEventBoundarySha256: opportunity.trigger_boundary_sha256
+    }
+  };
+  const receiptJson = canonicalText(receipt);
+  repositoryRows(repository, `
+    INSERT INTO operation_receipts (
+      operation_key, opportunity_id, operation_kind, accepted_request_sha256,
+      receipt_json, receipt_sha256, created_sequence, created_at
+    ) VALUES (?, ?, 'server_allocate_next_stop', ?, ?, ?, ?, ?)
+  `, [
+    operationKey,
+    opportunityId,
+    requestSha256,
+    receiptJson,
+    sha256(receiptJson),
+    adoptionRecordSequence,
+    adoptedAt
+  ]);
+  return deepFreeze(receipt);
 }
 
 function authenticatedMaterialManifestRotationAllowed(repository, opportunityId) {
@@ -1926,10 +2060,18 @@ class RouteIqProspectiveCoordinatorCore {
 
       const current = currentAllocatedOpportunity(this.repository, session.session_id);
       if (current) {
-        if (isAllocationOpenState(current.state)) return allocationReceiptForOpportunity(this.repository, current.opportunity_id);
+        if (isAllocationOpenState(current.state)) {
+          return allocationReceiptForOpportunity(this.repository, current.opportunity_id, {
+            requestedTime: this.scope.issuedAt,
+            event
+          });
+        }
         if (current.state === "EXCLUDED") {
           if (!authenticatedMaterialManifestRotationAllowed(this.repository, current.opportunity_id)) {
-            return allocationReceiptForOpportunity(this.repository, current.opportunity_id);
+            return allocationReceiptForOpportunity(this.repository, current.opportunity_id, {
+              requestedTime: this.scope.issuedAt,
+              event
+            });
           }
         } else if (!["ACTION_LINKED", "OUTCOME_LINKED", "EVALUATED"].includes(current.state)) {
           fail("route_iq_server_allocator_prior_lifecycle_incomplete", "A new next_stop opportunity requires a trusted linked action or later lifecycle state.", {
@@ -2098,6 +2240,13 @@ class RouteIqProspectiveCoordinatorCore {
 
       let session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [identities.sessionId]);
       if (!session) {
+        const activeSession = activeCanonicalSession(this.repository);
+        if (activeSession && activeSession.session_id !== identities.sessionId) {
+          fail("route_iq_coordinator_second_open_session_prohibited", "The retained trigger path cannot create a second open canonical field session.", {
+            activeSessionId: activeSession.session_id,
+            requestedSessionId: identities.sessionId
+          }, 409);
+        }
         const sessionSequence = allocateSequence(this.repository);
         repositoryRows(this.repository, `
           INSERT INTO canonical_sessions (
