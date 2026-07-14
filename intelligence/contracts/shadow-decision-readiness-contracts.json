@@ -121,7 +121,10 @@
     },
     "routeQualityGate": {
       "path": "scripts/lib/route-intelligence-quality-gate.mjs",
-      "sha256": "1a51bab174cab582e99014d8e8a098d4e76fdc350f228f9e022c1c34967a030d"
+      "sha256": "1fe8a282ecc1e1394822b64d09aac0613763fb4cd94d43cbaa38ba20a6a25400",
+      "sourceCommit": "704537ded300cb674e53c047859eda19525a168d",
+      "sourceOwnerSubsystem": "Prometheus Data",
+      "provenance": "Hash computed from the Data-owned route-quality gate after canonical eight-fetch baseline synchronization; Intelligence verifies but never rewrites the quality gate."
     }
   },
   "requiredProtectedBehaviorBaselineKeys": [

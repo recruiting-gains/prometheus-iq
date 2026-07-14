@@ -387,6 +387,18 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     contract.protectedBehaviorBaselines.routeScoring.path,
     "scripts/build-route-intelligence-quality-engine.mjs",
   );
+  assert.deepEqual(
+    contract.protectedBehaviorBaselines.routeQualityGate,
+    {
+      path: "scripts/lib/route-intelligence-quality-gate.mjs",
+      sha256:
+        "1fe8a282ecc1e1394822b64d09aac0613763fb4cd94d43cbaa38ba20a6a25400",
+      sourceCommit: "704537ded300cb674e53c047859eda19525a168d",
+      sourceOwnerSubsystem: "Prometheus Data",
+      provenance:
+        "Hash computed from the Data-owned route-quality gate after canonical eight-fetch baseline synchronization; Intelligence verifies but never rewrites the quality gate.",
+    },
+  );
   for (const path of Object.values(contract.artifacts))
     assert.equal(
       existsSync(resolve(root, path)),
