@@ -34,12 +34,13 @@
       "governanceDecision": "approved",
       "runtimeAlignmentStatus": "aligned",
       "alignmentEvidence": {
-        "dashboardCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
+        "dashboardCommit": "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd",
         "savedPlacesFeatureOriginCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
         "decisionContextFeatureOriginCommit": "2774d91456e4b1734eb1caa13deaa84de2248f8f",
         "dashboardOwnerRevalidationCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
         "prospectiveShadowSeamCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
-        "dashboardSourceSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
+        "prospectiveCollectionOffSuppressionCommit": "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd",
+        "dashboardSourceSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"
       },
       "sections": {
         "visitedPlaces": {
