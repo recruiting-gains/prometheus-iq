@@ -1346,6 +1346,39 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
     contract.protectedBehaviorBaselines.routeScoring.path,
     "scripts/build-route-intelligence-quality-engine.mjs",
   );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.sourceIntegrationStatus,
+    "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.productionConsumerActive,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.productionDeploymentActive,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.collectionActivation,
+    "OFF",
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState
+      .canonicalProductionProspectiveRecords,
+    0,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.productionConsumerActive,
+    false,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.canonicalProductionEvaluations,
+    0,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.recommendationInfluence,
+    "OFF",
+  );
 });
 
 test("aggregate npm test runs both shadow verifier and focused suite", () => {

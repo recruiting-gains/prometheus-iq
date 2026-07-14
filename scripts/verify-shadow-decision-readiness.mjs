@@ -43,8 +43,11 @@ export const requiredProtectedBehaviorBaselineKeys = Object.freeze([
   "dashboardDeployMirror",
   "dashboardSource",
   "dataCoordinator",
+  "dataRuntimeContract",
   "discovery",
   "infrastructureAuthority",
+  "infrastructureDurableObject",
+  "infrastructureRuntime",
   "nearby",
   "quarantinePool",
   "routeGeneration",
@@ -76,7 +79,23 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(contract.implementationDispatch.batchId, "BATCH-20260713-004");
   assert.equal(
     contract.implementationDispatch.integratedDataCommit,
-    "8dbf0bc98b1a2218322f8d33381477455e33f36a",
+    "00a7e68251ac597f40e35bcfcff942d3e4648a65",
+  );
+  assert.equal(
+    contract.implementationDispatch.dataCoordinatorCommit,
+    "84319f9c70004edd50e1531e48ea1d0d7b501089",
+  );
+  assert.equal(
+    contract.implementationDispatch.integratedDashboardCommit,
+    "6c7671cb3f9387fdac29961432412dfe70088b2e",
+  );
+  assert.equal(
+    contract.implementationDispatch.integratedInfrastructureCommit,
+    "509a7bc0d3b4d2911d6b6b189985cccfa2536241",
+  );
+  assert.equal(
+    contract.implementationDispatch.sourceIntegrationStatus,
+    "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
   );
   assert.equal(
     contract.prospectiveSourceApi,
@@ -92,7 +111,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceCommit,
-    contract.implementationDispatch.integratedDataCommit,
+    contract.implementationDispatch.dataCoordinatorCommit,
   );
   assert.equal(
     contract.protectedDataRuntimeBaseline.sourceOwnerSubsystem,
@@ -185,6 +204,19 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     0,
   );
   assert.equal(
+    config.committedOutcomeRuntime.sourceIntegrationStatus,
+    "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+  );
+  assert.equal(config.committedOutcomeRuntime.productionConsumerActive, false);
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.sourceIntegrationStatus,
+    config.committedOutcomeRuntime.sourceIntegrationStatus,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.productionConsumerActive,
+    false,
+  );
+  assert.equal(
     contract.prospectiveRuntimeAdapter.durability.sqliteOnly,
     true,
   );
@@ -241,6 +273,32 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     0,
   );
   assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.sourceIntegrationStatus,
+    "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.productionConsumerActive,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.productionDeploymentActive,
+    false,
+  );
+  assert.equal(
+    contract.prospectiveRuntimeAdapter.currentState.collectionActivation,
+    "OFF",
+  );
+  assert.equal(
+    config.prospectiveRuntime.sourceIntegrationStatus,
+    contract.prospectiveRuntimeAdapter.currentState.sourceIntegrationStatus,
+  );
+  assert.equal(config.prospectiveRuntime.productionConsumerActive, false);
+  assert.equal(config.prospectiveRuntime.productionDeploymentActive, false);
+  assert.equal(config.prospectiveRuntime.collectionActivation, "OFF");
+  assert.equal(config.prospectiveRuntime.collectionActivationPathAvailable, true);
+  assert.equal(config.prospectiveRuntime.recommendationActivationPathAvailable, false);
+  assert.equal(config.prospectiveRuntime.activationPathAvailable, false);
+  assert.equal(
     contract.prospectiveRuntimeAdapter.currentState.recommendationInfluence,
     "OFF",
   );
@@ -270,6 +328,11 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     contract.statisticalDesign.derivedPerBinSupport,
     Math.ceil(97 / config.calibrationBinCount),
+  );
+  assert.equal(
+    contract.statisticalDesign.derivedPerBinSupport
+      * contract.statisticalDesign.calibrationBins,
+    100,
   );
   assert.equal(
     contract.validationFixturePolicy.classification,

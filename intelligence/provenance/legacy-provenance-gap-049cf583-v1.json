@@ -4,7 +4,7 @@
   "status": "LEGACY_PROVENANCE_GAP",
   "legacyCommit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
   "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
-  "integratedBase": "8dbf0bc98b1a2218322f8d33381477455e33f36a",
+  "integratedBase": "00a7e68251ac597f40e35bcfcff942d3e4648a65",
   "ownershipStatement": "The legacy mixed-ownership commit remains disclosed. This evidence does not claim retroactive Intelligence ownership; it records a new independent Intelligence-owner derivation.",
   "reconstructionMethod": "Rebuild each affected contract from its pre-gap semantic form, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare the complete result semantically and byte-for-byte with the canonical file.",
   "protectedConsumerInventory": [
@@ -25,18 +25,18 @@
       "preGapRawSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
       "legacyCommitRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
       "canonicalBeforeRepairRawSha256": "29de513d35f785bf5bd415db60bd5988a52bdf21b9c9a8f4b218d3f63159cdcd",
-      "reconstructedRawSha256": "286fa06eba66b0722c804c7016979679fbae902aa7f557658280913506540596",
-      "reconstructedSemanticSha256": "b5c284dacccd1bfa543fdfe4b3adffccfeb6e3b44e028cad03271985ac3fa2c4",
+      "reconstructedRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889",
+      "reconstructedSemanticSha256": "2e89b305629f11001c5c384ec4ba30f23a2261d34e7eae62ff03b9638ba1e795",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirrorSha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         },
         {
           "path": "protectedBehaviorBaselines.dashboardSourceSha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         },
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntimeSha256",
@@ -46,7 +46,7 @@
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContractSha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733"
+          "after": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
         }
       ],
       "reconstructionSources": [
@@ -80,8 +80,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "286fa06eba66b0722c804c7016979679fbae902aa7f557658280913506540596",
-      "canonicalAfterRepairSemanticSha256": "b5c284dacccd1bfa543fdfe4b3adffccfeb6e3b44e028cad03271985ac3fa2c4",
+      "canonicalAfterRepairRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889",
+      "canonicalAfterRepairSemanticSha256": "2e89b305629f11001c5c384ec4ba30f23a2261d34e7eae62ff03b9638ba1e795",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -95,18 +95,18 @@
       "preGapRawSha256": "8fa2cee204ad6c96e4c2f04efdc9da3bb7d453c8d8c1640880ceff5fdc3f84f6",
       "legacyCommitRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
       "canonicalBeforeRepairRawSha256": "f65baa532f8617630e5d3553b4b4d9a470d82b334ecc8bfce750c4f96a920c7b",
-      "reconstructedRawSha256": "d7fc84667a8aa9d565426da252cd7eff516f1bed6e03ac73ebb30ee0194253e1",
-      "reconstructedSemanticSha256": "79d3f35c42bb30473c113f983c56ac645dcb439909912ded5fc5241c90f968dc",
+      "reconstructedRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e",
+      "reconstructedSemanticSha256": "c32ca5eeb7a3b5fa5e52401f4de1a8acf6c4f4ca6d0b8338626acaea97a51801",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirror.sha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         },
         {
           "path": "protectedBehaviorBaselines.dashboardSource.sha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         },
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntime.sha256",
@@ -116,12 +116,12 @@
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContract.sha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733"
+          "after": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
         },
         {
           "path": "upstreamReadOnlyLearning.contractSha256",
           "before": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
-          "after": "286fa06eba66b0722c804c7016979679fbae902aa7f557658280913506540596"
+          "after": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889"
         }
       ],
       "reconstructionSources": [
@@ -155,8 +155,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "d7fc84667a8aa9d565426da252cd7eff516f1bed6e03ac73ebb30ee0194253e1",
-      "canonicalAfterRepairSemanticSha256": "79d3f35c42bb30473c113f983c56ac645dcb439909912ded5fc5241c90f968dc",
+      "canonicalAfterRepairRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e",
+      "canonicalAfterRepairSemanticSha256": "c32ca5eeb7a3b5fa5e52401f4de1a8acf6c4f4ca6d0b8338626acaea97a51801",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -170,13 +170,13 @@
       "preGapRawSha256": "22cd6556f775623d3afa9be0b3d86a694dc5d5f48b3b58b6f0dbbd2ef7ed35db",
       "legacyCommitRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
       "canonicalBeforeRepairRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
-      "reconstructedRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189",
-      "reconstructedSemanticSha256": "114028a713be277cfcfbc6845f2f24167a25cfc98e93f5feaa8f98291cf7d46e",
+      "reconstructedRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3",
+      "reconstructedSemanticSha256": "49d11dc5c985fa789cfb9701d85a3dc40f4130acabcc25657622b752bce29cde",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboard.sha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         }
       ],
       "reconstructionSources": [
@@ -210,8 +210,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "21d15271d6db1c7694d86f72f095c2477dd3d9ed9205868919776d72faf8a189",
-      "canonicalAfterRepairSemanticSha256": "114028a713be277cfcfbc6845f2f24167a25cfc98e93f5feaa8f98291cf7d46e",
+      "canonicalAfterRepairRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3",
+      "canonicalAfterRepairSemanticSha256": "49d11dc5c985fa789cfb9701d85a3dc40f4130acabcc25657622b752bce29cde",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -225,13 +225,13 @@
       "preGapRawSha256": "8e6c2c0c6357944347b6418923af9ad79f2cad75021adb27580b19cd066ba692",
       "legacyCommitRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
       "canonicalBeforeRepairRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
-      "reconstructedRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94",
-      "reconstructedSemanticSha256": "f681724c4dd92eb4fc50e093c285cd1f950c0310ed73cbdea66e8551df946f17",
+      "reconstructedRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f",
+      "reconstructedSemanticSha256": "15aaee4af235b5efd96bb9d5fb07bbd8a5966e373c3c548e4286af35fb30a29c",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboard.sha256",
           "before": "96c8b3d22c77da2d424b52f96af2b519532cd327ae39c9839fba74d213223ea2",
-          "after": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+          "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         }
       ],
       "reconstructionSources": [
@@ -265,8 +265,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "c24407148269dd38229e9e59d4ac9b31ef90ec07415b27c38b58101f5606ec94",
-      "canonicalAfterRepairSemanticSha256": "f681724c4dd92eb4fc50e093c285cd1f950c0310ed73cbdea66e8551df946f17",
+      "canonicalAfterRepairRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f",
+      "canonicalAfterRepairSemanticSha256": "15aaee4af235b5efd96bb9d5fb07bbd8a5966e373c3c548e4286af35fb30a29c",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     }
@@ -277,16 +277,16 @@
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
       "generator": "scripts/verify-shadow-decision-readiness.mjs",
       "canonicalBeforeRepairRawSha256": "1e850b6b9d5f8d89c141ec26929bcecb385bd53d8386b4654cb2e0f7f61e884c",
-      "reconstructedRawSha256": "7383dd1ef9aa98797382e1e4860f884f6430be778b9207593dc36e248e885eaa",
-      "reconstructedSemanticSha256": "20363ec63cf8332756fa4841fc5e3bed784f46c0710f57e897dddccfefe546eb",
+      "reconstructedRawSha256": "befaa11b17608fe647b8801561ccfd0eb3ac11745028d555ffe6c5f2cc965033",
+      "reconstructedSemanticSha256": "0faef60aa2cde7abd1d89b0b8ee298ad8c9faf488f724236f3c95c3021e0e4e7",
       "changedHashFields": [],
       "canonicalBeforeRepairSemanticSha256": "3f6a25338c5677de982f3838289608ba3b96ce0c557e1a242f038d9f338a6785",
       "byteIdenticalBeforeRepair": false,
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "7383dd1ef9aa98797382e1e4860f884f6430be778b9207593dc36e248e885eaa",
-      "canonicalAfterRepairSemanticSha256": "20363ec63cf8332756fa4841fc5e3bed784f46c0710f57e897dddccfefe546eb",
+      "canonicalAfterRepairRawSha256": "befaa11b17608fe647b8801561ccfd0eb3ac11745028d555ffe6c5f2cc965033",
+      "canonicalAfterRepairSemanticSha256": "0faef60aa2cde7abd1d89b0b8ee298ad8c9faf488f724236f3c95c3021e0e4e7",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     }

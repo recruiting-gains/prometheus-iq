@@ -5,9 +5,13 @@
   "status": "active_founder_only_read_only",
   "implementationDispatch": {
     "batchId": "BATCH-20260713-004",
-    "integratedDataCommit": "8dbf0bc98b1a2218322f8d33381477455e33f36a",
+    "integratedDataCommit": "00a7e68251ac597f40e35bcfcff942d3e4648a65",
+    "dataCoordinatorCommit": "84319f9c70004edd50e1531e48ea1d0d7b501089",
+    "integratedDashboardCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
+    "integratedInfrastructureCommit": "509a7bc0d3b4d2911d6b6b189985cccfa2536241",
     "ownerSubsystem": "Prometheus Intelligence Engine",
-    "scope": "canonical_candidate_manifest_shadow_decision_and_keyed_seal_claim_production",
+    "scope": "source_integrated_candidate_manifest_shadow_decision_committed_outcome_and_evaluation_claim_production",
+    "sourceIntegrationStatus": "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
     "productionCollectionActivated": false,
     "recommendationInfluence": "OFF"
   },
@@ -39,21 +43,21 @@
   },
   "protectedDataRuntimeBaseline": {
     "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-    "sha256": "075f3329bb6a1bcd8443c7ca353dce786b875c379d18fa6c94522887fadcbc79",
-    "sourceCommit": "8dbf0bc98b1a2218322f8d33381477455e33f36a",
+    "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943",
+    "sourceCommit": "84319f9c70004edd50e1531e48ea1d0d7b501089",
     "sourceOwnerSubsystem": "Prometheus Data",
     "synchronizedBySubsystem": "Prometheus Intelligence Engine",
     "synchronizedInBatch": "BATCH-20260713-004",
-    "provenance": "Hash computed from the committed Data-owned SQLite coordinator at the integrated source commit; Intelligence imports its manifest digest contract and never rewrites the coordinator."
+    "provenance": "Hash computed from the final committed Data-owned SQLite coordinator after exact outcome projection and projection-scope repair; Intelligence consumes its contracts and never rewrites the coordinator."
   },
   "protectedBehaviorBaselines": {
     "dashboardSource": {
       "path": "index.html",
-      "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+      "sha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
     },
     "dashboardDeployMirror": {
       "path": "deploy/cloudflare-pages/index.html",
-      "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"
+      "sha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
     },
     "worker": {
       "path": "workers/prometheus-iq-worker.js",
@@ -69,11 +73,23 @@
     },
     "dataCoordinator": {
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-      "sha256": "075f3329bb6a1bcd8443c7ca353dce786b875c379d18fa6c94522887fadcbc79"
+      "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943"
+    },
+    "dataRuntimeContract": {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+      "sha256": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
     },
     "infrastructureAuthority": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-authority.js",
       "sha256": "938fe6bbd3356d38b56aee64ad2d603f4508bab298382135373b15abc6d5a26f"
+    },
+    "infrastructureRuntime": {
+      "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+      "sha256": "4f360d5b098ad524bf58860c43d400516bb045da6146eaf35eee80ab6c4ca09c"
+    },
+    "infrastructureDurableObject": {
+      "path": "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
+      "sha256": "af91ab51b60a71ee866778eaf1749cd59df3727005daf11e909823e0c41a57b6"
     },
     "discovery": {
       "path": "intelligence/discovery-mode-intelligence-v2.mjs",
@@ -113,10 +129,13 @@
     "businessHours",
     "businessHoursEligibility",
     "dataCoordinator",
+    "dataRuntimeContract",
     "dashboardDeployMirror",
     "dashboardSource",
     "discovery",
     "infrastructureAuthority",
+    "infrastructureDurableObject",
+    "infrastructureRuntime",
     "nearby",
     "quarantinePool",
     "routeGeneration",
@@ -212,7 +231,10 @@
     "currentState": {
       "readiness": "INSUFFICIENT_EVIDENCE",
       "canonicalProductionProspectiveRecords": 0,
-      "collectionActivation": "inactive_until_infrastructure_and_dashboard_owner_wiring",
+      "sourceIntegrationStatus": "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+      "productionConsumerActive": false,
+      "productionDeploymentActive": false,
+      "collectionActivation": "OFF",
       "recommendationInfluence": "OFF"
     }
   },
@@ -252,7 +274,9 @@
       "contextSchemaVersion": "route-iq-immutable-evaluation-context-v1",
       "contractVersion": "route-iq-admitted-shadow-evaluation-v1",
       "recordSchemaVersion": "route-iq-admitted-shadow-evaluation-record-v1",
-      "contextIntegration": "committed_data_context_8dbf0bc98b1a2218322f8d33381477455e33f36a",
+      "contextIntegration": "source_integrated_data_context_00a7e68251ac597f40e35bcfcff942d3e4648a65",
+      "sourceIntegrationStatus": "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+      "productionConsumerActive": false,
       "contractTestFixtureClassification": "CANONICAL_SHAPE_NON_PRODUCTION",
       "requiredBindings": [
         "accepted_snapshot_record_and_seal",

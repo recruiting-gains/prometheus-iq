@@ -64,11 +64,16 @@
     ],
     "coordinatorDurability": "sqlite_durable_object",
     "keyedSealAlgorithm": "HMAC-SHA-256_or_Ed25519",
-    "collectionActivation": "inactive_until_infrastructure_and_dashboard_owner_wiring",
+    "sourceIntegrationStatus": "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+    "productionConsumerActive": false,
+    "productionDeploymentActive": false,
+    "collectionActivation": "OFF",
     "canonicalProductionProspectiveRecords": 0,
     "founderOnly": true,
     "representativeReadable": false,
     "browserStorageAllowed": false,
+    "collectionActivationPathAvailable": true,
+    "recommendationActivationPathAvailable": false,
     "activationPathAvailable": false
   },
   "committedOutcomeRuntime": {
@@ -94,7 +99,9 @@
     "causalOrUpliftClaimsAllowed": false,
     "scoreableAdmissionClaimsAvailable": true,
     "evaluationAdmissionClaimsAvailable": true,
-    "evaluationContextIntegration": "committed_data_context_8dbf0bc98b1a2218322f8d33381477455e33f36a",
+    "evaluationContextIntegration": "source_integrated_data_context_00a7e68251ac597f40e35bcfcff942d3e4648a65",
+    "sourceIntegrationStatus": "SOURCE_INTEGRATED_DEPLOYABLE_PRODUCTION_CONSUMER_INACTIVE",
+    "productionConsumerActive": false,
     "productionEvaluationActivation": false,
     "canonicalProductionEvaluations": 0
   },
