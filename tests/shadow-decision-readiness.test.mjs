@@ -1393,6 +1393,45 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
   );
 });
 
+test("administrative disposition contract excludes readiness, evaluation, calibration, segments, baselines, and recommendation inputs", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const admission = contract.administrativeDispositionAdmission;
+
+  assert.equal(
+    admission.schemaVersion,
+    "route-iq-field-session-administrative-disposition-v1",
+  );
+  assert.equal(admission.excludedState, "EXCLUDED_FROM_ANALYTICS");
+  assert.equal(admission.disposedSessionReadinessAdmissionAllowed, false);
+  assert.equal(admission.disposedSessionEvaluationAdmissionAllowed, false);
+  assert.equal(admission.disposedSessionCalibrationAdmissionAllowed, false);
+  assert.equal(admission.disposedSessionBaselineAdmissionAllowed, false);
+  assert.equal(admission.disposedSessionSegmentMetricAdmissionAllowed, false);
+  assert.equal(admission.disposedSessionRecommendationInputAllowed, false);
+  assert.equal(admission.auditRecordRetentionRequired, true);
+  assert.equal(admission.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(admission.unrelatedUndisposedZeroVisitSessionEligible, true);
+  assert.deepEqual(admission.requiredExcludedDomains, [
+    "learning",
+    "readiness",
+    "evaluation",
+    "representative_performance",
+    "territory_metrics",
+    "customer_metrics",
+    "productivity_counts",
+    "dashboards",
+    "leaderboards",
+    "baselines",
+    "calibration",
+    "recommendation_inputs",
+  ]);
+});
+
 test("aggregate npm test runs both shadow verifier and focused suite", () => {
   const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
   assert.match(

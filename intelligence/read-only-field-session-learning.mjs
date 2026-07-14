@@ -10,6 +10,20 @@ export const readOnlyFieldSessionLearningOperatingProfileId = "fitness";
 const moduleDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(moduleDir, "..");
 const millisecondsPerDay = 24 * 60 * 60 * 1000;
+const administrativeDispositionExcludedDomains = Object.freeze([
+  "learning",
+  "readiness",
+  "evaluation",
+  "representative_performance",
+  "territory_metrics",
+  "customer_metrics",
+  "productivity_counts",
+  "dashboards",
+  "leaderboards",
+  "baselines",
+  "calibration",
+  "recommendation_inputs"
+]);
 
 export class ReadOnlyFieldSessionLearningError extends Error {
   constructor(message, code = "field_session_learning_error", details = {}) {
@@ -179,9 +193,22 @@ export function validateReadOnlyFieldSessionLearningContract(contract, dataContr
   for (const kind of contract?.approvedRecordKinds || []) {
     fail(dataContract?.intelligenceFieldSessionLearningHandoff?.approvedRecordTypes?.includes(kind), `record_kind_not_approved_by_data_handoff:${kind}`);
   }
-  for (const operation of ["modifyData", "deleteArchives", "rewriteSessions", "replaySessions", "createHistoricalEvidence", "consumeRawEvidence", "consumeStressTestObservations"]) {
+  for (const operation of ["modifyData", "deleteArchives", "rewriteSessions", "replaySessions", "createHistoricalEvidence", "consumeRawEvidence", "consumeStressTestObservations", "consumeAdministrativelyExcludedSessions"]) {
     fail(contract?.allowedOperations?.[operation] === false, `prohibited_operation_enabled:${operation}`);
   }
+  fail(contract?.administrativeDispositionAdmission?.schemaVersion === "route-iq-field-session-administrative-disposition-v1", "administrative_disposition_schema_mismatch");
+  fail(contract?.administrativeDispositionAdmission?.excludedState === "EXCLUDED_FROM_ANALYTICS", "administrative_disposition_state_mismatch");
+  fail(contract?.administrativeDispositionAdmission?.authorizedReason === "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION", "administrative_disposition_reason_mismatch");
+  fail(contract?.administrativeDispositionAdmission?.disposedSessionAdmissionAllowed === false, "administratively_disposed_session_admission_allowed");
+  fail(contract?.administrativeDispositionAdmission?.auditRecordRetentionRequired === true, "administrative_disposition_audit_retention_not_required");
+  fail(contract?.administrativeDispositionAdmission?.sourceArchiveRewriteAllowed === false, "administrative_disposition_archive_rewrite_allowed");
+  fail(contract?.administrativeDispositionAdmission?.automaticZeroVisitExclusionAllowed === false, "automatic_zero_visit_exclusion_allowed");
+  fail(contract?.administrativeDispositionAdmission?.unrelatedUndisposedZeroVisitSessionEligible === true, "unrelated_zero_visit_session_blanket_excluded");
+  fail(JSON.stringify(contract?.administrativeDispositionAdmission?.requiredExcludedDomains) === JSON.stringify(administrativeDispositionExcludedDomains), "administrative_disposition_exclusion_domains_incomplete");
+  fail(dataContract?.fieldSessionAdministrativeDispositionContract?.contractVersion === contract?.administrativeDispositionAdmission?.schemaVersion, "data_administrative_disposition_schema_mismatch");
+  fail(dataContract?.fieldSessionAdministrativeDispositionContract?.authorizedDisposition?.state === contract?.administrativeDispositionAdmission?.excludedState, "data_administrative_disposition_state_mismatch");
+  fail(dataContract?.fieldSessionAdministrativeDispositionContract?.authorizedDisposition?.reason === contract?.administrativeDispositionAdmission?.authorizedReason, "data_administrative_disposition_reason_mismatch");
+  fail(JSON.stringify(dataContract?.fieldSessionAdministrativeDispositionContract?.excludedDomains) === JSON.stringify(administrativeDispositionExcludedDomains), "data_administrative_disposition_exclusion_domains_mismatch");
   fail(contract?.productionSafety?.readOnlyArchivedSessionLearningActive === true, "read_only_learning_not_active");
   fail(contract?.productionSafety?.productionRecommendationInfluenceActive === false, "recommendation_influence_active");
   fail(contract?.productionSafety?.routeScoringWeightsChanged === false, "route_scoring_weights_changed");
@@ -200,10 +227,14 @@ export function validateArchivedFieldSessionPackage(archivePackage, context = {}
   const verified = archivePackage?.verifiedFieldSession;
   const metrics = archivePackage?.calculatedMetrics;
   const history = archivePackage?.historyUpdates;
+  const administrativeDisposition = archivePackage?.administrativeDisposition ?? null;
+  const consumptionEligibility = archivePackage?.consumptionEligibility ?? null;
   const sessionId = cleanText(manifest?.sessionId, 240);
   const scopedRecords = [manifest, verified, metrics, history];
 
   fail(Boolean(manifest && verified && metrics && history), "archive_package_incomplete");
+  fail(administrativeDisposition === null, "administratively_disposed_session_excluded");
+  fail(consumptionEligibility?.eligible !== false, "administratively_ineligible_session_excluded");
   fail(policy?.admission?.authorizedSessionIds?.includes(sessionId), `session_not_authorized:${sessionId || "missing"}`);
   fail(manifest?.status === policy?.admission?.requiredManifestStatus, "session_not_archived");
   fail(policy?.admission?.requiredSourceFinality?.includes(manifest?.sourceFinality), "session_source_finality_unapproved");

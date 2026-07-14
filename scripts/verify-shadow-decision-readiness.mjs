@@ -42,6 +42,7 @@ export const requiredProtectedBehaviorBaselineKeys = Object.freeze([
   "businessHoursEligibility",
   "dashboardDeployMirror",
   "dashboardSource",
+  "dataArchiveRuntime",
   "dataCoordinator",
   "dataRuntimeContract",
   "discovery",
@@ -365,6 +366,46 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     contract.coverageGates.unresolvedCoverageReasonBlocksEligibility,
+    true,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionReadinessAdmissionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionEvaluationAdmissionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionCalibrationAdmissionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionBaselineAdmissionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionSegmentMetricAdmissionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .disposedSessionRecommendationInputAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .automaticZeroVisitExclusionAllowed,
+    false,
+  );
+  assert.equal(
+    contract.administrativeDispositionAdmission
+      .unrelatedUndisposedZeroVisitSessionEligible,
     true,
   );
   assert.equal(

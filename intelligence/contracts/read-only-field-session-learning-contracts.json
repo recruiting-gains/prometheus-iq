@@ -39,6 +39,30 @@
     "calculated_field_session_metrics",
     "field_session_history_updates"
   ],
+  "administrativeDispositionAdmission": {
+    "schemaVersion": "route-iq-field-session-administrative-disposition-v1",
+    "excludedState": "EXCLUDED_FROM_ANALYTICS",
+    "authorizedReason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "disposedSessionAdmissionAllowed": false,
+    "auditRecordRetentionRequired": true,
+    "sourceArchiveRewriteAllowed": false,
+    "automaticZeroVisitExclusionAllowed": false,
+    "unrelatedUndisposedZeroVisitSessionEligible": true,
+    "requiredExcludedDomains": [
+      "learning",
+      "readiness",
+      "evaluation",
+      "representative_performance",
+      "territory_metrics",
+      "customer_metrics",
+      "productivity_counts",
+      "dashboards",
+      "leaderboards",
+      "baselines",
+      "calibration",
+      "recommendation_inputs"
+    ]
+  },
   "learningPolicy": {
     "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policyVersion": "read-only-field-session-learning-policy-v1",
@@ -65,7 +89,8 @@
     "replaySessions": false,
     "createHistoricalEvidence": false,
     "consumeRawEvidence": false,
-    "consumeStressTestObservations": false
+    "consumeStressTestObservations": false,
+    "consumeAdministrativelyExcludedSessions": false
   },
   "requiredOutputs": [
     "representativeIntelligence",
@@ -113,8 +138,8 @@
   "protectedBehaviorBaselines": {
     "dashboardSourceSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00",
     "dashboardDeployMirrorSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00",
-    "dataArchiveRuntimeSha256": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb",
-    "dataRuntimeContractSha256": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35",
+    "dataArchiveRuntimeSha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365",
+    "dataRuntimeContractSha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc",
     "adaptiveRouteEngineSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
     "businessHoursEligibilitySha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",
     "goldenRouteBaselineSha256": "6f419252b3623977f449e2feb02cea8c343e080d9002417db67dc53f1e5d42d2"

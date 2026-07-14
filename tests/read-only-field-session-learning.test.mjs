@@ -67,12 +67,57 @@ test("canonical contract and governed policy activate only read-only Intelligenc
   assert.equal(contract.allowedOperations.scoreLearningConfidence, true);
   assert.equal(contract.allowedOperations.summarize, true);
   assert.equal(contract.allowedOperations.learn, true);
-  for (const operation of ["modifyData", "deleteArchives", "rewriteSessions", "replaySessions", "createHistoricalEvidence", "consumeRawEvidence", "consumeStressTestObservations"]) {
+  for (const operation of ["modifyData", "deleteArchives", "rewriteSessions", "replaySessions", "createHistoricalEvidence", "consumeRawEvidence", "consumeStressTestObservations", "consumeAdministrativelyExcludedSessions"]) {
     assert.equal(contract.allowedOperations[operation], false, operation);
   }
   assert.equal(dataContract.intelligenceFieldSessionLearningHandoff.independentAuthorizationRequiredBeforeConsumption, true);
   assert.equal(dataContract.consumerRules.intelligence.fieldSessionLearningConsumptionAuthorized, false);
   assert.equal(policy.recommendationInfluence.activationStatus, "disabled_pending_future_handoff");
+  assert.equal(contract.administrativeDispositionAdmission.disposedSessionAdmissionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.auditRecordRetentionRequired, true);
+  assert.equal(contract.administrativeDispositionAdmission.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.unrelatedUndisposedZeroVisitSessionEligible, true);
+  assert.deepEqual(
+    contract.administrativeDispositionAdmission.requiredExcludedDomains,
+    dataContract.fieldSessionAdministrativeDispositionContract.excludedDomains
+  );
+});
+
+test("administratively disposed sessions fail closed before learning without a blanket zero-visit rule", () => {
+  const current = fixtures();
+  current.archivePackages[0].administrativeDisposition = {
+    schemaVersion: "route-iq-field-session-administrative-disposition-v1",
+    state: "EXCLUDED_FROM_ANALYTICS",
+    reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION"
+  };
+  current.archivePackages[0].consumptionEligibility = {
+    eligible: false,
+    state: "EXCLUDED_FROM_ANALYTICS"
+  };
+
+  assert.throws(
+    () => build(current),
+    /administratively_disposed_session_excluded|administratively_ineligible_session_excluded/
+  );
+
+  const undisposed = fixtures();
+  undisposed.archivePackages[0].administrativeDisposition = null;
+  undisposed.archivePackages[0].consumptionEligibility = {
+    eligible: true,
+    state: "NOT_ADMINISTRATIVELY_EXCLUDED"
+  };
+  undisposed.archivePackages[0].verifiedFieldSession.verifiedFields.completedVisits = [];
+  undisposed.archivePackages[0].verifiedFieldSession.verifiedFields.totals.totalVisits = 0;
+  undisposed.archivePackages[0].historyUpdates.representativeHistory.totals.totalVisits = 0;
+  const failures = validateArchivedFieldSessionPackage(undisposed.archivePackages[0], {
+    contract: undisposed.contract,
+    policy: undisposed.policy,
+    dataContract: undisposed.dataContract,
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness"
+  });
+  assert.equal(failures.includes("administratively_disposed_session_excluded"), false);
+  assert.equal(failures.includes("administratively_ineligible_session_excluded"), false);
 });
 
 test("canonical source records remain byte-identical and projection output is deeply frozen", () => {

@@ -230,6 +230,32 @@ test("canonical history stays Unknown instead of inferring acceptance from unava
   assert.equal(snapshot.sourceTracking.every(record => record.isRecommendationOverride === null), true);
 });
 
+test("administrative dispositions are inherited as a fail-closed upstream admission boundary", () => {
+  const { contract } = fixtures();
+  const upstreamContract = loadReadOnlyFieldSessionLearningContract();
+  const packages = loadCanonicalArchivedFieldSessionPackages(upstreamContract);
+  packages[0].administrativeDisposition = {
+    schemaVersion: "route-iq-field-session-administrative-disposition-v1",
+    state: "EXCLUDED_FROM_ANALYTICS",
+    reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION"
+  };
+  packages[0].consumptionEligibility = {
+    eligible: false,
+    state: "EXCLUDED_FROM_ANALYTICS"
+  };
+
+  assert.equal(contract.administrativeDispositionAdmission.disposedSessionObservationAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.decisionSourceProjectionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.representativeJudgmentProjectionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.territoryOrCustomerMetricProjectionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.recommendationInputProjectionAllowed, false);
+  assert.equal(contract.administrativeDispositionAdmission.automaticZeroVisitExclusionAllowed, false);
+  assert.throws(
+    () => buildCanonicalOffRouteLearningSnapshot({ archivePackages: packages }),
+    /administratively_disposed_session_excluded|administratively_ineligible_session_excluded/
+  );
+});
+
 test("missing, incomplete, and unsupported source evidence fail safely to Unknown", () => {
   const { policy, validationFixture } = fixtures();
   const incomplete = clone(validationFixture.records[0]);

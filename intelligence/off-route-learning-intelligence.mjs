@@ -361,9 +361,17 @@ export function validateOffRouteLearningContract(contract, upstreamContract = lo
   assert(contract?.decisionSourceContract?.notesMaySupplySource === false, "contract_notes_source_allowed");
   assert(contract?.recommendationDecisionContract?.overrideRequiresExplicitDecisionContext === true, "contract_override_context_not_required");
   assert(contract?.recommendationDecisionContract?.offRouteAutomaticallyMeansOverride === false, "contract_off_route_auto_override_allowed");
-  for (const key of ["modifyData", "modifyDashboard", "modifyRouteRuntime", "modifyRecommendationScoring", "modifyRouteGeneration", "activateRecommendationInfluence", "createHistoricalEvidence", "parseNotesIntoDecisionSource"]) {
+  for (const key of ["modifyData", "modifyDashboard", "modifyRouteRuntime", "modifyRecommendationScoring", "modifyRouteGeneration", "activateRecommendationInfluence", "createHistoricalEvidence", "parseNotesIntoDecisionSource", "consumeAdministrativelyExcludedSessions"]) {
     assert(contract?.readOnlySafety?.[key] === false, `contract_prohibited_behavior_enabled:${key}`);
   }
+  assert(contract?.administrativeDispositionAdmission?.inheritedFromUpstreamReadOnlyLearning === true, "contract_administrative_disposition_not_inherited");
+  assert(contract?.administrativeDispositionAdmission?.disposedSessionObservationAllowed === false, "contract_disposed_session_observation_allowed");
+  assert(contract?.administrativeDispositionAdmission?.decisionSourceProjectionAllowed === false, "contract_disposed_decision_source_projection_allowed");
+  assert(contract?.administrativeDispositionAdmission?.representativeJudgmentProjectionAllowed === false, "contract_disposed_representative_judgment_projection_allowed");
+  assert(contract?.administrativeDispositionAdmission?.territoryOrCustomerMetricProjectionAllowed === false, "contract_disposed_segment_projection_allowed");
+  assert(contract?.administrativeDispositionAdmission?.recommendationInputProjectionAllowed === false, "contract_disposed_recommendation_input_allowed");
+  assert(contract?.administrativeDispositionAdmission?.automaticZeroVisitExclusionAllowed === false, "contract_automatic_zero_visit_exclusion_allowed");
+  assert(contract?.administrativeDispositionAdmission?.unrelatedUndisposedZeroVisitSessionEligible === true, "contract_unrelated_zero_visit_session_blanket_excluded");
   assert(contract?.validationFixturePolicy?.productionConsumptionAllowed === false, "contract_fixture_production_consumption_allowed");
   assert(contract?.validationFixturePolicy?.canonicalArtifactGenerationAllowed === false, "contract_fixture_canonical_generation_allowed");
   return failures;

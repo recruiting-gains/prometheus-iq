@@ -75,9 +75,13 @@
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
       "sha256": "88c5fe5070781819144e93b4578a2f11be72a3f2087d2cf1fb473dc10fd58943"
     },
+    "dataArchiveRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "sha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"
+    },
     "dataRuntimeContract": {
       "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-      "sha256": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
+      "sha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"
     },
     "infrastructureAuthority": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-authority.js",
@@ -131,6 +135,7 @@
     "activePool",
     "businessHours",
     "businessHoursEligibility",
+    "dataArchiveRuntime",
     "dataCoordinator",
     "dataRuntimeContract",
     "dashboardDeployMirror",
@@ -301,6 +306,34 @@
       "canonicalProductionEvaluations": 0
     },
     "recommendationInfluence": "OFF"
+  },
+  "administrativeDispositionAdmission": {
+    "schemaVersion": "route-iq-field-session-administrative-disposition-v1",
+    "excludedState": "EXCLUDED_FROM_ANALYTICS",
+    "authorizedReason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "disposedSessionReadinessAdmissionAllowed": false,
+    "disposedSessionEvaluationAdmissionAllowed": false,
+    "disposedSessionCalibrationAdmissionAllowed": false,
+    "disposedSessionBaselineAdmissionAllowed": false,
+    "disposedSessionSegmentMetricAdmissionAllowed": false,
+    "disposedSessionRecommendationInputAllowed": false,
+    "auditRecordRetentionRequired": true,
+    "automaticZeroVisitExclusionAllowed": false,
+    "unrelatedUndisposedZeroVisitSessionEligible": true,
+    "requiredExcludedDomains": [
+      "learning",
+      "readiness",
+      "evaluation",
+      "representative_performance",
+      "territory_metrics",
+      "customer_metrics",
+      "productivity_counts",
+      "dashboards",
+      "leaderboards",
+      "baselines",
+      "calibration",
+      "recommendation_inputs"
+    ]
   },
   "outcomes": {
     "appendOnly": true,
