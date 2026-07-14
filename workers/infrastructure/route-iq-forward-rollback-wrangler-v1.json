@@ -1,0 +1,84 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "prometheus-iq",
+  "main": "workers/prometheus-iq-worker.js",
+  "compatibility_date": "2026-06-30",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "keep_vars": true,
+  "assets": {
+    "directory": "./deploy/cloudflare-pages",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ],
+    "not_found_handling": "single-page-application"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+        "class_name": "RouteIqProspectiveShadowCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "route-iq-prospective-shadow-sqlite-v1",
+      "new_sqlite_classes": [
+        "RouteIqProspectiveShadowCoordinator"
+      ]
+    }
+  ],
+  "secrets": {
+    "required": [
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY",
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY_VERSION"
+    ]
+  },
+  "vars": {
+    "META_OAUTH_CALLBACK_URL": "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
+    "META_GRAPH_API_VERSION": "v21.0",
+    "INSTAGRAM_API_MODE": "instagram_login",
+    "INSTAGRAM_BUSINESS_ACCOUNT_ID": "17841421929598004",
+    "INSTAGRAM_USER_ID": "17841421929598004",
+    "INSTAGRAM_CONNECTION_VERIFIED_AT": "2026-07-01T23:18:58.005Z",
+    "INSTAGRAM_GRANTED_SCOPES": "instagram_business_basic,instagram_business_manage_insights",
+    "INSTAGRAM_ACCOUNT_HANDLE": "@prometheus.iq",
+    "FOUNDER_NOTIFICATION_FROM": "intake@prometheusrouteiq.com",
+    "FOUNDER_NOTIFICATION_TO": "prometheusrouteiq@gmail.com",
+    "ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION": "OFF"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "META_INSTAGRAM_TOKEN_STORE",
+      "id": "9bc431ce712544bfa18dae1b6d59e19b"
+    },
+    {
+      "binding": "AEGIS_RATE_LIMITS",
+      "id": "1365393c0e534e44af87519e46ea1450"
+    },
+    {
+      "binding": "SHARED_LEAD_INTAKE_STORE",
+      "id": "5c78f078c68147f089f7b6423c99688c"
+    },
+    {
+      "binding": "CRM_WORKSPACE_LEAD_STORE",
+      "id": "f20a0a4f66fb4b53ab26644e2d3bd0dd"
+    },
+    {
+      "binding": "DATA_ROUTE_IQ_FIELD_SESSION_STORE",
+      "id": "7a332eaad86247f7a106a48c492b76e6"
+    }
+  ],
+  "send_email": [
+    {
+      "name": "FOUNDER_EMAIL",
+      "destination_address": "prometheusrouteiq@gmail.com"
+    }
+  ]
+}

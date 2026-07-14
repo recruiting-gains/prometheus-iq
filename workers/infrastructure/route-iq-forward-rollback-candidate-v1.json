@@ -1,0 +1,75 @@
+{
+  "contractId": "route-iq-forward-compatible-rollback-candidate-v1",
+  "batchId": "BATCH-20260714-001",
+  "product": "Route IQ",
+  "owner": "Prometheus Infrastructure",
+  "target": {
+    "worker": "prometheus-iq",
+    "environment": "production_private",
+    "publicWorkerExcluded": true
+  },
+  "retainedDarkDeployment": {
+    "commit": "3e64e6ad765607b7fd585fb9d88e4ec6b65a47a5",
+    "tree": "66eeeba915d080cfa0678c682c7b2951102e6282",
+    "workerVersion": "43c614e8-ed24-413b-9901-27241e720094"
+  },
+  "applicationBehaviorSource": {
+    "commit": "796f59ce7ee91538211f3050dc0b3050889ee935",
+    "tree": "ab8c11e8ef3a68a419d23501675b40a279172e3a",
+    "workerVersion": "a376d0fa-bddc-498c-8f15-32eb025ee08c",
+    "workerSourceSha256": "d5987bdf417c5b339e2d78473dc009bfe9317573f799fca3817b198fed6bc43c",
+    "dashboardAssetSha256": "e654e325e7370e7d67a7c36a17307a673ef30199573f4a899cb3c3576ac934b3"
+  },
+  "statefulCompatibility": {
+    "binding": "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
+    "className": "RouteIqProspectiveShadowCoordinator",
+    "migrationTag": "route-iq-prospective-shadow-sqlite-v1",
+    "storageBackend": "sqlite",
+    "newMigrationAdded": false,
+    "deletedClassesAllowed": false,
+    "namespaceDeletionAllowed": false,
+    "nativeCloudflareRollbackAllowed": false,
+    "deploymentMode": "future_normal_forward_deployment"
+  },
+  "protectedSecrets": {
+    "requiredNames": [
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY",
+      "ROUTE_IQ_PROSPECTIVE_SHADOW_AUTHORITY_KEY_VERSION"
+    ],
+    "valuesInRepository": false,
+    "preserveOnFutureDeploy": true
+  },
+  "runtimeBoundary": {
+    "collection": "OFF",
+    "collectionEndpointPresent": false,
+    "cohortConfigured": false,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutput": false,
+    "durableObjectWrites": false,
+    "durableObjectReads": false,
+    "operationalInfluence": false
+  },
+  "candidatePackage": {
+    "builder": "scripts/build-route-iq-forward-rollback-candidate.mjs",
+    "verifier": "scripts/verify-route-iq-forward-rollback-candidate.mjs",
+    "configurationTemplate": "workers/infrastructure/route-iq-forward-rollback-wrangler-v1.json",
+    "inertClassSource": "workers/infrastructure/route-iq-forward-rollback-inert-durable-object.js",
+    "generatedEntrypoint": "workers/prometheus-iq-worker.js",
+    "priorEntrypoint": "workers/prometheus-iq-previous-behavior.js",
+    "publicWorkerConfigurationIncluded": false
+  },
+  "monitoringAndCost": {
+    "observabilityPreserved": true,
+    "expectedIncrementalDurableObjectRequests": 0,
+    "expectedIncrementalDurableObjectStorageWrites": 0,
+    "expectedIncrementalMonthlyCostUsd": 0,
+    "budgetControl": "No application path can resolve or call the inert binding."
+  },
+  "authorization": {
+    "candidatePreparationAuthorized": true,
+    "deploymentAuthorized": false,
+    "trafficChangeAuthorized": false,
+    "productionMutationAuthorized": false,
+    "pushAuthorizedByThisSubsystem": false
+  }
+}
