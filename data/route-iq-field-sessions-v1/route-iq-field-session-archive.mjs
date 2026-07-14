@@ -1326,6 +1326,8 @@ function verifyProspectiveCoordinatorProjectionForChronology(record, expectedSco
   const { projection, commit } = record;
   if (projection.projectionVersion !== "route-iq-prospective-coordinator-projection-v1"
     || projection.authority !== "sqlite_durable_object_coordinator"
+    || typeof projection.canonicalSessionRecordSha256 !== "string"
+    || !/^[a-f0-9]{64}$/.test(projection.canonicalSessionRecordSha256)
     || typeof projection.territoryId !== "string"
     || !/^riq_territory_[a-f0-9]{64}$/.test(projection.territoryId)
     || projection.recommendationInfluence !== "off"

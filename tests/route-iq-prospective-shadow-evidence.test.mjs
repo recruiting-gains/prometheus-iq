@@ -246,6 +246,10 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.authority, "non_authoritative_cache_only");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.controlsReadinessEvidence, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.authorityBoundary.unkeyedDigestAcceptedAsAuthentication, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.canonicalIdentity.canonicalSessionRecordSha256CompositeForeignKeyRequired, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.transactionAndRecovery.logicalRequestDigestExcludesAuthoritativeRecordTime, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.chronology.backdatedOrEqualTimeInvalidEvidencePersisted, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.projection.asOfSequenceAndTimeMustResolveSameHistoryPrefix, true);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.projection.minimumEvidenceState, "SHADOW_DECISION_SEALED");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newPiiCollected, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newRetentionPeriodIntroduced, false);

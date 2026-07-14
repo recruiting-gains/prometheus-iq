@@ -101,13 +101,15 @@ CREATE TABLE IF NOT EXISTS canonical_sessions (
   session_event_sequence INTEGER NOT NULL CHECK (session_event_sequence >= 0),
   created_sequence INTEGER NOT NULL UNIQUE,
   created_at TEXT NOT NULL,
+  UNIQUE (session_id, canonical_session_record_sha256),
   UNIQUE (coordinator_id, canonical_session_record_sha256, session_event_sequence)
 );
 
 CREATE TABLE IF NOT EXISTS opportunities (
   opportunity_id TEXT PRIMARY KEY,
   coordinator_id TEXT NOT NULL,
-  session_id TEXT NOT NULL REFERENCES canonical_sessions(session_id),
+  session_id TEXT NOT NULL,
+  canonical_session_record_sha256 TEXT NOT NULL,
   territory_id TEXT NOT NULL,
   opportunity_type TEXT NOT NULL CHECK (opportunity_type = 'next_stop'),
   opportunity_event_sequence INTEGER NOT NULL CHECK (opportunity_event_sequence >= 0),
@@ -117,7 +119,9 @@ CREATE TABLE IF NOT EXISTS opportunities (
   canonical_eligible INTEGER NOT NULL CHECK (canonical_eligible IN (0,1)),
   current_manifest_sha256 TEXT,
   last_record_sequence INTEGER NOT NULL,
-  last_record_time TEXT NOT NULL,
+  last_record_time TEXT,
+  FOREIGN KEY (session_id, canonical_session_record_sha256)
+    REFERENCES canonical_sessions(session_id, canonical_session_record_sha256),
   UNIQUE (session_id, opportunity_type, opportunity_event_sequence),
   UNIQUE (coordinator_id, trigger_boundary_sha256)
 );
@@ -240,6 +244,7 @@ BEFORE UPDATE ON opportunities
 WHEN NEW.opportunity_id IS NOT OLD.opportunity_id
   OR NEW.coordinator_id IS NOT OLD.coordinator_id
   OR NEW.session_id IS NOT OLD.session_id
+  OR NEW.canonical_session_record_sha256 IS NOT OLD.canonical_session_record_sha256
   OR NEW.territory_id IS NOT OLD.territory_id
   OR NEW.opportunity_type IS NOT OLD.opportunity_type
   OR NEW.opportunity_event_sequence IS NOT OLD.opportunity_event_sequence
@@ -247,6 +252,8 @@ WHEN NEW.opportunity_id IS NOT OLD.opportunity_id
   OR NEW.trigger_boundary_sha256 IS NOT OLD.trigger_boundary_sha256
   OR (OLD.current_manifest_sha256 IS NOT NULL AND NEW.current_manifest_sha256 IS NOT OLD.current_manifest_sha256)
   OR NEW.last_record_sequence <= OLD.last_record_sequence
+  OR (NEW.last_record_sequence > 0 AND NEW.last_record_time IS NULL)
+  OR (OLD.last_record_sequence > 0 AND NEW.last_record_time <= OLD.last_record_time)
   OR NEW.canonical_eligible > OLD.canonical_eligible
   OR (NEW.state = 'EXCLUDED' AND NEW.canonical_eligible != 0)
   OR (NEW.state != 'EXCLUDED' AND NEW.canonical_eligible != 1)
@@ -650,6 +657,7 @@ function getOpportunity(repository, opportunityId) {
 function assertOpportunityIdentity(row, identities, claims) {
   if (!row
     || row.session_id !== identities.sessionId
+    || row.canonical_session_record_sha256 !== claims.canonicalSessionRecordSha256
     || row.territory_id !== claims.territoryId
     || Number(row.opportunity_event_sequence) !== claims.opportunityEventSequence) {
     fail("route_iq_coordinator_opportunity_identity_mismatch", "Verified claims do not resolve to the canonical opportunity.", {}, 409);
@@ -905,7 +913,12 @@ function recordConflictAgainstReceipt(repository, {
     };
   }
   const opportunity = getOpportunity(repository, identities.opportunityId);
-  assertOpportunityIdentity(opportunity, identities, claims);
+  if (!opportunity
+    || opportunity.opportunity_id !== originalReceiptRow.opportunity_id
+    || opportunity.session_id !== identities.sessionId) {
+    fail("route_iq_coordinator_operation_key_collision", "Conflict boundary does not resolve to the original canonical opportunity.", {}, 500);
+  }
+  assertMonotonicRecordTime(opportunity, claims);
   const event = appendLifecycleEvent(repository, {
     coordinatorId: opportunity.coordinator_id,
     sessionId: opportunity.session_id,
@@ -983,6 +996,7 @@ function persistExclusion(repository, {
   if (decision?.type === "conflict") return { conflictDecision: decision };
   const opportunity = getOpportunity(repository, identities.opportunityId);
   assertOpportunityIdentity(opportunity, identities, claims);
+  assertMonotonicRecordTime(opportunity, claims);
   insertAttempt(repository, {
     identities,
     claims,
@@ -1288,14 +1302,25 @@ function normalizeProducerManifestClaims(claims, scope, operationClaims) {
   return deepFreeze(canonical);
 }
 
-function originOrChronologyReason(opportunity, claims) {
+function originReason(opportunity, claims) {
   if (opportunity.trigger_record_sha256 !== claims.triggerRecordSha256) return "trigger_context_changed";
   if (claims.recordOrigin !== "prospective") return "noncanonical_record_origin";
   if (claims.uncertainChronology) return "uncertain_chronology";
-  if (Date.parse(claims.authoritativeRecordTime) <= Date.parse(opportunity.last_record_time)) {
-    return "not_strictly_after_prior_record";
-  }
   return null;
+}
+
+function assertMonotonicRecordTime(opportunity, claims) {
+  if (!opportunity) {
+    fail("route_iq_coordinator_opportunity_identity_mismatch", "Verified claims do not resolve to the canonical opportunity.", {}, 409);
+  }
+  if (Number(opportunity.last_record_sequence) === 0) return;
+  if (typeof opportunity.last_record_time !== "string"
+    || Date.parse(claims.authoritativeRecordTime) <= Date.parse(opportunity.last_record_time)) {
+    fail("route_iq_coordinator_chronology_not_monotonic", "A new canonical record must be strictly later than the opportunity's prior authoritative record time.", {
+      priorRecordSequence: Number(opportunity.last_record_sequence),
+      priorRecordTime: opportunity.last_record_time
+    }, 409);
+  }
 }
 
 function stateReason(opportunity, expectedState) {
@@ -1334,15 +1359,20 @@ function latestEvent(repository, opportunityId, eventKind) {
 }
 
 function canonicalRequestForClaims(claims, authority, extra = {}) {
+  const logicalClaims = clone(claims);
+  delete logicalClaims.authoritativeRecordTime;
+  const logicalExtra = clone(extra);
+  if (logicalExtra.sealClaims) delete logicalExtra.sealClaims.sealedAt;
   return {
     coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion,
-    verifiedClaims: clone(claims),
+    verifiedClaims: logicalClaims,
     authority: {
       verificationType: authority.verificationType,
       keyId: authority.keyId,
       algorithm: authority.algorithm
     },
-    ...extra
+    authoritativeRecordTimeExcludedFromLogicalDigest: true,
+    ...logicalExtra
   };
 }
 
@@ -1406,6 +1436,38 @@ class RouteIqProspectiveCoordinatorCore {
     const canonicalRequest = canonicalRequestForClaims(claims, authority);
     const requestSha256 = sha256(canonicalRequest);
     const result = this.repository.transactionSync(() => {
+      let opportunity = getOpportunity(this.repository, identities.opportunityId);
+      if (opportunity) {
+        const existing = existingReceiptDecision(this.repository, {
+          identities,
+          operationKind: "trigger",
+          requestSha256,
+          claims,
+          canonicalRequest
+        });
+        if (existing?.type === "retry") return existing.receipt;
+        if (existing?.type === "conflict") return { conflictDecision: existing };
+
+        const originalTriggerReceipt = repositoryOne(this.repository, `
+          SELECT * FROM operation_receipts
+          WHERE opportunity_id = ? AND operation_kind = 'trigger'
+          ORDER BY created_sequence ASC
+          LIMIT 1
+        `, [identities.opportunityId]);
+        if (originalTriggerReceipt) {
+          return {
+            conflictDecision: recordConflictAgainstReceipt(this.repository, {
+              identities,
+              operationKind: "trigger",
+              requestSha256,
+              claims,
+              canonicalRequest,
+              originalReceiptRow: originalTriggerReceipt
+            })
+          };
+        }
+      }
+
       let session = repositoryOne(this.repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [identities.sessionId]);
       if (!session) {
         const sessionSequence = allocateSequence(this.repository);
@@ -1431,56 +1493,41 @@ class RouteIqProspectiveCoordinatorCore {
         fail("route_iq_coordinator_session_identity_conflict", "Canonical session sequence resolved to changed server evidence.", {}, 409);
       }
 
-      let opportunity = getOpportunity(this.repository, identities.opportunityId);
       if (!opportunity) {
         repositoryRows(this.repository, `
           INSERT INTO opportunities (
-            opportunity_id, coordinator_id, session_id, territory_id, opportunity_type,
+            opportunity_id, coordinator_id, session_id, canonical_session_record_sha256,
+            territory_id, opportunity_type,
             opportunity_event_sequence, trigger_record_sha256, trigger_boundary_sha256,
             state, canonical_eligible, current_manifest_sha256, last_record_sequence, last_record_time
-          ) VALUES (?, ?, ?, ?, 'next_stop', ?, ?, ?, 'TRIGGERED', 1, NULL, 0, ?)
+          ) VALUES (?, ?, ?, ?, ?, 'next_stop', ?, ?, ?, 'TRIGGERED', 1, NULL, 0, NULL)
         `, [
           identities.opportunityId,
           this.coordinatorId,
           identities.sessionId,
+          claims.canonicalSessionRecordSha256,
           claims.territoryId,
           claims.opportunityEventSequence,
           claims.triggerRecordSha256,
-          claims.canonicalEventBoundarySha256,
-          claims.authoritativeRecordTime
+          claims.canonicalEventBoundarySha256
         ]);
         opportunity = getOpportunity(this.repository, identities.opportunityId);
       } else {
         assertOpportunityIdentity(opportunity, identities, claims);
       }
+      assertMonotonicRecordTime(opportunity, claims);
 
-      const existing = existingReceiptDecision(this.repository, {
-        identities,
-        operationKind: "trigger",
-        requestSha256,
-        claims,
-        canonicalRequest
-      });
-      if (existing?.type === "retry") return existing.receipt;
-      if (existing?.type === "conflict") return { conflictDecision: existing };
-
-      const originalTriggerReceipt = repositoryOne(this.repository, `
-        SELECT * FROM operation_receipts
-        WHERE opportunity_id = ? AND operation_kind = 'trigger'
-        ORDER BY created_sequence ASC
-        LIMIT 1
-      `, [identities.opportunityId]);
-      if (originalTriggerReceipt) {
-        return {
-          conflictDecision: recordConflictAgainstReceipt(this.repository, {
-            identities,
-            operationKind: "trigger",
-            requestSha256,
-            claims,
-            canonicalRequest,
-            originalReceiptRow: originalTriggerReceipt
-          })
-        };
+      if (claims.recordOrigin !== "prospective" || claims.uncertainChronology) {
+        return persistExclusion(this.repository, {
+          coordinatorId: this.coordinatorId,
+          identities,
+          claims,
+          operationKind: "trigger",
+          reasonCodes: [claims.recordOrigin !== "prospective" ? "noncanonical_record_origin" : "uncertain_chronology"],
+          incomingDigest: requestSha256,
+          requestSha256Override: requestSha256,
+          canonicalRequest
+        });
       }
 
       insertAttempt(this.repository, {
@@ -1516,18 +1563,6 @@ class RouteIqProspectiveCoordinatorCore {
         canonicalEvidenceEligible: false
       });
       updateOpportunityState(this.repository, identities.opportunityId, event, "TRIGGERED");
-      if (claims.recordOrigin !== "prospective" || claims.uncertainChronology) {
-        return persistExclusion(this.repository, {
-          coordinatorId: this.coordinatorId,
-          identities,
-          claims,
-          operationKind: "trigger",
-          reasonCodes: [claims.recordOrigin !== "prospective" ? "noncanonical_record_origin" : "uncertain_chronology"],
-          incomingDigest: requestSha256,
-          requestSha256Override: requestSha256,
-          canonicalRequest
-        });
-      }
       return insertReceipt(this.repository, {
         identities,
         operationKind: "trigger",
@@ -1589,7 +1624,6 @@ class RouteIqProspectiveCoordinatorCore {
     const requestSha256 = sha256(canonicalRequest);
     const result = this.repository.transactionSync(() => {
       const opportunity = getOpportunity(this.repository, verified.identities.opportunityId);
-      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
       const existing = existingReceiptDecision(this.repository, {
         identities: verified.identities,
         operationKind: "candidate_manifest",
@@ -1599,7 +1633,9 @@ class RouteIqProspectiveCoordinatorCore {
       });
       if (existing?.type === "retry") return existing.receipt;
       if (existing?.type === "conflict") return { conflictDecision: existing };
-      const exclusionReason = stateReason(opportunity, "TRIGGERED") || originOrChronologyReason(opportunity, verified.claims);
+      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
+      assertMonotonicRecordTime(opportunity, verified.claims);
+      const exclusionReason = stateReason(opportunity, "TRIGGERED") || originReason(opportunity, verified.claims);
       if (exclusionReason) {
         return persistExclusion(this.repository, {
           coordinatorId: this.coordinatorId,
@@ -1725,7 +1761,9 @@ class RouteIqProspectiveCoordinatorCore {
     const incomingDigest = sha256(stableJson(input.sealEnvelope));
     const opportunitySnapshot = this.repository.transactionSync(() => {
       const opportunity = getOpportunity(this.repository, verified.identities.opportunityId);
-      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
+      if (!opportunity || opportunity.session_id !== verified.identities.sessionId) {
+        fail("route_iq_coordinator_opportunity_identity_mismatch", "Verified claims do not resolve to the canonical opportunity.", {}, 409);
+      }
       const manifestRow = repositoryOne(this.repository, "SELECT * FROM candidate_manifests WHERE opportunity_id = ?", [verified.identities.opportunityId]);
       const priorKind = config.expectedState === "SNAPSHOT_PENDING_SEAL" ? "SNAPSHOT_PENDING_SEAL" : "SNAPSHOT_SEALED";
       const priorEvent = latestEvent(this.repository, verified.identities.opportunityId, priorKind);
@@ -1782,7 +1820,6 @@ class RouteIqProspectiveCoordinatorCore {
     const requestSha256 = sha256(canonicalRequest);
     const result = this.repository.transactionSync(() => {
       const opportunity = getOpportunity(this.repository, verified.identities.opportunityId);
-      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
       const existing = existingReceiptDecision(this.repository, {
         identities: verified.identities,
         operationKind: config.operationKind,
@@ -1792,7 +1829,9 @@ class RouteIqProspectiveCoordinatorCore {
       });
       if (existing?.type === "retry") return existing.receipt;
       if (existing?.type === "conflict") return { conflictDecision: existing };
-      const exclusionReason = stateReason(opportunity, config.expectedState) || originOrChronologyReason(opportunity, verified.claims);
+      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
+      assertMonotonicRecordTime(opportunity, verified.claims);
+      const exclusionReason = stateReason(opportunity, config.expectedState) || originReason(opportunity, verified.claims);
       if (exclusionReason) {
         return persistExclusion(this.repository, {
           coordinatorId: this.coordinatorId,
@@ -1971,7 +2010,6 @@ class RouteIqProspectiveCoordinatorCore {
     const requestSha256 = sha256(canonicalRequest);
     const result = this.repository.transactionSync(() => {
       const opportunity = getOpportunity(this.repository, verified.identities.opportunityId);
-      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
       const existing = existingReceiptDecision(this.repository, {
         identities: verified.identities,
         operationKind: "correction",
@@ -1981,11 +2019,13 @@ class RouteIqProspectiveCoordinatorCore {
       });
       if (existing?.type === "retry") return existing.receipt;
       if (existing?.type === "conflict") return { conflictDecision: existing };
+      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
+      assertMonotonicRecordTime(opportunity, verified.claims);
       let exclusionReason = opportunity.canonical_eligible !== 1 || opportunity.state === "EXCLUDED"
         ? "opportunity_permanently_excluded"
         : null;
       if (!exclusionReason && !["OUTCOME_LINKED", "EVALUATED"].includes(opportunity.state)) exclusionReason = "invalid_state_transition";
-      if (!exclusionReason) exclusionReason = originOrChronologyReason(opportunity, verified.claims);
+      if (!exclusionReason) exclusionReason = originReason(opportunity, verified.claims);
       const targetEventKind = verified.claims.targetKind === "outcome" ? "OUTCOME_LINKED" : "CORRECTION_APPENDED";
       const targetRows = repositoryRows(this.repository, `
         SELECT * FROM lifecycle_events WHERE opportunity_id = ? AND event_kind = ? ORDER BY record_sequence
@@ -2056,11 +2096,10 @@ class RouteIqProspectiveCoordinatorCore {
   }
 
   async simpleTransition(verified, config) {
-    const canonicalRequest = canonicalRequestForClaims(verified.claims, verified.authority, { payload: config.payload });
+    const canonicalRequest = canonicalRequestForClaims(verified.claims, verified.authority);
     const requestSha256 = sha256(canonicalRequest);
     const result = this.repository.transactionSync(() => {
       const opportunity = getOpportunity(this.repository, verified.identities.opportunityId);
-      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
       const existing = existingReceiptDecision(this.repository, {
         identities: verified.identities,
         operationKind: config.operationKind,
@@ -2070,9 +2109,11 @@ class RouteIqProspectiveCoordinatorCore {
       });
       if (existing?.type === "retry") return existing.receipt;
       if (existing?.type === "conflict") return { conflictDecision: existing };
+      assertOpportunityIdentity(opportunity, verified.identities, verified.claims);
+      assertMonotonicRecordTime(opportunity, verified.claims);
       const customReason = config.validate ? config.validate(this.repository) : null;
       const exclusionReason = stateReason(opportunity, config.expectedState)
-        || originOrChronologyReason(opportunity, verified.claims)
+        || originReason(opportunity, verified.claims)
         || customReason;
       if (exclusionReason) {
         return persistExclusion(this.repository, {
@@ -2244,6 +2285,7 @@ function buildAsOfProjection(repository, scope, coordinatorId, opportunityId, as
     authority: "sqlite_durable_object_coordinator",
     coordinatorId,
     scope: clone(scope),
+    canonicalSessionRecordSha256: opportunity.canonical_session_record_sha256,
     territoryId: opportunity.territory_id,
     opportunityId,
     opportunityType: "next_stop",
@@ -2271,6 +2313,8 @@ function verifyProjectionRow(row) {
   const projection = parseCanonicalJson(row.projection_json, row.projection_sha256, "coordinator projection");
   if (projection.projectionVersion !== routeIqProspectiveCoordinatorProjectionVersion
     || projection.authority !== "sqlite_durable_object_coordinator"
+    || typeof projection.canonicalSessionRecordSha256 !== "string"
+    || !SHA256_PATTERN.test(projection.canonicalSessionRecordSha256)
     || typeof projection.territoryId !== "string"
     || !HASH_ID_PATTERNS.territory.test(projection.territoryId)
     || projection.opportunityId !== row.opportunity_id
@@ -2413,9 +2457,34 @@ function readCommittedProjection(repository, scope, coordinatorId, claims) {
   });
   const opportunity = getOpportunity(repository, identities.opportunityId);
   if (!opportunity
+    || opportunity.canonical_session_record_sha256 !== claims.canonicalSessionRecordSha256
     || opportunity.trigger_record_sha256 !== claims.triggerRecordSha256
     || opportunity.territory_id !== claims.territoryId) {
     fail("route_iq_coordinator_projection_opportunity_mismatch", "Projection read attestation does not resolve to the canonical opportunity.", {}, 403);
+  }
+  const inconsistentBoundary = repositoryOne(repository, `
+    SELECT artifact_id, record_sequence, authoritative_record_time
+    FROM lifecycle_events
+    WHERE opportunity_id = ?
+      AND (
+        (record_sequence <= ? AND authoritative_record_time > ?)
+        OR (record_sequence > ? AND authoritative_record_time <= ?)
+      )
+    ORDER BY record_sequence ASC
+    LIMIT 1
+  `, [
+    identities.opportunityId,
+    claims.asOfRecordSequence,
+    claims.asOfRecordTime,
+    claims.asOfRecordSequence,
+    claims.asOfRecordTime
+  ]);
+  if (inconsistentBoundary) {
+    fail("route_iq_coordinator_projection_as_of_mismatch", "As-of record sequence and authoritative time must identify the same canonical history prefix.", {
+      conflictingArtifactId: inconsistentBoundary.artifact_id,
+      conflictingRecordSequence: Number(inconsistentBoundary.record_sequence),
+      conflictingRecordTime: inconsistentBoundary.authoritative_record_time
+    }, 409);
   }
   const pendingOutbox = repositoryOne(repository, `
     SELECT o.outbox_id, o.source_record_sequence, o.authoritative_record_time

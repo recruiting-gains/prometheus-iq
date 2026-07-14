@@ -556,7 +556,20 @@ test("SQLite guards reject direct scope mutation, state skips, and canonical del
     UPDATE coordinator_meta
     SET representative_id = 'anthony', next_record_sequence = next_record_sequence + 1
   `), /coordinator_meta_scope_immutable/);
+  assert.throws(() => h.repository.execute(`
+    UPDATE opportunities
+    SET last_record_sequence = last_record_sequence + 1,
+      last_record_time = last_record_time
+  `), /opportunity_state_transition_invalid/);
   assert.throws(() => h.repository.execute("DELETE FROM opportunities"), /opportunities_canonical_state_immutable/);
+  const sessionForeignKeyColumns = h.repository.query("PRAGMA foreign_key_list(opportunities)")
+    .filter(row => row.table === "canonical_sessions")
+    .map(row => [row.from, row.to])
+    .sort((left, right) => left[0].localeCompare(right[0]));
+  assert.deepEqual(sessionForeignKeyColumns, [
+    ["canonical_session_record_sha256", "canonical_session_record_sha256"],
+    ["session_id", "session_id"]
+  ]);
   assert.equal(h.repository.one("SELECT state FROM opportunities").state, "TRIGGERED");
   assert.equal(h.repository.one("SELECT representative_id FROM coordinator_meta").representative_id, "cruz");
 });
@@ -640,12 +653,133 @@ test("a separate SQLite adapter restart reads the original receipt and committed
   }
 });
 
+test("canonical session hash continuity rejects manifest, action, and projection claims for hash B", async () => {
+  const manifestHarness = await createHarness("session-hash-manifest");
+  await triggerOpportunity(manifestHarness);
+  const changedIdentity = {
+    ...manifestHarness.identity,
+    canonicalSessionRecordSha256: digest("canonical-session-hash-b")
+  };
+  const manifest = candidateManifest(changedIdentity, "session-hash-b");
+  const manifestClaims = operationClaims(changedIdentity, "candidate_manifest", TIMES.manifest, 11, {
+    expectedCandidateCount: manifest.hashes.candidateCount,
+    expectedSourceCount: manifest.hashes.sourceCount,
+    expectedCompleteManifestSha256: manifest.hashes.completeManifestSha256
+  }, manifestHarness.scope);
+  await assert.rejects(
+    manifestHarness.coordinator.acceptCandidateManifest({
+      authorityEnvelope: manifestHarness.authority.sign(manifestClaims),
+      producerEnvelope: manifestHarness.authority.sign(manifest.claims, "producer")
+    }),
+    error => error.code === "route_iq_coordinator_opportunity_identity_mismatch"
+  );
+  assert.equal(manifestHarness.repository.one("SELECT COUNT(*) AS count FROM candidate_manifests").count, 0);
+  assert.equal(manifestHarness.repository.one("SELECT COUNT(*) AS count FROM operation_attempts").count, 1);
+
+  const actionHarness = await createHarness("session-hash-action");
+  const lifecycle = await throughShadowSeal(actionHarness);
+  const actionIdentity = {
+    ...actionHarness.identity,
+    canonicalSessionRecordSha256: digest("canonical-session-action-hash-b")
+  };
+  const actionClaims = operationClaims(actionIdentity, "action", TIMES.action, 14, {
+    selectedCandidateId: lifecycle.snapshot.manifest.candidateIds[0],
+    decisionSource: { sourceId: "route_iq_recommendation" }
+  }, actionHarness.scope);
+  await assert.rejects(
+    actionHarness.coordinator.linkAction({ authorityEnvelope: actionHarness.authority.sign(actionClaims) }),
+    error => error.code === "route_iq_coordinator_opportunity_identity_mismatch"
+  );
+  assert.equal(actionHarness.repository.one("SELECT state FROM opportunities").state, "SHADOW_DECISION_SEALED");
+  assert.equal(actionHarness.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'ACTION_LINKED'").count, 0);
+
+  drainProjections(actionHarness);
+  const projectionClaims = {
+    purpose: "projection_read",
+    workspaceId: actionHarness.scope.workspaceId,
+    operatingProfileId: actionHarness.scope.operatingProfileId,
+    representativeId: actionHarness.scope.representativeId,
+    ...actionIdentity,
+    asOfRecordSequence: lifecycle.shadowSeal.receipt.recordSequence,
+    asOfRecordTime: lifecycle.shadowSeal.receipt.authoritativeRecordTime
+  };
+  await assert.rejects(
+    actionHarness.coordinator.readCommittedProjectionAsOf({
+      authorityEnvelope: actionHarness.authority.sign(projectionClaims)
+    }),
+    error => error.code === "route_iq_coordinator_projection_opportunity_mismatch"
+  );
+});
+
+test("changed trigger identity on the original boundary durably records one attempt and conflict", async () => {
+  const h = await createHarness("changed-trigger-identity");
+  const original = await triggerOpportunity(h);
+  const changedIdentity = {
+    ...h.identity,
+    canonicalSessionRecordSha256: digest("changed-trigger-session-identity")
+  };
+  const changedClaims = operationClaims(changedIdentity, "trigger", TIMES.manifest, 10, {}, h.scope);
+  await assert.rejects(
+    h.coordinator.trigger({ authorityEnvelope: h.authority.sign(changedClaims) }),
+    error => error instanceof RouteIqProspectiveCoordinatorConflictError
+      && error.details.originalReceipt.artifactId === original.receipt.artifactId
+      && error.details.overwritePerformed === false
+  );
+  assert.equal(h.repository.one("SELECT state FROM opportunities").state, "EXCLUDED");
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'trigger'").count, 2);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_receipts WHERE operation_kind = 'trigger'").count, 1);
+  assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 1);
+  assert.equal(h.repository.one("SELECT authoritative_record_time FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").authoritative_record_time, TIMES.manifest);
+});
+
+test("identical logical retries with refreshed server time return the original persisted receipt", async () => {
+  const triggerHarness = await createHarness("refreshed-trigger-time");
+  const originalTrigger = await triggerOpportunity(triggerHarness);
+  const refreshedTriggerClaims = operationClaims(triggerHarness.identity, "trigger", TIMES.manifest, 10, {}, triggerHarness.scope);
+  const triggerRetry = await triggerHarness.coordinator.trigger({
+    authorityEnvelope: triggerHarness.authority.sign(refreshedTriggerClaims)
+  });
+  assert.deepEqual(triggerRetry, originalTrigger.receipt);
+  assert.equal(triggerRetry.authoritativeRecordTime, TIMES.trigger);
+  assert.equal(triggerHarness.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'trigger'").count, 1);
+  assert.equal(triggerHarness.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 0);
+
+  const manifestHarness = await createHarness("refreshed-manifest-time");
+  await triggerOpportunity(manifestHarness);
+  const accepted = await acceptManifest(manifestHarness, { suffix: "refreshed-manifest-time" });
+  const refreshedManifestClaims = {
+    ...accepted.claims,
+    authoritativeRecordTime: TIMES.snapshotSeal
+  };
+  const manifestRetry = await manifestHarness.coordinator.acceptCandidateManifest({
+    authorityEnvelope: manifestHarness.authority.sign(refreshedManifestClaims),
+    producerEnvelope: clone(accepted.producerEnvelope)
+  });
+  assert.deepEqual(manifestRetry, accepted.receipt);
+  assert.equal(manifestRetry.authoritativeRecordTime, TIMES.manifest);
+  assert.equal(manifestHarness.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'candidate_manifest'").count, 1);
+
+  const actionHarness = await createHarness("refreshed-action-time");
+  const lifecycle = await throughShadowSeal(actionHarness);
+  const action = await linkAction(actionHarness, lifecycle.snapshot.manifest.candidateIds[0]);
+  const refreshedActionClaims = {
+    ...action.claims,
+    authoritativeRecordTime: TIMES.outcome
+  };
+  const actionRetry = await actionHarness.coordinator.linkAction({
+    authorityEnvelope: actionHarness.authority.sign(refreshedActionClaims)
+  });
+  assert.deepEqual(actionRetry, action.receipt);
+  assert.equal(actionRetry.authoritativeRecordTime, TIMES.action);
+  assert.equal(actionHarness.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'action'").count, 1);
+});
+
 test("changed retry is atomically preserved as conflict and rotating caller IDs cannot bypass it", async () => {
   const h = await createHarness("changed-retry");
   await triggerOpportunity(h);
   const accepted = await acceptManifest(h, { suffix: "changed-original" });
   const changed = candidateManifest(h.identity, "changed-competing");
-  const changedClaims = operationClaims(h.identity, "candidate_manifest", TIMES.manifest, 11, {
+  const changedClaims = operationClaims(h.identity, "candidate_manifest", TIMES.snapshotSeal, 11, {
     expectedCandidateCount: changed.hashes.candidateCount,
     expectedSourceCount: changed.hashes.sourceCount,
     expectedCompleteManifestSha256: changed.hashes.completeManifestSha256
@@ -676,7 +810,7 @@ test("changed retry is atomically preserved as conflict and rotating caller IDs 
 test("rotating a trusted trigger boundary cannot duplicate a canonical opportunity", async () => {
   const h = await createHarness("rotated-trigger-boundary");
   const original = await triggerOpportunity(h);
-  const rotatedClaims = operationClaims(h.identity, "trigger", TIMES.trigger, 10, {
+  const rotatedClaims = operationClaims(h.identity, "trigger", TIMES.manifest, 10, {
     canonicalEventBoundarySha256: digest("rotated-trigger-boundary")
   }, h.scope);
 
@@ -884,6 +1018,75 @@ test("caller authoritative fields and cross-representative access fail before ca
   assert.notEqual(anthonyTrigger.receipt.opportunityId, trigger.receipt.opportunityId);
 });
 
+test("earlier or equal seal and exclusion times fail closed without backdating history", async t => {
+  for (const [label, time] of [["earlier", TIMES.trigger], ["equal", TIMES.manifest]]) {
+    await t.test(`snapshot seal ${label}`, async () => {
+      const h = await createHarness(`seal-chronology-${label}`);
+      await triggerOpportunity(h);
+      const snapshot = await acceptManifest(h, { suffix: `seal-chronology-${label}` });
+      const before = canonicalDatabaseDump(h.repository);
+      await assert.rejects(
+        sealSnapshot(h, snapshot, { time }),
+        error => error.code === "route_iq_coordinator_chronology_not_monotonic"
+      );
+      assert.equal(canonicalDatabaseDump(h.repository), before);
+      assert.equal(h.repository.one("SELECT state FROM opportunities").state, "SNAPSHOT_PENDING_SEAL");
+      assert.equal(h.repository.one("SELECT last_record_time FROM opportunities").last_record_time, TIMES.manifest);
+    });
+  }
+
+  await t.test("governed exclusion equal to prior state", async () => {
+    const h = await createHarness("exclusion-chronology-equal");
+    const lifecycle = await throughShadowSeal(h);
+    const before = canonicalDatabaseDump(h.repository);
+    await assert.rejects(
+      linkAction(h, `riq_candidate_${digest("candidate-outside-manifest")}`, { time: TIMES.shadowSeal }),
+      error => error.code === "route_iq_coordinator_chronology_not_monotonic"
+    );
+    assert.equal(canonicalDatabaseDump(h.repository), before);
+    assert.equal(h.repository.one("SELECT state FROM opportunities").state, "SHADOW_DECISION_SEALED");
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'EXCLUSION_RECORDED'").count, 0);
+    assert.equal(h.repository.one("SELECT last_record_time FROM opportunities").last_record_time, lifecycle.shadowSeal.receipt.authoritativeRecordTime);
+  });
+
+  await t.test("changed retry conflict equal to prior state", async () => {
+    const h = await createHarness("conflict-chronology-equal");
+    await triggerOpportunity(h);
+    await acceptManifest(h, { suffix: "conflict-chronology-original" });
+    const competing = candidateManifest(h.identity, "conflict-chronology-competing");
+    const competingClaims = operationClaims(h.identity, "candidate_manifest", TIMES.manifest, 11, {
+      expectedCandidateCount: competing.hashes.candidateCount,
+      expectedSourceCount: competing.hashes.sourceCount,
+      expectedCompleteManifestSha256: competing.hashes.completeManifestSha256
+    }, h.scope);
+    const before = canonicalDatabaseDump(h.repository);
+    await assert.rejects(
+      h.coordinator.acceptCandidateManifest({
+        authorityEnvelope: h.authority.sign(competingClaims),
+        producerEnvelope: h.authority.sign(competing.claims, "producer")
+      }),
+      error => error.code === "route_iq_coordinator_chronology_not_monotonic"
+    );
+    assert.equal(canonicalDatabaseDump(h.repository), before);
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'candidate_manifest'").count, 1);
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 0);
+  });
+});
+
+test("projection rejects inconsistent as-of sequence and time pairs", async () => {
+  const h = await createHarness("projection-as-of-pair");
+  const lifecycle = await fullLifecycle(h);
+  drainProjections(h);
+  await assert.rejects(
+    readProjection(h, lifecycle.evaluation.receipt.recordSequence, lifecycle.snapshot.receipt.authoritativeRecordTime),
+    error => error.code === "route_iq_coordinator_projection_as_of_mismatch"
+  );
+  await assert.rejects(
+    readProjection(h, lifecycle.snapshot.receipt.recordSequence, TIMES.future),
+    error => error.code === "route_iq_coordinator_projection_as_of_mismatch"
+  );
+});
+
 test("future exclusions do not leak into an earlier committed as-of projection", async () => {
   const h = await createHarness("future-leakage");
   const lifecycle = await throughShadowSeal(h);
@@ -900,7 +1103,7 @@ test("future exclusions do not leak into an earlier committed as-of projection",
   assert.ok(earlier.record.projection.evidence.some(item => item.evidenceKind === "prospective_opportunity_snapshot"));
   assert.doesNotMatch(stableJson(earlier.record.projection.evidence), /decisionSource/);
 
-  const invalidAction = await linkAction(h, lifecycle.snapshot.manifest.candidateIds[0], { time: TIMES.shadowSeal });
+  const invalidAction = await linkAction(h, `riq_candidate_${digest("future-invalid-candidate")}`);
   assert.equal(invalidAction.receipt.status, "excluded");
   const latestSequence = Number(h.repository.one("SELECT MAX(record_sequence) AS sequence FROM lifecycle_events").sequence);
   await assert.rejects(
@@ -1091,7 +1294,7 @@ test("every SQLite persistence boundary rolls back canonical state and leaves re
         h.lifecycle = await throughShadowSeal(h);
         return h;
       },
-      invoke: h => linkAction(h, h.lifecycle.snapshot.manifest.candidateIds[0], { time: TIMES.shadowSeal })
+      invoke: h => linkAction(h, `riq_candidate_${digest("crash-exclusion-candidate")}`)
     });
     assert.ok(boundaries >= 7);
   });
@@ -1104,7 +1307,7 @@ test("every SQLite persistence boundary rolls back canonical state and leaves re
         await triggerOpportunity(h);
         await acceptManifest(h, { suffix: "crash-conflict-original" });
         h.competingManifest = candidateManifest(h.identity, "crash-conflict-competing");
-        h.competingClaims = operationClaims(h.identity, "candidate_manifest", TIMES.manifest, 11, {
+        h.competingClaims = operationClaims(h.identity, "candidate_manifest", TIMES.snapshotSeal, 11, {
           expectedCandidateCount: h.competingManifest.hashes.candidateCount,
           expectedSourceCount: h.competingManifest.hashes.sourceCount,
           expectedCompleteManifestSha256: h.competingManifest.hashes.completeManifestSha256
