@@ -37,6 +37,9 @@ import {
   validateFieldSessionStoreBinding,
   validateFinalRouteIqReport
 } from "../data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs";
+import {
+  createRouteIqRetentionLegalHoldEvent
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
 
 const SESSION_ID = "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11";
 const SESSION_ROOT = `data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/${SESSION_ID}`;
@@ -136,6 +139,13 @@ function dispositionInput(archive, recordedAt = "2026-07-15T01:00:00.000Z") {
     state: routeIqFieldSessionAdministrativeDispositionState,
     recordedAt,
     authorizationBatchId: routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId
+  };
+}
+
+function dispositionOptions(binding, retentionGovernanceEvents = []) {
+  return {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    retentionGovernanceEvents
   };
 }
 
@@ -651,7 +661,7 @@ test("administrative disposition appends one audit record while preserving all s
   assert.equal(absent.found, false);
 
   const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
-    env: { [routeIqFieldSessionStoreBinding]: binding }
+    ...dispositionOptions(binding)
   });
   assert.equal(first.status, "administrative_disposition_recorded");
   assert.equal(first.duplicate, false);
@@ -729,12 +739,67 @@ test("administrative disposition appends one audit record while preserving all s
   const writeCount = binding.writes.length;
   const retry = await persistRouteIqFieldSessionAdministrativeDisposition(
     dispositionInput(archive, "2026-07-15T02:00:00.000Z"),
-    { env: { [routeIqFieldSessionStoreBinding]: binding } }
+    dispositionOptions(binding)
   );
   assert.equal(retry.status, "administrative_disposition_already_recorded");
   assert.equal(retry.duplicate, true);
   assert.equal(retry.record.recordedAt, "2026-07-15T01:00:00.000Z");
   assert.equal(binding.writes.length, writeCount);
+});
+
+test("administrative disposition fails closed for missing or active legal-hold state and succeeds after authorized release", async () => {
+  const binding = kvBinding();
+  const archive = zeroVisitArchivePackage("2026-07-14");
+  await persistRouteIqFieldSessionArchive(archive, {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    persistedAt: "2026-07-15T00:00:00.000Z"
+  });
+  const writesBefore = binding.writes.length;
+  const subject = {
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    recordClass: "field_session_raw_evidence",
+    sourceRecordSha256: archive.rawSha256
+  };
+  const hold = createRouteIqRetentionLegalHoldEvent({
+    eventType: "LEGAL_HOLD_APPLIED",
+    recordedAt: "2026-07-15T00:15:00.000Z",
+    authority: "prometheus_founder",
+    authorizationReference: `riq_retention_auth_${"a".repeat(64)}`,
+    subject
+  });
+
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition(
+      dispositionInput(archive),
+      { env: { [routeIqFieldSessionStoreBinding]: binding } }
+    ),
+    error => error.code === "field_session_administrative_disposition_retention_blocked"
+      && error.details.reasons.includes("legal_hold_state_unknown")
+  );
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition(
+      dispositionInput(archive),
+      dispositionOptions(binding, [hold])
+    ),
+    error => error.code === "field_session_administrative_disposition_retention_blocked"
+      && error.details.reasons.includes("legal_hold_active")
+  );
+  assert.equal(binding.writes.length, writesBefore);
+
+  const release = createRouteIqRetentionLegalHoldEvent({
+    eventType: "LEGAL_HOLD_RELEASED",
+    recordedAt: "2026-07-15T00:30:00.000Z",
+    authority: "authorized_counsel",
+    authorizationReference: `riq_retention_auth_${"b".repeat(64)}`,
+    subject
+  }, [hold]);
+  const result = await persistRouteIqFieldSessionAdministrativeDisposition(
+    dispositionInput(archive),
+    dispositionOptions(binding, [hold, release])
+  );
+  assert.equal(result.status, "administrative_disposition_recorded");
+  assert.equal(binding.writes.length, writesBefore + 1);
 });
 
 test("administrative disposition rejects unauthorized values and changed source identity without overwrite", async () => {
@@ -749,7 +814,7 @@ test("administrative disposition rejects unauthorized values and changed source 
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
       reason: "ZERO_VISIT_SESSION"
-    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    }, dispositionOptions(binding)),
     error => error instanceof FieldSessionArchiveError
       && error.code === "field_session_administrative_disposition_value_unauthorized"
   );
@@ -757,21 +822,21 @@ test("administrative disposition rejects unauthorized values and changed source 
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
       zeroVisit: true
-    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    }, dispositionOptions(binding)),
     error => error instanceof FieldSessionArchiveError
       && error.code === "field_session_administrative_disposition_input_invalid"
   );
   assert.equal(binding.data.size, initialSize);
 
   const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
-    env: { [routeIqFieldSessionStoreBinding]: binding }
+    ...dispositionOptions(binding)
   });
   const dispositionBytes = binding.data.get(first.key).value;
   await assert.rejects(
     () => persistRouteIqFieldSessionAdministrativeDisposition({
       ...dispositionInput(archive),
       rawSha256: "0".repeat(64)
-    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    }, dispositionOptions(binding)),
     error => error instanceof FieldSessionAdministrativeDispositionConflictError
       && error.code === "field_session_administrative_disposition_conflict"
   );
@@ -791,7 +856,7 @@ test("an undisposed zero-visit session remains eligible and is not caught by a b
     persistedAt: "2026-07-16T00:00:00.000Z"
   });
   await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(disposed), {
-    env: { [routeIqFieldSessionStoreBinding]: binding }
+    ...dispositionOptions(binding)
   });
 
   const unaffectedRead = await readRouteIqFieldSessionArchive({
@@ -835,6 +900,9 @@ test("administrative disposition schema and Data contract pin only the explicitl
   assert.equal(dispositionContract.authorizedProductionTarget.rawSha256, "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765");
   assert.equal(dispositionContract.authorizedProductionTarget.existingRecordCount, 7);
   assert.equal(dispositionContract.persistenceRules.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(dispositionContract.persistenceRules.dataRetentionGovernanceCheckRequiredBeforeNewDisposition, true);
+  assert.equal(dispositionContract.persistenceRules.activeOrUnknownLegalHoldBlocksNewDisposition, true);
+  assert.equal(dispositionContract.persistenceRules.legalHoldReleaseRequiresFounderOrAuthorizedCounsel, true);
   assert.equal(dispositionContract.persistenceRules.productionMutationAuthorizedBySourceCommit, false);
   assert.deepEqual(dispositionContract.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
   assert.equal(dispositionContract.consumerRules.centralDataConsumerPartitionFunction, "partitionRouteIqFieldSessionArchivesForConsumption");

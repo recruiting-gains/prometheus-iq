@@ -2,10 +2,14 @@ import {
   FieldSessionArchiveError,
   supportedFieldSessionWorkspaces
 } from "./route-iq-field-session-archive.mjs";
+import {
+  calculateRouteIqRetentionBoundary,
+  routeIqRetentionMaximumCalendarMonths
+} from "./route-iq-retention-governance.mjs";
 
 export const routeIqProspectiveRetentionPolicyVersion = "route-iq-prospective-shadow-retention-policy-v1";
-export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v1";
-export const routeIqProspectiveRetentionCurrentState = "blocked_pending_explicit_retention_boundary";
+export const routeIqProspectiveRetentionBoundaryContractVersion = "route-iq-field-session-retention-boundary-v2";
+export const routeIqProspectiveRetentionCurrentState = "founder_retention_authorized_runtime_deletion_still_inactive";
 export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
   "policyVersion",
   "collectionState",
@@ -17,6 +21,7 @@ export const routeIqProspectiveRetentionEnvelopeKeys = Object.freeze([
   "evaluatedAt",
   "retentionBoundary",
   "legalHoldState",
+  "legalHoldLedgerSha256",
   "deletionCapabilityStatus",
   "derivedProjectionExpiresAt"
 ]);
@@ -24,6 +29,12 @@ export const routeIqProspectiveRetentionBoundaryKeys = Object.freeze([
   "contractVersion",
   "authorizationState",
   "source",
+  "creationTimeBasis",
+  "createdAt",
+  "maximumCalendarMonths",
+  "policyMaximumExpiresAt",
+  "customerOverrideState",
+  "customerContractExpiresAt",
   "expiresAt"
 ]);
 
@@ -82,6 +93,10 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
   }
 
   const reasons = [];
+  const missingEnvelopeFieldCount = routeIqProspectiveRetentionEnvelopeKeys
+    .filter(key => !Object.hasOwn(input, key))
+    .length;
+  if (missingEnvelopeFieldCount > 0) reasons.push("retention_envelope_fields_missing");
   const scopeFailure = scopeReason(input);
   if (scopeFailure) reasons.push(scopeFailure);
   if (input.collectionState !== "on") reasons.push("collection_not_on");
@@ -93,34 +108,74 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
   if (!boundary || typeof boundary !== "object" || Array.isArray(boundary)) {
     reasons.push("retention_boundary_missing");
   } else {
+    const missingBoundaryFieldCount = routeIqProspectiveRetentionBoundaryKeys
+      .filter(key => !Object.hasOwn(boundary, key))
+      .length;
+    if (missingBoundaryFieldCount > 0) reasons.push("retention_boundary_fields_missing");
     if (boundary.contractVersion !== routeIqProspectiveRetentionBoundaryContractVersion) {
       reasons.push("retention_boundary_contract_invalid");
     }
-    if (boundary.authorizationState !== "authorized_existing_field_session_boundary") {
+    if (boundary.authorizationState !== "founder_authorized_18_month_maximum") {
       reasons.push("retention_boundary_not_authorized");
     }
     if (boundary.source !== "authenticated_data_retention_contract") {
       reasons.push("retention_boundary_source_untrusted");
     }
+    if (boundary.creationTimeBasis !== "canonical_authoritative_server_record_time") {
+      reasons.push("retention_creation_time_basis_invalid");
+    }
+    if (boundary.maximumCalendarMonths !== routeIqRetentionMaximumCalendarMonths) {
+      reasons.push("retention_maximum_months_invalid");
+    }
   }
 
   const evaluatedAt = canonicalIso(input.evaluatedAt);
+  const createdAt = canonicalIso(boundary?.createdAt);
+  const policyMaximumExpiresAt = canonicalIso(boundary?.policyMaximumExpiresAt);
   const expiresAt = canonicalIso(boundary?.expiresAt);
   if (!evaluatedAt) reasons.push("retention_evaluation_time_invalid");
+  if (!createdAt) reasons.push("retention_creation_time_invalid");
+  if (!policyMaximumExpiresAt) reasons.push("retention_policy_maximum_deadline_invalid");
   if (!expiresAt) reasons.push("retention_deadline_missing_or_invalid");
+  if (createdAt && evaluatedAt && evaluatedAt.milliseconds < createdAt.milliseconds) {
+    reasons.push("retention_evaluation_precedes_creation");
+  }
+  if (createdAt && policyMaximumExpiresAt && expiresAt) {
+    try {
+      const expectedBoundary = calculateRouteIqRetentionBoundary({
+        createdAt: createdAt.iso,
+        customerContractExpiresAt: boundary.customerContractExpiresAt ?? null
+      });
+      if (boundary.policyMaximumExpiresAt !== expectedBoundary.policyMaximumExpiresAt) {
+        reasons.push("retention_policy_maximum_deadline_mismatch");
+      }
+      if (boundary.customerOverrideState !== expectedBoundary.customerOverrideState) {
+        reasons.push("retention_customer_override_state_mismatch");
+      }
+      if ((boundary.customerContractExpiresAt ?? null) !== expectedBoundary.customerContractExpiresAt) {
+        reasons.push("retention_customer_override_deadline_mismatch");
+      }
+      if (boundary.expiresAt !== expectedBoundary.expiresAt) {
+        reasons.push("retention_effective_deadline_mismatch");
+      }
+    } catch (error) {
+      reasons.push(error?.code || "retention_boundary_calculation_invalid");
+    }
+  }
   if (evaluatedAt && expiresAt && expiresAt.milliseconds <= evaluatedAt.milliseconds) {
     reasons.push("retention_deadline_expired");
   }
 
-  if (input.deletionCapabilityStatus !== "verified_not_activated") {
+  if (input.deletionCapabilityStatus !== "local_governance_verified_runtime_not_deployed") {
     reasons.push("retention_deletion_capability_unverified");
   }
   if (!LEGAL_HOLD_STATES.has(input.legalHoldState)) {
     reasons.push("legal_hold_state_invalid");
   } else if (input.legalHoldState === "unknown") {
     reasons.push("legal_hold_state_unknown");
-  } else if (input.legalHoldState === "active") {
-    reasons.push("legal_hold_requires_separate_authorized_handling");
+  }
+  if (typeof input.legalHoldLedgerSha256 !== "string" || !/^[a-f0-9]{64}$/.test(input.legalHoldLedgerSha256)) {
+    reasons.push("legal_hold_ledger_hash_invalid");
   }
 
   if (input.derivedProjectionExpiresAt !== null && input.derivedProjectionExpiresAt !== undefined) {
@@ -146,9 +201,17 @@ export function evaluateRouteIqProspectiveRetentionEnvelope(input = {}) {
     collectionState: input.collectionState ?? null,
     recommendationInfluence: input.recommendationInfluence ?? null,
     recordOrigin: input.recordOrigin ?? null,
+    createdAt: createdAt?.iso ?? null,
+    policyMaximumExpiresAt: policyMaximumExpiresAt?.iso ?? null,
+    customerOverrideState: boundary?.customerOverrideState ?? null,
+    customerContractExpiresAt: canonicalIso(boundary?.customerContractExpiresAt)?.iso ?? null,
     expiresAt: expiresAt?.iso ?? null,
     evaluatedAt: evaluatedAt?.iso ?? null,
     legalHoldState: LEGAL_HOLD_STATES.has(input.legalHoldState) ? input.legalHoldState : "unknown",
+    legalHoldLedgerSha256: typeof input.legalHoldLedgerSha256 === "string" && /^[a-f0-9]{64}$/.test(input.legalHoldLedgerSha256)
+      ? input.legalHoldLedgerSha256
+      : null,
+    deletionPausedByLegalHold: input.legalHoldState === "active",
     deletionCapabilityStatus: input.deletionCapabilityStatus ?? null,
     currentProductionActivationAuthorized: false
   });

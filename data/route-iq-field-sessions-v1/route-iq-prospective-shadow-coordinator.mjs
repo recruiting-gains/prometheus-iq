@@ -11,6 +11,10 @@ import {
   routeIqProspectiveRetentionBoundaryContractVersion,
   routeIqProspectiveRetentionPolicyVersion
 } from "./route-iq-prospective-retention-policy.mjs";
+import {
+  calculateRouteIqRetentionBoundary,
+  routeIqRetentionEmptyLegalHoldLedgerSha256
+} from "./route-iq-retention-governance.mjs";
 
 export const routeIqProspectiveCoordinatorSchemaVersion = "route-iq-prospective-coordinator-schema-v1";
 export const routeIqProspectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
@@ -28,7 +32,7 @@ export const routeIqEvaluationContextSchemaVersion = "route-iq-immutable-evaluat
 export const routeIqIntelligenceEvaluationRecordSchemaVersion = "route-iq-admitted-shadow-evaluation-record-v1";
 export const routeIqIntelligenceEvaluationContractVersion = "route-iq-admitted-shadow-evaluation-v1";
 export const routeIqAcceptedIntelligenceRetentionAdmissionVersion = "route-iq-prospective-intelligence-retention-admission-v1";
-export const routeIqAcceptedProspectiveRetentionPolicySha256 = "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c";
+export const routeIqAcceptedProspectiveRetentionPolicySha256 = "d12d466dcfce16d38dbbe195d373b224e2c4988f1dfd521281957f40b56f8dc6";
 export const routeIqProspectiveKvAuthority = "non_authoritative_cache_only";
 export const routeIqProspectiveCollectionDefault = "off";
 export const routeIqProspectiveRecommendationInfluence = "off";
@@ -1973,7 +1977,9 @@ function evaluationRecordBody(record) {
 function validateIntelligenceRetentionAdmission(admission, expected) {
   assertExactKeys(admission, [
     "admissionVersion", "dataPolicyVersion", "dataPolicySha256", "state", "admitted",
-    "reasonCodes", "sourceEvidence", "evaluatedAt", "expiresAt", "legalHoldState",
+    "reasonCodes", "sourceEvidence", "evaluatedAt", "createdAt", "policyMaximumExpiresAt",
+    "customerOverrideState", "customerContractExpiresAt", "expiresAt", "legalHoldState",
+    "legalHoldLedgerSha256",
     "collectionState", "recommendationInfluence", "audit", "representativeOutputAllowed",
     "recommendationInfluenceAllowed", "canonicalProductionEvaluationAllowed"
   ], "evaluationRecord.retentionAdmission");
@@ -1981,7 +1987,7 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     "coordinatorSessionSha256", "fieldSessionSha256", "sourceRawSha256", "retentionBoundarySha256"
   ], "evaluationRecord.retentionAdmission.sourceEvidence");
   for (const field of [
-    "dataPolicySha256", "sourceEvidence.coordinatorSessionSha256",
+    "dataPolicySha256", "legalHoldLedgerSha256", "sourceEvidence.coordinatorSessionSha256",
     "sourceEvidence.fieldSessionSha256", "sourceEvidence.sourceRawSha256",
     "sourceEvidence.retentionBoundarySha256"
   ]) {
@@ -2010,6 +2016,21 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
       409
     );
   }
+  const expectedBoundary = calculateRouteIqRetentionBoundary({
+    createdAt: admission.createdAt,
+    customerContractExpiresAt: admission.customerContractExpiresAt
+  });
+  if (admission.createdAt !== expected.sourceArchiveCreatedAt
+    || admission.policyMaximumExpiresAt !== expectedBoundary.policyMaximumExpiresAt
+    || admission.customerOverrideState !== expectedBoundary.customerOverrideState
+    || admission.expiresAt !== expectedBoundary.expiresAt) {
+    fail(
+      "route_iq_evaluation_retention_boundary_invalid",
+      "Retention admission does not match the Data-owned 18-month maximum and shortening-only boundary.",
+      {},
+      409
+    );
+  }
   if (admission.admissionVersion !== routeIqAcceptedIntelligenceRetentionAdmissionVersion
     || admission.dataPolicyVersion !== routeIqProspectiveRetentionPolicyVersion
     || admission.dataPolicySha256 !== routeIqAcceptedProspectiveRetentionPolicySha256
@@ -2018,6 +2039,7 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
     || !Array.isArray(admission.reasonCodes)
     || admission.reasonCodes.length !== 0
     || admission.legalHoldState !== "none"
+    || admission.legalHoldLedgerSha256 !== routeIqRetentionEmptyLegalHoldLedgerSha256
     || admission.collectionState !== "on"
     || admission.recommendationInfluence !== "off"
     || admission.audit !== null
@@ -2034,8 +2056,14 @@ function validateIntelligenceRetentionAdmission(admission, expected) {
   const source = admission.sourceEvidence;
   const expectedRetentionBoundarySha256 = sha256({
     contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
-    authorizationState: "authorized_existing_field_session_boundary",
+    authorizationState: "founder_authorized_18_month_maximum",
     source: "authenticated_data_retention_contract",
+    creationTimeBasis: expectedBoundary.creationTimeBasis,
+    createdAt: expectedBoundary.createdAt,
+    maximumCalendarMonths: expectedBoundary.maximumCalendarMonths,
+    policyMaximumExpiresAt: expectedBoundary.policyMaximumExpiresAt,
+    customerOverrideState: expectedBoundary.customerOverrideState,
+    customerContractExpiresAt: expectedBoundary.customerContractExpiresAt,
     expiresAt: admission.expiresAt
   });
   if (source.coordinatorSessionSha256 !== sha256(expected.coordinatorSessionId)
@@ -3590,6 +3618,7 @@ class RouteIqProspectiveCoordinatorCore {
         coordinatorSessionId: session.session_id,
         sourceArchiveRawSha256: link.source_archive_raw_sha256,
         sourceArchiveSessionSha256: link.source_archive_session_sha256,
+        sourceArchiveCreatedAt: link.archive_committed_at,
         admissionRecordTime: recordTime,
         sourceProjection: {
           projectionId: committedProjection.projection_id,

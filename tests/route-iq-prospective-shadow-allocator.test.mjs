@@ -25,6 +25,13 @@ import {
   routeIqProspectiveRuntimeContextContractVersion,
   routeIqProspectiveServerAllocatorContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
+import {
+  calculateRouteIqRetentionBoundary,
+  routeIqRetentionEmptyLegalHoldLedgerSha256
+} from "../data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs";
+import {
+  routeIqProspectiveRetentionBoundaryContractVersion
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
 
 const BASE_TIME = Date.parse("2026-07-13T18:00:00.000Z");
 const DISPOSED_FIELD_SESSION_ID = "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14";
@@ -527,6 +534,10 @@ function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcome
     link.evidenceSha256
   );
   const observedOutcome = { status: "observed", value: true };
+  const retentionBoundary = calculateRouteIqRetentionBoundary({
+    createdAt: sourceLink.archive_committed_at,
+    customerContractExpiresAt: null
+  });
   const body = {
     schemaVersion: routeIqIntelligenceEvaluationRecordSchemaVersion,
     evaluationContractVersion: routeIqIntelligenceEvaluationContractVersion,
@@ -607,15 +618,26 @@ function buildFullEvaluationRecord(harness, reconciliationReceipt, link, outcome
         fieldSessionSha256: sourceLink.source_archive_session_sha256,
         sourceRawSha256: sourceLink.source_archive_raw_sha256,
         retentionBoundarySha256: digest({
-          contractVersion: "route-iq-field-session-retention-boundary-v1",
-          authorizationState: "authorized_existing_field_session_boundary",
+          contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+          authorizationState: "founder_authorized_18_month_maximum",
           source: "authenticated_data_retention_contract",
-          expiresAt: new Date(Date.parse(outcomeReceipt.authoritativeRecordTime) + 86_400_000).toISOString()
+          creationTimeBasis: retentionBoundary.creationTimeBasis,
+          createdAt: retentionBoundary.createdAt,
+          maximumCalendarMonths: retentionBoundary.maximumCalendarMonths,
+          policyMaximumExpiresAt: retentionBoundary.policyMaximumExpiresAt,
+          customerOverrideState: retentionBoundary.customerOverrideState,
+          customerContractExpiresAt: retentionBoundary.customerContractExpiresAt,
+          expiresAt: retentionBoundary.expiresAt
         })
       },
       evaluatedAt: outcomeReceipt.authoritativeRecordTime,
-      expiresAt: new Date(Date.parse(outcomeReceipt.authoritativeRecordTime) + 86_400_000).toISOString(),
+      createdAt: retentionBoundary.createdAt,
+      policyMaximumExpiresAt: retentionBoundary.policyMaximumExpiresAt,
+      customerOverrideState: retentionBoundary.customerOverrideState,
+      customerContractExpiresAt: retentionBoundary.customerContractExpiresAt,
+      expiresAt: retentionBoundary.expiresAt,
       legalHoldState: "none",
+      legalHoldLedgerSha256: routeIqRetentionEmptyLegalHoldLedgerSha256,
       collectionState: "on",
       recommendationInfluence: "off",
       audit: null,
@@ -1799,12 +1821,6 @@ test("evaluation retention admission fails closed for missing, extra, expired, u
       name: "expired before Data admission",
       mutate(record) {
         record.retentionAdmission.expiresAt = iso(85_000);
-        record.retentionAdmission.sourceEvidence.retentionBoundarySha256 = digest({
-          contractVersion: "route-iq-field-session-retention-boundary-v1",
-          authorizationState: "authorized_existing_field_session_boundary",
-          source: "authenticated_data_retention_contract",
-          expiresAt: iso(85_000)
-        });
       },
       code: "route_iq_evaluation_retention_expired"
     },
@@ -1817,6 +1833,37 @@ test("evaluation retention admission fails closed for missing, extra, expired, u
       name: "active legal hold",
       mutate(record) { record.retentionAdmission.legalHoldState = "active"; },
       code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "legal hold ledger tamper",
+      mutate(record) { record.retentionAdmission.legalHoldLedgerSha256 = digest("wrong-hold-ledger"); },
+      code: "route_iq_evaluation_retention_admission_invalid"
+    },
+    {
+      name: "source creation time tamper",
+      mutate(record) {
+        record.retentionAdmission.createdAt = new Date(
+          Date.parse(record.retentionAdmission.createdAt) + 1
+        ).toISOString();
+      },
+      code: "route_iq_evaluation_retention_boundary_invalid"
+    },
+    {
+      name: "policy maximum tamper",
+      mutate(record) {
+        record.retentionAdmission.policyMaximumExpiresAt = new Date(
+          Date.parse(record.retentionAdmission.policyMaximumExpiresAt) + 1
+        ).toISOString();
+      },
+      code: "route_iq_evaluation_retention_boundary_invalid"
+    },
+    {
+      name: "customer retention expansion",
+      mutate(record) {
+        record.retentionAdmission.customerOverrideState = "shortened";
+        record.retentionAdmission.customerContractExpiresAt = record.retentionAdmission.policyMaximumExpiresAt;
+      },
+      code: "route_iq_retention_customer_override_not_shorter"
     },
     {
       name: "collection unauthorized",

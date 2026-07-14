@@ -1,4 +1,9 @@
 import { createHash } from "node:crypto";
+import {
+  calculateRouteIqRetentionBoundary,
+  evaluateRouteIqRetentionOperation,
+  routeIqRetentionOperationAuthorizationVersion
+} from "./route-iq-retention-governance.mjs";
 
 export const routeIqFieldSessionArchiveVersion = "route-iq-field-session-archive-v1";
 export const routeIqEndOfDayHandoffContractId = "route-iq-end-of-day-data-handoff-v1";
@@ -1408,6 +1413,43 @@ export async function persistRouteIqFieldSessionAdministrativeDisposition(input 
         sessionId: request.sessionId,
         committedRawSha256: archived.record.commit.rawSha256,
         requestedRawSha256: request.rawSha256
+      }
+    });
+  }
+  const sourceCreatedAt = requireIso(
+    archived.record.commit.persistedAt,
+    "Administrative disposition source creation time"
+  );
+  const retentionBoundary = calculateRouteIqRetentionBoundary({
+    createdAt: sourceCreatedAt,
+    customerContractExpiresAt: null
+  });
+  const retentionOperation = evaluateRouteIqRetentionOperation({
+    operation: "administrative_disposition",
+    requestedAt: request.recordedAt,
+    sourceCreatedAt,
+    effectiveExpiresAt: retentionBoundary.expiresAt,
+    subject: {
+      workspaceId: request.workspaceId,
+      operatingProfileId: request.operatingProfileId,
+      recordClass: "field_session_raw_evidence",
+      sourceRecordSha256: request.rawSha256
+    },
+    legalHoldEvents: options.retentionGovernanceEvents,
+    authorization: {
+      version: routeIqRetentionOperationAuthorizationVersion,
+      authority: "prometheus_founder",
+      authorizationReference: `riq_retention_auth_${sha256(request.authorizationBatchId)}`,
+      scope: "single_explicit_append_only_disposition"
+    }
+  });
+  if (!retentionOperation.allowed) {
+    throw new FieldSessionArchiveError("Administrative disposition is blocked by Data retention governance.", {
+      code: "field_session_administrative_disposition_retention_blocked",
+      status: 409,
+      details: {
+        reasons: retentionOperation.reasons,
+        legalHoldState: retentionOperation.legalHoldState
       }
     });
   }

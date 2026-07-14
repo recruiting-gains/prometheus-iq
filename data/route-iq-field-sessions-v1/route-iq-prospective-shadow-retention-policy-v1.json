@@ -1,8 +1,8 @@
 {
   "policyVersion": "route-iq-prospective-shadow-retention-policy-v1",
-  "batchId": "BATCH-20260714-003",
+  "batchId": "BATCH-20260714-004",
   "owningSubsystem": "Prometheus Data",
-  "status": "defined_fail_closed_pending_explicit_retention_boundary",
+  "status": "founder_authorized_18_month_maximum_runtime_deletion_inactive",
   "scope": {
     "workspaceId": "fitness_connection",
     "operatingProfileId": "fitness",
@@ -13,17 +13,22 @@
     "recommendationInfluence": "off"
   },
   "retentionDecision": {
-    "newRetentionPeriodIntroduced": false,
+    "newRetentionPeriodIntroduced": true,
     "existingRetentionPeriodExtended": false,
-    "numericDurationSelected": false,
+    "numericDurationSelected": true,
+    "maximumCalendarMonths": 18,
     "durationDays": null,
-    "governingRule": "Prospective evidence may not outlive the explicit authorized retention boundary of its canonical field session.",
-    "effectiveExpiry": "earliest_explicit_authorized_source_or_workspace_deadline",
+    "creationTimeBasis": "canonical_authoritative_server_record_time",
+    "calendarSemantics": "UTC calendar-month addition with target month-end clamping and source time-of-day preservation",
+    "governingRule": "Raw field-session and prospective shadow evidence may be retained for at most 18 calendar months from canonical creation.",
+    "effectiveExpiry": "earliest_of_founder_18_month_maximum_or_authenticated_shorter_customer_contract",
+    "customerContractMayShorten": true,
+    "customerContractMayExpand": false,
     "missingBoundaryBehavior": "fail_closed_no_collection",
     "activationEligible": false,
     "activationBlockers": [
-      "explicit_authorized_field_session_retention_boundary_missing",
-      "prospective_expiry_and_deletion_runtime_not_verified",
+      "prospective_expiry_and_deletion_runtime_not_deployed",
+      "legal_hold_ledger_runtime_not_deployed",
       "founder_collection_activation_not_authorized"
     ]
   },
@@ -95,10 +100,22 @@
       "evaluatedAt",
       "retentionBoundary",
       "legalHoldState",
+      "legalHoldLedgerSha256",
       "deletionCapabilityStatus",
       "derivedProjectionExpiresAt"
     ],
-    "retentionBoundaryExactAllowlist": ["contractVersion", "authorizationState", "source", "expiresAt"],
+    "retentionBoundaryExactAllowlist": [
+      "contractVersion",
+      "authorizationState",
+      "source",
+      "creationTimeBasis",
+      "createdAt",
+      "maximumCalendarMonths",
+      "policyMaximumExpiresAt",
+      "customerOverrideState",
+      "customerContractExpiresAt",
+      "expiresAt"
+    ],
     "additionalPropertiesAllowed": false,
     "unknownFieldValuesPersistedOrEchoed": false,
     "unknownFieldRejectionMetadata": ["envelopeLevel", "unknownFieldCount"],
@@ -114,21 +131,42 @@
     "expiredEvidenceEvaluationAllowed": false,
     "physicalDeletionImplementationStatus": "not_implemented_requires_separate_data_owner_batch",
     "physicalDeletionActivated": false,
+    "expiredEvidencePhysicalMutationAuthorized": false,
     "sourceDeletionBeforeDerivedProjectionAllowed": false,
     "derivedProjectionMayOutliveSource": false,
     "derivedProjectionDeletionOrder": "before_or_atomic_with_source",
     "deletionAuditMayRetainPayload": false,
+    "deletionRequiresAppendOnlyAuditReceipt": true,
+    "silentArchiveRewriteAllowed": false,
     "minimalDeletionReceiptRequiresSeparateAuthorization": true,
     "unknownExpiryBehavior": "fail_closed"
   },
   "legalHold": {
-    "implementationStatus": "not_implemented",
-    "unknownStateBehavior": "fail_closed_no_collection_or_deletion",
+    "implementationStatus": "local_append_only_state_machine_verified_runtime_not_deployed",
+    "eventSchemaVersion": "route-iq-retention-governance-event-v1",
+    "unknownStateBehavior": "fail_closed_no_mutation_or_admission",
     "activeHoldMayAuthorizeNewCollection": false,
     "activeHoldMayAuthorizeAnalytics": false,
+    "activeHoldPausesDeletion": true,
+    "activeHoldPausesDisposition": true,
     "holdMayRewriteCanonicalEvidence": false,
+    "holdAndReleaseAreAppendOnly": true,
+    "releaseAuthorities": ["prometheus_founder", "authorized_counsel"],
+    "releaseRequiresOpaqueAuthorizationReference": true,
     "releaseRequiresAuthenticatedAuditedDataOwnerOperation": true,
     "retentionExpansionAuthorizedByThisPolicy": false
+  },
+  "aggregateRetention": {
+    "indefiniteRetentionAllowed": true,
+    "requiredState": "DEIDENTIFIED_AGGREGATE_RETENTION_ELIGIBLE",
+    "aggregateOnlyRequired": true,
+    "rawEvidenceAllowed": false,
+    "representativeIdentificationAllowed": false,
+    "customerIdentificationAllowed": false,
+    "specificVisitIdentificationAllowed": false,
+    "preciseLocationTrailAllowed": false,
+    "reidentificationKeyAllowed": false,
+    "missingOrUnknownAttestationBehavior": "fail_closed_raw_evidence_boundary_applies"
   },
   "auditExceptions": {
     "prospectiveIndefiniteRetentionAllowed": false,
@@ -145,6 +183,7 @@
     "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
     "originalRecordsRemainImmutable": true,
     "auditReadRemainsAvailable": true,
+    "legalHoldCheckRequiredBeforeNewDisposition": true,
     "analyticsLearningReadinessBaselineProductivityAdmissionAllowed": false
   },
   "activationBoundary": {
@@ -155,7 +194,7 @@
     "newProductionConsumerIntroduced": false,
     "deploymentPerformed": false,
     "productionMutationPerformed": false,
-    "founderRetentionDecisionStillRequired": true,
+    "founderRetentionDecisionStillRequired": false,
     "founderCollectionActivationStillRequired": true
   }
 }
