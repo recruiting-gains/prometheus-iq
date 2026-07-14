@@ -11,10 +11,11 @@ const dashboardProspectiveCommit = "6c7671cb3f9387fdac29961432412dfe70088b2e";
 const currentIntelligenceSuccessorCommits = [
   "cd0a504328b0870aa695731230e6c43dd4698e3c",
   "ed46fb0964187a207468cd89fbdc1fbbb8426748",
-  "e0f14743867bf765f05225e0321f2596741b8c70"
+  "e0f14743867bf765f05225e0321f2596741b8c70",
+  "21471fb1c5f32c18e4356434af71e0d63925d969"
 ];
 const historicalCanonicalCommit = "ed46fb0964187a207468cd89fbdc1fbbb8426748";
-const currentIntelligenceOwnerSuccessorCommit = "e0f14743867bf765f05225e0321f2596741b8c70";
+const currentIntelligenceOwnerSuccessorCommit = "21471fb1c5f32c18e4356434af71e0d63925d969";
 const mappingPath = "overwatch/artifact-contracts/provenance/route-iq-release-provenance-repair-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const dashboardContractPath = "overwatch/artifact-contracts/workspaces/fitness-connection/dashboard-consumer-contract-v1.json";
@@ -92,6 +93,16 @@ const expectedCurrentIntelligenceSuccessorPaths = new Map([
       "tests/read-only-field-session-learning.test.mjs",
       "tests/shadow-decision-readiness.test.mjs"
     ].sort()
+  ],
+  [
+    currentIntelligenceSuccessorCommits[3],
+    [
+      "intelligence/README.md",
+      "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+      "intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs",
+      "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+      "tests/intelligence-architecture.test.mjs"
+    ].sort()
   ]
 ]);
 
@@ -131,7 +142,7 @@ export function verifyReleaseProvenanceRepair() {
   const dashboardEvidence = read(dashboardEvidencePath).toString("utf8");
 
   assert.equal(mapping.contractId, "route-iq-release-provenance-repair-v1");
-  assert.equal(mapping.version, "1.1.0");
+  assert.equal(mapping.version, "1.2.0");
   assert.equal(mapping.batchId, batchId);
   assert.equal(mapping.status, "active_governance_only");
   assert.equal(mapping.owningSubsystem, "Prometheus Overwatch");
@@ -145,6 +156,7 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(gap.retroactiveOwnershipClaimed, false);
   assert.equal(gap.mixedOwnershipDisclosed, true);
   assert.equal(gap.intelligenceOwnerRepairCommit, intelligenceRepairCommit);
+  assert.equal(gap.historicalCanonicalCommit, historicalCanonicalCommit);
   assert.deepEqual(gap.currentIntelligenceSuccessorCommits, currentIntelligenceSuccessorCommits);
   assert.deepEqual(changedPaths(legacyCommit), expectedLegacyPaths);
   assert.deepEqual(changedPaths(intelligenceRepairCommit), expectedIntelligenceRepairPaths);
@@ -173,9 +185,14 @@ export function verifyReleaseProvenanceRepair() {
     assert.equal(sha256(legacyBytes), record.legacyRawSha256, `${record.path} legacy hash drifted.`);
     assert.equal(sha256(historicalCanonicalBytes), record.canonicalAfterRepairRawSha256, `${record.path} historical repair hash drifted.`);
     assert.equal(ownerEvidence.legacyCommitRawSha256, record.legacyRawSha256);
-    assert.equal(ownerEvidence.reconstructedRawSha256, record.canonicalAfterRepairRawSha256);
-    assert.equal(ownerEvidence.canonicalAfterRepairRawSha256, record.canonicalAfterRepairRawSha256);
-    assert.equal(semanticSha256(historicalCanonicalJson), ownerEvidence.reconstructedSemanticSha256);
+    assert.equal(semanticSha256(historicalCanonicalJson), record.canonicalAfterRepairSemanticSha256);
+    const currentCanonicalBytes = read(record.path);
+    const currentCanonicalJson = JSON.parse(currentCanonicalBytes);
+    assert.equal(sha256(currentCanonicalBytes), record.currentCanonicalRawSha256);
+    assert.equal(semanticSha256(currentCanonicalJson), record.currentCanonicalSemanticSha256);
+    assert.equal(ownerEvidence.reconstructedRawSha256, record.currentCanonicalRawSha256);
+    assert.equal(ownerEvidence.canonicalAfterRepairRawSha256, record.currentCanonicalRawSha256);
+    assert.equal(ownerEvidence.reconstructedSemanticSha256, record.currentCanonicalSemanticSha256);
     assert.equal(ownerEvidence.canonicalAfterRepairSemanticSha256, ownerEvidence.reconstructedSemanticSha256);
     assert.equal(ownerEvidence.byteIdenticalAfterRepair, true);
     assert.equal(ownerEvidence.semanticIdenticalAfterRepair, true);
@@ -186,8 +203,9 @@ export function verifyReleaseProvenanceRepair() {
   );
   assert.ok(shadowEvidence, "Shadow-readiness protected consumer must be independently reconstructed.");
   const historicalShadowBytes = gitBytes("show", `${historicalCanonicalCommit}:${shadowEvidence.path}`);
-  assert.equal(sha256(historicalShadowBytes), shadowEvidence.reconstructedRawSha256);
-  assert.equal(semanticSha256(JSON.parse(historicalShadowBytes)), shadowEvidence.reconstructedSemanticSha256);
+  assert.equal(sha256(historicalShadowBytes), shadowEvidence.reconstructionBaseRawSha256);
+  assert.equal(sha256(read(shadowEvidence.path)), shadowEvidence.reconstructedRawSha256);
+  assert.equal(semanticSha256(JSON.parse(read(shadowEvidence.path))), shadowEvidence.reconstructedSemanticSha256);
   assert.equal(shadowEvidence.byteIdenticalAfterRepair, true);
   assert.equal(shadowEvidence.semanticIdenticalAfterRepair, true);
 
@@ -254,7 +272,18 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(currentIntelligenceSuccessor.commit, currentIntelligenceOwnerSuccessorCommit);
   assert.equal(currentIntelligenceSuccessor.tree, git("rev-parse", `${currentIntelligenceOwnerSuccessorCommit}^{tree}`));
   assert.equal(currentIntelligenceSuccessor.canonicalOwner, "Prometheus Intelligence Engine");
-  assert.equal(currentIntelligenceSuccessor.legacyProvenanceArtifactsModified, false);
+  assert.equal(currentIntelligenceSuccessor.predecessorCommit, "e0f14743867bf765f05225e0321f2596741b8c70");
+  assert.equal(currentIntelligenceSuccessor.legacyProvenanceArtifactsModified, true);
+  assert.equal(currentIntelligenceSuccessor.legacyProvenanceGapPreserved, true);
+  assert.equal(
+    currentIntelligenceSuccessor.semanticSpecificationPath,
+    "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+  );
+  assert.equal(
+    sha256(read(currentIntelligenceSuccessor.semanticSpecificationPath)),
+    currentIntelligenceSuccessor.semanticSpecificationSha256,
+  );
+  assert.equal(currentIntelligenceSuccessor.targetHashesStoredInSemanticSpecification, false);
   assert.equal(currentIntelligenceSuccessor.recommendationInfluence, "OFF");
   for (const consumer of currentIntelligenceSuccessor.protectedConsumers) {
     assert.equal(sha256(read(consumer.path)), consumer.sha256, `${consumer.path} current owner-successor hash drifted.`);

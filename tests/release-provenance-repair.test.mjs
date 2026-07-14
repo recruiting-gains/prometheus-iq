@@ -13,6 +13,6 @@ test("Overwatch verifies Route IQ release provenance repair", () => {
     dashboardBehaviorApproval: "FOUNDER_BEHAVIOR_APPROVAL_REQUIRED",
     recommendationInfluence: "OFF",
     productionConsumerIntroduced: false,
-    currentIntelligenceOwnerSuccessor: "e0f14743867bf765f05225e0321f2596741b8c70"
+    currentIntelligenceOwnerSuccessor: "21471fb1c5f32c18e4356434af71e0d63925d969"
   });
 });

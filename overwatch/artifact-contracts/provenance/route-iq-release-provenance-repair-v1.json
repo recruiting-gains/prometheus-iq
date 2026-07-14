@@ -1,6 +1,6 @@
 {
   "contractId": "route-iq-release-provenance-repair-v1",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "status": "active_governance_only",
   "owningSubsystem": "Prometheus Overwatch",
   "batchId": "BATCH-20260713-002",
@@ -14,10 +14,12 @@
     "retroactiveOwnershipClaimed": false,
     "mixedOwnershipDisclosed": true,
     "intelligenceOwnerRepairCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
+    "historicalCanonicalCommit": "ed46fb0964187a207468cd89fbdc1fbbb8426748",
     "currentIntelligenceSuccessorCommits": [
       "cd0a504328b0870aa695731230e6c43dd4698e3c",
       "ed46fb0964187a207468cd89fbdc1fbbb8426748",
-      "e0f14743867bf765f05225e0321f2596741b8c70"
+      "e0f14743867bf765f05225e0321f2596741b8c70",
+      "21471fb1c5f32c18e4356434af71e0d63925d969"
     ],
     "intelligenceOwnerEvidence": "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
     "intelligenceOwnedFiles": [
@@ -25,25 +27,37 @@
         "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
-        "canonicalAfterRepairRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889"
+        "canonicalAfterRepairRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889",
+        "canonicalAfterRepairSemanticSha256": "2e89b305629f11001c5c384ec4ba30f23a2261d34e7eae62ff03b9638ba1e795",
+        "currentCanonicalRawSha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433",
+        "currentCanonicalSemanticSha256": "ec191de9d4d2492470a43285228f2cc304bc1093e8788217346a69df6a10f292"
       },
       {
         "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
-        "canonicalAfterRepairRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e"
+        "canonicalAfterRepairRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e",
+        "canonicalAfterRepairSemanticSha256": "c32ca5eeb7a3b5fa5e52401f4de1a8acf6c4f4ca6d0b8338626acaea97a51801",
+        "currentCanonicalRawSha256": "71b1a47c52a1a6c840bbbb782564249467d61059a63c54dfea6980928a88fe75",
+        "currentCanonicalSemanticSha256": "6269b0d0767c1f20c81aac260a1580536bf3bbc8916a65f68389017eb1678af0"
       },
       {
         "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "c9215c3df9dacde19e7b201b8ec8376b717fcb2501bf8046b83e4e0fa802d9b5",
-        "canonicalAfterRepairRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3"
+        "canonicalAfterRepairRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3",
+        "canonicalAfterRepairSemanticSha256": "49d11dc5c985fa789cfb9701d85a3dc40f4130acabcc25657622b752bce29cde",
+        "currentCanonicalRawSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3",
+        "currentCanonicalSemanticSha256": "49d11dc5c985fa789cfb9701d85a3dc40f4130acabcc25657622b752bce29cde"
       },
       {
         "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
         "canonicalOwner": "Prometheus Intelligence Engine",
         "legacyRawSha256": "c62dbd274d8d0cdbb6ed22adc849ce54fb9f7d42ac42a38fdf6a8e7926573440",
-        "canonicalAfterRepairRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f"
+        "canonicalAfterRepairRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f",
+        "canonicalAfterRepairSemanticSha256": "15aaee4af235b5efd96bb9d5fb07bbd8a5966e373c3c548e4286af35fb30a29c",
+        "currentCanonicalRawSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f",
+        "currentCanonicalSemanticSha256": "15aaee4af235b5efd96bb9d5fb07bbd8a5966e373c3c548e4286af35fb30a29c"
       }
     ],
     "overwatchOwnedFile": {
@@ -68,7 +82,8 @@
     "currentIntelligenceSuccessorCommits": [
       "cd0a504328b0870aa695731230e6c43dd4698e3c",
       "ed46fb0964187a207468cd89fbdc1fbbb8426748",
-      "e0f14743867bf765f05225e0321f2596741b8c70"
+      "e0f14743867bf765f05225e0321f2596741b8c70",
+      "21471fb1c5f32c18e4356434af71e0d63925d969"
     ],
     "verificationOwner": "Prometheus Overwatch"
   },
@@ -133,11 +148,16 @@
   },
   "currentIntelligenceOwnerSuccessor": {
     "batchId": "BATCH-20260714-001",
-    "commit": "e0f14743867bf765f05225e0321f2596741b8c70",
-    "tree": "226dde2fba076802f6e8e9562003f78b1f44f6f8",
+    "commit": "21471fb1c5f32c18e4356434af71e0d63925d969",
+    "tree": "4b2b4b8d9c843fcbf6ed26befa73015f7a21682d",
     "canonicalOwner": "Prometheus Intelligence Engine",
-    "reason": "Synchronize Data administrative-disposition exclusion semantics and protected consumer baselines without rewriting legacy reconstruction evidence.",
-    "legacyProvenanceArtifactsModified": false,
+    "reason": "Independently reconstruct current protected Intelligence consumers from historical bases plus an owner-authored administrative-disposition semantic specification without target hashes.",
+    "predecessorCommit": "e0f14743867bf765f05225e0321f2596741b8c70",
+    "legacyProvenanceArtifactsModified": true,
+    "legacyProvenanceGapPreserved": true,
+    "semanticSpecificationPath": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+    "semanticSpecificationSha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372",
+    "targetHashesStoredInSemanticSpecification": false,
     "recommendationInfluence": "OFF",
     "protectedConsumers": [
       {
