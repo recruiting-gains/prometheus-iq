@@ -11,6 +11,7 @@ const chromePath = process.env.CHROME_PATH || "/Applications/Google Chrome.app/C
 const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
 const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
+const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 
 const results = [];
 const errors = [];
@@ -73,9 +74,14 @@ function localHttpsCertificate() {
   return localCertificate;
 }
 
-function startStaticServer({ missingActive = false, fieldSessionResponses = [] } = {}) {
+function startStaticServer({
+  missingActive = false,
+  fieldSessionResponses = [],
+  prospectiveResponse = { status: 204 }
+} = {}) {
   const requests = [];
   const fieldSessionRequests = [];
+  const prospectiveRequests = [];
   let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
@@ -89,6 +95,35 @@ function startStaticServer({ missingActive = false, fieldSessionResponses = [] }
     );
     const relativePath = pathname.replace(/^\/+/, "");
     requests.push({ path: relativePath, method: request.method });
+
+    if (relativePath === prospectiveEventPath) {
+      const chunks = [];
+      let size = 0;
+      request.on("data", chunk => {
+        size += chunk.length;
+        if (size <= 4096) chunks.push(chunk);
+      });
+      request.on("end", () => {
+        let payload = null;
+        try {
+          payload = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        } catch (error) {}
+        prospectiveRequests.push({
+          method: request.method,
+          payload,
+          bytes: size,
+          headers: request.headers
+        });
+        const status = Number(prospectiveResponse.status || 204);
+        const body = prospectiveResponse.body === undefined ? "" : JSON.stringify(prospectiveResponse.body);
+        response.writeHead(status, {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store"
+        });
+        response.end(status === 204 ? "" : body);
+      });
+      return;
+    }
 
     if (relativePath === fieldSessionHandoffPath) {
       const chunks = [];
@@ -177,6 +212,7 @@ function startStaticServer({ missingActive = false, fieldSessionResponses = [] }
         origin: `https://127.0.0.1:${address.port}`,
         requests,
         fieldSessionRequests,
+        prospectiveRequests,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
     });
@@ -1945,7 +1981,7 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
     return { name, cdp, eventLog, routeLoadMs, initial };
   } catch (error) {
     cdp.close();
-    throw new Error(`${error.message}; network=${JSON.stringify(eventLog.network)}`);
+    throw new Error(`${error.message}; events=${JSON.stringify(eventLog)}`);
   }
 }
 
@@ -2009,6 +2045,67 @@ function verifyNoErrors(label, eventLog, snap, { allow = [] } = {}) {
   assertWorkflow(`${label} JavaScript console/runtime errors`, allErrors.length === 0, "no page runtime or console errors", allErrors.join(" | "));
 }
 
+async function waitForProspectiveRequests(server, count, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (server.prospectiveRequests.length >= count) return;
+    await wait(25);
+  }
+  throw new Error(`Expected ${count} prospective requests, received ${server.prospectiveRequests.length}.`);
+}
+
+async function verifyProspectiveShadowDashboardSeam(scenario, server) {
+  await waitForProspectiveRequests(server, 1);
+  const beforeCount = server.prospectiveRequests.length;
+  const browserResult = await scenario.cdp.evaluate(`(async () => {
+    const anchor = document.getElementById("bestMoveDirections");
+    if (!anchor || !anchor.href || anchor.getAttribute("href") === "#") {
+      throw new Error("The governed rank-one Directions action is unavailable.");
+    }
+    const marker = "DO_NOT_EXPOSE_SHADOW_PAYLOAD";
+    const before = {
+      bestNextMove: document.getElementById("bestNextMove")?.textContent?.trim() || "",
+      routeQueueIds: activeProfile().activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
+      visitCount: state.visits.length,
+      modalActive: document.getElementById("modal")?.classList.contains("active") || false,
+      activeView: document.querySelector(".view.active")?.id || ""
+    };
+    anchor.addEventListener("click", event => event.preventDefault(), { once: true });
+    anchor.click();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    const databaseNames = typeof indexedDB.databases === "function"
+      ? (await indexedDB.databases()).map(database => database.name || "")
+      : [];
+    const cacheNames = typeof caches?.keys === "function" ? await caches.keys() : [];
+    const localValues = Object.values(localStorage);
+    const sessionValues = Object.values(sessionStorage);
+    const bodyText = document.body.textContent || "";
+    const debugText = JSON.stringify(window.prometheusDebugState || {});
+    return {
+      before,
+      after: {
+        bestNextMove: document.getElementById("bestNextMove")?.textContent?.trim() || "",
+        routeQueueIds: activeProfile().activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
+        visitCount: state.visits.length,
+        modalActive: document.getElementById("modal")?.classList.contains("active") || false,
+        activeView: document.querySelector(".view.active")?.id || ""
+      },
+      markerVisible: bodyText.includes(marker),
+      markerInDebug: debugText.includes(marker),
+      markerInStorage: localValues.concat(sessionValues, databaseNames, cacheNames).some(value => String(value).includes(marker)),
+      databaseNames,
+      cacheNames,
+      shadowTermsVisible: /shadow decision|shadow probability|shadow confidence|recommendation readiness/i.test(bodyText)
+    };
+  })()`);
+  await waitForProspectiveRequests(server, beforeCount + 1);
+  return {
+    browserResult,
+    requests: server.prospectiveRequests.slice(),
+    actionRequestsAdded: server.prospectiveRequests.length - beforeCount
+  };
+}
+
 function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
   const activeBytes = statSync(resolve(dashboardRoot, activePoolPath)).size;
   const fullBytes = statSync(resolve(dashboardRoot, fullPoolPath)).size;
@@ -2036,6 +2133,24 @@ async function runHarness() {
   const visitCorrectionServer = await startStaticServer();
   const addPlaceServer = await startStaticServer();
   const decisionContextServer = await startStaticServer();
+  const prospectiveServer = await startStaticServer({
+    prospectiveResponse: {
+      status: 202,
+      body: {
+        marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD",
+        rankedCandidates: ["must-not-reach-the-representative"],
+        probability: 0.99,
+        confidence: "must-not-reach-the-representative"
+      }
+    }
+  });
+  const prospectiveOffServer = await startStaticServer({ prospectiveResponse: { status: 204 } });
+  const prospectiveFailureServer = await startStaticServer({
+    prospectiveResponse: {
+      status: 503,
+      body: { marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD", code: "prospective_runtime_unavailable" }
+    }
+  });
   const chrome = await launchChrome();
 
   try {
@@ -2074,7 +2189,39 @@ async function runHarness() {
     assertWorkflow("Route Intelligence rendering", founderSnap.debug.rendererReceived && founderSnap.bestNextMove && founderSnap.bestNextMove !== "Loading route signal" && founderSnap.dailyRouteCards > 0, `${founderSnap.bestNextMove} with ${founderSnap.dailyRouteCards} daily route cards`, JSON.stringify({ bestNextMove: founderSnap.bestNextMove, dailyRouteCards: founderSnap.dailyRouteCards, debug: founderSnap.debug }));
     assertWorkflow("Directions link generation", founderSnap.bestMoveDirections.startsWith("https://www.google.com/maps/dir/?api=1&destination=") && founderSnap.bestMoveDirections.includes("destination_place_id="), founderSnap.bestMoveDirections, founderSnap.bestMoveDirections);
     assertWorkflow("Discovery Mode", founderSnap.todayText.includes("Discovery Mode") || founderSnap.routeRisk.includes("Discovery Mode") || founderSnap.statsText.includes("Discovery Mode"), founderSnap.routeRisk || "Discovery Mode visible in runtime text", JSON.stringify({ routeRisk: founderSnap.routeRisk, todayText: founderSnap.todayText.slice(0, 300) }));
+    assertWorkflow("Prospective Founder/owner isolation", server.prospectiveRequests.length === 0, "Founder and owner route rendering produced no prospective signal", JSON.stringify(server.prospectiveRequests));
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
+
+    const prospective = await runPageScenario(chrome, prospectiveServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-seam", "prospective-shadow-seam", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    const prospectiveResult = await verifyProspectiveShadowDashboardSeam(prospective, prospectiveServer);
+    const prospectiveTrigger = prospectiveResult.requests.find(request => request.payload?.eventKind === "next_stop_requested");
+    const prospectiveActions = prospectiveResult.requests.filter(request => request.payload?.eventKind === "representative_action_observed");
+    const allowedPayloadKeys = ["eventKind", "informationalObservedAt", "informationalSequence"];
+    assertWorkflow("Prospective next-stop opportunity boundary", prospectiveResult.requests[0]?.payload?.eventKind === "next_stop_requested" && prospectiveTrigger?.method === "POST", "the first signal follows governed route-queue generation", JSON.stringify(prospectiveResult.requests));
+    assertWorkflow("Prospective rank-one representative action boundary", prospectiveActions.length === 1 && prospectiveResult.actionRequestsAdded === 1, "one click on Best Next Move Directions emitted one representative action signal", JSON.stringify(prospectiveResult.requests));
+    assertWorkflow("Prospective strict opaque payload", prospectiveResult.requests.every(request => JSON.stringify(Object.keys(request.payload || {}).sort()) === JSON.stringify(allowedPayloadKeys) && request.bytes <= 256) && prospectiveTrigger?.payload?.informationalSequence === 1 && prospectiveActions[0]?.payload?.informationalSequence === 2, "payload contains only eventKind and informational sequence/time", JSON.stringify(prospectiveResult.requests));
+    assertWorkflow("Prospective shadow response invisibility", !prospectiveResult.browserResult.markerVisible && !prospectiveResult.browserResult.markerInDebug && !prospectiveResult.browserResult.markerInStorage && !prospectiveResult.browserResult.shadowTermsVisible, "malicious shadow-shaped response reached no DOM, debug state, browser storage, IndexedDB, or cache", JSON.stringify(prospectiveResult.browserResult));
+    assertWorkflow("Prospective zero influence", JSON.stringify(prospectiveResult.browserResult.before) === JSON.stringify(prospectiveResult.browserResult.after), "rank-one action signal changed no route, visit, modal, or view state", JSON.stringify(prospectiveResult.browserResult));
+    verifyMobileFit("Prospective mobile/PWA rendering", await mobileFitSnapshot(prospective.cdp));
+    verifyNoErrors("Prospective opaque seam", prospective.eventLog, await snapshot(prospective.cdp));
+
+    const prospectiveOff = await runPageScenario(chrome, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off", "prospective-shadow-off");
+    const prospectiveOffResult = await verifyProspectiveShadowDashboardSeam(prospectiveOff, prospectiveOffServer);
+    assertWorkflow("Prospective default-OFF isolation", prospectiveOffResult.requests.length === 2 && JSON.stringify(prospectiveOffResult.browserResult.before) === JSON.stringify(prospectiveOffResult.browserResult.after), "204/OFF responses were ignored without changing the representative workflow", JSON.stringify(prospectiveOffResult));
+    verifyNoErrors("Prospective default-OFF", prospectiveOff.eventLog, await snapshot(prospectiveOff.cdp));
+
+    const prospectiveFailure = await runPageScenario(chrome, prospectiveFailureServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-failure", "prospective-shadow-failure");
+    const prospectiveFailureResult = await verifyProspectiveShadowDashboardSeam(prospectiveFailure, prospectiveFailureServer);
+    assertWorkflow("Prospective failure isolation", prospectiveFailureResult.requests.length === 2 && JSON.stringify(prospectiveFailureResult.browserResult.before) === JSON.stringify(prospectiveFailureResult.browserResult.after), "503 responses were ignored without blocking route generation or Directions", JSON.stringify(prospectiveFailureResult));
+    verifyNoErrors("Prospective failure isolation", prospectiveFailure.eventLog, await snapshot(prospectiveFailure.cdp), {
+      allow: ["server responded with a status of 503"]
+    });
+    prospective.cdp.close();
+    prospectiveOff.cdp.close();
+    prospectiveFailure.cdp.close();
 
     for (const expected of [
       { profileId: "general_outside_sales", terms: ["Opportunities Today", "Appointments", "Leads", "Outside Sales Route", "Verified Opportunities"] },
@@ -2354,6 +2501,9 @@ async function runHarness() {
     await visitCorrectionServer.close();
     await addPlaceServer.close();
     await decisionContextServer.close();
+    await prospectiveServer.close();
+    await prospectiveOffServer.close();
+    await prospectiveFailureServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-6MB1d1lkCTpCIxgAAvU/nftkhwR3ElU49Xr5rJL8EEo='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-VTCUjAGbrrkLjT/uYdaQK+aVEWvT53xh0EArIxyBGJ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1858,12 +1858,15 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-13-decision-context-provenance-v1";
+    const appBuildVersion = "2026-07-13-prospective-shadow-seam-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v45-decision-context-provenance";
+    const serviceWorkerCacheVersion = "prometheus-v46-prospective-shadow-seam";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
+    const routeIqProspectiveEventPath = "/api/dashboard/route-iq/prospective/event";
+    const routeIqProspectiveEventKinds = new Set(["next_stop_requested", "representative_action_observed"]);
+    let routeIqProspectiveInformationalSequence = 0;
     const fieldSessionCompletionActions = new Set(["end_route", "end_day"]);
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -1876,6 +1879,29 @@
     const operatingProfileContractsPath = "./intelligence/contracts/operating-profile-contracts.json";
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
+
+    function signalRouteIqProspectiveEvent(eventKind) {
+      if (sessionRole !== "rep") return;
+      if (!routeIqProspectiveEventKinds.has(eventKind)) return;
+      const payload = {
+        eventKind,
+        informationalSequence: ++routeIqProspectiveInformationalSequence,
+        informationalObservedAt: new Date().toISOString()
+      };
+      try {
+        void fetch(routeIqProspectiveEventPath, {
+          method: "POST",
+          mode: "same-origin",
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          keepalive: true,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }).catch(() => undefined);
+      } catch (error) {}
+    }
+
     const appUrlParams = new URLSearchParams(location.search);
     const workspaceStoreKey = "prometheus-founder-workspace";
     const defaultWorkspaceId = "fitness_connection";
@@ -22275,6 +22301,9 @@
           ? `${result.metrics.activeCount} stops ready; ${queueHoursSummary.hoursUnverified} need an hours check.`
           : `${result.metrics.activeCount} stops ready.`, "active");
       }
+      if (result.metrics.activeCount > 0 && (result.triggered || options.force === true)) {
+        signalRouteIqProspectiveEvent("next_stop_requested");
+      }
       return result;
     }
 
@@ -25267,6 +25296,10 @@
     }
 
     document.addEventListener("click", event => {
+      if (event.target.closest("#bestMoveDirections")) {
+        signalRouteIqProspectiveEvent("representative_action_observed");
+      }
+
       const workspaceSelect = event.target.closest("[data-workspace-select]");
       if (workspaceSelect) setWorkspaceSelection(workspaceSelect.dataset.workspaceSelect);
 

@@ -11,6 +11,8 @@ import {
 
 const dashboardSource = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const deployedDashboardSource = readFileSync(new URL("../deploy/cloudflare-pages/index.html", import.meta.url), "utf8");
+const serviceWorkerSource = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+const deployedServiceWorkerSource = readFileSync(new URL("../deploy/cloudflare-pages/sw.js", import.meta.url), "utf8");
 
 function sourceSection(start, end) {
   const startIndex = dashboardSource.indexOf(start);
@@ -497,6 +499,57 @@ test("Dashboard Decision Source remains optional post-action evidence rather tha
   assert.doesNotMatch(evidenceFactory, /contactName|contactPhone|contactEmail|manager|latitude|longitude/);
   assert.match(recommendationSnapshot, /placeId: recommendation\?\.id \|\| ""/);
   assert.match(recommendationSnapshot, /recommendationId: recommendation \? routeIdentityKey\(recommendation\) : ""/);
+});
+
+test("Dashboard prospective seam is opaque, nonblocking, and limited to the existing next-stop boundary", () => {
+  assert.equal(deployedDashboardSource, dashboardSource);
+  assert.equal(deployedServiceWorkerSource, serviceWorkerSource);
+
+  const sender = sourceSection("function signalRouteIqProspectiveEvent", "const appUrlParams");
+  const replenishment = sourceSection("async function performAdaptiveRouteReplenishment", "function requestAdaptiveRouteReplenishment");
+  const clickBoundary = sourceSection('document.addEventListener("click"', 'document.addEventListener("change"');
+  const reportBuilder = sourceSection("function todayReportPayload", "function fieldSessionScope");
+
+  assert.match(dashboardSource, /const routeIqProspectiveEventPath = "\/api\/dashboard\/route-iq\/prospective\/event"/);
+  assert.match(dashboardSource, /new Set\(\["next_stop_requested", "representative_action_observed"\]\)/);
+  assert.match(sender, /if \(sessionRole !== "rep"\) return/);
+  assert.match(sender, /const payload = \{\s*eventKind,\s*informationalSequence: \+\+routeIqProspectiveInformationalSequence,\s*informationalObservedAt: new Date\(\)\.toISOString\(\)\s*\}/);
+  assert.match(sender, /keepalive: true/);
+  assert.match(sender, /credentials: "same-origin"/);
+  assert.match(sender, /redirect: "error"/);
+  assert.match(sender, /void fetch\([\s\S]*\)\.catch\(\(\) => undefined\)/);
+  assert.doesNotMatch(sender, /await|\.then\(|response|\.json\(|\.text\(|localStorage|sessionStorage|indexedDB|caches\./);
+
+  assert.match(replenishment, /result\.metrics\.activeCount > 0 && \(result\.triggered \|\| options\.force === true\)[\s\S]*signalRouteIqProspectiveEvent\("next_stop_requested"\)/);
+  assert.match(clickBoundary, /event\.target\.closest\("#bestMoveDirections"\)[\s\S]*signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
+  assert.equal((clickBoundary.match(/signalRouteIqProspectiveEvent\("representative_action_observed"\)/g) || []).length, 1);
+
+  for (const forbidden of [
+    "workspaceId",
+    "operatingProfileId",
+    "representativeId",
+    "fieldSessionId",
+    "opportunityId",
+    "candidateId",
+    "candidateSet",
+    "outcome",
+    "visitDecisionSource",
+    "hash",
+    "ranking",
+    "probability",
+    "confidence",
+    "eligibility",
+    "readiness",
+    "authoritative",
+    "integrity"
+  ]) {
+    assert.doesNotMatch(sender, new RegExp(forbidden, "i"));
+  }
+
+  assert.doesNotMatch(dashboardSource, /representative_outcome_observed/);
+  assert.doesNotMatch(reportBuilder, /routeIqProspective|shadowDecision|shadowRanking|shadowProbability|shadowConfidence|shadowReadiness/);
+  assert.match(serviceWorkerSource, /if \(event\.request\.method !== "GET"\) return/);
+  assert.doesNotMatch(serviceWorkerSource, /route-iq\/prospective|prospective\/event/);
 });
 
 test("Dashboard source records the representative workflow change without silently auto-saving No Contact", () => {
