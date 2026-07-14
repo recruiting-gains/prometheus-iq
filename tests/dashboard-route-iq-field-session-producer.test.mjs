@@ -505,20 +505,46 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   assert.equal(deployedDashboardSource, dashboardSource);
   assert.equal(deployedServiceWorkerSource, serviceWorkerSource);
 
+  const gate = sourceSection("function disableRouteIqProspectiveAdmission", "function signalRouteIqProspectiveEvent");
   const sender = sourceSection("function signalRouteIqProspectiveEvent", "const appUrlParams");
   const replenishment = sourceSection("async function performAdaptiveRouteReplenishment", "function requestAdaptiveRouteReplenishment");
   const clickBoundary = sourceSection('document.addEventListener("click"', 'document.addEventListener("change"');
   const reportBuilder = sourceSection("function todayReportPayload", "function fieldSessionScope");
+  const startup = sourceSection("(async () => {", "</script>");
 
   assert.match(dashboardSource, /const routeIqProspectiveEventPath = "\/api\/dashboard\/route-iq\/prospective\/event"/);
   assert.match(dashboardSource, /new Set\(\["next_stop_requested", "representative_action_observed"\]\)/);
-  assert.match(sender, /if \(sessionRole !== "rep"\) return/);
+  assert.match(dashboardSource, /route-iq-prospective-browser-bootstrap-v1/);
+  assert.match(dashboardSource, /route-iq-prospective-browser-event-v1/);
+  assert.match(dashboardSource, /route-iq-prospective-runtime-context-v1/);
+  assert.match(dashboardSource, /route-iq-prospective-coordinator-contract-v1/);
+  assert.match(gate, /method: "GET"/);
+  assert.match(gate, /credentials: "same-origin"/);
+  assert.match(gate, /cache: "no-store"/);
+  assert.match(gate, /redirect: "error"/);
+  assert.match(gate, /AbortSignal\.timeout\(routeIqProspectiveBootstrapTimeoutMs\)/);
+  assert.match(gate, /body\.collection !== "ON"/);
+  assert.match(gate, /body\.recommendationInfluence !== "OFF"/);
+  assert.match(gate, /body\.activeCohort !== true/);
+  assert.match(gate, /body\.runtimeContextContractVersion !== routeIqProspectiveRuntimeContextContractVersion/);
+  assert.match(gate, /body\.coordinatorContractVersion !== routeIqProspectiveCoordinatorContractVersion/);
+  assert.match(gate, /body\.workspaceId !== requestedScope\.workspaceId/);
+  assert.match(gate, /body\.operatingProfileId !== requestedScope\.operatingProfileId/);
+  assert.match(gate, /body\.representativeId !== requestedScope\.representativeId/);
+  assert.match(gate, /body\.supportedOpportunityTypes\[0\] !== routeIqProspectiveOpportunityType/);
+  assert.match(gate, /expiresAtMs <= nowMs/);
+  assert.match(dashboardSource, /routeIqProspectiveBootstrapMaximumLifetimeMs = 60 \* 1000/);
+  assert.doesNotMatch(gate, /localStorage|sessionStorage|indexedDB|caches\.|WebSocket|sendBeacon|setTimeout|setInterval|addEventListener|outbox|retry/i);
+  assert.match(sender, /if \(sessionRole !== "rep"\) return false/);
+  assert.match(sender, /if \(!routeIqProspectiveAdmissionIsActive\(\)\) return false/);
   assert.match(sender, /const payload = \{\s*eventKind,\s*informationalSequence: \+\+routeIqProspectiveInformationalSequence,\s*informationalObservedAt: new Date\(\)\.toISOString\(\)\s*\}/);
   assert.match(sender, /keepalive: true/);
   assert.match(sender, /credentials: "same-origin"/);
   assert.match(sender, /redirect: "error"/);
   assert.match(sender, /void fetch\([\s\S]*\)\.catch\(\(\) => undefined\)/);
   assert.doesNotMatch(sender, /await|\.then\(|response|\.json\(|\.text\(|localStorage|sessionStorage|indexedDB|caches\./);
+
+  assert.match(startup, /const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient\(\)[\s\S]*await loadRouteBusinessHoursEligibility\(\)[\s\S]*await loadRuntimeProductionDataset\(\)[\s\S]*routeIqProspectiveBootstrapWindowOpen = false[\s\S]*await requestAdaptiveRouteReplenishment\(\{ force: true, trigger: "startup" \}\)/);
 
   assert.match(replenishment, /result\.metrics\.activeCount > 0 && \(result\.triggered \|\| options\.force === true\)[\s\S]*signalRouteIqProspectiveEvent\("next_stop_requested"\)/);
   assert.match(clickBoundary, /event\.target\.closest\("#bestMoveDirections"\)[\s\S]*signalRouteIqProspectiveEvent\("representative_action_observed"\)/);
@@ -550,6 +576,21 @@ test("Dashboard prospective seam is opaque, nonblocking, and limited to the exis
   assert.doesNotMatch(reportBuilder, /routeIqProspective|shadowDecision|shadowRanking|shadowProbability|shadowConfidence|shadowReadiness/);
   assert.match(serviceWorkerSource, /if \(event\.request\.method !== "GET"\) return/);
   assert.doesNotMatch(serviceWorkerSource, /route-iq\/prospective|prospective\/event/);
+});
+
+test("Dashboard collection-OFF gate has no inactive outbox, retry, listener, or service-worker replay surface", () => {
+  const gate = sourceSection("function disableRouteIqProspectiveAdmission", "const appUrlParams");
+  const startup = sourceSection("(async () => {", "</script>");
+
+  assert.match(gate, /active: false/);
+  assert.match(gate, /routeIqProspectiveBootstrapWindowOpen/);
+  assert.match(gate, /return disableRouteIqProspectiveAdmission\("bootstrap_late"\)/);
+  assert.match(gate, /return disableRouteIqProspectiveAdmission\("bootstrap_invalid"\)/);
+  assert.match(gate, /return disableRouteIqProspectiveAdmission\("admission_expired_or_scope_changed"\)/);
+  assert.doesNotMatch(gate, /localStorage|sessionStorage|indexedDB|caches\.|WebSocket|sendBeacon|setInterval|addEventListener|outbox|drain|reconnect|retry/i);
+  assert.doesNotMatch(startup, /await prospectiveBootstrapPromise/);
+  assert.doesNotMatch(serviceWorkerSource, /route-iq\/prospective|prospective\/event/i);
+  assert.equal((serviceWorkerSource.match(/event\.request\.method !== "GET"/g) || []).length, 1);
 });
 
 test("Dashboard source records the representative workflow change without silently auto-saving No Contact", () => {

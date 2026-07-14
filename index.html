@@ -6,7 +6,7 @@
   <title>Prometheus IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-VTCUjAGbrrkLjT/uYdaQK+aVEWvT53xh0EArIxyBGJ8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-OWH8yd+hOYrkquTfdvkB63oTMnJu6Qq+MfKx69F9BIU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
@@ -1858,15 +1858,47 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-13-prospective-shadow-seam-v1";
+    const appBuildVersion = "2026-07-14-prospective-collection-off-suppression-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v46-prospective-shadow-seam";
+    const serviceWorkerCacheVersion = "prometheus-v47-prospective-collection-off-suppression";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
     const routeIqProspectiveEventPath = "/api/dashboard/route-iq/prospective/event";
     const routeIqProspectiveEventKinds = new Set(["next_stop_requested", "representative_action_observed"]);
+    const routeIqProspectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
+    const routeIqProspectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
+    const routeIqProspectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
+    const routeIqProspectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
+    const routeIqProspectiveOpportunityType = "next_stop";
+    const routeIqProspectiveBootstrapTimeoutMs = 2500;
+    const routeIqProspectiveBootstrapMaximumLifetimeMs = 60 * 1000;
+    const routeIqProspectiveBootstrapKeys = new Set([
+      "ok",
+      "acknowledged",
+      "status",
+      "collection",
+      "recommendationInfluence",
+      "bootstrapContractVersion",
+      "eventContractVersion",
+      "issuedAt",
+      "expiresAt",
+      "workspaceId",
+      "operatingProfileId",
+      "representativeId",
+      "activeCohort",
+      "supportedOpportunityTypes",
+      "runtimeContextContractVersion",
+      "coordinatorContractVersion"
+    ]);
     let routeIqProspectiveInformationalSequence = 0;
+    let routeIqProspectiveBootstrapWindowOpen = true;
+    let routeIqProspectiveAdmission = Object.freeze({
+      active: false,
+      reason: "bootstrap_not_checked",
+      scope: null,
+      expiresAtMs: 0
+    });
     const fieldSessionCompletionActions = new Set(["end_route", "end_day"]);
     const runtimeDatasetFullPath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
     const runtimeDatasetActivePath = "./data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
@@ -1880,9 +1912,129 @@
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
 
+    function disableRouteIqProspectiveAdmission(reason) {
+      routeIqProspectiveAdmission = Object.freeze({
+        active: false,
+        reason: String(reason || "bootstrap_invalid"),
+        scope: null,
+        expiresAtMs: 0
+      });
+      return false;
+    }
+
+    function routeIqProspectiveCurrentScope() {
+      const workspaceId = currentRouteWorkspaceId();
+      return {
+        workspaceId,
+        operatingProfileId: activeOperatingProfile?.profileId
+          || dashboardWorkspaces[workspaceId]?.operatingProfileId
+          || "",
+        representativeId: activeRepId
+      };
+    }
+
+    function isRouteIqProspectiveOpaqueScopeId(value) {
+      return typeof value === "string" && /^[a-z0-9][a-z0-9_-]{0,63}$/u.test(value);
+    }
+
+    function routeIqProspectiveBootstrapAdmission(response, body, requestedScope, nowMs = Date.now()) {
+      if (!response?.ok
+        || !String(response.headers?.get("cache-control") || "").toLowerCase().includes("no-store")
+        || !String(response.headers?.get("content-type") || "").toLowerCase().includes("application/json")) {
+        return null;
+      }
+      if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+      const keys = Object.keys(body);
+      if (keys.length !== routeIqProspectiveBootstrapKeys.size
+        || keys.some(key => !routeIqProspectiveBootstrapKeys.has(key))) return null;
+      if (body.ok !== true
+        || body.acknowledged !== true
+        || body.status !== "enabled"
+        || body.collection !== "ON"
+        || body.recommendationInfluence !== "OFF"
+        || body.activeCohort !== true
+        || body.bootstrapContractVersion !== routeIqProspectiveBootstrapContractVersion
+        || body.eventContractVersion !== routeIqProspectiveEventContractVersion
+        || body.runtimeContextContractVersion !== routeIqProspectiveRuntimeContextContractVersion
+        || body.coordinatorContractVersion !== routeIqProspectiveCoordinatorContractVersion) return null;
+      if (!isRouteIqProspectiveOpaqueScopeId(body.workspaceId)
+        || !isRouteIqProspectiveOpaqueScopeId(body.operatingProfileId)
+        || !isRouteIqProspectiveOpaqueScopeId(body.representativeId)
+        || body.workspaceId !== requestedScope.workspaceId
+        || body.operatingProfileId !== requestedScope.operatingProfileId
+        || body.representativeId !== requestedScope.representativeId) return null;
+      if (!Array.isArray(body.supportedOpportunityTypes)
+        || body.supportedOpportunityTypes.length !== 1
+        || body.supportedOpportunityTypes[0] !== routeIqProspectiveOpportunityType) return null;
+      const issuedAtMs = Date.parse(body.issuedAt);
+      const expiresAtMs = Date.parse(body.expiresAt);
+      if (!Number.isFinite(issuedAtMs)
+        || !Number.isFinite(expiresAtMs)
+        || new Date(issuedAtMs).toISOString() !== body.issuedAt
+        || new Date(expiresAtMs).toISOString() !== body.expiresAt
+        || issuedAtMs > nowMs
+        || expiresAtMs <= nowMs
+        || expiresAtMs <= issuedAtMs
+        || expiresAtMs - issuedAtMs > routeIqProspectiveBootstrapMaximumLifetimeMs) return null;
+      return Object.freeze({
+        active: true,
+        reason: "server_bootstrap_authorized",
+        scope: Object.freeze({ ...requestedScope }),
+        expiresAtMs
+      });
+    }
+
+    async function initializeRouteIqProspectiveClient() {
+      disableRouteIqProspectiveAdmission("bootstrap_not_authorized");
+      if (sessionRole !== "rep" || !routeIqProspectiveBootstrapWindowOpen) return false;
+      const requestedScope = routeIqProspectiveCurrentScope();
+      if (Object.values(requestedScope).some(value => !isRouteIqProspectiveOpaqueScopeId(value))) {
+        return disableRouteIqProspectiveAdmission("scope_invalid");
+      }
+      try {
+        const response = await fetch(routeIqProspectiveEventPath, {
+          method: "GET",
+          mode: "same-origin",
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          headers: { "Accept": "application/json" },
+          signal: AbortSignal.timeout(routeIqProspectiveBootstrapTimeoutMs)
+        });
+        if (!routeIqProspectiveBootstrapWindowOpen) {
+          return disableRouteIqProspectiveAdmission("bootstrap_late");
+        }
+        let body = null;
+        try {
+          body = await response.json();
+        } catch (error) {}
+        const admission = routeIqProspectiveBootstrapAdmission(response, body, requestedScope);
+        if (!admission) return disableRouteIqProspectiveAdmission("bootstrap_invalid");
+        routeIqProspectiveAdmission = admission;
+        return true;
+      } catch (error) {
+        return disableRouteIqProspectiveAdmission(error?.name === "AbortError" ? "bootstrap_timeout" : "bootstrap_unavailable");
+      }
+    }
+
+    function routeIqProspectiveAdmissionIsActive() {
+      if (!routeIqProspectiveAdmission.active) return false;
+      const currentScope = routeIqProspectiveCurrentScope();
+      const authorizedScope = routeIqProspectiveAdmission.scope;
+      if (!authorizedScope
+        || routeIqProspectiveAdmission.expiresAtMs <= Date.now()
+        || currentScope.workspaceId !== authorizedScope.workspaceId
+        || currentScope.operatingProfileId !== authorizedScope.operatingProfileId
+        || currentScope.representativeId !== authorizedScope.representativeId) {
+        return disableRouteIqProspectiveAdmission("admission_expired_or_scope_changed");
+      }
+      return true;
+    }
+
     function signalRouteIqProspectiveEvent(eventKind) {
-      if (sessionRole !== "rep") return;
-      if (!routeIqProspectiveEventKinds.has(eventKind)) return;
+      if (sessionRole !== "rep") return false;
+      if (!routeIqProspectiveEventKinds.has(eventKind)) return false;
+      if (!routeIqProspectiveAdmissionIsActive()) return false;
       const payload = {
         eventKind,
         informationalSequence: ++routeIqProspectiveInformationalSequence,
@@ -1900,6 +2052,7 @@
           body: JSON.stringify(payload)
         }).catch(() => undefined);
       } catch (error) {}
+      return true;
     }
 
     const appUrlParams = new URLSearchParams(location.search);
@@ -25451,9 +25604,12 @@
       try {
         await loadRouteReplenishmentEngine();
         await loadOperatingProfileDefinitions();
+        const prospectiveBootstrapPromise = initializeRouteIqProspectiveClient();
         await loadRouteBusinessHoursEligibility();
         await loadRuntimeProductionDataset();
+        routeIqProspectiveBootstrapWindowOpen = false;
         await requestAdaptiveRouteReplenishment({ force: true, trigger: "startup" });
+        void prospectiveBootstrapPromise;
         render();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";

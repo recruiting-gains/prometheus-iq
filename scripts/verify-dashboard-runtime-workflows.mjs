@@ -12,10 +12,53 @@ const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/
 const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
+const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
+const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
+const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
+const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
 
 const results = [];
 const errors = [];
 let localCertificate;
+
+function disabledProspectiveBootstrap() {
+  return {
+    status: 202,
+    body: {
+      ok: true,
+      acknowledged: true,
+      status: "disabled",
+      collection: "OFF",
+      recommendationInfluence: "OFF"
+    }
+  };
+}
+
+function enabledProspectiveBootstrap(overrides = {}) {
+  const now = Date.now();
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      acknowledged: true,
+      status: "enabled",
+      collection: "ON",
+      recommendationInfluence: "OFF",
+      bootstrapContractVersion: prospectiveBootstrapContractVersion,
+      eventContractVersion: prospectiveEventContractVersion,
+      issuedAt: new Date(now - 1000).toISOString(),
+      expiresAt: new Date(now + 59 * 1000).toISOString(),
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      representativeId: "anthony",
+      activeCohort: true,
+      supportedOpportunityTypes: ["next_stop"],
+      runtimeContextContractVersion: prospectiveRuntimeContextContractVersion,
+      coordinatorContractVersion: prospectiveCoordinatorContractVersion,
+      ...overrides
+    }
+  };
+}
 
 function pass(name, detail) {
   results.push({ status: "PASS", name, detail });
@@ -77,11 +120,14 @@ function localHttpsCertificate() {
 function startStaticServer({
   missingActive = false,
   fieldSessionResponses = [],
-  prospectiveResponse = { status: 204 }
+  prospectiveResponse = { status: 204 },
+  prospectiveBootstrapResponse = disabledProspectiveBootstrap()
 } = {}) {
   const requests = [];
   const fieldSessionRequests = [];
   const prospectiveRequests = [];
+  const prospectiveBootstrapRequests = [];
+  const prospectiveNetworkLedger = [];
   let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
@@ -97,6 +143,32 @@ function startStaticServer({
     requests.push({ path: relativePath, method: request.method });
 
     if (relativePath === prospectiveEventPath) {
+      prospectiveNetworkLedger.push({
+        method: request.method,
+        path: pathname,
+        upgrade: String(request.headers.upgrade || "")
+      });
+      if (request.method === "GET") {
+        prospectiveBootstrapRequests.push({ method: request.method, headers: request.headers });
+        const configured = typeof prospectiveBootstrapResponse === "function"
+          ? prospectiveBootstrapResponse({ request, url })
+          : prospectiveBootstrapResponse;
+        const status = Number(configured?.status || 202);
+        const body = configured?.body === undefined ? "" : JSON.stringify(configured.body);
+        const headers = {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          ...(configured?.headers || {})
+        };
+        const send = () => {
+          if (response.destroyed) return;
+          response.writeHead(status, headers);
+          response.end(body);
+        };
+        if (configured?.delayMs) setTimeout(send, configured.delayMs);
+        else send();
+        return;
+      }
       const chunks = [];
       let size = 0;
       request.on("data", chunk => {
@@ -213,6 +285,8 @@ function startStaticServer({
         requests,
         fieldSessionRequests,
         prospectiveRequests,
+        prospectiveBootstrapRequests,
+        prospectiveNetworkLedger,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
     });
@@ -2106,6 +2180,122 @@ async function verifyProspectiveShadowDashboardSeam(scenario, server) {
   };
 }
 
+async function verifyProspectiveCollectionOffDashboardSeam(scenario, server) {
+  const beforeWriteCount = server.prospectiveRequests.length;
+  const browserResult = await scenario.cdp.evaluate(`(async () => {
+    const anchor = document.getElementById("bestMoveDirections");
+    if (!anchor || !anchor.href || anchor.getAttribute("href") === "#") {
+      throw new Error("The governed rank-one Directions action is unavailable.");
+    }
+    const before = {
+      bestNextMove: document.getElementById("bestNextMove")?.textContent?.trim() || "",
+      routeQueueIds: activeProfile().activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
+      visitCount: state.visits.length,
+      activeView: document.querySelector(".view.active")?.id || ""
+    };
+    anchor.addEventListener("click", event => event.preventDefault(), { once: true });
+    anchor.click();
+    signalRouteIqProspectiveEvent("next_stop_requested");
+    signalRouteIqProspectiveEvent("representative_action_observed");
+    document.dispatchEvent(new Event("visibilitychange"));
+    window.dispatchEvent(new Event("pagehide"));
+    window.dispatchEvent(new Event("pageshow"));
+    window.dispatchEvent(new Event("offline"));
+    window.dispatchEvent(new Event("online"));
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const databaseNames = typeof indexedDB.databases === "function"
+      ? (await indexedDB.databases()).map(database => database.name || "")
+      : [];
+    const cacheNames = typeof caches?.keys === "function" ? await caches.keys() : [];
+    const storageKeys = Object.keys(localStorage).concat(Object.keys(sessionStorage));
+    return {
+      before,
+      after: {
+        bestNextMove: document.getElementById("bestNextMove")?.textContent?.trim() || "",
+        routeQueueIds: activeProfile().activeRouteQueue?.entries?.map(entry => entry.identityKey) || [],
+        visitCount: state.visits.length,
+        activeView: document.querySelector(".view.active")?.id || ""
+      },
+      admissionActive: routeIqProspectiveAdmissionIsActive(),
+      informationalSequence: routeIqProspectiveInformationalSequence,
+      prospectiveStorage: storageKeys.concat(databaseNames, cacheNames).filter(value => /prospective|shadow/i.test(String(value))),
+      shadowTermsVisible: /shadow decision|shadow probability|shadow confidence|recommendation readiness/i.test(document.body.textContent || "")
+    };
+  })()`);
+  await wait(250);
+  return {
+    browserResult,
+    writesAdded: server.prospectiveRequests.length - beforeWriteCount,
+    writes: server.prospectiveRequests.slice(),
+    networkLedger: server.prospectiveNetworkLedger.slice(),
+    readCount: server.prospectiveBootstrapRequests.length
+  };
+}
+
+async function verifyProspectiveBootstrapValidation(cdp) {
+  return cdp.evaluate(`(() => {
+    const now = Date.now();
+    const scope = routeIqProspectiveCurrentScope();
+    const base = {
+      ok: true,
+      acknowledged: true,
+      status: "enabled",
+      collection: "ON",
+      recommendationInfluence: "OFF",
+      bootstrapContractVersion: routeIqProspectiveBootstrapContractVersion,
+      eventContractVersion: routeIqProspectiveEventContractVersion,
+      issuedAt: new Date(now - 1000).toISOString(),
+      expiresAt: new Date(now + 59 * 1000).toISOString(),
+      workspaceId: scope.workspaceId,
+      operatingProfileId: scope.operatingProfileId,
+      representativeId: scope.representativeId,
+      activeCohort: true,
+      supportedOpportunityTypes: ["next_stop"],
+      runtimeContextContractVersion: routeIqProspectiveRuntimeContextContractVersion,
+      coordinatorContractVersion: routeIqProspectiveCoordinatorContractVersion
+    };
+    const admits = (body, { status = 200, cacheControl = "no-store", contentType = "application/json" } = {}) => Boolean(
+      routeIqProspectiveBootstrapAdmission(
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { "Cache-Control": cacheControl, "Content-Type": contentType }
+        }),
+        body,
+        scope,
+        now
+      )
+    );
+    const missing = { ...base };
+    delete missing.expiresAt;
+    return {
+      valid: admits(base),
+      missing: admits(missing),
+      extra: admits({ ...base, extra: true }),
+      malformed: admits({ ...base, supportedOpportunityTypes: "next_stop" }),
+      stale: admits({
+        ...base,
+        issuedAt: new Date(now - 10 * 60 * 1000).toISOString(),
+        expiresAt: new Date(now - 5 * 60 * 1000).toISOString()
+      }),
+      overlong: admits({ ...base, expiresAt: new Date(now + 60 * 1000).toISOString() }),
+      future: admits({ ...base, issuedAt: new Date(now + 1000).toISOString() }),
+      unauthorizedWorkspace: admits({ ...base, workspaceId: "smoothie_depot" }),
+      unauthorizedProfile: admits({ ...base, operatingProfileId: "franchise_development" }),
+      unauthorizedRepresentative: admits({ ...base, representativeId: "cruz" }),
+      inactiveCohort: admits({ ...base, activeCohort: false }),
+      unsupportedOpportunity: admits({ ...base, supportedOpportunityTypes: ["other"] }),
+      eventVersionMismatch: admits({ ...base, eventContractVersion: "route-iq-prospective-browser-event-v0" }),
+      bootstrapVersionMismatch: admits({ ...base, bootstrapContractVersion: "route-iq-prospective-browser-bootstrap-v0" }),
+      runtimeContextVersionMismatch: admits({ ...base, runtimeContextContractVersion: "route-iq-prospective-runtime-context-v0" }),
+      coordinatorVersionMismatch: admits({ ...base, coordinatorContractVersion: "route-iq-prospective-coordinator-contract-v0" }),
+      recommendationInfluenceOn: admits({ ...base, recommendationInfluence: "ON" }),
+      cacheable: admits(base, { cacheControl: "private, max-age=60" }),
+      wrongContentType: admits(base, { contentType: "text/plain" }),
+      nonSuccess: admits(base, { status: 503 })
+    };
+  })()`);
+}
+
 function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
   const activeBytes = statSync(resolve(dashboardRoot, activePoolPath)).size;
   const fullBytes = statSync(resolve(dashboardRoot, fullPoolPath)).size;
@@ -2142,13 +2332,43 @@ async function runHarness() {
         probability: 0.99,
         confidence: "must-not-reach-the-representative"
       }
-    }
+    },
+    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
   });
-  const prospectiveOffServer = await startStaticServer({ prospectiveResponse: { status: 204 } });
+  const prospectiveOffServer = await startStaticServer();
   const prospectiveFailureServer = await startStaticServer({
     prospectiveResponse: {
       status: 503,
       body: { marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD", code: "prospective_runtime_unavailable" }
+    },
+    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
+  });
+  const prospectiveInvalidBootstrapServer = await startStaticServer({
+    prospectiveBootstrapResponse: {
+      status: 200,
+      body: { collection: "ON", status: "enabled" }
+    }
+  });
+  const prospectiveUnavailableBootstrapServer = await startStaticServer({
+    prospectiveBootstrapResponse: {
+      status: 503,
+      body: { ok: false, code: "prospective_bootstrap_unavailable" }
+    }
+  });
+  const prospectiveStaleBootstrapServer = await startStaticServer({
+    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({
+      issuedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() - 60 * 1000).toISOString()
+    })
+  });
+  const prospectiveUnauthorizedBootstrapServer = await startStaticServer({
+    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({ representativeId: "cruz" })
+  });
+  const prospectiveTimeoutBootstrapServer = await startStaticServer({
+    prospectiveBootstrapResponse: {
+      status: 200,
+      body: enabledProspectiveBootstrap().body,
+      delayMs: 4000
     }
   });
   const chrome = await launchChrome();
@@ -2209,9 +2429,60 @@ async function runHarness() {
     verifyNoErrors("Prospective opaque seam", prospective.eventLog, await snapshot(prospective.cdp));
 
     const prospectiveOff = await runPageScenario(chrome, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off", "prospective-shadow-off");
-    const prospectiveOffResult = await verifyProspectiveShadowDashboardSeam(prospectiveOff, prospectiveOffServer);
-    assertWorkflow("Prospective default-OFF isolation", prospectiveOffResult.requests.length === 2 && JSON.stringify(prospectiveOffResult.browserResult.before) === JSON.stringify(prospectiveOffResult.browserResult.after), "204/OFF responses were ignored without changing the representative workflow", JSON.stringify(prospectiveOffResult));
+    const bootstrapValidation = await verifyProspectiveBootstrapValidation(prospectiveOff.cdp);
+    assertWorkflow("Prospective strict bootstrap validation", bootstrapValidation.valid === true && Object.entries(bootstrapValidation).filter(([key]) => key !== "valid").every(([, value]) => value === false), "only the exact current, no-store, scope-matched, version-valid ON bootstrap was admitted", JSON.stringify(bootstrapValidation));
+    const prospectiveOffResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveOff, prospectiveOffServer);
+    assertWorkflow("Prospective default-OFF zero-write ledger", prospectiveOffResult.readCount === 1 && prospectiveOffResult.writesAdded === 0 && prospectiveOffResult.writes.length === 0 && prospectiveOffResult.networkLedger.every(entry => entry.method === "GET"), "one read-only bootstrap and zero prospective write attempts", JSON.stringify(prospectiveOffResult));
+    assertWorkflow("Prospective default-OFF lifecycle isolation", !prospectiveOffResult.browserResult.admissionActive && prospectiveOffResult.browserResult.informationalSequence === 0 && prospectiveOffResult.browserResult.prospectiveStorage.length === 0 && !prospectiveOffResult.browserResult.shadowTermsVisible && JSON.stringify(prospectiveOffResult.browserResult.before) === JSON.stringify(prospectiveOffResult.browserResult.after), "background/foreground, offline/online, retry-shaped calls, and Directions produced no state or network writes", JSON.stringify(prospectiveOffResult));
+    assertWorkflow("Prospective default-OFF 15-stop compatibility", prospectiveOff.initial.routeCards === 15 && prospectiveOff.initial.routeCountLabel.includes("15 active stops"), `${prospectiveOff.initial.routeCards} route cards; ${prospectiveOff.initial.routeCountLabel}`, JSON.stringify(prospectiveOff.initial));
+    await clickTab(prospectiveOff.cdp, "route");
+    const prospectiveOffRoute = await snapshot(prospectiveOff.cdp);
+    assertWorkflow("Prospective default-OFF workspace and route loading", prospectiveOffRoute.activeView === "view-route" && prospectiveOffRoute.routeCards === 15 && prospectiveOffServer.prospectiveRequests.length === 0, "Fitness Connection route loaded with 15 stops and zero write attempts", JSON.stringify({ routeCards: prospectiveOffRoute.routeCards, writes: prospectiveOffServer.prospectiveRequests }));
+    await navigateExistingScenario(prospectiveOff.cdp, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off-session-restore");
+    await navigateExistingScenario(prospectiveOff.cdp, prospectiveOffServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-off-auth-refresh");
+    const prospectiveOffReload = await verifyProspectiveCollectionOffDashboardSeam(prospectiveOff, prospectiveOffServer);
+    assertWorkflow("Prospective default-OFF reload, restoration, and auth-refresh ledger", prospectiveOffReload.readCount === 3 && prospectiveOffReload.writes.length === 0 && prospectiveOffReload.networkLedger.every(entry => entry.method === "GET"), "three startup bootstrap reads and zero writes across reload, restored state, and auth refresh", JSON.stringify(prospectiveOffReload));
     verifyNoErrors("Prospective default-OFF", prospectiveOff.eventLog, await snapshot(prospectiveOff.cdp));
+
+    const prospectiveInvalidBootstrap = await runPageScenario(chrome, prospectiveInvalidBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-malformed", "prospective-bootstrap-malformed");
+    const prospectiveInvalidResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveInvalidBootstrap, prospectiveInvalidBootstrapServer);
+    assertWorkflow("Prospective malformed bootstrap zero-write ledger", prospectiveInvalidResult.readCount === 1 && prospectiveInvalidResult.writes.length === 0 && prospectiveInvalidResult.networkLedger.every(entry => entry.method === "GET"), "malformed ON response stayed inactive with zero writes", JSON.stringify(prospectiveInvalidResult));
+    verifyNoErrors("Prospective malformed bootstrap", prospectiveInvalidBootstrap.eventLog, await snapshot(prospectiveInvalidBootstrap.cdp));
+
+    for (const invalidBootstrap of [
+      { label: "stale", server: prospectiveStaleBootstrapServer },
+      { label: "scope-unauthorized", server: prospectiveUnauthorizedBootstrapServer }
+    ]) {
+      const scenario = await runPageScenario(
+        chrome,
+        invalidBootstrap.server,
+        `/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-${invalidBootstrap.label}`,
+        `prospective-bootstrap-${invalidBootstrap.label}`
+      );
+      const result = await verifyProspectiveCollectionOffDashboardSeam(scenario, invalidBootstrap.server);
+      assertWorkflow(
+        `Prospective ${invalidBootstrap.label} bootstrap zero-write ledger`,
+        result.readCount === 1 && result.writes.length === 0 && result.networkLedger.every(entry => entry.method === "GET"),
+        `${invalidBootstrap.label} bootstrap stayed inactive with zero writes`,
+        JSON.stringify(result)
+      );
+      verifyNoErrors(`Prospective ${invalidBootstrap.label} bootstrap`, scenario.eventLog, await snapshot(scenario.cdp));
+      scenario.cdp.close();
+    }
+
+    const prospectiveUnavailableBootstrap = await runPageScenario(chrome, prospectiveUnavailableBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-unavailable", "prospective-bootstrap-unavailable");
+    const prospectiveUnavailableResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveUnavailableBootstrap, prospectiveUnavailableBootstrapServer);
+    assertWorkflow("Prospective non-2xx bootstrap zero-write ledger", prospectiveUnavailableResult.readCount === 1 && prospectiveUnavailableResult.writes.length === 0 && prospectiveUnavailableResult.networkLedger.every(entry => entry.method === "GET"), "503 bootstrap stayed inactive with zero writes", JSON.stringify(prospectiveUnavailableResult));
+    verifyNoErrors("Prospective unavailable bootstrap", prospectiveUnavailableBootstrap.eventLog, await snapshot(prospectiveUnavailableBootstrap.cdp), {
+      allow: ["server responded with a status of 503"]
+    });
+
+    const prospectiveTimeoutBootstrap = await runPageScenario(chrome, prospectiveTimeoutBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-timeout", "prospective-bootstrap-timeout");
+    const prospectiveTimeoutResult = await verifyProspectiveCollectionOffDashboardSeam(prospectiveTimeoutBootstrap, prospectiveTimeoutBootstrapServer);
+    assertWorkflow("Prospective bootstrap timeout zero-write ledger", prospectiveTimeoutResult.readCount === 1 && prospectiveTimeoutResult.writes.length === 0 && prospectiveTimeoutResult.networkLedger.every(entry => entry.method === "GET"), "timed-out bootstrap did not delay the route or emit a write", JSON.stringify(prospectiveTimeoutResult));
+    verifyNoErrors("Prospective bootstrap timeout", prospectiveTimeoutBootstrap.eventLog, await snapshot(prospectiveTimeoutBootstrap.cdp), {
+      allow: ["net::ERR_ABORTED"]
+    });
 
     const prospectiveFailure = await runPageScenario(chrome, prospectiveFailureServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-failure", "prospective-shadow-failure");
     const prospectiveFailureResult = await verifyProspectiveShadowDashboardSeam(prospectiveFailure, prospectiveFailureServer);
@@ -2221,6 +2492,9 @@ async function runHarness() {
     });
     prospective.cdp.close();
     prospectiveOff.cdp.close();
+    prospectiveInvalidBootstrap.cdp.close();
+    prospectiveUnavailableBootstrap.cdp.close();
+    prospectiveTimeoutBootstrap.cdp.close();
     prospectiveFailure.cdp.close();
 
     for (const expected of [
@@ -2504,6 +2778,11 @@ async function runHarness() {
     await prospectiveServer.close();
     await prospectiveOffServer.close();
     await prospectiveFailureServer.close();
+    await prospectiveInvalidBootstrapServer.close();
+    await prospectiveUnavailableBootstrapServer.close();
+    await prospectiveStaleBootstrapServer.close();
+    await prospectiveUnauthorizedBootstrapServer.close();
+    await prospectiveTimeoutBootstrapServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

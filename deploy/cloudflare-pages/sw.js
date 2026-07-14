@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v46-prospective-shadow-seam";
+const CACHE_NAME = "prometheus-v47-prospective-collection-off-suppression";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",
