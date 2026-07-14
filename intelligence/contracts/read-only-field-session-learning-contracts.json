@@ -113,7 +113,7 @@
   "protectedBehaviorBaselines": {
     "dashboardSourceSha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f",
     "dashboardDeployMirrorSha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f",
-    "dataArchiveRuntimeSha256": "82b2ec67eb8498d2bdcdf98d8e57d5d90faa8f9d8d69286f15fe0beff892425c",
+    "dataArchiveRuntimeSha256": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb",
     "dataRuntimeContractSha256": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733",
     "adaptiveRouteEngineSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
     "businessHoursEligibilitySha256": "1c884b6c5c2668e6a034311d605fdc626d80c6d517290ef994d772e03cfb9a4a",

@@ -17,6 +17,13 @@ import {
   shadowDecisionProspectiveRuleVersion,
   shadowDecisionProspectiveRuntimeVersion,
 } from "../intelligence/shadow-decision-readiness-runtime.mjs";
+import {
+  routeIqEvaluationContextSchemaVersion,
+  routeIqEvaluationContractVersion,
+  routeIqEvaluationRecordSchemaVersion,
+  routeIqScoreableOutcomeDerivationContractVersion,
+  routeIqScoreableOutcomeRecordSchemaVersion,
+} from "../intelligence/route-iq-committed-outcome-evaluation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const base =
@@ -69,7 +76,7 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(contract.implementationDispatch.batchId, "BATCH-20260713-004");
   assert.equal(
     contract.implementationDispatch.integratedDataCommit,
-    "b7896a68830f42232ccc5861bb61742cf375c3d9",
+    "8dbf0bc98b1a2218322f8d33381477455e33f36a",
   );
   assert.equal(
     contract.prospectiveSourceApi,
@@ -122,6 +129,60 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     config.prospectiveRuntime.ruleVersion,
     shadowDecisionProspectiveRuleVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.derivationContractVersion,
+    routeIqScoreableOutcomeDerivationContractVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.scoreableOutcomeRecordSchemaVersion,
+    routeIqScoreableOutcomeRecordSchemaVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.contextSchemaVersion,
+    routeIqEvaluationContextSchemaVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.contractVersion,
+    routeIqEvaluationContractVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.recordSchemaVersion,
+    routeIqEvaluationRecordSchemaVersion,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation
+      .scoreableOutcomeAdmissionRequiresEvaluationContextSha256,
+    true,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation
+      .missingOutcomeEvaluationAllowed,
+    false,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.observationalOnly,
+    true,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.causalClaimAllowed,
+    false,
+  );
+  assert.equal(
+    contract.committedOutcomeEvaluation.evaluation.upliftClaimAllowed,
+    false,
+  );
+  assert.equal(
+    config.committedOutcomeRuntime.evaluationContextSchemaVersion,
+    routeIqEvaluationContextSchemaVersion,
+  );
+  assert.equal(
+    config.committedOutcomeRuntime.productionEvaluationActivation,
+    false,
+  );
+  assert.equal(
+    config.committedOutcomeRuntime.canonicalProductionEvaluations,
+    0,
   );
   assert.equal(
     contract.prospectiveRuntimeAdapter.durability.sqliteOnly,

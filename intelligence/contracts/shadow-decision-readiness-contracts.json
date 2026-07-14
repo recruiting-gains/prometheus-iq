@@ -5,7 +5,7 @@
   "status": "active_founder_only_read_only",
   "implementationDispatch": {
     "batchId": "BATCH-20260713-004",
-    "integratedDataCommit": "b7896a68830f42232ccc5861bb61742cf375c3d9",
+    "integratedDataCommit": "8dbf0bc98b1a2218322f8d33381477455e33f36a",
     "ownerSubsystem": "Prometheus Intelligence Engine",
     "scope": "canonical_candidate_manifest_shadow_decision_and_keyed_seal_claim_production",
     "productionCollectionActivated": false,
@@ -24,6 +24,7 @@
   "artifacts": {
     "engine": "intelligence/shadow-decision-readiness.mjs",
     "runtimeAdapter": "intelligence/shadow-decision-readiness-runtime.mjs",
+    "committedOutcomeEvaluation": "intelligence/route-iq-committed-outcome-evaluation.mjs",
     "config": "intelligence/config/shadow-decision-readiness-v1.json",
     "contract": "intelligence/contracts/shadow-decision-readiness-contracts.json",
     "documentation": "intelligence/shadow-decision-readiness.md",
@@ -31,14 +32,15 @@
     "verifier": "scripts/verify-shadow-decision-readiness.mjs",
     "tests": "tests/shadow-decision-readiness.test.mjs",
     "prospectiveRuntimeTests": "tests/shadow-decision-readiness-runtime.test.mjs",
+    "committedOutcomeEvaluationTests": "tests/route-iq-committed-outcome-evaluation.test.mjs",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
     "humanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
   },
   "protectedDataRuntimeBaseline": {
     "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-    "sha256": "018680bcfdb6a084f3a07da4fd357fbdd40c861123a6dd0f7d79561710243300",
-    "sourceCommit": "b7896a68830f42232ccc5861bb61742cf375c3d9",
+    "sha256": "075f3329bb6a1bcd8443c7ca353dce786b875c379d18fa6c94522887fadcbc79",
+    "sourceCommit": "8dbf0bc98b1a2218322f8d33381477455e33f36a",
     "sourceOwnerSubsystem": "Prometheus Data",
     "synchronizedBySubsystem": "Prometheus Intelligence Engine",
     "synchronizedInBatch": "BATCH-20260713-004",
@@ -55,7 +57,7 @@
     },
     "worker": {
       "path": "workers/prometheus-iq-worker.js",
-      "sha256": "dc52cfc927ea0901a88cd2bcfb2aaea7b8327b089d5682372eef843e6ea379c2"
+      "sha256": "140fdf73b01f1d0e1113971e93c2ef0f63fbd52317f0617b5c4f8121a85b35ea"
     },
     "routeGeneration": {
       "path": "intelligence/continuous-adaptive-route-replenishment.mjs",
@@ -67,7 +69,7 @@
     },
     "dataCoordinator": {
       "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
-      "sha256": "018680bcfdb6a084f3a07da4fd357fbdd40c861123a6dd0f7d79561710243300"
+      "sha256": "075f3329bb6a1bcd8443c7ca353dce786b875c379d18fa6c94522887fadcbc79"
     },
     "infrastructureAuthority": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-authority.js",
@@ -213,6 +215,65 @@
       "collectionActivation": "inactive_until_infrastructure_and_dashboard_owner_wiring",
       "recommendationInfluence": "OFF"
     }
+  },
+  "committedOutcomeEvaluation": {
+    "derivationContractVersion": "route-iq-committed-scoreable-outcome-derivation-v1",
+    "scoreableOutcomeRecordSchemaVersion": "route-iq-committed-scoreable-outcome-record-v1",
+    "sourceProjectionVersion": "route-iq-field-session-outcome-projection-v1",
+    "sourceReconciliationContractVersion": "route-iq-field-session-outcome-projection-v1",
+    "derivationAuthority": "prometheus_intelligence_pure_derivation",
+    "classificationPolicy": {
+      "positive": "true only when explicit leads, appointments, units, or laterUnits is at least one",
+      "negative": "false only for final verified allowlisted no_interest or closed with every explicit positive signal at zero",
+      "missing": "pending, conversation, follow-up, decision-pending, unsupported, absent, and label-only evidence",
+      "finalCorrectionControls": true,
+      "originalAndCorrectionChainBound": true
+    },
+    "strictBindings": [
+      "projection_scope_and_sha256",
+      "reconciliation_projection_and_archive_sha256",
+      "source_visit_record_sha256",
+      "opportunity_candidate_action_and_outcome_evidence_artifacts",
+      "outcome_evidence_sha256",
+      "immutable_evaluation_context_sha256",
+      "action_archive_reconciliation_chronology"
+    ],
+    "excludedInputs": [
+      "Decision Source",
+      "recommendation decision context",
+      "PII",
+      "causal claims",
+      "uplift claims",
+      "recommendation superiority claims"
+    ],
+    "scoreableOutcomeAdmissionClaims": true,
+    "scoreableOutcomeAdmissionRequiresEvaluationContextSha256": true,
+    "evaluation": {
+      "contextSchemaVersion": "route-iq-immutable-evaluation-context-v1",
+      "contractVersion": "route-iq-admitted-shadow-evaluation-v1",
+      "recordSchemaVersion": "route-iq-admitted-shadow-evaluation-record-v1",
+      "contextIntegration": "committed_data_context_8dbf0bc98b1a2218322f8d33381477455e33f36a",
+      "contractTestFixtureClassification": "CANONICAL_SHAPE_NON_PRODUCTION",
+      "requiredBindings": [
+        "accepted_snapshot_record_and_seal",
+        "candidate_manifest_and_complete_manifest",
+        "selected_candidate_rank_and_probability",
+        "sealed_shadow_decision",
+        "selected_action_record",
+        "admitted_scoreable_outcome_record_and_receipt",
+        "committed_projection_and_outcome_derivation_versions",
+        "immutable_context_sha256",
+        "strict_end_to_end_chronology"
+      ],
+      "missingOutcomeEvaluationAllowed": false,
+      "observationalOnly": true,
+      "causalClaimAllowed": false,
+      "upliftClaimAllowed": false,
+      "evaluationAdmissionClaims": true,
+      "productionActivation": false,
+      "canonicalProductionEvaluations": 0
+    },
+    "recommendationInfluence": "OFF"
   },
   "outcomes": {
     "appendOnly": true,

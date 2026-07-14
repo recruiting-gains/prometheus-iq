@@ -71,5 +71,32 @@
     "browserStorageAllowed": false,
     "activationPathAvailable": false
   },
+  "committedOutcomeRuntime": {
+    "implementationBatchId": "BATCH-20260713-004",
+    "derivationContractVersion": "route-iq-committed-scoreable-outcome-derivation-v1",
+    "scoreableOutcomeRecordSchemaVersion": "route-iq-committed-scoreable-outcome-record-v1",
+    "evaluationContextSchemaVersion": "route-iq-immutable-evaluation-context-v1",
+    "evaluationContractVersion": "route-iq-admitted-shadow-evaluation-v1",
+    "evaluationRecordSchemaVersion": "route-iq-admitted-shadow-evaluation-record-v1",
+    "positiveSignalThresholds": {
+      "leads": 1,
+      "appointments": 1,
+      "units": 1,
+      "laterUnits": 1
+    },
+    "definitiveNegativeOutcomeCodes": [
+      "no_interest",
+      "closed"
+    ],
+    "labelAloneCountsAsPositive": false,
+    "pendingUnsupportedOrAbsentRemainsMissing": true,
+    "decisionSourceAllowed": false,
+    "causalOrUpliftClaimsAllowed": false,
+    "scoreableAdmissionClaimsAvailable": true,
+    "evaluationAdmissionClaimsAvailable": true,
+    "evaluationContextIntegration": "committed_data_context_8dbf0bc98b1a2218322f8d33381477455e33f36a",
+    "productionEvaluationActivation": false,
+    "canonicalProductionEvaluations": 0
+  },
   "recommendationInfluence": "OFF"
 }

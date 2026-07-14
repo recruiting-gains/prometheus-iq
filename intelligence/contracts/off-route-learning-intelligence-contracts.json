@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "dd127ba382486cc02243cb94ffb097d0209f86635a7a41bbf2dc970c675aecb0",
+    "contractSha256": "286fa06eba66b0722c804c7016979679fbae902aa7f557658280913506540596",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -103,7 +103,7 @@
   "protectedBehaviorBaselines": {
     "dashboardSource": {"path": "index.html", "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"},
     "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "daae10f82b212e11aea29b53629844df0b9e920ce3d89aeb34426691af5aff5f"},
-    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "82b2ec67eb8498d2bdcdf98d8e57d5d90faa8f9d8d69286f15fe0beff892425c"},
+    "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb"},
     "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "f228f3176ac9598dcfe50247bf16bd1ae6b457c6d2b483ba3f6cc7e4713b4733"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
     "routeGeneration": {"path": "intelligence/continuous-adaptive-route-replenishment.mjs", "sha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19"}

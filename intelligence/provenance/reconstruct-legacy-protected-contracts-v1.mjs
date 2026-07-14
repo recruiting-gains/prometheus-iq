@@ -328,7 +328,22 @@ function priorEvidenceForIntegratedBase(integratedBase) {
   if (!integratedBase) return null;
   try {
     const prior = JSON.parse(readText(evidencePath));
-    return prior.integratedBase === integratedBase ? prior : null;
+    if (prior.integratedBase === integratedBase) return prior;
+    if (
+      prior.legacyCommit !== legacyProvenanceGapCommit ||
+      prior.preGapCommit !== preGapCommit ||
+      prior.status !== provenanceStatus ||
+      typeof prior.integratedBase !== "string" ||
+      !/^[a-f0-9]{40}$/.test(prior.integratedBase)
+    ) {
+      return null;
+    }
+    execFileSync(
+      "git",
+      ["merge-base", "--is-ancestor", prior.integratedBase, integratedBase],
+      { cwd: root },
+    );
+    return prior;
   } catch {
     return null;
   }

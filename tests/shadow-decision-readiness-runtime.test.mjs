@@ -70,6 +70,7 @@ function knownTerritoryContext(suffix = "runtime") {
     territoryId: `riq_territory_${digest(`territory:${suffix}`)}`,
     sourceRecordSha256: digest(`territory-source:${suffix}`),
     sourceContractVersion: "route-iq-trusted-territory-context-v1",
+    availableAt: "2026-07-12T18:00:00.000Z",
   };
 }
 
