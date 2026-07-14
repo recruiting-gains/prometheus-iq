@@ -494,6 +494,32 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_route_iq_retention_governance",
+          "artifactType": "overwatch_retention_governance",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/governance/route-iq-prospective-evidence-retention-v1.json",
+          "schema": "RouteIqProspectiveEvidenceRetentionGovernanceV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_route_iq_retention_batch_record",
+          "artifactType": "overwatch_engineering_batch_record",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/reports/BATCH-20260714-004-route-iq-prospective-evidence-retention.json",
+          "schema": "RouteIqProspectiveEvidenceRetentionBatchRecordV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_release_provenance_repair_mapping",
           "artifactType": "overwatch_release_provenance_governance",
           "ownerSubsystem": "Prometheus Overwatch",

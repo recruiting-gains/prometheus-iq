@@ -1,0 +1,148 @@
+{
+  "governanceId": "route-iq-prospective-evidence-retention-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260714-004",
+  "status": "FOUNDER_RETENTION_POLICY_ENCODED_ACTIVATION_HELD",
+  "owningSubsystem": "Prometheus Overwatch",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "directive": "Route IQ Prospective Evidence Retention Policy",
+  "authorizedStartingState": {
+    "branch": "main",
+    "commit": "119d37f154ee99df1591863e745f4d1033953c71",
+    "tree": "52d248178b85d46f26d4a8a12c95f56597a8b304"
+  },
+  "founderDecision": {
+    "rawEvidenceMaximumCalendarMonths": 18,
+    "creationTimeBasis": "canonical_authoritative_source_record_time",
+    "customerContractMayShorten": true,
+    "customerContractMayExpandWithoutSeparateFounderApproval": false,
+    "deidentifiedAggregateMayBeRetainedIndefinitely": true,
+    "deidentifiedAggregateMayIdentifyRepresentativeCustomerVisitOrPreciseLocationTrail": false,
+    "legalHoldPausesDeletionAndDisposition": true,
+    "legalHoldReleaseAuthorities": ["prometheus_founder", "authorized_counsel"],
+    "silentHistoricalArchiveRewriteAllowed": false,
+    "deletionExclusionCorrectionAndDispositionAppendOnlyDataOwned": true
+  },
+  "ownership": {
+    "implementationOriginatedFromSubsystemOwners": true,
+    "overwatchImplementationOwnershipViolation": false,
+    "dataCommits": [
+      "d4c5e583dc11ea0285c51ab94480ed6c87859267",
+      "c73118ddb262d3010bbc94a900f8506fb2f56192"
+    ],
+    "infrastructureCommits": ["2b4ea7d7d2f13a40f1a8cba1e671f8fb360f3c63"],
+    "intelligenceCommits": ["51256caeb3300083ea1056976893b26e3b0d2b3f"],
+    "verificationOwner": "Prometheus Overwatch"
+  },
+  "dataContract": {
+    "policyPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+    "policySha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601",
+    "evaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+    "evaluatorSha256": "6b831aa261bd6d61ab184ee22163341d385f3051e2cf3ec8ca88fdc1bc87b28e",
+    "governanceRuntimePath": "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+    "governanceRuntimeSha256": "b58ed4cb3bad768fb07c8e4cd627ade8fd26b4ba4fc5c684661e1a52224f79cd",
+    "coordinatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+    "coordinatorSha256": "30727656084c774d48a2d80b79f7dcad66a864fd6bd5c489905d9247fd953e85",
+    "archiveRuntimePath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+    "archiveRuntimeSha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4",
+    "runtimeContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+    "runtimeContractSha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259",
+    "operationReceiptSchemaPath": "data/route-iq-field-sessions-v1/route-iq-retention-operation-receipt-v1.schema.json",
+    "maximumCalendarMonths": 18,
+    "physicalDeletionImplemented": false,
+    "physicalDeletionActivated": false,
+    "productionLegalHoldLedgerDeployed": false,
+    "activationEligible": false
+  },
+  "legalHoldGovernance": {
+    "callerAssertedStateAccepted": false,
+    "authenticatedKeyedAuthorityRequired": true,
+    "durableAppendOnlyLedgerRequired": true,
+    "subjectAndSourceHashBindingRequired": true,
+    "activeOrUnknownHoldBlocksDeletionDispositionAnalyticsAndEvaluation": true,
+    "holdAndReleaseAppendOnly": true,
+    "releaseDoesNotExtendRetentionExpiry": true,
+    "physicalMutationPathAvailable": false
+  },
+  "aggregateGovernance": {
+    "indefiniteRetentionRequiresExactCanonicalAggregateArtifact": true,
+    "dataOwnedSignedAttestationRequired": true,
+    "artifactHashSourceSetAndLegalHoldLedgerBindingRequired": true,
+    "rawRowsAndReidentificationLinkageProhibited": true,
+    "representativeCustomerVisitAndPreciseLocationIdentificationProhibited": true,
+    "unknownOrSparseIdentityStateFailsClosed": true,
+    "activeOrUnknownLegalHoldBlocksEligibility": true
+  },
+  "administrativeDisposition": {
+    "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "originalRecordCount": 7,
+    "state": "EXCLUDED_FROM_ANALYTICS",
+    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "sourceArchiveRewriteAllowed": false,
+    "generalZeroVisitExclusionAllowed": false,
+    "auditReadRemainsAvailable": true
+  },
+  "infrastructureAdmission": {
+    "runtimePath": "workers/infrastructure/route-iq-prospective-shadow-retention-admission.js",
+    "runtimeSha256": "a5775bf297050b17c8dd044ecaf266ae2261d75a39ac82f6c060587403bffdb4",
+    "readinessPath": "workers/infrastructure/route-iq-prospective-shadow-readiness.js",
+    "readinessSha256": "b8e9ea114bc9a70710e957c6bff9c66ae881f92b9dae7b16f018d477067e65f3",
+    "dataSignedShortLivedAdmissionRequired": true,
+    "retentionEnvelopeTreatedAsDataOwnedOpaquePayload": true,
+    "productionAdmissionProducerAvailable": false,
+    "productionEnvironmentAndCounts": "UNVERIFIED",
+    "collection": "OFF",
+    "activeCohorts": 0
+  },
+  "intelligenceAdmission": {
+    "runtimePath": "intelligence/route-iq-prospective-retention-admission.mjs",
+    "runtimeSha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780",
+    "evaluationRuntimePath": "intelligence/route-iq-committed-outcome-evaluation.mjs",
+    "evaluationRuntimeSha256": "2f5a513564b94998e426d29aa72ee7807983ea6ded3d5e08e216706f2b073e53",
+    "specificationPath": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+    "specificationSha256": "02e224ca961c5b36a3a31df75d02f749b3935c6e8379c7a4b3b7940d3ea3caf5",
+    "protectedBaselinePath": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
+    "protectedBaselineSha256": "5b06c1108029b3ff2b04f9ea4e8a58ccb57887987db32f44fd9023039bd5571b",
+    "expiredHeldSyntheticHistoricalAndDisposedEvidenceAdmissionAllowed": false,
+    "deidentifiedAggregateRequiresExactDataAttestation": true,
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "recommendationInfluence": "OFF"
+  },
+  "activationBoundary": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "prospectiveEvidenceCollectionAuthorized": false,
+    "recommendationInfluence": "OFF",
+    "deploymentAuthorized": false,
+    "productionAccessAuthorized": false,
+    "productionMutationAuthorized": false,
+    "activationReadiness": "HOLD_NOT_ACTIVATION_READY",
+    "blockers": [
+      "prospective_expiry_and_deletion_runtime_not_deployed",
+      "legal_hold_ledger_runtime_not_deployed",
+      "founder_collection_activation_not_authorized",
+      "production_environment_and_counts_unverified"
+    ]
+  },
+  "architectureBoundary": {
+    "newSubsystemCreated": false,
+    "newProductionEventArchitectureCreated": false,
+    "newVendorOrModelDependencyIntroduced": false,
+    "newPiiCollectionIntroduced": false,
+    "retentionPeriodBeyondFounderMaximumIntroduced": false,
+    "historicalArchiveRewritten": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false,
+    "deploymentPerformed": false,
+    "collectionActivated": false,
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "engineeringBatchMayBeAutoPushedAfterExactHeadPass": true,
+    "deploymentRecommendation": "DO_NOT_DEPLOY",
+    "collectionActivationRecommendation": "DO_NOT_ACTIVATE",
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}
