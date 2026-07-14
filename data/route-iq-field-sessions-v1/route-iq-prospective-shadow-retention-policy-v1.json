@@ -1,0 +1,143 @@
+{
+  "policyVersion": "route-iq-prospective-shadow-retention-policy-v1",
+  "batchId": "BATCH-20260714-003",
+  "owningSubsystem": "Prometheus Data",
+  "status": "defined_fail_closed_pending_explicit_retention_boundary",
+  "scope": {
+    "workspaceId": "fitness_connection",
+    "operatingProfileId": "fitness",
+    "representativeScope": "authenticated_registered_internal_representative_only",
+    "opportunityType": "next_stop",
+    "collectionActivated": false,
+    "activeCohorts": 0,
+    "recommendationInfluence": "off"
+  },
+  "retentionDecision": {
+    "newRetentionPeriodIntroduced": false,
+    "existingRetentionPeriodExtended": false,
+    "numericDurationSelected": false,
+    "durationDays": null,
+    "governingRule": "Prospective evidence may not outlive the explicit authorized retention boundary of its canonical field session.",
+    "effectiveExpiry": "earliest_explicit_authorized_source_or_workspace_deadline",
+    "missingBoundaryBehavior": "fail_closed_no_collection",
+    "activationEligible": false,
+    "activationBlockers": [
+      "explicit_authorized_field_session_retention_boundary_missing",
+      "prospective_expiry_and_deletion_runtime_not_verified",
+      "founder_collection_activation_not_authorized"
+    ]
+  },
+  "fieldLevelRetention": [
+    {
+      "class": "canonical_scope_and_identity",
+      "fields": ["workspaceId", "operatingProfileId", "representativeId", "coordinatorId", "fieldSessionId", "opportunityId"],
+      "dataType": "opaque_internal_identifier",
+      "retentionBoundary": "governing_field_session",
+      "pii": false
+    },
+    {
+      "class": "pre_action_candidate_evidence",
+      "fields": ["candidateId", "sourceRecordId", "candidateSetSha256", "manifestSha256", "evidenceCutoff", "eligibility", "sourceVersion", "schemaVersion", "contractVersion"],
+      "dataType": "governed_opaque_evidence_and_integrity_metadata",
+      "retentionBoundary": "governing_field_session",
+      "pii": false
+    },
+    {
+      "class": "shadow_decision_integrity",
+      "fields": ["rankedCandidateIds", "probabilities", "confidence", "engineVersion", "ruleVersion", "configurationVersion", "integrityHash", "sealedAt"],
+      "dataType": "founder_only_server_evidence",
+      "retentionBoundary": "governing_field_session",
+      "pii": false
+    },
+    {
+      "class": "action_outcome_and_correction_links",
+      "fields": ["actionId", "actionType", "selectedCandidateId", "decisionSource", "outcomeId", "observedOutcome", "correctionId", "recordSequence", "authoritativeRecordTime"],
+      "dataType": "allowlisted_structured_evidence",
+      "retentionBoundary": "governing_field_session",
+      "pii": false
+    },
+    {
+      "class": "governance_and_recovery",
+      "fields": ["exclusionId", "conflictId", "reasonCode", "idempotencyDigest", "receiptHash", "outboxId", "projectionHash", "commitMarker"],
+      "dataType": "sanitized_audit_and_integrity_metadata",
+      "retentionBoundary": "governing_field_session",
+      "pii": false
+    }
+  ],
+  "prohibitedCollection": [
+    "names",
+    "email",
+    "phone",
+    "contacts",
+    "raw_notes",
+    "free_form_text",
+    "audio",
+    "transcripts",
+    "addresses",
+    "coordinates",
+    "precise_location",
+    "background_tracking",
+    "cross_workspace_data",
+    "cross_representative_data",
+    "client_authoritative_time",
+    "client_authoritative_hashes"
+  ],
+  "canonicality": {
+    "allowedRecordOrigin": "prospective",
+    "syntheticTestDemoFixtureHistoricalBackfillReplayExcluded": true,
+    "historicalPromotionAllowed": false,
+    "callerIdentityAuthorityAllowed": false,
+    "canonicalHashAndServerTimeRequired": true,
+    "identicalReplayReturnsOriginal": true,
+    "changedReplayCreatesDurableConflict": true
+  },
+  "expiryAndDeletion": {
+    "expiredEvidenceAdmissionAllowed": false,
+    "expiredEvidenceEvaluationAllowed": false,
+    "physicalDeletionImplementationStatus": "not_implemented_requires_separate_data_owner_batch",
+    "physicalDeletionActivated": false,
+    "sourceDeletionBeforeDerivedProjectionAllowed": false,
+    "derivedProjectionMayOutliveSource": false,
+    "derivedProjectionDeletionOrder": "before_or_atomic_with_source",
+    "deletionAuditMayRetainPayload": false,
+    "minimalDeletionReceiptRequiresSeparateAuthorization": true,
+    "unknownExpiryBehavior": "fail_closed"
+  },
+  "legalHold": {
+    "implementationStatus": "not_implemented",
+    "unknownStateBehavior": "fail_closed_no_collection_or_deletion",
+    "activeHoldMayAuthorizeNewCollection": false,
+    "activeHoldMayAuthorizeAnalytics": false,
+    "holdMayRewriteCanonicalEvidence": false,
+    "releaseRequiresAuthenticatedAuditedDataOwnerOperation": true,
+    "retentionExpansionAuthorizedByThisPolicy": false
+  },
+  "auditExceptions": {
+    "prospectiveIndefiniteRetentionAllowed": false,
+    "immutableWhileRetained": true,
+    "administrativeDispositionArchiveIsExistingFieldSessionAuditEvidence": true,
+    "administrativeDispositionArchiveRetentionExpandedByThisPolicy": false,
+    "auditVisibilityMayCreateAnalyticsEligibility": false
+  },
+  "administrativeDispositionConsumerBoundary": {
+    "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "originalRecordCount": 7,
+    "state": "EXCLUDED_FROM_ANALYTICS",
+    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "originalRecordsRemainImmutable": true,
+    "auditReadRemainsAvailable": true,
+    "analyticsLearningReadinessBaselineProductivityAdmissionAllowed": false
+  },
+  "activationBoundary": {
+    "collectionDefault": "off",
+    "missingOrInvalidPolicy": "off",
+    "productionConsumerActivated": false,
+    "productionEvidenceRecords": 0,
+    "newProductionConsumerIntroduced": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "founderRetentionDecisionStillRequired": true,
+    "founderCollectionActivationStillRequired": true
+  }
+}

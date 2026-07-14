@@ -17,6 +17,7 @@ import {
   fieldSessionAdministrativeDispositionStorageKey,
   fieldSessionStorageKeys,
   getRouteIqFieldSessionConsumptionEligibility,
+  partitionRouteIqFieldSessionArchivesForConsumption,
   persistRouteIqFieldSessionAdministrativeDisposition,
   persistRouteIqFieldSessionArchive,
   projectCommittedRouteIqFieldSessionOutcomes,
@@ -688,6 +689,22 @@ test("administrative disposition appends one audit record while preserving all s
         && error.code === "field_session_administratively_excluded"
         && error.details.requestedDomain === domain
     );
+    const partition = partitionRouteIqFieldSessionArchivesForConsumption([readBack.record], domain);
+    assert.equal(partition.includedRecords.length, 0);
+    assert.deepEqual(partition.excludedAuditRecords, [{
+      sessionId: archive.sessionId,
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      state: "EXCLUDED_FROM_ANALYTICS",
+      reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+      requestedDomain: domain,
+      auditOnly: true,
+      sourceRawSha256: archive.rawSha256,
+      dispositionRecordSha256: first.record.recordSha256,
+      protectedArtifactCount: 7
+    }]);
+    assert.equal(Object.hasOwn(partition.excludedAuditRecords[0], "rawReportText"), false);
+    assert.equal(Object.hasOwn(partition.excludedAuditRecords[0], "normalizedRecord"), false);
   }
   assert.throws(
     () => projectCommittedRouteIqFieldSessionOutcomes({
@@ -796,6 +813,12 @@ test("an undisposed zero-visit session remains eligible and is not caught by a b
     representativeId: "cruz",
     archiveRecord: unaffectedRead.record
   }).outcomes, []);
+  const partition = partitionRouteIqFieldSessionArchivesForConsumption(
+    [unaffectedRead.record],
+    "productivity_counts"
+  );
+  assert.equal(partition.includedRecords.length, 1);
+  assert.equal(partition.excludedAuditRecords.length, 0);
 });
 
 test("administrative disposition schema and Data contract pin only the explicitly authorized production target", () => {
@@ -814,6 +837,10 @@ test("administrative disposition schema and Data contract pin only the explicitl
   assert.equal(dispositionContract.persistenceRules.automaticZeroVisitExclusionAllowed, false);
   assert.equal(dispositionContract.persistenceRules.productionMutationAuthorizedBySourceCommit, false);
   assert.deepEqual(dispositionContract.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
+  assert.equal(dispositionContract.consumerRules.centralDataConsumerPartitionFunction, "partitionRouteIqFieldSessionArchivesForConsumption");
+  assert.equal(dispositionContract.consumerRules.everyExcludedDomainRequiresCentralPartition, true);
+  assert.equal(dispositionContract.consumerRules.excludedAuditProjectionMayContainRawPayload, false);
+  assert.equal(dispositionContract.consumerRules.excludedAuditProjectionMayCountTowardAnyConsumerMetric, false);
 });
 
 test("exact re-ingestion is idempotent and performs no second write", async () => {

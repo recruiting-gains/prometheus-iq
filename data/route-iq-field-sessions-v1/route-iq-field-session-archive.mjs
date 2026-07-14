@@ -1173,6 +1173,51 @@ export function assertRouteIqFieldSessionConsumptionEligible(archiveRecord, requ
   return eligibility;
 }
 
+export function partitionRouteIqFieldSessionArchivesForConsumption(archiveRecords, requestedDomain) {
+  if (!Array.isArray(archiveRecords)) {
+    throw new FieldSessionArchiveError("Field-session consumer input must be an array.", {
+      code: "field_session_consumption_records_invalid",
+      status: 400
+    });
+  }
+  if (!routeIqFieldSessionAdministrativeExclusionDomains.includes(requestedDomain)) {
+    throw new FieldSessionArchiveError("Field-session consumption domain is not governed.", {
+      code: "field_session_consumption_domain_invalid",
+      status: 400,
+      details: { requestedDomain: requestedDomain ?? null }
+    });
+  }
+
+  const includedRecords = [];
+  const excludedAuditRecords = [];
+  for (const archiveRecord of archiveRecords) {
+    const eligibility = getRouteIqFieldSessionConsumptionEligibility(archiveRecord);
+    if (eligibility.eligible) {
+      includedRecords.push(archiveRecord);
+      continue;
+    }
+    const disposition = validateAdministrativeDispositionRecord(archiveRecord.administrativeDisposition);
+    excludedAuditRecords.push({
+      sessionId: disposition.sessionId,
+      workspaceId: disposition.workspaceId,
+      operatingProfileId: disposition.operatingProfileId,
+      state: disposition.state,
+      reason: disposition.reason,
+      requestedDomain,
+      auditOnly: true,
+      sourceRawSha256: disposition.sourceRawSha256,
+      dispositionRecordSha256: disposition.recordSha256,
+      protectedArtifactCount: disposition.protectedArtifactCount
+    });
+  }
+
+  return deepFreeze({
+    requestedDomain,
+    includedRecords,
+    excludedAuditRecords
+  });
+}
+
 function historyStorageEntries(archivePackage, keys) {
   const record = archivePackage.normalizedRecord;
   const history = archivePackage.historyUpdates;

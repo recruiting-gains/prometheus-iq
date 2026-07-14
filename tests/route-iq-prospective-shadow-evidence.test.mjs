@@ -242,7 +242,7 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   for (const prohibited of ["authoritativeTimestamp", "candidateSetSha256", "decisionSource", "rank", "probability", "readiness", "engineVersion", "notes", "email", "latitude"]) {
     assert.equal(Object.hasOwn(schema.$defs.captureRequest.properties, prohibited), false);
   }
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "data_server_allocator_ready_runtime_inactive");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "source_complete_deployable_runtime_inactive");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.authoritativeTechnology, "cloudflare_sqlite_backed_durable_object");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeAdapterImplemented, true);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeBindingIntroducedByData, false);
@@ -263,10 +263,18 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newPiiCollected, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newRetentionPeriodIntroduced, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.existingRetentionPeriodExtended, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyProvided, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.retentionPolicyStatus, "defined_fail_closed_pending_explicit_retention_boundary");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.numericRetentionDurationSelected, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.explicitAuthorizedFieldSessionRetentionBoundaryAvailable, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.activationEligibleUnderRetentionPolicy, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.derivedProjectionMayOutliveSource, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.productionCollectionActivated, false);
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.infrastructureWiringComplete, false);
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.dashboardCollectionComplete, false);
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.intelligenceConsumerAuthorized, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.infrastructureWiringComplete, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.dashboardCollectionSeamSourceComplete, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.intelligenceSourceIntegrationAuthorized, true);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.productionConsumerActivated, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.intelligenceProductionConsumerAuthorized, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionCollectionActivated, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionEvidenceRecords, 0);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.recommendationInfluenceActivated, false);
