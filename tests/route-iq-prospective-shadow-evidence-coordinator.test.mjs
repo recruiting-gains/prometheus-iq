@@ -711,14 +711,14 @@ test("canonical session hash continuity rejects manifest, action, and projection
   );
 });
 
-test("changed trigger identity on the original boundary durably records one attempt and conflict", async () => {
+test("same-time changed trigger retry durably records a monotonic governance conflict", async () => {
   const h = await createHarness("changed-trigger-identity");
   const original = await triggerOpportunity(h);
   const changedIdentity = {
     ...h.identity,
     canonicalSessionRecordSha256: digest("changed-trigger-session-identity")
   };
-  const changedClaims = operationClaims(changedIdentity, "trigger", TIMES.manifest, 10, {}, h.scope);
+  const changedClaims = operationClaims(changedIdentity, "trigger", TIMES.trigger, 10, {}, h.scope);
   await assert.rejects(
     h.coordinator.trigger({ authorityEnvelope: h.authority.sign(changedClaims) }),
     error => error instanceof RouteIqProspectiveCoordinatorConflictError
@@ -729,7 +729,24 @@ test("changed trigger identity on the original boundary durably records one atte
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'trigger'").count, 2);
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_receipts WHERE operation_kind = 'trigger'").count, 1);
   assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 1);
-  assert.equal(h.repository.one("SELECT authoritative_record_time FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").authoritative_record_time, TIMES.manifest);
+  const events = h.repository.query("SELECT * FROM lifecycle_events ORDER BY record_sequence");
+  const conflict = events[1];
+  const conflictRecordTime = new Date(Date.parse(TIMES.trigger) + 1).toISOString();
+  assert.deepEqual(events.map(event => event.event_kind), ["TRIGGERED", "CONFLICT_RECORDED"]);
+  assert.equal(conflict.authoritative_record_time, conflictRecordTime);
+  assert.ok(Date.parse(conflict.authoritative_record_time) > Date.parse(events[0].authoritative_record_time));
+  const conflictRecord = JSON.parse(conflict.canonical_json);
+  assert.equal(conflictRecord.payload.incomingAuthoritativeRecordTime, TIMES.trigger);
+  assert.equal(conflictRecord.payload.governanceRecordTimeDerivation, "coordinator_prior_plus_one_millisecond");
+  assert.equal(conflictRecord.payload.governanceRecordTimeOffsetMilliseconds, 1);
+
+  drainProjections(h);
+  const projectionRead = await readProjection(h, conflict.record_sequence, conflict.authoritative_record_time);
+  const projection = projectionRead.record.projection;
+  assert.equal(projection.state, "EXCLUDED");
+  assert.equal(projection.readinessEvidenceEligible, false);
+  assert.deepEqual(projection.sourceArtifacts.map(source => source.authoritativeRecordTime), [TIMES.trigger, conflictRecordTime]);
+  assert.equal(projection.exclusions[0].sourceRecordId, conflict.artifact_id);
 });
 
 test("identical logical retries with refreshed server time return the original persisted receipt", async () => {
@@ -1049,7 +1066,7 @@ test("earlier or equal seal and exclusion times fail closed without backdating h
     assert.equal(h.repository.one("SELECT last_record_time FROM opportunities").last_record_time, lifecycle.shadowSeal.receipt.authoritativeRecordTime);
   });
 
-  await t.test("changed retry conflict equal to prior state", async () => {
+  await t.test("same-time changed retry uses monotonic conflict governance time", async () => {
     const h = await createHarness("conflict-chronology-equal");
     await triggerOpportunity(h);
     await acceptManifest(h, { suffix: "conflict-chronology-original" });
@@ -1059,17 +1076,18 @@ test("earlier or equal seal and exclusion times fail closed without backdating h
       expectedSourceCount: competing.hashes.sourceCount,
       expectedCompleteManifestSha256: competing.hashes.completeManifestSha256
     }, h.scope);
-    const before = canonicalDatabaseDump(h.repository);
     await assert.rejects(
       h.coordinator.acceptCandidateManifest({
         authorityEnvelope: h.authority.sign(competingClaims),
         producerEnvelope: h.authority.sign(competing.claims, "producer")
       }),
-      error => error.code === "route_iq_coordinator_chronology_not_monotonic"
+      error => error instanceof RouteIqProspectiveCoordinatorConflictError
     );
-    assert.equal(canonicalDatabaseDump(h.repository), before);
-    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'candidate_manifest'").count, 1);
-    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'").count, 0);
+    assert.equal(h.repository.one("SELECT state FROM opportunities").state, "EXCLUDED");
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM operation_attempts WHERE operation_kind = 'candidate_manifest'").count, 2);
+    const conflict = h.repository.one("SELECT * FROM lifecycle_events WHERE event_kind = 'CONFLICT_RECORDED'");
+    assert.equal(conflict.authoritative_record_time, new Date(Date.parse(TIMES.manifest) + 1).toISOString());
+    assert.equal(JSON.parse(conflict.canonical_json).payload.incomingAuthoritativeRecordTime, TIMES.manifest);
   });
 });
 

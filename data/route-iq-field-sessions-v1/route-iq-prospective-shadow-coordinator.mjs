@@ -918,7 +918,7 @@ function recordConflictAgainstReceipt(repository, {
     || opportunity.session_id !== identities.sessionId) {
     fail("route_iq_coordinator_operation_key_collision", "Conflict boundary does not resolve to the original canonical opportunity.", {}, 500);
   }
-  assertMonotonicRecordTime(opportunity, claims);
+  const conflictRecordTime = deriveConflictRecordTime(opportunity, claims.authoritativeRecordTime);
   const event = appendLifecycleEvent(repository, {
     coordinatorId: opportunity.coordinator_id,
     sessionId: opportunity.session_id,
@@ -926,7 +926,7 @@ function recordConflictAgainstReceipt(repository, {
     operationKey: identities.operationKey,
     requestSha256,
     logicalBoundarySha256: claims.canonicalEventBoundarySha256,
-    authoritativeRecordTime: claims.authoritativeRecordTime,
+    authoritativeRecordTime: conflictRecordTime.authoritativeRecordTime,
     eventKind: "CONFLICT_RECORDED",
     artifactKind: "conflict",
     fromState: opportunity.state,
@@ -938,6 +938,9 @@ function recordConflictAgainstReceipt(repository, {
       originalReceiptSha256: originalReceiptRow.receipt_sha256,
       clientEventSequence: claims.clientEventSequence,
       clientContentSha256: claims.clientContentSha256,
+      incomingAuthoritativeRecordTime: claims.authoritativeRecordTime,
+      governanceRecordTimeDerivation: conflictRecordTime.derivation,
+      governanceRecordTimeOffsetMilliseconds: conflictRecordTime.offsetMilliseconds,
       permanent: true,
       overwritePerformed: false,
       priorHistoryPreserved: true
@@ -1321,6 +1324,40 @@ function assertMonotonicRecordTime(opportunity, claims) {
       priorRecordTime: opportunity.last_record_time
     }, 409);
   }
+}
+
+function deriveConflictRecordTime(opportunity, incomingAuthoritativeRecordTime) {
+  if (!opportunity || Number(opportunity.last_record_sequence) === 0) {
+    fail("route_iq_coordinator_conflict_boundary_invalid", "A conflict requires an existing canonical operation boundary.", {}, 500);
+  }
+  const prior = canonicalTimestamp(opportunity.last_record_time, "opportunity.lastRecordTime");
+  const incoming = canonicalTimestamp(incomingAuthoritativeRecordTime, "verifiedClaims.conflict.incomingAuthoritativeRecordTime");
+  if (incoming.time > prior.time) {
+    return {
+      authoritativeRecordTime: incoming.iso,
+      derivation: "infrastructure_attested_later_time",
+      offsetMilliseconds: incoming.time - prior.time
+    };
+  }
+  const nextTime = prior.time + 1;
+  let nextIso;
+  try {
+    nextIso = new Date(nextTime).toISOString();
+  } catch {
+    fail("route_iq_coordinator_conflict_time_exhausted", "The coordinator cannot derive a bounded monotonic conflict record time.", {
+      priorRecordTime: prior.iso
+    }, 500);
+  }
+  if (!Number.isSafeInteger(nextTime) || Date.parse(nextIso) !== nextTime || nextTime - prior.time !== 1) {
+    fail("route_iq_coordinator_conflict_time_exhausted", "The coordinator cannot derive a bounded monotonic conflict record time.", {
+      priorRecordTime: prior.iso
+    }, 500);
+  }
+  return {
+    authoritativeRecordTime: nextIso,
+    derivation: "coordinator_prior_plus_one_millisecond",
+    offsetMilliseconds: 1
+  };
 }
 
 function stateReason(opportunity, expectedState) {
