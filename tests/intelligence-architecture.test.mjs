@@ -7,18 +7,36 @@ import { resolve } from "node:path";
 import {
   batchId as provenanceBatchId,
   legacyProvenanceGapCommit,
-  provenanceStatus,
-  reconstructLegacyProtectedContracts
+  provenanceStatus
 } from "../intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 const sha256 = path => createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+const sha256Bytes = bytes => createHash("sha256").update(bytes).digest("hex");
+const stable = value => {
+  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value)
+      .sort()
+      .map(key => `${JSON.stringify(key)}:${stable(value[key])}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+};
+const semanticSha256Bytes = bytes => createHash("sha256")
+  .update(stable(JSON.parse(bytes.toString("utf8"))))
+  .digest("hex");
 const git = args => {
   const result = spawnSync("git", args, {cwd: root, encoding: "utf8"});
   assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
   return result.stdout.trim();
+};
+const gitBytes = args => {
+  const result = spawnSync("git", args, {cwd: root});
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  return result.stdout;
 };
 
 test("intelligence architecture validation gate passes", () => {
@@ -266,7 +284,6 @@ test("legacy mixed-ownership Intelligence contracts have independently derived o
   const administrativeDispositionSpecification = readJson(
     administrativeDispositionSpecificationPath,
   );
-  const reconstruction = reconstructLegacyProtectedContracts();
   const expectedPaths = [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
     "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -298,46 +315,57 @@ test("legacy mixed-ownership Intelligence contracts have independently derived o
     false,
   );
   assert.deepEqual(evidence.contracts.map(contract => contract.path).sort(), expectedPaths);
-  assert.deepEqual(reconstruction.contracts.map(contract => contract.path).sort(), expectedPaths);
-  assert.deepEqual(evidence.protectedConsumerInventory, reconstruction.discoveredProtectedConsumers);
+  assert.deepEqual(evidence.protectedConsumerInventory, [
+    ...expectedPaths,
+    "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  ].sort());
+  const evidenceCommit = git(["log", "-1", "--format=%H", "--", evidencePath]);
 
-  const evidenceByPath = new Map(evidence.contracts.map(contract => [contract.path, contract]));
-  for (const contract of reconstruction.contracts) {
-    const recorded = evidenceByPath.get(contract.path);
-    assert.ok(recorded, contract.path);
-    assert.equal(contract.semanticIdentical, true, contract.path);
-    assert.equal(contract.byteIdentical, true, contract.path);
-    assert.equal(contract.preGapMatchesSourceCommit, true, contract.path);
-    assert.equal(recorded.reconstructedRawSha256, contract.reconstructedRawSha256, contract.path);
-    assert.equal(recorded.reconstructedSemanticSha256, contract.reconstructedSemanticSha256, contract.path);
-    assert.equal(recorded.canonicalAfterRepairRawSha256, contract.reconstructedRawSha256, contract.path);
-    assert.equal(recorded.canonicalAfterRepairSemanticSha256, contract.reconstructedSemanticSha256, contract.path);
-    assert.equal(recorded.byteIdenticalAfterRepair, true, contract.path);
-    assert.equal(recorded.semanticIdenticalAfterRepair, true, contract.path);
-    assert.equal(recorded.byteIdenticalBeforeRepair, false, contract.path);
-    assert.equal(recorded.semanticIdenticalBeforeRepair, false, contract.path);
-    assert.notEqual(recorded.canonicalBeforeRepairRawSha256, recorded.canonicalAfterRepairRawSha256, contract.path);
-    assert.equal(sha256(contract.path), contract.reconstructedRawSha256, contract.path);
-    assert.ok(recorded.reconstructionSources.length >= 6, contract.path);
-    for (const source of recorded.reconstructionSources)
-      assert.equal(sha256(source.path), source.sha256, source.path);
+  for (const recorded of evidence.contracts) {
+    const legacyBytes = gitBytes(["show", `${legacyProvenanceGapCommit}:${recorded.path}`]);
+    const historicalBytes = gitBytes(["show", `${evidenceCommit}:${recorded.path}`]);
+    assert.equal(sha256Bytes(legacyBytes), recorded.legacyCommitRawSha256, recorded.path);
+    assert.equal(
+      sha256Bytes(historicalBytes),
+      recorded.canonicalAfterRepairRawSha256,
+      recorded.path,
+    );
+    assert.equal(
+      semanticSha256Bytes(historicalBytes),
+      recorded.canonicalAfterRepairSemanticSha256,
+      recorded.path,
+    );
+    assert.equal(recorded.canonicalAfterRepairRawSha256, recorded.reconstructedRawSha256, recorded.path);
+    assert.equal(recorded.canonicalAfterRepairSemanticSha256, recorded.reconstructedSemanticSha256, recorded.path);
+    assert.equal(recorded.byteIdenticalAfterRepair, true, recorded.path);
+    assert.equal(recorded.semanticIdenticalAfterRepair, true, recorded.path);
+    assert.equal(recorded.byteIdenticalBeforeRepair, false, recorded.path);
+    assert.equal(recorded.semanticIdenticalBeforeRepair, false, recorded.path);
+    assert.notEqual(recorded.canonicalBeforeRepairRawSha256, recorded.canonicalAfterRepairRawSha256, recorded.path);
+    assert.ok(recorded.reconstructionSources.length >= 6, recorded.path);
+    for (const source of recorded.reconstructionSources) {
+      assert.equal(
+        sha256Bytes(gitBytes(["show", `${evidenceCommit}:${source.path}`])),
+        source.sha256,
+        source.path,
+      );
+    }
     if (
-      contract.id === "read_only_field_session_learning" ||
-      contract.id === "off_route_learning"
+      recorded.id === "read_only_field_session_learning" ||
+      recorded.id === "off_route_learning"
     ) {
       assert.equal(
-        contract.semanticRevision.specificationPath,
+        recorded.semanticRevision.specificationPath,
         administrativeDispositionSpecificationPath,
       );
-      assert.equal(contract.semanticRevision.targetHashesStoredInSpecification, false);
+      assert.equal(recorded.semanticRevision.targetHashesStoredInSpecification, false);
       assert.equal(
-        contract.semanticRevision.specificationSha256,
+        recorded.semanticRevision.specificationSha256,
         sha256(administrativeDispositionSpecificationPath),
       );
     }
   }
 
-  const evidenceCommit = git(["log", "-1", "--format=%H", "--", evidencePath]);
   if (evidenceCommit) {
     assert.match(evidenceCommit, /^[a-f0-9]{40}$/);
     assert.equal(git(["rev-parse", `${evidenceCommit}^`]), evidence.integratedBase);
@@ -349,44 +377,66 @@ test("legacy mixed-ownership Intelligence contracts have independently derived o
 
 test("every Intelligence protected consumer is synchronized and remains zero influence", () => {
   const evidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
-  const reconstruction = reconstructLegacyProtectedContracts();
-  const protectedPaths = [
-    ...reconstruction.contracts.map(contract => contract.path),
-    ...reconstruction.additionalProtectedConsumers.map(contract => contract.path)
+  const successor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
+  );
+  const expectedPaths = [
+    "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+    "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+    "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+    "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "intelligence/contracts/shadow-decision-readiness-contracts.json",
   ].sort();
 
-  assert.deepEqual(protectedPaths, reconstruction.discoveredProtectedConsumers);
-  for (const consumer of reconstruction.additionalProtectedConsumers) {
-    const recorded = evidence.additionalProtectedConsumerScan.find(entry => entry.path === consumer.path);
-    assert.ok(recorded, consumer.path);
-    assert.equal(consumer.semanticIdentical, true, consumer.path);
-    assert.equal(consumer.byteIdentical, true, consumer.path);
-    assert.equal(sha256(consumer.path), consumer.reconstructedRawSha256, consumer.path);
-    assert.equal(recorded.canonicalAfterRepairRawSha256, consumer.reconstructedRawSha256, consumer.path);
-    assert.equal(recorded.canonicalAfterRepairSemanticSha256, consumer.reconstructedSemanticSha256, consumer.path);
-    assert.equal(recorded.byteIdenticalAfterRepair, true, consumer.path);
-    assert.equal(recorded.semanticIdenticalAfterRepair, true, consumer.path);
-    assert.equal(recorded.byteIdenticalBeforeRepair, false, consumer.path);
-    assert.equal(recorded.semanticIdenticalBeforeRepair, false, consumer.path);
-    if (consumer.id === "shadow_decision_readiness") {
-      assert.equal(
-        consumer.semanticRevision.specificationPath,
-        "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
-      );
-      assert.equal(
-        consumer.semanticRevision.targetHashesStoredInSpecification,
-        false,
-      );
-      assert.equal(
-        consumer.reconstructionBaseCommit,
-        "f50d10f14f993b4e6ff42887e76c10721852cc43",
-      );
-    }
-  }
-  assert.deepEqual(
-    evidence.additionalProtectedConsumerScan.map(consumer => consumer.path).sort(),
-    reconstruction.additionalProtectedConsumers.map(consumer => consumer.path).sort()
+  assert.equal(successor.batchId, "BATCH-20260714-002");
+  assert.equal(successor.status, "OWNER_VALIDATED_SUCCESSOR");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(successor.historicalCheckpoint.remainsHistorical, true);
+  assert.equal(successor.historicalCheckpoint.rewritten, false);
+  assert.equal(
+    sha256(successor.historicalCheckpoint.path),
+    successor.historicalCheckpoint.sha256,
   );
+  assert.deepEqual(successor.synchronizedConsumers.map(consumer => consumer.path).sort(), expectedPaths);
+  for (const consumer of successor.synchronizedConsumers) {
+    assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
+    assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
+  }
+  for (const source of successor.protectedSourceTransitions) {
+    assert.equal(sha256(source.path), source.currentSha256, source.path);
+    assert.notEqual(source.previousSha256, source.currentSha256, source.path);
+  }
+  const historicalEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    successor.historicalCheckpoint.path,
+  ]);
+  for (const consumer of [
+    ...evidence.contracts,
+    ...evidence.additionalProtectedConsumerScan,
+  ]) {
+    assert.equal(
+      sha256Bytes(gitBytes(["show", `${historicalEvidenceCommit}:${consumer.path}`])),
+      consumer.canonicalAfterRepairRawSha256,
+      consumer.path,
+    );
+  }
+  assert.equal(successor.advisoryArtifacts.regenerationRequired, false);
+  assert.equal(successor.boundaryValidation.collectionDefaultState, "OFF");
+  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(successor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(successor.boundaryValidation.routeOrderingChanged, false);
+  assert.equal(successor.boundaryValidation.candidateVisibilityChanged, false);
+  assert.equal(successor.boundaryValidation.routeScoringChanged, false);
+  assert.equal(successor.boundaryValidation.notificationBehaviorChanged, false);
+  assert.equal(successor.boundaryValidation.automaticActionIntroduced, false);
+  assert.equal(successor.boundaryValidation.validCollectionOnFixturePreservesPreActionNextStopSeal, true);
+  assert.equal(successor.boundaryValidation.candidateCompletenessServerOwned, true);
+  assert.equal(successor.boundaryValidation.identityAndTimestampsServerOwned, true);
+  assert.equal(successor.boundaryValidation.exactlyOnceIdempotentAppendOnlyEvidencePreserved, true);
+  assert.equal(successor.boundaryValidation.zeroLiveGooglePreserved, true);
   assert.equal(evidence.methodologyConstraints.requiredEvaluationOutcomes, "97 eligible, linked, scoreable evaluation outcomes after exclusions");
   assert.equal(evidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview, false);
   assert.equal(evidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins, 100);

@@ -1,0 +1,108 @@
+{
+  "version": "route-iq-intelligence-protected-baseline-synchronization-v1",
+  "batchId": "BATCH-20260714-002",
+  "status": "OWNER_VALIDATED_SUCCESSOR",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Record the Intelligence-owner validation and protected-baseline synchronization for the collection-OFF startup write suppression without rewriting the historical mixed-ownership provenance checkpoint.",
+  "historicalCheckpoint": {
+    "path": "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+    "sha256": "c3e58d4a259c6871d88dfc3d49abb2c942fe9558dc00f2eb330ef634431399d0",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "integratedOwnerCommits": [
+    {
+      "subsystem": "Prometheus Infrastructure",
+      "commit": "0027244ba069b741f283ab6871cf882d46f2c935",
+      "tree": "a3eb5913d43fea166d23d6d39338b8f07308d646",
+      "purpose": "Authenticated read-only prospective collection bootstrap"
+    },
+    {
+      "subsystem": "Prometheus Dashboard",
+      "commit": "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd",
+      "tree": "3164d2c5798d812347c5eaa84c32dc04e21bae7b",
+      "purpose": "Collection-OFF prospective write suppression"
+    }
+  ],
+  "protectedSourceTransitions": [
+    {
+      "id": "dashboard_source",
+      "path": "index.html",
+      "previousSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00",
+      "currentSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+      "ownerSubsystem": "Prometheus Dashboard"
+    },
+    {
+      "id": "dashboard_deploy_mirror",
+      "path": "deploy/cloudflare-pages/index.html",
+      "previousSha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00",
+      "currentSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+      "ownerSubsystem": "Prometheus Dashboard"
+    },
+    {
+      "id": "private_worker",
+      "path": "workers/prometheus-iq-worker.js",
+      "previousSha256": "140fdf73b01f1d0e1113971e93c2ef0f63fbd52317f0617b5c4f8121a85b35ea",
+      "currentSha256": "d20c60418cde292fa5394156f8fca8fee6b4fa457b0484c9cac4ad4e1f4b0119",
+      "ownerSubsystem": "Prometheus Infrastructure"
+    },
+    {
+      "id": "prospective_runtime",
+      "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+      "previousSha256": "4f360d5b098ad524bf58860c43d400516bb045da6146eaf35eee80ab6c4ca09c",
+      "currentSha256": "9b6734143fcb8990edd212170fa51b993ebfece0648a0decaf9d24108d53ee89",
+      "ownerSubsystem": "Prometheus Infrastructure"
+    }
+  ],
+  "synchronizedConsumers": [
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "previousSha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433",
+      "currentSha256": "b30ed04063b41248f8131eaa0251662d518324c662821be443902b2244075662",
+      "protectedSources": ["dashboard_source", "dashboard_deploy_mirror"]
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "previousSha256": "71b1a47c52a1a6c840bbbb782564249467d61059a63c54dfea6980928a88fe75",
+      "currentSha256": "92d5e0956b817a20192ff51b377276b07bc5d9dcec0e38ac8688a1b9932b64bb",
+      "protectedSources": ["dashboard_source", "dashboard_deploy_mirror", "upstream_read_only_learning_contract"]
+    },
+    {
+      "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "previousSha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3",
+      "currentSha256": "3eda34be09ccb92f3e9eef661f6c194377510625356c12edda429eaf04fe326d",
+      "protectedSources": ["dashboard_source"]
+    },
+    {
+      "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "previousSha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f",
+      "currentSha256": "72e681cfb0be41fb0d6cf0263856f649b2ed173b8e369e5ad789f371675c5a66",
+      "protectedSources": ["dashboard_source"]
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSha256": "b93f2d461560fa0b575f9820b425e77413eafa6c56035174fb4c7d9a0548fbb1",
+      "currentSha256": "fbea4098a128fe87c36a5a396ab068c921c3bd1238c1abbb9d0c0cb169098717",
+      "protectedSources": ["dashboard_source", "dashboard_deploy_mirror", "private_worker", "prospective_runtime"]
+    }
+  ],
+  "advisoryArtifacts": {
+    "regenerationRequired": false,
+    "reason": "The owner changes update protected input hashes only; generated advisory payloads, evidence, conclusions, and recommendation state are unchanged."
+  },
+  "boundaryValidation": {
+    "collectionDefaultState": "OFF",
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeOrderingChanged": false,
+    "candidateVisibilityChanged": false,
+    "routeScoringChanged": false,
+    "notificationBehaviorChanged": false,
+    "automaticActionIntroduced": false,
+    "validCollectionOnFixturePreservesPreActionNextStopSeal": true,
+    "candidateCompletenessServerOwned": true,
+    "identityAndTimestampsServerOwned": true,
+    "exactlyOnceIdempotentAppendOnlyEvidencePreserved": true,
+    "zeroLiveGooglePreserved": true
+  }
+}

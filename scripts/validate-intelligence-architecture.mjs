@@ -25,6 +25,7 @@ const requiredFiles = [
   "intelligence/nearby-context-intelligence-v2.md",
   "intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs",
   "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -122,6 +123,7 @@ const nearbyContextContracts = readJson("intelligence/contracts/nearby-context-i
 const nearbyContextConfig = readJson("intelligence/config/nearby-context-intelligence-v2.json");
 const nearbyContextAudit = readJson("intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json");
 const legacyProvenanceEvidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
+const protectedBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -826,6 +828,19 @@ assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract =
 assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract => contract.canonicalAfterRepairSemanticSha256 === contract.reconstructedSemanticSha256), "Every additional protected Intelligence consumer must prove its post-repair canonical semantic hash.");
 assert(legacyProvenanceEvidence.additionalProtectedConsumerScan.every(contract => contract.byteIdenticalAfterRepair === true && contract.semanticIdenticalAfterRepair === true), "Every additional protected Intelligence consumer must be byte- and semantic-identical after repair.");
 assert(legacyProvenanceEvidence.protectedConsumerInventory.includes("intelligence/contracts/shadow-decision-readiness-contracts.json"), "Protected-consumer inventory must include shadow readiness.");
+assert(protectedBaselineSuccessor.batchId === "BATCH-20260714-002", "Protected-baseline successor must identify the collection-OFF repair batch.");
+assert(protectedBaselineSuccessor.status === "OWNER_VALIDATED_SUCCESSOR", "Protected-baseline successor must remain owner validated.");
+assert(protectedBaselineSuccessor.ownerSubsystem === "Prometheus Intelligence Engine", "Protected-baseline successor must remain Intelligence-owned.");
+assert(protectedBaselineSuccessor.historicalCheckpoint.remainsHistorical === true && protectedBaselineSuccessor.historicalCheckpoint.rewritten === false, "Historical provenance must remain immutable.");
+assert(protectedBaselineSuccessor.synchronizedConsumers.length === 5, "Protected-baseline successor must synchronize all five affected Intelligence consumers.");
+assert(protectedBaselineSuccessor.boundaryValidation.collectionDefaultState === "OFF", "Prospective collection must remain default OFF.");
+assert(protectedBaselineSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Recommendation influence must remain OFF.");
+assert(protectedBaselineSuccessor.boundaryValidation.representativeShadowOutputExposed === false, "Shadow output must remain hidden from representatives.");
+assert(protectedBaselineSuccessor.boundaryValidation.routeOrderingChanged === false, "Protected synchronization must not change route ordering.");
+assert(protectedBaselineSuccessor.boundaryValidation.candidateVisibilityChanged === false, "Protected synchronization must not change candidate visibility.");
+assert(protectedBaselineSuccessor.boundaryValidation.routeScoringChanged === false, "Protected synchronization must not change route scoring.");
+assert(protectedBaselineSuccessor.boundaryValidation.notificationBehaviorChanged === false, "Protected synchronization must not change notifications.");
+assert(protectedBaselineSuccessor.boundaryValidation.automaticActionIntroduced === false, "Protected synchronization must not add automatic actions.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredEvaluationOutcomes === "97 eligible, linked, scoreable evaluation outcomes after exclusions", "Provenance evidence must preserve the exact 97-outcome methodology.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview === false, "The 97-outcome minimum alone must not authorize Founder review eligibility.");
 assert(legacyProvenanceEvidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins === 100, "Five populated calibration bins must require at least 100 supported observations.");

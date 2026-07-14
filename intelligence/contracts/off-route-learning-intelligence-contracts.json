@@ -8,7 +8,7 @@
   "purpose": "Project explicit representative visit-decision sources and outcomes into read-only Intelligence observations without changing Data, Dashboard, route generation, recommendation scoring, or recommendation influence.",
   "upstreamReadOnlyLearning": {
     "contractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
-    "contractSha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433",
+    "contractSha256": "b30ed04063b41248f8131eaa0251662d518324c662821be443902b2244075662",
     "policyPath": "intelligence/config/read-only-field-session-learning-policy-v1.json",
     "policySha256": "d483fca51b5285c70ec5ca519d2a73692aa98218b0a9a1096fae6570a8d8c981",
     "canonicalArchiveReader": "intelligence/read-only-field-session-learning.mjs",
@@ -114,8 +114,8 @@
     "consumeAdministrativelyExcludedSessions": false
   },
   "protectedBehaviorBaselines": {
-    "dashboardSource": {"path": "index.html", "sha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"},
-    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"},
+    "dashboardSource": {"path": "index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
+    "dashboardDeployMirror": {"path": "deploy/cloudflare-pages/index.html", "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"},
     "dataArchiveRuntime": {"path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs", "sha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"},
     "dataRuntimeContract": {"path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json", "sha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"},
     "routeScoring": {"path": "scripts/build-route-intelligence-quality-engine.mjs", "sha256": "c12ac6e66e0ab07132bc55bc9c08d4b881c1eccd17ab3af1afc748eee781fe5c"},
