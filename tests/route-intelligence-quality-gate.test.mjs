@@ -98,7 +98,7 @@ test("command-line verification is read-only and observes the current runtime su
   assert.equal(output.mode, "read_only_verification");
   assert.equal(output.canonicalReportWritten, false);
   assert.equal(output.checkedRuntimeFiles, 32);
-  assert.equal(output.dashboardFetches, 7);
+  assert.equal(output.dashboardFetches, 8);
   assert.equal(readFileSync(reportPath, "utf8"), before);
 });
 
@@ -111,9 +111,9 @@ test("canonical quality evidence matches the governed runtime surface", () => {
   assert.equal(report.runtimeSurface.status, "passed");
   assert.equal(report.runtimeSurface.checkedRuntimeFiles, 32);
   assert.equal(report.runtimeSurface.expectedRuntimeFiles, 32);
-  assert.equal(report.runtimeSurface.dashboardFetches, 7);
-  assert.equal(report.runtimeSurface.deployDashboardFetches, 7);
-  assert.equal(report.runtimeSurface.expectedDashboardFetches, 7);
+  assert.equal(report.runtimeSurface.dashboardFetches, 8);
+  assert.equal(report.runtimeSurface.deployDashboardFetches, 8);
+  assert.equal(report.runtimeSurface.expectedDashboardFetches, 8);
   assert.equal(report.runtimeSurface.sourceDeployFetchParity, true);
   assert.equal(report.runtimeSurface.liveGoogleApiCalls, 0);
   assert.equal(report.governanceReuse.runtimeBehaviorChanged, false);
