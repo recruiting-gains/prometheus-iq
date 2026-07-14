@@ -28,6 +28,18 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       readAllowed: ["Prometheus Overwatch"],
       productionConsumer: false,
       failClosedIfMissing: true
+    },
+    {
+      artifactId: "cloudflare-unattended-deployment-access-governance-v1",
+      artifactType: "overwatch_infrastructure_access_release_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/cloudflare-unattended-deployment-access-v1.json",
+      documentationPath: "overwatch/governance/cloudflare-unattended-deployment-access-v1.md",
+      schema: "CloudflareUnattendedDeploymentAccessGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
     }
   ]);
 });

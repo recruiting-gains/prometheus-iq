@@ -1,0 +1,168 @@
+{
+  "governanceId": "cloudflare-unattended-deployment-access-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260714-005",
+  "status": "ARCHITECTURE_VERIFIED_SETUP_NOT_CONFIGURED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "directive": "Cloudflare Unattended Deployment Access Architecture v1",
+  "authorizedStartingState": {
+    "branch": "main",
+    "commit": "2890fd02e981b7b9f96616f5bf3aa147fcb35ad1",
+    "tree": "cf0c1b0c9d407c375489df125211a56602247b5e"
+  },
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "implementationOwner": "Prometheus Infrastructure",
+    "implementationCommit": "cfddb74138b8853f13030b9c2c32065836f60d4b",
+    "implementationCommitTimestamp": "2026-07-14T22:17:37Z",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false
+  },
+  "infrastructureEvidence": {
+    "contractPath": "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json",
+    "contractSha256": "a3ab28e4a6499ccf0b34544dac50fc476ec36df449ed1e964599ccd8412577c5",
+    "documentationPath": "docs/cloudflare-unattended-deployment-access-v1.md",
+    "documentationSha256": "097a3a5d3de462979713652ef70f7a5a6fc4495904cbb3c3dc2bbe9423f0c1b5",
+    "secretCheckPath": "scripts/check-cloudflare-unattended-secret-presence.mjs",
+    "secretCheckSha256": "0a2b589c62859350163e6db609f80a721e27036f0de39ed68bf55a070c4fe33e",
+    "architectureVerifierPath": "scripts/verify-cloudflare-unattended-access-architecture.mjs",
+    "architectureVerifierSha256": "d75bb2fc276103ab5ed5bdd5a588487d164d1a47f7efa45751af0a82802f72fb",
+    "testPath": "tests/cloudflare-unattended-access-architecture.test.mjs",
+    "testSha256": "65505eba7e42de611acaa423a8d0602522d656302a391ed63ede33d78ac49643"
+  },
+  "credentialBoundary": {
+    "credentialsAreSeparate": true,
+    "deploymentCredential": {
+      "type": "Cloudflare API token",
+      "environmentNames": [
+        "CLOUDFLARE_API_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID"
+      ],
+      "resourceScope": "exact_founder_selected_prometheus_account",
+      "permissions": [
+        "Account Settings Read",
+        "Workers Scripts Edit"
+      ],
+      "mayManageTokens": false,
+      "mayManageAccess": false,
+      "mayManageSecrets": false,
+      "mayWriteKvOrR2Data": false,
+      "mayEditDnsOrRoutes": false
+    },
+    "smokeCredential": {
+      "type": "Cloudflare Access Service Token",
+      "environmentNames": [
+        "CLOUDFLARE_ACCESS_CLIENT_ID",
+        "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+      ],
+      "policyAction": "Service Auth",
+      "selector": "exact_service_token_only",
+      "anyServiceTokenAllowed": false,
+      "httpReadOnlyGuaranteeProvidedByAccess": false
+    },
+    "prohibitedCredentialTypes": [
+      "cloudflare_username",
+      "cloudflare_password",
+      "browser_session_cookie",
+      "mfa_code",
+      "global_api_key"
+    ],
+    "recommendedLifetimeDays": 30,
+    "maximumLifetimeDays": 90,
+    "automaticRenewalAllowed": false
+  },
+  "localSecretBoundary": {
+    "preferredStore": "macOS Keychain",
+    "sourceControlledSecretValuesAllowed": false,
+    "persistentShellExportAllowed": false,
+    "futureInjectionMustBeAuditedChildProcessOnly": true,
+    "presenceOutputLimitedToNamesAndPresentAbsent": true,
+    "valueLengthHashPrefixOrMetadataOutputAllowed": false,
+    "trackedSourceSecretScanRequired": true,
+    "localSecretArtifactsIgnoredAndUntrackedRequired": true
+  },
+  "founderControlBoundary": {
+    "defaultState": "OFF",
+    "missingInvalidStaleReusedOrOffBehavior": "DENY",
+    "exactPrivateWorker": "prometheus-iq",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerAllowed": false,
+    "maximumAuthorizationWindowMinutes": 30,
+    "exactCommitAndTreeRequired": true,
+    "separateFounderDeploymentDirectiveRequired": true,
+    "oneShotNonceRequired": true,
+    "atomicNonceConsumptionRequired": true,
+    "controlFileAuthorizesDeploymentByItself": false,
+    "automaticEngineeringPushIsDeploymentAuthorization": false
+  },
+  "smokeReadOnlyBoundary": {
+    "servicePrincipalGuardStatus": "NOT_IMPLEMENTED_NOT_AUTHORIZED",
+    "defaultDenySmokeClientStatus": "NOT_IMPLEMENTED_NOT_AUTHORIZED",
+    "bothRequiredBeforeUnattendedSmoke": true,
+    "allowedMethods": [
+      "GET",
+      "HEAD"
+    ],
+    "allOtherMethodsDenied": true,
+    "explicitPathAllowlistRequired": true,
+    "writeAttemptCountRequired": 0,
+    "browserOrServiceWorkerCredentialPersistenceAllowed": false,
+    "unattendedSmokeReady": false
+  },
+  "deploymentBoundary": {
+    "setupStatus": "NOT_CONFIGURED",
+    "unattendedDeploymentReady": false,
+    "deploymentAuthorized": false,
+    "deploymentPerformed": false,
+    "cloudflareAccessPerformed": false,
+    "tokenCreationPerformed": false,
+    "serviceTokenCreationPerformed": false,
+    "accessPolicyChangePerformed": false,
+    "secretStoragePerformed": false,
+    "productionMutationPerformed": false,
+    "cohortActivation": "OFF",
+    "prospectiveCollection": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "protectedRuntimeBaselines": {
+    "privateWranglerPath": "wrangler.jsonc",
+    "privateWranglerSha256": "1ed065419de795cd4cfdc035f9b0fa30740ed64ac6597aafacfbc3613aac67db",
+    "publicWranglerPath": "wrangler.prometheusrouteiq-website.jsonc",
+    "publicWranglerSha256": "dc115988da7fdc036c3216ed4ae241fef8ff75f84e04886744d58006642064d2",
+    "privateWorkerPath": "workers/prometheus-iq-worker.js",
+    "privateWorkerSha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+    "dashboardSourcePath": "index.html",
+    "dashboardSourceSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+    "dashboardDeployPath": "deploy/cloudflare-pages/index.html",
+    "dashboardDeploySha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"
+  },
+  "allowedUnattendedActionsAfterFutureSetup": [
+    "name_only_credential_presence_check",
+    "local_validation_and_dry_run",
+    "exact_private_worker_deployment_under_matching_founder_directive",
+    "allowlisted_read_only_smoke_GET_HEAD",
+    "worker_version_and_deployment_metadata_read",
+    "post_deployment_comparison"
+  ],
+  "prohibitedUnattendedActions": [
+    "token_or_service_token_management",
+    "access_policy_management",
+    "secret_management",
+    "public_worker_deployment",
+    "target_or_permission_expansion",
+    "production_data_write",
+    "unauthorized_migration",
+    "cohort_or_collection_activation",
+    "recommendation_influence_activation",
+    "data_bearing_log_tail",
+    "arbitrary_HTTP_request",
+    "external_message_or_publication"
+  ],
+  "releaseBoundary": {
+    "architectureBatchMayBeAutoPushedAfterExactVersionPass": true,
+    "deploymentRecommendation": "DO_NOT_DEPLOY",
+    "setupRecommendation": "FOUNDER_MANUAL_LAPTOP_SETUP_REQUIRED",
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

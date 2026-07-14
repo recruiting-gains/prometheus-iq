@@ -1,0 +1,81 @@
+{
+  "batchId": "BATCH-20260714-005",
+  "directive": "Cloudflare Unattended Deployment Access Architecture v1",
+  "status": "ENGINEERING_PASS_SETUP_NOT_CONFIGURED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "cfddb74138b8853f13030b9c2c32065836f60d4b",
+    "implementationCommitTimestamp": "2026-07-14T22:17:37Z",
+    "ownershipRespected": true
+  },
+  "completed": {
+    "credentialSeparationArchitecture": true,
+    "leastPrivilegeDeploymentTokenDesign": true,
+    "serviceTokenAuthenticationDesign": true,
+    "keychainStorageDesign": true,
+    "nameOnlySecretPresenceCheck": true,
+    "trackedSourceSecretDetection": true,
+    "founderOneShotKillSwitchDesign": true,
+    "manualSetupChecklist": true,
+    "rotationAndRevocationChecklist": true,
+    "localDryRunTests": true
+  },
+  "credentialRequirements": {
+    "deployment": {
+      "names": [
+        "CLOUDFLARE_API_TOKEN",
+        "CLOUDFLARE_ACCOUNT_ID"
+      ],
+      "permissions": [
+        "Account Settings Read",
+        "Workers Scripts Edit"
+      ],
+      "scope": "exact_prometheus_account_only"
+    },
+    "smoke": {
+      "names": [
+        "CLOUDFLARE_ACCESS_CLIENT_ID",
+        "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+      ],
+      "policy": "exact_service_token_only_Service_Auth",
+      "readOnlyByItself": false
+    }
+  },
+  "currentReadiness": {
+    "setupStatus": "NOT_CONFIGURED",
+    "credentialsPresent": false,
+    "unattendedDeploymentReady": false,
+    "unattendedSmokeReady": false,
+    "serverSideReadOnlyGuardImplemented": false,
+    "defaultDenySmokeClientImplemented": false
+  },
+  "boundaries": {
+    "cloudflareAccessUsed": false,
+    "tokenCreated": false,
+    "serviceTokenCreated": false,
+    "accessPolicyChanged": false,
+    "secretValueStored": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "cohortActivation": "OFF",
+    "prospectiveCollection": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "remainingBlockers": [
+    "Founder must create both short-lived credentials while physically at the laptop.",
+    "Founder must store credentials in the named macOS Keychain items without using Terminal.",
+    "The exact service token must be attached to a Service Auth policy on the existing private application.",
+    "A separately authorized server-side service-principal GET/HEAD allowlist guard must be implemented and deployed.",
+    "A default-deny smoke client and audited child-process-only Keychain injection launcher must be implemented and verified.",
+    "A separate Founder deployment authorization remains required."
+  ],
+  "release": {
+    "engineeringStatus": "PASS",
+    "autoPushEligibleAfterExactVersionVerification": true,
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "deploymentRecommendation": "DO_NOT_DEPLOY",
+    "productionAccessRequiredForThisBatch": false,
+    "finalHeadAndTreeRecordedExternally": true
+  }
+}
