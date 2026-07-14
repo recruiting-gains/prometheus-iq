@@ -160,23 +160,29 @@ function verifyInfrastructureHashes(governance, failures) {
 
 function verifyNameOnlyOutput(failures) {
   const synthetic = ["never", "print", "this", "credential"].join("-");
+  const credentialNames = [
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+  ];
+  const syntheticCredentialEnvironment = Object.fromEntries(
+    credentialNames.map(name => [name, synthetic])
+  );
   const result = spawnSync(process.execPath, ["scripts/check-cloudflare-unattended-secret-presence.mjs"], {
     cwd: root,
     encoding: "utf8",
     env: {
       PATH: process.env.PATH || "",
       HOME: process.env.HOME || "",
-      CLOUDFLARE_API_TOKEN: synthetic,
-      CLOUDFLARE_ACCOUNT_ID: synthetic,
-      CLOUDFLARE_ACCESS_CLIENT_ID: synthetic,
-      CLOUDFLARE_ACCESS_CLIENT_SECRET: synthetic
+      ...syntheticCredentialEnvironment
     },
     stdio: ["ignore", "pipe", "pipe"]
   });
   const output = `${result.stdout || ""}${result.stderr || ""}`;
   if (result.status !== 0) failures.push("Name-only presence subprocess failed.");
   if (output.includes(synthetic)) failures.push("Name-only presence subprocess exposed a credential value.");
-  for (const name of ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_ACCESS_CLIENT_ID", "CLOUDFLARE_ACCESS_CLIENT_SECRET"]) {
+  for (const name of credentialNames) {
     if (!output.includes(`${name}: PRESENT`)) failures.push(`Name-only presence output omitted ${name}.`);
   }
 }
