@@ -7,7 +7,7 @@ test("Overwatch independently verifies the Founder retention boundary and held a
   assert.deepEqual(await verifyOverwatchRouteIqProspectiveEvidenceRetention(), {
     status: "PASS",
     batchId: "BATCH-20260714-004",
-    ownerCommitCount: 4,
+    ownerCommitCount: 5,
     maximumRetentionCalendarMonths: 18,
     customerOverride: "SHORTEN_ONLY",
     legalHold: "LOCAL_AUTHENTICATED_APPEND_ONLY_RUNTIME_NOT_DEPLOYED",

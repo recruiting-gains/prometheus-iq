@@ -32,7 +32,10 @@
       "c73118ddb262d3010bbc94a900f8506fb2f56192"
     ],
     "infrastructureCommits": ["2b4ea7d7d2f13a40f1a8cba1e671f8fb360f3c63"],
-    "intelligenceCommits": ["51256caeb3300083ea1056976893b26e3b0d2b3f"],
+    "intelligenceCommits": [
+      "51256caeb3300083ea1056976893b26e3b0d2b3f",
+      "f438f97a58580187481bd87598cba1830f05c75f"
+    ],
     "verificationOwner": "Prometheus Overwatch"
   },
   "dataContract": {
@@ -105,6 +108,11 @@
     "specificationSha256": "02e224ca961c5b36a3a31df75d02f749b3935c6e8379c7a4b3b7940d3ea3caf5",
     "protectedBaselinePath": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
     "protectedBaselineSha256": "5b06c1108029b3ff2b04f9ea4e8a58ccb57887987db32f44fd9023039bd5571b",
+    "architectureSuccessorPath": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+    "architectureSuccessorSha256": "552360e81018684def6d570aeb80df61df2a75f9630a4ecc0dc6429310c5a810",
+    "historicalCheckpointsVerifiedAtRecordingCommit": true,
+    "currentDataLineageOwnerCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192",
+    "currentArchiveRuntimeSha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4",
     "expiredHeldSyntheticHistoricalAndDisposedEvidenceAdmissionAllowed": false,
     "deidentifiedAggregateRequiresExactDataAttestation": true,
     "readiness": "INSUFFICIENT_EVIDENCE",

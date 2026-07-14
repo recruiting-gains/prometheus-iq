@@ -62,7 +62,10 @@
         "product": "Route IQ",
         "subsystem": "Prometheus Intelligence Engine",
         "implementationOwner": "Prometheus Intelligence Engine",
-        "commits": ["51256caeb3300083ea1056976893b26e3b0d2b3f"],
+        "commits": [
+          "51256caeb3300083ea1056976893b26e3b0d2b3f",
+          "f438f97a58580187481bd87598cba1830f05c75f"
+        ],
         "files": [
           "intelligence/README.md",
           "intelligence/contracts/off-route-learning-intelligence-contracts.json",
@@ -70,6 +73,7 @@
           "intelligence/contracts/shadow-decision-readiness-contracts.json",
           "intelligence/off-route-learning-intelligence.mjs",
           "intelligence/prospective-retention-admission.md",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
           "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
           "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
           "intelligence/read-only-field-session-learning.md",
@@ -81,6 +85,7 @@
           "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
           "scripts/verify-shadow-decision-readiness.mjs",
           "tests/off-route-learning-intelligence.test.mjs",
+          "tests/intelligence-architecture.test.mjs",
           "tests/read-only-field-session-learning.test.mjs",
           "tests/route-iq-committed-outcome-evaluation.test.mjs",
           "tests/route-iq-prospective-retention-intelligence.test.mjs",
@@ -108,6 +113,7 @@
     "accidentalArchive": "seven_original_records_byte_preserved_exact_disposition_only",
     "infrastructureAdmission": "data_signed_hash_bound_short_lived_fail_closed",
     "intelligenceAdmission": "expired_held_historical_synthetic_and_disposed_evidence_excluded",
+    "intelligenceProtectedBaselineRepair": "historical_checkpoints_commit_scoped_current_data_lineage_synchronized",
     "recommendationInfluence": "OFF"
   },
   "privacyAndIsolation": {
@@ -133,6 +139,9 @@
   "verification": {
     "ownerSuitesReportedPassing": true,
     "independentAdversarialRetentionGate": "IMPLEMENTED",
+    "initialExactHeadAttempt": "INVALIDATED_BY_STALE_INTELLIGENCE_PROTECTED_ASSERTIONS",
+    "ownerRepairCommit": "f438f97a58580187481bd87598cba1830f05c75f",
+    "ownerRepairStatus": "PASS_PENDING_RESTARTED_EXACT_HEAD_SUITE",
     "independentExactHeadSuiteStatus": "PENDING_UNTIL_ALL_TRACKED_OVERWATCH_CHANGES_ARE_COMMITTED",
     "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
   },

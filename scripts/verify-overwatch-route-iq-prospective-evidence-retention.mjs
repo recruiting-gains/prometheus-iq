@@ -52,7 +52,8 @@ const ownerCommits = Object.freeze({
     "2b4ea7d7d2f13a40f1a8cba1e671f8fb360f3c63"
   ]),
   "Prometheus Intelligence Engine": Object.freeze([
-    "51256caeb3300083ea1056976893b26e3b0d2b3f"
+    "51256caeb3300083ea1056976893b26e3b0d2b3f",
+    "f438f97a58580187481bd87598cba1830f05c75f"
   ])
 });
 
@@ -86,7 +87,7 @@ function assertOwnedPaths(owner, paths) {
     ? ["data/", "overwatch/artifact-contracts/data/", "tests/route-iq-"]
     : owner === "Prometheus Infrastructure"
       ? ["docs/", "scripts/verify-route-iq-prospective-shadow-infrastructure.mjs", "tests/route-iq-prospective-shadow-infrastructure.test.mjs", "workers/infrastructure/"]
-      : ["intelligence/", "scripts/validate-intelligence-architecture.mjs", "scripts/verify-route-iq-prospective-retention-intelligence.mjs", "scripts/verify-shadow-decision-readiness.mjs", "tests/off-route-learning-intelligence.test.mjs", "tests/read-only-field-session-learning.test.mjs", "tests/route-iq-committed-outcome-evaluation.test.mjs", "tests/route-iq-prospective-retention-intelligence.test.mjs", "tests/shadow-decision-readiness.test.mjs"];
+      : ["intelligence/", "scripts/validate-intelligence-architecture.mjs", "scripts/verify-route-iq-prospective-retention-intelligence.mjs", "scripts/verify-shadow-decision-readiness.mjs", "tests/intelligence-architecture.test.mjs", "tests/off-route-learning-intelligence.test.mjs", "tests/read-only-field-session-learning.test.mjs", "tests/route-iq-committed-outcome-evaluation.test.mjs", "tests/route-iq-prospective-retention-intelligence.test.mjs", "tests/shadow-decision-readiness.test.mjs"];
   for (const path of paths) {
     assert.equal(allowed.some(prefix => path.startsWith(prefix)), true, `${owner} changed out-of-scope path ${path}.`);
   }
@@ -445,7 +446,8 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["runtimePath", "runtimeSha256"],
     ["evaluationRuntimePath", "evaluationRuntimeSha256"],
     ["specificationPath", "specificationSha256"],
-    ["protectedBaselinePath", "protectedBaselineSha256"]
+    ["protectedBaselinePath", "protectedBaselineSha256"],
+    ["architectureSuccessorPath", "architectureSuccessorSha256"]
   ]) {
     assert.equal(sha256(read(governance.intelligenceAdmission[pathKey])), governance.intelligenceAdmission[hashKey]);
   }
@@ -487,6 +489,18 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   assert.equal(protectedBaseline.protectedBehavior.activeCohorts, 0);
   assert.equal(protectedBaseline.protectedBehavior.readiness, "INSUFFICIENT_EVIDENCE");
   assert.equal(protectedBaseline.protectedBehavior.recommendationInfluence, "OFF");
+  const architectureSuccessor = readJson(governance.intelligenceAdmission.architectureSuccessorPath);
+  assert.equal(architectureSuccessor.batchId, batchId);
+  assert.equal(architectureSuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(architectureSuccessor.currentAuthority.dataOwnerCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
+  assert.equal(
+    architectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+    "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"
+  );
+  assert.equal(architectureSuccessor.historicalCheckpoint.remainsHistorical, true);
+  assert.equal(architectureSuccessor.historicalCheckpoint.rewritten, false);
+  assert.equal(architectureSuccessor.boundaryValidation.collection, "OFF");
+  assert.equal(architectureSuccessor.boundaryValidation.recommendationInfluence, "OFF");
 
   const contracts = verifyCrossSubsystemArtifactContracts();
   assert.equal(contracts.ok, true, contracts.failures.join("\n"));
