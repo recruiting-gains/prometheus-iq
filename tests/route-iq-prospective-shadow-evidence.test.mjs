@@ -28,6 +28,10 @@ import {
   routeIqProspectiveSealReceiptVersion,
   routeIqProspectiveSnapshotSchemaVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-evidence.mjs";
+import {
+  routeIqProspectiveCollectionDefault,
+  routeIqProspectiveRecommendationInfluence
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 
 const ARCHIVE_ROOT = "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11";
 const ARCHIVE_PATHS = {
@@ -238,10 +242,12 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   for (const prohibited of ["authoritativeTimestamp", "candidateSetSha256", "decisionSource", "rank", "probability", "readiness", "engineVersion", "notes", "email", "latitude"]) {
     assert.equal(Object.hasOwn(schema.$defs.captureRequest.properties, prohibited), false);
   }
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "data_sqlite_coordinator_defined_runtime_inactive");
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.status, "data_server_allocator_ready_runtime_inactive");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.authoritativeTechnology, "cloudflare_sqlite_backed_durable_object");
-  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeAdapterImplemented, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeAdapterImplemented, true);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.storage.runtimeBindingIntroducedByData, false);
+  assert.equal(routeIqProspectiveCollectionDefault, "off");
+  assert.equal(routeIqProspectiveRecommendationInfluence, "off");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.binding, routeIqFieldSessionStoreBinding);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.authority, "non_authoritative_cache_only");
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.legacyKvStorage.controlsReadinessEvidence, false);
@@ -258,7 +264,11 @@ test("schema, Data contract, archive bytes, and inactive production state are fi
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.newRetentionPeriodIntroduced, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.existingRetentionPeriodExtended, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.productionCollectionActivated, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.infrastructureWiringComplete, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.dashboardCollectionComplete, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.intelligenceConsumerAuthorized, false);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionCollectionActivated, false);
+  assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection.productionEvidenceRecords, 0);
   assert.equal(contract.prospectiveShadowEvidenceLifecycleContract.activation.recommendationInfluenceActivated, false);
   assert.equal(contract.expectedFieldSessionMetrics.prospectiveProductionRecords, 0);
   for (const [path, expected] of Object.entries(JULY_11_HASHES)) assert.equal(hash(readFileSync(path)), expected, path);
