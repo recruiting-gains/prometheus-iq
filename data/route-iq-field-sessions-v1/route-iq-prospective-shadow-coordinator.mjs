@@ -19,6 +19,7 @@ export const routeIqCandidateSourceVersion = "route-iq-candidate-source-v1";
 export const routeIqProspectiveServerAllocatorContractVersion = "route-iq-prospective-server-allocator-v1";
 export const routeIqProspectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
 export const routeIqFieldSessionOutcomeProjectionContractVersion = "route-iq-field-session-outcome-projection-v1";
+export const routeIqCommittedOutcomeProjectionReadContractVersion = "route-iq-committed-outcome-projection-read-v1";
 export const routeIqEvaluationContextSchemaVersion = "route-iq-immutable-evaluation-context-v1";
 export const routeIqIntelligenceEvaluationRecordSchemaVersion = "route-iq-admitted-shadow-evaluation-record-v1";
 export const routeIqIntelligenceEvaluationContractVersion = "route-iq-admitted-shadow-evaluation-v1";
@@ -4500,6 +4501,22 @@ class RouteIqProspectiveCoordinatorCore {
     const claims = normalizeProjectionReadClaims(authority.claims, this.scope);
     return this.repository.transactionSync(() => readCommittedProjection(this.repository, this.scope, this.coordinatorId, claims));
   }
+
+  async readCommittedProjectionForOutcomeArtifact(input = {}) {
+    this.assertInput(input, ["authorityEnvelope"], "outcomeProjectionReadRequest");
+    const authority = await verifyEnvelope(this.authorityVerifier, input.authorityEnvelope, {
+      purpose: "committed_outcome_projection_read",
+      coordinatorId: this.coordinatorId,
+      producer: true
+    });
+    const claims = normalizeOutcomeProjectionReadClaims(authority.claims, this.scope);
+    return this.repository.transactionSync(() => readCommittedProjectionForOutcomeArtifact(
+      this.repository,
+      this.scope,
+      this.coordinatorId,
+      claims
+    ));
+  }
 }
 
 function normalizeProjectionReadClaims(claims, scope) {
@@ -4520,6 +4537,24 @@ function normalizeProjectionReadClaims(claims, scope) {
   requireSha(claims.triggerRecordSha256, "verifiedProjectionReadClaims.triggerRecordSha256");
   canonicalTimestamp(claims.asOfRecordTime, "verifiedProjectionReadClaims.asOfRecordTime");
   return deepFreeze(clone(claims));
+}
+
+function normalizeOutcomeProjectionReadClaims(claims, scope) {
+  const normalized = normalizeScopeOnlyRuntimeClaims(
+    claims,
+    scope,
+    "committed_outcome_projection_read",
+    ["sourceOutcomeEvidenceSha256", "outcomeReceipt"]
+  );
+  requireSha(
+    normalized.sourceOutcomeEvidenceSha256,
+    "verifiedRuntimeClaims.committed_outcome_projection_read.sourceOutcomeEvidenceSha256"
+  );
+  assertObject(
+    normalized.outcomeReceipt,
+    "verifiedRuntimeClaims.committed_outcome_projection_read.outcomeReceipt"
+  );
+  return normalized;
 }
 
 function projectionEvidenceKind(eventKind) {
@@ -4669,6 +4704,27 @@ function commitBodyFromRow(row) {
     committedAt: row.committed_at,
     projectionCommitMarkerWrittenLast: true
   };
+}
+
+function verifiedCommittedProjectionRecord(row, scope, coordinatorId) {
+  const projection = verifyProjectionRow(row);
+  if (projection.coordinatorId !== coordinatorId || !sameScope(projection.scope, scope)) {
+    fail("route_iq_coordinator_projection_scope_mismatch", "Committed projection has cross-coordinator contamination.", {}, 500);
+  }
+  const commitBody = commitBodyFromRow(row);
+  if (row.status !== "committed"
+    || row.commit_projection_id !== row.projection_id
+    || row.commit_outbox_id !== row.outbox_id
+    || row.commit_projection_sha256 !== row.projection_sha256
+    || row.projection_registry_kind !== "coordinator_projection"
+    || row.commit_registry_kind !== "projection_commit_marker"
+    || sha256(commitBody) !== row.commit_sha256) {
+    fail("route_iq_coordinator_projection_commit_invalid", "Projection commit marker failed canonical verification.", {}, 500);
+  }
+  return deepFreeze({
+    projection: clone(projection),
+    commit: { ...commitBody, commitSha256: row.commit_sha256 }
+  });
 }
 
 function recoverNextProjection(repository, scope, coordinatorId) {
@@ -4845,29 +4901,157 @@ function readCommittedProjection(repository, scope, coordinatorId, claims) {
     LIMIT 1
   `, [identities.opportunityId, claims.asOfRecordSequence, claims.asOfRecordTime]);
   if (!row) return deepFreeze({ ok: true, found: false, record: null });
-  const projection = verifyProjectionRow(row);
-  if (projection.coordinatorId !== coordinatorId || !sameScope(projection.scope, scope)) {
-    fail("route_iq_coordinator_projection_scope_mismatch", "Committed projection has cross-coordinator contamination.", {}, 500);
-  }
-  const commitBody = commitBodyFromRow(row);
-  if (row.status !== "committed"
-    || row.commit_projection_id !== row.projection_id
-    || row.commit_outbox_id !== row.outbox_id
-    || row.commit_projection_sha256 !== row.projection_sha256
-    || row.projection_registry_kind !== "coordinator_projection"
-    || row.commit_registry_kind !== "projection_commit_marker"
-    || sha256(commitBody) !== row.commit_sha256) {
-    fail("route_iq_coordinator_projection_commit_invalid", "Projection commit marker failed canonical verification.", {}, 500);
-  }
+  const committed = verifiedCommittedProjectionRecord(row, scope, coordinatorId);
   return deepFreeze({
     ok: true,
     found: true,
     record: {
       schemaVersion: routeIqProspectiveCoordinatorSchemaVersion,
       authority: "sqlite_durable_object_coordinator",
-      projection: clone(projection),
-      commit: { ...commitBody, commitSha256: row.commit_sha256 }
+      ...committed
     }
+  });
+}
+
+function readCommittedProjectionForOutcomeArtifact(repository, scope, coordinatorId, claims) {
+  const suppliedReceipt = claims.outcomeReceipt;
+  requireHashId(
+    suppliedReceipt.artifactId,
+    "outcome",
+    "verifiedRuntimeClaims.committed_outcome_projection_read.outcomeReceipt.artifactId"
+  );
+  const eventRow = repositoryOne(repository, `
+    SELECT e.*, r.artifact_kind AS registry_artifact_kind
+    FROM lifecycle_events e
+    JOIN artifact_registry r ON r.artifact_id = e.artifact_id
+    WHERE e.artifact_id = ?
+  `, [suppliedReceipt.artifactId]);
+  if (!eventRow) {
+    fail("route_iq_exact_outcome_projection_source_missing", "The admitted outcome artifact is unavailable in this coordinator.", {}, 409);
+  }
+  const event = eventFromRow(eventRow);
+  if (eventRow.registry_artifact_kind !== "outcome"
+    || event.artifactKind !== "outcome"
+    || event.eventKind !== "OUTCOME_LINKED"
+    || event.canonical.canonicalEvidenceEligible !== true
+    || event.canonical.recommendationInfluence !== "off") {
+    fail("route_iq_exact_outcome_projection_source_invalid", "The source artifact is not an admitted canonical outcome.", {}, 409);
+  }
+  const opportunity = getOpportunity(repository, event.canonical.opportunityId);
+  const session = opportunity
+    ? repositoryOne(repository, "SELECT * FROM canonical_sessions WHERE session_id = ?", [opportunity.session_id])
+    : null;
+  if (!opportunity
+    || !session
+    || opportunity.coordinator_id !== coordinatorId
+    || event.canonical.coordinatorId !== coordinatorId
+    || event.canonical.sessionId !== session.session_id
+    || opportunity.canonical_session_record_sha256 !== session.canonical_session_record_sha256
+    || opportunity.canonical_eligible !== 1
+    || !["OUTCOME_LINKED", "EVALUATED"].includes(opportunity.state)) {
+    fail("route_iq_exact_outcome_projection_scope_invalid", "The admitted outcome does not resolve to an eligible canonical coordinator state.", {}, 409);
+  }
+  const receiptRow = repositoryOne(repository, `
+    SELECT * FROM operation_receipts
+    WHERE operation_key = ? AND opportunity_id = ? AND operation_kind = 'scoreable_outcome_admission'
+  `, [event.canonical.operationKey, opportunity.opportunity_id]);
+  if (!receiptRow) {
+    fail("route_iq_exact_outcome_projection_receipt_missing", "The admitted outcome receipt is unavailable.", {}, 409);
+  }
+  const storedReceipt = receiptFromRow(receiptRow);
+  const suppliedReceiptJson = canonicalText(suppliedReceipt);
+  if (sha256(suppliedReceiptJson) !== receiptRow.receipt_sha256
+    || stableJson(storedReceipt) !== suppliedReceiptJson
+    || storedReceipt.artifactId !== event.artifactId
+    || storedReceipt.recordSha256 !== event.recordSha256
+    || storedReceipt.recordSequence !== event.recordSequence
+    || storedReceipt.authoritativeRecordTime !== event.authoritativeRecordTime
+    || storedReceipt.coordinatorId !== coordinatorId
+    || storedReceipt.sessionId !== session.session_id
+    || storedReceipt.opportunityId !== opportunity.opportunity_id
+    || storedReceipt.state !== "OUTCOME_LINKED"
+    || storedReceipt.recommendationInfluence !== "off"
+    || storedReceipt.collectionDefault !== "off"
+    || storedReceipt.sourceOutcomeEvidenceSha256 !== claims.sourceOutcomeEvidenceSha256
+    || event.canonical.payload?.sourceOutcomeEvidenceSha256 !== claims.sourceOutcomeEvidenceSha256) {
+    fail("route_iq_exact_outcome_projection_receipt_binding_invalid", "The producer authority does not bind the exact admitted outcome receipt.", {}, 409);
+  }
+  const sourceLink = repositoryOne(repository, `
+    SELECT * FROM field_session_outcome_links
+    WHERE evidence_sha256 = ? AND opportunity_id = ?
+  `, [claims.sourceOutcomeEvidenceSha256, opportunity.opportunity_id]);
+  if (!sourceLink
+    || sourceLink.action_artifact_id !== event.canonical.payload?.actionArtifactId
+    || sourceLink.candidate_id !== event.canonical.payload?.evaluatedCandidateId) {
+    fail("route_iq_exact_outcome_projection_evidence_binding_invalid", "The admitted outcome does not bind exact canonical field-session evidence.", {}, 409);
+  }
+  const evaluationContext = readEvaluationContext(repository, claims.sourceOutcomeEvidenceSha256);
+  if (evaluationContext.row.opportunity_id !== opportunity.opportunity_id
+    || evaluationContext.row.context_sha256 !== event.canonical.payload?.evaluationContextSha256
+    || evaluationContext.context.recommendationInfluence !== "off") {
+    fail("route_iq_exact_outcome_projection_context_binding_invalid", "The admitted outcome does not bind its immutable evaluation context.", {}, 409);
+  }
+  const outbox = repositoryOne(repository, `
+    SELECT o.*, c.commit_id
+    FROM projection_outbox o
+    LEFT JOIN projection_commits c ON c.outbox_id = o.outbox_id
+    WHERE o.source_artifact_id = ? AND o.opportunity_id = ?
+  `, [event.artifactId, opportunity.opportunity_id]);
+  if (!outbox) {
+    fail("route_iq_exact_outcome_projection_outbox_missing", "The admitted outcome recovery instruction is unavailable.", {}, 409);
+  }
+  if (!outbox.commit_id) {
+    fail("route_iq_coordinator_projection_recovery_pending", "The exact admitted outcome projection is not committed yet.", {
+      outboxId: outbox.outbox_id,
+      sourceRecordSequence: Number(outbox.source_record_sequence)
+    }, 409);
+  }
+  const row = repositoryOne(repository, `
+    SELECT p.*, c.commit_id, c.projection_id AS commit_projection_id,
+      c.outbox_id AS commit_outbox_id, c.status,
+      c.projection_sha256 AS commit_projection_sha256,
+      c.committed_sequence, c.committed_at, c.commit_sha256,
+      projection_registry.artifact_kind AS projection_registry_kind,
+      commit_registry.artifact_kind AS commit_registry_kind
+    FROM projection_outbox o
+    JOIN projection_artifacts p ON p.outbox_id = o.outbox_id
+    JOIN projection_commits c ON c.outbox_id = o.outbox_id AND c.projection_id = p.projection_id
+    JOIN artifact_registry projection_registry ON projection_registry.artifact_id = p.projection_id
+    JOIN artifact_registry commit_registry ON commit_registry.artifact_id = c.commit_id
+    WHERE o.source_artifact_id = ? AND o.opportunity_id = ?
+  `, [event.artifactId, opportunity.opportunity_id]);
+  if (!row) {
+    fail("route_iq_exact_outcome_projection_commit_missing", "The exact admitted outcome projection commit is unavailable.", {}, 409);
+  }
+  const committed = verifiedCommittedProjectionRecord(row, scope, coordinatorId);
+  const exactSource = committed.projection.sourceArtifacts.filter(source => source.artifactId === event.artifactId);
+  const exactEvidence = committed.projection.evidence.filter(evidence => evidence.sourceRecordId === event.artifactId);
+  if (committed.projection.opportunityId !== opportunity.opportunity_id
+    || committed.projection.canonicalSessionRecordSha256 !== session.canonical_session_record_sha256
+    || committed.projection.asOfRecordSequence !== event.recordSequence
+    || committed.projection.asOfRecordTime !== event.authoritativeRecordTime
+    || committed.projection.state !== "OUTCOME_LINKED"
+    || committed.projection.readinessEvidenceEligible !== true
+    || committed.projection.exclusions.length !== 0
+    || committed.projection.recommendationInfluence !== "off"
+    || committed.projection.collectionDefault !== "off"
+    || exactSource.length !== 1
+    || exactSource[0].artifactKind !== "outcome"
+    || exactSource[0].eventKind !== "OUTCOME_LINKED"
+    || exactSource[0].recordSequence !== event.recordSequence
+    || exactSource[0].authoritativeRecordTime !== event.authoritativeRecordTime
+    || exactSource[0].recordSha256 !== event.recordSha256
+    || exactEvidence.length !== 1
+    || exactEvidence[0].evidenceKind !== "prospective_opportunity_outcome"
+    || exactEvidence[0].recordSha256 !== event.recordSha256) {
+    fail("route_iq_exact_outcome_projection_binding_invalid", "The committed projection does not contain the exact admitted outcome artifact.", {}, 500);
+  }
+  return deepFreeze({
+    ok: true,
+    found: true,
+    contractVersion: routeIqCommittedOutcomeProjectionReadContractVersion,
+    producerOnly: true,
+    record: committed
   });
 }
 

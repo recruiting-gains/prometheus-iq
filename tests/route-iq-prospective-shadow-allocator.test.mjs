@@ -15,6 +15,7 @@ import {
   routeIqCandidateProducerEnvelopeVersion,
   routeIqCandidateSourceSchemaVersion,
   routeIqCandidateSourceVersion,
+  routeIqCommittedOutcomeProjectionReadContractVersion,
   routeIqEvaluationContextSchemaVersion,
   routeIqFieldSessionOutcomeProjectionContractVersion,
   routeIqIntelligenceEvaluationContractVersion,
@@ -219,6 +220,13 @@ function runtimeClaims(harness, purpose, authoritativeRecordTime, extra = {}) {
     authoritativeRecordTime,
     ...extra
   };
+}
+
+function exactOutcomeProjectionReadClaims(harness, outcomeReceipt, sourceOutcomeEvidenceSha256, authoritativeRecordTime) {
+  return runtimeClaims(harness, "committed_outcome_projection_read", authoritativeRecordTime, {
+    sourceOutcomeEvidenceSha256,
+    outcomeReceipt: structuredClone(outcomeReceipt)
+  });
 }
 
 function outcomeSignal(code, conversations = 0, leads = 0) {
@@ -647,6 +655,64 @@ async function admitPreparedScoreable(source) {
     ...source,
     outcomeReceipt,
     evaluationRecord: buildFullEvaluationRecord(source.h, source.receipt, source.link, outcomeReceipt)
+  };
+}
+
+async function prepareTwoAdmittedOutcomeSources(h, suffix) {
+  const first = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+  const firstLifecycle = await completeServerDerivedAction(h, first, `${suffix}-first`, {
+    manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+  });
+  const second = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(2) });
+  const secondLifecycle = await completeServerDerivedAction(h, second, `${suffix}-second`, {
+    manifestAt: iso(50_000), snapshotAt: iso(60_000), shadowAt: iso(70_000), actionAt: iso(80_000), sequence: 20
+  });
+  const rawSha256 = digest(`${suffix}-handoff`);
+  await h.coordinator.closeCanonicalSession({
+    authorityEnvelope: h.authority.sign({
+      purpose: "close_session",
+      workspaceId: h.scope.workspaceId,
+      operatingProfileId: h.scope.operatingProfileId,
+      representativeId: h.scope.representativeId,
+      closeReason: "end_day",
+      handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+      endOfDayHandoffSha256: rawSha256,
+      authoritativeRecordTime: iso(90_000)
+    })
+  });
+  const projection = outcomeProjection(h, {
+    rawSha256,
+    archiveCommittedAt: iso(100_000),
+    outcomes: [
+      { candidateId: firstLifecycle.accepted.manifest.candidateId, actionEventTime: iso(45_000) },
+      { candidateId: secondLifecycle.accepted.manifest.candidateId, actionEventTime: iso(85_000) }
+    ]
+  });
+  const reconciliationReceipt = await h.coordinator.reconcileCommittedFieldSessionOutcomes({
+    authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(110_000), {
+      projectionSha256: projection.projectionSha256,
+      sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+      sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+    })),
+    projection
+  });
+  const outcomeReceipts = [];
+  for (const [index, link] of reconciliationReceipt.linked.entries()) {
+    outcomeReceipts.push(await h.coordinator.admitIntelligenceScoreableOutcome({
+      authorityEnvelope: h.authority.sign(runtimeClaims(h, "scoreable_outcome_admission", iso(130_000 + index * 10_000), {
+        sourceOutcomeEvidenceSha256: link.evidenceSha256,
+        evaluationContextSha256: link.evaluationContextSha256,
+        outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+        observedOutcome: { status: "observed", value: index === 0 }
+      }), "producer")
+    }));
+  }
+  return {
+    allocations: [first, second],
+    lifecycles: [firstLifecycle, secondLifecycle],
+    projection,
+    reconciliationReceipt,
+    outcomeReceipts
   };
 }
 
@@ -1280,6 +1346,258 @@ test("scoreable admission requires the exact immutable evaluation context", asyn
   );
   const admitted = await admitPreparedScoreable(source);
   assert.equal(admitted.outcomeReceipt.evaluationContextSha256, source.link.evaluationContextSha256);
+});
+
+test("producer-only exact outcome projection reads survive multi-opportunity recovery and SQLite restart", async t => {
+  const directory = mkdtempSync(join(tmpdir(), "route-iq-exact-outcome-projection-"));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const location = join(directory, "coordinator.sqlite");
+  const authority = createAuthority("exact-outcome-restart-key");
+  const firstRepository = new NodeSqliteRepository(location);
+  const firstHarness = await openHarness({
+    repository: firstRepository,
+    authority,
+    territoryContext: knownTerritoryContext("exact-outcome-restart")
+  });
+  const prepared = await prepareTwoAdmittedOutcomeSources(firstHarness, "exact-outcome-restart");
+  drainProjectionOutbox(firstHarness);
+  assert.equal(firstRepository.one(`
+    SELECT COUNT(*) AS count
+    FROM projection_outbox o
+    LEFT JOIN projection_commits c ON c.outbox_id = o.outbox_id
+    WHERE c.outbox_id IS NULL
+  `).count, 0);
+  firstRepository.close();
+
+  const restartedRepository = new NodeSqliteRepository(location);
+  const restarted = await openHarness({
+    repository: restartedRepository,
+    authority,
+    issuedAt: iso(170_000),
+    territoryContext: knownTerritoryContext("exact-outcome-restart")
+  });
+  const records = [];
+  for (const [index, outcomeReceipt] of prepared.outcomeReceipts.entries()) {
+    const link = prepared.reconciliationReceipt.linked[index];
+    const claims = exactOutcomeProjectionReadClaims(
+      restarted,
+      outcomeReceipt,
+      link.evidenceSha256,
+      iso(180_000 + index)
+    );
+    const firstRead = await restarted.coordinator.readCommittedProjectionForOutcomeArtifact({
+      authorityEnvelope: restarted.authority.sign(claims, "producer")
+    });
+    const retry = await restarted.coordinator.readCommittedProjectionForOutcomeArtifact({
+      authorityEnvelope: restarted.authority.sign({
+        ...claims,
+        authoritativeRecordTime: iso(190_000 + index)
+      }, "producer")
+    });
+    assert.deepEqual(retry, firstRead);
+    assert.equal(firstRead.ok, true);
+    assert.equal(firstRead.found, true);
+    assert.equal(firstRead.contractVersion, routeIqCommittedOutcomeProjectionReadContractVersion);
+    assert.equal(firstRead.producerOnly, true);
+    assert.deepEqual(Object.keys(firstRead.record).sort(), ["commit", "projection"]);
+    assert.equal(firstRead.record.projection.opportunityId, prepared.allocations[index].opportunityId);
+    assert.equal(firstRead.record.projection.asOfRecordSequence, outcomeReceipt.recordSequence);
+    assert.equal(firstRead.record.projection.asOfRecordTime, outcomeReceipt.authoritativeRecordTime);
+    assert.equal(firstRead.record.projection.state, "OUTCOME_LINKED");
+    assert.equal(firstRead.record.projection.recommendationInfluence, "off");
+    assert.equal(firstRead.record.projection.collectionDefault, "off");
+    assert.equal(firstRead.record.commit.projectionCommitMarkerWrittenLast, true);
+    assert.equal(firstRead.record.projection.sourceArtifacts.filter(source =>
+      source.artifactId === outcomeReceipt.artifactId
+      && source.eventKind === "OUTCOME_LINKED"
+      && source.recordSha256 === outcomeReceipt.recordSha256
+    ).length, 1);
+    records.push(firstRead.record);
+  }
+  assert.notEqual(records[0].projection.opportunityId, records[1].projection.opportunityId);
+  assert.ok(records[0].projection.asOfRecordSequence < records[1].projection.asOfRecordSequence);
+  restartedRepository.close();
+});
+
+test("exact outcome projection read fails closed for pending, wrong, cross-coordinator, and tampered sources", async t => {
+  await t.test("pending exact outcome outbox", async () => {
+    const source = await prepareReconciledEvaluationSource("exact-read-pending");
+    const outcomeReceipt = await source.h.coordinator.admitIntelligenceScoreableOutcome({
+      authorityEnvelope: source.h.authority.sign(runtimeClaims(source.h, "scoreable_outcome_admission", iso(80_000), {
+        sourceOutcomeEvidenceSha256: source.link.evidenceSha256,
+        evaluationContextSha256: source.link.evaluationContextSha256,
+        outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+        observedOutcome: { status: "observed", value: true }
+      }), "producer")
+    });
+    const claims = exactOutcomeProjectionReadClaims(
+      source.h,
+      outcomeReceipt,
+      source.link.evidenceSha256,
+      iso(100_000)
+    );
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: source.h.authority.sign(claims, "producer")
+      }),
+      error => error.code === "route_iq_coordinator_projection_recovery_pending"
+    );
+  });
+
+  await t.test("wrong artifact and receipt binding", async () => {
+    const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("exact-read-wrong"));
+    drainProjectionOutbox(source.h);
+    const wrongReceipt = {
+      ...source.outcomeReceipt,
+      artifactId: `riq_outcome_${digest("wrong-outcome-artifact")}`
+    };
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: source.h.authority.sign(exactOutcomeProjectionReadClaims(
+          source.h,
+          wrongReceipt,
+          source.link.evidenceSha256,
+          iso(100_000)
+        ), "producer")
+      }),
+      error => error.code === "route_iq_exact_outcome_projection_source_missing"
+    );
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: source.h.authority.sign(exactOutcomeProjectionReadClaims(
+          source.h,
+          { ...source.outcomeReceipt, recordSha256: digest("tampered-outcome-record") },
+          source.link.evidenceSha256,
+          iso(100_001)
+        ), "producer")
+      }),
+      error => error.code === "route_iq_exact_outcome_projection_receipt_binding_invalid"
+    );
+  });
+
+  await t.test("different coordinator and representative", async () => {
+    const cruz = await admitPreparedScoreable(await prepareReconciledEvaluationSource("exact-read-cruz"));
+    const anthonyHarness = await openHarness({
+      representativeId: "anthony",
+      territoryContext: knownTerritoryContext("exact-read-anthony")
+    });
+    const anthonyAllocation = await anthonyHarness.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const anthonyLifecycle = await completeServerDerivedAction(anthonyHarness, anthonyAllocation, "exact-read-anthony", {
+      manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+    });
+    const rawSha256 = digest("exact-read-anthony-handoff");
+    await anthonyHarness.coordinator.closeCanonicalSession({
+      authorityEnvelope: anthonyHarness.authority.sign({
+        purpose: "close_session",
+        workspaceId: anthonyHarness.scope.workspaceId,
+        operatingProfileId: anthonyHarness.scope.operatingProfileId,
+        representativeId: anthonyHarness.scope.representativeId,
+        closeReason: "end_day",
+        handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+        endOfDayHandoffSha256: rawSha256,
+        authoritativeRecordTime: iso(50_000)
+      })
+    });
+    const projection = outcomeProjection(anthonyHarness, {
+      rawSha256,
+      archiveCommittedAt: iso(60_000),
+      outcomes: [{ candidateId: anthonyLifecycle.accepted.manifest.candidateId, actionEventTime: iso(45_000) }]
+    });
+    const reconciliation = await anthonyHarness.coordinator.reconcileCommittedFieldSessionOutcomes({
+      authorityEnvelope: anthonyHarness.authority.sign(runtimeClaims(anthonyHarness, "field_session_reconciliation", iso(70_000), {
+        projectionSha256: projection.projectionSha256,
+        sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+        sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+      })),
+      projection
+    });
+    const anthonyReceipt = await anthonyHarness.coordinator.admitIntelligenceScoreableOutcome({
+      authorityEnvelope: anthonyHarness.authority.sign(runtimeClaims(anthonyHarness, "scoreable_outcome_admission", iso(80_000), {
+        sourceOutcomeEvidenceSha256: reconciliation.linked[0].evidenceSha256,
+        evaluationContextSha256: reconciliation.linked[0].evaluationContextSha256,
+        outcomeDerivationContractVersion: "route-iq-shadow-outcome-derivation-v1",
+        observedOutcome: { status: "observed", value: true }
+      }), "producer")
+    });
+    await assert.rejects(
+      () => cruz.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: cruz.h.authority.sign(exactOutcomeProjectionReadClaims(
+          cruz.h,
+          anthonyReceipt,
+          reconciliation.linked[0].evidenceSha256,
+          iso(100_000)
+        ), "producer")
+      }),
+      error => error.code === "route_iq_exact_outcome_projection_source_missing"
+    );
+  });
+
+  await t.test("tampered authority and non-producer channel", async () => {
+    const source = await admitPreparedScoreable(await prepareReconciledEvaluationSource("exact-read-authority"));
+    drainProjectionOutbox(source.h);
+    const claims = exactOutcomeProjectionReadClaims(
+      source.h,
+      source.outcomeReceipt,
+      source.link.evidenceSha256,
+      iso(100_000)
+    );
+    const tampered = source.h.authority.sign(claims, "producer");
+    tampered.claims.sourceOutcomeEvidenceSha256 = digest("tampered-authority-evidence");
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({ authorityEnvelope: tampered }),
+      /test_only_signature_invalid/
+    );
+    await assert.rejects(
+      () => source.h.coordinator.readCommittedProjectionForOutcomeArtifact({
+        authorityEnvelope: source.h.authority.sign(claims)
+      }),
+      error => error.code === "route_iq_coordinator_keyed_authentication_required"
+    );
+  });
+});
+
+test("historical and synthetic field evidence cannot be promoted into exact outcome projections", async () => {
+  for (const recordOrigin of ["historical", "synthetic"]) {
+    const h = await openHarness({ territoryContext: knownTerritoryContext(`exact-read-${recordOrigin}`) });
+    const allocation = await h.coordinator.allocateNextStopOpportunity({ event: allocatorEvent(1) });
+    const lifecycle = await completeServerDerivedAction(h, allocation, `exact-read-${recordOrigin}`, {
+      manifestAt: iso(10_000), snapshotAt: iso(20_000), shadowAt: iso(30_000), actionAt: iso(40_000), sequence: 10
+    });
+    const rawSha256 = digest(`exact-read-${recordOrigin}-handoff`);
+    await h.coordinator.closeCanonicalSession({
+      authorityEnvelope: h.authority.sign({
+        purpose: "close_session",
+        workspaceId: h.scope.workspaceId,
+        operatingProfileId: h.scope.operatingProfileId,
+        representativeId: h.scope.representativeId,
+        closeReason: "end_day",
+        handoffContractVersion: "route-iq-end-of-day-data-handoff-v1",
+        endOfDayHandoffSha256: rawSha256,
+        authoritativeRecordTime: iso(50_000)
+      })
+    });
+    const projection = structuredClone(outcomeProjection(h, {
+      rawSha256,
+      archiveCommittedAt: iso(60_000),
+      outcomes: [{ candidateId: lifecycle.accepted.manifest.candidateId, actionEventTime: iso(45_000) }]
+    }));
+    projection.recordOrigin = recordOrigin;
+    const projectionBody = Object.fromEntries(Object.entries(projection).filter(([key]) => key !== "projectionSha256"));
+    projection.projectionSha256 = digest(projectionBody);
+    await assert.rejects(
+      () => h.coordinator.reconcileCommittedFieldSessionOutcomes({
+        authorityEnvelope: h.authority.sign(runtimeClaims(h, "field_session_reconciliation", iso(70_000), {
+          projectionSha256: projection.projectionSha256,
+          sourceArchiveRawSha256: projection.sourceArchive.rawSha256,
+          sourceArchiveSessionSha256: projection.sourceArchive.sourceArchiveSessionSha256
+        })),
+        projection
+      }),
+      error => error.code === "route_iq_field_outcome_projection_not_canonical"
+    );
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM field_session_outcome_links").count, 0);
+    assert.equal(h.repository.one("SELECT COUNT(*) AS count FROM lifecycle_events WHERE event_kind = 'OUTCOME_LINKED'").count, 0);
+  }
 });
 
 test("full evaluation admission rejects context, rank, probability, candidate, chronology, scope, PII, and hash tampering", async t => {
