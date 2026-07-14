@@ -1462,6 +1462,10 @@ test("prospective retention admission remains fail closed and inactive", () => {
     retention.dataCoordinatorAdmissionSuccessorCommit,
     "fdacf00da221ae5cc473fb57173a7940483deeb7",
   );
+  assert.equal(
+    retention.infrastructureRetentionFailClosedSuccessorCommit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
   assert.equal(retention.evaluationAdmissionRequired, true);
   assert.equal(retention.exactEnvelopeAndBoundaryAllowlistRequired, true);
   assert.equal(retention.dataSemanticParityRequired, true);
@@ -1470,6 +1474,8 @@ test("prospective retention admission remains fail closed and inactive", () => {
     "sourceArchiveRawSha256BindingRequired",
     "authoritativeAdmissionTimeExpiryRequired",
     "strictCoordinatorKeyAllowlistRequired",
+    "evaluationConstructionRequiresRetentionResolution",
+    "validNoncanonicalRetentionCompatibilityRequired",
     "sourceCoordinatorSessionBindingRequired",
     "sourceFieldSessionAndRawHashBindingRequired",
   ]) {
@@ -1495,6 +1501,10 @@ test("prospective retention admission remains fail closed and inactive", () => {
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
     "historicalArchiveRewriteAllowed",
+    "productionAuthenticatedRetentionEnvelopeProducerAvailable",
+    "missingAuthenticatedRetentionMayAdmitEvaluation",
+    "browserMaySupplyRetentionAuthority",
+    "noncanonicalRetentionTestHookAvailableInProduction",
     "representativeOutputAllowed",
     "recommendationInfluenceAllowed",
     "productionActivationEligible",
@@ -1505,6 +1515,21 @@ test("prospective retention admission remains fail closed and inactive", () => {
   assert.equal(retention.activeCohorts, 0);
   assert.equal(retention.canonicalProductionProspectiveRecords, 0);
   assert.equal(retention.canonicalProductionEvaluations, 0);
+  const infrastructureRuntime = contract.protectedBehaviorBaselines.infrastructureRuntime;
+  assert.equal(
+    createHash("sha256").update(readFileSync(infrastructureRuntime.path)).digest("hex"),
+    infrastructureRuntime.sha256,
+  );
+  assert.equal(
+    infrastructureRuntime.sourceCommit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
+  assert.deepEqual(infrastructureRuntime.predecessor, {
+    sha256: "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+    sourceCommit: "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+    remainsHistorical: true,
+    rewritten: false,
+  });
 });
 
 test("aggregate npm test runs both shadow verifier and focused suite", () => {

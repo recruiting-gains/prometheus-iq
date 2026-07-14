@@ -40,6 +40,7 @@
     "committedOutcomeEvaluationTests": "tests/route-iq-committed-outcome-evaluation.test.mjs",
     "retentionAdmissionTests": "tests/route-iq-prospective-retention-intelligence.test.mjs",
     "retentionBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+    "retentionInfrastructureBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
     "humanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
@@ -102,9 +103,15 @@
     },
     "infrastructureRuntime": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
-      "sha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
-      "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
-      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+      "sha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
+      "sourceCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure",
+      "predecessor": {
+        "sha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+        "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "infrastructureDurableObject": {
       "path": "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
@@ -268,6 +275,7 @@
     "dataFoundationCommit": "a5bd1d431e778cec045d1e8412efb396674ea321",
     "dataExactKeySuccessorCommit": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
     "dataCoordinatorAdmissionSuccessorCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "infrastructureRetentionFailClosedSuccessorCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
     "protectedDataSources": {
       "retentionPolicy": {
         "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
@@ -289,6 +297,8 @@
     "sourceArchiveRawSha256BindingRequired": true,
     "authoritativeAdmissionTimeExpiryRequired": true,
     "strictCoordinatorKeyAllowlistRequired": true,
+    "evaluationConstructionRequiresRetentionResolution": true,
+    "validNoncanonicalRetentionCompatibilityRequired": true,
     "sourceCoordinatorSessionBindingRequired": true,
     "sourceFieldSessionAndRawHashBindingRequired": true,
     "missingExpiredUnknownStaleMalformedOrUnauthorizedAdmissionAllowed": false,
@@ -297,6 +307,10 @@
     "derivedProjectionMayOutliveSource": false,
     "administrativelyDisposedSessionAdmissionAllowed": false,
     "historicalArchiveRewriteAllowed": false,
+    "productionAuthenticatedRetentionEnvelopeProducerAvailable": false,
+    "missingAuthenticatedRetentionMayAdmitEvaluation": false,
+    "browserMaySupplyRetentionAuthority": false,
+    "noncanonicalRetentionTestHookAvailableInProduction": false,
     "auditVisibility": "hash_only",
     "representativeOutputAllowed": false,
     "recommendationInfluenceAllowed": false,

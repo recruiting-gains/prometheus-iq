@@ -46,6 +46,8 @@ const paths = Object.freeze({
     "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
   baselineSuccessor:
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+  infrastructureBaselineSuccessor:
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
 });
 
 function digest(label) {
@@ -93,6 +95,9 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   const offRouteContract = readJson(paths.offRouteContract);
   const shadowContract = readJson(paths.shadowContract);
   const baselineSuccessor = readJson(paths.baselineSuccessor);
+  const infrastructureBaselineSuccessor = readJson(
+    paths.infrastructureBaselineSuccessor,
+  );
   const dataPolicy = loadRouteIqProspectiveRetentionPolicy();
 
   assert.equal(
@@ -119,6 +124,14 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
   assert.equal(
     routeIqAcceptedProspectiveRetentionPolicySha256,
     computeRouteIqProspectiveRetentionPolicySha256(),
+  );
+  assert.equal(
+    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
+  assert.equal(
+    specification.infrastructureOwnerLineage.runtimeSha256,
+    sha256(read("workers/infrastructure/route-iq-prospective-shadow-runtime.js")),
   );
   assert.equal(validateRouteIqProspectiveRetentionPolicy(dataPolicy), true);
   assert.equal(
@@ -212,12 +225,12 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
     baselineSuccessor.predecessor.sha256,
   );
   assert.equal(
-    sha256(read(baselineSuccessor.intelligenceOwnerSynchronization.contract.path)),
     baselineSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
+    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.previousSha256,
   );
   assert.equal(
-    sha256(read(baselineSuccessor.intelligenceOwnerSynchronization.specification.path)),
     baselineSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
+    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.previousSha256,
   );
   assert.equal(baselineSuccessor.predecessor.remainsHistorical, true);
   assert.equal(baselineSuccessor.predecessor.rewritten, false);
@@ -238,6 +251,56 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
       field,
     );
   }
+  assert.equal(
+    shadowContract.prospectiveRetentionAdmission.infrastructureRetentionFailClosedSuccessorCommit,
+    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
+  );
+  assert.equal(
+    shadowContract.protectedBehaviorBaselines.infrastructureRuntime.sha256,
+    specification.infrastructureOwnerLineage.runtimeSha256,
+  );
+  assert.equal(
+    infrastructureBaselineSuccessor.infrastructureOwnerTransition.commit,
+    specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
+  );
+  assert.equal(
+    infrastructureBaselineSuccessor.infrastructureOwnerTransition.runtime.currentSha256,
+    specification.infrastructureOwnerLineage.runtimeSha256,
+  );
+  assert.equal(infrastructureBaselineSuccessor.predecessor.remainsHistorical, true);
+  assert.equal(infrastructureBaselineSuccessor.predecessor.rewritten, false);
+  assert.equal(
+    sha256(read(infrastructureBaselineSuccessor.predecessor.path)),
+    infrastructureBaselineSuccessor.predecessor.sha256,
+  );
+  assert.equal(
+    sha256(read(infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.path)),
+    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
+  );
+  assert.equal(
+    sha256(read(infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.path)),
+    infrastructureBaselineSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
+  );
+  const infrastructureRuntimeText = read(
+    infrastructureBaselineSuccessor.infrastructureOwnerTransition.runtime.path,
+  ).toString("utf8");
+  assert.match(
+    infrastructureRuntimeText,
+    /route_iq_prospective_retention_input_unavailable/,
+  );
+  assert.match(
+    infrastructureRuntimeText,
+    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
+  );
+  const resolutionIndex = infrastructureRuntimeText.indexOf(
+    "resolveRouteIqEvaluationRetentionEnvelope({",
+  );
+  const constructionIndex = infrastructureRuntimeText.indexOf(
+    "buildRouteIqEvaluationFromAdmittedOutcome({",
+    resolutionIndex,
+  );
+  assert.ok(resolutionIndex >= 0);
+  assert.ok(constructionIndex > resolutionIndex);
   for (const field of [
     "intelligenceEvaluationRecordAcceptedByDataSuccessor",
     "sourceArchiveRawSha256Present",
@@ -292,6 +355,10 @@ export function verifyRouteIqProspectiveRetentionIntelligence() {
     dataCoordinatorAdmissionSuccessorCommit:
       specification.dataOwnerLineage.coordinatorAdmissionSuccessorCommit,
     dataCoordinatorSha256: specification.dataOwnerLineage.coordinatorSha256,
+    infrastructureRetentionFailClosedSuccessorCommit:
+      specification.infrastructureOwnerLineage.retentionFailClosedSuccessorCommit,
+    infrastructureRuntimeSha256:
+      specification.infrastructureOwnerLineage.runtimeSha256,
     retentionPolicySha256:
       specification.dataOwnerLineage.retentionPolicySha256,
     consumersVerified: Object.keys(specification.consumerMatrix).length,

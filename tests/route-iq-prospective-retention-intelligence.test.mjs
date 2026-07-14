@@ -129,6 +129,110 @@ test("Data coordinator successor is protected with historical lineage and semant
   assert.equal(successor.boundaryValidation.archiveRewritePerformed, false);
 });
 
+test("Infrastructure retention successor is protected with fail-closed production semantics", () => {
+  const contractPath =
+    "intelligence/contracts/shadow-decision-readiness-contracts.json";
+  const specificationPath =
+    "intelligence/provenance/specifications/prospective-retention-admission-v1.json";
+  const predecessorPath =
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json";
+  const successorPath =
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json";
+  const contract = JSON.parse(readFileSync(contractPath, "utf8"));
+  const specification = JSON.parse(readFileSync(specificationPath, "utf8"));
+  const predecessor = JSON.parse(readFileSync(predecessorPath, "utf8"));
+  const successor = JSON.parse(readFileSync(successorPath, "utf8"));
+  const fileSha256 = (path) =>
+    createHash("sha256").update(readFileSync(path)).digest("hex");
+
+  assert.equal(successor.batchId, "BATCH-20260714-003");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(successor.predecessor.remainsHistorical, true);
+  assert.equal(successor.predecessor.rewritten, false);
+  assert.equal(fileSha256(successor.predecessor.path), successor.predecessor.sha256);
+  assert.equal(
+    predecessor.intelligenceOwnerSynchronization.contract.currentSha256,
+    successor.intelligenceOwnerSynchronization.contract.previousSha256,
+  );
+  assert.equal(
+    predecessor.intelligenceOwnerSynchronization.specification.currentSha256,
+    successor.intelligenceOwnerSynchronization.specification.previousSha256,
+  );
+  assert.equal(
+    fileSha256(successor.intelligenceOwnerSynchronization.contract.path),
+    successor.intelligenceOwnerSynchronization.contract.currentSha256,
+  );
+  assert.equal(
+    fileSha256(successor.intelligenceOwnerSynchronization.specification.path),
+    successor.intelligenceOwnerSynchronization.specification.currentSha256,
+  );
+  assert.equal(
+    successor.infrastructureOwnerTransition.commit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
+  assert.equal(
+    fileSha256(successor.infrastructureOwnerTransition.runtime.path),
+    "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
+  );
+  assert.equal(
+    successor.infrastructureOwnerTransition.runtime.previousSha256,
+    "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+  );
+  assert.equal(
+    contract.protectedBehaviorBaselines.infrastructureRuntime.sha256,
+    successor.infrastructureOwnerTransition.runtime.currentSha256,
+  );
+  assert.equal(
+    specification.infrastructureOwnerLineage.runtimeSha256,
+    successor.infrastructureOwnerTransition.runtime.currentSha256,
+  );
+  for (const field of [
+    "missingRetentionFailsBeforeEvaluationConstruction",
+    "missingRetentionSkipsEvaluationAdmissionRpc",
+    "validRetentionCompatibilityNoncanonicalTestOnly",
+    "browserRetentionAuthorityRejected",
+    "canonicalFieldSessionAcknowledgmentPreserved",
+    "realMiniflareCompatibilityVerified",
+  ]) {
+    assert.equal(successor.infrastructureOwnerTransition.semanticChanges[field], true, field);
+  }
+  assert.equal(
+    successor.infrastructureOwnerTransition.semanticChanges.productionAuthenticatedRetentionEnvelopeProducerAvailable,
+    false,
+  );
+  assert.equal(
+    successor.intelligenceOwnerSynchronization.infrastructureImplementationModifiedByIntelligence,
+    false,
+  );
+  const runtimeText = readFileSync(
+    successor.infrastructureOwnerTransition.runtime.path,
+    "utf8",
+  );
+  assert.match(runtimeText, /route_iq_prospective_retention_input_unavailable/);
+  assert.match(
+    runtimeText,
+    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
+  );
+  const resolutionIndex = runtimeText.indexOf(
+    "resolveRouteIqEvaluationRetentionEnvelope({",
+  );
+  const constructionIndex = runtimeText.indexOf(
+    "buildRouteIqEvaluationFromAdmittedOutcome({",
+    resolutionIndex,
+  );
+  assert.ok(resolutionIndex >= 0);
+  assert.ok(constructionIndex > resolutionIndex);
+  assert.equal(successor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(successor.boundaryValidation.collection, "OFF");
+  assert.equal(successor.boundaryValidation.activeCohorts, 0);
+  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(successor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(successor.boundaryValidation.archiveRewritePerformed, false);
+  assert.equal(successor.boundaryValidation.productionConsumerActivated, false);
+  assert.equal(successor.boundaryValidation.deploymentPerformed, false);
+  assert.equal(successor.boundaryValidation.productionAccessPerformed, false);
+});
+
 test("eligible local contract fixture is deterministic, hash-only, and zero influence", () => {
   const input = envelope();
   const first = evaluateRouteIqProspectiveIntelligenceRetentionAdmission(input);

@@ -1,0 +1,79 @@
+{
+  "version": "route-iq-intelligence-infrastructure-runtime-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260714-003",
+  "status": "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Record Intelligence-owner semantic validation of the Infrastructure retention-authority successor without modifying Infrastructure or rewriting the earlier Data-coordinator checkpoint.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+    "sha256": "99feae7b79f901d220f54543e4389a86d2edf81e3775869a10a2185ab9adc0d2",
+    "intelligenceCommit": "925fa5e18ab0dd816e55ce56814efadc7fef2556",
+    "contractSha256": "9d7ace6d396af79e692bd530b26dbb6aebdef8e1a5e8d22cd3ad5b023b7604b6",
+    "specificationSha256": "e792a12861e04e72597cac3ef5e8f009119eeaae0ead48c0472382b8a01d225d",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "infrastructureOwnerTransition": {
+    "commit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+    "tree": "7ea49b574411a3beca64523a1d2cd4d1f5591f04",
+    "ownerSubsystem": "Prometheus Infrastructure",
+    "runtime": {
+      "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+      "previousSha256": "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+      "currentSha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9"
+    },
+    "semanticChanges": {
+      "productionAuthenticatedRetentionEnvelopeProducerAvailable": false,
+      "missingRetentionFailsBeforeEvaluationConstruction": true,
+      "missingRetentionSkipsEvaluationAdmissionRpc": true,
+      "validRetentionCompatibilityNoncanonicalTestOnly": true,
+      "browserRetentionAuthorityRejected": true,
+      "canonicalFieldSessionAcknowledgmentPreserved": true,
+      "realMiniflareCompatibilityVerified": true,
+      "infrastructureRegressionCount": 39
+    }
+  },
+  "intelligenceOwnerSynchronization": {
+    "contract": {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSha256": "9d7ace6d396af79e692bd530b26dbb6aebdef8e1a5e8d22cd3ad5b023b7604b6",
+      "currentSha256": "b2167ce79688fd7896ae811c0c5a68d93597e8c70c2cf8432ae4fb36847c5107"
+    },
+    "specification": {
+      "path": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "previousSha256": "e792a12861e04e72597cac3ef5e8f009119eeaae0ead48c0472382b8a01d225d",
+      "currentSha256": "44ced976de88c022335d4dfdbe416844c1d65387158ca7fb1ba8030ccf797d7a"
+    },
+    "infrastructureImplementationModifiedByIntelligence": false,
+    "historicalCheckpointModified": false,
+    "allAffectedProtectedReferencesAccountedFor": true
+  },
+  "compatibilityValidation": {
+    "productionMissingRetentionRejected": true,
+    "evaluationConstructionNotReachedWithoutRetention": true,
+    "evaluationAdmissionRpcNotCalledWithoutRetention": true,
+    "validNoncanonicalRetentionAccepted": true,
+    "canonicalDataRetentionRecordAcceptedByCompatibilityFixture": true,
+    "missingTamperedExpiredOrDisposedRetentionRejected": true,
+    "sourceArchiveRawSha256BindingPreserved": true,
+    "deterministicReplayPreserved": true,
+    "appendOnlyEvidencePreserved": true,
+    "infrastructureRegressionsPassed": 39,
+    "realMiniflarePassed": true
+  },
+  "boundaryValidation": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "canonicalProductionProspectiveRecords": 0,
+    "canonicalProductionEvaluations": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeScoringChanged": false,
+    "routeGenerationChanged": false,
+    "archiveRewritePerformed": false,
+    "productionConsumerActivated": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false
+  }
+}

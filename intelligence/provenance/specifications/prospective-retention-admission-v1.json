@@ -13,6 +13,14 @@
     "retentionPolicySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
     "retentionEvaluatorSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313"
   },
+  "infrastructureOwnerLineage": {
+    "retentionFailClosedSuccessorCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+    "runtimeSha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9",
+    "productionAuthenticatedRetentionEnvelopeProducerAvailable": false,
+    "missingAuthenticatedRetentionMayAdmitEvaluation": false,
+    "browserMaySupplyRetentionAuthority": false,
+    "noncanonicalRetentionTestHookAvailableInProduction": false
+  },
   "admissionRules": {
     "dataSemanticParityRequired": true,
     "exactTopLevelAndBoundaryAllowlistRequired": true,
@@ -25,6 +33,8 @@
     "canonicalEvaluationRecordRetentionAdmissionRequired": true,
     "authoritativeAdmissionTimeExpiryRequired": true,
     "strictCoordinatorKeyAllowlistRequired": true,
+    "evaluationConstructionRequiresRetentionResolution": true,
+    "validNoncanonicalRetentionCompatibilityRequired": true,
     "evaluationRecordCarriesHashOnlyRetentionEvidence": true,
     "representativeOutputAllowed": false,
     "recommendationInfluenceAllowed": false

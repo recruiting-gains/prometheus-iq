@@ -154,6 +154,22 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     contract.protectedBehaviorBaselines.dataCoordinator.sourceOwnerSubsystem,
     "Prometheus Data",
   );
+  const infrastructureRuntime =
+    contract.protectedBehaviorBaselines.infrastructureRuntime;
+  assert.equal(
+    infrastructureRuntime.sourceCommit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
+  assert.equal(
+    infrastructureRuntime.sourceOwnerSubsystem,
+    "Prometheus Infrastructure",
+  );
+  assert.deepEqual(infrastructureRuntime.predecessor, {
+    sha256: "ab45a00cb74115bb067ce00ab15890e9a959a9a3accb67917397f7f11236346d",
+    sourceCommit: "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+    remainsHistorical: true,
+    rewritten: false,
+  });
   assert.equal(
     contract.prospectiveRuntimeAdapter.runtimeVersion,
     shadowDecisionProspectiveRuntimeVersion,
@@ -215,6 +231,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "fdacf00da221ae5cc473fb57173a7940483deeb7",
   );
   assert.equal(
+    contract.prospectiveRetentionAdmission.infrastructureRetentionFailClosedSuccessorCommit,
+    "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+  );
+  assert.equal(
     contract.prospectiveRetentionAdmission.evaluationAdmissionRequired,
     true,
   );
@@ -231,6 +251,8 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "sourceArchiveRawSha256BindingRequired",
     "authoritativeAdmissionTimeExpiryRequired",
     "strictCoordinatorKeyAllowlistRequired",
+    "evaluationConstructionRequiresRetentionResolution",
+    "validNoncanonicalRetentionCompatibilityRequired",
     "sourceCoordinatorSessionBindingRequired",
     "sourceFieldSessionAndRawHashBindingRequired",
   ]) {
@@ -243,6 +265,10 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     "derivedProjectionMayOutliveSource",
     "administrativelyDisposedSessionAdmissionAllowed",
     "historicalArchiveRewriteAllowed",
+    "productionAuthenticatedRetentionEnvelopeProducerAvailable",
+    "missingAuthenticatedRetentionMayAdmitEvaluation",
+    "browserMaySupplyRetentionAuthority",
+    "noncanonicalRetentionTestHookAvailableInProduction",
     "representativeOutputAllowed",
     "recommendationInfluenceAllowed",
     "productionActivationEligible",
@@ -607,6 +633,34 @@ export function verifyShadowDecisionReadiness({
     runtimeAdapterText,
     /createCloudflareKvFieldSessionStore|runtimeAppendLocks|localStorage|sessionStorage|indexedDB/,
   );
+  const infrastructureRuntimeText = readFileSync(
+    resolve(
+      root,
+      contract.protectedBehaviorBaselines.infrastructureRuntime.path,
+    ),
+    "utf8",
+  );
+  assert.match(
+    infrastructureRuntimeText,
+    /resolveRouteIqEvaluationRetentionEnvelope/,
+  );
+  assert.match(
+    infrastructureRuntimeText,
+    /route_iq_prospective_retention_input_unavailable/,
+  );
+  assert.match(
+    infrastructureRuntimeText,
+    /noncanonicalTestHooks\?\.enabled !== true[\s\S]+buildNoncanonicalAuthenticatedDataRetentionEnvelope/,
+  );
+  const retentionResolutionIndex = infrastructureRuntimeText.indexOf(
+    "resolveRouteIqEvaluationRetentionEnvelope({",
+  );
+  const evaluationConstructionIndex = infrastructureRuntimeText.indexOf(
+    "buildRouteIqEvaluationFromAdmittedOutcome({",
+    retentionResolutionIndex,
+  );
+  assert.ok(retentionResolutionIndex >= 0);
+  assert.ok(evaluationConstructionIndex > retentionResolutionIndex);
   assert.deepEqual(
     Object.keys(contract.protectedBehaviorBaselines || {}).sort(),
     [...requiredProtectedBehaviorBaselineKeys],
