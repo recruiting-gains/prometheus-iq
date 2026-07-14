@@ -26,6 +26,7 @@ const requiredFiles = [
   "intelligence/provenance/reconstruct-legacy-protected-contracts-v1.mjs",
   "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
   "intelligence/recommendation-explainability-engine.mjs",
   "intelligence/operating-profile-engine.mjs",
   "intelligence/field-evidence-activation-foundation.md",
@@ -124,6 +125,7 @@ const nearbyContextConfig = readJson("intelligence/config/nearby-context-intelli
 const nearbyContextAudit = readJson("intelligence/artifacts/nearby-context-intelligence-v2/fitness_connection/cruz/nearby-context-audit-v2.json");
 const legacyProvenanceEvidence = readJson("intelligence/provenance/legacy-provenance-gap-049cf583-v1.json");
 const protectedBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json");
+const routeQualityBaselineSuccessor = readJson("intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json");
 const explainabilityContracts = readJson("intelligence/contracts/recommendation-explainability-contracts.json");
 const operatingProfileContracts = readJson("intelligence/contracts/operating-profile-contracts.json");
 const customerGraphContracts = readJson("intelligence/contracts/customer-intelligence-graph-contracts.json");
@@ -841,6 +843,18 @@ assert(protectedBaselineSuccessor.boundaryValidation.candidateVisibilityChanged 
 assert(protectedBaselineSuccessor.boundaryValidation.routeScoringChanged === false, "Protected synchronization must not change route scoring.");
 assert(protectedBaselineSuccessor.boundaryValidation.notificationBehaviorChanged === false, "Protected synchronization must not change notifications.");
 assert(protectedBaselineSuccessor.boundaryValidation.automaticActionIntroduced === false, "Protected synchronization must not add automatic actions.");
+assert(routeQualityBaselineSuccessor.batchId === "BATCH-20260714-002", "Route-quality successor must remain in the collection-OFF repair batch.");
+assert(routeQualityBaselineSuccessor.status === "OWNER_VALIDATED_SUCCESSOR", "Route-quality successor must remain owner validated.");
+assert(routeQualityBaselineSuccessor.ownerSubsystem === "Prometheus Intelligence Engine", "Route-quality successor must remain Intelligence-owned.");
+assert(routeQualityBaselineSuccessor.predecessor.remainsHistorical === true && routeQualityBaselineSuccessor.predecessor.rewritten === false, "The first protected-baseline successor must remain historical.");
+assert(routeQualityBaselineSuccessor.dataOwnerTransition.ownerSubsystem === "Prometheus Data", "Route-quality source transition must remain Data-owned.");
+assert(routeQualityBaselineSuccessor.protectedReferenceAudit.affectedIntelligenceReferences.length === 1, "Exactly one Intelligence route-quality protection must be affected.");
+assert(routeQualityBaselineSuccessor.protectedReferenceAudit.canonicalReportPinnedByIntelligence === false, "Intelligence must not invent a canonical report hash protection.");
+assert(routeQualityBaselineSuccessor.protectedReferenceAudit.allAffectedReferencesAccountedFor === true, "Every affected Intelligence route-quality protection must be accounted for.");
+assert(routeQualityBaselineSuccessor.boundaryValidation.collectionDefaultState === "OFF", "Route-quality synchronization must keep collection OFF.");
+assert(routeQualityBaselineSuccessor.boundaryValidation.recommendationInfluence === "OFF", "Route-quality synchronization must keep recommendation influence OFF.");
+assert(routeQualityBaselineSuccessor.boundaryValidation.routeScoringChanged === false, "Route-quality synchronization must not change scoring.");
+assert(routeQualityBaselineSuccessor.boundaryValidation.routeGenerationChanged === false, "Route-quality synchronization must not change route generation.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredEvaluationOutcomes === "97 eligible, linked, scoreable evaluation outcomes after exclusions", "Provenance evidence must preserve the exact 97-outcome methodology.");
 assert(legacyProvenanceEvidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview === false, "The 97-outcome minimum alone must not authorize Founder review eligibility.");
 assert(legacyProvenanceEvidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins === 100, "Five populated calibration bins must require at least 100 supported observations.");

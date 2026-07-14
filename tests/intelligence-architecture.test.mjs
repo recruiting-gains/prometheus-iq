@@ -380,6 +380,9 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const successor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
   );
+  const routeQualitySuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
+  );
   const expectedPaths = [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
     "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -399,7 +402,15 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   );
   assert.deepEqual(successor.synchronizedConsumers.map(consumer => consumer.path).sort(), expectedPaths);
   for (const consumer of successor.synchronizedConsumers) {
-    assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
+    if (consumer.path === "intelligence/contracts/shadow-decision-readiness-contracts.json") {
+      assert.equal(
+        sha256Bytes(gitBytes(["show", `${routeQualitySuccessor.predecessor.commit}:${consumer.path}`])),
+        consumer.currentSha256,
+        consumer.path,
+      );
+    } else {
+      assert.equal(sha256(consumer.path), consumer.currentSha256, consumer.path);
+    }
     assert.notEqual(consumer.previousSha256, consumer.currentSha256, consumer.path);
   }
   for (const source of successor.protectedSourceTransitions) {
@@ -437,6 +448,41 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(successor.boundaryValidation.identityAndTimestampsServerOwned, true);
   assert.equal(successor.boundaryValidation.exactlyOnceIdempotentAppendOnlyEvidencePreserved, true);
   assert.equal(successor.boundaryValidation.zeroLiveGooglePreserved, true);
+  assert.equal(routeQualitySuccessor.batchId, "BATCH-20260714-002");
+  assert.equal(routeQualitySuccessor.status, "OWNER_VALIDATED_SUCCESSOR");
+  assert.equal(routeQualitySuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(routeQualitySuccessor.predecessor.path, "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json");
+  assert.equal(sha256(routeQualitySuccessor.predecessor.path), routeQualitySuccessor.predecessor.sha256);
+  assert.equal(routeQualitySuccessor.predecessor.remainsHistorical, true);
+  assert.equal(routeQualitySuccessor.predecessor.rewritten, false);
+  assert.equal(routeQualitySuccessor.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
+  assert.equal(routeQualitySuccessor.dataOwnerTransition.dashboardFetchEvidence.previousSourceFetches, 8);
+  assert.equal(routeQualitySuccessor.dataOwnerTransition.dashboardFetchEvidence.currentSourceFetches, 9);
+  assert.equal(
+    sha256(routeQualitySuccessor.dataOwnerTransition.routeQualityGate.path),
+    routeQualitySuccessor.dataOwnerTransition.routeQualityGate.currentSha256,
+  );
+  assert.equal(
+    sha256(routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.path),
+    routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.currentSha256,
+  );
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences.length, 1);
+  const affectedReference = routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences[0];
+  assert.equal(affectedReference.consumerPath, "intelligence/contracts/shadow-decision-readiness-contracts.json");
+  assert.equal(sha256(affectedReference.consumerPath), affectedReference.currentConsumerSha256);
+  assert.equal(affectedReference.currentProtectedSha256, routeQualitySuccessor.dataOwnerTransition.routeQualityGate.currentSha256);
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.canonicalReportPinnedByIntelligence, false);
+  assert.deepEqual(routeQualitySuccessor.protectedReferenceAudit.canonicalReportReferenceMatches, []);
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.allAffectedReferencesAccountedFor, true);
+  assert.equal(routeQualitySuccessor.advisoryArtifacts.regenerationRequired, false);
+  assert.equal(routeQualitySuccessor.boundaryValidation.collectionDefaultState, "OFF");
+  assert.equal(routeQualitySuccessor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(routeQualitySuccessor.boundaryValidation.readinessState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(routeQualitySuccessor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(routeQualitySuccessor.boundaryValidation.routeOrderingChanged, false);
+  assert.equal(routeQualitySuccessor.boundaryValidation.routeScoringChanged, false);
+  assert.equal(routeQualitySuccessor.boundaryValidation.routeGenerationChanged, false);
+  assert.equal(routeQualitySuccessor.boundaryValidation.zeroLiveGooglePreserved, true);
   assert.equal(evidence.methodologyConstraints.requiredEvaluationOutcomes, "97 eligible, linked, scoreable evaluation outcomes after exclusions");
   assert.equal(evidence.methodologyConstraints.requiredSampleAloneCanReachFounderReview, false);
   assert.equal(evidence.methodologyConstraints.minimumSupportedObservationsAcrossFivePopulatedBins, 100);

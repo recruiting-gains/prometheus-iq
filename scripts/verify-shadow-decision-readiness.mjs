@@ -433,11 +433,11 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     {
       path: "scripts/lib/route-intelligence-quality-gate.mjs",
       sha256:
-        "1fe8a282ecc1e1394822b64d09aac0613763fb4cd94d43cbaa38ba20a6a25400",
-      sourceCommit: "704537ded300cb674e53c047859eda19525a168d",
+        "e4ff3c3e3cf919c4d4986f873b79868f7e9f7537ad37854997b60695921dbc56",
+      sourceCommit: "26b07905926662e3323e557d77c608db0cbc23ed",
       sourceOwnerSubsystem: "Prometheus Data",
       provenance:
-        "Hash computed from the Data-owned route-quality gate after canonical eight-fetch baseline synchronization; Intelligence verifies but never rewrites the quality gate.",
+        "Hash computed from the Data-owned route-quality gate after canonical nine-fetch baseline synchronization; Intelligence verifies but never rewrites the quality gate.",
     },
   );
   for (const path of Object.values(contract.artifacts))
