@@ -18,9 +18,12 @@ const dataCommits = Object.freeze([
   "b7896a6",
   "f4ecc7e",
   "b388849",
-  "84319f9"
+  "84319f9",
+  "a5bd1d4",
+  "4803d7a",
+  "fdacf00"
 ]);
-const intelligenceCommits = Object.freeze(["4e66667"]);
+const intelligenceCommits = Object.freeze(["4e66667", "6e4d9f7", "925fa5e"]);
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -182,7 +185,10 @@ for (const prohibited of [
   "engineVersion",
   "readiness",
   "candidates",
-  "sourceManifest"
+  "sourceManifest",
+  "retentionEnvelope",
+  "retentionBoundary",
+  "sourceSession"
 ]) {
   assert.ok(testSource.includes(`"${prohibited}"`), `Tests must reject ${prohibited}`);
 }
@@ -253,7 +259,11 @@ for (const required of [
   'purpose: "committed_outcome_projection_read"',
   "recoverNextProjection",
   "ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.pendingOutbox",
-  "processed_with_failures"
+  "processed_with_failures",
+  "resolveRouteIqEvaluationRetentionEnvelope",
+  "buildNoncanonicalAuthenticatedDataRetentionEnvelope",
+  "route_iq_prospective_retention_input_unavailable",
+  "retentionEnvelope"
 ]) {
   assert.ok(runtime.includes(required), `Runtime reconciliation lifecycle must include ${required}`);
 }
@@ -262,6 +272,15 @@ assert.match(runtime, /Committed outcome projection recovery exceeded its hard b
 assert.match(runtime, /Route IQ prospective committed outcome link failed\./u);
 assert.match(runtime, /const recovered = await stub\.recoverNextProjection/u);
 assert.match(runtime, /const readOnce = async \(\) => stub\.readCommittedProjectionForOutcomeArtifact/u);
+assert.match(
+  runtime,
+  /noncanonicalTestHooks\?\.enabled !== true[\s\S]+typeof noncanonicalTestHooks\.buildNoncanonicalAuthenticatedDataRetentionEnvelope !== "function"/u
+);
+assert.ok(
+  runtime.indexOf("resolveRouteIqEvaluationRetentionEnvelope")
+    < runtime.indexOf("buildRouteIqEvaluationFromAdmittedOutcome({", runtime.indexOf("resolveRouteIqEvaluationRetentionEnvelope")),
+  "Authenticated retention resolution must precede evaluation construction"
+);
 
 for (const required of [
   "env.ASSETS.fetch",
@@ -427,6 +446,9 @@ for (const required of [
   "96 KiB",
   "96 bindings",
   "two-opportunity same-session restart coverage",
+  "authenticated Data retention envelope",
+  "route_iq_prospective_retention_input_unavailable",
+  "noncanonical test hook",
   "closeCanonicalSession",
   "governed_noop",
   "forward-revert",

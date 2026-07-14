@@ -508,6 +508,47 @@ async function readExactCommittedProjectionWithRecovery({
   );
 }
 
+function resolveRouteIqEvaluationRetentionEnvelope({
+  scope,
+  scoreableOutcome,
+  outcomeReceipt,
+  fieldSessionOutcomeProjection,
+  noncanonicalTestHooks
+}) {
+  if (noncanonicalTestHooks?.enabled !== true
+    || typeof noncanonicalTestHooks.buildNoncanonicalAuthenticatedDataRetentionEnvelope !== "function") {
+    failRouteIqProspective(
+      "Authenticated Data retention input is unavailable for prospective evaluation.",
+      "route_iq_prospective_retention_input_unavailable",
+      409
+    );
+  }
+
+  let retentionEnvelope;
+  try {
+    retentionEnvelope = noncanonicalTestHooks.buildNoncanonicalAuthenticatedDataRetentionEnvelope({
+      scope: { ...scope },
+      scoreableOutcome,
+      outcomeReceipt,
+      fieldSessionOutcomeProjection
+    });
+  } catch {
+    failRouteIqProspective(
+      "Noncanonical authenticated Data retention input is invalid.",
+      "route_iq_prospective_test_retention_input_invalid",
+      500
+    );
+  }
+  if (!retentionEnvelope || typeof retentionEnvelope !== "object" || Array.isArray(retentionEnvelope)) {
+    failRouteIqProspective(
+      "Noncanonical authenticated Data retention input is invalid.",
+      "route_iq_prospective_test_retention_input_invalid",
+      500
+    );
+  }
+  return retentionEnvelope;
+}
+
 export async function admitRouteIqProspectiveIntelligenceOutcomes({
   stub,
   scopeEnvelope,
@@ -574,11 +615,19 @@ export async function admitRouteIqProspectiveIntelligenceOutcomes({
       let evaluationReceipt = null;
       let evaluationSkipped = false;
       if (scoreableOutcome.observedOutcome.status === "observed") {
+        const retentionEnvelope = resolveRouteIqEvaluationRetentionEnvelope({
+          scope,
+          scoreableOutcome,
+          outcomeReceipt,
+          fieldSessionOutcomeProjection,
+          noncanonicalTestHooks
+        });
         evaluation = buildRouteIqEvaluationFromAdmittedOutcome({
           reconciliationReceipt,
           committedProjection,
           scoreableOutcome,
-          outcomeReceipt
+          outcomeReceipt,
+          retentionEnvelope
         });
         if (!isRouteIqEvaluationReadinessCountEligible(evaluation)) {
           failRouteIqProspective(

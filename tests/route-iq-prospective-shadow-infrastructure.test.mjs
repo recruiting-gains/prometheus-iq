@@ -38,6 +38,10 @@ import {
   routeIqProspectiveRuntimeContextContractVersion
 } from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs";
 import {
+  routeIqProspectiveRetentionBoundaryContractVersion,
+  routeIqProspectiveRetentionPolicyVersion
+} from "../data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs";
+import {
   getRouteIqProspectiveActivation,
   routeIqProspectiveCohortConfigVersion,
   routeIqProspectivePrincipalMapVersion,
@@ -179,6 +183,60 @@ function territoryContext(representativeId = "cruz") {
     sourceRecordSha256: digest(`territory-source:${representativeId}`),
     sourceContractVersion: "route-iq-trusted-territory-context-v1",
     availableAt: "2026-07-12T18:00:00.000Z"
+  };
+}
+
+function noncanonicalFieldSessionId(representativeId = "cruz") {
+  return `route-iq-field-session-fitness-connection-fitness-${representativeId}-2026-07-13`;
+}
+
+function buildNoncanonicalAuthenticatedDataRetentionEnvelope({
+  scope: evaluationScope,
+  scoreableOutcome,
+  outcomeReceipt,
+  fieldSessionOutcomeProjection
+}) {
+  assert.equal(
+    scoreableOutcome.sourceArchiveRawSha256,
+    fieldSessionOutcomeProjection.sourceArchive.rawSha256
+  );
+  assert.equal(
+    fieldSessionOutcomeProjection.sourceArchive.sourceArchiveSessionSha256,
+    committedDigest(noncanonicalFieldSessionId(evaluationScope.representativeId))
+  );
+  const expiresAt = new Date(
+    Date.parse(outcomeReceipt.authoritativeRecordTime) + (30 * 24 * 60 * 60 * 1000)
+  ).toISOString();
+  return {
+    workspaceId: evaluationScope.workspaceId,
+    operatingProfileId: evaluationScope.operatingProfileId,
+    representativeId: evaluationScope.representativeId,
+    collectionState: "on",
+    recommendationInfluence: "off",
+    recordOrigin: "prospective",
+    policyVersion: routeIqProspectiveRetentionPolicyVersion,
+    retentionBoundary: {
+      contractVersion: routeIqProspectiveRetentionBoundaryContractVersion,
+      authorizationState: "authorized_existing_field_session_boundary",
+      source: "authenticated_data_retention_contract",
+      expiresAt
+    },
+    evaluatedAt: outcomeReceipt.authoritativeRecordTime,
+    deletionCapabilityStatus: "verified_not_activated",
+    legalHoldState: "none",
+    derivedProjectionExpiresAt: expiresAt,
+    sourceSession: {
+      coordinatorSessionId: outcomeReceipt.sessionId,
+      fieldSessionId: noncanonicalFieldSessionId(evaluationScope.representativeId),
+      rawSha256: fieldSessionOutcomeProjection.sourceArchive.rawSha256,
+      consumptionEligibility: {
+        eligible: true,
+        state: "NOT_ADMINISTRATIVELY_EXCLUDED",
+        reason: null,
+        auditOnly: false,
+        excludedDomains: []
+      }
+    }
   };
 }
 
@@ -453,6 +511,7 @@ async function accessFixture({
   const noncanonicalTestHooks = {
     enabled: true,
     currentDate: testNow,
+    buildNoncanonicalAuthenticatedDataRetentionEnvelope,
     lifecycleNow() {
       calls.push("lifecycle_server_clock");
       if (!lifecycleDates?.length) return new Date(testNow);
@@ -701,7 +760,7 @@ function committedOutcomeBatchFixture(definitions, representativeId = "cruz") {
     scope: scope(representativeId),
     sourceArchive: {
       handoffContractId: ROUTE_IQ_PROSPECTIVE_HANDOFF_CONTRACT,
-      sourceArchiveSessionSha256: committedDigest(`archive-session:${representativeId}:batch`),
+      sourceArchiveSessionSha256: committedDigest(noncanonicalFieldSessionId(representativeId)),
       rawSha256: committedDigest(`archive-raw:${representativeId}:batch`),
       normalizedSha256: committedDigest(`archive-normalized:${representativeId}:batch`),
       archiveCommittedAt: committedOutcomeTimes.archiveCommitted
@@ -1682,7 +1741,13 @@ test("committed outcome helper derives producer admissions from exact projection
           reconciliationReceipt: fixture.reconciliationReceipt,
           committedProjection,
           scoreableOutcome: expectedScoreableOutcome,
-          outcomeReceipt: expectedOutcomeReceipt
+          outcomeReceipt: expectedOutcomeReceipt,
+          retentionEnvelope: buildNoncanonicalAuthenticatedDataRetentionEnvelope({
+            scope: scope(),
+            scoreableOutcome: expectedScoreableOutcome,
+            outcomeReceipt: expectedOutcomeReceipt,
+            fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection
+          })
         });
         const expectedClaims = buildRouteIqEvaluationAdmissionClaims({
           scope: scope(),
@@ -1795,6 +1860,61 @@ test("committed outcome helper derives producer admissions from exact projection
     });
     assert.equal(access.calls.includes("evaluation_admission_rpc"), false);
   });
+
+  await t.test("production path without authenticated Data retention input cannot admit a readiness evaluation", async () => {
+    const fixture = committedOutcomeFixture({ visitLabel: "missing-retention" });
+    const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt,
+      sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+    });
+    let expectedOutcomeReceipt = null;
+    const access = await accessFixture({
+      scoreableOutcomeAdmissionImplementation(command) {
+        expectedOutcomeReceipt = outcomeReceiptFixture(expectedScoreableOutcome, {
+          authoritativeRecordTime: command.input.authorityEnvelope.claims.authoritativeRecordTime
+        });
+        return expectedOutcomeReceipt;
+      },
+      committedProjectionReadImplementation() {
+        return {
+          ok: true,
+          found: true,
+          record: committedProjectionRecordFixture(expectedScoreableOutcome, expectedOutcomeReceipt)
+        };
+      },
+      evaluationAdmissionImplementation() {
+        throw new Error("missing authenticated retention input must not admit an evaluation");
+      }
+    });
+    const result = await admitRouteIqProspectiveIntelligenceOutcomes({
+      stub: access.env[ROUTE_IQ_PROSPECTIVE_SHADOW_BINDING].getByName("missing-retention"),
+      scopeEnvelope: await createRouteIqProspectiveAuthorityEnvelope({
+        purpose: "coordinator_scope",
+        ...scope(),
+        registryVersion: "noncanonical-test-registry-v1",
+        issuedAt: testNow.toISOString(),
+        territoryContext: territoryContext()
+      }, access.env),
+      scope: scope(),
+      env: access.env,
+      fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+      reconciliationReceipt: fixture.reconciliationReceipt
+    });
+    assert.equal(result.status, "processed_with_failures");
+    assert.deepEqual(result.totals, {
+      linkedCount: 1,
+      admittedOutcomeCount: 1,
+      admittedEvaluationCount: 0,
+      skippedEvaluationCount: 0,
+      failedLinkCount: 1
+    });
+    assert.equal(
+      result.processedLinks[0].code,
+      "route_iq_prospective_retention_input_unavailable"
+    );
+    assert.equal(access.calls.includes("evaluation_admission_rpc"), false);
+  });
 });
 
 test("committed outcome helper continues later links after poisoned failures and enforces the governed recovery bound", async t => {
@@ -1844,7 +1964,13 @@ test("committed outcome helper continues later links after poisoned failures and
           reconciliationReceipt: batch.reconciliationReceipt,
           committedProjection: committedProjectionRecordFixture(secondScoreable, secondOutcomeReceipt),
           scoreableOutcome: secondScoreable,
-          outcomeReceipt: secondOutcomeReceipt
+          outcomeReceipt: secondOutcomeReceipt,
+          retentionEnvelope: buildNoncanonicalAuthenticatedDataRetentionEnvelope({
+            scope: scope(),
+            scoreableOutcome: secondScoreable,
+            outcomeReceipt: secondOutcomeReceipt,
+            fieldSessionOutcomeProjection: batch.fieldSessionOutcomeProjection
+          })
         });
         assert.deepEqual(
           command.input.authorityEnvelope.claims,
@@ -2183,7 +2309,10 @@ test("browser body allowlist rejects authority, candidate, source, seal, and rea
     "engineVersion",
     "readiness",
     "candidates",
-    "sourceManifest"
+    "sourceManifest",
+    "retentionEnvelope",
+    "retentionBoundary",
+    "sourceSession"
   ];
   for (const field of prohibitedFields) {
     const response = await handleRouteIqProspectiveShadowRequest(
@@ -2908,7 +3037,8 @@ test("real Miniflare restart processes two same-session reconciliation links aga
       reconciliationReceipt,
       noncanonicalTestHooks: {
         enabled: true,
-        currentDate: testNow
+        currentDate: testNow,
+        buildNoncanonicalAuthenticatedDataRetentionEnvelope
       }
     });
     assert.equal(processed.status, "processed");
