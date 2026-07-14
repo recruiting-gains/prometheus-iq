@@ -1,0 +1,200 @@
+{
+  "governanceId": "route-iq-prospective-collection-activation-readiness-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260714-003",
+  "status": "SOURCE_COMPLETE_ACTIVATION_BLOCKED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "directive": "Route IQ Prospective Collection Activation Readiness v1",
+  "authorizedStartingState": {
+    "branch": "main",
+    "commit": "d0ba56412de7535aa00f3d1396af037e941f2a6b",
+    "tree": "f5d8df22a696be1cc87fe52cc236fbfdaa32a406"
+  },
+  "ownership": {
+    "implementationOriginatedFromSubsystemOwners": true,
+    "overwatchImplementationOwnershipViolation": false,
+    "dataCommits": [
+      "a5bd1d431e778cec045d1e8412efb396674ea321",
+      "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+      "fdacf00da221ae5cc473fb57173a7940483deeb7"
+    ],
+    "infrastructureCommits": [
+      "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+      "46658265248b03f7b52f9e1ec0b1ca61ca2b5920"
+    ],
+    "intelligenceCommits": [
+      "6e4d9f70dc5a00949773f1e9fbb5206f30ea6c8a",
+      "925fa5e18ab0dd816e55ce56814efadc7fef2556",
+      "8479bb47195dee1c227d15064e49d988142c709a"
+    ],
+    "verificationOwner": "Prometheus Overwatch"
+  },
+  "retentionBoundary": {
+    "policyPath": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+    "policySha256": "f8e050052a3d966c18c3374f5748c1519075625a4272f3751ba33859bd651e9c",
+    "evaluatorPath": "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+    "evaluatorSha256": "1b9d9c32f9665e3346604fbc3590245b287af765d01a872438e54ba56890c313",
+    "policyStatus": "defined_fail_closed_pending_explicit_retention_boundary",
+    "numericDurationSelected": false,
+    "durationDays": null,
+    "newRetentionPeriodIntroduced": false,
+    "existingRetentionPeriodExtended": false,
+    "physicalDeletionImplemented": false,
+    "legalHoldImplemented": false,
+    "activationEligible": false,
+    "activationBlockers": [
+      "explicit_authorized_field_session_retention_boundary_missing",
+      "prospective_expiry_and_deletion_runtime_not_verified",
+      "founder_collection_activation_not_authorized"
+    ],
+    "unknownFieldsFailClosed": true,
+    "additionalPiiCollected": false
+  },
+  "activationCohort": {
+    "templatePath": "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json",
+    "templateSha256": "8bc5e53111df2c17529f93815855ce0e1f5510f80d070542c48934348532ac7b",
+    "templateState": "INERT_DEFAULT_OFF",
+    "productionUseOfTemplateProhibited": true,
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "maximumActiveRepresentatives": 1,
+    "maximumConfigLifetimeHours": 24,
+    "supportedOpportunityTypes": [
+      "next_stop"
+    ],
+    "founderDeploymentApprovalRequired": true,
+    "founderActivationApprovalRequired": true
+  },
+  "killSwitch": {
+    "environmentVariable": "ROUTE_IQ_PROSPECTIVE_SHADOW_COLLECTION",
+    "onlyExactOnEnablesCollection": true,
+    "missingEmptyMalformedLowercaseUnknownMeansOff": true,
+    "cohortConfigurationIsIndependentSecondGate": true,
+    "administrativeUiIntroduced": false,
+    "futureChangeMustBeAuthenticated": true,
+    "futureChangeMustBeAudited": true,
+    "disablePreservesExistingEvidence": true,
+    "recommendationInfluenceIndependent": true
+  },
+  "monitoring": {
+    "auditorPath": "workers/infrastructure/route-iq-prospective-shadow-readiness.js",
+    "auditorSha256": "9c7a55543fa03d12dd31c8bf58f36a2d441983da4c2d37de0c08271badf41c9e",
+    "runbookPath": "docs/route-iq-prospective-collection-activation-runbook-v1.md",
+    "runbookSha256": "714ed2730ea77e63146c1486ef5665344e18fd83dcd721c5417e5258c30c9568",
+    "localPureEvaluationOnly": true,
+    "productionAccessUsed": false,
+    "productionVerified": false,
+    "requiredZeroWhileOff": [
+      "attemptedApplicationWrites",
+      "activeCohortCount",
+      "durableObjectInstanceCount",
+      "kvWriteCount",
+      "prospectiveRecordCount",
+      "conflictCount",
+      "exclusionCount",
+      "evaluationCount"
+    ]
+  },
+  "administrativeDisposition": {
+    "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "originalRecordCount": 7,
+    "state": "EXCLUDED_FROM_ANALYTICS",
+    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "sourceArchiveRewriteAllowed": false,
+    "automaticZeroVisitExclusionAllowed": false,
+    "excludedDomainCount": 12,
+    "auditVisibility": "hash_only",
+    "productionDispositionPresenceRechecked": false,
+    "productionAccessProhibitedByDirective": true
+  },
+  "intelligenceAdmission": {
+    "specificationPath": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+    "specificationSha256": "44ced976de88c022335d4dfdbe416844c1d65387158ca7fb1ba8030ccf797d7a",
+    "admissionRuntimePath": "intelligence/route-iq-prospective-retention-admission.mjs",
+    "admissionRuntimeSha256": "39210e5d636477db7575679a8d787d06b5f17d0baadd7f85325031e1d1e32d9c",
+    "consumerCount": 7,
+    "excludedDomainCount": 12,
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "productionProspectiveRecords": 0,
+    "productionEvaluations": 0,
+    "representativeShadowOutput": false,
+    "recommendationInfluence": "OFF"
+  },
+  "protectedBaselineSuccessor": {
+    "historicalBaselinePath": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-v1.json",
+    "historicalBaselineRemainsHistorical": true,
+    "currentDataCoordinatorOwnerCommit": "fdacf00da221ae5cc473fb57173a7940483deeb7",
+    "currentInfrastructureOwnerCommit": "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
+    "currentIntelligenceOwnerCommit": "8479bb47195dee1c227d15064e49d988142c709a",
+    "currentProtectedSources": [
+      {
+        "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+        "ownerSubsystem": "Prometheus Data",
+        "sha256": "da7345b2bc1fe25c3977d5b15d3c02d0f1ef83fd7626a133449f2f3d3af3db18"
+      },
+      {
+        "path": "workers/prometheus-iq-worker.js",
+        "ownerSubsystem": "Prometheus Infrastructure",
+        "sha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
+      },
+      {
+        "path": "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+        "ownerSubsystem": "Prometheus Infrastructure",
+        "sha256": "b10baf0d01175bf65111f3e7b309c57006dcb11ccc37d5025fb6080765b191c9"
+      }
+    ],
+    "currentProtectedConsumers": [
+      {
+        "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "sha256": "cb9e70024609f67cc5763f858566f2a4a2ac83ea8c0ac184bf1104ee1ccf047f"
+      },
+      {
+        "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "sha256": "6e409a72106e4f6bcc49b7a5a4fbaa6e26c20e6beda242ec6a1b08264ee31a07"
+      },
+      {
+        "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "sha256": "3eda34be09ccb92f3e9eef661f6c194377510625356c12edda429eaf04fe326d"
+      },
+      {
+        "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "sha256": "72e681cfb0be41fb0d6cf0263856f649b2ed173b8e369e5ad789f371675c5a66"
+      },
+      {
+        "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "sha256": "b2167ce79688fd7896ae811c0c5a68d93597e8c70c2cf8432ae4fb36847c5107"
+      }
+    ]
+  },
+  "architectureBoundary": {
+    "newSubsystemCreated": false,
+    "newVendorOrModelDependencyIntroduced": false,
+    "newPiiCollectionIntroduced": false,
+    "newProductionConsumerIntroduced": false,
+    "newRetentionPeriodIntroduced": false,
+    "historicalArchiveRewritten": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false,
+    "deploymentPerformed": false,
+    "collectionActivated": false,
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "engineeringBatchMayBeAutoPushedAfterExactHeadPass": true,
+    "activationReadiness": "HOLD_NOT_ACTIVATION_READY",
+    "deploymentAuthorized": false,
+    "collectionActivationAuthorized": false,
+    "productionVerificationDeferredUntilFounderReturnsToLaptop": true,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

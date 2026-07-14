@@ -455,6 +455,45 @@
           "failClosedIfMissing": true
         },
         {
+          "artifactId": "fitness_connection_route_iq_prospective_retention_policy",
+          "artifactType": "data_prospective_shadow_retention_policy",
+          "ownerSubsystem": "Prometheus Data",
+          "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+          "schema": "RouteIqProspectiveShadowRetentionPolicyV1",
+          "writeAllowed": ["Prometheus Data"],
+          "readAllowed": ["Prometheus Infrastructure", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_route_iq_collection_activation_governance",
+          "artifactType": "overwatch_collection_activation_governance",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/governance/route-iq-prospective-collection-activation-v1.json",
+          "schema": "RouteIqProspectiveCollectionActivationGovernanceV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
+          "artifactId": "fitness_connection_route_iq_collection_activation_batch_record",
+          "artifactType": "overwatch_engineering_batch_record",
+          "ownerSubsystem": "Prometheus Overwatch",
+          "path": "overwatch/reports/BATCH-20260714-003-route-iq-prospective-collection-activation-readiness.json",
+          "schema": "RouteIqProspectiveCollectionActivationBatchRecordV1",
+          "writeAllowed": ["Prometheus Overwatch"],
+          "readAllowed": ["Prometheus Overwatch"],
+          "productionConsumer": false,
+          "requiredWorkspaceId": "fitness_connection",
+          "requiredOperatingProfileId": "fitness",
+          "failClosedIfMissing": true
+        },
+        {
           "artifactId": "fitness_connection_release_provenance_repair_mapping",
           "artifactType": "overwatch_release_provenance_governance",
           "ownerSubsystem": "Prometheus Overwatch",

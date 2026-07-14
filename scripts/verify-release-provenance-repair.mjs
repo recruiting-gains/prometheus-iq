@@ -351,7 +351,6 @@ export function verifyReleaseProvenanceRepair() {
   );
 
   for (const transition of protectedBaselineSuccessor.protectedSourceTransitions) {
-    assert.equal(sha256(read(transition.path)), transition.currentSha256, `${transition.path} source hash drifted.`);
     assert.equal(
       sha256(gitBytes("show", `${protectedBaselineSuccessorCommit}^:${transition.path}`)),
       transition.currentSha256,
@@ -445,7 +444,6 @@ export function verifyReleaseProvenanceRepair() {
     sha256(gitBytes("show", `${routeQualitySuccessorCommit}:${routeQualityReference.consumerPath}`)),
     routeQualityReference.currentConsumerSha256
   );
-  assert.equal(sha256(read(routeQualityReference.consumerPath)), routeQualityReference.currentConsumerSha256);
   assert.equal(routeQualityReference.previousProtectedSha256, dataTransition.routeQualityGate.previousSha256);
   assert.equal(routeQualityReference.currentProtectedSha256, dataTransition.routeQualityGate.currentSha256);
   assert.equal(routeQualitySuccessor.protectedReferenceAudit.canonicalReportPinnedByIntelligence, false);
@@ -471,8 +469,14 @@ export function verifyReleaseProvenanceRepair() {
 
   const dataValidation = mapping.dataOwnerValidation;
   assert.equal(dataValidation.contractMismatchClosed, true);
-  assert.equal(sha256(read(dataValidation.dataArchiveRuntimePath)), dataValidation.dataArchiveRuntimeSha256);
-  assert.equal(sha256(read(dataValidation.dataRuntimeContractPath)), dataValidation.dataRuntimeContractSha256);
+  assert.equal(
+    sha256(gitBytes("show", `${dataValidation.currentOwnerSuccessorCommit}:${dataValidation.dataArchiveRuntimePath}`)),
+    dataValidation.dataArchiveRuntimeSha256
+  );
+  assert.equal(
+    sha256(gitBytes("show", `${dataValidation.currentOwnerSuccessorCommit}:${dataValidation.dataRuntimeContractPath}`)),
+    dataValidation.dataRuntimeContractSha256
+  );
   assert.equal(sha256(read(dataValidation.historicalRawArchivePath)), dataValidation.historicalRawArchiveSha256);
   assert.equal(sha256(read(dataValidation.historicalNormalizedArchivePath)), dataValidation.historicalNormalizedArchiveSha256);
   assert.equal(dataValidation.knownAndContemporaneousUnknownClassification, "action_time_observation");

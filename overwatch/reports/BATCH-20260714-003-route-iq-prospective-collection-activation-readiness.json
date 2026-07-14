@@ -1,0 +1,171 @@
+{
+  "reportId": "BATCH-20260714-003-route-iq-prospective-collection-activation-readiness",
+  "batchId": "BATCH-20260714-003",
+  "status": "SOURCE_COMPLETE_PENDING_EXACT_HEAD_VERIFICATION",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "engineeringDirective": "Route IQ Prospective Collection Activation Readiness v1",
+  "authorizedStartingState": {
+    "commit": "d0ba56412de7535aa00f3d1396af037e941f2a6b",
+    "tree": "f5d8df22a696be1cc87fe52cc236fbfdaa32a406"
+  },
+  "dispatchAudit": {
+    "dispatchStartedAt": "2026-07-14T15:38:07Z",
+    "independentVerificationStartedAt": "2026-07-14T16:19:31Z",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "subsystems": [
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Data",
+        "implementationOwner": "Prometheus Data",
+        "commits": [
+          "a5bd1d431e778cec045d1e8412efb396674ea321",
+          "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+          "fdacf00da221ae5cc473fb57173a7940483deeb7"
+        ],
+        "files": [
+          "data/route-iq-field-sessions-v1/README.md",
+          "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+          "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+          "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+          "tests/route-iq-field-session-archive.test.mjs",
+          "tests/route-iq-prospective-retention-policy.test.mjs",
+          "tests/route-iq-prospective-shadow-allocator.test.mjs",
+          "tests/route-iq-prospective-shadow-evidence.test.mjs"
+        ]
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Infrastructure",
+        "implementationOwner": "Prometheus Infrastructure",
+        "commits": [
+          "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+          "46658265248b03f7b52f9e1ec0b1ca61ca2b5920"
+        ],
+        "files": [
+          "docs/route-iq-prospective-collection-activation-runbook-v1.md",
+          "docs/route-iq-prospective-shadow-infrastructure-v1.md",
+          "scripts/verify-route-iq-prospective-shadow-infrastructure.mjs",
+          "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
+          "workers/infrastructure/route-iq-prospective-shadow-access.js",
+          "workers/infrastructure/route-iq-prospective-shadow-activation-template-v1.json",
+          "workers/infrastructure/route-iq-prospective-shadow-contract.js",
+          "workers/infrastructure/route-iq-prospective-shadow-readiness.js",
+          "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+          "workers/prometheus-iq-worker.js"
+        ]
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Intelligence Engine",
+        "implementationOwner": "Prometheus Intelligence Engine",
+        "commits": [
+          "6e4d9f70dc5a00949773f1e9fbb5206f30ea6c8a",
+          "925fa5e18ab0dd816e55ce56814efadc7fef2556",
+          "8479bb47195dee1c227d15064e49d988142c709a"
+        ],
+        "files": [
+          "intelligence/README.md",
+          "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+          "intelligence/contracts/read-only-field-session-learning-contracts.json",
+          "intelligence/contracts/shadow-decision-readiness-contracts.json",
+          "intelligence/off-route-learning-intelligence.md",
+          "intelligence/off-route-learning-intelligence.mjs",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+          "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+          "intelligence/read-only-field-session-learning.md",
+          "intelligence/read-only-field-session-learning.mjs",
+          "intelligence/route-iq-committed-outcome-evaluation.mjs",
+          "intelligence/route-iq-prospective-retention-admission.mjs",
+          "intelligence/shadow-decision-readiness.md",
+          "intelligence/shadow-decision-readiness.mjs",
+          "scripts/validate-intelligence-architecture.mjs",
+          "scripts/verify-route-iq-prospective-retention-intelligence.mjs",
+          "scripts/verify-shadow-decision-readiness.mjs",
+          "tests/intelligence-architecture.test.mjs",
+          "tests/off-route-learning-intelligence.test.mjs",
+          "tests/read-only-field-session-learning.test.mjs",
+          "tests/route-iq-committed-outcome-evaluation.test.mjs",
+          "tests/route-iq-prospective-retention-intelligence.test.mjs",
+          "tests/shadow-decision-readiness.test.mjs"
+        ]
+      }
+    ],
+    "filesChangedByOverwatch": [
+      "overwatch/artifact-contracts/canonical-artifact-registry.json",
+      "overwatch/governance/route-iq-prospective-collection-activation-v1.json",
+      "overwatch/reports/BATCH-20260714-003-route-iq-prospective-collection-activation-readiness.json",
+      "package.json",
+      "scripts/verify-overwatch-route-iq-prospective-collection-activation.mjs",
+      "scripts/verify-release-provenance-repair.mjs",
+      "tests/overwatch-shadow-decision-readiness-gate.test.mjs",
+      "tests/overwatch-route-iq-prospective-collection-activation.test.mjs"
+    ]
+  },
+  "completedWork": {
+    "dataRetentionPolicy": "defined_fail_closed_pending_explicit_retention_boundary",
+    "oneRepresentativeCohortDesign": "INERT_DEFAULT_OFF",
+    "founderKillSwitchGovernance": "defined",
+    "localOffOnReadinessAuditor": "implemented_noncanonical_local_only",
+    "archiveDispositionConsumerExclusion": "verified_across_seven_intelligence_consumers_and_twelve_domains",
+    "retentionAdmissionCoordinatorRepair": "strict_data_validation_integrated",
+    "authenticatedRetentionRuntimeSeam": "production_fail_closed_noncanonical_fixture_only",
+    "deploymentAndActivationRunbook": "prepared_requires_later_founder_authorization_and_authentication",
+    "recommendationInfluence": "OFF"
+  },
+  "retentionDecision": {
+    "numericDurationSelected": false,
+    "newRetentionPeriodIntroduced": false,
+    "retentionExpanded": false,
+    "physicalDeletionImplemented": false,
+    "legalHoldImplemented": false,
+    "activationEligible": false,
+    "reason": "No existing explicit field-session retention deadline or verified expiry/deletion capability was available locally; the policy fails closed instead of inventing one."
+  },
+  "privacyAndIsolation": {
+    "newPiiCollected": false,
+    "newThirdPartyTransmission": false,
+    "workspaceIsolationPreserved": true,
+    "representativeIsolationPreserved": true,
+    "unknownRetentionFieldsFailClosed": true,
+    "historicalArchiveRewritten": false
+  },
+  "currentBoundaries": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "productionProspectiveRecords": 0,
+    "productionEvaluations": 0,
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "recommendationInfluence": "OFF",
+    "deploymentAuthorized": false,
+    "activationAuthorized": false,
+    "productionAccessUsed": false,
+    "productionMutationPerformed": false
+  },
+  "verification": {
+    "ownerSuitesReportedPassing": true,
+    "independentExactHeadSuiteStatus": "PENDING_UNTIL_ALL_TRACKED_OVERWATCH_CHANGES_ARE_COMMITTED",
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  },
+  "release": {
+    "automaticPushPolicyAppliesAfterExactHeadPass": true,
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "activationReadiness": "HOLD_NOT_ACTIVATION_READY",
+    "activationStatus": "OFF",
+    "productionAccessRequiredForThisSourceBatch": false
+  },
+  "nextFounderAction": {
+    "whenBackAtLaptop": [
+      "Decide or authorize the exact existing field-session retention deadline and the Data-owned expiry, deletion, and legal-hold behavior.",
+      "Issue a separate deployment authorization naming the exact commit, tree, private Worker target, and rollback package.",
+      "Authenticate to Cloudflare for a dark collection-OFF deployment and read-only production verification.",
+      "Review a later exact one-representative cohort and issue separate activation approval only after all retention and production gates pass."
+    ]
+  }
+}
