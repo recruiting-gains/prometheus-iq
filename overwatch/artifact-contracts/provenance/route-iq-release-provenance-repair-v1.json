@@ -1,6 +1,6 @@
 {
   "contractId": "route-iq-release-provenance-repair-v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "active_governance_only",
   "owningSubsystem": "Prometheus Overwatch",
   "batchId": "BATCH-20260713-002",
@@ -16,7 +16,8 @@
     "intelligenceOwnerRepairCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
     "currentIntelligenceSuccessorCommits": [
       "cd0a504328b0870aa695731230e6c43dd4698e3c",
-      "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+      "ed46fb0964187a207468cd89fbdc1fbbb8426748",
+      "e0f14743867bf765f05225e0321f2596741b8c70"
     ],
     "intelligenceOwnerEvidence": "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json",
     "intelligenceOwnedFiles": [
@@ -66,7 +67,8 @@
     "intelligenceCommit": "1bb7d09dff254503d56027a87efe0d526228f35a",
     "currentIntelligenceSuccessorCommits": [
       "cd0a504328b0870aa695731230e6c43dd4698e3c",
-      "ed46fb0964187a207468cd89fbdc1fbbb8426748"
+      "ed46fb0964187a207468cd89fbdc1fbbb8426748",
+      "e0f14743867bf765f05225e0321f2596741b8c70"
     ],
     "verificationOwner": "Prometheus Overwatch"
   },
@@ -114,9 +116,10 @@
   "dataOwnerValidation": {
     "contractMismatchClosed": true,
     "dataArchiveRuntimePath": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
-    "dataArchiveRuntimeSha256": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb",
+    "dataArchiveRuntimeSha256": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365",
     "dataRuntimeContractPath": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
-    "dataRuntimeContractSha256": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35",
+    "dataRuntimeContractSha256": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc",
+    "currentOwnerSuccessorCommit": "f50d10f14f993b4e6ff42887e76c10721852cc43",
     "historicalRawArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
     "historicalRawArchiveSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
     "historicalNormalizedArchivePath": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
@@ -127,6 +130,37 @@
     "historicalArchiveRewritten": false,
     "retryAndReplayRemainIdempotent": true,
     "workspaceIsolationPreserved": true
+  },
+  "currentIntelligenceOwnerSuccessor": {
+    "batchId": "BATCH-20260714-001",
+    "commit": "e0f14743867bf765f05225e0321f2596741b8c70",
+    "tree": "226dde2fba076802f6e8e9562003f78b1f44f6f8",
+    "canonicalOwner": "Prometheus Intelligence Engine",
+    "reason": "Synchronize Data administrative-disposition exclusion semantics and protected consumer baselines without rewriting legacy reconstruction evidence.",
+    "legacyProvenanceArtifactsModified": false,
+    "recommendationInfluence": "OFF",
+    "protectedConsumers": [
+      {
+        "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+        "sha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433"
+      },
+      {
+        "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+        "sha256": "71b1a47c52a1a6c840bbbb782564249467d61059a63c54dfea6980928a88fe75"
+      },
+      {
+        "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+        "sha256": "b7a46020b24bbee5197e2e3e09501478819d311887722fb7bfd0a1aa1fcfb0e3"
+      },
+      {
+        "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+        "sha256": "976fa4bc62b51989787cc21ba551d6d0467206321f36cb4dd55be33a0b662f9f"
+      },
+      {
+        "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "sha256": "b93f2d461560fa0b575f9820b425e77413eafa6c56035174fb4c7d9a0548fbb1"
+      }
+    ]
   },
   "dashboardOwnerValidation": {
     "evidencePath": "dashboard/decision-context-producer-validation-v1.md",

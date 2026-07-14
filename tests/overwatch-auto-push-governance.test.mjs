@@ -97,7 +97,11 @@ function passingManifest() {
       dataAndContractConsiderationsRecorded: true,
       reverseCommitOrder: [commit],
       isolatedExerciseRequired: true,
-      isolatedExercisePassed: true
+      isolatedExercisePassed: true,
+      statefulMigrationPresent: false
+    },
+    productionSmoke: {
+      required: false
     },
     externalActionAudit: {
       liveProviderCheckCompleted: true,
@@ -214,4 +218,89 @@ test("A passing batch with no outgoing commits requires no push", () => {
     reviewTriggers: [],
     failures: []
   });
+});
+
+test("A stateful migration requires a forward-compatible rollback candidate", () => {
+  const manifest = passingManifest();
+  manifest.rollback.statefulMigrationPresent = true;
+  manifest.rollback.nativeProviderRollbackUsed = true;
+
+  const result = evaluateAutomaticPushEligibility(manifest);
+  assert.equal(result.status, "PUSH_BLOCKED");
+  assert.match(result.failures.join("\n"), /forwardCompatibleDeploymentCandidateVerified/);
+  assert.match(result.failures.join("\n"), /nativeProviderRollbackUsed must be false/);
+});
+
+test("A verified stateful forward rollback remains auto-push eligible", () => {
+  const manifest = passingManifest();
+  Object.assign(manifest.rollback, {
+    statefulMigrationPresent: true,
+    nativeProviderRollbackUsed: false,
+    forwardCompatibleDeploymentCandidateVerified: true,
+    appliedMigrationHistoryPreserved: true,
+    classExportsBindingsAndProtectedSecretReferencesPreserved: true,
+    statefulNamespacePreserved: true,
+    deletedClassMigrationAbsent: true
+  });
+
+  assert.equal(evaluateAutomaticPushEligibility(manifest).status, "AUTO_PUSH_ELIGIBLE");
+});
+
+test("Production smoke requires exact pre-navigation viewport and zero writes", () => {
+  const manifest = passingManifest();
+  manifest.productionSmoke = {
+    required: true,
+    newBrowserContext: true,
+    authenticated: true,
+    readOnlyGuardInstalledBeforeNavigation: true,
+    viewportConfiguredBeforeNavigation: true,
+    viewportConfirmedBeforeNavigation: true,
+    defaultDenyWriteGuard: true,
+    serviceWorkersBlocked: true,
+    formSubmissionsBlocked: true,
+    downloadsBlocked: true,
+    popupsBlocked: true,
+    dialogsBlocked: true,
+    beforeAfterCountsCaptured: true,
+    beforeAfterCountsMatch: false,
+    expectedViewport: { width: 390, height: 844 },
+    actualViewport: { width: 391, height: 844 },
+    attemptedWrites: 1,
+    dialogsObserved: 0,
+    applicationDataChanges: 1
+  };
+
+  const result = evaluateAutomaticPushEligibility(manifest);
+  assert.equal(result.status, "PUSH_BLOCKED");
+  assert.match(result.failures.join("\n"), /beforeAfterCountsMatch/);
+  assert.match(result.failures.join("\n"), /viewport must exactly match/);
+  assert.match(result.failures.join("\n"), /attemptedWrites must be 0/);
+  assert.match(result.failures.join("\n"), /applicationDataChanges must be 0/);
+});
+
+test("A read-only exact-viewport production smoke can pass", () => {
+  const manifest = passingManifest();
+  manifest.productionSmoke = {
+    required: true,
+    newBrowserContext: true,
+    authenticated: true,
+    readOnlyGuardInstalledBeforeNavigation: true,
+    viewportConfiguredBeforeNavigation: true,
+    viewportConfirmedBeforeNavigation: true,
+    defaultDenyWriteGuard: true,
+    serviceWorkersBlocked: true,
+    formSubmissionsBlocked: true,
+    downloadsBlocked: true,
+    popupsBlocked: true,
+    dialogsBlocked: true,
+    beforeAfterCountsCaptured: true,
+    beforeAfterCountsMatch: true,
+    expectedViewport: { width: 390, height: 844 },
+    actualViewport: { width: 390, height: 844 },
+    attemptedWrites: 0,
+    dialogsObserved: 0,
+    applicationDataChanges: 0
+  };
+
+  assert.equal(evaluateAutomaticPushEligibility(manifest).status, "AUTO_PUSH_ELIGIBLE");
 });

@@ -194,6 +194,50 @@ export function evaluateAutomaticPushEligibility(manifest, policy = readJson(pol
     failures.push("required isolated rollback exercise did not pass");
   }
 
+  if (manifest.rollback?.statefulMigrationPresent === true) {
+    const requiredStatefulRollback = [
+      "forwardCompatibleDeploymentCandidateVerified",
+      "appliedMigrationHistoryPreserved",
+      "classExportsBindingsAndProtectedSecretReferencesPreserved",
+      "statefulNamespacePreserved",
+      "deletedClassMigrationAbsent"
+    ];
+    for (const field of requiredStatefulRollback) {
+      if (manifest.rollback?.[field] !== true) failures.push(`rollback.${field} must be true for a stateful migration`);
+    }
+    if (manifest.rollback?.nativeProviderRollbackUsed !== false) {
+      failures.push("rollback.nativeProviderRollbackUsed must be false for a stateful migration");
+    }
+  }
+
+  if (manifest.productionSmoke?.required === true) {
+    const requiredSmokeFlags = [
+      "newBrowserContext",
+      "authenticated",
+      "readOnlyGuardInstalledBeforeNavigation",
+      "viewportConfiguredBeforeNavigation",
+      "viewportConfirmedBeforeNavigation",
+      "defaultDenyWriteGuard",
+      "serviceWorkersBlocked",
+      "formSubmissionsBlocked",
+      "downloadsBlocked",
+      "popupsBlocked",
+      "dialogsBlocked",
+      "beforeAfterCountsCaptured",
+      "beforeAfterCountsMatch"
+    ];
+    for (const field of requiredSmokeFlags) {
+      if (manifest.productionSmoke?.[field] !== true) failures.push(`productionSmoke.${field} must be true`);
+    }
+    if (manifest.productionSmoke?.expectedViewport?.width !== manifest.productionSmoke?.actualViewport?.width ||
+        manifest.productionSmoke?.expectedViewport?.height !== manifest.productionSmoke?.actualViewport?.height) {
+      failures.push("production smoke viewport must exactly match the configured viewport");
+    }
+    if (manifest.productionSmoke?.attemptedWrites !== 0) failures.push("productionSmoke.attemptedWrites must be 0");
+    if (manifest.productionSmoke?.dialogsObserved !== 0) failures.push("productionSmoke.dialogsObserved must be 0");
+    if (manifest.productionSmoke?.applicationDataChanges !== 0) failures.push("productionSmoke.applicationDataChanges must be 0");
+  }
+
   if (manifest.directive?.chiefArchitectDraftOnly === true) {
     failures.push("a Chief Architect draft alone cannot authorize implementation");
   }
@@ -220,7 +264,7 @@ export function verifyAutomaticCommitPushGovernance() {
   const securityWorkflow = read(securityWorkflowPath);
 
   assert.equal(policy.policyId, "verified-engineering-batch-automatic-commit-push-governance-v1");
-  assert.equal(policy.version, "1.0.0");
+  assert.equal(policy.version, "1.1.0");
   assert.equal(policy.status, "active_after_verified_origin_installation");
   assert.equal(policy.permanence, "permanent_until_revoked_or_superseded_by_founder");
   assert.equal(policy.owningSubsystem, "Prometheus Overwatch");
@@ -277,6 +321,32 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.equal(policy.rollbackPolicy.resetAllowed, false);
   assert.equal(policy.rollbackPolicy.forcePushAllowed, false);
   assert.equal(policy.rollbackPolicy.remoteHistoryRewriteAllowed, false);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.nativeProviderRollbackAllowed, false);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.forwardCompatibleDeploymentCandidateRequired, true);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.appliedMigrationHistoryMustRemain, true);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.classExportsBindingsAndProtectedSecretReferencesMustRemain, true);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.statefulNamespaceDeletionAllowed, false);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.deletedClassMigrationAllowed, false);
+  assert.equal(policy.rollbackPolicy.statefulMigrationRequirements.candidateDeploymentRequiresSeparateFounderApproval, true);
+  assert.equal(policy.productionSmokeVerification.newBrowserContextRequired, true);
+  assert.equal(policy.productionSmokeVerification.authenticatedContextRequired, true);
+  assert.equal(policy.productionSmokeVerification.readOnlyByConstruction, true);
+  assert.equal(policy.productionSmokeVerification.exactViewportConfiguredAndConfirmedBeforeProductionNavigation, true);
+  assert.equal(policy.productionSmokeVerification.viewportMismatchAction, "STOP_BEFORE_INTERACTION");
+  assert.equal(policy.productionSmokeVerification.defaultDenyWriteGuardRequiredBeforeProductionNavigation, true);
+  assert.deepEqual(policy.productionSmokeVerification.blockedCapabilities, [
+    "application_write_requests",
+    "service_workers",
+    "form_submissions",
+    "downloads",
+    "popups",
+    "dialogs"
+  ]);
+  assert.equal(policy.productionSmokeVerification.stateChangingControlsMayBeActivated, false);
+  assert.equal(policy.productionSmokeVerification.beforeAfterProductionDataCountsRequired, true);
+  assert.equal(policy.productionSmokeVerification.zeroAttemptedWritesRequired, true);
+  assert.equal(policy.productionSmokeVerification.zeroDialogsRequired, true);
+  assert.equal(policy.productionSmokeVerification.zeroApplicationDataChangesRequired, true);
   assert.equal(policy.postPushVerification.failureStatus, "POST_PUSH_VERIFICATION_FAILED");
   assert.equal(policy.postPushVerification.failureSuspendsFurtherAutomaticPushes, true);
   assert.equal(policy.postPushVerification.historyRewriteOnFailureAllowed, false);
@@ -307,6 +377,10 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.match(documentation, /Production deployment always requires separate Founder approval/);
   assert.match(documentation, /INSUFFICIENT_EVIDENCE/);
   assert.match(documentation, /new `git revert` commits/);
+  assert.match(documentation, /forward-compatible deployment candidate/);
+  assert.match(documentation, /new browser context/);
+  assert.match(documentation, /default-deny write guard/);
+  assert.match(documentation, /production application-data counts before and after/);
   assert.match(systemMap, /Verified Engineering Batch Automatic Commit \+ Push Governance v1/);
   assert.match(masterState, /Automatic Commit and Push Governance/);
   assert.match(masterState, /Production deployment always requires separate Founder approval/);

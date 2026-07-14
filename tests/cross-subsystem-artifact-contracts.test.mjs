@@ -415,6 +415,16 @@ test("Fitness read-only field-session learning linkage enforces independent auth
       label: "recommendation influence",
       mutate: input => { input.snapshot.recommendationSafety.recommendationBehaviorChanged = true; },
       expected: /must not change recommendation behavior/
+    },
+    {
+      label: "administrative exclusion bypass",
+      mutate: input => { input.consumerContract.administrativeDispositionAdmission.disposedSessionAdmissionAllowed = true; },
+      expected: /must exclude administratively disposed sessions/
+    },
+    {
+      label: "blanket zero-visit exclusion",
+      mutate: input => { input.consumerContract.administrativeDispositionAdmission.automaticZeroVisitExclusionAllowed = true; },
+      expected: /must not blanket-exclude zero-visit sessions/
     }
   ];
 
@@ -431,6 +441,7 @@ test("Fitness shadow decision readiness remains Founder-only, complete, and zero
   const workspace = result.registry.workspaces.find(candidate => candidate.workspaceId === "fitness_connection");
   const registrations = Object.fromEntries(workspace.canonicalArtifacts.map(artifact => [artifact.artifactId, artifact]));
   const intelligenceContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_intelligence_consumer_contract.path, "utf8"));
+  const dataContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_data_runtime_artifact_contract.path, "utf8"));
   const readinessContract = JSON.parse(fs.readFileSync(registrations.fitness_connection_shadow_decision_readiness_contract.path, "utf8"));
   const config = JSON.parse(fs.readFileSync(readinessContract.artifacts.config, "utf8"));
   const ledger = JSON.parse(fs.readFileSync(readinessContract.artifacts.ledger, "utf8"));
@@ -439,6 +450,7 @@ test("Fitness shadow decision readiness remains Founder-only, complete, and zero
   const fixture = () => ({
     workspace: clone(workspace),
     intelligenceContract: clone(intelligenceContract),
+    dataContract: clone(dataContract),
     readinessContract: clone(readinessContract),
     config: clone(config),
     ledger: clone(ledger),
@@ -488,6 +500,11 @@ test("Fitness shadow decision readiness remains Founder-only, complete, and zero
       label: "Founder eligibility activates recommendations",
       mutate: input => { input.report.eligibilityDoesNotAuthorizeActivation = false; },
       expected: /must not authorize activation/
+    },
+    {
+      label: "disposed session admitted to readiness",
+      mutate: input => { input.readinessContract.administrativeDispositionAdmission.disposedSessionReadinessAdmissionAllowed = true; },
+      expected: /must remain false: disposedSessionReadinessAdmissionAllowed/
     }
   ];
 

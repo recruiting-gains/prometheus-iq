@@ -577,6 +577,16 @@ export function validateFitnessFieldSessionLearningLinkage({
   assert(consumerContract?.prohibitedSourceArtifacts?.rawFieldSession === fitnessFieldSessionRawPath, "Field-session learning raw-source prohibition path mismatch.", failures);
   assert(consumerContract?.prohibitedSourceArtifacts?.stressTestObservations === fitnessFieldSessionStressEvidencePath, "Field-session learning stress-evidence prohibition path mismatch.", failures);
 
+  const administrativeDispositionContract = dataContract?.fieldSessionAdministrativeDispositionContract;
+  const administrativeDispositionAdmission = consumerContract?.administrativeDispositionAdmission;
+  assert(administrativeDispositionAdmission?.schemaVersion === administrativeDispositionContract?.contractVersion, "Field-session learning administrative disposition schema mismatch.", failures);
+  assert(administrativeDispositionAdmission?.excludedState === administrativeDispositionContract?.authorizedDisposition?.state, "Field-session learning administrative disposition state mismatch.", failures);
+  assert(administrativeDispositionAdmission?.authorizedReason === administrativeDispositionContract?.authorizedDisposition?.reason, "Field-session learning administrative disposition reason mismatch.", failures);
+  assert(administrativeDispositionAdmission?.disposedSessionAdmissionAllowed === false, "Field-session learning must exclude administratively disposed sessions.", failures);
+  assert(administrativeDispositionAdmission?.automaticZeroVisitExclusionAllowed === false, "Field-session learning must not blanket-exclude zero-visit sessions.", failures);
+  assert(administrativeDispositionAdmission?.unrelatedUndisposedZeroVisitSessionEligible === true, "Field-session learning must preserve unrelated undisposed zero-visit eligibility.", failures);
+  assert(sameMembers(administrativeDispositionAdmission?.requiredExcludedDomains, administrativeDispositionContract?.excludedDomains || []), "Field-session learning administrative exclusion domains mismatch.", failures);
+
   assert(dataContract?.intelligenceFieldSessionLearningHandoff?.status === "defined_not_authorized", "Data field-session source contract state must remain unchanged.", failures);
   assert(dataContract?.intelligenceFieldSessionLearningHandoff?.accessMode === "read_only", "Data field-session handoff must remain read-only.", failures);
   assert(dataContract?.intelligenceFieldSessionLearningHandoff?.independentAuthorizationRequiredBeforeConsumption === true, "Data field-session handoff must require independent authorization.", failures);
@@ -632,6 +642,7 @@ export function validateFitnessFieldSessionLearningLinkage({
 export function validateFitnessShadowDecisionReadinessLinkage({
   workspace,
   intelligenceContract,
+  dataContract,
   readinessContract,
   config,
   ledger,
@@ -681,6 +692,7 @@ export function validateFitnessShadowDecisionReadinessLinkage({
     "activePool",
     "businessHours",
     "businessHoursEligibility",
+    "dataArchiveRuntime",
     "dataCoordinator",
     "dataRuntimeContract",
     "dashboardDeployMirror",
@@ -729,6 +741,16 @@ export function validateFitnessShadowDecisionReadinessLinkage({
   assert(readinessContract?.scope?.workspaceId === "fitness_connection", "Shadow-readiness workspace is unauthorized.", failures);
   assert(readinessContract?.scope?.operatingProfileId === "fitness", "Shadow-readiness operating profile is unauthorized.", failures);
   assert(readinessContract?.scope?.representativeId === "cruz", "Shadow-readiness representative scope is unauthorized.", failures);
+  const readinessDisposition = readinessContract?.administrativeDispositionAdmission;
+  const dataDisposition = dataContract?.fieldSessionAdministrativeDispositionContract;
+  assert(readinessDisposition?.schemaVersion === dataDisposition?.contractVersion, "Shadow-readiness administrative disposition schema mismatch.", failures);
+  assert(readinessDisposition?.excludedState === dataDisposition?.authorizedDisposition?.state, "Shadow-readiness administrative disposition state mismatch.", failures);
+  assert(readinessDisposition?.authorizedReason === dataDisposition?.authorizedDisposition?.reason, "Shadow-readiness administrative disposition reason mismatch.", failures);
+  for (const rule of ["disposedSessionReadinessAdmissionAllowed", "disposedSessionEvaluationAdmissionAllowed", "disposedSessionCalibrationAdmissionAllowed", "disposedSessionBaselineAdmissionAllowed", "disposedSessionSegmentMetricAdmissionAllowed", "disposedSessionRecommendationInputAllowed", "automaticZeroVisitExclusionAllowed"]) {
+    assert(readinessDisposition?.[rule] === false, `Shadow-readiness administrative disposition rule must remain false: ${rule}`, failures);
+  }
+  assert(readinessDisposition?.unrelatedUndisposedZeroVisitSessionEligible === true, "Shadow-readiness must preserve unrelated undisposed zero-visit eligibility.", failures);
+  assert(sameMembers(readinessDisposition?.requiredExcludedDomains, dataDisposition?.excludedDomains || []), "Shadow-readiness administrative exclusion domains mismatch.", failures);
   for (const [key, path] of Object.entries(requiredArtifactPaths)) {
     assert(readinessContract?.artifacts?.[key] === path, `Shadow-readiness artifact path mismatch: ${key}`, failures);
     assert(exists(path), `Shadow-readiness artifact is missing: ${path}`, failures);
@@ -1490,6 +1512,7 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   failures.push(...validateFitnessShadowDecisionReadinessLinkage({
     workspace,
     intelligenceContract,
+    dataContract: dataRuntimeArtifactContract,
     readinessContract: shadowReadinessContract,
     config: shadowReadinessConfig,
     ledger: shadowReadinessLedger,

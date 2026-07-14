@@ -1,6 +1,6 @@
 {
   "policyId": "verified-engineering-batch-automatic-commit-push-governance-v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "active_after_verified_origin_installation",
   "permanence": "permanent_until_revoked_or_superseded_by_founder",
   "owningSubsystem": "Prometheus Overwatch",
@@ -213,7 +213,38 @@
       "contract",
       "migration",
       "cross_subsystem"
-    ]
+    ],
+    "statefulMigrationRequirements": {
+      "nativeProviderRollbackAllowed": false,
+      "forwardCompatibleDeploymentCandidateRequired": true,
+      "appliedMigrationHistoryMustRemain": true,
+      "classExportsBindingsAndProtectedSecretReferencesMustRemain": true,
+      "statefulNamespaceDeletionAllowed": false,
+      "deletedClassMigrationAllowed": false,
+      "candidateDeploymentRequiresSeparateFounderApproval": true
+    }
+  },
+  "productionSmokeVerification": {
+    "newBrowserContextRequired": true,
+    "authenticatedContextRequired": true,
+    "readOnlyByConstruction": true,
+    "exactViewportConfiguredAndConfirmedBeforeProductionNavigation": true,
+    "viewportMismatchAction": "STOP_BEFORE_INTERACTION",
+    "defaultDenyWriteGuardRequiredBeforeProductionNavigation": true,
+    "blockedCapabilities": [
+      "application_write_requests",
+      "service_workers",
+      "form_submissions",
+      "downloads",
+      "popups",
+      "dialogs"
+    ],
+    "stateChangingControlsMayBeActivated": false,
+    "beforeAfterProductionDataCountsRequired": true,
+    "zeroAttemptedWritesRequired": true,
+    "zeroDialogsRequired": true,
+    "zeroApplicationDataChangesRequired": true,
+    "failureInvalidatesSmokeVerification": true
   },
   "postPushVerification": {
     "requiredChecks": [

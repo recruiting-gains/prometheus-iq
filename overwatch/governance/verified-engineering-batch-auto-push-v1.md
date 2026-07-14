@@ -65,6 +65,14 @@ Every outgoing commit appears in a reverse-order rollback manifest with its owne
 
 Runtime, Data, security, contract, migration, and cross-subsystem batches must exercise rollback in an isolated clone or worktree before push.
 
+When a deployed release has applied a stateful migration, a native provider rollback to code that predates that migration is not an acceptable rollback plan. The rollback manifest must instead identify and verify a new forward-compatible deployment candidate that preserves applied migration history, required class exports, bindings, protected secret references, and existing state while making the affected behavior inert. Stateful namespaces and classes cannot be deleted as a rollback shortcut. Deploying the forward candidate still requires separate Founder approval.
+
+## Production Smoke Safety
+
+Authenticated production browser verification is read-only by construction. It uses a new browser context, configures and confirms the exact required viewport before production navigation, and installs a default-deny write guard before that navigation. A viewport mismatch stops the test before interaction.
+
+The guard blocks application write requests, service workers, form submissions, downloads, popups, and dialogs. Production layout verification never activates finalization or any other state-changing control. Every smoke test records production application-data counts before and after the browser run. Any attempted write, dialog, record-count drift, or other application-data change invalidates the smoke verification.
+
 ## Post-Push Verification
 
 Overwatch verifies the remote HEAD and tree, zero divergence, clean worktree, absence of additional commits, absence of deployment or migration, absence of unauthorized external action, and the authorized recommendation-influence state.
