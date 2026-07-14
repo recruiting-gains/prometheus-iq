@@ -171,7 +171,7 @@ test("read-only archived-session learning is independently authorized without re
   assert.equal(contract.allowedOperations.replaySessions, false);
   assert.equal(contract.productionSafety.productionRecommendationInfluenceActive, false);
   assert.equal(contract.productionSafety.routeScoringWeightsChanged, false);
-  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "4803d7aca5810abfc1cbca84eb2f461046a10da4");
+  assert.equal(contract.prospectiveRetentionAdmission.dataExactKeySuccessorCommit, "c73118ddb262d3010bbc94a900f8506fb2f56192");
   assert.equal(contract.prospectiveRetentionAdmission.productionActivationEligible, false);
   assert.equal(contract.administrativeDispositionAdmission.auditProjectionRawPayloadAllowed, false);
   assert.equal(policy.recommendationInfluence.singleSessionInfluenceAllowed, false);
@@ -395,6 +395,12 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   const retentionSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
   );
+  const currentRetentionAuthority = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
+  );
+  const retentionArchitectureSuccessor = readJson(
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+  );
   const coordinatorSuccessor = readJson(
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
   );
@@ -476,16 +482,6 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(routeQualitySuccessor.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
   assert.equal(routeQualitySuccessor.dataOwnerTransition.dashboardFetchEvidence.previousSourceFetches, 8);
   assert.equal(routeQualitySuccessor.dataOwnerTransition.dashboardFetchEvidence.currentSourceFetches, 9);
-  assert.equal(
-    sha256(routeQualitySuccessor.dataOwnerTransition.routeQualityGate.path),
-    routeQualitySuccessor.dataOwnerTransition.routeQualityGate.currentSha256,
-  );
-  assert.equal(
-    sha256(routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.path),
-    routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.currentSha256,
-  );
-  assert.equal(routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences.length, 1);
-  const affectedReference = routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences[0];
   const routeQualityEvidenceCommit = git([
     "log",
     "-1",
@@ -493,6 +489,16 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     "--",
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json",
   ]);
+  assert.equal(
+    sha256Bytes(gitBytes(["show", `${routeQualityEvidenceCommit}:${routeQualitySuccessor.dataOwnerTransition.routeQualityGate.path}`])),
+    routeQualitySuccessor.dataOwnerTransition.routeQualityGate.currentSha256,
+  );
+  assert.equal(
+    sha256Bytes(gitBytes(["show", `${routeQualityEvidenceCommit}:${routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.path}`])),
+    routeQualitySuccessor.dataOwnerTransition.canonicalRouteQualityReport.currentSha256,
+  );
+  assert.equal(routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences.length, 1);
+  const affectedReference = routeQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences[0];
   assert.equal(affectedReference.consumerPath, "intelligence/contracts/shadow-decision-readiness-contracts.json");
   assert.equal(
     sha256Bytes(gitBytes(["show", `${routeQualityEvidenceCommit}:${affectedReference.consumerPath}`])),
@@ -528,13 +534,6 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     retentionSuccessor.dataOwnerLineage.exactKeySuccessorCommit,
     "4803d7aca5810abfc1cbca84eb2f461046a10da4",
   );
-  for (const transition of retentionSuccessor.dataOwnerLineage.transitions) {
-    assert.equal(sha256(transition.path), transition.currentSha256, transition.path);
-  }
-  assert.equal(
-    retentionSuccessor.infrastructureOwnerLineage.activationReadinessCommit,
-    "2280c6dae9d07bcfd744e99e9d28126188653eb2",
-  );
   const retentionEvidenceCommit = git([
     "log",
     "-1",
@@ -542,6 +541,17 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     "--",
     "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
   ]);
+  for (const transition of retentionSuccessor.dataOwnerLineage.transitions) {
+    assert.equal(
+      sha256Bytes(gitBytes(["show", `${retentionEvidenceCommit}:${transition.path}`])),
+      transition.currentSha256,
+      transition.path,
+    );
+  }
+  assert.equal(
+    retentionSuccessor.infrastructureOwnerLineage.activationReadinessCommit,
+    "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+  );
   for (const transition of retentionSuccessor.infrastructureOwnerLineage.transitions) {
     assert.equal(
       sha256Bytes(gitBytes(["show", `${retentionEvidenceCommit}:${transition.path}`])),
@@ -563,6 +573,74 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     false,
   );
   assert.equal(retentionSuccessor.consumerExclusionMatrix.allConsumersAccountedFor, true);
+  assert.equal(currentRetentionAuthority.batchId, "BATCH-20260714-004");
+  assert.equal(currentRetentionAuthority.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    currentRetentionAuthority.dataOwnerLineage.commit,
+    "c73118ddb262d3010bbc94a900f8506fb2f56192",
+  );
+  for (const artifact of currentRetentionAuthority.dataOwnerLineage.artifacts) {
+    assert.equal(sha256(artifact.path), artifact.sha256, artifact.path);
+  }
+  assert.equal(retentionArchitectureSuccessor.batchId, "BATCH-20260714-004");
+  assert.equal(retentionArchitectureSuccessor.status, "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH");
+  assert.equal(retentionArchitectureSuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(retentionArchitectureSuccessor.historicalCheckpoint.remainsHistorical, true);
+  assert.equal(retentionArchitectureSuccessor.historicalCheckpoint.rewritten, false);
+  assert.equal(
+    sha256(retentionArchitectureSuccessor.historicalCheckpoint.path),
+    retentionArchitectureSuccessor.historicalCheckpoint.sha256,
+  );
+  assert.equal(
+    retentionArchitectureSuccessor.historicalCheckpoint.recordedAtCommit,
+    retentionEvidenceCommit,
+  );
+  assert.equal(
+    sha256(retentionArchitectureSuccessor.currentAuthority.path),
+    retentionArchitectureSuccessor.currentAuthority.sha256,
+  );
+  assert.equal(
+    retentionArchitectureSuccessor.currentAuthority.dataOwnerCommit,
+    currentRetentionAuthority.dataOwnerLineage.commit,
+  );
+  assert.equal(
+    sha256(retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.path),
+    retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+  );
+  assert.equal(
+    retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+    currentRetentionAuthority.dataOwnerLineage.artifacts.find(
+      artifact => artifact.path === retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.path,
+    ).sha256,
+  );
+  assert.notEqual(
+    retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.historicalCheckpointSha256,
+    retentionArchitectureSuccessor.dataOwnerTransition.archiveRuntime.currentSha256,
+  );
+  assert.equal(
+    sha256(retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.path),
+    retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.currentSha256,
+  );
+  for (const consumer of retentionArchitectureSuccessor.protectedConsumers) {
+    assert.equal(sha256(consumer.path), consumer.sha256, consumer.path);
+  }
+  assert.deepEqual(
+    retentionArchitectureSuccessor.staleAssertionsClosed.map(assertion => assertion.currentValue),
+    [
+      "c73118ddb262d3010bbc94a900f8506fb2f56192",
+      "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4",
+    ],
+  );
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.collection, "OFF");
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.activeCohorts, 0);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.representativeShadowOutputExposed, false);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.routeScoringChanged, false);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.routeGenerationChanged, false);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.learningBehaviorChanged, false);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.deploymentPerformed, false);
+  assert.equal(retentionArchitectureSuccessor.boundaryValidation.productionMutationPerformed, false);
   assert.equal(retentionSuccessor.boundaryValidation.readiness, "INSUFFICIENT_EVIDENCE");
   assert.equal(retentionSuccessor.boundaryValidation.collection, "OFF");
   assert.equal(retentionSuccessor.boundaryValidation.activeCohorts, 0);
@@ -579,8 +657,15 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     coordinatorSuccessor.predecessor.sha256,
   );
   assert.equal(coordinatorSuccessor.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
+  const coordinatorEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
+  ]);
   assert.equal(
-    sha256(coordinatorSuccessor.dataOwnerTransition.coordinator.path),
+    sha256Bytes(gitBytes(["show", `${coordinatorEvidenceCommit}:${coordinatorSuccessor.dataOwnerTransition.coordinator.path}`])),
     coordinatorSuccessor.dataOwnerTransition.coordinator.currentSha256,
   );
   assert.equal(
@@ -591,12 +676,19 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     coordinatorSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
     infrastructureSuccessor.intelligenceOwnerSynchronization.specification.previousSha256,
   );
+  const infrastructureEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
+  ]);
   assert.equal(
-    sha256(infrastructureSuccessor.intelligenceOwnerSynchronization.contract.path),
+    sha256Bytes(gitBytes(["show", `${infrastructureEvidenceCommit}:${infrastructureSuccessor.intelligenceOwnerSynchronization.contract.path}`])),
     infrastructureSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
   );
   assert.equal(
-    sha256(infrastructureSuccessor.intelligenceOwnerSynchronization.specification.path),
+    sha256Bytes(gitBytes(["show", `${infrastructureEvidenceCommit}:${infrastructureSuccessor.intelligenceOwnerSynchronization.specification.path}`])),
     infrastructureSuccessor.intelligenceOwnerSynchronization.specification.currentSha256,
   );
   assert.equal(
@@ -626,7 +718,7 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     "46658265248b03f7b52f9e1ec0b1ca61ca2b5920",
   );
   assert.equal(
-    sha256(infrastructureSuccessor.infrastructureOwnerTransition.runtime.path),
+    sha256Bytes(gitBytes(["show", `${infrastructureEvidenceCommit}:${infrastructureSuccessor.infrastructureOwnerTransition.runtime.path}`])),
     infrastructureSuccessor.infrastructureOwnerTransition.runtime.currentSha256,
   );
   assert.equal(

@@ -1,0 +1,84 @@
+{
+  "version": "route-iq-intelligence-retention-architecture-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260714-004",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "status": "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
+  "purpose": "Preserve the historical BATCH-20260714-003 retention checkpoint while making the final BATCH-20260714-004 Data owner lineage and protected archive hash authoritative for current Intelligence architecture validation.",
+  "historicalCheckpoint": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+    "sha256": "e3a4dd3bb7b55a52089a3593cbaa9557911c94c9c238da26675251523b50f261",
+    "recordedAtCommit": "6e4d9f70dc5a00949773f1e9fbb5206f30ea6c8a",
+    "verificationMode": "commit_scoped",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "currentAuthority": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-retention-v1.json",
+    "sha256": "5b06c1108029b3ff2b04f9ea4e8a58ccb57887987db32f44fd9023039bd5571b",
+    "intelligenceOwnerCommit": "51256caeb3300083ea1056976893b26e3b0d2b3f",
+    "dataOwnerCommit": "c73118ddb262d3010bbc94a900f8506fb2f56192"
+  },
+  "dataOwnerTransition": {
+    "ownerSubsystem": "Prometheus Data",
+    "implementationModifiedByIntelligence": false,
+    "archiveRuntime": {
+      "path": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+      "historicalCheckpointSha256": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
+      "currentSha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"
+    },
+    "runtimeContract": {
+      "path": "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+      "currentSha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259"
+    }
+  },
+  "protectedConsumers": [
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "sha256": "553eda39b7f28eb0b1d66af85222191cab059575e84644a103df2ef52e2f5e0e"
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "sha256": "bf4b4b48b544f8c9cb42ea8bb260d09bfa708d8c7a4081dca7ed65fec2b17337"
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "sha256": "d8c4d39298ebe3a42527f44ee6ed9349972095dc24ce77504e6b93c79d981bb7"
+    },
+    {
+      "path": "intelligence/route-iq-prospective-retention-admission.mjs",
+      "sha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780"
+    },
+    {
+      "path": "intelligence/route-iq-committed-outcome-evaluation.mjs",
+      "sha256": "2f5a513564b94998e426d29aa72ee7807983ea6ded3d5e08e216706f2b073e53"
+    },
+    {
+      "path": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",
+      "sha256": "02e224ca961c5b36a3a31df75d02f749b3935c6e8379c7a4b3b7940d3ea3caf5"
+    }
+  ],
+  "staleAssertionsClosed": [
+    {
+      "field": "prospectiveRetentionAdmission.dataExactKeySuccessorCommit",
+      "historicalValue": "4803d7aca5810abfc1cbca84eb2f461046a10da4",
+      "currentValue": "c73118ddb262d3010bbc94a900f8506fb2f56192"
+    },
+    {
+      "field": "dataOwnerLineage.archiveRuntimeSha256",
+      "historicalValue": "788fa1ec0ac8fed57e13803cbe8dc38d1a3f4e4951a9229a9eac1a7059b41f0b",
+      "currentValue": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4"
+    }
+  ],
+  "boundaryValidation": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeScoringChanged": false,
+    "routeGenerationChanged": false,
+    "learningBehaviorChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
