@@ -1,0 +1,71 @@
+{
+  "version": "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Independently derive how an append-only Data administrative disposition is admitted by each protected Intelligence consumer while preserving audit evidence and zero recommendation influence.",
+  "semanticBaseCommit": "f50d10f14f993b4e6ff42887e76c10721852cc43",
+  "canonicalDisposition": {
+    "schemaVersion": "route-iq-field-session-administrative-disposition-v1",
+    "excludedState": "EXCLUDED_FROM_ANALYTICS",
+    "authorizedReason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION"
+  },
+  "requiredExcludedDomains": [
+    "learning",
+    "readiness",
+    "evaluation",
+    "representative_performance",
+    "territory_metrics",
+    "customer_metrics",
+    "productivity_counts",
+    "dashboards",
+    "leaderboards",
+    "baselines",
+    "calibration",
+    "recommendation_inputs"
+  ],
+  "consumerPolicies": {
+    "read_only_field_session_learning": {
+      "disposedSessionAdmissionAllowed": false,
+      "auditRecordRetentionRequired": true,
+      "sourceArchiveRewriteAllowed": false,
+      "automaticZeroVisitExclusionAllowed": false,
+      "unrelatedUndisposedZeroVisitSessionEligible": true,
+      "consumeAdministrativelyExcludedSessions": false
+    },
+    "off_route_learning": {
+      "inheritedFromUpstreamReadOnlyLearning": true,
+      "disposedSessionObservationAllowed": false,
+      "decisionSourceProjectionAllowed": false,
+      "representativeJudgmentProjectionAllowed": false,
+      "territoryOrCustomerMetricProjectionAllowed": false,
+      "recommendationInputProjectionAllowed": false,
+      "automaticZeroVisitExclusionAllowed": false,
+      "unrelatedUndisposedZeroVisitSessionEligible": true,
+      "consumeAdministrativelyExcludedSessions": false
+    },
+    "shadow_decision_readiness": {
+      "disposedSessionReadinessAdmissionAllowed": false,
+      "disposedSessionEvaluationAdmissionAllowed": false,
+      "disposedSessionCalibrationAdmissionAllowed": false,
+      "disposedSessionBaselineAdmissionAllowed": false,
+      "disposedSessionSegmentMetricAdmissionAllowed": false,
+      "disposedSessionRecommendationInputAllowed": false,
+      "auditRecordRetentionRequired": true,
+      "automaticZeroVisitExclusionAllowed": false,
+      "unrelatedUndisposedZeroVisitSessionEligible": true,
+      "protectedBaselineAdditions": {
+        "dataArchiveRuntime": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
+      },
+      "requiredProtectedBehaviorBaselineKeyAdditions": [
+        "dataArchiveRuntime"
+      ]
+    }
+  },
+  "safety": {
+    "recommendationInfluence": "OFF",
+    "routeScoringChanged": false,
+    "routeGenerationChanged": false,
+    "representativeExposureChanged": false,
+    "historicalArchiveRewriteAllowed": false,
+    "automaticZeroVisitExclusionAllowed": false
+  }
+}

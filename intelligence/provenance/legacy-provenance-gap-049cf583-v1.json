@@ -4,9 +4,16 @@
   "status": "LEGACY_PROVENANCE_GAP",
   "legacyCommit": "049cf583b04900b2cbf38bbffc5f6293252365d0",
   "preGapCommit": "13c0bbfb72b72e1b492369fdfe896fffbddefaa6",
-  "integratedBase": "704537ded300cb674e53c047859eda19525a168d",
+  "integratedBase": "45b2e7c305c8546502a2e74bf40a26d296548d5a",
   "ownershipStatement": "The legacy mixed-ownership commit remains disclosed. This evidence does not claim retroactive Intelligence ownership; it records a new independent Intelligence-owner derivation.",
-  "reconstructionMethod": "Rebuild each affected contract from its pre-gap semantic form, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare the complete result semantically and byte-for-byte with the canonical file.",
+  "reconstructionMethod": "Rebuild each legacy-affected contract from its pre-gap semantic form, apply the Intelligence-owned administrative-disposition admission specification without target hashes, reconstruct the shadow-readiness revision from its pre-revision base, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare every complete result semantically and byte-for-byte with the canonical file.",
+  "semanticRevisionSpecification": {
+    "path": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+    "sha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372",
+    "version": "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+    "semanticBaseCommit": "f50d10f14f993b4e6ff42887e76c10721852cc43",
+    "targetHashesStored": false
+  },
   "protectedConsumerInventory": [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
     "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
@@ -25,8 +32,8 @@
       "preGapRawSha256": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
       "legacyCommitRawSha256": "acfd913e3f559ed2fb2a4c9c5fb542458f9a5739f36f8bb486766e38f82454de",
       "canonicalBeforeRepairRawSha256": "29de513d35f785bf5bd415db60bd5988a52bdf21b9c9a8f4b218d3f63159cdcd",
-      "reconstructedRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889",
-      "reconstructedSemanticSha256": "2e89b305629f11001c5c384ec4ba30f23a2261d34e7eae62ff03b9638ba1e795",
+      "reconstructedRawSha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433",
+      "reconstructedSemanticSha256": "ec191de9d4d2492470a43285228f2cc304bc1093e8788217346a69df6a10f292",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirrorSha256",
@@ -41,14 +48,21 @@
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntimeSha256",
           "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
-          "after": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb"
+          "after": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"
         },
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContractSha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
+          "after": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"
         }
       ],
+      "semanticRevision": {
+        "specificationPath": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+        "specificationSha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372",
+        "specificationVersion": "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+        "derivation": "historical_base_plus_owner_semantic_specification",
+        "targetHashesStoredInSpecification": false
+      },
       "reconstructionSources": [
         {
           "path": "intelligence/read-only-field-session-learning.md",
@@ -56,7 +70,7 @@
         },
         {
           "path": "intelligence/read-only-field-session-learning.mjs",
-          "sha256": "a082acd62afe5aa4b7aaefd2a2c87c21e32765f702883df849266cba5c654bf0"
+          "sha256": "ff43935c771af4e9cc33b9c4272ad6b6cf5278e7d4087a70f654ec2722088ba4"
         },
         {
           "path": "intelligence/config/read-only-field-session-learning-policy-v1.json",
@@ -68,11 +82,15 @@
         },
         {
           "path": "tests/read-only-field-session-learning.test.mjs",
-          "sha256": "66803e833d2aa692cba2da32cd26d3efb2c01dfed478202a935ade1bd28cac3e"
+          "sha256": "ae37ca09ff498be91976d6cc7d38c5e6b7fcb7f8770a6895b4f3fc5c5200a91f"
         },
         {
           "path": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
           "sha256": "7ec0bbf1c37537ec5e80c157bcd9c0df64d1b04fa470cd13e348be4c3a02e157"
+        },
+        {
+          "path": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+          "sha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372"
         }
       ],
       "canonicalBeforeRepairSemanticSha256": "5e5a8ccf309aa6d70af35430aa684ac7e091f7195133a6576b85192945baadc2",
@@ -80,8 +98,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889",
-      "canonicalAfterRepairSemanticSha256": "2e89b305629f11001c5c384ec4ba30f23a2261d34e7eae62ff03b9638ba1e795",
+      "canonicalAfterRepairRawSha256": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433",
+      "canonicalAfterRepairSemanticSha256": "ec191de9d4d2492470a43285228f2cc304bc1093e8788217346a69df6a10f292",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -95,8 +113,8 @@
       "preGapRawSha256": "8fa2cee204ad6c96e4c2f04efdc9da3bb7d453c8d8c1640880ceff5fdc3f84f6",
       "legacyCommitRawSha256": "b4c2c6eaac063f49c6732a8e59d39e3b317b3c54e3a73c13264428526932094d",
       "canonicalBeforeRepairRawSha256": "f65baa532f8617630e5d3553b4b4d9a470d82b334ecc8bfce750c4f96a920c7b",
-      "reconstructedRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e",
-      "reconstructedSemanticSha256": "c32ca5eeb7a3b5fa5e52401f4de1a8acf6c4f4ca6d0b8338626acaea97a51801",
+      "reconstructedRawSha256": "71b1a47c52a1a6c840bbbb782564249467d61059a63c54dfea6980928a88fe75",
+      "reconstructedSemanticSha256": "6269b0d0767c1f20c81aac260a1580536bf3bbc8916a65f68389017eb1678af0",
       "changedHashFields": [
         {
           "path": "protectedBehaviorBaselines.dashboardDeployMirror.sha256",
@@ -111,19 +129,26 @@
         {
           "path": "protectedBehaviorBaselines.dataArchiveRuntime.sha256",
           "before": "c13c30976cf11d69956f2e4623b73b9802bf957e8750c8159f09ff16e269b6a7",
-          "after": "f9b295d530e86d5cd0c9f807cb35020b112bf573dcd6eb4555ad6bb8b84111cb"
+          "after": "083892ef2a1e1458831b9de4363e03a691866d01fd44849f5b788a3919e4e365"
         },
         {
           "path": "protectedBehaviorBaselines.dataRuntimeContract.sha256",
           "before": "c44248fb873ce4f96186fe6227362b36009495b39899aac9a49349eb1d4cf47b",
-          "after": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35"
+          "after": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"
         },
         {
           "path": "upstreamReadOnlyLearning.contractSha256",
           "before": "db6ddc3c5a666e6382e711043e289b008e82c28325840d64a8a75bab8fade5ab",
-          "after": "dc1f84e367519d572819ca92d7975ebfe59fb8532e75c738465a1784fec3e889"
+          "after": "4cf5c142fb855f2ae8d6b080478a8e11226608ad3a09533bfd1ee6051fb0c433"
         }
       ],
+      "semanticRevision": {
+        "specificationPath": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+        "specificationSha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372",
+        "specificationVersion": "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+        "derivation": "historical_base_plus_owner_semantic_specification",
+        "targetHashesStoredInSpecification": false
+      },
       "reconstructionSources": [
         {
           "path": "intelligence/off-route-learning-intelligence.md",
@@ -131,7 +156,7 @@
         },
         {
           "path": "intelligence/off-route-learning-intelligence.mjs",
-          "sha256": "b23cc4bd1bfa285477c1387aa1fd5a3e57727dc9eec463b375e5006857aab880"
+          "sha256": "dff0846b9953995afd3f386616980b8b9f711549dff95900832757e504b4b597"
         },
         {
           "path": "intelligence/config/off-route-learning-intelligence-v1.json",
@@ -143,11 +168,15 @@
         },
         {
           "path": "tests/off-route-learning-intelligence.test.mjs",
-          "sha256": "adcf0e4f95c525876af9a9447f4e34ce55f9973ff6c4aef2dd1c0f31c63e5099"
+          "sha256": "fdf91f3eab143e5fa391eacda2e7ca99e9cd746a8d1d91df1c272a0af3148150"
         },
         {
           "path": "intelligence/artifacts/off-route-learning-intelligence-v1/fitness_connection/cruz/off-route-learning-snapshot-v1.json",
           "sha256": "b083c44d9efe98c50fec96de18c4b8922b21f3f3be2dce650a69e7a8549df4a0"
+        },
+        {
+          "path": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+          "sha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372"
         }
       ],
       "canonicalBeforeRepairSemanticSha256": "459ed84dd47285f40e986672354131d97643cb6d22ecf4c81103aa1b50d53b88",
@@ -155,8 +184,8 @@
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "ae1bf7bbf562bd7bbca3cf94b1db28e94f94715dad4cfb850833bb8c42d1c79e",
-      "canonicalAfterRepairSemanticSha256": "c32ca5eeb7a3b5fa5e52401f4de1a8acf6c4f4ca6d0b8338626acaea97a51801",
+      "canonicalAfterRepairRawSha256": "71b1a47c52a1a6c840bbbb782564249467d61059a63c54dfea6980928a88fe75",
+      "canonicalAfterRepairSemanticSha256": "6269b0d0767c1f20c81aac260a1580536bf3bbc8916a65f68389017eb1678af0",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     },
@@ -179,6 +208,7 @@
           "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         }
       ],
+      "semanticRevision": null,
       "reconstructionSources": [
         {
           "path": "intelligence/discovery-mode-intelligence-v2.md",
@@ -234,6 +264,7 @@
           "after": "b2cd393f488174a9235b1208a08fc966e833593f7a8700f1646d93655f60ff00"
         }
       ],
+      "semanticRevision": null,
       "reconstructionSources": [
         {
           "path": "intelligence/nearby-context-intelligence-v2.md",
@@ -276,17 +307,33 @@
       "id": "shadow_decision_readiness",
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
       "generator": "scripts/verify-shadow-decision-readiness.mjs",
+      "reconstructionBaseCommit": "f50d10f14f993b4e6ff42887e76c10721852cc43",
+      "reconstructionBaseRawSha256": "13a88e3d64e49de25e6cb47302fd0e9efa340626b2789652e703696621a79bd7",
+      "semanticRevision": {
+        "id": "administrative_disposition_admission_v1",
+        "specificationPath": "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+        "specificationSha256": "7befe841eec061e4e6e65467fa9d115c6e919fe7d3de83565c2704800b77b372",
+        "specificationVersion": "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+        "derivation": "historical_base_plus_owner_semantic_specification",
+        "targetHashesStoredInSpecification": false
+      },
       "canonicalBeforeRepairRawSha256": "1e850b6b9d5f8d89c141ec26929bcecb385bd53d8386b4654cb2e0f7f61e884c",
-      "reconstructedRawSha256": "13a88e3d64e49de25e6cb47302fd0e9efa340626b2789652e703696621a79bd7",
-      "reconstructedSemanticSha256": "d1eb76efbb83b497e6acba4a14cb1c38d6f3afa3d65be61b2467c3713d7e0b88",
-      "changedHashFields": [],
+      "reconstructedRawSha256": "b93f2d461560fa0b575f9820b425e77413eafa6c56035174fb4c7d9a0548fbb1",
+      "reconstructedSemanticSha256": "b088ef0adaf66b02997da671ad489fe0e176d64e440159dad5d6fa3983337ef7",
+      "changedHashFields": [
+        {
+          "path": "protectedBehaviorBaselines.dataRuntimeContract.sha256",
+          "before": "f52e76e486921628780ed97908d58e90ab4ddb8d8202498ac0a9bfc52a142e35",
+          "after": "7189703bb1b2ad4459b04da565bd61d0c6c10398ee21c86fe785658923d989bc"
+        }
+      ],
       "canonicalBeforeRepairSemanticSha256": "3f6a25338c5677de982f3838289608ba3b96ce0c557e1a242f038d9f338a6785",
       "byteIdenticalBeforeRepair": false,
       "semanticIdenticalBeforeRepair": false,
       "correctionRequired": true,
       "comparisonResult": "CORRECTED_TO_INDEPENDENT_RECONSTRUCTION",
-      "canonicalAfterRepairRawSha256": "13a88e3d64e49de25e6cb47302fd0e9efa340626b2789652e703696621a79bd7",
-      "canonicalAfterRepairSemanticSha256": "d1eb76efbb83b497e6acba4a14cb1c38d6f3afa3d65be61b2467c3713d7e0b88",
+      "canonicalAfterRepairRawSha256": "b93f2d461560fa0b575f9820b425e77413eafa6c56035174fb4c7d9a0548fbb1",
+      "canonicalAfterRepairSemanticSha256": "b088ef0adaf66b02997da671ad489fe0e176d64e440159dad5d6fa3983337ef7",
       "byteIdenticalAfterRepair": true,
       "semanticIdenticalAfterRepair": true
     }

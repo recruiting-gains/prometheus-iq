@@ -261,6 +261,11 @@ test("Nearby Context v2 is relationship-aware, governed, and consumer-safe", () 
 test("legacy mixed-ownership Intelligence contracts have independently derived owner evidence", () => {
   const evidencePath = "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
   const evidence = readJson(evidencePath);
+  const administrativeDispositionSpecificationPath =
+    "intelligence/provenance/specifications/administrative-disposition-admission-v1.json";
+  const administrativeDispositionSpecification = readJson(
+    administrativeDispositionSpecificationPath,
+  );
   const reconstruction = reconstructLegacyProtectedContracts();
   const expectedPaths = [
     "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
@@ -273,6 +278,25 @@ test("legacy mixed-ownership Intelligence contracts have independently derived o
   assert.equal(evidence.status, provenanceStatus);
   assert.equal(evidence.legacyCommit, legacyProvenanceGapCommit);
   assert.match(evidence.ownershipStatement, /does not claim retroactive Intelligence ownership/);
+  assert.equal(
+    evidence.semanticRevisionSpecification.path,
+    administrativeDispositionSpecificationPath,
+  );
+  assert.equal(
+    evidence.semanticRevisionSpecification.sha256,
+    sha256(administrativeDispositionSpecificationPath),
+  );
+  assert.equal(
+    evidence.semanticRevisionSpecification.version,
+    administrativeDispositionSpecification.version,
+  );
+  assert.equal(evidence.semanticRevisionSpecification.targetHashesStored, false);
+  assert.equal(
+    JSON.stringify(administrativeDispositionSpecification).includes(
+      sha256("intelligence/contracts/read-only-field-session-learning-contracts.json"),
+    ),
+    false,
+  );
   assert.deepEqual(evidence.contracts.map(contract => contract.path).sort(), expectedPaths);
   assert.deepEqual(reconstruction.contracts.map(contract => contract.path).sort(), expectedPaths);
   assert.deepEqual(evidence.protectedConsumerInventory, reconstruction.discoveredProtectedConsumers);
@@ -297,6 +321,20 @@ test("legacy mixed-ownership Intelligence contracts have independently derived o
     assert.ok(recorded.reconstructionSources.length >= 6, contract.path);
     for (const source of recorded.reconstructionSources)
       assert.equal(sha256(source.path), source.sha256, source.path);
+    if (
+      contract.id === "read_only_field_session_learning" ||
+      contract.id === "off_route_learning"
+    ) {
+      assert.equal(
+        contract.semanticRevision.specificationPath,
+        administrativeDispositionSpecificationPath,
+      );
+      assert.equal(contract.semanticRevision.targetHashesStoredInSpecification, false);
+      assert.equal(
+        contract.semanticRevision.specificationSha256,
+        sha256(administrativeDispositionSpecificationPath),
+      );
+    }
   }
 
   const evidenceCommit = git(["log", "-1", "--format=%H", "--", evidencePath]);
@@ -330,6 +368,20 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     assert.equal(recorded.semanticIdenticalAfterRepair, true, consumer.path);
     assert.equal(recorded.byteIdenticalBeforeRepair, false, consumer.path);
     assert.equal(recorded.semanticIdenticalBeforeRepair, false, consumer.path);
+    if (consumer.id === "shadow_decision_readiness") {
+      assert.equal(
+        consumer.semanticRevision.specificationPath,
+        "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+      );
+      assert.equal(
+        consumer.semanticRevision.targetHashesStoredInSpecification,
+        false,
+      );
+      assert.equal(
+        consumer.reconstructionBaseCommit,
+        "f50d10f14f993b4e6ff42887e76c10721852cc43",
+      );
+    }
   }
   assert.deepEqual(
     evidence.additionalProtectedConsumerScan.map(consumer => consumer.path).sort(),
@@ -346,4 +398,51 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
   assert.equal(evidence.safety.representativeExposureChanged, false);
   assert.equal(evidence.safety.prospectiveShadowCollectionStarted, false);
   assert.equal(evidence.safety.productionConsumerIntroduced, false);
+});
+
+test("administrative disposition semantics are owner-derived and zero influence", () => {
+  const specification = readJson(
+    "intelligence/provenance/specifications/administrative-disposition-admission-v1.json",
+  );
+  const readOnly = readJson(
+    "intelligence/contracts/read-only-field-session-learning-contracts.json",
+  );
+  const offRoute = readJson(
+    "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+  );
+  const shadowReadiness = readJson(
+    "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  );
+
+  assert.deepEqual(
+    readOnly.administrativeDispositionAdmission.requiredExcludedDomains,
+    specification.requiredExcludedDomains,
+  );
+  assert.equal(
+    readOnly.allowedOperations.consumeAdministrativelyExcludedSessions,
+    false,
+  );
+  assert.equal(
+    offRoute.administrativeDispositionAdmission.inheritedFromUpstreamReadOnlyLearning,
+    true,
+  );
+  assert.equal(
+    offRoute.readOnlySafety.consumeAdministrativelyExcludedSessions,
+    false,
+  );
+  assert.deepEqual(
+    shadowReadiness.administrativeDispositionAdmission.requiredExcludedDomains,
+    specification.requiredExcludedDomains,
+  );
+  assert.equal(
+    shadowReadiness.administrativeDispositionAdmission
+      .disposedSessionRecommendationInputAllowed,
+    false,
+  );
+  assert.equal(
+    shadowReadiness.prospectiveRuntimeAdapter.currentState
+      .recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(shadowReadiness.isolation.recommendationInfluence, "OFF");
 });

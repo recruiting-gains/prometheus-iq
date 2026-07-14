@@ -22,6 +22,8 @@ export const provenanceStatus = "LEGACY_PROVENANCE_GAP";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 const evidencePath =
   "intelligence/provenance/legacy-provenance-gap-049cf583-v1.json";
+const administrativeDispositionSpecificationPath =
+  "intelligence/provenance/specifications/administrative-disposition-admission-v1.json";
 const shaPattern = /^[a-f0-9]{64}$/;
 
 const contractDefinitions = Object.freeze([
@@ -83,6 +85,7 @@ const additionalConsumerMetadata = Object.freeze({
   "intelligence/contracts/shadow-decision-readiness-contracts.json": {
     id: "shadow_decision_readiness",
     generator: "scripts/verify-shadow-decision-readiness.mjs",
+    semanticRevision: "administrative_disposition_admission_v1",
   },
 });
 
@@ -109,6 +112,228 @@ function gitRead(commit, path) {
     cwd: root,
     maxBuffer: 16 * 1024 * 1024,
   });
+}
+
+function administrativeDispositionSpecification() {
+  const specification = parse(read(administrativeDispositionSpecificationPath));
+  assert.equal(
+    specification.version,
+    "route-iq-intelligence-administrative-disposition-admission-spec-v1",
+  );
+  assert.equal(specification.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.match(specification.semanticBaseCommit, /^[a-f0-9]{40}$/);
+  assert.equal(specification.safety.recommendationInfluence, "OFF");
+  assert.equal(specification.safety.routeScoringChanged, false);
+  assert.equal(specification.safety.routeGenerationChanged, false);
+  assert.equal(specification.safety.representativeExposureChanged, false);
+  assert.equal(specification.safety.historicalArchiveRewriteAllowed, false);
+  assert.equal(specification.safety.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(
+    new Set(specification.requiredExcludedDomains).size,
+    specification.requiredExcludedDomains.length,
+  );
+  return specification;
+}
+
+function renderProperty(name, value, indent = "  ") {
+  const renderedValue = JSON.stringify(value, null, 2).replaceAll(
+    "\n",
+    `\n${indent}`,
+  );
+  return `${indent}${JSON.stringify(name)}: ${renderedValue}`;
+}
+
+function replaceOnce(source, marker, replacement, label) {
+  const first = source.indexOf(marker);
+  assert.notEqual(first, -1, `${label}: marker missing`);
+  assert.equal(
+    source.indexOf(marker, first + marker.length),
+    -1,
+    `${label}: marker is ambiguous`,
+  );
+  return `${source.slice(0, first)}${replacement}${source.slice(
+    first + marker.length,
+  )}`;
+}
+
+function insertBefore(source, marker, insertion, label) {
+  return replaceOnce(source, marker, `${insertion}${marker}`, label);
+}
+
+function readOnlyDispositionAdmission(specification) {
+  const disposition = specification.canonicalDisposition;
+  const policy = specification.consumerPolicies.read_only_field_session_learning;
+  return {
+    schemaVersion: disposition.schemaVersion,
+    excludedState: disposition.excludedState,
+    authorizedReason: disposition.authorizedReason,
+    disposedSessionAdmissionAllowed: policy.disposedSessionAdmissionAllowed,
+    auditRecordRetentionRequired: policy.auditRecordRetentionRequired,
+    sourceArchiveRewriteAllowed: policy.sourceArchiveRewriteAllowed,
+    automaticZeroVisitExclusionAllowed:
+      policy.automaticZeroVisitExclusionAllowed,
+    unrelatedUndisposedZeroVisitSessionEligible:
+      policy.unrelatedUndisposedZeroVisitSessionEligible,
+    requiredExcludedDomains: [...specification.requiredExcludedDomains],
+  };
+}
+
+function offRouteDispositionAdmission(specification) {
+  const disposition = specification.canonicalDisposition;
+  const policy = specification.consumerPolicies.off_route_learning;
+  return {
+    inheritedFromUpstreamReadOnlyLearning:
+      policy.inheritedFromUpstreamReadOnlyLearning,
+    schemaVersion: disposition.schemaVersion,
+    excludedState: disposition.excludedState,
+    disposedSessionObservationAllowed: policy.disposedSessionObservationAllowed,
+    decisionSourceProjectionAllowed: policy.decisionSourceProjectionAllowed,
+    representativeJudgmentProjectionAllowed:
+      policy.representativeJudgmentProjectionAllowed,
+    territoryOrCustomerMetricProjectionAllowed:
+      policy.territoryOrCustomerMetricProjectionAllowed,
+    recommendationInputProjectionAllowed:
+      policy.recommendationInputProjectionAllowed,
+    automaticZeroVisitExclusionAllowed:
+      policy.automaticZeroVisitExclusionAllowed,
+    unrelatedUndisposedZeroVisitSessionEligible:
+      policy.unrelatedUndisposedZeroVisitSessionEligible,
+  };
+}
+
+function shadowReadinessDispositionAdmission(specification) {
+  const disposition = specification.canonicalDisposition;
+  const policy = specification.consumerPolicies.shadow_decision_readiness;
+  return {
+    schemaVersion: disposition.schemaVersion,
+    excludedState: disposition.excludedState,
+    authorizedReason: disposition.authorizedReason,
+    disposedSessionReadinessAdmissionAllowed:
+      policy.disposedSessionReadinessAdmissionAllowed,
+    disposedSessionEvaluationAdmissionAllowed:
+      policy.disposedSessionEvaluationAdmissionAllowed,
+    disposedSessionCalibrationAdmissionAllowed:
+      policy.disposedSessionCalibrationAdmissionAllowed,
+    disposedSessionBaselineAdmissionAllowed:
+      policy.disposedSessionBaselineAdmissionAllowed,
+    disposedSessionSegmentMetricAdmissionAllowed:
+      policy.disposedSessionSegmentMetricAdmissionAllowed,
+    disposedSessionRecommendationInputAllowed:
+      policy.disposedSessionRecommendationInputAllowed,
+    auditRecordRetentionRequired: policy.auditRecordRetentionRequired,
+    automaticZeroVisitExclusionAllowed:
+      policy.automaticZeroVisitExclusionAllowed,
+    unrelatedUndisposedZeroVisitSessionEligible:
+      policy.unrelatedUndisposedZeroVisitSessionEligible,
+    requiredExcludedDomains: [...specification.requiredExcludedDomains],
+  };
+}
+
+function applyLegacySemanticRevision(id, document, baseBytes, specification) {
+  let text = baseBytes.toString("utf8");
+  if (id === "read_only_field_session_learning") {
+    document.administrativeDispositionAdmission =
+      readOnlyDispositionAdmission(specification);
+    document.allowedOperations.consumeAdministrativelyExcludedSessions =
+      specification.consumerPolicies.read_only_field_session_learning
+        .consumeAdministrativelyExcludedSessions;
+    text = insertBefore(
+      text,
+      '  "learningPolicy": {',
+      `${renderProperty(
+        "administrativeDispositionAdmission",
+        document.administrativeDispositionAdmission,
+      )},\n`,
+      `${id}: administrative disposition`,
+    );
+    text = replaceOnce(
+      text,
+      '    "consumeStressTestObservations": false\n',
+      '    "consumeStressTestObservations": false,\n    "consumeAdministrativelyExcludedSessions": false\n',
+      `${id}: excluded-session operation`,
+    );
+  } else if (id === "off_route_learning") {
+    document.administrativeDispositionAdmission =
+      offRouteDispositionAdmission(specification);
+    document.readOnlySafety.consumeAdministrativelyExcludedSessions =
+      specification.consumerPolicies.off_route_learning
+        .consumeAdministrativelyExcludedSessions;
+    text = insertBefore(
+      text,
+      '  "decisionSourceContract": {',
+      `${renderProperty(
+        "administrativeDispositionAdmission",
+        document.administrativeDispositionAdmission,
+      )},\n`,
+      `${id}: administrative disposition`,
+    );
+    text = replaceOnce(
+      text,
+      '    "parseNotesIntoDecisionSource": false\n',
+      '    "parseNotesIntoDecisionSource": false,\n    "consumeAdministrativelyExcludedSessions": false\n',
+      `${id}: excluded-session safety`,
+    );
+  }
+  const revisedBytes = Buffer.from(text);
+  assert.deepEqual(parse(revisedBytes), document);
+  return revisedBytes;
+}
+
+function applyShadowReadinessSemanticRevision(
+  document,
+  baseBytes,
+  specification,
+) {
+  const policy = specification.consumerPolicies.shadow_decision_readiness;
+  const additions = policy.protectedBaselineAdditions;
+  for (const [name, path] of Object.entries(additions))
+    document.protectedBehaviorBaselines[name] = { path, sha256: fileSha256(path) };
+  for (const name of policy.requiredProtectedBehaviorBaselineKeyAdditions) {
+    if (!document.requiredProtectedBehaviorBaselineKeys.includes(name)) {
+      const insertionIndex =
+        document.requiredProtectedBehaviorBaselineKeys.indexOf(
+          "dataCoordinator",
+        );
+      assert.notEqual(insertionIndex, -1);
+      document.requiredProtectedBehaviorBaselineKeys.splice(
+        insertionIndex,
+        0,
+        name,
+      );
+    }
+  }
+  document.administrativeDispositionAdmission =
+    shadowReadinessDispositionAdmission(specification);
+
+  let text = baseBytes.toString("utf8");
+  for (const [name, path] of Object.entries(additions)) {
+    text = insertBefore(
+      text,
+      '    "dataRuntimeContract": {',
+      `${renderProperty(name, { path, sha256: fileSha256(path) }, "    ")},\n`,
+      `shadow readiness: ${name} baseline`,
+    );
+  }
+  for (const name of policy.requiredProtectedBehaviorBaselineKeyAdditions) {
+    text = insertBefore(
+      text,
+      '    "dataCoordinator",',
+      `    ${JSON.stringify(name)},\n`,
+      `shadow readiness: ${name} required key`,
+    );
+  }
+  text = insertBefore(
+    text,
+    '  "outcomes": {',
+    `${renderProperty(
+      "administrativeDispositionAdmission",
+      document.administrativeDispositionAdmission,
+    )},\n`,
+    "shadow readiness: administrative disposition",
+  );
+  const revisedBytes = Buffer.from(text);
+  assert.deepEqual(parse(revisedBytes), document);
+  return revisedBytes;
 }
 
 function jsonFilesBelow(path) {
@@ -192,6 +417,7 @@ function preserveFormatting(baseBytes, changes) {
 }
 
 function deriveContract(definition, reconstructedById) {
+  const semanticSpecification = administrativeDispositionSpecification();
   const preGapBytes = gitRead(preGapCommit, definition.path);
   const sourceBytes = gitRead(definition.sourceCommit, definition.path);
   assert.equal(
@@ -200,7 +426,14 @@ function deriveContract(definition, reconstructedById) {
     `Declared semantic source commit drifted before ${definition.path}`,
   );
   const preGapDocument = parse(preGapBytes);
-  const reconstructed = clone(preGapDocument);
+  const semanticallyRevised = clone(preGapDocument);
+  const semanticRevisionBytes = applyLegacySemanticRevision(
+    definition.id,
+    semanticallyRevised,
+    preGapBytes,
+    semanticSpecification,
+  );
+  const reconstructed = clone(semanticallyRevised);
 
   if (definition.id === "read_only_field_session_learning")
     hashMappedBaselines(reconstructed);
@@ -212,8 +445,8 @@ function deriveContract(definition, reconstructedById) {
     hashProtectedObjectBaselines(reconstructed);
   } else hashProtectedObjectBaselines(reconstructed);
 
-  const changes = collectStringChanges(preGapDocument, reconstructed);
-  const reconstructedBytes = preserveFormatting(preGapBytes, changes);
+  const changes = collectStringChanges(semanticallyRevised, reconstructed);
+  const reconstructedBytes = preserveFormatting(semanticRevisionBytes, changes);
   assert.deepEqual(parse(reconstructedBytes), reconstructed);
 
   const canonicalBytes = read(definition.path);
@@ -235,10 +468,33 @@ function deriveContract(definition, reconstructedById) {
     semanticIdentical: stable(canonical) === stable(reconstructed),
     byteIdentical: canonicalBytes.equals(reconstructedBytes),
     changedHashFields: changes,
+    semanticRevision:
+      definition.id === "read_only_field_session_learning" ||
+      definition.id === "off_route_learning"
+        ? {
+            specificationPath: administrativeDispositionSpecificationPath,
+            specificationSha256: fileSha256(
+              administrativeDispositionSpecificationPath,
+            ),
+            specificationVersion: semanticSpecification.version,
+            derivation: "historical_base_plus_owner_semantic_specification",
+            targetHashesStoredInSpecification: false,
+          }
+        : null,
     reconstructionSources: definition.reconstructionSources.map((path) => ({
       path,
       sha256: fileSha256(path),
-    })),
+    })).concat(
+      definition.id === "read_only_field_session_learning" ||
+        definition.id === "off_route_learning"
+        ? [
+            {
+              path: administrativeDispositionSpecificationPath,
+              sha256: fileSha256(administrativeDispositionSpecificationPath),
+            },
+          ]
+        : [],
+    ),
     reconstructedBytes,
     reconstructed,
   };
@@ -250,9 +506,22 @@ function deriveAdditionalConsumer(path) {
     id: path,
     generator: null,
   };
+  const semanticSpecification = administrativeDispositionSpecification();
   const canonicalBytes = read(path);
   const canonical = parse(canonicalBytes);
-  const reconstructed = clone(canonical);
+  const baseCommit = metadata.semanticRevision
+    ? semanticSpecification.semanticBaseCommit
+    : null;
+  const baseBytes = baseCommit ? gitRead(baseCommit, path) : canonicalBytes;
+  const semanticallyRevised = clone(parse(baseBytes));
+  const semanticRevisionBytes = metadata.semanticRevision
+    ? applyShadowReadinessSemanticRevision(
+        semanticallyRevised,
+        baseBytes,
+        semanticSpecification,
+      )
+    : baseBytes;
+  const reconstructed = clone(semanticallyRevised);
   if (
     Object.values(reconstructed.protectedBehaviorBaselines || {}).every(
       (baseline) => typeof baseline === "string",
@@ -260,13 +529,27 @@ function deriveAdditionalConsumer(path) {
   )
     hashMappedBaselines(reconstructed);
   else hashProtectedObjectBaselines(reconstructed);
-  const changes = collectStringChanges(canonical, reconstructed);
-  const reconstructedBytes = preserveFormatting(canonicalBytes, changes);
+  const changes = collectStringChanges(semanticallyRevised, reconstructed);
+  const reconstructedBytes = preserveFormatting(semanticRevisionBytes, changes);
   assert.deepEqual(parse(reconstructedBytes), reconstructed);
   return {
     id: metadata.id,
     path,
     generator: metadata.generator,
+    reconstructionBaseCommit: baseCommit,
+    reconstructionBaseRawSha256: sha256(baseBytes),
+    semanticRevision: metadata.semanticRevision
+      ? {
+          id: metadata.semanticRevision,
+          specificationPath: administrativeDispositionSpecificationPath,
+          specificationSha256: fileSha256(
+            administrativeDispositionSpecificationPath,
+          ),
+          specificationVersion: semanticSpecification.version,
+          derivation: "historical_base_plus_owner_semantic_specification",
+          targetHashesStoredInSpecification: false,
+        }
+      : null,
     canonicalBeforeRepairRawSha256: sha256(canonicalBytes),
     reconstructedRawSha256: sha256(reconstructedBytes),
     canonicalSemanticSha256: semanticSha256(canonical),
@@ -280,6 +563,7 @@ function deriveAdditionalConsumer(path) {
 }
 
 function assertContractSemantics(results) {
+  const specification = administrativeDispositionSpecification();
   const byId = new Map(results.map((result) => [result.id, result]));
   const readOnly = byId.get("read_only_field_session_learning").reconstructed;
   const offRoute = byId.get("off_route_learning").reconstructed;
@@ -293,10 +577,26 @@ function assertContractSemantics(results) {
     readOnly.productionSafety.productionRecommendationInfluenceActive,
     false,
   );
+  assert.deepEqual(
+    readOnly.administrativeDispositionAdmission,
+    readOnlyDispositionAdmission(specification),
+  );
+  assert.equal(
+    readOnly.allowedOperations.consumeAdministrativelyExcludedSessions,
+    false,
+  );
   assert.equal(offRoute.ownerSubsystem, "Prometheus Intelligence Engine");
   assert.equal(offRoute.readOnlySafety.modifyData, false);
   assert.equal(offRoute.readOnlySafety.modifyDashboard, false);
   assert.equal(offRoute.readOnlySafety.activateRecommendationInfluence, false);
+  assert.deepEqual(
+    offRoute.administrativeDispositionAdmission,
+    offRouteDispositionAdmission(specification),
+  );
+  assert.equal(
+    offRoute.readOnlySafety.consumeAdministrativelyExcludedSessions,
+    false,
+  );
   assert.equal(discovery.ownerSubsystem, "Prometheus Intelligence Engine");
   assert.equal(discovery.outputContract.runtimeConsumptionAuthorized, false);
   assert.equal(discovery.activationSafety.recommendationInfluenceActive, false);
@@ -307,6 +607,48 @@ function assertContractSemantics(results) {
   assert.equal(
     nearby.identityContract.duplicateRemovalBeforeRelationshipInference,
     true,
+  );
+}
+
+function assertAdditionalConsumerSemantics(additionalConsumers) {
+  const specification = administrativeDispositionSpecification();
+  const byId = new Map(
+    additionalConsumers.map((result) => [result.id, result.reconstructed]),
+  );
+  const shadowReadiness = byId.get("shadow_decision_readiness");
+  assert.ok(shadowReadiness);
+  assert.deepEqual(
+    shadowReadiness.administrativeDispositionAdmission,
+    shadowReadinessDispositionAdmission(specification),
+  );
+  assert.equal(
+    shadowReadiness.protectedBehaviorBaselines.dataArchiveRuntime.path,
+    specification.consumerPolicies.shadow_decision_readiness
+      .protectedBaselineAdditions.dataArchiveRuntime,
+  );
+  assert.ok(
+    shadowReadiness.requiredProtectedBehaviorBaselineKeys.includes(
+      "dataArchiveRuntime",
+    ),
+  );
+  assert.equal(
+    shadowReadiness.prospectiveRuntimeAdapter.currentState
+      .recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(
+    shadowReadiness.prospectiveRuntimeAdapter.readModel
+      .recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(
+    shadowReadiness.isolation.recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(
+    shadowReadiness.administrativeDispositionAdmission
+      .disposedSessionRecommendationInputAllowed,
+    false,
   );
 }
 
@@ -401,7 +743,15 @@ function evidenceFor(
     ownershipStatement:
       "The legacy mixed-ownership commit remains disclosed. This evidence does not claim retroactive Intelligence ownership; it records a new independent Intelligence-owner derivation.",
     reconstructionMethod:
-      "Rebuild each affected contract from its pre-gap semantic form, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare the complete result semantically and byte-for-byte with the canonical file.",
+      "Rebuild each legacy-affected contract from its pre-gap semantic form, apply the Intelligence-owned administrative-disposition admission specification without target hashes, reconstruct the shadow-readiness revision from its pre-revision base, derive protected hashes from declared source paths, derive the off-route upstream hash from the independently reconstructed read-only contract, and compare every complete result semantically and byte-for-byte with the canonical file.",
+    semanticRevisionSpecification: {
+      path: administrativeDispositionSpecificationPath,
+      sha256: fileSha256(administrativeDispositionSpecificationPath),
+      version: administrativeDispositionSpecification().version,
+      semanticBaseCommit:
+        administrativeDispositionSpecification().semanticBaseCommit,
+      targetHashesStored: false,
+    },
     protectedConsumerInventory,
     contracts: results.map((result) =>
       evidenceEntry(result, priorContracts.get(result.path)),
@@ -519,6 +869,7 @@ export function reconstructLegacyProtectedContracts({
   const additionalConsumers = discoveredProtectedConsumers
     .filter((path) => !legacyPaths.has(path))
     .map(deriveAdditionalConsumer);
+  assertAdditionalConsumerSemantics(additionalConsumers);
   const priorEvidence = priorEvidenceForIntegratedBase(integratedBase);
   const evidence = evidenceFor(
     results,
