@@ -22,6 +22,16 @@ The Data persistence adapter requires `DATA_ROUTE_IQ_FIELD_SESSION_STORE` with C
 
 The repository does not provision or route this binding. Infrastructure must provision it after Overwatch verifies the Data contract. Dashboard trigger work and Intelligence learning consumption require separate subsystem handoffs.
 
+## Administrative disposition
+
+`route-iq-field-session-administrative-disposition-v1` adds one narrowly authorized, append-only audit disposition for an explicitly identified committed session. The disposition is stored at a separate session-scoped key and binds the workspace, operating profile, session ID, exact raw SHA-256, and the SHA-256 plus byte length of every archive record that existed before the disposition. It never updates the raw report, normalized record, calculated metrics, evidence, history updates, history indexes, or commit marker.
+
+The only authorized values are `AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION` and `EXCLUDED_FROM_ANALYTICS` under `BATCH-20260714-001`. Identical retries return the original disposition; changed source identity conflicts fail closed. This is an explicit single-session operation, not a zero-visit rule. A different zero-visit session remains unaffected unless separately and explicitly authorized.
+
+A disposed session remains readable only with its paired audit exclusion. Data marks it ineligible for learning, readiness, evaluation, representative performance, territory/customer metrics, productivity counts, dashboards, leaderboards, baselines, calibration, and recommendation inputs. Both canonical field-session projections fail closed before emitting evidence. Direct history-index counting is not a permitted consumer path.
+
+This source change does not append the production disposition. Deployment and the exact production append remain separately gated; until both occur, the accidental July 14 session remains undisposed in production.
+
 ## Decision context
 
 For newly normalized field sessions, each canonical `verifiedFields.completedVisits[]` record requires both `visitDecisionSource` and `recommendationDecisionContext`. Missing or null fields fail closed. Canonical decision sources are Route IQ Recommendation, Nearby Context, Representative Saved Place, Representative Discovery, Representative Follow-up, Existing Relationship, Manual Selection, and Unknown. Explicit Unknown remains Unknown with confidence `0` and reason `null`; it is never inferred from missing input.

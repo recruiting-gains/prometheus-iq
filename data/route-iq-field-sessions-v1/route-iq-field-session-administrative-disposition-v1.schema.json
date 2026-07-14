@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "route-iq-field-session-administrative-disposition-v1.schema.json",
+  "title": "Route IQ Field Session Administrative Disposition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordKind",
+    "workspaceId",
+    "operatingProfileId",
+    "sessionId",
+    "sourceRawSha256",
+    "reason",
+    "state",
+    "recordedAt",
+    "authorization",
+    "appendOnly",
+    "auditOnly",
+    "historicalArchiveRewriteAllowed",
+    "automaticZeroVisitExclusion",
+    "excludedDomains",
+    "protectedArtifactCount",
+    "preservedArchiveArtifacts",
+    "recordSha256"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-field-session-administrative-disposition-v1" },
+    "recordKind": { "const": "field_session_administrative_disposition" },
+    "workspaceId": { "const": "fitness_connection" },
+    "operatingProfileId": { "const": "fitness" },
+    "sessionId": {
+      "type": "string",
+      "pattern": "^route-iq-field-session-fitness-connection-fitness-[a-z0-9_-]+-[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "sourceRawSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "reason": { "const": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION" },
+    "state": { "const": "EXCLUDED_FROM_ANALYTICS" },
+    "recordedAt": { "type": "string", "format": "date-time" },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["batchId", "authority", "scope"],
+      "properties": {
+        "batchId": { "const": "BATCH-20260714-001" },
+        "authority": { "const": "prometheus_founder" },
+        "scope": { "const": "single_explicit_session" }
+      }
+    },
+    "appendOnly": { "const": true },
+    "auditOnly": { "const": true },
+    "historicalArchiveRewriteAllowed": { "const": false },
+    "automaticZeroVisitExclusion": { "const": false },
+    "excludedDomains": {
+      "const": [
+        "learning",
+        "readiness",
+        "evaluation",
+        "representative_performance",
+        "territory_metrics",
+        "customer_metrics",
+        "productivity_counts",
+        "dashboards",
+        "leaderboards",
+        "baselines",
+        "calibration",
+        "recommendation_inputs"
+      ]
+    },
+    "protectedArtifactCount": { "type": "integer", "minimum": 1 },
+    "preservedArchiveArtifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "sha256", "byteLength"],
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "byteLength": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "recordSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

@@ -71,6 +71,7 @@
     "archiveRoot": "data/route-iq-field-sessions-v1",
     "archiveDocumentation": "data/route-iq-field-sessions-v1/README.md",
     "fieldSessionSchema": "data/route-iq-field-sessions-v1/route-iq-field-session-v1.schema.json",
+    "administrativeDispositionSchema": "data/route-iq-field-sessions-v1/route-iq-field-session-administrative-disposition-v1.schema.json",
     "archiveRuntime": "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
     "prospectiveOpportunitySnapshotSchema": "data/route-iq-field-sessions-v1/route-iq-prospective-opportunity-snapshot-v1.schema.json",
     "prospectiveShadowEvidenceRuntime": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-evidence.mjs",
@@ -670,6 +671,60 @@
     "territoryHistoryUsesWorkspacePartitionedAppendOnlyKeysWhenAvailable": true,
     "customerAndCategoryHistoryUseWorkspacePartitionedAppendOnlyKeys": true,
     "separateRuntimeReadBackRequired": true
+  },
+  "fieldSessionAdministrativeDispositionContract": {
+    "contractVersion": "route-iq-field-session-administrative-disposition-v1",
+    "status": "source_implemented_pending_deployment_and_explicit_append",
+    "owningSubsystem": "Prometheus Data",
+    "authorizedBatchId": "BATCH-20260714-001",
+    "authorizedProductionTarget": {
+      "workspaceId": "fitness_connection",
+      "operatingProfileId": "fitness",
+      "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+      "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+      "existingRecordCount": 7,
+      "existingRecordsMustRemainByteIdentical": true
+    },
+    "authorizedDisposition": {
+      "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+      "state": "EXCLUDED_FROM_ANALYTICS",
+      "auditOnly": true,
+      "appendOnly": true
+    },
+    "persistenceRules": {
+      "separateSessionScopedRecordRequired": true,
+      "existingArchiveMutationAllowed": false,
+      "identicalRetryReturnsOriginalRecord": true,
+      "changedRetryRejectedAsConflict": true,
+      "workspaceSessionAndRawHashBindingRequired": true,
+      "allPreexistingArtifactHashesSealed": true,
+      "automaticZeroVisitExclusionAllowed": false,
+      "productionMutationAuthorizedBySourceCommit": false,
+      "deploymentAndExplicitAppendRequireSeparateAuthorization": true
+    },
+    "excludedDomains": [
+      "learning",
+      "readiness",
+      "evaluation",
+      "representative_performance",
+      "territory_metrics",
+      "customer_metrics",
+      "productivity_counts",
+      "dashboards",
+      "leaderboards",
+      "baselines",
+      "calibration",
+      "recommendation_inputs"
+    ],
+    "consumerRules": {
+      "directHistoryIndexCountingAllowed": false,
+      "consumptionEligibilityCheckRequired": true,
+      "chronologicalEvidenceProjectionFailsClosed": true,
+      "committedOutcomeProjectionFailsClosed": true,
+      "auditReadRemainsAvailable": true,
+      "historicalReplayAllowed": false,
+      "recommendationInfluenceAllowed": false
+    }
   },
   "fieldSessionOwnership": {
     "owningSubsystem": "Prometheus Data",

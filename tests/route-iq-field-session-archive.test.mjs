@@ -4,17 +4,30 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import {
   FieldSessionArchiveError,
+  FieldSessionAdministrativeDispositionConflictError,
+  FieldSessionAdministrativeExclusionError,
   FieldSessionConflictError,
   FieldSessionStoreBindingError,
+  assertRouteIqFieldSessionConsumptionEligible,
   createCloudflareKvFieldSessionStore,
   createRouteIqFieldSessionArchivePackage,
   consumeRouteIqEndOfDayHandoff,
   deriveRouteIqCandidateIdFromGooglePlaceId,
   deterministicFieldSessionId,
+  fieldSessionAdministrativeDispositionStorageKey,
   fieldSessionStorageKeys,
+  getRouteIqFieldSessionConsumptionEligibility,
+  persistRouteIqFieldSessionAdministrativeDisposition,
   persistRouteIqFieldSessionArchive,
   projectCommittedRouteIqFieldSessionOutcomes,
+  projectRouteIqChronologicalEvidence,
+  readRouteIqFieldSessionAdministrativeDisposition,
   readRouteIqFieldSessionArchive,
+  routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId,
+  routeIqFieldSessionAdministrativeDispositionReason,
+  routeIqFieldSessionAdministrativeDispositionState,
+  routeIqFieldSessionAdministrativeDispositionVersion,
+  routeIqFieldSessionAdministrativeExclusionDomains,
   routeIqEndOfDayHandoffContractId,
   routeIqFieldSessionArchiveVersion,
   routeIqFieldSessionStoreBinding,
@@ -95,6 +108,34 @@ function packageInput(overrides = {}) {
 
 function archivePackage(overrides = {}) {
   return createRouteIqFieldSessionArchivePackage(packageInput(overrides));
+}
+
+function zeroVisitArchivePackage(date) {
+  const report = canonicalPackageReport();
+  report.date = date;
+  report.generatedAt = `${date}T23:00:00.000Z`;
+  report.visits = [];
+  report.totals = { visits: 0, conversations: 0, leads: 0, units: 0, laterUnits: 0 };
+  return archivePackage({
+    rawReportText: JSON.stringify(report, null, 2),
+    originalFileName: `zero-visit-${date}.json`,
+    canonicalRawArtifactPath: `route-iq-field-sessions/v1/fixtures/${date}.json`,
+    ingestedAt: `${date}T23:30:00.000Z`,
+    stressTestEvidence: null
+  });
+}
+
+function dispositionInput(archive, recordedAt = "2026-07-15T01:00:00.000Z") {
+  return {
+    workspaceId: archive.normalizedRecord.workspaceId,
+    operatingProfileId: archive.normalizedRecord.operatingProfileId,
+    sessionId: archive.sessionId,
+    rawSha256: archive.rawSha256,
+    reason: routeIqFieldSessionAdministrativeDispositionReason,
+    state: routeIqFieldSessionAdministrativeDispositionState,
+    recordedAt,
+    authorizationBatchId: routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId
+  };
 }
 
 function canonicalPackageReport() {
@@ -588,6 +629,191 @@ test("history updates preserve representative and customer outcomes while territ
   assert.equal(history.territoryHistory.territoryId, null);
   assert.equal(history.intelligenceLearningHandoff.status, "not_authorized");
   assert.equal(history.intelligenceLearningHandoff.scoringMutationAllowed, false);
+});
+
+test("administrative disposition appends one audit record while preserving all seven existing archive records", async () => {
+  const binding = kvBinding();
+  const archive = zeroVisitArchivePackage("2026-07-14");
+  await persistRouteIqFieldSessionArchive(archive, {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    persistedAt: "2026-07-15T00:00:00.000Z"
+  });
+  assert.equal(binding.data.size, 7);
+  const before = new Map([...binding.data].map(([key, stored]) => [key, stored.value]));
+  const writesBefore = binding.writes.length;
+  const key = fieldSessionAdministrativeDispositionStorageKey("fitness_connection", archive.sessionId);
+  const absent = await readRouteIqFieldSessionAdministrativeDisposition({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    sessionId: archive.sessionId
+  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
+  assert.equal(absent.found, false);
+
+  const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
+    env: { [routeIqFieldSessionStoreBinding]: binding }
+  });
+  assert.equal(first.status, "administrative_disposition_recorded");
+  assert.equal(first.duplicate, false);
+  assert.equal(first.key, key);
+  assert.equal(first.record.schemaVersion, routeIqFieldSessionAdministrativeDispositionVersion);
+  assert.equal(first.record.protectedArtifactCount, 7);
+  assert.equal(first.record.preservedArchiveArtifacts.length, 7);
+  assert.equal(first.record.automaticZeroVisitExclusion, false);
+  assert.deepEqual(first.record.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
+  assert.equal(binding.data.size, 8);
+  assert.equal(binding.writes.length, writesBefore + 1);
+  for (const [existingKey, existingValue] of before) {
+    assert.equal(binding.data.get(existingKey)?.value, existingValue, `Existing archive record changed: ${existingKey}`);
+  }
+
+  const readBack = await readRouteIqFieldSessionArchive({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    sessionId: archive.sessionId
+  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
+  assert.equal(readBack.record.administrativeDisposition.recordSha256, first.record.recordSha256);
+  assert.deepEqual(readBack.record.consumptionEligibility, {
+    eligible: false,
+    state: "EXCLUDED_FROM_ANALYTICS",
+    reason: "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    auditOnly: true,
+    excludedDomains: [...routeIqFieldSessionAdministrativeExclusionDomains],
+    dispositionRecordSha256: first.record.recordSha256
+  });
+  assert.deepEqual(getRouteIqFieldSessionConsumptionEligibility(readBack.record), readBack.record.consumptionEligibility);
+  for (const domain of routeIqFieldSessionAdministrativeExclusionDomains) {
+    assert.throws(
+      () => assertRouteIqFieldSessionConsumptionEligible(readBack.record, domain),
+      error => error instanceof FieldSessionAdministrativeExclusionError
+        && error.code === "field_session_administratively_excluded"
+        && error.details.requestedDomain === domain
+    );
+  }
+  assert.throws(
+    () => projectCommittedRouteIqFieldSessionOutcomes({
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      representativeId: "cruz",
+      archiveRecord: readBack.record
+    }),
+    error => error instanceof FieldSessionAdministrativeExclusionError
+  );
+  assert.throws(
+    () => projectRouteIqChronologicalEvidence({
+      workspaceId: "fitness_connection",
+      operatingProfileId: "fitness",
+      representativeId: "cruz",
+      decisionTimestamp: "2026-07-16T00:00:00.000Z",
+      archiveRecord: readBack.record
+    }),
+    error => error instanceof FieldSessionAdministrativeExclusionError
+  );
+
+  const writeCount = binding.writes.length;
+  const retry = await persistRouteIqFieldSessionAdministrativeDisposition(
+    dispositionInput(archive, "2026-07-15T02:00:00.000Z"),
+    { env: { [routeIqFieldSessionStoreBinding]: binding } }
+  );
+  assert.equal(retry.status, "administrative_disposition_already_recorded");
+  assert.equal(retry.duplicate, true);
+  assert.equal(retry.record.recordedAt, "2026-07-15T01:00:00.000Z");
+  assert.equal(binding.writes.length, writeCount);
+});
+
+test("administrative disposition rejects unauthorized values and changed source identity without overwrite", async () => {
+  const binding = kvBinding();
+  const archive = zeroVisitArchivePackage("2026-07-14");
+  await persistRouteIqFieldSessionArchive(archive, {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    persistedAt: "2026-07-15T00:00:00.000Z"
+  });
+  const initialSize = binding.data.size;
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition({
+      ...dispositionInput(archive),
+      reason: "ZERO_VISIT_SESSION"
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    error => error instanceof FieldSessionArchiveError
+      && error.code === "field_session_administrative_disposition_value_unauthorized"
+  );
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition({
+      ...dispositionInput(archive),
+      zeroVisit: true
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    error => error instanceof FieldSessionArchiveError
+      && error.code === "field_session_administrative_disposition_input_invalid"
+  );
+  assert.equal(binding.data.size, initialSize);
+
+  const first = await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(archive), {
+    env: { [routeIqFieldSessionStoreBinding]: binding }
+  });
+  const dispositionBytes = binding.data.get(first.key).value;
+  await assert.rejects(
+    () => persistRouteIqFieldSessionAdministrativeDisposition({
+      ...dispositionInput(archive),
+      rawSha256: "0".repeat(64)
+    }, { env: { [routeIqFieldSessionStoreBinding]: binding } }),
+    error => error instanceof FieldSessionAdministrativeDispositionConflictError
+      && error.code === "field_session_administrative_disposition_conflict"
+  );
+  assert.equal(binding.data.get(first.key).value, dispositionBytes);
+});
+
+test("an undisposed zero-visit session remains eligible and is not caught by a broad rule", async () => {
+  const binding = kvBinding();
+  const disposed = zeroVisitArchivePackage("2026-07-14");
+  const unaffected = zeroVisitArchivePackage("2026-07-15");
+  await persistRouteIqFieldSessionArchive(disposed, {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    persistedAt: "2026-07-15T00:00:00.000Z"
+  });
+  await persistRouteIqFieldSessionArchive(unaffected, {
+    env: { [routeIqFieldSessionStoreBinding]: binding },
+    persistedAt: "2026-07-16T00:00:00.000Z"
+  });
+  await persistRouteIqFieldSessionAdministrativeDisposition(dispositionInput(disposed), {
+    env: { [routeIqFieldSessionStoreBinding]: binding }
+  });
+
+  const unaffectedRead = await readRouteIqFieldSessionArchive({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    sessionId: unaffected.sessionId
+  }, { env: { [routeIqFieldSessionStoreBinding]: binding } });
+  assert.equal(unaffectedRead.record.administrativeDisposition, null);
+  assert.deepEqual(unaffectedRead.record.consumptionEligibility, {
+    eligible: true,
+    state: "NOT_ADMINISTRATIVELY_EXCLUDED",
+    reason: null,
+    auditOnly: false,
+    excludedDomains: []
+  });
+  assert.deepEqual(projectCommittedRouteIqFieldSessionOutcomes({
+    workspaceId: "fitness_connection",
+    operatingProfileId: "fitness",
+    representativeId: "cruz",
+    archiveRecord: unaffectedRead.record
+  }).outcomes, []);
+});
+
+test("administrative disposition schema and Data contract pin only the explicitly authorized production target", () => {
+  const schema = json("data/route-iq-field-sessions-v1/route-iq-field-session-administrative-disposition-v1.schema.json");
+  const contract = json("overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json");
+  const dispositionContract = contract.fieldSessionAdministrativeDispositionContract;
+  assert.equal(schema.properties.reason.const, routeIqFieldSessionAdministrativeDispositionReason);
+  assert.equal(schema.properties.state.const, routeIqFieldSessionAdministrativeDispositionState);
+  assert.equal(schema.properties.authorization.properties.batchId.const, routeIqFieldSessionAdministrativeDispositionAuthorizationBatchId);
+  assert.equal(schema.properties.automaticZeroVisitExclusion.const, false);
+  assert.deepEqual(schema.properties.excludedDomains.const, routeIqFieldSessionAdministrativeExclusionDomains);
+  assert.equal(dispositionContract.status, "source_implemented_pending_deployment_and_explicit_append");
+  assert.equal(dispositionContract.authorizedProductionTarget.sessionId, "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14");
+  assert.equal(dispositionContract.authorizedProductionTarget.rawSha256, "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765");
+  assert.equal(dispositionContract.authorizedProductionTarget.existingRecordCount, 7);
+  assert.equal(dispositionContract.persistenceRules.automaticZeroVisitExclusionAllowed, false);
+  assert.equal(dispositionContract.persistenceRules.productionMutationAuthorizedBySourceCommit, false);
+  assert.deepEqual(dispositionContract.excludedDomains, routeIqFieldSessionAdministrativeExclusionDomains);
 });
 
 test("exact re-ingestion is idempotent and performs no second write", async () => {
