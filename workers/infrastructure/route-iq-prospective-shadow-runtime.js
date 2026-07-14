@@ -43,6 +43,9 @@ import {
   createRouteIqProspectiveAuthorityEnvelope
 } from "./route-iq-prospective-shadow-authority.js";
 import {
+  verifyRouteIqProspectiveDataRetentionAdmission
+} from "./route-iq-prospective-shadow-retention-admission.js";
+import {
   linkRouteIqProspectiveServerAction,
   orchestrateRouteIqProspectiveNextStop,
   recordRouteIqProspectiveStageFailure
@@ -508,15 +511,16 @@ async function readExactCommittedProjectionWithRecovery({
   );
 }
 
-function resolveRouteIqEvaluationRetentionEnvelope({
+async function resolveRouteIqEvaluationRetentionEnvelope({
   scope,
   scoreableOutcome,
   outcomeReceipt,
   fieldSessionOutcomeProjection,
+  env,
   noncanonicalTestHooks
 }) {
   if (noncanonicalTestHooks?.enabled !== true
-    || typeof noncanonicalTestHooks.buildNoncanonicalAuthenticatedDataRetentionEnvelope !== "function") {
+    || typeof noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission !== "function") {
     failRouteIqProspective(
       "Authenticated Data retention input is unavailable for prospective evaluation.",
       "route_iq_prospective_retention_input_unavailable",
@@ -524,9 +528,9 @@ function resolveRouteIqEvaluationRetentionEnvelope({
     );
   }
 
-  let retentionEnvelope;
+  let admissionEnvelope;
   try {
-    retentionEnvelope = noncanonicalTestHooks.buildNoncanonicalAuthenticatedDataRetentionEnvelope({
+    admissionEnvelope = await noncanonicalTestHooks.readNoncanonicalDataRetentionAdmission({
       scope: { ...scope },
       scoreableOutcome,
       outcomeReceipt,
@@ -539,14 +543,13 @@ function resolveRouteIqEvaluationRetentionEnvelope({
       500
     );
   }
-  if (!retentionEnvelope || typeof retentionEnvelope !== "object" || Array.isArray(retentionEnvelope)) {
-    failRouteIqProspective(
-      "Noncanonical authenticated Data retention input is invalid.",
-      "route_iq_prospective_test_retention_input_invalid",
-      500
-    );
-  }
-  return retentionEnvelope;
+  const verified = await verifyRouteIqProspectiveDataRetentionAdmission(admissionEnvelope, {
+    env,
+    scope,
+    scoreableOutcome,
+    now: noncanonicalTestHooks.currentDate
+  });
+  return verified.retentionEnvelope;
 }
 
 export async function admitRouteIqProspectiveIntelligenceOutcomes({
@@ -615,11 +618,12 @@ export async function admitRouteIqProspectiveIntelligenceOutcomes({
       let evaluationReceipt = null;
       let evaluationSkipped = false;
       if (scoreableOutcome.observedOutcome.status === "observed") {
-        const retentionEnvelope = resolveRouteIqEvaluationRetentionEnvelope({
+        const retentionEnvelope = await resolveRouteIqEvaluationRetentionEnvelope({
           scope,
           scoreableOutcome,
           outcomeReceipt,
           fieldSessionOutcomeProjection,
+          env,
           noncanonicalTestHooks
         });
         evaluation = buildRouteIqEvaluationFromAdmittedOutcome({

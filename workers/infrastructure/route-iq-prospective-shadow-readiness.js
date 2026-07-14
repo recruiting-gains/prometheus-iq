@@ -160,8 +160,12 @@ export function auditRouteIqProspectiveActivationReadiness({
     activationReason: activation.reason,
     activationAuthorized: false,
     productionVerified: false,
+    verificationScope: "LOCAL_SOURCE_ONLY",
+    deployedEnvironmentStatus: "UNVERIFIED",
+    deployedCountsStatus: "UNVERIFIED",
     recommendationInfluence: "OFF",
     activeCohortCount: activation.activeCohortCount,
+    deployedActiveCohortCount: null,
     endpointState: expectedEndpointState,
     counters: {
       attemptedApplicationWrites: candidate.attemptedApplicationWrites ?? null,

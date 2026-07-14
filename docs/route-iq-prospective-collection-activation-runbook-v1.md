@@ -1,6 +1,6 @@
 # Route IQ prospective collection activation runbook v1
 
-Batch: `BATCH-20260714-003`
+Batch: `BATCH-20260714-004`
 
 Owner: Prometheus Infrastructure
 
@@ -10,7 +10,7 @@ Status: local activation-readiness procedure only. Collection remains `OFF`, act
 
 This runbook applies only after the Founder separately authorizes an exact commit, tree, private `prometheus-iq` Worker target, dark-deployment scope, rollback artifact, and later activation scope. A source push is not deployment or activation approval. The public Website Worker is always excluded.
 
-Stop before any production action if authentication is absent, interactive login or MFA is required, the exact authorized commit/tree differs, repository state is dirty, bindings or migrations differ, collection is not `OFF`, active cohorts are not zero, production counts differ, a secret value would be exposed, or the public Worker target cannot be proven unchanged.
+Stop before any production action if authentication is absent, interactive login or MFA is required, the exact authorized commit/tree differs, repository state is dirty, bindings or migrations differ, collection is not `OFF`, active cohorts are not zero, the deployed environment or counts are `UNVERIFIED`, production counts differ, a secret value would be exposed, or the public Worker target cannot be proven unchanged.
 
 Do not place Access assertions, subjects, cohort values, authority keys, secret values, customer data, or production API responses in source control, terminal transcripts, screenshots, reports, or logs.
 
@@ -56,7 +56,7 @@ No Cloudflare authentication is used for local readiness. Run the existing Infra
 - candidate, event, session, outbox, row, SQL, and storage budget ceilings;
 - Data-owned administrative-disposition consumer exclusion contracts without appending or changing production data.
 
-`auditRouteIqProspectiveActivationReadiness` is a pure evaluator. It accepts only supplied local observations, marks `productionVerified = false`, never accesses Cloudflare or storage, and never authorizes activation.
+`auditRouteIqProspectiveActivationReadiness` is a pure evaluator. It accepts only supplied local observations, marks `productionVerified = false`, `deployedEnvironmentStatus = UNVERIFIED`, and `deployedCountsStatus = UNVERIFIED`, never accesses Cloudflare or storage, and never authorizes activation. Local zero counters prove source safety only; they are not a claim that deployed production counts are zero. A hypothetical ON fixture is compatibility coverage only and never activation authorization.
 
 ## Authenticated deployment review when the Founder returns
 
@@ -65,7 +65,7 @@ These steps require a new Founder deployment authorization and valid non-interac
 1. Freeze the Founder-authorized commit and tree; verify `git status --porcelain=v1` is empty and local `main` equals `origin/main`.
 2. Verify the private target is `prometheus-iq`; verify the public Worker version and deployment ID before any upload.
 3. Record private Worker version, traffic, binding names, Durable Object migration tag, namespace identity, protected secret names only, active cohort count, collection state, recommendation influence, and all production record counts.
-4. Verify the accidental archive and any Data-owned disposition using exact hashes and read-only consumer gates. Do not add, delete, or rewrite a disposition during smoke testing.
+4. Verify the exact July 14 accidental archive hash and Data-owned disposition using read-only consumer gates. Confirm it remains byte-preserved and excluded from learning, readiness, evaluation, analytics, and recommendation inputs. Do not add, delete, or rewrite a disposition during smoke testing.
 5. Verify the immutable forward-rollback package digest authorized by the Founder and run its local dry-run. Native Cloudflare rollback is prohibited after the stateful migration.
 6. Run `npx wrangler deploy --dry-run --strict --keep-vars --config wrangler.jsonc` and inspect the generated binding/migration summary. Stop on any new resource, migration, secret, route, or public target.
 7. Only under the exact deployment authorization, run `npx wrangler deploy --keep-vars --config wrangler.jsonc` for the private Worker.
@@ -80,19 +80,20 @@ Dark deployment does not authorize collection.
 Activation is a later, separately Founder-authorized operation. Before changing the global switch:
 
 1. Reconfirm the deployed commit/tree/version, private target, public Worker, collection `OFF`, active cohorts `0`, recommendation influence `OFF`, and clean before-counts.
-2. Reconfirm Data retention policy, administrative-disposition consumer exclusion, monitoring budgets, exact internal representative scope, and 24-hour maximum cohort validity.
-3. Construct the exact v2 cohort value from trusted server records. Validate it locally without printing it.
-4. Apply the cohort value through the existing authenticated runtime-configuration procedure, retaining collection `OFF`.
-5. Read the server-controlled bootstrap and confirm it remains disabled while the switch is OFF.
-6. After a second explicit Founder activation approval, set only the global switch to exact `ON`.
-7. Verify one active cohort, `next_stop` only, opaque bootstrap output, recommendation influence `OFF`, and budget/usage monitoring. Never expose shadow output.
-8. Immediately set collection back to `OFF` and stop if any blocker, unexpected write, cross-scope access, budget breach, UI change, missing exclusion, conflict spike, or count mismatch appears.
+2. Reconfirm the Data-owned Founder boundary: raw and prospective evidence maximum 18 UTC calendar months from canonical creation; authenticated/hash/scope-bound customer shortening only; no expansion; legal hold pauses deletion/disposition until authorized release; indefinite aggregate only through a Data-attested non-identifying artifact; and physical production deletion remains unactivated.
+3. Reconfirm the exact accidental archive remains byte-preserved and excluded by Data's exact disposition, not a broad zero-visit rule.
+4. Construct the exact v2 cohort value from trusted server records. Validate it locally without printing it.
+5. Apply the cohort value through the existing authenticated runtime-configuration procedure, retaining collection `OFF`.
+6. Read the server-controlled bootstrap and confirm it remains disabled while the switch is OFF.
+7. After a second explicit Founder activation approval, set only the global switch to exact `ON`.
+8. Verify one active cohort, `next_stop` only, opaque bootstrap output, recommendation influence `OFF`, a fresh Data-signed retention admission, and budget/usage monitoring. Never expose shadow output.
+9. Immediately set collection back to `OFF` and stop if any blocker, unexpected write, missing/stale/malformed/expired/held/cross-scope/tampered Data admission, budget breach, UI change, missing exclusion, conflict spike, or count mismatch appears.
 
 ## Monitoring and activation blockers
 
 Before activation, all of the following must be known and passing: endpoint state, attempted application writes, active cohort count, Durable Object object count, KV writes, opportunities, conflicts, exclusions, evaluations, field-session counts, archive hashes, disposition consumer exclusion, candidate/event/session/outbox/row/SQL/storage usage, public Worker identity, and recommendation influence.
 
-Activation remains blocked while any production fact is unavailable, authentication is unavailable, collection-OFF produces a write attempt, the production disposition is unresolved, the one-representative scope is not Founder-approved, retention is unapproved, costs are unreviewed, or a budget/usage signal is nonzero without an explained governed record.
+Activation remains blocked while any deployed environment/count is `UNVERIFIED`, any production fact is unavailable, authentication is unavailable, collection-OFF produces a write attempt, the exact production disposition is unresolved, Data retention admission is missing, stale, malformed, expired, held, cross-scope, hash-mismatched, or tampered, the one-representative scope is not Founder-approved, physical deletion is presumed active, costs are unreviewed, or a budget/usage signal is nonzero without an explained governed record.
 
 ## Forward rollback
 

@@ -106,7 +106,7 @@ export async function createRouteIqProspectiveAuthorityEnvelope(claims, env, { c
 
 export function createRouteIqProspectiveAuthorityVerifier(env) {
   return Object.freeze({
-    async verify(envelope, { purpose } = {}) {
+    async verify(envelope, { purpose, channel: requiredChannel } = {}) {
       assertExactKeys(envelope, [
         "version",
         "channel",
@@ -123,6 +123,7 @@ export function createRouteIqProspectiveAuthorityVerifier(env) {
         || envelope.algorithm !== routeIqProspectiveAuthorityAlgorithm
         || envelope.keyVersion !== keyVersion
         || envelope.keyId !== expectedKeyId
+        || (requiredChannel !== undefined && channel !== requiredChannel)
         || !envelope.claims
         || typeof envelope.claims !== "object"
         || Array.isArray(envelope.claims)

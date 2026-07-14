@@ -4,7 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
-const batchId = "BATCH-20260713-004";
+const batchId = "BATCH-20260714-004";
 const startupSuppressionBatchId = "BATCH-20260714-002";
 const activationReadinessBatchId = "BATCH-20260714-003";
 const infrastructureBaseCommit = "84319f9c70004edd50e1531e48ea1d0d7b501089";
@@ -21,7 +21,9 @@ const dataCommits = Object.freeze([
   "84319f9",
   "a5bd1d4",
   "4803d7a",
-  "fdacf00"
+  "fdacf00",
+  "d4c5e583",
+  "c73118d"
 ]);
 const intelligenceCommits = Object.freeze(["4e66667", "6e4d9f7", "925fa5e"]);
 
@@ -38,6 +40,7 @@ const paths = Object.freeze({
   contract: "workers/infrastructure/route-iq-prospective-shadow-contract.js",
   access: "workers/infrastructure/route-iq-prospective-shadow-access.js",
   authority: "workers/infrastructure/route-iq-prospective-shadow-authority.js",
+  retentionAdmission: "workers/infrastructure/route-iq-prospective-shadow-retention-admission.js",
   durableObject: "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
   orchestration: "workers/infrastructure/route-iq-prospective-shadow-orchestration.js",
   readiness: "workers/infrastructure/route-iq-prospective-shadow-readiness.js",
@@ -46,6 +49,7 @@ const paths = Object.freeze({
   privateConfig: "wrangler.jsonc",
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
   dataRuntimeContract: "overwatch/artifact-contracts/data/fitness-connection-runtime-artifact-contract-v1.json",
+  dataRetentionPolicy: "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
   test: "tests/route-iq-prospective-shadow-infrastructure.test.mjs",
   documentation: "docs/route-iq-prospective-shadow-infrastructure-v1.md",
   activationRunbook: "docs/route-iq-prospective-collection-activation-runbook-v1.md"
@@ -59,6 +63,7 @@ const worker = read(paths.worker);
 const contract = read(paths.contract);
 const access = read(paths.access);
 const authority = read(paths.authority);
+const retentionAdmission = read(paths.retentionAdmission);
 const durableObject = read(paths.durableObject);
 const orchestration = read(paths.orchestration);
 const readiness = read(paths.readiness);
@@ -67,6 +72,7 @@ const activationTemplate = JSON.parse(read(paths.activationTemplate));
 const privateConfig = read(paths.privateConfig);
 const publicConfig = read(paths.publicConfig);
 const dataRuntimeContract = JSON.parse(read(paths.dataRuntimeContract));
+const dataRetentionPolicy = JSON.parse(read(paths.dataRetentionPolicy));
 const testSource = read(paths.test);
 const documentation = read(paths.documentation);
 const activationRunbook = read(paths.activationRunbook);
@@ -141,6 +147,19 @@ for (const required of [
 ]) {
   assert.ok(`${authority}\n${contract}`.includes(required), `Authority control must include ${required}`);
 }
+for (const required of [
+  "route-iq-prospective-data-retention-admission-v1",
+  "data_retention_admission",
+  "RETENTION_ADMITTED",
+  'channel: "producer"',
+  "sourceOutcomeEvidenceSha256",
+  "sourceArchiveRawSha256",
+  "ROUTE_IQ_PROSPECTIVE_DATA_RETENTION_ADMISSION_MAX_LIFETIME_SECONDS",
+  "Data owns the retention-envelope semantics"
+]) {
+  assert.ok(`${retentionAdmission}\n${runtime}`.includes(required), `Data retention admission must include ${required}`);
+}
+assert.match(authority, /requiredChannel !== undefined && channel !== requiredChannel/u);
 
 for (const required of [
   "initializeRouteIqProspectiveCoordinatorSchema",
@@ -261,7 +280,8 @@ for (const required of [
   "ROUTE_IQ_PROSPECTIVE_SHADOW_BUDGETS.pendingOutbox",
   "processed_with_failures",
   "resolveRouteIqEvaluationRetentionEnvelope",
-  "buildNoncanonicalAuthenticatedDataRetentionEnvelope",
+  "readNoncanonicalDataRetentionAdmission",
+  "verifyRouteIqProspectiveDataRetentionAdmission",
   "route_iq_prospective_retention_input_unavailable",
   "retentionEnvelope"
 ]) {
@@ -274,7 +294,7 @@ assert.match(runtime, /const recovered = await stub\.recoverNextProjection/u);
 assert.match(runtime, /const readOnce = async \(\) => stub\.readCommittedProjectionForOutcomeArtifact/u);
 assert.match(
   runtime,
-  /noncanonicalTestHooks\?\.enabled !== true[\s\S]+typeof noncanonicalTestHooks\.buildNoncanonicalAuthenticatedDataRetentionEnvelope !== "function"/u
+  /noncanonicalTestHooks\?\.enabled !== true[\s\S]+typeof noncanonicalTestHooks\.readNoncanonicalDataRetentionAdmission !== "function"/u
 );
 assert.ok(
   runtime.indexOf("resolveRouteIqEvaluationRetentionEnvelope")
@@ -373,6 +393,10 @@ for (const required of [
   "productionAccessUsed",
   "activationAuthorized: false",
   "productionVerified: false",
+  'verificationScope: "LOCAL_SOURCE_ONLY"',
+  'deployedEnvironmentStatus: "UNVERIFIED"',
+  'deployedCountsStatus: "UNVERIFIED"',
+  "deployedActiveCohortCount: null",
   "preactivation_write_attempt_detected"
 ]) {
   assert.ok(readiness.includes(required), `Activation readiness audit must include ${required}`);
@@ -421,11 +445,31 @@ assert.equal(disposition.consumerRules.chronologicalEvidenceProjectionFailsClose
 assert.equal(disposition.consumerRules.committedOutcomeProjectionFailsClosed, true);
 assert.equal(disposition.consumerRules.recommendationInfluenceAllowed, false);
 
+const retention = dataRuntimeContract.prospectiveShadowEvidenceLifecycleContract.retentionAndCollection;
+assert.equal(dataRetentionPolicy.batchId, batchId);
+assert.equal(dataRetentionPolicy.retentionDecision.maximumCalendarMonths, 18);
+assert.equal(dataRetentionPolicy.retentionDecision.customerContractMayShorten, true);
+assert.equal(dataRetentionPolicy.retentionDecision.customerContractMayExpand, false);
+assert.equal(dataRetentionPolicy.expiryAndDeletion.physicalDeletionActivated, false);
+assert.equal(dataRetentionPolicy.legalHold.callerAssertedStateAccepted, false);
+assert.equal(dataRetentionPolicy.legalHold.activeHoldPausesDeletion, true);
+assert.equal(dataRetentionPolicy.legalHold.activeHoldPausesDisposition, true);
+assert.equal(dataRetentionPolicy.aggregateRetention.artifactHashAndAttestationBindingRequired, true);
+assert.equal(dataRetentionPolicy.administrativeDispositionConsumerBoundary.rawSha256, disposition.authorizedProductionTarget.rawSha256);
+assert.equal(retention.maximumRetentionCalendarMonths, 18);
+assert.equal(retention.customerContractMayShortenOnly, true);
+assert.equal(retention.callerAssertedLegalHoldStateAccepted, false);
+assert.equal(retention.physicalDeletionImplementationAvailable, false);
+assert.equal(retention.july14AccidentalArchiveBytePreservationRequired, true);
+assert.equal(retention.july14AccidentalArchiveDispositionOnlyExclusion, true);
+assert.equal(retention.productionCollectionActivated, false);
+assert.equal(retention.productionEvidenceRecords, 0);
+
 for (const required of [
   batchId,
   startupSuppressionBatchId,
-  "b388849c21051262e0f80e4c24875147cf9889dd",
-  "84319f9c70004edd50e1531e48ea1d0d7b501089",
+  "d4c5e583",
+  "c73118d",
   "OFF = $0 incremental",
   "ROUTE_IQ_PROSPECTIVE_SHADOW_COORDINATOR",
   "RouteIqProspectiveShadowCoordinator",
@@ -446,7 +490,10 @@ for (const required of [
   "96 KiB",
   "96 bindings",
   "two-opportunity same-session restart coverage",
-  "authenticated Data retention envelope",
+  "Data-signed retention admission",
+  "route-iq-prospective-data-retention-admission-v1",
+  "18 UTC calendar months",
+  "UNVERIFIED",
   "route_iq_prospective_retention_input_unavailable",
   "noncanonical test hook",
   "closeCanonicalSession",
@@ -459,7 +506,7 @@ for (const required of [
 }
 
 for (const required of [
-  activationReadinessBatchId,
+  batchId,
   "INERT_DEFAULT_OFF",
   "route-iq-prospective-cohort-config-v2",
   "exactly one governed workspace, operating profile, and internal representative scope",
@@ -467,6 +514,11 @@ for (const required of [
   "Founder kill switch",
   "Immediate disable procedure",
   "productionVerified = false",
+  "deployedEnvironmentStatus = UNVERIFIED",
+  "deployedCountsStatus = UNVERIFIED",
+  "Data-signed retention admission",
+  "18 UTC calendar months",
+  "physical production deletion remains unactivated",
   "npx wrangler whoami",
   "npx wrangler deploy --dry-run --strict --keep-vars --config wrangler.jsonc",
   "npx wrangler deploy --keep-vars --config wrangler.jsonc",

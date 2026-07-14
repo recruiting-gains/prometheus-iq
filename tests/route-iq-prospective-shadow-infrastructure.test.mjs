@@ -74,6 +74,10 @@ import {
   handleRouteIqProspectiveShadowRequest
 } from "../workers/infrastructure/route-iq-prospective-shadow-runtime.js";
 import {
+  routeIqProspectiveDataRetentionAdmissionVersion,
+  verifyRouteIqProspectiveDataRetentionAdmission
+} from "../workers/infrastructure/route-iq-prospective-shadow-retention-admission.js";
+import {
   CloudflareRouteIqProspectiveSqliteRepository
 } from "../workers/infrastructure/route-iq-prospective-shadow-durable-object.js";
 import {
@@ -238,6 +242,21 @@ function buildNoncanonicalAuthenticatedDataRetentionEnvelope({
       }
     }
   };
+}
+
+async function readNoncanonicalDataRetentionAdmission(input, env) {
+  const issuedAt = testNow.toISOString();
+  return createRouteIqProspectiveAuthorityEnvelope({
+    purpose: "data_retention_admission",
+    admissionVersion: routeIqProspectiveDataRetentionAdmissionVersion,
+    admissionState: "RETENTION_ADMITTED",
+    issuedAt,
+    expiresAt: new Date(testNow.getTime() + 60_000).toISOString(),
+    scope: { ...input.scope },
+    sourceOutcomeEvidenceSha256: input.scoreableOutcome.sourceOutcomeEvidenceSha256,
+    sourceArchiveRawSha256: input.scoreableOutcome.sourceArchiveRawSha256,
+    retentionEnvelope: buildNoncanonicalAuthenticatedDataRetentionEnvelope(input)
+  }, env, { channel: "producer" });
 }
 
 async function principalMap(subject, representativeId = "cruz") {
@@ -511,7 +530,9 @@ async function accessFixture({
   const noncanonicalTestHooks = {
     enabled: true,
     currentDate: testNow,
-    buildNoncanonicalAuthenticatedDataRetentionEnvelope,
+    readNoncanonicalDataRetentionAdmission(input) {
+      return readNoncanonicalDataRetentionAdmission(input, env);
+    },
     lifecycleNow() {
       calls.push("lifecycle_server_clock");
       if (!lifecycleDates?.length) return new Date(testNow);
@@ -1213,6 +1234,10 @@ test("local activation readiness audit proves OFF silence and one-scope hypothet
   assert.equal(offAudit.activeCohortCount, 0);
   assert.equal(offAudit.activationAuthorized, false);
   assert.equal(offAudit.productionVerified, false);
+  assert.equal(offAudit.verificationScope, "LOCAL_SOURCE_ONLY");
+  assert.equal(offAudit.deployedEnvironmentStatus, "UNVERIFIED");
+  assert.equal(offAudit.deployedCountsStatus, "UNVERIFIED");
+  assert.equal(offAudit.deployedActiveCohortCount, null);
   assert.deepEqual(offAudit.blockers, []);
 
   const onEnv = {
@@ -1233,6 +1258,10 @@ test("local activation readiness audit proves OFF silence and one-scope hypothet
   assert.equal(onAudit.status, "PASS");
   assert.equal(onAudit.mode, "HYPOTHETICAL_ON");
   assert.equal(onAudit.activeCohortCount, 1);
+  assert.equal(onAudit.activationAuthorized, false);
+  assert.equal(onAudit.productionVerified, false);
+  assert.equal(onAudit.deployedEnvironmentStatus, "UNVERIFIED");
+  assert.equal(onAudit.deployedCountsStatus, "UNVERIFIED");
   assert.equal(onAudit.recommendationInfluence, "OFF");
   assert.deepEqual(onAudit.blockers, []);
 });
@@ -1699,8 +1728,8 @@ test("field-session acknowledgment isolates prospective timeout, rejection, miss
   });
 });
 
-test("committed outcome helper derives producer admissions from exact projections and skips missing evaluations", async t => {
-  await t.test("observed scoreable outcome admits evaluation without recovery", async () => {
+test("committed outcome helper requires Data-signed retention admission and skips missing evaluations", async t => {
+  await t.test("a signed local fixture reaches the Data/Intelligence boundary without authorizing evaluation", async () => {
     const fixture = committedOutcomeFixture();
     const expectedScoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
       fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
@@ -1795,15 +1824,16 @@ test("committed outcome helper derives producer admissions from exact projection
       reconciliationReceipt: fixture.reconciliationReceipt,
       noncanonicalTestHooks: access.noncanonicalTestHooks
     });
-    assert.equal(result.status, "processed");
+    assert.equal(result.status, "processed_with_failures");
     assert.deepEqual(result.totals, {
       linkedCount: 1,
       admittedOutcomeCount: 1,
-      admittedEvaluationCount: 1,
+      admittedEvaluationCount: 0,
       skippedEvaluationCount: 0,
-      failedLinkCount: 0
+      failedLinkCount: 1
     });
     assert.equal(access.calls.includes("projection_recovery_rpc"), false);
+    assert.equal(access.calls.includes("evaluation_admission_rpc"), false);
   });
 
   await t.test("missing scoreable outcome records no evaluation", async () => {
@@ -2005,11 +2035,11 @@ test("committed outcome helper continues later links after poisoned failures and
     assert.deepEqual(result.totals, {
       linkedCount: 2,
       admittedOutcomeCount: 1,
-      admittedEvaluationCount: 1,
+      admittedEvaluationCount: 0,
       skippedEvaluationCount: 0,
-      failedLinkCount: 1
+      failedLinkCount: 2
     });
-    assert.deepEqual(result.processedLinks.map(entry => entry.status), ["failed", "processed"]);
+    assert.deepEqual(result.processedLinks.map(entry => entry.status), ["failed", "failed"]);
   });
 
   await t.test("128 recoveries can reach the exact projection and exhaustion fails closed after the governed bound", async () => {
@@ -2064,8 +2094,8 @@ test("committed outcome helper continues later links after poisoned failures and
       reconciliationReceipt: fixture.reconciliationReceipt,
       noncanonicalTestHooks: access.noncanonicalTestHooks
     });
-    assert.equal(success.status, "processed");
-    assert.equal(success.totals.failedLinkCount, 0);
+    assert.equal(success.status, "processed_with_failures");
+    assert.equal(success.totals.failedLinkCount, 1);
     assert.equal(recoveries, 128);
 
     let exhaustedRecoveries = 0;
@@ -2175,10 +2205,10 @@ test("committed outcome helper continues later links after poisoned failures and
       reconciliationReceipt: fixture.reconciliationReceipt,
       noncanonicalTestHooks: access.noncanonicalTestHooks
     });
-    assert.equal(second.status, "processed");
-    assert.equal(second.totals.failedLinkCount, 0);
+    assert.equal(second.status, "processed_with_failures");
+    assert.equal(second.totals.failedLinkCount, 1);
     assert.equal(recoveryCalls, beforeRetryRecoveries);
-    assert.deepEqual(second.processedLinks[0].outcomeReceipt, stableOutcomeReceipt);
+    assert.equal(second.processedLinks[0].code, "route_iq_evaluation_input_invalid");
   });
 });
 
@@ -2359,6 +2389,101 @@ test("HMAC authority envelopes require the protected key and reject tampering", 
   await assert.rejects(
     createRouteIqProspectiveAuthorityEnvelope(claims, {}),
     error => error.code === "route_iq_prospective_authority_key_missing"
+  );
+});
+
+test("Data retention admission requires a fresh producer signature and exact scope/evidence bindings", async () => {
+  const env = authorityEnv();
+  const fixture = committedOutcomeFixture();
+  const scoreableOutcome = deriveRouteIqScoreableOutcomeFromCommittedEvidence({
+    fieldSessionOutcomeProjection: fixture.fieldSessionOutcomeProjection,
+    reconciliationReceipt: fixture.reconciliationReceipt,
+    sourceVisitRecordSha256: fixture.link.sourceVisitRecordSha256
+  });
+  const claims = {
+    purpose: "data_retention_admission",
+    admissionVersion: routeIqProspectiveDataRetentionAdmissionVersion,
+    admissionState: "RETENTION_ADMITTED",
+    issuedAt: testNow.toISOString(),
+    expiresAt: new Date(testNow.getTime() + 60_000).toISOString(),
+    scope: scope(),
+    sourceOutcomeEvidenceSha256: scoreableOutcome.sourceOutcomeEvidenceSha256,
+    sourceArchiveRawSha256: scoreableOutcome.sourceArchiveRawSha256,
+    retentionEnvelope: { dataOwned: "opaque-to-infrastructure" }
+  };
+  const envelope = await createRouteIqProspectiveAuthorityEnvelope(claims, env, { channel: "producer" });
+  const verified = await verifyRouteIqProspectiveDataRetentionAdmission(envelope, {
+    env,
+    scope: scope(),
+    scoreableOutcome,
+    now: testNow
+  });
+  assert.equal(verified.verificationType, "infrastructure_verified_producer_signature");
+  assert.deepEqual(verified.retentionEnvelope, claims.retentionEnvelope);
+
+  const tampered = structuredClone(envelope);
+  tampered.claims.sourceArchiveRawSha256 = digest("tampered-raw");
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(tampered, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_authority_invalid"
+  );
+  const crossScope = await createRouteIqProspectiveAuthorityEnvelope({
+    ...claims,
+    scope: scope("anthony")
+  }, env, { channel: "producer" });
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(crossScope, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_invalid"
+  );
+  const stale = await createRouteIqProspectiveAuthorityEnvelope({
+    ...claims,
+    issuedAt: "2026-07-13T19:00:00.000Z",
+    expiresAt: "2026-07-13T19:05:00.000Z"
+  }, env, { channel: "producer" });
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(stale, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_stale"
+  );
+  const held = await createRouteIqProspectiveAuthorityEnvelope({
+    ...claims,
+    admissionState: "RETENTION_HELD"
+  }, env, { channel: "producer" });
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(held, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_invalid"
+  );
+  const malformed = await createRouteIqProspectiveAuthorityEnvelope({
+    ...claims,
+    retentionEnvelope: null
+  }, env, { channel: "producer" });
+  await assert.rejects(
+    verifyRouteIqProspectiveDataRetentionAdmission(malformed, {
+      env,
+      scope: scope(),
+      scoreableOutcome,
+      now: testNow
+    }),
+    error => error.code === "route_iq_prospective_data_retention_admission_invalid"
   );
 });
 
@@ -3038,27 +3163,23 @@ test("real Miniflare restart processes two same-session reconciliation links aga
       noncanonicalTestHooks: {
         enabled: true,
         currentDate: testNow,
-        buildNoncanonicalAuthenticatedDataRetentionEnvelope
+        readNoncanonicalDataRetentionAdmission(input) {
+          return readNoncanonicalDataRetentionAdmission(input, authority);
+        }
       }
     });
-    assert.equal(processed.status, "processed");
+    assert.equal(processed.status, "processed_with_failures");
     assert.deepEqual(processed.totals, {
       linkedCount: 2,
       admittedOutcomeCount: 2,
-      admittedEvaluationCount: 2,
+      admittedEvaluationCount: 0,
       skippedEvaluationCount: 0,
-      failedLinkCount: 0
+      failedLinkCount: 2
     });
-    assert.equal(processed.processedLinks[0].outcomeReceipt.opportunityId, firstAllocation.opportunityId);
-    assert.equal(processed.processedLinks[1].outcomeReceipt.opportunityId, secondAllocation.opportunityId);
-    assert.equal(processed.processedLinks[0].committedProjection.projection.opportunityId, firstAllocation.opportunityId);
-    assert.equal(processed.processedLinks[1].committedProjection.projection.opportunityId, secondAllocation.opportunityId);
-    assert.notEqual(
-      processed.processedLinks[0].committedProjection.projection.opportunityId,
-      processed.processedLinks[1].committedProjection.projection.opportunityId
+    assert.deepEqual(
+      processed.processedLinks.map(link => link.code),
+      ["route_iq_evaluation_input_invalid", "route_iq_evaluation_input_invalid"]
     );
-    assert.equal(processed.processedLinks[0].evaluation.recommendationInfluence, "OFF");
-    assert.equal(processed.processedLinks[1].evaluation.recommendationInfluence, "OFF");
   } finally {
     await miniflare.dispose();
     rmSync(persistencePath, { recursive: true, force: true });
