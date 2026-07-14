@@ -30,6 +30,11 @@ import {
   reconcileAndCloseRouteIqProspectiveSessionFromHandoff
 } from "./infrastructure/route-iq-prospective-shadow-runtime.js";
 import {
+  authorizeCloudflareUnattendedSmokeRequest,
+  markCloudflareUnattendedSmokeResponse,
+  sanitizeCloudflareUnattendedSmokeAssetRequest
+} from "./infrastructure/cloudflare-unattended-smoke-guard.js";
+import {
   persistWorkspaceLeadIntakeWithProductionStore
 } from "../crm/workspace-lead-production-runtime.mjs";
 import {
@@ -727,26 +732,43 @@ async function handleApiRequest(request, env, executionContext) {
   return jsonResponse({ ok: false, message: "Not found." }, 404);
 }
 
+export async function handlePrometheusIqWorkerRequest(request, env, executionContext, {
+  unattendedSmokeTestHooks
+} = {}) {
+  const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
+    noncanonicalTestHooks: unattendedSmokeTestHooks
+  });
+  if (smokeAuthorization.kind === "denied") return smokeAuthorization.response;
+
+  let response;
+  try {
+    const url = new URL(request.url);
+    if (isRouteIqProspectiveShadowPath(url.pathname)
+      && (!getRouteIqProspectiveActivation(env).active || request.method === "GET")) {
+      response = await handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
+    } else if (url.pathname.startsWith("/api/")) {
+      const aegis = await enforceAegisControls(request, env);
+      response = !aegis.ok
+        ? aegis.response
+        : withAegisHeaders(await handleApiRequest(request, env, executionContext), aegis);
+    } else {
+      response = await env.ASSETS.fetch(
+        sanitizeCloudflareUnattendedSmokeAssetRequest(request, smokeAuthorization)
+      );
+    }
+  } catch {
+    response = jsonResponse({
+      ok: false,
+      message: "Internal server error."
+    }, 500);
+  }
+
+  return markCloudflareUnattendedSmokeResponse(response, smokeAuthorization);
+}
+
 export default {
   async fetch(request, env, executionContext) {
-    const url = new URL(request.url);
-    try {
-      if (isRouteIqProspectiveShadowPath(url.pathname)
-        && (!getRouteIqProspectiveActivation(env).active || request.method === "GET")) {
-        return handleRouteIqProspectiveShadowRequest(request, env, { executionContext });
-      }
-      if (url.pathname.startsWith("/api/")) {
-        const aegis = await enforceAegisControls(request, env);
-        if (!aegis.ok) return aegis.response;
-        return withAegisHeaders(await handleApiRequest(request, env, executionContext), aegis);
-      }
-      return env.ASSETS.fetch(request);
-    } catch {
-      return jsonResponse({
-        ok: false,
-        message: "Internal server error."
-      }, 500);
-    }
+    return handlePrometheusIqWorkerRequest(request, env, executionContext);
   }
 };
 

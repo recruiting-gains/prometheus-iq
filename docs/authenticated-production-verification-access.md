@@ -4,11 +4,11 @@ This is the standard Infrastructure/Auth method for verifying Cloudflare Access-
 
 ## Unattended Status
 
-The future unattended architecture is defined in `docs/cloudflare-unattended-deployment-access-v1.md` and is currently `NOT_CONFIGURED`.
+The unattended architecture and source-level runtime guard are defined in `docs/cloudflare-unattended-deployment-access-v1.md`. Credentials, Access policy, runtime configuration, deployment, and unattended readiness remain `NOT_CONFIGURED`.
 
 Unattended verification must use a separate Cloudflare Access Service Token exposed to the smoke child process only as `CLOUDFLARE_ACCESS_CLIENT_ID` and `CLOUDFLARE_ACCESS_CLIENT_SECRET`. It must never use a Founder browser cookie, password, MFA code, username, or Global API Key.
 
-An Access Service Token authenticates a service principal but does not make HTTP read-only. Therefore unattended smoke remains blocked until a separately authorized server-side guard enforces `GET`/`HEAD` and an explicit read-only path allowlist, with a default-deny smoke client proving zero attempted writes. This batch does not change Access policy or runtime behavior.
+An Access Service Token authenticates a service principal but does not make HTTP read-only. The source guard validates the Access JWT and enforces `GET`/`HEAD` plus an explicit path allowlist. The local smoke client is fixed-origin and default-deny. Neither is configured or deployed, so unattended smoke remains blocked. This batch does not change Access policy or production runtime behavior.
 
 ## Scope
 

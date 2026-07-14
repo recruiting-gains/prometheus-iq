@@ -8,6 +8,11 @@ import {
   scanTrackedRepository,
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
+import {
+  validateFounderControl
+} from "./lib/cloudflare-unattended-control.mjs";
+
+export { validateFounderControl };
 
 const root = resolve(import.meta.dirname, "..");
 const contractPath = "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json";
@@ -22,56 +27,6 @@ function readJson(path) {
   return JSON.parse(read(path));
 }
 
-export function validateFounderControl(control, {
-  now = new Date(),
-  consumedNonces = new Set(),
-  expectedCommit,
-  expectedTree
-} = {}) {
-  const reasons = [];
-  const required = [
-    "schemaVersion",
-    "enabled",
-    "targetWorker",
-    "environment",
-    "authorizedCommit",
-    "authorizedTree",
-    "founderDirectiveId",
-    "issuedAt",
-    "expiresAt",
-    "oneShotAuthorizationNonce"
-  ];
-  if (!control || typeof control !== "object" || Array.isArray(control)) {
-    return Object.freeze({ valid: false, reasons: Object.freeze(["control_missing_or_invalid"]) });
-  }
-  for (const field of required) {
-    if (!Object.hasOwn(control, field)) reasons.push(`missing_${field}`);
-  }
-  if (control.schemaVersion !== "cloudflare-unattended-deployment-control-v1") reasons.push("invalid_schema");
-  if (control.enabled !== true) reasons.push("control_off");
-  if (control.targetWorker !== "prometheus-iq") reasons.push("wrong_target");
-  if (control.environment !== "production_private") reasons.push("wrong_environment");
-  if (!/^[0-9a-f]{40}$/u.test(control.authorizedCommit || "")) reasons.push("invalid_commit");
-  if (!/^[0-9a-f]{40}$/u.test(control.authorizedTree || "")) reasons.push("invalid_tree");
-  if (expectedCommit && control.authorizedCommit !== expectedCommit) reasons.push("commit_mismatch");
-  if (expectedTree && control.authorizedTree !== expectedTree) reasons.push("tree_mismatch");
-  if (!/^FOUNDER-[A-Z0-9-]{6,}$/u.test(control.founderDirectiveId || "")) reasons.push("invalid_founder_directive");
-  if (!/^[A-Za-z0-9_-]{24,128}$/u.test(control.oneShotAuthorizationNonce || "")) reasons.push("invalid_nonce");
-  if (consumedNonces.has(control.oneShotAuthorizationNonce)) reasons.push("nonce_already_consumed");
-
-  const issuedAt = Date.parse(control.issuedAt);
-  const expiresAt = Date.parse(control.expiresAt);
-  const nowMs = now.getTime();
-  if (!Number.isFinite(issuedAt) || !Number.isFinite(expiresAt)) reasons.push("invalid_time");
-  else {
-    if (issuedAt > nowMs) reasons.push("not_yet_valid");
-    if (expiresAt <= nowMs) reasons.push("expired");
-    if (expiresAt <= issuedAt) reasons.push("invalid_time_order");
-    if (expiresAt - issuedAt > 30 * 60 * 1000) reasons.push("authorization_window_too_long");
-  }
-  return Object.freeze({ valid: reasons.length === 0, reasons: Object.freeze(reasons) });
-}
-
 export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = false } = {}) {
   const contract = readJson(contractPath);
   const documentation = read(documentationPath);
@@ -82,7 +37,8 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   const wrangler = read("wrangler.jsonc");
 
   assert.equal(contract.contractVersion, "cloudflare-unattended-deployment-access-v1");
-  assert.equal(contract.batchId, "BATCH-20260714-005");
+  assert.equal(contract.batchId, "BATCH-20260714-006");
+  assert.equal(contract.architectureBatchId, "BATCH-20260714-005");
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(contract.setupStatus, "NOT_CONFIGURED");
   assert.equal(contract.unattendedDeploymentReady, false);
@@ -135,7 +91,7 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   assert.equal(contract.smokeCredential.policy.policyChangeAuthorizedByThisBatch, false);
   assert.equal(contract.smokeCredential.httpReadOnlyGuaranteeProvidedByAccess, false);
   assert.deepEqual(contract.localStorage.keychainItems, KEYCHAIN_ITEMS);
-  assert.equal(contract.localStorage.injection, "future_audited_child_process_only");
+  assert.equal(contract.localStorage.injection, "implemented_audited_fixed_child_process_profiles_only");
   for (const prohibited of ["Git", ".env", ".dev.vars", "shell_history", "command_line_arguments", "logs", "reports", "screenshots"]) {
     assert.ok(contract.localStorage.prohibitedStorage.includes(prohibited));
   }
@@ -150,7 +106,10 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   assert.equal(contract.founderDeploymentControl.founderDirectiveStillRequired, true);
   assert.equal(contract.deploymentGates.automaticEngineeringPushIsDeploymentAuthorization, false);
 
-  assert.equal(contract.servicePrincipalReadOnlyGuard.status, "NOT_IMPLEMENTED_NOT_AUTHORIZED");
+  assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
+  assert.equal(contract.servicePrincipalReadOnlyGuard.sourceImplemented, true);
+  assert.equal(contract.servicePrincipalReadOnlyGuard.productionConfigured, false);
+  assert.equal(contract.servicePrincipalReadOnlyGuard.productionDeployed, false);
   assert.equal(contract.servicePrincipalReadOnlyGuard.requiredBeforeUnattendedSmoke, true);
   assert.deepEqual(contract.servicePrincipalReadOnlyGuard.allowedMethods, ["GET", "HEAD"]);
   assert.ok(contract.servicePrincipalReadOnlyGuard.allowedPaths.length >= 10);
@@ -187,7 +146,7 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
     assert.equal(contract.setupStatus, "CONFIGURED_VERIFIED");
     assert.equal(contract.unattendedDeploymentReady, true);
     assert.equal(contract.unattendedSmokeReady, true);
-    assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_VERIFIED");
+    assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_DEPLOYED_VERIFIED");
   }
 
   for (const link of Object.values(contract.officialDocumentation)) {
@@ -211,7 +170,7 @@ export function verifyCloudflareUnattendedAccessArchitecture({ requireReady = fa
   }
   assert.match(authenticatedVerification, /prohibited for unattended operation/u);
   assert.match(authenticatedVerification, /Do not pass cookies as command-line arguments/u);
-  assert.match(authenticatedVerification, /server-side guard enforces `GET`\/`HEAD`/u);
+  assert.match(authenticatedVerification, /source guard validates the Access JWT and enforces `GET`\/`HEAD`/u);
 
   assert.equal(
     packageJson.scripts["infrastructure:cloudflare-unattended-access:check"],

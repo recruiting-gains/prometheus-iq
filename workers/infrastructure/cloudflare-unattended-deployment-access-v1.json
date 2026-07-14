@@ -1,8 +1,9 @@
 {
   "contractVersion": "cloudflare-unattended-deployment-access-v1",
-  "batchId": "BATCH-20260714-005",
+  "batchId": "BATCH-20260714-006",
+  "architectureBatchId": "BATCH-20260714-005",
   "owner": "Prometheus Infrastructure",
-  "implementationType": "architecture_and_local_verification_only",
+  "implementationType": "runtime_guard_and_local_launch_tooling_source_only",
   "setupStatus": "NOT_CONFIGURED",
   "unattendedDeploymentReady": false,
   "unattendedSmokeReady": false,
@@ -112,7 +113,7 @@
         "account": "CLOUDFLARE_ACCESS_CLIENT_SECRET"
       }
     ],
-    "injection": "future_audited_child_process_only",
+    "injection": "implemented_audited_fixed_child_process_profiles_only",
     "persistentEnvironmentExportAllowed": false,
     "prohibitedStorage": [
       "Git",
@@ -145,8 +146,19 @@
     ],
     "exactTargetWorker": "prometheus-iq",
     "exactEnvironment": "production_private",
+    "regularFileRequired": true,
+    "symlinkAllowed": false,
+    "currentUserOwnershipRequired": true,
+    "strictJsonShapeRequired": true,
+    "boundedFileBytes": 8192,
+    "exactRepositoryCommitAndTreeRequired": true,
+    "founderDirectiveEnvironmentName": "PROMETHEUS_FOUNDER_DEPLOYMENT_DIRECTIVE_ID",
+    "exactDirectiveMatchRequired": true,
+    "canonicalTimestampsRequired": true,
     "oneShot": true,
     "atomicConsumptionRequired": true,
+    "consumedMarkerMode": "0600",
+    "consumedMarkerDirectoryMode": "0700",
     "authorizationNonceReusable": false,
     "missingInvalidStaleOrOffBehavior": "DENY",
     "authorizesDeploymentByItself": false,
@@ -170,8 +182,38 @@
     "preAndPostDeploymentComparisonRequired": true
   },
   "servicePrincipalReadOnlyGuard": {
-    "status": "NOT_IMPLEMENTED_NOT_AUTHORIZED",
+    "status": "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED",
+    "sourceImplemented": true,
+    "productionConfigured": false,
+    "productionDeployed": false,
+    "privateWorkerRunsFirstForAllRequestsInSource": true,
     "requiredBeforeUnattendedSmoke": true,
+    "requestMarker": {
+      "header": "X-Prometheus-Unattended-Smoke",
+      "value": "service-principal-read-only-v1"
+    },
+    "verifiedResponseMarker": {
+      "header": "X-Prometheus-Unattended-Smoke-Guard",
+      "value": "verified-read-only-v1"
+    },
+    "authentication": {
+      "assertionHeader": "Cf-Access-Jwt-Assertion",
+      "algorithm": "RS256",
+      "signatureRequired": true,
+      "exactIssuerRequired": true,
+      "exactAudienceRequired": true,
+      "issuedAtAndExpiryRequired": true,
+      "serviceTokenSub": "",
+      "serviceTokenCommonNameMustEqualConfiguredClientId": true,
+      "headerPresenceAloneAccepted": false
+    },
+    "runtimeConfigurationNames": [
+      "PROMETHEUS_UNATTENDED_SMOKE_GUARD",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_TEAM_DOMAIN",
+      "PROMETHEUS_UNATTENDED_SMOKE_ACCESS_AUDIENCE",
+      "PROMETHEUS_UNATTENDED_SMOKE_SERVICE_TOKEN_CLIENT_ID"
+    ],
+    "missingInvalidOrOffConfiguration": "DENY_SERVICE_PRINCIPAL_AND_PRESERVE_ORDINARY_ACCESS_PATH",
     "allowedMethods": [
       "GET",
       "HEAD"
@@ -198,6 +240,49 @@
     "writeAttemptCountRequired": 0,
     "browserStorageCredentialPersistenceAllowed": false,
     "serviceWorkerCredentialPersistenceAllowed": false
+  },
+  "defaultDenySmokeClient": {
+    "status": "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED",
+    "productionOrigin": "https://prometheus-iq.prometheusrouteiq.workers.dev",
+    "fixedProfileOnly": true,
+    "arbitraryUrlAllowed": false,
+    "arbitraryMethodAllowed": false,
+    "requestBodiesAllowed": false,
+    "cookiesAllowed": false,
+    "redirectMode": "manual",
+    "credentialsMode": "omit",
+    "browserOrServiceWorkerUsed": false,
+    "responseBodiesReadOrPersisted": false,
+    "guardResponseMarkerRequired": true,
+    "productionNetworkAccessPerformedByThisBatch": false
+  },
+  "auditedKeychainLauncher": {
+    "status": "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED",
+    "arbitraryCommandAllowed": false,
+    "pinnedWranglerModule": "node_modules/wrangler/bin/wrangler.js",
+    "nodeOptionsAllowed": false,
+    "fixedProfiles": [
+      "presence",
+      "smoke-dry-run",
+      "smoke-read-only",
+      "deployment-release"
+    ],
+    "presenceChecksReadValues": false,
+    "checkOnlyConsumesNonce": false,
+    "launchConsumesNonceBeforeChild": true,
+    "credentialValuesPassedInArguments": false,
+    "credentialValuesIncludedInAuditOutput": false,
+    "deploymentChildCredentialNames": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID"
+    ],
+    "smokeChildCredentialNames": [
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+    ],
+    "childOutputMode": "suppressed",
+    "publicWorkerCommandAvailable": false,
+    "launcherExecutedByThisBatch": false
   },
   "unattendedActions": {
     "allowedAfterFutureSetupAndAuthorization": [
@@ -263,6 +348,8 @@
     "apiTokenPermissions": "https://developers.cloudflare.com/fundamentals/api/reference/permissions/",
     "accessServiceTokens": "https://developers.cloudflare.com/cloudflare-one/access-controls/service-credentials/service-tokens/",
     "accessPolicies": "https://developers.cloudflare.com/cloudflare-one/access-controls/policies/",
+    "accessApplicationToken": "https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/",
+    "accessJwtValidation": "https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/",
     "workerSecretHandling": "https://developers.cloudflare.com/workers/configuration/secrets/"
   }
 }

@@ -79,9 +79,12 @@ test("deployment and smoke credentials remain separate and least-privilege", () 
   assert.equal(contract.smokeCredential.policy.anyServiceTokenAllowed, false);
 });
 
-test("Access authentication does not claim HTTP read-only readiness", () => {
+test("source guard is implemented without claiming configured smoke readiness", () => {
   assert.equal(contract.smokeCredential.httpReadOnlyGuaranteeProvidedByAccess, false);
-  assert.equal(contract.servicePrincipalReadOnlyGuard.status, "NOT_IMPLEMENTED_NOT_AUTHORIZED");
+  assert.equal(contract.servicePrincipalReadOnlyGuard.status, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
+  assert.equal(contract.servicePrincipalReadOnlyGuard.sourceImplemented, true);
+  assert.equal(contract.servicePrincipalReadOnlyGuard.productionConfigured, false);
+  assert.equal(contract.servicePrincipalReadOnlyGuard.productionDeployed, false);
   assert.equal(contract.servicePrincipalReadOnlyGuard.requiredBeforeUnattendedSmoke, true);
   assert.deepEqual(contract.servicePrincipalReadOnlyGuard.allowedMethods, ["GET", "HEAD"]);
   assert.equal(contract.servicePrincipalReadOnlyGuard.allOtherMethodsAndPaths, "DENY");
