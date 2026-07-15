@@ -53,6 +53,7 @@ private let productionItems: [String: GovernedItem] = [
 // file at compile time. Normal production compilation has no such alias.
 let nativeE2EService: String
 let nativeE2EAccount: String
+let nativeE2EKeychainPath: String
 #endif
 
 private let items: [String: GovernedItem] = {
@@ -83,10 +84,19 @@ guard arguments.count == 3 || arguments.count == 4,
 
 private func findItem(_ item: GovernedItem) -> SecKeychainItem? {
     var reference: SecKeychainItem?
+#if KEYCHAIN_ACL_V2_NATIVE_E2E
+    var keychain: SecKeychain?
+    let openStatus = nativeE2EKeychainPath.withCString { path in
+        SecKeychainOpen(path, &keychain)
+    }
+    guard openStatus == errSecSuccess, let keychain else { return nil }
+#else
+    let keychain: SecKeychain? = nil
+#endif
     let status = item.service.withCString { servicePointer in
         item.account.withCString { accountPointer in
             SecKeychainFindGenericPassword(
-                nil,
+                keychain,
                 UInt32(strlen(servicePointer)),
                 servicePointer,
                 UInt32(strlen(accountPointer)),

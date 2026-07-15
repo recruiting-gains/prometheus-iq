@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -66,19 +66,15 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
   const helperBinary = join(temporaryDirectory, "acl-v2-native-e2e-helper");
   const fixtureBinary = join(temporaryDirectory, "acl-v2-native-e2e-fixture");
   const helperTestSource = join(temporaryDirectory, "main.swift");
+  const keychainPath = join(temporaryDirectory, "fixture.keychain-db");
   try {
-    const preflight = run("/usr/bin/security", [
-      "find-generic-password", "-s", service, "-a", account
-    ]);
-    assert.equal(preflight.status, 44);
-    wipe(preflight);
-
     const helper = readFileSync(helperSource, "utf8");
     const testHelper = helper.replace(
-      "let nativeE2EService: String\nlet nativeE2EAccount: String",
+      "let nativeE2EService: String\nlet nativeE2EAccount: String\nlet nativeE2EKeychainPath: String",
       [
         `let nativeE2EService = "${service}"`,
-        `let nativeE2EAccount = "${account}"`
+        `let nativeE2EAccount = "${account}"`,
+        `let nativeE2EKeychainPath = "${keychainPath}"`
       ].join("\n")
     );
     assert.notEqual(testHelper, helper);
@@ -96,7 +92,7 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
     assert.equal(compileFixture.status, 0);
     wipe(compileFixture);
 
-    const e2e = run(fixtureBinary, [helperBinary, attemptId]);
+    const e2e = run(fixtureBinary, [helperBinary, attemptId, keychainPath]);
     if (Object.hasOwn(fixtureFailures, e2e.status)) {
       throw new Error(`native_fixture_${fixtureFailures[e2e.status]}`);
     }
@@ -106,20 +102,7 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
     wipe(e2e);
     return Object.freeze({ status: "PASS" });
   } finally {
-    const remove = run("/usr/bin/security", [
-      "delete-generic-password", "-s", service, "-a", account
-    ]);
-    const removedOrAlreadyAbsent = [0, 44].includes(remove.status);
-    wipe(remove);
-    if (!removedOrAlreadyAbsent) {
-      rmSync(temporaryDirectory, { force: true, recursive: true });
-      throw new Error("synthetic_keychain_fixture_cleanup_failed");
-    }
-    const postflight = run("/usr/bin/security", [
-      "find-generic-password", "-s", service, "-a", account
-    ]);
-    const absent = postflight.status === 44;
-    wipe(postflight);
+    const absent = !existsSync(keychainPath);
     rmSync(temporaryDirectory, { force: true, recursive: true });
     if (!absent) throw new Error("synthetic_keychain_fixture_remained");
   }

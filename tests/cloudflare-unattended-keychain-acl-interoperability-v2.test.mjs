@@ -634,6 +634,9 @@ test("native fixture keeps the SecItemAdd result reference and reports only fixe
     "utf8"
   );
   assert.match(fixture, /kSecReturnRef/u);
+  assert.match(fixture, /SecKeychainCreate/u);
+  assert.match(fixture, /SecKeychainDelete/u);
+  assert.match(fixture, /kSecUseKeychain as String: keychain/u);
   assert.match(fixture, /syntheticOnlyExecutable = CommandLine\.arguments\.first/u);
   assert.match(fixture, /setAccessFailureExitCode/u);
   assert.match(fixture, /findPersistedSyntheticItem/u);
@@ -643,6 +646,8 @@ test("native fixture keeps the SecItemAdd result reference and reports only fixe
   assert.match(verifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
   assert.match(verifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
   assert.match(verifier, /INITIAL_READ_UNCLASSIFIED_FAILURE/u);
+  assert.match(verifier, /fixture\.keychain-db/u);
+  assert.doesNotMatch(verifier, /list-keychains|default-keychain/u);
 });
 
 test("all evidence remains fixed-vocabulary and secret-free", t => {

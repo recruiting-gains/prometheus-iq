@@ -16,17 +16,20 @@ private struct ACLSnapshot: Equatable {
     let selector: UInt16
 }
 
-guard CommandLine.arguments.count == 3 else {
+guard CommandLine.arguments.count == 4 else {
     exit(64)
 }
 
 private let helperPath = CommandLine.arguments[1]
 private let attemptId = CommandLine.arguments[2]
+private let keychainPath = CommandLine.arguments[3]
 guard attemptId.count == 36,
       UUID(uuidString: attemptId) != nil,
       attemptId == attemptId.lowercased(),
       syntheticOnlyExecutable.hasPrefix("/"),
-      FileManager.default.isExecutableFile(atPath: syntheticOnlyExecutable) else {
+      FileManager.default.isExecutableFile(atPath: syntheticOnlyExecutable),
+      keychainPath.hasPrefix("/"),
+      !keychainPath.contains("..") else {
     exit(64)
 }
 
@@ -169,12 +172,12 @@ private func syntheticAccess() -> SecAccess? {
     return access
 }
 
-private func findPersistedSyntheticItem() -> SecKeychainItem? {
+private func findPersistedSyntheticItem(_ keychain: SecKeychain) -> SecKeychainItem? {
     var item: SecKeychainItem?
     let status = service.withCString { servicePointer in
         account.withCString { accountPointer in
             SecKeychainFindGenericPassword(
-                nil,
+                keychain,
                 UInt32(strlen(servicePointer)),
                 servicePointer,
                 UInt32(strlen(accountPointer)),
@@ -318,7 +321,8 @@ private func verifyUnattendedRead(_ expected: Data) -> Bool {
     let standardOutput = Pipe()
     let standardError = Pipe()
     process.executableURL = URL(fileURLWithPath: trustedExecutable)
-    process.arguments = ["find-generic-password", "-s", service, "-a", account, "-w"]
+    process.arguments = ["find-generic-password", "-s", service, "-a", account, "-w", keychainPath]
+    process.standardInput = FileHandle.nullDevice
     process.standardOutput = standardOutput
     process.standardError = standardError
     do {
@@ -348,7 +352,8 @@ private func interactionStatus() -> Int32 {
     let standardOutput = Pipe()
     let standardError = Pipe()
     process.executableURL = URL(fileURLWithPath: trustedExecutable)
-    process.arguments = ["find-generic-password", "-s", service, "-a", account, "-w"]
+    process.arguments = ["find-generic-password", "-s", service, "-a", account, "-w", keychainPath]
+    process.standardInput = FileHandle.nullDevice
     process.standardOutput = standardOutput
     process.standardError = standardError
     do {
@@ -396,43 +401,79 @@ private func initialReadFailureExitCode(_ status: Int32) -> Int32 {
     }
 }
 
-var syntheticValue = Data("synthetic-nonproduction-value".utf8)
-defer { wipe(&syntheticValue) }
-guard let access = syntheticAccess() else { exit(65) }
-var attributes: [String: Any] = [
-    kSecClass as String: kSecClassGenericPassword,
-    kSecAttrService as String: service,
-    kSecAttrAccount as String: account,
-    kSecValueData as String: syntheticValue,
-    kSecUseDataProtectionKeychain as String: kCFBooleanFalse as Any
-]
-attributes[kSecReturnRef as String] = kCFBooleanTrue as Any
-var createdItem: CFTypeRef?
-guard SecItemAdd(attributes as CFDictionary, &createdItem) == errSecSuccess else { exit(66) }
-guard let createdItem,
-      CFGetTypeID(createdItem) == SecKeychainItemGetTypeID() else { exit(67) }
-let item = createdItem as! SecKeychainItem
-let setAccessStatus = SecKeychainItemSetAccess(item, access)
-guard setAccessStatus == errSecSuccess else { exit(setAccessFailureExitCode(setAccessStatus)) }
-// The returned reference is required for the replacement write above. Re-open only
-// after that write so the child security(1) process observes the committed ACL.
-guard let persistedItem = findPersistedSyntheticItem() else { exit(69) }
-guard let initialSnapshot = snapshot(persistedItem) else { exit(69) }
-guard let initialState = exactComponentState(persistedItem),
-      !initialState.retrieval,
-      !initialState.partition else { exit(70) }
-let initialReadStatus = interactionStatus()
-// Both security(1) interaction statuses are classified as
-// INTERACTION_REQUIRED by the fixed unattended classifier.
-guard [36, 128].contains(initialReadStatus) else {
-    exit(initialReadFailureExitCode(initialReadStatus))
+private func fixtureMain() -> Int32 {
+    var keychainPassword = Data("synthetic-keychain-password-\(attemptId)".utf8)
+    defer { wipe(&keychainPassword) }
+    var keychain: SecKeychain?
+    let createStatus = keychainPath.withCString { path in
+        keychainPassword.withUnsafeBytes { bytes in
+            SecKeychainCreate(
+                path,
+                UInt32(bytes.count),
+                bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
+                false,
+                nil,
+                &keychain
+            )
+        }
+    }
+    guard createStatus == errSecSuccess, let keychain else { return 65 }
+    var keychainNeedsCleanup = true
+    defer {
+        if keychainNeedsCleanup {
+            _ = SecKeychainDelete(keychain)
+        }
+    }
+    let unlockStatus = keychainPassword.withUnsafeBytes { bytes in
+        SecKeychainUnlock(
+            keychain,
+            UInt32(bytes.count),
+            bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
+            true
+        )
+    }
+    guard unlockStatus == errSecSuccess,
+          let access = syntheticAccess() else { return 66 }
+    var syntheticValue = Data("synthetic-nonproduction-value".utf8)
+    defer { wipe(&syntheticValue) }
+    var attributes: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: service,
+        kSecAttrAccount as String: account,
+        kSecValueData as String: syntheticValue,
+        kSecUseKeychain as String: keychain,
+        kSecUseDataProtectionKeychain as String: kCFBooleanFalse as Any
+    ]
+    attributes[kSecReturnRef as String] = kCFBooleanTrue as Any
+    var createdItem: CFTypeRef?
+    guard SecItemAdd(attributes as CFDictionary, &createdItem) == errSecSuccess else { return 67 }
+    guard let createdItem,
+          CFGetTypeID(createdItem) == SecKeychainItemGetTypeID() else { return 68 }
+    let item = createdItem as! SecKeychainItem
+    let setAccessStatus = SecKeychainItemSetAccess(item, access)
+    guard setAccessStatus == errSecSuccess else { return setAccessFailureExitCode(setAccessStatus) }
+    guard let persistedItem = findPersistedSyntheticItem(keychain),
+          let initialSnapshot = snapshot(persistedItem),
+          let initialState = exactComponentState(persistedItem),
+          !initialState.retrieval,
+          !initialState.partition else { return 69 }
+    let initialReadStatus = interactionStatus()
+    // Both security(1) interaction statuses are classified as
+    // INTERACTION_REQUIRED by the fixed unattended classifier.
+    guard [36, 128].contains(initialReadStatus) else {
+        return initialReadFailureExitCode(initialReadStatus)
+    }
+    guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 70 }
+    guard runSilent(helperPath, ["grant", helperAlias], expectedStatus: 32) else { return 71 }
+    guard verifyMinimumGrant(persistedItem) else { return 72 }
+    guard verifyUnattendedRead(syntheticValue) else { return 73 }
+    guard runSilent(helperPath, ["revoke", helperAlias, "both"], expectedStatus: 42) else { return 74 }
+    guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 75 }
+    guard snapshot(persistedItem) == initialSnapshot else { return 76 }
+    guard [36, 128].contains(interactionStatus()) else { return 77 }
+    guard SecKeychainDelete(keychain) == errSecSuccess else { return 90 }
+    keychainNeedsCleanup = false
+    return FileManager.default.fileExists(atPath: keychainPath) ? 90 : 0
 }
-guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { exit(70) }
-guard runSilent(helperPath, ["grant", helperAlias], expectedStatus: 32) else { exit(71) }
-guard verifyMinimumGrant(persistedItem) else { exit(72) }
-guard verifyUnattendedRead(syntheticValue) else { exit(73) }
-guard runSilent(helperPath, ["revoke", helperAlias, "both"], expectedStatus: 42) else { exit(74) }
-guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { exit(75) }
-guard snapshot(persistedItem) == initialSnapshot else { exit(76) }
 
-exit(0)
+exit(fixtureMain())
