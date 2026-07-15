@@ -4,7 +4,7 @@ import Security
 private let account = "SYNTHETIC_NONPRODUCTION_ITEM"
 private let helperAlias = "NATIVE_E2E_SYNTHETIC"
 private let trustedExecutable = "/usr/bin/security"
-private let syntheticOnlyExecutable = "/usr/bin/true"
+private let syntheticOnlyExecutable = CommandLine.arguments.first ?? ""
 private let requiredPartition = "apple-tool:"
 private let syntheticInitialPartition = "teamid:0000000000"
 private let maximumCaptureBytes = 64 * 1024
@@ -24,7 +24,9 @@ private let helperPath = CommandLine.arguments[1]
 private let attemptId = CommandLine.arguments[2]
 guard attemptId.count == 36,
       UUID(uuidString: attemptId) != nil,
-      attemptId == attemptId.lowercased() else {
+      attemptId == attemptId.lowercased(),
+      syntheticOnlyExecutable.hasPrefix("/"),
+      FileManager.default.isExecutableFile(atPath: syntheticOnlyExecutable) else {
     exit(64)
 }
 
@@ -165,6 +167,25 @@ private func syntheticAccess() -> SecAccess? {
         return nil
     }
     return access
+}
+
+private func findPersistedSyntheticItem() -> SecKeychainItem? {
+    var item: SecKeychainItem?
+    let status = service.withCString { servicePointer in
+        account.withCString { accountPointer in
+            SecKeychainFindGenericPassword(
+                nil,
+                UInt32(strlen(servicePointer)),
+                servicePointer,
+                UInt32(strlen(accountPointer)),
+                accountPointer,
+                nil,
+                nil,
+                &item
+            )
+        }
+    }
+    return status == errSecSuccess ? item : nil
 }
 
 private func snapshot(_ item: SecKeychainItem) -> [ACLSnapshot]? {
@@ -364,6 +385,17 @@ private func setAccessFailureExitCode(_ status: OSStatus) -> Int32 {
     }
 }
 
+private func initialReadFailureExitCode(_ status: Int32) -> Int32 {
+    switch status {
+    case 0:
+        return 78
+    case -1:
+        return 79
+    default:
+        return 80
+    }
+}
+
 var syntheticValue = Data("synthetic-nonproduction-value".utf8)
 defer { wipe(&syntheticValue) }
 guard let access = syntheticAccess() else { exit(65) }
@@ -382,20 +414,25 @@ guard let createdItem,
 let item = createdItem as! SecKeychainItem
 let setAccessStatus = SecKeychainItemSetAccess(item, access)
 guard setAccessStatus == errSecSuccess else { exit(setAccessFailureExitCode(setAccessStatus)) }
-guard let initialSnapshot = snapshot(item) else { exit(69) }
-guard let initialState = exactComponentState(item),
+// The returned reference is required for the replacement write above. Re-open only
+// after that write so the child security(1) process observes the committed ACL.
+guard let persistedItem = findPersistedSyntheticItem() else { exit(69) }
+guard let initialSnapshot = snapshot(persistedItem) else { exit(69) }
+guard let initialState = exactComponentState(persistedItem),
       !initialState.retrieval,
       !initialState.partition else { exit(70) }
 let initialReadStatus = interactionStatus()
 // Both security(1) interaction statuses are classified as
 // INTERACTION_REQUIRED by the fixed unattended classifier.
-guard [36, 128].contains(initialReadStatus) else { exit(77) }
+guard [36, 128].contains(initialReadStatus) else {
+    exit(initialReadFailureExitCode(initialReadStatus))
+}
 guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { exit(70) }
 guard runSilent(helperPath, ["grant", helperAlias], expectedStatus: 32) else { exit(71) }
-guard verifyMinimumGrant(item) else { exit(72) }
+guard verifyMinimumGrant(persistedItem) else { exit(72) }
 guard verifyUnattendedRead(syntheticValue) else { exit(73) }
 guard runSilent(helperPath, ["revoke", helperAlias, "both"], expectedStatus: 42) else { exit(74) }
 guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { exit(75) }
-guard snapshot(item) == initialSnapshot else { exit(76) }
+guard snapshot(persistedItem) == initialSnapshot else { exit(76) }
 
 exit(0)
