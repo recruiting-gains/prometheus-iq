@@ -1,0 +1,102 @@
+{
+  "contractVersion": "cloudflare-unattended-keychain-acl-interoperability-v2",
+  "batchId": "BATCH-20260715-009",
+  "product": "Prometheus Platform",
+  "implementationOwner": "Prometheus Infrastructure",
+  "verificationOwner": "Prometheus Overwatch",
+  "status": "IMPLEMENTED_PENDING_INDEPENDENT_OVERWATCH_AND_FOUNDER_ATTENDED_REMEDIATION",
+  "predecessor": {
+    "contractVersion": "cloudflare-unattended-keychain-interoperability-v1",
+    "sourceHead": "7c79e77dc52dd6aa5eb687ea9a24128800d9a28d",
+    "sourceTree": "cc8d5455370f8171aa64d0f1be71f02c2d9ce2a7",
+    "artifactRoot": "$HOME/.prometheus/infrastructure/cloudflare-unattended-keychain-interoperability-v1",
+    "artifactsImmutable": true,
+    "reuseAllowed": false
+  },
+  "scope": {
+    "cloudflareContactAllowed": false,
+    "governedKeychainValueAccessAllowedDuringEngineering": false,
+    "governedKeychainAclMutationAllowedDuringEngineering": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "unattendedDeploymentControlState": "OFF_UNCONSUMED",
+    "prospectiveCollectionState": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluenceState": "OFF"
+  },
+  "governedAliases": [
+    "DEPLOYMENT_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "SMOKE_CLIENT_ID",
+    "SMOKE_CLIENT_SECRET"
+  ],
+  "rootCause": {
+    "classification": "DECRYPT_TRUST_PRESENT_WITHOUT_REQUIRED_PARTITION_ID_AUTHORIZATION",
+    "securityToolReadApi": "SecKeychainItemCopyContent",
+    "independentAuthorizationTags": [
+      "kSecACLAuthorizationDecrypt",
+      "kSecACLAuthorizationPartitionID"
+    ],
+    "provenSecurityToolPartition": "apple-tool:",
+    "broaderPartitionSelectorsAllowed": false
+  },
+  "authorizationRepair": {
+    "fixedTrustedExecutable": "/usr/bin/security",
+    "retrievalAclAuthorizations": [
+      "kSecACLAuthorizationDecrypt"
+    ],
+    "retrievalAclMustContainOnlyTrustedExecutable": true,
+    "requiredPartitionSelector": "apple-tool:",
+    "preservesExistingPartitionSelectors": true,
+    "wholeKeychainPolicyChangeAllowed": false,
+    "arbitraryExecutableAllowed": false,
+    "nilOrBroadSecretAclAllowed": false,
+    "duplicateAclAllowed": false,
+    "malformedPartitionAclAllowed": false,
+    "valuesReadOrChangedByAclHelper": false,
+    "postWriteStateVerificationRequired": true,
+    "currentItemRestoreRequiredOnVerificationFailure": true,
+    "reverseRollbackRequiredOnPartialFailure": true,
+    "allFourNoninteractiveReadsRequiredForPass": true
+  },
+  "evidence": {
+    "root": "$HOME/.prometheus/infrastructure/cloudflare-unattended-keychain-acl-interoperability-v2",
+    "perAttemptNamespace": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "exclusiveCreate": true,
+    "symlinkAllowed": false,
+    "classificationMaximumAgeMinutes": 30,
+    "classificationConsumedBeforeAclChange": true,
+    "repositoryCommitAndTreeBound": true,
+    "crossAttemptSubstitutionAllowed": false,
+    "containsCredentialMaterial": false
+  },
+  "founderAttendedRemediation": {
+    "classificationCommand": "node scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs classify",
+    "remediationCommand": "node scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs remediate",
+    "fixedConfirmationPhrase": "REPAIR ONLY THE FOUR PROMETHEUS UNATTENDED KEYCHAIN ACL AUTHORIZATION SETS",
+    "nativeControllingTtyRequired": true,
+    "rollbackCommand": "node scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs rollback",
+    "rollbackPhrase": "ROLL BACK ONLY THE PROMETHEUS UNATTENDED KEYCHAIN AUTHORIZATIONS ADDED BY THE V2 REPAIR"
+  },
+  "nativeFixture": {
+    "usesGovernedItems": false,
+    "servicePrefix": "com.prometheus.synthetic.keychain-acl-v2.",
+    "account": "SYNTHETIC_NONPRODUCTION_ITEM",
+    "validatesSecurityToolPartition": "apple-tool:",
+    "executesNoninteractiveSecurityRead": true,
+    "deletesSyntheticItem": true,
+    "verifiesPostCleanupAbsence": true
+  },
+  "implementationFiles": {
+    "workflow": "scripts/lib/cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+    "aclHelper": "scripts/helpers/cloudflare-unattended-keychain-acl-v2.swift",
+    "command": "scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+    "nativeFixture": "scripts/helpers/cloudflare-unattended-keychain-acl-v2-native-fixture.swift",
+    "nativeVerifier": "scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs",
+    "ownerVerifier": "scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+    "tests": "tests/cloudflare-unattended-keychain-acl-interoperability-v2.test.mjs",
+    "documentation": "docs/cloudflare-unattended-keychain-acl-interoperability-v2.md"
+  }
+}
