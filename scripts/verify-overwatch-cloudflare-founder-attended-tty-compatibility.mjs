@@ -199,6 +199,12 @@ function verifyOwnerCommit(governance) {
 
   const packageTransitions = governance.protectedPredecessorSuccessors.filter(item => item.path === "package.json");
   const currentPackageHash = sha256(read("package.json"));
+  const recoveryGovernance = readJson(
+    "overwatch/governance/cloudflare-founder-attended-get-only-recovery-v1.json"
+  );
+  const recoveryPackage = recoveryGovernance.protectedReleaseWiringTransitions?.find(item =>
+    item.path === "package.json"
+  );
   const founderPackage = packageTransitions.find(item =>
     item.predecessorGovernanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1"
   );
@@ -207,10 +213,12 @@ function verifyOwnerCommit(governance) {
   );
   if (!founderPackage
     || founderPackage.historicalSha256 !== "50070d78fa9446c10c8309466ec5f51678d1646bdec2f2799284b87f0d1073b0"
-    || founderPackage.successorSha256 !== currentPackageHash
+    || founderPackage.successorSha256 !== recoveryPackage?.previousSha256
     || !unattendedPackage
     || unattendedPackage.historicalSha256 !== "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d"
-    || unattendedPackage.successorSha256 !== currentPackageHash) {
+    || unattendedPackage.successorSha256 !== recoveryPackage?.previousSha256
+    || recoveryPackage.successorSha256 !== currentPackageHash
+    || recoveryPackage.owner !== "Prometheus Overwatch") {
     throw new Error("Protected package release-wiring transition drifted.");
   }
 }

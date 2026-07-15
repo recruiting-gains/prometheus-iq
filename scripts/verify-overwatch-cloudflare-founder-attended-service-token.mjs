@@ -386,18 +386,22 @@ function verifyPackageReleaseWiring() {
     "node scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs && node --test tests/overwatch-cloudflare-founder-attended-service-token.test.mjs";
   ownerPackage.scripts["overwatch:cloudflare-founder-attended-tty:check"] =
     "node scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs && node --test tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs";
+  ownerPackage.scripts["overwatch:cloudflare-founder-attended-recovery:check"] =
+    "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
   ownerPackage.scripts["test:overwatch"] = currentPackage.scripts["test:overwatch"];
   ownerPackage.scripts.test = currentPackage.scripts.test;
   if (!equalJson(ownerPackage, currentPackage)) {
     throw new Error("Shared package release wiring contains changes outside the approved Overwatch gate.");
   }
-  if (sha256(read("package.json")) !== "349ee1e54aec072348d58adc52f400d7c78176543d30cd92ec00831c110031cf") {
+  if (sha256(read("package.json")) !== "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs")
+    || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-tty:check")
+    || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-recovery:check")
     || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended:check")) {
     throw new Error("Founder-attended verification is missing from the repository release suite.");
   }

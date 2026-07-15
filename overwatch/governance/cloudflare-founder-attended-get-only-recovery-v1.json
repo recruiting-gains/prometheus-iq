@@ -1,0 +1,202 @@
+{
+  "governanceId": "cloudflare-founder-attended-get-only-recovery-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260715-002",
+  "directive": "Cloudflare Founder-Attended GET-Only Failure Classification + One-Shot Recovery v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_LIVE_DIAGNOSTIC_NOT_EXECUTED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationCommit": {
+      "commit": "43eee7a13bb2f826c4ac750298d9e87dd28f4976",
+      "parent": "89267707a3a62b2e3d61897476e4dda7adf95987",
+      "tree": "79b2ce3883160e95fdeb4f0985689fa77f50cf6b",
+      "subject": "Add attended Cloudflare GET-only recovery gate",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "timestamp": "2026-07-15T01:53:31-05:00"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "priorInvocationFinding": {
+    "classification": "PRE_CREATE_FAIL_CLOSED",
+    "creationPostAttempts": 0,
+    "proof": [
+      "The consumed predecessor authorization is bound to the exact predecessor commit and tree.",
+      "The Founder-observed generic fail-closed output is emitted only by predecessor paths without a creation attempt.",
+      "Every predecessor creation-attempt path emits success, manual-review, or compensated output instead of the generic fail-closed output.",
+      "Focused predecessor regressions prove preflight failures perform zero POST attempts and ambiguous POST failures perform exactly one POST plus manual-review output."
+    ],
+    "predecessorControlAndReceiptImmutable": true,
+    "providerFailureClassification": "PENDING_ONE_AUTHORIZED_ATTENDED_GET_ONLY_DIAGNOSTIC",
+    "providerFailureMustNotBeInferredBeforeDiagnostic": true
+  },
+  "diagnosticBoundary": {
+    "fixedServiceTokenName": "Prometheus Overwatch Read-Only Smoke Verification",
+    "fixedExactAccount": true,
+    "providerMethodsAllowed": [
+      "GET"
+    ],
+    "requestBodyAllowed": false,
+    "redirectFollowingAllowed": false,
+    "automaticRetryAllowed": false,
+    "maximumPages": 100,
+    "resultOptional": true,
+    "resultInfoOptional": true,
+    "resultInfoMembersOptional": true,
+    "validEmptyResultAccepted": true,
+    "totalCountTreatedAsUnfilteredInventoryMetadata": true,
+    "exactNameDuplicateFailsClosed": true,
+    "productionExecutionAuthorizedByDirective": true,
+    "productionExecutionCompleted": false,
+    "authorizedExecutionLimit": "ONE_FOUNDER_ATTENDED_READ_ONLY_GET_DIAGNOSTIC",
+    "allowedOutput": [
+      "LIVE_STATE_FAILED",
+      "NETWORK_FAILED",
+      "AUTHORIZATION_DENIED",
+      "VALID_EMPTY_RESULT",
+      "DUPLICATE_FOUND",
+      "RESPONSE_CONTRACT_MISMATCH",
+      "SAFE_TO_PREPARE_RECOVERY"
+    ],
+    "secretOrIdentifierOutputAllowed": false
+  },
+  "recoveryBoundary": {
+    "successorControlUsesNewPath": true,
+    "predecessorControlReuseAllowed": false,
+    "predecessorReceiptReuseAllowed": false,
+    "requiresSuccessfulExactNameAbsenceEvidence": true,
+    "requiresNativeControllingTty": true,
+    "requiresExactFounderPhrase": true,
+    "requiresCurrentCleanCommitAndTree": true,
+    "requiresFreshNonce": true,
+    "maximumLifetimeMinutes": 30,
+    "preparationProviderNetworkAllowed": false,
+    "preparationProviderWriteAllowed": false,
+    "futureProvisioningAuthorizedByDirective": false,
+    "futureCreateAttemptsMaximum": 1,
+    "futureAutomaticRetryAllowed": false,
+    "temporaryTokenDeletionAllowed": false
+  },
+  "infrastructureOwnerEvidence": [
+    {
+      "path": "docs/cloudflare-founder-attended-get-only-recovery-v1.md",
+      "sha256AtOwnerCommit": "01d56aeb3d644291c0197062ab1a14c13393e15b25411aad8475c8ee9d23b68d"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-command.mjs",
+      "sha256AtOwnerCommit": "b9ab64537759affdfca2500219329c05b536c739574716e82ca8e447437a882c"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-production.mjs",
+      "sha256AtOwnerCommit": "230214dd395fb11a864c42357c8faa5a282ce51f19ae7aeb4bb372eb37f1e96a"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-get-only-diagnostic.mjs",
+      "sha256AtOwnerCommit": "7a6685093f14e192b1e65b9318bfbee35a34f4997b8f05db166a604bcf872c20"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-get-only-recovery-constants.mjs",
+      "sha256AtOwnerCommit": "be773d044ba9ce34ea688e305c4963a75934a854160b65bdffa5f7b23a38e721"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-recovery-control-command.mjs",
+      "sha256AtOwnerCommit": "d6575442ca04d59d550aacda49159c7d8922b6b0ad57e6bc5450215db424be2d"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-recovery-control-production.mjs",
+      "sha256AtOwnerCommit": "15642b779e7bab5d144542e1a0d812d4f7c0aaf0d1924d8d56dfee25a892bb3a"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-recovery-control.mjs",
+      "sha256AtOwnerCommit": "cfff45118d98d510815737ec52d351a05c425b53889bf4edbf740d0ae56a12d1"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-recovery-provisioning-production.mjs",
+      "sha256AtOwnerCommit": "19c1022f5359b07f1e3ff1340bcd3d25e49c6366f4f7a29fd6d55c971a584104"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-recovery-provisioning.mjs",
+      "sha256AtOwnerCommit": "e39bc50fbc80532016b4c2e8bc146f81540123dd5a23b4667c0f8fc29b765f6b"
+    },
+    {
+      "path": "scripts/run-cloudflare-founder-attended-get-only-diagnostic.mjs",
+      "sha256AtOwnerCommit": "3e67ab7d0f1a8b138325f92de17101d3304207b84e2c8fcc827174e9a908989b"
+    },
+    {
+      "path": "scripts/run-cloudflare-founder-attended-prepare-recovery.mjs",
+      "sha256AtOwnerCommit": "3e60b52951f0a16dca48a9c391b11009fbf8cb7b500874957896715c9a00cecc"
+    },
+    {
+      "path": "scripts/run-cloudflare-founder-attended-successor-recovery.mjs",
+      "sha256AtOwnerCommit": "8ccff1f6bbb672a502a4a476f44b449b45bd5aef087ca4b0c91959065a915bd8"
+    },
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs",
+      "sha256AtOwnerCommit": "e773ad7275dda611252001d86ba04a844728663d0f8fc2cb88cda85b07f45655"
+    },
+    {
+      "path": "tests/cloudflare-founder-attended-get-only-recovery.test.mjs",
+      "sha256AtOwnerCommit": "27f2bae0e6530f0aab382ed7c9710312297a97e449362d8aea67584c344db9ec"
+    },
+    {
+      "path": "workers/infrastructure/cloudflare-founder-attended-get-only-recovery-v1.json",
+      "sha256AtOwnerCommit": "f8d2e60c2f572d973b127ea238fad27bf4a8d2be23d4665966ca9f58542b17f6"
+    }
+  ],
+  "independentVerification": {
+    "ownerFocusedTests": "19/19_PASS_ZERO_SKIPS",
+    "predecessorInfrastructureTests": "91/91_PASS_ZERO_SKIPS",
+    "priorCreationPostAttempts": 0,
+    "predecessorArtifactsUnchanged": true,
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "productionMutationPerformed": false,
+    "futureRecoveryExecuted": false
+  },
+  "protectedReleaseWiringTransitions": [
+    {
+      "path": "package.json",
+      "previousSha256": "349ee1e54aec072348d58adc52f400d7c78176543d30cd92ec00831c110031cf",
+      "successorSha256": "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199",
+      "owner": "Prometheus Overwatch",
+      "reason": "Register the independent GET-only recovery governance gate in the complete repository suite."
+    }
+  ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199",
+      "reason": "Carry the protected unattended-access package baseline through the new Overwatch release gate."
+    }
+  ],
+  "executionBoundary": {
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "credentialCreatedOrDeleted": false,
+    "temporaryProvisioningTokenChanged": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAuthorizedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "cloudflareWriteAuthorized": false,
+    "futureProvisioningRequiresSeparateFounderAuthorization": true,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

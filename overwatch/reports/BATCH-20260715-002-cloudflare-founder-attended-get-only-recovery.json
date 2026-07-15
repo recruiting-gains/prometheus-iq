@@ -1,0 +1,53 @@
+{
+  "reportVersion": "engineering-batch-report-v1",
+  "batchId": "BATCH-20260715-002",
+  "directive": "Cloudflare Founder-Attended GET-Only Failure Classification + One-Shot Recovery v1",
+  "engineeringStatus": "OFFLINE_IMPLEMENTATION_PASS",
+  "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+  "deploymentStatus": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "43eee7a13bb2f826c4ac750298d9e87dd28f4976",
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "priorInvocation": {
+    "classification": "PRE_CREATE_FAIL_CLOSED",
+    "creationPostAttempts": 0,
+    "providerFailureClassification": "PENDING_ONE_AUTHORIZED_ATTENDED_GET_ONLY_DIAGNOSTIC",
+    "predecessorControlAndReceiptUnchanged": true
+  },
+  "completedWork": {
+    "exactAccountExactNameGetOnlyDiagnostic": true,
+    "optionalListContractSupport": true,
+    "exactNameDuplicateFailClosed": true,
+    "fixedNonsecretClassificationsOnly": true,
+    "immutableSuccessfulDiagnosticEvidence": true,
+    "freshSuccessorControlPreparation": true,
+    "futureOnePostNoRetryRecoveryImplementedNotExecuted": true
+  },
+  "verificationAtOwnerHandoff": {
+    "focusedRecoveryTests": "19/19_PASS_ZERO_SKIPS",
+    "predecessorInfrastructureTests": "91/91_PASS_ZERO_SKIPS",
+    "security": "PASS",
+    "aegis": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS_EXISTING_WARNINGS_ONLY",
+    "gitIntegrity": "PASS"
+  },
+  "boundaries": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialCreatedOrDeleted": false,
+    "temporaryProvisioningTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "remainingFounderAction": "Run the one authorized Founder-attended GET-only diagnostic after the exact release candidate is pushed; prepare a successor control only if SAFE_TO_PREPARE_RECOVERY is returned.",
+  "externalHandoffRecordsFinalHeadTreePushAndLiveDiagnostic": true
+}
