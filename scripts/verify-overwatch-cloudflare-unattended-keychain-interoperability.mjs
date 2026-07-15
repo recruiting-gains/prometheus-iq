@@ -88,7 +88,7 @@ const protectedOverwatchVerifierSuccessors = Object.freeze([
   {
     path: "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
     previousSha256: "9b5117143e5800cc49838b6ef377d85de183cfbae08d433b30edfc0bb353dee9",
-    successorSha256: "bb0a30f92632bb1b25afef4536a5a21a629bbb9bab83fffea02265fbc3d9a5c8",
+    successorSha256: "4f91b626802f9f7d60e5f6f5c546c6291938db9ab9910b9804c770dd96abf35e",
     owner: "Prometheus Overwatch"
   }
 ]);

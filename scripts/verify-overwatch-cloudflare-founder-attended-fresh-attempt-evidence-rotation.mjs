@@ -18,6 +18,8 @@ const governancePath =
   "overwatch/governance/cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1.json";
 const governanceDocumentationPath =
   "overwatch/governance/cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1.md";
+const keychainInteroperabilityGovernancePath =
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const reportPath =
   "overwatch/reports/BATCH-20260715-006-cloudflare-founder-attended-fresh-attempt-evidence-rotation.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
@@ -225,6 +227,13 @@ export function evaluateFounderAttendedFreshAttemptEvidenceRotationGovernance({
 }
 
 function verifyOwnerCommits(governance) {
+  const keychainInteroperabilityGovernance = readJson(
+    keychainInteroperabilityGovernancePath
+  );
+  const ownerVerifierSuccessors = new Map(
+    keychainInteroperabilityGovernance.ownerVerifierSuccessors
+      .map(item => [item.path, item])
+  );
   const initialFields = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", initialOwnerCommit
   ]).split("\n");
@@ -274,8 +283,14 @@ function verifyOwnerCommits(governance) {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
+    const current = sha256(readFileSync(resolve(root, path)));
+    const successor = ownerVerifierSuccessors.get(path);
+    const currentAccepted = current === expectedHash
+      || (successor?.previousSha256 === expectedHash
+        && successor?.successorSha256 === current
+        && successor?.owner === "Prometheus Infrastructure");
     if (sha256(ownerBytes) !== expectedHash
-      || sha256(readFileSync(resolve(root, path))) !== expectedHash
+      || !currentAccepted
       || evidence.get(path)?.sha256AtFinalOwnerCommit !== expectedHash) {
       throw new Error(`Infrastructure owner evidence drifted: ${path}`);
     }
