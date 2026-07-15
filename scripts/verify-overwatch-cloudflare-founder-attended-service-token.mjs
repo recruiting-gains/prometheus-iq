@@ -278,6 +278,13 @@ export function evaluateFounderAttendedProvisioningGovernance({
 
 function verifyOwnerCommits(governance) {
   const ttyCompatibilityGovernance = readJson(ttyCompatibilityGovernancePath);
+  const keychainInteroperabilityGovernance = readJson(
+    keychainInteroperabilityGovernancePath
+  );
+  const keychainOwnerSuccessors = new Map(
+    keychainInteroperabilityGovernance.ownerImplementationSuccessors
+      .map(item => [item.path, item])
+  );
   const ttySuccessors = new Map(
     ttyCompatibilityGovernance.infrastructureOwnerEvidence.map(item => [
       item.path,
@@ -367,13 +374,25 @@ function verifyOwnerCommits(governance) {
     const expected = ttySuccessors.get(evidence.path)
       || repairedByPath.get(evidence.path)
       || evidence.sha256AtOwnerCommit;
-    if (sha256(readFileSync(resolve(root, evidence.path))) !== expected) {
+    const current = sha256(readFileSync(resolve(root, evidence.path)));
+    const successor = keychainOwnerSuccessors.get(evidence.path);
+    const accepted = current === expected
+      || (successor?.previousSha256 === expected
+        && successor?.successorSha256 === current
+        && successor?.owner === "Prometheus Infrastructure");
+    if (!accepted) {
       throw new Error(`Infrastructure implementation changed after the owner repair: ${evidence.path}`);
     }
   }
   for (const evidence of governance.infrastructureRepairEvidence) {
     const expected = ttySuccessors.get(evidence.path) || evidence.sha256AtRepairCommit;
-    if (sha256(readFileSync(resolve(root, evidence.path))) !== expected) {
+    const current = sha256(readFileSync(resolve(root, evidence.path)));
+    const successor = keychainOwnerSuccessors.get(evidence.path);
+    const accepted = current === expected
+      || (successor?.previousSha256 === expected
+        && successor?.successorSha256 === current
+        && successor?.owner === "Prometheus Infrastructure");
+    if (!accepted) {
       throw new Error(`Infrastructure repair changed after owner handoff: ${evidence.path}`);
     }
   }

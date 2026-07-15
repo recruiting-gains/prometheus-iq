@@ -140,6 +140,13 @@ export function evaluateFounderAttendedTtyCompatibilityGovernance({ governance, 
 }
 
 function verifyOwnerCommit(governance) {
+  const keychainOwnerGovernance = readJson(
+    keychainInteroperabilityGovernancePath
+  );
+  const keychainOwnerSuccessors = new Map(
+    keychainOwnerGovernance.ownerImplementationSuccessors
+      .map(item => [item.path, item])
+  );
   const metadata = git(["show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit]).split("\n");
   if (!equal(metadata, [
     ownerCommit,
@@ -174,7 +181,13 @@ function verifyOwnerCommit(governance) {
     if (sha256(committed) !== evidence.sha256AtOwnerCommit) {
       throw new Error(`Owner evidence hash drifted: ${evidence.path}`);
     }
-    if (sha256(readFileSync(resolve(root, evidence.path))) !== evidence.sha256AtOwnerCommit) {
+    const current = sha256(readFileSync(resolve(root, evidence.path)));
+    const successor = keychainOwnerSuccessors.get(evidence.path);
+    const accepted = current === evidence.sha256AtOwnerCommit
+      || (successor?.previousSha256 === evidence.sha256AtOwnerCommit
+        && successor?.successorSha256 === current
+        && successor?.owner === "Prometheus Infrastructure");
+    if (!accepted) {
       throw new Error(`Owner implementation changed after handoff: ${evidence.path}`);
     }
   }

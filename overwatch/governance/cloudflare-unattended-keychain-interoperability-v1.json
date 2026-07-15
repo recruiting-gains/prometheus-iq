@@ -85,13 +85,13 @@
     {
       "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
       "previousSha256": "b472dbea6fa01736f6740e41a86b935ac3221c5ba6d35b8bbb3d350a28085ebb",
-      "successorSha256": "af763850488cd53e6e19c6c1c4cc7c4580e496a8eb3bc5a89d4d96d88d0dc8c9",
+      "successorSha256": "2790795f724fe7d5c251cac45605e922372c4cec2f6b924e9dd11d218ad189f0",
       "owner": "Prometheus Overwatch"
     },
     {
       "path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
       "previousSha256": "78066379c15af37fda8599623a229ae64e8ff1596fcc34325456275931f01e89",
-      "successorSha256": "b671281885d33d8286c5cd9cba37521c33a88d28ae6cb50700826bd574cbfe4d",
+      "successorSha256": "e7b0c8f9072ed353ffbc912ddc6476c4db33e6d18b097e257627e1b3d030083c",
       "owner": "Prometheus Overwatch"
     },
     {
