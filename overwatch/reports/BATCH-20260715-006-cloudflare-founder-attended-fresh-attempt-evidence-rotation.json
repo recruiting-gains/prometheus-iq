@@ -1,0 +1,53 @@
+{
+  "reportVersion": "engineering-batch-report-v1",
+  "batchId": "BATCH-20260715-006",
+  "directive": "Cloudflare Founder-Attended Fresh Attempt Evidence Rotation v1",
+  "engineeringStatus": "OWNER_IMPLEMENTATION_INDEPENDENTLY_VERIFIED",
+  "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+  "deploymentStatus": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommits": [
+      "20e367ccd815f059adcdfa241f34a66c0a28675b",
+      "e10719d6d2ff312f2a5473c1fe000810e915509b"
+    ],
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completedWork": {
+    "freshExclusiveAttemptPerDiagnostic": true,
+    "reservationBeforeNetwork": true,
+    "commitAndTreeBoundLineage": true,
+    "abandonedAttemptsRemainInert": true,
+    "crossAttemptSubstitutionFailsClosed": true,
+    "futureDatedEvidenceFailsClosed": true,
+    "actualV2RootDocumented": true,
+    "fixedLocalCollisionClassification": "LOCAL_ARTIFACT_COLLISION",
+    "priorEvidencePreserved": true,
+    "onePostNoRetryUnchanged": true,
+    "nextActionGetOnly": true
+  },
+  "independentVerification": {
+    "focusedOwnerTests": "68/68_PASS_ZERO_SKIPS",
+    "ownerVerifiers": "PASS",
+    "ownershipAndHashAudit": "PASS",
+    "namespaceAndLineageAudit": "PASS",
+    "securityAndSecretBoundaries": "PENDING_EXACT_FINAL_HEAD",
+    "fullRepository": "PENDING_OVERWATCH_RELEASE_WIRING_AND_EXACT_FINAL_HEAD"
+  },
+  "boundaries": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesReadOrWritten": false,
+    "credentialActionPerformed": false,
+    "realArtifactActionPerformed": false,
+    "temporaryProvisioningApiTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "nextFounderAction": "After the verified batch is pushed, separately authorize and attend only the fresh GET-only exact-name diagnostic. Control preparation and provisioning remain separate Founder gates.",
+  "externalHandoffRecordsFinalHeadTreePushRollbackAndExactVerification": true
+}

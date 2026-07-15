@@ -124,6 +124,23 @@
       ],
       "productionConsumer": false,
       "failClosedIfMissing": true
+    },
+    {
+      "artifactId": "cloudflare-founder-attended-fresh-attempt-evidence-rotation-governance-v1",
+      "artifactType": "overwatch_infrastructure_attended_attempt_evidence_rotation_governance",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "path": "overwatch/governance/cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1.json",
+      "documentationPath": "overwatch/governance/cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1.md",
+      "schema": "CloudflareFounderAttendedFreshAttemptEvidenceRotationGovernanceV1",
+      "writeAllowed": [
+        "Prometheus Overwatch"
+      ],
+      "readAllowed": [
+        "Prometheus Infrastructure",
+        "Prometheus Overwatch"
+      ],
+      "productionConsumer": false,
+      "failClosedIfMissing": true
     }
   ],
   "workspaces": [

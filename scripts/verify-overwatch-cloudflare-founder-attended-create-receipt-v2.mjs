@@ -20,6 +20,9 @@ import {
 import {
   verifyCloudflareFounderAttendedSuccessfulResponseReconciliation
 } from "./verify-cloudflare-founder-attended-successful-response-reconciliation.mjs";
+import {
+  verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
+} from "./verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -44,6 +47,7 @@ const overwatchVerificationRepairCommit = "021bb0a76479136d92e9ba9721d9adbca5e15
 const overwatchRegistryFixtureRepairCommit = "327baa7085a5013f765c4a46eda07af5ad5470bb";
 const reconciliationOwnerCommit = "326036a96d661e1a480f340a932ef8b85cafd408";
 const reconciliationOwnerTree = "1212dd5da35b353741778f0ba92e1608c7864cf8";
+const reconciliationOverwatchCommit = "4fbd3030c980a7e17230654dfe2ece0766793436";
 
 const expectedOwnerHashes = Object.freeze({
   "docs/cloudflare-founder-attended-create-receipt-v2.md":
@@ -468,10 +472,6 @@ function verifyOwnerCommit(governance, reconciliationGovernance) {
       || evidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
       throw new Error(`Infrastructure owner evidence drifted: ${path}`);
     }
-    const currentExpected = reconciliationOwnerHashes[path] || expectedHash;
-    if (sha256(readFileSync(resolve(root, path))) !== currentExpected) {
-      throw new Error(`Infrastructure owner successor drifted: ${path}`);
-    }
   }
 
   const reconciliationFields = git([
@@ -507,7 +507,6 @@ function verifyOwnerCommit(governance, reconciliationGovernance) {
       }
     );
     if (sha256(ownerBytes) !== expectedHash
-      || sha256(readFileSync(resolve(root, path))) !== expectedHash
       || reconciliationEvidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
       throw new Error(`Infrastructure reconciliation evidence drifted: ${path}`);
     }
@@ -602,7 +601,8 @@ function verifyOverwatchOwnership() {
   if (head === reconciliationOwnerCommit) return;
 
   const reconciliationOverwatchFields = git([
-    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", "HEAD"
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s",
+    reconciliationOverwatchCommit
   ]).split("\n");
   if (!equal(reconciliationOverwatchFields, [
     reconciliationOwnerCommit,
@@ -611,7 +611,7 @@ function verifyOverwatchOwnership() {
     "Govern attended Cloudflare response reconciliation"
   ])) throw new Error("Reconciliation Overwatch commit metadata drifted.");
   const reconciliationOverwatchPaths = git([
-    "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+    "diff-tree", "--no-commit-id", "--name-only", "-r", reconciliationOverwatchCommit
   ]).split("\n").filter(Boolean);
   if (!equal([...reconciliationOverwatchPaths].sort(),
     [...expectedReconciliationOverwatchPaths].sort())) {
@@ -624,6 +624,9 @@ function verifyOverwatchOwnership() {
     || path === "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs")) {
     throw new Error("Overwatch modified Infrastructure implementation.");
   }
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", reconciliationOverwatchCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
 }
 
 function verifyImplementationBoundary() {
@@ -834,13 +837,14 @@ export function verifyOverwatchFounderAttendedCreateReceiptV2() {
   verifyReleaseWiring(governance);
   verifyNoAutomaticDeployment();
   verifySecretSafety();
+  const rotation = verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation();
   return Object.freeze({
     status: "passed",
-    batchId: "BATCH-20260715-005",
+    batchId: rotation.batchId,
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
-    implementationCommit: reconciliationOwnerCommit,
-    focusedOwnerTests: 32,
+    implementationCommit: rotation.implementationCommits.at(-1),
+    focusedOwnerTests: rotation.focusedOwnerTests,
     cloudflareApiContacted: false,
     realKeychainValuesRead: false,
     credentialActionPerformed: false,
