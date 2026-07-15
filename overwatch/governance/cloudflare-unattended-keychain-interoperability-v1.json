@@ -40,6 +40,26 @@
     {"path": "tests/cloudflare-unattended-keychain-interoperability.test.mjs", "sha256AtOwnerCommit": "79daa55d323eb0c970ae6da02d7f902981c609a6a6f8117ec18e09baab8d2bac"},
     {"path": "workers/infrastructure/cloudflare-unattended-keychain-interoperability-v1.json", "sha256AtOwnerCommit": "b7919a79a375dd9c0d6eda0406d0f9be6ba08f72c87ea2ea881face2438260f8"}
   ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "scripts/lib/cloudflare-unattended-launcher.mjs",
+      "historicalSha256": "dd54e8e84502812a489916cc8c03e6482c279f0ebccea126eabe3826707b4ace",
+      "successorSha256": "82f1afb5e29310f73a411458c24942bdeb9c21ef0017e8a8f764d6c714a44fa4",
+      "successorCommit": "8fa8d6943431c68b9f5a556499243e9838378440",
+      "successorOwner": "Prometheus Infrastructure",
+      "reason": "The owner repair moved Keychain retrieval into the shared bounded classifier module without broadening launcher profiles or release authority."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
+      "successorCommit": "5fc6920cee1c2b5b0183f4eebc07fbe344368e2f",
+      "successorOwner": "Prometheus Overwatch",
+      "reason": "Overwatch added only the new owner and independent verification commands to the existing release matrix."
+    }
+  ],
   "independentRetrievalClassification": {
     "executionIdentity": "MATCHED",
     "keychainState": "UNLOCKED",

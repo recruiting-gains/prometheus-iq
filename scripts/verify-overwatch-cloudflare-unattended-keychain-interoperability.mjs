@@ -48,6 +48,7 @@ const expectedOverwatchPaths = Object.freeze([
   governancePath,
   reportPath,
   "package.json",
+  "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
   "tests/cross-subsystem-artifact-contracts.test.mjs",
   "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
@@ -95,6 +96,26 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   require(equal(governance.ownerEvidence, Object.entries(ownerHashes).map(
     ([path, sha256AtOwnerCommit]) => ({ path, sha256AtOwnerCommit })
   )), "Owner evidence map drifted.");
+  require(equal(governance.protectedPredecessorSuccessors, [
+    {
+      predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+      path: "scripts/lib/cloudflare-unattended-launcher.mjs",
+      historicalSha256: "dd54e8e84502812a489916cc8c03e6482c279f0ebccea126eabe3826707b4ace",
+      successorSha256: "82f1afb5e29310f73a411458c24942bdeb9c21ef0017e8a8f764d6c714a44fa4",
+      successorCommit: ownerCommit,
+      successorOwner: "Prometheus Infrastructure",
+      reason: "The owner repair moved Keychain retrieval into the shared bounded classifier module without broadening launcher profiles or release authority."
+    },
+    {
+      predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+      path: "package.json",
+      historicalSha256: "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      successorSha256: "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
+      successorCommit: "5fc6920cee1c2b5b0183f4eebc07fbe344368e2f",
+      successorOwner: "Prometheus Overwatch",
+      reason: "Overwatch added only the new owner and independent verification commands to the existing release matrix."
+    }
+  ]), "Protected predecessor successor mapping drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",

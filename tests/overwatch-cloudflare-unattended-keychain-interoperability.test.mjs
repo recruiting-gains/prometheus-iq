@@ -50,6 +50,8 @@ test("Overwatch rejects ownership, classification, remediation, and release weak
     value => { value.dispatchAudit.implementationOwner = "Prometheus Overwatch"; },
     value => { value.dispatchAudit.overwatchModifiedInfrastructureImplementation = true; },
     value => { value.ownerEvidence[0].sha256AtOwnerCommit = "0".repeat(64); },
+    value => { value.protectedPredecessorSuccessors[0].successorSha256 = "0".repeat(64); },
+    value => { value.protectedPredecessorSuccessors[1].successorOwner = "Prometheus Infrastructure"; },
     value => { value.independentRetrievalClassification.executionIdentity = "MISMATCH"; },
     value => { value.independentRetrievalClassification.items[0].presence = "UNKNOWN"; },
     value => { value.independentRetrievalClassification.valuesDisplayedLoggedHashedReportedOrPersisted = true; },
