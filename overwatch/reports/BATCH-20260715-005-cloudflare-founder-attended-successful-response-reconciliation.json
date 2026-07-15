@@ -1,0 +1,52 @@
+{
+  "reportVersion": "engineering-batch-report-v1",
+  "batchId": "BATCH-20260715-005",
+  "directive": "Route IQ Cloudflare Service-Token Successful-Response Reconciliation v1",
+  "engineeringStatus": "OFFLINE_IMPLEMENTATION_PASS",
+  "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+  "deploymentStatus": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "326036a96d661e1a480f340a932ef8b85cafd408",
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completedWork": {
+    "boundedStatusClassification": true,
+    "documented200Supported": true,
+    "alternate2xxRequiresFullValidation": true,
+    "statusAloneCannotSucceed": true,
+    "non2xxAndAmbiguityFailClosed": true,
+    "credentialAndExactProofRequired": true,
+    "onePostMaximumNoRetry": true,
+    "keychainPairAllOrRollback": true,
+    "boundedExactTokenCompensationPreserved": true,
+    "existingAttemptEvidencePreserved": true,
+    "nextActionGetOnly": true
+  },
+  "verificationAtOwnerHandoff": {
+    "focusedTests": "32/32_PASS_ZERO_SKIPS",
+    "ownerVerifiers": "PASS",
+    "security": "PASS",
+    "secretScan": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS_EXISTING_WARNINGS_ONLY",
+    "gitIntegrity": "PASS"
+  },
+  "boundaries": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesReadOrWritten": false,
+    "credentialActionPerformed": false,
+    "controlReceiptOrEvidenceActionPerformed": false,
+    "temporaryProvisioningApiTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "nextFounderAction": "After this batch is pushed, separately authorize and run only the fresh Founder-attended GET-only exact-name reconciliation command. Token creation remains separately Founder-authorized.",
+  "externalHandoffRecordsFinalHeadTreePushRollbackAndExactVerification": true
+}

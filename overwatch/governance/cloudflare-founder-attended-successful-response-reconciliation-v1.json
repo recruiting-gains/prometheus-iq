@@ -1,0 +1,160 @@
+{
+  "governanceId": "cloudflare-founder-attended-successful-response-reconciliation-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260715-005",
+  "directive": "Route IQ Cloudflare Service-Token Successful-Response Reconciliation v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_NO_LIVE_ACTION_AUTHORIZED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-15T15:45:14Z",
+    "ownerHandoffTimestamp": "2026-07-15T15:54:23Z",
+    "implementationCommit": {
+      "commit": "326036a96d661e1a480f340a932ef8b85cafd408",
+      "parent": "327baa7085a5013f765c4a46eda07af5ad5470bb",
+      "tree": "1212dd5da35b353741778f0ba92e1608c7864cf8",
+      "subject": "Reconcile attended Cloudflare 2xx create responses",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "observedLiveEvidence": {
+    "source": "Founder-provided evidence",
+    "freshExactNameGetProvedAbsence": true,
+    "singleCreateAttemptObserved": true,
+    "workflowOutcome": "MANUAL_REVIEW",
+    "workflowReason": "CREATE_HTTP_STATUS_REJECTED",
+    "exactTokenLaterAppeared": true,
+    "keychainStorageOccurred": false,
+    "founderDeletedOnlyExactToken": true,
+    "exactNameNowAbsent": true,
+    "deploymentOrOtherCloudflareChangeOccurred": false,
+    "historicalExactHttpStatusRecoverable": false,
+    "historicalResponseOrCredentialMaterialRetained": false
+  },
+  "officialResponseContracts": {
+    "retrievedOn": "2026-07-15",
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "documentedHttpStatus": 200,
+      "resultOptionalInSchema": true,
+      "idOptionalInSchema": true,
+      "clientIdOptionalInSchema": true,
+      "clientSecretOptionalInSchema": true,
+      "nameOptionalInSchema": true,
+      "durationOptionalInSchema": true
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "fixedQueryKeys": ["name", "page", "per_page"],
+      "resultOptionalInSchema": true,
+      "resultInfoOptionalInSchema": true,
+      "maximumPages": 100
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "documentedHttpStatus": 200,
+      "serviceTokenResultDocumented": true,
+      "followUpExactNameAbsenceRequired": true
+    }
+  },
+  "statusReconciliation": {
+    "documented200Class": "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "alternate2xxClass": "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+    "non2xxClass": "CREATE_HTTP_STATUS_NON_2XX",
+    "rawHttpStatusPersisted": false,
+    "boundedClassificationOnly": true,
+    "bounded2xxEligibleOnlyForFurtherValidation": true,
+    "alternate2xxEligibilitySource": "Founder directive plus observed live evidence",
+    "statusAloneCanReachSuccess": false,
+    "non2xxCanReachSuccess": false,
+    "invalidOrMissingStatusCanReachSuccess": false,
+    "transportUncertaintyCanReachSuccess": false,
+    "successRequiresValidEnvelope": true,
+    "successRequiresValidClientId": true,
+    "successRequiresValidClientSecret": true,
+    "successRequiresReturnedResourceIdProof": true,
+    "successRequiresExactNameProof": true,
+    "successRequiresExactDurationProof": true,
+    "exactDuration": "720h"
+  },
+  "safetyBoundary": {
+    "createAttemptsMaximumPerFreshControl": 1,
+    "automaticRetryAllowed": false,
+    "consumedOrAmbiguousControlReusable": false,
+    "keychainPairAllOrRollback": true,
+    "postCreateProofBounded": true,
+    "returnedIdAloneAuthorizesDelete": false,
+    "ambiguousMismatchedOrDuplicateProofDeleteAttempts": 0,
+    "compensationRequiresSeparateFounderAuthorization": true,
+    "compensationDeleteAttemptsMaximum": 1,
+    "compensationRequiresExactIdNameAnd720hProof": true,
+    "compensationRequiresFollowUpAbsenceGet": true,
+    "unrelatedTokenDeletionAllowed": false,
+    "responseBodiesHeadersCookiesOrCredentialsPersisted": false,
+    "credentialValuesPrintedLoggedHashedMeasuredOrExposed": false
+  },
+  "ownerEvidence": [
+    {"path": "docs/cloudflare-founder-attended-successful-response-reconciliation-v1.md", "sha256AtOwnerCommit": "f2c5e3003c3c513d3b2fb5613615ef73fe11ce5d41641b87610b6e77d342ae63"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-constants.mjs", "sha256AtOwnerCommit": "3f30028747a64263d5e6477796f524b124522e86d4347cf0ef225e7c25464a6d"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs", "sha256AtOwnerCommit": "4225767807a5031b44aa282db0fb75c50b6ac46d3cd8d095d307d1e31e76ed86"},
+    {"path": "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs", "sha256AtOwnerCommit": "98f0d70d94db251a8a43e211b35e7ea76e193de154ac730f3062f48e0628c319"},
+    {"path": "scripts/verify-cloudflare-founder-attended-successful-response-reconciliation.mjs", "sha256AtOwnerCommit": "bbb02046d6108cdb3de192e87b82f64aeccf70169c130eda669ffcb2810e2a65"},
+    {"path": "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs", "sha256AtOwnerCommit": "ea08617e18d506844ca0e0ab8471b853b0399ed712cfaf3e5fce85fbe82620f1"},
+    {"path": "workers/infrastructure/cloudflare-founder-attended-successful-response-reconciliation-v1.json", "sha256AtOwnerCommit": "de703f508861355fb69e8aa4afbc3fcc074fc403af53d3ef40ccef3bed00fd26"}
+  ],
+  "protectedInfrastructureSuccessors": [
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-constants.mjs", "previousSha256": "2191c885aeffbb619143b54ce5fb10c1ec4ea24ef472ab1c2e93f48d2f9f96cb", "successorSha256": "3f30028747a64263d5e6477796f524b124522e86d4347cf0ef225e7c25464a6d", "owner": "Prometheus Infrastructure"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs", "previousSha256": "ef7bf7917c9590b8b0b12a06af6b3901c17098d60f2ece5e7023691b772e9dde", "successorSha256": "4225767807a5031b44aa282db0fb75c50b6ac46d3cd8d095d307d1e31e76ed86", "owner": "Prometheus Infrastructure"},
+    {"path": "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs", "previousSha256": "1f95ded85a5f5adc054d6bfd0d87f8260e1d7f7c0df4f6f80e59eb675ad740f5", "successorSha256": "98f0d70d94db251a8a43e211b35e7ea76e193de154ac730f3062f48e0628c319", "owner": "Prometheus Infrastructure"},
+    {"path": "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs", "previousSha256": "cbf0bc909e6b56157fdfa99a16fd6bb86e520ee1d683727f33d617d15d0c3244", "successorSha256": "ea08617e18d506844ca0e0ab8471b853b0399ed712cfaf3e5fce85fbe82620f1", "owner": "Prometheus Infrastructure"}
+  ],
+  "adversarialCoverage": {
+    "focusedTests": 32,
+    "documented200": true,
+    "alternate2xx": true,
+    "non2xx": true,
+    "malformedBody": true,
+    "missingOrMalformedCredentials": true,
+    "duplicateName": true,
+    "transportAmbiguity": true,
+    "keychainFailure": true,
+    "cleanupFailure": true,
+    "onePostNoRetry": true,
+    "secretSafeOutput": true
+  },
+  "executionBoundary": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesReadOrWritten": false,
+    "credentialCreatedDeletedStoredOrChanged": false,
+    "realControlReceiptOrEvidenceCreatedOrModified": false,
+    "temporaryProvisioningApiTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAuthorizedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "liveGetAuthorizedByThisBatch": false,
+    "controlPreparationAuthorized": false,
+    "provisioningAuthorized": false,
+    "tokenCreationOrDeletionAuthorized": false,
+    "nextSafeCommand": "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs",
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

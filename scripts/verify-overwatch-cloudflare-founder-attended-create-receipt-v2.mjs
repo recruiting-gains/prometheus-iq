@@ -17,6 +17,9 @@ import {
 import {
   verifyCloudflareFounderAttendedCreateReceiptV2
 } from "./verify-cloudflare-founder-attended-create-receipt-v2.mjs";
+import {
+  verifyCloudflareFounderAttendedSuccessfulResponseReconciliation
+} from "./verify-cloudflare-founder-attended-successful-response-reconciliation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -25,6 +28,12 @@ const governanceDocumentationPath =
   "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.md";
 const reportPath =
   "overwatch/reports/BATCH-20260715-004-cloudflare-live-create-receipt-safe-provisioning-repair-v2.json";
+const reconciliationGovernancePath =
+  "overwatch/governance/cloudflare-founder-attended-successful-response-reconciliation-v1.json";
+const reconciliationGovernanceDocumentationPath =
+  "overwatch/governance/cloudflare-founder-attended-successful-response-reconciliation-v1.md";
+const reconciliationReportPath =
+  "overwatch/reports/BATCH-20260715-005-cloudflare-founder-attended-successful-response-reconciliation.json";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "358f817f7fc81bd82560840e5fd54668a7f58abe";
@@ -32,6 +41,9 @@ const ownerParent = "f630c2af6e5e4722105d2b1e3ee959fb28f5da66";
 const ownerTree = "887e54f6ff62dfd55730f81bf9348ee1ecd619bb";
 const overwatchGovernanceCommit = "2bedfdc61b10e682d65a3308aad62640bc79f4ce";
 const overwatchVerificationRepairCommit = "021bb0a76479136d92e9ba9721d9adbca5e1590a";
+const overwatchRegistryFixtureRepairCommit = "327baa7085a5013f765c4a46eda07af5ad5470bb";
+const reconciliationOwnerCommit = "326036a96d661e1a480f340a932ef8b85cafd408";
+const reconciliationOwnerTree = "1212dd5da35b353741778f0ba92e1608c7864cf8";
 
 const expectedOwnerHashes = Object.freeze({
   "docs/cloudflare-founder-attended-create-receipt-v2.md":
@@ -57,6 +69,41 @@ const expectedOwnerHashes = Object.freeze({
   "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json":
     "917d0c43cbdd763645a31237d738c627190b3d18174b343ca472a9f0074fe298"
 });
+
+const historicalV2ReasonCodes = Object.freeze(
+  CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES.filter(reasonCode => ![
+    "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+    "CREATE_HTTP_STATUS_NON_2XX"
+  ].includes(reasonCode))
+);
+
+const reconciliationOwnerHashes = Object.freeze({
+  "docs/cloudflare-founder-attended-successful-response-reconciliation-v1.md":
+    "f2c5e3003c3c513d3b2fb5613615ef73fe11ce5d41641b87610b6e77d342ae63",
+  "scripts/lib/cloudflare-founder-attended-create-receipt-v2-constants.mjs":
+    "3f30028747a64263d5e6477796f524b124522e86d4347cf0ef225e7c25464a6d",
+  "scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs":
+    "4225767807a5031b44aa282db0fb75c50b6ac46d3cd8d095d307d1e31e76ed86",
+  "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs":
+    "98f0d70d94db251a8a43e211b35e7ea76e193de154ac730f3062f48e0628c319",
+  "scripts/verify-cloudflare-founder-attended-successful-response-reconciliation.mjs":
+    "bbb02046d6108cdb3de192e87b82f64aeccf70169c130eda669ffcb2810e2a65",
+  "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs":
+    "ea08617e18d506844ca0e0ab8471b853b0399ed712cfaf3e5fce85fbe82620f1",
+  "workers/infrastructure/cloudflare-founder-attended-successful-response-reconciliation-v1.json":
+    "de703f508861355fb69e8aa4afbc3fcc074fc403af53d3ef40ccef3bed00fd26"
+});
+
+const expectedReconciliationOverwatchPaths = Object.freeze([
+  "overwatch/artifact-contracts/canonical-artifact-registry.json",
+  reconciliationGovernanceDocumentationPath,
+  reconciliationGovernancePath,
+  reconciliationReportPath,
+  "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+  "tests/cross-subsystem-artifact-contracts.test.mjs",
+  "tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs"
+]);
 
 const expectedOverwatchPaths = Object.freeze([
   "overwatch/artifact-contracts/canonical-artifact-registry.json",
@@ -159,7 +206,7 @@ export function evaluateFounderAttendedCreateReceiptV2Governance({ governance, r
   require(governance.credentialBoundary.valuesPrintedLoggedHashedMeasuredOrPersisted === false,
     "Credential metadata exposure is allowed.");
   require(equal(governance.reasonEvidence.allowedReasonCodes,
-    CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES),
+    historicalV2ReasonCodes),
   "Reason-code vocabulary drifted.");
   require(equal(governance.reasonEvidence.finalCliOutcomes,
     CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_FINAL_OUTCOMES),
@@ -217,7 +264,176 @@ export function evaluateFounderAttendedCreateReceiptV2Governance({ governance, r
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
-function verifyOwnerCommit(governance) {
+export function evaluateFounderAttendedSuccessfulResponseReconciliationGovernance({
+  governance,
+  report
+}) {
+  const failures = [];
+  const require = (condition, message) => {
+    if (!condition) failures.push(message);
+  };
+
+  require(governance.governanceId ===
+    "cloudflare-founder-attended-successful-response-reconciliation-governance-v1",
+  "Reconciliation governance ID drifted.");
+  require(governance.batchId === "BATCH-20260715-005",
+    "Reconciliation batch ID drifted.");
+  require(governance.owningSubsystem === "Prometheus Overwatch",
+    "Reconciliation governance owner drifted.");
+  require(governance.dispatchAudit.implementationOwner === "Prometheus Infrastructure",
+    "Reconciliation implementation owner drifted.");
+  require(governance.dispatchAudit.verificationOwner === "Prometheus Overwatch",
+    "Reconciliation verification owner drifted.");
+  require(governance.dispatchAudit.implementationCommit.commit === reconciliationOwnerCommit,
+    "Reconciliation owner commit drifted.");
+  require(governance.dispatchAudit.implementationCommit.parent ===
+    overwatchRegistryFixtureRepairCommit, "Reconciliation parent drifted.");
+  require(governance.dispatchAudit.implementationCommit.tree === reconciliationOwnerTree,
+    "Reconciliation owner tree drifted.");
+  require(governance.dispatchAudit.implementationOwnershipRespected === true,
+    "Reconciliation ownership is not affirmed.");
+  require(governance.dispatchAudit.overwatchModifiedInfrastructureImplementation === false,
+    "Overwatch claims an Infrastructure implementation edit.");
+  require(equal(governance.ownerEvidence, Object.entries(reconciliationOwnerHashes).map(
+    ([path, sha256AtOwnerCommit]) => ({ path, sha256AtOwnerCommit })
+  )), "Reconciliation owner evidence drifted.");
+
+  require(governance.observedLiveEvidence.source === "Founder-provided evidence",
+    "Observed evidence provenance drifted.");
+  require(governance.observedLiveEvidence.singleCreateAttemptObserved === true,
+    "Observed one-request evidence drifted.");
+  require(governance.observedLiveEvidence.workflowOutcome === "MANUAL_REVIEW",
+    "Observed workflow outcome drifted.");
+  require(governance.observedLiveEvidence.workflowReason === "CREATE_HTTP_STATUS_REJECTED",
+    "Observed workflow reason drifted.");
+  require(governance.observedLiveEvidence.keychainStorageOccurred === false,
+    "Governance claims historical Keychain storage.");
+  require(governance.observedLiveEvidence.historicalExactHttpStatusRecoverable === false,
+    "Governance invents the historical HTTP status.");
+  require(governance.observedLiveEvidence.historicalResponseOrCredentialMaterialRetained === false,
+    "Governance claims historical sensitive material was retained.");
+
+  require(governance.officialResponseContracts.create.documentedHttpStatus === 200,
+    "Documented create status drifted.");
+  require(governance.officialResponseContracts.create.clientIdOptionalInSchema === true,
+    "Create client-ID schema interpretation drifted.");
+  require(governance.officialResponseContracts.create.clientSecretOptionalInSchema === true,
+    "Create client-secret schema interpretation drifted.");
+  require(governance.officialResponseContracts.list.maximumPages === 100,
+    "List page ceiling drifted.");
+  require(governance.officialResponseContracts.delete.followUpExactNameAbsenceRequired === true,
+    "Delete follow-up proof drifted.");
+
+  const status = governance.statusReconciliation;
+  require(status.documented200Class === "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "Documented-200 class drifted.");
+  require(status.alternate2xxClass === "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+    "Alternate-2xx class drifted.");
+  require(status.non2xxClass === "CREATE_HTTP_STATUS_NON_2XX",
+    "Non-2xx class drifted.");
+  require(status.rawHttpStatusPersisted === false, "Raw status persistence is allowed.");
+  require(status.boundedClassificationOnly === true, "Status evidence is not bounded.");
+  require(status.bounded2xxEligibleOnlyForFurtherValidation === true,
+    "2xx status became sufficient for success.");
+  require(status.statusAloneCanReachSuccess === false, "Status alone can reach success.");
+  require(status.non2xxCanReachSuccess === false, "Non-2xx can reach success.");
+  require(status.invalidOrMissingStatusCanReachSuccess === false,
+    "Invalid status can reach success.");
+  require(status.transportUncertaintyCanReachSuccess === false,
+    "Transport uncertainty can reach success.");
+  require(status.successRequiresValidEnvelope === true
+    && status.successRequiresValidClientId === true
+    && status.successRequiresValidClientSecret === true,
+  "Credential or envelope gates drifted.");
+  require(status.successRequiresReturnedResourceIdProof === true
+    && status.successRequiresExactNameProof === true
+    && status.successRequiresExactDurationProof === true
+    && status.exactDuration === "720h", "Exact proof gates drifted.");
+
+  const safety = governance.safetyBoundary;
+  require(safety.createAttemptsMaximumPerFreshControl === 1, "Multiple POSTs are allowed.");
+  require(safety.automaticRetryAllowed === false, "Automatic retry is allowed.");
+  require(safety.consumedOrAmbiguousControlReusable === false,
+    "Consumed or ambiguous control reuse is allowed.");
+  require(safety.keychainPairAllOrRollback === true, "Keychain rollback drifted.");
+  require(safety.returnedIdAloneAuthorizesDelete === false,
+    "Returned ID alone can authorize deletion.");
+  require(safety.ambiguousMismatchedOrDuplicateProofDeleteAttempts === 0,
+    "Ambiguous proof can delete.");
+  require(safety.compensationRequiresSeparateFounderAuthorization === true
+    && safety.compensationDeleteAttemptsMaximum === 1
+    && safety.compensationRequiresExactIdNameAnd720hProof === true
+    && safety.compensationRequiresFollowUpAbsenceGet === true,
+  "Compensation boundary drifted.");
+  require(safety.unrelatedTokenDeletionAllowed === false,
+    "Unrelated token deletion is allowed.");
+  require(safety.responseBodiesHeadersCookiesOrCredentialsPersisted === false,
+    "Sensitive response persistence is allowed.");
+  require(safety.credentialValuesPrintedLoggedHashedMeasuredOrExposed === false,
+    "Credential metadata exposure is allowed.");
+
+  require(governance.adversarialCoverage.focusedTests === 32,
+    "Focused test count drifted.");
+  for (const field of [
+    "documented200", "alternate2xx", "non2xx", "malformedBody",
+    "missingOrMalformedCredentials", "duplicateName", "transportAmbiguity",
+    "keychainFailure", "cleanupFailure", "onePostNoRetry", "secretSafeOutput"
+  ]) require(governance.adversarialCoverage[field] === true,
+    `Adversarial coverage drifted: ${field}.`);
+
+  for (const [field, expected] of Object.entries({
+    cloudflareApiContacted: false,
+    realKeychainValuesReadOrWritten: false,
+    credentialCreatedDeletedStoredOrChanged: false,
+    realControlReceiptOrEvidenceCreatedOrModified: false,
+    temporaryProvisioningApiTokenChanged: false,
+    deploymentPerformed: false,
+    productionMutationPerformed: false,
+    prospectiveCollection: "OFF",
+    cohortActivation: "OFF",
+    recommendationInfluence: "OFF"
+  })) require(governance.executionBoundary[field] === expected,
+    `Reconciliation execution boundary drifted: ${field}.`);
+
+  require(governance.releaseBoundary.deploymentAuthorized === false,
+    "Reconciliation governance authorizes deployment.");
+  require(governance.releaseBoundary.liveGetAuthorizedByThisBatch === false,
+    "Reconciliation governance authorizes a live GET.");
+  require(governance.releaseBoundary.controlPreparationAuthorized === false,
+    "Reconciliation governance authorizes control preparation.");
+  require(governance.releaseBoundary.provisioningAuthorized === false,
+    "Reconciliation governance authorizes provisioning.");
+  require(governance.releaseBoundary.tokenCreationOrDeletionAuthorized === false,
+    "Reconciliation governance authorizes a credential action.");
+  require(governance.releaseBoundary.nextSafeCommand ===
+    CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_NEXT_SAFE_COMMAND,
+  "Reconciliation next safe command drifted.");
+
+  require(report.batchId === "BATCH-20260715-005", "Reconciliation report batch drifted.");
+  require(report.owners.implementation === "Prometheus Infrastructure",
+    "Reconciliation report implementation owner drifted.");
+  require(report.owners.verification === "Prometheus Overwatch",
+    "Reconciliation report verification owner drifted.");
+  require(report.owners.implementationCommit === reconciliationOwnerCommit,
+    "Reconciliation report commit drifted.");
+  require(report.owners.ownershipRespected === true
+    && report.owners.overwatchModifiedInfrastructureImplementation === false,
+  "Reconciliation report ownership drifted.");
+  require(report.completedWork.statusAloneCannotSucceed === true
+    && report.completedWork.credentialAndExactProofRequired === true
+    && report.completedWork.onePostMaximumNoRetry === true,
+  "Reconciliation report safety claims drifted.");
+  require(report.boundaries.cloudflareApiContacted === false
+    && report.boundaries.realKeychainValuesReadOrWritten === false
+    && report.boundaries.deploymentPerformed === false,
+  "Reconciliation report external boundary drifted.");
+  require(report.boundaries.recommendationInfluence === "OFF",
+    "Reconciliation report changes recommendation influence.");
+
+  return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
+}
+
+function verifyOwnerCommit(governance, reconciliationGovernance) {
   const fields = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit
   ]).split("\n");
@@ -249,9 +465,51 @@ function verifyOwnerCommit(governance) {
       stdio: ["ignore", "pipe", "ignore"]
     });
     if (sha256(ownerBytes) !== expectedHash
-      || evidence.get(path)?.sha256AtOwnerCommit !== expectedHash
-      || sha256(readFileSync(resolve(root, path))) !== expectedHash) {
+      || evidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
       throw new Error(`Infrastructure owner evidence drifted: ${path}`);
+    }
+    const currentExpected = reconciliationOwnerHashes[path] || expectedHash;
+    if (sha256(readFileSync(resolve(root, path))) !== currentExpected) {
+      throw new Error(`Infrastructure owner successor drifted: ${path}`);
+    }
+  }
+
+  const reconciliationFields = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    reconciliationOwnerCommit
+  ]).split("\n");
+  if (!equal(reconciliationFields, [
+    reconciliationOwnerCommit,
+    overwatchRegistryFixtureRepairCommit,
+    reconciliationOwnerTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Reconcile attended Cloudflare 2xx create responses"
+  ])) throw new Error("Infrastructure reconciliation commit metadata drifted.");
+  const reconciliationPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", reconciliationOwnerCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(reconciliationPaths, Object.keys(reconciliationOwnerHashes))) {
+    throw new Error("Infrastructure reconciliation file set drifted.");
+  }
+  if (reconciliationPaths.some(path => path === "package.json" || path.startsWith("overwatch/"))) {
+    throw new Error("Infrastructure reconciliation crossed the Overwatch ownership boundary.");
+  }
+  const reconciliationEvidence = new Map(
+    reconciliationGovernance.ownerEvidence.map(item => [item.path, item])
+  );
+  for (const [path, expectedHash] of Object.entries(reconciliationOwnerHashes)) {
+    const ownerBytes = execFileSync(
+      "/usr/bin/git", ["show", `${reconciliationOwnerCommit}:${path}`], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }
+    );
+    if (sha256(ownerBytes) !== expectedHash
+      || sha256(readFileSync(resolve(root, path))) !== expectedHash
+      || reconciliationEvidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
+      throw new Error(`Infrastructure reconciliation evidence drifted: ${path}`);
     }
   }
 }
@@ -306,7 +564,8 @@ function verifyOverwatchOwnership() {
   ], { cwd: root, stdio: "ignore" });
   if (head === overwatchVerificationRepairCommit) return;
   const fixtureRepairFields = git([
-    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", "HEAD"
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s",
+    overwatchRegistryFixtureRepairCommit
   ]).split("\n");
   if (!equal(fixtureRepairFields, [
     overwatchVerificationRepairCommit,
@@ -315,16 +574,63 @@ function verifyOverwatchOwnership() {
     "Repair attended create receipt registry fixture"
   ])) throw new Error("Overwatch registry-fixture repair metadata drifted.");
   const fixtureRepairPaths = git([
-    "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    overwatchRegistryFixtureRepairCommit
   ]).split("\n").filter(Boolean);
   if (!equal(fixtureRepairPaths, [
     "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
     "tests/cross-subsystem-artifact-contracts.test.mjs"
   ])) throw new Error("Overwatch registry-fixture repair file set drifted.");
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", overwatchRegistryFixtureRepairCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  if (head === overwatchRegistryFixtureRepairCommit) return;
+
+  const ownerFields = git([
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s",
+    reconciliationOwnerCommit
+  ]).split("\n");
+  if (!equal(ownerFields, [
+    overwatchRegistryFixtureRepairCommit,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Reconcile attended Cloudflare 2xx create responses"
+  ])) throw new Error("Reconciliation owner successor metadata drifted.");
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", reconciliationOwnerCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  if (head === reconciliationOwnerCommit) return;
+
+  const reconciliationOverwatchFields = git([
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", "HEAD"
+  ]).split("\n");
+  if (!equal(reconciliationOverwatchFields, [
+    reconciliationOwnerCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "Govern attended Cloudflare response reconciliation"
+  ])) throw new Error("Reconciliation Overwatch commit metadata drifted.");
+  const reconciliationOverwatchPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+  ]).split("\n").filter(Boolean);
+  if (!equal([...reconciliationOverwatchPaths].sort(),
+    [...expectedReconciliationOverwatchPaths].sort())) {
+    throw new Error("Reconciliation Overwatch file set drifted.");
+  }
+  if (reconciliationOverwatchPaths.some(path => path.startsWith("workers/infrastructure/")
+    || path.startsWith("scripts/lib/cloudflare-founder-attended-create-receipt-v2")
+    || path.startsWith("scripts/run-cloudflare-founder-attended-create-receipt-v2")
+    || path === "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs"
+    || path === "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs")) {
+    throw new Error("Overwatch modified Infrastructure implementation.");
+  }
 }
 
 function verifyImplementationBoundary() {
   const contract = readJson(contractPath);
+  const reconciliationContract = readJson(
+    "workers/infrastructure/cloudflare-founder-attended-successful-response-reconciliation-v1.json"
+  );
   const workflow = read("scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs");
   const production = read("scripts/lib/cloudflare-founder-attended-create-receipt-v2-production.mjs");
   const getOnly = read("scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs");
@@ -346,6 +652,14 @@ function verifyImplementationBoundary() {
     || /console\.(?:log|error)/u.test(workflow)) {
     throw new Error("Infrastructure v2 workflow boundary drifted.");
   }
+  if (!/function classifyCreateHttpStatus/u.test(workflow)
+    || !/status === 200/u.test(workflow)
+    || !/status >= 200 && status < 300/u.test(workflow)
+    || !/reason\(evaluation\.httpStatusReasonCode\)/u.test(workflow)
+    || !/if \(!proof\.proven\)/u.test(workflow)
+    || !/if \(!evaluation\.accepted\)/u.test(workflow)) {
+    throw new Error("Infrastructure response reconciliation boundary drifted.");
+  }
   if (!/provisionFounderAttendedCreateReceiptV2TestOnly/u.test(production)
     || /provisionFounderAttendedResponseContractSuccessorTestOnly/u.test(production)
     || !/attempts\.posts !== 1/u.test(production)
@@ -360,6 +674,21 @@ function verifyImplementationBoundary() {
   }
   const owner = verifyCloudflareFounderAttendedCreateReceiptV2();
   if (owner.status !== "passed") throw new Error("Infrastructure owner verifier failed.");
+  const reconciliation = verifyCloudflareFounderAttendedSuccessfulResponseReconciliation();
+  if (reconciliation.status !== "passed"
+    || reconciliation.batchId !== "BATCH-20260715-005"
+    || reconciliation.cloudflareApiContacted !== false
+    || reconciliation.realKeychainValuesRead !== false) {
+    throw new Error("Infrastructure reconciliation owner verifier failed.");
+  }
+  if (reconciliationContract.contractVersion !==
+      "cloudflare-founder-attended-successful-response-reconciliation-v1"
+    || reconciliationContract.status !== "IMPLEMENTED_SOURCE_NOT_EXECUTED"
+    || reconciliationContract.statusReconciliation.statusAloneCanReachSuccess !== false
+    || reconciliationContract.statusReconciliation.non2xxCanReachSuccess !== false
+    || reconciliationContract.runtimeBoundaries.realExecutionAuthorized !== false) {
+    throw new Error("Infrastructure reconciliation contract drifted.");
+  }
 }
 
 function verifyPredecessorTransitions(governance) {
@@ -406,6 +735,25 @@ function verifyCanonicalRegistration() {
   };
   if (matches.length !== 1 || !equal(matches[0], expected)) {
     throw new Error("Canonical v2 governance registration drifted.");
+  }
+  const reconciliationMatches = registry.governanceArtifacts.filter(item => item.artifactId ===
+    "cloudflare-founder-attended-successful-response-reconciliation-governance-v1");
+  const reconciliationExpected = {
+    artifactId: "cloudflare-founder-attended-successful-response-reconciliation-governance-v1",
+    artifactType:
+      "overwatch_infrastructure_attended_successful_response_reconciliation_governance",
+    ownerSubsystem: "Prometheus Overwatch",
+    path: reconciliationGovernancePath,
+    documentationPath: reconciliationGovernanceDocumentationPath,
+    schema: "CloudflareFounderAttendedSuccessfulResponseReconciliationGovernanceV1",
+    writeAllowed: ["Prometheus Overwatch"],
+    readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
+    productionConsumer: false,
+    failClosedIfMissing: true
+  };
+  if (reconciliationMatches.length !== 1
+    || !equal(reconciliationMatches[0], reconciliationExpected)) {
+    throw new Error("Canonical reconciliation governance registration drifted.");
   }
 }
 
@@ -466,9 +814,19 @@ function verifySecretSafety() {
 export function verifyOverwatchFounderAttendedCreateReceiptV2() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
+  const reconciliationGovernance = readJson(reconciliationGovernancePath);
+  const reconciliationReport = readJson(reconciliationReportPath);
   const evaluated = evaluateFounderAttendedCreateReceiptV2Governance({ governance, report });
   if (!evaluated.ok) throw new Error(evaluated.failures.join("\n"));
-  verifyOwnerCommit(governance);
+  const reconciliationEvaluated =
+    evaluateFounderAttendedSuccessfulResponseReconciliationGovernance({
+      governance: reconciliationGovernance,
+      report: reconciliationReport
+    });
+  if (!reconciliationEvaluated.ok) {
+    throw new Error(reconciliationEvaluated.failures.join("\n"));
+  }
+  verifyOwnerCommit(governance, reconciliationGovernance);
   verifyOverwatchOwnership();
   verifyImplementationBoundary();
   verifyPredecessorTransitions(governance);
@@ -478,11 +836,11 @@ export function verifyOverwatchFounderAttendedCreateReceiptV2() {
   verifySecretSafety();
   return Object.freeze({
     status: "passed",
-    batchId: "BATCH-20260715-004",
+    batchId: "BATCH-20260715-005",
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
-    implementationCommit: ownerCommit,
-    focusedOwnerTests: 29,
+    implementationCommit: reconciliationOwnerCommit,
+    focusedOwnerTests: 32,
     cloudflareApiContacted: false,
     realKeychainValuesRead: false,
     credentialActionPerformed: false,
