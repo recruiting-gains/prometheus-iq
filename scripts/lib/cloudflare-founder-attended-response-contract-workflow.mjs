@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 
 import {
   appendFounderAttendedResponseContractPhase,
+  classifyFounderAttendedResponseContractArtifactError,
   consumeFounderAttendedResponseContractSuccessorControl,
   createFounderAttendedResponseContractAbsenceEvidence,
   prepareFounderAttendedResponseContractSuccessorControl
@@ -364,15 +365,22 @@ export async function diagnoseFounderAttendedResponseContractAbsenceTestOnly(opt
     apiToken: governed.apiToken,
     accountIdSha256Allowlist: composed.accountIdSha256Allowlist
   });
-  if (outcome !== "EXACT_NAME_ABSENT") return Object.freeze({ outcome });
-  createFounderAttendedResponseContractAbsenceEvidence({
-    artifactRoot: composed.artifactRoot,
-    now: state.now,
-    repositoryIdentity: state.repositoryIdentity,
-    accountIdSha256: governed.accountIdSha256,
-    randomBytesImpl: composed.randomBytesImpl,
-    expectedUid: composed.expectedUid
-  });
+  try {
+    createFounderAttendedResponseContractAbsenceEvidence({
+      artifactRoot: composed.artifactRoot,
+      now: state.now,
+      repositoryIdentity: state.repositoryIdentity,
+      accountIdSha256: governed.accountIdSha256,
+      outcome,
+      randomBytesImpl: composed.randomBytesImpl,
+      expectedUid: composed.expectedUid
+    });
+  } catch (error) {
+    if (classifyFounderAttendedResponseContractArtifactError(error) === "LOCAL_ARTIFACT_COLLISION") {
+      return Object.freeze({ outcome: "LOCAL_ARTIFACT_COLLISION" });
+    }
+    throw error;
+  }
   return Object.freeze({ outcome });
 }
 
@@ -403,7 +411,7 @@ export async function provisionFounderAttendedResponseContractSuccessorTestOnly(
     repositoryIdentity: state.repositoryIdentity,
     expectedUid: composed.expectedUid
   });
-  const phase = phaseWriter(composed.artifactRoot, consumed.control, composed.expectedUid);
+  const phase = phaseWriter(consumed.attemptRoot, consumed.control, composed.expectedUid);
 
   let exactName;
   try {

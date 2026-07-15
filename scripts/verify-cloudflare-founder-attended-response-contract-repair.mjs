@@ -133,6 +133,8 @@ function verifySourceBoundary() {
   assert.match(workflow, /CLIENT_ID_PATTERN\.test/u);
   assert.match(workflow, /CLIENT_SECRET_PATTERN\.test/u);
   assert.match(workflow, /await exactNameState/u);
+  assert.match(workflow, /phaseWriter\(consumed\.attemptRoot,\s*consumed\.control/u);
+  assert.match(workflow, /outcome:\s*"LOCAL_ARTIFACT_COLLISION"/u);
   assert.match(workflow, /phase\("DELETE_CONFIRMED"\)/u);
   assert.match(workflow, /phase\("DELETE_NOT_CONFIRMED"\)/u);
   assert.doesNotMatch(workflow, /deleteItem\("temporaryApiToken"\)/u);
@@ -146,7 +148,15 @@ function verifySourceBoundary() {
   assert.doesNotMatch(artifacts, /unlinkSync|rmSync|renameSync|truncateSync/u);
   assert.match(artifacts, /O_EXCL/u);
   assert.match(artifacts, /fsyncSync/u);
-  assert.match(artifacts, /writeExclusive\([^\n]*`\$\{phase\}\\n`/u);
+  assert.match(artifacts, /attempts:\s*join\(base,\s*"attempts"\)/u);
+  assert.match(artifacts, /attempt-lineage\.json/u);
+  assert.match(artifacts, /diagnostic-receipt\.json/u);
+  assert.match(artifacts, /diagnostic-consumption\.json/u);
+  assert.match(artifacts, /successor-control\.json/u);
+  assert.match(artifacts, /successor-control-consumption\.json/u);
+  assert.match(artifacts, /phase-evidence/u);
+  assert.match(artifacts, /LOCAL_ARTIFACT_COLLISION/u);
+  assert.match(artifacts, /readFounderAttendedResponseContractAttemptStateTestOnly/u);
 
   assert.match(production, /createControllingTtyConfirmation\(\)/u);
   assert.match(production, /console\.log\(result\.outcome\)/u);
@@ -189,6 +199,10 @@ function verifySourceBoundary() {
   const tests = read(testPath);
   assert.doesNotMatch(tests, /ResponseContract(?:Diagnostic|Preparation|Provisioning)Cli/u);
   assert.doesNotMatch(tests, /node:https|httpsRequest/u);
+  assert.match(tests, /repeated fresh diagnostics create isolated attempts/u);
+  assert.match(tests, /simultaneous fresh absence attempts fail safely without mixing/u);
+  assert.match(tests, /LOCAL_ARTIFACT_COLLISION/u);
+  assert.match(tests, /legacy flat-root evidence remains untouched/u);
 }
 
 function verifySecretSafety() {

@@ -17,8 +17,15 @@ import {
   verifyCloudflareFounderAttendedRecoveryPredecessorImmutabilityTestOnly
 } from "../scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs";
 import {
+  verifyCloudflareFounderAttendedCreateReceiptV2
+} from "../scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs";
+import {
+  verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation
+} from "../scripts/verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
+import {
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
+  verifyCloudflareFounderAttendedResponseContractRepair,
   verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly
 } from "../scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs";
 
@@ -51,6 +58,9 @@ function createSyntheticRepository(t, infrastructurePaths) {
 
 test("standalone Infrastructure owner verifier passes at the current repository version", () => {
   assert.equal(verifyCloudflareFounderAttendedGetOnlyRecovery().status, "passed");
+  assert.equal(verifyCloudflareFounderAttendedResponseContractRepair().status, "passed");
+  assert.equal(verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation().status, "passed");
+  assert.equal(verifyCloudflareFounderAttendedCreateReceiptV2().status, "passed");
 });
 
 test("package release wiring is delegated without removing any Infrastructure predecessor", () => {
@@ -154,12 +164,17 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
 });
 
 test("the exact standalone command succeeds without package or Overwatch mutation", () => {
-  const output = execFileSync(process.execPath, [
-    "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs"
-  ], {
-    cwd: repositoryRoot,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
-  });
-  assert.equal(JSON.parse(output).status, "passed");
+  for (const script of [
+    "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs",
+    "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+    "scripts/verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
+    "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs"
+  ]) {
+    const output = execFileSync(process.execPath, [script], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    assert.equal(JSON.parse(output).status, "passed");
+  }
 });

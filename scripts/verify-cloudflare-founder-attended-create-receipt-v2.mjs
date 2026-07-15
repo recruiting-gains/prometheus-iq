@@ -13,6 +13,10 @@ import {
   CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES
 } from "./lib/cloudflare-founder-attended-create-receipt-v2-constants.mjs";
 import {
+  verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation
+} from "./verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
+import {
+  verifyCloudflareFounderAttendedResponseContractRepair,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
 } from "./verify-cloudflare-founder-attended-response-contract-repair.mjs";
 
@@ -22,21 +26,6 @@ const baselineTree = "0a629551a428c360ab9e0d9a5af47d0fdf8d0d8e";
 const documentationPath = "docs/cloudflare-founder-attended-create-receipt-v2.md";
 const metadataPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
 const testPath = "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs";
-
-const v1ResponseContractPaths = Object.freeze([
-  "docs/cloudflare-founder-attended-response-contract-repair-v1.md",
-  "scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs",
-  "scripts/lib/cloudflare-founder-attended-response-contract-constants.mjs",
-  "scripts/lib/cloudflare-founder-attended-response-contract-production.mjs",
-  "scripts/lib/cloudflare-founder-attended-response-contract-workflow.mjs",
-  "scripts/run-cloudflare-founder-attended-response-contract-diagnostic.mjs",
-  "scripts/run-cloudflare-founder-attended-response-contract-prepare.mjs",
-  "scripts/run-cloudflare-founder-attended-response-contract-provision.mjs",
-  "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
-  "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs",
-  "tests/cloudflare-founder-attended-response-contract-repair.test.mjs",
-  "workers/infrastructure/cloudflare-founder-attended-response-contract-repair-v1.json"
-]);
 
 const sourcePaths = Object.freeze([
   documentationPath,
@@ -68,14 +57,15 @@ function verifyBaseline() {
 
 function verifyV1Immutability() {
   const protectedPaths = [...new Set([
-    ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
-    ...v1ResponseContractPaths
+    ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
   ])];
   assert.equal(protectedPaths.includes("package.json"), false);
   execFileSync("/usr/bin/git", ["diff", "--quiet", baselineCommit, "--", ...protectedPaths], {
     cwd: root,
     stdio: "ignore"
   });
+  assert.equal(verifyCloudflareFounderAttendedResponseContractRepair().status, "passed");
+  assert.equal(verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation().status, "passed");
 }
 
 function verifySourceOwnership() {
@@ -115,6 +105,8 @@ function verifyWorkflowBoundary() {
   assert.match(workflow, /phase\("DELETE_ATTEMPTED"\)/u);
   assert.match(workflow, /phase\("DELETE_CONFIRMED"\)/u);
   assert.match(workflow, /phase\("DELETE_NOT_CONFIRMED"\)/u);
+  assert.match(workflow, /phaseWriter\(consumed\.attemptRoot,\s*consumed\.control/u);
+  assert.match(workflow, /reasonWriter\(consumed\.attemptRoot,\s*consumed\.attemptId/u);
   assert.doesNotMatch(workflow, /deleteItem\("temporaryApiToken"\)/u);
   assert.doesNotMatch(workflow, /console\.(?:log|error)/u);
   assert.doesNotMatch(workflow, /(?:clientId|clientSecret)[^\n]*(?:createHash|digest\()/u);
@@ -154,6 +146,8 @@ function verifyWorkflowBoundary() {
   assert.doesNotMatch(artifacts, /unlinkSync|rmSync|renameSync|truncateSync/u);
   assert.match(artifacts, /O_EXCL/u);
   assert.match(artifacts, /fsyncSync/u);
+  assert.match(artifacts, /attempt-lineage\.json/u);
+  assert.match(artifacts, /basename\(attemptRoot\) !== attemptId/u);
 }
 
 function verifyOutputBoundary() {

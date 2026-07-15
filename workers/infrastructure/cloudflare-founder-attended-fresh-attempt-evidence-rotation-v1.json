@@ -1,0 +1,61 @@
+{
+  "contractVersion": "cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1",
+  "batchId": "BATCH-20260715-006",
+  "directive": "Cloudflare Founder-Attended Fresh Attempt Evidence Rotation v1",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_SOURCE_NOT_EXECUTED",
+  "baseline": {
+    "commit": "4fbd3030c980a7e17230654dfe2ece0766793436",
+    "tree": "bd8f1fde909d305f45f8b6f22f98a086fc678771",
+    "branch": "main",
+    "cleanAtStart": true,
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialActionPerformed": false,
+    "productionMutationPerformed": false,
+    "deploymentPerformed": false,
+    "pushPerformed": false,
+    "temporaryApiTokenPreserved": true
+  },
+  "failurePreservation": {
+    "getOnlyReturnedManualReview": true,
+    "exactNameAbsentConfirmed": true,
+    "createDeleteOrDeployPossible": false,
+    "priorV2AttemptEvidencePreserved": true
+  },
+  "namespaceRotation": {
+    "artifactNamespace": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-response-contract-repair-v1/attempts/<attemptId>",
+    "immutablePerAttemptNamespaces": true,
+    "opaqueAttemptIdRuntimeGenerated": true,
+    "callerChosenAttemptIdAllowed": false,
+    "exclusiveAttemptDirectoryCreate": true,
+    "priorArtifactsReusedOrOverwritten": false,
+    "localArtifactCollisionReasonCode": "LOCAL_ARTIFACT_COLLISION"
+  },
+  "lineageBinding": {
+    "sameAttemptRequiredForDiagnosticControlAndPhases": true,
+    "sameAttemptRequiredForCreateReceiptReasons": true,
+    "crossAttemptSubstitutionFailsClosed": true,
+    "expiredOrConsumedAttemptsIgnoredBySelector": true
+  },
+  "filesystemControls": {
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "atomicExclusiveWrites": true,
+    "noSymlinkOrHardlinkTrust": true,
+    "cleanCommitAndTreeBindingPreserved": true
+  },
+  "futureCommand": {
+    "nextSafeGetOnly": "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs",
+    "prepareOrProvisionExecutedByThisBatch": false
+  },
+  "runtimeBoundaries": {
+    "realExecutionAuthorized": false,
+    "cloudflareApiContactAllowedDuringImplementation": false,
+    "realKeychainReadAllowedDuringImplementation": false,
+    "credentialActionAllowedDuringImplementation": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "pushAuthorized": false
+  }
+}

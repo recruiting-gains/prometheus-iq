@@ -501,9 +501,10 @@ function phaseWriter(artifactRoot, control, expectedUid) {
   });
 }
 
-function reasonWriter(artifactRoot, expectedUid) {
+function reasonWriter(artifactRoot, attemptId, expectedUid) {
   return reasonCode => appendFounderAttendedCreateReceiptV2Reason({
     artifactRoot,
+    attemptId,
     reasonCode,
     expectedUid
   });
@@ -612,8 +613,8 @@ export async function provisionFounderAttendedCreateReceiptV2TestOnly(options) {
     repositoryIdentity: state.repositoryIdentity,
     expectedUid: composed.expectedUid
   });
-  const phase = phaseWriter(composed.artifactRoot, consumed.control, composed.expectedUid);
-  const reason = reasonWriter(composed.artifactRoot, composed.expectedUid);
+  const phase = phaseWriter(consumed.attemptRoot, consumed.control, composed.expectedUid);
+  const reason = reasonWriter(consumed.attemptRoot, consumed.attemptId, composed.expectedUid);
 
   const preflight = await exactNameAbsent({
     transport: composed.transport,

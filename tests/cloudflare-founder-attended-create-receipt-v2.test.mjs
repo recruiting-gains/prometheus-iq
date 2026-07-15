@@ -30,6 +30,7 @@ import {
   provisionFounderAttendedCreateReceiptV2TestOnly
 } from "../scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs";
 import {
+  readFounderAttendedResponseContractAttemptStateTestOnly,
   readFounderAttendedResponseContractPhasesTestOnly
 } from "../scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs";
 import {
@@ -207,19 +208,25 @@ async function prepareFixture(t, { store = keychain() } = {}) {
     transport: transport({ gets: [emptyList()] }),
     randomBytesImpl: () => Buffer.alloc(32, 4)
   });
-  prepareFounderAttendedResponseContractControlTestOnly({
+  const prepared = prepareFounderAttendedResponseContractControlTestOnly({
     ...common({ artifactRoot: box.artifactRoot, store }),
     randomBytesImpl: () => Buffer.alloc(32, 5)
   });
   const control = JSON.parse(
-    readFileSync(join(box.artifactRoot, "successor-control.json"), "utf8")
+    readFileSync(join(prepared.attemptRoot, "successor-control.json"), "utf8")
   );
-  return Object.freeze({ ...box, control, store });
+  return Object.freeze({
+    ...box,
+    control,
+    store,
+    attemptId: prepared.attemptId,
+    attemptRoot: prepared.attemptRoot
+  });
 }
 
 function phases(fixture) {
   return readFounderAttendedResponseContractPhasesTestOnly({
-    artifactRoot: fixture.artifactRoot,
+    artifactRoot: fixture.attemptRoot,
     control: fixture.control,
     expectedUid: process.getuid()
   });
@@ -227,7 +234,15 @@ function phases(fixture) {
 
 function reasons(fixture) {
   return readFounderAttendedCreateReceiptV2ReasonsTestOnly({
-    artifactRoot: fixture.artifactRoot,
+    artifactRoot: fixture.attemptRoot,
+    attemptId: fixture.attemptId,
+    expectedUid: process.getuid()
+  });
+}
+
+function attemptStates(artifactRoot) {
+  return readFounderAttendedResponseContractAttemptStateTestOnly({
+    artifactRoot,
     expectedUid: process.getuid()
   });
 }
@@ -641,7 +656,8 @@ test("append-only reason evidence contains only fixed codes and no response mate
     ...common({ artifactRoot: fixture.artifactRoot, store: fixture.store }),
     transport: transport()
   });
-  const reasonText = allFiles(join(fixture.artifactRoot, "create-receipt-classifications"))
+  const reasonText = allFiles(join(fixture.attemptRoot, "create-receipt-classifications"))
+    .filter(path => path.endsWith(".reason"))
     .map(path => readFileSync(path, "utf8"))
     .join("");
   assert.equal(

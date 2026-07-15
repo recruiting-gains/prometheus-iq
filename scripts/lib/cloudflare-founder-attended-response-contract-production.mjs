@@ -63,6 +63,7 @@ export async function runFounderAttendedResponseContractDiagnosticCli() {
     requireNoArguments();
     const result = await diagnoseFounderAttendedResponseContractAbsence();
     console.log(result.outcome);
+    if (result.outcome === "LOCAL_ARTIFACT_COLLISION") process.exitCode = 1;
   } catch {
     console.error("MANUAL_REVIEW");
     process.exitCode = 1;

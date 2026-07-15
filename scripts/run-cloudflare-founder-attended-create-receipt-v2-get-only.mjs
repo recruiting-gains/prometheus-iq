@@ -35,6 +35,7 @@ async function run() {
     expectedUid: currentFounderAttendedCreateReceiptV2Uid()
   });
   console.log(result.outcome);
+  if (result.outcome === "LOCAL_ARTIFACT_COLLISION") process.exitCode = 1;
 }
 
 try {
