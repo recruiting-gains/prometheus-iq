@@ -1,0 +1,165 @@
+{
+  "contractVersion": "cloudflare-founder-attended-service-token-v1",
+  "batchId": "BATCH-20260714-007",
+  "directive": "Cloudflare Founder-Attended 30-Day Access Service Token Provisioning v1",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_SOURCE_NOT_EXECUTED",
+  "cloudflareAccessPerformed": false,
+  "keychainValuesAccessed": false,
+  "credentialCreated": false,
+  "productionMutationPerformed": false,
+  "deploymentPerformed": false,
+  "target": {
+    "apiOrigin": "https://api.cloudflare.com",
+    "collectionPathTemplate": "/client/v4/accounts/{account_id}/access/service_tokens",
+    "endpointTemplate": "https://api.cloudflare.com/client/v4/accounts/{account_id}/access/service_tokens",
+    "accountIdSource": {
+      "service": "com.prometheus.cloudflare.unattended.deployment",
+      "account": "CLOUDFLARE_ACCOUNT_ID"
+    },
+    "accountIdSha256": "2abc795ed0df284a522381c09dca33fc567105c74074140fd920c0dd45dcd536",
+    "rawAccountIdSourceControlled": false,
+    "digestComparedBeforeEndpointConstruction": true,
+    "otherAccountsAllowed": false
+  },
+  "temporaryApiCredential": {
+    "type": "Cloudflare API token",
+    "service": "com.prometheus.cloudflare.attended.service-token-provisioning",
+    "account": "CLOUDFLARE_ACCESS_SERVICE_TOKENS_WRITE_API_TOKEN",
+    "permission": "Access: Service Tokens Write",
+    "resourceScope": "exact_prometheus_account_only",
+    "maximumTtlHours": 720,
+    "automaticRenewalAllowed": false,
+    "existingUnattendedDeploymentTokenReadable": false,
+    "existingUnattendedDeploymentTokenModified": false,
+    "valuesAllowedInArguments": false,
+    "valuesAllowedInEnvironment": false,
+    "valuesAllowedInTerminalOutput": false,
+    "cleanupDeletesOnlyThisItem": true,
+    "founderRevocationRequiredAfterCleanup": true
+  },
+  "serviceToken": {
+    "createCountMaximum": 1,
+    "name": "Prometheus Overwatch Read-Only Smoke Verification",
+    "duration": "720h",
+    "requestBody": {
+      "name": "Prometheus Overwatch Read-Only Smoke Verification",
+      "duration": "720h"
+    },
+    "userControlledEndpointAllowed": false,
+    "userControlledAccountAllowed": false,
+    "userControlledNameAllowed": false,
+    "userControlledDurationAllowed": false,
+    "userControlledBodyAllowed": false,
+    "automaticRetryAllowed": false,
+    "redirectFollowAllowed": false,
+    "fixedNameDuplicatePreflight": {
+      "enabled": true,
+      "method": "GET",
+      "exactCollectionEndpoint": true,
+      "queryString": "",
+      "moreThanOnePageBehavior": "DENY",
+      "duplicateBehavior": "DENY_WITHOUT_POST"
+    },
+    "createMethod": "POST",
+    "createEndpoint": "exact_collection_endpoint",
+    "nonSuccessOrAmbiguousPostBehavior": "MANUAL_REVIEW_WITHOUT_RETRY"
+  },
+  "responseHandling": {
+    "capture": "bounded_process_memory_only",
+    "maximumBytes": 1048576,
+    "responseBodyPrinted": false,
+    "responseBodyLogged": false,
+    "responseBodyPersisted": false,
+    "strictJsonWithDuplicateKeyRejection": true,
+    "exactNameRequired": true,
+    "exactDurationRequired": true,
+    "exactCreatedToExpiryHoursRequired": 720,
+    "validatedReturnedTokenIdRequired": true,
+    "clientIdShapeRequired": true,
+    "clientSecretShapeRequired": true,
+    "genericErrorsOnly": true
+  },
+  "destinationKeychain": {
+    "service": "com.prometheus.cloudflare.unattended.smoke",
+    "accounts": [
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+    ],
+    "existingEitherItemBehavior": "DENY_BEFORE_VALUE_READ_CONTROL_CONSUMPTION_OR_NETWORK",
+    "writeMechanism": "Security.framework_helper_anonymous_stdin_pipe",
+    "secretValuesInArguments": false,
+    "secretValuesInEnvironment": false,
+    "partialWriteBehavior": "DELETE_BOTH_POSSIBLE_DESTINATION_ITEMS_AND_VERIFY_ABSENCE",
+    "rollbackFailureBehavior": "MANUAL_REVIEW_REQUIRED",
+    "presenceVerification": "name_and_PRESENT_or_ABSENT_only"
+  },
+  "attendedControl": {
+    "schemaVersion": "cloudflare-founder-attended-service-token-control-v1",
+    "defaultState": "OFF",
+    "missingState": "OFF",
+    "controlPath": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-service-token-v1/control.json",
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "currentUserOwnershipRequired": true,
+    "regularFileRequired": true,
+    "singleLinkRequired": true,
+    "strictJsonShapeRequired": true,
+    "maximumLifetimeMinutes": 30,
+    "fixedDirective": "Cloudflare Founder-Attended 30-Day Access Service Token Provisioning v1",
+    "fixedAccountIdSha256": "2abc795ed0df284a522381c09dca33fc567105c74074140fd920c0dd45dcd536",
+    "fixedServiceTokenName": "Prometheus Overwatch Read-Only Smoke Verification",
+    "fixedDuration": "720h",
+    "cleanRepositoryRequired": true,
+    "exactCommitAndTreeRequired": true,
+    "createdOnlyInsideConfirmedProvisionAttended": true,
+    "controllingTtyRequiredForRealProvisioning": true,
+    "exactConfirmationRequired": true,
+    "oneShot": true,
+    "nonceConsumedBeforeFirstNetworkCall": true,
+    "atomicExclusiveConsumption": true,
+    "persistentConsumptionReceipt": true,
+    "replayAllowed": false
+  },
+  "compensation": {
+    "eligibleOnlyForStrictEnvelopeExactNameValidatedTokenId": true,
+    "method": "DELETE",
+    "endpoint": "exact_collection_endpoint/{validated_token_id}",
+    "attemptsMaximum": 1,
+    "redirectFollowAllowed": false,
+    "automaticRetryAllowed": false,
+    "responseFailureWithSafeId": "BEST_EFFORT_DELETE",
+    "storageFailureWithSafeId": "LOCAL_PAIR_ROLLBACK_THEN_BEST_EFFORT_DELETE",
+    "confirmedDelete": "FAIL_CLOSED_COMPENSATED",
+    "ambiguousPostOrCompensationFailure": "MANUAL_REVIEW_REQUIRED",
+    "ambiguousPostRetryAllowed": false
+  },
+  "cli": {
+    "entrypoint": "scripts/run-cloudflare-founder-attended-service-token.mjs",
+    "fixedCommands": [
+      "presence",
+      "provision-attended",
+      "cleanup-temp"
+    ],
+    "arbitraryArgumentsAllowed": false,
+    "unattendedLauncherProfileAvailable": false,
+    "unattendedDeploymentIntegrationAllowed": false
+  },
+  "testBoundary": {
+    "realNetworkAllowed": false,
+    "realKeychainAllowed": false,
+    "injectedTransportRequired": true,
+    "injectedKeychainRequired": true,
+    "injectedAttendanceRequired": true
+  },
+  "runtimeBoundaries": {
+    "cloudflareAccessPolicyMutationAllowed": false,
+    "workerDeploymentAllowed": false,
+    "publicWorkerMutationAllowed": false,
+    "productionDataMutationAllowed": false,
+    "collectionActivation": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF",
+    "pushAuthorized": false
+  }
+}

@@ -16,6 +16,10 @@ env.example
 cloudflare-unattended-deployment-control*.json
 cloudflare-api-token*
 cloudflare-access-service-token*
+.cloudflare-founder-attended/
+cloudflare-founder-attended-service-token-control*.json
+cloudflare-attended-service-token-provisioning*
+cloudflare-service-token-response*
 *.pem
 *.key
 *.p12

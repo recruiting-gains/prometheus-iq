@@ -29,19 +29,36 @@ export const KEYCHAIN_ITEMS = Object.freeze([
   })
 ]);
 
+export const ATTENDED_KEYCHAIN_ITEMS = Object.freeze([
+  Object.freeze({
+    service: "com.prometheus.cloudflare.attended.service-token-provisioning",
+    account: "CLOUDFLARE_ACCESS_SERVICE_TOKENS_WRITE_API_TOKEN"
+  })
+]);
+
+export const CLOUDFLARE_SECRET_KEYCHAIN_ITEM_REGISTRY = Object.freeze([
+  ...KEYCHAIN_ITEMS,
+  ...ATTENDED_KEYCHAIN_ITEMS
+]);
+
 export const LOCAL_SECRET_ARTIFACT_CANDIDATES = Object.freeze([
   ".cloudflare-unattended/credential-cache",
   ".cloudflare-unattended-control-v1.json",
   ".cloudflare-unattended-credentials.json",
   "cloudflare-unattended-deployment-control-v1.json",
   "cloudflare-api-token.txt",
-  "cloudflare-access-service-token.txt"
+  "cloudflare-access-service-token.txt",
+  ".cloudflare-founder-attended/credential-cache",
+  "cloudflare-founder-attended-service-token-control-v1.json",
+  "cloudflare-attended-service-token-provisioning-token.txt",
+  "cloudflare-service-token-response.json"
 ]);
 
 const assignmentNames = Object.freeze([
   "CLOUDFLARE_API_TOKEN",
   "CLOUDFLARE_ACCESS_CLIENT_ID",
   "CLOUDFLARE_ACCESS_CLIENT_SECRET",
+  "CLOUDFLARE_ACCESS_SERVICE_TOKENS_WRITE_API_TOKEN",
   "CLOUDFLARE_API_KEY",
   "CF_API_KEY",
   "CF-Access-Client-Id",
