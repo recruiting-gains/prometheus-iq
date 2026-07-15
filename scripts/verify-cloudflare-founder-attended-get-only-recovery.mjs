@@ -26,8 +26,7 @@ const documentationPath = "docs/cloudflare-founder-attended-get-only-recovery-v1
 const testPath = "tests/cloudflare-founder-attended-service-token.test.mjs";
 const focusedTestPath = "tests/cloudflare-founder-attended-get-only-recovery.test.mjs";
 
-const predecessorPaths = Object.freeze([
-  "package.json",
+export const CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS = Object.freeze([
   "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
   "scripts/helpers/cloudflare-founder-attended-keychain.swift",
   "scripts/lib/cloudflare-founder-attended-constants.mjs",
@@ -40,6 +39,8 @@ const predecessorPaths = Object.freeze([
   "scripts/verify-cloudflare-founder-attended-service-token.mjs",
   "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
 ]);
+export const CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS =
+  Object.freeze(["package.json"]);
 
 const sourcePaths = Object.freeze([
   documentationPath,
@@ -64,15 +65,27 @@ const sourcePaths = Object.freeze([
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 
-function verifyPredecessorImmutability() {
+export function verifyCloudflareFounderAttendedRecoveryPredecessorImmutabilityTestOnly({
+  repositoryRoot = root,
+  expectedBaselineCommit = baselineCommit
+} = {}) {
+  assert.match(expectedBaselineCommit, /^[0-9a-f]{40}$/u);
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS,
+    ["package.json"]
+  );
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS.includes("package.json"),
+    false
+  );
   execFileSync("/usr/bin/git", [
     "diff",
     "--quiet",
-    baselineCommit,
+    expectedBaselineCommit,
     "--",
-    ...predecessorPaths
+    ...CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS
   ], {
-    cwd: root,
+    cwd: resolve(repositoryRoot),
     stdio: "ignore"
   });
 }
@@ -229,7 +242,7 @@ export function verifyCloudflareFounderAttendedGetOnlyRecovery() {
   assert.equal(contract.testBoundary.mockKeychainOnly, true);
   assert.equal(contract.runtimeBoundaries.pushAuthorized, false);
 
-  verifyPredecessorImmutability();
+  verifyCloudflareFounderAttendedRecoveryPredecessorImmutabilityTestOnly();
   verifySourceBoundaries(contract);
   verifyNoNewSecretMaterial();
   return Object.freeze({

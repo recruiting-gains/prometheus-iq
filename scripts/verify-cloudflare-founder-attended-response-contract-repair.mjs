@@ -11,44 +11,51 @@ import {
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_FINAL_OUTCOMES,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_PHASES
 } from "./lib/cloudflare-founder-attended-response-contract-constants.mjs";
+import {
+  CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS,
+  CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS
+} from "./verify-cloudflare-founder-attended-get-only-recovery.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const baselineCommit = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const metadataPath = "workers/infrastructure/cloudflare-founder-attended-response-contract-repair-v1.json";
 const documentationPath = "docs/cloudflare-founder-attended-response-contract-repair-v1.md";
 const testPath = "tests/cloudflare-founder-attended-response-contract-repair.test.mjs";
+const ownerVerifierOwnershipTestPath =
+  "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs";
 
-const predecessorPaths = Object.freeze([
-  "package.json",
-  "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
-  "docs/cloudflare-founder-attended-get-only-recovery-v1.md",
-  "scripts/helpers/cloudflare-founder-attended-keychain.swift",
-  "scripts/lib/cloudflare-founder-attended-constants.mjs",
-  "scripts/lib/cloudflare-founder-attended-control.mjs",
-  "scripts/lib/cloudflare-founder-attended-keychain.mjs",
-  "scripts/lib/cloudflare-founder-attended-service-token-production.mjs",
-  "scripts/lib/cloudflare-founder-attended-service-token.mjs",
-  "scripts/lib/cloudflare-founder-attended-tty.mjs",
-  "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-command.mjs",
-  "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-production.mjs",
-  "scripts/lib/cloudflare-founder-attended-get-only-diagnostic.mjs",
-  "scripts/lib/cloudflare-founder-attended-get-only-recovery-constants.mjs",
-  "scripts/lib/cloudflare-founder-attended-recovery-control-command.mjs",
-  "scripts/lib/cloudflare-founder-attended-recovery-control-production.mjs",
-  "scripts/lib/cloudflare-founder-attended-recovery-control.mjs",
-  "scripts/lib/cloudflare-founder-attended-recovery-provisioning-production.mjs",
-  "scripts/lib/cloudflare-founder-attended-recovery-provisioning.mjs",
-  "scripts/run-cloudflare-founder-attended-get-only-diagnostic.mjs",
-  "scripts/run-cloudflare-founder-attended-prepare-recovery.mjs",
-  "scripts/run-cloudflare-founder-attended-service-token.mjs",
-  "scripts/run-cloudflare-founder-attended-successor-recovery.mjs",
-  "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs",
-  "scripts/verify-cloudflare-founder-attended-service-token.mjs",
-  "tests/cloudflare-founder-attended-get-only-recovery.test.mjs",
-  "tests/cloudflare-founder-attended-service-token.test.mjs",
-  "workers/infrastructure/cloudflare-founder-attended-get-only-recovery-v1.json",
-  "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
-]);
+export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS =
+  Object.freeze([
+    "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+    "docs/cloudflare-founder-attended-get-only-recovery-v1.md",
+    "scripts/helpers/cloudflare-founder-attended-keychain.swift",
+    "scripts/lib/cloudflare-founder-attended-constants.mjs",
+    "scripts/lib/cloudflare-founder-attended-control.mjs",
+    "scripts/lib/cloudflare-founder-attended-keychain.mjs",
+    "scripts/lib/cloudflare-founder-attended-service-token-production.mjs",
+    "scripts/lib/cloudflare-founder-attended-service-token.mjs",
+    "scripts/lib/cloudflare-founder-attended-tty.mjs",
+    "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-command.mjs",
+    "scripts/lib/cloudflare-founder-attended-get-only-diagnostic-production.mjs",
+    "scripts/lib/cloudflare-founder-attended-get-only-diagnostic.mjs",
+    "scripts/lib/cloudflare-founder-attended-get-only-recovery-constants.mjs",
+    "scripts/lib/cloudflare-founder-attended-recovery-control-command.mjs",
+    "scripts/lib/cloudflare-founder-attended-recovery-control-production.mjs",
+    "scripts/lib/cloudflare-founder-attended-recovery-control.mjs",
+    "scripts/lib/cloudflare-founder-attended-recovery-provisioning-production.mjs",
+    "scripts/lib/cloudflare-founder-attended-recovery-provisioning.mjs",
+    "scripts/run-cloudflare-founder-attended-get-only-diagnostic.mjs",
+    "scripts/run-cloudflare-founder-attended-prepare-recovery.mjs",
+    "scripts/run-cloudflare-founder-attended-service-token.mjs",
+    "scripts/run-cloudflare-founder-attended-successor-recovery.mjs",
+    "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+    "tests/cloudflare-founder-attended-get-only-recovery.test.mjs",
+    "tests/cloudflare-founder-attended-service-token.test.mjs",
+    "workers/infrastructure/cloudflare-founder-attended-get-only-recovery-v1.json",
+    "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
+  ]);
+export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS =
+  CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS;
 
 const sourcePaths = Object.freeze([
   documentationPath,
@@ -59,7 +66,9 @@ const sourcePaths = Object.freeze([
   "scripts/run-cloudflare-founder-attended-response-contract-diagnostic.mjs",
   "scripts/run-cloudflare-founder-attended-response-contract-prepare.mjs",
   "scripts/run-cloudflare-founder-attended-response-contract-provision.mjs",
+  "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs",
   "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+  ownerVerifierOwnershipTestPath,
   testPath,
   metadataPath
 ]);
@@ -67,9 +76,35 @@ const sourcePaths = Object.freeze([
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 
-function verifyPredecessorImmutability() {
-  execFileSync("/usr/bin/git", ["diff", "--quiet", baselineCommit, "--", ...predecessorPaths], {
-    cwd: root,
+export function verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
+  repositoryRoot = root,
+  expectedBaselineCommit = baselineCommit
+} = {}) {
+  assert.match(expectedBaselineCommit, /^[0-9a-f]{40}$/u);
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
+    ["package.json"]
+  );
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.includes(
+      "package.json"
+    ),
+    false
+  );
+  for (const path of CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS) {
+    assert.equal(
+      CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.includes(path),
+      true
+    );
+  }
+  execFileSync("/usr/bin/git", [
+    "diff",
+    "--quiet",
+    expectedBaselineCommit,
+    "--",
+    ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
+  ], {
+    cwd: resolve(repositoryRoot),
     stdio: "ignore"
   });
 }
@@ -82,6 +117,7 @@ function verifySourceBoundary() {
   const workflow = read("scripts/lib/cloudflare-founder-attended-response-contract-workflow.mjs");
   const artifacts = read("scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs");
   const production = read("scripts/lib/cloudflare-founder-attended-response-contract-production.mjs");
+  const ownerVerifier = read("scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs");
   const entrypoints = [
     "scripts/run-cloudflare-founder-attended-response-contract-diagnostic.mjs",
     "scripts/run-cloudflare-founder-attended-response-contract-prepare.mjs",
@@ -117,6 +153,38 @@ function verifySourceBoundary() {
   assert.match(production, /console\.error\("MANUAL_REVIEW"\)/u);
   assert.doesNotMatch(production, /console\.(?:log|error)\([^\n]*(?:error|credential|clientId|clientSecret)/u);
   assert.doesNotMatch(entrypoints, /keychain|transport|requestImpl|process\.env/u);
+
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS,
+    ["package.json"]
+  );
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
+    ["package.json"]
+  );
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.includes(
+      "package.json"
+    ),
+    false
+  );
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS.includes("package.json"),
+    false
+  );
+  for (const path of [
+    "scripts/lib/cloudflare-founder-attended-service-token.mjs",
+    "scripts/lib/cloudflare-founder-attended-control.mjs",
+    "scripts/helpers/cloudflare-founder-attended-keychain.swift"
+  ]) {
+    assert.equal(
+      CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_INFRASTRUCTURE_PREDECESSOR_PATHS.includes(path),
+      true
+    );
+  }
+  assert.match(ownerVerifier, /OVERWATCH_RELEASE_WIRING_PATHS/u);
+  assert.match(ownerVerifier, /INFRASTRUCTURE_PREDECESSOR_PATHS/u);
+  assert.match(ownerVerifier, /verifyCloudflareFounderAttendedRecoveryPredecessorImmutabilityTestOnly/u);
 
   const tests = read(testPath);
   assert.doesNotMatch(tests, /ResponseContract(?:Diagnostic|Preparation|Provisioning)Cli/u);
@@ -166,13 +234,15 @@ export function verifyCloudflareFounderAttendedResponseContractRepair() {
   assert.equal(metadata.runtimeBoundaries.pushAuthorized, false);
   assert.equal(metadata.runtimeBoundaries.deploymentAllowed, false);
 
-  verifyPredecessorImmutability();
+  verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly();
   verifySourceBoundary();
   verifySecretSafety();
   return Object.freeze({
     status: "passed",
     batchId: CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_BATCH_ID,
     focusedTests: 17,
+    ownerVerifierOwnershipTests: 5,
+    packageReleaseWiringOwner: "Prometheus Overwatch",
     predecessorControlsOrReceiptsAccessed: false,
     cloudflareApiContacted: false,
     realKeychainValuesRead: false,
