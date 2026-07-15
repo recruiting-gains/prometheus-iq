@@ -1,0 +1,123 @@
+{
+  "governanceId": "cloudflare-unattended-keychain-interoperability-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260715-008",
+  "directive": "Cloudflare Unattended Keychain Retrieval Interoperability Repair v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_ATTENDED_REMEDIATION_REQUIRED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-15T18:36:30Z",
+    "ownerHandoffTimestamp": "2026-07-15T18:50:13Z",
+    "independentClassificationTimestamp": "2026-07-15T18:52:10.405Z",
+    "implementationCommit": {
+      "commit": "8fa8d6943431c68b9f5a556499243e9838378440",
+      "parent": "845973727b3e5fe3923c45b6b90c41134355c60f",
+      "tree": "e1cc6516c568d28e0d7f3078f41590ba8f6a994d",
+      "subject": "Repair unattended Keychain retrieval interoperability"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "ownerEvidence": [
+    {"path": "docs/cloudflare-unattended-keychain-interoperability-v1.md", "sha256AtOwnerCommit": "209f5367e69140229030f2343f828e0d2aeace34ae8f9f2f7b812fb92771ccac"},
+    {"path": "scripts/helpers/cloudflare-unattended-keychain-acl.swift", "sha256AtOwnerCommit": "1ae1013a1ebe18216e0216add7b7e2fc1bdef9f001bdb25d0859b0aaeaa76c09"},
+    {"path": "scripts/lib/cloudflare-unattended-keychain-interoperability.mjs", "sha256AtOwnerCommit": "b669953475f180043aa0831a35c755b7ca42e1a1545cf4d5de3693e3a43180be"},
+    {"path": "scripts/lib/cloudflare-unattended-keychain.mjs", "sha256AtOwnerCommit": "4b59a1d43ea82fe888b7830286da954adb3e50e6f995f79e2f24a9401f42a475"},
+    {"path": "scripts/lib/cloudflare-unattended-launcher.mjs", "sha256AtOwnerCommit": "82f1afb5e29310f73a411458c24942bdeb9c21ef0017e8a8f764d6c714a44fa4"},
+    {"path": "scripts/run-cloudflare-unattended-keychain-interoperability.mjs", "sha256AtOwnerCommit": "724be8c71e1cb1b737e78fa5cffa77e3ccdc04e785631d378aeec585b617be3c"},
+    {"path": "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs", "sha256AtOwnerCommit": "98d40d6fd46bf079d8ac8bfccd6458e7a94cbea69125fe941c219eb3b88ed5ef"},
+    {"path": "tests/cloudflare-unattended-keychain-interoperability.test.mjs", "sha256AtOwnerCommit": "79daa55d323eb0c970ae6da02d7f902981c609a6a6f8117ec18e09baab8d2bac"},
+    {"path": "workers/infrastructure/cloudflare-unattended-keychain-interoperability-v1.json", "sha256AtOwnerCommit": "b7919a79a375dd9c0d6eda0406d0f9be6ba08f72c87ea2ea881face2438260f8"}
+  ],
+  "independentRetrievalClassification": {
+    "executionIdentity": "MATCHED",
+    "keychainState": "UNLOCKED",
+    "result": "FAIL",
+    "items": [
+      {"alias": "DEPLOYMENT_API_TOKEN", "presence": "PRESENT", "retrieval": "NOT_RETRIEVABLE", "reason": "INTERACTION_REQUIRED"},
+      {"alias": "CLOUDFLARE_ACCOUNT_ID", "presence": "PRESENT", "retrieval": "NOT_RETRIEVABLE", "reason": "INTERACTION_REQUIRED"},
+      {"alias": "SMOKE_CLIENT_ID", "presence": "PRESENT", "retrieval": "NOT_RETRIEVABLE", "reason": "INTERACTION_REQUIRED"},
+      {"alias": "SMOKE_CLIENT_SECRET", "presence": "PRESENT", "retrieval": "NOT_RETRIEVABLE", "reason": "INTERACTION_REQUIRED"}
+    ],
+    "valuesDisplayedLoggedHashedReportedOrPersisted": false,
+    "cloudflareNetworkPathPresent": false,
+    "classificationEvidenceMode": "0600",
+    "classificationDirectoryMode": "0700"
+  },
+  "staleProcessContainment": {
+    "priorBlockedDeploymentQueryParentTerminated": true,
+    "orphanedKeychainReaderTerminated": true,
+    "allPriorReadersAbsentBeforeClassification": true,
+    "priorCallPathReachedCloudflare": false,
+    "reason": "The prior process remained blocked inside the first Keychain read; Wrangler invocation was sequenced afterward and was never started."
+  },
+  "classificationBoundary": {
+    "fixedExecutable": "/usr/bin/security",
+    "fixedItemCount": 4,
+    "callerSuppliedItemAllowed": false,
+    "callerSuppliedExecutableAllowed": false,
+    "maximumCapturedBytes": 65536,
+    "retrievalTimeoutMilliseconds": 5000,
+    "capturedBuffersZeroed": true,
+    "safeOutputStatesOnly": true,
+    "distinguishesItemAbsence": true,
+    "distinguishesLockedKeychain": true,
+    "distinguishesIncorrectServiceIdentity": true,
+    "distinguishesIncorrectAccountIdentity": true,
+    "distinguishesAclAccessDenial": true,
+    "distinguishesExecutionIdentityMismatch": true,
+    "distinguishesInteractionRequired": true
+  },
+  "remediationBoundary": {
+    "founderAttendedNativeControllingTtyRequired": true,
+    "exactPhraseRequired": "REPAIR ONLY THE FOUR PROMETHEUS UNATTENDED KEYCHAIN ACCESS PERMISSIONS",
+    "freshClassificationMaximumMinutes": 30,
+    "remediableReasons": ["ACL_ACCESS_DENIED", "INTERACTION_REQUIRED"],
+    "allItemsMustBePresent": true,
+    "keychainMustBeUnlocked": true,
+    "executionIdentityMustMatch": true,
+    "wholeKeychainAclChangeAllowed": false,
+    "credentialValueOrIdentityChangeAllowed": false,
+    "trustedExecutable": "/usr/bin/security",
+    "perItemDecryptAclOnly": true,
+    "postRemediationFourItemRetrievalPassRequired": true,
+    "partialFailureRollsBackNewTrust": true,
+    "explicitRollbackRemovesOnlyTrustAddedByThisRepair": true
+  },
+  "controlBoundary": {
+    "unattendedDeploymentControl": "OFF",
+    "controlFilePresent": false,
+    "consumedNonceCount": 0,
+    "classificationConsumesControl": false,
+    "remediationConsumesDeploymentControl": false
+  },
+  "executionBoundary": {
+    "cloudflareRequestPerformed": false,
+    "deploymentPerformed": false,
+    "accessPolicyMutated": false,
+    "credentialValueModified": false,
+    "keychainAclModified": false,
+    "productionDataMutated": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAuthorizedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "attendedAclRemediationExecutedByThisBatch": false,
+    "unattendedDeploymentReadyBeforeAttendedRemediation": false,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "reportVersion": "engineering-batch-report-v1",
+  "batchId": "BATCH-20260715-008",
+  "directive": "Cloudflare Unattended Keychain Retrieval Interoperability Repair v1",
+  "engineeringStatus": "OWNER_IMPLEMENTATION_INDEPENDENTLY_VERIFIED",
+  "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+  "deploymentStatus": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "8fa8d6943431c68b9f5a556499243e9838378440",
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completedWork": {
+    "fixedFourItemClassification": true,
+    "sharedLauncherRetrievalPath": true,
+    "exactNoninteractiveIdentityVerified": true,
+    "itemLevelAttendedRemediation": true,
+    "automaticPartialRollback": true,
+    "explicitForwardRollback": true,
+    "secretSafeOutput": true,
+    "stalePriorReadersTerminated": true
+  },
+  "safeClassification": {
+    "deploymentApiToken": "PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
+    "cloudflareAccountId": "PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
+    "smokeClientId": "PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
+    "smokeClientSecret": "PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
+    "executionIdentity": "MATCHED",
+    "keychain": "UNLOCKED",
+    "result": "FAIL_REMEDIATION_REQUIRED"
+  },
+  "independentVerification": {
+    "ownerVerifier": "PASS",
+    "focusedOwnerTests": "15/15_PASS",
+    "existingUnattendedAccessTests": "16/16_PASS",
+    "existingRuntimeGuardTests": "19/19_PASS",
+    "swiftHelperTypecheck": "PASS",
+    "realNoninteractiveClassification": "PASS_SAFE_CLASSIFICATION_RECORDED",
+    "securityAndSecretBoundaries": "PENDING_EXACT_FINAL_HEAD",
+    "fullRepository": "PENDING_EXACT_FINAL_HEAD"
+  },
+  "boundaries": {
+    "cloudflareRequestPerformed": false,
+    "keychainValueDisplayedOrPersisted": false,
+    "keychainAclModified": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "unattendedControl": "OFF_UNCONSUMED",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "founderAttendedRemediationRequired": true,
+  "externalHandoffRecordsFinalHeadTreePushRollbackAndExactVerification": true
+}
