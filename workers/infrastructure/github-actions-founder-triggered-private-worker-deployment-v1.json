@@ -1,0 +1,185 @@
+{
+  "contractVersion": "github-actions-founder-triggered-private-worker-deployment-v1",
+  "batchId": "BATCH-20260715-010",
+  "owner": "Prometheus Infrastructure",
+  "implementationStatus": "IMPLEMENTED_NOT_EXECUTED",
+  "releaseWiringOwner": "Prometheus Overwatch",
+  "deploymentPerformed": false,
+  "productionMutationPerformed": false,
+  "cloudflareApiMutationPerformed": false,
+  "githubApiMutationPerformed": false,
+  "keychainAccessPerformed": false,
+  "target": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "privateWorker": "prometheus-iq",
+    "publicWorker": "prometheusrouteiq-website",
+    "publicWorkerDeploymentAllowed": false,
+    "privateConfig": "wrangler.jsonc",
+    "publicConfig": "wrangler.prometheusrouteiq-website.jsonc",
+    "targetOverrideAllowed": false,
+    "configOverrideAllowed": false
+  },
+  "workflow": {
+    "name": "Deploy Prometheus Private Worker",
+    "trigger": "workflow_dispatch",
+    "otherTriggersAllowed": false,
+    "permissions": {
+      "contents": "read"
+    },
+    "environment": "prometheus-private-worker-production",
+    "concurrency": {
+      "group": "deploy-prometheus-private-worker",
+      "cancelInProgress": false
+    },
+    "actions": {
+      "checkout": {
+        "release": "v4.3.1",
+        "commit": "34e114876b0b11c390a56381ad16ebd13914f8d5",
+        "persistCredentials": false
+      },
+      "setupNode": {
+        "release": "v4.4.0",
+        "commit": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "packageManagerCache": false
+      }
+    }
+  },
+  "founderInputs": {
+    "allRequiredStrings": true,
+    "names": [
+      "approved_commit",
+      "approved_tree",
+      "batch_id",
+      "current_production_version"
+    ],
+    "commitFormat": "40_lowercase_hex",
+    "treeFormat": "40_lowercase_hex",
+    "batchFormat": "BATCH-YYYYMMDD-NNN",
+    "productionVersionFormat": "canonical_lowercase_uuid",
+    "githubShaMustEqualApprovedCommit": true,
+    "headAndOriginMainMustEqualApprovedCommit": true,
+    "headTreeMustEqualApprovedTree": true,
+    "cleanWorktreeAndIndexRequired": true
+  },
+  "environmentSecrets": {
+    "names": [
+      "CLOUDFLARE_API_TOKEN",
+      "CLOUDFLARE_ACCOUNT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_ID",
+      "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+    ],
+    "valuesMayBeLogged": false,
+    "valuesMayBePrinted": false,
+    "valuesMayBeHashed": false,
+    "valuesMayBeMeasuredForOutput": false,
+    "responseBodiesOrHeadersMayBeLogged": false,
+    "accountIdMayBeOutput": false,
+    "deploymentCredentialsScopedToDeploymentStep": true,
+    "accessCredentialsScopedToExactSmokeSteps": true,
+    "artifactOrCachePersistenceAllowed": false
+  },
+  "verificationJob": {
+    "deploymentSecretsAvailable": false,
+    "gates": [
+      "npm_ci",
+      "full_npm_test",
+      "lint",
+      "typecheck",
+      "security",
+      "aegis",
+      "cross_subsystem_contracts",
+      "build",
+      "secret_scan",
+      "owner_verifier_and_tests",
+      "git_diff_index_clean",
+      "git_fsck"
+    ]
+  },
+  "cloudflareReadBoundary": {
+    "method": "GET",
+    "apiPathTemplate": "/client/v4/accounts/{validated_account_id}/workers/scripts/{fixed_worker}/deployments",
+    "redirectMode": "manual",
+    "requestBodyAllowed": false,
+    "responseEnvelopeByteLimit": 65536,
+    "requestTimeoutMilliseconds": 10000,
+    "activeDeploymentIsFirst": true,
+    "singleVersionAtOneHundredPercentRequired": true,
+    "privateCurrentVersionMustMatchInput": true,
+    "publicVersionCapturedBeforeMutation": true,
+    "preMutationConcurrencyRecheckRequired": true,
+    "networkUncertaintyFailsClosed": true
+  },
+  "wranglerDeployment": {
+    "version": "4.110.0",
+    "module": "node_modules/wrangler/bin/wrangler.js",
+    "dryRunRequired": true,
+    "exactArguments": [
+      "deploy",
+      "--config",
+      "wrangler.jsonc",
+      "--name",
+      "prometheus-iq",
+      "--keep-vars",
+      "--strict"
+    ],
+    "boundedValidatedMessageAndTag": true,
+    "arbitraryArgumentsAllowed": false,
+    "publicConfigSelectable": false,
+    "publicTargetSelectable": false,
+    "commandOutputSuppressedAndWiped": true,
+    "singleMutationAttempt": true
+  },
+  "postDeployment": {
+    "newPrivateVersionAtOneHundredPercentRequired": true,
+    "publicVersionMustRemainUnchanged": true,
+    "fixedGuardedSmokeRequiredBeforeAndAfter": true,
+    "smokeMethods": [
+      "GET",
+      "HEAD"
+    ],
+    "smokeWriteRequestsAllowed": false,
+    "smokeRequestBodiesAllowed": false,
+    "smokeRedirectsAllowed": false,
+    "smokeCookiesAllowed": false,
+    "responseBodiesReadOrPersisted": false
+  },
+  "runtimeBoundaries": {
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "deploymentMayActivateCollection": false,
+    "deploymentMayActivateCohorts": false,
+    "deploymentMayActivateRecommendationInfluence": false,
+    "staticGovernedContractCheckRequired": true,
+    "guardedRuntimeSmokeRequiredWhereBodylessStatusPathsExist": true
+  },
+  "rollback": {
+    "nativeRollbackAllowed": false,
+    "historyRewriteAllowed": false,
+    "strategy": "new_founder_approved_forward_revert_commit_and_tree_through_same_workflow",
+    "currentProductionVersionCheckStillRequired": true
+  },
+  "oneTimeSetup": {
+    "protectedEnvironmentRequired": true,
+    "requiredFounderReviewer": true,
+    "fourValuesEnteredDirectlyInGitHub": true,
+    "repositoryActionsWorkflowPermissions": "read_only",
+    "serviceAuthPrerequisiteRequired": true,
+    "phoneDispatchSupported": true,
+    "revocationProcedureRequired": true
+  },
+  "implementationBatchBoundaries": {
+    "realNetworkAllowed": false,
+    "realDeploymentAllowed": false,
+    "cloudflareMutationAllowed": false,
+    "githubMutationAllowed": false,
+    "keychainReadAllowed": false,
+    "secretEntryAllowed": false,
+    "productionMutationAllowed": false,
+    "collectionActivationAllowed": false,
+    "cohortActivationAllowed": false,
+    "recommendationActivationAllowed": false,
+    "pushAllowed": false
+  }
+}
