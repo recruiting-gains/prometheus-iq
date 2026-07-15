@@ -29,12 +29,26 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_HELPER = resolve(
 const ITEM_KEYS = Object.freeze(Object.keys(CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS));
 const READABLE_KEYS = new Set(["temporaryApiToken", "governedAccountId"]);
 const WRITABLE_KEYS = new Set(["smokeClientId", "smokeClientSecret"]);
-const DELETABLE_KEYS = new Set(["temporaryApiToken", "smokeClientId", "smokeClientSecret"]);
 const MAX_SECRET_BYTES = 65_536;
+const OWNERSHIP_TAG_PATTERN = /^prometheus-founder-attended-v1:[0-9a-f]{64}$/u;
 
 function itemFor(key) {
   if (!ITEM_KEYS.includes(key)) throw new Error("founder_attended_keychain_item_denied");
   return CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS[key];
+}
+
+function ownershipInput(value) {
+  if (!OWNERSHIP_TAG_PATTERN.test(value || "")) {
+    throw new Error("founder_attended_keychain_ownership_invalid");
+  }
+  return Buffer.from(value, "utf8");
+}
+
+function assertNoHelperOutput(result, failureCode) {
+  const hasOutput = (Buffer.isBuffer(result.stdout) || typeof result.stdout === "string")
+    && result.stdout.length > 0;
+  if (Buffer.isBuffer(result.stdout)) result.stdout.fill(0);
+  if (hasOutput) throw new Error(failureCode);
 }
 
 function fixedHelperEnvironment(source) {
@@ -72,6 +86,7 @@ export function createFounderAttendedMacOsKeychain({
   return Object.freeze({
     hasItem(key) {
       const result = invoke("presence", key);
+      assertNoHelperOutput(result, "founder_attended_keychain_presence_failed");
       if (result.error || ![0, 2].includes(result.status)) {
         throw new Error("founder_attended_keychain_presence_failed");
       }
@@ -89,27 +104,49 @@ export function createFounderAttendedMacOsKeychain({
       return value;
     },
 
-    addItem(key, value) {
+    addItem(key, value, ownershipTag) {
       if (!WRITABLE_KEYS.has(key)) throw new Error("founder_attended_keychain_write_denied");
-      const input = Buffer.isBuffer(value) ? Buffer.from(value) : Buffer.from(value || "", "utf8");
+      const ownership = ownershipInput(ownershipTag);
+      const secret = Buffer.isBuffer(value) ? Buffer.from(value) : Buffer.from(value || "", "utf8");
+      const input = Buffer.concat([ownership, Buffer.from("\n", "utf8"), secret]);
       try {
-        if (!input.length || input.length > MAX_SECRET_BYTES) {
+        if (!secret.length || secret.length > MAX_SECRET_BYTES) {
           throw new Error("founder_attended_keychain_write_failed");
         }
         const result = invoke("add", key, input);
+        assertNoHelperOutput(result, "founder_attended_keychain_write_failed");
         if (result.error || result.status !== 0) {
           throw new Error("founder_attended_keychain_write_failed");
         }
+        return Object.freeze({ created: true });
       } finally {
+        secret.fill(0);
+        ownership.fill(0);
         input.fill(0);
       }
     },
 
     deleteItem(key) {
-      if (!DELETABLE_KEYS.has(key)) throw new Error("founder_attended_keychain_delete_denied");
+      if (key !== "temporaryApiToken") throw new Error("founder_attended_keychain_delete_denied");
       const result = invoke("delete", key);
+      assertNoHelperOutput(result, "founder_attended_keychain_delete_failed");
       if (result.error || result.status !== 0) {
         throw new Error("founder_attended_keychain_delete_failed");
+      }
+    },
+
+    deleteOwnedItem(key, ownershipTag) {
+      if (!WRITABLE_KEYS.has(key)) throw new Error("founder_attended_keychain_delete_denied");
+      const input = ownershipInput(ownershipTag);
+      try {
+        const result = invoke("delete", key, input);
+        assertNoHelperOutput(result, "founder_attended_keychain_delete_failed");
+        if (result.error || ![0, 2].includes(result.status)) {
+          throw new Error("founder_attended_keychain_delete_failed");
+        }
+        return Object.freeze({ deleted: result.status === 0 });
+      } finally {
+        input.fill(0);
       }
     }
   });

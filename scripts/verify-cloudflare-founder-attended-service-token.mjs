@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import {
   ATTENDED_KEYCHAIN_ITEMS,
   CLOUDFLARE_SECRET_KEYCHAIN_ITEM_REGISTRY,
+  KEYCHAIN_ITEMS,
   LOCAL_SECRET_ARTIFACT_CANDIDATES
 } from "./check-cloudflare-unattended-secret-presence.mjs";
 import {
@@ -29,8 +30,10 @@ import {
   CLOUDFLARE_FOUNDER_ATTENDED_TEMPORARY_TOKEN_MAX_TTL_HOURS,
   CLOUDFLARE_FOUNDER_ATTENDED_TEMPORARY_TOKEN_PERMISSION
 } from "./lib/cloudflare-founder-attended-service-token.mjs";
+import {
+  CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS
+} from "./lib/cloudflare-founder-attended-service-token-production.mjs";
 import { CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES } from "./lib/cloudflare-unattended-launcher.mjs";
-import { CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS } from "./run-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -42,6 +45,7 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   const controlSource = read("scripts/lib/cloudflare-founder-attended-control.mjs");
   const keychainSource = read("scripts/lib/cloudflare-founder-attended-keychain.mjs");
   const serviceSource = read("scripts/lib/cloudflare-founder-attended-service-token.mjs");
+  const productionSource = read("scripts/lib/cloudflare-founder-attended-service-token-production.mjs");
   const cliSource = read("scripts/run-cloudflare-founder-attended-service-token.mjs");
   const securitySource = read("scripts/security-check.mjs");
   const runbook = read("docs/cloudflare-founder-attended-service-token-provisioning-v1.md");
@@ -102,7 +106,43 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   assert.equal(contract.destinationKeychain.writeMechanism, "Security.framework_helper_anonymous_stdin_pipe");
   assert.equal(contract.destinationKeychain.secretValuesInArguments, false);
   assert.equal(contract.destinationKeychain.secretValuesInEnvironment, false);
+  assert.equal(contract.destinationKeychain.rollbackOwnershipAttribute, "kSecAttrComment");
+  assert.equal(contract.destinationKeychain.rollbackOwnershipValueSecret, false);
+  assert.equal(contract.destinationKeychain.rollbackDeletesOnlyInvocationOwnedItems, true);
+  assert.equal(contract.destinationKeychain.preexistingOrReplacementItemDeletionAllowed, false);
+  assert.equal(
+    contract.destinationKeychain.processDeathAfterPartialWrite,
+    "PRESENCE_BLOCKS_RETRY_AND_REQUIRES_FOUNDER_REVIEW"
+  );
   assert.equal(contract.destinationKeychain.presenceVerification, "name_and_PRESENT_or_ABSENT_only");
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability.readerExecutable,
+    "/usr/bin/security"
+  );
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability
+      .genericPasswordServiceAndAccountCompatibleInSource,
+    true
+  );
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability.realKeychainRuntimeVerified,
+    false
+  );
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability
+      .noninteractiveAccessControlProvenInSource,
+    false
+  );
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability
+      .broadTrustedApplicationAccessConfigured,
+    false
+  );
+  assert.equal(
+    contract.destinationKeychain.unattendedReaderInteroperability
+      .mandatoryFounderAttendedIntegrationCheckBeforeReadiness,
+    true
+  );
 
   const defaultControl = defaultFounderAttendedControl();
   assert.equal(defaultControl.enabled, false);
@@ -115,6 +155,11 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   assert.equal(CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_MAX_LIFETIME_MS, 30 * 60 * 1000);
   assert.match(CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_PATH, /\.prometheus\/infrastructure\//u);
   assert.equal(contract.attendedControl.controllingTtyRequiredForRealProvisioning, true);
+  assert.equal(contract.attendedControl.clockAndRepositoryReadersAreLiveFunctions, true);
+  assert.equal(contract.attendedControl.firstLiveSampleAfterConfirmationAndKeychainReads, true);
+  assert.equal(contract.attendedControl.freshValidationImmediatelyBeforeGet, true);
+  assert.equal(contract.attendedControl.freshValidationImmediatelyBeforePost, true);
+  assert.equal(contract.attendedControl.staleStructurallyValidAuthorizationConsumed, true);
   assert.equal(contract.attendedControl.nonceConsumedBeforeFirstNetworkCall, true);
   assert.equal(contract.attendedControl.atomicExclusiveConsumption, true);
   assert.equal(contract.attendedControl.persistentConsumptionReceipt, true);
@@ -133,15 +178,32 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   ]);
   assert.deepEqual(contract.cli.fixedCommands, CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS);
   assert.equal(contract.cli.arbitraryArgumentsAllowed, false);
+  assert.equal(contract.cli.productionEntrypointImportsOnlyProductionWrapper, true);
+  assert.equal(contract.cli.productionAdapterInjectionAllowed, false);
+  assert.equal(contract.cli.testCoreRequiresEveryAdapterExplicitly, true);
   assert.equal(contract.cli.unattendedLauncherProfileAvailable, false);
   assert.equal(CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES.includes("founder-attended-service-token"), false);
 
   assert.match(helper, /import Security/u);
   assert.match(helper, /FileHandle\.standardInput\.readDataToEndOfFile\(\)/u);
   assert.match(helper, /SecItemAdd/u);
+  assert.match(helper, /kSecAttrComment/u);
+  assert.doesNotMatch(helper, /kSecAttrAccessible|kSecUseDataProtectionKeychain/u);
+  assert.doesNotMatch(helper, /SecAccessCreate|SecTrustedApplication|kSecAttrAccess\b/u);
   assert.doesNotMatch(helper, /print\(|NSLog|ProcessInfo\.processInfo\.environment/u);
+  const helperMatrixGuard = helper.indexOf("guard let allowedItems = allowedItemsByOperation[operation]");
+  const firstSecItemCall = Math.min(
+    helper.indexOf("SecItemCopyMatching("),
+    helper.indexOf("SecItemAdd("),
+    helper.indexOf("SecItemDelete(")
+  );
+  assert.ok(helperMatrixGuard > 0 && firstSecItemCall > helperMatrixGuard);
+  assert.match(helper, /"read": \[temporaryApiToken, governedAccountId\]/u);
+  assert.match(helper, /"add": \[smokeClientId, smokeClientSecret\]/u);
+  assert.match(helper, /"delete": \[temporaryApiToken, smokeClientId, smokeClientSecret\]/u);
   assert.match(keychainSource, /stdio: \["pipe", "pipe", "ignore"\]/u);
   assert.match(keychainSource, /input\.fill\(0\)/u);
+  assert.match(keychainSource, /deleteOwnedItem\(key, ownershipTag\)/u);
   assert.doesNotMatch(keychainSource, /add-generic-password/u);
   assert.match(controlSource, /O_EXCL/u);
   assert.match(controlSource, /fsyncSync/u);
@@ -150,8 +212,22 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   assert.match(serviceSource, /method: "GET"/u);
   assert.match(serviceSource, /method: "POST"/u);
   assert.match(serviceSource, /method: "DELETE"/u);
+  assert.match(serviceSource, /provisionFounderAttendedServiceTokenTestOnly/u);
+  const provisioningSource = serviceSource.slice(
+    serviceSource.indexOf("export async function provisionFounderAttendedServiceTokenTestOnly")
+  );
+  assert.equal((provisioningSource.match(/revalidateLiveState\(\{/gu) || []).length, 2);
+  assert.match(serviceSource, /typeof options\.clock === "function"/u);
+  assert.match(serviceSource, /typeof options\.repositoryReader === "function"/u);
   assert.doesNotMatch(serviceSource, /maxRetries|retryAfter|setTimeout\(/u);
   assert.doesNotMatch(serviceSource, /process\.env/u);
+  assert.match(productionSource, /export async function provisionFounderAttendedServiceToken\(\)/u);
+  assert.match(productionSource, /createControllingTtyConfirmation\(\)/u);
+  assert.match(productionSource, /createFounderAttendedMacOsKeychain\(\)/u);
+  assert.match(productionSource, /createFounderAttendedCloudflareTransport\(\)/u);
+  assert.equal((cliSource.match(/^import[\s\S]*?;$/gmu) || []).length, 1);
+  assert.match(cliSource, /cloudflare-founder-attended-service-token-production\.mjs/u);
+  assert.doesNotMatch(cliSource, /confirmation|transport|keychain|operations|requestImpl/u);
   assert.doesNotMatch(cliSource, /console\.(?:log|error)\([^\n]*(?:error\.message|error\.stack)/u);
 
   assert.deepEqual(ATTENDED_KEYCHAIN_ITEMS, [{
@@ -159,6 +235,13 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
     account: "CLOUDFLARE_ACCESS_SERVICE_TOKENS_WRITE_API_TOKEN"
   }]);
   assert.equal(CLOUDFLARE_SECRET_KEYCHAIN_ITEM_REGISTRY.includes(ATTENDED_KEYCHAIN_ITEMS[0]), true);
+  assert.deepEqual(
+    KEYCHAIN_ITEMS.filter(item => item.service === "com.prometheus.cloudflare.unattended.smoke"),
+    [
+      CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS.smokeClientId,
+      CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS.smokeClientSecret
+    ]
+  );
   for (const artifact of [
     "cloudflare-founder-attended-service-token-control-v1.json",
     "cloudflare-attended-service-token-provisioning-token.txt",
@@ -184,9 +267,14 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
     assert.match(runbook, new RegExp(`infrastructure:cloudflare-founder-attended:${command}`, "u"));
   }
   assert.match(runbook, /Keychain deletion happens first; Cloudflare revocation is mandatory second\./u);
+  assert.match(runbook, /runtime interoperability is not claimed/u);
+  assert.match(runbook, /readiness remains blocked/u);
 
   assert.equal(contract.testBoundary.realNetworkAllowed, false);
   assert.equal(contract.testBoundary.realKeychainAllowed, false);
+  assert.equal(contract.testBoundary.injectedClockRequired, true);
+  assert.equal(contract.testBoundary.injectedRepositoryReaderRequired, true);
+  assert.equal(contract.testBoundary.productionWrapperInvocationAllowed, false);
   assert.equal(contract.runtimeBoundaries.cloudflareAccessPolicyMutationAllowed, false);
   assert.equal(contract.runtimeBoundaries.workerDeploymentAllowed, false);
   assert.equal(contract.runtimeBoundaries.publicWorkerMutationAllowed, false);

@@ -1,12 +1,10 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { request as httpsRequest } from "node:https";
-import { resolve } from "node:path";
 
 import {
-  CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_PATH,
   consumeFounderAttendedControl,
   createFounderAttendedControl,
-  readFounderAttendedRepositoryIdentity
+  validateFounderAttendedControl
 } from "./cloudflare-founder-attended-control.mjs";
 import {
   CLOUDFLARE_FOUNDER_ATTENDED_ACCOUNT_ID_SHA256,
@@ -16,10 +14,7 @@ import {
   CLOUDFLARE_FOUNDER_ATTENDED_SERVICE_TOKEN_DURATION,
   CLOUDFLARE_FOUNDER_ATTENDED_SERVICE_TOKEN_NAME
 } from "./cloudflare-founder-attended-constants.mjs";
-import {
-  createFounderAttendedMacOsKeychain,
-  founderAttendedKeychainPresence
-} from "./cloudflare-founder-attended-keychain.mjs";
+import { founderAttendedKeychainPresence } from "./cloudflare-founder-attended-keychain.mjs";
 import { parseStrictJson } from "./strict-json.mjs";
 
 export {
@@ -47,6 +42,8 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR =
   "founder_attended_manual_review_required";
 export const CLOUDFLARE_FOUNDER_ATTENDED_COMPENSATED_ERROR =
   "founder_attended_remote_creation_compensated";
+export const CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR =
+  "founder_attended_live_state_invalid";
 
 const RESPONSE_MAX_BYTES = 1024 * 1024;
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -57,6 +54,8 @@ const CLIENT_ID_PATTERN = /^[0-9a-f]{32,64}\.access$/u;
 const CLIENT_SECRET_PATTERN = /^[A-Za-z0-9._~-]{16,4096}$/u;
 const RESOURCE_ID_PATTERN = /^[A-Za-z0-9-]{16,128}$/u;
 const RFC3339_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z$/u;
+const REPOSITORY_OBJECT_PATTERN = /^[0-9a-f]{40}$/u;
+const OWNERSHIP_TAG_PREFIX = "prometheus-founder-attended-v1:";
 
 function genericError(code) {
   return new Error(code);
@@ -336,9 +335,6 @@ async function bestEffortCompensatingDelete({ transport, accountId, apiToken, to
 }
 
 function requireFounderConfirmation(confirmation, action) {
-  if (!confirmation || typeof confirmation.confirm !== "function") {
-    throw genericError("founder_attendance_required");
-  }
   let confirmed = false;
   try {
     confirmed = confirmation.confirm(action, CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS[action]) === true;
@@ -353,20 +349,25 @@ function requireLocalProvisioningState(keychain) {
   const forbidden = ["smokeClientId", "smokeClientSecret"];
   try {
     if (required.some(key => !keychain.hasItem(key))) throw genericError("required_keychain_item_absent");
-    if (forbidden.some(key => keychain.hasItem(key))) throw genericError("existing_smoke_credential_present");
+    if (forbidden.some(key => keychain.hasItem(key))) {
+      throw genericError(CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR);
+    }
   } catch (error) {
-    if (["required_keychain_item_absent", "existing_smoke_credential_present"].includes(error?.message)) {
+    if ([
+      "required_keychain_item_absent",
+      CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR
+    ].includes(error?.message)) {
       throw error;
     }
     throw genericError("keychain_presence_preflight_failed");
   }
 }
 
-function rollbackSmokePair(keychain) {
+function rollbackOwnedSmokePair(keychain, attemptedKeys, ownershipTag) {
   let failed = false;
-  for (const key of ["smokeClientSecret", "smokeClientId"]) {
+  for (const key of [...new Set(attemptedKeys)].reverse()) {
     try {
-      if (keychain.hasItem(key)) keychain.deleteItem(key);
+      keychain.deleteOwnedItem(key, ownershipTag);
     } catch {
       failed = true;
     }
@@ -379,32 +380,116 @@ function rollbackSmokePair(keychain) {
   if (failed) throw genericError("smoke_keychain_rollback_failed");
 }
 
-function storeSmokePair(keychain, credentials) {
+function storeSmokePair(keychain, credentials, ownershipTag) {
+  const attemptedKeys = [];
   try {
-    keychain.addItem("smokeClientId", credentials.clientId);
-    keychain.addItem("smokeClientSecret", credentials.clientSecret);
+    attemptedKeys.push("smokeClientId");
+    if (keychain.addItem("smokeClientId", credentials.clientId, ownershipTag)?.created !== true) {
+      throw genericError("smoke_keychain_storage_failed");
+    }
+    attemptedKeys.push("smokeClientSecret");
+    if (keychain.addItem("smokeClientSecret", credentials.clientSecret, ownershipTag)?.created !== true) {
+      throw genericError("smoke_keychain_storage_failed");
+    }
     if (!keychain.hasItem("smokeClientId") || !keychain.hasItem("smokeClientSecret")) {
       throw genericError("smoke_keychain_storage_failed");
     }
   } catch {
-    rollbackSmokePair(keychain);
+    rollbackOwnedSmokePair(keychain, attemptedKeys, ownershipTag);
     throw genericError("smoke_keychain_storage_failed");
   }
 }
 
+function samplePotentiallyInvalidLiveContext(clock, repositoryReader) {
+  let repositoryIdentity = null;
+  let sampledAt = new Date(Number.NaN);
+  try {
+    const value = repositoryReader();
+    repositoryIdentity = Object.freeze({
+      commit: value?.commit,
+      tree: value?.tree,
+      clean: value?.clean
+    });
+  } catch {
+    repositoryIdentity = null;
+  }
+  try {
+    const value = clock();
+    sampledAt = value instanceof Date
+      ? new Date(value.getTime())
+      : new Date(Number.NaN);
+  } catch {
+    sampledAt = new Date(Number.NaN);
+  }
+  return Object.freeze({ repositoryIdentity, sampledAt });
+}
+
+function validRepositoryIdentity(identity) {
+  return identity
+    && identity.clean === true
+    && REPOSITORY_OBJECT_PATTERN.test(identity.commit || "")
+    && REPOSITORY_OBJECT_PATTERN.test(identity.tree || "");
+}
+
+function revalidateLiveState({
+  clock,
+  repositoryReader,
+  previousSampledAt,
+  control,
+  accountIdSha256
+}) {
+  const context = samplePotentiallyInvalidLiveContext(clock, repositoryReader);
+  const previousMs = previousSampledAt instanceof Date ? previousSampledAt.getTime() : Number.NaN;
+  const currentMs = context.sampledAt instanceof Date ? context.sampledAt.getTime() : Number.NaN;
+  if (!Number.isFinite(previousMs)
+    || !Number.isFinite(currentMs)
+    || currentMs < previousMs
+    || !validRepositoryIdentity(context.repositoryIdentity)
+    || context.repositoryIdentity.commit !== control.authorizedCommit
+    || context.repositoryIdentity.tree !== control.authorizedTree) {
+    throw genericError(CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR);
+  }
+  const validation = validateFounderAttendedControl(control, {
+    now: context.sampledAt,
+    expectedCommit: context.repositoryIdentity.commit,
+    expectedTree: context.repositoryIdentity.tree,
+    expectedAccountIdSha256: accountIdSha256,
+    consumed: false
+  });
+  if (!validation.valid) throw genericError(CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR);
+  return context.sampledAt;
+}
+
 function prepareAndConsumeControl({
   controlPath,
-  now,
-  repositoryIdentity,
+  authorizationContext,
   accountIdSha256,
   randomBytesImpl,
   expectedUid
 }) {
+  const consumptionOptions = {
+    controlPath,
+    now: authorizationContext.sampledAt,
+    expectedCommit: authorizationContext.repositoryIdentity?.commit,
+    expectedTree: authorizationContext.repositoryIdentity?.tree,
+    expectedAccountIdSha256: accountIdSha256,
+    expectedUid
+  };
+
+  // Consume an existing structurally valid authorization before evaluating whether
+  // this invocation can create one. A stale clock or changed checkout must not
+  // leave a previously issued one-shot authorization reusable.
+  try {
+    return consumeFounderAttendedControl(consumptionOptions).control;
+  } catch {
+    // A missing control is expected on the first invocation; creation follows.
+  }
+
   try {
     createFounderAttendedControl({
       controlPath,
-      now,
-      repositoryIdentity,
+      now: authorizationContext.sampledAt,
+      repositoryIdentity: authorizationContext.repositoryIdentity,
       accountIdSha256,
       randomBytesImpl,
       expectedUid
@@ -415,33 +500,57 @@ function prepareAndConsumeControl({
     }
   }
   try {
-    consumeFounderAttendedControl({
-      controlPath,
-      now,
-      expectedCommit: repositoryIdentity.commit,
-      expectedTree: repositoryIdentity.tree,
-      expectedAccountIdSha256: accountIdSha256,
-      expectedUid
-    });
+    return consumeFounderAttendedControl(consumptionOptions).control;
   } catch {
     throw genericError("founder_attended_control_denied");
   }
 }
 
-export async function provisionFounderAttendedServiceToken({
-  root = resolve(import.meta.dirname, "../.."),
-  controlPath = CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_PATH,
-  now = new Date(),
-  confirmation,
-  keychain = createFounderAttendedMacOsKeychain(),
-  transport = createFounderAttendedCloudflareTransport(),
-  repositoryIdentity = readFounderAttendedRepositoryIdentity({ root }),
-  accountIdSha256Allowlist = CLOUDFLARE_FOUNDER_ATTENDED_ACCOUNT_ID_SHA256_ALLOWLIST,
-  randomBytesImpl,
-  expectedUid
-} = {}) {
+function ownershipTagForControl(control) {
+  return `${OWNERSHIP_TAG_PREFIX}${createHash("sha256")
+    .update(control.oneShotAuthorizationNonce, "utf8")
+    .update("\0", "utf8")
+    .update(control.authorizedTree, "utf8")
+    .digest("hex")}`;
+}
+
+function requireProvisioningTestComposition(options) {
+  const valid = options
+    && typeof options === "object"
+    && typeof options.controlPath === "string"
+    && options.controlPath.length > 0
+    && options.confirmation
+    && typeof options.confirmation.confirm === "function"
+    && options.keychain
+    && ["hasItem", "readItem", "addItem", "deleteOwnedItem"]
+      .every(name => typeof options.keychain[name] === "function")
+    && options.transport
+    && typeof options.transport.request === "function"
+    && typeof options.clock === "function"
+    && typeof options.repositoryReader === "function"
+    && Array.isArray(options.accountIdSha256Allowlist)
+    && options.accountIdSha256Allowlist.length === 1
+    && typeof options.randomBytesImpl === "function"
+    && Number.isSafeInteger(options.expectedUid)
+    && options.expectedUid >= 0;
+  if (!valid) throw genericError("founder_attended_test_composition_invalid");
+  return options;
+}
+
+export async function provisionFounderAttendedServiceTokenTestOnly(options) {
+  const {
+    controlPath,
+    confirmation,
+    keychain,
+    transport,
+    clock,
+    repositoryReader,
+    accountIdSha256Allowlist,
+    randomBytesImpl,
+    expectedUid
+  } = requireProvisioningTestComposition(options);
+
   requireFounderConfirmation(confirmation, "provision-attended");
-  if (!repositoryIdentity?.clean) throw genericError("founder_attended_repository_not_clean");
   requireLocalProvisioningState(keychain);
 
   let accountId;
@@ -459,13 +568,21 @@ export async function provisionFounderAttendedServiceToken({
       "temporary_api_token_unavailable"
     );
 
-    prepareAndConsumeControl({
+    const authorizationContext = samplePotentiallyInvalidLiveContext(clock, repositoryReader);
+    const control = prepareAndConsumeControl({
       controlPath,
-      now,
-      repositoryIdentity,
+      authorizationContext,
       accountIdSha256,
       randomBytesImpl,
       expectedUid
+    });
+
+    let lastSampledAt = revalidateLiveState({
+      clock,
+      repositoryReader,
+      previousSampledAt: authorizationContext.sampledAt,
+      control,
+      accountIdSha256
     });
 
     let listResponse;
@@ -480,6 +597,14 @@ export async function provisionFounderAttendedServiceToken({
       throw genericError("remote_duplicate_preflight_failed");
     }
     assertNoRemoteDuplicate(listResponse);
+
+    revalidateLiveState({
+      clock,
+      repositoryReader,
+      previousSampledAt: lastSampledAt,
+      control,
+      accountIdSha256
+    });
 
     const createBody = exactCreateBodyText();
     let createResponse;
@@ -511,7 +636,7 @@ export async function provisionFounderAttendedServiceToken({
 
     let storageFailure = null;
     try {
-      storeSmokePair(keychain, evaluation.credentials);
+      storeSmokePair(keychain, evaluation.credentials, ownershipTagForControl(control));
     } catch (error) {
       storageFailure = error?.message || "smoke_keychain_storage_failed";
     } finally {
@@ -546,17 +671,23 @@ export async function provisionFounderAttendedServiceToken({
   }
 }
 
-export function cleanupFounderAttendedTemporaryToken({
-  confirmation,
-  keychain = createFounderAttendedMacOsKeychain()
-} = {}) {
-  requireFounderConfirmation(confirmation, "cleanup-temp");
+export function cleanupFounderAttendedTemporaryTokenTestOnly(options) {
+  if (!options
+    || typeof options !== "object"
+    || !options.confirmation
+    || typeof options.confirmation.confirm !== "function"
+    || !options.keychain
+    || typeof options.keychain.hasItem !== "function"
+    || typeof options.keychain.deleteItem !== "function") {
+    throw genericError("founder_attended_test_composition_invalid");
+  }
+  requireFounderConfirmation(options.confirmation, "cleanup-temp");
   try {
-    if (!keychain.hasItem("temporaryApiToken")) {
+    if (!options.keychain.hasItem("temporaryApiToken")) {
       throw genericError("temporary_api_token_cleanup_failed");
     }
-    keychain.deleteItem("temporaryApiToken");
-    if (keychain.hasItem("temporaryApiToken")) {
+    options.keychain.deleteItem("temporaryApiToken");
+    if (options.keychain.hasItem("temporaryApiToken")) {
       throw genericError("temporary_api_token_cleanup_failed");
     }
   } catch {
@@ -568,8 +699,12 @@ export function cleanupFounderAttendedTemporaryToken({
   });
 }
 
-export function inspectFounderAttendedPresence({
-  keychain = createFounderAttendedMacOsKeychain()
-} = {}) {
-  return founderAttendedKeychainPresence(keychain);
+export function inspectFounderAttendedPresenceTestOnly(options) {
+  if (!options
+    || typeof options !== "object"
+    || !options.keychain
+    || typeof options.keychain.hasItem !== "function") {
+    throw genericError("founder_attended_test_composition_invalid");
+  }
+  return founderAttendedKeychainPresence(options.keychain);
 }

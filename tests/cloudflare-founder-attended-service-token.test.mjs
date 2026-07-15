@@ -18,6 +18,7 @@ import test from "node:test";
 import {
   ATTENDED_KEYCHAIN_ITEMS,
   CLOUDFLARE_SECRET_KEYCHAIN_ITEM_REGISTRY,
+  KEYCHAIN_ITEMS,
   LOCAL_SECRET_ARTIFACT_CANDIDATES,
   scanTextForCloudflareSecrets
 } from "../scripts/check-cloudflare-unattended-secret-presence.mjs";
@@ -46,26 +47,31 @@ import {
   CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS,
   CLOUDFLARE_FOUNDER_ATTENDED_CREATE_BODY,
   CLOUDFLARE_FOUNDER_ATTENDED_DIRECTIVE,
+  CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR,
   CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR,
   CLOUDFLARE_FOUNDER_ATTENDED_SERVICE_TOKEN_DURATION,
   CLOUDFLARE_FOUNDER_ATTENDED_SERVICE_TOKEN_NAME,
   CLOUDFLARE_FOUNDER_ATTENDED_TEMPORARY_TOKEN_MAX_TTL_HOURS,
   CLOUDFLARE_FOUNDER_ATTENDED_TEMPORARY_TOKEN_PERMISSION,
+  cleanupFounderAttendedTemporaryTokenTestOnly,
+  inspectFounderAttendedPresenceTestOnly,
+  provisionFounderAttendedServiceTokenTestOnly,
+  validateGovernedCloudflareAccountId
+} from "../scripts/lib/cloudflare-founder-attended-service-token.mjs";
+import {
+  CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS,
   cleanupFounderAttendedTemporaryToken,
   inspectFounderAttendedPresence,
   provisionFounderAttendedServiceToken,
-  validateGovernedCloudflareAccountId
-} from "../scripts/lib/cloudflare-founder-attended-service-token.mjs";
+  runFounderAttendedServiceTokenProductionCli
+} from "../scripts/lib/cloudflare-founder-attended-service-token-production.mjs";
 import { createControllingTtyConfirmation } from "../scripts/lib/cloudflare-founder-attended-tty.mjs";
 import { parseStrictJson } from "../scripts/lib/strict-json.mjs";
 import {
   CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES,
+  createMacOsKeychainAdapter,
   runCloudflareUnattendedLauncher
 } from "../scripts/lib/cloudflare-unattended-launcher.mjs";
-import {
-  CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS,
-  runFounderAttendedServiceTokenCli
-} from "../scripts/run-cloudflare-founder-attended-service-token.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const now = new Date("2026-07-14T20:00:00.000Z");
@@ -101,16 +107,25 @@ function createMockKeychain({
   smokeClientSecret,
   missing = [],
   addHook,
-  deleteHook
+  deleteHook,
+  readHook
 } = {}) {
   const values = new Map();
+  const owners = new Map();
   if (!missing.includes("governedAccountId")) values.set("governedAccountId", Buffer.from(accountId));
   if (!missing.includes("temporaryApiToken")) values.set("temporaryApiToken", Buffer.from(apiToken));
-  if (smokeClientId !== undefined) values.set("smokeClientId", Buffer.from(smokeClientId));
-  if (smokeClientSecret !== undefined) values.set("smokeClientSecret", Buffer.from(smokeClientSecret));
-  const calls = { presence: [], reads: [], adds: [], deletes: [] };
+  if (smokeClientId !== undefined) {
+    values.set("smokeClientId", Buffer.from(smokeClientId));
+    owners.set("smokeClientId", "preexisting");
+  }
+  if (smokeClientSecret !== undefined) {
+    values.set("smokeClientSecret", Buffer.from(smokeClientSecret));
+    owners.set("smokeClientSecret", "preexisting");
+  }
+  const calls = { presence: [], reads: [], adds: [], deletes: [], ownershipTags: [] };
   return {
     values,
+    owners,
     calls,
     hasItem(key) {
       calls.presence.push(key);
@@ -118,18 +133,35 @@ function createMockKeychain({
     },
     readItem(key) {
       calls.reads.push(key);
+      if (readHook) readHook({ key, values, owners });
       if (!values.has(key)) throw new Error("synthetic-read-failure");
       return Buffer.from(values.get(key));
     },
-    addItem(key, value) {
+    addItem(key, value, ownershipTag) {
       calls.adds.push(key);
-      if (addHook) addHook({ key, value, values });
-      else values.set(key, Buffer.from(value));
+      calls.ownershipTags.push(ownershipTag);
+      if (addHook) addHook({ key, value, values, owners, ownershipTag });
+      if (!values.has(key)) values.set(key, Buffer.from(value));
+      if (!owners.has(key)) owners.set(key, ownershipTag);
+      return { created: true };
     },
     deleteItem(key) {
       calls.deletes.push(key);
-      if (deleteHook) deleteHook({ key, values });
-      else values.delete(key);
+      if (deleteHook) deleteHook({ key, values, owners, owned: false });
+      else {
+        values.delete(key);
+        owners.delete(key);
+      }
+    },
+    deleteOwnedItem(key, ownershipTag) {
+      calls.deletes.push(key);
+      if (deleteHook) deleteHook({ key, values, owners, owned: true, ownershipTag });
+      if (owners.get(key) === ownershipTag) {
+        values.delete(key);
+        owners.delete(key);
+        return { deleted: true };
+      }
+      return { deleted: false };
     }
   };
 }
@@ -214,34 +246,38 @@ function createHarness(options = {}) {
   if (options.precreateControl) {
     createFounderAttendedControl({
       controlPath,
-      now,
-      repositoryIdentity,
+      now: options.controlIssuedAt ?? now,
+      repositoryIdentity: options.controlRepositoryIdentity ?? repositoryIdentity,
       accountIdSha256: fixtureAccountDigest,
       randomBytesImpl: () => Buffer.alloc(32, options.nonceByte ?? 7)
     });
   }
   const keychain = options.keychain ?? createMockKeychain(options.keychainOptions);
   const transport = options.transport ?? createMockTransport(options.transportOptions);
+  const clock = options.clock ?? (() => new Date(now));
+  const repositoryReader = options.repositoryReader ?? (() => repositoryIdentity);
   return {
     directory,
     controlPath,
     receiptDirectory: `${controlPath}.consumed`,
     keychain,
     transport,
+    clock,
+    repositoryReader,
     cleanup() {
       rmSync(directory, { recursive: true, force: true });
     },
     provision(overrides = {}) {
-      return provisionFounderAttendedServiceToken({
-        root,
+      return provisionFounderAttendedServiceTokenTestOnly({
         controlPath,
-        now,
         confirmation: overrides.confirmation ?? confirmation(),
         keychain,
         transport,
-        repositoryIdentity,
+        clock,
+        repositoryReader,
         accountIdSha256Allowlist: [fixtureAccountDigest],
         randomBytesImpl: () => Buffer.alloc(32, options.nonceByte ?? 7),
+        expectedUid: process.getuid(),
         ...overrides
       });
     }
@@ -291,6 +327,7 @@ test("strict JSON rejects duplicate keys, trailing content, and excessive nestin
 
 test("Security.framework adapter sends writes only over stdin and excludes unattended API token access", () => {
   const calls = [];
+  const ownershipTag = `prometheus-founder-attended-v1:${"1".repeat(64)}`;
   const deploymentTokenEnvironmentName = ["CLOUDFLARE", "API", "TOKEN"].join("_");
   const spawnSyncImpl = (executable, args, options) => {
     calls.push({ executable, args, input: options.input && Buffer.from(options.input), env: options.env });
@@ -311,7 +348,7 @@ test("Security.framework adapter sends writes only over stdin and excludes unatt
   const read = keychain.readItem("temporaryApiToken");
   assert.equal(read.toString("utf8"), fixtureApiToken);
   read.fill(0);
-  keychain.addItem("smokeClientSecret", fixtureClientSecret);
+  keychain.addItem("smokeClientSecret", fixtureClientSecret, ownershipTag);
   assert.throws(
     () => keychain.readItem("unattendedDeploymentApiToken"),
     /founder_attended_keychain_read_denied/u
@@ -319,7 +356,10 @@ test("Security.framework adapter sends writes only over stdin and excludes unatt
 
   const writeCall = calls.find(call => call.args[1] === "add");
   const readCall = calls.find(call => call.args[1] === "read");
-  assert.equal(writeCall.input.toString("utf8"), fixtureClientSecret);
+  assert.equal(
+    writeCall.input.toString("utf8"),
+    `${ownershipTag}\n${fixtureClientSecret}`
+  );
   assert.equal(
     readCall.args.includes("com.prometheus.cloudflare.attended.service-token-provisioning"),
     true
@@ -348,7 +388,43 @@ test("native helper uses Security.framework and anonymous stdin for writes", () 
   assert.match(source, /SecItemAdd/u);
   assert.match(source, /SecItemCopyMatching/u);
   assert.match(source, /SecItemDelete/u);
+  assert.match(source, /kSecAttrComment/u);
+  assert.doesNotMatch(source, /kSecAttrAccessible|kSecUseDataProtectionKeychain/u);
   assert.doesNotMatch(source, /print\(|NSLog|ProcessInfo\.processInfo\.environment/u);
+});
+
+test("native helper rejects every operation and item outside its fixed matrix before SecItem", () => {
+  const source = readFileSync(CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_HELPER, "utf8");
+  const matrix = Object.fromEntries([...source.matchAll(
+    /"(presence|read|add|delete)": \[([^\]]*)\]/gu
+  )].map(([, operation, items]) => [
+    operation,
+    items.split(",").map(item => item.trim()).filter(Boolean)
+  ]));
+  assert.deepEqual(matrix, {
+    presence: ["temporaryApiToken", "governedAccountId", "smokeClientId", "smokeClientSecret"],
+    read: ["temporaryApiToken", "governedAccountId"],
+    add: ["smokeClientId", "smokeClientSecret"],
+    delete: ["temporaryApiToken", "smokeClientId", "smokeClientSecret"]
+  });
+  for (const [operation, item] of [
+    ["read", "smokeClientId"],
+    ["read", "smokeClientSecret"],
+    ["add", "temporaryApiToken"],
+    ["add", "governedAccountId"],
+    ["delete", "governedAccountId"]
+  ]) {
+    assert.equal(matrix[operation].includes(item), false);
+  }
+  const matrixGuard = source.indexOf("guard let allowedItems = allowedItemsByOperation[operation]");
+  const firstSecurityCall = Math.min(
+    source.indexOf("SecItemCopyMatching("),
+    source.indexOf("SecItemAdd("),
+    source.indexOf("SecItemDelete(")
+  );
+  assert.ok(matrixGuard > 0);
+  assert.ok(firstSecurityCall > matrixGuard);
+  assert.match(source, /allowedItems\.contains\(requestedItem\)[\s\S]*?exit\(64\)/u);
 });
 
 test("control is OFF by default and exact enabled controls are owner-only and at most 30 minutes", () => {
@@ -439,6 +515,132 @@ test("control validation rejects OFF, stale, broad, wrong-account, and tampered 
   assert.equal(validateFounderAttendedControl({ ...base, endpoint: "https://example.invalid" }, context).valid, false);
 });
 
+test("a prompt delayed beyond 30 minutes burns the issued authorization before network", async () => {
+  let liveNow = new Date(now);
+  const attended = {
+    confirm(action, phrase) {
+      assert.equal(action, "provision-attended");
+      assert.equal(phrase, CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS["provision-attended"]);
+      liveNow = new Date(now.getTime() + CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_MAX_LIFETIME_MS + 1);
+      return true;
+    }
+  };
+  const harness = createHarness({
+    precreateControl: true,
+    clock: () => new Date(liveNow)
+  });
+  try {
+    await assert.rejects(harness.provision({ confirmation: attended }), /founder_attended_control_denied/u);
+    assert.equal(readdirSync(harness.receiptDirectory).length, 1);
+    assert.equal(methodCount(harness.transport, "GET"), 0);
+    assert.equal(methodCount(harness.transport, "POST"), 0);
+    assert.equal(methodCount(harness.transport, "DELETE"), 0);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test("repository changes during confirmation or Keychain reads burn authorization before network", async t => {
+  for (const phase of ["confirmation", "keychain-read"]) {
+    await t.test(phase, async () => {
+      let liveIdentity = repositoryIdentity;
+      const changedIdentity = Object.freeze({
+        ...repositoryIdentity,
+        tree: "c".repeat(40)
+      });
+      const keychain = createMockKeychain({
+        readHook() {
+          if (phase === "keychain-read") liveIdentity = changedIdentity;
+        }
+      });
+      const attended = {
+        confirm() {
+          if (phase === "confirmation") liveIdentity = changedIdentity;
+          return true;
+        }
+      };
+      const harness = createHarness({
+        precreateControl: true,
+        keychain,
+        repositoryReader: () => liveIdentity
+      });
+      try {
+        await assert.rejects(harness.provision({ confirmation: attended }), /founder_attended_control_denied/u);
+        assert.equal(readdirSync(harness.receiptDirectory).length, 1);
+        assert.equal(harness.transport.requests.length, 0);
+      } finally {
+        harness.cleanup();
+      }
+    });
+  }
+});
+
+test("repository changes between GET and POST burn the path before the network write", async t => {
+  for (const [label, changedIdentity] of [
+    ["tree", Object.freeze({ ...repositoryIdentity, tree: "c".repeat(40) })],
+    ["dirty", Object.freeze({ ...repositoryIdentity, clean: false })]
+  ]) {
+    await t.test(label, async () => {
+      let liveIdentity = repositoryIdentity;
+      const harness = createHarness({
+        repositoryReader: () => liveIdentity,
+        transportOptions: {
+          onRequest(specification) {
+            if (specification.method === "GET") liveIdentity = changedIdentity;
+          }
+        }
+      });
+      try {
+        await assert.rejects(
+          harness.provision(),
+          error => error.message === CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR
+        );
+        assert.equal(methodCount(harness.transport, "GET"), 1);
+        assert.equal(methodCount(harness.transport, "POST"), 0);
+        assert.equal(methodCount(harness.transport, "DELETE"), 0);
+        assert.equal(readdirSync(harness.receiptDirectory).length, 1);
+      } finally {
+        harness.cleanup();
+      }
+    });
+  }
+});
+
+test("backwards, invalid, or expired live clocks stop all subsequent network writes", async t => {
+  for (const [label, samples, expectedGets] of [
+    ["backwards-before-get", [now, new Date(now.getTime() - 1)], 0],
+    ["invalid-before-get", [now, new Date(Number.NaN)], 0],
+    [
+      "expired-before-post",
+      [
+        now,
+        now,
+        new Date(now.getTime() + CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_MAX_LIFETIME_MS + 1)
+      ],
+      1
+    ]
+  ]) {
+    await t.test(label, async () => {
+      let sample = 0;
+      const harness = createHarness({
+        clock: () => new Date(samples[Math.min(sample++, samples.length - 1)])
+      });
+      try {
+        await assert.rejects(
+          harness.provision(),
+          error => error.message === CLOUDFLARE_FOUNDER_ATTENDED_LIVE_STATE_ERROR
+        );
+        assert.equal(methodCount(harness.transport, "GET"), expectedGets);
+        assert.equal(methodCount(harness.transport, "POST"), 0);
+        assert.equal(methodCount(harness.transport, "DELETE"), 0);
+        assert.equal(readdirSync(harness.receiptDirectory).length, 1);
+      } finally {
+        harness.cleanup();
+      }
+    });
+  }
+});
+
 test("successful provisioning consumes control before exact GET, posts once, and stores the exact pair", async () => {
   const harness = createHarness({
     transportOptions: {
@@ -515,7 +717,7 @@ test("account validator accepts exactly one SHA-256 identity and rejects malform
   assert.throws(() => validateGovernedCloudflareAccountId("wrong", [fixtureAccountDigest]), /governed_account_mismatch/u);
 });
 
-test("existing or partial smoke credentials fail before reads, control, or network", async t => {
+test("existing or process-death partial smoke credentials require review before reads, control, or network", async t => {
   for (const existing of [
     { smokeClientId: fixtureClientId },
     { smokeClientSecret: fixtureClientSecret },
@@ -524,7 +726,10 @@ test("existing or partial smoke credentials fail before reads, control, or netwo
     await t.test(Object.keys(existing).join("+"), async () => {
       const harness = createHarness({ keychainOptions: existing });
       try {
-        await assert.rejects(harness.provision(), /existing_smoke_credential_present/u);
+        await assert.rejects(
+          harness.provision(),
+          error => error.message === CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR
+        );
         assert.deepEqual(harness.keychain.calls.reads, []);
         assert.equal(harness.transport.requests.length, 0);
         assert.equal(existsSync(harness.controlPath), false);
@@ -723,9 +928,12 @@ test("partial pair writes roll back both local items and compensate the validate
       if (key === "smokeClientSecret") throw new Error(`write ${value}`);
       values.set(key, Buffer.from(value));
     }],
-    ["second-write-ambiguous", ({ key, value, values }) => {
+    ["second-write-ambiguous", ({ key, value, values, owners, ownershipTag }) => {
       values.set(key, Buffer.from(value));
-      if (key === "smokeClientSecret") throw new Error(`ambiguous ${value}`);
+      if (key === "smokeClientSecret") {
+        owners.set(key, ownershipTag);
+        throw new Error(`ambiguous ${value}`);
+      }
     }]
   ]) {
     await t.test(label, async () => {
@@ -750,13 +958,17 @@ test("partial pair writes roll back both local items and compensate the validate
 
 test("local rollback failure remains manual review even when remote compensation succeeds", async () => {
   const keychain = createMockKeychain({
-    addHook({ key, value, values }) {
+    addHook({ key, value, values, owners, ownershipTag }) {
       values.set(key, Buffer.from(value));
-      if (key === "smokeClientSecret") throw new Error("synthetic-write-failure");
+      if (key === "smokeClientSecret") {
+        owners.set(key, ownershipTag);
+        throw new Error("synthetic-write-failure");
+      }
     },
-    deleteHook({ key, values }) {
+    deleteHook({ key, values, owners }) {
       if (key === "smokeClientId") throw new Error("synthetic-delete-failure");
       values.delete(key);
+      owners.delete(key);
     }
   });
   const harness = createHarness({ keychain });
@@ -766,6 +978,32 @@ test("local rollback failure remains manual review even when remote compensation
       error => error.message === CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR
     );
     assert.equal(keychain.values.has("smokeClientId"), true);
+    assert.equal(methodCount(harness.transport, "DELETE"), 1);
+  } finally {
+    harness.cleanup();
+  }
+});
+
+test("rollback never deletes a pre-existing or replacement destination item", async () => {
+  const replacement = "synthetic-pre-existing-replacement";
+  const keychain = createMockKeychain({
+    addHook({ key, values, owners }) {
+      if (key !== "smokeClientSecret") return;
+      values.set(key, Buffer.from(replacement));
+      owners.set(key, "preexisting");
+      throw new Error("synthetic-concurrent-destination-write");
+    }
+  });
+  const harness = createHarness({ keychain });
+  try {
+    await assert.rejects(
+      harness.provision(),
+      error => error.message === CLOUDFLARE_FOUNDER_ATTENDED_MANUAL_REVIEW_ERROR
+    );
+    assert.equal(keychain.values.has("smokeClientId"), false);
+    assert.equal(keychain.values.get("smokeClientSecret").toString("utf8"), replacement);
+    assert.equal(keychain.owners.get("smokeClientSecret"), "preexisting");
+    assert.deepEqual(keychain.calls.deletes, ["smokeClientSecret", "smokeClientId"]);
     assert.equal(methodCount(harness.transport, "DELETE"), 1);
   } finally {
     harness.cleanup();
@@ -874,7 +1112,7 @@ test("control permission, duplicate-key, and symlink tampering fail closed", () 
 
 test("presence is name-only and never reads values", () => {
   const keychain = createMockKeychain();
-  const result = inspectFounderAttendedPresence({ keychain });
+  const result = inspectFounderAttendedPresenceTestOnly({ keychain });
   const report = formatFounderAttendedKeychainPresence(result);
   assert.deepEqual(keychain.calls.reads, []);
   assert.equal(result.length, 4);
@@ -894,7 +1132,7 @@ test("cleanup-temp removes only the separate temporary item and requires Founder
     smokeClientSecret: fixtureClientSecret
   });
   const attended = confirmation();
-  const result = cleanupFounderAttendedTemporaryToken({ confirmation: attended, keychain });
+  const result = cleanupFounderAttendedTemporaryTokenTestOnly({ confirmation: attended, keychain });
   assert.deepEqual(attended.calls, [{
     action: "cleanup-temp",
     phrase: CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS["cleanup-temp"]
@@ -916,7 +1154,7 @@ test("cleanup failures never delete account or smoke items", () => {
     }
   });
   assert.throws(
-    () => cleanupFounderAttendedTemporaryToken({ confirmation: confirmation(), keychain }),
+    () => cleanupFounderAttendedTemporaryTokenTestOnly({ confirmation: confirmation(), keychain }),
     error => error.message === "temporary_api_token_cleanup_failed"
       && !error.message.includes(fixtureApiToken)
   );
@@ -941,16 +1179,16 @@ test("real confirmation adapter rejects non-TTY invocation before reading input"
 });
 
 test("denied or missing attendance prevents control creation and all network activity", async t => {
-  for (const [label, attended] of [
-    ["denied", confirmation(false)],
-    ["missing", null]
+  for (const [label, attended, expectedError] of [
+    ["denied", confirmation(false), /founder_confirmation_denied/u],
+    ["missing", null, /founder_attended_test_composition_invalid/u]
   ]) {
     await t.test(label, async () => {
       const harness = createHarness();
       try {
         await assert.rejects(
           harness.provision({ confirmation: attended }),
-          /founder_(?:confirmation_denied|attendance_required)/u
+          expectedError
         );
         assert.equal(existsSync(harness.controlPath), false);
         assert.equal(harness.transport.requests.length, 0);
@@ -962,57 +1200,40 @@ test("denied or missing attendance prevents control creation and all network act
   }
 });
 
-test("CLI exposes only presence, provision-attended, and cleanup-temp", async () => {
+test("production CLI exposes only three fixed modes and has no injectable adapter surface", async () => {
   assert.deepEqual(CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS, [
     "presence",
     "provision-attended",
     "cleanup-temp"
   ]);
-  const calls = [];
-  const outputs = [];
-  const attended = confirmation();
-  const operations = {
-    inspectPresence() {
-      calls.push("presence");
-      return [{ name: "synthetic/name", present: true }];
-    },
-    async provision(options) {
-      calls.push("provision-attended");
-      assert.equal(options.confirmation, attended);
-      return { status: "provisioned" };
-    },
-    cleanup(options) {
-      calls.push("cleanup-temp");
-      assert.equal(options.confirmation, attended);
-      return { status: "removed", nextRequiredAction: "Revoke now." };
-    }
-  };
-  await runFounderAttendedServiceTokenCli({
-    argv: ["presence"],
-    confirmation: attended,
-    operations,
-    writeOutput: value => outputs.push(value)
-  });
-  await runFounderAttendedServiceTokenCli({
-    argv: ["provision-attended"],
-    confirmation: attended,
-    operations,
-    writeOutput: value => outputs.push(value)
-  });
-  await runFounderAttendedServiceTokenCli({
-    argv: ["cleanup-temp"],
-    confirmation: attended,
-    operations,
-    writeOutput: value => outputs.push(value)
-  });
-  assert.deepEqual(calls, ["presence", "provision-attended", "cleanup-temp"]);
-  for (const forbidden of ["authorize", "provision", "cleanup", "presence extra"]) {
-    await assert.rejects(
-      runFounderAttendedServiceTokenCli({ argv: forbidden.split(" "), operations }),
-      /founder_attended_command_invalid/u
-    );
-  }
-  assert.equal(outputs.some(value => String(value).includes(fixtureApiToken)), false);
+  assert.equal(provisionFounderAttendedServiceToken.length, 0);
+  assert.equal(inspectFounderAttendedPresence.length, 0);
+  assert.equal(cleanupFounderAttendedTemporaryToken.length, 0);
+  assert.equal(runFounderAttendedServiceTokenProductionCli.length, 0);
+
+  const cliSource = readFileSync(
+    join(root, "scripts/run-cloudflare-founder-attended-service-token.mjs"),
+    "utf8"
+  );
+  const productionSource = readFileSync(
+    join(root, "scripts/lib/cloudflare-founder-attended-service-token-production.mjs"),
+    "utf8"
+  );
+  const importStatements = cliSource.match(/^import[\s\S]*?;$/gmu) || [];
+  assert.equal(importStatements.length, 1);
+  assert.match(importStatements[0], /cloudflare-founder-attended-service-token-production\.mjs/u);
+  assert.doesNotMatch(cliSource, /confirmation|transport|keychain|operations|writeOutput|requestImpl/u);
+  assert.match(
+    productionSource,
+    /export async function provisionFounderAttendedServiceToken\(\)/u
+  );
+  assert.match(productionSource, /export function inspectFounderAttendedPresence\(\)/u);
+  assert.match(productionSource, /export function cleanupFounderAttendedTemporaryToken\(\)/u);
+  assert.match(productionSource, /export async function runFounderAttendedServiceTokenProductionCli\(\)/u);
+  await assert.rejects(
+    provisionFounderAttendedServiceTokenTestOnly({}),
+    /founder_attended_test_composition_invalid/u
+  );
 });
 
 test("unattended launcher has no provisioning profile or temporary-token access", () => {
@@ -1031,6 +1252,59 @@ test("unattended launcher has no provisioning profile or temporary-token access"
       .some(item => item.account === "CLOUDFLARE_API_TOKEN"),
     false
   );
+});
+
+test("created smoke generic-password schema matches the audited security reader without secret metadata", () => {
+  const smokeItems = KEYCHAIN_ITEMS.filter(item => [
+    "CLOUDFLARE_ACCESS_CLIENT_ID",
+    "CLOUDFLARE_ACCESS_CLIENT_SECRET"
+  ].includes(item.account));
+  assert.deepEqual(smokeItems, [
+    CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS.smokeClientId,
+    CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_ITEMS.smokeClientSecret
+  ]);
+
+  const syntheticValues = new Map([
+    ["CLOUDFLARE_ACCESS_CLIENT_ID", fixtureClientId],
+    ["CLOUDFLARE_ACCESS_CLIENT_SECRET", fixtureClientSecret]
+  ]);
+  const calls = [];
+  const adapter = createMacOsKeychainAdapter({
+    spawnSyncImpl(executable, args, options) {
+      calls.push({ executable, args: [...args], options: { ...options } });
+      return {
+        status: 0,
+        stdout: `${syntheticValues.get(args.at(-1))}\n`
+      };
+    }
+  });
+  assert.equal(adapter.readItem(smokeItems[0]), fixtureClientId);
+  assert.equal(adapter.readItem(smokeItems[1]), fixtureClientSecret);
+  for (const [index, call] of calls.entries()) {
+    const item = smokeItems[index];
+    assert.equal(call.executable, "/usr/bin/security");
+    assert.deepEqual(call.args, [
+      "find-generic-password",
+      "-w",
+      "-s",
+      item.service,
+      "-a",
+      item.account
+    ]);
+    assert.deepEqual(call.options.stdio, ["ignore", "pipe", "ignore"]);
+    assert.equal(call.options.env, undefined);
+    assert.equal(call.options.input, undefined);
+    const metadata = JSON.stringify({ args: call.args, options: call.options });
+    assert.equal(metadata.includes(syntheticValues.get(item.account)), false);
+  }
+
+  const helper = readFileSync(CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_HELPER, "utf8");
+  assert.match(helper, /kSecClassGenericPassword/u);
+  assert.match(helper, /kSecAttrService: requestedItem\.service/u);
+  assert.match(helper, /kSecAttrAccount: requestedItem\.account/u);
+  assert.match(helper, /attributes\[kSecValueData\] = input\.secret/u);
+  assert.doesNotMatch(helper, /kSecUseDataProtectionKeychain|kSecAttrAccessible/u);
+  assert.doesNotMatch(helper, /SecAccessCreate|SecTrustedApplication|kSecAttrAccess\b/u);
 });
 
 test("scanner registries cover the temporary item and likely local artifacts", () => {

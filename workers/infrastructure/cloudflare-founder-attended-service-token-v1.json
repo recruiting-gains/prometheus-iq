@@ -90,9 +90,28 @@
     "writeMechanism": "Security.framework_helper_anonymous_stdin_pipe",
     "secretValuesInArguments": false,
     "secretValuesInEnvironment": false,
-    "partialWriteBehavior": "DELETE_BOTH_POSSIBLE_DESTINATION_ITEMS_AND_VERIFY_ABSENCE",
+    "partialWriteBehavior": "DELETE_ONLY_INVOCATION_OWNED_ITEMS_AND_VERIFY_BOTH_NAMES_ABSENT",
+    "rollbackOwnershipAttribute": "kSecAttrComment",
+    "rollbackOwnershipValueSecret": false,
+    "rollbackDeletesOnlyInvocationOwnedItems": true,
+    "preexistingOrReplacementItemDeletionAllowed": false,
     "rollbackFailureBehavior": "MANUAL_REVIEW_REQUIRED",
-    "presenceVerification": "name_and_PRESENT_or_ABSENT_only"
+    "processDeathAfterPartialWrite": "PRESENCE_BLOCKS_RETRY_AND_REQUIRES_FOUNDER_REVIEW",
+    "presenceVerification": "name_and_PRESENT_or_ABSENT_only",
+    "unattendedReaderInteroperability": {
+      "readerExecutable": "/usr/bin/security",
+      "readerMode": "find-generic-password_-w_captured_pipe",
+      "genericPasswordServiceAndAccountCompatibleInSource": true,
+      "legacyDefaultKeychainCompatibleAttributesUsed": true,
+      "noninteractiveAccessControlProvenInSource": false,
+      "broadTrustedApplicationAccessConfigured": false,
+      "secretValuesInReaderArguments": false,
+      "secretValuesInReaderEnvironment": false,
+      "secretValuesInReaderFiles": false,
+      "secretValuesInTerminalOutput": false,
+      "realKeychainRuntimeVerified": false,
+      "mandatoryFounderAttendedIntegrationCheckBeforeReadiness": true
+    }
   },
   "attendedControl": {
     "schemaVersion": "cloudflare-founder-attended-service-token-control-v1",
@@ -115,6 +134,13 @@
     "createdOnlyInsideConfirmedProvisionAttended": true,
     "controllingTtyRequiredForRealProvisioning": true,
     "exactConfirmationRequired": true,
+    "clockAndRepositoryReadersAreLiveFunctions": true,
+    "firstLiveSampleAfterConfirmationAndKeychainReads": true,
+    "freshValidationImmediatelyBeforeGet": true,
+    "freshValidationImmediatelyBeforePost": true,
+    "expiredBackwardsOrInvalidClockBehavior": "CONSUME_EXISTING_CONTROL_AND_FAIL_BEFORE_SUBSEQUENT_NETWORK_WRITE",
+    "changedDirtyOrMismatchedRepositoryBehavior": "CONSUME_EXISTING_CONTROL_AND_FAIL_BEFORE_SUBSEQUENT_NETWORK_WRITE",
+    "staleStructurallyValidAuthorizationConsumed": true,
     "oneShot": true,
     "nonceConsumedBeforeFirstNetworkCall": true,
     "atomicExclusiveConsumption": true,
@@ -136,6 +162,10 @@
   },
   "cli": {
     "entrypoint": "scripts/run-cloudflare-founder-attended-service-token.mjs",
+    "productionWrapper": "scripts/lib/cloudflare-founder-attended-service-token-production.mjs",
+    "productionEntrypointImportsOnlyProductionWrapper": true,
+    "productionAdapterInjectionAllowed": false,
+    "testCoreRequiresEveryAdapterExplicitly": true,
     "fixedCommands": [
       "presence",
       "provision-attended",
@@ -150,7 +180,10 @@
     "realKeychainAllowed": false,
     "injectedTransportRequired": true,
     "injectedKeychainRequired": true,
-    "injectedAttendanceRequired": true
+    "injectedAttendanceRequired": true,
+    "injectedClockRequired": true,
+    "injectedRepositoryReaderRequired": true,
+    "productionWrapperInvocationAllowed": false
   },
   "runtimeBoundaries": {
     "cloudflareAccessPolicyMutationAllowed": false,

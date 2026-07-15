@@ -146,6 +146,26 @@ function receiptPath(controlPath, nonce) {
   return join(`${controlPath}.consumed`, `${digest}.json`);
 }
 
+function isBurnableControl(control) {
+  return Boolean(control)
+    && typeof control === "object"
+    && !Array.isArray(control)
+    && sameKeys(control, CONTROL_KEYS)
+    && control.schemaVersion === CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_SCHEMA
+    && control.enabled === true
+    && Object.entries(FIXED_CONTROL_VALUES).every(([key, value]) => control[key] === value)
+    && /^[0-9a-f]{64}$/u.test(control.accountIdSha256 || "")
+    && /^[0-9a-f]{40}$/u.test(control.authorizedCommit || "")
+    && /^[0-9a-f]{40}$/u.test(control.authorizedTree || "")
+    && /^[A-Za-z0-9_-]{43}$/u.test(control.oneShotAuthorizationNonce || "");
+}
+
+function receiptTimestamp(now) {
+  return now instanceof Date && Number.isFinite(now.getTime())
+    ? now.toISOString()
+    : null;
+}
+
 export function readFounderAttendedRepositoryIdentity({
   root,
   execFile = execFileSync
@@ -343,31 +363,45 @@ export function inspectFounderAttendedControl({
 
 export function consumeFounderAttendedControl(options = {}) {
   const expectedUid = options.expectedUid ?? currentUid();
-  const inspected = inspectFounderAttendedControl({ ...options, expectedUid });
-  if (!inspected.valid) throw new Error("founder_attended_control_denied");
-  const consumedDirectory = `${options.controlPath || CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_PATH}.consumed`;
+  if (!Number.isSafeInteger(expectedUid) || expectedUid < 0) {
+    throw new Error("founder_attended_control_denied");
+  }
+  const controlPath = options.controlPath || CLOUDFLARE_FOUNDER_ATTENDED_CONTROL_PATH;
+  let loaded;
+  try {
+    loaded = readSecureControl(controlPath, expectedUid);
+  } catch {
+    throw new Error("founder_attended_control_denied");
+  }
+  if (loaded.reasons.length || !isBurnableControl(loaded.control)) {
+    throw new Error("founder_attended_control_denied");
+  }
+  const marker = receiptPath(controlPath, loaded.control.oneShotAuthorizationNonce);
+  const consumedDirectory = `${controlPath}.consumed`;
   ensureSecureDirectory(consumedDirectory, expectedUid);
-  if (dirname(inspected.receiptPath) !== consumedDirectory) {
+  if (dirname(marker) !== consumedDirectory) {
     throw new Error("founder_attended_control_consume_failed");
   }
   const noFollow = constants.O_NOFOLLOW || 0;
   let fd;
   try {
     fd = openSync(
-      inspected.receiptPath,
+      marker,
       constants.O_WRONLY | constants.O_CREAT | constants.O_EXCL | noFollow,
       0o600
     );
+    const consumedAt = receiptTimestamp(options.now);
     const receipt = {
       schemaVersion: "cloudflare-founder-attended-service-token-consumption-v1",
       nonceSha256: createHash("sha256")
-        .update(inspected.control.oneShotAuthorizationNonce, "utf8")
+        .update(loaded.control.oneShotAuthorizationNonce, "utf8")
         .digest("hex"),
-      directive: inspected.control.directive,
-      accountIdSha256: inspected.control.accountIdSha256,
-      authorizedCommit: inspected.control.authorizedCommit,
-      authorizedTree: inspected.control.authorizedTree,
-      consumedAt: (options.now || new Date()).toISOString()
+      directive: loaded.control.directive,
+      accountIdSha256: loaded.control.accountIdSha256,
+      authorizedCommit: loaded.control.authorizedCommit,
+      authorizedTree: loaded.control.authorizedTree,
+      consumedAt,
+      consumptionClockValid: consumedAt !== null
     };
     writeFileSync(fd, `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
     fsyncSync(fd);
@@ -383,5 +417,16 @@ export function consumeFounderAttendedControl(options = {}) {
   } finally {
     closeSync(directoryFd);
   }
-  return Object.freeze({ consumed: true });
+  const validation = validateFounderAttendedControl(loaded.control, {
+    now: options.now,
+    expectedCommit: options.expectedCommit,
+    expectedTree: options.expectedTree,
+    expectedAccountIdSha256: options.expectedAccountIdSha256,
+    consumed: false
+  });
+  if (!validation.valid) throw new Error("founder_attended_control_denied");
+  return Object.freeze({
+    consumed: true,
+    control: Object.freeze({ ...loaded.control })
+  });
 }
