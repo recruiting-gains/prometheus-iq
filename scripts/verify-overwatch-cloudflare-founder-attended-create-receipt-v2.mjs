@@ -31,6 +31,7 @@ const ownerCommit = "358f817f7fc81bd82560840e5fd54668a7f58abe";
 const ownerParent = "f630c2af6e5e4722105d2b1e3ee959fb28f5da66";
 const ownerTree = "887e54f6ff62dfd55730f81bf9348ee1ecd619bb";
 const overwatchGovernanceCommit = "2bedfdc61b10e682d65a3308aad62640bc79f4ce";
+const overwatchVerificationRepairCommit = "021bb0a76479136d92e9ba9721d9adbca5e1590a";
 
 const expectedOwnerHashes = Object.freeze({
   "docs/cloudflare-founder-attended-create-receipt-v2.md":
@@ -284,7 +285,8 @@ function verifyOverwatchOwnership() {
   ], { cwd: root, stdio: "ignore" });
   if (head === overwatchGovernanceCommit) return;
   const repairFields = git([
-    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", "HEAD"
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s",
+    overwatchVerificationRepairCommit
   ]).split("\n");
   if (!equal(repairFields, [
     overwatchGovernanceCommit,
@@ -292,11 +294,33 @@ function verifyOverwatchOwnership() {
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "Repair attended create receipt release verification"
   ])) throw new Error("Overwatch verification repair metadata drifted.");
-  const repairPaths = git(["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"])
+  const repairPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", overwatchVerificationRepairCommit
+  ])
     .split("\n").filter(Boolean);
   if (!equal(repairPaths, [
     "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs"
   ])) throw new Error("Overwatch verification repair file set drifted.");
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", overwatchVerificationRepairCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  if (head === overwatchVerificationRepairCommit) return;
+  const fixtureRepairFields = git([
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", "HEAD"
+  ]).split("\n");
+  if (!equal(fixtureRepairFields, [
+    overwatchVerificationRepairCommit,
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "Prometheus Overwatch <overwatch@prometheus.local>",
+    "Repair attended create receipt registry fixture"
+  ])) throw new Error("Overwatch registry-fixture repair metadata drifted.");
+  const fixtureRepairPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"
+  ]).split("\n").filter(Boolean);
+  if (!equal(fixtureRepairPaths, [
+    "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+    "tests/cross-subsystem-artifact-contracts.test.mjs"
+  ])) throw new Error("Overwatch registry-fixture repair file set drifted.");
 }
 
 function verifyImplementationBoundary() {
