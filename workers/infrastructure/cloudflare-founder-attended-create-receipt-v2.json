@@ -1,0 +1,113 @@
+{
+  "contractVersion": "cloudflare-founder-attended-create-receipt-v2",
+  "batchId": "BATCH-20260715-004",
+  "directive": "Cloudflare Live Create-Receipt Classification + Safe Provisioning Repair v2",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_SOURCE_NOT_EXECUTED",
+  "baseline": {
+    "commit": "f630c2af6e5e4722105d2b1e3ee959fb28f5da66",
+    "tree": "0a629551a428c360ab9e0d9a5af47d0fdf8d0d8e",
+    "branch": "main",
+    "cleanAtStart": true,
+    "v1SourceModified": false,
+    "v1ControlsReceiptsOrEvidenceAccessed": false,
+    "realKeychainValuesRead": false,
+    "cloudflareApiContacted": false,
+    "credentialActionPerformed": false,
+    "productionMutationPerformed": false,
+    "deploymentPerformed": false,
+    "temporaryApiTokenPreserved": true,
+    "pushPerformed": false
+  },
+  "rootCauseClassification": {
+    "historicalRejectedDimensionRecoverable": false,
+    "historicalResponseRetained": false,
+    "futureClassificationUsesFixedReasonCodesOnly": true,
+    "responseDataPersisted": false
+  },
+  "officialContracts": {
+    "retrievedOn": "2026-07-15",
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "httpStatus": 200,
+      "resultOptionalInSchema": true,
+      "nameEchoOptionalInSchema": true,
+      "durationEchoOptionalInSchema": true,
+      "clientIdAndSecretRequiredByPrometheus": true,
+      "documentedTimestampsAccepted": true,
+      "exactRequestName": "Prometheus Overwatch Read-Only Smoke Verification",
+      "exactRequestDuration": "720h"
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "httpStatus": 200,
+      "documentedResultObjectRequired": true,
+      "followUpExactNameAbsenceRequired": true
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "fixedQueryKeys": ["name", "page", "per_page"],
+      "optionalResultAndPaginationAccepted": true,
+      "hardPageCeiling": 100
+    }
+  },
+  "credentialContract": {
+    "missingAndMalformedReasonsDistinct": true,
+    "documentedClientIdVariantsAccepted": true,
+    "whitespaceRejected": true,
+    "controlCharactersRejected": true,
+    "unboundedValuesRejected": true,
+    "credentialValuesPersistedToEvidence": false,
+    "credentialLengthsPersisted": false,
+    "credentialHashesPersisted": false
+  },
+  "postCreateProof": {
+    "preflightAbsenceRequired": true,
+    "returnedIdAloneAuthorizesDelete": false,
+    "uniqueExactNameRequired": true,
+    "returnedIdMatchRequired": true,
+    "exactDurationRequired": "720h",
+    "ambiguousOrDuplicateProofDeleteAttempts": 0,
+    "wrongNameOrDurationDeleteAttempts": 0
+  },
+  "futureLifecycle": {
+    "artifactNamespace": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-create-receipt-v2",
+    "freshGetRequired": true,
+    "freshControlAuthorizationRequired": true,
+    "provisionAuthorizationRequired": true,
+    "createAttemptsMaximum": 1,
+    "createRetryAllowed": false,
+    "controlReplayAllowed": false,
+    "compensationAuthorizationSeparate": true,
+    "compensationDeleteAttemptsMaximum": 1,
+    "deleteTargetBoundToUniquePostCreateProof": true,
+    "temporaryApiTokenDeletionAllowed": false,
+    "realControlCreatedByThisBatch": false,
+    "provisioningExecutedByThisBatch": false
+  },
+  "commands": {
+    "nextSafeGetOnly": "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs",
+    "futurePrepareEntrypoint": "scripts/run-cloudflare-founder-attended-create-receipt-v2-prepare.mjs",
+    "futureProvisionEntrypoint": "scripts/run-cloudflare-founder-attended-create-receipt-v2-provision.mjs",
+    "ownerVerify": "node scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs"
+  },
+  "ownership": {
+    "packageReleaseWiringOwner": "Prometheus Overwatch",
+    "packageJsonModified": false,
+    "overwatchFilesModified": false
+  },
+  "testBoundary": {
+    "mockNetworkOnly": true,
+    "mockKeychainOnly": true,
+    "productionCliInvocationAllowed": false,
+    "realControlReceiptOrEvidenceAccessAllowed": false
+  },
+  "runtimeBoundaries": {
+    "cloudflareApiContactAllowedDuringImplementation": false,
+    "realKeychainReadAllowedDuringImplementation": false,
+    "credentialActionAllowedDuringImplementation": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "pushAuthorized": false
+  }
+}
