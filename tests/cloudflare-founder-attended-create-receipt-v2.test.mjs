@@ -129,7 +129,7 @@ function exactList({
   return envelope(duplicate ? [record, { ...record }] : [record], extra);
 }
 
-function createResponse({ omit = [], overrides = {}, envelopeOverrides = {} } = {}) {
+function createResponse({ omit = [], overrides = {}, envelopeOverrides = {}, status = 200 } = {}) {
   const result = {
     id: fixtureTokenId,
     name: CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_SERVICE_TOKEN_NAME,
@@ -142,7 +142,7 @@ function createResponse({ omit = [], overrides = {}, envelopeOverrides = {} } = 
   };
   for (const key of omit) delete result[key];
   return Object.freeze({
-    status: 200,
+    status,
     body: JSON.stringify({ success: true, result, ...envelopeOverrides })
   });
 }
@@ -269,12 +269,25 @@ test("create classifier accepts official optional echoes and exposes fixed metad
   assert.deepEqual(result, {
     accepted: true,
     reasonCode: "CREATE_RESPONSE_ACCEPTED",
+    httpStatusClass: "DOCUMENTED_200",
     compensationCandidate: true,
     exactNameProofRequired: true
   });
   assert.doesNotMatch(JSON.stringify(result), new RegExp(fixtureTokenId, "u"));
   assert.doesNotMatch(JSON.stringify(result), new RegExp(fixtureClientSecret, "u"));
   assert.doesNotMatch(JSON.stringify(result), new RegExp(documentedClientId.replaceAll(".", "\\."), "u"));
+});
+
+test("alternate bounded 2xx statuses are eligible only when the full success contract passes", () => {
+  const response = createResponse({ status: 201, omit: ["name", "duration"] });
+  const result = classifyFounderAttendedCreateReceiptV2ResponseTestOnly(response);
+  assert.deepEqual(result, {
+    accepted: true,
+    reasonCode: "CREATE_RESPONSE_ACCEPTED",
+    httpStatusClass: "ALTERNATE_2XX",
+    compensationCandidate: true,
+    exactNameProofRequired: true
+  });
 });
 
 test("credential classifier distinguishes missing from malformed bounded values", () => {
@@ -295,6 +308,7 @@ test("credential classifier distinguishes missing from malformed bounded values"
     const result = classifyFounderAttendedCreateReceiptV2ResponseTestOnly(response);
     assert.equal(result.accepted, false);
     assert.equal(result.reasonCode, reasonCode);
+    assert.equal(result.httpStatusClass, "DOCUMENTED_200");
     assert.equal(result.compensationCandidate, true);
   }
   assert.equal(classifyFounderAttendedCreateReceiptV2ResponseTestOnly(
@@ -303,22 +317,25 @@ test("credential classifier distinguishes missing from malformed bounded values"
 });
 
 test("create classifier rejects contradictory and ambiguous response dimensions", () => {
-  for (const [response, reasonCode, candidate] of [
-    [{ status: 202, body: "{}" }, "CREATE_HTTP_STATUS_REJECTED", false],
-    [{ status: 200, body: "{" }, "CREATE_BODY_REJECTED", false],
-    [{ status: 200, body: JSON.stringify({ success: false }) }, "CREATE_ENVELOPE_REJECTED", false],
+  for (const [response, reasonCode, httpStatusClass, candidate] of [
+    [{ status: 503, body: "{}" }, "CREATE_HTTP_STATUS_REJECTED", "NON_2XX", false],
+    [{ status: 200, body: "{" }, "CREATE_BODY_REJECTED", "DOCUMENTED_200", false],
+    [{ status: 204, body: "" }, "CREATE_BODY_REJECTED", "ALTERNATE_2XX", false],
+    [{ status: 200, body: JSON.stringify({ success: false }) },
+      "CREATE_ENVELOPE_REJECTED", "DOCUMENTED_200", false],
     [createResponse({ envelopeOverrides: { errors: [{ code: 1000 }] } }),
-      "CREATE_ERRORS_REPORTED", false],
-    [createResponse({ omit: ["id"] }), "CREATE_RESOURCE_ID_MISSING", false],
-    [createResponse({ overrides: { id: "unsafe/id" } }), "CREATE_RESOURCE_ID_REJECTED", false],
-    [createResponse({ overrides: { name: "Wrong token" } }), "CREATE_NAME_ECHO_MISMATCH", false],
+      "CREATE_ERRORS_REPORTED", "DOCUMENTED_200", false],
+    [createResponse({ omit: ["id"] }), "CREATE_RESOURCE_ID_MISSING", "DOCUMENTED_200", false],
+    [createResponse({ overrides: { id: "unsafe/id" } }), "CREATE_RESOURCE_ID_REJECTED", "DOCUMENTED_200", false],
+    [createResponse({ overrides: { name: "Wrong token" } }), "CREATE_NAME_ECHO_MISMATCH", "DOCUMENTED_200", false],
     [createResponse({ overrides: { duration: "8760h" } }),
-      "CREATE_DURATION_ECHO_MISMATCH", false],
+      "CREATE_DURATION_ECHO_MISMATCH", "DOCUMENTED_200", false],
     [createResponse({ overrides: { updated_at: "not-a-time" } }),
-      "CREATE_TIMESTAMP_REJECTED", true]
+      "CREATE_TIMESTAMP_REJECTED", "DOCUMENTED_200", true]
   ]) {
     const result = classifyFounderAttendedCreateReceiptV2ResponseTestOnly(response);
     assert.equal(result.reasonCode, reasonCode);
+    assert.equal(result.httpStatusClass, httpStatusClass);
     assert.equal(result.compensationCandidate, candidate);
   }
 });
@@ -344,10 +361,34 @@ test("optional create echoes require bounded exact-name GET proof before storage
   });
   assert.deepEqual(remote.requests.map(request => request.method), ["GET", "POST", "GET"]);
   assert.ok(events.indexOf("request:GET") < events.indexOf("add:smokeClientId"));
-  assert.deepEqual(reasons(fixture), ["CREATE_RESPONSE_ACCEPTED"]);
+  assert.deepEqual(reasons(fixture), [
+    "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "CREATE_RESPONSE_ACCEPTED"
+  ]);
   assert.deepEqual(phases(fixture), [
     "GET_COMPLETED", "EXACT_NAME_ABSENT", "POST_ATTEMPTED", "GET_COMPLETED",
     "EXACT_NAME_PRESENT", "CREATE_RESPONSE_VALID", "KEYCHAIN_STORED", "SUCCESS"
+  ]);
+});
+
+test("alternate 2xx responses can succeed only after exact-name proof and Keychain storage", async t => {
+  const fixture = await prepareFixture(t);
+  const remote = transport({
+    post: createResponse({ status: 201, omit: ["name", "duration"] })
+  });
+  const result = await provisionFounderAttendedCreateReceiptV2TestOnly({
+    ...common({ artifactRoot: fixture.artifactRoot, store: fixture.store }),
+    transport: remote
+  });
+  assert.deepEqual(result, {
+    outcome: "SUCCESS",
+    reasonCode: "CREATE_RESPONSE_ACCEPTED",
+    remoteCreateAttempts: 1,
+    remoteDeleteAttempts: 0
+  });
+  assert.deepEqual(reasons(fixture), [
+    "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+    "CREATE_RESPONSE_ACCEPTED"
   ]);
 });
 
@@ -367,6 +408,10 @@ test("wrong-name or wrong-duration responses never receive proof or compensation
       assert.equal(result.reasonCode, reasonCode);
       assert.deepEqual(remote.requests.map(request => request.method), ["GET", "POST"]);
       assert.equal(result.remoteDeleteAttempts, 0);
+      assert.deepEqual(reasons(fixture), [
+        "CREATE_HTTP_STATUS_DOCUMENTED_200",
+        reasonCode
+      ]);
     });
   }
 });
@@ -395,7 +440,9 @@ test("missing credential can compensate only after unique exact-name ID and dura
   assert.ok(events.indexOf("confirm:compensate-v2-created-resource")
     < events.indexOf("request:DELETE"));
   assert.deepEqual(reasons(fixture), [
-    "CREATE_CLIENT_SECRET_MISSING", "COMPENSATION_CONFIRMED"
+    "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "CREATE_CLIENT_SECRET_MISSING",
+    "COMPENSATION_CONFIRMED"
   ]);
 });
 
@@ -418,7 +465,26 @@ test("compensation denial occurs after proof and performs zero DELETE attempts",
   assert.equal(result.remoteDeleteAttempts, 0);
   assert.deepEqual(remote.requests.map(request => request.method), ["GET", "POST", "GET"]);
   assert.deepEqual(reasons(fixture), [
-    "CREATE_CLIENT_SECRET_REJECTED", "COMPENSATION_AUTHORIZATION_DENIED"
+    "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "CREATE_CLIENT_SECRET_REJECTED",
+    "COMPENSATION_AUTHORIZATION_DENIED"
+  ]);
+});
+
+test("alternate 2xx missing credentials still fail closed unless proof and separate compensation succeed", async t => {
+  const fixture = await prepareFixture(t);
+  const remote = transport({
+    post: createResponse({ status: 202, omit: ["client_secret"] })
+  });
+  const result = await provisionFounderAttendedCreateReceiptV2TestOnly({
+    ...common({ artifactRoot: fixture.artifactRoot, store: fixture.store }),
+    transport: remote
+  });
+  assert.equal(result.outcome, "COMPENSATED");
+  assert.deepEqual(reasons(fixture), [
+    "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+    "CREATE_CLIENT_SECRET_MISSING",
+    "COMPENSATION_CONFIRMED"
   ]);
 });
 
@@ -527,7 +593,10 @@ test("Keychain failure rolls back locally before separately authorized compensat
     "GET", "POST", "GET", "DELETE", "GET"
   ]);
   assert.deepEqual(reasons(fixture), [
-    "CREATE_RESPONSE_ACCEPTED", "KEYCHAIN_STORAGE_REJECTED", "COMPENSATION_CONFIRMED"
+    "CREATE_HTTP_STATUS_DOCUMENTED_200",
+    "CREATE_RESPONSE_ACCEPTED",
+    "KEYCHAIN_STORAGE_REJECTED",
+    "COMPENSATION_CONFIRMED"
   ]);
 });
 
@@ -575,7 +644,10 @@ test("append-only reason evidence contains only fixed codes and no response mate
   const reasonText = allFiles(join(fixture.artifactRoot, "create-receipt-classifications"))
     .map(path => readFileSync(path, "utf8"))
     .join("");
-  assert.equal(reasonText, "CREATE_RESPONSE_ACCEPTED\n");
+  assert.equal(
+    reasonText,
+    "CREATE_HTTP_STATUS_DOCUMENTED_200\nCREATE_RESPONSE_ACCEPTED\n"
+  );
   assert.doesNotMatch(reasonText, new RegExp(fixtureTokenId, "u"));
   assert.doesNotMatch(reasonText, new RegExp(fixtureClientSecret, "u"));
   assert.doesNotMatch(reasonText, new RegExp(fixtureAccountId, "u"));

@@ -213,69 +213,104 @@ function timestampsValid(result) {
 function createEvaluation(reasonCode, {
   proofCandidateTokenId = null,
   credentials = null,
-  accepted = false
+  accepted = false,
+  httpStatusClass = "NON_2XX",
+  httpStatusReasonCode = "CREATE_HTTP_STATUS_NON_2XX"
 } = {}) {
   return Object.freeze({
     accepted,
     reasonCode: fixedReasonCode(reasonCode),
     proofCandidateTokenId,
-    credentials
+    credentials,
+    httpStatusClass,
+    httpStatusReasonCode: fixedReasonCode(httpStatusReasonCode)
+  });
+}
+
+function classifyCreateHttpStatus(status) {
+  if (!Number.isSafeInteger(status) || status < 100 || status > 599) {
+    return Object.freeze({
+      successCompatible: false,
+      httpStatusClass: "NON_2XX",
+      httpStatusReasonCode: "CREATE_HTTP_STATUS_NON_2XX"
+    });
+  }
+  if (status === 200) {
+    return Object.freeze({
+      successCompatible: true,
+      httpStatusClass: "DOCUMENTED_200",
+      httpStatusReasonCode: "CREATE_HTTP_STATUS_DOCUMENTED_200"
+    });
+  }
+  if (status >= 200 && status < 300) {
+    return Object.freeze({
+      successCompatible: true,
+      httpStatusClass: "ALTERNATE_2XX",
+      httpStatusReasonCode: "CREATE_HTTP_STATUS_ALTERNATE_2XX"
+    });
+  }
+  return Object.freeze({
+    successCompatible: false,
+    httpStatusClass: "NON_2XX",
+    httpStatusReasonCode: "CREATE_HTTP_STATUS_NON_2XX"
   });
 }
 
 function evaluateCreateResponse(response) {
-  if (!response || response.status !== 200) {
+  const status = classifyCreateHttpStatus(response?.status);
+  if (!status.successCompatible) {
     if (Buffer.isBuffer(response?.body)) response.body.fill(0);
-    return createEvaluation("CREATE_HTTP_STATUS_REJECTED");
+    return createEvaluation("CREATE_HTTP_STATUS_REJECTED", status);
   }
   const envelope = parseResponseBody(response);
-  if (!envelope) return createEvaluation("CREATE_BODY_REJECTED");
+  if (!envelope) return createEvaluation("CREATE_BODY_REJECTED", status);
   if (typeof envelope !== "object"
     || Array.isArray(envelope)
     || envelope.success !== true
     || (Object.hasOwn(envelope, "errors") && !Array.isArray(envelope.errors))
     || (Object.hasOwn(envelope, "messages") && !Array.isArray(envelope.messages))) {
-    return createEvaluation("CREATE_ENVELOPE_REJECTED");
+    return createEvaluation("CREATE_ENVELOPE_REJECTED", status);
   }
   if (Array.isArray(envelope.errors) && envelope.errors.length !== 0) {
-    return createEvaluation("CREATE_ERRORS_REPORTED");
+    return createEvaluation("CREATE_ERRORS_REPORTED", status);
   }
   const result = envelope.result;
   if (!result || typeof result !== "object" || Array.isArray(result)) {
-    return createEvaluation("CREATE_RESULT_REJECTED");
+    return createEvaluation("CREATE_RESULT_REJECTED", status);
   }
   if (!Object.hasOwn(result, "id")) {
-    return createEvaluation("CREATE_RESOURCE_ID_MISSING");
+    return createEvaluation("CREATE_RESOURCE_ID_MISSING", status);
   }
   if (!RESOURCE_ID_PATTERN.test(result.id)) {
-    return createEvaluation("CREATE_RESOURCE_ID_REJECTED");
+    return createEvaluation("CREATE_RESOURCE_ID_REJECTED", status);
   }
   const proofCandidateTokenId = result.id;
   if (Object.hasOwn(result, "name")
     && result.name !== CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_SERVICE_TOKEN_NAME) {
-    return createEvaluation("CREATE_NAME_ECHO_MISMATCH");
+    return createEvaluation("CREATE_NAME_ECHO_MISMATCH", status);
   }
   if (Object.hasOwn(result, "duration")
     && result.duration !== CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_SERVICE_TOKEN_DURATION) {
-    return createEvaluation("CREATE_DURATION_ECHO_MISMATCH");
+    return createEvaluation("CREATE_DURATION_ECHO_MISMATCH", status);
   }
   if (!Object.hasOwn(result, "client_id") || result.client_id === "") {
-    return createEvaluation("CREATE_CLIENT_ID_MISSING", { proofCandidateTokenId });
+    return createEvaluation("CREATE_CLIENT_ID_MISSING", { ...status, proofCandidateTokenId });
   }
   if (!CLIENT_ID_PATTERN.test(result.client_id)) {
-    return createEvaluation("CREATE_CLIENT_ID_REJECTED", { proofCandidateTokenId });
+    return createEvaluation("CREATE_CLIENT_ID_REJECTED", { ...status, proofCandidateTokenId });
   }
   if (!Object.hasOwn(result, "client_secret") || result.client_secret === "") {
-    return createEvaluation("CREATE_CLIENT_SECRET_MISSING", { proofCandidateTokenId });
+    return createEvaluation("CREATE_CLIENT_SECRET_MISSING", { ...status, proofCandidateTokenId });
   }
   if (!CLIENT_SECRET_PATTERN.test(result.client_secret)) {
-    return createEvaluation("CREATE_CLIENT_SECRET_REJECTED", { proofCandidateTokenId });
+    return createEvaluation("CREATE_CLIENT_SECRET_REJECTED", { ...status, proofCandidateTokenId });
   }
   if (!timestampsValid(result)) {
-    return createEvaluation("CREATE_TIMESTAMP_REJECTED", { proofCandidateTokenId });
+    return createEvaluation("CREATE_TIMESTAMP_REJECTED", { ...status, proofCandidateTokenId });
   }
   return createEvaluation("CREATE_RESPONSE_ACCEPTED", {
     accepted: true,
+    ...status,
     proofCandidateTokenId,
     credentials: Object.freeze({
       clientId: Buffer.from(result.client_id, "utf8"),
@@ -290,6 +325,7 @@ export function classifyFounderAttendedCreateReceiptV2ResponseTestOnly(response)
     return Object.freeze({
       accepted: evaluation.accepted,
       reasonCode: evaluation.reasonCode,
+      httpStatusClass: evaluation.httpStatusClass,
       compensationCandidate: evaluation.proofCandidateTokenId !== null,
       exactNameProofRequired: evaluation.proofCandidateTokenId !== null
     });
@@ -645,6 +681,7 @@ export async function provisionFounderAttendedCreateReceiptV2TestOnly(options) {
   }
 
   const evaluation = evaluateCreateResponse(response);
+  reason(evaluation.httpStatusReasonCode);
   if (!evaluation.accepted) reason(evaluation.reasonCode);
   if (evaluation.proofCandidateTokenId === null) {
     phase("CREATE_RESPONSE_INVALID");

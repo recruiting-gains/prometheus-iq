@@ -1,0 +1,78 @@
+{
+  "contractVersion": "cloudflare-founder-attended-successful-response-reconciliation-v1",
+  "batchId": "BATCH-20260715-005",
+  "directive": "Route IQ Cloudflare Service-Token Successful-Response Reconciliation v1",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_SOURCE_NOT_EXECUTED",
+  "baseline": {
+    "commit": "327baa7085a5013f765c4a46eda07af5ad5470bb",
+    "tree": "361e4d88b7a9f4afb1d30b95831416dfe1836342",
+    "branch": "main",
+    "cleanAtStart": true,
+    "pushPerformed": false,
+    "deploymentPerformed": false,
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialActionPerformed": false,
+    "productionMutationPerformed": false,
+    "temporaryApiTokenPreserved": true
+  },
+  "observedLiveEvidence": {
+    "freshExactNameGetProvedAbsence": true,
+    "singleCreateAttemptObserved": true,
+    "manualReviewReasonObserved": "CREATE_HTTP_STATUS_REJECTED",
+    "exactTokenLaterAppeared": true,
+    "keychainStorageOccurred": false,
+    "founderDeletedOnlyExactToken": true,
+    "exactNameNowAbsent": true,
+    "otherCloudflareChangeObserved": false
+  },
+  "officialContracts": {
+    "retrievedOn": "2026-07-15",
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "documentedHttpStatus": 200,
+      "resultOptionalInSchema": true,
+      "idOptionalInSchema": true,
+      "clientIdOptionalInSchema": true,
+      "clientSecretOptionalInSchema": true,
+      "nameOptionalInSchema": true,
+      "durationOptionalInSchema": true
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "fixedQueryKeys": ["name", "page", "per_page"],
+      "resultOptionalInSchema": true,
+      "resultInfoOptionalInSchema": true
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "documentedHttpStatus": 200,
+      "serviceTokenResultDocumented": true
+    }
+  },
+  "statusReconciliation": {
+    "persistedStatusReasonCodes": [
+      "CREATE_HTTP_STATUS_DOCUMENTED_200",
+      "CREATE_HTTP_STATUS_ALTERNATE_2XX",
+      "CREATE_HTTP_STATUS_NON_2XX"
+    ],
+    "bounded2xxEligibleOnlyForFurtherValidation": true,
+    "statusAloneCanReachSuccess": false,
+    "non2xxCanReachSuccess": false,
+    "transportUncertaintyCanReachSuccess": false,
+    "successStillRequiresValidEnvelope": true,
+    "successStillRequiresValidClientId": true,
+    "successStillRequiresValidClientSecret": true,
+    "successStillRequiresExactReturnedIdProof": true,
+    "successStillRequiresExactNameProof": true,
+    "successStillRequiresExactDurationProof": true,
+    "proofDuration": "720h"
+  },
+  "runtimeBoundaries": {
+    "existingControlsReceiptsAndEvidenceModified": false,
+    "existingControlsReceiptsAndEvidenceAccessed": false,
+    "realExecutionAuthorized": false,
+    "nextSafeCommand": "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs"
+  }
+}

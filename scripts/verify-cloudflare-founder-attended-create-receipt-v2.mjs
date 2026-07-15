@@ -99,6 +99,12 @@ function verifyWorkflowBoundary() {
   assert.doesNotMatch(workflow, /setTimeout|maxRetries|retryAfter|automaticRetry/iu);
   assert.match(workflow, /CLIENT_ID_PATTERN/u);
   assert.match(workflow, /CLIENT_SECRET_PATTERN/u);
+  assert.match(workflow, /classifyCreateHttpStatus/u);
+  assert.match(workflow, /status >= 200 && status < 300/u);
+  assert.match(workflow, /httpStatusReasonCode: "CREATE_HTTP_STATUS_DOCUMENTED_200"/u);
+  assert.match(workflow, /httpStatusReasonCode: "CREATE_HTTP_STATUS_ALTERNATE_2XX"/u);
+  assert.match(workflow, /httpStatusReasonCode: "CREATE_HTTP_STATUS_NON_2XX"/u);
+  assert.match(workflow, /reason\(evaluation\.httpStatusReasonCode\)/u);
   assert.match(workflow, /CREATE_CLIENT_ID_MISSING/u);
   assert.match(workflow, /CREATE_CLIENT_ID_REJECTED/u);
   assert.match(workflow, /CREATE_CLIENT_SECRET_MISSING/u);
@@ -124,7 +130,7 @@ function verifyWorkflowBoundary() {
   const durationMismatch = workflow.indexOf("CREATE_DURATION_ECHO_MISMATCH", mismatchStart);
   assert.match(
     workflow.slice(mismatchStart, durationMismatch),
-    /CREATE_NAME_ECHO_MISMATCH"\);/u
+    /CREATE_NAME_ECHO_MISMATCH", status\);/u
   );
   assert.doesNotMatch(workflow.slice(mismatchStart, durationMismatch), /proofCandidateTokenId/u);
 
@@ -228,6 +234,15 @@ function verifyMetadata() {
   assert.equal(Object.keys(CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_CONFIRMATIONS).length, 4);
   assert.equal(new Set(CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES).size,
     CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES.length);
+  assert.ok(CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES.includes(
+    "CREATE_HTTP_STATUS_DOCUMENTED_200"
+  ));
+  assert.ok(CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES.includes(
+    "CREATE_HTTP_STATUS_ALTERNATE_2XX"
+  ));
+  assert.ok(CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_REASON_CODES.includes(
+    "CREATE_HTTP_STATUS_NON_2XX"
+  ));
 }
 
 function verifySecretSafety() {
@@ -245,7 +260,7 @@ export function verifyCloudflareFounderAttendedCreateReceiptV2() {
   return Object.freeze({
     status: "passed",
     batchId: CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_BATCH_ID,
-    focusedTopLevelTests: 19,
+    focusedTopLevelTests: 21,
     v1SourceModified: false,
     v1ControlsReceiptsOrEvidenceAccessed: false,
     cloudflareApiContacted: false,
