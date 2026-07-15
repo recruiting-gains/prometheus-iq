@@ -167,25 +167,6 @@ private func syntheticAccess() -> SecAccess? {
     return access
 }
 
-private func findSyntheticItem() -> SecKeychainItem? {
-    var item: SecKeychainItem?
-    let status = service.withCString { servicePointer in
-        account.withCString { accountPointer in
-            SecKeychainFindGenericPassword(
-                nil,
-                UInt32(strlen(servicePointer)),
-                servicePointer,
-                UInt32(strlen(accountPointer)),
-                accountPointer,
-                nil,
-                nil,
-                &item
-            )
-        }
-    }
-    return status == errSecSuccess ? item : nil
-}
-
 private func snapshot(_ item: SecKeychainItem) -> [ACLSnapshot]? {
     var access: SecAccess?
     var copiedACLs: CFArray?
@@ -366,19 +347,41 @@ private func interactionStatus() -> Int32 {
     return process.terminationStatus
 }
 
+private func setAccessFailureExitCode(_ status: OSStatus) -> Int32 {
+    switch status {
+    case errSecInvalidItemRef:
+        return 81
+    case errSecAuthFailed:
+        return 82
+    case errSecInteractionNotAllowed:
+        return 83
+    case errSecNotAvailable:
+        return 84
+    case errSecParam, errSecUnimplemented:
+        return 85
+    default:
+        return 89
+    }
+}
+
 var syntheticValue = Data("synthetic-nonproduction-value".utf8)
 defer { wipe(&syntheticValue) }
 guard let access = syntheticAccess() else { exit(65) }
-let attributes: [String: Any] = [
+var attributes: [String: Any] = [
     kSecClass as String: kSecClassGenericPassword,
     kSecAttrService as String: service,
     kSecAttrAccount as String: account,
     kSecValueData as String: syntheticValue,
     kSecUseDataProtectionKeychain as String: kCFBooleanFalse as Any
 ]
-guard SecItemAdd(attributes as CFDictionary, nil) == errSecSuccess else { exit(66) }
-guard let item = findSyntheticItem() else { exit(67) }
-guard SecKeychainItemSetAccess(item, access) == errSecSuccess else { exit(68) }
+attributes[kSecReturnRef as String] = kCFBooleanTrue as Any
+var createdItem: CFTypeRef?
+guard SecItemAdd(attributes as CFDictionary, &createdItem) == errSecSuccess else { exit(66) }
+guard let createdItem,
+      CFGetTypeID(createdItem) == SecKeychainItemGetTypeID() else { exit(67) }
+let item = createdItem as! SecKeychainItem
+let setAccessStatus = SecKeychainItemSetAccess(item, access)
+guard setAccessStatus == errSecSuccess else { exit(setAccessFailureExitCode(setAccessStatus)) }
 guard let initialSnapshot = snapshot(item) else { exit(69) }
 guard let initialState = exactComponentState(item),
       !initialState.retrieval,
@@ -386,7 +389,7 @@ guard let initialState = exactComponentState(item),
 let initialReadStatus = interactionStatus()
 // Both security(1) interaction statuses are classified as
 // INTERACTION_REQUIRED by the fixed unattended classifier.
-guard [36, 128].contains(initialReadStatus) else { exit(120 + initialReadStatus) }
+guard [36, 128].contains(initialReadStatus) else { exit(77) }
 guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { exit(70) }
 guard runSilent(helperPath, ["grant", helperAlias], expectedStatus: 32) else { exit(71) }
 guard verifyMinimumGrant(item) else { exit(72) }

@@ -85,6 +85,7 @@
     "servicePrefix": "com.prometheus.synthetic.keychain-acl-v2.",
     "account": "SYNTHETIC_NONPRODUCTION_ITEM",
     "createdThroughSecItemAdd": true,
+    "usesSecItemAddReturnReference": true,
     "initialSecurityTrust": "NONE",
     "initialNoninteractiveRead": "INTERACTION_REQUIRED",
     "compileTimeTestOnlyAlias": "NATIVE_E2E_SYNTHETIC",
@@ -92,6 +93,15 @@
     "validatesDecryptOnlyWithoutExportClear": true,
     "executesNoninteractiveSecurityRead": true,
     "helperRevokeRestoresInitialAclSnapshot": true,
+    "syntheticSetAccessFailureStates": [
+      "SET_ACCESS_INVALID_ITEM_REFERENCE",
+      "SET_ACCESS_AUTH_FAILED",
+      "SET_ACCESS_INTERACTION_REQUIRED",
+      "SET_ACCESS_KEYCHAIN_UNAVAILABLE",
+      "SET_ACCESS_UNSUPPORTED_OR_INVALID_PARAMETERS",
+      "SET_ACCESS_UNCLASSIFIED_FAILURE"
+    ],
+    "rawOsStatusOutputAllowed": false,
     "capturedSyntheticBuffersWiped": true,
     "deletesSyntheticItem": true,
     "verifiesPostCleanupAbsence": true

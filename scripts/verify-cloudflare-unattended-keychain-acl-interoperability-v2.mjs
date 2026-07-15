@@ -101,11 +101,21 @@ assert.equal(contract.authorizationRepair.currentItemRestoreRequiredOnVerificati
 assert.equal(contract.authorizationRepair.reverseRollbackRequiredOnPartialFailure, true);
 assert.equal(contract.authorizationRepair.allFourNoninteractiveReadsRequiredForPass, true);
 assert.equal(contract.nativeFixture.createdThroughSecItemAdd, true);
+assert.equal(contract.nativeFixture.usesSecItemAddReturnReference, true);
 assert.equal(contract.nativeFixture.initialSecurityTrust, "NONE");
 assert.equal(contract.nativeFixture.initialNoninteractiveRead, "INTERACTION_REQUIRED");
 assert.equal(contract.nativeFixture.compileTimeTestOnlyAlias, "NATIVE_E2E_SYNTHETIC");
 assert.equal(contract.nativeFixture.validatesDecryptOnlyWithoutExportClear, true);
 assert.equal(contract.nativeFixture.helperRevokeRestoresInitialAclSnapshot, true);
+assert.deepEqual(contract.nativeFixture.syntheticSetAccessFailureStates, [
+  "SET_ACCESS_INVALID_ITEM_REFERENCE",
+  "SET_ACCESS_AUTH_FAILED",
+  "SET_ACCESS_INTERACTION_REQUIRED",
+  "SET_ACCESS_KEYCHAIN_UNAVAILABLE",
+  "SET_ACCESS_UNSUPPORTED_OR_INVALID_PARAMETERS",
+  "SET_ACCESS_UNCLASSIFIED_FAILURE"
+]);
+assert.equal(contract.nativeFixture.rawOsStatusOutputAllowed, false);
 assert.equal(contract.nativeFixture.capturedSyntheticBuffersWiped, true);
 assert.equal(contract.provenanceRepair.predecessorCommit, "348978de14a09651565c84c0b445b8371c496131");
 assert.equal(contract.provenanceRepair.classification, "LOCAL_PROVENANCE_METADATA_GAP");
@@ -172,8 +182,9 @@ assert.doesNotMatch(command, /node:https|fetch\(|wrangler|deploy/u);
 
 assert.match(nativeFixture, /SYNTHETIC_NONPRODUCTION_ITEM/u);
 assert.match(nativeFixture, /requiredPartition = "apple-tool:"/u);
-assert.match(nativeFixture, /nil,\s*nil,\s*&item/su);
 assert.match(nativeFixture, /SecItemAdd/u);
+assert.match(nativeFixture, /kSecReturnRef/u);
+assert.match(nativeFixture, /setAccessFailureExitCode/u);
 assert.match(nativeFixture, /INTERACTION_REQUIRED by the fixed unattended classifier/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["grant", helperAlias\], expectedStatus: 32\)/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["revoke", helperAlias, "both"\], expectedStatus: 42\)/u);
@@ -181,9 +192,13 @@ assert.match(nativeFixture, /rights == Set\(\[decrypt\]\)/u);
 assert.match(nativeFixture, /snapshot\(item\) == initialSnapshot/u);
 assert.doesNotMatch(nativeFixture, /CLOUDFLARE_API_TOKEN|CLOUDFLARE_ACCOUNT_ID/u);
 assert.doesNotMatch(nativeFixture, /SecKeychainItemCopyContent|SecItemCopyMatching/u);
+assert.doesNotMatch(nativeFixture, /SecKeychainFindGenericPassword/u);
+assert.doesNotMatch(nativeFixture, /print\(|FileHandle\.standardOutput/u);
 assert.match(nativeVerifier, /delete-generic-password/u);
 assert.match(nativeVerifier, /postflight\.status === 44/u);
 assert.match(nativeVerifier, /KEYCHAIN_ACL_V2_NATIVE_E2E/u);
+assert.match(nativeVerifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
+assert.match(nativeVerifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
 assert.doesNotMatch(nativeVerifier, /add-generic-password|-T/u);
 
 assert.match(documentation, /minimum repair is therefore an exact trusted-application ACL/u);

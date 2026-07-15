@@ -624,6 +624,23 @@ test("native macOS fixture proves apple-tool retrieval and removes its synthetic
   }), { status: "PASS" });
 });
 
+test("native fixture keeps the SecItemAdd result reference and reports only fixed setup states", () => {
+  const fixture = readFileSync(
+    resolve("scripts/helpers/cloudflare-unattended-keychain-acl-v2-native-fixture.swift"),
+    "utf8"
+  );
+  const verifier = readFileSync(
+    resolve("scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs"),
+    "utf8"
+  );
+  assert.match(fixture, /kSecReturnRef/u);
+  assert.match(fixture, /setAccessFailureExitCode/u);
+  assert.doesNotMatch(fixture, /SecKeychainFindGenericPassword/u);
+  assert.doesNotMatch(fixture, /print\(|FileHandle\.standardOutput/u);
+  assert.match(verifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
+  assert.match(verifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
+});
+
 test("all evidence remains fixed-vocabulary and secret-free", t => {
   const artifactRoot = tempArtifactRoot(t);
   recordFailure(artifactRoot);

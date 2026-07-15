@@ -18,6 +18,14 @@ const helperSource = resolve(
 );
 const account = "SYNTHETIC_NONPRODUCTION_ITEM";
 const maximumBuffer = 64 * 1024;
+const fixtureFailures = Object.freeze({
+  81: "SET_ACCESS_INVALID_ITEM_REFERENCE",
+  82: "SET_ACCESS_AUTH_FAILED",
+  83: "SET_ACCESS_INTERACTION_REQUIRED",
+  84: "SET_ACCESS_KEYCHAIN_UNAVAILABLE",
+  85: "SET_ACCESS_UNSUPPORTED_OR_INVALID_PARAMETERS",
+  89: "SET_ACCESS_UNCLASSIFIED_FAILURE"
+});
 
 function wipe(result) {
   if (Buffer.isBuffer(result?.stdout)) result.stdout.fill(0);
@@ -86,6 +94,9 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
     wipe(compileFixture);
 
     const e2e = run(fixtureBinary, [helperBinary, attemptId]);
+    if (Object.hasOwn(fixtureFailures, e2e.status)) {
+      throw new Error(`native_fixture_${fixtureFailures[e2e.status]}`);
+    }
     assert.equal(e2e.status, 0);
     assert.equal(e2e.stdout.length, 0);
     assert.equal(e2e.stderr.length, 0);
