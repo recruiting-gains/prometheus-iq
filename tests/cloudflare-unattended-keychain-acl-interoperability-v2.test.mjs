@@ -28,7 +28,11 @@ import {
   rollbackCloudflareUnattendedKeychainAclV2
 } from "../scripts/lib/cloudflare-unattended-keychain-acl-interoperability-v2.mjs";
 import {
-  verifyNativeKeychainAclV2
+  verifyNativeKeychainAclV2,
+  verifyNativeKeychainAclV2AuthorizationMatrix,
+  verifyNativeKeychainAclV2AuthorizationMatrixReverse,
+  verifyNativeKeychainAclV2Matrix,
+  verifyNativeKeychainAclV2MatrixReverse
 } from "../scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs";
 
 const HEAD = "a".repeat(40);
@@ -640,20 +644,42 @@ test("native fixture keeps the SecItemAdd result reference and reports only fixe
   assert.match(fixture, /keychainPathsDisappearWithinBound/u);
   assert.match(fixture, /POSITIVE_READ_STARTED/u);
   assert.match(fixture, /RESTORE_VALIDATED/u);
+  assert.match(fixture, /MATRIX_APPLE_TOOL_ONLY/u);
+  assert.match(fixture, /MATRIX_APPLE_ONLY/u);
+  assert.match(fixture, /MATRIX_APPLE_TOOL_PLUS_APPLE/u);
+  assert.match(fixture, /MATRIX_DECRYPT_ONLY/u);
+  assert.match(fixture, /MATRIX_EXPORT_CLEAR_ONLY/u);
+  assert.match(fixture, /MATRIX_DECRYPT_PLUS_EXPORT_CLEAR/u);
+  assert.match(fixture, /kSecACLAuthorizationExportClear/u);
   assert.match(fixture, /syntheticOnlyExecutable = CommandLine\.arguments\.first/u);
-  assert.match(fixture, /setAccessFailureExitCode/u);
+  assert.match(fixture, /kSecAttrAccess as String: access/u);
+  assert.match(fixture, /itemCreateFailureExitCode/u);
+  assert.doesNotMatch(fixture, /SecKeychainSetUserInteractionAllowed/u);
+  assert.match(fixture, /SecKeychainCopyDomainSearchList/u);
+  assert.match(fixture, /SecKeychainCopyDomainDefault/u);
+  assert.match(fixture, /SecKeychainGetPath/u);
+  assert.match(fixture, /\[syntheticOnlyApplication, helperApplication\] as CFArray/u);
+  assert.match(fixture, /kSecACLAuthorizationChangeACL/u);
+  assert.match(fixture, /verifyInitialAdministrativeACL/u);
+  assert.match(fixture, /waitForBoundedExit/u);
   assert.match(fixture, /findPersistedSyntheticItem/u);
-  assert.match(fixture, /initialReadFailureExitCode/u);
+  assert.doesNotMatch(fixture, /SecKeychainItemSetAccess/u);
   assert.doesNotMatch(fixture, /print\(|FileHandle\.standardOutput/u);
   assert.doesNotMatch(fixture, /\/usr\/bin\/true/u);
-  assert.match(verifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
-  assert.match(verifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
-  assert.match(verifier, /INITIAL_READ_UNCLASSIFIED_FAILURE/u);
+  assert.match(verifier, /ITEM_CREATE_INTERACTION_DISALLOWED/u);
   assert.match(verifier, /fixture\.keychain-db/u);
-  assert.match(verifier, /list-keychains/u);
-  assert.match(verifier, /default-keychain/u);
   assert.match(verifier, /if \(primaryError\) throw primaryError/u);
   assert.match(verifier, /native_fixture_timeout_after_\$\{timeoutPhase\(phasePath\)\}/u);
+  assert.match(verifier, /USER_KEYCHAIN_SELECTION_CHANGED/u);
+  assert.match(verifier, /HELPER_GRANT_FAILED_OR_TIMEOUT/u);
+  assert.match(verifier, /SUSPICIOUS_COMBINATION_ONLY/u);
+  assert.match(verifier, /SUSPICIOUS_APPLE_ONLY_PASS/u);
+  assert.match(verifier, /process\.exitCode = 1/u);
+  assert.equal(typeof verifyNativeKeychainAclV2Matrix, "function");
+  assert.equal(typeof verifyNativeKeychainAclV2MatrixReverse, "function");
+  assert.equal(typeof verifyNativeKeychainAclV2AuthorizationMatrix, "function");
+  assert.equal(typeof verifyNativeKeychainAclV2AuthorizationMatrixReverse, "function");
+  assert.doesNotMatch(verifier, /list-keychains|default-keychain/u);
 });
 
 test("all evidence remains fixed-vocabulary and secret-free", t => {

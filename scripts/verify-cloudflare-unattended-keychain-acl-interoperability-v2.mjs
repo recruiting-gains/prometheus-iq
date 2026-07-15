@@ -65,6 +65,7 @@ assert.equal(contract.contractVersion, "cloudflare-unattended-keychain-acl-inter
 assert.equal(contract.batchId, "BATCH-20260715-009");
 assert.equal(contract.implementationOwner, "Prometheus Infrastructure");
 assert.equal(contract.verificationOwner, "Prometheus Overwatch");
+assert.equal(contract.status, "FOUNDER_REVIEW_REQUIRED_NATIVE_REPRODUCIBILITY_BLOCKED");
 assert.equal(contract.predecessor.artifactsImmutable, true);
 assert.equal(contract.predecessor.reuseAllowed, false);
 assert.equal(contract.scope.cloudflareContactAllowed, false);
@@ -85,7 +86,16 @@ assert.deepEqual(contract.rootCause.independentAuthorizationTags, [
   "kSecACLAuthorizationDecrypt",
   "kSecACLAuthorizationPartitionID"
 ]);
+assert.equal(contract.rootCause.securityToolCodeIdentifier, "com.apple.security");
 assert.equal(contract.rootCause.provenSecurityToolPartition, "apple-tool:");
+assert.equal(contract.rootCause.otherAppleSignedPartition, "apple:");
+assert.equal(
+  contract.rootCause.securityToolPartitionIdentitySource,
+  "Security/securityd/src/clientid.cpp"
+);
+assert.equal(contract.rootCause.partitionMembershipSource, "Security/securityd/src/acls.cpp");
+assert.equal(contract.rootCause.partitionMatchOperation, "CFArrayContainsValue");
+assert.equal(contract.rootCause.combinedAppleSelectorOnlyPassAccepted, false);
 assert.equal(contract.rootCause.broaderPartitionSelectorsAllowed, false);
 assert.equal(contract.authorizationRepair.fixedTrustedExecutable, "/usr/bin/security");
 assert.deepEqual(contract.authorizationRepair.retrievalAclAuthorizations, [
@@ -101,6 +111,7 @@ assert.equal(contract.authorizationRepair.currentItemRestoreRequiredOnVerificati
 assert.equal(contract.authorizationRepair.reverseRollbackRequiredOnPartialFailure, true);
 assert.equal(contract.authorizationRepair.allFourNoninteractiveReadsRequiredForPass, true);
 assert.equal(contract.nativeFixture.createdThroughSecItemAdd, true);
+assert.equal(contract.nativeFixture.initialAccessAssignedAtSecItemAdd, true);
 assert.equal(contract.nativeFixture.usesIsolatedTemporaryLegacyKeychain, true);
 assert.equal(contract.nativeFixture.temporaryKeychainCreatedWith, "SecKeychainCreate");
 assert.equal(contract.nativeFixture.temporaryKeychainDeletedWith, "SecKeychainDelete");
@@ -108,15 +119,60 @@ assert.equal(contract.nativeFixture.temporaryKeychainFilesystemAbsenceVerified, 
 assert.equal(contract.nativeFixture.temporaryKeychainSidecarAbsenceVerified, true);
 assert.equal(contract.nativeFixture.temporaryKeychainDeletionWaitMaximumMilliseconds, 1000);
 assert.equal(contract.nativeFixture.mutatesUserSearchListOrDefaultKeychain, false);
-assert.equal(contract.nativeFixture.userKeychainSelectionByteUnchangedBeforeAfter, true);
+assert.equal(contract.nativeFixture.userKeychainSelectionNativePathsUnchangedBeforeAfter, true);
+assert.equal(
+  contract.nativeFixture.userKeychainSelectionSnapshotImplementation,
+  "SecKeychainCopyDomainSearchList+SecKeychainCopyDomainDefault"
+);
+assert.equal(contract.nativeFixture.userKeychainSelectionPathsNormalizedWith, "SecKeychainGetPath");
 assert.equal(contract.nativeFixture.usesSecItemAddReturnReference, true);
+assert.deepEqual(contract.nativeFixture.initialAdministrativeTrustedApplications, [
+  "SYNTHETIC_FIXTURE",
+  "NATIVE_E2E_HELPER"
+]);
+assert.equal(
+  contract.nativeFixture.initialAdministrativeAuthorization,
+  "kSecACLAuthorizationChangeACL"
+);
+assert.equal(contract.nativeFixture.childProcessTimeoutMilliseconds, 5000);
+assert.equal(contract.nativeFixture.userInteractionSuppressionUsed, false);
 assert.equal(contract.nativeFixture.initialSecurityTrust, "NONE");
 assert.equal(
   contract.nativeFixture.initialNegativeEvidence,
   "STRUCTURAL_ACL_ABSENCE_WITH_IMMUTABLE_REAL_ITEM_INTERACTION_REQUIRED_EVIDENCE"
 );
 assert.equal(contract.nativeFixture.compileTimeTestOnlyAlias, "NATIVE_E2E_SYNTHETIC");
-assert.equal(contract.nativeFixture.validatesDecryptOnlyWithoutExportClear, true);
+assert.equal(
+  contract.nativeFixture.decryptOnlyWithoutExportClearMustBeValidatedBeforePromotion,
+  true
+);
+assert.deepEqual(contract.nativeFixture.selectorMatrixPartitionSets, [
+  ["apple-tool:"],
+  ["apple:"],
+  ["apple-tool:", "apple:"]
+]);
+assert.deepEqual(contract.nativeFixture.selectorMatrixRequiredStandalonePass, ["apple-tool:"]);
+assert.equal(contract.nativeFixture.appleOnlyPassAccepted, false);
+assert.equal(contract.nativeFixture.selectorCombinationOnlyPassAccepted, false);
+assert.equal(contract.nativeFixture.authorizationMatrixFixedPartitionSelector, "apple-tool:");
+assert.deepEqual(contract.nativeFixture.authorizationMatrixAuthorizationSets, [
+  ["kSecACLAuthorizationDecrypt"],
+  ["kSecACLAuthorizationExportClear"],
+  ["kSecACLAuthorizationDecrypt", "kSecACLAuthorizationExportClear"]
+]);
+assert.equal(contract.nativeFixture.matrixTrustedExecutable, "/usr/bin/security");
+assert.equal(contract.nativeFixture.matrixAllowsNilOrBroadTrustedApplicationList, false);
+assert.equal(contract.nativeFixture.matrixCaseTimeoutMilliseconds, 5000);
+assert.equal(contract.nativeFixture.matrixTimeoutIsPass, false);
+assert.deepEqual(contract.nativeFixture.matrixOrderingsRequiredForAcceptance, [
+  "FORWARD",
+  "REVERSE"
+]);
+assert.equal(contract.nativeFixture.minimumIndependentLifecyclePassesRequired, 20);
+assert.equal(
+  contract.nativeFixture.productionAuthorizationMayChangeWithoutReproducibleMatrixProof,
+  false
+);
 assert.equal(contract.nativeFixture.securityReadUsesPositionalTemporaryKeychain, true);
 assert.equal(contract.nativeFixture.securityReadStdinClosed, true);
 assert.equal(contract.nativeFixture.helperUsesCompileTimeTemporaryKeychainOnly, true);
@@ -124,16 +180,30 @@ assert.equal(contract.nativeFixture.helperRevokeRestoresInitialAclSnapshot, true
 assert.equal(contract.nativeFixture.postRevokeNegativeEvidence, "STRUCTURAL_ACL_SNAPSHOT_RESTORATION");
 assert.equal(contract.nativeFixture.timeoutPhaseMarkers, true);
 assert.equal(contract.nativeFixture.timeoutIsFailure, true);
-assert.deepEqual(contract.nativeFixture.syntheticSetAccessFailureStates, [
-  "SET_ACCESS_INVALID_ITEM_REFERENCE",
-  "SET_ACCESS_AUTH_FAILED",
-  "SET_ACCESS_INTERACTION_REQUIRED",
-  "SET_ACCESS_KEYCHAIN_UNAVAILABLE",
-  "SET_ACCESS_UNSUPPORTED_OR_INVALID_PARAMETERS",
-  "SET_ACCESS_UNCLASSIFIED_FAILURE",
-  "INITIAL_READ_UNEXPECTEDLY_RETRIEVABLE",
-  "INITIAL_READ_LAUNCH_FAILED",
-  "INITIAL_READ_UNCLASSIFIED_FAILURE"
+assert.deepEqual(contract.nativeFixture.nativeFixtureFixedFailureStates, [
+  "KEYCHAIN_CREATE_FAILED",
+  "SYNTHETIC_ACCESS_OR_KEYCHAIN_UNLOCK_FAILED",
+  "ITEM_REFERENCE_INVALID",
+  "INITIAL_ACL_MISMATCH",
+  "HELPER_INSPECT_FAILED_OR_TIMEOUT",
+  "HELPER_GRANT_FAILED_OR_TIMEOUT",
+  "GRANT_ACL_MISMATCH",
+  "POSITIVE_READ_LAUNCH_FAILED",
+  "HELPER_REVOKE_FAILED_OR_TIMEOUT",
+  "POST_REVOKE_INSPECT_FAILED_OR_TIMEOUT",
+  "ACL_SNAPSHOT_RESTORE_FAILED",
+  "AUTHORIZATION_COMPONENT_RESTORE_FAILED",
+  "POSITIVE_READ_TIMEOUT",
+  "POSITIVE_READ_COMMAND_FAILED",
+  "POSITIVE_READ_OUTPUT_MISMATCH",
+  "ITEM_CREATE_INTERACTION_DISALLOWED",
+  "ITEM_CREATE_AUTH_FAILED",
+  "ITEM_CREATE_KEYCHAIN_UNAVAILABLE",
+  "ITEM_CREATE_UNSUPPORTED_OR_INVALID_PARAMETERS",
+  "ITEM_CREATE_UNCLASSIFIED_FAILURE",
+  "USER_KEYCHAIN_SELECTION_BEFORE_SNAPSHOT_FAILED",
+  "USER_KEYCHAIN_SELECTION_AFTER_SNAPSHOT_FAILED",
+  "USER_KEYCHAIN_SELECTION_CHANGED"
 ]);
 assert.equal(contract.nativeFixture.rawOsStatusOutputAllowed, false);
 assert.deepEqual(contract.nativeFixture.nativeCleanupFailureStates, [
@@ -218,9 +288,26 @@ assert.match(nativeFixture, /SecKeychainDelete/u);
 assert.match(nativeFixture, /keychainPathsAbsentNow/u);
 assert.match(nativeFixture, /keychainPathsDisappearWithinBound/u);
 assert.match(nativeFixture, /kSecReturnRef/u);
-assert.match(nativeFixture, /setAccessFailureExitCode/u);
+assert.match(nativeFixture, /kSecAttrAccess as String: access/u);
+assert.match(nativeFixture, /itemCreateFailureExitCode/u);
+assert.doesNotMatch(nativeFixture, /SecKeychainSetUserInteractionAllowed/u);
+assert.match(nativeFixture, /SecKeychainCopyDomainSearchList/u);
+assert.match(nativeFixture, /SecKeychainCopyDomainDefault/u);
+assert.match(nativeFixture, /SecKeychainGetPath/u);
+assert.match(nativeFixture, /\[syntheticOnlyApplication, helperApplication\] as CFArray/u);
+assert.match(nativeFixture, /kSecACLAuthorizationChangeACL/u);
+assert.match(nativeFixture, /verifyInitialAdministrativeACL/u);
+assert.match(nativeFixture, /waitForBoundedExit/u);
+assert.doesNotMatch(nativeFixture, /SecKeychainItemSetAccess/u);
 assert.match(nativeFixture, /POSITIVE_READ_STARTED/u);
 assert.match(nativeFixture, /RESTORE_VALIDATED/u);
+assert.match(nativeFixture, /MATRIX_APPLE_TOOL_ONLY/u);
+assert.match(nativeFixture, /MATRIX_APPLE_ONLY/u);
+assert.match(nativeFixture, /MATRIX_APPLE_TOOL_PLUS_APPLE/u);
+assert.match(nativeFixture, /MATRIX_DECRYPT_ONLY/u);
+assert.match(nativeFixture, /MATRIX_EXPORT_CLEAR_ONLY/u);
+assert.match(nativeFixture, /MATRIX_DECRYPT_PLUS_EXPORT_CLEAR/u);
+assert.match(nativeFixture, /kSecACLAuthorizationExportClear/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["grant", helperAlias\], expectedStatus: 32\)/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["revoke", helperAlias, "both"\], expectedStatus: 42\)/u);
 assert.match(nativeFixture, /rights == Set\(\[decrypt\]\)/u);
@@ -231,21 +318,22 @@ assert.doesNotMatch(nativeFixture, /\/usr\/bin\/true/u);
 assert.doesNotMatch(nativeFixture, /print\(|FileHandle\.standardOutput/u);
 assert.match(nativeVerifier, /fixture\.keychain-db/u);
 assert.match(nativeVerifier, /keychainPaths\.filter\(existsSync\)/u);
-assert.match(nativeVerifier, /list-keychains/u);
-assert.match(nativeVerifier, /default-keychain/u);
-assert.match(nativeVerifier, /sameUserKeychainSelection/u);
 assert.match(nativeVerifier, /if \(primaryError\) throw primaryError/u);
 assert.match(nativeVerifier, /native_fixture_timeout_after_\$\{timeoutPhase\(phasePath\)\}/u);
 assert.match(nativeVerifier, /PHASE_MARKER_WRITE_FAILED/u);
 assert.match(nativeVerifier, /KEYCHAIN_ACL_V2_NATIVE_E2E/u);
-assert.match(nativeVerifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
-assert.match(nativeVerifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
-assert.match(nativeVerifier, /INITIAL_READ_UNCLASSIFIED_FAILURE/u);
-assert.doesNotMatch(nativeVerifier, /add-generic-password|-T/u);
+assert.match(nativeVerifier, /ITEM_CREATE_INTERACTION_DISALLOWED/u);
+assert.match(nativeVerifier, /USER_KEYCHAIN_SELECTION_CHANGED/u);
+assert.match(nativeVerifier, /HELPER_GRANT_FAILED_OR_TIMEOUT/u);
+assert.match(nativeVerifier, /SUSPICIOUS_COMBINATION_ONLY/u);
+assert.match(nativeVerifier, /SUSPICIOUS_APPLE_ONLY_PASS/u);
+assert.match(nativeVerifier, /verifyNativeKeychainAclV2MatrixReverse/u);
+assert.match(nativeVerifier, /verifyNativeKeychainAclV2AuthorizationMatrixReverse/u);
+assert.doesNotMatch(nativeVerifier, /add-generic-password|-T|list-keychains|default-keychain/u);
 
-assert.match(documentation, /minimum repair is therefore an exact trusted-application ACL/u);
+assert.match(documentation, /selector identity for `\/usr\/bin\/security` is exactly `apple-tool:`/u);
 assert.match(documentation, /containing only `Decrypt`/u);
-assert.match(documentation, /extended only by `apple-tool:`/u);
+assert.match(documentation, /combination-only success is rejected/u);
 assert.match(documentation, /never reads, reuses, renames, deletes, or writes that namespace/u);
 assert.match(documentation, /Unattended deployment control: `OFF` and unconsumed/u);
 assert.match(documentation, /Recommendation influence: `OFF`/u);

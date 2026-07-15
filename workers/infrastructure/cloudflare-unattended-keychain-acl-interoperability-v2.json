@@ -4,7 +4,7 @@
   "product": "Prometheus Platform",
   "implementationOwner": "Prometheus Infrastructure",
   "verificationOwner": "Prometheus Overwatch",
-  "status": "IMPLEMENTED_PENDING_INDEPENDENT_OVERWATCH_AND_FOUNDER_ATTENDED_REMEDIATION",
+  "status": "FOUNDER_REVIEW_REQUIRED_NATIVE_REPRODUCIBILITY_BLOCKED",
   "predecessor": {
     "contractVersion": "cloudflare-unattended-keychain-interoperability-v1",
     "sourceHead": "7c79e77dc52dd6aa5eb687ea9a24128800d9a28d",
@@ -37,7 +37,13 @@
       "kSecACLAuthorizationDecrypt",
       "kSecACLAuthorizationPartitionID"
     ],
+    "securityToolCodeIdentifier": "com.apple.security",
     "provenSecurityToolPartition": "apple-tool:",
+    "otherAppleSignedPartition": "apple:",
+    "securityToolPartitionIdentitySource": "Security/securityd/src/clientid.cpp",
+    "partitionMembershipSource": "Security/securityd/src/acls.cpp",
+    "partitionMatchOperation": "CFArrayContainsValue",
+    "combinedAppleSelectorOnlyPassAccepted": false,
     "broaderPartitionSelectorsAllowed": false
   },
   "authorizationRepair": {
@@ -91,14 +97,64 @@
     "temporaryKeychainSidecarAbsenceVerified": true,
     "temporaryKeychainDeletionWaitMaximumMilliseconds": 1000,
     "mutatesUserSearchListOrDefaultKeychain": false,
-    "userKeychainSelectionByteUnchangedBeforeAfter": true,
+    "userKeychainSelectionNativePathsUnchangedBeforeAfter": true,
+    "userKeychainSelectionSnapshotImplementation": "SecKeychainCopyDomainSearchList+SecKeychainCopyDomainDefault",
+    "userKeychainSelectionPathsNormalizedWith": "SecKeychainGetPath",
     "createdThroughSecItemAdd": true,
+    "initialAccessAssignedAtSecItemAdd": true,
     "usesSecItemAddReturnReference": true,
+    "initialAdministrativeTrustedApplications": [
+      "SYNTHETIC_FIXTURE",
+      "NATIVE_E2E_HELPER"
+    ],
+    "initialAdministrativeAuthorization": "kSecACLAuthorizationChangeACL",
+    "childProcessTimeoutMilliseconds": 5000,
+    "userInteractionSuppressionUsed": false,
     "initialSecurityTrust": "NONE",
     "initialNegativeEvidence": "STRUCTURAL_ACL_ABSENCE_WITH_IMMUTABLE_REAL_ITEM_INTERACTION_REQUIRED_EVIDENCE",
     "compileTimeTestOnlyAlias": "NATIVE_E2E_SYNTHETIC",
     "validatesSecurityToolPartition": "apple-tool:",
-    "validatesDecryptOnlyWithoutExportClear": true,
+    "decryptOnlyWithoutExportClearMustBeValidatedBeforePromotion": true,
+    "selectorMatrixPartitionSets": [
+      [
+        "apple-tool:"
+      ],
+      [
+        "apple:"
+      ],
+      [
+        "apple-tool:",
+        "apple:"
+      ]
+    ],
+    "selectorMatrixRequiredStandalonePass": [
+      "apple-tool:"
+    ],
+    "appleOnlyPassAccepted": false,
+    "selectorCombinationOnlyPassAccepted": false,
+    "authorizationMatrixFixedPartitionSelector": "apple-tool:",
+    "authorizationMatrixAuthorizationSets": [
+      [
+        "kSecACLAuthorizationDecrypt"
+      ],
+      [
+        "kSecACLAuthorizationExportClear"
+      ],
+      [
+        "kSecACLAuthorizationDecrypt",
+        "kSecACLAuthorizationExportClear"
+      ]
+    ],
+    "matrixTrustedExecutable": "/usr/bin/security",
+    "matrixAllowsNilOrBroadTrustedApplicationList": false,
+    "matrixCaseTimeoutMilliseconds": 5000,
+    "matrixTimeoutIsPass": false,
+    "matrixOrderingsRequiredForAcceptance": [
+      "FORWARD",
+      "REVERSE"
+    ],
+    "minimumIndependentLifecyclePassesRequired": 20,
+    "productionAuthorizationMayChangeWithoutReproducibleMatrixProof": false,
     "executesNoninteractiveSecurityRead": true,
     "securityReadUsesPositionalTemporaryKeychain": true,
     "securityReadStdinClosed": true,
@@ -107,16 +163,30 @@
     "postRevokeNegativeEvidence": "STRUCTURAL_ACL_SNAPSHOT_RESTORATION",
     "timeoutPhaseMarkers": true,
     "timeoutIsFailure": true,
-    "syntheticSetAccessFailureStates": [
-      "SET_ACCESS_INVALID_ITEM_REFERENCE",
-      "SET_ACCESS_AUTH_FAILED",
-      "SET_ACCESS_INTERACTION_REQUIRED",
-      "SET_ACCESS_KEYCHAIN_UNAVAILABLE",
-      "SET_ACCESS_UNSUPPORTED_OR_INVALID_PARAMETERS",
-      "SET_ACCESS_UNCLASSIFIED_FAILURE",
-      "INITIAL_READ_UNEXPECTEDLY_RETRIEVABLE",
-      "INITIAL_READ_LAUNCH_FAILED",
-      "INITIAL_READ_UNCLASSIFIED_FAILURE"
+    "nativeFixtureFixedFailureStates": [
+      "KEYCHAIN_CREATE_FAILED",
+      "SYNTHETIC_ACCESS_OR_KEYCHAIN_UNLOCK_FAILED",
+      "ITEM_REFERENCE_INVALID",
+      "INITIAL_ACL_MISMATCH",
+      "HELPER_INSPECT_FAILED_OR_TIMEOUT",
+      "HELPER_GRANT_FAILED_OR_TIMEOUT",
+      "GRANT_ACL_MISMATCH",
+      "POSITIVE_READ_LAUNCH_FAILED",
+      "HELPER_REVOKE_FAILED_OR_TIMEOUT",
+      "POST_REVOKE_INSPECT_FAILED_OR_TIMEOUT",
+      "ACL_SNAPSHOT_RESTORE_FAILED",
+      "AUTHORIZATION_COMPONENT_RESTORE_FAILED",
+      "POSITIVE_READ_TIMEOUT",
+      "POSITIVE_READ_COMMAND_FAILED",
+      "POSITIVE_READ_OUTPUT_MISMATCH",
+      "ITEM_CREATE_INTERACTION_DISALLOWED",
+      "ITEM_CREATE_AUTH_FAILED",
+      "ITEM_CREATE_KEYCHAIN_UNAVAILABLE",
+      "ITEM_CREATE_UNSUPPORTED_OR_INVALID_PARAMETERS",
+      "ITEM_CREATE_UNCLASSIFIED_FAILURE",
+      "USER_KEYCHAIN_SELECTION_BEFORE_SNAPSHOT_FAILED",
+      "USER_KEYCHAIN_SELECTION_AFTER_SNAPSHOT_FAILED",
+      "USER_KEYCHAIN_SELECTION_CHANGED"
     ],
     "rawOsStatusOutputAllowed": false,
     "nativeCleanupFailureStates": [

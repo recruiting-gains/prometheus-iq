@@ -8,6 +8,8 @@ private let syntheticOnlyExecutable = CommandLine.arguments.first ?? ""
 private let requiredPartition = "apple-tool:"
 private let syntheticInitialPartition = "teamid:0000000000"
 private let maximumCaptureBytes = 64 * 1024
+private let maximumKeychainPathBytes = 4096
+private let childProcessTimeoutSeconds = 5.0
 
 private struct ACLSnapshot: Equatable {
     let authorizations: [String]
@@ -16,7 +18,59 @@ private struct ACLSnapshot: Equatable {
     let selector: UInt16
 }
 
-guard CommandLine.arguments.count == 5 else {
+private struct UserKeychainSelection: Equatable {
+    var searchListPaths: [Data]
+    var defaultPath: Data
+
+    mutating func wipePaths() {
+        for index in searchListPaths.indices {
+            wipe(&searchListPaths[index])
+        }
+        wipe(&defaultPath)
+    }
+}
+
+private enum PositiveReadResult {
+    case success
+    case launchFailed
+    case timeout
+    case commandFailed
+    case outputMismatch
+}
+
+private enum FixtureMode: String {
+    case lifecycle = "LIFECYCLE"
+    case matrixAppleToolOnly = "MATRIX_APPLE_TOOL_ONLY"
+    case matrixAppleOnly = "MATRIX_APPLE_ONLY"
+    case matrixAppleToolPlusApple = "MATRIX_APPLE_TOOL_PLUS_APPLE"
+    case matrixDecryptOnly = "MATRIX_DECRYPT_ONLY"
+    case matrixExportClearOnly = "MATRIX_EXPORT_CLEAR_ONLY"
+    case matrixDecryptPlusExportClear = "MATRIX_DECRYPT_PLUS_EXPORT_CLEAR"
+
+    var matrixConfiguration: (partitions: [String], authorizations: [CFString])? {
+        switch self {
+        case .lifecycle:
+            return nil
+        case .matrixAppleToolOnly:
+            return (["apple-tool:"], [kSecACLAuthorizationDecrypt])
+        case .matrixAppleOnly:
+            return (["apple:"], [kSecACLAuthorizationDecrypt])
+        case .matrixAppleToolPlusApple:
+            return (["apple-tool:", "apple:"], [kSecACLAuthorizationDecrypt])
+        case .matrixDecryptOnly:
+            return (["apple-tool:"], [kSecACLAuthorizationDecrypt])
+        case .matrixExportClearOnly:
+            return (["apple-tool:"], [kSecACLAuthorizationExportClear])
+        case .matrixDecryptPlusExportClear:
+            return (["apple-tool:"], [
+                kSecACLAuthorizationDecrypt,
+                kSecACLAuthorizationExportClear
+            ])
+        }
+    }
+}
+
+guard CommandLine.arguments.count == 6 else {
     exit(64)
 }
 
@@ -24,25 +78,34 @@ private let helperPath = CommandLine.arguments[1]
 private let attemptId = CommandLine.arguments[2]
 private let keychainPath = CommandLine.arguments[3]
 private let phasePath = CommandLine.arguments[4]
+private let fixtureMode = FixtureMode(rawValue: CommandLine.arguments[5])
 guard attemptId.count == 36,
       UUID(uuidString: attemptId) != nil,
       attemptId == attemptId.lowercased(),
       syntheticOnlyExecutable.hasPrefix("/"),
       FileManager.default.isExecutableFile(atPath: syntheticOnlyExecutable),
+      helperPath.hasPrefix("/"),
+      !helperPath.contains(".."),
+      FileManager.default.isExecutableFile(atPath: helperPath),
       keychainPath.hasPrefix("/"),
       !keychainPath.contains(".."),
       phasePath.hasPrefix("/"),
-      !phasePath.contains("..") else {
+      !phasePath.contains(".."),
+      fixtureMode != nil else {
     exit(64)
 }
 
 private let service = "com.prometheus.synthetic.keychain-acl-v2.\(attemptId)"
 private let phaseLabels: Set<String> = [
+    "USER_KEYCHAIN_SELECTION_BEFORE_CAPTURED",
+    "KEYCHAIN_CREATE_STARTED",
     "KEYCHAIN_CREATED",
     "KEYCHAIN_UNLOCKED",
-    "ITEM_ADDED",
-    "INITIAL_ACCESS_APPLIED",
+    "ITEM_CREATED_WITH_INITIAL_ACCESS",
     "INITIAL_ACL_VALIDATED",
+    "MATRIX_ACCESS_VALIDATED",
+    "MATRIX_READ_STARTED",
+    "MATRIX_READ_PASSED",
     "HELPER_INSPECTED",
     "HELPER_GRANTED",
     "GRANT_VALIDATED",
@@ -52,7 +115,8 @@ private let phaseLabels: Set<String> = [
     "RESTORE_VALIDATED",
     "KEYCHAIN_DELETE_DEFERRED",
     "KEYCHAIN_DELETE_REQUESTED",
-    "KEYCHAIN_ABSENT"
+    "KEYCHAIN_ABSENT",
+    "USER_KEYCHAIN_SELECTION_RESTORED"
 ]
 
 private func recordPhase(_ phase: String) -> Bool {
@@ -75,6 +139,67 @@ private func recordPhase(_ phase: String) -> Bool {
 private func wipe(_ data: inout Data) {
     guard !data.isEmpty else { return }
     data.resetBytes(in: 0..<data.count)
+}
+
+private func normalizedKeychainPath(_ keychain: SecKeychain) -> Data? {
+    var pathBuffer = [CChar](repeating: 0, count: maximumKeychainPathBytes)
+    var pathLength = UInt32(pathBuffer.count)
+    defer {
+        for index in pathBuffer.indices {
+            pathBuffer[index] = 0
+        }
+    }
+    let status = pathBuffer.withUnsafeMutableBufferPointer { buffer in
+        SecKeychainGetPath(keychain, &pathLength, buffer.baseAddress!)
+    }
+    guard status == errSecSuccess,
+          pathLength > 0,
+          pathLength < UInt32(pathBuffer.count) else {
+        return nil
+    }
+    return pathBuffer.withUnsafeBufferPointer {
+        Data(bytes: $0.baseAddress!, count: Int(pathLength))
+    }
+}
+
+private func copyUserKeychainSelection() -> UserKeychainSelection? {
+    autoreleasepool {
+        var copiedSearchList: CFArray?
+        guard SecKeychainCopyDomainSearchList(
+            SecPreferencesDomain.user,
+            &copiedSearchList
+        ) == errSecSuccess,
+        let copiedSearchList,
+        let keychains = copiedSearchList as? [SecKeychain] else {
+            return nil
+        }
+        var searchListPaths: [Data] = []
+        for keychain in keychains {
+            guard let path = normalizedKeychainPath(keychain) else {
+                for index in searchListPaths.indices {
+                    wipe(&searchListPaths[index])
+                }
+                return nil
+            }
+            searchListPaths.append(path)
+        }
+        var defaultKeychain: SecKeychain?
+        guard SecKeychainCopyDomainDefault(
+            SecPreferencesDomain.user,
+            &defaultKeychain
+        ) == errSecSuccess,
+        let defaultKeychain,
+        let defaultPath = normalizedKeychainPath(defaultKeychain) else {
+            for index in searchListPaths.indices {
+                wipe(&searchListPaths[index])
+            }
+            return nil
+        }
+        return UserKeychainSelection(
+            searchListPaths: searchListPaths,
+            defaultPath: defaultPath
+        )
+    }
 }
 
 private func applicationData(_ application: SecTrustedApplication) -> Data? {
@@ -170,21 +295,63 @@ private func partitionDescription(_ partitions: [String]) -> CFString? {
     return data.map { String(format: "%02X", $0) }.joined() as CFString
 }
 
-private func syntheticAccess() -> SecAccess? {
+private func syntheticAccess(
+    partitions: [String],
+    securityAuthorizations: [CFString]?
+) -> SecAccess? {
     var access: SecAccess?
     var partitionACL: SecACL?
+    var retrievalACL: SecACL?
     var syntheticOnlyApplication: SecTrustedApplication?
+    var helperApplication: SecTrustedApplication?
+    var securityApplication: SecTrustedApplication?
     guard SecTrustedApplicationCreateFromPath(
         syntheticOnlyExecutable,
         &syntheticOnlyApplication
     ) == errSecSuccess,
     let syntheticOnlyApplication,
+    SecTrustedApplicationCreateFromPath(
+        helperPath,
+        &helperApplication
+    ) == errSecSuccess,
+    let helperApplication,
     SecAccessCreate(
         "Prometheus synthetic Keychain ACL v2" as CFString,
-        [syntheticOnlyApplication] as CFArray,
+        [syntheticOnlyApplication, helperApplication] as CFArray,
         &access
     ) == errSecSuccess,
     let access,
+    let changeACLs = SecAccessCopyMatchingACLList(
+        access,
+        kSecACLAuthorizationChangeACL
+    ) as? [SecACL],
+    changeACLs.count == 1,
+    let changeContents = copyContents(changeACLs[0]),
+    SecACLSetContents(
+        changeACLs[0],
+        [syntheticOnlyApplication, helperApplication] as CFArray,
+        changeContents.description,
+        changeContents.selector
+    ) == errSecSuccess,
+    (securityAuthorizations == nil || (
+        SecTrustedApplicationCreateFromPath(
+            trustedExecutable,
+            &securityApplication
+        ) == errSecSuccess
+        && securityApplication != nil
+        && SecACLCreateWithSimpleContents(
+            access,
+            [securityApplication!] as CFArray,
+            "Prometheus synthetic matrix retrieval" as CFString,
+            SecKeychainPromptSelector(rawValue: 0),
+            &retrievalACL
+        ) == errSecSuccess
+        && retrievalACL != nil
+        && SecACLUpdateAuthorizations(
+            retrievalACL!,
+            securityAuthorizations! as CFArray
+        ) == errSecSuccess
+    )),
     SecACLCreateWithSimpleContents(
         access,
         nil,
@@ -197,7 +364,7 @@ private func syntheticAccess() -> SecAccess? {
         partitionACL,
         [kSecACLAuthorizationPartitionID] as CFArray
     ) == errSecSuccess,
-    let description = partitionDescription([syntheticInitialPartition]),
+    let description = partitionDescription(partitions),
     SecACLSetContents(
         partitionACL,
         nil,
@@ -207,6 +374,15 @@ private func syntheticAccess() -> SecAccess? {
         return nil
     }
     return access
+}
+
+private func trustedApplicationData(_ path: String) -> Data? {
+    var application: SecTrustedApplication?
+    guard SecTrustedApplicationCreateFromPath(path, &application) == errSecSuccess,
+          let application else {
+        return nil
+    }
+    return applicationData(application)
 }
 
 private func findPersistedSyntheticItem(_ keychain: SecKeychain) -> SecKeychainItem? {
@@ -294,6 +470,63 @@ private func exactComponentState(_ item: SecKeychainItem) -> (retrieval: Bool, p
     return (retrieval, partition)
 }
 
+private func verifyInitialAdministrativeACL(_ item: SecKeychainItem) -> Bool {
+    guard let snapshots = snapshot(item),
+          let fixtureData = trustedApplicationData(syntheticOnlyExecutable),
+          let helperData = trustedApplicationData(helperPath) else {
+        return false
+    }
+    let changeACL = kSecACLAuthorizationChangeACL as String
+    let expectedApplications = [fixtureData, helperData]
+    let matches = snapshots.filter { acl in
+        guard Set(acl.authorizations) == Set([changeACL]),
+              let applications = acl.applications,
+              applications.count == expectedApplications.count else {
+            return false
+        }
+        return expectedApplications.allSatisfy { expected in
+            applications.filter { $0 == expected }.count == 1
+        }
+    }
+    return matches.count == 1
+        && snapshots.filter { $0.authorizations.contains(changeACL) }.count == 1
+}
+
+private func verifyMatrixAccess(
+    _ item: SecKeychainItem,
+    partitions: [String],
+    authorizations expectedAuthorizations: [CFString]
+) -> Bool {
+    guard let snapshots = snapshot(item),
+          let securityData = trustedSecurityData() else {
+        return false
+    }
+    let partitionID = kSecACLAuthorizationPartitionID as String
+    let expectedRights = Set(expectedAuthorizations.map { $0 as String })
+    var securityACLCount = 0
+    var partitionACLCount = 0
+    for acl in snapshots {
+        let rights = Set(acl.authorizations)
+        if let applications = acl.applications,
+           applications.contains(securityData) {
+            guard rights == expectedRights,
+                  applications.count == 1,
+                  applications.filter({ $0 == securityData }).count == 1 else {
+                return false
+            }
+            securityACLCount += 1
+        }
+        if rights == Set([partitionID]) {
+            guard let actual = partitionList(acl.description as CFString),
+                  actual == partitions else {
+                return false
+            }
+            partitionACLCount += 1
+        }
+    }
+    return securityACLCount == 1 && partitionACLCount == 1
+}
+
 private func verifyMinimumGrant(_ item: SecKeychainItem) -> Bool {
     guard let snapshots = snapshot(item),
           let trustedData = trustedSecurityData() else {
@@ -327,6 +560,26 @@ private func verifyMinimumGrant(_ item: SecKeychainItem) -> Bool {
     return retrievalCount == 1 && partitionCount == 1
 }
 
+private func waitForBoundedExit(_ process: Process) -> Bool {
+    let deadline = Date().addingTimeInterval(childProcessTimeoutSeconds)
+    while process.isRunning && Date() < deadline {
+        Thread.sleep(forTimeInterval: 0.025)
+    }
+    guard process.isRunning else {
+        process.waitUntilExit()
+        return true
+    }
+    process.terminate()
+    for _ in 0..<20 where process.isRunning {
+        Thread.sleep(forTimeInterval: 0.025)
+    }
+    if process.isRunning {
+        _ = kill(process.processIdentifier, SIGKILL)
+    }
+    process.waitUntilExit()
+    return false
+}
+
 private func runSilent(_ executable: String, _ arguments: [String], expectedStatus: Int32) -> Bool {
     let process = Process()
     let standardOutput = Pipe()
@@ -340,20 +593,21 @@ private func runSilent(_ executable: String, _ arguments: [String], expectedStat
     } catch {
         return false
     }
-    process.waitUntilExit()
+    let completed = waitForBoundedExit(process)
     var output = standardOutput.fileHandleForReading.readDataToEndOfFile()
     var error = standardError.fileHandleForReading.readDataToEndOfFile()
     defer {
         wipe(&output)
         wipe(&error)
     }
-    return output.count <= maximumCaptureBytes
+    return completed
+        && output.count <= maximumCaptureBytes
         && error.count <= maximumCaptureBytes
         && output.isEmpty
         && process.terminationStatus == expectedStatus
 }
 
-private func verifyUnattendedRead(_ expected: Data) -> Bool {
+private func verifyUnattendedRead(_ expected: Data) -> PositiveReadResult {
     let process = Process()
     let standardOutput = Pipe()
     let standardError = Pipe()
@@ -365,9 +619,9 @@ private func verifyUnattendedRead(_ expected: Data) -> Bool {
     do {
         try process.run()
     } catch {
-        return false
+        return .launchFailed
     }
-    process.waitUntilExit()
+    let completed = waitForBoundedExit(process)
     var output = standardOutput.fileHandleForReading.readDataToEndOfFile()
     var error = standardError.fileHandleForReading.readDataToEndOfFile()
     var expectedWithNewline = expected
@@ -377,27 +631,28 @@ private func verifyUnattendedRead(_ expected: Data) -> Bool {
         wipe(&error)
         wipe(&expectedWithNewline)
     }
-    return output.count <= maximumCaptureBytes
-        && error.count <= maximumCaptureBytes
-        && error.isEmpty
-        && process.terminationStatus == 0
-        && (output == expected || output == expectedWithNewline)
+    guard completed else { return .timeout }
+    guard output.count <= maximumCaptureBytes,
+          error.count <= maximumCaptureBytes else { return .outputMismatch }
+    guard process.terminationStatus == 0,
+          error.isEmpty else { return .commandFailed }
+    return output == expected || output == expectedWithNewline
+        ? .success
+        : .outputMismatch
 }
 
-private func setAccessFailureExitCode(_ status: OSStatus) -> Int32 {
+private func itemCreateFailureExitCode(_ status: OSStatus) -> Int32 {
     switch status {
-    case errSecInvalidItemRef:
+    case errSecInteractionNotAllowed:
         return 81
     case errSecAuthFailed:
         return 82
-    case errSecInteractionNotAllowed:
-        return 83
     case errSecNotAvailable:
-        return 84
+        return 83
     case errSecParam, errSecUnimplemented:
-        return 85
+        return 84
     default:
-        return 89
+        return 85
     }
 }
 
@@ -418,32 +673,64 @@ private func keychainPathsDisappearWithinBound() -> Bool {
 }
 
 private func exercise(_ keychain: SecKeychain) -> Int32 {
-    guard let access = syntheticAccess() else { return 66 }
+    let matrixConfiguration = fixtureMode!.matrixConfiguration
+    guard let access = syntheticAccess(
+        partitions: matrixConfiguration?.partitions ?? [syntheticInitialPartition],
+        securityAuthorizations: matrixConfiguration?.authorizations
+    ) else { return 66 }
     var syntheticValue = Data("synthetic-nonproduction-value".utf8)
     defer { wipe(&syntheticValue) }
     var attributes: [String: Any] = [
         kSecClass as String: kSecClassGenericPassword,
         kSecAttrService as String: service,
         kSecAttrAccount as String: account,
+        kSecAttrAccess as String: access,
         kSecValueData as String: syntheticValue,
         kSecUseKeychain as String: keychain,
         kSecUseDataProtectionKeychain as String: kCFBooleanFalse as Any
     ]
     attributes[kSecReturnRef as String] = kCFBooleanTrue as Any
     var createdItem: CFTypeRef?
-    guard SecItemAdd(attributes as CFDictionary, &createdItem) == errSecSuccess else { return 67 }
-    guard recordPhase("ITEM_ADDED") else { return 93 }
+    let createStatus = SecItemAdd(attributes as CFDictionary, &createdItem)
+    guard createStatus == errSecSuccess else { return itemCreateFailureExitCode(createStatus) }
     guard let createdItem,
           CFGetTypeID(createdItem) == SecKeychainItemGetTypeID() else { return 68 }
     let item = createdItem as! SecKeychainItem
-    let setAccessStatus = SecKeychainItemSetAccess(item, access)
-    guard setAccessStatus == errSecSuccess else { return setAccessFailureExitCode(setAccessStatus) }
-    guard recordPhase("INITIAL_ACCESS_APPLIED") else { return 93 }
-    guard let persistedItem = findPersistedSyntheticItem(keychain),
-          let initialSnapshot = snapshot(persistedItem),
-          let initialState = exactComponentState(persistedItem),
+    if let matrixConfiguration {
+        guard verifyInitialAdministrativeACL(item),
+              verifyMatrixAccess(
+                item,
+                partitions: matrixConfiguration.partitions,
+                authorizations: matrixConfiguration.authorizations
+              ),
+              let persistedItem = findPersistedSyntheticItem(keychain),
+              snapshot(persistedItem) == snapshot(item) else { return 69 }
+        guard recordPhase("ITEM_CREATED_WITH_INITIAL_ACCESS") else { return 93 }
+        guard recordPhase("MATRIX_ACCESS_VALIDATED") else { return 93 }
+        guard recordPhase("MATRIX_READ_STARTED") else { return 93 }
+        switch verifyUnattendedRead(syntheticValue) {
+        case .success:
+            break
+        case .launchFailed:
+            return 73
+        case .timeout:
+            return 78
+        case .commandFailed:
+            return 79
+        case .outputMismatch:
+            return 80
+        }
+        guard recordPhase("MATRIX_READ_PASSED") else { return 93 }
+        return 0
+    }
+    guard let initialSnapshot = snapshot(item),
+          let initialState = exactComponentState(item),
+          verifyInitialAdministrativeACL(item),
           !initialState.retrieval,
           !initialState.partition else { return 69 }
+    guard let persistedItem = findPersistedSyntheticItem(keychain),
+          snapshot(persistedItem) == initialSnapshot else { return 69 }
+    guard recordPhase("ITEM_CREATED_WITH_INITIAL_ACCESS") else { return 93 }
     guard recordPhase("INITIAL_ACL_VALIDATED") else { return 93 }
     guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 70 }
     guard recordPhase("HELPER_INSPECTED") else { return 93 }
@@ -452,7 +739,18 @@ private func exercise(_ keychain: SecKeychain) -> Int32 {
     guard verifyMinimumGrant(persistedItem) else { return 72 }
     guard recordPhase("GRANT_VALIDATED") else { return 93 }
     guard recordPhase("POSITIVE_READ_STARTED") else { return 93 }
-    guard verifyUnattendedRead(syntheticValue) else { return 73 }
+    switch verifyUnattendedRead(syntheticValue) {
+    case .success:
+        break
+    case .launchFailed:
+        return 73
+    case .timeout:
+        return 78
+    case .commandFailed:
+        return 79
+    case .outputMismatch:
+        return 80
+    }
     guard recordPhase("POSITIVE_READ_PASSED") else { return 93 }
     guard runSilent(helperPath, ["revoke", helperAlias, "both"], expectedStatus: 42) else { return 74 }
     guard recordPhase("HELPER_REVOKED") else { return 93 }
@@ -466,9 +764,13 @@ private func exercise(_ keychain: SecKeychain) -> Int32 {
 }
 
 private func fixtureMain() -> Int32 {
+    guard var beforeSelection = copyUserKeychainSelection() else { return 97 }
+    defer { beforeSelection.wipePaths() }
+    guard recordPhase("USER_KEYCHAIN_SELECTION_BEFORE_CAPTURED") else { return 93 }
     var keychainPassword = Data("synthetic-keychain-password-\(attemptId)".utf8)
     defer { wipe(&keychainPassword) }
     var keychain: SecKeychain?
+    guard recordPhase("KEYCHAIN_CREATE_STARTED") else { return 93 }
     let createStatus = keychainPath.withCString { path in
         keychainPassword.withUnsafeBytes { bytes in
             SecKeychainCreate(
@@ -501,12 +803,28 @@ private func fixtureMain() -> Int32 {
           let activeKeychain = keychain else { return 66 }
     guard recordPhase("KEYCHAIN_UNLOCKED") else { return 93 }
     let exerciseStatus = exercise(activeKeychain)
-    guard exerciseStatus == 0 else { return exerciseStatus }
-    guard recordPhase("KEYCHAIN_DELETE_REQUESTED") else { return 93 }
-    guard SecKeychainDelete(activeKeychain) == errSecSuccess else { return 90 }
-    keychain = nil
-    guard keychainPathsAbsentNow() || keychainPathsDisappearWithinBound() else { return 91 }
-    guard recordPhase("KEYCHAIN_ABSENT") else { return 93 }
+    let deletePhaseRecorded = recordPhase("KEYCHAIN_DELETE_REQUESTED")
+    let deleteStatus = SecKeychainDelete(activeKeychain)
+    if deleteStatus == errSecSuccess {
+        keychain = nil
+    }
+    let pathsAbsent = deleteStatus == errSecSuccess
+        && (keychainPathsAbsentNow() || keychainPathsDisappearWithinBound())
+    let absentPhaseRecorded = pathsAbsent && recordPhase("KEYCHAIN_ABSENT")
+    guard var afterSelection = copyUserKeychainSelection() else {
+        return exerciseStatus == 0 ? 98 : exerciseStatus
+    }
+    defer { afterSelection.wipePaths() }
+    let selectionRestored = beforeSelection == afterSelection
+    let selectionPhaseRecorded = selectionRestored
+        && recordPhase("USER_KEYCHAIN_SELECTION_RESTORED")
+    if exerciseStatus != 0 { return exerciseStatus }
+    guard deletePhaseRecorded else { return 93 }
+    guard deleteStatus == errSecSuccess else { return 90 }
+    guard pathsAbsent else { return 91 }
+    guard absentPhaseRecorded else { return 93 }
+    guard selectionRestored else { return 99 }
+    guard selectionPhaseRecorded else { return 93 }
     return 0
 }
 
