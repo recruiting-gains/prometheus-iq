@@ -244,6 +244,21 @@ test("launcher adapter accepts only exact item objects and wipes command buffers
   assert.ok(buffers.every(buffer => buffer.every(byte => byte === 0)));
 });
 
+test("launcher adapter rejects string-backed secret output from an incompatible process contract", () => {
+  const adapter = createMacOsKeychainAdapter({
+    spawnSyncImpl: () => ({
+      status: 0,
+      stdout: `${SECRET_FIXTURE}\n`,
+      stderr: Buffer.alloc(0)
+    }),
+    environment: { HOME: "/synthetic" }
+  });
+  assert.throws(
+    () => adapter.readItem(CLOUDFLARE_UNATTENDED_KEYCHAIN_ITEMS[0]),
+    /keychain_item_unavailable:CLOUDFLARE_API_TOKEN/u
+  );
+});
+
 test("classification evidence is immutable, owner-only, bounded, and secret-free", t => {
   const artifactRoot = tempArtifactRoot(t);
   const result = recordCloudflareUnattendedKeychainClassification({

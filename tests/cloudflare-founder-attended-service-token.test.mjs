@@ -1644,17 +1644,23 @@ test("created smoke generic-password schema matches the audited security reader 
     ["CLOUDFLARE_ACCESS_CLIENT_SECRET", fixtureClientSecret]
   ]);
   const calls = [];
+  const outputBuffers = [];
   const adapter = createMacOsKeychainAdapter({
     spawnSyncImpl(executable, args, options) {
       calls.push({ executable, args: [...args], options: { ...options } });
+      const stdout = Buffer.from(`${syntheticValues.get(args.at(-1))}\n`, "utf8");
+      const stderr = Buffer.alloc(0);
+      outputBuffers.push(stdout, stderr);
       return {
         status: 0,
-        stdout: `${syntheticValues.get(args.at(-1))}\n`
+        stdout,
+        stderr
       };
     }
   });
   assert.equal(adapter.readItem(smokeItems[0]), fixtureClientId);
   assert.equal(adapter.readItem(smokeItems[1]), fixtureClientSecret);
+  assert.ok(outputBuffers.every(buffer => buffer.every(byte => byte === 0)));
   for (const [index, call] of calls.entries()) {
     const item = smokeItems[index];
     assert.equal(call.executable, "/usr/bin/security");
@@ -1666,8 +1672,12 @@ test("created smoke generic-password schema matches the audited security reader 
       "-a",
       item.account
     ]);
-    assert.deepEqual(call.options.stdio, ["ignore", "pipe", "ignore"]);
-    assert.equal(call.options.env, undefined);
+    assert.deepEqual(call.options.stdio, ["ignore", "pipe", "pipe"]);
+    assert.equal(call.options.encoding, null);
+    assert.equal(call.options.maxBuffer, 64 * 1024);
+    assert.equal(call.options.timeout, 5_000);
+    assert.equal(call.options.env.PATH, "/usr/bin:/bin:/usr/sbin:/sbin");
+    assert.equal(typeof call.options.env.HOME, "string");
     assert.equal(call.options.input, undefined);
     const metadata = JSON.stringify({ args: call.args, options: call.options });
     assert.equal(metadata.includes(syntheticValues.get(item.account)), false);
