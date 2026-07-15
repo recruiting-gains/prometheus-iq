@@ -401,39 +401,24 @@ private func initialReadFailureExitCode(_ status: Int32) -> Int32 {
     }
 }
 
-private func fixtureMain() -> Int32 {
-    var keychainPassword = Data("synthetic-keychain-password-\(attemptId)".utf8)
-    defer { wipe(&keychainPassword) }
-    var keychain: SecKeychain?
-    let createStatus = keychainPath.withCString { path in
-        keychainPassword.withUnsafeBytes { bytes in
-            SecKeychainCreate(
-                path,
-                UInt32(bytes.count),
-                bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
-                false,
-                nil,
-                &keychain
-            )
-        }
+private let keychainSidecarPaths = [keychainPath, "\(keychainPath)-db"]
+
+private func keychainPathsAbsentNow() -> Bool {
+    keychainSidecarPaths.allSatisfy {
+        !FileManager.default.fileExists(atPath: $0)
     }
-    guard createStatus == errSecSuccess, let keychain else { return 65 }
-    var keychainNeedsCleanup = true
-    defer {
-        if keychainNeedsCleanup {
-            _ = SecKeychainDelete(keychain)
-        }
+}
+
+private func keychainPathsDisappearWithinBound() -> Bool {
+    for _ in 0..<20 {
+        if keychainPathsAbsentNow() { return true }
+        Thread.sleep(forTimeInterval: 0.05)
     }
-    let unlockStatus = keychainPassword.withUnsafeBytes { bytes in
-        SecKeychainUnlock(
-            keychain,
-            UInt32(bytes.count),
-            bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
-            true
-        )
-    }
-    guard unlockStatus == errSecSuccess,
-          let access = syntheticAccess() else { return 66 }
+    return keychainPathsAbsentNow()
+}
+
+private func exercise(_ keychain: SecKeychain) -> Int32 {
+    guard let access = syntheticAccess() else { return 66 }
     var syntheticValue = Data("synthetic-nonproduction-value".utf8)
     defer { wipe(&syntheticValue) }
     var attributes: [String: Any] = [
@@ -471,9 +456,47 @@ private func fixtureMain() -> Int32 {
     guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 75 }
     guard snapshot(persistedItem) == initialSnapshot else { return 76 }
     guard [36, 128].contains(interactionStatus()) else { return 77 }
-    guard SecKeychainDelete(keychain) == errSecSuccess else { return 90 }
-    keychainNeedsCleanup = false
-    return FileManager.default.fileExists(atPath: keychainPath) ? 90 : 0
+    return 0
+}
+
+private func fixtureMain() -> Int32 {
+    var keychainPassword = Data("synthetic-keychain-password-\(attemptId)".utf8)
+    defer { wipe(&keychainPassword) }
+    var keychain: SecKeychain?
+    let createStatus = keychainPath.withCString { path in
+        keychainPassword.withUnsafeBytes { bytes in
+            SecKeychainCreate(
+                path,
+                UInt32(bytes.count),
+                bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
+                false,
+                nil,
+                &keychain
+            )
+        }
+    }
+    guard createStatus == errSecSuccess, keychain != nil else { return 65 }
+    defer {
+        if let activeKeychain = keychain {
+            _ = SecKeychainDelete(activeKeychain)
+        }
+    }
+    let unlockStatus = keychainPassword.withUnsafeBytes { bytes in
+        SecKeychainUnlock(
+            keychain!,
+            UInt32(bytes.count),
+            bytes.baseAddress?.assumingMemoryBound(to: CChar.self),
+            true
+        )
+    }
+    guard unlockStatus == errSecSuccess,
+          let activeKeychain = keychain else { return 66 }
+    let exerciseStatus = exercise(activeKeychain)
+    guard exerciseStatus == 0 else { return exerciseStatus }
+    guard SecKeychainDelete(activeKeychain) == errSecSuccess else { return 90 }
+    keychain = nil
+    guard keychainPathsAbsentNow() || keychainPathsDisappearWithinBound() else { return 91 }
+    return 0
 }
 
 exit(fixtureMain())

@@ -88,7 +88,10 @@
     "temporaryKeychainCreatedWith": "SecKeychainCreate",
     "temporaryKeychainDeletedWith": "SecKeychainDelete",
     "temporaryKeychainFilesystemAbsenceVerified": true,
+    "temporaryKeychainSidecarAbsenceVerified": true,
+    "temporaryKeychainDeletionWaitMaximumMilliseconds": 1000,
     "mutatesUserSearchListOrDefaultKeychain": false,
+    "userKeychainSelectionByteUnchangedBeforeAfter": true,
     "createdThroughSecItemAdd": true,
     "usesSecItemAddReturnReference": true,
     "initialSecurityTrust": "NONE",
@@ -114,6 +117,12 @@
       "INITIAL_READ_UNCLASSIFIED_FAILURE"
     ],
     "rawOsStatusOutputAllowed": false,
+    "nativeCleanupFailureStates": [
+      "KEYCHAIN_DELETE_FAILED",
+      "KEYCHAIN_PATH_REMAINS_AFTER_BOUNDED_WAIT",
+      "KEYCHAIN_PATH_REMAINS_POST_PROCESS"
+    ],
+    "primaryFixtureFailurePrecedesOuterCleanupFailure": true,
     "capturedSyntheticBuffersWiped": true,
     "deletesSyntheticItem": true,
     "verifiesPostCleanupAbsence": true

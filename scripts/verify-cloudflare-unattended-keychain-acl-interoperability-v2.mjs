@@ -105,7 +105,10 @@ assert.equal(contract.nativeFixture.usesIsolatedTemporaryLegacyKeychain, true);
 assert.equal(contract.nativeFixture.temporaryKeychainCreatedWith, "SecKeychainCreate");
 assert.equal(contract.nativeFixture.temporaryKeychainDeletedWith, "SecKeychainDelete");
 assert.equal(contract.nativeFixture.temporaryKeychainFilesystemAbsenceVerified, true);
+assert.equal(contract.nativeFixture.temporaryKeychainSidecarAbsenceVerified, true);
+assert.equal(contract.nativeFixture.temporaryKeychainDeletionWaitMaximumMilliseconds, 1000);
 assert.equal(contract.nativeFixture.mutatesUserSearchListOrDefaultKeychain, false);
+assert.equal(contract.nativeFixture.userKeychainSelectionByteUnchangedBeforeAfter, true);
 assert.equal(contract.nativeFixture.usesSecItemAddReturnReference, true);
 assert.equal(contract.nativeFixture.initialSecurityTrust, "NONE");
 assert.equal(contract.nativeFixture.initialNoninteractiveRead, "INTERACTION_REQUIRED");
@@ -128,6 +131,12 @@ assert.deepEqual(contract.nativeFixture.syntheticSetAccessFailureStates, [
   "INITIAL_READ_UNCLASSIFIED_FAILURE"
 ]);
 assert.equal(contract.nativeFixture.rawOsStatusOutputAllowed, false);
+assert.deepEqual(contract.nativeFixture.nativeCleanupFailureStates, [
+  "KEYCHAIN_DELETE_FAILED",
+  "KEYCHAIN_PATH_REMAINS_AFTER_BOUNDED_WAIT",
+  "KEYCHAIN_PATH_REMAINS_POST_PROCESS"
+]);
+assert.equal(contract.nativeFixture.primaryFixtureFailurePrecedesOuterCleanupFailure, true);
 assert.equal(contract.nativeFixture.capturedSyntheticBuffersWiped, true);
 assert.equal(contract.provenanceRepair.predecessorCommit, "348978de14a09651565c84c0b445b8371c496131");
 assert.equal(contract.provenanceRepair.classification, "LOCAL_PROVENANCE_METADATA_GAP");
@@ -201,7 +210,8 @@ assert.match(nativeFixture, /SecItemAdd/u);
 assert.match(nativeFixture, /kSecUseKeychain as String: keychain/u);
 assert.match(nativeFixture, /SecKeychainCreate/u);
 assert.match(nativeFixture, /SecKeychainDelete/u);
-assert.match(nativeFixture, /FileManager\.default\.fileExists\(atPath: keychainPath\)/u);
+assert.match(nativeFixture, /keychainPathsAbsentNow/u);
+assert.match(nativeFixture, /keychainPathsDisappearWithinBound/u);
 assert.match(nativeFixture, /kSecReturnRef/u);
 assert.match(nativeFixture, /setAccessFailureExitCode/u);
 assert.match(nativeFixture, /initialReadFailureExitCode/u);
@@ -216,13 +226,16 @@ assert.doesNotMatch(nativeFixture, /SecKeychainItemCopyContent|SecItemCopyMatchi
 assert.doesNotMatch(nativeFixture, /\/usr\/bin\/true/u);
 assert.doesNotMatch(nativeFixture, /print\(|FileHandle\.standardOutput/u);
 assert.match(nativeVerifier, /fixture\.keychain-db/u);
-assert.match(nativeVerifier, /existsSync\(keychainPath\)/u);
+assert.match(nativeVerifier, /keychainPaths\.filter\(existsSync\)/u);
+assert.match(nativeVerifier, /list-keychains/u);
+assert.match(nativeVerifier, /default-keychain/u);
+assert.match(nativeVerifier, /sameUserKeychainSelection/u);
+assert.match(nativeVerifier, /if \(primaryError\) throw primaryError/u);
 assert.match(nativeVerifier, /KEYCHAIN_ACL_V2_NATIVE_E2E/u);
 assert.match(nativeVerifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
 assert.match(nativeVerifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
 assert.match(nativeVerifier, /INITIAL_READ_UNCLASSIFIED_FAILURE/u);
 assert.doesNotMatch(nativeVerifier, /add-generic-password|-T/u);
-assert.doesNotMatch(nativeVerifier, /list-keychains|default-keychain/u);
 
 assert.match(documentation, /minimum repair is therefore an exact trusted-application ACL/u);
 assert.match(documentation, /containing only `Decrypt`/u);
