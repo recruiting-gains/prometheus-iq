@@ -84,10 +84,24 @@
     "usesGovernedItems": false,
     "servicePrefix": "com.prometheus.synthetic.keychain-acl-v2.",
     "account": "SYNTHETIC_NONPRODUCTION_ITEM",
+    "createdThroughSecItemAdd": true,
+    "initialSecurityTrust": "NONE",
+    "initialNoninteractiveRead": "INTERACTION_REQUIRED",
+    "compileTimeTestOnlyAlias": "NATIVE_E2E_SYNTHETIC",
     "validatesSecurityToolPartition": "apple-tool:",
+    "validatesDecryptOnlyWithoutExportClear": true,
     "executesNoninteractiveSecurityRead": true,
+    "helperRevokeRestoresInitialAclSnapshot": true,
+    "capturedSyntheticBuffersWiped": true,
     "deletesSyntheticItem": true,
     "verifiesPostCleanupAbsence": true
+  },
+  "provenanceRepair": {
+    "predecessorCommit": "348978de14a09651565c84c0b445b8371c496131",
+    "classification": "LOCAL_PROVENANCE_METADATA_GAP",
+    "pinnedOriginalFiles": 9,
+    "successorIdentity": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "rewritesPredecessor": false
   },
   "implementationFiles": {
     "workflow": "scripts/lib/cloudflare-unattended-keychain-acl-interoperability-v2.mjs",

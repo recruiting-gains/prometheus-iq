@@ -25,7 +25,7 @@ The authorization mismatch is two independent gates:
 1. The installed macOS SDK declares `kSecACLAuthorizationDecrypt` and the separate `kSecACLAuthorizationPartitionID` in `Security.framework/Headers/SecAccess.h`.
 2. Apple's `security(1)` source states that a generic-password partition list is an additional ACL parameter that limits access by application code signature.
 3. Apple's SecurityTool implementation routes `find-generic-password -w` through `SecKeychainItemCopyContent`.
-4. A disposable native fixture created by `/usr/bin/security` proves its exact canonical partition selector is `apple-tool:`. The fixture verifies that selector through Security.framework ACL APIs, performs a real noninteractive read, deletes the uniquely named synthetic item, and confirms absence.
+4. A disposable native E2E fixture creates a UUID-scoped generic-password item through `SecItemAdd`, then configures a synthetic ACL with no `/usr/bin/security` trust and a nonmatching synthetic partition. It first proves the noninteractive read is interaction-required, then compiles the production helper with a compile-time-only synthetic alias, applies `inspect`/`grant`/`revoke`, verifies a Decrypt-only ACL plus `apple-tool:` enables the read without `ExportClear`, restores the original ACL snapshot, deletes the item, and confirms absence.
 
 The minimum repair is therefore an exact trusted-application ACL containing only `Decrypt` for `/usr/bin/security`, together with the existing item's partition list extended only by `apple-tool:`. The repair does not add `apple:`, `teamid:`, `cdhash:`, `unsigned:`, or an arbitrary executable. It does not place `/usr/bin/security` onto Apple's broader default limited-rights ACL.
 
@@ -50,6 +50,10 @@ It fixes the trusted executable to `/usr/bin/security`. It accepts exactly one w
 For each item, the helper computes the missing authorization components in memory and commits them in one `SecKeychainItemSetAccess` operation. An identical pre-existing exact component is preserved. If post-write verification fails, the helper restores that item's prior state before returning. Failure to prove restoration is a distinct `ROLLBACK_FAILED` condition. The orchestration layer then reverses every previously changed item in reverse order.
 
 PASS requires all four exact items to be `RETRIEVABLE` through the existing noninteractive classifier after the ACL changes. No partial result can pass.
+
+## Provenance repair
+
+Commit `348978de14a09651565c84c0b445b8371c496131` carries the local provenance-metadata gap: its author and committer are `Prometheus Overwatch Rollback Verification`, despite the nine-file implementation being Infrastructure work. The successor stores SHA-256 pins for the exact original bytes, verifies the committed file set and Git metadata, and is authored and committed by `Prometheus Infrastructure <infrastructure@prometheus.local>`. This documents metadata only; it does not rewrite, amend, or reinterpret the original commit.
 
 ## Evidence
 
@@ -105,6 +109,8 @@ Rollback removes only the exact dedicated ACL and/or `apple-tool:` selector reco
 node scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2.mjs
 node --test tests/cloudflare-unattended-keychain-acl-interoperability-v2.test.mjs
 node scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs
+node scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2-provenance.mjs
+node --test tests/cloudflare-unattended-keychain-acl-interoperability-v2-provenance.test.mjs
 ```
 
-The native command uses one UUID-scoped synthetic Keychain item. It never names or reads any governed item, and it proves cleanup before PASS.
+The native command uses one UUID-scoped synthetic Keychain item. It never names or reads any governed item, zeros every captured synthetic buffer, and proves cleanup before PASS.

@@ -29,7 +29,7 @@ private struct AuthorizationState {
     var partitionPresent: Bool { partitions.contains(requiredPartition) }
 }
 
-private let items: [String: GovernedItem] = [
+private let productionItems: [String: GovernedItem] = [
     "DEPLOYMENT_API_TOKEN": GovernedItem(
         service: "com.prometheus.cloudflare.unattended.deployment",
         account: "CLOUDFLARE_API_TOKEN"
@@ -47,6 +47,24 @@ private let items: [String: GovernedItem] = [
         account: "CLOUDFLARE_ACCESS_CLIENT_SECRET"
     )
 ]
+
+#if KEYCHAIN_ACL_V2_NATIVE_E2E
+// The native verifier supplies these UUID-scoped values in a temporary source
+// file at compile time. Normal production compilation has no such alias.
+let nativeE2EService: String
+let nativeE2EAccount: String
+#endif
+
+private let items: [String: GovernedItem] = {
+    var allowed = productionItems
+#if KEYCHAIN_ACL_V2_NATIVE_E2E
+    allowed["NATIVE_E2E_SYNTHETIC"] = GovernedItem(
+        service: nativeE2EService,
+        account: nativeE2EAccount
+    )
+#endif
+    return allowed
+}()
 
 private let trustedExecutable = "/usr/bin/security"
 private let requiredPartition = "apple-tool:"

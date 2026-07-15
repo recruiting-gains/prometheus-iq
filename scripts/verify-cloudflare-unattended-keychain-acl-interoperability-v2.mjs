@@ -20,20 +20,28 @@ import {
 import {
   verifyNativeKeychainAclV2
 } from "./verify-cloudflare-unattended-keychain-acl-v2-native.mjs";
+import {
+  verifyCloudflareUnattendedKeychainAclV2Provenance
+} from "./verify-cloudflare-unattended-keychain-acl-interoperability-v2-provenance.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const contractPath =
   "workers/infrastructure/cloudflare-unattended-keychain-acl-interoperability-v2.json";
+const provenanceContractPath =
+  "workers/infrastructure/cloudflare-unattended-keychain-acl-interoperability-v2-provenance-v1.json";
 const implementationPaths = Object.freeze([
   "scripts/helpers/cloudflare-unattended-keychain-acl-v2.swift",
   "scripts/helpers/cloudflare-unattended-keychain-acl-v2-native-fixture.swift",
   "scripts/lib/cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
   "scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
   "scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs",
+  "scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2-provenance.mjs",
   "scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
   "tests/cloudflare-unattended-keychain-acl-interoperability-v2.test.mjs",
+  "tests/cloudflare-unattended-keychain-acl-interoperability-v2-provenance.test.mjs",
   "docs/cloudflare-unattended-keychain-acl-interoperability-v2.md",
-  contractPath
+  contractPath,
+  provenanceContractPath
 ]);
 
 function read(path) {
@@ -41,6 +49,7 @@ function read(path) {
 }
 
 const contract = JSON.parse(read(contractPath));
+const provenanceContract = JSON.parse(read(provenanceContractPath));
 const helper = read("scripts/helpers/cloudflare-unattended-keychain-acl-v2.swift");
 const nativeFixture = read(
   "scripts/helpers/cloudflare-unattended-keychain-acl-v2-native-fixture.swift"
@@ -91,6 +100,21 @@ assert.equal(contract.authorizationRepair.valuesReadOrChangedByAclHelper, false)
 assert.equal(contract.authorizationRepair.currentItemRestoreRequiredOnVerificationFailure, true);
 assert.equal(contract.authorizationRepair.reverseRollbackRequiredOnPartialFailure, true);
 assert.equal(contract.authorizationRepair.allFourNoninteractiveReadsRequiredForPass, true);
+assert.equal(contract.nativeFixture.createdThroughSecItemAdd, true);
+assert.equal(contract.nativeFixture.initialSecurityTrust, "NONE");
+assert.equal(contract.nativeFixture.initialNoninteractiveRead, "INTERACTION_REQUIRED");
+assert.equal(contract.nativeFixture.compileTimeTestOnlyAlias, "NATIVE_E2E_SYNTHETIC");
+assert.equal(contract.nativeFixture.validatesDecryptOnlyWithoutExportClear, true);
+assert.equal(contract.nativeFixture.helperRevokeRestoresInitialAclSnapshot, true);
+assert.equal(contract.nativeFixture.capturedSyntheticBuffersWiped, true);
+assert.equal(contract.provenanceRepair.predecessorCommit, "348978de14a09651565c84c0b445b8371c496131");
+assert.equal(contract.provenanceRepair.classification, "LOCAL_PROVENANCE_METADATA_GAP");
+assert.equal(contract.provenanceRepair.pinnedOriginalFiles, 9);
+assert.equal(contract.provenanceRepair.rewritesPredecessor, false);
+assert.equal(
+  provenanceContract.contractVersion,
+  "cloudflare-unattended-keychain-acl-interoperability-v2-provenance-v1"
+);
 
 assert.match(CLOUDFLARE_UNATTENDED_KEYCHAIN_ACL_V2_ARTIFACT_ROOT, /interoperability-v2$/u);
 assert.doesNotMatch(CLOUDFLARE_UNATTENDED_KEYCHAIN_ACL_V2_ARTIFACT_ROOT, /interoperability-v1$/u);
@@ -123,6 +147,8 @@ assert.deepEqual(CLOUDFLARE_UNATTENDED_KEYCHAIN_ACL_V2_FAILURES, [
 ]);
 assert.match(helper, /trustedExecutable = "\/usr\/bin\/security"/u);
 assert.match(helper, /requiredPartition = "apple-tool:"/u);
+assert.match(helper, /#if KEYCHAIN_ACL_V2_NATIVE_E2E/u);
+assert.match(helper, /allowed\["NATIVE_E2E_SYNTHETIC"\]/u);
 assert.match(helper, /let requiredRights = Set\(\[decrypt\]\)/u);
 assert.match(helper, /\[kSecACLAuthorizationDecrypt\] as CFArray/u);
 assert.match(helper, /kSecACLAuthorizationPartitionID/u);
@@ -147,12 +173,18 @@ assert.doesNotMatch(command, /node:https|fetch\(|wrangler|deploy/u);
 assert.match(nativeFixture, /SYNTHETIC_NONPRODUCTION_ITEM/u);
 assert.match(nativeFixture, /requiredPartition = "apple-tool:"/u);
 assert.match(nativeFixture, /nil,\s*nil,\s*&item/su);
+assert.match(nativeFixture, /SecItemAdd/u);
+assert.match(nativeFixture, /INTERACTION_REQUIRED by the fixed unattended classifier/u);
+assert.match(nativeFixture, /runSilent\(helperPath, \["grant", helperAlias\], expectedStatus: 32\)/u);
+assert.match(nativeFixture, /runSilent\(helperPath, \["revoke", helperAlias, "both"\], expectedStatus: 42\)/u);
+assert.match(nativeFixture, /rights == Set\(\[decrypt\]\)/u);
+assert.match(nativeFixture, /snapshot\(item\) == initialSnapshot/u);
 assert.doesNotMatch(nativeFixture, /CLOUDFLARE_API_TOKEN|CLOUDFLARE_ACCOUNT_ID/u);
 assert.doesNotMatch(nativeFixture, /SecKeychainItemCopyContent|SecItemCopyMatching/u);
 assert.match(nativeVerifier, /delete-generic-password/u);
 assert.match(nativeVerifier, /postflight\.status === 44/u);
-assert.match(nativeVerifier, /retrieve\.stdout\.toString\("utf8"\)\.trimEnd\(\)/u);
-assert.match(nativeVerifier, /wipe\(retrieve\)/u);
+assert.match(nativeVerifier, /KEYCHAIN_ACL_V2_NATIVE_E2E/u);
+assert.doesNotMatch(nativeVerifier, /add-generic-password|-T/u);
 
 assert.match(documentation, /minimum repair is therefore an exact trusted-application ACL/u);
 assert.match(documentation, /containing only `Decrypt`/u);
@@ -178,6 +210,7 @@ for (const path of [
 
 const native = verifyNativeKeychainAclV2();
 assert.ok(["PASS", "SKIPPED_NON_MACOS"].includes(native.status));
+const provenance = verifyCloudflareUnattendedKeychainAclV2Provenance();
 
 process.stdout.write(`${JSON.stringify({
   contractVersion: contract.contractVersion,
@@ -186,6 +219,7 @@ process.stdout.write(`${JSON.stringify({
   retrievalAuthorization: "Decrypt",
   partitionAuthorization: "apple-tool:",
   nativeFixture: native.status,
+  provenance: provenance.result,
   secretScan: "passed",
   cloudflareContacted: false,
   governedKeychainValuesRead: false,

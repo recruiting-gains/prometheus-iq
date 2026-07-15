@@ -1,0 +1,56 @@
+{
+  "contractVersion": "cloudflare-unattended-keychain-acl-interoperability-v2-provenance-v1",
+  "batchId": "BATCH-20260715-009",
+  "implementationOwner": "Prometheus Infrastructure",
+  "subjectCommit": "348978de14a09651565c84c0b445b8371c496131",
+  "provenanceGap": {
+    "classification": "LOCAL_PROVENANCE_METADATA_GAP",
+    "author": "Prometheus Overwatch Rollback Verification <overwatch-rollback@prometheus.local>",
+    "committer": "Prometheus Overwatch Rollback Verification <overwatch-rollback@prometheus.local>",
+    "contentOwnership": "Prometheus Infrastructure",
+    "remediation": "Infrastructure-authored successor commit with immutable source-content revalidation",
+    "cloudflareContacted": false,
+    "governedKeychainValuesRead": false,
+    "governedKeychainAclsChanged": false,
+    "deploymentPerformed": false,
+    "productionMutated": false
+  },
+  "pinnedFiles": [
+    {
+      "path": "docs/cloudflare-unattended-keychain-acl-interoperability-v2.md",
+      "sha256": "f564bf2fe7037ce0654e8c25ce4554b40e0aa32fb8622cb946ddd49f54f004aa"
+    },
+    {
+      "path": "scripts/helpers/cloudflare-unattended-keychain-acl-v2-native-fixture.swift",
+      "sha256": "cb27f1d75bbf549dd36d3078f72e80808c85d01ec49ad61309ac71026fec7b7d"
+    },
+    {
+      "path": "scripts/helpers/cloudflare-unattended-keychain-acl-v2.swift",
+      "sha256": "f3ba3ae7980ce3051cbd3c8073ccc3f4067c6d09176b84dff39715765a2598a2"
+    },
+    {
+      "path": "scripts/lib/cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+      "sha256": "f518099d739aed42f18dfea82fec007457d60db5f687204df00b0ca56b9ee6d6"
+    },
+    {
+      "path": "scripts/run-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+      "sha256": "cdca8a479e1498ee2799aca2dc2a2b39118c4ac2ba3599642e409904744997ed"
+    },
+    {
+      "path": "scripts/verify-cloudflare-unattended-keychain-acl-interoperability-v2.mjs",
+      "sha256": "e07ff4cda2f96a506ed4f8533decb4b213f91be59616fdda314fa2ad496c366c"
+    },
+    {
+      "path": "scripts/verify-cloudflare-unattended-keychain-acl-v2-native.mjs",
+      "sha256": "d07942bbdc2f138ba93c962565da590b1baad9e7827c578ef40c7314ebdb9141"
+    },
+    {
+      "path": "tests/cloudflare-unattended-keychain-acl-interoperability-v2.test.mjs",
+      "sha256": "97288d2c98dff1998acbc62f314b8fb96b3b0e94a9a6a18b31b95ab8a3b47d22"
+    },
+    {
+      "path": "workers/infrastructure/cloudflare-unattended-keychain-acl-interoperability-v2.json",
+      "sha256": "59979d5b4a9cab9734c2daa810de1d4399b4049d04eb5e7d67797942a7d13695"
+    }
+  ]
+}
