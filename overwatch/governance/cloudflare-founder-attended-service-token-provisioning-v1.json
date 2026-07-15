@@ -2,7 +2,7 @@
   "governanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
   "version": "1.0.0",
   "batchId": "BATCH-20260714-007",
-  "status": "SOURCE_VERIFIED_NOT_EXECUTED",
+  "status": "OWNER_REPAIR_VERIFIED_NOT_EXECUTED",
   "owningSubsystem": "Prometheus Overwatch",
   "directive": "Cloudflare Founder-Attended 30-Day Access Service Token Provisioning v1",
   "authorizedStartingState": {
@@ -24,6 +24,14 @@
       "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
       "timestamp": "2026-07-14T21:27:45-05:00"
+    },
+    "repairCommit": {
+      "commit": "214521d99d08a0a117d81e59b9ef38105edac147",
+      "parent": "e7b1171acf067ca0245f3d88558de3d857fb531d",
+      "tree": "e2914c171797d698a78373247ec505d611e30653",
+      "subject": "Harden founder-attended token provisioning",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>"
     },
     "implementationOwnershipRespected": true,
     "overwatchModifiedSubsystemImplementation": false,
@@ -102,6 +110,48 @@
       "sha256AtOwnerCommit": "e4ea8d9274e01cd60e9cefe4fab70728443258ac0f7266bb3e62f86b89bb117a"
     }
   ],
+  "infrastructureRepairEvidence": [
+    {
+      "path": "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+      "sha256AtRepairCommit": "c93efffb121ad67579627489a8551d35177d0521a5f90fdb90b806e221a32ad6"
+    },
+    {
+      "path": "scripts/helpers/cloudflare-founder-attended-keychain.swift",
+      "sha256AtRepairCommit": "9be9244eab759c9b8ef5dde604675c003fb3068beddf7a719be36cc65bb8a909"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-control.mjs",
+      "sha256AtRepairCommit": "06011b1cf40751b8ab3cb89f6935f6723fd5c0689eb9c5b0f7ad6bc80e4fec9f"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-keychain.mjs",
+      "sha256AtRepairCommit": "d336908f2dc4fb226e761cfa634c1877cdbf5a6f140726e77e1ebc17216c3cab"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-service-token-production.mjs",
+      "sha256AtRepairCommit": "ca5ddc600774ead824ff6b18a48be07436915684dd4810fe570f18e93ab8ed6d"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-service-token.mjs",
+      "sha256AtRepairCommit": "8272fde338c1143d08c8d8f3616d5ef5df01dff1e94fd7c74a4769b2827d61f4"
+    },
+    {
+      "path": "scripts/run-cloudflare-founder-attended-service-token.mjs",
+      "sha256AtRepairCommit": "1ea0cc60831c79194254682935b07c92970cac7b5fdfced522af9257ab0b6f75"
+    },
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+      "sha256AtRepairCommit": "6c0ed66b5c57dc126e0ae86e0fb8da69891d95173787edb34aed3bda4e7230f2"
+    },
+    {
+      "path": "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "sha256AtRepairCommit": "5fb7dd0bc5f710c5e94c6b3c31c85c9711d79d7ed8fd3a8236b15e3d98c81dc6"
+    },
+    {
+      "path": "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json",
+      "sha256AtRepairCommit": "03a1d81f7c6ac8d7a8f2bc30f2e86edb73f28fa004ba8f79c97efbfcac19f57b"
+    }
+  ],
   "protectedPredecessorSuccessors": [
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
@@ -143,7 +193,11 @@
     "secretValuesInGitEnvironmentArgumentsOutputLogsReportsScreenshotsBrowserOrFiles": false,
     "verificationReadsValues": false,
     "temporaryItemCleanupRequired": true,
-    "providerRevocationRequiredAfterCleanup": true
+    "providerRevocationRequiredAfterCleanup": true,
+    "nativeHelperFixedOperationItemMatrix": true,
+    "sourceCompatibleWithAuditedSecurityReader": true,
+    "realKeychainInteroperabilityExecuted": false,
+    "realKeychainInteroperabilityRequiredBeforeUnattendedReadiness": true
   },
   "attendanceAndReplayBoundary": {
     "controllingTtyRequired": true,
@@ -154,7 +208,11 @@
     "nonceConsumedBeforeNetwork": true,
     "persistentExclusiveReceipt": true,
     "duplicateExecutionAllowed": false,
-    "unattendedLauncherIntegrationAllowed": false
+    "unattendedLauncherIntegrationAllowed": false,
+    "liveClockAndRepositoryRevalidatedBeforeGet": true,
+    "liveClockAndRepositoryRevalidatedBeforePost": true,
+    "staleOrInvalidStateBurnsOneShotAuthorization": true,
+    "productionAdaptersInjectable": false
   },
   "failureBoundary": {
     "strictResponseParsing": true,
@@ -163,7 +221,9 @@
     "partialKeychainPairRollbackRequired": true,
     "validatedRemoteIdRequiredForCompensation": true,
     "compensatingDeleteAttemptsMaximum": 1,
-    "ambiguousOrFailedCompensationRequiresManualReview": true
+    "ambiguousOrFailedCompensationRequiresManualReview": true,
+    "rollbackRestrictedToInvocationOwnershipTag": true,
+    "processDeathPartialPairRequiresManualReview": true
   },
   "executionBoundary": {
     "cloudflareAccessPerformed": false,

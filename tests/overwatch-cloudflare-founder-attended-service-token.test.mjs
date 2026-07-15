@@ -26,7 +26,9 @@ test("Overwatch independently verifies the attended provisioning batch", () => {
   assert.equal(result.status, "passed");
   assert.equal(result.implementationOwner, "Prometheus Infrastructure");
   assert.equal(result.verificationOwner, "Prometheus Overwatch");
-  assert.equal(result.focusedOwnerTests, 65);
+  assert.equal(result.focusedOwnerTests, 79);
+  assert.equal(result.repairCommit, "214521d99d08a0a117d81e59b9ef38105edac147");
+  assert.equal(result.realKeychainInteroperabilityVerified, false);
   assert.equal(result.trackedSecretFindings, 0);
   assert.equal(result.cloudflareAccessPerformed, false);
   assert.equal(result.credentialCreated, false);
@@ -97,6 +99,45 @@ test("Overwatch rejects ownership inversion or owner-commit substitution", () =>
   const author = clone(governance);
   author.dispatchAudit.implementationCommit.author = "Prometheus Overwatch <overwatch@prometheus.local>";
   assert.equal(evaluate(contract, author).ok, false);
+
+  const repair = clone(governance);
+  repair.dispatchAudit.repairCommit.commit = "0".repeat(40);
+  assert.equal(evaluate(contract, repair).ok, false);
+
+  const repairEvidence = clone(governance);
+  repairEvidence.infrastructureRepairEvidence[0].sha256AtRepairCommit = "0".repeat(64);
+  assert.equal(evaluate(contract, repairEvidence).ok, false);
+});
+
+test("Overwatch rejects live-state, native-helper, production-composition, or rollback regression", () => {
+  const mutations = [
+    value => { value.attendedControl.freshValidationImmediatelyBeforeGet = false; },
+    value => { value.attendedControl.freshValidationImmediatelyBeforePost = false; },
+    value => { value.attendedControl.staleStructurallyValidAuthorizationConsumed = false; },
+    value => { value.cli.productionAdapterInjectionAllowed = true; },
+    value => { value.cli.testCoreRequiresEveryAdapterExplicitly = false; },
+    value => { value.destinationKeychain.rollbackDeletesOnlyInvocationOwnedItems = false; },
+    value => { value.destinationKeychain.preexistingOrReplacementItemDeletionAllowed = true; }
+  ];
+  for (const mutate of mutations) {
+    const changed = clone(contract);
+    mutate(changed);
+    assert.equal(evaluate(changed).ok, false);
+  }
+});
+
+test("Overwatch preserves the real-Keychain readiness blocker", () => {
+  const contractClaim = clone(contract);
+  contractClaim.destinationKeychain.unattendedReaderInteroperability.realKeychainRuntimeVerified = true;
+  assert.equal(evaluate(contractClaim).ok, false);
+
+  const governanceClaim = clone(governance);
+  governanceClaim.credentialBoundary.realKeychainInteroperabilityExecuted = true;
+  assert.equal(evaluate(contract, governanceClaim).ok, false);
+
+  const readiness = clone(governance);
+  readiness.releaseBoundary.unattendedDeploymentReady = true;
+  assert.equal(evaluate(contract, readiness).ok, false);
 });
 
 test("Overwatch rejects secret-disclosure or provider-introspection overclaims", () => {

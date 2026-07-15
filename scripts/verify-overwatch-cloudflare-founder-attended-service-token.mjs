@@ -21,6 +21,9 @@ const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.j
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
 const ownerTree = "04823fa4e3cdf5688045c321bead3d94d813b7c7";
+const repairCommit = "214521d99d08a0a117d81e59b9ef38105edac147";
+const repairParent = "e7b1171acf067ca0245f3d88558de3d857fb531d";
+const repairTree = "e2914c171797d698a78373247ec505d611e30653";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -55,6 +58,30 @@ const expectedEvidencePaths = Object.freeze([
   "tests/cloudflare-founder-attended-service-token.test.mjs",
   "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
 ]);
+const expectedRepairPaths = Object.freeze([
+  "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+  "scripts/helpers/cloudflare-founder-attended-keychain.swift",
+  "scripts/lib/cloudflare-founder-attended-control.mjs",
+  "scripts/lib/cloudflare-founder-attended-keychain.mjs",
+  "scripts/lib/cloudflare-founder-attended-service-token-production.mjs",
+  "scripts/lib/cloudflare-founder-attended-service-token.mjs",
+  "scripts/run-cloudflare-founder-attended-service-token.mjs",
+  "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+  "tests/cloudflare-founder-attended-service-token.test.mjs",
+  "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json"
+]);
+const expectedRepairHashes = Object.freeze({
+  "docs/cloudflare-founder-attended-service-token-provisioning-v1.md": "c93efffb121ad67579627489a8551d35177d0521a5f90fdb90b806e221a32ad6",
+  "scripts/helpers/cloudflare-founder-attended-keychain.swift": "9be9244eab759c9b8ef5dde604675c003fb3068beddf7a719be36cc65bb8a909",
+  "scripts/lib/cloudflare-founder-attended-control.mjs": "06011b1cf40751b8ab3cb89f6935f6723fd5c0689eb9c5b0f7ad6bc80e4fec9f",
+  "scripts/lib/cloudflare-founder-attended-keychain.mjs": "d336908f2dc4fb226e761cfa634c1877cdbf5a6f140726e77e1ebc17216c3cab",
+  "scripts/lib/cloudflare-founder-attended-service-token-production.mjs": "ca5ddc600774ead824ff6b18a48be07436915684dd4810fe570f18e93ab8ed6d",
+  "scripts/lib/cloudflare-founder-attended-service-token.mjs": "8272fde338c1143d08c8d8f3616d5ef5df01dff1e94fd7c74a4769b2827d61f4",
+  "scripts/run-cloudflare-founder-attended-service-token.mjs": "1ea0cc60831c79194254682935b07c92970cac7b5fdfced522af9257ab0b6f75",
+  "scripts/verify-cloudflare-founder-attended-service-token.mjs": "6c0ed66b5c57dc126e0ae86e0fb8da69891d95173787edb34aed3bda4e7230f2",
+  "tests/cloudflare-founder-attended-service-token.test.mjs": "5fb7dd0bc5f710c5e94c6b3c31c85c9711d79d7ed8fd3a8236b15e3d98c81dc6",
+  "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json": "03a1d81f7c6ac8d7a8f2bc30f2e86edb73f28fa004ba8f79c97efbfcac19f57b"
+});
 
 export function evaluateFounderAttendedProvisioningGovernance({
   contract,
@@ -105,16 +132,30 @@ export function evaluateFounderAttendedProvisioningGovernance({
   ]), "Destination Keychain accounts drifted.");
   require(contract.destinationKeychain.secretValuesInArguments === false, "Secret values may enter argv.");
   require(contract.destinationKeychain.secretValuesInEnvironment === false, "Secret values may enter environment variables.");
+  require(contract.destinationKeychain.rollbackDeletesOnlyInvocationOwnedItems === true, "Keychain rollback ownership boundary drifted.");
+  require(contract.destinationKeychain.preexistingOrReplacementItemDeletionAllowed === false, "Keychain rollback may delete a foreign item.");
+  require(contract.destinationKeychain.processDeathAfterPartialWrite === "PRESENCE_BLOCKS_RETRY_AND_REQUIRES_FOUNDER_REVIEW", "Process-death recovery boundary drifted.");
   require(contract.destinationKeychain.presenceVerification === "name_and_PRESENT_or_ABSENT_only", "Presence verification is not name-only.");
+  require(contract.destinationKeychain.unattendedReaderInteroperability.genericPasswordServiceAndAccountCompatibleInSource === true, "Audited reader source compatibility drifted.");
+  require(contract.destinationKeychain.unattendedReaderInteroperability.realKeychainRuntimeVerified === false, "Contract overclaims real Keychain verification.");
+  require(contract.destinationKeychain.unattendedReaderInteroperability.mandatoryFounderAttendedIntegrationCheckBeforeReadiness === true, "Founder-attended interoperability check is no longer mandatory.");
   require(contract.attendedControl.defaultState === "OFF", "Attended control must default OFF.");
   require(contract.attendedControl.controllingTtyRequiredForRealProvisioning === true, "Real provisioning must require a controlling TTY.");
   require(contract.attendedControl.maximumLifetimeMinutes === 30, "Attended authorization window drifted.");
   require(contract.attendedControl.cleanRepositoryRequired === true, "Clean repository is no longer required.");
   require(contract.attendedControl.exactCommitAndTreeRequired === true, "Exact commit/tree binding is no longer required.");
+  require(contract.attendedControl.clockAndRepositoryReadersAreLiveFunctions === true, "Live authorization readers drifted.");
+  require(contract.attendedControl.firstLiveSampleAfterConfirmationAndKeychainReads === true, "Live state may be captured before blocking attendance or Keychain operations.");
+  require(contract.attendedControl.freshValidationImmediatelyBeforeGet === true, "GET live-state revalidation drifted.");
+  require(contract.attendedControl.freshValidationImmediatelyBeforePost === true, "POST live-state revalidation drifted.");
+  require(contract.attendedControl.staleStructurallyValidAuthorizationConsumed === true, "Stale authorization may remain reusable.");
   require(contract.attendedControl.nonceConsumedBeforeFirstNetworkCall === true, "Nonce is not consumed before network.");
   require(contract.attendedControl.replayAllowed === false, "Control replay became allowed.");
   require(equalJson(contract.cli.fixedCommands, expectedCommands), "CLI command set drifted.");
   require(contract.cli.unattendedLauncherProfileAvailable === false, "Attended provisioning entered the unattended launcher.");
+  require(contract.cli.productionEntrypointImportsOnlyProductionWrapper === true, "Production entrypoint composition drifted.");
+  require(contract.cli.productionAdapterInjectionAllowed === false, "Production adapter injection became possible.");
+  require(contract.cli.testCoreRequiresEveryAdapterExplicitly === true, "Test core no longer requires complete adapter injection.");
   require(contract.testBoundary.realNetworkAllowed === false, "Tests allow real network access.");
   require(contract.testBoundary.realKeychainAllowed === false, "Tests allow real Keychain access.");
   require(contract.runtimeBoundaries.cloudflareAccessPolicyMutationAllowed === false, "Access policy mutation became allowed.");
@@ -126,6 +167,7 @@ export function evaluateFounderAttendedProvisioningGovernance({
 
   require(governance.governanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1", "Overwatch governance ID drifted.");
   require(governance.version === "1.0.0" && governance.batchId === "BATCH-20260714-007", "Overwatch governance version or batch drifted.");
+  require(governance.status === "OWNER_REPAIR_VERIFIED_NOT_EXECUTED", "Overwatch repair status drifted.");
   require(governance.owningSubsystem === "Prometheus Overwatch", "Governance must remain Overwatch-owned.");
   require(governance.dispatchAudit.implementationOwner === "Prometheus Infrastructure", "Implementation owner drifted.");
   require(governance.dispatchAudit.verificationOwner === "Prometheus Overwatch", "Verification owner drifted.");
@@ -136,7 +178,16 @@ export function evaluateFounderAttendedProvisioningGovernance({
   require(governance.dispatchAudit.implementationCommit.tree === ownerTree, "Infrastructure owner tree drifted.");
   require(governance.dispatchAudit.implementationCommit.author === "Prometheus Infrastructure <infrastructure@prometheus.local>", "Infrastructure commit author drifted.");
   require(governance.dispatchAudit.implementationCommit.committer === "Prometheus Infrastructure <infrastructure@prometheus.local>", "Infrastructure commit committer drifted.");
+  require(governance.dispatchAudit.repairCommit.commit === repairCommit, "Infrastructure repair commit drifted.");
+  require(governance.dispatchAudit.repairCommit.parent === repairParent, "Infrastructure repair parent drifted.");
+  require(governance.dispatchAudit.repairCommit.tree === repairTree, "Infrastructure repair tree drifted.");
+  require(governance.dispatchAudit.repairCommit.author === "Prometheus Infrastructure <infrastructure@prometheus.local>", "Infrastructure repair author drifted.");
+  require(governance.dispatchAudit.repairCommit.committer === "Prometheus Infrastructure <infrastructure@prometheus.local>", "Infrastructure repair committer drifted.");
   require(equalJson(governance.infrastructureEvidence.map(item => item.path), expectedEvidencePaths), "Infrastructure evidence file set drifted.");
+  require(equalJson(governance.infrastructureRepairEvidence.map(item => item.path), expectedRepairPaths), "Infrastructure repair evidence file set drifted.");
+  require(governance.infrastructureRepairEvidence.every(item =>
+    expectedRepairHashes[item.path] === item.sha256AtRepairCommit
+  ), "Infrastructure repair evidence hash mapping drifted.");
   require(equalJson(governance.protectedPredecessorSuccessors, [
     {
       predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
@@ -161,11 +212,20 @@ export function evaluateFounderAttendedProvisioningGovernance({
   require(governance.credentialBoundary.secretValuesInGitEnvironmentArgumentsOutputLogsReportsScreenshotsBrowserOrFiles === false, "Governance permits secret disclosure.");
   require(governance.credentialBoundary.verificationReadsValues === false, "Verification may read credential values.");
   require(governance.credentialBoundary.toolClaimsProviderSideScopeIntrospection === false, "Tool overclaims provider-side token introspection.");
+  require(governance.credentialBoundary.nativeHelperFixedOperationItemMatrix === true, "Native helper allowlist governance drifted.");
+  require(governance.credentialBoundary.realKeychainInteroperabilityExecuted === false, "Governance overclaims real Keychain interoperability.");
+  require(governance.credentialBoundary.realKeychainInteroperabilityRequiredBeforeUnattendedReadiness === true, "Real Keychain readiness check is no longer required.");
   require(governance.attendanceAndReplayBoundary.controllingTtyRequired === true, "Governance no longer requires Founder attendance.");
   require(governance.attendanceAndReplayBoundary.duplicateExecutionAllowed === false, "Governance permits duplicate execution.");
   require(governance.attendanceAndReplayBoundary.unattendedLauncherIntegrationAllowed === false, "Governance permits unattended provisioning.");
+  require(governance.attendanceAndReplayBoundary.liveClockAndRepositoryRevalidatedBeforeGet === true, "Governance lost GET live-state validation.");
+  require(governance.attendanceAndReplayBoundary.liveClockAndRepositoryRevalidatedBeforePost === true, "Governance lost POST live-state validation.");
+  require(governance.attendanceAndReplayBoundary.staleOrInvalidStateBurnsOneShotAuthorization === true, "Governance permits stale authorization reuse.");
+  require(governance.attendanceAndReplayBoundary.productionAdaptersInjectable === false, "Governance permits production adapter injection.");
   require(governance.failureBoundary.ambiguousCreateRetries === 0, "Governance permits ambiguous create retries.");
   require(governance.failureBoundary.partialKeychainPairRollbackRequired === true, "Pair rollback is no longer required.");
+  require(governance.failureBoundary.rollbackRestrictedToInvocationOwnershipTag === true, "Rollback may cross invocation ownership.");
+  require(governance.failureBoundary.processDeathPartialPairRequiresManualReview === true, "Process-death partial pair may be silently recovered.");
   for (const [field, expected] of Object.entries({
     cloudflareAccessPerformed: false,
     realKeychainValuesAccessed: false,
@@ -188,9 +248,11 @@ export function evaluateFounderAttendedProvisioningGovernance({
   require(report.owners.implementation === "Prometheus Infrastructure", "Batch report implementation owner drifted.");
   require(report.owners.verification === "Prometheus Overwatch", "Batch report verification owner drifted.");
   require(report.owners.implementationCommit === ownerCommit, "Batch report owner commit drifted.");
+  require(report.owners.repairCommit === repairCommit, "Batch report repair commit drifted.");
   require(report.owners.ownershipRespected === true, "Batch report does not affirm ownership.");
   require(report.owners.overwatchModifiedInfrastructureImplementation === false, "Batch report claims Overwatch implementation edits.");
-  require(report.verificationAtOwnerHandoff.infrastructureFocusedTests === "65/65_PASS", "Owner test evidence drifted.");
+  require(report.verificationAtOwnerHandoff.initialInfrastructureFocusedTests === "65/65_PASS", "Initial owner test evidence drifted.");
+  require(report.verificationAtOwnerHandoff.infrastructureFocusedTests === "79/79_PASS", "Repair test evidence drifted.");
   require(report.verificationAtOwnerHandoff.realCloudflareUsed === false, "Batch report claims real Cloudflare use.");
   require(report.verificationAtOwnerHandoff.realKeychainValuesUsed === false, "Batch report claims real Keychain use.");
   require(report.boundaries.credentialCreated === false, "Batch report claims credential creation.");
@@ -209,7 +271,7 @@ export function evaluateFounderAttendedProvisioningGovernance({
   });
 }
 
-function verifyOwnerCommit(governance) {
+function verifyOwnerCommits(governance) {
   const commitFields = git(["show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit]).split("\n");
   if (!equalJson(commitFields, [
     ownerCommit,
@@ -245,8 +307,59 @@ function verifyOwnerCommit(governance) {
     if (sha256(ownerContent) !== evidence.sha256AtOwnerCommit) {
       throw new Error(`Infrastructure owner evidence hash drifted: ${evidence.path}`);
     }
-    if (!evidence.sharedReleaseWiring && sha256(readFileSync(resolve(root, evidence.path))) !== evidence.sha256AtOwnerCommit) {
-      throw new Error(`Infrastructure implementation changed after owner handoff: ${evidence.path}`);
+  }
+
+  const repairFields = git(["show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", repairCommit]).split("\n");
+  if (!equalJson(repairFields, [
+    repairCommit,
+    repairParent,
+    repairTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Harden founder-attended token provisioning"
+  ])) {
+    throw new Error("Infrastructure repair commit metadata does not match the governance record.");
+  }
+  execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", repairCommit, "HEAD"], {
+    cwd: root,
+    stdio: "ignore"
+  });
+  const repairPaths = git(["diff-tree", "--no-commit-id", "--name-only", "-r", repairCommit]).split("\n");
+  if (!equalJson(repairPaths, expectedRepairPaths)) {
+    throw new Error("Infrastructure repair commit changed an unexpected file set.");
+  }
+  if (repairPaths.some(path => path.startsWith("overwatch/")
+    || path === "package.json"
+    || path === "wrangler.jsonc"
+    || path === "wrangler.prometheusrouteiq-website.jsonc"
+    || path === "workers/prometheus-iq-worker.js"
+    || path === "index.html")) {
+    throw new Error("Infrastructure repair crossed an ownership or production boundary.");
+  }
+
+  const repairedByPath = new Map();
+  for (const evidence of governance.infrastructureRepairEvidence) {
+    const repairContent = execFileSync("/usr/bin/git", ["show", `${repairCommit}:${evidence.path}`], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(repairContent) !== evidence.sha256AtRepairCommit) {
+      throw new Error(`Infrastructure repair evidence hash drifted: ${evidence.path}`);
+    }
+    repairedByPath.set(evidence.path, evidence.sha256AtRepairCommit);
+  }
+
+  for (const evidence of governance.infrastructureEvidence) {
+    if (evidence.sharedReleaseWiring) continue;
+    const expected = repairedByPath.get(evidence.path) || evidence.sha256AtOwnerCommit;
+    if (sha256(readFileSync(resolve(root, evidence.path))) !== expected) {
+      throw new Error(`Infrastructure implementation changed after the owner repair: ${evidence.path}`);
+    }
+  }
+  for (const evidence of governance.infrastructureRepairEvidence) {
+    if (sha256(readFileSync(resolve(root, evidence.path))) !== evidence.sha256AtRepairCommit) {
+      throw new Error(`Infrastructure repair changed after owner handoff: ${evidence.path}`);
     }
   }
 }
@@ -323,7 +436,7 @@ export function verifyOverwatchFounderAttendedProvisioning() {
   if (!result.ok) throw new Error(result.failures.join("\n"));
 
   verifyCloudflareFounderAttendedServiceTokenArchitecture();
-  verifyOwnerCommit(governance);
+  verifyOwnerCommits(governance);
   verifyPackageReleaseWiring();
   verifyCanonicalRegistration();
   verifyNoRealExecutionInTests();
@@ -338,12 +451,14 @@ export function verifyOverwatchFounderAttendedProvisioning() {
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
     implementationCommit: ownerCommit,
+    repairCommit,
     fixedDuration: "720h",
     fixedCreateAttemptsMaximum: 1,
-    focusedOwnerTests: 65,
+    focusedOwnerTests: 79,
     trackedSecretFindings: 0,
     cloudflareAccessPerformed: false,
     realKeychainValuesAccessed: false,
+    realKeychainInteroperabilityVerified: false,
     credentialCreated: false,
     deploymentPerformed: false,
     productionMutationPerformed: false,
