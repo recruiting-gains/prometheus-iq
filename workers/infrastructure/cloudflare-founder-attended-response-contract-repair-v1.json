@@ -1,0 +1,132 @@
+{
+  "contractVersion": "cloudflare-founder-attended-response-contract-repair-v1",
+  "batchId": "BATCH-20260715-003",
+  "directive": "Cloudflare Founder-Attended Service Token Response Contract Repair v1",
+  "owner": "Prometheus Infrastructure",
+  "status": "IMPLEMENTED_SOURCE_NOT_EXECUTED",
+  "baseline": {
+    "commit": "d32ffd8f6ea255fa029976b1bf0006663d567153",
+    "branch": "main",
+    "cleanAtStart": true,
+    "predecessorSourceModified": false,
+    "predecessorControlsOrReceiptsAccessed": false,
+    "realKeychainValuesRead": false,
+    "cloudflareApiContacted": false,
+    "credentialActionPerformed": false,
+    "productionMutationPerformed": false,
+    "deploymentPerformed": false,
+    "temporaryApiTokenPreserved": true,
+    "pushPerformed": false
+  },
+  "officialContracts": {
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "httpStatus": 200,
+      "expiresAtRequired": false,
+      "documentedTimestampsAccepted": true,
+      "optionalEnvelopeFieldsAccepted": true,
+      "exactNameRequired": true,
+      "exactDurationRequired": "720h",
+      "validClientIdRequired": true,
+      "validClientSecretRequired": true
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "httpStatus": 200,
+      "documentedResultObjectAccepted": true,
+      "optionalResultFieldsValidatedWhenPresent": true,
+      "followUpExactNameGetRequired": true,
+      "responseAloneConfirmsCleanup": false
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "fixedQueryKeys": ["name", "page", "per_page"],
+      "resultOptional": true,
+      "resultInfoOptional": true,
+      "paginationMembersOptional": true,
+      "hardPageCeiling": 100,
+      "exactNameDuplicateFailsClosed": true
+    }
+  },
+  "freshSuccessor": {
+    "artifactNamespace": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-response-contract-repair-v1",
+    "predecessorPathReused": false,
+    "predecessorReceiptReused": false,
+    "freshAttendedGetRequired": true,
+    "separateFounderControlAuthorizationRequired": true,
+    "freshNonceRequired": true,
+    "maximumLifetimeMinutes": 30,
+    "currentCleanCommitAndTreeRequired": true,
+    "exactAccountBindingRequired": true,
+    "realControlCreatedByThisBatch": false,
+    "replayAllowed": false
+  },
+  "futureLifecycle": {
+    "createAttemptsMaximum": 1,
+    "createRetryAllowed": false,
+    "uncertainControlRetryAllowed": false,
+    "compensationDeleteAttemptsMaximum": 1,
+    "deleteRequiresFollowUpGet": true,
+    "temporaryApiTokenDeletionAllowed": false,
+    "provisioningExecutedByThisBatch": false
+  },
+  "phaseEvidence": {
+    "appendOnly": true,
+    "exclusiveCreate": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "contentIsApprovedPhaseOnly": true,
+    "phases": [
+      "GET_COMPLETED",
+      "EXACT_NAME_ABSENT",
+      "EXACT_NAME_PRESENT",
+      "POST_ATTEMPTED",
+      "CREATE_RESPONSE_VALID",
+      "CREATE_RESPONSE_INVALID",
+      "KEYCHAIN_STORED",
+      "KEYCHAIN_NOT_STORED",
+      "DELETE_ATTEMPTED",
+      "DELETE_CONFIRMED",
+      "DELETE_NOT_CONFIRMED",
+      "SUCCESS",
+      "COMPENSATED",
+      "MANUAL_REVIEW"
+    ]
+  },
+  "outputBoundary": {
+    "finalOutcomes": ["SUCCESS", "COMPENSATED", "MANUAL_REVIEW"],
+    "credentialsAllowed": false,
+    "accountIdsAllowed": false,
+    "clientIdsAllowed": false,
+    "responseBodiesAllowed": false,
+    "headersAllowed": false,
+    "prefixesAllowed": false,
+    "lengthsAllowed": false,
+    "hashesAllowed": false,
+    "cookiesAllowed": false,
+    "keychainValuesAllowed": false
+  },
+  "commands": {
+    "diagnostic": "node scripts/run-cloudflare-founder-attended-response-contract-diagnostic.mjs",
+    "prepare": "node scripts/run-cloudflare-founder-attended-response-contract-prepare.mjs",
+    "futureProvision": "node scripts/run-cloudflare-founder-attended-response-contract-provision.mjs",
+    "verify": "node scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs"
+  },
+  "testBoundary": {
+    "mockNetworkOnly": true,
+    "mockKeychainOnly": true,
+    "productionWrapperInvocationAllowed": false,
+    "realControlOrReceiptAccessAllowed": false
+  },
+  "runtimeBoundaries": {
+    "cloudflareApiContactAllowedDuringImplementation": false,
+    "realKeychainReadAllowedDuringImplementation": false,
+    "credentialActionAllowedDuringImplementation": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "collectionAllowed": false,
+    "cohortActivationAllowed": false,
+    "recommendationInfluenceAllowed": false,
+    "pushAuthorized": false
+  }
+}
