@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+
+set timeout 5
+if {$argc != 2} {
+  exit 64
+}
+
+set node [lindex $argv 0]
+set child [lindex $argv 1]
+
+proc terminate_child {pid} {
+  catch {exec /bin/kill -TERM $pid}
+  after 200
+  catch {exec /bin/kill -KILL $pid}
+}
+
+spawn -noecho $node $child
+set child_pid [exp_pid]
+puts "PROMETHEUS_EXPECT_CHILD_PID=$child_pid"
+flush stdout
+
+expect {
+  -exact "> " {}
+  timeout {
+    terminate_child $child_pid
+    catch {close}
+    catch {wait}
+    exit 124
+  }
+  eof {
+    catch {wait}
+    exit 125
+  }
+}
+
+send -- "CONFIRM SYNTHETIC PROMETHEUS MACOS PTY TEST\r"
+expect {
+  eof {
+    set result [wait]
+    exit [lindex $result 3]
+  }
+  timeout {
+    terminate_child $child_pid
+    catch {close}
+    catch {wait}
+    exit 124
+  }
+}

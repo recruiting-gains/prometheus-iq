@@ -3,6 +3,7 @@
 ## Status
 
 - Batch: `BATCH-20260714-007`
+- macOS TTY compatibility repair: `BATCH-20260715-001` (`Cloudflare Founder-Attended Real macOS TTY Compatibility Repair v1`)
 - Owner: Prometheus Infrastructure
 - Source status: `IMPLEMENTED_SOURCE_NOT_EXECUTED`
 - Cloudflare accessed: `false`
@@ -10,7 +11,7 @@
 - Credential created: `false`
 - Deployed or pushed: `false`
 
-This source implements a future Founder-attended local operation. Its tests use injected Keychain and transport doubles. They do not contact Cloudflare, read the real Keychain, create credentials, modify Access policies, deploy Workers, or mutate production.
+This source implements a future Founder-attended local operation. Its tests use injected Keychain and transport doubles. A bounded native macOS PTY integration uses only a synthetic phrase and the TTY adapter. The tests do not contact Cloudflare, read the real Keychain, create credentials, modify Access policies, deploy Workers, or mutate production.
 
 ## Fixed Operation
 
@@ -59,7 +60,11 @@ The SDK does not establish that the default access-control list created for the 
 
 ## One-Shot Control
 
-Real `provision-attended` execution requires the Founder on the controlling TTY and the exact displayed confirmation phrase. The production entrypoint accepts no adapters or alternate attendance mechanism; it constructs the real TTY, Keychain, repository, clock, and HTTPS adapters internally. The clearly test-only core requires every adapter explicitly, so a fake confirmation cannot accidentally fall through to real Keychain or network defaults.
+Real `provision-attended` execution requires the Founder on the controlling TTY and the exact displayed confirmation phrase. Both `stdin.isTTY` and `stdout.isTTY` must be true. The `stdin` and `stdout` file descriptors must each be character devices, and the `stdin` and `stdout` character-device `rdev` values must match so they identify the same concrete terminal.
+
+The adapter opens only `/dev/tty` with read/write, no-follow, and no-controlling-terminal flags, then requires the opened descriptor to be a character device. On macOS, `/dev/tty` is an alias for the process controlling terminal and its alias device number differs from the concrete PTY device number reported by standard input and output. The `/dev/tty` `rdev` is intentionally not compared with either stream `rdev`. Prompt output and phrase input use only the opened `/dev/tty` descriptor.
+
+Any false TTY flag, non-character descriptor, stream-device mismatch, `/dev/tty` open or type failure, wrong phrase, or oversized phrase rejects before Keychain activity, control creation or consumption, live repository/clock/random sampling, network transport, or another downstream external operation. The production entrypoint accepts no adapters or alternate attendance mechanism; it constructs the real TTY, Keychain, repository, clock, and HTTPS adapters internally. The clearly test-only core requires every adapter explicitly, so a fake confirmation cannot accidentally fall through to real Keychain or network defaults.
 
 After confirmation and local preflight, the command creates the non-secret control at:
 
@@ -119,10 +124,10 @@ Errors omit response bodies, credentials, request headers, account values or has
 
 ## Local Verification
 
-The Infrastructure gate is mock-only:
+The Infrastructure gate is Cloudflare- and Keychain-mock-only. Its macOS PTY check is local and synthetic:
 
 ```bash
 npm run infrastructure:cloudflare-founder-attended:check
 ```
 
-It verifies the fixed constants and endpoint, exact three-mode non-injectable production CLI, all-explicit test core, strict owner-only control, delayed-prompt expiry, live clock and repository revalidation, replay and concurrency denial, controlling-TTY boundary, duplicate and redirect handling, single POST, compensating delete, manual-review states, invocation-owned pair rollback, cleanup scope, the native helper's pre-`SecItem` allowlist, source-level `/usr/bin/security` compatibility, secret-registry coverage, and leakage resistance.
+It verifies the fixed constants and endpoint, exact three-mode non-injectable production CLI, all-explicit test core, strict owner-only control, delayed-prompt expiry, live clock and repository revalidation, replay and concurrency denial, controlling-TTY boundary, macOS alias-versus-concrete terminal behavior, every terminal rejection before downstream activity, duplicate and redirect handling, single POST, compensating delete, manual-review states, invocation-owned pair rollback, cleanup scope, the native helper's pre-`SecItem` allowlist, source-level `/usr/bin/security` compatibility, secret-registry coverage, and leakage resistance. On macOS, the suite uses native `/usr/bin/expect` to allocate a real PTY with a 5-second child deadline and an independent 8-second parent deadline; it never waits indefinitely for terminal input.

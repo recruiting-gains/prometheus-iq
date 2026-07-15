@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   chmodSync,
+  constants,
   existsSync,
   lstatSync,
   mkdtempSync,
@@ -65,7 +67,10 @@ import {
   provisionFounderAttendedServiceToken,
   runFounderAttendedServiceTokenProductionCli
 } from "../scripts/lib/cloudflare-founder-attended-service-token-production.mjs";
-import { createControllingTtyConfirmation } from "../scripts/lib/cloudflare-founder-attended-tty.mjs";
+import {
+  createControllingTtyConfirmation,
+  createControllingTtyConfirmationTestOnly
+} from "../scripts/lib/cloudflare-founder-attended-tty.mjs";
 import { parseStrictJson } from "../scripts/lib/strict-json.mjs";
 import {
   CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES,
@@ -98,6 +103,179 @@ function confirmation(allowed = true) {
       return allowed;
     }
   };
+}
+
+function ttyStat(characterDevice, rdev) {
+  return {
+    rdev,
+    isCharacterDevice() {
+      return characterDevice;
+    }
+  };
+}
+
+function createMockControllingTty({
+  inputIsTTY = true,
+  outputIsTTY = true,
+  inputCharacterDevice = true,
+  outputCharacterDevice = true,
+  ttyCharacterDevice = true,
+  inputRdev = 101,
+  outputRdev = inputRdev,
+  ttyRdev = 202,
+  response = "",
+  openError = null
+} = {}) {
+  const inputFd = 10;
+  const outputFd = 11;
+  const ttyFd = 12;
+  const responseBytes = Buffer.from(response, "utf8");
+  let responseOffset = 0;
+  const calls = {
+    opens: [],
+    stats: [],
+    writes: [],
+    reads: [],
+    closes: []
+  };
+  const operations = {
+    openSync(path, flags) {
+      calls.opens.push({ path, flags });
+      if (openError) throw openError;
+      return ttyFd;
+    },
+    fstatSync(fd) {
+      calls.stats.push(fd);
+      if (fd === inputFd) return ttyStat(inputCharacterDevice, inputRdev);
+      if (fd === outputFd) return ttyStat(outputCharacterDevice, outputRdev);
+      if (fd === ttyFd) return ttyStat(ttyCharacterDevice, ttyRdev);
+      throw new Error("synthetic_unknown_tty_fd");
+    },
+    writeSync(fd, buffer, offset, length) {
+      calls.writes.push({
+        fd,
+        value: Buffer.from(buffer.subarray(offset, offset + length)).toString("utf8")
+      });
+      return length;
+    },
+    readSync(fd, buffer, offset) {
+      calls.reads.push(fd);
+      if (responseOffset >= responseBytes.length) return 0;
+      buffer[offset] = responseBytes[responseOffset];
+      responseOffset += 1;
+      return 1;
+    },
+    closeSync(fd) {
+      calls.closes.push(fd);
+    }
+  };
+  return {
+    confirmation: createControllingTtyConfirmationTestOnly({
+      input: { isTTY: inputIsTTY, fd: inputFd },
+      output: { isTTY: outputIsTTY, fd: outputFd },
+      ttyPath: "/dev/tty",
+      operations
+    }),
+    calls,
+    fds: { inputFd, outputFd, ttyFd }
+  };
+}
+
+function assertNoKeychainActivity(keychain) {
+  assert.deepEqual(keychain.calls, {
+    presence: [],
+    reads: [],
+    adds: [],
+    deletes: [],
+    ownershipTags: []
+  });
+}
+
+function runBoundedPtyIntegration(executable, args) {
+  const timeoutMs = 8_000;
+  const maximumOutputBytes = 1024 * 1024;
+  return new Promise((resolveRun, rejectRun) => {
+    const child = spawn(executable, args, {
+      cwd: root,
+      detached: true,
+      env: {
+        HOME: tmpdir(),
+        LANG: "C",
+        LC_ALL: "C",
+        PATH: "/usr/bin:/bin",
+        TERM: "xterm-256color",
+        TMPDIR: tmpdir()
+      },
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    let outputBytes = 0;
+    let forcedReason = null;
+    let settled = false;
+
+    const capturedStdout = () => Buffer.concat(stdoutChunks).toString("utf8");
+    const terminate = reason => {
+      if (forcedReason !== null) return;
+      forcedReason = reason;
+      const pidMatch = capturedStdout().match(/PROMETHEUS_EXPECT_CHILD_PID=(\d+)/u);
+      if (pidMatch) {
+        try {
+          process.kill(Number(pidMatch[1]), "SIGKILL");
+        } catch {
+          // The PTY child may already have exited and been reaped by Expect.
+        }
+      }
+      if (Number.isInteger(child.pid)) {
+        try {
+          process.kill(-child.pid, "SIGKILL");
+        } catch {
+          try {
+            child.kill("SIGKILL");
+          } catch {
+            // The detached Expect process may already have exited.
+          }
+        }
+      }
+    };
+    const capture = destination => chunk => {
+      if (forcedReason !== null) return;
+      const remaining = maximumOutputBytes - outputBytes;
+      if (chunk.length > remaining) {
+        if (remaining > 0) destination.push(Buffer.from(chunk.subarray(0, remaining)));
+        outputBytes += chunk.length;
+        terminate("output_limit");
+        return;
+      }
+      outputBytes += chunk.length;
+      destination.push(Buffer.from(chunk));
+    };
+    child.stdout.on("data", capture(stdoutChunks));
+    child.stderr.on("data", capture(stderrChunks));
+
+    const timer = setTimeout(() => terminate("timeout"), timeoutMs);
+    child.once("error", error => {
+      clearTimeout(timer);
+      terminate("spawn_error");
+      if (settled) return;
+      settled = true;
+      rejectRun(error);
+    });
+    child.once("close", (status, signal) => {
+      clearTimeout(timer);
+      if (settled) return;
+      settled = true;
+      resolveRun({
+        command: [executable, ...args],
+        outputLimitExceeded: forcedReason === "output_limit",
+        signal,
+        status,
+        stderr: Buffer.concat(stderrChunks).toString("utf8"),
+        stdout: capturedStdout(),
+        timedOut: forcedReason === "timeout"
+      });
+    });
+  });
 }
 
 function createMockKeychain({
@@ -1164,18 +1342,215 @@ test("cleanup failures never delete account or smoke items", () => {
   assert.equal(keychain.values.has("smokeClientSecret"), true);
 });
 
-test("real confirmation adapter rejects non-TTY invocation before reading input", () => {
-  const adapter = createControllingTtyConfirmation({
-    input: { isTTY: false, fd: 0 },
-    output: { isTTY: false, fd: 1 }
+test("TTY confirmation accepts macOS /dev/tty alias identity only after concrete stream identity", () => {
+  const action = "provision-attended";
+  const expectedPhrase = CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS[action];
+  const mocked = createMockControllingTty({
+    inputRdev: 301,
+    outputRdev: 301,
+    ttyRdev: 999,
+    response: `${expectedPhrase}\r\n`
   });
+
+  assert.equal(createControllingTtyConfirmation.length, 0);
+  assert.equal(mocked.confirmation.confirm(action, expectedPhrase), true);
+  assert.deepEqual(mocked.calls.stats, [
+    mocked.fds.inputFd,
+    mocked.fds.outputFd,
+    mocked.fds.ttyFd
+  ]);
+  assert.equal(mocked.calls.opens.length, 1);
+  assert.equal(mocked.calls.opens[0].path, "/dev/tty");
+  assert.equal(
+    mocked.calls.opens[0].flags & constants.O_RDWR,
+    constants.O_RDWR
+  );
+  if (constants.O_NOFOLLOW) {
+    assert.equal(
+      mocked.calls.opens[0].flags & constants.O_NOFOLLOW,
+      constants.O_NOFOLLOW
+    );
+  }
+  if (constants.O_NOCTTY) {
+    assert.equal(
+      mocked.calls.opens[0].flags & constants.O_NOCTTY,
+      constants.O_NOCTTY
+    );
+  }
+  assert.deepEqual(mocked.calls.writes, [{
+    fd: mocked.fds.ttyFd,
+    value: [
+      `Founder-attended action: ${action}`,
+      "Type this exact confirmation phrase:",
+      expectedPhrase,
+      "> "
+    ].join("\n")
+  }]);
+  assert.ok(mocked.calls.reads.length > 0);
+  assert.equal(mocked.calls.reads.every(fd => fd === mocked.fds.ttyFd), true);
+  assert.deepEqual(mocked.calls.closes, [mocked.fds.ttyFd]);
+});
+
+test("TTY confirmation preserves exact matching and the 192-byte input ceiling", () => {
+  const action = "provision-attended";
+  const expectedPhrase = CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS[action];
+  const wrong = createMockControllingTty({ response: `${expectedPhrase} \n` });
+  assert.equal(wrong.confirmation.confirm(action, expectedPhrase), false);
+
+  const maximumPhrase = "X".repeat(192);
+  const maximum = createMockControllingTty({ response: `${maximumPhrase}\n` });
+  assert.equal(maximum.confirmation.confirm(action, maximumPhrase), true);
+
+  const oversized = createMockControllingTty({ response: `${"X".repeat(193)}\n` });
+  assert.equal(oversized.confirmation.confirm(action, expectedPhrase), false);
+  assert.equal(oversized.calls.reads.length, 193);
+
+  const oversizedExpected = createMockControllingTty({ response: `${"X".repeat(193)}\n` });
   assert.throws(
-    () => adapter.confirm(
-      "provision-attended",
-      CLOUDFLARE_FOUNDER_ATTENDED_CONFIRMATIONS["provision-attended"]
-    ),
+    () => oversizedExpected.confirmation.confirm(action, "X".repeat(193)),
     /controlling_tty_required/u
   );
+  assert.deepEqual(oversizedExpected.calls.stats, []);
+  assert.deepEqual(oversizedExpected.calls.opens, []);
+});
+
+test("every TTY rejection stops all Keychain, control, network, and live external activity", async t => {
+  const scenarios = [
+    {
+      label: "stdin is not a TTY",
+      make: () => createMockControllingTty({ inputIsTTY: false }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "stdout is redirected",
+      make: () => createMockControllingTty({ outputIsTTY: false }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "stdin and stdout identify different concrete terminals",
+      make: () => createMockControllingTty({ inputRdev: 301, outputRdev: 302 }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "stdin descriptor is not a character device",
+      make: () => createMockControllingTty({ inputCharacterDevice: false }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "stdout descriptor is not a character device",
+      make: () => createMockControllingTty({ outputCharacterDevice: false }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "/dev/tty open fails",
+      make: () => createMockControllingTty({
+        openError: new Error("synthetic_tty_open_failure")
+      }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "/dev/tty is not a character device",
+      make: () => createMockControllingTty({ ttyCharacterDevice: false }),
+      error: /founder_attendance_required/u
+    },
+    {
+      label: "confirmation phrase is wrong",
+      make: () => createMockControllingTty({ response: "WRONG SYNTHETIC PHRASE\n" }),
+      error: /founder_confirmation_denied/u
+    },
+    {
+      label: "confirmation phrase is oversized",
+      make: () => createMockControllingTty({ response: `${"X".repeat(193)}\n` }),
+      error: /founder_confirmation_denied/u
+    }
+  ];
+
+  for (const scenario of scenarios) {
+    await t.test(scenario.label, async () => {
+      const activity = { clock: 0, repository: 0, random: 0 };
+      const harness = createHarness({
+        clock() {
+          activity.clock += 1;
+          return new Date(now);
+        },
+        repositoryReader() {
+          activity.repository += 1;
+          return repositoryIdentity;
+        }
+      });
+      try {
+        await assert.rejects(
+          harness.provision({
+            confirmation: scenario.make().confirmation,
+            randomBytesImpl() {
+              activity.random += 1;
+              return Buffer.alloc(32, 7);
+            }
+          }),
+          scenario.error
+        );
+        assertNoKeychainActivity(harness.keychain);
+        assert.equal(existsSync(harness.controlPath), false);
+        assert.equal(existsSync(harness.receiptDirectory), false);
+        assert.equal(harness.transport.requests.length, 0);
+        assert.deepEqual(activity, { clock: 0, repository: 0, random: 0 });
+
+        const cleanupKeychain = createMockKeychain();
+        assert.throws(
+          () => cleanupFounderAttendedTemporaryTokenTestOnly({
+            confirmation: scenario.make().confirmation,
+            keychain: cleanupKeychain
+          }),
+          scenario.error
+        );
+        assertNoKeychainActivity(cleanupKeychain);
+      } finally {
+        harness.cleanup();
+      }
+    });
+  }
+});
+
+test("real macOS PTY accepts /dev/tty alias rdev variance without Keychain or Cloudflare", {
+  skip: process.platform !== "darwin" || !existsSync("/usr/bin/expect")
+}, async () => {
+  const childPath = join(
+    root,
+    "tests/fixtures/cloudflare-founder-attended-tty-macos-pty-child.mjs"
+  );
+  const expectPath = join(
+    root,
+    "tests/fixtures/cloudflare-founder-attended-tty-macos-pty.expect"
+  );
+  const result = await runBoundedPtyIntegration(
+    "/usr/bin/expect",
+    [expectPath, process.execPath, childPath]
+  );
+  const diagnostic = JSON.stringify({
+    command: result.command,
+    outputLimitExceeded: result.outputLimitExceeded,
+    signal: result.signal,
+    status: result.status,
+    stderr: result.stderr,
+    stdout: result.stdout,
+    timedOut: result.timedOut
+  });
+  assert.equal(result.timedOut, false, diagnostic);
+  assert.equal(result.outputLimitExceeded, false, diagnostic);
+  assert.equal(result.signal, null, diagnostic);
+  assert.equal(result.status, 0, diagnostic);
+  const match = result.stdout.match(/PROMETHEUS_MACOS_TTY_RESULT=(\{[^\r\n]+\})/u);
+  assert.ok(match, diagnostic);
+  assert.deepEqual(JSON.parse(match[1]), {
+    stdinIsTTY: true,
+    stdoutIsTTY: true,
+    stdinCharacterDevice: true,
+    stdoutCharacterDevice: true,
+    controllingTtyCharacterDevice: true,
+    streamRdevsEqual: true,
+    controllingTtyAliasRdevDiffers: true,
+    confirmed: true
+  });
 });
 
 test("denied or missing attendance prevents control creation and all network activity", async t => {

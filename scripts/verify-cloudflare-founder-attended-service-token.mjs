@@ -33,6 +33,9 @@ import {
 import {
   CLOUDFLARE_FOUNDER_ATTENDED_COMMANDS
 } from "./lib/cloudflare-founder-attended-service-token-production.mjs";
+import {
+  createControllingTtyConfirmation
+} from "./lib/cloudflare-founder-attended-tty.mjs";
 import { CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES } from "./lib/cloudflare-unattended-launcher.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -46,8 +49,16 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   const keychainSource = read("scripts/lib/cloudflare-founder-attended-keychain.mjs");
   const serviceSource = read("scripts/lib/cloudflare-founder-attended-service-token.mjs");
   const productionSource = read("scripts/lib/cloudflare-founder-attended-service-token-production.mjs");
+  const ttySource = read("scripts/lib/cloudflare-founder-attended-tty.mjs");
   const cliSource = read("scripts/run-cloudflare-founder-attended-service-token.mjs");
   const securitySource = read("scripts/security-check.mjs");
+  const ownerTests = read("tests/cloudflare-founder-attended-service-token.test.mjs");
+  const macOsPtyChild = read(
+    "tests/fixtures/cloudflare-founder-attended-tty-macos-pty-child.mjs"
+  );
+  const macOsPtyHarness = read(
+    "tests/fixtures/cloudflare-founder-attended-tty-macos-pty.expect"
+  );
   const runbook = read("docs/cloudflare-founder-attended-service-token-provisioning-v1.md");
 
   assert.equal(contract.contractVersion, "cloudflare-founder-attended-service-token-v1");
@@ -225,6 +236,29 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
   assert.match(productionSource, /createControllingTtyConfirmation\(\)/u);
   assert.match(productionSource, /createFounderAttendedMacOsKeychain\(\)/u);
   assert.match(productionSource, /createFounderAttendedCloudflareTransport\(\)/u);
+  assert.equal(createControllingTtyConfirmation.length, 0);
+  assert.match(ttySource, /input\?\.isTTY !== true/u);
+  assert.match(ttySource, /output\?\.isTTY !== true/u);
+  assert.match(ttySource, /inputInfo\.isCharacterDevice\(\)/u);
+  assert.match(ttySource, /outputInfo\.isCharacterDevice\(\)/u);
+  assert.match(ttySource, /inputInfo\.rdev !== outputInfo\.rdev/u);
+  assert.match(ttySource, /ttyInfo\.isCharacterDevice\(\)/u);
+  assert.doesNotMatch(ttySource, /ttyInfo\.rdev/u);
+  assert.match(ttySource, /constants\.O_RDWR \| noFollow \| noControllingTty/u);
+  assert.match(ttySource, /operations\.writeSync\(fd,/u);
+  assert.match(ttySource, /operations\.readSync\(fd,/u);
+  assert.doesNotMatch(ttySource, /(?:read|write)Sync\((?:input|output)\.fd/u);
+  assert.match(macOsPtyChild, /createControllingTtyConfirmation\(\)\.confirm\(/u);
+  assert.match(macOsPtyChild, /ttyInfo\.rdev !== inputInfo\.rdev/u);
+  assert.doesNotMatch(
+    macOsPtyChild,
+    /node:https|createFounderAttendedMacOsKeychain|createFounderAttendedCloudflareTransport/u
+  );
+  assert.match(macOsPtyHarness, /set timeout 5/u);
+  assert.match(macOsPtyHarness, /\/bin\/kill -TERM/u);
+  assert.match(macOsPtyHarness, /\/bin\/kill -KILL/u);
+  assert.match(ownerTests, /const timeoutMs = 8_000/u);
+  assert.match(ownerTests, /process\.kill\(-child\.pid, "SIGKILL"\)/u);
   assert.equal((cliSource.match(/^import[\s\S]*?;$/gmu) || []).length, 1);
   assert.match(cliSource, /cloudflare-founder-attended-service-token-production\.mjs/u);
   assert.doesNotMatch(cliSource, /confirmation|transport|keychain|operations|requestImpl/u);
@@ -267,6 +301,9 @@ export function verifyCloudflareFounderAttendedServiceTokenArchitecture() {
     assert.match(runbook, new RegExp(`infrastructure:cloudflare-founder-attended:${command}`, "u"));
   }
   assert.match(runbook, /Keychain deletion happens first; Cloudflare revocation is mandatory second\./u);
+  assert.match(runbook, /stdin` and `stdout` character-device `rdev` values must match/u);
+  assert.match(runbook, /`\/dev\/tty` `rdev` is intentionally not compared/u);
+  assert.match(runbook, /BATCH-20260715-001/u);
   assert.match(runbook, /runtime interoperability is not claimed/u);
   assert.match(runbook, /readiness remains blocked/u);
 
