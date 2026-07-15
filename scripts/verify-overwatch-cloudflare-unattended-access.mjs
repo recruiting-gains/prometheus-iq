@@ -18,6 +18,8 @@ const founderAttendedTtySuccessorPath = "overwatch/governance/cloudflare-founder
 const founderAttendedRecoverySuccessorPath = "overwatch/governance/cloudflare-founder-attended-get-only-recovery-v1.json";
 const founderAttendedResponseContractSuccessorPath =
   "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
+const founderAttendedCreateReceiptV2SuccessorPath =
+  "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -237,6 +239,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const founderAttendedRecoverySuccessor = readJson(founderAttendedRecoverySuccessorPath);
   const founderAttendedResponseContractSuccessor =
     readJson(founderAttendedResponseContractSuccessorPath);
+  const founderAttendedCreateReceiptV2Successor =
+    readJson(founderAttendedCreateReceiptV2SuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -252,7 +256,8 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
       ...founderAttendedSuccessor.protectedPredecessorSuccessors,
       ...founderAttendedTtySuccessor.protectedPredecessorSuccessors,
       ...founderAttendedRecoverySuccessor.protectedPredecessorSuccessors,
-      ...founderAttendedResponseContractSuccessor.protectedPredecessorSuccessors
+      ...founderAttendedResponseContractSuccessor.protectedPredecessorSuccessors,
+      ...founderAttendedCreateReceiptV2Successor.protectedPredecessorSuccessors
     ]
   );
   verifyHashes(

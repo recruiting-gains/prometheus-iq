@@ -1,0 +1,200 @@
+{
+  "governanceId": "cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-governance-v2",
+  "version": "2.0.0",
+  "batchId": "BATCH-20260715-004",
+  "directive": "Cloudflare Live Create-Receipt Classification + Safe Provisioning Repair v2",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_LIVE_EXECUTION_NOT_AUTHORIZED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-15T08:58:00Z",
+    "ownerHandoffTimestamp": "2026-07-15T09:42:00Z",
+    "implementationCommit": {
+      "commit": "358f817f7fc81bd82560840e5fd54668a7f58abe",
+      "parent": "f630c2af6e5e4722105d2b1e3ee959fb28f5da66",
+      "tree": "887e54f6ff62dfd55730f81bf9348ee1ecd619bb",
+      "subject": "Classify attended Cloudflare create receipts",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "rootCauseClassification": {
+    "historicalRejectedDimensionRecoverable": false,
+    "historicalResponseRetained": false,
+    "historicalCredentialMaterialRetained": false,
+    "reason": "The predecessor workflow deliberately wiped and did not retain provider response or credential material, so the exact historical rejected field cannot be reconstructed without invention.",
+    "futureFailuresClassifiedByFixedNonsecretReason": true,
+    "secretOrResponseMaterialPersisted": false
+  },
+  "officialResponseContracts": {
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "httpStatus": 200,
+      "resultOptionalInProviderSchema": true,
+      "nameEchoOptionalInProviderSchema": true,
+      "durationEchoOptionalInProviderSchema": true,
+      "expiresAtRequired": false,
+      "validClientIdRequiredBeforeStorage": true,
+      "validClientSecretRequiredBeforeStorage": true,
+      "exactRequestName": "Prometheus Overwatch Read-Only Smoke Verification",
+      "exactRequestDuration": "720h"
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "resultOptional": true,
+      "resultInfoOptional": true,
+      "fixedQueryKeys": ["name", "page", "per_page"],
+      "maximumPages": 100,
+      "exactNameDuplicateFailsClosed": true
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "httpStatus": 200,
+      "documentedResultObjectValidated": true,
+      "followUpExactNameAbsenceRequired": true,
+      "responseAloneConfirmsCleanup": false
+    }
+  },
+  "createReceiptBoundary": {
+    "freshAttendedGetRequired": true,
+    "freshOneShotControlRequired": true,
+    "predecessorControlOrReceiptReuseAllowed": false,
+    "createAttemptsMaximum": 1,
+    "automaticRetryAllowed": false,
+    "retryAfterUncertaintyAllowed": false,
+    "returnedIdAloneAuthorizesDelete": false,
+    "uniquePostCreateProofRequired": true,
+    "proofRequiresReturnedIdExactNameAnd720h": true,
+    "wrongNameOrDurationDeleteAttempts": 0,
+    "ambiguousMalformedMismatchedOrDuplicateProofDeleteAttempts": 0,
+    "compensationRequiresSeparateNativeTtyConfirmation": true,
+    "compensationDeleteAttemptsMaximum": 1,
+    "compensationRequiresFollowUpAbsenceGet": true,
+    "temporaryProvisioningApiTokenPreserved": true
+  },
+  "credentialBoundary": {
+    "missingAndMalformedClassificationsDistinct": true,
+    "whitespaceAndControlCharactersRejected": true,
+    "unboundedValuesRejected": true,
+    "keychainPairAllOrRollback": true,
+    "valuesPrintedLoggedHashedMeasuredOrPersisted": false,
+    "accountIdResponseBodyHeadersCookiesOrCredentialMetadataExposed": false
+  },
+  "reasonEvidence": {
+    "appendOnly": true,
+    "exclusiveCreate": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "allowedReasonCodes": [
+      "PREFLIGHT_REJECTED",
+      "DUPLICATE_NAME_REJECTED",
+      "CREATE_TRANSPORT_AMBIGUOUS",
+      "CREATE_HTTP_STATUS_REJECTED",
+      "CREATE_BODY_REJECTED",
+      "CREATE_ENVELOPE_REJECTED",
+      "CREATE_ERRORS_REPORTED",
+      "CREATE_RESULT_REJECTED",
+      "CREATE_RESOURCE_ID_MISSING",
+      "CREATE_RESOURCE_ID_REJECTED",
+      "CREATE_NAME_ECHO_MISMATCH",
+      "CREATE_DURATION_ECHO_MISMATCH",
+      "CREATE_CLIENT_ID_MISSING",
+      "CREATE_CLIENT_ID_REJECTED",
+      "CREATE_CLIENT_SECRET_MISSING",
+      "CREATE_CLIENT_SECRET_REJECTED",
+      "CREATE_TIMESTAMP_REJECTED",
+      "CREATE_EXACT_NAME_PROOF_REJECTED",
+      "CREATE_RESPONSE_ACCEPTED",
+      "KEYCHAIN_STORAGE_REJECTED",
+      "KEYCHAIN_ROLLBACK_REJECTED",
+      "COMPENSATION_AUTHORIZATION_DENIED",
+      "COMPENSATION_TRANSPORT_AMBIGUOUS",
+      "COMPENSATION_RESPONSE_REJECTED",
+      "COMPENSATION_ABSENCE_UNPROVEN",
+      "COMPENSATION_CONFIRMED"
+    ],
+    "finalCliOutcomes": ["SUCCESS", "COMPENSATED", "MANUAL_REVIEW"],
+    "secretIdentifierResponseOrCredentialMetadataAllowed": false
+  },
+  "ownerEvidence": [
+    {"path": "docs/cloudflare-founder-attended-create-receipt-v2.md", "sha256AtOwnerCommit": "9bee82cf1f4859d5b058d35245242971dd2e2073b5026db7bd8361e0b113e800"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-artifacts.mjs", "sha256AtOwnerCommit": "4dfb5b35aa94dbb7a660e72881c06939bb01d0ce71843779bc5d9b8c29845ccb"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-constants.mjs", "sha256AtOwnerCommit": "2191c885aeffbb619143b54ce5fb10c1ec4ea24ef472ab1c2e93f48d2f9f96cb"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-production.mjs", "sha256AtOwnerCommit": "1dceeaee0afba1f5cb4d72cc085f4a1df2eab5d40148d6c4e5969c7256494825"},
+    {"path": "scripts/lib/cloudflare-founder-attended-create-receipt-v2-workflow.mjs", "sha256AtOwnerCommit": "ef7bf7917c9590b8b0b12a06af6b3901c17098d60f2ece5e7023691b772e9dde"},
+    {"path": "scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs", "sha256AtOwnerCommit": "7b74ed168f4c4d30b901ed4ddbd052679d5098970529bce6b3071c0762c8790f"},
+    {"path": "scripts/run-cloudflare-founder-attended-create-receipt-v2-prepare.mjs", "sha256AtOwnerCommit": "2c55428bf1b4e2fdc69fb831e00d465b30f6df4d4a1e4fead131896f63c8325f"},
+    {"path": "scripts/run-cloudflare-founder-attended-create-receipt-v2-provision.mjs", "sha256AtOwnerCommit": "7dd6d8db8a0f1bf83158a4d4178823b7267765805ea48b29b85705a0e7d5686e"},
+    {"path": "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs", "sha256AtOwnerCommit": "1f95ded85a5f5adc054d6bfd0d87f8260e1d7f7c0df4f6f80e59eb675ad740f5"},
+    {"path": "tests/cloudflare-founder-attended-create-receipt-v2.test.mjs", "sha256AtOwnerCommit": "cbf0bc909e6b56157fdfa99a16fd6bb86e520ee1d683727f33d617d15d0c3244"},
+    {"path": "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json", "sha256AtOwnerCommit": "917d0c43cbdd763645a31237d738c627190b3d18174b343ca472a9f0074fe298"}
+  ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "58c83891f30ca274d295eaf70f98424624c98667b638a1b3954c437248c705aa",
+      "owner": "Prometheus Overwatch",
+      "reason": "Carry the original unattended-access package baseline through the v2 release gate without changing unattended runtime behavior."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-response-contract-repair-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "d93b8c3fe164c6ed68548b1fd3e0d4341da063accd38bf67606d603989dd0b0e",
+      "successorSha256": "58c83891f30ca274d295eaf70f98424624c98667b638a1b3954c437248c705aa",
+      "owner": "Prometheus Overwatch",
+      "reason": "Register the owner and independent v2 gates without enabling a live command."
+    }
+  ],
+  "overwatchVerificationSuccessors": [
+    {"path": "scripts/verify-overwatch-cloudflare-unattended-access.mjs", "previousSha256": "32bab36fa76b2fd5928e8c7c6256f1a29a063d4ea251398da9b76c99cd8d41a1", "successorSha256": "44e32c3751b4ac58241061e505ba5d05a451d85b73280b06cb1473c900a94dd1", "owner": "Prometheus Overwatch"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs", "previousSha256": "9b0f90229a259024c74cb450eb90f5055382a29626a37587cda32fb8e098242b", "successorSha256": "b472dbea6fa01736f6740e41a86b935ac3221c5ba6d35b8bbb3d350a28085ebb", "owner": "Prometheus Overwatch"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs", "previousSha256": "92b6690b70ed2f535eab1af9637efaef1ab32e796d274dc740fa51fcc9e7f3ec", "successorSha256": "78066379c15af37fda8599623a229ae64e8ff1596fcc34325456275931f01e89", "owner": "Prometheus Overwatch"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs", "previousSha256": "1a049cd98ce7f6ad4743650dbb845aa36a01b82c7085d666e11a76afdd65d056", "successorSha256": "d2fdb09fda0864ae6c9215f14e7f6889645875dfdb1e4c303ac8b5bb8c4f67b8", "owner": "Prometheus Overwatch"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs", "previousSha256": "66b913ef38d8cd03dd1995a69c7e88ac97b26068301609ff30442fbdf5ad0bf3", "successorSha256": "b557f6904ceb5e78e313b603d208c1650f3062b3a02ac1f1f9479a0460e0d195", "owner": "Prometheus Overwatch"}
+  ],
+  "protectedReleaseWiringTransitions": [
+    {
+      "path": "package.json",
+      "previousSha256": "d93b8c3fe164c6ed68548b1fd3e0d4341da063accd38bf67606d603989dd0b0e",
+      "successorSha256": "58c83891f30ca274d295eaf70f98424624c98667b638a1b3954c437248c705aa",
+      "owner": "Prometheus Overwatch",
+      "reason": "Add the v2 owner and independent verification to the complete repository release suite."
+    }
+  ],
+  "executionBoundary": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialCreatedDeletedStoredOrChanged": false,
+    "realControlReceiptOrReasonEvidenceCreated": false,
+    "temporaryProvisioningApiTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAuthorizedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "liveGetAuthorizedByThisBatch": false,
+    "controlPreparationAuthorized": false,
+    "provisioningAuthorized": false,
+    "compensationAuthorizedOutsideAnAttendedAttempt": false,
+    "nextSafeCommandMustBeGetOnly": true,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

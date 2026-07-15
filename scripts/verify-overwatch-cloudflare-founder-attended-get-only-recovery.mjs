@@ -19,6 +19,8 @@ const reportPath =
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const responseContractGovernancePath =
   "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
+const createReceiptV2GovernancePath =
+  "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
 const ownerCommit = "43eee7a13bb2f826c4ac750298d9e87dd28f4976";
 const ownerParent = "89267707a3a62b2e3d61897476e4dda7adf95987";
 const ownerTree = "79b2ce3883160e95fdeb4f0985689fa77f50cf6b";
@@ -334,7 +336,11 @@ function verifyCanonicalRegistration() {
 function verifyReleaseWiring() {
   const packageJson = readJson("package.json");
   const responseContractGovernance = readJson(responseContractGovernancePath);
-  const packageTransition = responseContractGovernance.protectedReleaseWiringTransitions?.find(
+  const responseContractTransition = responseContractGovernance.protectedReleaseWiringTransitions?.find(
+    item => item.path === "package.json"
+  );
+  const createReceiptV2Governance = readJson(createReceiptV2GovernancePath);
+  const packageTransition = createReceiptV2Governance.protectedReleaseWiringTransitions?.find(
     item => item.path === "package.json"
   );
   const command = "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
@@ -343,12 +349,15 @@ function verifyReleaseWiring() {
       .includes("tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs")
     || !packageJson.scripts["test:overwatch"]
       .includes("tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
+    || !packageJson.scripts["test:overwatch"]
+      .includes("tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs")
     || !packageJson.scripts.test
       .includes("overwatch:cloudflare-founder-attended-recovery:check")
     || !packageJson.scripts.test
       .includes("overwatch:cloudflare-founder-attended-response-contract:check")
-    || packageTransition?.previousSha256 !==
-      "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199"
+    || !packageJson.scripts.test
+      .includes("overwatch:cloudflare-founder-attended-create-receipt-v2:check")
+    || responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Recovery release wiring drifted.");

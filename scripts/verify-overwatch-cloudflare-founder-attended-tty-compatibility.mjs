@@ -16,6 +16,8 @@ const reportPath = "overwatch/reports/BATCH-20260715-001-cloudflare-founder-atte
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const responseContractGovernancePath =
   "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
+const createReceiptV2GovernancePath =
+  "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -212,6 +214,11 @@ function verifyOwnerCommit(governance) {
     responseContractGovernance.protectedReleaseWiringTransitions?.find(item =>
       item.path === "package.json"
     );
+  const createReceiptV2Governance = readJson(createReceiptV2GovernancePath);
+  const createReceiptV2Package =
+    createReceiptV2Governance.protectedReleaseWiringTransitions?.find(item =>
+      item.path === "package.json"
+    );
   const founderPackage = packageTransitions.find(item =>
     item.predecessorGovernanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1"
   );
@@ -226,7 +233,9 @@ function verifyOwnerCommit(governance) {
     || unattendedPackage.successorSha256 !== recoveryPackage?.previousSha256
     || recoveryPackage.successorSha256 !== responseContractPackage?.previousSha256
     || recoveryPackage.owner !== "Prometheus Overwatch"
-    || responseContractPackage?.successorSha256 !== currentPackageHash
+    || responseContractPackage?.successorSha256 !== createReceiptV2Package?.previousSha256
+    || createReceiptV2Package?.successorSha256 !== currentPackageHash
+    || createReceiptV2Package?.owner !== "Prometheus Overwatch"
     || responseContractPackage?.owner !== "Prometheus Overwatch") {
     throw new Error("Protected package release-wiring transition drifted.");
   }
