@@ -16,24 +16,61 @@ private struct ACLSnapshot: Equatable {
     let selector: UInt16
 }
 
-guard CommandLine.arguments.count == 4 else {
+guard CommandLine.arguments.count == 5 else {
     exit(64)
 }
 
 private let helperPath = CommandLine.arguments[1]
 private let attemptId = CommandLine.arguments[2]
 private let keychainPath = CommandLine.arguments[3]
+private let phasePath = CommandLine.arguments[4]
 guard attemptId.count == 36,
       UUID(uuidString: attemptId) != nil,
       attemptId == attemptId.lowercased(),
       syntheticOnlyExecutable.hasPrefix("/"),
       FileManager.default.isExecutableFile(atPath: syntheticOnlyExecutable),
       keychainPath.hasPrefix("/"),
-      !keychainPath.contains("..") else {
+      !keychainPath.contains(".."),
+      phasePath.hasPrefix("/"),
+      !phasePath.contains("..") else {
     exit(64)
 }
 
 private let service = "com.prometheus.synthetic.keychain-acl-v2.\(attemptId)"
+private let phaseLabels: Set<String> = [
+    "KEYCHAIN_CREATED",
+    "KEYCHAIN_UNLOCKED",
+    "ITEM_ADDED",
+    "INITIAL_ACCESS_APPLIED",
+    "INITIAL_ACL_VALIDATED",
+    "HELPER_INSPECTED",
+    "HELPER_GRANTED",
+    "GRANT_VALIDATED",
+    "POSITIVE_READ_STARTED",
+    "POSITIVE_READ_PASSED",
+    "HELPER_REVOKED",
+    "RESTORE_VALIDATED",
+    "KEYCHAIN_DELETE_DEFERRED",
+    "KEYCHAIN_DELETE_REQUESTED",
+    "KEYCHAIN_ABSENT"
+]
+
+private func recordPhase(_ phase: String) -> Bool {
+    guard phaseLabels.contains(phase),
+          let data = phase.data(using: .ascii) else {
+        return false
+    }
+    defer {
+        var wipeable = data
+        wipe(&wipeable)
+    }
+    do {
+        try data.write(to: URL(fileURLWithPath: phasePath), options: .atomic)
+        return true
+    } catch {
+        return false
+    }
+}
 
 private func wipe(_ data: inout Data) {
     guard !data.isEmpty else { return }
@@ -347,32 +384,6 @@ private func verifyUnattendedRead(_ expected: Data) -> Bool {
         && (output == expected || output == expectedWithNewline)
 }
 
-private func interactionStatus() -> Int32 {
-    let process = Process()
-    let standardOutput = Pipe()
-    let standardError = Pipe()
-    process.executableURL = URL(fileURLWithPath: trustedExecutable)
-    process.arguments = ["find-generic-password", "-s", service, "-a", account, "-w", keychainPath]
-    process.standardInput = FileHandle.nullDevice
-    process.standardOutput = standardOutput
-    process.standardError = standardError
-    do {
-        try process.run()
-    } catch {
-        return -1
-    }
-    process.waitUntilExit()
-    var output = standardOutput.fileHandleForReading.readDataToEndOfFile()
-    var error = standardError.fileHandleForReading.readDataToEndOfFile()
-    defer {
-        wipe(&output)
-        wipe(&error)
-    }
-    guard output.count <= maximumCaptureBytes,
-          error.count <= maximumCaptureBytes else { return -1 }
-    return process.terminationStatus
-}
-
 private func setAccessFailureExitCode(_ status: OSStatus) -> Int32 {
     switch status {
     case errSecInvalidItemRef:
@@ -387,17 +398,6 @@ private func setAccessFailureExitCode(_ status: OSStatus) -> Int32 {
         return 85
     default:
         return 89
-    }
-}
-
-private func initialReadFailureExitCode(_ status: Int32) -> Int32 {
-    switch status {
-    case 0:
-        return 78
-    case -1:
-        return 79
-    default:
-        return 80
     }
 }
 
@@ -432,30 +432,36 @@ private func exercise(_ keychain: SecKeychain) -> Int32 {
     attributes[kSecReturnRef as String] = kCFBooleanTrue as Any
     var createdItem: CFTypeRef?
     guard SecItemAdd(attributes as CFDictionary, &createdItem) == errSecSuccess else { return 67 }
+    guard recordPhase("ITEM_ADDED") else { return 93 }
     guard let createdItem,
           CFGetTypeID(createdItem) == SecKeychainItemGetTypeID() else { return 68 }
     let item = createdItem as! SecKeychainItem
     let setAccessStatus = SecKeychainItemSetAccess(item, access)
     guard setAccessStatus == errSecSuccess else { return setAccessFailureExitCode(setAccessStatus) }
+    guard recordPhase("INITIAL_ACCESS_APPLIED") else { return 93 }
     guard let persistedItem = findPersistedSyntheticItem(keychain),
           let initialSnapshot = snapshot(persistedItem),
           let initialState = exactComponentState(persistedItem),
           !initialState.retrieval,
           !initialState.partition else { return 69 }
-    let initialReadStatus = interactionStatus()
-    // Both security(1) interaction statuses are classified as
-    // INTERACTION_REQUIRED by the fixed unattended classifier.
-    guard [36, 128].contains(initialReadStatus) else {
-        return initialReadFailureExitCode(initialReadStatus)
-    }
+    guard recordPhase("INITIAL_ACL_VALIDATED") else { return 93 }
     guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 70 }
+    guard recordPhase("HELPER_INSPECTED") else { return 93 }
     guard runSilent(helperPath, ["grant", helperAlias], expectedStatus: 32) else { return 71 }
+    guard recordPhase("HELPER_GRANTED") else { return 93 }
     guard verifyMinimumGrant(persistedItem) else { return 72 }
+    guard recordPhase("GRANT_VALIDATED") else { return 93 }
+    guard recordPhase("POSITIVE_READ_STARTED") else { return 93 }
     guard verifyUnattendedRead(syntheticValue) else { return 73 }
+    guard recordPhase("POSITIVE_READ_PASSED") else { return 93 }
     guard runSilent(helperPath, ["revoke", helperAlias, "both"], expectedStatus: 42) else { return 74 }
+    guard recordPhase("HELPER_REVOKED") else { return 93 }
     guard runSilent(helperPath, ["inspect", helperAlias], expectedStatus: 12) else { return 75 }
     guard snapshot(persistedItem) == initialSnapshot else { return 76 }
-    guard [36, 128].contains(interactionStatus()) else { return 77 }
+    guard let restoredState = exactComponentState(persistedItem),
+          !restoredState.retrieval,
+          !restoredState.partition else { return 77 }
+    guard recordPhase("RESTORE_VALIDATED") else { return 93 }
     return 0
 }
 
@@ -476,8 +482,10 @@ private func fixtureMain() -> Int32 {
         }
     }
     guard createStatus == errSecSuccess, keychain != nil else { return 65 }
+    guard recordPhase("KEYCHAIN_CREATED") else { return 93 }
     defer {
         if let activeKeychain = keychain {
+            _ = recordPhase("KEYCHAIN_DELETE_DEFERRED")
             _ = SecKeychainDelete(activeKeychain)
         }
     }
@@ -491,11 +499,14 @@ private func fixtureMain() -> Int32 {
     }
     guard unlockStatus == errSecSuccess,
           let activeKeychain = keychain else { return 66 }
+    guard recordPhase("KEYCHAIN_UNLOCKED") else { return 93 }
     let exerciseStatus = exercise(activeKeychain)
     guard exerciseStatus == 0 else { return exerciseStatus }
+    guard recordPhase("KEYCHAIN_DELETE_REQUESTED") else { return 93 }
     guard SecKeychainDelete(activeKeychain) == errSecSuccess else { return 90 }
     keychain = nil
     guard keychainPathsAbsentNow() || keychainPathsDisappearWithinBound() else { return 91 }
+    guard recordPhase("KEYCHAIN_ABSENT") else { return 93 }
     return 0
 }
 

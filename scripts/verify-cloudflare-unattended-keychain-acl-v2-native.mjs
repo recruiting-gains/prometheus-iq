@@ -29,8 +29,27 @@ const fixtureFailures = Object.freeze({
   80: "INITIAL_READ_UNCLASSIFIED_FAILURE",
   90: "KEYCHAIN_DELETE_FAILED",
   91: "KEYCHAIN_PATH_REMAINS_AFTER_BOUNDED_WAIT",
+  93: "PHASE_MARKER_WRITE_FAILED",
   89: "SET_ACCESS_UNCLASSIFIED_FAILURE"
 });
+const fixturePhases = new Set([
+  "NONE",
+  "KEYCHAIN_CREATED",
+  "KEYCHAIN_UNLOCKED",
+  "ITEM_ADDED",
+  "INITIAL_ACCESS_APPLIED",
+  "INITIAL_ACL_VALIDATED",
+  "HELPER_INSPECTED",
+  "HELPER_GRANTED",
+  "GRANT_VALIDATED",
+  "POSITIVE_READ_STARTED",
+  "POSITIVE_READ_PASSED",
+  "HELPER_REVOKED",
+  "RESTORE_VALIDATED",
+  "KEYCHAIN_DELETE_DEFERRED",
+  "KEYCHAIN_DELETE_REQUESTED",
+  "KEYCHAIN_ABSENT"
+]);
 
 function wipe(result) {
   if (Buffer.isBuffer(result?.stdout)) result.stdout.fill(0);
@@ -82,6 +101,18 @@ function wipeUserKeychainSelection(snapshot) {
   snapshot.defaultKeychain.fill(0);
 }
 
+function timeoutPhase(phasePath) {
+  if (!existsSync(phasePath)) return "NONE";
+  let phase = readFileSync(phasePath);
+  try {
+    if (phase.length > 64) return "MALFORMED";
+    const value = phase.toString("ascii");
+    return fixturePhases.has(value) ? value : "MALFORMED";
+  } finally {
+    phase.fill(0);
+  }
+}
+
 export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
   if (process.platform !== "darwin") {
     return Object.freeze({ status: "SKIPPED_NON_MACOS" });
@@ -97,6 +128,7 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
   const fixtureBinary = join(temporaryDirectory, "acl-v2-native-e2e-fixture");
   const helperTestSource = join(temporaryDirectory, "main.swift");
   const keychainPath = join(temporaryDirectory, "fixture.keychain-db");
+  const phasePath = join(temporaryDirectory, "fixture.phase");
   const keychainPaths = [keychainPath, `${keychainPath}-db`];
   let beforeSelection;
   let primaryError;
@@ -128,10 +160,10 @@ export function verifyNativeKeychainAclV2({ uuid = randomUUID } = {}) {
     wipe(compileFixture);
     assert.equal(fixtureCompiled, true);
 
-    const e2e = run(fixtureBinary, [helperBinary, attemptId, keychainPath]);
+    const e2e = run(fixtureBinary, [helperBinary, attemptId, keychainPath, phasePath]);
     let e2eError;
     if (e2e.error?.code === "ETIMEDOUT") {
-      e2eError = new Error("native_fixture_timeout");
+      e2eError = new Error(`native_fixture_timeout_after_${timeoutPhase(phasePath)}`);
     } else if (Object.hasOwn(fixtureFailures, e2e.status)) {
       e2eError = new Error(`native_fixture_${fixtureFailures[e2e.status]}`);
     } else if (e2e.status !== 0) {

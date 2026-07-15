@@ -111,14 +111,19 @@ assert.equal(contract.nativeFixture.mutatesUserSearchListOrDefaultKeychain, fals
 assert.equal(contract.nativeFixture.userKeychainSelectionByteUnchangedBeforeAfter, true);
 assert.equal(contract.nativeFixture.usesSecItemAddReturnReference, true);
 assert.equal(contract.nativeFixture.initialSecurityTrust, "NONE");
-assert.equal(contract.nativeFixture.initialNoninteractiveRead, "INTERACTION_REQUIRED");
+assert.equal(
+  contract.nativeFixture.initialNegativeEvidence,
+  "STRUCTURAL_ACL_ABSENCE_WITH_IMMUTABLE_REAL_ITEM_INTERACTION_REQUIRED_EVIDENCE"
+);
 assert.equal(contract.nativeFixture.compileTimeTestOnlyAlias, "NATIVE_E2E_SYNTHETIC");
 assert.equal(contract.nativeFixture.validatesDecryptOnlyWithoutExportClear, true);
 assert.equal(contract.nativeFixture.securityReadUsesPositionalTemporaryKeychain, true);
 assert.equal(contract.nativeFixture.securityReadStdinClosed, true);
 assert.equal(contract.nativeFixture.helperUsesCompileTimeTemporaryKeychainOnly, true);
 assert.equal(contract.nativeFixture.helperRevokeRestoresInitialAclSnapshot, true);
-assert.equal(contract.nativeFixture.postRevokeNoninteractiveRead, "INTERACTION_REQUIRED");
+assert.equal(contract.nativeFixture.postRevokeNegativeEvidence, "STRUCTURAL_ACL_SNAPSHOT_RESTORATION");
+assert.equal(contract.nativeFixture.timeoutPhaseMarkers, true);
+assert.equal(contract.nativeFixture.timeoutIsFailure, true);
 assert.deepEqual(contract.nativeFixture.syntheticSetAccessFailureStates, [
   "SET_ACCESS_INVALID_ITEM_REFERENCE",
   "SET_ACCESS_AUTH_FAILED",
@@ -214,11 +219,10 @@ assert.match(nativeFixture, /keychainPathsAbsentNow/u);
 assert.match(nativeFixture, /keychainPathsDisappearWithinBound/u);
 assert.match(nativeFixture, /kSecReturnRef/u);
 assert.match(nativeFixture, /setAccessFailureExitCode/u);
-assert.match(nativeFixture, /initialReadFailureExitCode/u);
-assert.match(nativeFixture, /INTERACTION_REQUIRED by the fixed unattended classifier/u);
+assert.match(nativeFixture, /POSITIVE_READ_STARTED/u);
+assert.match(nativeFixture, /RESTORE_VALIDATED/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["grant", helperAlias\], expectedStatus: 32\)/u);
 assert.match(nativeFixture, /runSilent\(helperPath, \["revoke", helperAlias, "both"\], expectedStatus: 42\)/u);
-assert.match(nativeFixture, /guard \[36, 128\]\.contains\(interactionStatus\(\)\) else \{ return 77 \}/u);
 assert.match(nativeFixture, /rights == Set\(\[decrypt\]\)/u);
 assert.match(nativeFixture, /snapshot\(persistedItem\) == initialSnapshot/u);
 assert.doesNotMatch(nativeFixture, /CLOUDFLARE_API_TOKEN|CLOUDFLARE_ACCOUNT_ID/u);
@@ -231,6 +235,8 @@ assert.match(nativeVerifier, /list-keychains/u);
 assert.match(nativeVerifier, /default-keychain/u);
 assert.match(nativeVerifier, /sameUserKeychainSelection/u);
 assert.match(nativeVerifier, /if \(primaryError\) throw primaryError/u);
+assert.match(nativeVerifier, /native_fixture_timeout_after_\$\{timeoutPhase\(phasePath\)\}/u);
+assert.match(nativeVerifier, /PHASE_MARKER_WRITE_FAILED/u);
 assert.match(nativeVerifier, /KEYCHAIN_ACL_V2_NATIVE_E2E/u);
 assert.match(nativeVerifier, /SET_ACCESS_INVALID_ITEM_REFERENCE/u);
 assert.match(nativeVerifier, /SET_ACCESS_UNCLASSIFIED_FAILURE/u);
