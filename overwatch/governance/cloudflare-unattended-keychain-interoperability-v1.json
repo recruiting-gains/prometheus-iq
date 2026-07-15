@@ -25,6 +25,12 @@
       "tree": "5084667426465a7df46cbbf2dc35c0f043c1436e",
       "subject": "Align attended Keychain compatibility fixtures"
     },
+    "ownerVerifierRepairCommit": {
+      "commit": "26396e471a9271f957a27b8764c396fd3c5b120a",
+      "parent": "3b349e3d0501cb7fe0ba559824897aa3f440c5b3",
+      "tree": "03a1df0b8ccb9fe92e6673cb9e951044273ed32b",
+      "subject": "Authenticate Keychain fixture successor"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "overwatchChangeTypes": [
@@ -132,6 +138,29 @@
       "previousSha256": "79daa55d323eb0c970ae6da02d7f902981c609a6a6f8117ec18e09baab8d2bac",
       "successorSha256": "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a",
       "ownerCommit": "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
+      "owner": "Prometheus Infrastructure"
+    }
+  ],
+  "ownerVerifierSuccessors": [
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs",
+      "previousSha256": "54a6d28ce672594f369bb623c699831804a116c034f7bff566b78860897b01e0",
+      "successorSha256": "ff6ca4ede5366ab0dbd86299cb758728130b17f90b475b14eccdabb6137096cd",
+      "ownerCommit": "26396e471a9271f957a27b8764c396fd3c5b120a",
+      "owner": "Prometheus Infrastructure"
+    },
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+      "previousSha256": "8ce6e7c096a867ff168c5a99f38d8d885c011adbb1b42accf2669b14c8e2252d",
+      "successorSha256": "f52922d6094b321f905ee41c17f1feff73a804cb7496fceb0c684d24b03f1ffe",
+      "ownerCommit": "26396e471a9271f957a27b8764c396fd3c5b120a",
+      "owner": "Prometheus Infrastructure"
+    },
+    {
+      "path": "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs",
+      "previousSha256": "1ee230b0cddd87005504d9ce1d548240d7b81b5b1a642dfb93da398d7e84832f",
+      "successorSha256": "ddf8468f54382ef2fdff0d80ceb07ba814a4d17624d8e8f113a7e7dd5c980f85",
+      "ownerCommit": "26396e471a9271f957a27b8764c396fd3c5b120a",
       "owner": "Prometheus Infrastructure"
     }
   ],

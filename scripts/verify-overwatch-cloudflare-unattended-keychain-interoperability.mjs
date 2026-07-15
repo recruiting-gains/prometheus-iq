@@ -23,6 +23,9 @@ const ownerTree = "e1cc6516c568d28e0d7f3078f41590ba8f6a994d";
 const ownerRepairCommit = "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e";
 const ownerRepairParent = "94e7bc78a30dd3d0f8b272e351d2f820541c4f90";
 const ownerRepairTree = "5084667426465a7df46cbbf2dc35c0f043c1436e";
+const ownerVerifierRepairCommit = "26396e471a9271f957a27b8764c396fd3c5b120a";
+const ownerVerifierRepairParent = "3b349e3d0501cb7fe0ba559824897aa3f440c5b3";
+const ownerVerifierRepairTree = "03a1df0b8ccb9fe92e6673cb9e951044273ed32b";
 
 const ownerHashes = Object.freeze({
   "docs/cloudflare-unattended-keychain-interoperability-v1.md":
@@ -107,6 +110,30 @@ const ownerImplementationSuccessors = Object.freeze([
   }
 ]);
 
+const ownerVerifierSuccessors = Object.freeze([
+  {
+    path: "scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs",
+    previousSha256: "54a6d28ce672594f369bb623c699831804a116c034f7bff566b78860897b01e0",
+    successorSha256: "ff6ca4ede5366ab0dbd86299cb758728130b17f90b475b14eccdabb6137096cd",
+    ownerCommit: ownerVerifierRepairCommit,
+    owner: "Prometheus Infrastructure"
+  },
+  {
+    path: "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+    previousSha256: "8ce6e7c096a867ff168c5a99f38d8d885c011adbb1b42accf2669b14c8e2252d",
+    successorSha256: "f52922d6094b321f905ee41c17f1feff73a804cb7496fceb0c684d24b03f1ffe",
+    ownerCommit: ownerVerifierRepairCommit,
+    owner: "Prometheus Infrastructure"
+  },
+  {
+    path: "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs",
+    previousSha256: "1ee230b0cddd87005504d9ce1d548240d7b81b5b1a642dfb93da398d7e84832f",
+    successorSha256: "ddf8468f54382ef2fdff0d80ceb07ba814a4d17624d8e8f113a7e7dd5c980f85",
+    ownerCommit: ownerVerifierRepairCommit,
+    owner: "Prometheus Infrastructure"
+  }
+]);
+
 const expectedOverwatchPaths = Object.freeze([
   "overwatch/artifact-contracts/canonical-artifact-registry.json",
   governanceDocumentationPath,
@@ -166,6 +193,12 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
     tree: ownerRepairTree,
     subject: "Align attended Keychain compatibility fixtures"
   }), "Owner repair commit drifted.");
+  require(equal(governance.dispatchAudit.ownerVerifierRepairCommit, {
+    commit: ownerVerifierRepairCommit,
+    parent: ownerVerifierRepairParent,
+    tree: ownerVerifierRepairTree,
+    subject: "Authenticate Keychain fixture successor"
+  }), "Owner verifier repair commit drifted.");
   require(governance.dispatchAudit.implementationOwnershipRespected === true,
     "Implementation ownership is not affirmed.");
   require(governance.dispatchAudit.overwatchModifiedInfrastructureImplementation === false,
@@ -208,6 +241,8 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   require(equal(governance.ownerImplementationSuccessors,
     ownerImplementationSuccessors),
   "Owner implementation successor mapping drifted.");
+  require(equal(governance.ownerVerifierSuccessors, ownerVerifierSuccessors),
+    "Owner verifier successor mapping drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",
@@ -302,7 +337,8 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
     && report.owners.verification === "Prometheus Overwatch",
   "Report ownership drifted.");
   require(report.owners.implementationCommit === ownerCommit
-    && report.owners.implementationRepairCommit === ownerRepairCommit,
+    && report.owners.implementationRepairCommit === ownerRepairCommit
+    && report.owners.implementationVerifierRepairCommit === ownerVerifierRepairCommit,
   "Report owner commit chain drifted.");
   require(report.owners.ownershipRespected === true
     && report.owners.overwatchModifiedInfrastructureImplementation === false,
@@ -412,6 +448,54 @@ function verifyOwnerCommit(governance) {
       throw new Error(`Infrastructure owner repair evidence drifted: ${successor.path}`);
     }
   }
+
+  const verifierRepairFields = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    ownerVerifierRepairCommit
+  ]).split("\n");
+  if (!equal(verifierRepairFields, [
+    ownerVerifierRepairCommit,
+    ownerVerifierRepairParent,
+    ownerVerifierRepairTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Authenticate Keychain fixture successor"
+  ])) throw new Error("Infrastructure owner verifier repair metadata drifted.");
+  const verifierRepairPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", ownerVerifierRepairCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(verifierRepairPaths, ownerVerifierSuccessors.map(item => item.path))) {
+    throw new Error("Infrastructure owner verifier repair file set drifted.");
+  }
+  if (verifierRepairPaths.some(path => path === "package.json"
+    || path.startsWith("overwatch/")
+    || path.startsWith("scripts/verify-overwatch-"))) {
+    throw new Error("Infrastructure owner verifier repair crossed the Overwatch boundary.");
+  }
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", ownerVerifierRepairCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  for (const successor of ownerVerifierSuccessors) {
+    const previous = execFileSync(
+      "/usr/bin/git", ["show", `${ownerVerifierRepairParent}:${successor.path}`], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }
+    );
+    const repaired = execFileSync(
+      "/usr/bin/git", ["show", `${ownerVerifierRepairCommit}:${successor.path}`], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }
+    );
+    if (sha256(previous) !== successor.previousSha256
+      || sha256(repaired) !== successor.successorSha256
+      || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
+      throw new Error(`Infrastructure owner verifier repair drifted: ${successor.path}`);
+    }
+  }
 }
 
 function statusPaths() {
@@ -439,7 +523,7 @@ function verifyOverwatchOwnership() {
     .split("\n").filter(Boolean);
   if (commits.length === 0) throw new Error("Overwatch governance commit is missing.");
   for (const commit of commits) {
-    if (commit === ownerRepairCommit) continue;
+    if (commit === ownerRepairCommit || commit === ownerVerifierRepairCommit) continue;
     const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
       .split("\n");
     if (!equal(metadata, [
@@ -450,7 +534,10 @@ function verifyOverwatchOwnership() {
   const paths = git(["diff", "--name-only", ownerCommit, "HEAD"])
     .split("\n").filter(Boolean);
   const ownerRepairPaths = new Set(ownerImplementationSuccessors.map(item => item.path));
-  const overwatchPaths = paths.filter(path => !ownerRepairPaths.has(path));
+  const ownerVerifierRepairPaths = new Set(ownerVerifierSuccessors.map(item => item.path));
+  const overwatchPaths = paths.filter(path => (
+    !ownerRepairPaths.has(path) && !ownerVerifierRepairPaths.has(path)
+  ));
   if (!equal([...overwatchPaths].sort(), [...expectedOverwatchPaths].sort())) {
     throw new Error("Overwatch governance file set drifted.");
   }
@@ -533,6 +620,7 @@ export function verifyOverwatchCloudflareUnattendedKeychainInteroperability() {
     verificationOwner: "Prometheus Overwatch",
     implementationCommit: ownerCommit,
     implementationRepairCommit: ownerRepairCommit,
+    implementationVerifierRepairCommit: ownerVerifierRepairCommit,
     focusedOwnerTests: 16,
     realClassification: "FOUR_PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
     unattendedControl: "OFF_UNCONSUMED",
