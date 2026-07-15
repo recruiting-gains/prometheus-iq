@@ -1,0 +1,55 @@
+{
+  "reportVersion": "engineering-batch-report-v1",
+  "batchId": "BATCH-20260715-003",
+  "directive": "Cloudflare Founder-Attended Service Token Response Contract Repair v1",
+  "engineeringStatus": "OFFLINE_IMPLEMENTATION_PASS",
+  "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+  "deploymentStatus": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommits": [
+      "04a38d6424099824fa3760314c7b660ce30b6930",
+      "e7730315fdc8e14528b1476102984697151b4303"
+    ],
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completedWork": {
+    "officialCreateResponseAcceptedWithoutExpiresAt": true,
+    "optionalEnvelopeAndTimestampFieldsSupported": true,
+    "credentialPresenceRequiredBeforeKeychainSuccess": true,
+    "documentedDeleteResultSupported": true,
+    "deleteRequiresFollowUpAbsenceGet": true,
+    "onePostMaximumNoRetry": true,
+    "fixedNonsecretPhaseEvidence": true,
+    "freshSuccessorProcessImplementedNotExecuted": true,
+    "ownerVerifierReleaseWiringDelegated": true
+  },
+  "verificationAtOwnerHandoff": {
+    "responseContractTests": "17/17_PASS_ZERO_SKIPS",
+    "ownerVerifierOwnershipTests": "5/5_PASS_ZERO_SKIPS",
+    "getOnlyRecoveryTests": "19/19_PASS_ZERO_SKIPS",
+    "predecessorInfrastructureTests": "91/91_PASS_ZERO_SKIPS",
+    "security": "PASS",
+    "aegis": "PASS",
+    "secretScan": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS_EXISTING_WARNINGS_ONLY"
+  },
+  "boundaries": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialCreatedDeletedOrChanged": false,
+    "realSuccessorControlCreated": false,
+    "temporaryProvisioningTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "nextFounderAction": "Run only the fresh Founder-attended exact-name diagnostic after push. Control preparation and provisioning remain separately Founder-authorized.",
+  "externalHandoffRecordsFinalHeadTreePushAndRollback": true
+}

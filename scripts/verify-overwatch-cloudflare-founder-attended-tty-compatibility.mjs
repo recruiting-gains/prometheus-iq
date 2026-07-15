@@ -14,6 +14,8 @@ const governancePath = "overwatch/governance/cloudflare-founder-attended-real-ma
 const governanceDocumentationPath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.md";
 const reportPath = "overwatch/reports/BATCH-20260715-001-cloudflare-founder-attended-real-macos-tty-compatibility.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const responseContractGovernancePath =
+  "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -205,6 +207,11 @@ function verifyOwnerCommit(governance) {
   const recoveryPackage = recoveryGovernance.protectedReleaseWiringTransitions?.find(item =>
     item.path === "package.json"
   );
+  const responseContractGovernance = readJson(responseContractGovernancePath);
+  const responseContractPackage =
+    responseContractGovernance.protectedReleaseWiringTransitions?.find(item =>
+      item.path === "package.json"
+    );
   const founderPackage = packageTransitions.find(item =>
     item.predecessorGovernanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1"
   );
@@ -217,8 +224,10 @@ function verifyOwnerCommit(governance) {
     || !unattendedPackage
     || unattendedPackage.historicalSha256 !== "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d"
     || unattendedPackage.successorSha256 !== recoveryPackage?.previousSha256
-    || recoveryPackage.successorSha256 !== currentPackageHash
-    || recoveryPackage.owner !== "Prometheus Overwatch") {
+    || recoveryPackage.successorSha256 !== responseContractPackage?.previousSha256
+    || recoveryPackage.owner !== "Prometheus Overwatch"
+    || responseContractPackage?.successorSha256 !== currentPackageHash
+    || responseContractPackage?.owner !== "Prometheus Overwatch") {
     throw new Error("Protected package release-wiring transition drifted.");
   }
 }

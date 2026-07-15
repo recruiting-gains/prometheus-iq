@@ -1,0 +1,190 @@
+{
+  "governanceId": "cloudflare-founder-attended-service-token-response-contract-repair-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260715-003",
+  "directive": "Cloudflare Founder-Attended Service Token Response Contract Repair v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_REAL_EXECUTION_NOT_AUTHORIZED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-15T08:00:00Z",
+    "implementationCommits": [
+      {
+        "commit": "04a38d6424099824fa3760314c7b660ce30b6930",
+        "parent": "d32ffd8f6ea255fa029976b1bf0006663d567153",
+        "tree": "9eccf0475775253653e6e5633824d0562e8ee047",
+        "subject": "Repair attended Cloudflare response contracts",
+        "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>"
+      },
+      {
+        "commit": "e7730315fdc8e14528b1476102984697151b4303",
+        "parent": "04a38d6424099824fa3760314c7b660ce30b6930",
+        "tree": "9bfd2f5c614ece752df57ff25bb6580f4ecee1d6",
+        "subject": "Delegate attended verifier release wiring ownership",
+        "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+        "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>"
+      }
+    ],
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "officialResponseContracts": {
+    "create": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/create/",
+      "httpStatus": 200,
+      "expiresAtRequired": false,
+      "documentedTimestampsAccepted": true,
+      "optionalEnvelopeFieldsAccepted": true,
+      "exactNameRequired": "Prometheus Overwatch Read-Only Smoke Verification",
+      "exactDurationRequired": "720h",
+      "validClientIdRequired": true,
+      "validClientSecretRequired": true
+    },
+    "delete": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/delete/",
+      "httpStatus": 200,
+      "documentedResultObjectAccepted": true,
+      "optionalResultFieldsValidatedWhenPresent": true,
+      "followUpExactNameGetRequired": true,
+      "responseAloneConfirmsCleanup": false
+    },
+    "list": {
+      "url": "https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/service_tokens/methods/list/",
+      "resultOptional": true,
+      "resultInfoOptional": true,
+      "paginationMembersOptional": true,
+      "maximumPages": 100,
+      "exactNameDuplicateFailsClosed": true
+    }
+  },
+  "oneShotBoundary": {
+    "predecessorControlReuseAllowed": false,
+    "predecessorReceiptReuseAllowed": false,
+    "freshAttendedExactNameGetRequired": true,
+    "separateFounderControlAuthorizationRequired": true,
+    "realSuccessorControlCreated": false,
+    "maximumControlLifetimeMinutes": 30,
+    "createAttemptsMaximum": 1,
+    "automaticRetryAllowed": false,
+    "retryAfterUncertaintyAllowed": false,
+    "deleteAttemptsMaximum": 1,
+    "deleteRequiresFollowUpGet": true,
+    "temporaryProvisioningTokenPreserved": true
+  },
+  "phaseEvidence": {
+    "appendOnly": true,
+    "exclusiveCreate": true,
+    "directoryMode": "0700",
+    "fileMode": "0600",
+    "allowedPhases": [
+      "GET_COMPLETED",
+      "EXACT_NAME_ABSENT",
+      "EXACT_NAME_PRESENT",
+      "POST_ATTEMPTED",
+      "CREATE_RESPONSE_VALID",
+      "CREATE_RESPONSE_INVALID",
+      "KEYCHAIN_STORED",
+      "KEYCHAIN_NOT_STORED",
+      "DELETE_ATTEMPTED",
+      "DELETE_CONFIRMED",
+      "DELETE_NOT_CONFIRMED",
+      "SUCCESS",
+      "COMPENSATED",
+      "MANUAL_REVIEW"
+    ],
+    "finalCliOutcomes": ["SUCCESS", "COMPENSATED", "MANUAL_REVIEW"],
+    "secretOrIdentifierEvidenceAllowed": false
+  },
+  "primaryOwnerEvidence": [
+    {"path": "docs/cloudflare-founder-attended-response-contract-repair-v1.md", "sha256AtOwnerCommit": "d82064674fde05ac09b98a3c1b5b4dc6dfa7b456dfe0dc86ec1dcc919048e0b0"},
+    {"path": "scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs", "sha256AtOwnerCommit": "5fa96c24ff5d858fd706a1458eaefcc9e1eee0a8443fc3aae377dff0d5348614"},
+    {"path": "scripts/lib/cloudflare-founder-attended-response-contract-constants.mjs", "sha256AtOwnerCommit": "016f896f1eff05733b3de998def42d288ecd949332c29be880b84c027b65beda"},
+    {"path": "scripts/lib/cloudflare-founder-attended-response-contract-production.mjs", "sha256AtOwnerCommit": "7a73de6d07e00aa5af5182a8bacd6bc0ef26c857e21696be3c432341cb5801c9"},
+    {"path": "scripts/lib/cloudflare-founder-attended-response-contract-workflow.mjs", "sha256AtOwnerCommit": "94b4037535e450d14ae3ff444ee56781b542298f067492fd9033d1f0c0a67ec5"},
+    {"path": "scripts/run-cloudflare-founder-attended-response-contract-diagnostic.mjs", "sha256AtOwnerCommit": "1fe7f607c31e743980dd46ac222a8c41deea966c645a2573e4aa2b78a632a40b"},
+    {"path": "scripts/run-cloudflare-founder-attended-response-contract-prepare.mjs", "sha256AtOwnerCommit": "fddedd4421c5b8360c708b6870c800365fe83a09b654be5aea7aaef54a307280"},
+    {"path": "scripts/run-cloudflare-founder-attended-response-contract-provision.mjs", "sha256AtOwnerCommit": "51ba1863efc0db549b57ea49df67e389f55a441eecb51337c05b68f69c94e3ad"},
+    {"path": "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs", "sha256AtOwnerCommit": "7ea559ae1b749cb6937e9803bfb596ed0d669e41868e7837e6299ea02d04853b"},
+    {"path": "tests/cloudflare-founder-attended-response-contract-repair.test.mjs", "sha256AtOwnerCommit": "cb998b7b266a4bcc6e1eb6f7db4aeb807801d5c687dc9fa995714a1ca1dcd1b9"},
+    {"path": "workers/infrastructure/cloudflare-founder-attended-response-contract-repair-v1.json", "sha256AtOwnerCommit": "75f7265f0bec212b171d949ecd1e5a645d32befcd9d4c8e6a54a3d9321ef1d4a"}
+  ],
+  "ownerSuccessorEvidence": [
+    {"path": "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs", "sha256AtSuccessorCommit": "fc6b4f42ba1ff7274fa65bd94f3c3cbb19267d69f51af70d1055f05244bccfa9"},
+    {"path": "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs", "sha256AtSuccessorCommit": "6eb9cc989ebfac541014e3cb2debe633f3b7704c2fb64c6e19ac5ade3ec29408"},
+    {"path": "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs", "sha256AtSuccessorCommit": "d1955f233a213f57e39bf2a191043a72a37d705854dd9a427d514806e5a1fa4c"}
+  ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-get-only-recovery-governance-v1",
+      "path": "scripts/verify-cloudflare-founder-attended-get-only-recovery.mjs",
+      "historicalSha256": "e773ad7275dda611252001d86ba04a844728663d0f8fc2cb88cda85b07f45655",
+      "successorSha256": "fc6b4f42ba1ff7274fa65bd94f3c3cbb19267d69f51af70d1055f05244bccfa9",
+      "owner": "Prometheus Infrastructure",
+      "ownerCommit": "e7730315fdc8e14528b1476102984697151b4303",
+      "reason": "Delegate package release wiring to Overwatch while preserving Infrastructure predecessor checks."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-response-contract-repair-governance-v1",
+      "path": "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+      "historicalSha256": "7ea559ae1b749cb6937e9803bfb596ed0d669e41868e7837e6299ea02d04853b",
+      "successorSha256": "6eb9cc989ebfac541014e3cb2debe633f3b7704c2fb64c6e19ac5ade3ec29408",
+      "owner": "Prometheus Infrastructure",
+      "ownerCommit": "e7730315fdc8e14528b1476102984697151b4303",
+      "reason": "Apply the same executable ownership boundary to the BATCH-003 verifier."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "d93b8c3fe164c6ed68548b1fd3e0d4341da063accd38bf67606d603989dd0b0e",
+      "owner": "Prometheus Overwatch",
+      "reason": "Carry the protected unattended-access package baseline through the response-contract release gate."
+    }
+  ],
+  "protectedReleaseWiringTransitions": [
+    {
+      "path": "package.json",
+      "previousSha256": "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199",
+      "successorSha256": "d93b8c3fe164c6ed68548b1fd3e0d4341da063accd38bf67606d603989dd0b0e",
+      "owner": "Prometheus Overwatch",
+      "reason": "Register owner and independent response-contract gates in the complete repository suite."
+    }
+  ],
+  "overwatchVerificationSuccessors": [
+    {"path": "scripts/verify-overwatch-cloudflare-unattended-access.mjs", "previousSha256": "a9f17cecdd044af3b3edda226090b6503d43a9007e8ca253694ae472403cf8f3", "successorSha256": "32bab36fa76b2fd5928e8c7c6256f1a29a063d4ea251398da9b76c99cd8d41a1"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs", "previousSha256": "61f4f51105f5730c2c07201a106ac20375afdea2c3564b96dcd6c9004d68fc4d", "successorSha256": "9b0f90229a259024c74cb450eb90f5055382a29626a37587cda32fb8e098242b"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs", "previousSha256": "601cc25e2ec677fb63d206a81f19138d4feb283804edd47ddfc72435235d3793", "successorSha256": "92b6690b70ed2f535eab1af9637efaef1ab32e796d274dc740fa51fcc9e7f3ec"},
+    {"path": "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs", "previousSha256": "412d27ca00db78d3cb9a072f5f6995a4eb22fd9ccecec89cb2152fd3ceebb730", "successorSha256": "1a049cd98ce7f6ad4743650dbb845aa36a01b82c7085d666e11a76afdd65d056"}
+  ],
+  "executionBoundary": {
+    "cloudflareApiContacted": false,
+    "realKeychainValuesRead": false,
+    "credentialCreatedDeletedOrChanged": false,
+    "realSuccessorControlCreated": false,
+    "temporaryProvisioningTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAuthorizedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "realDiagnosticExecutedByBatch": false,
+    "successorControlCreationAuthorized": false,
+    "provisioningAuthorized": false,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

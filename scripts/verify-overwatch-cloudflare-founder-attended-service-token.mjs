@@ -18,6 +18,7 @@ const governancePath = "overwatch/governance/cloudflare-founder-attended-service
 const governanceDocumentationPath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.md";
 const reportPath = "overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json";
 const ttyCompatibilityGovernancePath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
+const responseContractGovernancePath = "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -388,21 +389,34 @@ function verifyPackageReleaseWiring() {
     "node scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs && node --test tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs";
   ownerPackage.scripts["overwatch:cloudflare-founder-attended-recovery:check"] =
     "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
+  ownerPackage.scripts["overwatch:cloudflare-founder-attended-response-contract:check"] =
+    "node scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs && node --test tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs";
+  ownerPackage.scripts["infrastructure:cloudflare-founder-attended-response-contract:check"] =
+    "node scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs && node --test tests/cloudflare-founder-attended-response-contract-repair.test.mjs tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs";
   ownerPackage.scripts["test:overwatch"] = currentPackage.scripts["test:overwatch"];
   ownerPackage.scripts.test = currentPackage.scripts.test;
   if (!equalJson(ownerPackage, currentPackage)) {
     throw new Error("Shared package release wiring contains changes outside the approved Overwatch gate.");
   }
-  if (sha256(read("package.json")) !== "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199") {
+  const responseContractGovernance = readJson(responseContractGovernancePath);
+  const packageTransition = responseContractGovernance.protectedReleaseWiringTransitions?.find(
+    item => item.path === "package.json"
+  );
+  if (packageTransition?.previousSha256 !== "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199"
+    || packageTransition?.successorSha256 !== sha256(read("package.json"))
+    || packageTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs")
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs")
+    || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-tty:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-recovery:check")
-    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended:check")) {
+    || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-response-contract:check")
+    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended:check")
+    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended-response-contract:check")) {
     throw new Error("Founder-attended verification is missing from the repository release suite.");
   }
 }

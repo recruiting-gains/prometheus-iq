@@ -17,6 +17,8 @@ const governanceDocumentationPath =
 const reportPath =
   "overwatch/reports/BATCH-20260715-002-cloudflare-founder-attended-get-only-recovery.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const responseContractGovernancePath =
+  "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
 const ownerCommit = "43eee7a13bb2f826c4ac750298d9e87dd28f4976";
 const ownerParent = "89267707a3a62b2e3d61897476e4dda7adf95987";
 const ownerTree = "79b2ce3883160e95fdeb4f0985689fa77f50cf6b";
@@ -215,6 +217,13 @@ export function evaluateFounderAttendedGetOnlyRecoveryGovernance({ governance, r
 }
 
 function verifyOwnerCommit(governance) {
+  const responseContractGovernance = readJson(responseContractGovernancePath);
+  const successorByPath = new Map(
+    responseContractGovernance.protectedPredecessorSuccessors
+      .filter(item => item.predecessorGovernanceId ===
+        "cloudflare-founder-attended-get-only-recovery-governance-v1")
+      .map(item => [item.path, item])
+  );
   const metadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit
   ]).split("\n");
@@ -242,8 +251,14 @@ function verifyOwnerCommit(governance) {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
-    if (sha256(committed) !== evidence.sha256AtOwnerCommit
-      || sha256(readFileSync(resolve(root, evidence.path))) !== evidence.sha256AtOwnerCommit) {
+    const current = sha256(readFileSync(resolve(root, evidence.path)));
+    const successor = successorByPath.get(evidence.path);
+    const currentAccepted = current === evidence.sha256AtOwnerCommit || (
+      successor?.historicalSha256 === evidence.sha256AtOwnerCommit
+      && successor?.successorSha256 === current
+      && successor?.owner === "Prometheus Infrastructure"
+    );
+    if (sha256(committed) !== evidence.sha256AtOwnerCommit || !currentAccepted) {
       throw new Error(`Owner evidence drifted: ${evidence.path}`);
     }
   }
@@ -318,12 +333,24 @@ function verifyCanonicalRegistration() {
 
 function verifyReleaseWiring() {
   const packageJson = readJson("package.json");
+  const responseContractGovernance = readJson(responseContractGovernancePath);
+  const packageTransition = responseContractGovernance.protectedReleaseWiringTransitions?.find(
+    item => item.path === "package.json"
+  );
   const command = "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-recovery:check"] !== command
     || !packageJson.scripts["test:overwatch"]
       .includes("tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs")
+    || !packageJson.scripts["test:overwatch"]
+      .includes("tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
     || !packageJson.scripts.test
-      .includes("overwatch:cloudflare-founder-attended-recovery:check")) {
+      .includes("overwatch:cloudflare-founder-attended-recovery:check")
+    || !packageJson.scripts.test
+      .includes("overwatch:cloudflare-founder-attended-response-contract:check")
+    || packageTransition?.previousSha256 !==
+      "2e77437c484eb4a39816857e93e3f503a057c3731e79f9015e59c2d4d6524199"
+    || packageTransition?.successorSha256 !== sha256(read("package.json"))
+    || packageTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Recovery release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended|provision|cleanup/u.test(command)) {
