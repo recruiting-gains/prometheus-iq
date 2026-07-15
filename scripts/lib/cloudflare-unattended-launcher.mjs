@@ -13,6 +13,12 @@ import {
 import {
   fixedCloudflareUnattendedSmokePlan
 } from "../run-cloudflare-unattended-smoke.mjs";
+import {
+  CLOUDFLARE_UNATTENDED_KEYCHAIN_EXECUTABLE,
+  createMacOsKeychainAdapter
+} from "./cloudflare-unattended-keychain.mjs";
+
+export { createMacOsKeychainAdapter } from "./cloudflare-unattended-keychain.mjs";
 
 export const CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES = Object.freeze([
   "presence",
@@ -23,6 +29,10 @@ export const CLOUDFLARE_UNATTENDED_LAUNCH_PROFILES = Object.freeze([
 export const CLOUDFLARE_UNATTENDED_WRANGLER_VERSION = "4.110.0";
 export const CLOUDFLARE_UNATTENDED_WRANGLER_MODULE =
   "node_modules/wrangler/bin/wrangler.js";
+
+if (CLOUDFLARE_UNATTENDED_KEYCHAIN_EXECUTABLE !== "/usr/bin/security") {
+  throw new Error("unattended_keychain_executable_invalid");
+}
 
 const SAFE_ENVIRONMENT_NAMES = Object.freeze([
   "HOME",
@@ -45,33 +55,6 @@ function itemFor(name) {
   const item = KEYCHAIN_ITEMS.find(candidate => candidate.account === name);
   if (!item) throw new Error(`keychain_item_not_registered:${name}`);
   return item;
-}
-
-export function createMacOsKeychainAdapter({ spawnSyncImpl = spawnSync } = {}) {
-  return Object.freeze({
-    hasItem(item) {
-      const result = spawnSyncImpl(
-        "/usr/bin/security",
-        ["find-generic-password", "-s", item.service, "-a", item.account],
-        { stdio: "ignore" }
-      );
-      return !result.error && result.status === 0;
-    },
-    readItem(item) {
-      const result = spawnSyncImpl(
-        "/usr/bin/security",
-        ["find-generic-password", "-w", "-s", item.service, "-a", item.account],
-        {
-          encoding: "utf8",
-          maxBuffer: 64 * 1024,
-          stdio: ["ignore", "pipe", "ignore"]
-        }
-      );
-      const value = typeof result.stdout === "string" ? result.stdout.replace(/\r?\n$/u, "") : "";
-      if (result.error || result.status !== 0 || !value) throw new Error(`keychain_item_unavailable:${item.account}`);
-      return value;
-    }
-  });
 }
 
 function repositoryIdentity(root, execFile = execFileSync) {
