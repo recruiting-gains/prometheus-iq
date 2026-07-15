@@ -1,0 +1,149 @@
+{
+  "governanceId": "cloudflare-founder-attended-real-macos-tty-compatibility-repair-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260715-001",
+  "directive": "Cloudflare Founder-Attended Real macOS TTY Compatibility Repair v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_NOT_EXECUTED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "dispatchTimestamp": "2026-07-15T05:27:11Z",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationCommit": {
+      "commit": "1853c6343090ed3430f7ba03a089f1008a12436c",
+      "parent": "1a1a6143366175accb12752a095d11a39566bb90",
+      "tree": "3936f8950d7884ad3358e5ba5b67a472e6afef97",
+      "subject": "Repair founder-attended macOS TTY compatibility",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "timestamp": "2026-07-15T00:39:06-05:00"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "defectAndRepair": {
+    "verifiedFailure": "Native macOS Terminal exposes a concrete standard-stream terminal such as /dev/ttys000 while /dev/tty remains the controlling-terminal alias with a different device identifier.",
+    "rootCause": "The historical guard required the /dev/tty alias rdev to equal the concrete stdin and stdout rdev values.",
+    "stdinIsTtyRequired": true,
+    "stdoutIsTtyRequired": true,
+    "stdinCharacterDeviceRequired": true,
+    "stdoutCharacterDeviceRequired": true,
+    "stdinAndStdoutConcreteDeviceEqualityRequired": true,
+    "controllingTtyOpenedWithReadWriteNoFollowNoCtty": true,
+    "controllingTtyCharacterDeviceRequired": true,
+    "controllingTtyAliasRdevComparedToConcreteTerminal": false,
+    "promptAndResponseUseControllingTtyOnly": true,
+    "maximumConfirmationBytes": 192,
+    "exactConfirmationRequired": true,
+    "productionBypassAdded": false,
+    "alternateAttendanceMethodAdded": false,
+    "confirmationPrecedesKeychainControlNetworkAndDownstreamActivity": true
+  },
+  "infrastructureOwnerEvidence": [
+    {
+      "path": "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+      "sha256AtOwnerCommit": "9c7f700706b2f38a8273239eb4000271f1b5a1f481b3f2b670003ad4ecb6feb5"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-tty.mjs",
+      "sha256AtOwnerCommit": "9f802314ca0084b884147f40856b6095828b283a5b0d28a918d6eaa80a6fac24"
+    },
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+      "sha256AtOwnerCommit": "929930cedf9c64651d86fa9b1089ed14c06973335ef39f8d3fdd6e976ecd37f3"
+    },
+    {
+      "path": "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "sha256AtOwnerCommit": "05ab27c49a5d629bfb556944081893b23fd3c4c3a247565a8ed02c6440fb496b"
+    },
+    {
+      "path": "tests/fixtures/cloudflare-founder-attended-tty-macos-pty-child.mjs",
+      "sha256AtOwnerCommit": "954b98c0ccb0bcf9c5cc3c73d12c06f107854a4400e212c96a0fd482d5d0cd00"
+    },
+    {
+      "path": "tests/fixtures/cloudflare-founder-attended-tty-macos-pty.expect",
+      "sha256AtOwnerCommit": "8db761ec5f2e8ab9723b5ff0f5b4d3d0868f39e718871c9ea7e77ec205d85f9d"
+    }
+  ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      "path": "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+      "historicalSha256": "c93efffb121ad67579627489a8551d35177d0521a5f90fdb90b806e221a32ad6",
+      "successorSha256": "9c7f700706b2f38a8273239eb4000271f1b5a1f481b3f2b670003ad4ecb6feb5",
+      "reason": "Infrastructure documented the owner-authored macOS controlling-terminal compatibility repair."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      "path": "scripts/lib/cloudflare-founder-attended-tty.mjs",
+      "historicalSha256": "9dc5664b582b62d3a56fb02288258f9cdbd9fae9bcd0c5a1f9daa639d604a478",
+      "successorSha256": "9f802314ca0084b884147f40856b6095828b283a5b0d28a918d6eaa80a6fac24",
+      "reason": "Infrastructure removed only the invalid alias-to-concrete rdev comparison while preserving the attended boundary."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      "path": "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+      "historicalSha256": "6c0ed66b5c57dc126e0ae86e0fb8da69891d95173787edb34aed3bda4e7230f2",
+      "successorSha256": "929930cedf9c64651d86fa9b1089ed14c06973335ef39f8d3fdd6e976ecd37f3",
+      "reason": "Infrastructure extended its owner verifier for the repaired TTY invariants and bounded PTY fixture."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      "path": "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "historicalSha256": "5fb7dd0bc5f710c5e94c6b3c31c85c9711d79d7ed8fd3a8236b15e3d98c81dc6",
+      "successorSha256": "05ab27c49a5d629bfb556944081893b23fd3c4c3a247565a8ed02c6440fb496b",
+      "reason": "Infrastructure added rejected-path activity assertions and a real macOS PTY integration regression."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "349ee1e54aec072348d58adc52f400d7c78176543d30cd92ec00831c110031cf",
+      "reason": "Overwatch extended only the attended TTY governance and release-test wiring."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "50070d78fa9446c10c8309466ec5f51678d1646bdec2f2799284b87f0d1073b0",
+      "successorSha256": "349ee1e54aec072348d58adc52f400d7c78176543d30cd92ec00831c110031cf",
+      "reason": "Overwatch added the independent successor gate to the complete repository suite."
+    }
+  ],
+  "independentVerification": {
+    "ownerFocusedTests": "91/91_PASS_ZERO_SKIPS",
+    "realMacOsPtyIntegration": "PASS",
+    "aliasRdevDifferenceObserved": true,
+    "stdinStdoutConcreteRdevEqualityObserved": true,
+    "rejectedCasesHaveZeroKeychainReads": true,
+    "rejectedCasesHaveZeroControlWrites": true,
+    "rejectedCasesHaveZeroNetworkCalls": true,
+    "cloudflareAccessUsed": false,
+    "realKeychainValuesRead": false
+  },
+  "executionBoundary": {
+    "cloudflareAccessPerformed": false,
+    "realKeychainValuesAccessed": false,
+    "credentialCreatedOrRevoked": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "releaseBoundary": {
+    "automaticPushEligibleOnlyAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "productionExecutionAuthorized": false,
+    "temporaryProvisioningTokenChanged": false,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

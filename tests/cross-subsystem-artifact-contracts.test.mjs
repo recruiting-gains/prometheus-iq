@@ -52,6 +52,18 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
       productionConsumer: false,
       failClosedIfMissing: true
+    },
+    {
+      artifactId: "cloudflare-founder-attended-real-macos-tty-compatibility-repair-governance-v1",
+      artifactType: "overwatch_infrastructure_attended_tty_compatibility_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json",
+      documentationPath: "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.md",
+      schema: "CloudflareFounderAttendedRealMacOsTtyCompatibilityRepairGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
     }
   ]);
 });

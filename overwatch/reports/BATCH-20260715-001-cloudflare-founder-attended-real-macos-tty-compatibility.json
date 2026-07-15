@@ -1,0 +1,50 @@
+{
+  "batchId": "BATCH-20260715-001",
+  "directive": "Cloudflare Founder-Attended Real macOS TTY Compatibility Repair v1",
+  "status": "OWNER_IMPLEMENTATION_VERIFIED_AWAITING_EXACT_VERSION_VERIFICATION",
+  "product": "Prometheus Platform",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "1853c6343090ed3430f7ba03a089f1008a12436c",
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "rootCause": "The historical guard compared the /dev/tty alias device identifier with the concrete stdin and stdout terminal identifier on macOS.",
+  "repair": {
+    "stdinAndStdoutTtyChecksPreserved": true,
+    "stdinAndStdoutSameConcreteCharacterDeviceRequired": true,
+    "controllingTtySafelyOpenedAndCharacterDeviceRequired": true,
+    "controllingTtyAliasRdevEqualityRequired": false,
+    "exactPhraseUsesControllingTtyOnly": true,
+    "maximumConfirmationBytes": 192,
+    "confirmationBeforeDownstreamActivity": true,
+    "productionBypassAdded": false
+  },
+  "verificationAtOwnerHandoff": {
+    "infrastructureFocusedTests": "91/91_PASS_ZERO_SKIPS",
+    "realMacOsPtyIntegration": "PASS",
+    "aliasRdevDifferenceObserved": true,
+    "rejectedPathExternalActivity": "ZERO",
+    "securityCheck": "PASS",
+    "syntaxAndDiffIntegrity": "PASS",
+    "realCloudflareUsed": false,
+    "realKeychainValuesUsed": false
+  },
+  "boundaries": {
+    "credentialCreatedOrRevoked": false,
+    "temporaryProvisioningTokenChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "release": {
+    "engineeringStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+    "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "productionAccessRequiredForThisBatch": false,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

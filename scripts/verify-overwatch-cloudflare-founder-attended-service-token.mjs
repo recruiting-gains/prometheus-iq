@@ -17,6 +17,7 @@ const contractPath = "workers/infrastructure/cloudflare-founder-attended-service
 const governancePath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json";
 const governanceDocumentationPath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.md";
 const reportPath = "overwatch/reports/BATCH-20260714-007-cloudflare-founder-attended-service-token-provisioning.json";
+const ttyCompatibilityGovernancePath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -272,6 +273,13 @@ export function evaluateFounderAttendedProvisioningGovernance({
 }
 
 function verifyOwnerCommits(governance) {
+  const ttyCompatibilityGovernance = readJson(ttyCompatibilityGovernancePath);
+  const ttySuccessors = new Map(
+    ttyCompatibilityGovernance.infrastructureOwnerEvidence.map(item => [
+      item.path,
+      item.sha256AtOwnerCommit
+    ])
+  );
   const commitFields = git(["show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit]).split("\n");
   if (!equalJson(commitFields, [
     ownerCommit,
@@ -352,13 +360,16 @@ function verifyOwnerCommits(governance) {
 
   for (const evidence of governance.infrastructureEvidence) {
     if (evidence.sharedReleaseWiring) continue;
-    const expected = repairedByPath.get(evidence.path) || evidence.sha256AtOwnerCommit;
+    const expected = ttySuccessors.get(evidence.path)
+      || repairedByPath.get(evidence.path)
+      || evidence.sha256AtOwnerCommit;
     if (sha256(readFileSync(resolve(root, evidence.path))) !== expected) {
       throw new Error(`Infrastructure implementation changed after the owner repair: ${evidence.path}`);
     }
   }
   for (const evidence of governance.infrastructureRepairEvidence) {
-    if (sha256(readFileSync(resolve(root, evidence.path))) !== evidence.sha256AtRepairCommit) {
+    const expected = ttySuccessors.get(evidence.path) || evidence.sha256AtRepairCommit;
+    if (sha256(readFileSync(resolve(root, evidence.path))) !== expected) {
       throw new Error(`Infrastructure repair changed after owner handoff: ${evidence.path}`);
     }
   }
@@ -373,16 +384,20 @@ function verifyPackageReleaseWiring() {
   const currentPackage = readJson("package.json");
   ownerPackage.scripts["overwatch:cloudflare-founder-attended:check"] =
     "node scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs && node --test tests/overwatch-cloudflare-founder-attended-service-token.test.mjs";
+  ownerPackage.scripts["overwatch:cloudflare-founder-attended-tty:check"] =
+    "node scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs && node --test tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs";
   ownerPackage.scripts["test:overwatch"] = currentPackage.scripts["test:overwatch"];
   ownerPackage.scripts.test = currentPackage.scripts.test;
   if (!equalJson(ownerPackage, currentPackage)) {
     throw new Error("Shared package release wiring contains changes outside the approved Overwatch gate.");
   }
-  if (sha256(read("package.json")) !== "50070d78fa9446c10c8309466ec5f51678d1646bdec2f2799284b87f0d1073b0") {
+  if (sha256(read("package.json")) !== "349ee1e54aec072348d58adc52f400d7c78176543d30cd92ec00831c110031cf") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
+    || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended:check")
+    || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-tty:check")
     || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended:check")) {
     throw new Error("Founder-attended verification is missing from the repository release suite.");
   }

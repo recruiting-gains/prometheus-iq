@@ -14,6 +14,7 @@ const governancePath = "overwatch/governance/cloudflare-unattended-deployment-ac
 const reportPath = "overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const founderAttendedSuccessorPath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json";
+const founderAttendedTtySuccessorPath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -229,6 +230,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
   const founderAttendedSuccessor = readJson(founderAttendedSuccessorPath);
+  const founderAttendedTtySuccessor = readJson(founderAttendedTtySuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -240,7 +242,10 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     governance.infrastructureEvidence,
     failures,
     "Infrastructure evidence",
-    founderAttendedSuccessor.protectedPredecessorSuccessors
+    [
+      ...founderAttendedSuccessor.protectedPredecessorSuccessors,
+      ...founderAttendedTtySuccessor.protectedPredecessorSuccessors
+    ]
   );
   verifyHashes(
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
