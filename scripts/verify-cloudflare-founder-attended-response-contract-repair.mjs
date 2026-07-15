@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +24,33 @@ const documentationPath = "docs/cloudflare-founder-attended-response-contract-re
 const testPath = "tests/cloudflare-founder-attended-response-contract-repair.test.mjs";
 const ownerVerifierOwnershipTestPath =
   "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs";
+
+export const CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR = Object.freeze({
+  commit: "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
+  tree: "5084667426465a7df46cbbf2dc35c0f043c1436e",
+  parent: "94e7bc78a30dd3d0f8b272e351d2f820541c4f90",
+  authorName: "Prometheus Infrastructure",
+  authorEmail: "infrastructure@prometheus.local",
+  committerName: "Prometheus Infrastructure",
+  committerEmail: "infrastructure@prometheus.local",
+  subject: "Align attended Keychain compatibility fixtures",
+  authoredAt: "2026-07-15T14:15:08-05:00",
+  committedAt: "2026-07-15T14:15:08-05:00",
+  transitions: Object.freeze([
+    Object.freeze({
+      status: "M",
+      path: "tests/cloudflare-founder-attended-service-token.test.mjs",
+      beforeSha256: "05ab27c49a5d629bfb556944081893b23fd3c4c3a247565a8ed02c6440fb496b",
+      afterSha256: "473a26d8554360837338c41e5fe14960cef985bff33361e63a2f13f144c30cd9"
+    }),
+    Object.freeze({
+      status: "M",
+      path: "tests/cloudflare-unattended-keychain-interoperability.test.mjs",
+      beforeSha256: "79daa55d323eb0c970ae6da02d7f902981c609a6a6f8117ec18e09baab8d2bac",
+      afterSha256: "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a"
+    })
+  ])
+});
 
 export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS =
   Object.freeze([
@@ -76,11 +104,125 @@ const sourcePaths = Object.freeze([
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+
+function gitBytes(repositoryRoot, args) {
+  return execFileSync("/usr/bin/git", args, {
+    cwd: resolve(repositoryRoot),
+    encoding: null,
+    maxBuffer: 1024 * 1024,
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+}
+
+function gitText(repositoryRoot, args) {
+  return gitBytes(repositoryRoot, args).toString("utf8").trimEnd();
+}
+
+function verifyAuthenticatedKeychainFixtureOwnerSuccessor({
+  repositoryRoot,
+  expectedBaselineCommit,
+  expectedOwnerSuccessor
+}) {
+  for (const value of [
+    expectedBaselineCommit,
+    expectedOwnerSuccessor.commit,
+    expectedOwnerSuccessor.tree,
+    expectedOwnerSuccessor.parent
+  ]) {
+    assert.match(value, /^[0-9a-f]{40}$/u);
+  }
+  assert.deepEqual(
+    expectedOwnerSuccessor.transitions.map(transition => transition.path),
+    [
+      "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+    ]
+  );
+  for (const transition of expectedOwnerSuccessor.transitions) {
+    assert.equal(transition.status, "M");
+    assert.match(transition.beforeSha256, /^[0-9a-f]{64}$/u);
+    assert.match(transition.afterSha256, /^[0-9a-f]{64}$/u);
+  }
+
+  execFileSync(
+    "/usr/bin/git",
+    ["merge-base", "--is-ancestor", expectedBaselineCommit, expectedOwnerSuccessor.commit],
+    { cwd: resolve(repositoryRoot), stdio: "ignore" }
+  );
+  execFileSync(
+    "/usr/bin/git",
+    ["merge-base", "--is-ancestor", expectedOwnerSuccessor.commit, "HEAD"],
+    { cwd: resolve(repositoryRoot), stdio: "ignore" }
+  );
+
+  const metadata = gitText(repositoryRoot, [
+    "show",
+    "-s",
+    "--format=%H%x00%T%x00%P%x00%an%x00%ae%x00%cn%x00%ce%x00%s%x00%aI%x00%cI",
+    expectedOwnerSuccessor.commit
+  ]).split("\0");
+  assert.deepEqual(metadata, [
+    expectedOwnerSuccessor.commit,
+    expectedOwnerSuccessor.tree,
+    expectedOwnerSuccessor.parent,
+    expectedOwnerSuccessor.authorName,
+    expectedOwnerSuccessor.authorEmail,
+    expectedOwnerSuccessor.committerName,
+    expectedOwnerSuccessor.committerEmail,
+    expectedOwnerSuccessor.subject,
+    expectedOwnerSuccessor.authoredAt,
+    expectedOwnerSuccessor.committedAt
+  ]);
+
+  const changedPaths = gitText(repositoryRoot, [
+    "diff-tree",
+    "--no-commit-id",
+    "--name-status",
+    "--no-renames",
+    "-r",
+    expectedOwnerSuccessor.commit
+  ]).split("\n");
+  assert.deepEqual(
+    changedPaths,
+    expectedOwnerSuccessor.transitions.map(
+      transition => `${transition.status}\t${transition.path}`
+    )
+  );
+
+  for (const transition of expectedOwnerSuccessor.transitions) {
+    assert.equal(
+      sha256(gitBytes(repositoryRoot, [
+        "show",
+        `${expectedOwnerSuccessor.parent}:${transition.path}`
+      ])),
+      transition.beforeSha256
+    );
+    assert.equal(
+      sha256(gitBytes(repositoryRoot, [
+        "show",
+        `${expectedOwnerSuccessor.commit}:${transition.path}`
+      ])),
+      transition.afterSha256
+    );
+    assert.equal(
+      sha256(readFileSync(resolve(repositoryRoot, transition.path))),
+      transition.afterSha256
+    );
+  }
+}
+
 export function verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
   repositoryRoot = root,
-  expectedBaselineCommit = baselineCommit
+  expectedBaselineCommit = baselineCommit,
+  expectedOwnerSuccessor = CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR
 } = {}) {
   assert.match(expectedBaselineCommit, /^[0-9a-f]{40}$/u);
+  verifyAuthenticatedKeychainFixtureOwnerSuccessor({
+    repositoryRoot,
+    expectedBaselineCommit,
+    expectedOwnerSuccessor
+  });
   assert.deepEqual(
     CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
     ["package.json"]
@@ -97,12 +239,25 @@ export function verifyCloudflareFounderAttendedResponseContractPredecessorImmuta
       true
     );
   }
+  const authenticatedPaths = new Set(
+    expectedOwnerSuccessor.transitions.map(transition => transition.path)
+  );
+  const strictlyImmutablePaths =
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.filter(
+      path => !authenticatedPaths.has(path)
+    );
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.filter(
+      path => authenticatedPaths.has(path)
+    ),
+    ["tests/cloudflare-founder-attended-service-token.test.mjs"]
+  );
   execFileSync("/usr/bin/git", [
     "diff",
     "--quiet",
     expectedBaselineCommit,
     "--",
-    ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
+    ...strictlyImmutablePaths
   ], {
     cwd: resolve(repositoryRoot),
     stdio: "ignore"

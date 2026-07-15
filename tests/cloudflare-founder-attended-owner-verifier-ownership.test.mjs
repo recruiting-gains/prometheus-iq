@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   mkdirSync,
   mkdtempSync,
@@ -23,6 +24,7 @@ import {
   verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation
 } from "../scripts/verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 import {
+  CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
   verifyCloudflareFounderAttendedResponseContractRepair,
@@ -37,6 +39,14 @@ function git(root, args) {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"]
   }).trim();
+}
+
+function gitBytes(root, args) {
+  return execFileSync("/usr/bin/git", args, {
+    cwd: root,
+    encoding: null,
+    stdio: ["ignore", "pipe", "pipe"]
+  });
 }
 
 function createSyntheticRepository(t, infrastructurePaths) {
@@ -54,6 +64,57 @@ function createSyntheticRepository(t, infrastructurePaths) {
   git(root, ["add", "."]);
   git(root, ["commit", "--quiet", "-m", "synthetic baseline"]);
   return Object.freeze({ root, baseline: git(root, ["rev-parse", "HEAD"]) });
+}
+
+const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+
+function createSyntheticFixtureSuccessor(fixture, { extraPath = null } = {}) {
+  const transitions = CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR.transitions;
+  for (const transition of transitions) {
+    writeFileSync(
+      join(fixture.root, transition.path),
+      `authenticated Infrastructure successor: ${transition.path}\n`,
+      "utf8"
+    );
+  }
+  if (extraPath) {
+    const absolute = join(fixture.root, extraPath);
+    mkdirSync(dirname(absolute), { recursive: true });
+    writeFileSync(absolute, "unauthorized extra successor path\n", "utf8");
+  }
+  git(fixture.root, ["add", "."]);
+  git(fixture.root, ["commit", "--quiet", "-m", "synthetic owner successor"]);
+  const commit = git(fixture.root, ["rev-parse", "HEAD"]);
+  const metadata = git(fixture.root, [
+    "show",
+    "-s",
+    "--format=%T%x00%P%x00%an%x00%ae%x00%cn%x00%ce%x00%s%x00%aI%x00%cI",
+    commit
+  ]).split("\0");
+  return Object.freeze({
+    commit,
+    tree: metadata[0],
+    parent: metadata[1],
+    authorName: metadata[2],
+    authorEmail: metadata[3],
+    committerName: metadata[4],
+    committerEmail: metadata[5],
+    subject: metadata[6],
+    authoredAt: metadata[7],
+    committedAt: metadata[8],
+    transitions: transitions.map(transition => Object.freeze({
+      status: "M",
+      path: transition.path,
+      beforeSha256: sha256(gitBytes(fixture.root, [
+        "show",
+        `${fixture.baseline}:${transition.path}`
+      ])),
+      afterSha256: sha256(gitBytes(fixture.root, [
+        "show",
+        `${commit}:${transition.path}`
+      ]))
+    }))
+  });
 }
 
 test("standalone Infrastructure owner verifier passes at the current repository version", () => {
@@ -103,7 +164,6 @@ test("delegated package drift passes while real Infrastructure predecessor drift
       expectedBaselineCommit: fixture.baseline
     })
   );
-
   writeFileSync(
     join(fixture.root, "scripts/lib/cloudflare-founder-attended-service-token.mjs"),
     "tampered Infrastructure predecessor\n",
@@ -136,8 +196,14 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
   }
   const fixture = createSyntheticRepository(
     t,
-    CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
+    [...new Set([
+      ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
+      ...CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR.transitions.map(
+        transition => transition.path
+      )
+    ])]
   );
+  const expectedOwnerSuccessor = createSyntheticFixtureSuccessor(fixture);
   writeFileSync(
     join(fixture.root, "package.json"),
     "{\"scripts\":{\"overwatch\":\"accepted\"}}\n",
@@ -146,7 +212,51 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
   assert.doesNotThrow(() =>
     verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
       repositoryRoot: fixture.root,
-      expectedBaselineCommit: fixture.baseline
+      expectedBaselineCommit: fixture.baseline,
+      expectedOwnerSuccessor
+    })
+  );
+  assert.throws(() =>
+    verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
+      repositoryRoot: fixture.root,
+      expectedBaselineCommit: fixture.baseline,
+      expectedOwnerSuccessor: {
+        ...expectedOwnerSuccessor,
+        authorEmail: "wrong-owner@prometheus.local"
+      }
+    })
+  );
+  assert.throws(() =>
+    verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
+      repositoryRoot: fixture.root,
+      expectedBaselineCommit: fixture.baseline,
+      expectedOwnerSuccessor: {
+        ...expectedOwnerSuccessor,
+        transitions: expectedOwnerSuccessor.transitions.map((transition, index) => ({
+          ...transition,
+          afterSha256: index === 0 ? "0".repeat(64) : transition.afterSha256
+        }))
+      }
+    })
+  );
+
+  const extraFixture = createSyntheticRepository(
+    t,
+    [...new Set([
+      ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
+      ...CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR.transitions.map(
+        transition => transition.path
+      )
+    ])]
+  );
+  const extraSuccessor = createSyntheticFixtureSuccessor(extraFixture, {
+    extraPath: "tests/unauthorized-extra-successor.test.mjs"
+  });
+  assert.throws(() =>
+    verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
+      repositoryRoot: extraFixture.root,
+      expectedBaselineCommit: extraFixture.baseline,
+      expectedOwnerSuccessor: extraSuccessor
     })
   );
 
@@ -158,7 +268,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
   assert.throws(() =>
     verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
       repositoryRoot: fixture.root,
-      expectedBaselineCommit: fixture.baseline
+      expectedBaselineCommit: fixture.baseline,
+      expectedOwnerSuccessor
     })
   );
 });

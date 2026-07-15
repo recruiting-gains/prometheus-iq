@@ -16,7 +16,9 @@ import {
   verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation
 } from "./verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 import {
+  CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR,
   verifyCloudflareFounderAttendedResponseContractRepair,
+  verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
 } from "./verify-cloudflare-founder-attended-response-contract-repair.mjs";
 
@@ -60,10 +62,27 @@ function verifyV1Immutability() {
     ...CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS
   ])];
   assert.equal(protectedPaths.includes("package.json"), false);
-  execFileSync("/usr/bin/git", ["diff", "--quiet", baselineCommit, "--", ...protectedPaths], {
+  const authenticatedPaths = new Set(
+    CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR.transitions.map(
+      transition => transition.path
+    )
+  );
+  const strictlyImmutablePaths = protectedPaths.filter(path => !authenticatedPaths.has(path));
+  assert.deepEqual(
+    protectedPaths.filter(path => authenticatedPaths.has(path)),
+    ["tests/cloudflare-founder-attended-service-token.test.mjs"]
+  );
+  execFileSync("/usr/bin/git", [
+    "diff",
+    "--quiet",
+    baselineCommit,
+    "--",
+    ...strictlyImmutablePaths
+  ], {
     cwd: root,
     stdio: "ignore"
   });
+  verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly();
   assert.equal(verifyCloudflareFounderAttendedResponseContractRepair().status, "passed");
   assert.equal(verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation().status, "passed");
 }
