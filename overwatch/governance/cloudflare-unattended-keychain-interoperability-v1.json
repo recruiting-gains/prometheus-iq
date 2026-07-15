@@ -60,6 +60,15 @@
       "reason": "Overwatch added only the new owner and independent verification commands to the existing release matrix."
     }
   ],
+  "protectedReleaseWiringTransitions": [
+    {
+      "path": "package.json",
+      "previousSha256": "58c83891f30ca274d295eaf70f98424624c98667b638a1b3954c437248c705aa",
+      "successorSha256": "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
+      "owner": "Prometheus Overwatch",
+      "reason": "Register Infrastructure-owner and independent Overwatch Keychain interoperability gates in the complete repository suite."
+    }
+  ],
   "independentRetrievalClassification": {
     "executionIdentity": "MATCHED",
     "keychainState": "UNLOCKED",

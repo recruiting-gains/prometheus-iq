@@ -21,6 +21,8 @@ const responseContractGovernancePath =
   "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
 const createReceiptV2GovernancePath =
   "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
+const keychainInteroperabilityGovernancePath =
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const ownerCommit = "43eee7a13bb2f826c4ac750298d9e87dd28f4976";
 const ownerParent = "89267707a3a62b2e3d61897476e4dda7adf95987";
 const ownerTree = "79b2ce3883160e95fdeb4f0985689fa77f50cf6b";
@@ -343,6 +345,11 @@ function verifyReleaseWiring() {
   const packageTransition = createReceiptV2Governance.protectedReleaseWiringTransitions?.find(
     item => item.path === "package.json"
   );
+  const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
+  const keychainTransition =
+    keychainInteroperabilityGovernance.protectedReleaseWiringTransitions?.find(
+      item => item.path === "package.json"
+    );
   const command = "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-recovery:check"] !== command
     || !packageJson.scripts["test:overwatch"]
@@ -351,15 +358,21 @@ function verifyReleaseWiring() {
       .includes("tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
     || !packageJson.scripts["test:overwatch"]
       .includes("tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs")
+    || !packageJson.scripts["test:overwatch"]
+      .includes("tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs")
     || !packageJson.scripts.test
       .includes("overwatch:cloudflare-founder-attended-recovery:check")
     || !packageJson.scripts.test
       .includes("overwatch:cloudflare-founder-attended-response-contract:check")
     || !packageJson.scripts.test
       .includes("overwatch:cloudflare-founder-attended-create-receipt-v2:check")
+    || !packageJson.scripts.test
+      .includes("overwatch:cloudflare-unattended-keychain-interoperability:check")
     || responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
-    || packageTransition?.successorSha256 !== sha256(read("package.json"))
-    || packageTransition?.owner !== "Prometheus Overwatch") {
+    || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
+    || keychainTransition?.successorSha256 !== sha256(read("package.json"))
+    || packageTransition?.owner !== "Prometheus Overwatch"
+    || keychainTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Recovery release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended|provision|cleanup/u.test(command)) {

@@ -20,6 +20,8 @@ const reportPath = "overwatch/reports/BATCH-20260714-007-cloudflare-founder-atte
 const ttyCompatibilityGovernancePath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
 const responseContractGovernancePath = "overwatch/governance/cloudflare-founder-attended-service-token-response-contract-repair-v1.json";
 const createReceiptV2GovernancePath = "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
+const keychainInteroperabilityGovernancePath =
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -398,6 +400,10 @@ function verifyPackageReleaseWiring() {
     "node scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs && node --test tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs";
   ownerPackage.scripts["infrastructure:cloudflare-founder-attended-create-receipt-v2:check"] =
     "node scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs && node --test tests/cloudflare-founder-attended-create-receipt-v2.test.mjs";
+  ownerPackage.scripts["overwatch:cloudflare-unattended-keychain-interoperability:check"] =
+    "node scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs && node --test tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs";
+  ownerPackage.scripts["infrastructure:cloudflare-unattended-keychain-interoperability:check"] =
+    "node scripts/verify-cloudflare-unattended-keychain-interoperability.mjs && node --test tests/cloudflare-unattended-keychain-interoperability.test.mjs";
   ownerPackage.scripts["test:overwatch"] = currentPackage.scripts["test:overwatch"];
   ownerPackage.scripts.test = currentPackage.scripts.test;
   if (!equalJson(ownerPackage, currentPackage)) {
@@ -411,9 +417,16 @@ function verifyPackageReleaseWiring() {
   const packageTransition = createReceiptV2Governance.protectedReleaseWiringTransitions?.find(
     item => item.path === "package.json"
   );
+  const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
+  const keychainTransition =
+    keychainInteroperabilityGovernance.protectedReleaseWiringTransitions?.find(
+      item => item.path === "package.json"
+    );
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
-    || packageTransition?.successorSha256 !== sha256(read("package.json"))
-    || packageTransition?.owner !== "Prometheus Overwatch") {
+    || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
+    || keychainTransition?.successorSha256 !== sha256(read("package.json"))
+    || packageTransition?.owner !== "Prometheus Overwatch"
+    || keychainTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")
@@ -421,14 +434,17 @@ function verifyPackageReleaseWiring() {
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs")
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
     || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs")
+    || !currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-tty:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-recovery:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-response-contract:check")
     || !currentPackage.scripts.test.includes("overwatch:cloudflare-founder-attended-create-receipt-v2:check")
+    || !currentPackage.scripts.test.includes("overwatch:cloudflare-unattended-keychain-interoperability:check")
     || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended:check")
     || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended-response-contract:check")
-    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended-create-receipt-v2:check")) {
+    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-founder-attended-create-receipt-v2:check")
+    || !currentPackage.scripts.test.includes("infrastructure:cloudflare-unattended-keychain-interoperability:check")) {
     throw new Error("Founder-attended verification is missing from the repository release suite.");
   }
 }

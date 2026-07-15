@@ -30,6 +30,8 @@ const contractPath =
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const createReceiptV2GovernancePath =
   "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
+const keychainInteroperabilityGovernancePath =
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const primaryCommit = "04a38d6424099824fa3760314c7b660ce30b6930";
 const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
@@ -375,6 +377,8 @@ function verifyReleaseWiring(governance) {
   const transition = governance.protectedReleaseWiringTransitions[0];
   const createReceiptV2Governance = readJson(createReceiptV2GovernancePath);
   const currentTransition = createReceiptV2Governance.protectedReleaseWiringTransitions[0];
+  const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
+  const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-response-contract:check"] !==
       expectedOverwatch
     || packageJson.scripts["infrastructure:cloudflare-founder-attended-response-contract:check"] !==
@@ -383,6 +387,8 @@ function verifyReleaseWiring(governance) {
       "tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs")
     || !packageJson.scripts["test:overwatch"].includes(
       "tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs")
+    || !packageJson.scripts["test:overwatch"].includes(
+      "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs")
     || !packageJson.scripts.test.includes(
       "overwatch:cloudflare-founder-attended-response-contract:check")
     || !packageJson.scripts.test.includes(
@@ -392,8 +398,10 @@ function verifyReleaseWiring(governance) {
     || !packageJson.scripts.test.includes(
       "infrastructure:cloudflare-founder-attended-create-receipt-v2:check")
     || transition.successorSha256 !== currentTransition.previousSha256
-    || currentTransition.successorSha256 !== sha256(read("package.json"))
-    || currentTransition.owner !== "Prometheus Overwatch") {
+    || currentTransition.successorSha256 !== keychainTransition.previousSha256
+    || keychainTransition.successorSha256 !== sha256(read("package.json"))
+    || currentTransition.owner !== "Prometheus Overwatch"
+    || keychainTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Response-contract release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended-response-contract-(?:diagnostic|prepare|provision)/u

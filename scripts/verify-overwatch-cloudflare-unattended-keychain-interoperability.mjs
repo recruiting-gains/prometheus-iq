@@ -48,6 +48,11 @@ const expectedOverwatchPaths = Object.freeze([
   governancePath,
   reportPath,
   "package.json",
+  "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
   "tests/cross-subsystem-artifact-contracts.test.mjs",
@@ -116,6 +121,15 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
       reason: "Overwatch added only the new owner and independent verification commands to the existing release matrix."
     }
   ]), "Protected predecessor successor mapping drifted.");
+  require(equal(governance.protectedReleaseWiringTransitions, [
+    {
+      path: "package.json",
+      previousSha256: "58c83891f30ca274d295eaf70f98424624c98667b638a1b3954c437248c705aa",
+      successorSha256: "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
+      owner: "Prometheus Overwatch",
+      reason: "Register Infrastructure-owner and independent Overwatch Keychain interoperability gates in the complete repository suite."
+    }
+  ]), "Protected package release-wiring transition drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",

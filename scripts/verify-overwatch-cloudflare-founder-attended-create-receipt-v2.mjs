@@ -37,6 +37,8 @@ const reconciliationGovernanceDocumentationPath =
   "overwatch/governance/cloudflare-founder-attended-successful-response-reconciliation-v1.md";
 const reconciliationReportPath =
   "overwatch/reports/BATCH-20260715-005-cloudflare-founder-attended-successful-response-reconciliation.json";
+const keychainInteroperabilityGovernancePath =
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "358f817f7fc81bd82560840e5fd54668a7f58abe";
@@ -696,14 +698,18 @@ function verifyImplementationBoundary() {
 
 function verifyPredecessorTransitions(governance, rotation) {
   const packageTransition = governance.protectedReleaseWiringTransitions[0];
+  const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
+  const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
   const basePackage = execFileSync("/usr/bin/git", ["show", `${ownerParent}:package.json`], {
     cwd: root,
     encoding: null,
     stdio: ["ignore", "pipe", "ignore"]
   });
   if (packageTransition.previousSha256 !== sha256(basePackage)
-    || packageTransition.successorSha256 !== sha256(read("package.json"))
-    || packageTransition.owner !== "Prometheus Overwatch") {
+    || packageTransition.successorSha256 !== keychainTransition.previousSha256
+    || keychainTransition.successorSha256 !== sha256(read("package.json"))
+    || packageTransition.owner !== "Prometheus Overwatch"
+    || keychainTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Package release-wiring transition drifted.");
   }
   for (const item of governance.overwatchVerificationSuccessors) {
@@ -779,10 +785,16 @@ function verifyReleaseWiring(governance) {
       expectedOwner
     || !packageJson.scripts["test:overwatch"].includes(
       "tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs")
+    || !packageJson.scripts["test:overwatch"].includes(
+      "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs")
     || !packageJson.scripts.test.includes(
       "overwatch:cloudflare-founder-attended-create-receipt-v2:check")
     || !packageJson.scripts.test.includes(
-      "infrastructure:cloudflare-founder-attended-create-receipt-v2:check")) {
+      "infrastructure:cloudflare-founder-attended-create-receipt-v2:check")
+    || !packageJson.scripts.test.includes(
+      "overwatch:cloudflare-unattended-keychain-interoperability:check")
+    || !packageJson.scripts.test.includes(
+      "infrastructure:cloudflare-unattended-keychain-interoperability:check")) {
     throw new Error("v2 release wiring drifted.");
   }
   const releaseCommands = `${expectedOverwatch} ${expectedOwner}`;
