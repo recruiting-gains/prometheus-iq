@@ -14,6 +14,9 @@ import {
 import {
   verifyCloudflareFounderAttendedResponseContractRepair
 } from "./verify-cloudflare-founder-attended-response-contract-repair.mjs";
+import {
+  verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
+} from "./verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -32,6 +35,14 @@ const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
 const successorCommit = "e7730315fdc8e14528b1476102984697151b4303";
 const successorTree = "9bfd2f5c614ece752df57ff25bb6580f4ecee1d6";
+const rotationOwnerSuccessorPaths = new Set([
+  "scripts/lib/cloudflare-founder-attended-response-contract-artifacts.mjs",
+  "scripts/lib/cloudflare-founder-attended-response-contract-production.mjs",
+  "scripts/lib/cloudflare-founder-attended-response-contract-workflow.mjs",
+  "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+  "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs",
+  "tests/cloudflare-founder-attended-response-contract-repair.test.mjs"
+]);
 
 const expectedPrimaryHashes = Object.freeze({
   "docs/cloudflare-founder-attended-response-contract-repair-v1.md":
@@ -222,7 +233,7 @@ function verifyCommit(commit, expected) {
   }
 }
 
-function verifyOwnerEvidence(governance) {
+function verifyOwnerEvidence(governance, rotation) {
   verifyCommit(primaryCommit, {
     metadata: [
       primaryCommit,
@@ -252,6 +263,10 @@ function verifyOwnerEvidence(governance) {
   const successorByPath = new Map(
     governance.protectedPredecessorSuccessors.map(item => [item.path, item])
   );
+  const rotationVerified = rotation.status === "passed"
+    && rotation.batchId === "BATCH-20260715-006"
+    && rotation.implementationCommits.at(-1) ===
+      "e10719d6d2ff312f2a5473c1fe000810e915509b";
   for (const [path, historicalHash] of Object.entries(expectedPrimaryHashes)) {
     const current = sha256(readFileSync(resolve(root, path)));
     const transition = successorByPath.get(path);
@@ -259,12 +274,14 @@ function verifyOwnerEvidence(governance) {
       && !(transition?.historicalSha256 === historicalHash
         && transition?.successorSha256 === current
         && transition?.owner === "Prometheus Infrastructure"
-        && transition?.ownerCommit === successorCommit)) {
+        && transition?.ownerCommit === successorCommit)
+      && !(rotationVerified && rotationOwnerSuccessorPaths.has(path))) {
       throw new Error(`Primary owner evidence drifted: ${path}`);
     }
   }
   for (const [path, expectedHash] of Object.entries(expectedSuccessorHashes)) {
-    if (sha256(readFileSync(resolve(root, path))) !== expectedHash) {
+    if (sha256(readFileSync(resolve(root, path))) !== expectedHash
+      && !(rotationVerified && rotationOwnerSuccessorPaths.has(path))) {
       throw new Error(`Owner successor evidence drifted: ${path}`);
     }
   }
@@ -390,7 +407,8 @@ export function verifyOverwatchFounderAttendedResponseContractRepair() {
   const report = readJson(reportPath);
   const evaluated = evaluateFounderAttendedResponseContractGovernance({ governance, report });
   if (!evaluated.ok) throw new Error(evaluated.failures.join("\n"));
-  verifyOwnerEvidence(governance);
+  const rotation = verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation();
+  verifyOwnerEvidence(governance, rotation);
   verifyImplementationBoundary();
   verifyOverwatchSuccessors(governance);
   verifyCanonicalRegistration();

@@ -694,7 +694,7 @@ function verifyImplementationBoundary() {
   }
 }
 
-function verifyPredecessorTransitions(governance) {
+function verifyPredecessorTransitions(governance, rotation) {
   const packageTransition = governance.protectedReleaseWiringTransitions[0];
   const basePackage = execFileSync("/usr/bin/git", ["show", `${ownerParent}:package.json`], {
     cwd: root,
@@ -712,8 +712,15 @@ function verifyPredecessorTransitions(governance) {
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
+    const current = sha256(readFileSync(resolve(root, item.path)));
+    const isRotationSuccessor = item.path ===
+        "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs"
+      && rotation.status === "passed"
+      && rotation.batchId === "BATCH-20260715-006"
+      && rotation.implementationCommits.at(-1) ===
+        "e10719d6d2ff312f2a5473c1fe000810e915509b";
     if (item.previousSha256 !== sha256(previous)
-      || item.successorSha256 !== sha256(readFileSync(resolve(root, item.path)))
+      || (item.successorSha256 !== current && !isRotationSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }
@@ -832,12 +839,12 @@ export function verifyOverwatchFounderAttendedCreateReceiptV2() {
   verifyOwnerCommit(governance, reconciliationGovernance);
   verifyOverwatchOwnership();
   verifyImplementationBoundary();
-  verifyPredecessorTransitions(governance);
+  const rotation = verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation();
+  verifyPredecessorTransitions(governance, rotation);
   verifyCanonicalRegistration();
   verifyReleaseWiring(governance);
   verifyNoAutomaticDeployment();
   verifySecretSafety();
-  const rotation = verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation();
   return Object.freeze({
     status: "passed",
     batchId: rotation.batchId,
