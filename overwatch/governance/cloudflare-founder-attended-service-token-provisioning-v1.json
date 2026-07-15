@@ -1,0 +1,201 @@
+{
+  "governanceId": "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260714-007",
+  "status": "SOURCE_VERIFIED_NOT_EXECUTED",
+  "owningSubsystem": "Prometheus Overwatch",
+  "directive": "Cloudflare Founder-Attended 30-Day Access Service Token Provisioning v1",
+  "authorizedStartingState": {
+    "branch": "main",
+    "commit": "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5",
+    "tree": "492c9ebe682afa8339bb25c9bb564847c37fd188"
+  },
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "dispatchTimestamp": "2026-07-14T21:02:00-05:00",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationCommit": {
+      "commit": "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8",
+      "parent": "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5",
+      "tree": "04823fa4e3cdf5688045c321bead3d94d813b7c7",
+      "subject": "feat(infrastructure): add attended service token provisioning",
+      "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "timestamp": "2026-07-14T21:27:45-05:00"
+    },
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchChangeTypes": [
+      "governance",
+      "verification",
+      "reporting",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "infrastructureEvidence": [
+    {
+      "path": ".gitignore",
+      "sha256AtOwnerCommit": "c810f6c127fc88f9a68393fad2072e846e0d38753cfe047553d36a7bfa6f327a"
+    },
+    {
+      "path": "docs/cloudflare-founder-attended-service-token-provisioning-v1.md",
+      "sha256AtOwnerCommit": "ae127874ba34158ebcdd4f31fefcc5be956a056da68d7685205cbfc8b5b01cbf"
+    },
+    {
+      "path": "package.json",
+      "sha256AtOwnerCommit": "5dc356dd4bc1dacede36a3b8a393783cae7b428f89b05f73793dc88c31e8bbff",
+      "sharedReleaseWiring": true
+    },
+    {
+      "path": "scripts/check-cloudflare-unattended-secret-presence.mjs",
+      "sha256AtOwnerCommit": "bb0e167d62ec9179d3dc713fbce771caf0210bac06750b7b3052d8e0151366a5"
+    },
+    {
+      "path": "scripts/helpers/cloudflare-founder-attended-keychain.swift",
+      "sha256AtOwnerCommit": "16f5fb22b89bf4d26ca87869d6e65803e3753237177c2013559d80436802735e"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-constants.mjs",
+      "sha256AtOwnerCommit": "ea6b5b0585a15d1ebb7e042ecaa5f0f0e790f1d867ebf727b76359d40b5b20d4"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-control.mjs",
+      "sha256AtOwnerCommit": "36be4fb33a1c2f9347726da6e4e37e6bcc50adc421fb6bc14aafdf43717a9099"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-keychain.mjs",
+      "sha256AtOwnerCommit": "26ea8cc78140697edd4b4db2a726e475c659a857b7b605e00dfa38840b9e1ca2"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-service-token.mjs",
+      "sha256AtOwnerCommit": "12753152d0f550130e30bfb2756b5b337acaaaf65d42adb263f91d80f92a89ba"
+    },
+    {
+      "path": "scripts/lib/cloudflare-founder-attended-tty.mjs",
+      "sha256AtOwnerCommit": "9dc5664b582b62d3a56fb02288258f9cdbd9fae9bcd0c5a1f9daa639d604a478"
+    },
+    {
+      "path": "scripts/lib/strict-json.mjs",
+      "sha256AtOwnerCommit": "33d325e2bb083ad91bd865a49862b845d5b7f530d9d01317eb615fda9c304911"
+    },
+    {
+      "path": "scripts/run-cloudflare-founder-attended-service-token.mjs",
+      "sha256AtOwnerCommit": "c7661654d286d8a2eaf367048ce484519db89069eda5ad88a21b11c48a9172c3"
+    },
+    {
+      "path": "scripts/security-check.mjs",
+      "sha256AtOwnerCommit": "e0d2bbdf0b99e7633273b02b34017ab02e0c717d0732460ea49fcf96b41dcb9d"
+    },
+    {
+      "path": "scripts/verify-cloudflare-founder-attended-service-token.mjs",
+      "sha256AtOwnerCommit": "bc80cf00bc12195acb5fc638674229fa7b758408a0e27cd257e42eb7e9dc22bc"
+    },
+    {
+      "path": "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "sha256AtOwnerCommit": "4673236e129f6b79661e7c7869113c5cbabca2dc6e4d2999892c7b6822059614"
+    },
+    {
+      "path": "workers/infrastructure/cloudflare-founder-attended-service-token-v1.json",
+      "sha256AtOwnerCommit": "e4ea8d9274e01cd60e9cefe4fab70728443258ac0f7266bb3e62f86b89bb117a"
+    }
+  ],
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "scripts/check-cloudflare-unattended-secret-presence.mjs",
+      "historicalSha256": "1898366a964844c89b3fdd365de1544dafe7b3fb3812630d1d3d1c39daada94b",
+      "successorSha256": "bb0e167d62ec9179d3dc713fbce771caf0210bac06750b7b3052d8e0151366a5",
+      "reason": "Infrastructure extended the existing tracked-secret registry and local-artifact denylist for the separate Founder-attended credential."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "50070d78fa9446c10c8309466ec5f51678d1646bdec2f2799284b87f0d1073b0",
+      "reason": "Infrastructure and Overwatch added attended-only owner and release verification wiring without changing unattended runtime behavior."
+    }
+  ],
+  "fixedProvisioningBoundary": {
+    "apiOrigin": "https://api.cloudflare.com",
+    "pathTemplate": "/client/v4/accounts/{account_id}/access/service_tokens",
+    "accountIdentity": "exact_prometheus_account_sha256_allowlist",
+    "serviceTokenName": "Prometheus Overwatch Read-Only Smoke Verification",
+    "duration": "720h",
+    "requestBodyUserControlled": false,
+    "endpointUserControlled": false,
+    "accountUserControlled": false,
+    "automaticRetryAllowed": false,
+    "redirectFollowAllowed": false,
+    "createAttemptsMaximum": 1
+  },
+  "credentialBoundary": {
+    "temporaryApiTokenPermission": "Access: Service Tokens Write",
+    "temporaryApiTokenExactAccountOnly": true,
+    "temporaryApiTokenMaximumTtlHours": 720,
+    "temporaryApiTokenProviderScopeAndExpiryFounderVerified": true,
+    "toolClaimsProviderSideScopeIntrospection": false,
+    "existingUnattendedDeploymentTokenReadOrModified": false,
+    "temporaryKeychainService": "com.prometheus.cloudflare.attended.service-token-provisioning",
+    "destinationKeychainService": "com.prometheus.cloudflare.unattended.smoke",
+    "secretValuesInGitEnvironmentArgumentsOutputLogsReportsScreenshotsBrowserOrFiles": false,
+    "verificationReadsValues": false,
+    "temporaryItemCleanupRequired": true,
+    "providerRevocationRequiredAfterCleanup": true
+  },
+  "attendanceAndReplayBoundary": {
+    "controllingTtyRequired": true,
+    "exactConfirmationRequired": true,
+    "defaultState": "OFF",
+    "maximumAuthorizationWindowMinutes": 30,
+    "cleanExactCommitAndTreeBound": true,
+    "nonceConsumedBeforeNetwork": true,
+    "persistentExclusiveReceipt": true,
+    "duplicateExecutionAllowed": false,
+    "unattendedLauncherIntegrationAllowed": false
+  },
+  "failureBoundary": {
+    "strictResponseParsing": true,
+    "remoteDuplicateFailsBeforeCreate": true,
+    "ambiguousCreateRetries": 0,
+    "partialKeychainPairRollbackRequired": true,
+    "validatedRemoteIdRequiredForCompensation": true,
+    "compensatingDeleteAttemptsMaximum": 1,
+    "ambiguousOrFailedCompensationRequiresManualReview": true
+  },
+  "executionBoundary": {
+    "cloudflareAccessPerformed": false,
+    "realKeychainValuesAccessed": false,
+    "temporaryTokenCreated": false,
+    "serviceTokenCreated": false,
+    "accessPolicyChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "safeLifecycle": [
+    "npm run infrastructure:cloudflare-founder-attended:presence",
+    "npm run infrastructure:cloudflare-founder-attended:provision-attended",
+    "npm run infrastructure:cloudflare-founder-attended:cleanup-temp",
+    "Founder revokes the temporary Cloudflare API token in Cloudflare",
+    "npm run infrastructure:cloudflare-founder-attended:presence"
+  ],
+  "rollback": {
+    "procedure": "create_forward_revert_commits_in_reverse_order",
+    "historyRewriteAllowed": false,
+    "productionRollbackRequired": false,
+    "dataMigrationConsiderations": "none_source_only_not_executed"
+  },
+  "releaseBoundary": {
+    "automaticPushEligibleOnlyAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "productionExecutionAuthorized": false,
+    "unattendedDeploymentReady": false,
+    "remainingSetupRequiresFounderAtLaptop": true,
+    "exactFinalHeadAndTreeRecordedOnlyInExternalHandoff": true
+  }
+}

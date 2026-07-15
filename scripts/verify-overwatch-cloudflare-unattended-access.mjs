@@ -13,6 +13,7 @@ const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deploym
 const governancePath = "overwatch/governance/cloudflare-unattended-deployment-access-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
+const founderAttendedSuccessorPath = "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -196,9 +197,16 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
-function verifyHashes(entries, failures, label) {
+function verifyHashes(entries, failures, label, successorMappings = []) {
   for (const entry of Object.values(entries)) {
-    if (!entry?.path || !entry?.sha256 || sha256(read(entry.path)) !== entry.sha256) {
+    const current = entry?.path ? sha256(read(entry.path)) : null;
+    const successor = successorMappings.find(mapping => (
+      mapping.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
+      && mapping.path === entry?.path
+      && mapping.historicalSha256 === entry?.sha256
+      && mapping.successorSha256 === current
+    ));
+    if (!entry?.path || !entry?.sha256 || (current !== entry.sha256 && !successor)) {
       failures.push(`${label} hash drifted: ${entry?.path || "missing_path"}`);
     }
   }
@@ -220,6 +228,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
+  const founderAttendedSuccessor = readJson(founderAttendedSuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -227,7 +236,12 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
 
   const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
   failures.push(...evaluated.failures);
-  verifyHashes(governance.infrastructureEvidence, failures, "Infrastructure evidence");
+  verifyHashes(
+    governance.infrastructureEvidence,
+    failures,
+    "Infrastructure evidence",
+    founderAttendedSuccessor.protectedPredecessorSuccessors
+  );
   verifyHashes(
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,

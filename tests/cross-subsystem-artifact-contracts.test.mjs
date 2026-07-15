@@ -40,6 +40,18 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       readAllowed: ["Prometheus Overwatch"],
       productionConsumer: false,
       failClosedIfMissing: true
+    },
+    {
+      artifactId: "cloudflare-founder-attended-service-token-provisioning-governance-v1",
+      artifactType: "overwatch_infrastructure_attended_credential_provisioning_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.json",
+      documentationPath: "overwatch/governance/cloudflare-founder-attended-service-token-provisioning-v1.md",
+      schema: "CloudflareFounderAttendedServiceTokenProvisioningGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
     }
   ]);
 });

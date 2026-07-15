@@ -1,0 +1,70 @@
+{
+  "batchId": "BATCH-20260714-007",
+  "directive": "Cloudflare Founder-Attended 30-Day Access Service Token Provisioning v1",
+  "status": "ENGINEERING_IMPLEMENTED_AWAITING_EXACT_VERSION_VERIFICATION",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommit": "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8",
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completed": {
+    "fixedAccountEndpointNameDurationAndBody": true,
+    "separateTemporaryKeychainCredential": true,
+    "securityFrameworkAnonymousStdinStorage": true,
+    "founderAttendedOneShotControl": true,
+    "duplicateAndReplayDenial": true,
+    "singleCreateAttempt": true,
+    "partialStorageRollbackAndRemoteCompensation": true,
+    "nameOnlyPresenceVerification": true,
+    "temporaryCredentialCleanup": true,
+    "secretDetectionAndLeakageTests": true,
+    "overwatchGovernanceAndReleaseGate": true
+  },
+  "verificationAtOwnerHandoff": {
+    "infrastructureFocusedTests": "65/65_PASS",
+    "securityCheck": "PASS",
+    "adjacentUnattendedArchitectureTests": "16/16_PASS",
+    "adjacentUnattendedRuntimeGuardTests": "19/19_PASS",
+    "swiftTypecheck": "PASS",
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "build": "PASS_WITH_EXISTING_WARNINGS",
+    "realCloudflareUsed": false,
+    "realKeychainValuesUsed": false,
+    "exactFinalHeadAndTreeRecordedExternally": true
+  },
+  "safeInvocation": [
+    "npm run infrastructure:cloudflare-founder-attended:presence",
+    "npm run infrastructure:cloudflare-founder-attended:provision-attended",
+    "npm run infrastructure:cloudflare-founder-attended:cleanup-temp",
+    "Revoke the temporary Cloudflare API token in Cloudflare",
+    "npm run infrastructure:cloudflare-founder-attended:presence"
+  ],
+  "boundaries": {
+    "cloudflareAccessUsed": false,
+    "credentialCreated": false,
+    "keychainValuesAccessed": false,
+    "accessPolicyChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "prospectiveCollection": "OFF",
+    "cohortActivation": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "remainingLaptopSetup": [
+    "Founder creates a separate exact-account Cloudflare API token with only Access: Service Tokens Write and an expiry no later than 30 days.",
+    "Founder stores that temporary token directly in the named macOS Keychain item without using Terminal arguments, environment variables, files, screenshots, or browser storage.",
+    "Founder runs the attended provisioning sequence from the intended clean committed repository version.",
+    "Founder removes the temporary Keychain item and immediately revokes the temporary Cloudflare API token.",
+    "Founder separately reviews and authorizes any Access policy change, runtime configuration, smoke execution, or deployment."
+  ],
+  "release": {
+    "engineeringStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+    "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "unattendedDeploymentStillBlocked": true,
+    "productionAccessRequiredForThisBatch": false
+  }
+}
