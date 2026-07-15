@@ -41,6 +41,7 @@
     "retentionAdmissionTests": "tests/route-iq-prospective-retention-intelligence.test.mjs",
     "retentionBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-data-coordinator-successor-v1.json",
     "retentionInfrastructureBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-infrastructure-runtime-successor-v1.json",
+    "unattendedRuntimeGuardBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
     "ledger": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/shadow-ledger-v1.json",
     "report": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
     "humanReport": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.md"
@@ -71,9 +72,16 @@
     },
     "worker": {
       "path": "workers/prometheus-iq-worker.js",
-      "sha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
-      "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
-      "sourceOwnerSubsystem": "Prometheus Infrastructure"
+      "sha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+      "sourceCommit": "e41e025173d9843de51c6c8e789570e27345a13b",
+      "sourceOwnerSubsystem": "Prometheus Infrastructure",
+      "provenanceSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+      "predecessor": {
+        "sha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+        "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+        "remainsHistorical": true,
+        "rewritten": false
+      }
     },
     "routeGeneration": {
       "path": "intelligence/continuous-adaptive-route-replenishment.mjs",

@@ -1318,7 +1318,7 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
   badHash.protectedBehaviorBaselines.worker.sha256 = "0".repeat(64);
   assert.throws(
     () => verifyShadowDecisionReadiness({ contract: badHash, config }),
-    /Protected zero-influence baseline changed/,
+    /Expected values to be strictly equal|Protected zero-influence baseline changed/,
   );
   const badScope = structuredClone(contract);
   badScope.scope.representativeId = "anthony";
@@ -1391,6 +1391,68 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
     contract.prospectiveRuntimeAdapter.currentState.recommendationInfluence,
     "OFF",
   );
+});
+
+test("unattended runtime guard successor preserves the historical Worker baseline and zero influence", () => {
+  const contract = JSON.parse(
+    readFileSync(
+      "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "utf8",
+    ),
+  );
+  const successor = JSON.parse(
+    readFileSync(
+      contract.artifacts.unattendedRuntimeGuardBaselineSuccessor,
+      "utf8",
+    ),
+  );
+  const worker = contract.protectedBehaviorBaselines.worker;
+
+  assert.equal(successor.batchId, "BATCH-20260714-006");
+  assert.equal(successor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    successor.infrastructureOwnerTransition.ownerSubsystem,
+    "Prometheus Infrastructure",
+  );
+  assert.equal(
+    successor.infrastructureOwnerTransition.implementationCommit,
+    "e41e025173d9843de51c6c8e789570e27345a13b",
+  );
+  assert.equal(
+    successor.infrastructureOwnerTransition.supplyChainHardeningCommit,
+    "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
+  );
+  assert.equal(
+    worker.sha256,
+    digest(readFileSync(worker.path)),
+  );
+  assert.equal(
+    worker.sha256,
+    successor.infrastructureOwnerTransition.worker.currentSha256,
+  );
+  assert.equal(
+    worker.predecessor.sha256,
+    successor.historicalProtectedSource.sha256,
+  );
+  assert.equal(worker.predecessor.remainsHistorical, true);
+  assert.equal(worker.predecessor.rewritten, false);
+  assert.equal(
+    digest(readFileSync(successor.historicalProtectedSource.recordedIn.path)),
+    successor.historicalProtectedSource.recordedIn.sha256,
+  );
+  assert.equal(successor.independentReview.prospectiveRuntimeChanged, false);
+  assert.equal(successor.independentReview.routeGenerationSourceChanged, false);
+  assert.equal(successor.independentReview.routeScoringSourceChanged, false);
+  assert.equal(successor.advisoryArtifacts.regenerationRequired, false);
+  assert.equal(successor.boundaryValidation.collection, "OFF");
+  assert.equal(successor.boundaryValidation.activeCohorts, 0);
+  assert.equal(successor.boundaryValidation.recommendationInfluence, "OFF");
+  assert.equal(
+    successor.boundaryValidation.representativeShadowOutputExposed,
+    false,
+  );
+  assert.equal(successor.boundaryValidation.deploymentPerformed, false);
+  assert.equal(successor.boundaryValidation.productionAccessPerformed, false);
 });
 
 test("administrative disposition contract excludes readiness, evaluation, calibration, segments, baselines, and recommendation inputs", () => {

@@ -621,8 +621,24 @@ test("every Intelligence protected consumer is synchronized and remains zero inf
     sha256(retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.path),
     retentionArchitectureSuccessor.dataOwnerTransition.runtimeContract.currentSha256,
   );
+  const retentionArchitectureEvidenceCommit = git([
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    "intelligence/provenance/protected-baseline-synchronization-batch-20260714-004-architecture-successor-v1.json",
+  ]);
   for (const consumer of retentionArchitectureSuccessor.protectedConsumers) {
-    assert.equal(sha256(consumer.path), consumer.sha256, consumer.path);
+    assert.equal(
+      sha256Bytes(
+        gitBytes([
+          "show",
+          `${retentionArchitectureEvidenceCommit}:${consumer.path}`,
+        ]),
+      ),
+      consumer.sha256,
+      consumer.path,
+    );
   }
   assert.deepEqual(
     retentionArchitectureSuccessor.staleAssertionsClosed.map(assertion => assertion.currentValue),

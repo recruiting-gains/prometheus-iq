@@ -1,0 +1,102 @@
+{
+  "version": "route-iq-intelligence-unattended-runtime-guard-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260714-006",
+  "status": "OWNER_VALIDATED_SUCCESSOR_PENDING_OVERWATCH",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Record the Intelligence-owner review and protected Worker baseline synchronization for the source-only Cloudflare unattended service-principal guard without modifying Infrastructure implementation or changing shadow readiness, route behavior, representative visibility, or recommendation influence.",
+  "historicalProtectedSource": {
+    "path": "workers/prometheus-iq-worker.js",
+    "sha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+    "sourceCommit": "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+    "recordedIn": {
+      "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json",
+      "sha256": "e3a4dd3bb7b55a52089a3593cbaa9557911c94c9c238da26675251523b50f261"
+    },
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "infrastructureOwnerTransition": {
+    "ownerSubsystem": "Prometheus Infrastructure",
+    "implementationCommit": "e41e025173d9843de51c6c8e789570e27345a13b",
+    "implementationTree": "74f9fad27358c68aaf3bd4e9dbe6ca4577282749",
+    "supplyChainHardeningCommit": "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
+    "supplyChainHardeningTree": "ba470ec74a0316118e1395619e26123853732da9",
+    "comparisonBaseCommit": "ea7fcc60549df22ad6326dc73e3299eb1896cb97",
+    "worker": {
+      "path": "workers/prometheus-iq-worker.js",
+      "previousSha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+      "currentSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+      "changedByImplementationCommit": true,
+      "changedBySupplyChainHardeningCommit": false
+    },
+    "workerFirstRouting": {
+      "path": "wrangler.jsonc",
+      "previousSha256": "1ed065419de795cd4cfdc035f9b0fa30740ed64ac6597aafacfbc3613aac67db",
+      "currentSha256": "dffa373f19f73efc3bc907ea4a396006c8e6a928797d4c7ddc07a959bd4d690f",
+      "sourceOnly": true,
+      "deployed": false
+    },
+    "servicePrincipalGuard": {
+      "guardPath": "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+      "guardSha256": "4b516eb857fc710ad5167f52517b567210ec8e32efcdf6d4de5e10d4145d8a60",
+      "contractPath": "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+      "contractSha256": "2aeb32d7fd43fcb9acaea072919b462c9bba6da4ae270d03c032c0b81bf3d680",
+      "scope": "signed_exact-service-principal_read-only_GET_HEAD_allowlist",
+      "ordinaryAuthenticatedHumanRoutingChanged": false
+    },
+    "implementationScope": [
+      "verify the signed exact Cloudflare Access service principal",
+      "deny service-principal requests outside a fixed read-only allowlist",
+      "sanitize credential headers before static asset fetches",
+      "route static asset requests through the private Worker guard",
+      "pin the unattended launcher supply chain"
+    ]
+  },
+  "intelligenceOwnerSynchronization": {
+    "contract": {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSha256": "d8c4d39298ebe3a42527f44ee6ed9349972095dc24ce77504e6b93c79d981bb7",
+      "currentSha256": "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8"
+    },
+    "affectedCurrentProtectedConsumers": [
+      "intelligence/contracts/shadow-decision-readiness-contracts.json"
+    ],
+    "historicalReferencesPreserved": [
+      "intelligence/provenance/protected-baseline-synchronization-batch-20260714-003-retention-v1.json"
+    ],
+    "allAffectedCurrentProtectedReferencesAccountedFor": true,
+    "historicalCheckpointModified": false,
+    "infrastructureImplementationModifiedByIntelligence": false
+  },
+  "independentReview": {
+    "workerDiffClassification": "SERVICE_PRINCIPAL_GUARD_AND_WORKER_FIRST_ROUTING_ONLY",
+    "prospectiveRuntimeChanged": false,
+    "intelligenceSourcesChangedByInfrastructure": false,
+    "dataSourcesChangedByInfrastructure": false,
+    "dashboardSourcesChangedByInfrastructure": false,
+    "routeGenerationSourceChanged": false,
+    "routeScoringSourceChanged": false,
+    "candidateVisibilityChanged": false,
+    "notificationBehaviorChanged": false,
+    "automaticActionIntroduced": false
+  },
+  "advisoryArtifacts": {
+    "regenerationRequired": false,
+    "reason": "The source-only guard changes request authorization and static-asset routing for a future unattended read-only smoke principal. Shadow evidence, conclusions, readiness state, route ordering, scoring, and representative output are unchanged."
+  },
+  "boundaryValidation": {
+    "readiness": "INSUFFICIENT_EVIDENCE",
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "canonicalProductionProspectiveRecords": 0,
+    "canonicalProductionEvaluations": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "intelligenceBehaviorChanged": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
