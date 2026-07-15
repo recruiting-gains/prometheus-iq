@@ -41,7 +41,12 @@
       "setupNode": {
         "release": "v4.4.0",
         "commit": "49933ea5288caeca8642d1e84afbd3f7d6820020",
-        "packageManagerCache": false
+        "dependencyCaching": "DISABLED_BY_OMISSION",
+        "omittedInputs": [
+          "cache",
+          "cache-dependency-path"
+        ],
+        "unsupportedInputPresent": false
       }
     }
   },
@@ -106,7 +111,7 @@
     "activeDeploymentIsFirst": true,
     "singleVersionAtOneHundredPercentRequired": true,
     "privateCurrentVersionMustMatchInput": true,
-    "publicVersionCapturedBeforeMutation": true,
+    "publicDeploymentIdentityCapturedBeforeMutation": true,
     "preMutationConcurrencyRecheckRequired": true,
     "networkUncertaintyFailsClosed": true
   },
@@ -132,6 +137,7 @@
   },
   "postDeployment": {
     "newPrivateVersionAtOneHundredPercentRequired": true,
+    "publicDeploymentIdMustRemainUnchanged": true,
     "publicVersionMustRemainUnchanged": true,
     "fixedGuardedSmokeRequiredBeforeAndAfter": true,
     "smokeMethods": [

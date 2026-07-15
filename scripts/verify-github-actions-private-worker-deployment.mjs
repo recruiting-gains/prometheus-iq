@@ -38,6 +38,17 @@ function count(source, pattern) {
   return [...source.matchAll(pattern)].length;
 }
 
+export function assertSetupNodeCachingDisabled(workflow) {
+  assert.equal(
+    count(workflow, /^\s*uses: actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020$/gmu),
+    2
+  );
+  assert.doesNotMatch(
+    workflow,
+    /^\s+(?:cache|cache-dependency-path|package-manager-cache):/mu
+  );
+}
+
 export function verifyGithubActionsPrivateWorkerDeployment() {
   for (const path of Object.values(paths)) {
     assert.equal(existsSync(resolve(root, path)), true, `${path} must exist`);
@@ -73,9 +84,8 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   assert.equal(count(workflow, /^          ref: main$/gmu), 2);
   assert.equal(count(workflow, /^          fetch-depth: 0$/gmu), 2);
   assert.equal(count(workflow, /^          persist-credentials: false$/gmu), 2);
-  assert.equal(count(workflow, /^          package-manager-cache: false$/gmu), 2);
+  assertSetupNodeCachingDisabled(workflow);
   assert.doesNotMatch(workflow, /actions\/(?:cache|upload-artifact|download-artifact)@/u);
-  assert.doesNotMatch(workflow, /^\s+cache:/mu);
 
   assert.doesNotMatch(verificationJob, /\$\{\{\s*secrets\./u);
   assert.doesNotMatch(verificationJob, /prometheus-private-worker-production/u);
@@ -144,6 +154,15 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   assert.equal(contract.runtimeBoundaries.collection, "OFF");
   assert.equal(contract.runtimeBoundaries.activeCohortCount, 0);
   assert.equal(contract.runtimeBoundaries.recommendationInfluence, "OFF");
+  assert.equal(contract.workflow.actions.setupNode.dependencyCaching, "DISABLED_BY_OMISSION");
+  assert.deepEqual(contract.workflow.actions.setupNode.omittedInputs, [
+    "cache",
+    "cache-dependency-path"
+  ]);
+  assert.equal(contract.workflow.actions.setupNode.unsupportedInputPresent, false);
+  assert.equal(contract.cloudflareReadBoundary.publicDeploymentIdentityCapturedBeforeMutation, true);
+  assert.equal(contract.postDeployment.publicDeploymentIdMustRemainUnchanged, true);
+  assert.equal(contract.postDeployment.publicVersionMustRemainUnchanged, true);
   assert.equal(contract.rollback.nativeRollbackAllowed, false);
 
   verifyStaticDeploymentPolicy(root);

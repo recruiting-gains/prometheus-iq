@@ -669,7 +669,8 @@ export async function runDeploymentLifecycle({
     || finalPrivate.deploymentId === initialPrivate.deploymentId) {
     fail(DEPLOYMENT_FAILURE.POST_DEPLOY_VERSION_MISMATCH);
   }
-  if (finalPublic.versionId !== initialPublic.versionId) {
+  if (finalPublic.deploymentId !== initialPublic.deploymentId
+    || finalPublic.versionId !== initialPublic.versionId) {
     fail(DEPLOYMENT_FAILURE.PUBLIC_VERSION_CHANGED);
   }
   return Object.freeze({ status: "PRIVATE_WORKER_DEPLOYMENT_VERIFIED" });

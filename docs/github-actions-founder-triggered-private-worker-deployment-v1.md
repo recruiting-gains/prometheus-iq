@@ -28,6 +28,10 @@ index, and Git object integrity; installs the lockfile; and runs the complete
 repository test, lint, typecheck, security, Aegis, cross-subsystem contract, build,
 secret-scan, and Infrastructure owner gates.
 
+The pinned `actions/setup-node` steps omit both supported caching inputs, `cache` and
+`cache-dependency-path`, so dependency caching remains disabled. The workflow does
+not use the unsupported `package-manager-cache` input.
+
 The deploy job starts only after verification and protected-environment approval.
 It repeats repository and configuration verification before network use. A fixed
 GET reads Cloudflare's deployments endpoint for the private and public Workers.
@@ -51,9 +55,10 @@ private config preserve dashboard variables and secrets while retaining the
 existing assets, KV, email, Durable Object bindings, vars, and migrations.
 
 After deployment, the new private version must be the sole 100-percent version and
-the public version must be unchanged. The existing guarded smoke client runs before
-and after using only its fixed GET/HEAD allowlist. It sends no body or cookie, denies
-redirects, never reads response bodies, and permits no write method.
+the public deployment ID and public version ID must both be unchanged from the
+pre-deploy snapshot. The existing guarded smoke client runs before and after using
+only its fixed GET/HEAD allowlist. It sends no body or cookie, denies redirects,
+never reads response bodies, and permits no write method.
 
 The governed source contracts remain `collection: OFF`, `activeCohortCount: 0`, and
 `recommendationInfluence: OFF`. Static gates prove those settings. The guarded

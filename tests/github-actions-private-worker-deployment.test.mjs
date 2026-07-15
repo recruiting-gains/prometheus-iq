@@ -28,7 +28,10 @@ import {
   validateFounderDeploymentInputs,
   verifyStaticDeploymentPolicy
 } from "../scripts/lib/github-actions-private-worker-deployment.mjs";
-import { verifyGithubActionsPrivateWorkerDeployment } from "../scripts/verify-github-actions-private-worker-deployment.mjs";
+import {
+  assertSetupNodeCachingDisabled,
+  verifyGithubActionsPrivateWorkerDeployment
+} from "../scripts/verify-github-actions-private-worker-deployment.mjs";
 import {
   fixedCloudflareUnattendedSmokePlan,
   runCloudflareUnattendedSmoke
@@ -224,6 +227,21 @@ test("owner verifier proves the source-only workflow contract without network ac
   assert.equal(result.networkRequestsPerformed, 0);
   assert.equal(result.productionMutationPerformed, false);
   assert.equal(result.publicWorkerDeploymentAllowed, false);
+});
+
+test("setup-node caching is disabled by omitting both supported inputs", () => {
+  const workflow = readFileSync(join(
+    repositoryRoot,
+    ".github/workflows/deploy-prometheus-private-worker.yml"
+  ), "utf8");
+  assert.doesNotThrow(() => assertSetupNodeCachingDisabled(workflow));
+  for (const injectedInput of [
+    "          cache: npm",
+    "          cache-dependency-path: package-lock.json",
+    "          package-manager-cache: false"
+  ]) {
+    assert.throws(() => assertSetupNodeCachingDisabled(`${workflow}\n${injectedInput}\n`));
+  }
 });
 
 test("Founder input formats and exact GitHub context are mandatory", () => {
@@ -625,7 +643,22 @@ test("public Worker version change fails after a valid new private version", asy
     snapshot(initialPrivateDeployment, currentVersion),
     snapshot(initialPublicDeployment, publicVersion),
     snapshot(nextPrivateDeployment, nextVersion),
-    snapshot(changedPublicDeployment, changedPublicVersion)
+    snapshot(initialPublicDeployment, changedPublicVersion)
+  ]);
+  await expectCodeAsync(
+    () => runDeploymentLifecycle(fixture.options),
+    DEPLOYMENT_FAILURE.PUBLIC_VERSION_CHANGED
+  );
+});
+
+test("public Worker deployment ID change fails even when its version is unchanged", async () => {
+  const fixture = lifecycleFixture([
+    snapshot(initialPrivateDeployment, currentVersion),
+    snapshot(initialPublicDeployment, publicVersion),
+    snapshot(initialPrivateDeployment, currentVersion),
+    snapshot(initialPublicDeployment, publicVersion),
+    snapshot(nextPrivateDeployment, nextVersion),
+    snapshot(changedPublicDeployment, publicVersion)
   ]);
   await expectCodeAsync(
     () => runDeploymentLifecycle(fixture.options),
