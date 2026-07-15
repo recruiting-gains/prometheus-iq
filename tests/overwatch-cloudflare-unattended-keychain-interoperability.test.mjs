@@ -38,7 +38,7 @@ test("Overwatch independently verifies owner provenance and release boundaries",
   assert.equal(verified.batchId, "BATCH-20260715-008");
   assert.equal(verified.implementationOwner, "Prometheus Infrastructure");
   assert.equal(verified.verificationOwner, "Prometheus Overwatch");
-  assert.equal(verified.focusedOwnerTests, 15);
+  assert.equal(verified.focusedOwnerTests, 16);
   assert.equal(verified.cloudflareRequestPerformed, false);
   assert.equal(verified.keychainAclModified, false);
   assert.equal(verified.deploymentPerformed, false);
@@ -50,6 +50,8 @@ test("Overwatch rejects ownership, classification, remediation, and release weak
     value => { value.dispatchAudit.implementationOwner = "Prometheus Overwatch"; },
     value => { value.dispatchAudit.overwatchModifiedInfrastructureImplementation = true; },
     value => { value.ownerEvidence[0].sha256AtOwnerCommit = "0".repeat(64); },
+    value => { value.ownerImplementationSuccessors[0].successorSha256 = "0".repeat(64); },
+    value => { value.dispatchAudit.ownerRepairCommit.commit = "0".repeat(40); },
     value => { value.protectedPredecessorSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.protectedPredecessorSuccessors[1].successorOwner = "Prometheus Infrastructure"; },
     value => { value.protectedReleaseWiringTransitions[0].successorSha256 = "0".repeat(64); },

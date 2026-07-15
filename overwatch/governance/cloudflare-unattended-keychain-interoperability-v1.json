@@ -19,6 +19,12 @@
       "tree": "e1cc6516c568d28e0d7f3078f41590ba8f6a994d",
       "subject": "Repair unattended Keychain retrieval interoperability"
     },
+    "ownerRepairCommit": {
+      "commit": "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
+      "parent": "94e7bc78a30dd3d0f8b272e351d2f820541c4f90",
+      "tree": "5084667426465a7df46cbbf2dc35c0f043c1436e",
+      "subject": "Align attended Keychain compatibility fixtures"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "overwatchChangeTypes": [
@@ -111,6 +117,22 @@
       "previousSha256": "9b5117143e5800cc49838b6ef377d85de183cfbae08d433b30edfc0bb353dee9",
       "successorSha256": "bb0a30f92632bb1b25afef4536a5a21a629bbb9bab83fffea02265fbc3d9a5c8",
       "owner": "Prometheus Overwatch"
+    }
+  ],
+  "ownerImplementationSuccessors": [
+    {
+      "path": "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "previousSha256": "05ab27c49a5d629bfb556944081893b23fd3c4c3a247565a8ed02c6440fb496b",
+      "successorSha256": "473a26d8554360837338c41e5fe14960cef985bff33361e63a2f13f144c30cd9",
+      "ownerCommit": "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
+      "owner": "Prometheus Infrastructure"
+    },
+    {
+      "path": "tests/cloudflare-unattended-keychain-interoperability.test.mjs",
+      "previousSha256": "79daa55d323eb0c970ae6da02d7f902981c609a6a6f8117ec18e09baab8d2bac",
+      "successorSha256": "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a",
+      "ownerCommit": "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
+      "owner": "Prometheus Infrastructure"
     }
   ],
   "independentRetrievalClassification": {

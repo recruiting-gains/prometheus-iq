@@ -9,6 +9,7 @@
     "implementation": "Prometheus Infrastructure",
     "verification": "Prometheus Overwatch",
     "implementationCommit": "8fa8d6943431c68b9f5a556499243e9838378440",
+    "implementationRepairCommit": "12c8bc3cfaf16dc23e8eb7a26d14ed22bf70630e",
     "ownershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false
   },
@@ -33,7 +34,7 @@
   },
   "independentVerification": {
     "ownerVerifier": "PASS",
-    "focusedOwnerTests": "15/15_PASS",
+    "focusedOwnerTests": "16/16_PASS",
     "existingUnattendedAccessTests": "16/16_PASS",
     "existingRuntimeGuardTests": "19/19_PASS",
     "swiftHelperTypecheck": "PASS",
