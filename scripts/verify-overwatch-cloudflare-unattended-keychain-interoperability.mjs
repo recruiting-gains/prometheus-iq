@@ -42,6 +42,51 @@ const ownerHashes = Object.freeze({
     "b7919a79a375dd9c0d6eda0406d0f9be6ba08f72c87ea2ea881face2438260f8"
 });
 
+const protectedOverwatchVerifierSuccessors = Object.freeze([
+  {
+    path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+    previousSha256: "44e32c3751b4ac58241061e505ba5d05a451d85b73280b06cb1473c900a94dd1",
+    successorSha256: "6365219622cd6aebb4db6bfee5d8c76a5250fef7b3f735a5f1974bd0d94d635b",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+    previousSha256: "b472dbea6fa01736f6740e41a86b935ac3221c5ba6d35b8bbb3d350a28085ebb",
+    successorSha256: "af763850488cd53e6e19c6c1c4cc7c4580e496a8eb3bc5a89d4d96d88d0dc8c9",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+    previousSha256: "78066379c15af37fda8599623a229ae64e8ff1596fcc34325456275931f01e89",
+    successorSha256: "b671281885d33d8286c5cd9cba37521c33a88d28ae6cb50700826bd574cbfe4d",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+    previousSha256: "d2fdb09fda0864ae6c9215f14e7f6889645875dfdb1e4c303ac8b5bb8c4f67b8",
+    successorSha256: "886a51d70c9ac5df6b30741a740f7f23b0f7a51220a52e596d93802d04f8aa1e",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+    previousSha256: "54319ae218ab745aeb0e300429b7227593445a3c4b4549e20b4735e9b2dd426a",
+    successorSha256: "5b7593db044d5386d77975b81efe5691e514182fd147e5173abc49d7b8371aad",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+    previousSha256: "1bc79b392ca6d3620b6d5792a48afd1c63ee1babb1aa0091366907365b53e306",
+    successorSha256: "707644d0e0f89a02df6fa74ec3c1ad40f27272828b0dd9961c3d934ad5554518",
+    owner: "Prometheus Overwatch"
+  },
+  {
+    path: "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
+    previousSha256: "9b5117143e5800cc49838b6ef377d85de183cfbae08d433b30edfc0bb353dee9",
+    successorSha256: "bb0a30f92632bb1b25afef4536a5a21a629bbb9bab83fffea02265fbc3d9a5c8",
+    owner: "Prometheus Overwatch"
+  }
+]);
+
 const expectedOverwatchPaths = Object.freeze([
   "overwatch/artifact-contracts/canonical-artifact-registry.json",
   governanceDocumentationPath,
@@ -49,6 +94,7 @@ const expectedOverwatchPaths = Object.freeze([
   reportPath,
   "package.json",
   "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
@@ -130,6 +176,9 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
       reason: "Register Infrastructure-owner and independent Overwatch Keychain interoperability gates in the complete repository suite."
     }
   ]), "Protected package release-wiring transition drifted.");
+  require(equal(governance.protectedOverwatchVerifierSuccessors,
+    protectedOverwatchVerifierSuccessors),
+  "Protected Overwatch verifier successor mapping drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",

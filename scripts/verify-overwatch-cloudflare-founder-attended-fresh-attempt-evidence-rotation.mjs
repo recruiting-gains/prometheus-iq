@@ -28,6 +28,8 @@ const repairOwnerCommit = "e10719d6d2ff312f2a5473c1fe000810e915509b";
 const repairOwnerTree = "3695a70a5ae08540c35a63f324a36ff0f1f966de";
 const overwatchGovernanceCommit = "7802e950e69596d046daf6c8eb3abf6eaf698dde";
 const overwatchGovernanceTree = "309f523c4838c09d3f3518444a9d19c224bdcfc6";
+const overwatchVerificationRepairCommit =
+  "845973727b3e5fe3923c45b6b90c41134355c60f";
 
 const ownerHashes = Object.freeze({
   "docs/cloudflare-founder-attended-fresh-attempt-evidence-rotation-v1.md":
@@ -312,7 +314,8 @@ function verifyOverwatchOwnership() {
   if (head === overwatchGovernanceCommit) return;
 
   const repairFields = git([
-    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s", head
+    "show", "-s", "--format=%P%n%an <%ae>%n%cn <%ce>%n%s",
+    overwatchVerificationRepairCommit
   ]).split("\n");
   if (!equal(repairFields, [
     overwatchGovernanceCommit,
@@ -320,7 +323,10 @@ function verifyOverwatchOwnership() {
     "Prometheus Overwatch <overwatch@prometheus.local>",
     "Repair attended response-contract successor verification"
   ])) throw new Error("Overwatch successor-verification repair metadata drifted.");
-  const repairPaths = git(["diff-tree", "--no-commit-id", "--name-only", "-r", head])
+  const repairPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r",
+    overwatchVerificationRepairCommit
+  ])
     .split("\n").filter(Boolean);
   if (!equal([...repairPaths].sort(), [...expectedOverwatchRepairPaths].sort())) {
     throw new Error("Overwatch successor-verification repair file set drifted.");
@@ -329,6 +335,9 @@ function verifyOverwatchOwnership() {
     || path.startsWith("workers/infrastructure/"))) {
     throw new Error("Overwatch repair modified Infrastructure implementation.");
   }
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", overwatchVerificationRepairCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
 }
 
 function verifyImplementationBoundary() {

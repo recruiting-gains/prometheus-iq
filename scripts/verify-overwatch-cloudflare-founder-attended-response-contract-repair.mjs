@@ -331,17 +331,30 @@ function verifyImplementationBoundary() {
 
 function verifyOverwatchSuccessors(governance) {
   const createReceiptV2Governance = readJson(createReceiptV2GovernancePath);
+  const keychainInteroperabilityGovernance = readJson(
+    keychainInteroperabilityGovernancePath
+  );
   const transitions = new Map(
     createReceiptV2Governance.overwatchVerificationSuccessors.map(item => [item.path, item])
+  );
+  const keychainTransitions = new Map(
+    keychainInteroperabilityGovernance.protectedOverwatchVerifierSuccessors
+      .map(item => [item.path, item])
   );
   for (const item of governance.overwatchVerificationSuccessors) {
     const current = sha256(readFileSync(resolve(root, item.path)));
     const transition = transitions.get(item.path);
+    const keychainTransition = keychainTransitions.get(item.path);
     if (!/^[0-9a-f]{64}$/u.test(item.previousSha256)
       || (current !== item.successorSha256
         && !(transition?.previousSha256 === item.successorSha256
           && transition?.successorSha256 === current
-          && transition?.owner === "Prometheus Overwatch"))) {
+          && transition?.owner === "Prometheus Overwatch")
+        && !(transition?.previousSha256 === item.successorSha256
+          && keychainTransition?.previousSha256 === transition.successorSha256
+          && keychainTransition?.successorSha256 === current
+          && transition?.owner === "Prometheus Overwatch"
+          && keychainTransition?.owner === "Prometheus Overwatch"))) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
     }
   }

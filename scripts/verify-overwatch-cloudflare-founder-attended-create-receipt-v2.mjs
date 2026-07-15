@@ -700,6 +700,10 @@ function verifyPredecessorTransitions(governance, rotation) {
   const packageTransition = governance.protectedReleaseWiringTransitions[0];
   const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
   const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
+  const keychainVerifierTransitions = new Map(
+    keychainInteroperabilityGovernance.protectedOverwatchVerifierSuccessors
+      .map(item => [item.path, item])
+  );
   const basePackage = execFileSync("/usr/bin/git", ["show", `${ownerParent}:package.json`], {
     cwd: root,
     encoding: null,
@@ -725,8 +729,17 @@ function verifyPredecessorTransitions(governance, rotation) {
       && rotation.batchId === "BATCH-20260715-006"
       && rotation.implementationCommits.at(-1) ===
         "e10719d6d2ff312f2a5473c1fe000810e915509b";
+    const verifierTransition = keychainVerifierTransitions.get(item.path);
+    const isKeychainSuccessor = verifierTransition?.successorSha256 === current
+      && verifierTransition?.owner === "Prometheus Overwatch"
+      && (verifierTransition?.previousSha256 === item.successorSha256
+        || isRotationSuccessor);
     if (item.previousSha256 !== sha256(previous)
-      || (item.successorSha256 !== current && !isRotationSuccessor)
+      || (item.successorSha256 !== current
+        && !isRotationSuccessor
+        && !isKeychainSuccessor)
+      || (isRotationSuccessor && item.successorSha256 !== current
+        && !isKeychainSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }
