@@ -14,6 +14,10 @@
   "dispatchAudit": {
     "owningProduct": "Prometheus Platform",
     "implementationOwner": "Prometheus Infrastructure",
+    "implementationOwners": [
+      "Prometheus Infrastructure",
+      "Prometheus Intelligence Engine"
+    ],
     "verificationOwner": "Prometheus Overwatch",
     "implementationCommits": [
       {
@@ -27,6 +31,12 @@
         "timestamp": "2026-07-14T23:57:37Z"
       }
     ],
+    "intelligenceOwnerRepair": {
+      "commit": "c05fa818c2ccff98447089287b110c35704ff3a4",
+      "subject": "Synchronize Intelligence runtime guard baseline",
+      "timestamp": "2026-07-15T00:08:56Z",
+      "reason": "The first full repository gate exposed an Intelligence-owned protected Worker baseline mismatch after the authorized Infrastructure runtime change."
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedSubsystemImplementation": false,
     "overwatchChangeTypes": [
@@ -93,6 +103,33 @@
       "path": "package-lock.json",
       "sha256": "70bb4bb8a4ed855307ca98c0efd295e23825504bf225609d16be474640134a0c"
     }
+  },
+  "intelligenceEvidence": {
+    "readinessContract": {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "sha256": "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8"
+    },
+    "baselineSuccessor": {
+      "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260714-006-unattended-runtime-guard-v1.json",
+      "sha256": "29199759ec8782df53d13c770b66271f190766b6bf8291077a02e05fa7bcdd2e"
+    },
+    "readinessVerifier": {
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "sha256": "caed723ccdaf8aa2958298a06b549f7a4ab69a2beb9d4e3cfbb0ee284ef59b49"
+    },
+    "architectureTests": {
+      "path": "tests/intelligence-architecture.test.mjs",
+      "sha256": "c365639dea90ad2f2f868b2aaf8d8a52eb8d3bfc27c595aeafb57c01ffdbf878"
+    },
+    "readinessTests": {
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "sha256": "0ebbf3272cba2ec4c4fb6fdd168ca54f60ef2bd9116d393585e0b452416e61a7"
+    },
+    "previousWorkerSha256": "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
+    "currentWorkerSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+    "historicalBaselineRewritten": false,
+    "recommendationInfluenceChanged": false,
+    "intelligenceBehaviorChanged": false
   },
   "servicePrincipalBoundary": {
     "sourceStatus": "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED",

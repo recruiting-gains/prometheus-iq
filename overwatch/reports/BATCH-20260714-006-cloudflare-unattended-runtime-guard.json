@@ -3,12 +3,16 @@
   "directive": "Cloudflare Unattended Deployment Runtime Guard v1",
   "status": "ENGINEERING_PASS_SETUP_NOT_CONFIGURED",
   "owners": {
-    "implementation": "Prometheus Infrastructure",
+    "implementation": [
+      "Prometheus Infrastructure",
+      "Prometheus Intelligence Engine"
+    ],
     "verification": "Prometheus Overwatch",
     "implementationCommits": [
       "e41e025173d9843de51c6c8e789570e27345a13b",
       "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
     ],
+    "intelligenceRepairCommit": "c05fa818c2ccff98447089287b110c35704ff3a4",
     "ownershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false
   },
@@ -20,6 +24,8 @@
     "persistentOneShotNonceConsumption": true,
     "exactWranglerSupplyChainPin": true,
     "completeTrackedTextSecretScan": true,
+    "intelligenceProtectedWorkerBaselineSynchronized": true,
+    "historicalWorkerBaselinePreserved": true,
     "overwatchGovernanceAndReleaseGates": true
   },
   "currentReadiness": {
@@ -36,6 +42,8 @@
   "verification": {
     "ownerRuntimeGuardTests": "19/19_PASS",
     "ownerArchitectureTests": "16/16_PASS",
+    "intelligenceShadowReadinessTests": "38/38_PASS",
+    "intelligenceArchitectureTests": "14/14_PASS",
     "secretFindings": 0,
     "productionAccessRequired": false,
     "exactFinalHeadAndTreeRecordedExternally": true

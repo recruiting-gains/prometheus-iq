@@ -32,6 +32,7 @@ test("Overwatch independently verifies the source runtime guard and held deploym
     "e41e025173d9843de51c6c8e789570e27345a13b",
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
   ]);
+  assert.equal(result.intelligenceRepairCommit, "c05fa818c2ccff98447089287b110c35704ff3a4");
   assert.equal(result.guardStatus, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
   assert.equal(result.setupStatus, "NOT_CONFIGURED");
   assert.equal(result.repositorySecretFindings, 0);
@@ -208,6 +209,10 @@ test("Overwatch rejects implementation ownership inversion or commit substitutio
   const commit = clone(governance);
   commit.dispatchAudit.implementationCommits[1].commit = "0".repeat(40);
   assert.equal(evaluate(infrastructure, commit).ok, false);
+
+  const intelligence = clone(governance);
+  intelligence.dispatchAudit.intelligenceOwnerRepair.commit = "0".repeat(40);
+  assert.equal(evaluate(infrastructure, intelligence).ok, false);
 });
 
 test("Overwatch rejects a report that claims setup, execution, or deployment readiness", () => {

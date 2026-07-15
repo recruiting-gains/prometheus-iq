@@ -138,6 +138,10 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   require(governance.version === "1.1.0" && governance.batchId === "BATCH-20260714-006", "Overwatch governance version or batch drifted.");
   require(governance.owningSubsystem === "Prometheus Overwatch", "Overwatch governance owner drifted.");
   require(governance.dispatchAudit.implementationOwner === "Prometheus Infrastructure", "Implementation owner must remain Infrastructure.");
+  require(equalJson(governance.dispatchAudit.implementationOwners, [
+    "Prometheus Infrastructure",
+    "Prometheus Intelligence Engine"
+  ]), "Batch implementation owner set drifted.");
   require(governance.dispatchAudit.verificationOwner === "Prometheus Overwatch", "Verification owner must remain Overwatch.");
   require(governance.dispatchAudit.implementationOwnershipRespected === true, "Implementation ownership must be verified.");
   require(governance.dispatchAudit.overwatchModifiedSubsystemImplementation === false, "Overwatch must not modify Infrastructure implementation.");
@@ -145,6 +149,7 @@ export function evaluateCloudflareUnattendedAccessGovernance({
     "e41e025173d9843de51c6c8e789570e27345a13b",
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
   ]), "Infrastructure owner commit chain drifted.");
+  require(governance.dispatchAudit.intelligenceOwnerRepair.commit === "c05fa818c2ccff98447089287b110c35704ff3a4", "Intelligence owner repair commit drifted.");
   require(governance.servicePrincipalBoundary.productionConfigured === false && governance.servicePrincipalBoundary.productionDeployed === false, "Governance must preserve the unconfigured, undeployed guard state.");
   require(equalJson(governance.servicePrincipalBoundary.allowedMethods, expectedMethods), "Governance smoke methods drifted.");
   require(governance.servicePrincipalBoundary.markerAloneAuthorizes === false, "Governance must reject marker-only authorization.");
@@ -173,7 +178,11 @@ export function evaluateCloudflareUnattendedAccessGovernance({
   require(governance.releaseBoundary.deploymentRecommendation === "DO_NOT_DEPLOY", "Deployment recommendation must remain DO_NOT_DEPLOY.");
 
   require(report.batchId === "BATCH-20260714-006", "Batch report ID drifted.");
-  require(report.owners.implementation === "Prometheus Infrastructure" && report.owners.verification === "Prometheus Overwatch", "Batch report owners drifted.");
+  require(equalJson(report.owners.implementation, [
+    "Prometheus Infrastructure",
+    "Prometheus Intelligence Engine"
+  ]) && report.owners.verification === "Prometheus Overwatch", "Batch report owners drifted.");
+  require(report.owners.intelligenceRepairCommit === "c05fa818c2ccff98447089287b110c35704ff3a4", "Batch report Intelligence repair drifted.");
   require(report.owners.ownershipRespected === true && report.owners.overwatchModifiedInfrastructureImplementation === false, "Batch report ownership audit failed.");
   require(report.currentReadiness.setupStatus === "NOT_CONFIGURED", "Batch report setup must remain NOT_CONFIGURED.");
   require(report.currentReadiness.unattendedDeploymentReady === false && report.currentReadiness.unattendedSmokeReady === false, "Batch report must not claim unattended readiness.");
@@ -219,7 +228,20 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
   failures.push(...evaluated.failures);
   verifyHashes(governance.infrastructureEvidence, failures, "Infrastructure evidence");
+  verifyHashes(
+    Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
+    failures,
+    "Intelligence evidence"
+  );
   verifyProtectedRuntimeHashes(governance, failures);
+
+  if (governance.intelligenceEvidence.previousWorkerSha256 !== "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
+    || governance.intelligenceEvidence.currentWorkerSha256 !== governance.protectedRuntimeBaselines.privateWorkerSha256
+    || governance.intelligenceEvidence.historicalBaselineRewritten !== false
+    || governance.intelligenceEvidence.recommendationInfluenceChanged !== false
+    || governance.intelligenceEvidence.intelligenceBehaviorChanged !== false) {
+    failures.push("Intelligence protected Worker successor boundary drifted.");
+  }
 
   const registration = registry.governanceArtifacts.find(entry => (
     entry.artifactId === governance.governanceId
@@ -258,6 +280,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     implementationOwner: governance.dispatchAudit.implementationOwner,
     verificationOwner: governance.dispatchAudit.verificationOwner,
     implementationCommits: governance.dispatchAudit.implementationCommits.map(entry => entry.commit),
+    intelligenceRepairCommit: governance.dispatchAudit.intelligenceOwnerRepair.commit,
     setupStatus: infrastructure.setupStatus,
     guardStatus: infrastructure.servicePrincipalReadOnlyGuard.status,
     repositorySecretFindings: secretFindings.length,

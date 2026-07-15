@@ -6,7 +6,7 @@ Owner: Prometheus Overwatch
 
 Status: runtime guard source verified; setup not configured; deployment blocked.
 
-Prometheus Infrastructure owns the Worker guard, fixed smoke client, Keychain launcher, Founder control-file parser, supply-chain pin, and secret scanner. Overwatch owns only the independent governance, verification, reporting, protected baselines, and release decision around that implementation.
+Prometheus Infrastructure owns the Worker guard, fixed smoke client, Keychain launcher, Founder control-file parser, supply-chain pin, and secret scanner. Prometheus Intelligence Engine owns the shadow-readiness protected consumer and its historical baseline successor. Overwatch owns only the independent governance, verification, reporting, protected baselines, and release decision around those implementations.
 
 ## Verified Source Boundary
 
@@ -18,6 +18,7 @@ Prometheus Infrastructure owns the Worker guard, fixed smoke client, Keychain la
 - The Founder control file must be a current-user, single-link regular file at mode `0600` beneath a mode `0700` parent. It must exactly match the current commit, tree, private Worker, environment, Founder directive, canonical validity window, and one-shot nonce.
 - A launch consumes the nonce with an exclusive durable marker before any child starts. Failure or interruption burns the authorization.
 - Secret detection scans every regular file represented by the Git index, regardless of extension or size, and never reports matched values.
+- The first full repository gate exposed the Intelligence-owned historical Worker pin. Intelligence repaired its current consumer in commit `c05fa818c2ccff98447089287b110c35704ff3a4`, preserved the predecessor hash, and verified that collection, readiness logic, route behavior, and recommendation influence did not change.
 
 ## Current Release Boundary
 
