@@ -135,9 +135,11 @@ function verifyWorkflowBoundary() {
   assert.doesNotMatch(production, /setTimeout|maxRetries|retryAfter|automaticRetry/iu);
   assert.match(production, /createControllingTtyConfirmation\(\)/u);
   assert.match(production, /CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY/u);
+  assert.match(production, /artifactRoot:\s*CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY/u);
 
   assert.doesNotMatch(getOnly, /method:\s*"(?:POST|PUT|PATCH|DELETE)"/u);
   assert.doesNotMatch(getOnly, /provisionFounderAttended/u);
+  assert.match(getOnly, /artifactRoot:\s*CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY/u);
   assert.match(prepare, /runFounderAttendedCreateReceiptV2PreparationCli/u);
   assert.match(provision, /runFounderAttendedCreateReceiptV2ProvisioningCli/u);
   assert.doesNotMatch(provision, /response-contract-workflow/u);
@@ -218,6 +220,10 @@ function verifyMetadata() {
   assert.equal(metadata.futureLifecycle.provisioningExecutedByThisBatch, false);
   assert.equal(metadata.commands.nextSafeGetOnly,
     CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_NEXT_SAFE_COMMAND);
+  assert.equal(
+    metadata.futureLifecycle.artifactNamespace,
+    "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-create-receipt-v2"
+  );
   assert.equal(metadata.ownership.packageReleaseWiringOwner, "Prometheus Overwatch");
   assert.equal(metadata.ownership.packageJsonModified, false);
   assert.equal(metadata.ownership.overwatchFilesModified, false);

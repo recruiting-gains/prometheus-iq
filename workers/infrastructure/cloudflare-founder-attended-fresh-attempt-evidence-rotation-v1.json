@@ -21,10 +21,11 @@
     "getOnlyReturnedManualReview": true,
     "exactNameAbsentConfirmed": true,
     "createDeleteOrDeployPossible": false,
-    "priorV2AttemptEvidencePreserved": true
+    "priorV2AttemptEvidencePreserved": true,
+    "failedDiagnosticsPersistAsIsolatedAbandonedAttempts": true
   },
   "namespaceRotation": {
-    "artifactNamespace": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-response-contract-repair-v1/attempts/<attemptId>",
+    "artifactNamespace": "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-create-receipt-v2/attempts/<attemptId>",
     "immutablePerAttemptNamespaces": true,
     "opaqueAttemptIdRuntimeGenerated": true,
     "callerChosenAttemptIdAllowed": false,
@@ -36,7 +37,9 @@
     "sameAttemptRequiredForDiagnosticControlAndPhases": true,
     "sameAttemptRequiredForCreateReceiptReasons": true,
     "crossAttemptSubstitutionFailsClosed": true,
-    "expiredOrConsumedAttemptsIgnoredBySelector": true
+    "expiredOrConsumedAttemptsIgnoredBySelector": true,
+    "lineageBindsAuthorizedCommitAndTree": true,
+    "futureCreatedOrObservedTimesFailClosed": true
   },
   "filesystemControls": {
     "directoryMode": "0700",
@@ -47,7 +50,8 @@
   },
   "futureCommand": {
     "nextSafeGetOnly": "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs",
-    "prepareOrProvisionExecutedByThisBatch": false
+    "prepareOrProvisionExecutedByThisBatch": false,
+    "prepareOrProvisionUseSameV2Root": true
   },
   "runtimeBoundaries": {
     "realExecutionAuthorized": false,

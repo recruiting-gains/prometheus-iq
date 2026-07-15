@@ -5,7 +5,8 @@ import {
   classifyFounderAttendedResponseContractArtifactError,
   consumeFounderAttendedResponseContractSuccessorControl,
   createFounderAttendedResponseContractAbsenceEvidence,
-  prepareFounderAttendedResponseContractSuccessorControl
+  prepareFounderAttendedResponseContractSuccessorControl,
+  reserveFounderAttendedResponseContractAttempt
 } from "./cloudflare-founder-attended-response-contract-artifacts.mjs";
 import {
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_ACCOUNT_ALLOWLIST,
@@ -359,29 +360,37 @@ export async function diagnoseFounderAttendedResponseContractAbsenceTestOnly(opt
   requireKeychainState(composed.keychain);
   const governed = readGovernedInputs(composed.keychain, composed.accountIdSha256Allowlist);
   const state = liveState(composed.clock, composed.repositoryReader);
-  const outcome = await exactNameState({
-    transport: composed.transport,
-    accountId: governed.accountId,
-    apiToken: governed.apiToken,
-    accountIdSha256Allowlist: composed.accountIdSha256Allowlist
-  });
   try {
+    const attempt = reserveFounderAttendedResponseContractAttempt({
+      artifactRoot: composed.artifactRoot,
+      now: state.now,
+      repositoryIdentity: state.repositoryIdentity,
+      randomBytesImpl: composed.randomBytesImpl,
+      expectedUid: composed.expectedUid
+    });
+    const outcome = await exactNameState({
+      transport: composed.transport,
+      accountId: governed.accountId,
+      apiToken: governed.apiToken,
+      accountIdSha256Allowlist: composed.accountIdSha256Allowlist
+    });
     createFounderAttendedResponseContractAbsenceEvidence({
       artifactRoot: composed.artifactRoot,
       now: state.now,
       repositoryIdentity: state.repositoryIdentity,
       accountIdSha256: governed.accountIdSha256,
       outcome,
+      attemptId: attempt.attemptId,
       randomBytesImpl: composed.randomBytesImpl,
       expectedUid: composed.expectedUid
     });
+    return Object.freeze({ outcome });
   } catch (error) {
     if (classifyFounderAttendedResponseContractArtifactError(error) === "LOCAL_ARTIFACT_COLLISION") {
       return Object.freeze({ outcome: "LOCAL_ARTIFACT_COLLISION" });
     }
     throw error;
   }
-  return Object.freeze({ outcome });
 }
 
 export function prepareFounderAttendedResponseContractControlTestOnly(options) {

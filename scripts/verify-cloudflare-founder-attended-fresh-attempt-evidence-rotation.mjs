@@ -62,6 +62,8 @@ function verifyAttemptNamespaceDesign() {
 
   assert.match(responseArtifacts, /attempts:\s*join\(base,\s*"attempts"\)/u);
   assert.match(responseArtifacts, /attempt-lineage\.json/u);
+  assert.match(responseArtifacts, /authorizedCommit/u);
+  assert.match(responseArtifacts, /authorizedTree/u);
   assert.match(responseArtifacts, /diagnostic-receipt\.json/u);
   assert.match(responseArtifacts, /diagnostic-consumption\.json/u);
   assert.match(responseArtifacts, /successor-control\.json/u);
@@ -73,7 +75,8 @@ function verifyAttemptNamespaceDesign() {
   assert.doesNotMatch(responseArtifacts, /unlinkSync|rmSync|renameSync|truncateSync/u);
 
   assert.match(responseWorkflow, /createFounderAttendedResponseContractAbsenceEvidence\(\{/u);
-  assert.match(responseWorkflow, /outcome,\n/u);
+  assert.match(responseWorkflow, /reserveFounderAttendedResponseContractAttempt/u);
+  assert.match(responseWorkflow, /attemptId:\s*attempt\.attemptId/u);
   assert.match(responseWorkflow, /outcome:\s*"LOCAL_ARTIFACT_COLLISION"/u);
   assert.match(responseWorkflow, /phaseWriter\(consumed\.attemptRoot,\s*consumed\.control/u);
 
@@ -88,10 +91,15 @@ function verifyAttemptNamespaceDesign() {
 
   assert.match(getOnly, /LOCAL_ARTIFACT_COLLISION/u);
   assert.match(getOnly, /console\.log\(result\.outcome\)/u);
+  assert.match(getOnly, /artifactRoot:\s*CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY/u);
 
   for (const snippet of [
+    "failed network, malformed, and authorization diagnostics create isolated abandoned attempts",
+    "abandoned, expired, consumed, and exact-name-present attempts are independently ignored",
     "repeated fresh diagnostics create isolated attempts",
     "simultaneous fresh absence attempts fail safely without mixing",
+    "future-dated lineage or diagnostic cannot prepare",
+    "commit and tree lineage tampering fail closed",
     "attempt-id collision returns a fixed local artifact collision outcome",
     "legacy flat-root evidence remains untouched",
     "cross-attempt substitution"
@@ -108,6 +116,10 @@ function verifyDocumentationAndMetadata() {
 
   assert.match(documentation, /immutable per-attempt namespaces/u);
   assert.match(documentation, /attempts\/<attemptId>/u);
+  assert.match(
+    documentation,
+    /\$HOME\/\.prometheus\/infrastructure\/cloudflare-founder-attended-create-receipt-v2\/attempts\/<attemptId>/u
+  );
   assert.match(documentation, /LOCAL_ARTIFACT_COLLISION/u);
   assert.match(documentation, /node scripts\/run-cloudflare-founder-attended-create-receipt-v2-get-only\.mjs/u);
   assert.doesNotMatch(documentation, /node scripts\/run-cloudflare-founder-attended-create-receipt-v2-provision\.mjs/u);
@@ -132,15 +144,23 @@ function verifyDocumentationAndMetadata() {
   assert.equal(metadata.failurePreservation.getOnlyReturnedManualReview, true);
   assert.equal(metadata.failurePreservation.exactNameAbsentConfirmed, true);
   assert.equal(metadata.failurePreservation.createDeleteOrDeployPossible, false);
+  assert.equal(metadata.failurePreservation.failedDiagnosticsPersistAsIsolatedAbandonedAttempts, true);
   assert.equal(metadata.namespaceRotation.opaqueAttemptIdRuntimeGenerated, true);
   assert.equal(metadata.namespaceRotation.callerChosenAttemptIdAllowed, false);
   assert.equal(metadata.namespaceRotation.exclusiveAttemptDirectoryCreate, true);
   assert.equal(metadata.namespaceRotation.priorArtifactsReusedOrOverwritten, false);
   assert.equal(metadata.namespaceRotation.localArtifactCollisionReasonCode, "LOCAL_ARTIFACT_COLLISION");
+  assert.equal(
+    metadata.namespaceRotation.artifactNamespace,
+    "$HOME/.prometheus/infrastructure/cloudflare-founder-attended-create-receipt-v2/attempts/<attemptId>"
+  );
   assert.equal(metadata.lineageBinding.crossAttemptSubstitutionFailsClosed, true);
   assert.equal(metadata.lineageBinding.sameAttemptRequiredForDiagnosticControlAndPhases, true);
+  assert.equal(metadata.lineageBinding.lineageBindsAuthorizedCommitAndTree, true);
+  assert.equal(metadata.lineageBinding.futureCreatedOrObservedTimesFailClosed, true);
   assert.equal(metadata.futureCommand.nextSafeGetOnly,
     "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs");
+  assert.equal(metadata.futureCommand.prepareOrProvisionUseSameV2Root, true);
   assert.equal(metadata.runtimeBoundaries.realExecutionAuthorized, false);
 }
 

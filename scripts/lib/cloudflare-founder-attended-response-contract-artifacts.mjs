@@ -46,7 +46,7 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_LOCAL_ARTIFACT_COLLIS
 const MAX_ARTIFACT_BYTES = 8 * 1024;
 const ATTEMPT_ID_PATTERN = /^[A-Za-z0-9_-]{43}$/u;
 const ATTEMPT_KEYS = Object.freeze([
-  "schemaVersion", "directive", "attemptId", "createdAt"
+  "schemaVersion", "directive", "attemptId", "authorizedCommit", "authorizedTree", "createdAt"
 ]);
 const DIAGNOSTIC_KEYS = Object.freeze([
   "schemaVersion", "attemptId", "directive", "outcome", "accountIdSha256", "serviceTokenName",
@@ -234,11 +234,13 @@ function freshNonce(randomBytesImpl) {
 function createAttemptIdentity({
   artifactRoot,
   now,
+  repositoryIdentity,
   randomBytesImpl,
   expectedUid
 }) {
   const base = basePaths(artifactRoot);
-  if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw artifactError();
+  if (!(now instanceof Date) || !Number.isFinite(now.getTime())
+    || !validIdentity(repositoryIdentity)) throw artifactError();
   ensureDirectory(base.root, expectedUid);
   ensureDirectory(base.attempts, expectedUid);
   const attemptId = freshNonce(randomBytesImpl);
@@ -248,6 +250,8 @@ function createAttemptIdentity({
     schemaVersion: CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_ATTEMPT_SCHEMA,
     directive: CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_DIRECTIVE,
     attemptId,
+    authorizedCommit: repositoryIdentity.commit,
+    authorizedTree: repositoryIdentity.tree,
     createdAt: now.toISOString()
   }), expectedUid);
   return Object.freeze({ attemptId, paths });
@@ -258,6 +262,8 @@ function shapeLineage(value, attemptId) {
     || value.schemaVersion !== CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_ATTEMPT_SCHEMA
     || value.directive !== CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_DIRECTIVE
     || value.attemptId !== attemptId
+    || !/^[0-9a-f]{40}$/u.test(value.authorizedCommit || "")
+    || !/^[0-9a-f]{40}$/u.test(value.authorizedTree || "")
     || !ATTEMPT_ID_PATTERN.test(value.attemptId || "")) throw artifactError();
   const createdAt = timestamp(value.createdAt);
   if (createdAt === null) throw artifactError();
@@ -360,7 +366,11 @@ function listAttemptRecords(artifactRoot, expectedUid) {
       : null;
 
     if (diagnostic) {
-      if (diagnostic.observedAt < lineage.createdAt) throw artifactError();
+      if (diagnostic.observedAt < lineage.createdAt
+        || diagnostic.value.authorizedCommit !== lineage.value.authorizedCommit
+        || diagnostic.value.authorizedTree !== lineage.value.authorizedTree) {
+        throw artifactError();
+      }
       if (diagnosticConsumption) {
         if (diagnosticConsumption.value.diagnosticNonceSha256 !== diagnostic.nonceSha256
           || diagnosticConsumption.consumedAt < diagnostic.observedAt) {
@@ -371,6 +381,8 @@ function listAttemptRecords(artifactRoot, expectedUid) {
         if (control.value.diagnosticNonceSha256 !== diagnostic.nonceSha256
           || diagnostic.value.outcome !== "EXACT_NAME_ABSENT"
           || control.value.accountIdSha256 !== diagnostic.value.accountIdSha256
+          || control.value.authorizedCommit !== lineage.value.authorizedCommit
+          || control.value.authorizedTree !== lineage.value.authorizedTree
           || control.value.authorizedCommit !== diagnostic.value.authorizedCommit
           || control.value.authorizedTree !== diagnostic.value.authorizedTree
           || !diagnosticConsumption
@@ -432,12 +444,34 @@ function ensurePhaseLineage(directory, control, expectedUid) {
   }
 }
 
+export function reserveFounderAttendedResponseContractAttempt({
+  artifactRoot = CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_DIRECTORY,
+  now = new Date(),
+  repositoryIdentity,
+  randomBytesImpl = randomBytes,
+  expectedUid = currentFounderAttendedResponseContractUid()
+} = {}) {
+  const attempt = createAttemptIdentity({
+    artifactRoot,
+    now,
+    repositoryIdentity,
+    randomBytesImpl,
+    expectedUid
+  });
+  return Object.freeze({
+    created: true,
+    attemptId: attempt.attemptId,
+    attemptRoot: attempt.paths.attemptRoot
+  });
+}
+
 export function createFounderAttendedResponseContractAbsenceEvidence({
   artifactRoot = CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_DIRECTORY,
   now = new Date(),
   repositoryIdentity,
   accountIdSha256,
   outcome = "EXACT_NAME_ABSENT",
+  attemptId = null,
   randomBytesImpl = randomBytes,
   expectedUid = currentFounderAttendedResponseContractUid()
 } = {}) {
@@ -445,12 +479,29 @@ export function createFounderAttendedResponseContractAbsenceEvidence({
     || !/^[0-9a-f]{64}$/u.test(accountIdSha256 || "")
     || !["EXACT_NAME_ABSENT", "EXACT_NAME_PRESENT"].includes(outcome)
     || !(now instanceof Date) || !Number.isFinite(now.getTime())) throw artifactError();
-  const attempt = createAttemptIdentity({
-    artifactRoot,
-    now,
-    randomBytesImpl,
-    expectedUid
-  });
+  const attempt = attemptId === null
+    ? createAttemptIdentity({
+      artifactRoot,
+      now,
+      repositoryIdentity,
+      randomBytesImpl,
+      expectedUid
+    })
+    : (() => {
+      const paths = attemptPaths(artifactRoot, attemptId);
+      inspectDirectory(paths.attemptRoot, expectedUid);
+      const lineage = shapeLineage(readSecureJson(paths.lineage, expectedUid), attemptId);
+      if (lineage.value.authorizedCommit !== repositoryIdentity.commit
+        || lineage.value.authorizedTree !== repositoryIdentity.tree
+        || lineage.createdAt > now.getTime()
+        || existsSync(paths.diagnostic)
+        || existsSync(paths.diagnosticConsumption)
+        || existsSync(paths.control)
+        || existsSync(paths.controlConsumption)) {
+        throw artifactError();
+      }
+      return Object.freeze({ attemptId, paths });
+    })();
   const diagnosticNonce = freshNonce(randomBytesImpl);
   writeExclusiveJson(attempt.paths.diagnostic, Object.freeze({
     schemaVersion: CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_DIAGNOSTIC_SCHEMA,
@@ -483,13 +534,23 @@ export function prepareFounderAttendedResponseContractSuccessorControl({
 } = {}) {
   if (!validIdentity(repositoryIdentity)
     || !(now instanceof Date) || !Number.isFinite(now.getTime())) throw artifactError();
+  const nowTime = now.getTime();
+  const records = listAttemptRecords(artifactRoot, expectedUid);
+  if (records.some(record => record.lineage.createdAt > nowTime
+    || (record.diagnostic && record.diagnostic.observedAt > nowTime))) {
+    throw artifactError();
+  }
   const selected = selectLatestAttempt(
-    listAttemptRecords(artifactRoot, expectedUid).filter(record => {
+    records.filter(record => {
       if (!record.diagnostic || record.diagnosticConsumption || record.control || record.controlConsumption) {
         return false;
       }
       return record.diagnostic.value.outcome === "EXACT_NAME_ABSENT"
-        && record.diagnostic.expiresAt > now.getTime()
+        && record.lineage.createdAt <= record.diagnostic.observedAt
+        && record.diagnostic.observedAt <= nowTime
+        && record.diagnostic.expiresAt > nowTime
+        && record.lineage.value.authorizedCommit === repositoryIdentity.commit
+        && record.lineage.value.authorizedTree === repositoryIdentity.tree
         && record.diagnostic.value.authorizedCommit === repositoryIdentity.commit
         && record.diagnostic.value.authorizedTree === repositoryIdentity.tree;
     }),
@@ -625,12 +686,21 @@ export function readFounderAttendedResponseContractAttemptStateTestOnly({
   artifactRoot,
   expectedUid = currentFounderAttendedResponseContractUid()
 }) {
-  return Object.freeze(listAttemptRecords(artifactRoot, expectedUid).map(record => Object.freeze({
-    attemptId: record.attemptId,
-    attemptRoot: record.paths.attemptRoot,
-    outcome: record.diagnostic?.value.outcome ?? null,
-    diagnosticConsumed: record.diagnosticConsumption !== null,
-    controlPresent: record.control !== null,
-    controlConsumed: record.controlConsumption !== null
-  })));
+  return Object.freeze(
+    listAttemptRecords(artifactRoot, expectedUid)
+      .slice()
+      .sort((left, right) => left.lineage.createdAt - right.lineage.createdAt)
+      .map(record => Object.freeze({
+        attemptId: record.attemptId,
+        attemptRoot: record.paths.attemptRoot,
+        authorizedCommit: record.lineage.value.authorizedCommit,
+        authorizedTree: record.lineage.value.authorizedTree,
+        createdAt: record.lineage.value.createdAt,
+        observedAt: record.diagnostic?.value.observedAt ?? null,
+        outcome: record.diagnostic?.value.outcome ?? null,
+        diagnosticConsumed: record.diagnosticConsumption !== null,
+        controlPresent: record.control !== null,
+        controlConsumed: record.controlConsumption !== null
+      }))
+  );
 }

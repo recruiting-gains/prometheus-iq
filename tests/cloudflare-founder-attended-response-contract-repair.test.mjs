@@ -403,18 +403,49 @@ test("fresh diagnostic accepts omitted optional list fields and safe proven pagi
   assert.equal(attemptStates(paginated.artifactRoot).length, 1);
 });
 
-test("fresh diagnostic fails closed on authorization denial and network failure", async t => {
+test("failed network, malformed, and authorization diagnostics create isolated abandoned attempts", async t => {
   for (const [name, response] of [
     ["authorization", { status: 403, body: JSON.stringify({ success: false }) }],
-    ["network", new Error("synthetic_network_failure")]
+    ["network", new Error("synthetic_network_failure")],
+    ["malformed", { status: 200, body: "{" }]
   ]) {
     const box = sandbox(t);
+    const remote = transport({ gets: [response] });
     await assert.rejects(diagnoseFounderAttendedResponseContractAbsenceTestOnly({
       ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
-      transport: transport({ gets: [response] }),
+      transport: remote,
       randomBytesImpl: () => Buffer.alloc(32, 3)
     }), name);
-    assert.equal(existsSync(box.artifactRoot), false);
+    const abandoned = attemptStates(box.artifactRoot);
+    assert.equal(abandoned.length, 1);
+    assert.equal(abandoned[0].outcome, null);
+    assert.equal(abandoned[0].diagnosticConsumed, false);
+    assert.equal(abandoned[0].controlPresent, false);
+    assert.equal(abandoned[0].controlConsumed, false);
+    assert.deepEqual(remote.requests.map(request => request.method), ["GET"]);
+
+    await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+      ...common({
+        artifactRoot: box.artifactRoot,
+        store: keychain(),
+        clock: () => new Date("2026-07-15T21:05:00.000Z")
+      }),
+      transport: transport(),
+      randomBytesImpl: () => Buffer.alloc(32, 22)
+    });
+    const states = attemptStates(box.artifactRoot);
+    assert.equal(states.length, 2);
+    assert.equal(states[0].outcome, null);
+    assert.equal(states[1].outcome, "EXACT_NAME_ABSENT");
+    const prepared = prepareFounderAttendedResponseContractControlTestOnly({
+      ...common({
+        artifactRoot: box.artifactRoot,
+        store: keychain(),
+        clock: () => new Date("2026-07-15T21:06:00.000Z")
+      }),
+      randomBytesImpl: () => Buffer.alloc(32, 23)
+    });
+    assert.equal(prepared.attemptId, states[1].attemptId);
   }
 });
 
@@ -454,9 +485,18 @@ test("repeated fresh diagnostics create isolated attempts and prepare the latest
   assert.equal(prepared.attemptId, states[1].attemptId);
 });
 
-test("expired, consumed, and present attempts are ignored when selecting a fresh successor", async t => {
+test("abandoned, expired, consumed, and exact-name-present attempts are independently ignored", async t => {
   const box = sandbox(t);
   const store = keychain();
+  await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+    ...common({
+      artifactRoot: box.artifactRoot,
+      store,
+      clock: () => new Date("2026-07-15T19:40:00.000Z")
+    }),
+    transport: transport({ gets: [new Error("synthetic_network_failure")] }),
+    randomBytesImpl: () => Buffer.alloc(32, 24)
+  }).catch(() => {});
   await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
     ...common({
       artifactRoot: box.artifactRoot,
@@ -465,6 +505,14 @@ test("expired, consumed, and present attempts are ignored when selecting a fresh
     }),
     transport: transport(),
     randomBytesImpl: () => Buffer.alloc(32, 9)
+  });
+  prepareFounderAttendedResponseContractControlTestOnly({
+    ...common({
+      artifactRoot: box.artifactRoot,
+      store,
+      clock: () => new Date("2026-07-15T20:05:00.000Z")
+    }),
+    randomBytesImpl: () => Buffer.alloc(32, 25)
   });
   await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
     ...common({
@@ -479,10 +527,19 @@ test("expired, consumed, and present attempts are ignored when selecting a fresh
     ...common({
       artifactRoot: box.artifactRoot,
       store,
-      clock: () => new Date("2026-07-15T21:00:00.000Z")
+      clock: () => new Date("2026-07-15T20:20:00.000Z")
     }),
     transport: transport(),
     randomBytesImpl: () => Buffer.alloc(32, 11)
+  });
+  await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+    ...common({
+      artifactRoot: box.artifactRoot,
+      store,
+      clock: () => new Date("2026-07-15T21:00:00.000Z")
+    }),
+    transport: transport(),
+    randomBytesImpl: () => Buffer.alloc(32, 12)
   });
   const prepared = prepareFounderAttendedResponseContractControlTestOnly({
     ...common({
@@ -490,10 +547,13 @@ test("expired, consumed, and present attempts are ignored when selecting a fresh
       store,
       clock: () => new Date("2026-07-15T21:01:00.000Z")
     }),
-    randomBytesImpl: () => Buffer.alloc(32, 12)
+    randomBytesImpl: () => Buffer.alloc(32, 13)
   });
   const states = attemptStates(box.artifactRoot);
   assert.equal(prepared.attemptId, states.at(-1).attemptId);
+  assert.deepEqual(states.map(state => state.outcome), [
+    null, "EXACT_NAME_ABSENT", "EXACT_NAME_PRESENT", "EXACT_NAME_ABSENT", "EXACT_NAME_ABSENT"
+  ]);
 });
 
 test("simultaneous fresh absence attempts fail safely without mixing", async t => {
@@ -518,6 +578,68 @@ test("simultaneous fresh absence attempts fail safely without mixing", async t =
     }),
     randomBytesImpl: () => Buffer.alloc(32, 15)
   }));
+});
+
+test("future-dated lineage or diagnostic cannot prepare", async t => {
+  await t.test("future lineage", async t2 => {
+    const box = sandbox(t2);
+    await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      transport: transport(),
+      randomBytesImpl: () => Buffer.alloc(32, 26)
+    });
+    const [state] = attemptStates(box.artifactRoot);
+    const path = join(state.attemptRoot, "attempt-lineage.json");
+    const lineage = JSON.parse(readFileSync(path, "utf8"));
+    lineage.createdAt = "2026-07-15T21:10:00.000Z";
+    writeFileSync(path, `${JSON.stringify(lineage, null, 2)}\n`, { mode: 0o600 });
+    assert.throws(() => prepareFounderAttendedResponseContractControlTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      randomBytesImpl: () => Buffer.alloc(32, 27)
+    }));
+  });
+
+  await t.test("future diagnostic", async t2 => {
+    const box = sandbox(t2);
+    await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      transport: transport(),
+      randomBytesImpl: () => Buffer.alloc(32, 28)
+    });
+    const [state] = attemptStates(box.artifactRoot);
+    const path = join(state.attemptRoot, "diagnostic-receipt.json");
+    const diagnostic = JSON.parse(readFileSync(path, "utf8"));
+    diagnostic.observedAt = "2026-07-15T21:10:00.000Z";
+    diagnostic.expiresAt = "2026-07-15T21:30:00.000Z";
+    writeFileSync(path, `${JSON.stringify(diagnostic, null, 2)}\n`, { mode: 0o600 });
+    assert.throws(() => prepareFounderAttendedResponseContractControlTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      randomBytesImpl: () => Buffer.alloc(32, 29)
+    }));
+  });
+});
+
+test("commit and tree lineage tampering fail closed", async t => {
+  for (const [field, value] of [
+    ["authorizedCommit", "c".repeat(40)],
+    ["authorizedTree", "d".repeat(40)]
+  ]) {
+    const box = sandbox(t);
+    await diagnoseFounderAttendedResponseContractAbsenceTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      transport: transport(),
+      randomBytesImpl: () => Buffer.alloc(32, 30)
+    });
+    const [state] = attemptStates(box.artifactRoot);
+    const path = join(state.attemptRoot, "attempt-lineage.json");
+    const lineage = JSON.parse(readFileSync(path, "utf8"));
+    lineage[field] = value;
+    writeFileSync(path, `${JSON.stringify(lineage, null, 2)}\n`, { mode: 0o600 });
+    assert.throws(() => prepareFounderAttendedResponseContractControlTestOnly({
+      ...common({ artifactRoot: box.artifactRoot, store: keychain() }),
+      randomBytesImpl: () => Buffer.alloc(32, 31)
+    }));
+  }
 });
 
 test("attempt-id collision returns a fixed local artifact collision outcome", async t => {

@@ -130,6 +130,7 @@ function verifySourceBoundary() {
   assert.match(workflow, /response\.status !== 200/u);
   assert.match(workflow, /"expires_at"/u);
   assert.match(workflow, /documentedTimestampsValid\(result\)/u);
+  assert.match(workflow, /reserveFounderAttendedResponseContractAttempt/u);
   assert.match(workflow, /CLIENT_ID_PATTERN\.test/u);
   assert.match(workflow, /CLIENT_SECRET_PATTERN\.test/u);
   assert.match(workflow, /await exactNameState/u);
@@ -150,6 +151,8 @@ function verifySourceBoundary() {
   assert.match(artifacts, /fsyncSync/u);
   assert.match(artifacts, /attempts:\s*join\(base,\s*"attempts"\)/u);
   assert.match(artifacts, /attempt-lineage\.json/u);
+  assert.match(artifacts, /authorizedCommit/u);
+  assert.match(artifacts, /authorizedTree/u);
   assert.match(artifacts, /diagnostic-receipt\.json/u);
   assert.match(artifacts, /diagnostic-consumption\.json/u);
   assert.match(artifacts, /successor-control\.json/u);
@@ -201,6 +204,9 @@ function verifySourceBoundary() {
   assert.doesNotMatch(tests, /node:https|httpsRequest/u);
   assert.match(tests, /repeated fresh diagnostics create isolated attempts/u);
   assert.match(tests, /simultaneous fresh absence attempts fail safely without mixing/u);
+  assert.match(tests, /failed network, malformed, and authorization diagnostics create isolated abandoned attempts/u);
+  assert.match(tests, /future-dated lineage or diagnostic cannot prepare/u);
+  assert.match(tests, /commit and tree lineage tampering fail closed/u);
   assert.match(tests, /LOCAL_ARTIFACT_COLLISION/u);
   assert.match(tests, /legacy flat-root evidence remains untouched/u);
 }

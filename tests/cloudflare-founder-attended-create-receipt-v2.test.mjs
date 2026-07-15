@@ -7,11 +7,12 @@ import {
   rmSync,
   writeFileSync
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
 import {
+  CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY,
   readFounderAttendedCreateReceiptV2ReasonsTestOnly
 } from "../scripts/lib/cloudflare-founder-attended-create-receipt-v2-artifacts.mjs";
 import {
@@ -725,9 +726,14 @@ test("future v2 CLIs are dormant, namespace-bound, and provision only through v2
   assert.doesNotMatch(provisionEntry, /response-contract-workflow/u);
   assert.doesNotMatch(getEntry, /method:\s*"(?:POST|DELETE|PUT|PATCH)"/u);
   assert.doesNotMatch(getEntry, /provisionFounderAttended/u);
+  assert.match(getEntry, /artifactRoot:\s*CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY/u);
   assert.equal(
     CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_NEXT_SAFE_COMMAND,
     "node scripts/run-cloudflare-founder-attended-create-receipt-v2-get-only.mjs"
+  );
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_CREATE_RECEIPT_V2_DIRECTORY,
+    join(homedir(), ".prometheus/infrastructure/cloudflare-founder-attended-create-receipt-v2")
   );
 });
 
