@@ -1,26 +1,28 @@
 # Cloudflare Unattended Deployment Access Governance v1
 
-Batch: `BATCH-20260714-005`
+Batch: `BATCH-20260714-006`
 
 Owner: Prometheus Overwatch
 
-Status: architecture verified; setup not configured.
+Status: runtime guard source verified; setup not configured; deployment blocked.
 
-Prometheus Infrastructure owns the credential, local-storage, Founder-control, and read-only-smoke architecture in `workers/infrastructure/cloudflare-unattended-deployment-access-v1.json`. Overwatch owns only the independent governance, verification, registry, and release boundary around that implementation.
+Prometheus Infrastructure owns the Worker guard, fixed smoke client, Keychain launcher, Founder control-file parser, supply-chain pin, and secret scanner. Overwatch owns only the independent governance, verification, reporting, protected baselines, and release decision around that implementation.
 
-## Governing boundary
+## Verified Source Boundary
 
-- Automatic engineering push is never deployment authorization.
-- Every deployment still requires a Founder directive naming the exact commit, tree, environment, release scope, and rollback plan.
-- The only future unattended deployment target is the private `prometheus-iq` Worker. The public `prometheusrouteiq-website` Worker is denied.
-- Missing, invalid, stale, reused, target-mismatched, or OFF local control denies deployment before Wrangler starts.
-- The control file and credentials are independent requirements; neither authorizes deployment by itself.
-- Cloudflare API-token and Access Service Token credentials must remain separate.
-- Cloudflare Access authentication is not an HTTP read-only control. Unattended smoke remains blocked until a separately authorized server-side service-principal guard and default-deny smoke client are implemented and verified.
-- Secret values, lengths, hashes, prefixes, metadata, screenshots, browser storage, service-worker storage, shell history, command-line arguments, repository files, and reports are prohibited.
+- A Cloudflare Access service principal is recognized only through a signature-verified RS256 application JWT with the exact issuer, audience, empty `sub`, and configured service-token `common_name`.
+- The request marker alone never authorizes access. A service-token-shaped request that is missing or malformed is denied rather than falling through to the ordinary Founder or representative path.
+- The private Worker source runs before assets. The service principal is restricted to the exact production origin, fixed GET/HEAD paths, no query string, no body, no cookies, manual redirects, and a verified response marker.
+- Ordinary human Access traffic remains on the existing application path.
+- The launcher exposes four fixed profiles only. It uses the exact npm-locked Wrangler `4.110.0`, strips `NODE_OPTIONS` and unrelated environment values, separates deployment and smoke credentials, and suppresses child output.
+- The Founder control file must be a current-user, single-link regular file at mode `0600` beneath a mode `0700` parent. It must exactly match the current commit, tree, private Worker, environment, Founder directive, canonical validity window, and one-shot nonce.
+- A launch consumes the nonce with an exclusive durable marker before any child starts. Failure or interruption burns the authorization.
+- Secret detection scans every regular file represented by the Git index, regardless of extension or size, and never reports matched values.
 
-## Current release decision
+## Current Release Boundary
 
-The architecture may be committed and automatically pushed after exact-version verification. No Cloudflare login, token creation, service-token creation, Access policy change, Keychain value read, deployment, production mutation, collection activation, cohort activation, or recommendation influence is authorized by this batch.
+Source implementation is complete, but unattended deployment and authenticated smoke are not ready. The four Keychain items, exact Service Auth policy, four private-Worker guard settings, and a fresh one-shot Founder control file are absent. Missing or invalid setup fails closed.
 
-Current setup is `NOT_CONFIGURED`. Unattended deployment readiness and unattended smoke readiness are both `false`. Deployment recommendation is `DO_NOT_DEPLOY`.
+This batch performed no Cloudflare login, Keychain value read, token creation, Access policy change, deployment, production request, production mutation, cohort activation, prospective collection, or recommendation activation. The public Worker and Dashboard assets remain protected and unchanged.
+
+Automatic engineering push remains separate from production deployment. Deployment still requires a separate Founder authorization naming the exact commit, tree, private environment, release scope, and rollback plan. Current deployment recommendation: `DO_NOT_DEPLOY`.

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
+
 import {
   evaluateCloudflareUnattendedAccessGovernance,
   verifyOverwatchCloudflareUnattendedAccess
@@ -11,102 +12,182 @@ const root = resolve(import.meta.dirname, "..");
 const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const infrastructure = readJson("workers/infrastructure/cloudflare-unattended-deployment-access-v1.json");
 const governance = readJson("overwatch/governance/cloudflare-unattended-deployment-access-v1.json");
-const report = readJson("overwatch/reports/BATCH-20260714-005-cloudflare-unattended-deployment-access.json");
+const report = readJson("overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json");
 const clone = value => structuredClone(value);
 const evaluate = (infra = infrastructure, gov = governance, batchReport = report) => (
-  evaluateCloudflareUnattendedAccessGovernance({ infrastructure: infra, governance: gov, report: batchReport })
+  evaluateCloudflareUnattendedAccessGovernance({
+    infrastructure: infra,
+    governance: gov,
+    report: batchReport
+  })
 );
 
-test("Overwatch independently verifies the unattended access architecture and held release boundary", () => {
+test("Overwatch independently verifies the source runtime guard and held deployment boundary", () => {
   const result = verifyOverwatchCloudflareUnattendedAccess();
   assert.equal(result.status, "PASS");
-  assert.equal(result.batchId, "BATCH-20260714-005");
+  assert.equal(result.batchId, "BATCH-20260714-006");
   assert.equal(result.implementationOwner, "Prometheus Infrastructure");
   assert.equal(result.verificationOwner, "Prometheus Overwatch");
+  assert.deepEqual(result.implementationCommits, [
+    "e41e025173d9843de51c6c8e789570e27345a13b",
+    "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
+  ]);
+  assert.equal(result.guardStatus, "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED");
   assert.equal(result.setupStatus, "NOT_CONFIGURED");
   assert.equal(result.repositorySecretFindings, 0);
   assert.equal(result.unattendedDeploymentReady, false);
   assert.equal(result.unattendedSmokeReady, false);
-  assert.equal(result.deploymentAuthorized, false);
   assert.equal(result.deploymentPerformed, false);
   assert.equal(result.cloudflareAccessPerformed, false);
+  assert.equal(result.keychainValueReadPerformed, false);
   assert.equal(result.productionMutationPerformed, false);
   assert.equal(result.prospectiveCollection, "OFF");
   assert.equal(result.recommendationInfluence, "OFF");
+  assert.equal(result.deploymentRecommendation, "DO_NOT_DEPLOY");
 });
 
-test("Overwatch rejects a combined deployment and smoke credential", () => {
-  const mutated = clone(infrastructure);
-  mutated.credentialSeparation.sharedCredentialAllowed = true;
-  const result = evaluate(mutated);
-  assert.equal(result.ok, false);
-  assert.ok(result.failures.some(failure => failure.includes("separate")));
-});
+test("Overwatch rejects shared or broader Cloudflare credentials", () => {
+  const shared = clone(infrastructure);
+  shared.credentialSeparation.sharedCredentialAllowed = true;
+  assert.equal(evaluate(shared).ok, false);
 
-test("Overwatch rejects broader Cloudflare deployment permissions", () => {
-  const mutated = clone(infrastructure);
-  mutated.deploymentCredential.permissions.push("Workers KV Storage Edit");
-  const result = evaluate(mutated);
-  assert.equal(result.ok, false);
-  assert.ok(result.failures.some(failure => failure.includes("least-privilege")));
-});
+  const broader = clone(infrastructure);
+  broader.deploymentCredential.permissions.push("Workers KV Storage Edit");
+  assert.equal(evaluate(broader).ok, false);
 
-test("Overwatch rejects account, zone, and target expansion", () => {
-  const account = clone(infrastructure);
-  account.deploymentCredential.resourceScope.include = "all_accounts";
-  assert.equal(evaluate(account).ok, false);
+  const allAccounts = clone(infrastructure);
+  allAccounts.deploymentCredential.resourceScope.include = "all_accounts";
+  assert.equal(evaluate(allAccounts).ok, false);
 
   const zone = clone(infrastructure);
   zone.deploymentCredential.resourceScope.zoneResourcesGranted = true;
   assert.equal(evaluate(zone).ok, false);
 
-  const target = clone(infrastructure);
-  target.target.publicWorkerAllowed = true;
-  assert.equal(evaluate(target).ok, false);
-});
-
-test("Overwatch rejects Any Access Service Token and false read-only claims", () => {
   const anyToken = clone(infrastructure);
   anyToken.smokeCredential.policy.anyServiceTokenAllowed = true;
   assert.equal(evaluate(anyToken).ok, false);
-
-  const falseReadOnly = clone(infrastructure);
-  falseReadOnly.smokeCredential.httpReadOnlyGuaranteeProvidedByAccess = true;
-  assert.equal(evaluate(falseReadOnly).ok, false);
 });
 
-test("Overwatch rejects an enabled or reusable Founder control boundary", () => {
-  const enabled = clone(infrastructure);
-  enabled.founderDeploymentControl.defaultState = "ON";
-  assert.equal(evaluate(enabled).ok, false);
+test("Overwatch rejects guard broadening or marker-only authorization", () => {
+  const method = clone(infrastructure);
+  method.servicePrincipalReadOnlyGuard.allowedMethods.push("POST");
+  assert.equal(evaluate(method).ok, false);
 
-  const reusable = clone(infrastructure);
-  reusable.founderDeploymentControl.authorizationNonceReusable = true;
-  assert.equal(evaluate(reusable).ok, false);
+  const duplicatePath = clone(infrastructure);
+  duplicatePath.servicePrincipalReadOnlyGuard.allowedPaths.push("/");
+  assert.equal(evaluate(duplicatePath).ok, false);
+
+  const signature = clone(infrastructure);
+  signature.servicePrincipalReadOnlyGuard.authentication.signatureRequired = false;
+  assert.equal(evaluate(signature).ok, false);
+
+  const markerOnly = clone(infrastructure);
+  markerOnly.servicePrincipalReadOnlyGuard.authentication.headerPresenceAloneAccepted = true;
+  assert.equal(evaluate(markerOnly).ok, false);
+
+  const configured = clone(infrastructure);
+  configured.servicePrincipalReadOnlyGuard.productionConfigured = true;
+  assert.equal(evaluate(configured).ok, false);
+});
+
+test("Overwatch rejects a flexible or stateful smoke client", () => {
+  for (const [field, value] of [
+    ["arbitraryUrlAllowed", true],
+    ["arbitraryMethodAllowed", true],
+    ["requestBodiesAllowed", true],
+    ["cookiesAllowed", true],
+    ["browserOrServiceWorkerUsed", true],
+    ["responseBodiesReadOrPersisted", true],
+    ["productionNetworkAccessPerformedByThisBatch", true]
+  ]) {
+    const mutated = clone(infrastructure);
+    mutated.defaultDenySmokeClient[field] = value;
+    assert.equal(evaluate(mutated).ok, false, field);
+  }
+
+  const redirect = clone(infrastructure);
+  redirect.defaultDenySmokeClient.redirectMode = "follow";
+  assert.equal(evaluate(redirect).ok, false);
+});
+
+test("Overwatch rejects weak, broad, or reusable Founder control", () => {
+  for (const [field, value] of [
+    ["defaultState", "ON"],
+    ["requiredFileMode", "0644"],
+    ["regularFileRequired", false],
+    ["symlinkAllowed", true],
+    ["currentUserOwnershipRequired", false],
+    ["strictJsonShapeRequired", false],
+    ["exactRepositoryCommitAndTreeRequired", false],
+    ["exactDirectiveMatchRequired", false],
+    ["oneShot", false],
+    ["atomicConsumptionRequired", false],
+    ["authorizationNonceReusable", true],
+    ["authorizesDeploymentByItself", true]
+  ]) {
+    const mutated = clone(infrastructure);
+    mutated.founderDeploymentControl[field] = value;
+    assert.equal(evaluate(mutated).ok, false, field);
+  }
 
   const unbounded = clone(infrastructure);
   unbounded.founderDeploymentControl.maximumLifetimeMinutes = 1440;
   assert.equal(evaluate(unbounded).ok, false);
 });
 
-test("Overwatch rejects smoke readiness before both read-only layers exist", () => {
-  const mutated = clone(governance);
-  mutated.smokeReadOnlyBoundary.unattendedSmokeReady = true;
-  const result = evaluate(infrastructure, mutated);
-  assert.equal(result.ok, false);
-  assert.ok(result.failures.some(failure => failure.includes("smoke readiness")));
+test("Overwatch rejects launcher supply-chain or redaction weakening", () => {
+  for (const [field, value] of [
+    ["arbitraryCommandAllowed", true],
+    ["wranglerIsExactDirectDevDependency", false],
+    ["nodeOptionsAllowed", true],
+    ["presenceChecksReadValues", true],
+    ["checkOnlyConsumesNonce", true],
+    ["launchConsumesNonceBeforeChild", false],
+    ["credentialValuesPassedInArguments", true],
+    ["credentialValuesIncludedInAuditOutput", true],
+    ["publicWorkerCommandAvailable", true],
+    ["launcherExecutedByThisBatch", true]
+  ]) {
+    const mutated = clone(infrastructure);
+    mutated.auditedKeychainLauncher[field] = value;
+    assert.equal(evaluate(mutated).ok, false, field);
+  }
+
+  const version = clone(infrastructure);
+  version.auditedKeychainLauncher.pinnedWranglerVersion = "latest";
+  assert.equal(evaluate(version).ok, false);
 });
 
-test("Overwatch rejects deployment, Cloudflare access, production mutation, collection, or recommendation influence", () => {
+test("Overwatch rejects incomplete tracked-secret coverage or value disclosure", () => {
   for (const [field, value] of [
+    ["valuesMayBePrinted", true],
+    ["valuesMayBeLogged", true],
+    ["valuesMayBeHashedForReports", true],
+    ["valuesMayBeMeasured", true],
+    ["trackedRegularFilesAllExtensionsAndSizes", false],
+    ["trackedWorktreeMustMatchIndex", false],
+    ["matchedValuesMayBeReported", true]
+  ]) {
+    const mutated = clone(infrastructure);
+    mutated.secretSafety[field] = value;
+    assert.equal(evaluate(mutated).ok, false, field);
+  }
+});
+
+test("Overwatch rejects readiness, deployment, production access, or influence claims", () => {
+  for (const [field, value] of [
+    ["unattendedDeploymentReady", true],
+    ["unattendedSmokeReady", true],
     ["deploymentAuthorized", true],
     ["deploymentPerformed", true],
     ["cloudflareAccessPerformed", true],
     ["tokenCreationPerformed", true],
     ["serviceTokenCreationPerformed", true],
     ["accessPolicyChangePerformed", true],
+    ["keychainValueReadPerformed", true],
     ["secretStoragePerformed", true],
     ["productionMutationPerformed", true],
+    ["cohortActivation", "ON"],
     ["prospectiveCollection", "ON"],
     ["recommendationInfluence", "ON"]
   ]) {
@@ -116,12 +197,29 @@ test("Overwatch rejects deployment, Cloudflare access, production mutation, coll
   }
 });
 
-test("Overwatch rejects implementation ownership inversion", () => {
-  const mutated = clone(governance);
-  mutated.dispatchAudit.implementationOwner = "Prometheus Overwatch";
-  mutated.dispatchAudit.overwatchModifiedSubsystemImplementation = true;
-  const result = evaluate(infrastructure, mutated);
-  assert.equal(result.ok, false);
-  assert.ok(result.failures.some(failure => failure.includes("Implementation owner")));
-  assert.ok(result.failures.some(failure => failure.includes("must not modify")));
+test("Overwatch rejects implementation ownership inversion or commit substitution", () => {
+  const owner = clone(governance);
+  owner.dispatchAudit.implementationOwner = "Prometheus Overwatch";
+  owner.dispatchAudit.overwatchModifiedSubsystemImplementation = true;
+  const ownerResult = evaluate(infrastructure, owner);
+  assert.equal(ownerResult.ok, false);
+  assert.ok(ownerResult.failures.some(failure => failure.includes("Implementation owner")));
+
+  const commit = clone(governance);
+  commit.dispatchAudit.implementationCommits[1].commit = "0".repeat(40);
+  assert.equal(evaluate(infrastructure, commit).ok, false);
+});
+
+test("Overwatch rejects a report that claims setup, execution, or deployment readiness", () => {
+  const ready = clone(report);
+  ready.currentReadiness.unattendedDeploymentReady = true;
+  assert.equal(evaluate(infrastructure, governance, ready).ok, false);
+
+  const accessed = clone(report);
+  accessed.boundaries.keychainValuesRead = true;
+  assert.equal(evaluate(infrastructure, governance, accessed).ok, false);
+
+  const deployed = clone(report);
+  deployed.boundaries.deploymentPerformed = true;
+  assert.equal(evaluate(infrastructure, governance, deployed).ok, false);
 });

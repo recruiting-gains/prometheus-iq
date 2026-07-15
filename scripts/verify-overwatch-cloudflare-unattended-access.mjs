@@ -1,189 +1,208 @@
-import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { scanTrackedRepository, verifyLocalSecretArtifacts } from "./check-cloudflare-unattended-secret-presence.mjs";
+
+import {
+  scanTrackedRepository,
+  verifyLocalSecretArtifacts
+} from "./check-cloudflare-unattended-secret-presence.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const infrastructurePath = "workers/infrastructure/cloudflare-unattended-deployment-access-v1.json";
 const governancePath = "overwatch/governance/cloudflare-unattended-deployment-access-v1.json";
-const reportPath = "overwatch/reports/BATCH-20260714-005-cloudflare-unattended-deployment-access.json";
+const reportPath = "overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
+const equalJson = (left, right) => JSON.stringify(left) === JSON.stringify(right);
 
-function equalJson(left, right) {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
+const expectedMethods = Object.freeze(["GET", "HEAD"]);
+const expectedCredentialNames = Object.freeze({
+  deployment: ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"],
+  smoke: ["CLOUDFLARE_ACCESS_CLIENT_ID", "CLOUDFLARE_ACCESS_CLIENT_SECRET"]
+});
+const expectedProfiles = Object.freeze([
+  "presence",
+  "smoke-dry-run",
+  "smoke-read-only",
+  "deployment-release"
+]);
 
-export function evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report }) {
+export function evaluateCloudflareUnattendedAccessGovernance({
+  infrastructure,
+  governance,
+  report
+}) {
   const failures = [];
   const require = (condition, message) => {
     if (!condition) failures.push(message);
   };
 
   require(infrastructure.contractVersion === "cloudflare-unattended-deployment-access-v1", "Infrastructure contract version drifted.");
-  require(infrastructure.batchId === "BATCH-20260714-005", "Infrastructure batch ID drifted.");
+  require(infrastructure.batchId === "BATCH-20260714-006", "Infrastructure batch ID drifted.");
+  require(infrastructure.architectureBatchId === "BATCH-20260714-005", "Architecture predecessor drifted.");
   require(infrastructure.owner === "Prometheus Infrastructure", "Infrastructure owner drifted.");
   require(infrastructure.setupStatus === "NOT_CONFIGURED", "Setup must remain NOT_CONFIGURED.");
   require(infrastructure.unattendedDeploymentReady === false, "Unattended deployment must remain not ready.");
   require(infrastructure.unattendedSmokeReady === false, "Unattended smoke must remain not ready.");
   require(infrastructure.deploymentAuthorized === false, "Infrastructure must not authorize deployment.");
   require(infrastructure.deploymentPerformed === false, "Infrastructure must not report deployment.");
-  require(infrastructure.cloudflareAccessPerformed === false, "Infrastructure must not use Cloudflare access.");
-  require(infrastructure.productionMutationPerformed === false, "Infrastructure must not mutate production.");
+  require(infrastructure.cloudflareAccessPerformed === false, "Infrastructure must not report Cloudflare access.");
+  require(infrastructure.productionMutationPerformed === false, "Infrastructure must not report production mutation.");
 
-  require(infrastructure.target.privateWorker === "prometheus-iq", "Private target must be prometheus-iq.");
+  require(infrastructure.target.privateWorker === "prometheus-iq", "Private Worker target drifted.");
+  require(infrastructure.target.environment === "production_private", "Private environment drifted.");
   require(infrastructure.target.publicWorker === "prometheusrouteiq-website", "Public Worker identity drifted.");
   require(infrastructure.target.publicWorkerAllowed === false, "Public Worker must remain denied.");
   require(infrastructure.target.targetExpansionAllowed === false, "Target expansion must remain denied.");
 
   require(infrastructure.credentialSeparation.sharedCredentialAllowed === false, "Deployment and smoke credentials must remain separate.");
-  require(equalJson(infrastructure.deploymentCredential.environmentNames, ["CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"]), "Deployment credential names drifted.");
-  require(equalJson(infrastructure.deploymentCredential.permissions, ["Account Settings Read", "Workers Scripts Edit"]), "Deployment permissions are not the approved least-privilege set.");
-  require(infrastructure.deploymentCredential.resourceScope.include === "exact_account_only", "Deployment token must target one exact account.");
-  require(infrastructure.deploymentCredential.resourceScope.zoneResourcesGranted === false, "Deployment token must not receive zone resources.");
-  require(infrastructure.deploymentCredential.permissionExpansionPolicy === "STOP_AND_RETURN_FOUNDER_REVIEW_REQUIRED", "Permission expansion must stop for Founder review.");
-  require(infrastructure.deploymentCredential.lifetime.recommendedDays === 30, "Deployment token recommended lifetime drifted.");
-  require(infrastructure.deploymentCredential.lifetime.maximumDays === 90, "Deployment token maximum lifetime drifted.");
-  require(infrastructure.deploymentCredential.lifetime.automaticRenewalAllowed === false, "Deployment token automatic renewal must remain prohibited.");
-
-  for (const permission of [
-    "Access Apps and Policies Write",
-    "Access Service Tokens Write",
-    "Workers KV Storage Edit",
-    "Workers R2 Storage Edit",
-    "DNS Edit",
-    "Workers Routes Edit",
-    "API Tokens Edit",
-    "Secrets Store Edit",
-    "User permissions",
-    "Global permissions"
-  ]) {
-    require(infrastructure.deploymentCredential.explicitlyDeniedPermissions.includes(permission), `${permission} must remain explicitly denied.`);
-  }
-
-  require(equalJson(infrastructure.smokeCredential.environmentNames, ["CLOUDFLARE_ACCESS_CLIENT_ID", "CLOUDFLARE_ACCESS_CLIENT_SECRET"]), "Smoke credential names drifted.");
-  require(infrastructure.smokeCredential.policy.action === "Service Auth", "Access policy must use Service Auth.");
-  require(infrastructure.smokeCredential.policy.include === "exact_service_token_only", "Access policy must select the exact service token.");
+  require(equalJson(infrastructure.deploymentCredential.environmentNames, expectedCredentialNames.deployment), "Deployment credential names drifted.");
+  require(equalJson(infrastructure.smokeCredential.environmentNames, expectedCredentialNames.smoke), "Smoke credential names drifted.");
+  require(equalJson(infrastructure.deploymentCredential.permissions, ["Account Settings Read", "Workers Scripts Edit"]), "Deployment credential is broader than the approved least-privilege set.");
+  require(infrastructure.deploymentCredential.resourceScope.include === "exact_account_only", "Deployment credential must target one exact account.");
+  require(infrastructure.deploymentCredential.resourceScope.zoneResourcesGranted === false, "Deployment credential must not receive zone scope.");
+  require(infrastructure.smokeCredential.policy.action === "Service Auth", "Smoke policy must use Service Auth.");
+  require(infrastructure.smokeCredential.policy.include === "exact_service_token_only", "Smoke policy must select one exact service token.");
   require(infrastructure.smokeCredential.policy.anyServiceTokenAllowed === false, "Any Access Service Token must remain prohibited.");
   require(infrastructure.smokeCredential.policy.policyChangeAuthorizedByThisBatch === false, "This batch must not authorize an Access policy change.");
-  require(infrastructure.smokeCredential.httpReadOnlyGuaranteeProvidedByAccess === false, "Access must not be represented as HTTP read-only.");
+  require(infrastructure.smokeCredential.httpReadOnlyGuaranteeProvidedByAccess === false, "Access authentication alone must not be represented as read-only enforcement.");
 
-  require(infrastructure.localStorage.preferredStore === "macOS Keychain", "macOS Keychain must remain the local store.");
-  require(infrastructure.localStorage.injection === "future_audited_child_process_only", "Credential injection must remain future audited child-process-only.");
-  require(infrastructure.localStorage.persistentEnvironmentExportAllowed === false, "Persistent credential export must remain prohibited.");
-  require(infrastructure.secretSafety.valuesMayBePrinted === false, "Secret values must not be printed.");
-  require(infrastructure.secretSafety.valuesMayBeLogged === false, "Secret values must not be logged.");
-  require(infrastructure.secretSafety.valuesMayBeHashedForReports === false, "Secret values must not be hashed for reports.");
-  require(infrastructure.secretSafety.valuesMayBeMeasured === false, "Secret values must not be measured.");
-  require(equalJson(infrastructure.secretSafety.presenceOutput, ["credential_name", "PRESENT_or_ABSENT"]), "Presence output must remain name and state only.");
+  const guard = infrastructure.servicePrincipalReadOnlyGuard;
+  require(guard.status === "IMPLEMENTED_SOURCE_NOT_DEPLOYED_NOT_CONFIGURED", "Service-principal guard source status drifted.");
+  require(guard.sourceImplemented === true, "Service-principal guard source must be implemented.");
+  require(guard.productionConfigured === false, "Service-principal guard must remain unconfigured in production.");
+  require(guard.productionDeployed === false, "Service-principal guard must remain undeployed.");
+  require(guard.privateWorkerRunsFirstForAllRequestsInSource === true, "Private Worker must run before assets in source.");
+  require(equalJson(guard.allowedMethods, expectedMethods), "Service-principal methods must be exact GET/HEAD.");
+  require(Array.isArray(guard.allowedPaths) && guard.allowedPaths.length === 15 && new Set(guard.allowedPaths).size === 15, "Service-principal path allowlist drifted or contains duplicates.");
+  require(guard.allOtherMethodsAndPaths === "DENY", "Non-allowlisted service-principal requests must deny.");
+  require(guard.writeAttemptCountRequired === 0, "Smoke verification must require zero attempted writes.");
+  require(guard.authentication.algorithm === "RS256", "Service-principal JWT algorithm drifted.");
+  require(guard.authentication.signatureRequired === true, "Service-principal JWT signature must be required.");
+  require(guard.authentication.exactIssuerRequired === true, "Exact Access issuer must be required.");
+  require(guard.authentication.exactAudienceRequired === true, "Exact Access audience must be required.");
+  require(guard.authentication.serviceTokenSub === "", "Service-token sub must remain empty.");
+  require(guard.authentication.serviceTokenCommonNameMustEqualConfiguredClientId === true, "Service-token common_name must match the configured client ID.");
+  require(guard.authentication.headerPresenceAloneAccepted === false, "Headers or markers alone must never authorize.");
 
-  require(infrastructure.founderDeploymentControl.defaultState === "OFF", "Founder control must default OFF.");
-  require(infrastructure.founderDeploymentControl.maximumLifetimeMinutes === 30, "Founder authorization window must remain bounded to 30 minutes.");
-  require(infrastructure.founderDeploymentControl.exactTargetWorker === "prometheus-iq", "Founder control target drifted.");
-  require(infrastructure.founderDeploymentControl.oneShot === true, "Founder control must remain one-shot.");
-  require(infrastructure.founderDeploymentControl.atomicConsumptionRequired === true, "Founder nonce consumption must be atomic.");
-  require(infrastructure.founderDeploymentControl.authorizationNonceReusable === false, "Founder nonce reuse must be denied.");
-  require(infrastructure.founderDeploymentControl.authorizesDeploymentByItself === false, "Founder control file must not authorize deployment by itself.");
-  require(infrastructure.deploymentGates.automaticEngineeringPushIsDeploymentAuthorization === false, "Engineering push must remain separate from deployment.");
+  const smoke = infrastructure.defaultDenySmokeClient;
+  require(smoke.status === "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED", "Smoke client source status drifted.");
+  require(smoke.productionOrigin === "https://prometheus-iq.prometheusrouteiq.workers.dev", "Smoke origin drifted.");
+  require(smoke.fixedProfileOnly === true, "Smoke client must remain fixed-profile only.");
+  require(smoke.arbitraryUrlAllowed === false && smoke.arbitraryMethodAllowed === false, "Smoke client must deny arbitrary URLs and methods.");
+  require(smoke.requestBodiesAllowed === false && smoke.cookiesAllowed === false, "Smoke client must not send bodies or cookies.");
+  require(smoke.redirectMode === "manual" && smoke.credentialsMode === "omit", "Smoke client redirect or credential mode drifted.");
+  require(smoke.browserOrServiceWorkerUsed === false, "Smoke client must not use a browser or service worker.");
+  require(smoke.responseBodiesReadOrPersisted === false, "Smoke client must not read or persist response bodies.");
+  require(smoke.productionNetworkAccessPerformedByThisBatch === false, "This batch must not perform production smoke access.");
 
-  require(infrastructure.servicePrincipalReadOnlyGuard.status === "NOT_IMPLEMENTED_NOT_AUTHORIZED", "Service-principal guard status must remain not implemented/not authorized.");
-  require(infrastructure.servicePrincipalReadOnlyGuard.requiredBeforeUnattendedSmoke === true, "Service-principal guard must be required before smoke readiness.");
-  require(equalJson(infrastructure.servicePrincipalReadOnlyGuard.allowedMethods, ["GET", "HEAD"]), "Future smoke methods must be GET/HEAD only.");
-  require(infrastructure.servicePrincipalReadOnlyGuard.allOtherMethodsAndPaths === "DENY", "Future smoke guard must default deny.");
-  require(infrastructure.servicePrincipalReadOnlyGuard.writeAttemptCountRequired === 0, "Future smoke must require zero attempted writes.");
+  const control = infrastructure.founderDeploymentControl;
+  require(control.defaultState === "OFF", "Founder control must default OFF.");
+  require(control.requiredFileMode === "0600", "Founder control mode must be 0600.");
+  require(control.regularFileRequired === true && control.symlinkAllowed === false, "Founder control must be a non-symlink regular file.");
+  require(control.currentUserOwnershipRequired === true, "Founder control must require current-user ownership.");
+  require(control.strictJsonShapeRequired === true, "Founder control must require strict JSON shape.");
+  require(control.exactRepositoryCommitAndTreeRequired === true, "Founder control must match exact commit and tree.");
+  require(control.exactDirectiveMatchRequired === true, "Founder control must match the exact Founder directive.");
+  require(control.maximumLifetimeMinutes === 30, "Founder control validity window must remain 30 minutes.");
+  require(control.oneShot === true && control.atomicConsumptionRequired === true, "Founder control must be atomically one-shot.");
+  require(control.authorizationNonceReusable === false, "Founder control nonce reuse must remain denied.");
+  require(control.authorizesDeploymentByItself === false, "Founder control must not authorize deployment by itself.");
+
+  const launcher = infrastructure.auditedKeychainLauncher;
+  require(launcher.status === "IMPLEMENTED_LOCAL_NOT_CONFIGURED_NOT_EXECUTED", "Launcher source status drifted.");
+  require(equalJson(launcher.fixedProfiles, expectedProfiles), "Launcher fixed profiles drifted.");
+  require(launcher.arbitraryCommandAllowed === false, "Launcher must deny arbitrary commands.");
+  require(launcher.pinnedWranglerModule === "node_modules/wrangler/bin/wrangler.js", "Launcher Wrangler module drifted.");
+  require(launcher.pinnedWranglerVersion === "4.110.0" && launcher.wranglerIsExactDirectDevDependency === true, "Launcher Wrangler supply-chain pin is incomplete.");
+  require(launcher.nodeOptionsAllowed === false, "Launcher must strip NODE_OPTIONS.");
+  require(launcher.presenceChecksReadValues === false, "Name-only Keychain checks must not read values.");
+  require(launcher.checkOnlyConsumesNonce === false && launcher.launchConsumesNonceBeforeChild === true, "Launcher nonce sequencing drifted.");
+  require(launcher.credentialValuesPassedInArguments === false && launcher.credentialValuesIncludedInAuditOutput === false, "Launcher must not expose credential values.");
+  require(launcher.publicWorkerCommandAvailable === false, "Launcher must not expose a public Worker command.");
+  require(launcher.launcherExecutedByThisBatch === false, "This batch must not execute the launcher.");
+
+  const secret = infrastructure.secretSafety;
+  require(secret.valuesMayBePrinted === false && secret.valuesMayBeLogged === false, "Secret values must not be printed or logged.");
+  require(secret.valuesMayBeHashedForReports === false && secret.valuesMayBeMeasured === false, "Secret values must not be hashed or measured.");
+  require(secret.trackedRegularFilesAllExtensionsAndSizes === true, "Secret scan must cover all tracked regular file extensions and sizes.");
+  require(secret.trackedWorktreeMustMatchIndex === true, "Secret scan must reject index/worktree drift.");
+  require(secret.binarySkipCriterion === "NUL_byte_only", "Secret scan binary skip rule drifted.");
+  require(secret.matchedValuesMayBeReported === false, "Secret scanner must not report matched values.");
 
   require(governance.governanceId === "cloudflare-unattended-deployment-access-governance-v1", "Overwatch governance ID drifted.");
+  require(governance.version === "1.1.0" && governance.batchId === "BATCH-20260714-006", "Overwatch governance version or batch drifted.");
   require(governance.owningSubsystem === "Prometheus Overwatch", "Overwatch governance owner drifted.");
   require(governance.dispatchAudit.implementationOwner === "Prometheus Infrastructure", "Implementation owner must remain Infrastructure.");
   require(governance.dispatchAudit.verificationOwner === "Prometheus Overwatch", "Verification owner must remain Overwatch.");
-  require(governance.dispatchAudit.implementationOwnershipRespected === true, "Implementation ownership must be respected.");
+  require(governance.dispatchAudit.implementationOwnershipRespected === true, "Implementation ownership must be verified.");
   require(governance.dispatchAudit.overwatchModifiedSubsystemImplementation === false, "Overwatch must not modify Infrastructure implementation.");
-  require(governance.deploymentBoundary.setupStatus === "NOT_CONFIGURED", "Governance setup state must remain not configured.");
-  require(governance.deploymentBoundary.unattendedDeploymentReady === false, "Governance must not claim unattended deployment readiness.");
-  require(governance.smokeReadOnlyBoundary.unattendedSmokeReady === false, "Governance must not claim unattended smoke readiness.");
-  require(governance.deploymentBoundary.deploymentAuthorized === false, "Governance must not authorize deployment.");
-  require(governance.deploymentBoundary.deploymentPerformed === false, "Governance must not report deployment.");
-  require(governance.deploymentBoundary.cloudflareAccessPerformed === false, "Governance must not report Cloudflare access.");
-  require(governance.deploymentBoundary.tokenCreationPerformed === false, "Governance must not report API-token creation.");
-  require(governance.deploymentBoundary.serviceTokenCreationPerformed === false, "Governance must not report service-token creation.");
-  require(governance.deploymentBoundary.accessPolicyChangePerformed === false, "Governance must not report an Access-policy change.");
-  require(governance.deploymentBoundary.secretStoragePerformed === false, "Governance must not report secret storage.");
-  require(governance.deploymentBoundary.productionMutationPerformed === false, "Governance must not report production mutation.");
-  require(governance.deploymentBoundary.recommendationInfluence === "OFF", "Recommendation influence must remain OFF.");
-  require(governance.deploymentBoundary.prospectiveCollection === "OFF", "Prospective collection must remain OFF.");
+  require(equalJson(governance.dispatchAudit.implementationCommits.map(entry => entry.commit), [
+    "e41e025173d9843de51c6c8e789570e27345a13b",
+    "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
+  ]), "Infrastructure owner commit chain drifted.");
+  require(governance.servicePrincipalBoundary.productionConfigured === false && governance.servicePrincipalBoundary.productionDeployed === false, "Governance must preserve the unconfigured, undeployed guard state.");
+  require(equalJson(governance.servicePrincipalBoundary.allowedMethods, expectedMethods), "Governance smoke methods drifted.");
+  require(governance.servicePrincipalBoundary.markerAloneAuthorizes === false, "Governance must reject marker-only authorization.");
+  require(governance.founderControlBoundary.defaultState === "OFF", "Governance Founder control must remain OFF.");
+  require(governance.launcherBoundary.wranglerVersion === "4.110.0", "Governance Wrangler pin drifted.");
+  require(governance.secretBoundary.credentialValuesStoredConfiguredReadOrExposedByBatch === false, "Governance must not claim secret-value access.");
+
+  for (const [field, expected] of Object.entries({
+    unattendedDeploymentReady: false,
+    unattendedSmokeReady: false,
+    deploymentAuthorized: false,
+    deploymentPerformed: false,
+    cloudflareAccessPerformed: false,
+    tokenCreationPerformed: false,
+    serviceTokenCreationPerformed: false,
+    accessPolicyChangePerformed: false,
+    keychainValueReadPerformed: false,
+    secretStoragePerformed: false,
+    productionMutationPerformed: false,
+    cohortActivation: "OFF",
+    prospectiveCollection: "OFF",
+    recommendationInfluence: "OFF"
+  })) {
+    require(governance.deploymentBoundary[field] === expected, `Governance deployment boundary drifted: ${field}.`);
+  }
   require(governance.releaseBoundary.deploymentRecommendation === "DO_NOT_DEPLOY", "Deployment recommendation must remain DO_NOT_DEPLOY.");
 
-  require(report.batchId === "BATCH-20260714-005", "Batch report ID drifted.");
-  require(report.owners.implementation === "Prometheus Infrastructure", "Batch report implementation owner drifted.");
-  require(report.owners.verification === "Prometheus Overwatch", "Batch report verification owner drifted.");
-  require(report.currentReadiness.setupStatus === "NOT_CONFIGURED", "Batch report must preserve setup blocker.");
-  require(report.currentReadiness.unattendedDeploymentReady === false, "Batch report must not claim deployment readiness.");
-  require(report.currentReadiness.unattendedSmokeReady === false, "Batch report must not claim smoke readiness.");
-  require(report.boundaries.deploymentPerformed === false, "Batch report must not claim deployment.");
-  require(report.boundaries.productionMutationPerformed === false, "Batch report must not claim production mutation.");
-  require(report.boundaries.recommendationInfluence === "OFF", "Batch report recommendation influence must remain OFF.");
-  require(report.release.deploymentStatus === "NOT_AUTHORIZED", "Batch report deployment status must remain not authorized.");
+  require(report.batchId === "BATCH-20260714-006", "Batch report ID drifted.");
+  require(report.owners.implementation === "Prometheus Infrastructure" && report.owners.verification === "Prometheus Overwatch", "Batch report owners drifted.");
+  require(report.owners.ownershipRespected === true && report.owners.overwatchModifiedInfrastructureImplementation === false, "Batch report ownership audit failed.");
+  require(report.currentReadiness.setupStatus === "NOT_CONFIGURED", "Batch report setup must remain NOT_CONFIGURED.");
+  require(report.currentReadiness.unattendedDeploymentReady === false && report.currentReadiness.unattendedSmokeReady === false, "Batch report must not claim unattended readiness.");
+  require(report.verification.secretFindings === 0, "Batch report must record zero secret findings.");
+  require(report.boundaries.cloudflareAccessUsed === false && report.boundaries.keychainValuesRead === false, "Batch report must not claim Cloudflare or Keychain access.");
+  require(report.boundaries.deploymentPerformed === false && report.boundaries.productionMutationPerformed === false, "Batch report must not claim deployment or production mutation.");
+  require(report.boundaries.prospectiveCollection === "OFF" && report.boundaries.recommendationInfluence === "OFF", "Batch report must preserve collection and recommendation boundaries.");
+  require(report.release.deploymentStatus === "NOT_AUTHORIZED" && report.release.deploymentRecommendation === "DO_NOT_DEPLOY", "Batch report deployment boundary drifted.");
+  require(report.release.unattendedDeploymentStillBlocked === true, "Batch report must retain the unattended setup blocker.");
 
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
+function verifyHashes(entries, failures, label) {
+  for (const entry of Object.values(entries)) {
+    if (!entry?.path || !entry?.sha256 || sha256(read(entry.path)) !== entry.sha256) {
+      failures.push(`${label} hash drifted: ${entry?.path || "missing_path"}`);
+    }
+  }
+}
+
 function verifyProtectedRuntimeHashes(governance, failures) {
-  const checks = [
-    [governance.protectedRuntimeBaselines.privateWranglerPath, governance.protectedRuntimeBaselines.privateWranglerSha256],
-    [governance.protectedRuntimeBaselines.publicWranglerPath, governance.protectedRuntimeBaselines.publicWranglerSha256],
-    [governance.protectedRuntimeBaselines.privateWorkerPath, governance.protectedRuntimeBaselines.privateWorkerSha256],
-    [governance.protectedRuntimeBaselines.dashboardSourcePath, governance.protectedRuntimeBaselines.dashboardSourceSha256],
-    [governance.protectedRuntimeBaselines.dashboardDeployPath, governance.protectedRuntimeBaselines.dashboardDeploySha256]
-  ];
-  for (const [path, expected] of checks) {
-    if (sha256(read(path)) !== expected) failures.push(`Protected runtime hash drifted: ${path}`);
-  }
-}
-
-function verifyInfrastructureHashes(governance, failures) {
-  const entries = [
-    [governance.infrastructureEvidence.contractPath, governance.infrastructureEvidence.contractSha256],
-    [governance.infrastructureEvidence.documentationPath, governance.infrastructureEvidence.documentationSha256],
-    [governance.infrastructureEvidence.secretCheckPath, governance.infrastructureEvidence.secretCheckSha256],
-    [governance.infrastructureEvidence.architectureVerifierPath, governance.infrastructureEvidence.architectureVerifierSha256],
-    [governance.infrastructureEvidence.testPath, governance.infrastructureEvidence.testSha256]
-  ];
-  for (const [path, expected] of entries) {
-    if (sha256(read(path)) !== expected) failures.push(`Infrastructure evidence hash drifted: ${path}`);
-  }
-}
-
-function verifyNameOnlyOutput(failures) {
-  const synthetic = ["never", "print", "this", "credential"].join("-");
-  const credentialNames = [
-    "CLOUDFLARE_API_TOKEN",
-    "CLOUDFLARE_ACCOUNT_ID",
-    "CLOUDFLARE_ACCESS_CLIENT_ID",
-    "CLOUDFLARE_ACCESS_CLIENT_SECRET"
-  ];
-  const syntheticCredentialEnvironment = Object.fromEntries(
-    credentialNames.map(name => [name, synthetic])
-  );
-  const result = spawnSync(process.execPath, ["scripts/check-cloudflare-unattended-secret-presence.mjs"], {
-    cwd: root,
-    encoding: "utf8",
-    env: {
-      PATH: process.env.PATH || "",
-      HOME: process.env.HOME || "",
-      ...syntheticCredentialEnvironment
-    },
-    stdio: ["ignore", "pipe", "pipe"]
-  });
-  const output = `${result.stdout || ""}${result.stderr || ""}`;
-  if (result.status !== 0) failures.push("Name-only presence subprocess failed.");
-  if (output.includes(synthetic)) failures.push("Name-only presence subprocess exposed a credential value.");
-  for (const name of credentialNames) {
-    if (!output.includes(`${name}: PRESENT`)) failures.push(`Name-only presence output omitted ${name}.`);
+  const baselines = governance.protectedRuntimeBaselines;
+  for (const prefix of ["privateWrangler", "publicWrangler", "privateWorker", "dashboardSource", "dashboardDeploy"]) {
+    const path = baselines[`${prefix}Path`];
+    const expected = baselines[`${prefix}Sha256`];
+    if (!path || !expected || sha256(read(path)) !== expected) {
+      failures.push(`Protected runtime hash drifted: ${path || prefix}`);
+    }
   }
 }
 
@@ -192,34 +211,45 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const governance = readJson(governancePath);
   const report = readJson(reportPath);
   const registry = readJson(registryPath);
-  const evaluation = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
-  const failures = [...evaluation.failures];
-
-  verifyInfrastructureHashes(governance, failures);
-  verifyProtectedRuntimeHashes(governance, failures);
-  verifyNameOnlyOutput(failures);
-
-  for (const finding of scanTrackedRepository({ root })) {
-    failures.push(`Tracked secret finding: ${finding.path}:${finding.line} ${finding.kind}`);
-  }
-  failures.push(...verifyLocalSecretArtifacts({ root }).map(failure => `Local secret artifact protection: ${failure}`));
-
-  const registration = registry.governanceArtifacts?.find(item => item.artifactId === governance.governanceId);
-  if (!registration) failures.push("Cloudflare unattended access governance is not registered.");
-  else {
-    if (registration.ownerSubsystem !== "Prometheus Overwatch") failures.push("Governance registry owner drifted.");
-    if (registration.path !== governancePath) failures.push("Governance registry path drifted.");
-    if (registration.productionConsumer !== false) failures.push("Governance registry must remain non-production.");
-    if (JSON.stringify(registration.writeAllowed) !== JSON.stringify(["Prometheus Overwatch"])) failures.push("Governance writes must remain Overwatch-only.");
-  }
-
   const packageJson = readJson("package.json");
-  if (!packageJson.scripts["overwatch:cloudflare-unattended-access:check"]?.includes("verify-overwatch-cloudflare-unattended-access.mjs")) {
-    failures.push("Overwatch package verification command is missing.");
+  const packageLock = readJson("package-lock.json");
+  const workflow = read(".github/workflows/security-gates.yml");
+  const failures = [];
+
+  const evaluated = evaluateCloudflareUnattendedAccessGovernance({ infrastructure, governance, report });
+  failures.push(...evaluated.failures);
+  verifyHashes(governance.infrastructureEvidence, failures, "Infrastructure evidence");
+  verifyProtectedRuntimeHashes(governance, failures);
+
+  const registration = registry.governanceArtifacts.find(entry => (
+    entry.artifactId === governance.governanceId
+  ));
+  if (!registration
+    || registration.ownerSubsystem !== "Prometheus Overwatch"
+    || registration.path !== governancePath
+    || registration.productionConsumer !== false) {
+    failures.push("Cloudflare unattended governance registration drifted.");
   }
-  if (!packageJson.scripts.test.includes("overwatch:cloudflare-unattended-access:check")) {
-    failures.push("Full repository test does not include Overwatch unattended access verification.");
+
+  if (packageJson.devDependencies?.wrangler !== "4.110.0"
+    || packageLock.packages?.[""]?.devDependencies?.wrangler !== "4.110.0"
+    || packageLock.packages?.["node_modules/wrangler"]?.version !== "4.110.0") {
+    failures.push("Wrangler is not exactly pinned in the manifest and lockfile.");
   }
+  if (!packageJson.scripts["infrastructure:cloudflare-unattended-runtime-guard:check"]
+    || !packageJson.scripts.test.includes("infrastructure:cloudflare-unattended-runtime-guard:check")
+    || !packageJson.scripts["overwatch:cloudflare-unattended-access:check"]
+    || !packageJson.scripts.test.includes("overwatch:cloudflare-unattended-access:check")) {
+    failures.push("Full repository release wiring omits unattended runtime verification.");
+  }
+  if (/wrangler\s+deploy|cloudflare\/wrangler-action|pages-action|workers deploy/iu.test(workflow)) {
+    failures.push("GitHub push workflow contains a deployment trigger.");
+  }
+
+  const secretFindings = scanTrackedRepository({ root });
+  const localArtifactFailures = verifyLocalSecretArtifacts({ root });
+  if (secretFindings.length) failures.push(`Tracked secret scan found ${secretFindings.length} finding(s).`);
+  failures.push(...localArtifactFailures.map(failure => `Local secret artifact protection failed: ${failure}`));
 
   if (failures.length) throw new Error(failures.join("\n"));
   return Object.freeze({
@@ -227,22 +257,25 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     batchId: governance.batchId,
     implementationOwner: governance.dispatchAudit.implementationOwner,
     verificationOwner: governance.dispatchAudit.verificationOwner,
-    setupStatus: governance.deploymentBoundary.setupStatus,
-    deploymentCredentialNames: infrastructure.deploymentCredential.environmentNames,
-    smokeCredentialNames: infrastructure.smokeCredential.environmentNames,
-    repositorySecretFindings: 0,
+    implementationCommits: governance.dispatchAudit.implementationCommits.map(entry => entry.commit),
+    setupStatus: infrastructure.setupStatus,
+    guardStatus: infrastructure.servicePrincipalReadOnlyGuard.status,
+    repositorySecretFindings: secretFindings.length,
     unattendedDeploymentReady: false,
     unattendedSmokeReady: false,
     deploymentAuthorized: false,
     deploymentPerformed: false,
     cloudflareAccessPerformed: false,
+    keychainValueReadPerformed: false,
     productionMutationPerformed: false,
-    prospectiveCollection: governance.deploymentBoundary.prospectiveCollection,
-    recommendationInfluence: governance.deploymentBoundary.recommendationInfluence
+    prospectiveCollection: "OFF",
+    recommendationInfluence: "OFF",
+    deploymentRecommendation: "DO_NOT_DEPLOY"
   });
 }
 
-const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain = process.argv[1]
+  && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   try {
     console.log(JSON.stringify(verifyOverwatchCloudflareUnattendedAccess(), null, 2));

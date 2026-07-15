@@ -1,0 +1,71 @@
+{
+  "batchId": "BATCH-20260714-006",
+  "directive": "Cloudflare Unattended Deployment Runtime Guard v1",
+  "status": "ENGINEERING_PASS_SETUP_NOT_CONFIGURED",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "implementationCommits": [
+      "e41e025173d9843de51c6c8e789570e27345a13b",
+      "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b"
+    ],
+    "ownershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false
+  },
+  "completed": {
+    "servicePrincipalGuard": true,
+    "defaultDenySmokeClient": true,
+    "auditedKeychainLauncher": true,
+    "strictFounderControlValidation": true,
+    "persistentOneShotNonceConsumption": true,
+    "exactWranglerSupplyChainPin": true,
+    "completeTrackedTextSecretScan": true,
+    "overwatchGovernanceAndReleaseGates": true
+  },
+  "currentReadiness": {
+    "setupStatus": "NOT_CONFIGURED",
+    "credentialsPresent": false,
+    "serviceAuthPolicyConfigured": false,
+    "runtimeGuardSettingsConfigured": false,
+    "unattendedDeploymentReady": false,
+    "unattendedSmokeReady": false,
+    "guardSourceImplemented": true,
+    "smokeClientSourceImplemented": true,
+    "launcherSourceImplemented": true
+  },
+  "verification": {
+    "ownerRuntimeGuardTests": "19/19_PASS",
+    "ownerArchitectureTests": "16/16_PASS",
+    "secretFindings": 0,
+    "productionAccessRequired": false,
+    "exactFinalHeadAndTreeRecordedExternally": true
+  },
+  "boundaries": {
+    "cloudflareAccessUsed": false,
+    "keychainValuesRead": false,
+    "tokenCreated": false,
+    "serviceTokenCreated": false,
+    "accessPolicyChanged": false,
+    "secretValueStoredOrExposed": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "cohortActivation": "OFF",
+    "prospectiveCollection": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "remainingLaptopSetup": [
+    "Create the exact-account Cloudflare API token with Account Settings Read and Workers Scripts Edit only.",
+    "Create a separate Cloudflare Access Service Token and attach that exact token to Service Auth on the existing private app.",
+    "Store the four named credentials in macOS Keychain without using Git, shell startup files, or repository files.",
+    "Configure the four private-Worker smoke guard settings under a separately approved deployment.",
+    "Create a fresh mode-0600 one-shot Founder control file naming the exact approved deployment commit, tree, directive, and expiry."
+  ],
+  "release": {
+    "engineeringStatus": "PASS",
+    "pushStatus": "PENDING_EXACT_VERSION_VERIFICATION",
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "deploymentRecommendation": "DO_NOT_DEPLOY",
+    "unattendedDeploymentStillBlocked": true,
+    "productionAccessRequiredForThisBatch": false
+  }
+}
