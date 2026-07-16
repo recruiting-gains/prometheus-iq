@@ -10,28 +10,37 @@ import {
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
 import { fixedCloudflareUnattendedSmokePlan } from "./run-cloudflare-unattended-smoke.mjs";
-import { verifyGithubActionsPrivateWorkerDeployment } from "./verify-github-actions-private-worker-deployment.mjs";
+import { verifyGithubActionsPrivateWorkerDeployment } from
+  "./verify-github-actions-private-worker-deployment.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const governanceDocumentationPath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.md";
-const reportPath =
+const historicalReportPath =
   "overwatch/reports/BATCH-20260715-010-github-actions-founder-triggered-private-worker-deployment.json";
+const compatibilityReportPath =
+  "overwatch/reports/BATCH-20260715-011-github-private-repository-founder-deployment-authorization.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const workflowPath = ".github/workflows/deploy-prometheus-private-worker.yml";
 const contractPath =
   "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json";
 
-const releaseBase = "7c79e77dc52dd6aa5eb687ea9a24128800d9a28d";
-const releaseBaseTree = "cc8d5455370f8171aa64d0f1be71f02c2d9ce2a7";
-const ownerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
-const ownerTree = "890df231e06aa92a7652b0862456bd0c4394cabe";
-const ownerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
-const ownerRepairTree = "b9965d026eeba4cb06ed6ecd9066646169ece071";
+const historicalOwnerCommit = "7f67855145104034b32551e25d2ebf407ce2369c";
+const historicalOwnerRepairCommit = "335f75fa1d7e32160624e9ebe197d11a03e77b4e";
+const historicalReleaseBase = "7c79e77dc52dd6aa5eb687ea9a24128800d9a28d";
+const historicalReleaseBaseTree = "cc8d5455370f8171aa64d0f1be71f02c2d9ce2a7";
+const historicalOwnerTree = "890df231e06aa92a7652b0862456bd0c4394cabe";
+const historicalOwnerRepairTree = "b9965d026eeba4cb06ed6ecd9066646169ece071";
+const compatibilityParent = "7a67cb648cbaa67599163ac418c2e23aa3f8b0e3";
+const compatibilityOwnerCommit = "38e983b6d0a121d8aadf443938ab5985771eddac";
+const compatibilityOwnerTree = "6bf0c7608e4f73788bc9428ee2d40f3f8df7e811";
+const founderActor = "PrometheusRouteIQ";
+const founderAuthorization =
+  "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT";
 
-const ownerHashes = Object.freeze({
+const historicalOwnerHashes = Object.freeze({
   ".github/workflows/deploy-prometheus-private-worker.yml":
     "f2e672729d9bee7a4a173627e51a622b944d3b545e4ed1f4851414b5e31897e9",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md":
@@ -48,8 +57,24 @@ const ownerHashes = Object.freeze({
     "f5488db21c5a9c8eee10c44f80a8a05e2d5fd47ca10a47db3d243dc9a934e5ce"
 });
 
-const ownerPaths = Object.freeze(Object.keys(ownerHashes));
-const ownerRepairPaths = Object.freeze([
+const compatibilityOwnerHashes = Object.freeze({
+  ".github/workflows/deploy-prometheus-private-worker.yml":
+    "0b9a8afd7d34b5d28aeec563e35ece4b5516cf154e5e01aa70e740183745b46a",
+  "docs/github-actions-founder-triggered-private-worker-deployment-v1.md":
+    "77f5dd3b94393ae8ee7b8bb0c3c762ed7aa3c98c92acb1c0c85a3e94006a8b53",
+  "scripts/lib/github-actions-private-worker-deployment.mjs":
+    "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad",
+  "scripts/run-github-actions-private-worker-deployment.mjs":
+    "4c3fac8b30031e44b9b5e5b0ee12b1f9928098f3cc539f29f83af17fd714284e",
+  "scripts/verify-github-actions-private-worker-deployment.mjs":
+    "aa910f195cd836866b7ccb07290880bc762f3461b65a91234d275d72502fee63",
+  "tests/github-actions-private-worker-deployment.test.mjs":
+    "5e9df6579ef49c334f3a5c822ac7018dfcb7c7f923e371e005ac6608939d9bf7",
+  "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json":
+    "95d8d50e7ac4c9abacbac879d49bbaa3799988bb886d8ad92a98c6fe415efd6c"
+});
+
+const compatibilityChangedPaths = Object.freeze([
   ".github/workflows/deploy-prometheus-private-worker.yml",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
   "scripts/lib/github-actions-private-worker-deployment.mjs",
@@ -57,6 +82,7 @@ const ownerRepairPaths = Object.freeze([
   "tests/github-actions-private-worker-deployment.test.mjs",
   "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json"
 ]);
+
 const protectedOverwatchVerifierSuccessors = Object.freeze([
   {
     path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
@@ -117,16 +143,14 @@ const protectedVerificationAssetSuccessors = Object.freeze([
     reason: "Register the new canonical Overwatch governance artifact in the existing registry contract test."
   }
 ]);
+
 const expectedOverwatchPaths = Object.freeze([
-  "overwatch/artifact-contracts/canonical-artifact-registry.json",
-  governanceDocumentationPath,
   governancePath,
-  reportPath,
-  "package.json",
+  governanceDocumentationPath,
+  compatibilityReportPath,
+  "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
   "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
-  "tests/overwatch-github-actions-private-worker-deployment.test.mjs",
-  ...protectedOverwatchVerifierSuccessors.map(item => item.path),
-  ...protectedVerificationAssetSuccessors.map(item => item.path)
+  "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
 ]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -150,6 +174,10 @@ function section(source, start, end) {
   return source.slice(startIndex, endIndex);
 }
 
+function evidenceMap(hashes) {
+  return Object.entries(hashes).map(([path, hash]) => ({ path, sha256: hash }));
+}
+
 export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
   const failures = [];
   const require = (condition, message) => {
@@ -163,20 +191,58 @@ export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
 
   require(/^name: Deploy Prometheus Private Worker$/mu.test(workflow),
     "Workflow name drifted.");
-  require(/^on:\n  workflow_dispatch:\n/mu.test(trigger),
-    "Workflow is not manual dispatch only.");
-  require(!/(?:push|pull_request|schedule|workflow_call|repository_dispatch):/u.test(trigger),
-    "An automatic or delegated trigger is present.");
-  require(count(trigger,
-    /^      (?:approved_commit|approved_tree|batch_id|current_production_version):$/gmu) === 4,
-  "Founder input set drifted.");
-  require(count(trigger, /^        required: true$/gmu) === 4
-    && count(trigger, /^        type: string$/gmu) === 4,
-  "Founder inputs are not four required strings.");
+  require(equal(
+    [...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]),
+    ["workflow_dispatch"]
+  ), "Workflow is not manual dispatch only.");
+  require(!/(?:push|pull_request|pull_request_target|schedule|workflow_call|workflow_run|repository_dispatch):/u
+    .test(trigger), "An automatic or delegated trigger is present.");
+  const inputNames = [...trigger.matchAll(/^      ([a-z_]+):$/gmu)]
+    .map(match => match[1]);
+  require(equal(inputNames, [
+    "approved_commit",
+    "approved_tree",
+    "batch_id",
+    "current_production_version",
+    "founder_authorization"
+  ]), "Founder input set drifted.");
+  require(count(trigger, /^        required: true$/gmu) === 5
+    && count(trigger, /^        type: string$/gmu) === 5,
+  "Founder inputs are not five required strings.");
+  require(trigger.includes(`description: Type exactly ${founderAuthorization}`),
+    "Exact Founder authorization instruction drifted.");
   require(permissions.trim() === "permissions:\n  contents: read",
     "GitHub permissions are not read-only.");
   require(/concurrency:\n  group: deploy-prometheus-private-worker\n  cancel-in-progress: false/u
     .test(workflow), "Deployment concurrency boundary drifted.");
+
+  for (const predicate of [
+    "github.event_name == 'workflow_dispatch'",
+    "github.repository == 'PrometheusRouteIQ/prometheus-iq'",
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.ref == 'refs/heads/main'",
+    "github.ref_name == 'main'",
+    "github.ref_type == 'branch'",
+    "github.workflow == 'Deploy Prometheus Private Worker'",
+    "github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main'",
+    "github.run_attempt == 1",
+    `inputs.founder_authorization == '${founderAuthorization}'`
+  ]) require(verification.includes(predicate), `Secret-free preflight is missing ${predicate}.`);
+
+  require(!/\$\{\{\s*secrets\./u.test(verification)
+    && !/environment:/u.test(verification),
+  "Secret-free preflight receives environment authority.");
+  require(count(workflow,
+    /^          PROMETHEUS_FOUNDER_AUTHORIZATION: \$\{\{ inputs\.founder_authorization \}\}$/gmu) === 4
+    && count(workflow,
+      /^          PROMETHEUS_DISPATCH_INPUTS_JSON: \$\{\{ toJSON\(github\.event\.inputs\) \}\}$/gmu) === 4,
+  "Founder authorization is not revalidated at every controller boundary.");
+  require(/needs: verification/u.test(deploy)
+    && /if: \$\{\{ needs\.verification\.result == 'success' \}\}/u.test(deploy),
+  "Environment-backed deployment does not require successful preflight.");
+  require(/environment:\n      name: prometheus-private-worker-production/u.test(deploy),
+    "Protected deployment environment drifted.");
 
   const actions = [...workflow.matchAll(/^\s*uses:\s*(\S+)$/gmu)]
     .map(match => match[1]);
@@ -195,9 +261,6 @@ export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
     && !/actions\/(?:cache|upload-artifact|download-artifact)@/u.test(workflow),
   "Workflow may persist dependencies or artifacts.");
 
-  require(!/\$\{\{\s*secrets\./u.test(verification)
-    && !/environment:/u.test(verification),
-  "Verification job receives deployment authority.");
   for (const command of [
     "npm ci",
     "npm test",
@@ -214,13 +277,8 @@ export function evaluateGithubActionsPrivateWorkerWorkflow(workflow) {
     "git diff --cached --exit-code",
     "git status --porcelain=v1 --untracked-files=all",
     "git fsck --full --strict"
-  ]) {
-    require(verification.includes(command), `Verification job is missing ${command}.`);
-  }
+  ]) require(verification.includes(command), `Verification job is missing ${command}.`);
 
-  require(/needs: verification/u.test(deploy), "Deploy job does not require verification.");
-  require(/environment:\n      name: prometheus-private-worker-production/u.test(deploy),
-    "Protected deployment environment drifted.");
   require(count(deploy,
     /run: node scripts\/run-github-actions-private-worker-deployment\.mjs verify/gmu) === 2,
   "Deploy job exact-version checks drifted.");
@@ -257,51 +315,52 @@ export function evaluateGithubActionsPrivateWorkerDeploymentGovernance({
   const require = (condition, message) => {
     if (!condition) failures.push(message);
   };
+  const successor = governance.compatibilitySuccessor;
 
   require(governance.governanceId ===
-    "github-actions-founder-triggered-private-worker-deployment-governance-v1",
-  "Governance ID drifted.");
-  require(governance.batchId === "BATCH-20260715-010", "Batch ID drifted.");
-  require(governance.owningSubsystem === "Prometheus Overwatch",
-    "Governance owner drifted.");
+    "github-actions-founder-triggered-private-worker-deployment-governance-v1"
+    && governance.version === "1.1.0"
+    && governance.batchId === "BATCH-20260715-010"
+    && governance.owningSubsystem === "Prometheus Overwatch",
+  "Canonical governance identity drifted.");
   require(governance.dispatchAudit.implementationOwner === "Prometheus Infrastructure"
     && governance.dispatchAudit.verificationOwner === "Prometheus Overwatch"
     && governance.dispatchAudit.implementationOwnershipRespected === true
     && governance.dispatchAudit.overwatchModifiedInfrastructureImplementation === false,
-  "Dispatch ownership boundary drifted.");
+  "Historical dispatch ownership boundary drifted.");
   require(equal(governance.dispatchAudit.implementationCommits, [
     {
-      commit: ownerCommit,
-      parent: releaseBase,
-      tree: ownerTree,
+      commit: historicalOwnerCommit,
+      parent: historicalReleaseBase,
+      tree: historicalOwnerTree,
       subject: "infrastructure: add Founder-triggered private worker deployment"
     },
     {
-      commit: ownerRepairCommit,
-      parent: ownerCommit,
-      tree: ownerRepairTree,
+      commit: historicalOwnerRepairCommit,
+      parent: historicalOwnerCommit,
+      tree: historicalOwnerRepairTree,
       subject: "infrastructure: repair private worker deployment invariants"
     }
-  ]), "Implementation commit chain drifted.");
+  ]), "Historical implementation chain drifted.");
   require(governance.startingStateAudit.reportedLocalHead ===
     "48345d5e40d5f70ec1d1dfb4bf5eed4d337f7d23"
-    && governance.startingStateAudit.reportedOriginMain === releaseBase
+    && governance.startingStateAudit.reportedOriginMain === historicalReleaseBase
     && governance.startingStateAudit.reportedUncommittedDiagnosticFiles === 6
     && governance.startingStateAudit.blockedChainCommitsAhead === 7
     && governance.startingStateAudit.blockedChainCommitsBehind === 0
-    && governance.startingStateAudit.diagnosticDisposition.owner === "Prometheus Infrastructure"
+    && governance.startingStateAudit.diagnosticDisposition.owner ===
+      "Prometheus Infrastructure"
     && governance.startingStateAudit.diagnosticDisposition.localOnly === true
     && governance.startingStateAudit.diagnosticDisposition.includedInRelease === false
-    && governance.startingStateAudit.unverifiedDiagnosticWorkPushed === false,
-  "Starting-state or diagnostic disposition audit drifted.");
-  require(equal(governance.startingStateAudit.reconciledReleaseBase, {
-    commit: releaseBase,
-    tree: releaseBaseTree,
-    branch: "main"
-  }), "Release base drifted.");
-  require(equal(governance.ownerEvidence,
-    Object.entries(ownerHashes).map(([path, hash]) => ({ path, sha256: hash }))),
-  "Owner evidence map drifted.");
+    && governance.startingStateAudit.unverifiedDiagnosticWorkPushed === false
+    && equal(governance.startingStateAudit.reconciledReleaseBase, {
+      commit: historicalReleaseBase,
+      tree: historicalReleaseBaseTree,
+      branch: "main"
+    }),
+  "Historical starting-state audit drifted.");
+  require(equal(governance.ownerEvidence, evidenceMap(historicalOwnerHashes)),
+    "Historical BATCH-010 owner evidence drifted.");
   require(equal(governance.protectedPredecessorSuccessors, [{
     predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
     path: "package.json",
@@ -309,43 +368,75 @@ export function evaluateGithubActionsPrivateWorkerDeploymentGovernance({
     successorSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
     successorOwner: "Prometheus Overwatch",
     reason: "Carry the original unattended-access package baseline through the manual GitHub deployment release-gate successor."
-  }]), "Protected unattended-access package successor drifted.");
-  require(equal(governance.protectedReleaseWiringTransitions, [{
+  }]) && equal(governance.protectedReleaseWiringTransitions, [{
     path: "package.json",
     previousSha256: "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
     successorSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
     owner: "Prometheus Overwatch",
     reason: "Register the Infrastructure owner gate and independent Overwatch GitHub private Worker deployment gate in the complete repository suite."
-  }]), "Protected package release-wiring transition drifted.");
+  }]), "Historical package successor mapping drifted.");
   require(equal(governance.protectedOverwatchVerifierSuccessors,
-    protectedOverwatchVerifierSuccessors),
-  "Protected Overwatch verifier successor map drifted.");
-  require(equal(governance.protectedVerificationAssetSuccessors,
-    protectedVerificationAssetSuccessors),
-  "Protected verification asset successor map drifted.");
+    protectedOverwatchVerifierSuccessors)
+    && equal(governance.protectedVerificationAssetSuccessors,
+      protectedVerificationAssetSuccessors),
+  "Historical protected verifier successor mapping drifted.");
+  require(successor?.batchId === "BATCH-20260715-011"
+    && successor.directive ===
+      "GitHub Private-Repository Founder Deployment Authorization Compatibility v1"
+    && successor.implementationOwner === "Prometheus Infrastructure"
+    && successor.verificationOwner === "Prometheus Overwatch"
+    && successor.implementationOwnershipRespected === true
+    && successor.overwatchModifiedInfrastructureImplementation === false,
+  "Compatibility dispatch ownership drifted.");
+  require(equal(successor?.implementationCommit, {
+    commit: compatibilityOwnerCommit,
+    parent: compatibilityParent,
+    tree: compatibilityOwnerTree,
+    subject: "infrastructure: require Founder-authenticated deployment dispatch"
+  }), "Compatibility owner commit mapping drifted.");
+  require(equal(successor?.changedPaths, compatibilityChangedPaths)
+    && equal(successor?.ownerEvidence, evidenceMap(compatibilityOwnerHashes)),
+  "Compatibility owner evidence drifted.");
+  require(successor?.authorizationModel?.privateRepositoryRequiredReviewerAvailable === false
+    && successor.authorizationModel.actor === founderActor
+    && successor.authorizationModel.triggeringActor === founderActor
+    && successor.authorizationModel.workflowBranch === "main"
+    && successor.authorizationModel.firstRunAttemptOnly === true
+    && successor.authorizationModel.rerunAllowed === false
+    && successor.authorizationModel.exactAuthorizationPhrase === founderAuthorization
+    && successor.authorizationModel.founderDispatchIsExplicitApproval === true
+    && successor.authorizationModel.environmentMainOnlyDeploymentRuleRequired === true
+    && successor.authorizationModel.secretFreePreflightRequired === true
+    && successor.authorizationModel.deploymentJobRequiresSuccessfulPreflight === true,
+  "Founder authorization governance drifted.");
+  require(Object.values(successor?.externalActions ?? {}).every(value => value === false),
+    "Compatibility batch claims an unauthorized external action.");
 
-  require(governance.workflowBoundary.name === "Deploy Prometheus Private Worker"
-    && governance.workflowBoundary.onlyTrigger === "workflow_dispatch"
-    && governance.workflowBoundary.repository === "PrometheusRouteIQ/prometheus-iq"
-    && governance.workflowBoundary.branch === "main"
-    && governance.workflowBoundary.privateWorker === "prometheus-iq"
-    && governance.workflowBoundary.publicWorker === "prometheusrouteiq-website"
-    && governance.workflowBoundary.publicWorkerDeploymentAllowed === false
-    && governance.workflowBoundary.protectedEnvironment ===
-      "prometheus-private-worker-production"
-    && governance.workflowBoundary.environmentRequiredReviewer === true
-    && governance.workflowBoundary.concurrencyGroup ===
-      "deploy-prometheus-private-worker"
-    && governance.workflowBoundary.cancelInProgress === false,
-  "Workflow governance boundary drifted.");
   require(equal(governance.workflowBoundary.requiredInputs, [
     "approved_commit",
     "approved_tree",
     "batch_id",
-    "current_production_version"
-  ]) && equal(governance.workflowBoundary.githubPermissions, { contents: "read" }),
-  "Founder inputs or GitHub permissions drifted.");
-
+    "current_production_version",
+    "founder_authorization"
+  ]) && governance.workflowBoundary.onlyTrigger === "workflow_dispatch"
+    && governance.workflowBoundary.branch === "main"
+    && governance.workflowBoundary.privateWorker === "prometheus-iq"
+    && governance.workflowBoundary.publicWorker === "prometheusrouteiq-website"
+    && governance.workflowBoundary.publicWorkerDeploymentAllowed === false
+    && governance.workflowBoundary.repository === "PrometheusRouteIQ/prometheus-iq"
+    && governance.workflowBoundary.protectedEnvironment ===
+      "prometheus-private-worker-production"
+    && governance.workflowBoundary.environmentRequiredReviewer === false
+    && governance.workflowBoundary.environmentMainOnlyDeploymentRuleRequired === true
+    && governance.workflowBoundary.founderActor === founderActor
+    && governance.workflowBoundary.founderTriggeringActor === founderActor
+    && governance.workflowBoundary.firstRunAttemptOnly === true
+    && governance.workflowBoundary.exactFounderAuthorizationPhrase === founderAuthorization
+    && governance.workflowBoundary.concurrencyGroup ===
+      "deploy-prometheus-private-worker"
+    && governance.workflowBoundary.cancelInProgress === false
+    && equal(governance.workflowBoundary.githubPermissions, { contents: "read" }),
+  "Current workflow governance drifted.");
   require(governance.supplyChainBoundary.checkoutCommit ===
     "34e114876b0b11c390a56381ad16ebd13914f8d5"
     && governance.supplyChainBoundary.setupNodeCommit ===
@@ -355,19 +446,20 @@ export function evaluateGithubActionsPrivateWorkerDeploymentGovernance({
     && governance.supplyChainBoundary.checkoutCredentialsPersisted === false
     && governance.supplyChainBoundary.artifactsOrCachesUploaded === false,
   "Supply-chain boundary drifted.");
+  require(governance.secretBoundary.verificationJobReceivesSecrets === false
+    && governance.secretBoundary.founderAndInputPreflightReceivesSecrets === false
+    && governance.secretBoundary.deploymentJobRequiresSuccessfulPreflight === true
+    && governance.secretBoundary.valuesInGitChatWorkflowLogsArtifactsScreenshotsOrReportsAllowed === false,
+  "Secret boundary drifted.");
   require(equal(governance.secretBoundary.protectedEnvironmentValueNames, [
     "CLOUDFLARE_API_TOKEN",
     "CLOUDFLARE_ACCOUNT_ID",
     "CLOUDFLARE_ACCESS_CLIENT_ID",
     "CLOUDFLARE_ACCESS_CLIENT_SECRET"
   ]) && governance.secretBoundary.founderEntersValuesDirectlyInGitHub === true
-    && governance.secretBoundary.valuesInGitChatWorkflowLogsArtifactsScreenshotsOrReportsAllowed
-      === false
-    && governance.secretBoundary.verificationJobReceivesSecrets === false
     && governance.secretBoundary.deploymentCredentialsScopedToOneDeploymentStep === true
     && governance.secretBoundary.smokeCredentialsScopedToTwoFixedSmokeSteps === true,
-  "Secret boundary drifted.");
-
+  "Protected value scope drifted.");
   for (const field of [
     "exactCommitTreeBatchAndCurrentVersionRequired",
     "currentOriginMainMustEqualApprovedCommit",
@@ -388,129 +480,144 @@ export function evaluateGithubActionsPrivateWorkerDeploymentGovernance({
     && equal(governance.deploymentSafety.smokeMethods, ["GET", "HEAD"])
     && governance.deploymentSafety.smokeWriteAttemptsAllowed === 0,
   "Fixed deployment or smoke boundary drifted.");
-
   require(governance.runtimeBoundary.prospectiveCollection === "OFF"
     && governance.runtimeBoundary.activeCohorts === 0
     && governance.runtimeBoundary.recommendationInfluence === "OFF"
-    && governance.runtimeBoundary.cloudflareRequestPerformedByBatch === false
     && governance.runtimeBoundary.deploymentPerformedByBatch === false
-    && governance.runtimeBoundary.accessPolicyMutationPerformedByBatch === false
     && governance.runtimeBoundary.productionMutationPerformedByBatch === false
+    && governance.runtimeBoundary.cloudflareRequestPerformedByBatch === false
+    && governance.runtimeBoundary.accessPolicyMutationPerformedByBatch === false
     && governance.runtimeBoundary.keychainValueReadPerformedByBatch === false
     && governance.runtimeBoundary.secretEntryPerformedByBatch === false,
-  "No-action or runtime boundary drifted.");
-  require(governance.manualSetupBoundary.workflowSourceReady === true
+  "Runtime boundary drifted.");
+  require(governance.manualSetupBoundary.requiredReviewerProtectionAvailable === false
+    && governance.manualSetupBoundary.environmentMainOnlyDeploymentRuleRequired === true
+    && governance.manualSetupBoundary.founderDispatchIdentityIsApprovalSignal === true
+    && governance.manualSetupBoundary.deploymentReadyNow === false
+    && governance.manualSetupBoundary.workflowSourceReady === true
     && governance.manualSetupBoundary.protectedEnvironmentConfiguredByBatch === false
     && governance.manualSetupBoundary.environmentSecretsConfiguredByBatch === false
     && governance.manualSetupBoundary.serviceAuthPolicyConfiguredByBatch === false
-    && governance.manualSetupBoundary.guardRuntimeConfiguredByBatch === false
-    && governance.manualSetupBoundary.deploymentReadyNow === false,
-  "Manual setup state drifted.");
+    && governance.manualSetupBoundary.guardRuntimeConfiguredByBatch === false,
+  "Private-repository setup boundary drifted.");
   require(governance.rollback.nativeCloudflareRollbackAllowed === false
     && governance.rollback.historyRewriteAllowed === false
     && governance.rollback.isolatedExerciseRequiredBeforePush === true
     && governance.releaseBoundary.pushMayTriggerDeployment === false
     && governance.releaseBoundary.deploymentAuthorizedByThisBatch === false,
-  "Rollback or release boundary drifted.");
+  "Release boundary drifted.");
 
-  require(report.batchId === "BATCH-20260715-010"
-    && report.status === "ENGINEERING_SOURCE_PASS_SETUP_REQUIRED_NOT_DEPLOYED"
-    && report.owners.implementation === "Prometheus Infrastructure"
-    && report.owners.verification === "Prometheus Overwatch"
-    && equal(report.owners.implementationCommits, [ownerCommit, ownerRepairCommit])
-    && report.owners.ownershipRespected === true,
-  "Batch report ownership or status drifted.");
-  require(report.startingState.blockedLocalHead ===
-    "48345d5e40d5f70ec1d1dfb4bf5eed4d337f7d23"
-    && report.startingState.releaseBase === releaseBase
-    && report.startingState.sixDiagnosticFilesPreservedByInfrastructure === true
-    && report.startingState.blockedChainIncludedInRelease === false,
-  "Batch report starting-state audit drifted.");
-  require(report.independentFindingsAndRepairs.length === 2
-    && report.independentFindingsAndRepairs.every(item => item.status === "CLOSED"),
-  "Independent findings are not closed.");
-  require(report.boundaries.deployment === "NOT_PERFORMED_NOT_AUTHORIZED_BY_THIS_BATCH"
-    && report.boundaries.accessPolicyMutation === false
-    && report.boundaries.githubEnvironmentMutation === false
-    && report.boundaries.githubSecretEntry === false
-    && report.boundaries.keychainValueRead === false
-    && report.boundaries.prospectiveCollection === "OFF"
-    && report.boundaries.activeCohorts === 0
-    && report.boundaries.recommendationInfluence === "OFF",
-  "Batch report external-action boundary drifted.");
-  require(report.setupReadiness.workflowSourceReady === true
-    && report.setupReadiness.firstDeploymentReady === false
-    && report.release.deploymentStatus === "NOT_AUTHORIZED",
-  "Batch report overstates deployment readiness.");
+  require(report.batchId === "BATCH-20260715-011"
+    && report.dispatchAudit.implementationOwner === "Prometheus Infrastructure"
+    && report.dispatchAudit.verificationOwner === "Prometheus Overwatch"
+    && report.dispatchAudit.implementationCommit === compatibilityOwnerCommit
+    && report.dispatchAudit.implementationOwnershipRespected === true
+    && report.completed.workflowDispatchOnly === true
+    && report.completed.founderActorExact === founderActor
+    && report.completed.founderTriggeringActorExact === founderActor
+    && report.completed.firstRunAttemptOnly === true
+    && report.completed.rerunAllowed === false
+    && report.completed.secretFreePreflightRequired === true
+    && report.completed.environmentJobRequiresSuccessfulPreflight === true
+    && report.githubPlanCompatibility.requiredReviewerProtectionAvailable === false
+    && report.runtimeBoundaries.deployment === "NOT_PERFORMED_NOT_AUTHORIZED_BY_THIS_BATCH"
+    && report.runtimeBoundaries.prospectiveCollection === "OFF"
+    && report.runtimeBoundaries.activeCohorts === 0
+    && report.runtimeBoundaries.recommendationInfluence === "OFF"
+    && report.release.pushMayTriggerDeployment === false,
+  "Compatibility batch report drifted.");
 
-  require(contract.contractVersion ===
-    "github-actions-founder-triggered-private-worker-deployment-v1"
-    && contract.batchId === "BATCH-20260715-010"
+  require(contract.batchId === "BATCH-20260715-011"
     && contract.owner === "Prometheus Infrastructure"
-    && contract.implementationStatus === "IMPLEMENTED_NOT_EXECUTED"
-    && contract.releaseWiringOwner === "Prometheus Overwatch"
+    && contract.implementationStatus ===
+      "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED"
     && contract.deploymentPerformed === false
     && contract.productionMutationPerformed === false
-    && contract.target.privateWorker === "prometheus-iq"
-    && contract.target.publicWorkerDeploymentAllowed === false
+    && contract.founderAuthorization.actor === founderActor
+    && contract.founderAuthorization.triggeringActor === founderActor
+    && contract.founderAuthorization.workflowBranch === "main"
+    && contract.founderAuthorization.firstRunAttemptOnly === true
+    && contract.founderAuthorization.rerunAllowed === false
+    && contract.founderAuthorization.exactPhrase === founderAuthorization
+    && contract.founderAuthorization.validationOccursWithoutSecrets === true
+    && contract.founderAuthorization.environmentJobRequiresSuccessfulPreflight === true
+    && equal(contract.founderInputs.names, governance.workflowBoundary.requiredInputs)
     && contract.runtimeBoundaries.collection === "OFF"
     && contract.runtimeBoundaries.activeCohortCount === 0
-    && contract.runtimeBoundaries.recommendationInfluence === "OFF"
-    && contract.rollback.nativeRollbackAllowed === false,
-  "Infrastructure contract boundary drifted.");
+    && contract.runtimeBoundaries.recommendationInfluence === "OFF",
+  "Infrastructure compatibility contract drifted.");
 
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
 }
 
-function verifyOwnerCommits(governance) {
-  const ownerMetadata = git([
-    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", ownerCommit
+function verifyOwnerHistory(governance) {
+  for (const commit of [historicalOwnerCommit, historicalOwnerRepairCommit]) {
+    execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", commit, "HEAD"], {
+      cwd: root,
+      stdio: "ignore"
+    });
+  }
+  const historicalOwnerMetadata = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    historicalOwnerCommit
   ]).split("\n");
-  if (!equal(ownerMetadata, [
-    ownerCommit,
-    releaseBase,
-    ownerTree,
+  if (!equal(historicalOwnerMetadata, [
+    historicalOwnerCommit,
+    historicalReleaseBase,
+    historicalOwnerTree,
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
     "infrastructure: add Founder-triggered private worker deployment"
-  ])) throw new Error("Infrastructure owner commit metadata drifted.");
-  const initialPaths = git([
-    "diff-tree", "--no-commit-id", "--name-only", "-r", ownerCommit
-  ]).split("\n").filter(Boolean);
-  if (!equal(initialPaths, ownerPaths)) {
-    throw new Error("Infrastructure owner file set drifted.");
-  }
-
-  const repairMetadata = git([
+  ])) throw new Error("Historical Infrastructure owner provenance drifted.");
+  const historicalRepairMetadata = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
-    ownerRepairCommit
+    historicalOwnerRepairCommit
   ]).split("\n");
-  if (!equal(repairMetadata, [
-    ownerRepairCommit,
-    ownerCommit,
-    ownerRepairTree,
+  if (!equal(historicalRepairMetadata, [
+    historicalOwnerRepairCommit,
+    historicalOwnerCommit,
+    historicalOwnerRepairTree,
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
     "Prometheus Infrastructure <infrastructure@prometheus.local>",
     "infrastructure: repair private worker deployment invariants"
-  ])) throw new Error("Infrastructure repair commit metadata drifted.");
-  const repairPaths = git([
-    "diff-tree", "--no-commit-id", "--name-only", "-r", ownerRepairCommit
+  ])) throw new Error("Historical Infrastructure repair provenance drifted.");
+  const metadata = git([
+    "show", "-s", "--format=%H%n%T%n%P%n%an <%ae>%n%cn <%ce>%n%s",
+    compatibilityOwnerCommit
+  ]).split("\n");
+  if (!equal(metadata, [
+    compatibilityOwnerCommit,
+    compatibilityOwnerTree,
+    compatibilityParent,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "infrastructure: require Founder-authenticated deployment dispatch"
+  ])) throw new Error("Infrastructure compatibility commit provenance drifted.");
+  const changed = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", compatibilityOwnerCommit
   ]).split("\n").filter(Boolean);
-  if (!equal(repairPaths, ownerRepairPaths)) {
-    throw new Error("Infrastructure repair file set drifted.");
+  if (!equal(changed, compatibilityChangedPaths)) {
+    throw new Error("Infrastructure compatibility file set drifted.");
   }
-  if ([...initialPaths, ...repairPaths].some(path => (
-    path === "package.json" || path.startsWith("overwatch/")
-  ))) throw new Error("Infrastructure crossed the Overwatch ownership boundary.");
-  execFileSync("/usr/bin/git", [
-    "merge-base", "--is-ancestor", ownerRepairCommit, "HEAD"
-  ], { cwd: root, stdio: "ignore" });
+  if (changed.some(path => path.startsWith("overwatch/") || path === "package.json")) {
+    throw new Error("Infrastructure crossed the Overwatch ownership boundary.");
+  }
 
-  const evidence = new Map(governance.ownerEvidence.map(item => [item.path, item.sha256]));
-  for (const [path, expected] of Object.entries(ownerHashes)) {
+  for (const [path, expected] of Object.entries(historicalOwnerHashes)) {
+    const historical = execFileSync("/usr/bin/git", [
+      "show", `${historicalOwnerRepairCommit}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    if (sha256(historical) !== expected) {
+      throw new Error(`Historical owner evidence drifted: ${path}`);
+    }
+  }
+  const currentEvidence = new Map(
+    governance.compatibilitySuccessor.ownerEvidence.map(item => [item.path, item.sha256])
+  );
+  for (const [path, expected] of Object.entries(compatibilityOwnerHashes)) {
     if (sha256(readFileSync(resolve(root, path))) !== expected
-      || evidence.get(path) !== expected) {
-      throw new Error(`Infrastructure owner evidence drifted: ${path}`);
+      || currentEvidence.get(path) !== expected) {
+      throw new Error(`Compatibility owner evidence drifted: ${path}`);
     }
   }
 }
@@ -522,34 +629,37 @@ function statusPaths() {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"]
-  }).trimEnd().split("\n").filter(Boolean).map(line => line.slice(3));
+  }).trimEnd()
+    .split("\n").filter(Boolean).map(line => line.slice(3));
 }
 
 function verifyOverwatchOwnership() {
   const head = git(["rev-parse", "HEAD"]);
-  if (head === ownerRepairCommit) {
+  if (head === compatibilityOwnerCommit) {
     if (!equal([...statusPaths()].sort(), [...expectedOverwatchPaths].sort())) {
-      throw new Error("Uncommitted Overwatch release-wiring set drifted.");
+      throw new Error("Uncommitted Overwatch compatibility set drifted.");
     }
     return;
   }
-  const commits = git(["rev-list", "--reverse", `${ownerRepairCommit}..HEAD`])
+  const commits = git(["rev-list", "--reverse", `${compatibilityOwnerCommit}..HEAD`])
     .split("\n").filter(Boolean);
-  if (commits.length !== 2) throw new Error("Overwatch successor commit count drifted.");
+  if (commits.length < 1 || commits.length > 3) {
+    throw new Error("Overwatch compatibility successor count drifted.");
+  }
   for (const commit of commits) {
     const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
       .split("\n");
     if (!equal(metadata, [
       "Prometheus Overwatch <overwatch@prometheus.local>",
       "Prometheus Overwatch <overwatch@prometheus.local>"
-    ])) throw new Error("Overwatch successor ownership drifted.");
+    ])) throw new Error(`Non-Overwatch compatibility successor detected: ${commit}`);
   }
-  const paths = git(["diff", "--name-only", ownerRepairCommit, "HEAD"])
+  const paths = git(["diff", "--name-only", compatibilityOwnerCommit, "HEAD"])
     .split("\n").filter(Boolean);
   if (!equal([...paths].sort(), [...expectedOverwatchPaths].sort())) {
-    throw new Error("Overwatch governance file set drifted.");
+    throw new Error("Overwatch compatibility file set drifted.");
   }
-  if (paths.some(path => Object.hasOwn(ownerHashes, path)
+  if (paths.some(path => Object.hasOwn(compatibilityOwnerHashes, path)
     || path.startsWith("workers/infrastructure/")
     || path.startsWith("scripts/lib/github-actions-private-worker"))) {
     throw new Error("Overwatch modified Infrastructure implementation.");
@@ -581,30 +691,37 @@ function verifyRegistryAndReleaseWiring() {
   }
 }
 
-function verifyProtectedOverwatchSuccessors() {
+function verifyProtectedHistoricalSuccessors() {
   for (const transition of [
     ...protectedOverwatchVerifierSuccessors,
     ...protectedVerificationAssetSuccessors
   ]) {
     const previous = execFileSync("/usr/bin/git", [
-      "show", `${ownerRepairCommit}:${transition.path}`
+      "show", `${historicalOwnerRepairCommit}:${transition.path}`
+    ], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    const acceptedSuccessor = execFileSync("/usr/bin/git", [
+      "show", `${compatibilityParent}:${transition.path}`
     ], {
       cwd: root,
       encoding: null,
       stdio: ["ignore", "pipe", "ignore"]
     });
     if (sha256(previous) !== transition.previousSha256
-      || sha256(readFileSync(resolve(root, transition.path))) !==
-        transition.successorSha256
+      || sha256(acceptedSuccessor) !== transition.successorSha256
       || transition.owner !== "Prometheus Overwatch") {
-      throw new Error(`Protected Overwatch successor drifted: ${transition.path}`);
+      throw new Error(`Protected historical successor drifted: ${transition.path}`);
     }
   }
 }
 
 export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
   const governance = readJson(governancePath);
-  const report = readJson(reportPath);
+  const historicalReport = readJson(historicalReportPath);
+  const report = readJson(compatibilityReportPath);
   const contract = readJson(contractPath);
   const evaluation = evaluateGithubActionsPrivateWorkerDeploymentGovernance({
     governance,
@@ -612,15 +729,48 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
     contract
   });
   if (!evaluation.ok) throw new Error(evaluation.failures.join("\n"));
+  if (historicalReport.batchId !== "BATCH-20260715-010"
+    || historicalReport.status !==
+      "ENGINEERING_SOURCE_PASS_SETUP_REQUIRED_NOT_DEPLOYED"
+    || historicalReport.owners.implementation !== "Prometheus Infrastructure"
+    || historicalReport.owners.verification !== "Prometheus Overwatch"
+    || !equal(historicalReport.owners.implementationCommits, [
+      historicalOwnerCommit,
+      historicalOwnerRepairCommit
+    ])
+    || historicalReport.owners.ownershipRespected !== true
+    || historicalReport.startingState.blockedLocalHead !==
+      "48345d5e40d5f70ec1d1dfb4bf5eed4d337f7d23"
+    || historicalReport.startingState.releaseBase !== historicalReleaseBase
+    || historicalReport.startingState.sixDiagnosticFilesPreservedByInfrastructure !== true
+    || historicalReport.startingState.blockedChainIncludedInRelease !== false
+    || historicalReport.independentFindingsAndRepairs.length !== 2
+    || !historicalReport.independentFindingsAndRepairs.every(item =>
+      item.status === "CLOSED")
+    || historicalReport.boundaries.deployment !==
+      "NOT_PERFORMED_NOT_AUTHORIZED_BY_THIS_BATCH"
+    || historicalReport.boundaries.accessPolicyMutation !== false
+    || historicalReport.boundaries.githubEnvironmentMutation !== false
+    || historicalReport.boundaries.githubSecretEntry !== false
+    || historicalReport.boundaries.keychainValueRead !== false
+    || historicalReport.boundaries.prospectiveCollection !== "OFF"
+    || historicalReport.boundaries.activeCohorts !== 0
+    || historicalReport.boundaries.recommendationInfluence !== "OFF"
+    || historicalReport.setupReadiness.workflowSourceReady !== true
+    || historicalReport.setupReadiness.firstDeploymentReady !== false
+    || historicalReport.release.deploymentStatus !== "NOT_AUTHORIZED") {
+    throw new Error("Historical BATCH-010 report drifted.");
+  }
   const workflowEvaluation = evaluateGithubActionsPrivateWorkerWorkflow(read(workflowPath));
   if (!workflowEvaluation.ok) throw new Error(workflowEvaluation.failures.join("\n"));
 
-  verifyOwnerCommits(governance);
+  verifyOwnerHistory(governance);
   verifyOverwatchOwnership();
   verifyRegistryAndReleaseWiring();
-  verifyProtectedOverwatchSuccessors();
+  verifyProtectedHistoricalSuccessors();
   const ownerResult = verifyGithubActionsPrivateWorkerDeployment();
   if (ownerResult.status !== "passed"
+    || ownerResult.batchId !== "BATCH-20260715-011"
     || ownerResult.owner !== "Prometheus Infrastructure"
     || ownerResult.privateWorker !== "prometheus-iq"
     || ownerResult.publicWorkerDeploymentAllowed !== false
@@ -649,12 +799,17 @@ export function verifyOverwatchGithubActionsPrivateWorkerDeployment() {
 
   return Object.freeze({
     status: "passed",
-    batchId: "BATCH-20260715-010",
+    batchId: "BATCH-20260715-011",
     implementationOwner: "Prometheus Infrastructure",
     verificationOwner: "Prometheus Overwatch",
-    implementationCommits: [ownerCommit, ownerRepairCommit],
-    privateWorker: "prometheus-iq",
+    implementationCommit: compatibilityOwnerCommit,
+    founderActor,
+    founderTriggeringActor: founderActor,
+    workflowBranch: "main",
     workflowTrigger: "workflow_dispatch",
+    rerunAllowed: false,
+    privateWorker: "prometheus-iq",
+    publicWorkerDeploymentAllowed: false,
     protectedEnvironment: "prometheus-private-worker-production",
     smokeMethods: ["GET", "HEAD"],
     writeAttemptsAllowed: 0,

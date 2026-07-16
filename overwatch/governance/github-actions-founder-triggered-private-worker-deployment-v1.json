@@ -1,9 +1,9 @@
 {
   "governanceId": "github-actions-founder-triggered-private-worker-deployment-governance-v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "batchId": "BATCH-20260715-010",
   "directive": "GitHub Actions Founder-Triggered Private Worker Deployment v1",
-  "status": "SOURCE_VERIFIED_MANUAL_SETUP_REQUIRED_NOT_DEPLOYED",
+  "status": "PRIVATE_REPOSITORY_FOUNDER_DISPATCH_VERIFIED_SETUP_REQUIRED_NOT_DEPLOYED",
   "owningSubsystem": "Prometheus Overwatch",
   "dispatchAudit": {
     "owningProduct": "Prometheus Platform",
@@ -35,6 +35,80 @@
         "subject": "infrastructure: repair private worker deployment invariants"
       }
     ]
+  },
+  "compatibilitySuccessor": {
+    "batchId": "BATCH-20260715-011",
+    "directive": "GitHub Private-Repository Founder Deployment Authorization Compatibility v1",
+    "dispatchTimestamp": "2026-07-16T01:55:39.863Z",
+    "ownerHandoffTimestamp": "2026-07-16T02:03:03Z",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false,
+    "implementationCommit": {
+      "commit": "38e983b6d0a121d8aadf443938ab5985771eddac",
+      "parent": "7a67cb648cbaa67599163ac418c2e23aa3f8b0e3",
+      "tree": "6bf0c7608e4f73788bc9428ee2d40f3f8df7e811",
+      "subject": "infrastructure: require Founder-authenticated deployment dispatch"
+    },
+    "changedPaths": [
+      ".github/workflows/deploy-prometheus-private-worker.yml",
+      "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
+      "scripts/lib/github-actions-private-worker-deployment.mjs",
+      "scripts/verify-github-actions-private-worker-deployment.mjs",
+      "tests/github-actions-private-worker-deployment.test.mjs",
+      "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json"
+    ],
+    "ownerEvidence": [
+      {
+        "path": ".github/workflows/deploy-prometheus-private-worker.yml",
+        "sha256": "0b9a8afd7d34b5d28aeec563e35ece4b5516cf154e5e01aa70e740183745b46a"
+      },
+      {
+        "path": "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
+        "sha256": "77f5dd3b94393ae8ee7b8bb0c3c762ed7aa3c98c92acb1c0c85a3e94006a8b53"
+      },
+      {
+        "path": "scripts/lib/github-actions-private-worker-deployment.mjs",
+        "sha256": "e71bdff256e2d705a3848a8e2fbe1855508416628a18956429026c5bb0ab18ad"
+      },
+      {
+        "path": "scripts/run-github-actions-private-worker-deployment.mjs",
+        "sha256": "4c3fac8b30031e44b9b5e5b0ee12b1f9928098f3cc539f29f83af17fd714284e"
+      },
+      {
+        "path": "scripts/verify-github-actions-private-worker-deployment.mjs",
+        "sha256": "aa910f195cd836866b7ccb07290880bc762f3461b65a91234d275d72502fee63"
+      },
+      {
+        "path": "tests/github-actions-private-worker-deployment.test.mjs",
+        "sha256": "5e9df6579ef49c334f3a5c822ac7018dfcb7c7f923e371e005ac6608939d9bf7"
+      },
+      {
+        "path": "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json",
+        "sha256": "95d8d50e7ac4c9abacbac879d49bbaa3799988bb886d8ad92a98c6fe415efd6c"
+      }
+    ],
+    "authorizationModel": {
+      "privateRepositoryRequiredReviewerAvailable": false,
+      "actor": "PrometheusRouteIQ",
+      "triggeringActor": "PrometheusRouteIQ",
+      "workflowBranch": "main",
+      "firstRunAttemptOnly": true,
+      "rerunAllowed": false,
+      "exactAuthorizationPhrase": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
+      "founderDispatchIsExplicitApproval": true,
+      "environmentMainOnlyDeploymentRuleRequired": true,
+      "secretFreePreflightRequired": true,
+      "deploymentJobRequiresSuccessfulPreflight": true
+    },
+    "externalActions": {
+      "cloudflareContacted": false,
+      "deploymentPerformed": false,
+      "githubSettingsChanged": false,
+      "githubSecretsEntered": false,
+      "productionMutationPerformed": false
+    }
   },
   "startingStateAudit": {
     "reportedLocalHead": "48345d5e40d5f70ec1d1dfb4bf5eed4d337f7d23",
@@ -179,13 +253,19 @@
       "approved_commit",
       "approved_tree",
       "batch_id",
-      "current_production_version"
+      "current_production_version",
+      "founder_authorization"
     ],
     "githubPermissions": {
       "contents": "read"
     },
     "protectedEnvironment": "prometheus-private-worker-production",
-    "environmentRequiredReviewer": true,
+    "environmentRequiredReviewer": false,
+    "environmentMainOnlyDeploymentRuleRequired": true,
+    "founderActor": "PrometheusRouteIQ",
+    "founderTriggeringActor": "PrometheusRouteIQ",
+    "firstRunAttemptOnly": true,
+    "exactFounderAuthorizationPhrase": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
     "concurrencyGroup": "deploy-prometheus-private-worker",
     "cancelInProgress": false
   },
@@ -209,6 +289,8 @@
     "founderEntersValuesDirectlyInGitHub": true,
     "valuesInGitChatWorkflowLogsArtifactsScreenshotsOrReportsAllowed": false,
     "verificationJobReceivesSecrets": false,
+    "founderAndInputPreflightReceivesSecrets": false,
+    "deploymentJobRequiresSuccessfulPreflight": true,
     "deploymentCredentialsScopedToOneDeploymentStep": true,
     "smokeCredentialsScopedToTwoFixedSmokeSteps": true
   },
@@ -250,8 +332,11 @@
     "environmentSecretsConfiguredByBatch": false,
     "serviceAuthPolicyConfiguredByBatch": false,
     "guardRuntimeConfiguredByBatch": false,
+    "requiredReviewerProtectionAvailable": false,
+    "environmentMainOnlyDeploymentRuleRequired": true,
+    "founderDispatchIdentityIsApprovalSignal": true,
     "deploymentReadyNow": false,
-    "reason": "Founder must complete the protected environment, four environment values, and the existing Access Service Auth plus read-only guard prerequisite before the first dispatch."
+    "reason": "Founder must configure the protected environment main-only rule, four environment values, and the existing Access Service Auth plus read-only guard prerequisite before the first authenticated dispatch."
   },
   "rollback": {
     "sourceRollback": "Create new forward-revert commits in reverse release order and run the complete exact-version suite; never reset or rewrite remote history.",

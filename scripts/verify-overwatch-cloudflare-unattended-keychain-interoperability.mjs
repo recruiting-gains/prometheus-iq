@@ -136,7 +136,8 @@ const ownerVerifierSuccessors = Object.freeze([
 
 const githubDeploymentOwnerCommits = new Set([
   "7f67855145104034b32551e25d2ebf407ce2369c",
-  "335f75fa1d7e32160624e9ebe197d11a03e77b4e"
+  "335f75fa1d7e32160624e9ebe197d11a03e77b4e",
+  "38e983b6d0a121d8aadf443938ab5985771eddac"
 ]);
 const githubDeploymentOwnerPaths = new Set([
   ".github/workflows/deploy-prometheus-private-worker.yml",
@@ -151,6 +152,7 @@ const githubDeploymentUniqueOverwatchPaths = new Set([
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json",
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.md",
   "overwatch/reports/BATCH-20260715-010-github-actions-founder-triggered-private-worker-deployment.json",
+  "overwatch/reports/BATCH-20260715-011-github-private-repository-founder-deployment-authorization.json",
   "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
   "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
 ]);

@@ -14,9 +14,32 @@ before/after comparison and cannot be passed to Wrangler. GitHub permissions are
 environment values and exists only inside the approved deployment job.
 
 The protected environment is named `prometheus-private-worker-production`. The
-Founder must configure its required reviewer, restrict it to `main`, and enter the
-four Cloudflare values directly in GitHub. Source installation does not configure
-that environment, attach an Access policy, deploy a Worker, or read any secret.
+Founder must restrict it to `main` and enter the four Cloudflare values directly in
+GitHub. Required-reviewer protection is unavailable for this private repository,
+so it is not represented as a control. Source installation does not configure that
+environment, attach an Access policy, deploy a Worker, or read any secret.
+
+## Private Repository Compatibility Successor
+
+`BATCH-20260715-011` preserves the original release architecture while replacing
+the unavailable required-reviewer assumption with an exact authenticated Founder
+dispatch. Prometheus Infrastructure implemented the successor in commit
+`38e983b6d0a121d8aadf443938ab5985771eddac`; Prometheus Overwatch independently
+verifies it and did not modify Infrastructure-owned implementation.
+
+The no-secret verification job requires `github.actor` and
+`github.triggering_actor` to both equal `PrometheusRouteIQ`, the workflow ref and
+runtime ref to identify `main`, and `github.run_attempt` to equal one. It also
+requires the exact nonsecret phrase `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE
+WORKER DEPLOYMENT` and exactly the five governed inputs. A rerun is therefore not a
+fresh approval and fails closed.
+
+Only a successful preflight can schedule the job that references
+`prometheus-private-worker-production`. Environment secrets are not referenced by
+the preflight and remain available only to the environment-backed deployment job.
+The environment's selected deployment branch rule must remain exactly `main`.
+There is no push, schedule, pull-request, `repository_dispatch`, `workflow_call`,
+`workflow_run`, rerun, or approval-bypass deployment path.
 
 Every dispatch must name the current `origin/main` commit, its tree, the governed
 batch ID, and the current private Worker version. The checked-out GitHub SHA, local

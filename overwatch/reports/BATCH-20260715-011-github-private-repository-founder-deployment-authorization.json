@@ -1,0 +1,75 @@
+{
+  "batchId": "BATCH-20260715-011",
+  "directive": "GitHub Private-Repository Founder Deployment Authorization Compatibility v1",
+  "status": "ENGINEERING_SOURCE_PASS_PENDING_EXACT_FINAL_HEAD_NOT_DEPLOYED",
+  "executiveSummary": "The private Worker workflow now treats a first-attempt manual dispatch by the exact Founder account with five exact inputs as explicit deployment approval while keeping the environment-backed job inaccessible until secret-free preflight succeeds.",
+  "dispatchAudit": {
+    "owningProduct": "Prometheus Platform",
+    "owningSubsystem": "Prometheus Infrastructure",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-16T01:55:39.863Z",
+    "ownerHandoffTimestamp": "2026-07-16T02:03:03Z",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedInfrastructureImplementation": false,
+    "implementationCommit": "38e983b6d0a121d8aadf443938ab5985771eddac",
+    "implementationTree": "6bf0c7608e4f73788bc9428ee2d40f3f8df7e811"
+  },
+  "completed": {
+    "workflowDispatchOnly": true,
+    "founderActorExact": "PrometheusRouteIQ",
+    "founderTriggeringActorExact": "PrometheusRouteIQ",
+    "workflowBranchExact": "main",
+    "firstRunAttemptOnly": true,
+    "rerunAllowed": false,
+    "exactFounderAuthorizationPhraseRequired": true,
+    "exactFiveInputSetRequired": true,
+    "secretFreePreflightRequired": true,
+    "environmentJobRequiresSuccessfulPreflight": true,
+    "protectedEnvironmentPreserved": "prometheus-private-worker-production",
+    "environmentMainOnlyDeploymentRuleRequired": true,
+    "privateWorkerOnly": true,
+    "publicWorkerExcluded": true,
+    "singleDeploymentAttempt": true,
+    "fixedGetHeadSmoke": true
+  },
+  "verification": {
+    "infrastructureOwnerVerifier": "PASS",
+    "infrastructureFocusedTests": 25,
+    "overwatchIndependentStatus": "PASS_PENDING_EXACT_FINAL_HEAD_SUITE",
+    "actorTriggeringActorBranchRerunAndInputAdversarialCoverage": "PASS",
+    "trackedSecretFindings": 0,
+    "cloudflareRequestsPerformed": 0,
+    "productionMutationsPerformed": 0
+  },
+  "githubPlanCompatibility": {
+    "repositoryVisibility": "private",
+    "requiredReviewerProtectionAvailable": false,
+    "environmentSecretsRetained": true,
+    "environmentSelectedBranchRuleRequired": "main",
+    "founderRunWorkflowActionIsApprovalSignal": true
+  },
+  "runtimeBoundaries": {
+    "deployment": "NOT_PERFORMED_NOT_AUTHORIZED_BY_THIS_BATCH",
+    "accessPolicyMutation": false,
+    "githubEnvironmentMutation": false,
+    "githubSecretEntry": false,
+    "cloudflareContact": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "rollback": {
+    "source": "Create new forward-revert commits in reverse release order and run complete exact-version verification.",
+    "production": "Use a separately Founder-authorized forward-revert commit and tree through the same manual workflow.",
+    "nativeCloudflareRollbackAllowed": false,
+    "gitHistoryRewriteAllowed": false,
+    "isolatedExerciseRequiredBeforePush": true
+  },
+  "release": {
+    "pushPolicy": "AUTOMATIC_NORMAL_FAST_FORWARD_AFTER_EXACT_VERSION_PASS",
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "pushMayTriggerDeployment": false,
+    "finalHeadTreePushAndRollbackFactsRecordedExternally": true
+  }
+}
