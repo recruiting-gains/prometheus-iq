@@ -1,0 +1,82 @@
+{
+  "batchId": "BATCH-20260715-010",
+  "directive": "GitHub Actions Founder-Triggered Private Worker Deployment v1",
+  "status": "ENGINEERING_SOURCE_PASS_SETUP_REQUIRED_NOT_DEPLOYED",
+  "executiveSummary": "A manual-only, protected-environment GitHub Actions workflow now provides the source-controlled path for deploying exactly one Founder-approved private prometheus-iq release from a phone. No deployment or provider mutation occurred.",
+  "owners": {
+    "implementation": "Prometheus Infrastructure",
+    "verification": "Prometheus Overwatch",
+    "ownershipRespected": true,
+    "implementationCommits": [
+      "7f67855145104034b32551e25d2ebf407ce2369c",
+      "335f75fa1d7e32160624e9ebe197d11a03e77b4e"
+    ]
+  },
+  "startingState": {
+    "blockedLocalHead": "48345d5e40d5f70ec1d1dfb4bf5eed4d337f7d23",
+    "releaseBase": "7c79e77dc52dd6aa5eb687ea9a24128800d9a28d",
+    "sixDiagnosticFilesPreservedByInfrastructure": true,
+    "localArchiveCommit": "497bddf1f3f6444e2455a09ba00ac28182e9ee59",
+    "blockedChainIncludedInRelease": false
+  },
+  "completed": {
+    "manualWorkflowDispatchOnly": true,
+    "exactRepositoryBranchCommitTreeAndBatchChecks": true,
+    "exactCurrentProductionVersionCheck": true,
+    "privateWorkerOnly": true,
+    "publicWorkerReadOnlyInvarianceCheck": true,
+    "protectedEnvironmentBoundary": true,
+    "readOnlyGithubPermissions": true,
+    "fourExactEnvironmentValueNames": true,
+    "fullVerificationBeforeEnvironmentApproval": true,
+    "singleDeploymentConcurrency": true,
+    "fixedReadOnlySmokeBeforeAndAfter": true,
+    "forwardOnlyRollback": true,
+    "oneTimeFounderSetupGuide": true
+  },
+  "independentFindingsAndRepairs": [
+    {
+      "finding": "The initial workflow declared an unsupported setup-node v4 cache input.",
+      "ownerRepair": "Infrastructure removed the input and now proves both supported cache inputs are absent.",
+      "status": "CLOSED"
+    },
+    {
+      "finding": "The initial post-deploy public check compared only version ID.",
+      "ownerRepair": "Infrastructure now requires both public deployment ID and version ID to remain unchanged.",
+      "status": "CLOSED"
+    }
+  ],
+  "verification": {
+    "infrastructureFocusedTests": 24,
+    "infrastructureFocusedStatus": "PASS",
+    "overwatchIndependentStatus": "PASS_PENDING_EXACT_FINAL_HEAD_SUITE",
+    "officialActionPinsVerified": true,
+    "trackedSecretFindings": 0,
+    "networkRequestsPerformed": 0,
+    "productionMutationsPerformed": 0
+  },
+  "boundaries": {
+    "deployment": "NOT_PERFORMED_NOT_AUTHORIZED_BY_THIS_BATCH",
+    "accessPolicyMutation": false,
+    "githubEnvironmentMutation": false,
+    "githubSecretEntry": false,
+    "keychainValueRead": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "setupReadiness": {
+    "workflowSourceReady": true,
+    "protectedEnvironmentReady": false,
+    "environmentSecretsReady": false,
+    "serviceAuthAndGuardPrerequisiteReady": false,
+    "firstDeploymentReady": false
+  },
+  "release": {
+    "engineeringStatus": "PASS_PENDING_EXACT_FINAL_HEAD_SUITE",
+    "pushPolicy": "AUTOMATIC_NORMAL_FAST_FORWARD_AFTER_EXACT_VERSION_PASS",
+    "deploymentStatus": "NOT_AUTHORIZED",
+    "deploymentRecommendation": "DO_NOT_DEPLOY_UNTIL_SETUP_AND_SEPARATE_FOUNDER_APPROVAL",
+    "finalHeadTreePushAndRollbackFactsRecordedExternally": true
+  }
+}

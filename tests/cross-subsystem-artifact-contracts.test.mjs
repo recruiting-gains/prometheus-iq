@@ -138,6 +138,20 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
       productionConsumer: false,
       failClosedIfMissing: true
+    },
+    {
+      artifactId: "github-actions-founder-triggered-private-worker-deployment-governance-v1",
+      artifactType: "overwatch_infrastructure_private_worker_deployment_release_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path:
+        "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json",
+      documentationPath:
+        "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.md",
+      schema: "GithubActionsFounderTriggeredPrivateWorkerDeploymentGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
     }
   ]);
 });

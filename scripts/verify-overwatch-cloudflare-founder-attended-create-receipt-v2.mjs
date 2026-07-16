@@ -39,6 +39,8 @@ const reconciliationReportPath =
   "overwatch/reports/BATCH-20260715-005-cloudflare-founder-attended-successful-response-reconciliation.json";
 const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
+const githubDeploymentGovernancePath =
+  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "358f817f7fc81bd82560840e5fd54668a7f58abe";
@@ -700,8 +702,14 @@ function verifyPredecessorTransitions(governance, rotation) {
   const packageTransition = governance.protectedReleaseWiringTransitions[0];
   const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
   const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
+  const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
+  const githubDeploymentTransition = githubDeploymentGovernance.protectedReleaseWiringTransitions[0];
   const keychainVerifierTransitions = new Map(
     keychainInteroperabilityGovernance.protectedOverwatchVerifierSuccessors
+      .map(item => [item.path, item])
+  );
+  const githubDeploymentVerifierTransitions = new Map(
+    githubDeploymentGovernance.protectedOverwatchVerifierSuccessors
       .map(item => [item.path, item])
   );
   const basePackage = execFileSync("/usr/bin/git", ["show", `${ownerParent}:package.json`], {
@@ -711,9 +719,11 @@ function verifyPredecessorTransitions(governance, rotation) {
   });
   if (packageTransition.previousSha256 !== sha256(basePackage)
     || packageTransition.successorSha256 !== keychainTransition.previousSha256
-    || keychainTransition.successorSha256 !== sha256(read("package.json"))
+    || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
+    || githubDeploymentTransition.successorSha256 !== sha256(read("package.json"))
     || packageTransition.owner !== "Prometheus Overwatch"
-    || keychainTransition.owner !== "Prometheus Overwatch") {
+    || keychainTransition.owner !== "Prometheus Overwatch"
+    || githubDeploymentTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Package release-wiring transition drifted.");
   }
   for (const item of governance.overwatchVerificationSuccessors) {
@@ -730,16 +740,24 @@ function verifyPredecessorTransitions(governance, rotation) {
       && rotation.implementationCommits.at(-1) ===
         "e10719d6d2ff312f2a5473c1fe000810e915509b";
     const verifierTransition = keychainVerifierTransitions.get(item.path);
+    const githubDeploymentTransition =
+      githubDeploymentVerifierTransitions.get(item.path);
     const isKeychainSuccessor = verifierTransition?.successorSha256 === current
       && verifierTransition?.owner === "Prometheus Overwatch"
       && (verifierTransition?.previousSha256 === item.successorSha256
         || isRotationSuccessor);
+    const isGithubDeploymentSuccessor =
+      githubDeploymentTransition?.previousSha256 === verifierTransition?.successorSha256
+      && githubDeploymentTransition?.successorSha256 === current
+      && githubDeploymentTransition?.owner === "Prometheus Overwatch";
     if (item.previousSha256 !== sha256(previous)
       || (item.successorSha256 !== current
         && !isRotationSuccessor
-        && !isKeychainSuccessor)
+        && !isKeychainSuccessor
+        && !isGithubDeploymentSuccessor)
       || (isRotationSuccessor && item.successorSha256 !== current
-        && !isKeychainSuccessor)
+        && !isKeychainSuccessor
+        && !isGithubDeploymentSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }

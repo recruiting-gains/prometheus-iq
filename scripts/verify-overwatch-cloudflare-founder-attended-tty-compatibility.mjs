@@ -20,6 +20,8 @@ const createReceiptV2GovernancePath =
   "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
 const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
+const githubDeploymentGovernancePath =
+  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -239,6 +241,11 @@ function verifyOwnerCommit(governance) {
     keychainInteroperabilityGovernance.protectedReleaseWiringTransitions?.find(item =>
       item.path === "package.json"
     );
+  const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
+  const githubDeploymentPackage =
+    githubDeploymentGovernance.protectedReleaseWiringTransitions?.find(item =>
+      item.path === "package.json"
+    );
   const founderPackage = packageTransitions.find(item =>
     item.predecessorGovernanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1"
   );
@@ -255,9 +262,11 @@ function verifyOwnerCommit(governance) {
     || recoveryPackage.owner !== "Prometheus Overwatch"
     || responseContractPackage?.successorSha256 !== createReceiptV2Package?.previousSha256
     || createReceiptV2Package?.successorSha256 !== keychainPackage?.previousSha256
-    || keychainPackage?.successorSha256 !== currentPackageHash
+    || keychainPackage?.successorSha256 !== githubDeploymentPackage?.previousSha256
+    || githubDeploymentPackage?.successorSha256 !== currentPackageHash
     || createReceiptV2Package?.owner !== "Prometheus Overwatch"
     || keychainPackage?.owner !== "Prometheus Overwatch"
+    || githubDeploymentPackage?.owner !== "Prometheus Overwatch"
     || responseContractPackage?.owner !== "Prometheus Overwatch") {
     throw new Error("Protected package release-wiring transition drifted.");
   }

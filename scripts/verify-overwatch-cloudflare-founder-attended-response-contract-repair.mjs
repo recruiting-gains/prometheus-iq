@@ -32,6 +32,8 @@ const createReceiptV2GovernancePath =
   "overwatch/governance/cloudflare-founder-attended-live-create-receipt-safe-provisioning-repair-v2.json";
 const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
+const githubDeploymentGovernancePath =
+  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const primaryCommit = "04a38d6424099824fa3760314c7b660ce30b6930";
 const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
@@ -341,10 +343,16 @@ function verifyOverwatchSuccessors(governance) {
     keychainInteroperabilityGovernance.protectedOverwatchVerifierSuccessors
       .map(item => [item.path, item])
   );
+  const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
+  const githubDeploymentTransitions = new Map(
+    githubDeploymentGovernance.protectedOverwatchVerifierSuccessors
+      .map(item => [item.path, item])
+  );
   for (const item of governance.overwatchVerificationSuccessors) {
     const current = sha256(readFileSync(resolve(root, item.path)));
     const transition = transitions.get(item.path);
     const keychainTransition = keychainTransitions.get(item.path);
+    const githubDeploymentTransition = githubDeploymentTransitions.get(item.path);
     if (!/^[0-9a-f]{64}$/u.test(item.previousSha256)
       || (current !== item.successorSha256
         && !(transition?.previousSha256 === item.successorSha256
@@ -352,7 +360,11 @@ function verifyOverwatchSuccessors(governance) {
           && transition?.owner === "Prometheus Overwatch")
         && !(transition?.previousSha256 === item.successorSha256
           && keychainTransition?.previousSha256 === transition.successorSha256
-          && keychainTransition?.successorSha256 === current
+          && (keychainTransition?.successorSha256 === current
+            || (githubDeploymentTransition?.previousSha256 ===
+                keychainTransition?.successorSha256
+              && githubDeploymentTransition?.successorSha256 === current
+              && githubDeploymentTransition?.owner === "Prometheus Overwatch"))
           && transition?.owner === "Prometheus Overwatch"
           && keychainTransition?.owner === "Prometheus Overwatch"))) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
@@ -392,6 +404,8 @@ function verifyReleaseWiring(governance) {
   const currentTransition = createReceiptV2Governance.protectedReleaseWiringTransitions[0];
   const keychainInteroperabilityGovernance = readJson(keychainInteroperabilityGovernancePath);
   const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
+  const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
+  const githubDeploymentTransition = githubDeploymentGovernance.protectedReleaseWiringTransitions[0];
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-response-contract:check"] !==
       expectedOverwatch
     || packageJson.scripts["infrastructure:cloudflare-founder-attended-response-contract:check"] !==
@@ -412,9 +426,11 @@ function verifyReleaseWiring(governance) {
       "infrastructure:cloudflare-founder-attended-create-receipt-v2:check")
     || transition.successorSha256 !== currentTransition.previousSha256
     || currentTransition.successorSha256 !== keychainTransition.previousSha256
-    || keychainTransition.successorSha256 !== sha256(read("package.json"))
+    || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
+    || githubDeploymentTransition.successorSha256 !== sha256(read("package.json"))
     || currentTransition.owner !== "Prometheus Overwatch"
-    || keychainTransition.owner !== "Prometheus Overwatch") {
+    || keychainTransition.owner !== "Prometheus Overwatch"
+    || githubDeploymentTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Response-contract release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended-response-contract-(?:diagnostic|prepare|provision)/u

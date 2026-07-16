@@ -134,6 +134,27 @@ const ownerVerifierSuccessors = Object.freeze([
   }
 ]);
 
+const githubDeploymentOwnerCommits = new Set([
+  "7f67855145104034b32551e25d2ebf407ce2369c",
+  "335f75fa1d7e32160624e9ebe197d11a03e77b4e"
+]);
+const githubDeploymentOwnerPaths = new Set([
+  ".github/workflows/deploy-prometheus-private-worker.yml",
+  "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
+  "scripts/lib/github-actions-private-worker-deployment.mjs",
+  "scripts/run-github-actions-private-worker-deployment.mjs",
+  "scripts/verify-github-actions-private-worker-deployment.mjs",
+  "tests/github-actions-private-worker-deployment.test.mjs",
+  "workers/infrastructure/github-actions-founder-triggered-private-worker-deployment-v1.json"
+]);
+const githubDeploymentUniqueOverwatchPaths = new Set([
+  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json",
+  "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.md",
+  "overwatch/reports/BATCH-20260715-010-github-actions-founder-triggered-private-worker-deployment.json",
+  "scripts/verify-overwatch-github-actions-private-worker-deployment.mjs",
+  "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
+]);
+
 const expectedOverwatchPaths = Object.freeze([
   "overwatch/artifact-contracts/canonical-artifact-registry.json",
   governanceDocumentationPath,
@@ -523,7 +544,9 @@ function verifyOverwatchOwnership() {
     .split("\n").filter(Boolean);
   if (commits.length === 0) throw new Error("Overwatch governance commit is missing.");
   for (const commit of commits) {
-    if (commit === ownerRepairCommit || commit === ownerVerifierRepairCommit) continue;
+    if (commit === ownerRepairCommit
+      || commit === ownerVerifierRepairCommit
+      || githubDeploymentOwnerCommits.has(commit)) continue;
     const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
       .split("\n");
     if (!equal(metadata, [
@@ -536,7 +559,10 @@ function verifyOverwatchOwnership() {
   const ownerRepairPaths = new Set(ownerImplementationSuccessors.map(item => item.path));
   const ownerVerifierRepairPaths = new Set(ownerVerifierSuccessors.map(item => item.path));
   const overwatchPaths = paths.filter(path => (
-    !ownerRepairPaths.has(path) && !ownerVerifierRepairPaths.has(path)
+    !ownerRepairPaths.has(path)
+      && !ownerVerifierRepairPaths.has(path)
+      && !githubDeploymentOwnerPaths.has(path)
+      && !githubDeploymentUniqueOverwatchPaths.has(path)
   ));
   if (!equal([...overwatchPaths].sort(), [...expectedOverwatchPaths].sort())) {
     throw new Error("Overwatch governance file set drifted.");
