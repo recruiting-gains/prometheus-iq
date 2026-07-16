@@ -59,6 +59,13 @@ const ownerRepairPaths = Object.freeze([
 ]);
 const protectedOverwatchVerifierSuccessors = Object.freeze([
   {
+    path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+    previousSha256: "6365219622cd6aebb4db6bfee5d8c76a5250fef7b3f735a5f1974bd0d94d635b",
+    successorSha256: "bdec71cc16497e842264419e81c13dfd865c94c1a200138912208ad6e01f9e30",
+    owner: "Prometheus Overwatch",
+    reason: "Carry the original unattended-access package evidence through the Founder-triggered private Worker deployment release successor."
+  },
+  {
     path: "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
     previousSha256: "2790795f724fe7d5c251cac45605e922372c4cec2f6b924e9dd11d218ad189f0",
     successorSha256: "147000b8f5cf5962f6e65a1378f6051bff8ca62212d4a0187d3eb013a14494ed",
@@ -295,6 +302,14 @@ export function evaluateGithubActionsPrivateWorkerDeploymentGovernance({
   require(equal(governance.ownerEvidence,
     Object.entries(ownerHashes).map(([path, hash]) => ({ path, sha256: hash }))),
   "Owner evidence map drifted.");
+  require(equal(governance.protectedPredecessorSuccessors, [{
+    predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+    path: "package.json",
+    historicalSha256: "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+    successorSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
+    successorOwner: "Prometheus Overwatch",
+    reason: "Carry the original unattended-access package baseline through the manual GitHub deployment release-gate successor."
+  }]), "Protected unattended-access package successor drifted.");
   require(equal(governance.protectedReleaseWiringTransitions, [{
     path: "package.json",
     previousSha256: "20ef38b1eb8a04119362e72338329ddfa0c3d2b2272a4b9526a65d8a5c01061d",
@@ -520,13 +535,15 @@ function verifyOverwatchOwnership() {
   }
   const commits = git(["rev-list", "--reverse", `${ownerRepairCommit}..HEAD`])
     .split("\n").filter(Boolean);
-  if (commits.length !== 1) throw new Error("Overwatch successor commit count drifted.");
-  const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commits[0]])
-    .split("\n");
-  if (!equal(metadata, [
-    "Prometheus Overwatch <overwatch@prometheus.local>",
-    "Prometheus Overwatch <overwatch@prometheus.local>"
-  ])) throw new Error("Overwatch successor ownership drifted.");
+  if (commits.length !== 2) throw new Error("Overwatch successor commit count drifted.");
+  for (const commit of commits) {
+    const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
+      .split("\n");
+    if (!equal(metadata, [
+      "Prometheus Overwatch <overwatch@prometheus.local>",
+      "Prometheus Overwatch <overwatch@prometheus.local>"
+    ])) throw new Error("Overwatch successor ownership drifted.");
+  }
   const paths = git(["diff", "--name-only", ownerRepairCommit, "HEAD"])
     .split("\n").filter(Boolean);
   if (!equal([...paths].sort(), [...expectedOverwatchPaths].sort())) {

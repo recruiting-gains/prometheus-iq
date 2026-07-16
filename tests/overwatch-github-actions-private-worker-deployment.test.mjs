@@ -55,6 +55,7 @@ test("governance rejects ownership, blocked-chain, secret, activation, and relea
     value => { value.startingStateAudit.diagnosticDisposition.includedInRelease = true; },
     value => { value.startingStateAudit.unverifiedDiagnosticWorkPushed = true; },
     value => { value.ownerEvidence[0].sha256 = "0".repeat(64); },
+    value => { value.protectedPredecessorSuccessors[0].successorOwner = "Prometheus Infrastructure"; },
     value => { value.protectedReleaseWiringTransitions[0].successorSha256 = "0".repeat(64); },
     value => { value.protectedOverwatchVerifierSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.protectedVerificationAssetSuccessors[0].owner = "Prometheus Infrastructure"; },
