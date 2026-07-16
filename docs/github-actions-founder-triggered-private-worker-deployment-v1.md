@@ -2,11 +2,11 @@
 
 ## Status and Boundary
 
-This is Prometheus Infrastructure source for `BATCH-20260715-010`. It is
-`IMPLEMENTED_NOT_EXECUTED`: No deployment was performed, no Cloudflare or GitHub API
-was mutated, no secret was entered, no Keychain was read, and no production setting
-was changed in this implementation batch. Prometheus Overwatch owns later release
-wiring and governance review.
+This is Prometheus Infrastructure source for `BATCH-20260715-011`. It is
+`PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED`: No deployment was performed,
+no Cloudflare or GitHub API was mutated, no secret was entered, no Keychain was read,
+and no production setting was changed in this implementation batch. Prometheus
+Overwatch owns later release wiring and governance review.
 
 The workflow is fixed to repository `PrometheusRouteIQ/prometheus-iq`, branch `main`,
 and private Worker `prometheus-iq`. The public Worker
@@ -17,24 +17,34 @@ source for this workflow.
 ## Control Flow
 
 `Deploy Prometheus Private Worker` has only a manual `workflow_dispatch` trigger.
-The Founder supplies four required strings: the exact approved commit, its exact
-tree, the batch ID, and the current production version UUID. The workflow rejects
-anything except a 40-character lowercase commit and tree, a
-`BATCH-YYYYMMDD-NNN` batch, and a canonical lowercase UUID.
+The Founder supplies five required strings: the exact approved commit, its exact
+tree, the batch ID, the current production version UUID, and the fixed nonsecret
+confirmation `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT`. The
+workflow rejects anything except a 40-character lowercase commit and tree, a
+`BATCH-YYYYMMDD-NNN` batch, a canonical lowercase UUID, and that exact phrase. The
+event payload must contain exactly those five input names with identical values.
 
-The secret-free verification job checks the GitHub repository, event, ref, and SHA;
-checks checked-out HEAD, tree, branch, origin URL, local `origin/main`, worktree,
-index, and Git object integrity; installs the lockfile; and runs the complete
-repository test, lint, typecheck, security, Aegis, cross-subsystem contract, build,
-secret-scan, and Infrastructure owner gates.
+The secret-free verification job requires `github.actor` and
+`github.triggering_actor` to both equal `PrometheusRouteIQ`. It requires the exact
+repository, workflow name, workflow file, `main` branch/ref, first run attempt,
+manual event, and input set before validating checked-out HEAD, tree, origin URL,
+local `origin/main`, worktree, index, and Git object integrity. A rerun is rejected;
+the Founder must make a fresh authenticated dispatch and re-enter current inputs.
+The job then runs the complete repository test, lint, typecheck, security, Aegis,
+cross-subsystem contract, build, secret-scan, and Infrastructure owner gates.
 
 The pinned `actions/setup-node` steps omit both supported caching inputs, `cache` and
 `cache-dependency-path`, so dependency caching remains disabled. The workflow does
 not use the unsupported `package-manager-cache` input.
 
-The deploy job starts only after verification and protected-environment approval.
-It repeats repository and configuration verification before network use. A fixed
-GET reads Cloudflare's deployments endpoint for the private and public Workers.
+The environment-backed deploy job starts only after the secret-free verification
+job returns success. The environment is still fixed to
+`prometheus-private-worker-production`, but required-reviewer protection is
+unavailable for this private repository. The authenticated Founder dispatch, exact
+phrase, first-attempt guard, and exact release inputs are the explicit deployment
+approval signal. The deploy job repeats repository and configuration verification
+before network use. A fixed GET reads Cloudflare's deployments endpoint for the
+private and public Workers.
 The first deployment must contain exactly one version at 100 percent, and the
 private version must equal the Founder input. Any redirect, timeout, malformed or
 oversized envelope, split traffic, stale version, or concurrent change fails
@@ -70,7 +80,7 @@ body.
 
 1. In repository Settings, open Actions, then General. Set **Actions workflow permissions** to the read-only option for repository contents and packages. Do not grant write permission to the workflow token.
 2. Create the protected environment named exactly `prometheus-private-worker-production`.
-3. Add the Founder under **Required reviewers**. Limit deployment branches to `main`. Do not bypass the approval gate.
+3. Configure the environment's main-only deployment branch rule. Do not permit tags, release branches, or all-branch deployment. This private repository does not expose the required-reviewer protection used by the earlier design.
 4. Enter these four values directly as environment secrets in GitHub: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_ACCESS_CLIENT_ID`, and `CLOUDFLARE_ACCESS_CLIENT_SECRET`. Do not place them in repository variables, files, issue text, workflow inputs, logs, or artifacts.
 5. Scope the Cloudflare API token to the exact Prometheus account and the least Workers Scripts read/write permissions needed to read deployments and deploy `prometheus-iq`. Do not grant DNS, Access administration, token administration, KV administration, routes, other accounts, or global-key access.
 6. Before enabling this workflow, complete the separately Founder-attended service-auth prerequisite: the existing private Access application must admit only the exact service token, and the existing source guard must be configured and deployed so that the fixed smoke marker is validated and only its GET/HEAD path allowlist can pass. This workflow does not create Access policy or service-token configuration.
@@ -82,13 +92,15 @@ Open the Actions tab from GitHub on a trusted desktop or phone, choose **Deploy
 Prometheus Private Worker**, and choose branch `main`. Enter the exact commit at
 current `origin/main`, its exact Git tree, the approved batch ID, and the latest
 active private Worker version UUID observed through an attended read-only source.
-Do not enter credentials or account identifiers as inputs.
+For the authorization input, type exactly `I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE
+WORKER DEPLOYMENT`. Do not enter credentials or account identifiers as inputs.
 
-Review the verification job first. Approve the
-`prometheus-private-worker-production` environment only when all four identity
-values and the displayed commit remain the Founder-approved release. Concurrency is
-fixed to `deploy-prometheus-private-worker`; a second dispatch waits and cannot
-cancel an in-progress deployment.
+Clicking **Run workflow** while authenticated as `PrometheusRouteIQ`, with the exact
+five inputs, is the explicit Founder approval. Both the original actor and triggering
+actor must be that account. Only the first run attempt is valid, so **Re-run jobs**
+cannot bypass fresh approval. Concurrency is fixed to
+`deploy-prometheus-private-worker`; a second dispatch waits and cannot cancel an
+in-progress deployment.
 
 ## Failure and Uncertainty
 
@@ -113,8 +125,8 @@ scope, update the four environment secrets directly in GitHub, verify the old va
 are no longer referenced, and revoke the old credentials. For emergency revocation,
 revoke the Cloudflare API token and Access service token first, then delete or disable
 the four GitHub environment secrets. A revoked or absent value must leave the
-workflow fail closed. Review environment access and required reviewers after any
-Founder or operator change.
+workflow fail closed. Review the exact Founder account, environment branch rule, and
+repository visibility after any Founder or operator change.
 
 ## Primary Contracts
 

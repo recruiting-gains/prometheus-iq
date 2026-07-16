@@ -29,6 +29,7 @@ import {
   verifyStaticDeploymentPolicy
 } from "../scripts/lib/github-actions-private-worker-deployment.mjs";
 import {
+  assertFounderDispatchAuthorization,
   assertSetupNodeCachingDisabled,
   verifyGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-github-actions-private-worker-deployment.mjs";
@@ -57,17 +58,38 @@ const deploymentTokenName = ["CLOUDFLARE", "API", "TOKEN"].join("_");
 const deploymentAccountName = ["CLOUDFLARE", "ACCOUNT", "ID"].join("_");
 const accessClientIdName = ["CLOUDFLARE", "ACCESS", "CLIENT", "ID"].join("_");
 const accessClientSecretName = ["CLOUDFLARE", "ACCESS", "CLIENT", "SECRET"].join("_");
+const founderAuthorization = "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT";
+
+function validDispatchInputs(overrides = {}) {
+  return {
+    approved_commit: approvedCommit,
+    approved_tree: approvedTree,
+    batch_id: "BATCH-20260715-011",
+    current_production_version: currentVersion,
+    founder_authorization: founderAuthorization,
+    ...overrides
+  };
+}
 
 function validEnvironment(overrides = {}) {
   return {
     PROMETHEUS_APPROVED_COMMIT: approvedCommit,
     PROMETHEUS_APPROVED_TREE: approvedTree,
-    PROMETHEUS_BATCH_ID: "BATCH-20260715-010",
+    PROMETHEUS_BATCH_ID: "BATCH-20260715-011",
     PROMETHEUS_CURRENT_PRODUCTION_VERSION: currentVersion,
+    PROMETHEUS_FOUNDER_AUTHORIZATION: founderAuthorization,
+    PROMETHEUS_DISPATCH_INPUTS_JSON: JSON.stringify(validDispatchInputs()),
     GITHUB_REPOSITORY: "PrometheusRouteIQ/prometheus-iq",
     GITHUB_REF: "refs/heads/main",
+    GITHUB_REF_NAME: "main",
+    GITHUB_REF_TYPE: "branch",
     GITHUB_EVENT_NAME: "workflow_dispatch",
     GITHUB_SHA: approvedCommit,
+    GITHUB_ACTOR: "PrometheusRouteIQ",
+    GITHUB_TRIGGERING_ACTOR: "PrometheusRouteIQ",
+    GITHUB_WORKFLOW: "Deploy Prometheus Private Worker",
+    GITHUB_WORKFLOW_REF: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main",
+    GITHUB_RUN_ATTEMPT: "1",
     ...overrides
   };
 }
@@ -75,8 +97,9 @@ function validEnvironment(overrides = {}) {
 const validInputs = Object.freeze({
   approvedCommit,
   approvedTree,
-  batchId: "BATCH-20260715-010",
-  currentProductionVersion: currentVersion
+  batchId: "BATCH-20260715-011",
+  currentProductionVersion: currentVersion,
+  founderAuthorization
 });
 
 function validIdentity(overrides = {}) {
@@ -223,7 +246,7 @@ function createSpawnStub({ exitCode = 0, output = "", captured }) {
 test("owner verifier proves the source-only workflow contract without network access", () => {
   const result = verifyGithubActionsPrivateWorkerDeployment();
   assert.equal(result.status, "passed");
-  assert.equal(result.implementationStatus, "IMPLEMENTED_NOT_EXECUTED");
+  assert.equal(result.implementationStatus, "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED");
   assert.equal(result.networkRequestsPerformed, 0);
   assert.equal(result.productionMutationPerformed, false);
   assert.equal(result.publicWorkerDeploymentAllowed, false);
@@ -244,6 +267,48 @@ test("setup-node caching is disabled by omitting both supported inputs", () => {
   }
 });
 
+test("workflow authorization rejects trigger broadening, identity weakening, reruns, secret scope, and environment bypass", () => {
+  const workflow = readFileSync(join(
+    repositoryRoot,
+    ".github/workflows/deploy-prometheus-private-worker.yml"
+  ), "utf8");
+  assert.doesNotThrow(() => assertFounderDispatchAuthorization(workflow));
+  for (const forbiddenTrigger of [
+    "push",
+    "schedule",
+    "repository_dispatch",
+    "workflow_call",
+    "workflow_run",
+    "pull_request",
+    "pull_request_target"
+  ]) {
+    assert.throws(() => assertFounderDispatchAuthorization(
+      workflow.replace("  workflow_dispatch:\n", `  workflow_dispatch:\n  ${forbiddenTrigger}:\n`)
+    ));
+  }
+  for (const mutated of [
+    workflow.replace("github.actor == 'PrometheusRouteIQ'", "github.actor != ''"),
+    workflow.replace("github.triggering_actor == 'PrometheusRouteIQ'", "github.triggering_actor != ''"),
+    workflow.replace("github.run_attempt == 1", "github.run_attempt >= 1"),
+    workflow.replace("github.ref == 'refs/heads/main'", "github.ref != ''"),
+    workflow.replace("    needs: verification\n", ""),
+    workflow.replace(
+      "    if: ${{ needs.verification.result == 'success' }}\n",
+      "    if: ${{ always() }}\n"
+    ),
+    workflow.replace(
+      "      name: prometheus-private-worker-production",
+      "      name: unprotected-environment"
+    ),
+    workflow.replace(
+      "    runs-on: ubuntu-latest\n    timeout-minutes: 60",
+      "    runs-on: ubuntu-latest\n    env:\n      INJECTED: ${{ secrets.CLOUDFLARE_API_TOKEN }}\n    timeout-minutes: 60"
+    )
+  ]) {
+    assert.throws(() => assertFounderDispatchAuthorization(mutated));
+  }
+});
+
 test("Founder input formats and exact GitHub context are mandatory", () => {
   assert.deepEqual(validateFounderDeploymentInputs(validEnvironment()), validInputs);
   for (const overrides of [
@@ -253,15 +318,27 @@ test("Founder input formats and exact GitHub context are mandatory", () => {
     { PROMETHEUS_BATCH_ID: "BATCH-2026715-010" },
     { PROMETHEUS_BATCH_ID: "batch-20260715-010" },
     { PROMETHEUS_CURRENT_PRODUCTION_VERSION: "NOT-A-UUID" },
-    { PROMETHEUS_CURRENT_PRODUCTION_VERSION: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".toUpperCase() }
+    { PROMETHEUS_CURRENT_PRODUCTION_VERSION: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".toUpperCase() },
+    { PROMETHEUS_FOUNDER_AUTHORIZATION: "I AUTHORIZE A DIFFERENT RELEASE" },
+    { PROMETHEUS_DISPATCH_INPUTS_JSON: "not-json" },
+    { PROMETHEUS_DISPATCH_INPUTS_JSON: JSON.stringify(validDispatchInputs({ extra: "denied" })) },
+    { PROMETHEUS_DISPATCH_INPUTS_JSON: JSON.stringify({ ...validDispatchInputs(), approved_tree: undefined }) },
+    { PROMETHEUS_DISPATCH_INPUTS_JSON: JSON.stringify(validDispatchInputs({ batch_id: "BATCH-20260715-999" })) }
   ]) {
     expectCode(() => validateFounderDeploymentInputs(validEnvironment(overrides)), DEPLOYMENT_FAILURE.INPUT_INVALID);
   }
   for (const overrides of [
     { GITHUB_REPOSITORY: "PrometheusRouteIQ/other" },
     { GITHUB_REF: "refs/heads/release" },
+    { GITHUB_REF_NAME: "release" },
+    { GITHUB_REF_TYPE: "tag" },
     { GITHUB_EVENT_NAME: "push" },
-    { GITHUB_SHA: "c".repeat(40) }
+    { GITHUB_SHA: "c".repeat(40) },
+    { GITHUB_ACTOR: "another-user" },
+    { GITHUB_TRIGGERING_ACTOR: "another-user" },
+    { GITHUB_WORKFLOW: "Another Workflow" },
+    { GITHUB_WORKFLOW_REF: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/release" },
+    { GITHUB_RUN_ATTEMPT: "2" }
   ]) {
     expectCode(() => validateFounderDeploymentInputs(validEnvironment(overrides)), DEPLOYMENT_FAILURE.CONTEXT_INVALID);
   }

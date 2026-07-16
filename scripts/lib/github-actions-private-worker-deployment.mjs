@@ -6,8 +6,15 @@ export const PRIVATE_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   contractVersion: "github-actions-founder-triggered-private-worker-deployment-v1",
   repository: "PrometheusRouteIQ/prometheus-iq",
   repositoryUrl: "https://github.com/PrometheusRouteIQ/prometheus-iq",
+  founderActor: "PrometheusRouteIQ",
+  founderAuthorization: "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
+  workflowName: "Deploy Prometheus Private Worker",
+  workflowPath: ".github/workflows/deploy-prometheus-private-worker.yml",
+  workflowRef: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main",
   branch: "main",
   ref: "refs/heads/main",
+  refType: "branch",
+  firstRunAttempt: "1",
   eventName: "workflow_dispatch",
   privateWorker: "prometheus-iq",
   publicWorker: "prometheusrouteiq-website",
@@ -56,6 +63,13 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const MAX_TEXT_FILE_BYTES = 2_000_000;
 const MAX_GIT_OUTPUT_BYTES = 1_000_000;
 const GIT_TIMEOUT_MS = 30_000;
+const FOUNDER_INPUT_NAMES = Object.freeze([
+  "approved_commit",
+  "approved_tree",
+  "batch_id",
+  "current_production_version",
+  "founder_authorization"
+]);
 const DEPLOYMENT_CREDENTIAL_ENV = Object.freeze({
   apiToken: ["CLOUDFLARE", "API", "TOKEN"].join("_"),
   accountId: ["CLOUDFLARE", "ACCOUNT", "ID"].join("_")
@@ -103,17 +117,42 @@ export function validateFounderDeploymentInputs(environment) {
   const approvedTree = environment.PROMETHEUS_APPROVED_TREE;
   const batchId = environment.PROMETHEUS_BATCH_ID;
   const currentProductionVersion = environment.PROMETHEUS_CURRENT_PRODUCTION_VERSION;
+  const founderAuthorization = environment.PROMETHEUS_FOUNDER_AUTHORIZATION;
 
   if (!LOWER_HEX_40.test(approvedCommit ?? "")
     || !LOWER_HEX_40.test(approvedTree ?? "")
     || !BATCH_ID.test(batchId ?? "")
-    || !UUID.test(currentProductionVersion ?? "")) {
+    || !UUID.test(currentProductionVersion ?? "")
+    || founderAuthorization !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization) {
     fail(DEPLOYMENT_FAILURE.INPUT_INVALID);
   }
+
+  let dispatchInputs;
+  try {
+    dispatchInputs = JSON.parse(environment.PROMETHEUS_DISPATCH_INPUTS_JSON ?? "");
+  } catch {
+    fail(DEPLOYMENT_FAILURE.INPUT_INVALID);
+  }
+  if (!hasExactKeys(dispatchInputs, FOUNDER_INPUT_NAMES)
+    || dispatchInputs.approved_commit !== approvedCommit
+    || dispatchInputs.approved_tree !== approvedTree
+    || dispatchInputs.batch_id !== batchId
+    || dispatchInputs.current_production_version !== currentProductionVersion
+    || dispatchInputs.founder_authorization !== founderAuthorization) {
+    fail(DEPLOYMENT_FAILURE.INPUT_INVALID);
+  }
+
   if (environment.GITHUB_REPOSITORY !== PRIVATE_WORKER_DEPLOYMENT_POLICY.repository
     || environment.GITHUB_REF !== PRIVATE_WORKER_DEPLOYMENT_POLICY.ref
+    || environment.GITHUB_REF_NAME !== PRIVATE_WORKER_DEPLOYMENT_POLICY.branch
+    || environment.GITHUB_REF_TYPE !== PRIVATE_WORKER_DEPLOYMENT_POLICY.refType
     || environment.GITHUB_EVENT_NAME !== PRIVATE_WORKER_DEPLOYMENT_POLICY.eventName
-    || environment.GITHUB_SHA !== approvedCommit) {
+    || environment.GITHUB_SHA !== approvedCommit
+    || environment.GITHUB_ACTOR !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
+    || environment.GITHUB_TRIGGERING_ACTOR !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
+    || environment.GITHUB_WORKFLOW !== PRIVATE_WORKER_DEPLOYMENT_POLICY.workflowName
+    || environment.GITHUB_WORKFLOW_REF !== PRIVATE_WORKER_DEPLOYMENT_POLICY.workflowRef
+    || environment.GITHUB_RUN_ATTEMPT !== PRIVATE_WORKER_DEPLOYMENT_POLICY.firstRunAttempt) {
     fail(DEPLOYMENT_FAILURE.CONTEXT_INVALID);
   }
 
@@ -121,7 +160,8 @@ export function validateFounderDeploymentInputs(environment) {
     approvedCommit,
     approvedTree,
     batchId,
-    currentProductionVersion
+    currentProductionVersion,
+    founderAuthorization
   });
 }
 
@@ -332,9 +372,9 @@ export function verifyStaticDeploymentPolicy(root) {
 
   if (!isPlainObject(contract)
     || contract.contractVersion !== PRIVATE_WORKER_DEPLOYMENT_POLICY.contractVersion
-    || contract.batchId !== "BATCH-20260715-010"
+    || contract.batchId !== "BATCH-20260715-011"
     || contract.owner !== "Prometheus Infrastructure"
-    || contract.implementationStatus !== "IMPLEMENTED_NOT_EXECUTED"
+    || contract.implementationStatus !== "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED"
     || contract.deploymentPerformed !== false
     || contract.productionMutationPerformed !== false
     || contract.target?.repository !== PRIVATE_WORKER_DEPLOYMENT_POLICY.repository
@@ -342,6 +382,11 @@ export function verifyStaticDeploymentPolicy(root) {
     || contract.target?.privateWorker !== PRIVATE_WORKER_DEPLOYMENT_POLICY.privateWorker
     || contract.target?.publicWorker !== PRIVATE_WORKER_DEPLOYMENT_POLICY.publicWorker
     || contract.target?.publicWorkerDeploymentAllowed !== false
+    || contract.founderAuthorization?.actor !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
+    || contract.founderAuthorization?.triggeringActor !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor
+    || contract.founderAuthorization?.exactPhrase !== PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization
+    || contract.founderAuthorization?.rerunAllowed !== false
+    || contract.founderAuthorization?.environmentJobRequiresSuccessfulPreflight !== true
     || contract.runtimeBoundaries?.collection !== "OFF"
     || contract.runtimeBoundaries?.activeCohortCount !== 0
     || contract.runtimeBoundaries?.recommendationInfluence !== "OFF"

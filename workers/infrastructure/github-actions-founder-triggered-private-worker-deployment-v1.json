@@ -1,8 +1,8 @@
 {
   "contractVersion": "github-actions-founder-triggered-private-worker-deployment-v1",
-  "batchId": "BATCH-20260715-010",
+  "batchId": "BATCH-20260715-011",
   "owner": "Prometheus Infrastructure",
-  "implementationStatus": "IMPLEMENTED_NOT_EXECUTED",
+  "implementationStatus": "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED",
   "releaseWiringOwner": "Prometheus Overwatch",
   "deploymentPerformed": false,
   "productionMutationPerformed": false,
@@ -50,18 +50,34 @@
       }
     }
   },
+  "founderAuthorization": {
+    "actor": "PrometheusRouteIQ",
+    "triggeringActor": "PrometheusRouteIQ",
+    "workflowBranch": "main",
+    "workflowRef": "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main",
+    "firstRunAttemptOnly": true,
+    "rerunAllowed": false,
+    "exactPhrase": "I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT",
+    "requiredReviewerProtectionAvailable": false,
+    "dispatchIsExplicitApproval": true,
+    "validationOccursWithoutSecrets": true,
+    "environmentJobRequiresSuccessfulPreflight": true
+  },
   "founderInputs": {
     "allRequiredStrings": true,
     "names": [
       "approved_commit",
       "approved_tree",
       "batch_id",
-      "current_production_version"
+      "current_production_version",
+      "founder_authorization"
     ],
     "commitFormat": "40_lowercase_hex",
     "treeFormat": "40_lowercase_hex",
     "batchFormat": "BATCH-YYYYMMDD-NNN",
     "productionVersionFormat": "canonical_lowercase_uuid",
+    "authorizationPhraseExactMatchRequired": true,
+    "eventInputSetMustMatchExactly": true,
     "githubShaMustEqualApprovedCommit": true,
     "headAndOriginMainMustEqualApprovedCommit": true,
     "headTreeMustEqualApprovedTree": true,
@@ -168,7 +184,10 @@
   },
   "oneTimeSetup": {
     "protectedEnvironmentRequired": true,
-    "requiredFounderReviewer": true,
+    "requiredFounderReviewer": false,
+    "requiredReviewerProtectionUnavailableForCurrentPrivateRepository": true,
+    "environmentMainOnlyDeploymentRuleRequired": true,
+    "founderDispatchIdentityIsApprovalSignal": true,
     "fourValuesEnteredDirectlyInGitHub": true,
     "repositoryActionsWorkflowPermissions": "read_only",
     "serviceAuthPrerequisiteRequired": true,

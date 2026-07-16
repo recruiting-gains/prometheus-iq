@@ -49,6 +49,56 @@ export function assertSetupNodeCachingDisabled(workflow) {
   );
 }
 
+export function assertFounderDispatchAuthorization(workflow) {
+  const trigger = section(workflow, "on:\n", "permissions:\n");
+  const verificationJob = section(workflow, "  verification:\n", "  deploy:\n");
+  const deployJob = workflow.slice(workflow.indexOf("  deploy:\n"));
+  const triggerNames = [...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]);
+  const inputNames = [...trigger.matchAll(/^      ([a-z_]+):$/gmu)].map(match => match[1]);
+
+  assert.deepEqual(triggerNames, ["workflow_dispatch"]);
+  assert.deepEqual(inputNames, [
+    "approved_commit",
+    "approved_tree",
+    "batch_id",
+    "current_production_version",
+    "founder_authorization"
+  ]);
+  assert.equal(count(trigger, /^        required: true$/gmu), 5);
+  assert.equal(count(trigger, /^        type: string$/gmu), 5);
+  assert.match(
+    trigger,
+    /description: Type exactly I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT/u
+  );
+
+  for (const predicate of [
+    "github.event_name == 'workflow_dispatch'",
+    "github.repository == 'PrometheusRouteIQ/prometheus-iq'",
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.ref == 'refs/heads/main'",
+    "github.ref_name == 'main'",
+    "github.ref_type == 'branch'",
+    "github.workflow == 'Deploy Prometheus Private Worker'",
+    "github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-private-worker.yml@refs/heads/main'",
+    "github.run_attempt == 1",
+    "inputs.founder_authorization == 'I AUTHORIZE THIS EXACT PROMETHEUS PRIVATE WORKER DEPLOYMENT'"
+  ]) {
+    assert.ok(verificationJob.includes(predicate), `preflight missing ${predicate}`);
+  }
+  assert.equal(count(workflow, /^          PROMETHEUS_FOUNDER_AUTHORIZATION: \$\{\{ inputs\.founder_authorization \}\}$/gmu), 4);
+  assert.equal(count(workflow, /^          PROMETHEUS_DISPATCH_INPUTS_JSON: \$\{\{ toJSON\(github\.event\.inputs\) \}\}$/gmu), 4);
+  assert.doesNotMatch(verificationJob, /\$\{\{\s*secrets\./u);
+  assert.doesNotMatch(verificationJob, /prometheus-private-worker-production/u);
+  assert.match(deployJob, /^    needs: verification$/mu);
+  assert.match(deployJob, /^    if: \$\{\{ needs\.verification\.result == 'success' \}\}$/mu);
+  assert.match(deployJob, /environment:\n      name: prometheus-private-worker-production/u);
+
+  const inputReferences = [...workflow.matchAll(/\$\{\{\s*inputs\.([a-z_]+)\s*\}\}/gu)]
+    .map(match => match[1]);
+  assert.deepEqual([...new Set(inputReferences)].sort(), inputNames.toSorted());
+}
+
 export function verifyGithubActionsPrivateWorkerDeployment() {
   for (const path of Object.values(paths)) {
     assert.equal(existsSync(resolve(root, path)), true, `${path} must exist`);
@@ -59,17 +109,12 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   const runner = read(paths.runner);
   const documentation = read(paths.documentation);
   const contract = JSON.parse(read(paths.contract));
-  const trigger = section(workflow, "on:\n", "permissions:\n");
   const permissions = section(workflow, "permissions:\n", "concurrency:\n");
   const verificationJob = section(workflow, "  verification:\n", "  deploy:\n");
   const deployJob = workflow.slice(workflow.indexOf("  deploy:\n"));
 
   assert.match(workflow, /^name: Deploy Prometheus Private Worker$/mu);
-  assert.match(trigger, /^on:\n  workflow_dispatch:\n/mu);
-  assert.doesNotMatch(trigger, /(?:push|pull_request|schedule|workflow_call|repository_dispatch):/u);
-  assert.equal(count(trigger, /^      (?:approved_commit|approved_tree|batch_id|current_production_version):$/gmu), 4);
-  assert.equal(count(trigger, /^        required: true$/gmu), 4);
-  assert.equal(count(trigger, /^        type: string$/gmu), 4);
+  assertFounderDispatchAuthorization(workflow);
   assert.equal(permissions.trim(), "permissions:\n  contents: read");
   assert.match(workflow, /concurrency:\n  group: deploy-prometheus-private-worker\n  cancel-in-progress: false/u);
 
@@ -87,8 +132,6 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   assertSetupNodeCachingDisabled(workflow);
   assert.doesNotMatch(workflow, /actions\/(?:cache|upload-artifact|download-artifact)@/u);
 
-  assert.doesNotMatch(verificationJob, /\$\{\{\s*secrets\./u);
-  assert.doesNotMatch(verificationJob, /prometheus-private-worker-production/u);
   for (const command of [
     "npm ci",
     "npm test",
@@ -110,6 +153,7 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   }
 
   assert.match(deployJob, /needs: verification/u);
+  assert.match(deployJob, /if: \$\{\{ needs\.verification\.result == 'success' \}\}/u);
   assert.match(deployJob, /environment:\n      name: prometheus-private-worker-production/u);
   assert.equal(count(deployJob, /run: node scripts\/run-github-actions-private-worker-deployment\.mjs verify/gmu), 2);
   assert.equal(count(deployJob, /run: timeout 120s node scripts\/run-cloudflare-unattended-smoke\.mjs --execute-fixed-profile/gmu), 2);
@@ -140,9 +184,9 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   }
 
   assert.equal(contract.contractVersion, PRIVATE_WORKER_DEPLOYMENT_POLICY.contractVersion);
-  assert.equal(contract.batchId, "BATCH-20260715-010");
+  assert.equal(contract.batchId, "BATCH-20260715-011");
   assert.equal(contract.owner, "Prometheus Infrastructure");
-  assert.equal(contract.implementationStatus, "IMPLEMENTED_NOT_EXECUTED");
+  assert.equal(contract.implementationStatus, "PRIVATE_REPOSITORY_COMPATIBILITY_IMPLEMENTED_NOT_EXECUTED");
   assert.equal(contract.releaseWiringOwner, "Prometheus Overwatch");
   assert.equal(contract.deploymentPerformed, false);
   assert.equal(contract.productionMutationPerformed, false);
@@ -151,6 +195,12 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   assert.equal(contract.target.privateWorker, PRIVATE_WORKER_DEPLOYMENT_POLICY.privateWorker);
   assert.equal(contract.target.publicWorker, PRIVATE_WORKER_DEPLOYMENT_POLICY.publicWorker);
   assert.equal(contract.target.publicWorkerDeploymentAllowed, false);
+  assert.equal(contract.founderAuthorization.actor, PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor);
+  assert.equal(contract.founderAuthorization.triggeringActor, PRIVATE_WORKER_DEPLOYMENT_POLICY.founderActor);
+  assert.equal(contract.founderAuthorization.rerunAllowed, false);
+  assert.equal(contract.founderAuthorization.exactPhrase, PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization);
+  assert.equal(contract.founderAuthorization.requiredReviewerProtectionAvailable, false);
+  assert.equal(contract.founderAuthorization.dispatchIsExplicitApproval, true);
   assert.equal(contract.runtimeBoundaries.collection, "OFF");
   assert.equal(contract.runtimeBoundaries.activeCohortCount, 0);
   assert.equal(contract.runtimeBoundaries.recommendationInfluence, "OFF");
@@ -170,8 +220,9 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   const syntheticInputs = Object.freeze({
     approvedCommit: "a".repeat(40),
     approvedTree: "b".repeat(40),
-    batchId: "BATCH-20260715-010",
-    currentProductionVersion: "11111111-1111-1111-1111-111111111111"
+    batchId: "BATCH-20260715-011",
+    currentProductionVersion: "11111111-1111-1111-1111-111111111111",
+    founderAuthorization: PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization
   });
   const dryRun = buildWranglerInvocation("dry-run", syntheticInputs);
   const deployment = buildWranglerInvocation("deploy", syntheticInputs);
@@ -209,7 +260,12 @@ export function verifyGithubActionsPrivateWorkerDeployment() {
   for (const requiredText of [
     "One-Time Founder Setup",
     "prometheus-private-worker-production",
-    "Required reviewers",
+    "required-reviewer protection",
+    "unavailable for this private repository",
+    "PrometheusRouteIQ",
+    PRIVATE_WORKER_DEPLOYMENT_POLICY.founderAuthorization,
+    "first run attempt",
+    "main-only deployment branch rule",
     "PrometheusRouteIQ/prometheus-iq",
     "prometheus-iq",
     "prometheusrouteiq-website",
