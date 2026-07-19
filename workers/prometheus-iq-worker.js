@@ -1,3 +1,6 @@
+import { createRemoteJWKSet, jwtVerify } from "jose";
+
+import routeIqFounderDailySnapshot from "../intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json" with { type: "json" };
 import {
   completeMetaInstagramOAuthConnection,
   verifyMetaInstagramOAuthState
@@ -49,6 +52,16 @@ const STATUS_PATH = "/api/oauth/meta/instagram/status";
 const INSTAGRAM_SNAPSHOT_PATH = "/api/social/instagram/snapshot";
 const INSTAGRAM_REPORT_PATH = "/api/social/instagram/report";
 const ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH = "/api/dashboard/route-iq/field-session";
+const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH = "/api/dashboard/route-iq/intelligence/daily-snapshot";
+const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION = "route-iq-commercial-readiness-intelligence-v1";
+const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID = "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4";
+const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV = Object.freeze({
+  enabled: "ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENABLED",
+  workerName: "ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_WORKER_NAME",
+  accessAudience: "ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ACCESS_AUDIENCE",
+  accessTeamDomain: "ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ACCESS_TEAM_DOMAIN",
+  founderSubjectSha256: "ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_FOUNDER_SUBJECT_SHA256"
+});
 const ROUTE_IQ_FIELD_SESSION_MAX_BODY_BYTES = 512 * 1024;
 const ROUTE_IQ_FIELD_SESSION_MAX_ASSET_BYTES = 4 * 1024 * 1024;
 const ROUTE_IQ_FIELD_SESSION_ACTIONS = Object.freeze(["end_route", "end_day"]);
@@ -69,6 +82,34 @@ const REQUIRED_TOKEN_PATCH_KEYS = Object.freeze([
   "INSTAGRAM_TOKEN_EXPIRES_AT",
   "INSTAGRAM_CONNECTION_VERIFIED_AT"
 ]);
+const ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_KEYS = Object.freeze([
+  "audience",
+  "businessConfigurationSha256",
+  "businessConfigurationVersion",
+  "changesSincePrevious",
+  "classificationAuthority",
+  "confidence",
+  "dataQuality",
+  "evidenceClassification",
+  "evidenceCollected",
+  "evidenceFreshness",
+  "generatedFromEvidenceAt",
+  "governedEvidenceSha256",
+  "governedInputSha256",
+  "learningCoverage",
+  "operatingProfileId",
+  "ownerSubsystem",
+  "retentionPolicyVersion",
+  "safety",
+  "schemaVersion",
+  "snapshotId",
+  "snapshotSha256",
+  "visitAndOutcomeTrends",
+  "workspaceId"
+].sort());
+
+let routeIqFounderSnapshotJwksOrigin = null;
+let routeIqFounderSnapshotJwks = null;
 
 const SECURITY_HEADERS = Object.freeze({
   ...AEGIS_API_HEADERS
@@ -117,6 +158,219 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function routeIqFounderSnapshotError(code, status) {
+  const error = new Error(code);
+  error.code = code;
+  error.status = status;
+  return error;
+}
+
+function routeIqFounderSnapshotResponse(body, status = 200, headers = {}) {
+  return jsonResponse(body, status, {
+    "Cache-Control": "no-store",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "X-Content-Type-Options": "nosniff",
+    ...headers
+  });
+}
+
+function routeIqFounderSnapshotConfigString(value, max) {
+  if (typeof value !== "string"
+    || value.length < 1
+    || value.length > max
+    || /[\u0000-\u001F\u007F\s]/u.test(value)) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_config_invalid", 503);
+  }
+  return value;
+}
+
+function routeIqFounderSnapshotTeamDomain(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_config_invalid", 503);
+  }
+  if (url.protocol !== "https:"
+    || !/^[a-z0-9-]+\.cloudflareaccess\.com$/u.test(url.hostname)
+    || (url.pathname !== "/" && url.pathname !== "")
+    || url.search
+    || url.hash
+    || url.username
+    || url.password
+    || url.port) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_config_invalid", 503);
+  }
+  return url.origin;
+}
+
+function routeIqFounderSnapshotJwksFor(issuer) {
+  if (routeIqFounderSnapshotJwksOrigin !== issuer || !routeIqFounderSnapshotJwks) {
+    routeIqFounderSnapshotJwksOrigin = issuer;
+    routeIqFounderSnapshotJwks = createRemoteJWKSet(new URL(`${issuer}/cdn-cgi/access/certs`), {
+      timeoutDuration: 5000,
+      cooldownDuration: 30000
+    });
+  }
+  return routeIqFounderSnapshotJwks;
+}
+
+async function routeIqFounderSnapshotSha256(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value)));
+  return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function canonicalRouteIqFounderSnapshotJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalRouteIqFounderSnapshotJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalRouteIqFounderSnapshotJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function routeIqFounderSnapshotHasForbiddenOutput(value) {
+  if (Array.isArray(value)) return value.some(routeIqFounderSnapshotHasForbiddenOutput);
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(([key, child]) => (
+    /(?:shadow|ranked.?candidate|candidate.?manifest|probabilit|sealed.?decision|model.?version|engine.?version|rule.?version)/iu.test(key)
+      || routeIqFounderSnapshotHasForbiddenOutput(child)
+  ));
+}
+
+function routeIqFounderSnapshotExactKeys(value, expected) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const actual = Object.keys(value).sort();
+  return actual.length === expected.length && actual.every((key, index) => key === expected[index]);
+}
+
+export async function validateRouteIqFounderDailySnapshot(snapshot) {
+  if (!routeIqFounderSnapshotExactKeys(snapshot, ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_KEYS)
+    || snapshot.schemaVersion !== "route-iq-daily-intelligence-snapshot-v1"
+    || snapshot.ownerSubsystem !== "Prometheus Intelligence Engine"
+    || snapshot.audience !== "founder_only"
+    || snapshot.workspaceId !== "fitness_connection"
+    || snapshot.operatingProfileId !== "fitness"
+    || snapshot.evidenceClassification !== "FOUNDER_FIELD_RESEARCH"
+    || snapshot.classificationAuthority !== "Prometheus Data"
+    || snapshot.businessConfigurationVersion !== "route-iq-commercial-workspace-registry-v1"
+    || !/^[a-f0-9]{64}$/u.test(String(snapshot.businessConfigurationSha256 || ""))
+    || snapshot.retentionPolicyVersion !== "route-iq-founder-retention-18-month-v1"
+    || snapshot.snapshotId !== `route-iq-daily-snapshot-${String(snapshot.governedInputSha256 || "").slice(0, 24)}`
+    || !/^[a-f0-9]{64}$/u.test(String(snapshot.snapshotSha256 || ""))
+    || !/^[a-f0-9]{64}$/u.test(String(snapshot.governedEvidenceSha256 || ""))
+    || !/^[a-f0-9]{64}$/u.test(String(snapshot.governedInputSha256 || ""))
+    || !Array.isArray(snapshot.evidenceCollected?.sourceRecordHashes)
+    || snapshot.evidenceCollected.sourceRecordHashes.length !== snapshot.evidenceCollected?.totalRecords
+    || snapshot.evidenceCollected.sourceRecordHashes.some(hash => !/^[a-f0-9]{64}$/u.test(String(hash)))
+    || snapshot.dataQuality?.exclusionRecordsAdmitted !== 0
+    || snapshot.dataQuality?.rawNotesConsumed !== false
+    || snapshot.dataQuality?.contactInformationConsumed !== false
+    || snapshot.dataQuality?.preciseLocationTrailsConsumed !== false
+    || !["INSUFFICIENT_EVIDENCE", "OBSERVING"].includes(snapshot.confidence?.state)
+    || snapshot.confidence?.insufficiencyIsRecommendation !== false
+    || snapshot.confidence?.predictionClaimed !== false
+    || snapshot.confidence?.causalClaimed !== false
+    || snapshot.learningCoverage?.coverageState !== snapshot.confidence?.state
+    || snapshot.safety?.readOnly !== true
+    || snapshot.safety?.founderOnly !== true
+    || snapshot.safety?.representativeReadable !== false
+    || snapshot.safety?.recommendationInfluence !== "OFF"
+    || snapshot.safety?.routeOrderingChanged !== false
+    || snapshot.safety?.routeScoringWeightsChanged !== false
+    || snapshot.safety?.discoveryModeInfluenceChanged !== false
+    || snapshot.safety?.nearbyContextInfluenceChanged !== false
+    || snapshot.safety?.offRouteLearningInfluenceChanged !== false
+    || snapshot.safety?.sourceEvidenceMutationAllowed !== false
+    || routeIqFounderSnapshotHasForbiddenOutput(snapshot)) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_artifact_invalid", 503);
+  }
+  const copy = JSON.parse(JSON.stringify(snapshot));
+  delete copy.snapshotSha256;
+  const computed = await routeIqFounderSnapshotSha256(canonicalRouteIqFounderSnapshotJson(copy));
+  if (computed !== snapshot.snapshotSha256) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_artifact_invalid", 503);
+  }
+  return JSON.parse(JSON.stringify(snapshot));
+}
+
+async function authorizeRouteIqFounderDailySnapshot(request, env, testHooks) {
+  if (env?.[ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV.enabled] !== "ON"
+    || env?.[ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV.workerName] !== "prometheus-iq") {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_not_configured", 404);
+  }
+  const issuer = routeIqFounderSnapshotTeamDomain(env?.[ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV.accessTeamDomain]);
+  const audience = routeIqFounderSnapshotConfigString(env?.[ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV.accessAudience], 256);
+  const expectedSubjectSha256 = routeIqFounderSnapshotConfigString(
+    env?.[ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV.founderSubjectSha256],
+    64
+  );
+  if (!/^[a-f0-9]{64}$/u.test(expectedSubjectSha256)) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_config_invalid", 503);
+  }
+  const token = request.headers.get("Cf-Access-Jwt-Assertion");
+  if (!token || token.length > 16 * 1024) {
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_auth_required", 403);
+  }
+  try {
+    const currentDate = testHooks?.enabled === true ? testHooks.currentDate : undefined;
+    const keyResolver = testHooks?.enabled === true ? testHooks.keyResolver : routeIqFounderSnapshotJwksFor(issuer);
+    const { payload } = await jwtVerify(token, keyResolver, {
+      issuer,
+      audience,
+      algorithms: ["RS256"],
+      requiredClaims: ["sub", "iat", "exp"],
+      clockTolerance: 5,
+      ...(currentDate ? { currentDate } : {})
+    });
+    if (typeof payload.sub !== "string"
+      || payload.sub.length < 1
+      || payload.sub.length > 512
+      || await routeIqFounderSnapshotSha256(payload.sub) !== expectedSubjectSha256) {
+      throw routeIqFounderSnapshotError("route_iq_founder_snapshot_principal_unmapped", 403);
+    }
+    return Object.freeze({
+      identityContextSource: "server_verified_identity_mapping",
+      authenticationAuthority: "cloudflare_access",
+      authenticated: true,
+      callerSupplied: false,
+      role: "founder",
+      mappingId: "route-iq-founder-access-cruz-v1",
+      immutablePrincipalId: ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
+      mappingStatus: "securely_mapped"
+    });
+  } catch (error) {
+    if (error?.code?.startsWith?.("route_iq_founder_snapshot_")) throw error;
+    throw routeIqFounderSnapshotError("route_iq_founder_snapshot_auth_invalid", 403);
+  }
+}
+
+async function handleRouteIqFounderDailySnapshot(request, env = {}, { testHooks } = {}) {
+  try {
+    const principal = await authorizeRouteIqFounderDailySnapshot(request, env, testHooks);
+    if (request.method !== "GET") {
+      return routeIqFounderSnapshotResponse({ ok: false, code: "route_iq_founder_snapshot_method_not_allowed" }, 405, {
+        Allow: "GET"
+      });
+    }
+    const source = testHooks?.enabled === true && testHooks.snapshot
+      ? testHooks.snapshot
+      : routeIqFounderDailySnapshot;
+    return routeIqFounderSnapshotResponse({
+      ok: true,
+      authorized: true,
+      contractVersion: ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION,
+      principal,
+      snapshot: await validateRouteIqFounderDailySnapshot(source)
+    });
+  } catch (error) {
+    const status = Number.isInteger(error?.status) ? error.status : 500;
+    const code = typeof error?.code === "string" && /^route_iq_founder_snapshot_[a-z0-9_]+$/u.test(error.code)
+      ? error.code
+      : "route_iq_founder_snapshot_unavailable";
+    return routeIqFounderSnapshotResponse({ ok: false, code }, status);
+  }
 }
 
 function wantsJson(request) {
@@ -673,8 +927,11 @@ async function handleRouteIqFieldSessionHandoff(request, env, {
   }
 }
 
-async function handleApiRequest(request, env, executionContext) {
+async function handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks } = {}) {
   const url = new URL(request.url);
+  if (url.pathname === ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH) {
+    return handleRouteIqFounderDailySnapshot(request, env, { testHooks: dailySnapshotTestHooks });
+  }
   if (isRouteIqRequestCrmPath(url.pathname)) return handleRouteIqRequestCrmRuntimeRequest(request, env);
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
@@ -690,7 +947,8 @@ async function handleApiRequest(request, env, executionContext) {
 }
 
 export async function handlePrometheusIqWorkerRequest(request, env, executionContext, {
-  unattendedSmokeTestHooks
+  unattendedSmokeTestHooks,
+  dailySnapshotTestHooks
 } = {}) {
   const smokeAuthorization = await authorizeCloudflareUnattendedSmokeRequest(request, env, {
     noncanonicalTestHooks: unattendedSmokeTestHooks
@@ -707,7 +965,7 @@ export async function handlePrometheusIqWorkerRequest(request, env, executionCon
       const aegis = await enforceAegisControls(request, env);
       response = !aegis.ok
         ? aegis.response
-        : withAegisHeaders(await handleApiRequest(request, env, executionContext), aegis);
+        : withAegisHeaders(await handleApiRequest(request, env, executionContext, { dailySnapshotTestHooks }), aegis);
     } else {
       response = await env.ASSETS.fetch(
         sanitizeCloudflareUnattendedSmokeAssetRequest(request, smokeAuthorization)
@@ -736,11 +994,16 @@ export {
   INSTAGRAM_REPORT_PATH,
   INSTAGRAM_SNAPSHOT_PATH,
   ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
+  ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_CONTRACT_VERSION,
+  ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_ENV,
+  ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PATH,
+  ROUTE_IQ_FOUNDER_DAILY_SNAPSHOT_PRINCIPAL_ID,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   ROUTE_IQ_REQUEST_CRM_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
   handleRouteIqRequestCrmRuntimeRequest,
+  handleRouteIqFounderDailySnapshot,
   handleRouteIqFieldSessionHandoff,
   handleRouteIqProspectiveShadowRequest,
   persistMetaInstagramTokenPatch,
