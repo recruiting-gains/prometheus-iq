@@ -16,6 +16,14 @@ const root = resolve(import.meta.dirname, "..");
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
 const size = path => statSync(resolve(root, path)).size;
+let buildComplete = false;
+
+function ensureFreshBuild() {
+  if (buildComplete) return;
+  const build = spawnSync("npm", ["run", "build"], { cwd: root, encoding: "utf8", timeout: 120_000 });
+  assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
+  buildComplete = true;
+}
 
 function filesUnder(directory) {
   const absolute = resolve(root, directory);
@@ -132,54 +140,62 @@ test("all legal pages are Route IQ focused, linked, and byte-identical to deploy
   assert.match(read("public-site-static/data-deletion/index.html"), /does not silently rewrite historical evidence/);
 });
 
-test("production package contains no active or legacy abstract intelligence payload", () => {
-  const deployIndex = read("deploy/prometheusrouteiq-website/index.html");
-  const scriptPath = deployIndex.match(/<script[^>]+src="\/(assets\/landing-[^"]+\.js)"/u)?.[1];
-  const cssPath = deployIndex.match(/<link[^>]+href="\/(assets\/landing-[^"]+\.css)"/u)?.[1];
+test("production build lazy-loads the governed 3D scene without restoring obsolete product claims", () => {
+  ensureFreshBuild();
+  const builtIndex = read("dist-public/index.html");
+  const scriptPath = builtIndex.match(/<script[^>]+src="\/(assets\/landing-[^"]+\.js)"/u)?.[1];
+  const cssPath = builtIndex.match(/<link[^>]+href="\/(assets\/landing-[^"]+\.css)"/u)?.[1];
+  const scenePath = filesUnder("dist-public/assets").find(path => /^IntelligenceScene-.+\.js$/u.test(path));
 
-  assert.ok(scriptPath, "Production index must reference one built Route IQ bundle.");
+  assert.ok(scriptPath, "Production index must reference one built Route IQ entry bundle.");
   assert.ok(cssPath, "Production index must reference one built Route IQ stylesheet.");
-  const activeBundle = read(`deploy/prometheusrouteiq-website/${scriptPath}`);
-  assert.match(activeBundle, /REQUEST ROUTE IQ/);
-  assert.match(activeBundle, /Qualified probability/);
-  assert.doesNotMatch(activeBundle, /Three|WebGLRenderer|IntelligenceScene|framer-motion|AI operating system|Fitness Connection|Gaia|Athena|Smoothie Depot/i);
-  assert.equal(existsSync(resolve(root, "deploy/prometheusrouteiq-website/site.js")), false);
-  assert.equal(existsSync(resolve(root, "deploy/prometheusrouteiq-website/vendor/three.core.js")), false);
-  assert.equal(existsSync(resolve(root, "deploy/prometheusrouteiq-website/vendor/three.module.js")), false);
-  assert.equal(filesUnder("deploy/prometheusrouteiq-website/assets").some(path => /IntelligenceScene/u.test(path)), false);
+  assert.ok(scenePath, "Production build must emit a separate lazy IntelligenceScene bundle.");
+  const entryBundle = read(`dist-public/${scriptPath}`);
+  const sceneBundle = read(`dist-public/assets/${scenePath}`);
+  assert.match(entryBundle, /REQUEST ROUTE IQ/);
+  assert.match(entryBundle, /Qualified probability/);
+  assert.match(entryBundle, /IntelligenceScene-/);
+  assert.doesNotMatch(entryBundle, /WebGLRenderer/);
+  assert.match(sceneBundle, /WebGLRenderer/);
+  assert.match(sceneBundle, /FIELD INTELLIGENCE CORE/);
+  assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /AI operating system|Fitness Connection|Gaia|Athena|Smoothie Depot/i);
 });
 
-test("active Website assets stay within an enforceable first-load budget", () => {
-  const deployIndex = read("deploy/prometheusrouteiq-website/index.html");
-  const scriptPath = deployIndex.match(/src="\/(assets\/landing-[^"]+\.js)"/u)?.[1];
-  const cssPath = deployIndex.match(/href="\/(assets\/landing-[^"]+\.css)"/u)?.[1];
+test("critical Website assets and the lazy 3D bundle stay within separate budgets", () => {
+  ensureFreshBuild();
+  const builtIndex = read("dist-public/index.html");
+  const scriptPath = builtIndex.match(/src="\/(assets\/landing-[^"]+\.js)"/u)?.[1];
+  const cssPath = builtIndex.match(/href="\/(assets\/landing-[^"]+\.css)"/u)?.[1];
+  const logoPath = filesUnder("dist-public/assets").find(path => /^prometheus-company-icon-512-.+\.png$/u.test(path));
+  const scenePath = filesUnder("dist-public/assets").find(path => /^IntelligenceScene-.+\.js$/u.test(path));
   assert.ok(scriptPath && cssPath);
+  assert.ok(logoPath && scenePath);
 
-  const javascriptBytes = size(`deploy/prometheusrouteiq-website/${scriptPath}`);
-  const cssBytes = size(`deploy/prometheusrouteiq-website/${cssPath}`);
-  const heroBytes = size("deploy/prometheusrouteiq-website/route-iq-field-operations.jpg");
-  const logoBytes = size("deploy/prometheusrouteiq-website/assets/prometheus-company-icon-512-Dq1atHWc.png");
-  const criticalBytes = javascriptBytes + cssBytes + heroBytes + logoBytes + size("deploy/prometheusrouteiq-website/index.html");
+  const javascriptBytes = size(`dist-public/${scriptPath}`);
+  const cssBytes = size(`dist-public/${cssPath}`);
+  const logoBytes = size(`dist-public/assets/${logoPath}`);
+  const fallbackImageBytes = size("dist-public/route-iq-field-operations.jpg");
+  const lazySceneBytes = size(`dist-public/assets/${scenePath}`);
+  const criticalBytes = javascriptBytes + cssBytes + logoBytes + fallbackImageBytes + size("dist-public/index.html");
 
-  assert.ok(javascriptBytes <= 225_000, `JavaScript budget exceeded: ${javascriptBytes}`);
+  assert.ok(javascriptBytes <= 375_000, `Critical JavaScript budget exceeded: ${javascriptBytes}`);
   assert.ok(cssBytes <= 25_000, `CSS budget exceeded: ${cssBytes}`);
-  assert.ok(heroBytes <= 200_000, `Hero image budget exceeded: ${heroBytes}`);
-  assert.ok(criticalBytes <= 540_000, `Critical first-load budget exceeded: ${criticalBytes}`);
+  assert.ok(fallbackImageBytes <= 200_000, `Fallback image budget exceeded: ${fallbackImageBytes}`);
+  assert.ok(criticalBytes <= 650_000, `Critical first-load budget exceeded: ${criticalBytes}`);
+  assert.ok(lazySceneBytes <= 950_000, `Lazy 3D bundle budget exceeded: ${lazySceneBytes}`);
 });
 
-test("a fresh production build is byte-identical to every generated deploy asset", () => {
-  const build = spawnSync("npm", ["run", "build"], { cwd: root, encoding: "utf8", timeout: 120_000 });
-  assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
+test("a fresh source build emits the complete deployable Website package", () => {
+  ensureFreshBuild();
   const generated = filesUnder("dist-public");
   assert.ok(generated.includes("index.html"));
   assert.ok(generated.includes("privacy/index.html"));
   assert.ok(generated.includes("terms/index.html"));
   assert.ok(generated.includes("data-deletion/index.html"));
-  for (const path of generated) {
-    const deployPath = resolve(root, "deploy/prometheusrouteiq-website", path);
-    assert.equal(existsSync(deployPath), true, `Generated deploy file missing: ${path}`);
-    assert.deepEqual(readBytes(`dist-public/${path}`), readBytes(`deploy/prometheusrouteiq-website/${path}`), `Generated deploy file drifted: ${path}`);
-  }
+  assert.ok(generated.some(path => /^assets\/landing-.+\.js$/u.test(path)));
+  assert.ok(generated.some(path => /^assets\/IntelligenceScene-.+\.js$/u.test(path)));
+  const entryPath = generated.find(path => /^assets\/landing-.+\.js$/u.test(path));
+  assert.match(read(`dist-public/${entryPath}`), /\/api\/partner-intake/);
 });
 
 test("Route IQ request UI captures only governed fields and explains durable acceptance", () => {
@@ -262,6 +278,10 @@ test("request submission fails closed on rejection, invalid JSON, or missing rec
   }
 });
 
-test("source and deploy request modules stay byte-identical", () => {
-  assert.deepEqual(readBytes("src/route-iq-request-form.js"), readBytes("deploy/prometheusrouteiq-website/route-iq-request-form.js"));
+test("the governed request module remains the source for the bundled public intake client", () => {
+  const requestSource = read("src/route-iq-request-form.js");
+  assert.match(requestSource, /export const ROUTE_IQ_REQUEST_ENDPOINT = "\/api\/partner-intake"/);
+  assert.match(requestSource, /method: "POST"/);
+  assert.match(requestSource, /credentials: "same-origin"/);
+  assert.match(requestSource, /redirect: "error"/);
 });

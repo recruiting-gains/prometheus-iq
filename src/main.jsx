@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import prometheusLogoUrl from "../icons/prometheus-company-icon-512.png";
 import {
   buildRouteIqRequestPayload,
@@ -10,6 +11,110 @@ import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
 const instagramUrl = "https://www.instagram.com/prometheus.IQ";
+const IntelligenceScene = React.lazy(() => import("./IntelligenceScene.jsx"));
+
+function supportsWebGl() {
+  try {
+    const canvas = document.createElement("canvas");
+    const context = window.WebGL2RenderingContext
+      ? canvas.getContext("webgl2", { failIfMajorPerformanceCaveat: true })
+      : window.WebGLRenderingContext
+        ? canvas.getContext("webgl", { failIfMajorPerformanceCaveat: true })
+        : null;
+    context?.getExtension("WEBGL_lose_context")?.loseContext();
+    return Boolean(context);
+  } catch {
+    return false;
+  }
+}
+
+function HeroFallback() {
+  return (
+    <div className="hero-fallback" data-visual-fallback="field-operations" aria-hidden="true">
+      <img
+        src="/route-iq-field-operations.jpg"
+        alt=""
+        width="1600"
+        height="900"
+        decoding="async"
+        fetchPriority="high"
+      />
+    </div>
+  );
+}
+
+class HeroSceneBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) return <HeroFallback />;
+    return this.props.children;
+  }
+}
+
+function HeroVisual() {
+  const [mode, setMode] = useState("pending");
+
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle;
+    let timeoutHandle;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+
+    const cancelActivation = () => {
+      if (idleHandle !== undefined && window.cancelIdleCallback) window.cancelIdleCallback(idleHandle);
+      if (timeoutHandle !== undefined) window.clearTimeout(timeoutHandle);
+      idleHandle = undefined;
+      timeoutHandle = undefined;
+    };
+
+    const evaluate = () => {
+      cancelActivation();
+      if (reducedMotion.matches || connection?.saveData || !supportsWebGl()) {
+        setMode("fallback");
+        return;
+      }
+
+      setMode("pending");
+      const activate = () => {
+        if (!cancelled) setMode("scene");
+      };
+      if (window.requestIdleCallback) idleHandle = window.requestIdleCallback(activate, { timeout: 1200 });
+      else timeoutHandle = window.setTimeout(activate, 1);
+    };
+
+    evaluate();
+    reducedMotion.addEventListener?.("change", evaluate);
+    connection?.addEventListener?.("change", evaluate);
+    return () => {
+      cancelled = true;
+      cancelActivation();
+      reducedMotion.removeEventListener?.("change", evaluate);
+      connection?.removeEventListener?.("change", evaluate);
+    };
+  }, []);
+
+  if (mode === "fallback") return <HeroFallback />;
+  if (mode === "pending") return <div className="hero-scene-loading" data-visual-mode="pending" aria-hidden="true" />;
+
+  return (
+    <div className="hero-scene-canvas" data-visual-mode="scene" aria-hidden="true">
+      <HeroSceneBoundary>
+        <Suspense fallback={<div className="hero-scene-loading" data-visual-mode="loading" aria-hidden="true" />}>
+          <IntelligenceScene />
+        </Suspense>
+      </HeroSceneBoundary>
+    </div>
+  );
+}
 
 function LogoMark() {
   return <img className="logo-mark" src={prometheusLogoUrl} alt="" width="512" height="512" />;
@@ -190,6 +295,10 @@ function RouteIqRequestForm() {
 }
 
 function App() {
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const sceneScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
+  const sceneOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.58]);
   const lifecycle = [
     ["01", "Governed field evidence", "Authorized records retain source, time, schema, quality, exclusions, and integrity context."],
     ["02", "Governed intelligence", "Leaders can review coverage, freshness, trends, and learning state without changing a representative's workflow."],
@@ -220,9 +329,22 @@ function App() {
       </header>
 
       <section id="top" className="hero-section">
-        <img className="hero-image" src="/route-iq-field-operations.jpg" alt="A synthetic field representative reviewing a route through a commercial district" width="1600" height="900" fetchPriority="high" />
-        <div className="hero-overlay" aria-hidden="true" />
-        <div className="shell hero-copy">
+        <motion.div
+          className="hero-scene"
+          style={{
+            scale: prefersReducedMotion ? 1 : sceneScale,
+            opacity: prefersReducedMotion ? 1 : sceneOpacity
+          }}
+        >
+          <HeroVisual />
+        </motion.div>
+        <div className="hero-shade" aria-hidden="true" />
+        <motion.div
+          className="shell hero-copy"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 26 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.72 }}
+        >
           <SectionLabel>Prometheus / Field decision intelligence</SectionLabel>
           <h1>Route IQ</h1>
           <p className="hero-statement">Turn field evidence into decision-ready intelligence.</p>
@@ -232,7 +354,7 @@ function App() {
             <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
             <a className="button secondary" href="#how-it-works">See How Route IQ Works</a>
           </div>
-        </div>
+        </motion.div>
         <div className="hero-proof" aria-label="Route IQ operating principles">
           <span><b>Evidence</b> with provenance</span>
           <span><b>Intelligence</b> with limitations</span>
@@ -259,7 +381,15 @@ function App() {
           <h2>A field workflow representatives can use. An evidence system leaders can trust.</h2>
           <p>Representatives plan, visit, and record outcomes through role-appropriate workflows. Leaders review governed evidence quality and trends. Protected intelligence stays separate from representative operations.</p>
         </div>
-        <div className="shell"><ProductView /></div>
+        <motion.div
+          className="shell"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-70px" }}
+          transition={{ duration: prefersReducedMotion ? 0 : 0.52 }}
+        >
+          <ProductView />
+        </motion.div>
       </section>
 
       <section className="section lifecycle-section">
@@ -269,8 +399,16 @@ function App() {
           <p>When evidence is insufficient, Route IQ says so. Observational evidence does not prove causal uplift or recommendation superiority.</p>
         </div>
         <div className="shell lifecycle-grid">
-          {lifecycle.map(([number, title, body]) => (
-            <article key={number}><span>{number}</span><h3>{title}</h3><p>{body}</p></article>
+          {lifecycle.map(([number, title, body], index) => (
+            <motion.article
+              key={number}
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-55px" }}
+              transition={{ duration: prefersReducedMotion ? 0 : 0.42, delay: prefersReducedMotion ? 0 : index * 0.05 }}
+            >
+              <span>{number}</span><h3>{title}</h3><p>{body}</p>
+            </motion.article>
           ))}
         </div>
       </section>
