@@ -1,0 +1,184 @@
+{
+  "governanceId": "route-iq-yc-investor-website-focus-v1",
+  "schema": "RouteIqYcInvestorWebsiteFocusGovernanceV1",
+  "status": "active_release_gate",
+  "batchId": "BATCH-20260719-002",
+  "directive": "Route IQ YC-Style Investor Website Focus + Buyer Conversion Audit v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "startingRepositoryState": {
+    "branch": "main",
+    "commit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
+    "tree": "ccd8356a5f820df14c574ff2be5196459422acbe"
+  },
+  "dispatchAudit": {
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "overwatchAllowedScope": [
+      "governance",
+      "verification",
+      "reporting",
+      "release_wiring"
+    ],
+    "dispatches": [
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Route IQ",
+        "implementationOwner": "Prometheus Route IQ",
+        "dispatchTimestampUtc": "2026-07-19T07:13:36.510Z",
+        "scope": "supportable product positioning, differentiation, limitations, and investor objections",
+        "commit": "1172cd763e2ec81e45e647e338dbd77e0308bc13",
+        "tree": "0cd0a777bae9a74a87943eeea4ddfa4f05810ab2",
+        "files": [
+          "docs/route-iq-public-positioning-claims-contract-v1.json",
+          "scripts/verify-route-iq-public-positioning-claims.mjs",
+          "tests/route-iq-public-positioning-claims.test.mjs"
+        ]
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus CRM",
+        "implementationOwner": "Prometheus CRM",
+        "dispatchTimestampUtc": "2026-07-19T07:13:47.166Z",
+        "scope": "request durability, idempotency, abuse controls, Founder retrieval, export, and notification ordering",
+        "commit": null,
+        "files": [],
+        "result": "existing_implementation_validated_no_change_required"
+      },
+      {
+        "product": "Prometheus Platform",
+        "subsystem": "Prometheus Infrastructure",
+        "implementationOwner": "Prometheus Infrastructure",
+        "dispatchTimestampUtc": "2026-07-19T07:13:56.676Z",
+        "scope": "public request runtime contracts, Durable Object persistence, capacity, and deployment boundaries",
+        "commit": null,
+        "files": [],
+        "result": "existing_implementation_validated_no_change_required"
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Data",
+        "implementationOwner": "Prometheus Data",
+        "dispatchTimestampUtc": "2026-07-19T07:14:07.205Z",
+        "scope": "evidence support matrix, Fitness Connection research boundary, retention, privacy, and claim dispositions",
+        "commit": "cf3b5556a82383cd80cc9288c569c354d99f9ef4",
+        "tree": "d7921c023adac8ccef65098f9df8a1bcb43ddde5",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/README.md",
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence.mjs",
+          "scripts/verify-route-iq-public-claims-data.mjs",
+          "tests/route-iq-public-claims-data.test.mjs"
+        ]
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Intelligence Engine",
+        "implementationOwner": "Prometheus Intelligence Engine",
+        "dispatchTimestampUtc": "2026-07-19T07:14:19.371Z",
+        "scope": "public intelligence semantics, canonical evidence hashes, audience boundaries, and non-influence claims",
+        "commit": "c6a7d760a6e5b088693ec5627a61b579ec540560",
+        "tree": "e71f4c4b357be220a91f1e7868926e51a8cc64c2",
+        "files": [
+          "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+          "tests/route-iq-public-intelligence-claims.test.mjs"
+        ]
+      },
+      {
+        "product": "Prometheus Public Website",
+        "subsystem": "Prometheus Website",
+        "implementationOwner": "Prometheus Website",
+        "dispatchTimestampUtc": "2026-07-19T07:21:50.995Z",
+        "scope": "public messaging, product experience, legal pages, metadata, social preview, manifests, generated assets, performance, and responsive behavior",
+        "commit": "e2ea54a3eb8be96e3f0fb9d044da15fcfca0b308",
+        "tree": "3713e4259c5e549103122902b601b4a9d0feaffb",
+        "files": [
+          "deploy/prometheusrouteiq-website/_headers",
+          "deploy/prometheusrouteiq-website/assets/IntelligenceScene-2Bf4FzIg.js",
+          "deploy/prometheusrouteiq-website/assets/landing-B3tAEY3e.js",
+          "deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js",
+          "deploy/prometheusrouteiq-website/assets/landing-DeG_Pei1.css",
+          "deploy/prometheusrouteiq-website/assets/landing-UBJO2sGZ.css",
+          "deploy/prometheusrouteiq-website/data-deletion/index.html",
+          "deploy/prometheusrouteiq-website/index.html",
+          "deploy/prometheusrouteiq-website/legal.css",
+          "deploy/prometheusrouteiq-website/privacy/index.html",
+          "deploy/prometheusrouteiq-website/robots.txt",
+          "deploy/prometheusrouteiq-website/route-iq-field-operations-social.jpg",
+          "deploy/prometheusrouteiq-website/route-iq-field-operations.jpg",
+          "deploy/prometheusrouteiq-website/site-20260701-brand-v2.webmanifest",
+          "deploy/prometheusrouteiq-website/site.js",
+          "deploy/prometheusrouteiq-website/site.webmanifest",
+          "deploy/prometheusrouteiq-website/sitemap.xml",
+          "deploy/prometheusrouteiq-website/terms/index.html",
+          "deploy/prometheusrouteiq-website/vendor/three.core.js",
+          "deploy/prometheusrouteiq-website/vendor/three.module.js",
+          "landing.html",
+          "public-site-static/_headers",
+          "public-site-static/data-deletion/index.html",
+          "public-site-static/legal.css",
+          "public-site-static/privacy/index.html",
+          "public-site-static/robots.txt",
+          "public-site-static/route-iq-field-operations-social.jpg",
+          "public-site-static/route-iq-field-operations.jpg",
+          "public-site-static/site-20260701-brand-v2.webmanifest",
+          "public-site-static/site.webmanifest",
+          "public-site-static/sitemap.xml",
+          "public-site-static/terms/index.html",
+          "src/IntelligenceScene.jsx",
+          "src/main.jsx",
+          "src/styles.css",
+          "tests/website-route-iq-product-focus.test.mjs"
+        ]
+      }
+    ]
+  },
+  "publicPositioning": {
+    "company": "Prometheus",
+    "soleActiveProduct": "Route IQ",
+    "primaryBuyer": "field_operations_leader",
+    "primaryUser": "field_representative",
+    "problem": "field_evidence_is_fragmented_across_people_territories_customer_context_and_outcomes",
+    "difference": "governed_evidence_context_chronology_confidence_exclusions_and_human_control",
+    "primaryAction": "REQUEST_ROUTE_IQ",
+    "secondaryAction": "SEE_HOW_ROUTE_IQ_WORKS"
+  },
+  "safetyState": {
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationReadiness": "INSUFFICIENT_EVIDENCE",
+    "representativeFacingShadowOutput": false,
+    "productionDeploymentAuthorized": false,
+    "productionMutationAuthorized": false
+  },
+  "crmBoundary": {
+    "durableBeforeSuccess": true,
+    "uniqueReceiptRequired": true,
+    "deterministicDuplicateHandling": true,
+    "notificationAfterPersistence": true,
+    "founderOnlyRetrieval": true,
+    "csvExport": true,
+    "newPiiCategoryIntroduced": false,
+    "newExternalTransmissionIntroduced": false,
+    "productionStorageActivationAuthorized": false
+  },
+  "performanceBudget": {
+    "javascriptBytesMaximum": 225000,
+    "cssBytesMaximum": 25000,
+    "heroImageBytesMaximum": 200000,
+    "criticalFirstLoadBytesMaximum": 540000
+  },
+  "responsiveVerification": {
+    "desktop": { "width": 1440, "height": 900 },
+    "mobile": { "width": 390, "height": 844 },
+    "horizontalOverflowAllowed": false
+  },
+  "releaseBoundary": {
+    "automaticFastForwardPushAllowedAfterExactVersionPass": true,
+    "deploymentAuthorized": false,
+    "publicWorkerDeploymentPerformed": false,
+    "privateWorkerDeploymentPerformed": false,
+    "trackedFinalHeadRecordedExternally": true
+  }
+}

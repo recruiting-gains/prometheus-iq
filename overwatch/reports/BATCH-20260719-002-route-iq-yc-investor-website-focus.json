@@ -1,0 +1,164 @@
+{
+  "reportId": "BATCH-20260719-002-route-iq-yc-investor-website-focus",
+  "batchId": "BATCH-20260719-002",
+  "directive": "Route IQ YC-Style Investor Website Focus + Buyer Conversion Audit v1",
+  "owner": "Prometheus Overwatch",
+  "status": "candidate_pending_exact_final_version_verification",
+  "scoreScale": "0_to_10",
+  "scorecard": [
+    {
+      "category": "five_second_clarity",
+      "before": 6,
+      "after": 9,
+      "beforeFinding": "Route IQ was named, but the first viewport did not crisply bind buyer, user, problem, differentiation, and action.",
+      "afterFinding": "The first viewport names the field operations leader, field representative, fragmented-evidence problem, adjacent-system distinction, and REQUEST ROUTE IQ action."
+    },
+    {
+      "category": "problem_strength",
+      "before": 5,
+      "after": 8,
+      "beforeFinding": "The prior story led with intelligence more than the operational pain that creates demand.",
+      "afterFinding": "The site now explains that routes and visits exist while evidence stays fragmented across people, territories, context, and outcomes."
+    },
+    {
+      "category": "buyer_clarity",
+      "before": 4,
+      "after": 9,
+      "beforeFinding": "A buyer could infer field operations, but no single accountable role was named.",
+      "afterFinding": "One primary buyer and one day-to-day user are named without broad persona sprawl."
+    },
+    {
+      "category": "product_differentiation",
+      "before": 4,
+      "after": 8,
+      "beforeFinding": "The product could be mistaken for a route planner, CRM feature, map, or generic AI layer.",
+      "afterFinding": "A direct comparison explains the evidence-governance layer Route IQ adds without claiming to replace adjacent systems."
+    },
+    {
+      "category": "evidence_credibility",
+      "before": 6,
+      "after": 9,
+      "beforeFinding": "Governance existed in product contracts but was not consistently visible in public claims and legal copy.",
+      "afterFinding": "The public story states provenance, freshness, confidence, exclusions, human control, and current insufficiency without converting research into traction."
+    },
+    {
+      "category": "market_expansion_logic",
+      "before": 5,
+      "after": 7,
+      "beforeFinding": "Cross-business reuse was asserted more broadly than the public story qualified.",
+      "afterFinding": "Configuration reuse is explained, while cross-industry performance remains explicitly unproven."
+    },
+    {
+      "category": "founder_insight",
+      "before": 5,
+      "after": 7,
+      "beforeFinding": "The product implied field insight but did not articulate the systems gap sharply.",
+      "afterFinding": "The site now expresses the core insight that field teams know more than their fragmented systems can preserve, while avoiding a traction claim."
+    },
+    {
+      "category": "trust_and_security",
+      "before": 6,
+      "after": 9,
+      "beforeFinding": "Old legal pages and legacy AI language contradicted the governed product boundary.",
+      "afterFinding": "Legal, privacy, deletion, metadata, headers, and public copy now share the same minimal-data and human-control boundary."
+    },
+    {
+      "category": "conversion_strength",
+      "before": 6,
+      "after": 9,
+      "beforeFinding": "The request form existed, but the surrounding narrative did not explain durable acceptance and next steps clearly.",
+      "afterFinding": "REQUEST ROUTE IQ is the single primary action and the page explains validation, durable storage, receipt, and Founder review before submission."
+    },
+    {
+      "category": "mobile_quality",
+      "before": 7,
+      "after": 9,
+      "beforeFinding": "The prior responsive layout worked but carried a heavyweight abstract scene and a less focused first viewport.",
+      "afterFinding": "The exact 390x844 layout has no horizontal overflow, keeps both actions reachable, and preserves readable hierarchy and stable form controls."
+    },
+    {
+      "category": "overall_investability",
+      "before": 5,
+      "after": 8,
+      "beforeFinding": "The product appeared technically ambitious but commercially diffuse and visually abstract.",
+      "afterFinding": "The company, product, buyer, wedge, governed differentiation, conversion path, and honest limitations now form a coherent early-stage story."
+    }
+  ],
+  "investorObjections": [
+    {
+      "rank": 1,
+      "objection": "I cannot tell what Route IQ does in five seconds.",
+      "status": "resolved_by_positioning",
+      "resolution": "The hero states that Route IQ turns field evidence into decision-ready intelligence and names the buyer, user, and action."
+    },
+    {
+      "rank": 2,
+      "objection": "The buyer and day-to-day user are unclear.",
+      "status": "resolved_by_positioning",
+      "resolution": "The field operations leader is the primary buyer and the field representative is the primary user."
+    },
+    {
+      "rank": 3,
+      "objection": "This sounds like another route planner.",
+      "status": "resolved_by_differentiation",
+      "resolution": "The comparison section separates travel ordering from Route IQ's governed context, chronology, and outcome evidence."
+    },
+    {
+      "rank": 4,
+      "objection": "This sounds like a CRM feature.",
+      "status": "resolved_by_differentiation",
+      "resolution": "The site states that Route IQ complements CRM and governs field-operational evidence that contact and pipeline systems leave disconnected."
+    },
+    {
+      "rank": 5,
+      "objection": "This may be a generic AI wrapper.",
+      "status": "resolved_by_evidence_boundary",
+      "resolution": "Public copy names allowlisted evidence, versions, isolation, exclusions, confidence, and human control instead of broad AI claims."
+    },
+    {
+      "rank": 6,
+      "objection": "There is no proof Route IQ makes better decisions than people or existing tools.",
+      "status": "unresolved_disclosed",
+      "resolution": "The site says recommendation evidence is insufficient, observational evidence does not prove causal uplift, and influence remains off."
+    },
+    {
+      "rank": 7,
+      "objection": "Founder field research may be presented as customer traction.",
+      "status": "unresolved_disclosed",
+      "resolution": "The public site omits the researched company and makes no customer, pilot, partner, sponsor, or endorsement claim."
+    },
+    {
+      "rank": 8,
+      "objection": "The product may be bespoke for one fitness workflow.",
+      "status": "resolved_with_qualification",
+      "resolution": "The site explains workspace and operating-profile reuse while stating that performance across industries is not yet proven."
+    },
+    {
+      "rank": 9,
+      "objection": "The system may silently automate field decisions or expose unready predictions.",
+      "status": "resolved_by_governed_boundary",
+      "resolution": "The site states that decisions remain human, collection and influence are off, and no automatic route change or recommendation is shown."
+    },
+    {
+      "rank": 10,
+      "objection": "A buyer does not know what to do next.",
+      "status": "resolved_by_conversion_design",
+      "resolution": "REQUEST ROUTE IQ is the single primary action and the form describes validation, durable acceptance, receipt, and review."
+    }
+  ],
+  "unresolvedWeaknesses": [
+    "Route IQ has not proven recommendation superiority, causal uplift, or recommendation readiness.",
+    "Founder field research is not customer traction or commercial validation.",
+    "Configuration reuse is verified, but cross-industry performance remains unproven.",
+    "Public CRM storage is source-complete but requires a separately authorized public Worker deployment before production use."
+  ],
+  "verificationBoundary": {
+    "fullExactHeadVerificationRecordedExternally": true,
+    "finalHeadAndTreeRecordedExternally": true,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false,
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0
+  }
+}
