@@ -41,6 +41,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const commercialReadinessGovernancePath =
+  "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "358f817f7fc81bd82560840e5fd54668a7f58abe";
@@ -712,6 +714,7 @@ function verifyPredecessorTransitions(governance, rotation) {
     githubDeploymentGovernance.protectedOverwatchVerifierSuccessors
       .map(item => [item.path, item])
   );
+  const commercialReadinessGovernance = readJson(commercialReadinessGovernancePath);
   const basePackage = execFileSync("/usr/bin/git", ["show", `${ownerParent}:package.json`], {
     cwd: root,
     encoding: null,
@@ -750,14 +753,24 @@ function verifyPredecessorTransitions(governance, rotation) {
       githubDeploymentTransition?.previousSha256 === verifierTransition?.successorSha256
       && githubDeploymentTransition?.successorSha256 === current
       && githubDeploymentTransition?.owner === "Prometheus Overwatch";
+    const isCommercialReadinessSuccessor =
+      commercialReadinessGovernance.protectedBaselineSuccessors.some(mapping => (
+        mapping.predecessorGovernanceId === githubDeploymentGovernance.governanceId
+        && mapping.path === item.path
+        && mapping.historicalSha256 === githubDeploymentTransition?.successorSha256
+        && mapping.successorSha256 === current
+        && mapping.owner === "Prometheus Overwatch"
+      ));
     if (item.previousSha256 !== sha256(previous)
       || (item.successorSha256 !== current
         && !isRotationSuccessor
         && !isKeychainSuccessor
-        && !isGithubDeploymentSuccessor)
+        && !isGithubDeploymentSuccessor
+        && !isCommercialReadinessSuccessor)
       || (isRotationSuccessor && item.successorSha256 !== current
         && !isKeychainSuccessor
-        && !isGithubDeploymentSuccessor)
+        && !isGithubDeploymentSuccessor
+        && !isCommercialReadinessSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }

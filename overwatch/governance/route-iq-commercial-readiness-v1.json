@@ -133,6 +133,7 @@
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
       "historicalSha256": "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8",
       "successorSha256": "2bfd2da18dbf2adda3a0a8bc1c64b598e23025e22d338180c9a48ebd038e50b5",
+      "owner": "Prometheus Intelligence Engine",
       "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
     },
     {
@@ -140,6 +141,7 @@
       "path": "scripts/verify-shadow-decision-readiness.mjs",
       "historicalSha256": "caed723ccdaf8aa2958298a06b549f7a4ab69a2beb9d4e3cfbb0ee284ef59b49",
       "successorSha256": "857fa4c801204d4ea2ad690be31f58c0d48939717cd0f3dc1ed657cc89aeacda",
+      "owner": "Prometheus Intelligence Engine",
       "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
     },
     {
@@ -147,6 +149,7 @@
       "path": "tests/shadow-decision-readiness.test.mjs",
       "historicalSha256": "0ebbf3272cba2ec4c4fb6fdd168ca54f60ef2bd9116d393585e0b452416e61a7",
       "successorSha256": "68ae06907fc684aabf8cf8f657d062943ca0db6a6dbf8648e283aefe17f16c93",
+      "owner": "Prometheus Intelligence Engine",
       "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
     },
     {
@@ -154,6 +157,7 @@
       "path": "wrangler.prometheusrouteiq-website.jsonc",
       "historicalSha256": "dc115988da7fdc036c3216ed4ae241fef8ff75f84e04886744d58006642064d2",
       "successorSha256": "02337cb8cb663c5f9f6931a5176ab5380efd59eab86dc9398a76e10de2b2e3f5",
+      "owner": "Prometheus Infrastructure",
       "ownerCommit": "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162"
     },
     {
@@ -161,6 +165,7 @@
       "path": "workers/prometheus-iq-worker.js",
       "historicalSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
       "successorSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+      "owner": "Prometheus Infrastructure",
       "ownerCommit": "11ac0668b87ed347c22bf963938b8d650370cfdb"
     },
     {
@@ -168,6 +173,7 @@
       "path": "index.html",
       "historicalSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
       "successorSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+      "owner": "Prometheus Dashboard",
       "ownerCommit": "82d1e6f23ca3a75c0073c051531477913258a98f"
     },
     {
@@ -175,7 +181,32 @@
       "path": "deploy/cloudflare-pages/index.html",
       "historicalSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
       "successorSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+      "owner": "Prometheus Dashboard",
       "ownerCommit": "82d1e6f23ca3a75c0073c051531477913258a98f"
+    },
+    {
+      "predecessorGovernanceId": "github-actions-founder-triggered-private-worker-deployment-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      "historicalSha256": "bdec71cc16497e842264419e81c13dfd865c94c1a200138912208ad6e01f9e30",
+      "successorSha256": "c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050",
+      "owner": "Prometheus Overwatch",
+      "reason": "Recognize owner-authored commercial runtime successors while leaving unattended access paused and unconfigured."
+    },
+    {
+      "predecessorGovernanceId": "github-actions-founder-triggered-private-worker-deployment-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+      "historicalSha256": "57c46419ca3abeb4918acecac922043b4396acb660dc3d36ee05f19c5fc4269a",
+      "successorSha256": "1f5544c3c485065376e99d01dbb45bb8580d68817f37867d43c638ffa1d5ebf0",
+      "owner": "Prometheus Overwatch",
+      "reason": "Extend the paused historical response-contract verifier through the commercial-readiness successor map."
+    },
+    {
+      "predecessorGovernanceId": "github-actions-founder-triggered-private-worker-deployment-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+      "historicalSha256": "c7b01976f1d8564d8ec99657ff4d6df0a17c6418018afb1704bed2d8dc4ade81",
+      "successorSha256": "fbbee236889f9f5e1fa91971a9d973ba7acbec3c5e4e592246f31a9ad30c861e",
+      "owner": "Prometheus Overwatch",
+      "reason": "Extend the paused historical create-receipt verifier through the commercial-readiness successor map."
     }
   ]
 }

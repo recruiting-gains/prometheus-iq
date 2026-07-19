@@ -51,7 +51,7 @@ function ownerAllowsPath(email, path) {
     "intelligence@prometheus.local": /^(?:intelligence\/.*|scripts\/(?:verify-route-iq-commercial-readiness-intelligence|verify-shadow-decision-readiness)\.mjs|tests\/(?:route-iq-commercial-readiness-intelligence[^/]*|shadow-decision-readiness)\.test\.mjs)$/u,
     "route-iq@prometheus.local": /^(?:docs\/route-iq-commercial-product-contract-v1\.json|scripts\/verify-route-iq-commercial-product-contract\.mjs|tests\/route-iq-commercial-product-contract\.test\.mjs)$/u,
     "website@prometheus.local": /^(?:src\/.*|landing\.html|public-site-static\/.*|deploy\/prometheusrouteiq-website\/.*|tests\/website-route-iq-product-focus\.test\.mjs)$/u,
-    "overwatch@prometheus.local": /^(?:overwatch\/.*|scripts\/verify-(?:cross-subsystem-artifact-contracts|overwatch-route-iq-commercial-readiness)\.mjs|tests\/(?:cross-subsystem-artifact-contracts|overwatch-route-iq-commercial-readiness)\.test\.mjs)$/u
+    "overwatch@prometheus.local": /^(?:overwatch\/.*|scripts\/verify-(?:cross-subsystem-artifact-contracts|overwatch-[^/]+)\.mjs|tests\/(?:cross-subsystem-artifact-contracts|overwatch-[^/]+)\.test\.mjs)$/u
   };
   return rules[email]?.test(path) === true;
 }

@@ -34,6 +34,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const commercialReadinessGovernancePath =
+  "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const primaryCommit = "04a38d6424099824fa3760314c7b660ce30b6930";
 const primaryParent = "d32ffd8f6ea255fa029976b1bf0006663d567153";
 const primaryTree = "9eccf0475775253653e6e5633824d0562e8ee047";
@@ -348,11 +350,21 @@ function verifyOverwatchSuccessors(governance) {
     githubDeploymentGovernance.protectedOverwatchVerifierSuccessors
       .map(item => [item.path, item])
   );
+  const commercialReadinessGovernance = readJson(commercialReadinessGovernancePath);
   for (const item of governance.overwatchVerificationSuccessors) {
     const current = sha256(readFileSync(resolve(root, item.path)));
     const transition = transitions.get(item.path);
     const keychainTransition = keychainTransitions.get(item.path);
     const githubDeploymentTransition = githubDeploymentTransitions.get(item.path);
+    const commercialTransition = commercialReadinessGovernance.protectedBaselineSuccessors
+      .find(mapping => (
+        mapping.predecessorGovernanceId ===
+          githubDeploymentGovernance.governanceId
+        && mapping.path === item.path
+        && mapping.historicalSha256 === githubDeploymentTransition?.successorSha256
+        && mapping.successorSha256 === current
+        && mapping.owner === "Prometheus Overwatch"
+      ));
     if (!/^[0-9a-f]{64}$/u.test(item.previousSha256)
       || (current !== item.successorSha256
         && !(transition?.previousSha256 === item.successorSha256
@@ -366,7 +378,8 @@ function verifyOverwatchSuccessors(governance) {
               && githubDeploymentTransition?.successorSha256 === current
               && githubDeploymentTransition?.owner === "Prometheus Overwatch"))
           && transition?.owner === "Prometheus Overwatch"
-          && keychainTransition?.owner === "Prometheus Overwatch"))) {
+          && keychainTransition?.owner === "Prometheus Overwatch")
+        && !commercialTransition)) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
     }
   }
