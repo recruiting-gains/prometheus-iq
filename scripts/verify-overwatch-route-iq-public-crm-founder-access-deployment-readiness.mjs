@@ -62,7 +62,7 @@ const EXPECTED_RECONSTRUCTED_FILE_HASHES = Object.freeze({
   "scripts/lib/route-iq-public-forward-rollback.mjs": "5f8bd67241b1b50ec3c721c53c1f26df8daa45fd82d295e4b9fa3ae17b8fadb6",
   "scripts/verify-github-actions-public-worker-deployment.mjs": "62ac8cdf937346f41866529eec69ad4fe18c3e941aa75853ecea5546b5810e17",
   "tests/github-actions-public-worker-deployment.test.mjs": "46874484df143adfba56d2e3d72cdb7afcbc4a24e5c227f16be1c8163f21337d",
-  "workers/infrastructure/route-iq-public-forward-rollback-v1.json": "1e308fb29dd5a91ef12e27b4e73257037381aed2f23427f3db2468a0eaaff7aa"
+  "workers/infrastructure/route-iq-public-forward-rollback-v1.json": "850b22be068103dd4b9d860624151293ba5e57244fd381de08e6563e368277d0"
 });
 
 const EXCLUDED_LOCAL_COMMITS = Object.freeze([
