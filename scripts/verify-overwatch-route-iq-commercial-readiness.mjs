@@ -18,6 +18,7 @@ const batchId = "BATCH-20260718-002";
 const startingCommit = "8f0484ea4edbab086db8d4d5f2424acf9c8bee74";
 const startingTree = "0a9b3171426e0b4fc5e230e6ddef32461969021b";
 const legacyIntelligenceCommit = "9f9cb75dd8122bc07dda72d61e9ced119d409063";
+const localOverwatchIdentityContaminationCommit = "c5dc67d673ad767dc0fea77c74a0492fea14d6f5";
 const intelligenceOwnershipSuccessor = "a8068271e110f3b260624c3df6a3b39054421123";
 const intelligenceProvenancePath = "intelligence/provenance/route-iq-commercial-readiness-founder-snapshot-owner-reconstruction-v1.json";
 const canonicalPrincipal = "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4";
@@ -64,6 +65,7 @@ function verifyOwnership() {
   assert.equal(git("rev-list", "--min-parents=2", `${startingCommit}..HEAD`), "", "Batch must not contain merge commits.");
 
   let legacyGapObserved = false;
+  let localOverwatchGapObserved = false;
   for (const commit of commits) {
     const identity = commitIdentity(commit);
     const paths = changedPaths(commit);
@@ -76,11 +78,27 @@ function verifyOwnership() {
       assert.ok(paths.every(path => ownerAllowsPath("intelligence@prometheus.local", path)), "Legacy provenance gap contains a non-Intelligence path.");
       continue;
     }
+    if (commit === localOverwatchIdentityContaminationCommit) {
+      localOverwatchGapObserved = true;
+      assert.deepEqual(identity, {
+        author: "data@prometheus.local",
+        committer: "data@prometheus.local"
+      });
+      assert.deepEqual(paths, [
+        "overwatch/governance/route-iq-commercial-readiness-v1.json",
+        "overwatch/governance/route-iq-commercial-readiness-v1.md",
+        "scripts/verify-overwatch-route-iq-commercial-readiness.mjs",
+        "tests/overwatch-cloudflare-unattended-access.test.mjs"
+      ]);
+      assert.ok(paths.every(path => ownerAllowsPath("overwatch@prometheus.local", path)));
+      continue;
+    }
     assert.equal(identity.author, identity.committer, `Author/committer ownership mismatch in ${commit}.`);
     assert.ok(paths.length > 0, `Empty commit is not allowed: ${commit}.`);
     assert.ok(paths.every(path => ownerAllowsPath(identity.author, path)), `Owner path violation in ${commit} (${identity.author}).`);
   }
   assert.equal(legacyGapObserved, true, "Disclosed Intelligence provenance gap is missing from the preserved chain.");
+  assert.equal(localOverwatchGapObserved, true, "Disclosed Overwatch identity contamination is missing from the preserved chain.");
 
   const provenance = readJson(intelligenceProvenancePath);
   assert.equal(provenance.legacyCommit, legacyIntelligenceCommit);
@@ -103,7 +121,25 @@ function verifyOwnership() {
   });
   assert.ok(successor, "Intelligence owner reconstruction successor commit is missing.");
 
-  return { commits, successor };
+  const commercialGovernance = readJson("overwatch/governance/route-iq-commercial-readiness-v1.json");
+  const overwatchDisclosure = commercialGovernance.ownershipProvenance.additionalDisclosures?.find(entry => (
+    entry.legacyCommit === localOverwatchIdentityContaminationCommit
+  ));
+  assert.equal(overwatchDisclosure?.classification, "DISCLOSED_LOCAL_AUTHOR_IDENTITY_CONTAMINATION");
+  assert.equal(overwatchDisclosure?.canonicalOwner, "Prometheus Overwatch");
+  assert.equal(overwatchDisclosure?.subsystemImplementationModified, false);
+  assert.equal(overwatchDisclosure?.retroactiveOwnershipClaimed, false);
+  assert.equal(overwatchDisclosure?.historyRewritten, false);
+  assert.deepEqual(overwatchDisclosure?.affectedPaths, changedPaths(localOverwatchIdentityContaminationCommit));
+  const overwatchSuccessor = commits.find(commit => (
+    commits.indexOf(commit) > commits.indexOf(localOverwatchIdentityContaminationCommit)
+    && commitIdentity(commit).author === "overwatch@prometheus.local"
+    && changedPaths(commit).includes("overwatch/governance/route-iq-commercial-readiness-v1.json")
+    && changedPaths(commit).includes("scripts/verify-overwatch-route-iq-commercial-readiness.mjs")
+  ));
+  assert.ok(overwatchSuccessor, "Overwatch identity-contamination successor commit is missing.");
+
+  return { commits, successor, overwatchSuccessor };
 }
 
 function verifyCommercialConfiguration() {
@@ -276,6 +312,7 @@ export async function verifyOverwatchRouteIqCommercialReadiness({ requireClean =
     tree,
     outgoingCommitCount: ownership.commits.length,
     ownershipRepairCommit: ownership.successor,
+    ownershipMetadataRepairCommit: ownership.overwatchSuccessor,
     acceptanceGates: 15,
     configuredSyntheticBusiness: "summit_roofing_synthetic",
     preservedEvidenceFiles: preservation.fileCount,

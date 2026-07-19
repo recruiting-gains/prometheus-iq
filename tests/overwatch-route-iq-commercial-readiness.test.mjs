@@ -23,4 +23,5 @@ test("Overwatch independently verifies all Route IQ commercial-readiness gates",
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.deploymentPerformed, false);
   assert.equal(result.ownershipRepairCommit, "a8068271e110f3b260624c3df6a3b39054421123");
+  assert.match(result.ownershipMetadataRepairCommit, /^[a-f0-9]{40}$/u);
 });

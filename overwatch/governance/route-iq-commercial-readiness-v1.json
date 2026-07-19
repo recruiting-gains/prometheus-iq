@@ -125,7 +125,26 @@
     "semanticComparison": "IDENTICAL",
     "byteComparison": "IDENTICAL",
     "retroactiveOwnershipClaimed": false,
-    "historyRewritten": false
+    "historyRewritten": false,
+    "additionalDisclosures": [
+      {
+        "legacyCommit": "c5dc67d673ad767dc0fea77c74a0492fea14d6f5",
+        "legacyTree": "8ee2a4676f0bc73a57c8963ed944acceec981c6b",
+        "classification": "DISCLOSED_LOCAL_AUTHOR_IDENTITY_CONTAMINATION",
+        "recordedIdentity": "data@prometheus.local",
+        "canonicalOwner": "Prometheus Overwatch",
+        "affectedPaths": [
+          "overwatch/governance/route-iq-commercial-readiness-v1.json",
+          "overwatch/governance/route-iq-commercial-readiness-v1.md",
+          "scripts/verify-overwatch-route-iq-commercial-readiness.mjs",
+          "tests/overwatch-cloudflare-unattended-access.test.mjs"
+        ],
+        "subsystemImplementationModified": false,
+        "retroactiveOwnershipClaimed": false,
+        "historyRewritten": false,
+        "successorDiscovery": "first_later_overwatch_commit_updating_this_governance_and_verifier"
+      }
+    ]
   },
   "releaseGateOwnerRepairs": [
     {
