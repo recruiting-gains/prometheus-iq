@@ -161,7 +161,7 @@ test("production build lazy-loads the governed 3D scene without restoring obsole
   assert.doesNotMatch(`${entryBundle}\n${sceneBundle}`, /AI operating system|Fitness Connection|Gaia|Athena|Smoothie Depot/i);
 });
 
-test("critical Website assets and the lazy 3D bundle stay within separate budgets", () => {
+test("supported-device critical assets, fallback image, and lazy 3D bundle stay within separate budgets", () => {
   ensureFreshBuild();
   const builtIndex = read("dist-public/index.html");
   const scriptPath = builtIndex.match(/src="\/(assets\/landing-[^"]+\.js)"/u)?.[1];
@@ -176,12 +176,14 @@ test("critical Website assets and the lazy 3D bundle stay within separate budget
   const logoBytes = size(`dist-public/assets/${logoPath}`);
   const fallbackImageBytes = size("dist-public/route-iq-field-operations.jpg");
   const lazySceneBytes = size(`dist-public/assets/${scenePath}`);
-  const criticalBytes = javascriptBytes + cssBytes + logoBytes + fallbackImageBytes + size("dist-public/index.html");
+  const supportedDeviceCriticalBytes = javascriptBytes + cssBytes + logoBytes + size("dist-public/index.html");
 
+  assert.doesNotMatch(read("landing.html"), /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/u);
+  assert.doesNotMatch(builtIndex, /<link[^>]+rel="preload"[^>]+route-iq-field-operations\.jpg/u);
   assert.ok(javascriptBytes <= 375_000, `Critical JavaScript budget exceeded: ${javascriptBytes}`);
   assert.ok(cssBytes <= 25_000, `CSS budget exceeded: ${cssBytes}`);
-  assert.ok(fallbackImageBytes <= 200_000, `Fallback image budget exceeded: ${fallbackImageBytes}`);
-  assert.ok(criticalBytes <= 650_000, `Critical first-load budget exceeded: ${criticalBytes}`);
+  assert.ok(fallbackImageBytes <= 200_000, `Fallback-only image budget exceeded: ${fallbackImageBytes}`);
+  assert.ok(supportedDeviceCriticalBytes <= 475_000, `Supported-device critical first-load budget exceeded: ${supportedDeviceCriticalBytes}`);
   assert.ok(lazySceneBytes <= 950_000, `Lazy 3D bundle budget exceeded: ${lazySceneBytes}`);
 });
 
