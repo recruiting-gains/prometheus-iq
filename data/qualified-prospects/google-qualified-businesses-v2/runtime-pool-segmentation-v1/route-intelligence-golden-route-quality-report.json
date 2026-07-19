@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-19T05:16:38.619Z",
+  "generatedAt": "2026-07-19T08:02:06.357Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "artifactGovernance": {
@@ -810,11 +810,11 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 37,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/IntelligenceScene-2Bf4FzIg.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/landing-B3tAEY3e.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/vendor/three.core.js\",\n      \"pattern\": \"Client XMLHttpRequest\",\n      \"count\": 4\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 33,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": "",
     "evidence": {
       "status": "passed",
-      "checked_files": 37,
+      "checked_files": 33,
       "live_google_api_calls": 0,
       "google_api_endpoint_or_key_references": 0,
       "generic_network_primitives": [
@@ -834,24 +834,9 @@
           "count": 2
         },
         {
-          "file": "deploy/prometheusrouteiq-website/assets/IntelligenceScene-2Bf4FzIg.js",
-          "pattern": "Client fetch",
-          "count": 3
-        },
-        {
-          "file": "deploy/prometheusrouteiq-website/assets/landing-B3tAEY3e.js",
+          "file": "deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js",
           "pattern": "Client fetch",
           "count": 1
-        },
-        {
-          "file": "deploy/prometheusrouteiq-website/vendor/three.core.js",
-          "pattern": "Client fetch",
-          "count": 3
-        },
-        {
-          "file": "deploy/prometheusrouteiq-website/vendor/three.core.js",
-          "pattern": "Client XMLHttpRequest",
-          "count": 4
         }
       ],
       "note": "Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only."
@@ -859,8 +844,8 @@
   },
   "runtimeSurface": {
     "status": "passed",
-    "checkedRuntimeFiles": 37,
-    "expectedRuntimeFiles": 37,
+    "checkedRuntimeFiles": 33,
+    "expectedRuntimeFiles": 33,
     "dashboardFetches": 10,
     "deployDashboardFetches": 10,
     "expectedDashboardFetches": 10,
@@ -871,31 +856,17 @@
     "status": "observed",
     "branch": "main",
     "baseRef": "origin/main",
-    "baseCommit": "8f0484ea4edbab086db8d4d5f2424acf9c8bee74",
-    "ahead": 20,
+    "baseCommit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
+    "ahead": 6,
     "behind": 0,
     "expectedLocalCommitCount": null,
     "localCommitSubjects": [
-      "Add Route IQ request CRM contract",
-      "intelligence: add deterministic daily Route IQ snapshot",
-      "data: add Route IQ commercial workspace foundation",
-      "website: focus Prometheus on Route IQ",
-      "route-iq: add commercial product integration contract",
-      "infrastructure: add Route IQ request CRM runtime",
-      "Align CRM founder principal with Data registry",
-      "intelligence: align Founder principal with Data registry",
-      "dashboard: focus Route IQ and add Founder snapshot",
-      "intelligence: publish canonical Founder daily snapshot",
-      "route-iq: repair commercial release contract",
-      "infrastructure: harden Route IQ request identities",
-      "dashboard: align canonical Founder snapshot contract",
-      "infrastructure: serve Founder daily snapshot",
-      "intelligence: reconstruct Founder snapshot ownership",
-      "intelligence: synchronize commercial readiness baselines",
-      "overwatch: govern Route IQ commercial readiness",
-      "overwatch: map commercial readiness baselines",
-      "overwatch: preserve paused verifier lineage",
-      "infrastructure: align prospective dispatch verification"
+      "route-iq: govern public positioning claims",
+      "intelligence: govern public intelligence claims",
+      "data: govern public Route IQ evidence claims",
+      "website: focus Route IQ investor conversion",
+      "overwatch: verify Route IQ investor website focus",
+      "overwatch: preserve paused release wiring baselines"
     ]
   },
   "dashboardCompatibility": {

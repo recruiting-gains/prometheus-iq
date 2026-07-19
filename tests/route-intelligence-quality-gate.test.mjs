@@ -97,7 +97,7 @@ test("command-line verification is read-only and observes the current runtime su
   const output = JSON.parse(result.stdout);
   assert.equal(output.mode, "read_only_verification");
   assert.equal(output.canonicalReportWritten, false);
-  assert.equal(output.checkedRuntimeFiles, 37);
+  assert.equal(output.checkedRuntimeFiles, 33);
   assert.equal(output.dashboardFetches, 10);
   assert.equal(readFileSync(reportPath, "utf8"), before);
 });
@@ -109,8 +109,8 @@ test("canonical quality evidence matches the governed runtime surface", () => {
   assert.equal(report.artifactGovernance.owningSubsystem, "Prometheus Data");
   assert.equal(report.artifactGovernance.verificationWritesCanonicalArtifacts, false);
   assert.equal(report.runtimeSurface.status, "passed");
-  assert.equal(report.runtimeSurface.checkedRuntimeFiles, 37);
-  assert.equal(report.runtimeSurface.expectedRuntimeFiles, 37);
+  assert.equal(report.runtimeSurface.checkedRuntimeFiles, 33);
+  assert.equal(report.runtimeSurface.expectedRuntimeFiles, 33);
   assert.equal(report.runtimeSurface.dashboardFetches, 10);
   assert.equal(report.runtimeSurface.deployDashboardFetches, 10);
   assert.equal(report.runtimeSurface.expectedDashboardFetches, 10);
