@@ -90,6 +90,11 @@ jobs:
           PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
         run: node scripts/run-github-actions-public-worker-deployment.mjs verify
 
+      - name: Run Overwatch public CRM Founder Access deployment readiness gates
+        run: |
+          node scripts/verify-overwatch-route-iq-public-crm-founder-access-deployment-readiness.mjs
+          node --test tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs
+
       - name: Run complete repository test suite
         run: npm test
 
