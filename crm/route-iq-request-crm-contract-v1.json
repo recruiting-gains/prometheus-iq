@@ -1,0 +1,52 @@
+{
+  "version": "route-iq-request-crm-v1",
+  "owner": "Prometheus CRM",
+  "extends": "existing_workspace_lead_persistence_runtime",
+  "workspace": {
+    "workspaceId": "prometheus_route_iq",
+    "operatingProfileId": "route_iq_commercial",
+    "unknownScopesFailClosed": true
+  },
+  "canonicalFields": [
+    "businessName",
+    "contactName",
+    "businessEmail",
+    "phone",
+    "businessType",
+    "numberOfLocations",
+    "estimatedUsers",
+    "territory",
+    "primaryProblem",
+    "desiredTimeline",
+    "consent",
+    "submittedAt",
+    "acquisitionSource"
+  ],
+  "minimalPii": {
+    "required": ["contactName", "businessEmail"],
+    "optional": ["phone"],
+    "unknownFieldsRejected": true,
+    "secretsAccepted": false
+  },
+  "durability": {
+    "requiresAtomicPutIfAbsent": true,
+    "deterministicContentIdentity": true,
+    "identicalRetryReturnsOriginalReceipt": true,
+    "changedIdempotencyRetryFailsClosed": true,
+    "partialWriteRecovery": "repair_forward_from_immutable_idempotency_claim"
+  },
+  "authorization": {
+    "retrievalAndExport": "founder_only",
+    "authorizedImmutablePrincipal": "prn:prometheus:founder:cruz:v1",
+    "displayNameAuthorizationProhibited": true,
+    "representativeAuthorization": false,
+    "anthony": "pending_exact_authenticated_identity_mapping"
+  },
+  "exports": ["json", "csv"],
+  "monitoring": {
+    "acceptedRecordMetadata": true,
+    "safeFailureMetadata": true,
+    "failureMetadataContainsRequestPii": false
+  },
+  "productionMutationPerformed": false
+}
