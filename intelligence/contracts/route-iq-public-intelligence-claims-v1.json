@@ -1,0 +1,156 @@
+{
+  "contractVersion": "route-iq-public-intelligence-claims-v1",
+  "status": "active_public_claim_governance",
+  "batchId": "BATCH-20260719-002",
+  "directive": "Route IQ YC-Style Investor Website Focus + Buyer Conversion Audit v1",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Define the public claim boundary for Route IQ evidence, learning, probability, and intelligence without authorizing recommendation influence, representative-facing Intelligence, or unsupported performance claims.",
+  "canonicalEvidence": [
+    {
+      "path": "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
+      "sha256": "c13f1c7a95afb07de994259777d87ac5c2632752fe71dbbf2389e0c2441e1fda",
+      "supports": [
+        "founder_only_daily_snapshot",
+        "insufficient_evidence",
+        "recommendation_influence_off",
+        "representative_output_prohibited"
+      ]
+    },
+    {
+      "path": "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+      "sha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706",
+      "supports": [
+        "deterministic_evidence_driven_snapshot",
+        "explicit_confidence_and_limitations",
+        "no_prediction_or_causal_claim"
+      ]
+    },
+    {
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "sha256": "f44a829340341e34f0d73b3af209ad89c49b877d730b4d918ad06a6341cae30f",
+      "supports": [
+        "versioned_probability_methodology",
+        "founder_only_shadow_boundary",
+        "collection_off",
+        "active_cohorts_zero",
+        "recommendation_influence_off"
+      ]
+    },
+    {
+      "path": "intelligence/artifacts/shadow-decision-readiness-v1/fitness_connection/cruz/founder-readiness-report-v1.json",
+      "sha256": "72ee8d6acc362a3c38f53e9fe66de106cc1ab255b8b3acd0f222e47c00600a5e",
+      "supports": [
+        "readiness_insufficient_evidence",
+        "zero_scoreable_outcomes",
+        "no_calibration_or_superiority_claim"
+      ]
+    },
+    {
+      "path": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "sha256": "88bc1b9d0e3fbadcb0b4c34e34defce8d6f9f8432efd35e149869c7264f81992",
+      "supports": [
+        "discovery_advisory_only",
+        "no_runtime_consumer",
+        "no_scoring_or_queue_influence"
+      ]
+    },
+    {
+      "path": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "sha256": "b5ee18f3d22c3ac5ca16226b54470735ade52892814de8200f8a2955580e60f8",
+      "supports": [
+        "nearby_context_advisory_only",
+        "dashboard_consumer_inactive",
+        "no_recommendation_replacement"
+      ]
+    },
+    {
+      "path": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "sha256": "e27d894e682b6a3ab909d1767de6017cbfcce59f8cd1b3e49756212d363f6b26",
+      "supports": [
+        "off_route_read_only_observation",
+        "unknown_safe_missing_context",
+        "no_route_or_recommendation_change"
+      ]
+    },
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "sha256": "ac657404febe6a23f4a317779bce94d79305c07a626f307ebd2c2b525d29a795",
+      "supports": [
+        "read_only_learning_active",
+        "no_archive_mutation_or_replay",
+        "production_recommendation_influence_inactive"
+      ]
+    }
+  ],
+  "currentGovernedState": {
+    "readOnlyFieldSessionLearning": "ACTIVE_READ_ONLY",
+    "discoveryMode": "ADVISORY_ONLY_NO_RUNTIME_CONSUMER",
+    "nearbyContext": "ADVISORY_ONLY_DASHBOARD_CONSUMER_INACTIVE",
+    "offRouteLearning": "ACTIVE_READ_ONLY_OBSERVATION",
+    "dailyIntelligenceSnapshot": "FOUNDER_ONLY_READ_ONLY_INSUFFICIENT_EVIDENCE",
+    "shadowReadiness": "INSUFFICIENT_EVIDENCE",
+    "canonicalProductionProspectiveRecords": 0,
+    "canonicalProductionEvaluations": 0,
+    "activeCohorts": 0,
+    "prospectiveCollection": "OFF",
+    "recommendationInfluence": "OFF"
+  },
+  "approvedPublicSemantics": {
+    "governedEvidence": "Authorized, isolated records retain source, time, schema, quality, exclusions, and integrity context.",
+    "learning": "Route IQ can organize governed observations into coverage, freshness, trend, and confidence views; learning does not mean autonomous retraining or automatic operational change.",
+    "intelligence": "Read-only, evidence-based analysis with explicit confidence and limitations may support human review.",
+    "probability": "Versioned probability estimates may be described as a governed decision-support method, not as guaranteed outcomes, causal effects, proven superiority, or current recommendation readiness.",
+    "decisionReady": "Decision-ready means evidence is organized for a human decision with provenance, confidence, and limitations; it does not mean ELIGIBLE_FOR_FOUNDER_REVIEW or authorization to activate recommendations.",
+    "humanControl": "A person remains responsible for the decision; Intelligence cannot route, reorder, notify, or act operationally under the current authorization."
+  },
+  "requiredPublicQualifications": [
+    "human_decision_remains_controlling",
+    "confidence_and_limitations_are_explicit",
+    "insufficient_evidence_is_not_a_recommendation",
+    "probability_is_not_a_guarantee",
+    "observational_evidence_does_not_establish_causal_uplift",
+    "recommendation_superiority_is_not_proven",
+    "recommendation_influence_is_off"
+  ],
+  "prohibitedPublicClaims": [
+    "ai_magic_or_unbounded_ai_operating_system",
+    "autonomous_business_decisions",
+    "automatic_route_improvement_from_current_learning",
+    "causal_uplift",
+    "proven_recommendation_superiority",
+    "recommendation_readiness",
+    "representative_facing_shadow_rankings_probabilities_or_confidence",
+    "operational_influence_from_discovery_nearby_off_route_or_shadow_outputs",
+    "production_prospective_evidence_collection",
+    "cross_workspace_or_global_representative_learning"
+  ],
+  "audienceBoundary": {
+    "publicWebsiteMayDescribeProductArchitecture": true,
+    "publicWebsiteMayExposeCanonicalFounderArtifacts": false,
+    "publicWebsiteMayExposeShadowOutputs": false,
+    "representativeMayReadFounderSnapshot": false,
+    "representativeMayReadShadowReadiness": false,
+    "representativeMayReceiveShadowRecommendation": false,
+    "founderAccessRequiresServerVerifiedIdentityMapping": true,
+    "displayNameAuthorizationAllowed": false,
+    "cruzMappingStatus": "SECURELY_MAPPED",
+    "anthonyMappingStatus": "PENDING_NOT_AUTHORIZED"
+  },
+  "websiteOwnerIntegration": {
+    "publicCopyMustBeValidatedAgainstThisContract": true,
+    "legacyAndGeneratedAssetsAreInScope": true,
+    "metadataSocialPreviewStructuredDataAndLegalPagesAreInScope": true,
+    "websiteImplementationOwnedBy": "Prometheus Website",
+    "claimVerificationOwnedBy": "Prometheus Intelligence Engine",
+    "releaseVerificationOwnedBy": "Prometheus Overwatch"
+  },
+  "safety": {
+    "websiteFilesChangedByIntelligence": false,
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "representativeWorkflowChanged": false,
+    "productionDataChanged": false,
+    "productionDeploymentAuthorized": false,
+    "recommendationActivationAuthorized": false
+  }
+}
