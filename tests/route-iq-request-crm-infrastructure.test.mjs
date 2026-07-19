@@ -185,7 +185,7 @@ test("composed Worker sends the active public intake through Aegis and the Route
   assert.equal(JSON.stringify(body).includes("Houston Field Services"), false);
 });
 
-test("identical retries return one receipt and changed reuse fails closed without another accepted record", async () => {
+test("identical retries and canonical duplicate content return one receipt", async () => {
   const fixture = durableNamespace();
   const env = { [ROUTE_IQ_REQUEST_CRM_BINDING]: fixture.namespace };
   const first = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), env, { now });
@@ -196,17 +196,50 @@ test("identical retries return one receipt and changed reuse fails closed withou
   assert.equal(retryReceipt.duplicate, true);
   assert.equal(retryReceipt.receiptId, firstReceipt.receiptId);
 
-  const conflict = await handleRouteIqRequestCrmRuntimeRequest(
-    postRequest(publicPayload({ primaryProblem: "Changed content cannot reuse the same submission event identity." })),
+  const laterDuplicate = await handleRouteIqRequestCrmRuntimeRequest(
+    postRequest(publicPayload({ submittedAt: "2026-07-18T16:59:30.000Z" })),
     env,
     { now }
   );
-  assert.equal(conflict.status, 409);
-  assert.equal((await conflict.json()).code, "idempotency_conflict");
+  const laterReceipt = await laterDuplicate.json();
+  assert.equal(laterDuplicate.status, 200);
+  assert.equal(laterReceipt.duplicate, true);
+  assert.equal(laterReceipt.receiptId, firstReceipt.receiptId);
 
   const store = createRouteIqRequestCrmDurableStore(env);
   const list = await store.list({ prefix: "crm-route-iq-requests-v1/workspaces/prometheus_route_iq/requests/" });
   assert.equal(list.keys.length, 1);
+});
+
+test("equal-timestamp different-content concurrency uses independent canonical request identities", async () => {
+  const fixture = durableNamespace();
+  const env = { [ROUTE_IQ_REQUEST_CRM_BINDING]: fixture.namespace };
+  const payloads = [
+    publicPayload(),
+    publicPayload({
+      businessName: "Houston Territory Operations",
+      businessEmail: "operations@example.com",
+      primaryProblem: "Coordinate a different field team without colliding with another request submitted at the same instant."
+    })
+  ];
+  const results = await Promise.all(Array.from({ length: 20 }, (_, index) => (
+    handleRouteIqRequestCrmRuntimeRequest(postRequest(payloads[index % payloads.length]), env, { now })
+  )));
+  const bodies = await Promise.all(results.map(result => result.json()));
+  assert.equal(results.filter(result => result.status === 201).length, 2);
+  assert.equal(results.filter(result => result.status === 200).length, 18);
+  assert.equal(results.filter(result => result.status === 409).length, 0);
+  assert.equal(new Set(bodies.map(body => body.receiptId)).size, 2);
+
+  const normalized = await Promise.all(payloads.map(payload => normalizePublicRouteIqRequest(payload, { now })));
+  assert.notEqual(normalized[0].idempotencyKey, normalized[1].idempotencyKey);
+  assert.match(normalized[0].idempotencyKey, /^route_iq_request_[a-f0-9]{64}$/u);
+  const stored = JSON.stringify([...fixture.storage.records.values()]);
+  for (const request of normalized) assert.equal(stored.includes(request.idempotencyKey), false);
+
+  const store = createRouteIqRequestCrmDurableStore(env);
+  const list = await store.list({ prefix: "crm-route-iq-requests-v1/workspaces/prometheus_route_iq/requests/" });
+  assert.equal(list.keys.length, 2);
 });
 
 test("strict public validation and spam protection fail closed with PII-free monitoring", async () => {

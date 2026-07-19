@@ -4,6 +4,7 @@ import {
   RouteIqRequestCrmError,
   exportRouteIqRequests,
   listRouteIqRequests,
+  normalizeRouteIqRequestInput,
   persistRouteIqRequest,
   publicRouteIqRequestReceipt,
   retrieveRouteIqRequest,
@@ -227,12 +228,11 @@ export async function normalizePublicRouteIqRequest(input, { now = new Date() } 
   }
   const timeline = TIMELINES[boundedString(input.desiredTimeline, 120)];
   if (!timeline) throw runtimeError("route_iq_request_timeline_invalid", "Request timeline is invalid.", 422);
-  const eventHash = await sha256(`${PUBLIC_REQUEST_VERSION}|${PUBLIC_FORM_ID}|${submittedAt.toISOString()}`);
   boundedString(input.acquisitionSource, 120);
-  return {
+  const canonicalRequest = normalizeRouteIqRequestInput({
     workspaceId: "prometheus_route_iq",
     operatingProfileId: "route_iq_commercial",
-    idempotencyKey: `route_iq_request_${eventHash}`,
+    idempotencyKey: "route_iq_request_identity_seed",
     businessName: boundedString(input.businessName, 140),
     contactName: boundedString(input.contactName, 140),
     businessEmail: boundedString(input.businessEmail, 180),
@@ -245,6 +245,30 @@ export async function normalizePublicRouteIqRequest(input, { now = new Date() } 
     desiredTimeline: timeline,
     consent: true,
     acquisitionSource: "route_iq_website"
+  });
+  const { idempotencyKey: _identitySeed, ...canonicalContent } = canonicalRequest;
+  const eventHash = await sha256(JSON.stringify([
+    PUBLIC_REQUEST_VERSION,
+    PUBLIC_FORM_ID,
+    submittedAt.toISOString(),
+    canonicalContent.workspaceId,
+    canonicalContent.operatingProfileId,
+    canonicalContent.businessName,
+    canonicalContent.contactName,
+    canonicalContent.businessEmail,
+    canonicalContent.phone,
+    canonicalContent.businessType,
+    canonicalContent.numberOfLocations,
+    canonicalContent.estimatedUsers,
+    canonicalContent.territory,
+    canonicalContent.primaryProblem,
+    canonicalContent.desiredTimeline,
+    canonicalContent.consent,
+    canonicalContent.acquisitionSource
+  ]));
+  return {
+    ...canonicalContent,
+    idempotencyKey: `route_iq_request_${eventHash}`
   };
 }
 
