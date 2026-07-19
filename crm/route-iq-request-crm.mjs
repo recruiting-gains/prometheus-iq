@@ -10,6 +10,35 @@ export const routeIqRequestCrmWorkspace = Object.freeze({
   target: "route_iq_request"
 });
 
+export const routeIqRequestCrmAccessConfigurationNames = Object.freeze([
+  "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+  "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+  "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+]);
+
+export const routeIqRequestCrmHttpBoundary = Object.freeze({
+  publicIntake: Object.freeze({
+    path: "/api/partner-intake",
+    methods: Object.freeze(["POST"]),
+    cloudflareAccessRequired: false
+  }),
+  founderAccess: Object.freeze({
+    applicationPath: "/api/partner-intake/founder/*",
+    paths: Object.freeze([
+      "/api/partner-intake/founder/requests",
+      "/api/partner-intake/founder/requests/{receiptId}",
+      "/api/partner-intake/founder/export"
+    ]),
+    methods: Object.freeze(["GET"]),
+    cloudflareAccessRequired: true,
+    immutableSubjectClaim: "sub",
+    subjectVerification: "sha256_equals_configured_digest",
+    displayNameAuthorizationAllowed: false,
+    everyonePolicyAllowed: false,
+    bypassPolicyAllowed: false
+  })
+});
+
 export const routeIqRequestAcquisitionSources = Object.freeze([
   "route_iq_website",
   "founder_referral",

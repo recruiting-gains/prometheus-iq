@@ -35,12 +35,44 @@
     "changedIdempotencyRetryFailsClosed": true,
     "partialWriteRecovery": "repair_forward_from_immutable_idempotency_claim"
   },
+  "httpBoundary": {
+    "publicIntake": {
+      "path": "/api/partner-intake",
+      "methods": ["POST"],
+      "cloudflareAccessRequired": false
+    },
+    "founderAccess": {
+      "applicationPath": "/api/partner-intake/founder/*",
+      "paths": [
+        "/api/partner-intake/founder/requests",
+        "/api/partner-intake/founder/requests/{receiptId}",
+        "/api/partner-intake/founder/export"
+      ],
+      "methods": ["GET"],
+      "cloudflareAccessRequired": true
+    }
+  },
   "authorization": {
     "retrievalAndExport": "founder_only",
     "authorizedImmutablePrincipal": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
     "canonicalIdentitySource": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
     "canonicalIdentityPath": "workspaces[workspaceId=fitness_connection].users[representativeId=cruz].authenticatedPrincipalId",
     "displayNameAuthorizationProhibited": true,
+    "cloudflareAccess": {
+      "assertionHeader": "Cf-Access-Jwt-Assertion",
+      "immutableSubjectClaim": "sub",
+      "subjectVerification": "sha256_equals_configured_digest",
+      "configurationNames": [
+        "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+        "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+        "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+      ],
+      "configurationValuesStoredInContract": false,
+      "verifiedExactIdentityRequired": true,
+      "displayNameSelectorAllowed": false,
+      "everyoneSelectorAllowed": false,
+      "bypassPolicyAllowed": false
+    },
     "representativeAuthorization": false,
     "anthony": "pending_exact_authenticated_identity_mapping"
   },

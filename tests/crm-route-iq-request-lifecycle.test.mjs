@@ -11,6 +11,8 @@ import {
   persistRouteIqRequest,
   publicRouteIqRequestReceipt,
   retrieveRouteIqRequest,
+  routeIqRequestCrmAccessConfigurationNames,
+  routeIqRequestCrmHttpBoundary,
   routeIqRequestCrmStoragePrefix,
   routeIqRequestFailureMetadata,
   routeIqRequestFounderAuthorization
@@ -204,6 +206,8 @@ test("Founder retrieval requires Cruz's exact immutable authenticated principal"
 
   for (const principal of [
     { authenticated: true, displayName: "Cruz Garza", role: "founder" },
+    { authenticated: true, accessPolicy: "Everyone", displayName: "Cruz Garza" },
+    { authenticated: true, accessPolicy: "Bypass", displayName: "Cruz Garza" },
     cruzPrincipal({ immutablePrincipalId: "prn:prometheus:founder:anthony:pending" }),
     cruzPrincipal({ immutablePrincipalId: "prn:prometheus:founder:cruz:v1" }),
     cruzPrincipal({ identityProvider: "display_name_only" }),
@@ -252,6 +256,50 @@ test("machine-readable CRM contract pins fields, durable semantics, and authoriz
   assert.equal(contract.owner, "Prometheus CRM");
   assert.equal(contract.extends, "existing_workspace_lead_persistence_runtime");
   assert.equal(contract.durability.requiresAtomicPutIfAbsent, true);
+  assert.deepEqual(routeIqRequestCrmHttpBoundary, {
+    publicIntake: {
+      path: "/api/partner-intake",
+      methods: ["POST"],
+      cloudflareAccessRequired: false
+    },
+    founderAccess: {
+      applicationPath: "/api/partner-intake/founder/*",
+      paths: [
+        "/api/partner-intake/founder/requests",
+        "/api/partner-intake/founder/requests/{receiptId}",
+        "/api/partner-intake/founder/export"
+      ],
+      methods: ["GET"],
+      cloudflareAccessRequired: true,
+      immutableSubjectClaim: "sub",
+      subjectVerification: "sha256_equals_configured_digest",
+      displayNameAuthorizationAllowed: false,
+      everyonePolicyAllowed: false,
+      bypassPolicyAllowed: false
+    }
+  });
+  assert.deepEqual(contract.httpBoundary, {
+    publicIntake: routeIqRequestCrmHttpBoundary.publicIntake,
+    founderAccess: {
+      applicationPath: routeIqRequestCrmHttpBoundary.founderAccess.applicationPath,
+      paths: routeIqRequestCrmHttpBoundary.founderAccess.paths,
+      methods: routeIqRequestCrmHttpBoundary.founderAccess.methods,
+      cloudflareAccessRequired: true
+    }
+  });
+  assert.deepEqual(routeIqRequestCrmAccessConfigurationNames, [
+    "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+    "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+    "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+  ]);
+  assert.deepEqual(contract.authorization.cloudflareAccess.configurationNames, routeIqRequestCrmAccessConfigurationNames);
+  assert.equal(contract.authorization.cloudflareAccess.configurationValuesStoredInContract, false);
+  assert.equal(contract.authorization.cloudflareAccess.immutableSubjectClaim, "sub");
+  assert.equal(contract.authorization.cloudflareAccess.subjectVerification, "sha256_equals_configured_digest");
+  assert.equal(contract.authorization.cloudflareAccess.verifiedExactIdentityRequired, true);
+  assert.equal(contract.authorization.cloudflareAccess.displayNameSelectorAllowed, false);
+  assert.equal(contract.authorization.cloudflareAccess.everyoneSelectorAllowed, false);
+  assert.equal(contract.authorization.cloudflareAccess.bypassPolicyAllowed, false);
   assert.equal(contract.authorization.representativeAuthorization, false);
   assert.equal(contract.authorization.anthony, "pending_exact_authenticated_identity_mapping");
   assert.equal(contract.authorization.canonicalIdentitySource, "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json");
