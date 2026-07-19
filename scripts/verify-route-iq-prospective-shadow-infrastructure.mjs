@@ -115,7 +115,18 @@ assert.match(
 assert.doesNotMatch(worker, /await reconcileAndCloseRouteIqProspectiveSessionFromHandoff/u);
 assert.match(worker, /executionContext\.waitUntil\(closePromise\)/u);
 assert.match(worker, /async fetch\(request, env, executionContext\)/u);
-assert.match(worker, /handleApiRequest\(request, env, executionContext\)/u);
+assert.match(
+  worker,
+  /async function handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \} = \{\}\)/u
+);
+assert.match(
+  worker,
+  /if \(isRouteIqProspectiveShadowPath\(url\.pathname\)\) \{\s*return handleRouteIqProspectiveShadowRequest\(request, env, \{ executionContext \}\);\s*\}/u
+);
+assert.match(
+  worker,
+  /withAegisHeaders\(await handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \}\), aegis\)/u
+);
 assert.match(worker, /reconcileAndCloseRouteIqProspectiveSessionFromHandoff[\s\S]+\.catch\(error =>/u);
 assert.match(worker, /route_iq_prospective_session_close_failure/u);
 

@@ -1322,6 +1322,22 @@ test("activation readiness audit reports writes, records, budgets, production ac
   assert.equal(staleAudit.blockers.includes("activation_cohort_config_stale"), true);
 });
 
+test("Worker API dispatch preserves prospective routing with the Founder snapshot hook shape", () => {
+  const source = readFileSync(join(root, "workers/prometheus-iq-worker.js"), "utf8");
+  assert.match(
+    source,
+    /async function handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \} = \{\}\)/u
+  );
+  assert.match(
+    source,
+    /if \(isRouteIqProspectiveShadowPath\(url\.pathname\)\) \{\s*return handleRouteIqProspectiveShadowRequest\(request, env, \{ executionContext \}\);\s*\}/u
+  );
+  assert.match(
+    source,
+    /withAegisHeaders\(await handleApiRequest\(request, env, executionContext, \{ dailySnapshotTestHooks \}\), aegis\)/u
+  );
+});
+
 test("authenticated GET bootstrap is strict, short-lived, no-store, and storage-free", async () => {
   const fixture = await accessFixture();
   const response = await handleRouteIqProspectiveShadowRequest(
