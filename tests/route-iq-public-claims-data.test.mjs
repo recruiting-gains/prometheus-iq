@@ -25,6 +25,21 @@ test("canonical public-claims evidence matrix verifies every governed Data sourc
   assert.equal(result.recommendationInfluence, "OFF");
 });
 
+test("Intelligence corroboration pins the exact owner successor", () => {
+  const matrix = loadRouteIqPublicClaimsEvidenceMatrix();
+  const source = matrix.crossOwnerCorroborationSources.find(
+    entry => entry.ownerSubsystem === "Prometheus Intelligence Engine"
+  );
+  assert.deepEqual(source, {
+    ownerSubsystem: "Prometheus Intelligence Engine",
+    ownerCommit: "88b3bbbf2c34d879881ced98620c15a602598c45",
+    ownerTree: "de525c85f2d8b02ba6c5c3ad4148668d2702230f",
+    path: "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+    sha256: "11cd71135f46dfddc42582d3b1825114a15c624f69a5b39fe4843c7b50d3b64c",
+    corroborationResult: "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
+  });
+});
+
 test("Fitness Connection is Founder research and never customer evidence", () => {
   const matrix = loadRouteIqPublicClaimsEvidenceMatrix();
   assert.equal(matrix.governedState.relationshipClassification, "FOUNDER_FIELD_RESEARCH");
