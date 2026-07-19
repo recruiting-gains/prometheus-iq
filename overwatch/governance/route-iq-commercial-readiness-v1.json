@@ -167,6 +167,14 @@
       "scope": "data_route_quality_protected_baseline_successor",
       "intelligenceBehaviorChanged": false,
       "recommendationInfluence": "OFF"
+    },
+    {
+      "owner": "Prometheus CRM",
+      "commit": "093c268cdd6b907925b7c91a61c1f9383a82dc3c",
+      "scope": "route_iq_sqlite_production_store_validation_successor",
+      "runtimeBehaviorChanged": false,
+      "legacyFitnessIntakeReactivated": false,
+      "legacySmoothieIntakeReactivated": false
     }
   ],
   "protectedBaselineSuccessors": [

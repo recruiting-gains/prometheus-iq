@@ -45,7 +45,7 @@ function commitIdentity(commit) {
 
 function ownerAllowsPath(email, path) {
   const rules = {
-    "crm@prometheus.local": /^(?:crm\/.*|tests\/crm-route-iq-request-lifecycle\.test\.mjs)$/u,
+    "crm@prometheus.local": /^(?:crm\/.*|scripts\/validate-crm-production-store\.mjs|tests\/(?:crm-cloudflare-kv-workspace-lead-store|crm-route-iq-request-lifecycle)\.test\.mjs)$/u,
     "data@prometheus.local": /^(?:data\/route-iq-commercial-readiness-v1\/.*|data\/qualified-prospects\/google-qualified-businesses-v2\/runtime-pool-segmentation-v1\/route-intelligence-golden-route-quality-report\.json|scripts\/(?:build-route-iq-governed-codex-evidence-bundle|lib\/route-intelligence-quality-gate)\.mjs|tests\/(?:route-iq-commercial-readiness-data|route-intelligence-quality-gate)\.test\.mjs)$/u,
     "dashboard@prometheus.local": /^(?:_headers|index\.html|sw\.js|deploy\/cloudflare-pages\/(?:_headers|index\.html|sw\.js)|scripts\/verify-dashboard-(?:runtime-workflows|workspace-switcher)\.mjs|tests\/dashboard-route-iq-product-focus\.test\.mjs)$/u,
     "infrastructure@prometheus.local": /^(?:docs\/route-iq-(?:request-crm-infrastructure|founder-daily-snapshot-infrastructure)-v1\.md|integrations\/shared-workspace-lead-intake-contract\.js|workers\/(?:infrastructure\/route-iq-(?:commercial-capacity-harness|request-crm-[^/]+)\.(?:mjs|js|json)|prometheus-iq-worker\.js)|wrangler\.prometheusrouteiq-website\.jsonc|scripts\/verify-route-iq-(?:request-crm|founder-daily-snapshot|prospective-shadow)-infrastructure\.mjs|tests\/route-iq-(?:request-crm|founder-daily-snapshot|prospective-shadow)-infrastructure\.test\.mjs)$/u,
@@ -265,7 +265,8 @@ export async function verifyOverwatchRouteIqCommercialReadiness({ requireClean =
   assert.deepEqual(governance.releaseGateOwnerRepairs.map(repair => repair.commit), [
     "056da0f50f16d6ae571c7ec314be5e2585909ddd",
     "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
-    "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
+    "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a",
+    "093c268cdd6b907925b7c91a61c1f9383a82dc3c"
   ]);
   assert.ok(governance.releaseGateOwnerRepairs.every(repair => repair.runtimeBehaviorChanged !== true));
 

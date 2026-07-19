@@ -28,4 +28,6 @@ Seven protected paths used by the paused unattended-access verifier have explici
 
 Final release-gate repairs remain owner-authored: Infrastructure aligned its prospective dispatch verifier with the current Worker hook signature; Data regenerated canonical route-quality runtime-surface evidence through the explicit write path; Intelligence recorded the Data hash as a protected successor. None changes runtime behavior, route ordering, scoring, learning influence, or recommendation influence.
 
+CRM aligned its production-store validation with the active Route IQ SQLite Durable Object composition after the complete repository matrix exposed a stale Fitness-specific KV Worker assertion. The owner repair changes validation only and does not reactivate legacy Fitness or Smoothie intake behavior.
+
 Commit `c5dc67d673ad767dc0fea77c74a0492fea14d6f5` is preserved as a second disclosed local author-identity contamination: its four paths are exclusively Overwatch governance and verification assets, but its recorded identity is `data@prometheus.local`. No Data implementation is present, no retroactive ownership is claimed, and history is not rewritten. The verifier requires a later genuine Overwatch-authored governance successor.
