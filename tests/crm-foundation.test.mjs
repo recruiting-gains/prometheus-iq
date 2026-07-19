@@ -22,20 +22,67 @@ import {
   transitionLeadProfileStage,
   transitionLead
 } from "../crm/crm-foundation.mjs";
-import { createSharedLeadIntakeSubmission } from "../workers/infrastructure/shared-lead-intake-pipeline.js";
-import { createWebsiteAttributionSession } from "../deploy/prometheusrouteiq-website/website-attribution.js";
 import {
   SOCIAL_ATTRIBUTION_EVENT_TYPES,
   SOCIAL_ATTRIBUTION_TARGETS,
-  SOCIAL_DATA_SOURCES
+  SOCIAL_DATA_SOURCES,
+  createAttributionEvent
 } from "../social-media/contracts/social-media-contract.js";
 
-function memoryStorage() {
-  const items = new Map();
+const websiteAttributionVersion = "prometheus-website-attribution.v1";
+
+function canonicalWebsiteAttributionSession({
+  visitorId,
+  sessionId,
+  firstTouch,
+  currentTouch = firstTouch
+}) {
+  assert.match(visitorId, /^web_visitor_[a-z0-9_]+$/);
+  assert.match(sessionId, /^web_session_[a-z0-9_]+$/);
+
+  const canonicalTouch = (touch, label) => {
+    assert.match(touch.id, /^website_visit_[a-z0-9_]+$/, `${label} id must be canonical`);
+    assert.match(touch.provider, /^(instagram|linkedin)$/);
+    assert.match(touch.campaignId, /^[a-z0-9-]+$/);
+
+    return createAttributionEvent({
+      id: touch.id,
+      type: SOCIAL_ATTRIBUTION_EVENT_TYPES.WEBSITE_VISIT,
+      target: SOCIAL_ATTRIBUTION_TARGETS.WEBSITE_TRAFFIC,
+      source: SOCIAL_DATA_SOURCES.WEBSITE_CONTRACT,
+      provider: touch.provider,
+      campaignId: touch.campaignId,
+      occurredAt: touch.occurredAt,
+      visitorId,
+      confidence: 1,
+      metadata: {
+        attribution_version: websiteAttributionVersion,
+        session_id: sessionId,
+        utm_source: touch.provider,
+        utm_medium: "social",
+        utm_campaign: touch.campaignId,
+        utm_content: touch.content || "",
+        utm_term: "",
+        campaign_id: "",
+        campaign_platform: touch.provider,
+        landing_path: touch.landingPath || "/",
+        referrer: touch.referrer || ""
+      }
+    });
+  };
+
+  const normalizedFirstTouch = canonicalTouch(firstTouch, "first touch");
+  const normalizedCurrentTouch = currentTouch === firstTouch
+    ? normalizedFirstTouch
+    : canonicalTouch(currentTouch, "current touch");
+
   return {
-    getItem: key => items.has(key) ? items.get(key) : null,
-    setItem: (key, value) => items.set(key, String(value)),
-    removeItem: key => items.delete(key)
+    version: websiteAttributionVersion,
+    visitorId,
+    sessionId,
+    startedAt: normalizedFirstTouch.occurredAt,
+    firstTouch: normalizedFirstTouch,
+    currentTouch: normalizedCurrentTouch
   };
 }
 
@@ -53,44 +100,159 @@ function memoryKvStore() {
   };
 }
 
-async function infrastructureIntakeRecord(input = {}) {
+function canonicalWorkspaceIntakeRecord(input = {}) {
   const workspaceId = input.workspaceId || "fitness_connection";
-  const store = memoryKvStore();
-  const now = input.now || "2026-07-04T14:00:00.000Z";
-  const result = await createSharedLeadIntakeSubmission({
-    input: {
-      workspaceId,
-      companyName: input.companyName || "Workspace Candidate Co",
-      companyWebsite: input.companyWebsite || "https://example.com",
-      contactName: input.contactName || "Jordan Candidate",
-      contactMethod: input.contactMethod || "jordan@example.com",
-      requestType: input.requestType || "growth_partner",
-      primaryGoal: input.primaryGoal || "Explore Prometheus workspace lead intake.",
-      currentWorkflow: input.currentWorkflow || "Submitted through shared workspace partner intake.",
-      geographicTerritory: input.geographicTerritory || "Houston",
-      locationCount: input.locationCount || "2",
-      attribution: {
-        provider: "website",
-        campaignId: input.campaignId || "workspace-intake-test",
-        leadSource: input.leadSource || "partner_intake",
-        landingPath: "/partner-intake",
-        utm_source: input.utmSource || "website",
-        utm_medium: "test",
-        utm_campaign: input.campaignId || "workspace-intake-test"
-      },
-      openedAt: "2026-07-04T13:59:50.000Z"
+  const workspaces = {
+    fitness_connection: {
+      workspaceName: "Fitness Connection",
+      operatingProfileId: "fitness",
+      operatingProfileLabel: "Fitness",
+      crmWorkspacePath: "crm://workspace/fitness_connection/leads"
     },
-    request: new Request("https://prometheusrouteiq.com/api/partner-intake", {
-      method: "POST",
-      headers: { "content-type": "application/json" }
-    }),
-    env: { SHARED_LEAD_INTAKE_STORE: store },
-    now: new Date(now),
-    idFactory: ({ workspace }) => `sub_test_${workspace.workspaceId}`
+    smoothie_depot: {
+      workspaceName: "Smoothie Depot",
+      operatingProfileId: "franchise_development",
+      operatingProfileLabel: "Franchise Development",
+      crmWorkspacePath: "crm://workspace/smoothie_depot/candidate_pipeline"
+    }
+  };
+  const workspace = workspaces[workspaceId];
+  assert.ok(workspace, `Unsupported canonical workspace fixture: ${workspaceId}`);
+
+  const now = input.now || "2026-07-04T14:00:00.000Z";
+  const submissionId = `sub_test_${workspaceId}`;
+  const campaignId = input.campaignId || "workspace-intake-test";
+  const leadSource = input.leadSource || "partner_intake";
+  const companyName = input.companyName || "Workspace Candidate Co";
+  const requesterName = input.contactName || "Jordan Candidate";
+  const contactMethod = input.contactMethod || "jordan@example.com";
+  const handoffId = `crm_handoff_test_${workspaceId}`;
+  const attributionEvent = createAttributionEvent({
+    id: `crm_attr_test_${workspaceId}`,
+    type: SOCIAL_ATTRIBUTION_EVENT_TYPES.CRM_LEAD_CREATED,
+    target: SOCIAL_ATTRIBUTION_TARGETS.CRM_LEAD,
+    source: SOCIAL_DATA_SOURCES.CRM_CONTRACT,
+    provider: "website",
+    campaignId,
+    occurredAt: now,
+    visitorId: `web_visitor_test_${workspaceId}`,
+    confidence: 1,
+    metadata: {
+      lead_source: leadSource,
+      campaign_platform: "website",
+      first_touch_at: now,
+      last_touch_at: now,
+      qualified_status: "New Lead",
+      website_first_touch_event_id: `website_visit_test_${workspaceId}`,
+      website_last_touch_event_id: `website_visit_test_${workspaceId}`,
+      website_attribution_version: websiteAttributionVersion,
+      utm_source: input.utmSource || "website",
+      utm_medium: "test",
+      utm_campaign: campaignId,
+      landing_path: "/partner-intake"
+    }
   });
 
-  assert.equal(result.ok, true, JSON.stringify(result, null, 2));
-  return result.record;
+  const attribution = {
+    provider: "website",
+    campaignId,
+    leadSource,
+    landingPath: "/partner-intake",
+    utm: {
+      source: input.utmSource || "website",
+      medium: "test",
+      campaign: campaignId,
+      content: "",
+      term: ""
+    }
+  };
+  const lead = {
+    id: `web_lead_test_${workspaceId}`,
+    source: "website_enterprise_intake",
+    status: "New Lead",
+    pipelineStage: "Website Request",
+    requestType: input.requestType || "growth_partner",
+    requestLabel: "Growth Partner",
+    companyName,
+    companyWebsite: input.companyWebsite || "https://example.com",
+    requesterName,
+    requesterRole: "Business owner",
+    contactMethod,
+    operatingProfile: {
+      profileId: workspace.operatingProfileId,
+      profileLabel: workspace.operatingProfileLabel,
+      crmProfileId: workspace.operatingProfileId,
+      requestedProfile: workspace.operatingProfileLabel,
+      futureProfileRequested: false
+    },
+    teamSize: "2",
+    fieldRepCount: "1",
+    locationCount: input.locationCount || "2",
+    territory: input.geographicTerritory || "Houston",
+    primaryGoal: input.primaryGoal || "Explore Prometheus workspace lead intake.",
+    currentWorkflow: input.currentWorkflow || "Submitted through shared workspace partner intake.",
+    message: "",
+    founderVisible: true,
+    dueAt: "",
+    workspaceId,
+    workspaceName: workspace.workspaceName
+  };
+  const crmIntegration = {
+    path: "Lead -> Operating Profile -> CRM -> Pipeline",
+    crmContract: "existing_crm_attribution_contract",
+    leadStatus: "New Lead",
+    pipelineStage: lead.pipelineStage,
+    operatingProfileId: workspace.operatingProfileId,
+    workspaceId,
+    attributionEvent
+  };
+
+  return {
+    ok: true,
+    version: "shared-workspace-lead-intake.v1",
+    submissionId,
+    timestamp: now,
+    workspace: {
+      workspaceId,
+      workspaceName: workspace.workspaceName
+    },
+    operatingProfile: {
+      id: workspace.operatingProfileId,
+      label: workspace.operatingProfileLabel
+    },
+    attribution,
+    source: leadSource,
+    status: "received",
+    security: {
+      spamProtected: true,
+      validationPassed: true,
+      workspaceIsolation: "enforced",
+      crossWorkspaceRouting: false
+    },
+    crmHandoff: {
+      status: "prepared",
+      mutationPerformed: false,
+      ownerSubsystem: "Prometheus CRM",
+      contract: "shared_workspace_crm_lead_intake_packet.v1",
+      workspaceId,
+      crmWorkspacePath: workspace.crmWorkspacePath,
+      handoffId,
+      preparedAt: now,
+      packet: {
+        lead,
+        crmIntegration,
+        attribution
+      }
+    },
+    auditTrail: [
+      { at: now, actor: "prometheus_infrastructure", event: "submission_received", source: leadSource },
+      { at: now, actor: "workspace_router", event: "workspace_routed", workspaceId },
+      { at: now, actor: "validation", event: "validation_passed" },
+      { at: now, actor: "spam_protection", event: "spam_checks_passed" },
+      { at: now, actor: "durable_storage", event: "submission_record_prepared", workspaceId },
+      { at: now, actor: "crm_handoff", event: "workspace_crm_handoff_prepared", workspaceId, mutationPerformed: false }
+    ]
+  };
 }
 
 function anthonyRuntimeRecord(index = 0) {
@@ -324,14 +486,18 @@ test("CRM reports expose today's follow-ups, overdue follow-ups, Anthony activit
 test("CRM attaches Website/Social attribution output to lead records", () => {
   const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
   const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord());
-  const localStorage = memoryStorage();
-  const sessionStorage = memoryStorage();
-  const websiteSession = createWebsiteAttributionSession({
-    locationHref: "https://prometheusrouteiq.com/?utm_source=instagram&utm_medium=social&utm_campaign=beta-route-iq-awareness-v1&utm_content=route-proof",
-    referrer: "https://l.instagram.com/",
-    localStorage,
-    sessionStorage,
-    now: "2026-07-01T08:30:00.000Z"
+  const websiteSession = canonicalWebsiteAttributionSession({
+    visitorId: "web_visitor_crm_attribution",
+    sessionId: "web_session_crm_attribution",
+    firstTouch: {
+      id: "website_visit_crm_attribution",
+      provider: "instagram",
+      campaignId: "beta-route-iq-awareness-v1",
+      occurredAt: "2026-07-01T08:30:00.000Z",
+      content: "route-proof",
+      landingPath: "/",
+      referrer: "https://l.instagram.com/"
+    }
   });
 
   const event = attachWebsiteAttributionToLead(state, lead.id, websiteSession, {
@@ -358,19 +524,23 @@ test("CRM attaches Website/Social attribution output to lead records", () => {
 
 test("CRM preserves first-touch and last-touch attribution from Website sessions", () => {
   const state = createCrmState({ now: "2026-07-01T09:00:00.000Z" });
-  const localStorage = memoryStorage();
-  const sessionStorage = memoryStorage();
-  createWebsiteAttributionSession({
-    locationHref: "https://prometheusrouteiq.com/?utm_source=instagram&utm_medium=social&utm_campaign=first-campaign",
-    localStorage,
-    sessionStorage,
-    now: "2026-07-01T08:00:00.000Z"
-  });
-  const secondSession = createWebsiteAttributionSession({
-    locationHref: "https://prometheusrouteiq.com/pilot?utm_source=linkedin&utm_medium=social&utm_campaign=second-campaign",
-    localStorage,
-    sessionStorage,
-    now: "2026-07-01T09:00:00.000Z"
+  const secondSession = canonicalWebsiteAttributionSession({
+    visitorId: "web_visitor_crm_multi_touch",
+    sessionId: "web_session_crm_multi_touch",
+    firstTouch: {
+      id: "website_visit_crm_first_touch",
+      provider: "instagram",
+      campaignId: "first-campaign",
+      occurredAt: "2026-07-01T08:00:00.000Z",
+      landingPath: "/"
+    },
+    currentTouch: {
+      id: "website_visit_crm_last_touch",
+      provider: "linkedin",
+      campaignId: "second-campaign",
+      occurredAt: "2026-07-01T09:00:00.000Z",
+      landingPath: "/pilot"
+    }
   });
 
   const lead = createLeadFromRuntimeRecord(state, anthonyRuntimeRecord(1), {
@@ -523,7 +693,7 @@ test("CRM rejects stages outside the active operating profile", () => {
 
 test("Smoothie Depot workspace intake creates CRM candidate handoff", async () => {
   const state = createCrmState({ now: "2026-07-04T14:10:00.000Z" });
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "smoothie_depot",
     companyName: "Houston Juice Group",
     contactName: "Sam Franchise",
@@ -558,7 +728,7 @@ test("Smoothie Depot workspace intake creates CRM candidate handoff", async () =
 
 test("Fitness Connection workspace intake creates CRM lead handoff", async () => {
   const state = createCrmState({ now: "2026-07-04T14:20:00.000Z" });
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "fitness_connection",
     companyName: "Pearland Training Club",
     contactName: "Morgan Manager",
@@ -624,7 +794,7 @@ test("Workspace intake unknown workspace fails closed without CRM mutation", () 
 
 test("Workspace intake rejects cross-workspace contamination", async () => {
   const state = createCrmState({ now: "2026-07-04T14:40:00.000Z" });
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "fitness_connection",
     companyName: "Cross Workspace Gym",
     contactName: "Casey Contact"
@@ -653,7 +823,7 @@ test("Workspace intake rejects cross-workspace contamination", async () => {
 test("CRM persists Fitness Connection workspace lead records durably", async () => {
   const state = createCrmState({ now: "2026-07-04T15:00:00.000Z" });
   const store = memoryKvStore();
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "fitness_connection",
     companyName: "League City Strength",
     contactName: "Taylor Owner",
@@ -691,7 +861,7 @@ test("CRM persists Fitness Connection workspace lead records durably", async () 
 test("CRM durable persistence blocks Smoothie Depot candidate records under current governance", async () => {
   const state = createCrmState({ now: "2026-07-04T15:10:00.000Z" });
   const store = memoryKvStore();
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "smoothie_depot",
     companyName: "Cypress Smoothie Operators",
     contactName: "Riley Candidate",
@@ -751,7 +921,7 @@ test("CRM workspace lead persistence fails closed for unknown workspace without 
 test("CRM workspace lead persistence is idempotent per workspace submission", async () => {
   const state = createCrmState({ now: "2026-07-04T15:30:00.000Z" });
   const store = memoryKvStore();
-  const record = await infrastructureIntakeRecord({
+  const record = canonicalWorkspaceIntakeRecord({
     workspaceId: "fitness_connection",
     companyName: "Idempotent Fitness Lead",
     contactName: "Devon Lead"
