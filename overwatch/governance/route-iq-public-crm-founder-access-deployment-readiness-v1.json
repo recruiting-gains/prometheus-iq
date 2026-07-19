@@ -1,0 +1,238 @@
+{
+  "governanceId": "route-iq-public-crm-founder-access-deployment-readiness-governance-v1",
+  "version": "1.1.0",
+  "batchId": "BATCH-20260719-005",
+  "directive": "Route IQ Public CRM Release Provenance Recovery v1",
+  "status": "PROVENANCE_RECOVERED_FOUNDER_AUTHENTICATION_AND_GITHUB_SETUP_PENDING",
+  "owningSubsystem": "Prometheus Overwatch",
+  "startingCandidate": {
+    "commit": "f0bbad58e0b9ff2cf99b8e55a875f65ec14f35c7",
+    "tree": "a56f2daa6ddf8d4e7aac296a2589c3a231937b9d"
+  },
+  "recovery": {
+    "authorizedFailedLocalHead": "5a3339f465cbcd81b1c7eeca5c9d384afbcf4d1c",
+    "authorizedFailedLocalTree": "7e06d69d17649ac84f1c3b8c8f2592873f4ff8bd",
+    "reconstructionBase": "f0bbad58e0b9ff2cf99b8e55a875f65ec14f35c7",
+    "archivalEvidence": {
+      "refNamespace": "refs/archive-local/BATCH-20260719-005",
+      "manifestCommit": "08218d101584b481f367a83ffaefb1044119fcdf",
+      "dirtySnapshotCommit": "e407982e19440a48cfb9389676a4587cba2f26ce",
+      "indexSnapshotCommit": "11f0dad617e724b2f9b30644c82c107a56c3f016",
+      "localOnly": true,
+      "pushAllowed": false,
+      "mergeAllowed": false,
+      "deploymentAllowed": false,
+      "releaseHistoryAllowed": false
+    },
+    "excludedCommits": [
+      {
+        "commit": "0aac4732670bde05596c1c8cde60c533172663f7",
+        "reason": "INFRASTRUCTURE_IMPLEMENTATION_MISATTRIBUTED_TO_OVERWATCH"
+      },
+      {
+        "commit": "5a3339f465cbcd81b1c7eeca5c9d384afbcf4d1c",
+        "reason": "LOCAL_NEUTRALIZATION_ONLY"
+      }
+    ],
+    "pushedHistoryChanged": false,
+    "noIntendedImplementationLost": true,
+    "mixedOwnershipPresent": false,
+    "infrastructureRepairComparison": {
+      "result": "IDENTICAL_TO_ARCHIVED_CORRECTED_WORKTREE",
+      "files": {
+        "docs/github-actions-founder-triggered-public-worker-deployment-v1.md": "bb900dcf9d5efcf67819f09cffc831835208d63f2ab1f038cadfa655e52b64d8",
+        "scripts/lib/github-actions-public-worker-deployment.mjs": "6c89e4323c6e97b410f6f546ff1df6daf16f4c3114219bfdc4cde60b4f6316b8",
+        "scripts/lib/route-iq-public-forward-rollback.mjs": "5f8bd67241b1b50ec3c721c53c1f26df8daa45fd82d295e4b9fa3ae17b8fadb6",
+        "scripts/verify-github-actions-public-worker-deployment.mjs": "62ac8cdf937346f41866529eec69ad4fe18c3e941aa75853ecea5546b5810e17",
+        "tests/github-actions-public-worker-deployment.test.mjs": "46874484df143adfba56d2e3d72cdb7afcbc4a24e5c227f16be1c8163f21337d",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json": "1e308fb29dd5a91ef12e27b4e73257037381aed2f23427f3db2468a0eaaff7aa"
+      }
+    }
+  },
+  "dispatchAudit": {
+    "owningProduct": "Route IQ",
+    "implementationOwners": [
+      "Prometheus Website",
+      "Prometheus CRM",
+      "Prometheus Infrastructure",
+      "Prometheus Data"
+    ],
+    "verificationOwner": "Prometheus Overwatch",
+    "dispatchTimestamp": "2026-07-19T09:45:00Z",
+    "verificationTimestamp": null,
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "website": {
+      "implementationRequired": false,
+      "filesChanged": []
+    },
+    "data": {
+      "implementationRequired": false,
+      "filesChanged": []
+    },
+    "crm": {
+      "commit": "3bea33b463ac941ad9fc7d88a1776d6b5de5d9b5",
+      "tree": "b6dc6bdfc5cbe80866ff1ebe87d975b08eaf8c01",
+      "author": "Prometheus CRM <crm@prometheus.local>",
+      "committer": "Prometheus CRM <crm@prometheus.local>",
+      "subject": "crm: govern Founder request access boundary",
+      "filesChanged": [
+        "crm/README.md",
+        "crm/route-iq-request-crm-contract-v1.json",
+        "crm/route-iq-request-crm.mjs",
+        "tests/crm-route-iq-founder-access-boundary.test.mjs",
+        "tests/crm-route-iq-request-lifecycle.test.mjs"
+      ]
+    },
+    "infrastructure": {
+      "commits": [
+        {
+          "commit": "2be88021bfc9107c200a2fef5fd065da875e52c6",
+          "tree": "6dd49be4639a0b591936ef2f020ab7a726f8507d",
+          "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "subject": "infrastructure: prepare public CRM deployment controls"
+        },
+        {
+          "commit": "d9c1b3322c5ad2fb12f3ae5dbfc7f42e807d61a8",
+          "tree": "0adf48f112a95d095488efc9da55bab008f0b8a3",
+          "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "subject": "infrastructure: harden public deployment secret handling"
+        },
+        {
+          "commit": "1791728ad6a6777e828220dac6a7e93b207f95bc",
+          "tree": "7e06d69d17649ac84f1c3b8c8f2592873f4ff8bd",
+          "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "subject": "infrastructure: wire public CRM readiness gates"
+        },
+        {
+          "commit": "1490d4722867a5e203eb159ffbaf01c9645fb127",
+          "tree": "8f453304c455e52c42ed006a1ad9e4bd01940e97",
+          "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+          "subject": "infrastructure: stabilize public rollback artifact identity"
+        }
+      ],
+      "filesChanged": [
+        ".github/workflows/deploy-prometheus-public-worker.yml",
+        "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+        "docs/route-iq-public-crm-founder-access-v1.md",
+        "scripts/lib/cloudflare-public-crm-founder-access.mjs",
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/run-cloudflare-public-crm-founder-access.mjs",
+        "scripts/run-cloudflare-public-worker-smoke.mjs",
+        "scripts/run-github-actions-public-worker-deployment.mjs",
+        "scripts/verify-cloudflare-public-crm-founder-access.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "scripts/verify-route-iq-public-forward-rollback.mjs",
+        "tests/cloudflare-public-crm-founder-access.test.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/cloudflare-public-worker-smoke-contract.js",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+        "workers/infrastructure/route-iq-public-crm-founder-access-v1.json",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    },
+    "overwatchFilesChanged": [
+      "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json",
+      "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.md",
+      "scripts/verify-overwatch-route-iq-public-crm-founder-access-deployment-readiness.mjs",
+      "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+    ]
+  },
+  "cloudflareAccess": {
+    "application": {
+      "id": "58513324-6467-49fa-a75a-0e9a9af11820",
+      "name": "Route IQ Founder CRM",
+      "type": "self_hosted",
+      "path": "prometheusrouteiq.com/api/partner-intake/founder/*",
+      "count": 1,
+      "status": "CONFIGURED_AND_INDEPENDENTLY_VERIFIED"
+    },
+    "policy": {
+      "id": "82b77a0f-8640-4e55-9191-0335b0dc0025",
+      "name": "Route IQ Founder CRM - Cruz Only",
+      "decision": "allow",
+      "include": "one_exact_verified_founder_email",
+      "require": "one_exact_otp_identity_provider",
+      "everyoneAllowed": false,
+      "bypassAllowed": false,
+      "displayNameAllowed": false,
+      "status": "CONFIGURED_AND_INDEPENDENTLY_VERIFIED"
+    },
+    "publicWebsiteRemainsPublic": true,
+    "publicRequestSubmissionRemainsPublic": true,
+    "founderEndpointsProtected": true,
+    "founderAttendedAuthentication": "PENDING",
+    "rawJwtStored": false,
+    "rawSubjectStored": false,
+    "recoveryBatchLiveInspectionPerformed": false
+  },
+  "runtimeSettings": {
+    "names": [
+      "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+      "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+      "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+    ],
+    "valuesStoredInSource": false,
+    "protectedGithubEnvironment": "prometheus-public-worker-production",
+    "configurationStatus": "PENDING_FOUNDER_ATTENDED_MAPPING_AND_ONE_TIME_GITHUB_SETUP",
+    "activeWorkerModified": false
+  },
+  "deploymentControl": {
+    "workflow": ".github/workflows/deploy-prometheus-public-worker.yml",
+    "trigger": "workflow_dispatch",
+    "branch": "main",
+    "founderActor": "PrometheusRouteIQ",
+    "publicWorker": "prometheusrouteiq-website",
+    "privateWorker": "prometheus-iq",
+    "privateWorkerDeploymentAllowed": false,
+    "oneAttempt": true,
+    "simultaneousDeploymentsAllowed": false,
+    "crmProductionSubmissionAllowed": false,
+    "smokeMethods": [
+      "GET",
+      "HEAD"
+    ]
+  },
+  "liveProduction": {
+    "publicWorkerVersion": "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+    "privateWorkerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "publicWorkerTrafficPercent": 100,
+    "publicWorkerChangedByBatch": false,
+    "privateWorkerChangedByBatch": false,
+    "deploymentPerformed": false,
+    "productionCrmRequestSubmitted": false,
+    "productionDataMutationPerformed": false,
+    "recoveryBatchVerificationScope": "PREVIOUSLY_RECORDED_STATE_NOT_REVALIDATED_WITH_PRODUCTION_ACCESS"
+  },
+  "safetyState": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "gaia": "PAUSED",
+    "athena": "ARCHITECTURE_ONLY",
+    "fitnessConnectionEvidenceChanged": false,
+    "fitnessConnectionRelationshipClaimed": false
+  },
+  "rollback": {
+    "strategy": "new_forward_deployment",
+    "nativeCloudflareRollbackAllowed": false,
+    "artifactSha256": "4636e18bd3d99a803803a7ab78dcd2dbf634de8d9e34386c5c43f4df6fcb1ad1",
+    "durableObjectStatePreserved": true,
+    "migrationHistoryPreserved": true,
+    "acceptedRecordsPreserved": true,
+    "rehearsalStatus": "PASS"
+  },
+  "release": {
+    "sourceControlProvenanceRecovered": true,
+    "automaticPushEligibleAfterExactHeadVerification": true,
+    "deploymentAuthorized": false,
+    "cloudflareMutationAuthorized": false,
+    "credentialAccessAuthorized": false
+  },
+  "determination": "RELEASE_PROVENANCE_RECOVERED_FOUNDER_SETUP_PENDING"
+}
