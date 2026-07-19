@@ -27,7 +27,23 @@
     "productionDataRewriteAllowed": false
   },
   "artifact": {
-    "construction": "current_verified_source_with_prior_public_assets",
+    "construction": "canonical_deployable_bundle_with_prior_public_assets",
+    "identityVersion": "route-iq-public-forward-rollback-artifact-v2",
+    "identityScope": [
+      "candidate_stateful_file_manifest",
+      "wrangler_configuration",
+      "prior_public_assets",
+      "generated_worker_bundle",
+      "canonical_generated_source_map"
+    ],
+    "requiredGeneratedOutputs": [
+      "prometheus-iq-worker.js",
+      "prometheus-iq-worker.js.map"
+    ],
+    "excludedBuildOnlyOutputs": [
+      "README.md"
+    ],
+    "unrelatedRepositoryFilesAffectIdentity": false,
     "pathIndependentSha256Required": true,
     "founderApprovalInputRequired": true,
     "dryRunRequiredBeforeDeployment": true,

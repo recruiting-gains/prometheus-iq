@@ -50,6 +50,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   const deploy = workflow.slice(workflow.indexOf("  deploy:\n"));
   const library = read("scripts/lib/github-actions-public-worker-deployment.mjs");
   const documentation = read("docs/github-actions-founder-triggered-public-worker-deployment-v1.md");
+  const rollbackContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath));
 
   assert.match(workflow, /^name: Deploy Prometheus Public Worker$/mu);
   assert.deepEqual([...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]), ["workflow_dispatch"]);
@@ -126,6 +127,15 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.ok(smoke.length > 0);
   assert.ok(smoke.every(request => ["GET", "HEAD"].includes(request.method) && request.body === false));
   assert.match(documentation, /cannot be attached while retaining the current live public Worker version/u);
+  assert.match(documentation, /canonical deployable bundle rather than the entire repository tree/u);
+  assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v2");
+  assert.equal(rollbackContract.artifact.unrelatedRepositoryFilesAffectIdentity, false);
+  assert.deepEqual(rollbackContract.artifact.requiredGeneratedOutputs, [
+    "prometheus-iq-worker.js",
+    "prometheus-iq-worker.js.map"
+  ]);
+  assert.deepEqual(rollbackContract.artifact.excludedBuildOnlyOutputs, ["README.md"]);
+  assert.match(workflow, /verify-route-iq-public-forward-rollback\.mjs "\$\{\{ inputs\.rollback_artifact_sha256 \}\}"/u);
   assert.match(library, /assertPublicBindingsPreserved/u);
   verifyPublicStaticDeploymentPolicy(root);
   verifyPublicWranglerPin(root);

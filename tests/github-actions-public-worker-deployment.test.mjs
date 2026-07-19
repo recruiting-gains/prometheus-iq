@@ -1,6 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { lstatSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import {
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -77,6 +87,45 @@ function response(value, status = 200) {
     status,
     headers: { "Content-Type": "application/json" }
   });
+}
+
+function fixtureGit(repository, argumentsList) {
+  const result = spawnSync("git", argumentsList, {
+    cwd: repository,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: 4 * 1024 * 1024,
+    timeout: 30_000,
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  });
+  assert.equal(result.status, 0, `fixture Git failed: ${argumentsList.join(" ")}`);
+  return String(result.stdout || "").trim();
+}
+
+function commitFixture(repository, paths, subject) {
+  fixtureGit(repository, ["add", "--", ...paths]);
+  fixtureGit(repository, [
+    "-c", "user.name=Prometheus Infrastructure Test",
+    "-c", "user.email=infrastructure-test@prometheus.local",
+    "commit", "--quiet", "-m", subject, "--", ...paths
+  ]);
+  return fixtureGit(repository, ["rev-parse", "HEAD"]);
+}
+
+function updateRollbackContract(repository, update) {
+  const path = join(repository, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath);
+  const contract = JSON.parse(readFileSync(path, "utf8"));
+  update(contract);
+  writeFileSync(path, `${JSON.stringify(contract, null, 2)}\n`, "utf8");
+}
+
+function sha256Path(path) {
+  return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
 test("Founder dispatch requires every exact no-secret input and rejects reruns or another actor", () => {
@@ -297,4 +346,102 @@ test("static owner gates and forward rollback artifact are deterministic", () =>
   const second = verifyPublicForwardRollbackArtifact(root);
   assert.equal(first.artifactSha256, second.artifactSha256);
   assert.equal(first.websiteAssetsSha256, second.websiteAssetsSha256);
+  assert.equal(first.identityVersion, "route-iq-public-forward-rollback-artifact-v2");
+  assert.equal(first.generatedWorkerSha256, second.generatedWorkerSha256);
+  assert.equal(first.generatedSourceMapSha256, second.generatedSourceMapSha256);
+});
+
+test("rollback identity ignores unrelated governance commits and detects runtime, config, and selected asset drift", () => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), "route-iq-public-rollback-drift-test-"));
+  const repository = join(fixtureRoot, "repository");
+  try {
+    fixtureGit(root, ["clone", "--quiet", "--shared", root, repository]);
+    symlinkSync(resolve(root, "node_modules"), join(repository, "node_modules"), "dir");
+    const rollbackContractPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath;
+    writeFileSync(
+      join(repository, rollbackContractPath),
+      readFileSync(join(root, rollbackContractPath))
+    );
+    fixtureGit(repository, ["add", "--", rollbackContractPath]);
+    fixtureGit(repository, [
+      "-c", "user.name=Prometheus Infrastructure Test",
+      "-c", "user.email=infrastructure-test@prometheus.local",
+      "commit", "--quiet", "--allow-empty", "-m", "test: seed current rollback contract", "--", rollbackContractPath
+    ]);
+    const baseline = verifyPublicForwardRollbackArtifact(repository);
+
+    const unrelatedPath = "overwatch/governance/rollback-identity-unrelated-fixture.json";
+    mkdirSync(join(repository, "overwatch", "governance"), { recursive: true });
+    writeFileSync(join(repository, unrelatedPath), "{\"fixture\":true}\n", "utf8");
+    const stableCommit = commitFixture(repository, [unrelatedPath], "test: add unrelated Overwatch governance fixture");
+    const afterUnrelatedGovernance = verifyPublicForwardRollbackArtifact(repository);
+    assert.equal(afterUnrelatedGovernance.artifactSha256, baseline.artifactSha256);
+
+    fixtureGit(repository, ["switch", "--quiet", "-c", "runtime-drift"]);
+    const runtimePath = "workers/infrastructure/route-iq-request-crm-runtime.js";
+    const runtimeAbsolute = join(repository, runtimePath);
+    const runtime = readFileSync(runtimeAbsolute, "utf8").replace(
+      "const MAX_RESPONSE_BYTES = 96 * 1024;",
+      "const MAX_RESPONSE_BYTES = 97 * 1024;"
+    );
+    writeFileSync(runtimeAbsolute, runtime, "utf8");
+    commitFixture(repository, [runtimePath], "test: drift rollback runtime without contract update");
+    assert.throws(
+      () => verifyPublicForwardRollbackArtifact(repository),
+      error => error instanceof PublicDeploymentPolicyError && error.code === PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID
+    );
+    updateRollbackContract(repository, contract => {
+      contract.candidateStatefulFiles[runtimePath] = sha256Path(runtimeAbsolute);
+    });
+    commitFixture(
+      repository,
+      [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
+      "test: pin rollback runtime drift"
+    );
+    assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
+
+    fixtureGit(repository, ["switch", "--quiet", "-c", "config-drift", stableCommit]);
+    const configPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig;
+    const configAbsolute = join(repository, configPath);
+    const config = readFileSync(configAbsolute, "utf8").replace(
+      '"compatibility_date": "2026-07-01"',
+      '"compatibility_date": "2026-07-02"'
+    );
+    writeFileSync(configAbsolute, config, "utf8");
+    commitFixture(repository, [configPath], "test: drift rollback config without contract update");
+    assert.throws(
+      () => verifyPublicForwardRollbackArtifact(repository),
+      error => error instanceof PublicDeploymentPolicyError && error.code === PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID
+    );
+    updateRollbackContract(repository, contract => {
+      contract.candidateStatefulFiles[configPath] = sha256Path(configAbsolute);
+    });
+    commitFixture(
+      repository,
+      [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
+      "test: pin rollback config drift"
+    );
+    assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
+
+    fixtureGit(repository, ["switch", "--quiet", "-c", "asset-drift", stableCommit]);
+    const assetPath = "deploy/prometheusrouteiq-website/robots.txt";
+    const assetAbsolute = join(repository, assetPath);
+    writeFileSync(assetAbsolute, `${readFileSync(assetAbsolute, "utf8")}# rollback-asset-drift-fixture\n`, "utf8");
+    const assetCommit = commitFixture(repository, [assetPath], "test: create alternate prior website asset");
+    const unselectedAssetDrift = verifyPublicForwardRollbackArtifact(repository);
+    assert.equal(unselectedAssetDrift.artifactSha256, baseline.artifactSha256);
+    const assetTree = fixtureGit(repository, ["rev-parse", `${assetCommit}^{tree}`]);
+    updateRollbackContract(repository, contract => {
+      contract.sourceWebsiteCommit = assetCommit;
+      contract.sourceWebsiteTree = assetTree;
+    });
+    commitFixture(
+      repository,
+      [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
+      "test: select alternate prior website asset"
+    );
+    assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
 });

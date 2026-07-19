@@ -307,6 +307,22 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.statefulCompatibility?.acceptedRecordsPreserved !== true
     || contract.statefulCompatibility?.deletedClassesAllowed !== false
     || contract.statefulCompatibility?.productionDataRewriteAllowed !== false
+    || contract.artifact?.construction !== "canonical_deployable_bundle_with_prior_public_assets"
+    || contract.artifact?.identityVersion !== "route-iq-public-forward-rollback-artifact-v2"
+    || JSON.stringify(contract.artifact?.identityScope) !== JSON.stringify([
+      "candidate_stateful_file_manifest",
+      "wrangler_configuration",
+      "prior_public_assets",
+      "generated_worker_bundle",
+      "canonical_generated_source_map"
+    ])
+    || JSON.stringify(contract.artifact?.requiredGeneratedOutputs) !== JSON.stringify([
+      "prometheus-iq-worker.js",
+      "prometheus-iq-worker.js.map"
+    ])
+    || JSON.stringify(contract.artifact?.excludedBuildOnlyOutputs) !== JSON.stringify(["README.md"])
+    || contract.artifact?.unrelatedRepositoryFilesAffectIdentity !== false
+    || contract.artifact?.pathIndependentSha256Required !== true
     || contract.artifact?.founderApprovalInputRequired !== true
     || contract.artifact?.dryRunRequiredBeforeDeployment !== true) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);

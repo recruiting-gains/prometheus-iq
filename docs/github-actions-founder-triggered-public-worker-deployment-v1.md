@@ -51,6 +51,8 @@ No production request form is submitted by the workflow. Founder CRM paths must 
 
 The rollback is a new deployment, never a native Cloudflare rollback. The deterministic rollback workspace combines the current stateful Worker, CRM implementation, Durable Object class, binding, and migration history with the prior public website assets from commit `cb413fdf3a9676c238c02532261ffcf3a24f2b21`. This restores the prior website experience while preserving accepted CRM records and all SQLite migration history.
 
+The rollback SHA-256 identifies a canonical deployable bundle rather than the entire repository tree. It covers the exact Wrangler configuration, the pinned stateful-source manifest, every prior public asset, the generated Worker bundle, and a path-normalized generated source map. Wrangler's timestamped dry-run `README.md` is checked as build-only output and deliberately excluded. Changes to Overwatch reports, governance, tests, or other nondeployment files therefore leave the rollback identity unchanged; drift in rollback-relevant runtime source, configuration, or selected prior assets either fails the pinned contract or produces a different identity.
+
 Generate and verify it with:
 
 ```sh
