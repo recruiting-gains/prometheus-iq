@@ -16,6 +16,8 @@ const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootst
 const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
 const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
 const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
+const routeUpdateCompletionPrefix = "Route updated using your latest result.";
+const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
 
 const results = [];
 const errors = [];
@@ -73,6 +75,39 @@ function fail(name, detail) {
 function assertWorkflow(name, condition, detail, failureDetail = detail) {
   if (condition) pass(name, detail);
   else fail(name, failureDetail);
+}
+
+function inspectRouteUpdateStatus(value) {
+  const status = String(value || "").trim();
+  const hasStablePrefix = status.startsWith(routeUpdateCompletionPrefix);
+  const detail = hasStablePrefix ? status.slice(routeUpdateCompletionPrefix.length).trim() : status;
+  return {
+    status,
+    hasStablePrefix,
+    detail,
+    hasGovernedHoursDetail: detail === "" || governedRouteHoursDetailPattern.test(detail)
+  };
+}
+
+function verifyRouteUpdateStatusContract() {
+  const accepted = [
+    routeUpdateCompletionPrefix,
+    `${routeUpdateCompletionPrefix} 1 stop has unverified hours.`,
+    `${routeUpdateCompletionPrefix} 15 stops have unverified hours.`
+  ].map(inspectRouteUpdateStatus);
+  const rejected = [
+    `${routeUpdateCompletionPrefix} 0 stops have unverified hours.`,
+    `${routeUpdateCompletionPrefix} 1 stops have unverified hours.`,
+    `${routeUpdateCompletionPrefix} unrelated status text`,
+    "Route update completed."
+  ].map(inspectRouteUpdateStatus);
+  assertWorkflow(
+    "Route update status contract",
+    accepted.every(result => result.hasStablePrefix && result.hasGovernedHoursDetail)
+      && rejected.every(result => !result.hasStablePrefix || !result.hasGovernedHoursDetail),
+    "stable completion prefix and governed optional hours detail reject unrelated text",
+    JSON.stringify({ accepted, rejected })
+  );
 }
 
 function contentType(pathname) {
@@ -2311,6 +2346,7 @@ function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
 }
 
 async function runHarness() {
+  verifyRouteUpdateStatusContract();
   const server = await startStaticServer();
   const fallbackServer = await startStaticServer({ missingActive: true });
   const fieldSessionServer = await startStaticServer();
@@ -2601,10 +2637,12 @@ async function runHarness() {
 
     const anthonyLog = await runPageScenario(chrome, server, "/?role=rep&rep=anthony&debug=1&harness=anthony-mobile-quick-log", "anthony-mobile-log", {
       standalone: true,
-      viewport: { width: 390, height: 667, deviceScaleFactor: 3, mobile: true }
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const quickLog = await verifyMobileQuickLogging(anthonyLog.cdp);
-    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.routeQueueCount === 15 && quickLog.routeLoopStatus === "Route updated using your latest result." && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, queue ${quickLog.routeQueueCount}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify(quickLog));
+    const quickLogRouteStatus = inspectRouteUpdateStatus(quickLog.routeLoopStatus);
+    assertWorkflow("Anthony mobile pin-drop logging reachability", quickLog.reachable && !quickLog.modalActiveAfterSubmit && quickLog.afterUnits > quickLog.beforeUnits && quickLog.routeQueueCount === 15 && quickLogRouteStatus.hasStablePrefix && quickLog.documentScrollWidth <= quickLog.viewportWidth + 1 && quickLog.bodyScrollWidth <= quickLog.viewportWidth + 1, `submit reachable, units ${quickLog.beforeUnits} -> ${quickLog.afterUnits}, queue ${quickLog.routeQueueCount}, modal body ${quickLog.modalBodyClientHeight}/${quickLog.modalBodyScrollHeight}`, JSON.stringify({ ...quickLog, routeStatus: quickLogRouteStatus }));
+    assertWorkflow("Anthony mobile pin-drop governed hours detail", quickLogRouteStatus.hasGovernedHoursDetail, quickLogRouteStatus.detail || "no unverified-hours detail", JSON.stringify(quickLogRouteStatus));
     verifyNoErrors("Anthony mobile logging", anthonyLog.eventLog, await snapshot(anthonyLog.cdp));
 
     const anthonyPwa = await runPageScenario(chrome, server, "/?pwa=rep&debug=1&harness=anthony-pwa-signin", "anthony-pwa", {
@@ -2733,7 +2771,9 @@ async function runHarness() {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
     });
     const adaptiveResult = await verifyContinuousAdaptiveReplenishment(adaptive.cdp);
-    assertWorkflow("Continuous replenishment completion trigger", adaptiveResult.afterVisitCount === adaptiveResult.beforeVisitCount + 1 && adaptiveResult.status === "Route updated using your latest result.", adaptiveResult.status, JSON.stringify(adaptiveResult));
+    const adaptiveRouteStatus = inspectRouteUpdateStatus(adaptiveResult.status);
+    assertWorkflow("Continuous replenishment completion trigger", adaptiveResult.afterVisitCount === adaptiveResult.beforeVisitCount + 1 && adaptiveRouteStatus.hasStablePrefix, adaptiveResult.status, JSON.stringify({ ...adaptiveResult, routeStatus: adaptiveRouteStatus }));
+    assertWorkflow("Continuous replenishment governed hours detail", adaptiveRouteStatus.hasGovernedHoursDetail, adaptiveRouteStatus.detail || "no unverified-hours detail", JSON.stringify(adaptiveRouteStatus));
     assertWorkflow("Continuous replenishment queue returns to 15", adaptiveResult.afterQueueIds.length === 15 && adaptiveResult.queueTarget === 15 && adaptiveResult.queueThreshold === 5 && adaptiveResult.queueState === "active" && adaptiveResult.appendedReplacement, `${adaptiveResult.afterQueueIds.length}/${adaptiveResult.queueTarget} active stops`, JSON.stringify(adaptiveResult));
     assertWorkflow("Continuous replenishment order and duplicate protection", adaptiveResult.remainingOrderPreserved && adaptiveResult.duplicateCount === 0 && !adaptiveResult.completedStillActive, "remaining order preserved; completed stop excluded; no duplicates", JSON.stringify(adaptiveResult));
     assertWorkflow("Continuous replenishment evidence refresh", adaptiveResult.latestEvidenceCount >= adaptiveResult.afterVisitCount && adaptiveResult.debug.workspaceId === "fitness_connection" && adaptiveResult.debug.representativeId === "cruz", `${adaptiveResult.latestEvidenceCount} evidence records for ${adaptiveResult.debug.workspaceId}/${adaptiveResult.debug.representativeId}`, JSON.stringify(adaptiveResult));
