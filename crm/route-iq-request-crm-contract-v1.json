@@ -37,7 +37,9 @@
   },
   "authorization": {
     "retrievalAndExport": "founder_only",
-    "authorizedImmutablePrincipal": "prn:prometheus:founder:cruz:v1",
+    "authorizedImmutablePrincipal": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+    "canonicalIdentitySource": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+    "canonicalIdentityPath": "workspaces[workspaceId=fitness_connection].users[representativeId=cruz].authenticatedPrincipalId",
     "displayNameAuthorizationProhibited": true,
     "representativeAuthorization": false,
     "anthony": "pending_exact_authenticated_identity_mapping"

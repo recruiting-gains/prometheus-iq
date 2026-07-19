@@ -29,8 +29,9 @@ export const routeIqRequestDesiredTimelines = Object.freeze([
 
 export const routeIqRequestFounderAuthorization = Object.freeze({
   identityProvider: "prometheus_identity",
-  immutablePrincipalId: "prn:prometheus:founder:cruz:v1",
-  subject: "founder_cruz_v1",
+  immutablePrincipalId: "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+  canonicalIdentitySource: "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+  canonicalIdentityPath: "workspaces[workspaceId=fitness_connection].users[representativeId=cruz].authenticatedPrincipalId",
   workspaceId: routeIqRequestCrmWorkspace.workspaceId,
   anthony: Object.freeze({
     authorized: false,
@@ -373,7 +374,6 @@ export function authorizeRouteIqRequestFounder(principal = {}) {
   const allowed = principal.authenticated === true
     && principal.identityProvider === routeIqRequestFounderAuthorization.identityProvider
     && principal.immutablePrincipalId === routeIqRequestFounderAuthorization.immutablePrincipalId
-    && principal.subject === routeIqRequestFounderAuthorization.subject
     && principal.workspaceId === routeIqRequestFounderAuthorization.workspaceId
     && principal.identityImmutable === true;
   if (!allowed) fail("founder_authorization_required", "Founder-only CRM access is not authorized for this immutable principal.", 403);

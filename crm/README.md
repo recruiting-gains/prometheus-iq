@@ -41,7 +41,7 @@ The production Worker persists Fitness Connection lead handoffs and fails closed
 
 `route-iq-request-crm.mjs` extends the existing CRM lead persistence model for commercial Route IQ requests. It strictly validates the approved request fields, assigns a server timestamp, stores no idempotency key in the canonical lead record, and requires an atomic `putIfAbsent` store primitive for deterministic duplicate and conflict handling. Identical content receives one stable receipt; reuse of an idempotency key with changed content fails closed.
 
-Founder retrieval and JSON/CSV export require the exact immutable Cruz principal. A display name, Founder role claim by itself, representative identity, or Anthony identity without a separately governed exact mapping is not sufficient. Failure telemetry contains only an opaque attempt identifier and fixed nonsecret status fields.
+Founder retrieval and JSON/CSV export require the exact immutable Cruz principal from Data's canonical `route-iq-commercial-workspace-registry-v1.json`. CRM does not maintain a second identity mapping. A display name, Founder role claim by itself, representative identity, or Anthony identity without a separately governed exact Data mapping is not sufficient. Failure telemetry contains only an opaque attempt identifier and fixed nonsecret status fields.
 
 ## v1 Workflow
 

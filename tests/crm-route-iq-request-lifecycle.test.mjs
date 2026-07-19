@@ -74,7 +74,6 @@ function cruzPrincipal(overrides = {}) {
     authenticated: true,
     identityProvider: routeIqRequestFounderAuthorization.identityProvider,
     immutablePrincipalId: routeIqRequestFounderAuthorization.immutablePrincipalId,
-    subject: routeIqRequestFounderAuthorization.subject,
     workspaceId: routeIqRequestFounderAuthorization.workspaceId,
     identityImmutable: true,
     ...overrides
@@ -206,7 +205,8 @@ test("Founder retrieval requires Cruz's exact immutable authenticated principal"
   for (const principal of [
     { authenticated: true, displayName: "Cruz Garza", role: "founder" },
     cruzPrincipal({ immutablePrincipalId: "prn:prometheus:founder:anthony:pending" }),
-    cruzPrincipal({ subject: "representative_anthony_v1" }),
+    cruzPrincipal({ immutablePrincipalId: "prn:prometheus:founder:cruz:v1" }),
+    cruzPrincipal({ identityProvider: "display_name_only" }),
     cruzPrincipal({ identityImmutable: false }),
     cruzPrincipal({ authenticated: false })
   ]) {
@@ -246,11 +246,18 @@ test("CSV export neutralizes spreadsheet formulas and safe failure metadata excl
 
 test("machine-readable CRM contract pins fields, durable semantics, and authorization boundaries", () => {
   const contract = JSON.parse(readFileSync(resolve(import.meta.dirname, "../crm/route-iq-request-crm-contract-v1.json"), "utf8"));
+  const registry = JSON.parse(readFileSync(resolve(import.meta.dirname, "../data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json"), "utf8"));
+  const fitnessWorkspace = registry.workspaces.find(workspace => workspace.workspaceId === "fitness_connection");
+  const canonicalCruz = fitnessWorkspace.users.find(user => user.representativeId === "cruz");
   assert.equal(contract.owner, "Prometheus CRM");
   assert.equal(contract.extends, "existing_workspace_lead_persistence_runtime");
   assert.equal(contract.durability.requiresAtomicPutIfAbsent, true);
   assert.equal(contract.authorization.representativeAuthorization, false);
   assert.equal(contract.authorization.anthony, "pending_exact_authenticated_identity_mapping");
+  assert.equal(contract.authorization.canonicalIdentitySource, "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json");
+  assert.equal(contract.authorization.authorizedImmutablePrincipal, canonicalCruz.authenticatedPrincipalId);
+  assert.equal(routeIqRequestFounderAuthorization.immutablePrincipalId, canonicalCruz.authenticatedPrincipalId);
+  assert.equal(canonicalCruz.identityMappingStatus, "exact_authenticated_identity_mapped");
   assert.equal(contract.productionMutationPerformed, false);
   assert.deepEqual(contract.canonicalFields, [
     "businessName", "contactName", "businessEmail", "phone", "businessType", "numberOfLocations",
