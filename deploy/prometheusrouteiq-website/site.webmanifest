@@ -1,7 +1,7 @@
 {
-  "name": "Prometheus IQ",
-  "short_name": "Prometheus",
-  "description": "Enterprise AI Route Intelligence for outside sales organizations.",
+  "name": "Route IQ by Prometheus",
+  "short_name": "Route IQ",
+  "description": "Governed field intelligence for representatives, territories, customers, and outcomes.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "theme_color": "#003b18",
   "icons": [
     {
-      "src": "/public-assets/prometheus-company-icon-512-20260701-brand-v2.png",
+      "src": "/prometheus-company-icon-512-20260701-brand-v2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

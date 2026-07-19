@@ -1,7 +1,12 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, useScroll, useTransform } from "framer-motion";
 import prometheusLogoUrl from "../icons/prometheus-company-icon-512.png";
+import {
+  buildRouteIqRequestPayload,
+  resolveAcquisitionSource,
+  submitRouteIqRequest
+} from "./route-iq-request-form.js";
 import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
@@ -20,86 +25,173 @@ function SectionLabel({ children }) {
   return <p className="eyebrow">{children}</p>;
 }
 
-function FeatureCard({ title, body, index }) {
+function Capability({ number, title, body }) {
   return (
     <motion.article
       className="feature-card"
-      initial={{ opacity: 0, y: 26 }}
+      initial={{ opacity: 0, y: 22 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.55, delay: index * 0.05 }}
+      viewport={{ once: true, margin: "-70px" }}
+      transition={{ duration: 0.48, delay: number * 0.04 }}
     >
-      <span>{String(index + 1).padStart(2, "0")}</span>
+      <span>{String(number).padStart(2, "0")}</span>
       <h3>{title}</h3>
       <p>{body}</p>
     </motion.article>
   );
 }
 
+function RouteIqRequestForm() {
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState({ kind: "idle", message: "", receiptId: "" });
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    const form = event.currentTarget;
+    const formData = Object.fromEntries(new FormData(form).entries());
+    formData.consent = form.elements.consent.checked;
+    const acquisitionSource = resolveAcquisitionSource(window.location.href, document.referrer);
+    const request = buildRouteIqRequestPayload({ formData, acquisitionSource });
+
+    if (!request.ok) {
+      setStatus({ kind: "error", message: request.errors.join(" "), receiptId: "" });
+      return;
+    }
+
+    setSubmitting(true);
+    setStatus({ kind: "pending", message: "Submitting your Route IQ request...", receiptId: "" });
+    try {
+      const result = await submitRouteIqRequest({ payload: request.payload });
+      setStatus({
+        kind: "success",
+        message: result.duplicate
+          ? "We found your existing request. Keep this receipt for reference."
+          : "Your Route IQ request was accepted. Keep this receipt for reference.",
+        receiptId: result.receiptId
+      });
+      form.reset();
+    } catch (error) {
+      const messages = {
+        REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait and try again.",
+        REQUEST_NETWORK_FAILED: "The request could not reach Prometheus. Your information was not confirmed as stored.",
+        REQUEST_RECEIPT_MISSING: "Prometheus could not confirm a storage receipt. Please try again later.",
+        REQUEST_RESPONSE_INVALID: "Prometheus returned an invalid confirmation. Please try again later."
+      };
+      setStatus({
+        kind: "error",
+        message: messages[error?.message] || "The request was not accepted. Please review the form or try again later.",
+        receiptId: ""
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form className="request-form" onSubmit={handleSubmit} noValidate aria-describedby="request-privacy-note">
+      <div className="request-form-grid">
+        <label>
+          <span>Business name</span>
+          <input name="businessName" autoComplete="organization" maxLength="140" required />
+        </label>
+        <label>
+          <span>Contact name</span>
+          <input name="contactName" autoComplete="name" maxLength="140" required />
+        </label>
+        <label>
+          <span>Business email</span>
+          <input name="businessEmail" type="email" autoComplete="email" inputMode="email" maxLength="180" required />
+        </label>
+        <label>
+          <span>Phone <small>optional</small></span>
+          <input name="phone" type="tel" autoComplete="tel" inputMode="tel" maxLength="40" />
+        </label>
+        <label>
+          <span>Industry or business type</span>
+          <input name="industry" maxLength="120" required />
+        </label>
+        <label>
+          <span>Territory or operating area</span>
+          <input name="territory" maxLength="220" required />
+        </label>
+        <label>
+          <span>Number of locations</span>
+          <input name="locationCount" type="number" inputMode="numeric" min="1" max="10000" required />
+        </label>
+        <label>
+          <span>Estimated number of users</span>
+          <input name="estimatedUserCount" type="number" inputMode="numeric" min="1" max="100000" required />
+        </label>
+        <label className="full-field">
+          <span>Primary problem or use case</span>
+          <textarea name="primaryProblem" rows="5" maxLength="1200" required />
+        </label>
+        <label className="full-field">
+          <span>Desired timeline</span>
+          <select name="desiredTimeline" required defaultValue="">
+            <option value="" disabled>Select a timeline</option>
+            <option value="Exploring now">Exploring now</option>
+            <option value="Within 30 days">Within 30 days</option>
+            <option value="Within 90 days">Within 90 days</option>
+            <option value="This year">This year</option>
+            <option value="No fixed timeline">No fixed timeline</option>
+          </select>
+        </label>
+        <label className="honeypot" aria-hidden="true">
+          <span>Website</span>
+          <input name="websiteUrl" tabIndex="-1" autoComplete="off" />
+        </label>
+      </div>
+
+      <label className="consent-field">
+        <input name="consent" type="checkbox" required />
+        <span>I agree that Prometheus may use this information to respond to my Route IQ request.</span>
+      </label>
+      <p id="request-privacy-note" className="request-note">
+        Prometheus collects only the information needed to review and respond to this request.
+      </p>
+      <button className="button primary request-submit" type="submit" disabled={submitting}>
+        {submitting ? "SUBMITTING" : "REQUEST ROUTE IQ"}
+      </button>
+      <div className={`request-status ${status.kind}`} role="status" aria-live="polite" aria-atomic="true">
+        {status.message && <p>{status.message}</p>}
+        {status.receiptId && <p className="receipt-line">Receipt <strong>{status.receiptId}</strong></p>}
+      </div>
+    </form>
+  );
+}
+
 function App() {
   const { scrollYProgress } = useScroll();
-  const heroScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.9]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.56]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.58]);
 
-  const features = [
-    ["Next-Best Stop", "Prioritize the field day around qualified places before miles are wasted."],
-    ["Verified Activity", "Attach intentional visit context to business activity without tracking a rep's whole day."],
-    ["Simple Outcome Capture", "Log conversations, leads, follow-ups, and wins quickly so the rep stays in motion."],
-    ["Manager Visibility", "Give leaders a clearer picture of field effort, route quality, and results."],
-    ["CRM-Adjacent Workflow", "Support the work that happens before a lead becomes clean CRM data."],
-    ["Learning Loop", "Turn repeated field activity into governed operating intelligence over time."]
+  const capabilities = [
+    [1, "Plan the field day", "Organize governed business opportunities into a practical route workflow."],
+    [2, "Capture verified work", "Record visits, conversations, leads, follow-ups, and outcomes without tracking a representative's whole day."],
+    [3, "Understand representatives", "See field activity and outcome patterns through authorized, role-appropriate views."],
+    [4, "Understand territories", "Measure evidence coverage, freshness, business-hour eligibility, and local operating context."],
+    [5, "Understand customers", "Keep business context and outcomes connected to the workspace that produced them."],
+    [6, "Build governed intelligence", "Turn accumulated evidence into read-only, decision-ready intelligence with explicit confidence and limitations."]
   ];
 
-  const loop = ["Route", "Visit", "Result", "Recommendation"];
-  const industries = [
-    ["Home Services", "Roofing, HVAC, pest, solar, and security teams."],
-    ["Healthcare", "Medical device, referral, and provider outreach teams."],
-    ["Commercial Services", "Facilities, cleaning, logistics, uniforms, and B2B service sellers."],
-    ["Retail & Franchise", "Multi-location growth, memberships, partnerships, and events."],
-    ["B2B Sales", "Payroll, telecom, insurance, industrial, and territory acquisition."]
-  ];
-  const enterpriseSignals = [
-    ["Operational onboarding", "Defined scope, success criteria, review cadence, and executive evaluation before expansion."],
-    ["Security posture", "Public marketing remains separate from authenticated systems, internal logic, and private operating data."],
-    ["Manager visibility", "Leadership sees field execution, route usefulness, and outcomes without turning Prometheus into surveillance."],
-    ["CRM-adjacent adoption", "Prometheus strengthens the work before clean pipeline data exists, then informs downstream systems."]
-  ];
-  const investorSignals = [
-    ["Horizontal market", "Outside sales spans healthcare, home services, insurance, telecom, franchise growth, and B2B services."],
-    ["Compounding data", "Every verified visit and outcome can improve territory intelligence, coaching, and next-best-action quality."],
-    ["Founder-market fit", "Prometheus began in real field-sales pressure, with gym sales as validation rather than category definition."],
-    ["Enterprise path", "The operating model supports qualified partner onboarding, customer success reviews, renewal discipline, and expansion."]
-  ];
-  const successFramework = [
-    ["Baseline", "Document current routing, visit volume, follow-up discipline, and manager visibility."],
-    ["Onboard", "Configure the operating profile and run a focused workflow against route quality, activity proof, conversion path, and adoption."],
-    ["Review", "Translate field evidence into executive readouts, success gaps, and expansion criteria."],
-    ["Scale", "Move from founder-led setup to repeatable onboarding, governance, and customer success rhythm."]
-  ];
-  const trustSignals = [
-    ["Founder Built", "Built from real outside-sales pressure and field execution gaps."],
-    ["Controlled Onboarding", "Scoped access, defined users, and clear readiness review."],
-    ["Enterprise Ready", "Governance, separation, and success discipline from day one."],
-    ["Outcome Focused", "Evaluation centers on routes, activity proof, and field results."]
-  ];
+  const evidenceLoop = ["Plan", "Visit", "Capture", "Learn"];
 
   return (
     <main>
-      <a className="skip-link" href="#core">Skip to product overview</a>
+      <a className="skip-link" href="#product">Skip to Route IQ</a>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Prometheus home">
           <LogoMark scale={0.35} />
-          <span className="brand-lockup">
-            <strong>Prometheus</strong>
-            <small>Prometheus IQ</small>
-          </span>
+          <span className="brand-lockup"><strong>Prometheus</strong><small>Route IQ</small></span>
         </a>
         <nav aria-label="Primary navigation">
-          <a href="#core">Core</a>
-          <a href="#enterprise">Enterprise</a>
-          <a href="#industries">Industries</a>
-          <a href="#investors">Investors</a>
-          <a href="#partner">Partner Intake</a>
+          <a href="#product">Product</a>
+          <a href="#workflow">Workflow</a>
+          <a href="#governance">Governance</a>
+          <a href="#request">Request</a>
         </nav>
       </header>
 
@@ -111,310 +203,101 @@ function App() {
         </motion.div>
         <div className="hero-shade" />
         <div className="shell hero-grid">
-          <motion.div
-            className="hero-copy"
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-          >
-            <SectionLabel>Prometheus IQ by Prometheus</SectionLabel>
-            <div className="patent-badge" aria-label="U.S. patent pending technology">U.S. PATENT PENDING TECHNOLOGY</div>
-            <h1>AI Route Intelligence for Outside Sales Teams.</h1>
+          <motion.div className="hero-copy" initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.72 }}>
+            <SectionLabel>Prometheus / Active Product</SectionLabel>
+            <h1>Route IQ</h1>
             <p>
-              At Prometheus, we make it our business to know who sits in front of you before you ever shake their hand.
-              By transforming evidence into decision-ready intelligence, we help organizations reduce uncertainty before
-              important business decisions—from outside sales and franchise development to future operational intelligence
-              across every industry where preparation creates an advantage.
+              Route IQ helps field organizations learn their representatives, territories, customers, and outcomes.
+              It turns governed field evidence into decision-ready intelligence while keeping people in control.
             </p>
             <div className="hero-actions">
-              <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Request Access</a>
-              <a className="button secondary" href="#enterprise">Enterprise Readiness</a>
+              <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
+              <a className="button secondary" href="#product">See the product</a>
             </div>
-            <div className="identity-strip" aria-label="Prometheus identity pillars">
-              <span>Outside Sales</span>
-              <span>AI Route Intelligence</span>
-              <span>Verified Activity</span>
-              <span>Partner Onboarding</span>
+            <div className="identity-strip" aria-label="Route IQ product pillars">
+              <span>Field workflow</span><span>Governed evidence</span><span>Workspace isolation</span><span>Human decisions</span>
             </div>
-            <p className="cta-note">Built for healthcare, home services, franchise growth, telecom, insurance, B2B services, and any team where revenue depends on intelligent field execution.</p>
           </motion.div>
-          <motion.aside
-            className="signal-panel"
-            initial={{ opacity: 0, x: 34 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.18, ease: "easeOut" }}
-          >
-            <div className="panel-header">
-              <LogoMark scale={0.24} />
-              <span>LIVE FIELD READ</span>
-            </div>
-            <div className="metric-line">
-              <b>Where to go</b>
-              <span>AI Route Intelligence</span>
-            </div>
-            <div className="metric-line">
-              <b>What happened</b>
-              <span>Verified visit outcomes</span>
-            </div>
-            <div className="metric-line">
-              <b>What improves</b>
-              <span>Enterprise operating intelligence</span>
-            </div>
-          </motion.aside>
+          <aside className="signal-panel" aria-label="Route IQ operating model">
+            <div className="panel-header"><LogoMark scale={0.24} /><span>ROUTE IQ OPERATING MODEL</span></div>
+            <div className="metric-line"><b>Representatives</b><span>Clear field workflows and fast outcome capture</span></div>
+            <div className="metric-line"><b>Leaders</b><span>Evidence freshness, quality, coverage, and trends</span></div>
+            <div className="metric-line"><b>Intelligence</b><span>Read-only conclusions with confidence and limitations</span></div>
+          </aside>
         </div>
       </section>
 
-      <section id="core" className="section core-section">
+      <section id="product" className="section core-section">
         <div className="shell split">
-          <div>
-            <SectionLabel>The Intelligence Core</SectionLabel>
-            <h2>Prometheus makes the work before the CRM measurable.</h2>
-          </div>
+          <div><SectionLabel>One Configurable Product</SectionLabel><h2>Route IQ adapts to the business, not the other way around.</h2></div>
           <p>
-            Prometheus IQ is the flagship product inside a broader outside-sales operating system:
-            AI Route Intelligence, verified activity, opportunity context, follow-up signals,
-            and field outcomes converging into one governed operating picture.
+            Each organization operates in an isolated workspace with its own locations, territories, roles, goals,
+            terminology, measurements, retention rules, and intelligence eligibility. Route IQ remains one product,
+            configured for the way each field team works.
           </p>
-        </div>
-        <div className="shell core-window">
-          <div className="map-glow" />
-          <div className="route-map">
-            <span className="pin one" />
-            <span className="pin two" />
-            <span className="pin three" />
-            <span className="pin four" />
-            <svg viewBox="0 0 900 260" role="img" aria-label="Abstract route intelligence visualization">
-              <path d="M38 180 C 170 42, 280 230, 410 118 S 615 36, 842 130" />
-              <path d="M122 82 C 260 138, 345 24, 482 92 S 685 224, 818 82" />
-            </svg>
-          </div>
-        </div>
-      </section>
-
-      <section className="section trust-section" aria-labelledby="trust-title">
-        <div className="shell section-head">
-          <SectionLabel>Public Trust Signals</SectionLabel>
-          <h2 id="trust-title">Managed enterprise deployments for teams that need field intelligence with control.</h2>
-          <p className="section-copy">Prometheus IQ is evaluated through defined rollout scope, executive success criteria, and founder-led implementation discipline before broader deployment.</p>
-        </div>
-        <div className="shell trust-grid">
-          {trustSignals.map(([title, body]) => (
-            <article key={title}>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="industries" className="section problem-section">
-        <div className="shell">
-          <SectionLabel>Industry Pages</SectionLabel>
-          <h2>Prometheus is horizontal outside-sales infrastructure, not a single-market tool.</h2>
-          <p className="section-copy">Gym sales remains the first production validation environment. The company category is broader: any organization that creates revenue through territory visits, local outreach, canvassing, appointments, partner development, or field-led demand creation.</p>
-          <div className="industry-pages" aria-label="Industries Prometheus IQ can support">
-            {industries.map(([title, body]) => (
-              <article key={title}>
-                <h3>{title}</h3>
-                <p>{body}</p>
-              </article>
-            ))}
-          </div>
-          <div className="problem-grid">
-            {[
-              ["Reduce Drive Time", "Prioritize territory moves before miles are wasted."],
-              ["Recover Selling Time", "Turn unclear field days into focused visits and follow-up."],
-              ["Verify Field Activity", "Give managers proof of intentional work without surveillance."]
-            ].map(([item, body]) => (
-              <article key={item}>
-                <span />
-                <h3>{item}</h3>
-                <p>{body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="enterprise" className="section enterprise-section">
-        <div className="shell split">
-          <div>
-            <SectionLabel>Enterprise Page</SectionLabel>
-            <h2>Built for private onboarding, executive review, and field operating discipline.</h2>
-          </div>
-          <p>
-            Qualified partners need more than a route map. Prometheus frames onboarding around
-            route quality, verified activity, qualified lead generation, operating profile configuration,
-            adoption, and leadership visibility while keeping private systems and internal intelligence logic protected.
-          </p>
-        </div>
-        <div className="shell enterprise-grid">
-          {enterpriseSignals.map(([title, body]) => (
-            <article key={title}>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="features" className="section features-section">
-        <div className="shell section-head">
-          <SectionLabel>Platform Capabilities</SectionLabel>
-          <h2>Built as an operating system for teams who still win in the physical world.</h2>
-          <p className="section-copy">Prometheus IQ is not limited to gyms. It is positioned for any outside-sales organization that needs better territory direction, verified field activity, and cleaner management visibility.</p>
         </div>
         <div className="shell feature-grid">
-          {features.map(([title, body], index) => <FeatureCard key={title} title={title} body={body} index={index} />)}
+          {capabilities.map(([number, title, body]) => <Capability key={title} number={number} title={title} body={body} />)}
         </div>
       </section>
 
-      <section className="section loop-section">
-        <div className="shell">
-          <SectionLabel>The Learning Loop</SectionLabel>
-          <h2>Make outside sales intelligent, directed, accountable, and compounding.</h2>
-          <p className="section-copy">Every route, visit, and outcome should make tomorrow's field decision smarter.</p>
-          <div className="loop-track">
-            {loop.map((item, index) => (
-              <motion.div
-                className="loop-step"
-                key={item}
-                initial={{ opacity: 0, y: 22 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: index * 0.1 }}
-              >
-                <span>{index + 1}</span>
-                <strong>{item}</strong>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section founder-section">
-        <div className="shell founder-grid">
-          <div>
-            <SectionLabel>Founder Story</SectionLabel>
-            <h2>Founder-led, field-tested, and built for enterprise trust.</h2>
-          </div>
-          <div className="founder-copy">
-            <p>
-              Prometheus was created from lived outside-sales reality: wasted miles, dead zones,
-              unclear priorities, inconsistent follow-up, and the pressure to create demand in
-              the physical world without intelligent direction.
-            </p>
-            <p>
-              The mission is larger than one vertical. Prometheus IQ is the first product in an
-              AI operating system for outside sales, built to make field work directed,
-              accountable, measurable, and compounding without becoming a surveillance product.
-            </p>
-            <p className="testimonial-placeholder">
-              Partner testimonial placeholder: reserved for an approved customer quote after qualified partner onboarding results are reviewed.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="section vision-section">
-        <div className="shell split">
-          <div>
-            <SectionLabel>Company Direction</SectionLabel>
-            <h2>Our Long-Term Vision</h2>
-          </div>
-          <p>
-            Prometheus helps organizations reduce uncertainty before important business decisions
-            by transforming evidence into decision-ready intelligence.
-          </p>
-        </div>
-        <div className="shell success-grid" aria-label="Prometheus long-term platform vision">
-          {[
-            ["Better evidence", "We believe better decisions begin with better evidence."],
-            ["Decision-ready intelligence", "Every research dossier, qualification process, operating profile, executive brief, and intelligence workflow exists to reduce uncertainty before a human makes an important business decision."],
-            ["Platform evolution", "Outside sales is where Prometheus began. Decision intelligence is where the platform is evolving."]
-          ].map(([title, body], index) => (
-            <article key={title}>
-              <span>{index + 1}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section id="investors" className="section investor-section">
-        <div className="shell split">
-          <div>
-            <SectionLabel>Investor Page</SectionLabel>
-            <h2>Prometheus is building the intelligence layer for outside sales.</h2>
-          </div>
-          <p>
-            The investor story is not routing software. It is a repeatable operating layer for
-            where reps go, what happened, what the team learned, and how field execution improves
-            across broad outside-sales markets.
-          </p>
-        </div>
-        <div className="shell investor-grid">
-          {investorSignals.map(([title, body]) => (
-            <article key={title}>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section success-section">
+      <section id="workflow" className="section loop-section">
         <div className="shell section-head">
-          <SectionLabel>Customer Success Framework</SectionLabel>
-          <h2>From partner intake to expansion-ready operating review.</h2>
-          <p className="section-copy">Prometheus onboarding is designed to create evidence: cleaner route decisions, verified work, qualified lead generation, useful outcomes, and a clear executive path for renewal or expansion.</p>
+          <SectionLabel>Evidence Loop</SectionLabel>
+          <h2>Make field work easier to understand, one governed event at a time.</h2>
+          <p className="section-copy">
+            Route IQ connects route context, intentional visits, and recorded outcomes. As evidence accumulates,
+            leaders gain a clearer read on coverage and trends without presenting uncertain evidence as a proven prediction.
+          </p>
         </div>
-        <div className="shell success-grid">
-          {successFramework.map(([title, body], index) => (
-            <article key={title}>
-              <span>{index + 1}</span>
-              <h3>{title}</h3>
-              <p>{body}</p>
-            </article>
+        <div className="shell loop-track">
+          {evidenceLoop.map((item, index) => (
+            <div className="loop-step" key={item}><span>{index + 1}</span><strong>{item}</strong></div>
           ))}
         </div>
       </section>
 
-      <section id="partner" className="section partner-section">
-        <div className="shell partner-card">
-          <div>
-            <SectionLabel>Partner Intake</SectionLabel>
-            <h2>Apply for private Prometheus IQ operational onboarding.</h2>
-            <p>
-              Prometheus IQ is now accepting qualified businesses, franchise groups, and
-              outside-sales organizations for onboarding based on business fit, operating profile,
-              and security readiness. Request a private demo, apply for growth partnership,
-              request enterprise pricing, or schedule discovery.
-            </p>
-            <div className="partner-steps" aria-label="Partner intake steps">
-              <span>1. Request</span>
-              <span>2. Operating profile</span>
-              <span>3. CRM packet</span>
-              <span>4. Founder review</span>
-            </div>
-            <p className="investor-note">Investor signal: Prometheus IQ is positioned as repeatable field-intelligence infrastructure across multiple outside-sales verticals.</p>
-          </div>
-          <a className="button primary" href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
+      <section id="governance" className="section governance-section">
+        <div className="shell split">
+          <div><SectionLabel>Operational Control</SectionLabel><h2>Useful intelligence begins with trustworthy boundaries.</h2></div>
+          <p>
+            Route IQ separates organizations, users, operating profiles, and evidence. Representatives see only their
+            permitted workflows. Governed intelligence remains role-restricted, and recorded evidence retains its source,
+            timing, integrity, exclusions, and limitations.
+          </p>
+        </div>
+        <div className="shell trust-grid">
+          <article><h3>Workspace isolation</h3><p>Business data stays inside the workspace and operating profile that produced it.</p></article>
+          <article><h3>Evidence provenance</h3><p>Authorized records retain source, time window, schema, counts, and integrity context.</p></article>
+          <article><h3>Human control</h3><p>Read-only intelligence supports review; it does not silently take operational action.</p></article>
+          <article><h3>Measured confidence</h3><p>Insufficient or stale evidence is labeled clearly instead of promoted into a claim.</p></article>
         </div>
       </section>
 
-      <footer id="contact" className="site-footer">
-        <div className="shell footer-grid">
-          <div>
-            <LogoMark scale={0.42} />
-            <h2>Prometheus</h2>
-            <p>Building Prometheus IQ and the AI operating system for outside sales.</p>
+      <section id="request" className="section request-section">
+        <div className="shell request-layout">
+          <div className="request-copy">
+            <SectionLabel>Route IQ Request</SectionLabel>
+            <h2>Tell us how your field organization works.</h2>
+            <p>
+              Share the operating shape and the problem you need to solve. Prometheus will review the request and use the
+              supplied contact information only to follow up about Route IQ.
+            </p>
+            <div className="request-facts" aria-label="Request process">
+              <span>Server-validated submission</span><span>Unique receipt</span><span>Founder review</span>
+            </div>
           </div>
+          <RouteIqRequestForm />
+        </div>
+      </section>
+
+      <footer className="site-footer">
+        <div className="shell footer-grid">
+          <div><LogoMark scale={0.42} /><h2>Prometheus</h2><p>Company behind Route IQ.</p></div>
           <div className="footer-links">
             <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
             <a href={instagramUrl}>@prometheus.IQ</a>
-            <a href={`mailto:${contactEmail}?subject=Prometheus%20IQ%20Growth%20Partner%20Application`}>Apply for Growth Partnership</a>
+            <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/data-deletion">Data deletion</a>
           </div>
           <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
         </div>
