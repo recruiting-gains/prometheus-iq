@@ -6,7 +6,7 @@
   <title>Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-UO2hkMNt+5f4rxnF6vT9SYv8KUzNNp6/zjrAC+rWgjc='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-fu4CgCs14xMzGQ14jVdMgglgPrqAxXIKVKWsCH+EzI8='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Route IQ">
@@ -20064,7 +20064,7 @@
       const snapshot = body.snapshot;
       const expectedSnapshotKeys = [
         "schemaVersion", "snapshotId", "ownerSubsystem", "audience", "workspaceId", "operatingProfileId",
-        "businessConfigurationVersion", "evidenceClassification", "classificationAuthority", "retentionPolicyVersion",
+        "businessConfigurationVersion", "businessConfigurationSha256", "evidenceClassification", "classificationAuthority", "retentionPolicyVersion",
         "generatedFromEvidenceAt", "governedEvidenceSha256", "governedInputSha256", "evidenceCollected",
         "evidenceFreshness", "dataQuality", "visitAndOutcomeTrends", "learningCoverage", "confidence",
         "changesSincePrevious", "safety", "snapshotSha256"
@@ -20075,6 +20075,7 @@
         || snapshot.audience !== "founder_only"
         || snapshot.workspaceId !== defaultWorkspaceId
         || snapshot.operatingProfileId !== dashboardWorkspaces[defaultWorkspaceId].operatingProfileId
+        || !/^[a-f0-9]{64}$/u.test(String(snapshot.businessConfigurationSha256 || ""))
         || snapshot.evidenceClassification !== "FOUNDER_FIELD_RESEARCH"
         || !/^route-iq-daily-snapshot-[a-f0-9]{24}$/u.test(String(snapshot.snapshotId || ""))
         || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(String(snapshot.generatedFromEvidenceAt || ""))

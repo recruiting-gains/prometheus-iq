@@ -10,6 +10,8 @@ const source = read("index.html");
 const deploy = read("deploy/cloudflare-pages/index.html");
 const serviceWorker = read("sw.js");
 const deployServiceWorker = read("deploy/cloudflare-pages/sw.js");
+const runtimeWorkflowVerifier = read("scripts/verify-dashboard-runtime-workflows.mjs");
+const canonicalFounderSnapshot = JSON.parse(read("intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"));
 const historicalSmoothie = read("smoothie-depot-dashboard/index.html");
 const historicalSmoothieDeploy = read("deploy/cloudflare-pages/smoothie-depot-dashboard/index.html");
 
@@ -37,6 +39,8 @@ test("daily intelligence consumer requires exact server-authenticated Cruz mappi
   assert.match(source, /principal\.identityContextSource !== "server_verified_identity_mapping"/);
   assert.match(source, /principal\.authenticationAuthority !== "cloudflare_access"/);
   assert.match(source, /principal\.callerSupplied !== false/);
+  assert.match(source, /"businessConfigurationVersion", "businessConfigurationSha256"/);
+  assert.match(source, /\^\[a-f0-9\]\{64\}\$\/u\.test\(String\(snapshot\.businessConfigurationSha256/);
   assert.match(source, /if \(sessionRole !== "founder"\)/);
   assert.match(source, /method: "GET"/);
   assert.match(source, /cache: "no-store"/);
@@ -45,6 +49,14 @@ test("daily intelligence consumer requires exact server-authenticated Cruz mappi
   const consumerEnd = source.indexOf("\n    let state = load();", consumerStart);
   assert.ok(consumerStart > -1 && consumerEnd > consumerStart);
   assert.doesNotMatch(source.slice(consumerStart, consumerEnd), /localStorage|sessionStorage|indexedDB|caches\./);
+});
+
+test("Dashboard harness consumes the checked-in canonical Intelligence snapshot shape", () => {
+  assert.match(runtimeWorkflowVerifier, /intelligence\/artifacts\/route-iq-commercial-readiness-v1\/fitness_connection\/founder-daily-intelligence-snapshot-v1\.json/);
+  assert.match(runtimeWorkflowVerifier, /\.\.\.canonicalFounderDailyIntelligenceSnapshot/);
+  assert.match(canonicalFounderSnapshot.businessConfigurationSha256, /^[a-f0-9]{64}$/u);
+  assert.equal(canonicalFounderSnapshot.safety.recommendationInfluence, "OFF");
+  assert.equal(canonicalFounderSnapshot.safety.representativeReadable, false);
 });
 
 test("daily snapshot remains read-only and recommendation influence stays off", () => {

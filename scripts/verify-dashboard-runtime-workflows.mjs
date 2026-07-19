@@ -13,6 +13,8 @@ const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/ru
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
 const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
+const founderDailyIntelligenceArtifactPath = resolve(root, "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json");
+const canonicalFounderDailyIntelligenceSnapshot = JSON.parse(readFileSync(founderDailyIntelligenceArtifactPath, "utf8"));
 const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
 const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
 const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
@@ -82,89 +84,7 @@ function founderDailyIntelligenceResponse({ principal = {}, snapshot = {} } = {}
         ...principal
       },
       snapshot: {
-        schemaVersion: "route-iq-daily-intelligence-snapshot-v1",
-        snapshotId: "route-iq-daily-snapshot-aaaaaaaaaaaaaaaaaaaaaaaa",
-        ownerSubsystem: "Prometheus Intelligence Engine",
-        audience: "founder_only",
-        workspaceId: "fitness_connection",
-        operatingProfileId: "fitness",
-        businessConfigurationVersion: "fitness-connection-founder-research-v1",
-        evidenceClassification: "FOUNDER_FIELD_RESEARCH",
-        classificationAuthority: "Prometheus Data",
-        retentionPolicyVersion: "route-iq-retention-policy-v1",
-        generatedFromEvidenceAt: "2026-07-17T21:00:00.000Z",
-        governedEvidenceSha256: "a".repeat(64),
-        governedInputSha256: "b".repeat(64),
-        evidenceCollected: {
-          totalRecords: 398,
-          byRecordKind: { field_session: 4, visit: 394 },
-          sourceRecordHashes: [],
-          evidenceClassification: "FOUNDER_FIELD_RESEARCH"
-        },
-        evidenceFreshness: {
-          earliestEvidenceAt: "2026-07-11T19:00:00.000Z",
-          latestEvidenceAt: "2026-07-17T21:00:00.000Z",
-          snapshotDate: "2026-07-17",
-          status: "FRESH_TO_GOVERNED_EVIDENCE",
-          byStatus: { FRESH: 398 },
-          wallClockAgeCalculated: false
-        },
-        dataQuality: {
-          status: "VERIFIED",
-          byStatus: { VERIFIED: 398 },
-          exclusionRecordsAdmitted: 0,
-          rawNotesConsumed: false,
-          contactInformationConsumed: false,
-          preciseLocationTrailsConsumed: false
-        },
-        visitAndOutcomeTrends: {
-          totals: { visits: 24, outcomes: 18, conversations: 9, leads: 4, appointments: 2, memberships: 1, followUps: 3 },
-          daily: [],
-          outcomeLinkRatePercent: 75,
-          observationalOnly: true
-        },
-        learningCoverage: {
-          representativesObserved: 2,
-          locationsObserved: 3,
-          territoriesObserved: 1,
-          representativeIds: ["cruz", "anthony"],
-          locationIds: ["location-001", "location-002", "location-003"],
-          territoryIds: ["territory-001"],
-          verifiedEvidenceRecords: 398,
-          thresholdQualifiedConclusionCount: 0,
-          coverageState: "INSUFFICIENT_EVIDENCE"
-        },
-        confidence: {
-          state: "INSUFFICIENT_EVIDENCE",
-          score: 0.25,
-          band: "insufficient_evidence",
-          limitations: ["verified_sessions_below_threshold"],
-          insufficiencyIsRecommendation: false,
-          predictionClaimed: false,
-          causalClaimed: false
-        },
-        changesSincePrevious: {
-          previousSnapshotId: null,
-          governedEvidenceChanged: true,
-          changeBasis: "INITIAL_GOVERNED_SNAPSHOT",
-          evidenceRecordDelta: 398,
-          visitDelta: 24,
-          outcomeDelta: 18,
-          learningStateChanged: true
-        },
-        safety: {
-          readOnly: true,
-          founderOnly: true,
-          representativeReadable: false,
-          recommendationInfluence: "OFF",
-          routeOrderingChanged: false,
-          routeScoringWeightsChanged: false,
-          discoveryModeInfluenceChanged: false,
-          nearbyContextInfluenceChanged: false,
-          offRouteLearningInfluenceChanged: false,
-          sourceEvidenceMutationAllowed: false
-        },
-        snapshotSha256: "c".repeat(64),
+        ...canonicalFounderDailyIntelligenceSnapshot,
         ...snapshot
       }
     }
@@ -2562,6 +2482,11 @@ async function runHarness() {
       }
     })
   });
+  const founderDailyIntelligenceInvalidConfigurationHashServer = await startStaticServer({
+    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+      snapshot: { businessConfigurationSha256: "A".repeat(64) }
+    })
+  });
   const chrome = await launchChrome();
 
   try {
@@ -2594,7 +2519,7 @@ async function runHarness() {
     await clickTab(founderIntelligence.cdp, "stats");
     const founderIntelligenceSnap = await snapshot(founderIntelligence.cdp);
     assertWorkflow("Founder daily intelligence exact-principal access", founderIntelligenceSnap.founderDailyIntelligenceVisible && founderIntelligenceSnap.debug.founderDailyIntelligence.authorized === true && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === 1 && founderDailyIntelligenceServer.founderDailyIntelligenceRequests[0].method === "GET", "server-authenticated Cruz mapping rendered one read-only snapshot after one GET", JSON.stringify({ debug: founderIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests }));
-    assertWorkflow("Founder daily intelligence governed content", founderIntelligenceSnap.founderDailyIntelligenceText.includes("398 records") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("INSUFFICIENT EVIDENCE") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("not a recommendation or prediction") && !/shadow|ranked|probability/i.test(founderIntelligenceSnap.founderDailyIntelligenceText), "evidence, freshness, quality, trends, coverage, confidence, and deltas render without shadow output or a readiness claim", founderIntelligenceSnap.founderDailyIntelligenceText);
+    assertWorkflow("Founder daily intelligence governed content", founderIntelligenceSnap.founderDailyIntelligenceText.includes(`${canonicalFounderDailyIntelligenceSnapshot.evidenceCollected.totalRecords} records`) && founderIntelligenceSnap.founderDailyIntelligenceText.includes("INSUFFICIENT EVIDENCE") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("not a recommendation or prediction") && !/shadow|ranked|probability/i.test(founderIntelligenceSnap.founderDailyIntelligenceText), "checked-in canonical evidence, freshness, quality, trends, coverage, confidence, and deltas render without shadow output or a readiness claim", founderIntelligenceSnap.founderDailyIntelligenceText);
 
     const mobileFounderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=founder&rep=cruz&debug=1&harness=mobile-founder-daily-intelligence", "mobile-founder-daily-intelligence", {
       standalone: true,
@@ -2626,6 +2551,11 @@ async function runHarness() {
     await waitForFounderDailyIntelligence(unsafeFounderIntelligence.cdp, "server_authorization_or_contract_rejected");
     const unsafeFounderIntelligenceSnap = await snapshot(unsafeFounderIntelligence.cdp);
     assertWorkflow("Founder daily intelligence safety contract fail-closed", !unsafeFounderIntelligenceSnap.founderDailyIntelligenceVisible && unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence.authorized === false, "snapshot with recommendation influence ON was rejected", JSON.stringify(unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence));
+
+    const invalidConfigurationHash = await runPageScenario(chrome, founderDailyIntelligenceInvalidConfigurationHashServer, "/?role=founder&rep=cruz&debug=1&harness=founder-intelligence-invalid-configuration-hash", "founder-intelligence-invalid-configuration-hash");
+    await waitForFounderDailyIntelligence(invalidConfigurationHash.cdp, "server_authorization_or_contract_rejected");
+    const invalidConfigurationHashSnap = await snapshot(invalidConfigurationHash.cdp);
+    assertWorkflow("Founder daily intelligence configuration hash fail-closed", !invalidConfigurationHashSnap.founderDailyIntelligenceVisible && invalidConfigurationHashSnap.debug.founderDailyIntelligence.authorized === false, "uppercase/noncanonical business configuration hash was rejected", JSON.stringify(invalidConfigurationHashSnap.debug.founderDailyIntelligence));
 
     const prospective = await runPageScenario(chrome, prospectiveServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-seam", "prospective-shadow-seam", {
       standalone: true,
@@ -2985,6 +2915,7 @@ async function runHarness() {
     representativeIntelligence.cdp.close();
     pendingAnthony.cdp.close();
     unsafeFounderIntelligence.cdp.close();
+    invalidConfigurationHash.cdp.close();
     mobileFounder.cdp.close();
     rep.cdp.close();
     anthonyLog.cdp.close();
@@ -3012,6 +2943,7 @@ async function runHarness() {
     await founderDailyIntelligenceServer.close();
     await founderDailyIntelligenceAnthonyServer.close();
     await founderDailyIntelligenceUnsafeServer.close();
+    await founderDailyIntelligenceInvalidConfigurationHashServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;
