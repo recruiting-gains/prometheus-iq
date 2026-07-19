@@ -27,6 +27,10 @@ const overwatchPaths = [
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-route-iq-yc-investor-website-focus.test.mjs"
 ].sort();
+const overwatchRepairPaths = [
+  "package.json",
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs"
+].sort();
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
@@ -67,6 +71,7 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
   }
 
   const overwatchCommit = commits[ownerCommits.length];
+  const overwatchRepairCommit = commits[ownerCommits.length + 1];
   if (requireOverwatchCommit) {
     assert.ok(overwatchCommit, "Overwatch release-gate commit is missing.");
     assert.deepEqual(commitIdentity(overwatchCommit), {
@@ -75,8 +80,20 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
     });
     assert.deepEqual(changedPaths(overwatchCommit), overwatchPaths);
     assert.equal(git("rev-parse", `${overwatchCommit}^`), ownerCommits.at(-1));
+    if (overwatchRepairCommit) {
+      assert.deepEqual(commitIdentity(overwatchRepairCommit), {
+        author: "overwatch@prometheus.local",
+        committer: "overwatch@prometheus.local"
+      });
+      assert.deepEqual(changedPaths(overwatchRepairCommit), overwatchRepairPaths);
+      assert.equal(git("rev-parse", `${overwatchRepairCommit}^`), overwatchCommit);
+    }
   }
-  return { commits, overwatchCommit: overwatchCommit ?? null };
+  return {
+    commits,
+    overwatchCommit: overwatchCommit ?? null,
+    overwatchRepairCommit: overwatchRepairCommit ?? null
+  };
 }
 
 function verifyPositioningAndClaims(governance, report) {
@@ -290,6 +307,7 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
     acceptanceGates: 15,
     ownerCommits,
     overwatchCommit: ownership.overwatchCommit,
+    overwatchRepairCommit: ownership.overwatchRepairCommit,
     scorecardCategories: report.scorecard.length,
     investorObjections: report.investorObjections.length,
     unresolvedDisclosures: report.investorObjections.filter(entry => entry.status === "unresolved_disclosed").length,
