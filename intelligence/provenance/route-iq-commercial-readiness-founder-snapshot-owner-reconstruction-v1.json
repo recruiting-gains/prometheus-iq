@@ -1,0 +1,141 @@
+{
+  "evidenceVersion": "route-iq-commercial-readiness-founder-snapshot-owner-reconstruction-v1",
+  "batchId": "BATCH-20260718-002",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "status": "OWNER_RECONSTRUCTED_IDENTICAL",
+  "legacyCommit": "9f9cb75dd8122bc07dda72d61e9ced119d409063",
+  "classification": "DISCLOSED_LOCAL_AUTHOR_IDENTITY_CONTAMINATION",
+  "legacyCommitMetadata": {
+    "subject": "intelligence: publish canonical Founder daily snapshot",
+    "parent": "923bb148897b8e4e8845f54b49427b861040d765",
+    "tree": "243b75f39cadd12c6d3c405b178edbd69227d69a",
+    "recordedAuthor": "Prometheus Overwatch Rollback Verification <overwatch-rollback@prometheus.local>",
+    "recordedCommitter": "Prometheus Overwatch Rollback Verification <overwatch-rollback@prometheus.local>",
+    "implementationOwner": "Prometheus Intelligence Engine",
+    "historyRewritten": false,
+    "retroactiveOwnershipClaimed": false
+  },
+  "ownerSuccessorLocator": "the Prometheus Intelligence commit containing this evidence file, identified in the external OVERWATCH HANDOFF",
+  "derivationSources": [
+    {
+      "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+      "ownerSubsystem": "Prometheus Data",
+      "sha256": "95bc998fd3d04ef2eac5090d825a19d7da7a4e2936412e3fc12c02b76a6f02ca",
+      "purpose": "canonical workspace, operating-profile, evidence-classification, pseudonym, and immutable Founder-principal mapping"
+    },
+    {
+      "path": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "selectedSemanticSha256": "1593077f4df5e2395ad98dc309b3af0730520a0b55643bb6628a2caa521509ea",
+      "selectedFields": [
+        "canonicalSourceArtifacts",
+        "canonicalSourceSha256"
+      ],
+      "purpose": "canonical July 11 archive artifact paths and source hashes"
+    },
+    {
+      "path": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "sha256": "7ec0bbf1c37537ec5e80c157bcd9c0df64d1b04fa470cd13e348be4c3a02e157",
+      "purpose": "read-only learning confidence and insufficiency assessment"
+    },
+    {
+      "sourceId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11",
+      "ownerSubsystem": "Prometheus Data",
+      "rawSha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+      "purpose": "byte-bound governed Founder field research session"
+    }
+  ],
+  "reconstruction": {
+    "method": "Load the Data-owned workspace registry and the four hash-bound July 11 canonical archive artifacts through the existing read-only learning boundary, project only allowlisted aggregate evidence, consume the Intelligence-owned read-only learning assessment, build the snapshot with no prior snapshot and no wall clock, serialize with stable JSON formatting, and compare the result with the checked-in canonical artifact. Independently execute the contract validator, fixture projection, verifier, privacy checks, and focused behavior suite for every affected path.",
+    "canonicalArtifactPath": "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+    "snapshotSha256": "52465677d4f833cf30d0fd1353c070535e3b292637751010e8711ab02a4f6f1d",
+    "artifactFileSha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706",
+    "evidenceClassification": "FOUNDER_FIELD_RESEARCH",
+    "comparisonResult": "IDENTICAL",
+    "correctionRequired": false
+  },
+  "affectedPaths": [
+    {
+      "path": "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+      "legacyCommitSha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706",
+      "canonicalSha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706",
+      "reconstructedSha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706",
+      "semanticSha256": "48a737712277dda16c21daac0b766ff2660d1ce002f6fad981e3ea4d3b61b804",
+      "derivation": "deterministic_runtime_regeneration_from_hash_bound_governed_evidence",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
+      "legacyCommitSha256": "c13f1c7a95afb07de994259777d87ac5c2632752fe71dbbf2389e0c2441e1fda",
+      "canonicalSha256": "c13f1c7a95afb07de994259777d87ac5c2632752fe71dbbf2389e0c2441e1fda",
+      "reconstructedSha256": "c13f1c7a95afb07de994259777d87ac5c2632752fe71dbbf2389e0c2441e1fda",
+      "semanticSha256": "d02c0e53aec5855ef7569a130a7b13f168df38251294062bdc804b5d64afe45f",
+      "derivation": "contract_semantics_reconstructed_from_batch_boundaries_and_canonical_Data_registry",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "intelligence/fixtures/route-iq-commercial-readiness-daily-snapshot-v1.json",
+      "legacyCommitSha256": "10f9d53973ab11a788bdc0fac95b97444ece4bce6ef1c8dda9dd54d37dd2cc8c",
+      "canonicalSha256": "10f9d53973ab11a788bdc0fac95b97444ece4bce6ef1c8dda9dd54d37dd2cc8c",
+      "reconstructedSha256": "10f9d53973ab11a788bdc0fac95b97444ece4bce6ef1c8dda9dd54d37dd2cc8c",
+      "semanticSha256": "97151193b696cf8f095d95aaa510afe9f0b16ac085e7895840126590302ed4c7",
+      "derivation": "noncanonical_fixture_validated_against_the_same_snapshot_contract",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "intelligence/route-iq-commercial-readiness-intelligence-v1.md",
+      "legacyCommitSha256": "40db4035bfe56be47d6fc9bc32e641417a2f25342aacb85d0b3579fca559eb2c",
+      "canonicalSha256": "40db4035bfe56be47d6fc9bc32e641417a2f25342aacb85d0b3579fca559eb2c",
+      "reconstructedSha256": "40db4035bfe56be47d6fc9bc32e641417a2f25342aacb85d0b3579fca559eb2c",
+      "semanticSha256": "40db4035bfe56be47d6fc9bc32e641417a2f25342aacb85d0b3579fca559eb2c",
+      "derivation": "required_owner_boundary_claims_and_stable_artifact_path_review",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "intelligence/route-iq-daily-intelligence-snapshot.mjs",
+      "legacyCommitSha256": "503c5855d4eaced54c1d1da4744e9f417dc44869a007e3b778fb645164ccad15",
+      "canonicalSha256": "503c5855d4eaced54c1d1da4744e9f417dc44869a007e3b778fb645164ccad15",
+      "reconstructedSha256": "503c5855d4eaced54c1d1da4744e9f417dc44869a007e3b778fb645164ccad15",
+      "semanticSha256": "503c5855d4eaced54c1d1da4744e9f417dc44869a007e3b778fb645164ccad15",
+      "derivation": "exported_projection_and_snapshot_behavior_reexecuted_against_governed_sources",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "scripts/verify-route-iq-commercial-readiness-intelligence.mjs",
+      "legacyCommitSha256": "6466a2a548c3c11ef86e390c21d7b783ef7c7e743d465713584910c6cc73ba99",
+      "canonicalSha256": "6466a2a548c3c11ef86e390c21d7b783ef7c7e743d465713584910c6cc73ba99",
+      "reconstructedSha256": "6466a2a548c3c11ef86e390c21d7b783ef7c7e743d465713584910c6cc73ba99",
+      "semanticSha256": "6466a2a548c3c11ef86e390c21d7b783ef7c7e743d465713584910c6cc73ba99",
+      "derivation": "owner_verifier_executed_read_only_against_current_canonical_sources",
+      "result": "IDENTICAL"
+    },
+    {
+      "path": "tests/route-iq-commercial-readiness-intelligence.test.mjs",
+      "legacyCommitSha256": "73025a9c651c473d014afa7ca644becc5ef498db53d04bb522ff496413964761",
+      "canonicalSha256": "73025a9c651c473d014afa7ca644becc5ef498db53d04bb522ff496413964761",
+      "reconstructedSha256": "73025a9c651c473d014afa7ca644becc5ef498db53d04bb522ff496413964761",
+      "semanticSha256": "73025a9c651c473d014afa7ca644becc5ef498db53d04bb522ff496413964761",
+      "derivation": "focused_owner_behavior_matrix_reexecuted",
+      "result": "IDENTICAL"
+    }
+  ],
+  "comparisonSummary": {
+    "affectedPathCount": 7,
+    "byteIdenticalCount": 7,
+    "semanticIdenticalCount": 7,
+    "correctedCount": 0,
+    "result": "IDENTICAL"
+  },
+  "boundaries": {
+    "founderOnly": true,
+    "representativeReadable": false,
+    "recommendationInfluence": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringChanged": false,
+    "predictionClaimed": false,
+    "causalClaimed": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
