@@ -1,6 +1,5 @@
-import React, { Suspense, useState } from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { motion, useScroll, useTransform } from "framer-motion";
 import prometheusLogoUrl from "../icons/prometheus-company-icon-512.png";
 import {
   buildRouteIqRequestPayload,
@@ -11,33 +10,62 @@ import "./styles.css";
 
 const contactEmail = "prometheusrouteiq@gmail.com";
 const instagramUrl = "https://www.instagram.com/prometheus.IQ";
-const IntelligenceScene = React.lazy(() => import("./IntelligenceScene.jsx"));
 
-function LogoMark({ scale = 1 }) {
-  return (
-    <div className="logo-mark" style={{ "--scale": scale }}>
-      <img src={prometheusLogoUrl} alt="" width="512" height="512" />
-    </div>
-  );
+function LogoMark() {
+  return <img className="logo-mark" src={prometheusLogoUrl} alt="" width="512" height="512" />;
 }
 
 function SectionLabel({ children }) {
   return <p className="eyebrow">{children}</p>;
 }
 
-function Capability({ number, title, body }) {
+function ProductView() {
+  const stops = [
+    ["01", "North district", "Visited", "Outcome recorded"],
+    ["02", "Service corridor", "Next", "Verified open"],
+    ["03", "Market center", "Queued", "Context ready"],
+    ["04", "West territory", "Queued", "Hours verified"]
+  ];
+
   return (
-    <motion.article
-      className="feature-card"
-      initial={{ opacity: 0, y: 22 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-70px" }}
-      transition={{ duration: 0.48, delay: number * 0.04 }}
-    >
-      <span>{String(number).padStart(2, "0")}</span>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </motion.article>
+    <figure className="product-view" aria-labelledby="product-view-title">
+      <div className="product-toolbar">
+        <div className="product-brand"><LogoMark /><span>Route IQ</span></div>
+        <div className="product-context"><span>Today</span><strong>Field queue</strong></div>
+        <div className="product-avatar" aria-label="Synthetic representative">FR</div>
+      </div>
+      <div className="product-body">
+        <div className="product-route">
+          <div className="product-route-head">
+            <div><span className="product-kicker">Representative workflow</span><h3 id="product-view-title">A governed field day</h3></div>
+            <span className="product-count">15 stops</span>
+          </div>
+          <div className="route-list">
+            {stops.map(([number, place, state, detail]) => (
+              <div className="route-row" key={number}>
+                <span className={`route-number state-${state.toLowerCase()}`}>{number}</span>
+                <span className="route-place"><strong>{place}</strong><small>{detail}</small></span>
+                <span className="route-state">{state}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="product-intelligence">
+          <div className="product-intelligence-head"><span>Leader view</span><strong>Evidence health</strong></div>
+          <div className="quality-gauge" aria-label="Evidence quality is governed and measured">
+            <span>Coverage</span><i style={{ "--value": "72%" }} /><b>Measured</b>
+          </div>
+          <div className="quality-gauge">
+            <span>Freshness</span><i style={{ "--value": "84%" }} /><b>Current</b>
+          </div>
+          <div className="quality-gauge">
+            <span>Confidence</span><i style={{ "--value": "39%" }} /><b>Insufficient</b>
+          </div>
+          <div className="boundary-note"><span>Human decision</span><p>Evidence is organized for review. No automatic route change or recommendation is shown.</p></div>
+        </div>
+      </div>
+      <figcaption>Synthetic product view. No customer or representative data is shown.</figcaption>
+    </figure>
   );
 }
 
@@ -61,21 +89,21 @@ function RouteIqRequestForm() {
     }
 
     setSubmitting(true);
-    setStatus({ kind: "pending", message: "Submitting your Route IQ request...", receiptId: "" });
+    setStatus({ kind: "pending", message: "Validating your Route IQ request...", receiptId: "" });
     try {
       const result = await submitRouteIqRequest({ payload: request.payload });
       setStatus({
         kind: "success",
         message: result.duplicate
-          ? "We found your existing request. Keep this receipt for reference."
-          : "Your Route IQ request was accepted. Keep this receipt for reference.",
+          ? "Your existing request was found. The original receipt remains valid."
+          : "Your request was accepted and stored for Founder review.",
         receiptId: result.receiptId
       });
       form.reset();
     } catch (error) {
       const messages = {
-        REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait and try again.",
-        REQUEST_NETWORK_FAILED: "The request could not reach Prometheus. Your information was not confirmed as stored.",
+        REQUEST_RATE_LIMITED: "Too many requests were submitted. Please wait before trying again.",
+        REQUEST_NETWORK_FAILED: "Prometheus could not confirm that your request was stored. Please try again later.",
         REQUEST_RECEIPT_MISSING: "Prometheus could not confirm a storage receipt. Please try again later.",
         REQUEST_RESPONSE_INVALID: "Prometheus returned an invalid confirmation. Please try again later."
       };
@@ -90,7 +118,7 @@ function RouteIqRequestForm() {
   };
 
   return (
-    <form className="request-form" onSubmit={handleSubmit} noValidate aria-describedby="request-privacy-note">
+    <form className="request-form" onSubmit={handleSubmit} noValidate aria-describedby="request-privacy-note request-process-note">
       <div className="request-form-grid">
         <label>
           <span>Business name</span>
@@ -144,14 +172,12 @@ function RouteIqRequestForm() {
           <input name="websiteUrl" tabIndex="-1" autoComplete="off" />
         </label>
       </div>
-
       <label className="consent-field">
         <input name="consent" type="checkbox" required />
         <span>I agree that Prometheus may use this information to respond to my Route IQ request.</span>
       </label>
-      <p id="request-privacy-note" className="request-note">
-        Prometheus collects only the information needed to review and respond to this request.
-      </p>
+      <p id="request-privacy-note" className="request-note">Only the information needed to review and respond to this request is collected.</p>
+      <p id="request-process-note" className="request-note">Success appears only after durable acceptance. You will receive a unique receipt; Prometheus then reviews the request and may follow up.</p>
       <button className="button primary request-submit" type="submit" disabled={submitting}>
         {submitting ? "SUBMITTING" : "REQUEST ROUTE IQ"}
       </button>
@@ -164,128 +190,154 @@ function RouteIqRequestForm() {
 }
 
 function App() {
-  const { scrollYProgress } = useScroll();
-  const heroScale = useTransform(scrollYProgress, [0, 0.22], [1, 0.92]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.28], [1, 0.58]);
-
-  const capabilities = [
-    [1, "Plan the field day", "Organize governed business opportunities into a practical route workflow."],
-    [2, "Capture verified work", "Record visits, conversations, leads, follow-ups, and outcomes without tracking a representative's whole day."],
-    [3, "Understand representatives", "See field activity and outcome patterns through authorized, role-appropriate views."],
-    [4, "Understand territories", "Measure evidence coverage, freshness, business-hour eligibility, and local operating context."],
-    [5, "Understand customers", "Keep business context and outcomes connected to the workspace that produced them."],
-    [6, "Build governed intelligence", "Turn accumulated evidence into read-only, decision-ready intelligence with explicit confidence and limitations."]
+  const lifecycle = [
+    ["01", "Governed field evidence", "Authorized records retain source, time, schema, quality, exclusions, and integrity context."],
+    ["02", "Governed intelligence", "Leaders can review coverage, freshness, trends, and learning state without changing a representative's workflow."],
+    ["03", "Qualified probability", "Only sufficient, chronologically valid evidence may support a versioned estimate with confidence and limitations."],
+    ["04", "Human decision", "A person remains responsible for the operational choice. Route IQ does not act automatically."]
   ];
 
-  const evidenceLoop = ["Plan", "Visit", "Capture", "Learn"];
+  const differences = [
+    ["Route planner", "Orders stops and manages travel.", "Route IQ preserves the evidence, context, chronology, and outcomes around field decisions."],
+    ["CRM", "Records contacts, pipeline, and interactions.", "Route IQ connects field actions to territory context, evidence quality, and a governed learning loop."],
+    ["Maps", "Shows locations and navigation.", "Route IQ records why an opportunity was available, what happened, and what the evidence supports."],
+    ["Generic AI", "Generates open-ended responses from broad context.", "Route IQ uses allowlisted, versioned, isolated evidence with explicit exclusions and human control."]
+  ];
 
   return (
     <main>
-      <a className="skip-link" href="#product">Skip to Route IQ</a>
+      <a className="skip-link" href="#how-it-works">Skip to how Route IQ works</a>
       <header className="site-header">
-        <a className="brand" href="#top" aria-label="Prometheus home">
-          <LogoMark scale={0.35} />
+        <a className="brand" href="#top" aria-label="Prometheus Route IQ home">
+          <LogoMark />
           <span className="brand-lockup"><strong>Prometheus</strong><small>Route IQ</small></span>
         </a>
         <nav aria-label="Primary navigation">
-          <a href="#product">Product</a>
-          <a href="#workflow">Workflow</a>
-          <a href="#governance">Governance</a>
-          <a href="#request">Request</a>
+          <a href="#how-it-works">How it works</a>
+          <a href="#different">Why Route IQ</a>
+          <a className="header-action" href="#request">REQUEST ROUTE IQ</a>
         </nav>
       </header>
 
       <section id="top" className="hero-section">
-        <motion.div className="hero-scene" style={{ scale: heroScale, opacity: heroOpacity }}>
-          <Suspense fallback={<div className="scene-fallback"><LogoMark scale={1.15} /></div>}>
-            <IntelligenceScene />
-          </Suspense>
-        </motion.div>
-        <div className="hero-shade" />
-        <div className="shell hero-grid">
-          <motion.div className="hero-copy" initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.72 }}>
-            <SectionLabel>Prometheus / Active Product</SectionLabel>
-            <h1>Route IQ</h1>
-            <p>
-              Route IQ helps field organizations learn their representatives, territories, customers, and outcomes.
-              It turns governed field evidence into decision-ready intelligence while keeping people in control.
-            </p>
-            <div className="hero-actions">
-              <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
-              <a className="button secondary" href="#product">See the product</a>
-            </div>
-            <div className="identity-strip" aria-label="Route IQ product pillars">
-              <span>Field workflow</span><span>Governed evidence</span><span>Workspace isolation</span><span>Human decisions</span>
-            </div>
-          </motion.div>
-          <aside className="signal-panel" aria-label="Route IQ operating model">
-            <div className="panel-header"><LogoMark scale={0.24} /><span>ROUTE IQ OPERATING MODEL</span></div>
-            <div className="metric-line"><b>Representatives</b><span>Clear field workflows and fast outcome capture</span></div>
-            <div className="metric-line"><b>Leaders</b><span>Evidence freshness, quality, coverage, and trends</span></div>
-            <div className="metric-line"><b>Intelligence</b><span>Read-only conclusions with confidence and limitations</span></div>
-          </aside>
+        <img className="hero-image" src="/route-iq-field-operations.jpg" alt="A synthetic field representative reviewing a route through a commercial district" width="1600" height="900" fetchPriority="high" />
+        <div className="hero-overlay" aria-hidden="true" />
+        <div className="shell hero-copy">
+          <SectionLabel>Prometheus / Field decision intelligence</SectionLabel>
+          <h1>Route IQ</h1>
+          <p className="hero-statement">Turn field evidence into decision-ready intelligence.</p>
+          <p className="hero-detail">Built for the field operations leader accountable for distributed teams, and the representative visiting businesses or locations every day.</p>
+          <p className="hero-difference">Route IQ connects representatives, territories, customer context, and outcomes. It is not another route planner, CRM, map, or generic AI assistant.</p>
+          <div className="hero-actions">
+            <a className="button primary" href="#request">REQUEST ROUTE IQ</a>
+            <a className="button secondary" href="#how-it-works">See How Route IQ Works</a>
+          </div>
+        </div>
+        <div className="hero-proof" aria-label="Route IQ operating principles">
+          <span><b>Evidence</b> with provenance</span>
+          <span><b>Intelligence</b> with limitations</span>
+          <span><b>Decisions</b> remain human</span>
         </div>
       </section>
 
-      <section id="product" className="section core-section">
-        <div className="shell split">
-          <div><SectionLabel>One Configurable Product</SectionLabel><h2>Route IQ adapts to the business, not the other way around.</h2></div>
-          <p>
-            Each organization operates in an isolated workspace with its own locations, territories, roles, goals,
-            terminology, measurements, retention rules, and intelligence eligibility. Route IQ remains one product,
-            configured for the way each field team works.
-          </p>
-        </div>
-        <div className="shell feature-grid">
-          {capabilities.map(([number, title, body]) => <Capability key={title} number={number} title={title} body={body} />)}
+      <section id="how-it-works" className="section problem-section">
+        <div className="shell problem-layout">
+          <div>
+            <SectionLabel>The operating problem</SectionLabel>
+            <h2>The field knows more than the systems do.</h2>
+          </div>
+          <div className="problem-copy">
+            <p>Routes get planned and visits get logged, but the evidence stays fragmented across people, territories, customer context, and outcomes.</p>
+            <p>Route IQ governs that evidence as one decision-support lifecycle, so leaders can see what is known, what is stale, what is missing, and what remains uncertain.</p>
+          </div>
         </div>
       </section>
 
-      <section id="workflow" className="section loop-section">
-        <div className="shell section-head">
-          <SectionLabel>Evidence Loop</SectionLabel>
-          <h2>Make field work easier to understand, one governed event at a time.</h2>
-          <p className="section-copy">
-            Route IQ connects route context, intentional visits, and recorded outcomes. As evidence accumulates,
-            leaders gain a clearer read on coverage and trends without presenting uncertain evidence as a proven prediction.
-          </p>
+      <section className="section product-section">
+        <div className="shell section-intro">
+          <SectionLabel>The product</SectionLabel>
+          <h2>A field workflow representatives can use. An evidence system leaders can trust.</h2>
+          <p>Representatives plan, visit, and record outcomes through role-appropriate workflows. Leaders review governed evidence quality and trends. Protected intelligence stays separate from representative operations.</p>
         </div>
-        <div className="shell loop-track">
-          {evidenceLoop.map((item, index) => (
-            <div className="loop-step" key={item}><span>{index + 1}</span><strong>{item}</strong></div>
+        <div className="shell"><ProductView /></div>
+      </section>
+
+      <section className="section lifecycle-section">
+        <div className="shell section-intro compact-intro">
+          <SectionLabel>Evidence to decision</SectionLabel>
+          <h2>Probability is a governed method, not a promise.</h2>
+          <p>When evidence is insufficient, Route IQ says so. Observational evidence does not prove causal uplift or recommendation superiority.</p>
+        </div>
+        <div className="shell lifecycle-grid">
+          {lifecycle.map(([number, title, body]) => (
+            <article key={number}><span>{number}</span><h3>{title}</h3><p>{body}</p></article>
           ))}
         </div>
       </section>
 
-      <section id="governance" className="section governance-section">
-        <div className="shell split">
-          <div><SectionLabel>Operational Control</SectionLabel><h2>Useful intelligence begins with trustworthy boundaries.</h2></div>
-          <p>
-            Route IQ separates organizations, users, operating profiles, and evidence. Representatives see only their
-            permitted workflows. Governed intelligence remains role-restricted, and recorded evidence retains its source,
-            timing, integrity, exclusions, and limitations.
-          </p>
+      <section id="different" className="section difference-section">
+        <div className="shell difference-layout">
+          <div className="difference-heading">
+            <SectionLabel>Why Route IQ</SectionLabel>
+            <h2>The evidence layer between field activity and the next human decision.</h2>
+            <p>Route IQ complements the systems a field organization already uses. Its differentiated job is governing the context those systems usually leave disconnected.</p>
+          </div>
+          <div className="comparison-table" role="table" aria-label="Route IQ product differentiation">
+            {differences.map(([category, categoryPurpose, routeIqPurpose]) => (
+              <div className="comparison-row" role="row" key={category}>
+                <strong role="cell">{category}</strong>
+                <span role="cell">{categoryPurpose}</span>
+                <p role="cell">{routeIqPurpose}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="shell trust-grid">
-          <article><h3>Workspace isolation</h3><p>Business data stays inside the workspace and operating profile that produced it.</p></article>
-          <article><h3>Evidence provenance</h3><p>Authorized records retain source, time window, schema, counts, and integrity context.</p></article>
-          <article><h3>Human control</h3><p>Read-only intelligence supports review; it does not silently take operational action.</p></article>
-          <article><h3>Measured confidence</h3><p>Insufficient or stale evidence is labeled clearly instead of promoted into a claim.</p></article>
+      </section>
+
+      <section className="section boundary-section">
+        <div className="shell boundary-layout">
+          <div>
+            <SectionLabel>Current boundary</SectionLabel>
+            <h2>Credibility starts with saying what is not proven.</h2>
+          </div>
+          <div className="boundary-list">
+            <p><strong>Current readiness:</strong> insufficient evidence for recommendation readiness.</p>
+            <p><strong>Operational influence:</strong> recommendation influence is off; Route IQ does not silently reorder, notify, or act.</p>
+            <p><strong>Evidence collection:</strong> prospective collection is off and active cohorts are zero.</p>
+            <p><strong>Market evidence:</strong> shared configuration is verified; performance across industries is not yet proven.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="section configuration-section">
+        <div className="shell configuration-layout">
+          <div className="configuration-copy">
+            <SectionLabel>One governed product</SectionLabel>
+            <h2>Configured for the operating model, not forked for each customer.</h2>
+            <p>Route IQ uses shared workspace and operating-profile configuration for business identity, territories, users, roles, terminology, measures, retention, and intelligence eligibility.</p>
+            <p>Configuration does not remove the need for governed setup, authorization, territory design, or evidence work. It creates a reusable foundation without pretending every industry is already validated.</p>
+          </div>
+          <dl className="configuration-list">
+            <div><dt>Workspace</dt><dd>Business and data boundary</dd></div>
+            <div><dt>Operating profile</dt><dd>Workflow, language, and goals</dd></div>
+            <div><dt>Evidence policy</dt><dd>Retention, quality, and eligibility</dd></div>
+            <div><dt>Access</dt><dd>Role and representative isolation</dd></div>
+          </dl>
         </div>
       </section>
 
       <section id="request" className="section request-section">
         <div className="shell request-layout">
           <div className="request-copy">
-            <SectionLabel>Route IQ Request</SectionLabel>
-            <h2>Tell us how your field organization works.</h2>
-            <p>
-              Share the operating shape and the problem you need to solve. Prometheus will review the request and use the
-              supplied contact information only to follow up about Route IQ.
-            </p>
-            <div className="request-facts" aria-label="Request process">
-              <span>Server-validated submission</span><span>Unique receipt</span><span>Founder review</span>
-            </div>
+            <SectionLabel>Request Route IQ</SectionLabel>
+            <h2>Bring us the field problem you cannot see clearly today.</h2>
+            <p>Tell Prometheus how your field organization operates, who uses it, and what decision context is missing.</p>
+            <ol className="request-steps">
+              <li><span>1</span><p><strong>Validate</strong> The server normalizes and checks the request.</p></li>
+              <li><span>2</span><p><strong>Store</strong> Success is reported only after durable acceptance.</p></li>
+              <li><span>3</span><p><strong>Receipt</strong> A unique receipt confirms the accepted request.</p></li>
+              <li><span>4</span><p><strong>Review</strong> The Founder reviews the request and may follow up.</p></li>
+            </ol>
           </div>
           <RouteIqRequestForm />
         </div>
@@ -293,12 +345,17 @@ function App() {
 
       <footer className="site-footer">
         <div className="shell footer-grid">
-          <div><LogoMark scale={0.42} /><h2>Prometheus</h2><p>Company behind Route IQ.</p></div>
+          <div className="footer-brand"><LogoMark /><div><strong>Prometheus</strong><span>Company behind Route IQ</span></div></div>
           <div className="footer-links">
-            <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
-            <a href={instagramUrl}>@prometheus.IQ</a>
-            <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/data-deletion">Data deletion</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="#request">Request Route IQ</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/data-deletion">Data deletion</a>
+            <a href={`mailto:${contactEmail}`}>Contact</a>
+            <a href={instagramUrl}>Instagram</a>
           </div>
+          <p className="footer-note">Route IQ provides governed decision support for human review. It does not claim to outperform people or existing tools, and it does not make autonomous decisions.</p>
           <p className="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
         </div>
       </footer>

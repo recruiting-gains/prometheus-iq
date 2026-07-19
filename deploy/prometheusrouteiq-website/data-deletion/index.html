@@ -3,355 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Data Deletion | Prometheus IQ</title>
-  <meta name="description" content="How to request deletion of eligible Prometheus IQ, website, partner intake, onboarding, and authorized Meta integration data.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="robots" content="index,follow">
+  <title>Data Deletion | Route IQ by Prometheus</title>
+  <meta name="description" content="How to request access, correction, deletion, exclusion, or integration-data removal for Route IQ.">
   <link rel="canonical" href="https://prometheusrouteiq.com/data-deletion">
-  <meta property="og:title" content="Data Deletion | Prometheus IQ">
-  <meta property="og:description" content="Instructions for requesting deletion of Prometheus IQ data, including authorized Instagram and Facebook integration data where applicable.">
+  <meta property="og:site_name" content="Prometheus">
+  <meta property="og:title" content="Data Deletion | Route IQ by Prometheus">
+  <meta property="og:description" content="The governed process for Route IQ data access, correction, deletion, exclusion, and integration removal.">
   <meta property="og:url" content="https://prometheusrouteiq.com/data-deletion">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://prometheusrouteiq.com/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg">
-  <meta property="og:image:alt" content="Prometheus official logo">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:image" content="https://prometheusrouteiq.com/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg">
+  <meta property="og:image" content="https://prometheusrouteiq.com/route-iq-field-operations-social.jpg">
+  <meta property="og:image:alt" content="A synthetic field representative reviewing a Route IQ field route">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://prometheusrouteiq.com/route-iq-field-operations-social.jpg">
+  <link rel="stylesheet" href="/legal.css">
   <link rel="manifest" href="/site-20260701-brand-v2.webmanifest">
-  <link rel="apple-touch-icon" href="/public-assets/prometheus-company-apple-touch-20260701-brand-v2.png">
-  <link rel="icon" href="/public-assets/prometheus-company-icon-512-20260701-brand-v2.png" type="image/png" sizes="512x512">
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #030907;
-      --panel: rgba(255, 255, 255, 0.06);
-      --panel-strong: rgba(255, 255, 255, 0.1);
-      --ink: #f5fff8;
-      --muted: #a7bbb3;
-      --teal: #27e0a0;
-      --gold: #ffd76c;
-      --orange: #ff7438;
-      --line: rgba(255, 255, 255, 0.14);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      background: var(--bg);
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 50% 0%, rgba(255, 116, 56, 0.28), transparent 32%),
-        radial-gradient(circle at 85% 20%, rgba(39, 224, 160, 0.16), transparent 28%),
-        linear-gradient(180deg, #082017 0%, #04100c 45%, #0a2118 100%);
-    }
-
-    a {
-      color: var(--gold);
-    }
-
-    .skip-link {
-      position: fixed;
-      left: 16px;
-      top: 12px;
-      z-index: 20;
-      transform: translateY(-140%);
-      border-radius: 999px;
-      padding: 10px 14px;
-      color: #06120d;
-      background: var(--gold);
-      font-weight: 900;
-      text-decoration: none;
-    }
-
-    .skip-link:focus {
-      transform: translateY(0);
-    }
-
-    .site-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      border-bottom: 1px solid var(--line);
-      background: rgba(3, 9, 7, 0.82);
-      backdrop-filter: blur(18px);
-    }
-
-    .nav {
-      width: min(1120px, calc(100% - 32px));
-      margin: 0 auto;
-      min-height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--ink);
-      text-decoration: none;
-      font-weight: 950;
-      letter-spacing: 0;
-      white-space: nowrap;
-    }
-
-    .brand img {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      object-fit: contain;
-      background: #052011;
-    }
-
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 10px 16px;
-      font-size: 14px;
-    }
-
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-    }
-
-    .nav-links a[aria-current="page"],
-    .nav-links a:hover,
-    .nav-links a:focus {
-      color: var(--gold);
-      outline: none;
-    }
-
-    main {
-      width: min(1000px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: clamp(44px, 7vw, 84px) 0 64px;
-    }
-
-    .hero {
-      max-width: 820px;
-      margin-bottom: 34px;
-    }
-
-    .eyebrow {
-      color: var(--teal);
-      font-size: 12px;
-      font-weight: 950;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 12px 0 16px;
-      font-size: clamp(34px, 8vw, 70px);
-      line-height: 0.95;
-      letter-spacing: 0;
-    }
-
-    .lead {
-      margin: 0;
-      color: var(--muted);
-      font-size: clamp(17px, 2vw, 21px);
-      line-height: 1.55;
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 22px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .pill {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .content {
-      display: grid;
-      gap: 18px;
-    }
-
-    section {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: clamp(20px, 4vw, 32px);
-      background: var(--panel);
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      font-size: clamp(22px, 3vw, 32px);
-      line-height: 1.1;
-      letter-spacing: 0;
-    }
-
-    p,
-    li {
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.65;
-    }
-
-    p {
-      margin: 0 0 14px;
-    }
-
-    p:last-child {
-      margin-bottom: 0;
-    }
-
-    ul,
-    ol {
-      margin: 0;
-      padding-left: 20px;
-    }
-
-    li + li {
-      margin-top: 8px;
-    }
-
-    strong {
-      color: var(--ink);
-    }
-
-    .contact {
-      background: var(--panel-strong);
-    }
-
-    footer {
-      width: min(1000px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 0 0 38px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .footer-designation {
-      display: grid;
-      gap: 6px;
-      width: fit-content;
-      margin: 24px auto 0;
-      border-top: 1px solid var(--line);
-      padding-top: 20px;
-      color: #f5fff8;
-      font-size: 17px;
-      font-weight: 950;
-      line-height: 1.25;
-      letter-spacing: 0.1em;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .footer-designation span {
-      display: block;
-    }
-
-    @media (max-width: 680px) {
-      .nav {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 14px 0;
-      }
-
-      .nav-links {
-        justify-content: flex-start;
-      }
-    }
-  </style>
+  <link rel="icon" href="/prometheus-company-icon-512-20260701-brand-v2.png" type="image/png" sizes="512x512">
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">Skip to data deletion process</a>
   <header class="site-header">
     <nav class="nav" aria-label="Primary navigation">
-      <a class="brand" href="/">
-        <img src="/public-assets/prometheus-company-icon-512-20260701-brand-v2.png" alt="Prometheus logo" width="42" height="42">
-        <span>Prometheus IQ</span>
-      </a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/privacy">Privacy</a>
-        <a href="/terms">Terms</a>
-        <a href="/data-deletion" aria-current="page">Data Deletion</a>
-        <a href="mailto:prometheusrouteiq@gmail.com">Contact</a>
-      </div>
+      <a class="brand" href="/"><img src="/prometheus-company-icon-512-20260701-brand-v2.png" alt="" width="38" height="38"><span><strong>Prometheus</strong><small>Route IQ</small></span></a>
+      <div class="nav-links"><a href="/">Product</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/data-deletion" aria-current="page">Data deletion</a><a class="request-link" href="/#request">REQUEST ROUTE IQ</a></div>
     </nav>
   </header>
-
   <main id="main">
     <div class="hero">
-      <div class="eyebrow">Prometheus Data Deletion</div>
+      <p class="eyebrow">Route IQ / Data rights</p>
       <h1>Data Deletion</h1>
-      <p class="lead">Users, partner applicants, organizations, and authorized Meta integration users can request deletion of eligible Prometheus IQ and public website data by contacting Prometheus.</p>
-      <div class="meta">
-        <span class="pill">Effective date: July 1, 2026</span>
-        <span class="pill">Contact: prometheusrouteiq@gmail.com</span>
-      </div>
+      <p class="lead">Prometheus reviews access, correction, deletion, exclusion, and integration-removal requests through a verified, Data-owned process that preserves evidence integrity.</p>
+      <div class="meta"><span>Effective July 19, 2026</span><span>prometheusrouteiq@gmail.com</span></div>
     </div>
-
     <div class="content">
-      <section>
-        <h2>How to Request Deletion</h2>
-        <p>Send a deletion request to <a href="mailto:prometheusrouteiq@gmail.com?subject=Prometheus%20IQ%20Data%20Deletion%20Request">prometheusrouteiq@gmail.com</a> with the subject line "Prometheus IQ Data Deletion Request."</p>
-        <p>To help Prometheus process the request, include:</p>
-        <ul>
-          <li>Your full name and contact email.</li>
-          <li>Your company or organization, if applicable.</li>
-          <li>The data source involved, such as website inquiry, partner intake request, Prometheus IQ account, support communication, or Meta integration.</li>
-          <li>For Instagram or Facebook requests, the relevant account, page, profile, or app connection details if available.</li>
-          <li>Any information needed to verify that you are authorized to request deletion.</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>Response Timeline</h2>
-        <p>Prometheus aims to acknowledge deletion requests within 7 business days. Eligible deletion or anonymization is typically completed within 30 days after identity and authority are verified, unless a longer period is required for legal, security, fraud prevention, dispute resolution, backup retention, or operational reasons.</p>
-      </section>
-
-      <section>
-        <h2>Data Removal Process</h2>
-        <ol>
-          <li>Prometheus verifies the requester identity and authority.</li>
-          <li>Prometheus locates eligible records in public website inquiries, partner intake records, support communications, Prometheus IQ product records, and authorized integration records.</li>
-          <li>Prometheus deletes or anonymizes eligible personal information and operational records where deletion is appropriate.</li>
-          <li>Prometheus removes stored access tokens or integration records for authorized Instagram, Facebook, or Meta API connections where applicable.</li>
-          <li>Prometheus confirms completion or explains any retained records required for legal, security, backup, fraud prevention, or legitimate business reasons.</li>
-        </ol>
-      </section>
-
-      <section>
-        <h2>Instagram and Facebook Data</h2>
-        <p>If you connected a Meta, Instagram, or Facebook account to a supported Prometheus IQ workflow, you can request removal of stored integration data by emailing <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>. You may also revoke Prometheus permissions directly through your Meta account settings. Once permissions are revoked, Prometheus will no longer be able to access newly authorized API data for that connection.</p>
-      </section>
-
-      <section>
-        <h2>Records That May Be Retained</h2>
-        <p>Some information may be retained where necessary to comply with law, enforce terms, prevent abuse, maintain security, resolve disputes, preserve financial or operational records, or complete backup expiration cycles. Retained information is limited to what Prometheus determines is necessary for those purposes.</p>
-      </section>
-
-      <section class="contact">
-        <h2>Contact</h2>
-        <p>Send deletion requests and questions to <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>.</p>
-      </section>
+      <section><h2>Submit a request</h2><div class="section-body"><p>Email <a href="mailto:prometheusrouteiq@gmail.com?subject=Route%20IQ%20Data%20Request">prometheusrouteiq@gmail.com</a> with the subject <strong>Route IQ Data Request</strong>. Describe the request and the business or workspace relationship involved. Do not send passwords, access tokens, government identifiers, or unnecessary sensitive information.</p><p>Prometheus may ask for additional information needed to verify identity, authority, workspace, and record scope before acting.</p></div></section>
+      <section><h2>Available requests</h2><div class="section-body"><ul><li>Access to eligible personal information associated with a Route IQ request or authorized workspace.</li><li>Correction of inaccurate contact or account information.</li><li>Deletion of eligible public-request, support, or integration information.</li><li>Exclusion or administrative disposition where an immutable evidence record must remain auditable.</li><li>Revocation or removal of data associated with an authorized external integration.</li></ul></div></section>
+      <section><h2>What happens next</h2><div class="section-body"><p>Prometheus first verifies the request. The responsible Data owner then identifies applicable records, retention rules, contractual boundaries, legal holds, security requirements, and evidence-integrity constraints. The response will describe the action taken or the reason a record must be retained, excluded, or preserved.</p><p>No public form on this page directly deletes production records.</p></div></section>
+      <section><h2>Append-only evidence</h2><div class="section-body"><p class="status-note">Route IQ does not silently rewrite historical evidence.</p><p>When deletion would break an authorized audit trail, Prometheus may preserve the original byte-level record and append a governed exclusion, correction, revocation, or administrative disposition. Such a record remains available only to authorized audit and integrity processes and is excluded from applicable analytics, learning, performance, readiness, calibration, and recommendation inputs.</p></div></section>
+      <section><h2>Retention limits</h2><div class="section-body"><p>Raw field-session and prospective shadow evidence may be retained for up to 18 months from creation, subject to a shorter customer contract. Aggregate, de-identified analytics may be retained indefinitely only when they cannot identify a representative, customer, specific visit, or precise location trail.</p><p>A legal hold pauses deletion or disposition until released by the Founder or authorized counsel.</p></div></section>
+      <section><h2>External integrations</h2><div class="section-body"><p>Removing Route IQ data does not automatically remove data held independently by an external platform. You may also need to revoke permissions or request deletion through that provider. Prometheus will remove eligible locally retained integration records after identity and authority are verified.</p></div></section>
+      <section><h2>Contact</h2><div class="section-body"><p>Questions about this process may be sent to <a href="mailto:prometheusrouteiq@gmail.com">prometheusrouteiq@gmail.com</a>.</p></div></section>
     </div>
   </main>
-
-  <footer>
-    <p>Prometheus is the company. Prometheus IQ is the flagship product for outside-sales intelligence.</p>
-    <p class="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p>
-  </footer>
+  <footer><p>Prometheus is the company behind Route IQ.</p><p class="footer-designation"><span>PROMETHEUS ROUTE IQ&trade;</span><span>U.S. PATENT PENDING</span></p></footer>
 </body>
 </html>

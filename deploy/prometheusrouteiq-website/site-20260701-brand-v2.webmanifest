@@ -1,12 +1,14 @@
 {
   "name": "Route IQ by Prometheus",
   "short_name": "Route IQ",
-  "description": "Governed field intelligence for representatives, territories, customers, and outcomes.",
+  "description": "Governed field evidence and decision intelligence for field operations leaders and representatives.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#003b18",
-  "theme_color": "#003b18",
+  "background_color": "#07130f",
+  "theme_color": "#07130f",
+  "categories": ["business", "productivity"],
   "icons": [
     {
       "src": "/prometheus-company-icon-512-20260701-brand-v2.png",
