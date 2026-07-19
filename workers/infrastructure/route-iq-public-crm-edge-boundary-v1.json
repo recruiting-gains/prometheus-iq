@@ -1,0 +1,52 @@
+{
+  "version": "route-iq-public-crm-edge-boundary-infrastructure-v1",
+  "directive": "Route IQ Public CRM Complete Edge Boundary Repair v1",
+  "owner": "Prometheus Infrastructure",
+  "implementationStatus": "SOURCE_CONTROLS_IMPLEMENTED_NOT_DEPLOYED",
+  "target": {
+    "publicWorker": "prometheusrouteiq-website",
+    "publicConfig": "wrangler.prometheusrouteiq-website.jsonc",
+    "privateWorker": "prometheus-iq",
+    "privateConfig": "wrangler.jsonc",
+    "publicWorkerOnly": true,
+    "privateWorkerMutationAllowed": false
+  },
+  "edgeExposure": {
+    "workersDev": false,
+    "previewUrls": false,
+    "sourceDeclarationRequired": true,
+    "cloudflareMutationPerformed": false
+  },
+  "preservation": {
+    "publicConfigSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+    "publicConfigSemanticSha256ExcludingEdgeFlags": "85cf18ce15c23320ef5a647cb3436bddd463a0f9b046a1edd01a852238964351",
+    "privateConfigSha256": "dffa373f19f73efc3bc907ea4a396006c8e6a928797d4c7ddc07a959bd4d690f",
+    "preservedPublicTopLevelKeys": [
+      "$schema",
+      "name",
+      "main",
+      "compatibility_date",
+      "compatibility_flags",
+      "assets",
+      "observability",
+      "durable_objects",
+      "migrations",
+      "vars",
+      "kv_namespaces",
+      "send_email"
+    ],
+    "bindingsPreserved": true,
+    "migrationsPreserved": true,
+    "variablesPreserved": true,
+    "assetsPreserved": true
+  },
+  "boundaries": {
+    "deploymentPerformed": false,
+    "publicWorkerConfigurationApplied": false,
+    "privateWorkerChanged": false,
+    "cloudflareContacted": false,
+    "githubContacted": false,
+    "credentialsAccessed": false,
+    "productionDataMutationPerformed": false
+  }
+}

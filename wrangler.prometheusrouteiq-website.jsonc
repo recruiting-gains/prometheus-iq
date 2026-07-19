@@ -1,6 +1,8 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "prometheusrouteiq-website",
+  "workers_dev": false,
+  "preview_urls": false,
   "main": "workers/prometheus-iq-worker.js",
   "compatibility_date": "2026-07-01",
   "compatibility_flags": [
