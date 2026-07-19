@@ -1,0 +1,316 @@
+{
+  "matrixVersion": "route-iq-public-claims-evidence-matrix-v1",
+  "batchId": "BATCH-20260719-002",
+  "directive": "Route IQ YC-Style Investor Website Focus + Buyer Conversion Audit v1",
+  "ownerSubsystem": "Prometheus Data",
+  "status": "canonical_data_claim_boundaries_verified_cross_owner_corroborated",
+  "auditedSourceRevision": {
+    "commit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
+    "tree": "ccd8356a5f820df14c574ff2be5196459422acbe"
+  },
+  "authorityBoundary": {
+    "governs": [
+      "governed evidence scope and counts",
+      "workspace and operating-profile isolation contracts",
+      "Fitness Connection relationship classification",
+      "retention and privacy boundaries",
+      "collection, cohort, and recommendation-influence state"
+    ],
+    "doesNotGovern": [
+      "company portfolio positioning",
+      "public copy or visual design",
+      "CRM request lifecycle",
+      "Intelligence conclusions or recommendation readiness",
+      "production deployment state"
+    ],
+    "publicationApprovalGranted": false,
+    "requiredConsumerReview": [
+      "Prometheus Route IQ",
+      "Prometheus Website",
+      "Prometheus Intelligence Engine",
+      "Prometheus Overwatch"
+    ]
+  },
+  "canonicalDataSources": [
+    {
+      "sourceId": "commercial_workspace_registry",
+      "path": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+      "sha256": "95bc998fd3d04ef2eac5090d825a19d7da7a4e2936412e3fc12c02b76a6f02ca"
+    },
+    {
+      "sourceId": "fitness_connection_preservation_manifest",
+      "path": "data/route-iq-commercial-readiness-v1/fitness-connection-evidence-preservation-v1.json",
+      "sha256": "4a41ab27b4c90f0c3cfa2a0f7eb98d6de923eedc01b226f138f80323bb4a6223"
+    },
+    {
+      "sourceId": "founder_research_session_manifest",
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
+      "sha256": "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba"
+    },
+    {
+      "sourceId": "founder_research_normalized_session",
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+      "sha256": "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8"
+    },
+    {
+      "sourceId": "founder_research_calculated_metrics",
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+      "sha256": "71171b79aa725e533113f5cc1d040b13f6fc5cb3b5b4cdee993e8d4b836de911"
+    },
+    {
+      "sourceId": "founder_research_history_updates",
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json",
+      "sha256": "0d3f2508b92290b04a1d7b1cc979ee298eea97c9dda84061dbe66e2bea5b5c09"
+    },
+    {
+      "sourceId": "prospective_retention_policy",
+      "path": "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json",
+      "sha256": "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601"
+    }
+  ],
+  "crossOwnerCorroborationSources": [
+    {
+      "ownerSubsystem": "Prometheus Route IQ",
+      "ownerCommit": "1172cd763e2ec81e45e647e338dbd77e0308bc13",
+      "ownerTree": "0cd0a777bae9a74a87943eeea4ddfa4f05810ab2",
+      "path": "docs/route-iq-public-positioning-claims-contract-v1.json",
+      "sha256": "cc25bf5f67e0753575d119611f28735bb3bf2749fbbda9008a21f89caa50e08f",
+      "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
+    },
+    {
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "ownerCommit": "c6a7d760a6e5b088693ec5627a61b579ec540560",
+      "ownerTree": "e71f4c4b357be220a91f1e7868926e51a8cc64c2",
+      "path": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+      "sha256": "f8d5561acd1de19bcb3063e2b3ffa864747230737b60d9aaec11d2da79c49d8e",
+      "corroborationResult": "COMPATIBLE_ONLY_WITH_EXPLICIT_QUALIFICATIONS"
+    }
+  ],
+  "governedState": {
+    "workspaceId": "fitness_connection",
+    "operatingProfileId": "fitness",
+    "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+    "relationshipRepresentation": {
+      "customer": false,
+      "partner": false,
+      "sponsor": false,
+      "committedPilot": false,
+      "publicEndorsementClaimAllowed": false
+    },
+    "repositoryEvidence": {
+      "canonicalFieldSessions": 1,
+      "completedVisits": 4,
+      "observedRepresentatives": 1,
+      "territoryHistoryStatus": "unavailable",
+      "customerOutcomeHistoryEntries": 4,
+      "categoryOutcomeHistoryEntries": 1,
+      "evidenceWindow": {
+        "from": "2026-07-11T18:29:37.862Z",
+        "to": "2026-07-11T19:31:21.937Z"
+      },
+      "wallClockFreshnessClaimAllowed": false,
+      "limitations": [
+        "single founder-research session",
+        "single observed representative",
+        "single observed business category",
+        "territory identity unavailable",
+        "appointments unavailable",
+        "follow-ups unavailable",
+        "membership count unavailable"
+      ]
+    },
+    "preservation": {
+      "status": "PRESERVED_BYTE_IDENTICAL",
+      "sourceArtifactCount": 9,
+      "aggregateSha256": "f7c328fc5da300e70355a6363049323ca6699eab2c54a12f0f1ed83ff07a02fd",
+      "historicalRewriteAuthorized": false,
+      "productionMutationAuthorized": false,
+      "accidentalArchive": {
+        "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+        "protectedArtifactCount": 7,
+        "rawByteLength": 560,
+        "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+        "classification": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+        "analyticsState": "EXCLUDED_FROM_ANALYTICS",
+        "productionDispositionVerification": "NOT_READ_IN_THIS_BATCH"
+      }
+    },
+    "retention": {
+      "rawEvidenceMaximumCalendarMonths": 18,
+      "customerContractMayShorten": true,
+      "customerContractMayExpand": false,
+      "legalHoldSupported": true,
+      "physicalDeletionRuntimeActive": false,
+      "appendOnlyAuditRequired": true
+    },
+    "privacyAndTransmission": {
+      "newPiiCategoryIntroducedByThisMatrix": false,
+      "newExternalTransmissionIntroducedByThisMatrix": false,
+      "absoluteNoPiiProductClaimSupported": false,
+      "absoluteNoExternalTransmissionProductClaimSupported": false,
+      "governedCodexBundle": {
+        "allowlistProjectionOnly": true,
+        "redactionStatus": "REDACTED_ALLOWLIST_ONLY",
+        "canonicalProductionDatabase": false,
+        "automaticExternalTransmission": false
+      }
+    },
+    "activation": {
+      "prospectiveCollection": "OFF",
+      "activeCohorts": 0,
+      "recommendationInfluence": "OFF",
+      "productionActivationAuthorized": false
+    }
+  },
+  "publicClaims": [
+    {
+      "claimId": "governed_field_evidence_capture",
+      "dataEvidenceDisposition": "SUPPORTED_WITH_QUALIFICATION",
+      "evidenceSourceIds": ["founder_research_session_manifest", "founder_research_normalized_session"],
+      "safeBoundary": "Route IQ has governed contracts for capturing field visits and structured outcomes.",
+      "blockedExtension": "Do not present one Founder research session as proof of customer results or product performance."
+    },
+    {
+      "claimId": "workspace_profile_and_user_isolation",
+      "dataEvidenceDisposition": "SUPPORTED_AS_VERIFIED_ARCHITECTURE",
+      "evidenceSourceIds": ["commercial_workspace_registry"],
+      "safeBoundary": "Route IQ enforces governed workspace, operating-profile, and authenticated-user boundaries.",
+      "blockedExtension": "Do not describe synthetic isolation tests as live multi-customer adoption or unlimited scale."
+    },
+    {
+      "claimId": "configuration_driven_multi_business_product",
+      "dataEvidenceDisposition": "SUPPORTED_AS_SYNTHETIC_VALIDATION_ONLY",
+      "evidenceSourceIds": ["commercial_workspace_registry"],
+      "safeBoundary": "The shared Route IQ workspace contract can represent a synthetic non-fitness business without a business-specific data fork.",
+      "blockedExtension": "Do not claim proven onboarding across industries, customer deployments, or configuration-only production activation."
+    },
+    {
+      "claimId": "learn_representatives_territories_customer_context_and_outcomes",
+      "dataEvidenceDisposition": "CAPABILITY_ONLY_CURRENT_EVIDENCE_LIMITED",
+      "evidenceSourceIds": ["founder_research_history_updates", "commercial_workspace_registry"],
+      "safeBoundary": "Route IQ is designed to organize governed evidence about representatives, territories, business context, and outcomes.",
+      "blockedExtension": "Do not claim that current evidence has established representative, territory, customer, or outcome conclusions."
+    },
+    {
+      "claimId": "evidence_to_read_only_intelligence",
+      "dataEvidenceDisposition": "REQUIRES_INTELLIGENCE_OWNER_CORROBORATION",
+      "evidenceSourceIds": ["founder_research_session_manifest", "founder_research_history_updates"],
+      "safeBoundary": "Governed Data can supply immutable evidence to an independently governed read-only Intelligence consumer.",
+      "blockedExtension": "Data alone does not validate an Intelligence conclusion, prediction, probability, or readiness state."
+    },
+    {
+      "claimId": "decision_ready_intelligence_current_state",
+      "dataEvidenceDisposition": "SUPPORTED_ONLY_AS_DEFINED_PRODUCT_SEMANTIC_REQUIRES_INTELLIGENCE_CORROBORATION",
+      "evidenceSourceIds": ["founder_research_session_manifest", "founder_research_history_updates"],
+      "safeBoundary": "Decision-ready may mean only that governed evidence is organized for human review with provenance, confidence, and limitations; current readiness remains INSUFFICIENT_EVIDENCE.",
+      "blockedExtension": "Do not use decision-ready to imply recommendation readiness, calibrated probability, proven prediction, recommendation influence, or automated action."
+    },
+    {
+      "claimId": "calibrated_probability_or_proven_prediction",
+      "dataEvidenceDisposition": "UNSUPPORTED_CURRENT_STATE",
+      "evidenceSourceIds": ["founder_research_session_manifest"],
+      "safeBoundary": "No public calibrated-probability or proven-prediction claim is supported by governed Data.",
+      "blockedExtension": "Do not publish accuracy, calibration, prediction, or probability-performance claims."
+    },
+    {
+      "claimId": "recommendation_superiority_causal_uplift_or_performance_improvement",
+      "dataEvidenceDisposition": "PROHIBITED_UNSUPPORTED_CLAIM",
+      "evidenceSourceIds": ["founder_research_session_manifest"],
+      "safeBoundary": "Current evidence is observational Founder research only.",
+      "blockedExtension": "Do not claim causal uplift, recommendation superiority, revenue improvement, productivity improvement, or route-performance gains."
+    },
+    {
+      "claimId": "human_control_and_no_recommendation_influence",
+      "dataEvidenceDisposition": "SUPPORTED_CURRENT_STATE",
+      "evidenceSourceIds": ["commercial_workspace_registry", "prospective_retention_policy"],
+      "safeBoundary": "Recommendation influence and prospective collection are OFF, and active prospective cohorts are zero.",
+      "blockedExtension": "Do not imply that Route IQ currently automates decisions or changes representative routing from learned evidence."
+    },
+    {
+      "claimId": "fitness_connection_founder_research_classification",
+      "dataEvidenceDisposition": "SUPPORTED_WITH_RESTRICTED_DISCLOSURE",
+      "evidenceSourceIds": ["fitness_connection_preservation_manifest", "commercial_workspace_registry"],
+      "safeBoundary": "If disclosure is necessary, Fitness Connection evidence may be described only as Founder field research.",
+      "blockedExtension": "Do not imply a customer, pilot, partner, sponsor, endorsement, or committed commercial relationship."
+    },
+    {
+      "claimId": "fitness_connection_customer_partner_pilot_sponsor_or_endorser",
+      "dataEvidenceDisposition": "PROHIBITED_RELATIONSHIP_CLAIM",
+      "evidenceSourceIds": ["fitness_connection_preservation_manifest", "commercial_workspace_registry"],
+      "safeBoundary": "No public relationship claim is authorized.",
+      "blockedExtension": "Fitness Connection must not appear in logos, testimonials, customer lists, pilot claims, partnership claims, case studies, or implied endorsements."
+    },
+    {
+      "claimId": "customer_traction_or_market_validation",
+      "dataEvidenceDisposition": "UNSUPPORTED_BY_GOVERNED_DATA",
+      "evidenceSourceIds": ["commercial_workspace_registry"],
+      "safeBoundary": "Governed Data contains Founder research and synthetic validation, not customer traction evidence.",
+      "blockedExtension": "Do not claim customers, pilots, adoption, retention, revenue, conversion, market validation, or endorsements from these artifacts."
+    },
+    {
+      "claimId": "evidence_freshness",
+      "dataEvidenceDisposition": "SUPPORTED_ONLY_WITH_EXACT_WINDOW",
+      "evidenceSourceIds": ["founder_research_calculated_metrics"],
+      "safeBoundary": "The preserved repository evidence window is 2026-07-11T18:29:37.862Z through 2026-07-11T19:31:21.937Z; no wall-clock freshness conclusion is authorized.",
+      "blockedExtension": "Do not call the evidence current, recent, continuously updated, or production-live."
+    },
+    {
+      "claimId": "evidence_quality",
+      "dataEvidenceDisposition": "SUPPORTED_WITH_MATERIAL_LIMITATIONS",
+      "evidenceSourceIds": ["founder_research_session_manifest", "founder_research_history_updates"],
+      "safeBoundary": "The repository preserves one final governed session with four completed visits and append-only provenance.",
+      "blockedExtension": "Any quality statement must disclose the single-session, single-representative, single-category scope and unavailable territory, appointment, follow-up, and membership measures."
+    },
+    {
+      "claimId": "raw_evidence_retention",
+      "dataEvidenceDisposition": "SUPPORTED_POLICY_NOT_ACTIVE_DELETION",
+      "evidenceSourceIds": ["prospective_retention_policy", "commercial_workspace_registry"],
+      "safeBoundary": "Raw governed evidence has an 18-calendar-month maximum; customer contracts may shorten but not expand it, and legal hold is supported.",
+      "blockedExtension": "Do not claim that physical expiry deletion is deployed or active."
+    },
+    {
+      "claimId": "absolute_no_pii_collection",
+      "dataEvidenceDisposition": "UNSUPPORTED_ABSOLUTE_CLAIM",
+      "evidenceSourceIds": ["prospective_retention_policy"],
+      "safeBoundary": "Prospective shadow evidence prohibits added names, contacts, raw notes, addresses, and precise-location trails; this matrix adds no PII category.",
+      "blockedExtension": "Do not claim that Route IQ or its request workflow collects no personal or contact information."
+    },
+    {
+      "claimId": "absolute_no_external_transmission",
+      "dataEvidenceDisposition": "OUTSIDE_DATA_AUTHORITY_AND_UNSUPPORTED_ABSOLUTE",
+      "evidenceSourceIds": [],
+      "safeBoundary": "This Data matrix adds no external transmission, and the governed Codex bundle is a local explicit export.",
+      "blockedExtension": "Do not claim that the complete product has no external services or transmissions without Infrastructure, Website, and CRM verification."
+    },
+    {
+      "claimId": "governed_codex_evidence_delivery",
+      "dataEvidenceDisposition": "SUPPORTED_INTERNAL_CAPABILITY_ONLY",
+      "evidenceSourceIds": ["commercial_workspace_registry", "fitness_connection_preservation_manifest"],
+      "safeBoundary": "An explicit local command can prepare a redacted, allowlist-only, integrity-bound analysis bundle; Codex is not the canonical database.",
+      "blockedExtension": "Do not imply automatic production upload, unrestricted raw-data access, or autonomous production mutation by Codex."
+    },
+    {
+      "claimId": "route_iq_sole_active_product",
+      "dataEvidenceDisposition": "OUTSIDE_DATA_AUTHORITY_REQUIRES_ROUTE_IQ_OWNER",
+      "evidenceSourceIds": ["commercial_workspace_registry"],
+      "safeBoundary": "The Data registry marks Route IQ active and all registered workspaces fail closed unless explicitly eligible.",
+      "blockedExtension": "Company portfolio and sole-product positioning require Route IQ owner and Overwatch verification."
+    },
+    {
+      "claimId": "product_differentiation_from_route_planner_crm_mapping_or_generic_ai",
+      "dataEvidenceDisposition": "OUTSIDE_DATA_AUTHORITY_REQUIRES_ROUTE_IQ_OWNER",
+      "evidenceSourceIds": ["founder_research_session_manifest", "commercial_workspace_registry"],
+      "safeBoundary": "Data can verify governed workspace, visit, outcome, provenance, and retention capabilities only.",
+      "blockedExtension": "Competitive differentiation and category positioning require Route IQ owner substantiation and must not misstate existing CRM, route, map, or Intelligence components."
+    }
+  ],
+  "consumerRules": {
+    "claimIdsMustBeReviewedIndividually": true,
+    "dataEvidenceDispositionNeverEqualsPublicationApproval": true,
+    "unsupportedOrProhibitedClaimsMustNotBePublished": true,
+    "qualifiedClaimsMustPreserveTheirLimitations": true,
+    "crossOwnerClaimsRequireNamedOwnerCorroboration": true,
+    "syntheticEvidenceMustBeLabeledSynthetic": true,
+    "founderResearchMustNotBePresentedAsCustomerEvidence": true
+  }
+}

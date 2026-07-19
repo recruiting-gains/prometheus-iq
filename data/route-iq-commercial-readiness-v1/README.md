@@ -18,6 +18,13 @@ Canonical assets:
   exact-principal, fail-closed authorization decisions.
 - `governed-codex-evidence-bundle.mjs` creates deterministic, allowlist-only
   analysis bundles. Codex is an analysis consumer, never the production database.
+- `route-iq-public-claims-evidence-matrix-v1.json` records the Data evidence
+  boundary for public product, evidence, relationship, privacy, retention, and
+  readiness claims. A Data disposition is not publication approval; Website,
+  Route IQ, Intelligence, and Overwatch retain their own review authority.
+- `route-iq-public-claims-evidence.mjs` verifies the matrix against byte-pinned
+  Data sources and fails closed on relationship, evidence, activation, or claim
+  disposition drift.
 
 Generate the governed Founder research bundle with one command:
 
