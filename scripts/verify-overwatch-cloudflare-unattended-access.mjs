@@ -24,6 +24,8 @@ const unattendedKeychainInteroperabilitySuccessorPath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentSuccessorPath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const commercialReadinessSuccessorPath =
+  "overwatch/governance/route-iq-commercial-readiness-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -222,12 +224,19 @@ function verifyHashes(entries, failures, label, successorMappings = []) {
   }
 }
 
-function verifyProtectedRuntimeHashes(governance, failures) {
+function verifyProtectedRuntimeHashes(governance, failures, successorMappings = []) {
   const baselines = governance.protectedRuntimeBaselines;
   for (const prefix of ["privateWrangler", "publicWrangler", "privateWorker", "dashboardSource", "dashboardDeploy"]) {
     const path = baselines[`${prefix}Path`];
     const expected = baselines[`${prefix}Sha256`];
-    if (!path || !expected || sha256(read(path)) !== expected) {
+    const current = path ? sha256(read(path)) : null;
+    const successor = successorMappings.find(mapping => (
+      mapping.predecessorGovernanceId === governance.governanceId
+      && mapping.path === path
+      && mapping.historicalSha256 === expected
+      && mapping.successorSha256 === current
+    ));
+    if (!path || !expected || (current !== expected && !successor)) {
       failures.push(`Protected runtime hash drifted: ${path || prefix}`);
     }
   }
@@ -248,6 +257,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   const unattendedKeychainInteroperabilitySuccessor =
     readJson(unattendedKeychainInteroperabilitySuccessorPath);
   const githubDeploymentSuccessor = readJson(githubDeploymentSuccessorPath);
+  const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -272,12 +282,23 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
   verifyHashes(
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,
-    "Intelligence evidence"
+    "Intelligence evidence",
+    commercialReadinessSuccessor.protectedBaselineSuccessors
   );
-  verifyProtectedRuntimeHashes(governance, failures);
+  verifyProtectedRuntimeHashes(
+    governance,
+    failures,
+    commercialReadinessSuccessor.protectedBaselineSuccessors
+  );
 
   if (governance.intelligenceEvidence.previousWorkerSha256 !== "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"
     || governance.intelligenceEvidence.currentWorkerSha256 !== governance.protectedRuntimeBaselines.privateWorkerSha256
+    || !commercialReadinessSuccessor.protectedBaselineSuccessors.some(mapping => (
+      mapping.predecessorGovernanceId === governance.governanceId
+      && mapping.path === governance.protectedRuntimeBaselines.privateWorkerPath
+      && mapping.historicalSha256 === governance.intelligenceEvidence.currentWorkerSha256
+      && mapping.successorSha256 === sha256(read(governance.protectedRuntimeBaselines.privateWorkerPath))
+    ))
     || governance.intelligenceEvidence.historicalBaselineRewritten !== false
     || governance.intelligenceEvidence.recommendationInfluenceChanged !== false
     || governance.intelligenceEvidence.intelligenceBehaviorChanged !== false) {

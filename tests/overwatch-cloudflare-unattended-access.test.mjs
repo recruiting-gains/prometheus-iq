@@ -13,6 +13,7 @@ const readJson = path => JSON.parse(readFileSync(resolve(root, path), "utf8"));
 const infrastructure = readJson("workers/infrastructure/cloudflare-unattended-deployment-access-v1.json");
 const governance = readJson("overwatch/governance/cloudflare-unattended-deployment-access-v1.json");
 const report = readJson("overwatch/reports/BATCH-20260714-006-cloudflare-unattended-runtime-guard.json");
+const commercialReadiness = readJson("overwatch/governance/route-iq-commercial-readiness-v1.json");
 const clone = value => structuredClone(value);
 const evaluate = (infra = infrastructure, gov = governance, batchReport = report) => (
   evaluateCloudflareUnattendedAccessGovernance({
@@ -45,6 +46,24 @@ test("Overwatch independently verifies the source runtime guard and held deploym
   assert.equal(result.prospectiveCollection, "OFF");
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.deploymentRecommendation, "DO_NOT_DEPLOY");
+});
+
+test("paused unattended access accepts only explicit owner-authored commercial successors", () => {
+  assert.equal(commercialReadiness.protectedBaselineSuccessors.length, 7);
+  assert.deepEqual(
+    [...new Set(commercialReadiness.protectedBaselineSuccessors.map(entry => entry.ownerCommit))].sort(),
+    [
+      "11ac0668b87ed347c22bf963938b8d650370cfdb",
+      "185767ca4c72736343f29f691fd5138c5e0662b7",
+      "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162",
+      "82d1e6f23ca3a75c0073c051531477913258a98f"
+    ].sort()
+  );
+  assert.ok(commercialReadiness.protectedBaselineSuccessors.every(entry => (
+    entry.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
+    && /^[a-f0-9]{64}$/u.test(entry.historicalSha256)
+    && /^[a-f0-9]{64}$/u.test(entry.successorSha256)
+  )));
 });
 
 test("Overwatch rejects shared or broader Cloudflare credentials", () => {

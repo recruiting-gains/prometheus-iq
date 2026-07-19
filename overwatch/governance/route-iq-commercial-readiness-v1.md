@@ -23,3 +23,5 @@ Rollback uses new forward-revert commits and forward deployment. History rewriti
 The retained production-behavior source baseline is commit `dec2ba1b137b0123b6f072ada4b3dd184f88c80d`, tree `61258b4edcafe2af6e94f76b9e011e2486cb2fe6`. This is a source-control comparison baseline only. This batch does not contact Cloudflare or claim independent knowledge of the live production version.
 
 Commit `9f9cb75dd8122bc07dda72d61e9ced119d409063` is preserved as a disclosed local author-identity contamination affecting Intelligence-owned paths. Intelligence independently reconstructed those files in successor commit `a8068271e110f3b260624c3df6a3b39054421123`; semantic and byte comparisons are identical. No retroactive ownership claim or history rewrite is made.
+
+Seven protected paths used by the paused unattended-access verifier have explicit owner-authored successor hashes in this governance record. This mapping preserves the historical verifier baseline while recognizing the Route IQ commercial-readiness Dashboard, Infrastructure, and Intelligence successors. It does not resume, configure, authorize, or deploy unattended access.
