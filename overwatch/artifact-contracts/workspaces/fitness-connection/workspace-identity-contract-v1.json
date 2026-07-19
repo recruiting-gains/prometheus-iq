@@ -7,13 +7,15 @@
   "operatingProfileId": "fitness",
   "operatingProfileLabel": "Fitness",
   "intelligenceDomain": "route_intelligence",
-  "workspacePurpose": "Fitness Connection is the active fitness operating workspace for field route intelligence, rep activity, membership/unit outcomes, manager visibility, and Founder oversight.",
+  "workspacePurpose": "Fitness Connection is an active Founder field-research workspace for Route IQ field workflows, governed evidence, manager visibility, and Founder oversight. It is not a customer, partner, sponsor, or committed pilot.",
+  "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+  "publicRelationshipClaimsAllowed": false,
   "protectedWorkspaceIds": ["smoothie_depot"],
   "allowedSharedLayers": [
     "shared_platform_code",
     "shared_operating_profile_engine",
     "shared_cloudflare_access_protection",
-    "shared_workspace_switcher_shell",
+    "shared_route_iq_product_shell",
     "shared_overwatch_validation"
   ],
   "workspaceIsolationRules": {
@@ -29,7 +31,7 @@
     "founderRole": {
       "sessionRole": "founder",
       "allowedMode": "owner",
-      "canSwitchWorkspaces": true,
+      "canSwitchWorkspaces": false,
       "canViewOwnerTabs": true,
       "canViewAdminControls": true
     },

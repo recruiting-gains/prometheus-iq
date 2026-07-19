@@ -1,0 +1,130 @@
+{
+  "governanceId": "route-iq-commercial-readiness-governance-v1",
+  "schema": "RouteIqCommercialReadinessGovernanceV1",
+  "status": "active_release_gate",
+  "batchId": "BATCH-20260718-002",
+  "directive": "Route IQ Commercial Readiness + Product Focus v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "dispatchTimestampUtc": "2026-07-19T04:53:41Z",
+    "implementationOwners": [
+      "Prometheus Route IQ",
+      "Prometheus Dashboard",
+      "Prometheus Data",
+      "Prometheus Intelligence Engine",
+      "Prometheus CRM",
+      "Prometheus Infrastructure",
+      "Prometheus Website"
+    ],
+    "verificationOwner": "Prometheus Overwatch",
+    "overwatchImplementationAllowed": false,
+    "overwatchChangesLimitedTo": [
+      "governance",
+      "cross_subsystem_verification",
+      "artifact_registry",
+      "release_gate"
+    ]
+  },
+  "startingRepositoryState": {
+    "commit": "8f0484ea4edbab086db8d4d5f2424acf9c8bee74",
+    "tree": "0a9b3171426e0b4fc5e230e6ddef32461969021b",
+    "branch": "main"
+  },
+  "retainedProductionBehaviorSourceBaseline": {
+    "commit": "dec2ba1b137b0123b6f072ada4b3dd184f88c80d",
+    "tree": "61258b4edcafe2af6e94f76b9e011e2486cb2fe6",
+    "classification": "SOURCE_CONTROL_BASELINE_ONLY",
+    "liveProductionQueriedByBatch": false,
+    "liveProductionStateClaimed": false
+  },
+  "productState": {
+    "soleActiveProduct": "route_iq",
+    "gaia": "PAUSED",
+    "athena": "ARCHITECTURE_ONLY"
+  },
+  "dispatch": [
+    { "owner": "Prometheus Route IQ", "scope": "commercial product contract and cross-owner lifecycle" },
+    { "owner": "Prometheus Dashboard", "scope": "Route IQ-only operational experience and Founder snapshot consumer" },
+    { "owner": "Prometheus Data", "scope": "commercial workspace configuration, evidence preservation, retention, and Codex bundle" },
+    { "owner": "Prometheus Intelligence Engine", "scope": "deterministic Founder-only daily intelligence" },
+    { "owner": "Prometheus CRM", "scope": "Route IQ request lifecycle, receipts, retrieval, and export" },
+    { "owner": "Prometheus Infrastructure", "scope": "durable request runtime, authentication adapters, capacity, and rollback preparation" },
+    { "owner": "Prometheus Website", "scope": "Route IQ public product focus and request producer" },
+    { "owner": "Prometheus Overwatch", "scope": "governance, cross-subsystem verification, release gating, and push" }
+  ],
+  "relationshipBoundary": {
+    "workspaceId": "fitness_connection",
+    "classification": "FOUNDER_FIELD_RESEARCH",
+    "customer": false,
+    "partner": false,
+    "sponsor": false,
+    "committedPilot": false,
+    "publicEndorsementClaimAllowed": false
+  },
+  "historicalWorkspaceBoundary": {
+    "workspaceId": "smoothie_depot",
+    "state": "inactive_historical",
+    "historicalArtifactsPreserved": true,
+    "normalOperationVisible": false,
+    "activeNavigationVisible": false,
+    "learningEligible": false
+  },
+  "identityBoundary": {
+    "canonicalOwner": "Prometheus Data",
+    "canonicalRegistry": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+    "authorizedCruzPrincipal": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+    "anthonyAccessUntilExactMapping": false,
+    "displayNameAuthorizationAllowed": false,
+    "representativeFounderIntelligenceAllowed": false
+  },
+  "safety": {
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "representativeFacingShadowOutput": false,
+    "historicalEvidenceRewriteAllowed": false,
+    "newPiiAuthorized": false,
+    "productionMutationAuthorized": false,
+    "deploymentAuthorized": false
+  },
+  "verification": {
+    "acceptanceGateCount": 15,
+    "syntheticCapacityTarget": {
+      "workspaces": 10,
+      "users": 100,
+      "concurrentUsers": 25
+    },
+    "mobileViewport": { "width": 390, "height": 844 },
+    "exactFinalVersionRequired": true,
+    "cleanTreeRequired": true,
+    "forwardRollbackRehearsalRequired": true,
+    "automaticPushAllowedOnlyAfterPass": true
+  },
+  "deploymentBoundary": {
+    "separatelyFounderGated": true,
+    "scopes": [
+      { "target": "private_prometheus_iq_worker", "purpose": "Dashboard and Founder intelligence runtime" },
+      { "target": "public_prometheusrouteiq_website_worker", "purpose": "Route IQ website and durable request CRM" }
+    ],
+    "singleAuthorizationMayImplicitlyCoverBoth": false,
+    "deploymentPerformedByBatch": false
+  },
+  "rollback": {
+    "mode": "new_forward_revert_commits",
+    "historyRewriteAllowed": false,
+    "evidenceRewriteAllowed": false,
+    "statefulMigrationDeletionAllowed": false,
+    "preserveHistoricalArtifacts": true
+  },
+  "ownershipProvenance": {
+    "legacyCommit": "9f9cb75dd8122bc07dda72d61e9ced119d409063",
+    "classification": "DISCLOSED_LOCAL_AUTHOR_IDENTITY_CONTAMINATION",
+    "affectedOwner": "Prometheus Intelligence Engine",
+    "successorCommit": "a8068271e110f3b260624c3df6a3b39054421123",
+    "ownerEvidence": "intelligence/provenance/route-iq-commercial-readiness-founder-snapshot-owner-reconstruction-v1.json",
+    "semanticComparison": "IDENTICAL",
+    "byteComparison": "IDENTICAL",
+    "retroactiveOwnershipClaimed": false,
+    "historyRewritten": false
+  }
+}

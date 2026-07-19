@@ -10,20 +10,33 @@
     "dashboardSource": "index.html",
     "dashboardDeployMirror": "deploy/cloudflare-pages/index.html",
     "runtimeWorkflowVerifier": "scripts/verify-dashboard-runtime-workflows.mjs",
-    "workspaceSwitcherVerifier": "scripts/verify-dashboard-workspace-switcher.mjs"
+    "productFocusVerifier": "scripts/verify-dashboard-workspace-switcher.mjs",
+    "commercialReadinessVerifier": "tests/dashboard-route-iq-product-focus.test.mjs"
   },
   "requiredDashboardMarkers": [
     "data-workspace-id=\"fitness_connection\"",
     "data-operating-profile-id=\"fitness\"",
     "data-session-role=\"founder\"",
-    "data-workspace-select=\"fitness_connection\"",
-    "defaultWorkspaceId = \"fitness_connection\""
+    "defaultWorkspaceId = \"fitness_connection\"",
+    "<h1>Route IQ</h1>",
+    "founderDailyIntelligence"
   ],
   "founderViewContract": {
     "allowedTabs": ["today", "route", "places", "stats", "find"],
-    "requiredControls": ["workspace-switch", "mode-switch", "repProfileSwitch", "Founder Debug"],
-    "workspaceSwitchingAllowed": true,
-    "ownerModeAllowed": true
+    "requiredControls": ["mode-switch", "repProfileSwitch", "Founder Debug"],
+    "workspaceSwitchingAllowed": false,
+    "ownerModeAllowed": true,
+    "dailyIntelligence": {
+      "mode": "server_authenticated_read_only",
+      "requiredPrincipalSource": "Prometheus Data",
+      "requiredPrincipalId": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+      "displayNameAuthorizationAllowed": false,
+      "representativeAccessAllowed": false,
+      "anthonyAccessUntilExactMapping": false,
+      "browserPersistenceAllowed": false,
+      "recommendationInfluence": "OFF",
+      "representativeFacingShadowOutput": false
+    }
   },
   "repViewContract": {
     "defaultRepId": "anthony",
@@ -34,13 +47,14 @@
       "governanceDecision": "approved",
       "runtimeAlignmentStatus": "aligned",
       "alignmentEvidence": {
-        "dashboardCommit": "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd",
+        "dashboardCommit": "82d1e6f23ca3a75c0073c051531477913258a98f",
         "savedPlacesFeatureOriginCommit": "de51401774dc54034418b5feab4cdb2d255cc0ba",
         "decisionContextFeatureOriginCommit": "2774d91456e4b1734eb1caa13deaa84de2248f8f",
         "dashboardOwnerRevalidationCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
         "prospectiveShadowSeamCommit": "6c7671cb3f9387fdac29961432412dfe70088b2e",
         "prospectiveCollectionOffSuppressionCommit": "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd",
-        "dashboardSourceSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"
+        "routeIqProductFocusCommit": "82d1e6f23ca3a75c0073c051531477913258a98f",
+        "dashboardSourceSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"
       },
       "sections": {
         "visitedPlaces": {
@@ -92,6 +106,10 @@
     "sourceDeployParityRequired": true,
     "fixtureDataAllowed": false,
     "smoothieDepotCandidateDataAllowed": false,
+    "smoothieDepotActiveNavigationAllowed": false,
+    "gaiaOperationalNavigationAllowed": false,
+    "athenaOperationalNavigationAllowed": false,
+    "soleActiveProduct": "route_iq",
     "missingArtifactFailsClosed": true,
     "anthonyRepAccessMustNotEqualFounderAccess": true
   }

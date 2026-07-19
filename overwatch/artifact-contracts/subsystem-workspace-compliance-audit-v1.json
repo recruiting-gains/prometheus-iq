@@ -1,7 +1,7 @@
 {
   "auditId": "prometheus-subsystem-workspace-contract-compliance-audit-v1",
   "status": "active",
-  "date": "2026-07-04",
+  "date": "2026-07-18",
   "owningSubsystem": "Prometheus Overwatch",
   "contractLayer": "prometheus-cross-subsystem-artifact-contract-v1",
   "featureWorkGate": {
@@ -10,19 +10,15 @@
   },
   "summary": {
     "subsystemsAudited": 14,
-    "workspacesAudited": 3,
-    "fullyCompliantSubsystems": ["Prometheus Administration", "Prometheus Data", "Prometheus Research", "Prometheus Infrastructure", "Prometheus Overwatch", "Prometheus Social Media"],
+    "workspacesAudited": 4,
+    "fullyCompliantSubsystems": ["Prometheus Administration", "Prometheus CRM", "Prometheus Dashboard", "Prometheus Data", "Prometheus Infrastructure", "Prometheus Intelligence Engine", "Prometheus Overwatch", "Prometheus Research", "Prometheus Social Media", "Prometheus Website"],
     "partialOrBypassSubsystems": [
-      "Prometheus Dashboard",
-      "Prometheus CRM",
-      "Prometheus Intelligence Engine",
-      "Prometheus Website",
       "Prometheus Companion",
       "Prometheus Integrations",
       "Prometheus Mobile"
     ],
     "documentationOnlyNoActiveBypass": ["Prometheus Sales"],
-    "criticalRemediationOwners": ["Prometheus Dashboard", "Prometheus CRM"]
+    "criticalRemediationOwners": []
   },
   "subsystems": [
     {
@@ -53,16 +49,17 @@
     },
     {
       "subsystem": "Prometheus Dashboard",
-      "status": "partial_compliance",
+      "status": "compliant_for_route_iq_commercial_readiness",
       "evidence": [
-        "smoothie-depot-dashboard/index.html consumes Smoothie Depot Research dossier through the contract layer.",
-        "index.html and deploy/cloudflare-pages/index.html still operate Fitness Connection runtime data outside the artifact registry."
+        "index.html and deploy/cloudflare-pages/index.html are registered Route IQ Dashboard consumers with source/deploy parity.",
+        "Route IQ is the sole active Dashboard product; Smoothie Depot is historical and inactive.",
+        "Founder daily intelligence is server-authenticated, read-only, fail-closed, and representative-inaccessible."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Dashboard",
       "secondaryOwners": ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Fitness Connection Dashboard runtime artifacts, Active Pool inputs, route-quality outputs, workspace switcher state, and deploy mirrors before new Dashboard/Fitness feature work."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain Route IQ product-focus, exact-principal, source/deploy parity, and representative-isolation gates."
     },
     {
       "subsystem": "Prometheus Data",
@@ -82,59 +79,59 @@
     },
     {
       "subsystem": "Prometheus CRM",
-      "status": "partial_compliance",
+      "status": "compliant_for_route_iq_request_crm",
       "evidence": [
-        "crm/workspaces/smoothie-depot/candidate-pipeline-contracts.json is registered.",
-        "consumeWorkspaceLeadIntakeHandoff handles Fitness Connection and Smoothie Depot handoffs.",
-        "shared_workspace_crm_lead_intake_packet.v1 is registered through integrations/shared-workspace-lead-intake-contract.js."
+        "crm/route-iq-request-crm-contract-v1.json defines the minimal Route IQ request lifecycle.",
+        "crm/route-iq-request-crm.mjs owns deterministic idempotency, receipts, retrieval, export, and conflict handling.",
+        "Founder retrieval uses the Data-owned canonical immutable principal and rejects display names and representatives."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus CRM",
       "secondaryOwners": ["Prometheus Infrastructure", "Prometheus Website", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register any future CRM-owned durable lead/candidate record persistence artifacts before adding CRM persistence, dashboard display, or new intake-consuming CRM features."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain the Route IQ request contract, exact-principal retrieval, atomic admission, and export gates."
     },
     {
       "subsystem": "Prometheus Intelligence Engine",
-      "status": "partial_compliance",
+      "status": "compliant_for_route_iq_commercial_readiness",
       "evidence": [
-        "intelligence/workspaces/smoothie-depot/workspace-intelligence-plan.json is registered.",
-        "Fitness Connection route quality, operating-profile consumers, customer graph, and explainability contracts are not yet registered as cross-subsystem artifact contracts."
+        "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json governs Founder-only daily intelligence.",
+        "intelligence/route-iq-daily-intelligence-snapshot.mjs is deterministic and changes only with governed evidence.",
+        "Discovery Mode, Nearby Context, and off-route learning remain advisory or read-only with recommendation influence OFF."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Intelligence Engine",
       "secondaryOwners": ["Prometheus Data", "Prometheus Dashboard", "Prometheus CRM", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Intelligence-owned interpretation artifacts and Fitness Connection route-quality/learning inputs before activating any new interpretation, graph, learning, or recommendation-consuming feature."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain deterministic evidence linkage, Founder-only access, and recommendation-influence boundaries."
     },
     {
       "subsystem": "Prometheus Infrastructure",
-      "status": "compliant_for_shared_lead_intake_contracts",
+      "status": "compliant_for_route_iq_request_runtime",
       "evidence": [
-        "workers/infrastructure/shared-lead-intake-pipeline.js owns shared workspace intake routing and KV persistence.",
-        "integrations/shared-workspace-lead-intake-contract.js registers POST /api/partner-intake, SHARED_LEAD_INTAKE_STORE, workspace router, intake submission artifact, CRM handoff packet, Founder notification event, failure/retry event, audit metadata, Aegis metadata, and fail-closed behavior.",
-        "overwatch/artifact-contracts/canonical-artifact-registry.json registers shared lead-intake contract artifacts for Fitness Connection and Smoothie Depot."
+        "workers/infrastructure/route-iq-request-crm-runtime.js owns the Route IQ request runtime adapter.",
+        "workers/infrastructure/route-iq-request-crm-durable-object.js provides SQLite-backed transactional putIfAbsent.",
+        "workers/infrastructure/route-iq-commercial-capacity-harness.mjs verifies the declared initial 10-workspace, 100-user, 25-concurrent-user target."
       ],
       "bypassIdentified": false,
       "owner": "Prometheus Infrastructure",
       "secondaryOwners": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
       "remediationRequiredBeforeFutureFeatureWork": false,
-      "scheduledRemediation": "Maintain shared intake contract verification through npm run infrastructure:intake-contract:check and npm run overwatch:artifact-contracts:check."
+      "scheduledRemediation": "Maintain request-runtime, Durable Object, exact-principal, capacity, and cross-subsystem contract verification."
     },
     {
       "subsystem": "Prometheus Website",
-      "status": "partial_compliance",
+      "status": "compliant_for_route_iq_product_focus",
       "evidence": [
-        "deploy/prometheusrouteiq-website/enterprise-lead-intake.js generates partner intake packets.",
-        "Infrastructure-owned shared intake endpoint and handoff contracts are registered.",
-        "Website referral/UTM attribution path deploy/prometheusrouteiq-website/website-attribution.js is registered as a Social Media attribution consumer boundary.",
-        "Website-owned partner intake generation remains outside a Website-owned artifact contract."
+        "src/main.jsx presents Prometheus as the company and Route IQ as the sole active product.",
+        "src/route-iq-request-form.js produces the minimal consented Route IQ request contract.",
+        "deploy/prometheusrouteiq-website mirrors the focused Route IQ story and request form without Fitness Connection relationship claims."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Website",
       "secondaryOwners": ["Prometheus Infrastructure", "Prometheus CRM", "Prometheus Social Media", "Prometheus Overwatch"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Register Website partner intake and Website/Social attribution artifacts before new lead capture, attribution, or CRM-connected Website feature work."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "scheduledRemediation": "Maintain Route IQ-only positioning, minimal PII, request-contract parity, and no-unproven-claim gates."
     },
     {
       "subsystem": "Prometheus Companion",
@@ -227,25 +224,27 @@
   "workspaces": [
     {
       "workspaceId": "smoothie_depot",
-      "status": "partial_compliance_administration_registered",
+      "status": "registered_historical_inactive",
       "registeredInContractLayer": true,
       "evidence": [
-        "Research/Dashboard/CRM/Intelligence Smoothie Depot artifacts are partially registered.",
-        "Infrastructure shared lead intake paths are registered.",
-        "Administration operating manuals, daily checklists, release/sign-off registers, readiness reviews, and field-feedback artifacts are registered through overwatch/artifact-contracts/administration/administration-operating-artifact-contract-v1.json."
+        "Historical Smoothie Depot artifacts remain registered and byte-preserved.",
+        "The Route IQ Dashboard exposes no Smoothie Depot navigation, selector, link, or current-product view.",
+        "Commercial workspace governance marks Smoothie Depot inactive, not learning-eligible, and not Codex-bundle eligible."
       ],
-      "bypassIdentified": true,
+      "bypassIdentified": false,
       "owner": "Prometheus Overwatch",
       "secondaryOwners": ["Prometheus Administration", "Prometheus CRM"],
-      "remediationRequiredBeforeFutureFeatureWork": true,
-      "scheduledRemediation": "Keep missing Research dossiers and unauthorized CRM runtime persistence fail-closed before new Smoothie Depot feature work; Administration operating artifacts are now registered."
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "historicalArtifactsPreserved": true,
+      "normalOperationVisible": false,
+      "scheduledRemediation": "Preserve historical artifacts and require explicit Founder authorization before any future reactivation."
     },
     {
       "workspaceId": "fitness_connection",
-      "status": "registered_contract_compliant",
+      "status": "registered_founder_research_contract_compliant",
       "registeredInContractLayer": true,
       "evidence": [
-        "Fitness Connection is the default live Dashboard workspace.",
+        "Fitness Connection is an active Founder field-research workspace, not a customer, partner, sponsor, or committed pilot.",
         "Fitness Connection workspace identity, Dashboard, Route Intelligence/Data, CRM, and Intelligence contracts are registered in the Overwatch artifact registry.",
         "Future Fitness Connection feature work remains gated by the canonical workspace contract."
       ],
@@ -255,6 +254,20 @@
       "remediationRequiredBeforeFutureFeatureWork": false,
       "futureFeatureWorkRequiresContract": true,
       "scheduledRemediation": "No open Fitness Connection workspace-registration remediation. Future Fitness Connection, beta, Dashboard, Data, CRM, Infrastructure, or Intelligence work must use the registered Fitness Connection canonical workspace artifact contract."
+    },
+    {
+      "workspaceId": "summit_roofing_synthetic",
+      "status": "allowed_synthetic_configuration_only",
+      "registeredInContractLayer": false,
+      "evidence": [
+        "Configured through data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json.",
+        "Uses the shared Route IQ workspace schema and runtime without a business-specific code fork."
+      ],
+      "bypassIdentified": false,
+      "owner": "Prometheus Data",
+      "remediationRequiredBeforeFutureFeatureWork": false,
+      "productionActivationAuthorized": false,
+      "scheduledRemediation": "Keep synthetic-only until a separately authorized real customer configuration is approved."
     },
     {
       "workspaceId": "customer_fixture_prometheus",

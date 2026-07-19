@@ -1394,7 +1394,9 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(identity.operatingProfileId === workspace.operatingProfileId, "Fitness identity contract operating profile mismatch.", failures);
   assert(identity.workspaceIsolationRules.smoothieDepotCandidateDataUsed === false, "Fitness identity must block Smoothie Depot candidate data.", failures);
   assert(identity.workspaceIsolationRules.missingArtifactFailsClosed === true, "Fitness identity must fail closed on missing artifacts.", failures);
-  assert(identity.roleBoundary.founderRole.canSwitchWorkspaces === true, "Founder role must retain workspace switcher.", failures);
+  assert(identity.relationshipClassification === "FOUNDER_FIELD_RESEARCH", "Fitness evidence must be classified as Founder field research.", failures);
+  assert(identity.publicRelationshipClaimsAllowed === false, "Fitness must not be represented publicly as a customer, partner, sponsor, or pilot.", failures);
+  assert(identity.roleBoundary.founderRole.canSwitchWorkspaces === false, "Route IQ product focus must remove active workspace switching.", failures);
   assert(identity.roleBoundary.repRole.defaultRepId === "anthony", "Fitness rep default must remain Anthony.", failures);
   assert(identity.roleBoundary.repRole.canSwitchWorkspaces === false, "Rep role must not switch workspaces.", failures);
   assert(identity.roleBoundary.repRole.canViewOwnerTabs === false, "Rep role must not view owner tabs.", failures);
@@ -1412,12 +1414,13 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(placesAccess?.mode === "restricted_representative_places", "Dashboard contract must classify Rep Places as restricted representative-owned places.", failures);
   assert(placesAccess?.governanceDecision === "approved", "Representative Places governance expansion must record Founder approval.", failures);
   assert(placesAccess?.runtimeAlignmentStatus === "aligned", "Representative Places runtime alignment must be finalized.", failures);
-  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd", "Representative Places alignment must reference the current Dashboard owner commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.dashboardCommit === "82d1e6f23ca3a75c0073c051531477913258a98f", "Representative Places alignment must reference the current Dashboard owner commit.", failures);
   assert(placesAccess?.alignmentEvidence?.savedPlacesFeatureOriginCommit === "de51401774dc54034418b5feab4cdb2d255cc0ba", "Representative Places alignment must preserve the Saved Places feature-origin commit.", failures);
   assert(placesAccess?.alignmentEvidence?.decisionContextFeatureOriginCommit === "2774d91456e4b1734eb1caa13deaa84de2248f8f", "Dashboard alignment must preserve the Decision Context feature-origin commit.", failures);
   assert(placesAccess?.alignmentEvidence?.dashboardOwnerRevalidationCommit === "6c7671cb3f9387fdac29961432412dfe70088b2e", "Dashboard alignment must reference the Dashboard owner revalidation commit.", failures);
   assert(placesAccess?.alignmentEvidence?.prospectiveShadowSeamCommit === "6c7671cb3f9387fdac29961432412dfe70088b2e", "Dashboard alignment must reference the invisible prospective shadow seam commit.", failures);
   assert(placesAccess?.alignmentEvidence?.prospectiveCollectionOffSuppressionCommit === "555dc6e87b1d2f884f1e18b3a06e1c62dfbd73dd", "Dashboard alignment must reference the collection-OFF suppression repair commit.", failures);
+  assert(placesAccess?.alignmentEvidence?.routeIqProductFocusCommit === "82d1e6f23ca3a75c0073c051531477913258a98f", "Dashboard alignment must reference the Route IQ product-focus owner commit.", failures);
   assert(placesAccess?.alignmentEvidence?.dashboardSourceSha256 === sha256(dashboardSource), "Representative Places alignment must reference the verified Dashboard source hash.", failures);
   assert(placesAccess?.sections?.visitedPlaces?.label === "Visited Places", "Representative Places contract must define the Visited Places section.", failures);
   assert(sameMembers(placesAccess?.sections?.visitedPlaces?.restrictions, ["active_representative_only", "logged_visits_only"]), "Visited Places must contain only logged visits for the active representative.", failures);
@@ -1466,6 +1469,22 @@ function validateFitnessConnectionWorkspaceContract(workspace, failures) {
   assert(dashboardContract.repViewContract.ownerModeAllowed === false, "Dashboard contract must block owner mode from rep sessions.", failures);
   assert(dashboardContract.repViewContract.adminControlsAllowed === false, "Dashboard contract must block rep admin controls.", failures);
   assert(dashboardContract.productionRules.anthonyRepAccessMustNotEqualFounderAccess === true, "Dashboard contract must protect Anthony/Founder boundary.", failures);
+  assert(dashboardContract.founderViewContract.workspaceSwitchingAllowed === false, "Route IQ Founder view must not expose an active workspace switcher.", failures);
+  assert(dashboardContract.productionRules.soleActiveProduct === "route_iq", "Route IQ must be the sole active Dashboard product.", failures);
+  assert(dashboardContract.productionRules.smoothieDepotActiveNavigationAllowed === false, "Smoothie Depot must remain inactive and absent from Dashboard navigation.", failures);
+  assert(dashboardContract.productionRules.gaiaOperationalNavigationAllowed === false, "Gaia must remain absent from operational navigation.", failures);
+  assert(dashboardContract.productionRules.athenaOperationalNavigationAllowed === false, "Athena must remain absent from operational navigation.", failures);
+  assert(!dashboardSource.includes("data-workspace-select"), "Route IQ Dashboard must not expose active workspace selectors.", failures);
+  assert(!dashboardSource.includes("Smoothie Depot"), "Route IQ current-product views must not expose Smoothie Depot.", failures);
+  assert(!/\bGaia\b/.test(dashboardSource) && !/\bAthena\b/.test(dashboardSource), "Route IQ current-product views must not expose Gaia or Athena.", failures);
+  const dailyIntelligence = dashboardContract.founderViewContract.dailyIntelligence;
+  assert(dailyIntelligence?.mode === "server_authenticated_read_only", "Founder daily intelligence must be server-authenticated and read-only.", failures);
+  assert(dailyIntelligence?.requiredPrincipalSource === "Prometheus Data", "Founder daily intelligence must use Data's canonical principal.", failures);
+  assert(dailyIntelligence?.requiredPrincipalId === "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4", "Founder daily intelligence principal drifted.", failures);
+  assert(dailyIntelligence?.displayNameAuthorizationAllowed === false && dailyIntelligence?.representativeAccessAllowed === false, "Founder daily intelligence must fail closed for display names and representatives.", failures);
+  assert(dailyIntelligence?.anthonyAccessUntilExactMapping === false, "Anthony must remain unauthorized until exact identity mapping exists.", failures);
+  assert(dailyIntelligence?.browserPersistenceAllowed === false, "Founder daily intelligence must not persist in browser storage.", failures);
+  assert(dailyIntelligence?.recommendationInfluence === "OFF" && dailyIntelligence?.representativeFacingShadowOutput === false, "Founder daily intelligence must remain non-influential and invisible to representatives.", failures);
 
   validateReferencedPaths(routeDataContract.canonicalDataPaths, "Fitness route/data contract", failures);
   validateReferencedPaths(routeDataContract.canonicalContractPaths, "Fitness route/data contract", failures);
@@ -1584,7 +1603,7 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
     failures
   );
 
-  const requiredWorkspaces = ["smoothie_depot", "fitness_connection", "customer_fixture_prometheus"];
+  const requiredWorkspaces = ["smoothie_depot", "fitness_connection", "summit_roofing_synthetic", "customer_fixture_prometheus"];
   const auditedWorkspaces = new Map((audit.workspaces || []).map(item => [item.workspaceId, item]));
   for (const workspaceId of requiredWorkspaces) {
     assert(auditedWorkspaces.has(workspaceId), `Workspace compliance audit missing ${workspaceId}.`, failures);
@@ -1612,10 +1631,14 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
 
   const smoothieDepot = auditedWorkspaces.get("smoothie_depot");
   const fitnessConnection = auditedWorkspaces.get("fitness_connection");
+  const syntheticCommercialWorkspace = auditedWorkspaces.get("summit_roofing_synthetic");
   const fixtureWorkspace = auditedWorkspaces.get("customer_fixture_prometheus");
   assert(smoothieDepot?.registeredInContractLayer === true, "Smoothie Depot must remain registered in the contract layer.", failures);
-  assert(smoothieDepot?.bypassIdentified === true, "Smoothie Depot partial compliance must remain visible until all artifacts are registered.", failures);
+  assert(smoothieDepot?.status === "registered_historical_inactive", "Smoothie Depot must remain registered as historical and inactive.", failures);
+  assert(smoothieDepot?.bypassIdentified === false, "Inactive historical Smoothie Depot artifacts must not be treated as an active bypass.", failures);
+  assert(smoothieDepot?.historicalArtifactsPreserved === true && smoothieDepot?.normalOperationVisible === false, "Smoothie Depot must be preserved but invisible in normal Route IQ operation.", failures);
   assert(fitnessConnection?.registeredInContractLayer === true, "Fitness Connection must be registered in the contract layer.", failures);
+  assert(fitnessConnection?.status === "registered_founder_research_contract_compliant", "Fitness Connection must be governed as Founder research.", failures);
   assert(fitnessConnection?.bypassIdentified === false, "Fitness Connection bypass must be closed by canonical workspace contract.", failures);
   assert(
     fitnessConnection?.futureFeatureWorkRequiresContract === true,
@@ -1624,6 +1647,8 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
   );
   assert(fixtureWorkspace?.status === "allowed_test_fixture_only", "Customer fixture workspace must remain test-only.", failures);
   assert(fixtureWorkspace?.bypassIdentified === false, "Customer fixture workspace must not be treated as production bypass.", failures);
+  assert(syntheticCommercialWorkspace?.status === "allowed_synthetic_configuration_only", "Synthetic commercial workspace must remain configuration-only.", failures);
+  assert(syntheticCommercialWorkspace?.productionActivationAuthorized === false, "Synthetic commercial workspace must not be production-authorized.", failures);
 
   const infrastructureAudit = auditedSubsystems.get("Prometheus Infrastructure");
   const administrationAudit = auditedSubsystems.get("Prometheus Administration");
@@ -1651,10 +1676,11 @@ function validateSubsystemWorkspaceComplianceAudit(audit, failures) {
     "Data audit must reference the Fitness runtime artifact contract.",
     failures
   );
-  assert(infrastructureAudit?.bypassIdentified === false, "Infrastructure shared lead-intake contract bypass must be closed.", failures);
+  assert(infrastructureAudit?.status === "compliant_for_route_iq_request_runtime", "Infrastructure Route IQ request runtime must be contract-compliant.", failures);
+  assert(infrastructureAudit?.bypassIdentified === false, "Infrastructure Route IQ request runtime bypass must be closed.", failures);
   assert(
-    infrastructureAudit?.evidence?.some(item => item.includes("integrations/shared-workspace-lead-intake-contract.js")),
-    "Infrastructure audit must reference the shared lead-intake contract.",
+    infrastructureAudit?.evidence?.some(item => item.includes("route-iq-request-crm-runtime.js")),
+    "Infrastructure audit must reference the Route IQ request CRM runtime.",
     failures
   );
   assert(
@@ -1696,6 +1722,13 @@ export function verifyCrossSubsystemArtifactContracts() {
 
   for (const workspace of registry.workspaces) {
     if (workspace.workspaceId === "smoothie_depot") {
+      assert(workspace.lifecycleState === "inactive_historical", "Smoothie Depot registry state must be inactive historical.", failures);
+      assert(workspace.normalOperationVisible === false && workspace.activeNavigationVisible === false, "Smoothie Depot must be invisible in normal Route IQ operation.", failures);
+      assert(workspace.runtimeConsumptionAuthorized === false, "Smoothie Depot runtime consumption must remain unauthorized.", failures);
+      assert(workspace.historicalArtifactsPreserved === true, "Smoothie Depot historical artifacts must remain preserved.", failures);
+      assert(workspace.canonicalArtifacts.every(artifact => artifact.productionConsumer === false), "Smoothie Depot canonical artifacts must be historical and non-production-consuming.", failures);
+      assert(workspace.consumerContracts.dashboard?.historicalVerificationOnly === true, "Smoothie Depot Dashboard contract must be historical-verification only.", failures);
+      assert(workspace.consumerContracts.dashboard?.activeNavigationAuthorized === false, "Smoothie Depot active Dashboard navigation must remain unauthorized.", failures);
       const dossierContext = validateSmoothieDepotDossierContract(workspace, failures);
       validateDashboardConsumer(workspace, dossierContext, failures);
       validateCrmConsumer(workspace, failures);

@@ -152,6 +152,27 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
       productionConsumer: false,
       failClosedIfMissing: true
+    },
+    {
+      artifactId: "route-iq-commercial-readiness-governance-v1",
+      artifactType: "overwatch_route_iq_commercial_release_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/route-iq-commercial-readiness-v1.json",
+      documentationPath: "overwatch/governance/route-iq-commercial-readiness-v1.md",
+      schema: "RouteIqCommercialReadinessGovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: [
+        "Prometheus Route IQ",
+        "Prometheus Dashboard",
+        "Prometheus Data",
+        "Prometheus Intelligence Engine",
+        "Prometheus CRM",
+        "Prometheus Infrastructure",
+        "Prometheus Website",
+        "Prometheus Overwatch"
+      ],
+      productionConsumer: false,
+      failClosedIfMissing: true
     }
   ]);
 });
@@ -201,18 +222,24 @@ test("Subsystem and workspace compliance audit gates future feature work", () =>
 
   const workspaces = Object.fromEntries(audit.workspaces.map(workspace => [workspace.workspaceId, workspace]));
   assert.equal(workspaces.smoothie_depot.registeredInContractLayer, true);
-  assert.equal(workspaces.smoothie_depot.bypassIdentified, true);
+  assert.equal(workspaces.smoothie_depot.status, "registered_historical_inactive");
+  assert.equal(workspaces.smoothie_depot.bypassIdentified, false);
+  assert.equal(workspaces.smoothie_depot.historicalArtifactsPreserved, true);
+  assert.equal(workspaces.smoothie_depot.normalOperationVisible, false);
   assert.equal(workspaces.fitness_connection.registeredInContractLayer, true);
+  assert.equal(workspaces.fitness_connection.status, "registered_founder_research_contract_compliant");
   assert.equal(workspaces.fitness_connection.bypassIdentified, false);
   assert.equal(workspaces.fitness_connection.futureFeatureWorkRequiresContract, true);
+  assert.equal(workspaces.summit_roofing_synthetic.status, "allowed_synthetic_configuration_only");
+  assert.equal(workspaces.summit_roofing_synthetic.productionActivationAuthorized, false);
   assert.equal(workspaces.customer_fixture_prometheus.status, "allowed_test_fixture_only");
 
   const infrastructure = audit.subsystems.find(record => record.subsystem === "Prometheus Infrastructure");
-  assert.equal(infrastructure.status, "compliant_for_shared_lead_intake_contracts");
+  assert.equal(infrastructure.status, "compliant_for_route_iq_request_runtime");
   assert.equal(infrastructure.bypassIdentified, false);
   assert.ok(
-    infrastructure.evidence.some(item => item.includes("integrations/shared-workspace-lead-intake-contract.js")),
-    "Infrastructure audit must record the shared lead-intake contract."
+    infrastructure.evidence.some(item => item.includes("route-iq-request-crm-runtime.js")),
+    "Infrastructure audit must record the Route IQ request CRM runtime."
   );
 
   const data = audit.subsystems.find(record => record.subsystem === "Prometheus Data");

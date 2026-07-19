@@ -175,6 +175,18 @@
       ],
       "productionConsumer": false,
       "failClosedIfMissing": true
+    },
+    {
+      "artifactId": "route-iq-commercial-readiness-governance-v1",
+      "artifactType": "overwatch_route_iq_commercial_release_governance",
+      "ownerSubsystem": "Prometheus Overwatch",
+      "path": "overwatch/governance/route-iq-commercial-readiness-v1.json",
+      "documentationPath": "overwatch/governance/route-iq-commercial-readiness-v1.md",
+      "schema": "RouteIqCommercialReadinessGovernanceV1",
+      "writeAllowed": ["Prometheus Overwatch"],
+      "readAllowed": ["Prometheus Route IQ", "Prometheus Dashboard", "Prometheus Data", "Prometheus Intelligence Engine", "Prometheus CRM", "Prometheus Infrastructure", "Prometheus Website", "Prometheus Overwatch"],
+      "productionConsumer": false,
+      "failClosedIfMissing": true
     }
   ],
   "workspaces": [
@@ -183,6 +195,11 @@
       "workspaceName": "Smoothie Depot",
       "operatingProfileId": "franchise_development",
       "intelligenceDomain": "business_acquisition_intelligence",
+      "lifecycleState": "inactive_historical",
+      "normalOperationVisible": false,
+      "activeNavigationVisible": false,
+      "runtimeConsumptionAuthorized": false,
+      "historicalArtifactsPreserved": true,
       "protectedWorkspaceIds": ["fitness_connection"],
       "workspaceIsolationRules": {
         "fitnessConnectionDataUsed": false,
@@ -201,7 +218,7 @@
           "schema": "DossierRegisterV1",
           "writeAllowed": ["Prometheus Research"],
           "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -214,7 +231,7 @@
           "schema": "ExecutiveDueDiligenceDossierMarkdownV1",
           "writeAllowed": ["Prometheus Research"],
           "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -227,7 +244,7 @@
           "schema": "ExecutiveDueDiligenceDossierJsonV1",
           "writeAllowed": ["Prometheus Research"],
           "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -240,7 +257,7 @@
           "schema": "RankedBusinessProspectsV1",
           "writeAllowed": ["Prometheus Research"],
           "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -279,7 +296,7 @@
           "schema": "DashboardReadOnlyDossierConsumerV1",
           "writeAllowed": ["Prometheus Dashboard"],
           "readAllowed": ["Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -292,7 +309,7 @@
           "schema": "DashboardReadOnlyDossierConsumerV1",
           "writeAllowed": ["Prometheus Dashboard"],
           "readAllowed": ["Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -305,7 +322,7 @@
           "schema": "SharedWorkspaceLeadIntakeArtifactContractV1",
           "writeAllowed": ["Prometheus Infrastructure"],
           "readAllowed": ["Prometheus CRM", "Prometheus Website", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -318,7 +335,7 @@
           "schema": "SocialMediaAnalyticsAttributionArtifactContractV1",
           "writeAllowed": ["Prometheus Social Media"],
           "readAllowed": ["Prometheus Website", "Prometheus CRM", "Prometheus Dashboard", "Prometheus Research", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -331,7 +348,7 @@
           "schema": "AdministrationOperatingArtifactContractV1",
           "writeAllowed": ["Prometheus Administration"],
           "readAllowed": ["Prometheus Dashboard", "Prometheus CRM", "Prometheus Intelligence Engine", "Prometheus Overwatch"],
-          "productionConsumer": true,
+          "productionConsumer": false,
           "requiredWorkspaceId": "smoothie_depot",
           "requiredOperatingProfileId": "franchise_development",
           "failClosedIfMissing": true
@@ -340,6 +357,9 @@
       "consumerContracts": {
         "dashboard": {
           "consumerSubsystem": "Prometheus Dashboard",
+          "historicalVerificationOnly": true,
+          "activeNavigationAuthorized": false,
+          "runtimeConsumptionAuthorized": false,
           "allowedReadPaths": [
             "research/workspaces/smoothie-depot/dossiers/dossier-register.json",
             "research/workspaces/smoothie-depot/dossiers/nutrition-depot-executive-due-diligence-dossier-v1.md",
