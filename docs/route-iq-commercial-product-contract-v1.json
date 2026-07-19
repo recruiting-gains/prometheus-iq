@@ -105,7 +105,8 @@
       "output": "founder_only_deterministic_daily_snapshot",
       "ownerSurfaces": [
         "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
-        "intelligence/route-iq-daily-intelligence-snapshot.mjs"
+        "intelligence/route-iq-daily-intelligence-snapshot.mjs",
+        "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"
       ]
     },
     {
@@ -142,6 +143,54 @@
       ]
     }
   ],
+  "founderDailySnapshotLifecycle": {
+    "integrationStatus": "pending_owner_integration_until_required_surfaces_verify",
+    "finalVerificationRequiresIntegratedLifecycle": true,
+    "finalVerificationFailsWhenRequiredSurfaceIsMissing": true,
+    "endpoint": "/api/dashboard/route-iq/intelligence/daily-snapshot",
+    "method": "GET",
+    "browserPersistenceAllowed": false,
+    "representativeAccessAllowed": false,
+    "recommendationInfluence": "OFF",
+    "stages": [
+      {
+        "order": 1,
+        "stage": "deterministic_snapshot_generation",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "surfaces": [
+          "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
+          "intelligence/route-iq-daily-intelligence-snapshot.mjs"
+        ]
+      },
+      {
+        "order": 2,
+        "stage": "canonical_snapshot_artifact",
+        "ownerSubsystem": "Prometheus Intelligence Engine",
+        "surfaces": [
+          "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json"
+        ]
+      },
+      {
+        "order": 3,
+        "stage": "server_authenticated_read_only_endpoint",
+        "ownerSubsystem": "Prometheus Infrastructure",
+        "surfaces": [
+          "workers/prometheus-iq-worker.js"
+        ]
+      },
+      {
+        "order": 4,
+        "stage": "founder_dashboard_read_only_consumer",
+        "ownerSubsystem": "Prometheus Dashboard",
+        "surfaces": [
+          "index.html",
+          "deploy/cloudflare-pages/index.html",
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "tests/dashboard-route-iq-product-focus.test.mjs"
+        ]
+      }
+    ]
+  },
   "accessControl": {
     "identityAuthority": "server_verified_immutable_authenticated_principal",
     "canonicalIdentitySourceOwner": "Prometheus Data",
@@ -231,6 +280,7 @@
     "Prometheus Intelligence Engine": [
       "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
       "intelligence/route-iq-daily-intelligence-snapshot.mjs",
+      "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
       "scripts/verify-route-iq-commercial-readiness-intelligence.mjs"
     ],
     "Prometheus CRM": [
@@ -245,7 +295,12 @@
     ],
     "Prometheus Infrastructure": [
       "workers/prometheus-iq-worker.js",
-      "workers/infrastructure/shared-lead-intake-pipeline.js"
+      "integrations/shared-workspace-lead-intake-contract.js",
+      "workers/infrastructure/route-iq-commercial-capacity-harness.mjs",
+      "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+      "workers/infrastructure/route-iq-request-crm-runtime.js",
+      "workers/infrastructure/route-iq-request-crm-durable-object.js",
+      "wrangler.prometheusrouteiq-website.jsonc"
     ],
     "Prometheus Overwatch": [
       "overwatch/artifact-contracts/route-iq",
@@ -253,9 +308,30 @@
     ]
   },
   "rollout": {
-    "eventualDeploymentTarget": "private_prometheus_iq_worker_only",
-    "publicWorkerExcluded": true,
+    "deploymentAuthorizedByBatch": false,
     "founderDeploymentAuthorizationRequired": true,
+    "deploymentScopes": [
+      {
+        "scopeId": "private_dashboard_runtime",
+        "targetWorker": "prometheus-iq",
+        "configurationPath": "wrangler.jsonc",
+        "ownerSubsystems": ["Prometheus Dashboard", "Prometheus Infrastructure"],
+        "includes": ["private_dashboard_assets", "private_dashboard_api_runtime"],
+        "excludes": ["public_website_assets", "public_website_crm_activation"],
+        "founderDeploymentAuthorizationRequired": true,
+        "deploymentAuthorizedNow": false
+      },
+      {
+        "scopeId": "public_website_crm_runtime",
+        "targetWorker": "prometheusrouteiq-website",
+        "configurationPath": "wrangler.prometheusrouteiq-website.jsonc",
+        "ownerSubsystems": ["Prometheus Website", "Prometheus CRM", "Prometheus Infrastructure"],
+        "includes": ["public_route_iq_website_assets", "route_iq_request_crm_runtime", "route_iq_request_crm_sqlite_migration"],
+        "excludes": ["private_dashboard_assets", "prospective_collection_activation"],
+        "founderDeploymentAuthorizationRequired": true,
+        "deploymentAuthorizedNow": false
+      }
+    ],
     "releasePrerequisites": [
       "all_15_acceptance_gates_pass",
       "exact_head_and_tree_frozen",
@@ -267,7 +343,15 @@
       "no_production_data_mutation"
     ],
     "rollback": {
-      "mode": "new_forward_revert_commits_and_forward_compatible_private_worker_deployment",
+      "mode": "new_forward_revert_commits_then_separately_founder_authorized_forward_deployment_per_scope",
+      "sourceProcedure": "create_new_git_revert_commits_in_reverse_dependency_order_and_repeat_exact_tree_verification",
+      "statefulRuntimeProcedure": "preserve_applied_migrations_namespaces_bindings_class_exports_and_existing_state_then_forward_deploy_an_inert_compatible_candidate",
+      "evidenceSurfaces": [
+        "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+        "docs/route-iq-forward-compatible-rollback-v1.md",
+        "workers/infrastructure/route-iq-forward-rollback-candidate-v1.json",
+        "workers/infrastructure/route-iq-request-crm-runtime-v1.json"
+      ],
       "historyRewriteAllowed": false,
       "archiveRewriteAllowed": false,
       "statefulMigrationDeletionAllowed": false,
@@ -322,22 +406,22 @@
       "gate": 7,
       "name": "multi_user_concurrency_integrity",
       "ownerSubsystems": ["Prometheus Infrastructure", "Prometheus Data"],
-      "evidenceSurfaces": ["tests/route-iq-commercial-readiness-capacity.test.mjs", "tests/route-iq-commercial-readiness-data.test.mjs"],
+      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-capacity-harness.mjs", "tests/route-iq-request-crm-infrastructure.test.mjs", "tests/route-iq-commercial-readiness-data.test.mjs"],
       "requirement": "10_workspaces_100_users_25_concurrent_zero_isolation_or_record_failures"
     },
     {
       "gate": 8,
       "name": "safe_capacity_and_latency_reported",
       "ownerSubsystems": ["Prometheus Infrastructure"],
-      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-readiness-capacity-v1.json"],
+      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-capacity-harness.mjs", "workers/infrastructure/route-iq-request-crm-runtime-v1.json", "scripts/verify-route-iq-request-crm-infrastructure.mjs"],
       "requirement": "measured_initial_capacity_latency_and_resource_usage_without_unlimited_scale_claim"
     },
     {
       "gate": 9,
       "name": "deterministic_daily_intelligence_snapshot",
-      "ownerSubsystems": ["Prometheus Intelligence Engine"],
-      "evidenceSurfaces": ["intelligence/route-iq-daily-intelligence-snapshot.mjs"],
-      "requirement": "snapshot_changes_only_when_governed_evidence_changes"
+      "ownerSubsystems": ["Prometheus Intelligence Engine", "Prometheus Infrastructure", "Prometheus Dashboard"],
+      "evidenceSurfaces": ["intelligence/route-iq-daily-intelligence-snapshot.mjs", "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json", "workers/prometheus-iq-worker.js", "index.html", "tests/dashboard-route-iq-product-focus.test.mjs"],
+      "requirement": "snapshot_changes_only_when_governed_evidence_changes_and_is_served_by_founder_only_read_only_endpoint"
     },
     {
       "gate": 10,
@@ -378,7 +462,7 @@
       "gate": 15,
       "name": "forward_rollback_rehearsal",
       "ownerSubsystems": ["Prometheus Infrastructure", "Prometheus Overwatch"],
-      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-readiness-rollback-v1.json"],
+      "evidenceSurfaces": ["overwatch/governance/verified-engineering-batch-auto-push-v1.json", "docs/route-iq-forward-compatible-rollback-v1.md", "workers/infrastructure/route-iq-forward-rollback-candidate-v1.json", "workers/infrastructure/route-iq-request-crm-runtime-v1.json"],
       "requirement": "forward_rollback_preserves_evidence_and_avoids_history_rewrite"
     }
   ]

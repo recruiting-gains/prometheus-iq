@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,6 +11,23 @@ export const routeIqCommercialProductPaths = Object.freeze({
   intelligenceContract: "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
   crmContract: "crm/route-iq-request-crm-contract-v1.json"
 });
+
+export const routeIqCommercialRuntimePaths = Object.freeze({
+  dashboardSource: "index.html",
+  dashboardDeploySource: "deploy/cloudflare-pages/index.html",
+  dashboardVerifier: "scripts/verify-dashboard-runtime-workflows.mjs",
+  dashboardTest: "tests/dashboard-route-iq-product-focus.test.mjs",
+  intelligenceModule: "intelligence/route-iq-daily-intelligence-snapshot.mjs",
+  intelligenceArtifact: "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+  infrastructureWorker: "workers/prometheus-iq-worker.js",
+  capacityHarness: "workers/infrastructure/route-iq-commercial-capacity-harness.mjs",
+  capacityRuntimeContract: "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+  rollbackGovernance: "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+  rollbackProcedure: "docs/route-iq-forward-compatible-rollback-v1.md",
+  rollbackCandidate: "workers/infrastructure/route-iq-forward-rollback-candidate-v1.json"
+});
+
+const founderDailySnapshotEndpoint = "/api/dashboard/route-iq/intelligence/daily-snapshot";
 
 export class RouteIqCommercialProductContractError extends Error {
   constructor(code, detail) {
@@ -29,6 +46,14 @@ function readJson(repoRoot, path) {
     return JSON.parse(readFileSync(resolve(repoRoot, path), "utf8"));
   } catch (error) {
     fail("route_iq_product_owner_artifact_missing_or_invalid", `${path}: ${error.code ?? error.message}`);
+  }
+}
+
+function readText(repoRoot, path) {
+  try {
+    return readFileSync(resolve(repoRoot, path), "utf8");
+  } catch (error) {
+    fail("route_iq_product_required_surface_missing", `${path}: ${error.code ?? error.message}`);
   }
 }
 
@@ -131,6 +156,35 @@ export function validateRouteIqCommercialProductContract(artifacts) {
     requireStringArray(lifecycle[index].ownerSurfaces, "route_iq_product_lifecycle_surface_missing", stageName);
   }
 
+  const dailySnapshotLifecycle = contract.founderDailySnapshotLifecycle;
+  requireExact(
+    dailySnapshotLifecycle?.integrationStatus,
+    "pending_owner_integration_until_required_surfaces_verify",
+    "route_iq_product_daily_snapshot_lifecycle_invalid",
+    "daily snapshot integration status"
+  );
+  requireExact(dailySnapshotLifecycle?.finalVerificationRequiresIntegratedLifecycle, true, "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot final integration gate");
+  requireExact(dailySnapshotLifecycle?.finalVerificationFailsWhenRequiredSurfaceIsMissing, true, "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot missing-surface gate");
+  requireExact(dailySnapshotLifecycle?.endpoint, founderDailySnapshotEndpoint, "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot endpoint");
+  requireExact(dailySnapshotLifecycle?.method, "GET", "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot method");
+  requireExact(dailySnapshotLifecycle?.browserPersistenceAllowed, false, "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot browser persistence");
+  requireExact(dailySnapshotLifecycle?.representativeAccessAllowed, false, "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot representative access");
+  requireExact(dailySnapshotLifecycle?.recommendationInfluence, "OFF", "route_iq_product_daily_snapshot_lifecycle_invalid", "daily snapshot recommendation influence");
+  const expectedSnapshotStages = [
+    ["deterministic_snapshot_generation", "Prometheus Intelligence Engine"],
+    ["canonical_snapshot_artifact", "Prometheus Intelligence Engine"],
+    ["server_authenticated_read_only_endpoint", "Prometheus Infrastructure"],
+    ["founder_dashboard_read_only_consumer", "Prometheus Dashboard"]
+  ];
+  requireValue(Array.isArray(dailySnapshotLifecycle?.stages) && dailySnapshotLifecycle.stages.length === expectedSnapshotStages.length, "route_iq_product_daily_snapshot_lifecycle_invalid", "four daily snapshot lifecycle stages are required");
+  for (const [index, [stageName, owner]] of expectedSnapshotStages.entries()) {
+    const stage = dailySnapshotLifecycle.stages[index];
+    requireExact(stage?.order, index + 1, "route_iq_product_daily_snapshot_lifecycle_invalid", `daily snapshot stage ${index + 1} order`);
+    requireExact(stage?.stage, stageName, "route_iq_product_daily_snapshot_lifecycle_invalid", `daily snapshot stage ${index + 1}`);
+    requireExact(stage?.ownerSubsystem, owner, "route_iq_product_daily_snapshot_lifecycle_invalid", `${stageName} owner`);
+    requireStringArray(stage?.surfaces, "route_iq_product_daily_snapshot_lifecycle_invalid", `${stageName} surfaces`);
+  }
+
   requireIncludes(contract.prohibitedCapabilities, [
     "CUSTOMER_SPECIFIC_CODE_FORK",
     "FITNESS_CONNECTION_CUSTOMER_PARTNER_SPONSOR_PILOT_OR_ENDORSEMENT_CLAIM",
@@ -164,9 +218,34 @@ export function validateRouteIqCommercialProductContract(artifacts) {
     requireValue(typeof gate.requirement === "string" && gate.requirement.length > 0, "route_iq_product_acceptance_requirement_missing", `gate ${gateNumber}`);
   }
 
-  requireExact(contract.rollout?.eventualDeploymentTarget, "private_prometheus_iq_worker_only", "route_iq_product_deployment_boundary_invalid", "deployment target");
-  requireExact(contract.rollout?.publicWorkerExcluded, true, "route_iq_product_deployment_boundary_invalid", "public Worker exclusion");
+  requireExact(contract.rollout?.deploymentAuthorizedByBatch, false, "route_iq_product_deployment_boundary_invalid", "batch deployment authorization");
   requireExact(contract.rollout?.founderDeploymentAuthorizationRequired, true, "route_iq_product_deployment_boundary_invalid", "Founder deployment gate");
+  requireValue(!Object.hasOwn(contract.rollout ?? {}, "eventualDeploymentTarget"), "route_iq_product_deployment_boundary_invalid", "obsolete single-target deployment assertion is prohibited");
+  requireValue(!Object.hasOwn(contract.rollout ?? {}, "publicWorkerExcluded"), "route_iq_product_deployment_boundary_invalid", "obsolete public-Worker exclusion assertion is prohibited");
+  requireValue(Array.isArray(contract.rollout?.deploymentScopes) && contract.rollout.deploymentScopes.length === 2, "route_iq_product_deployment_boundary_invalid", "two separately gated deployment scopes are required");
+  const deploymentScopes = new Map(contract.rollout.deploymentScopes.map(scope => [scope.scopeId, scope]));
+  const privateScope = deploymentScopes.get("private_dashboard_runtime");
+  const publicScope = deploymentScopes.get("public_website_crm_runtime");
+  requireExact(privateScope?.targetWorker, "prometheus-iq", "route_iq_product_deployment_boundary_invalid", "private Dashboard target");
+  requireExact(privateScope?.configurationPath, "wrangler.jsonc", "route_iq_product_deployment_boundary_invalid", "private Dashboard configuration");
+  requireExact(publicScope?.targetWorker, "prometheusrouteiq-website", "route_iq_product_deployment_boundary_invalid", "public Website/CRM target");
+  requireExact(publicScope?.configurationPath, "wrangler.prometheusrouteiq-website.jsonc", "route_iq_product_deployment_boundary_invalid", "public Website/CRM configuration");
+  for (const scope of [privateScope, publicScope]) {
+    requireExact(scope?.founderDeploymentAuthorizationRequired, true, "route_iq_product_deployment_boundary_invalid", `${scope?.scopeId ?? "unknown scope"} Founder gate`);
+    requireExact(scope?.deploymentAuthorizedNow, false, "route_iq_product_deployment_boundary_invalid", `${scope?.scopeId ?? "unknown scope"} deployment authorization`);
+    requireStringArray(scope?.ownerSubsystems, "route_iq_product_deployment_boundary_invalid", `${scope?.scopeId ?? "unknown scope"} owners`);
+    requireStringArray(scope?.includes, "route_iq_product_deployment_boundary_invalid", `${scope?.scopeId ?? "unknown scope"} included runtime`);
+    requireStringArray(scope?.excludes, "route_iq_product_deployment_boundary_invalid", `${scope?.scopeId ?? "unknown scope"} exclusions`);
+  }
+  requireExact(contract.rollout?.rollback?.mode, "new_forward_revert_commits_then_separately_founder_authorized_forward_deployment_per_scope", "route_iq_product_rollback_boundary_invalid", "rollback mode");
+  requireExact(contract.rollout?.rollback?.sourceProcedure, "create_new_git_revert_commits_in_reverse_dependency_order_and_repeat_exact_tree_verification", "route_iq_product_rollback_boundary_invalid", "source rollback procedure");
+  requireExact(contract.rollout?.rollback?.statefulRuntimeProcedure, "preserve_applied_migrations_namespaces_bindings_class_exports_and_existing_state_then_forward_deploy_an_inert_compatible_candidate", "route_iq_product_rollback_boundary_invalid", "stateful rollback procedure");
+  requireIncludes(contract.rollout?.rollback?.evidenceSurfaces, [
+    routeIqCommercialRuntimePaths.rollbackGovernance,
+    routeIqCommercialRuntimePaths.rollbackProcedure,
+    routeIqCommercialRuntimePaths.rollbackCandidate,
+    routeIqCommercialRuntimePaths.capacityRuntimeContract
+  ], "route_iq_product_rollback_boundary_invalid", "rollback evidence surfaces");
   requireExact(contract.rollout?.rollback?.historyRewriteAllowed, false, "route_iq_product_rollback_boundary_invalid", "history rewrite");
   requireExact(contract.rollout?.rollback?.archiveRewriteAllowed, false, "route_iq_product_rollback_boundary_invalid", "archive rewrite");
   requireExact(contract.rollout?.rollback?.preserveExistingEvidence, true, "route_iq_product_rollback_boundary_invalid", "evidence preservation");
@@ -232,13 +311,19 @@ export function validateRouteIqCommercialProductContract(artifacts) {
   requireExact(crmContract.productionMutationPerformed, false, "route_iq_product_crm_contract_invalid", "CRM production mutation");
 
   return Object.freeze({
-    status: "passed",
+    status: "contract_validated",
     batchId: contract.batchId,
     soleActiveProduct: contract.productPortfolio.soleActiveProduct,
     validatedCommittedOwnerArtifacts: Object.freeze(["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus CRM"]),
-    contractualRuntimeOwnersPendingIntegratedVerification: Object.freeze(["Prometheus Dashboard", "Prometheus Website", "Prometheus Infrastructure"]),
+    contractualRuntimeOwnersPendingIntegratedVerification: Object.freeze(["Prometheus Intelligence Engine", "Prometheus Infrastructure", "Prometheus Dashboard"]),
     lifecycleStageCount: lifecycle.length,
+    founderDailySnapshotLifecycleStageCount: dailySnapshotLifecycle.stages.length,
     acceptanceGateCount: gates.length,
+    deploymentScopes: Object.freeze(contract.rollout.deploymentScopes.map(scope => Object.freeze({
+      scopeId: scope.scopeId,
+      targetWorker: scope.targetWorker,
+      deploymentAuthorizedNow: scope.deploymentAuthorizedNow
+    }))),
     recommendationInfluence: contract.safetyState.recommendationInfluence,
     prospectiveCollection: contract.safetyState.prospectiveCollection,
     productionMutationPerformed: false,
@@ -246,10 +331,82 @@ export function validateRouteIqCommercialProductContract(artifacts) {
   });
 }
 
+export function verifyRouteIqCommercialProductRuntimeSurfaces({ repoRoot = defaultRepoRoot } = {}) {
+  const contract = readJson(repoRoot, routeIqCommercialProductPaths.contract);
+  const intelligenceContract = readJson(repoRoot, routeIqCommercialProductPaths.intelligenceContract);
+  const requiredPaths = new Set([
+    ...contract.founderDailySnapshotLifecycle.stages.flatMap(stage => stage.surfaces),
+    ...contract.acceptanceGates.flatMap(gate => gate.evidenceSurfaces),
+    ...contract.rollout.rollback.evidenceSurfaces,
+    ...contract.rollout.deploymentScopes.map(scope => scope.configurationPath)
+  ]);
+  const missingPaths = [...requiredPaths].filter(path => !existsSync(resolve(repoRoot, path)));
+  requireValue(
+    missingPaths.length === 0,
+    "route_iq_product_required_surface_missing",
+    `final integrated tree is missing: ${missingPaths.join(", ")}`
+  );
+
+  requireExact(
+    intelligenceContract.canonicalFounderSnapshot?.stableArtifactPath,
+    routeIqCommercialRuntimePaths.intelligenceArtifact,
+    "route_iq_product_daily_snapshot_artifact_invalid",
+    "Intelligence stable artifact path"
+  );
+  const artifact = readJson(repoRoot, routeIqCommercialRuntimePaths.intelligenceArtifact);
+  requireExact(artifact.schemaVersion, "route-iq-daily-intelligence-snapshot-v1", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot schema");
+  requireExact(artifact.ownerSubsystem, "Prometheus Intelligence Engine", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot owner");
+  requireExact(artifact.audience, "founder_only", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot audience");
+  requireExact(artifact.workspaceId, "fitness_connection", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot workspace");
+  requireExact(artifact.operatingProfileId, "fitness", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot operating profile");
+  requireExact(artifact.evidenceClassification, "FOUNDER_FIELD_RESEARCH", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot evidence classification");
+  requireExact(artifact.safety?.readOnly, true, "route_iq_product_daily_snapshot_artifact_invalid", "snapshot read-only boundary");
+  requireExact(artifact.safety?.founderOnly, true, "route_iq_product_daily_snapshot_artifact_invalid", "snapshot Founder boundary");
+  requireExact(artifact.safety?.representativeReadable, false, "route_iq_product_daily_snapshot_artifact_invalid", "snapshot representative boundary");
+  requireExact(artifact.safety?.recommendationInfluence, "OFF", "route_iq_product_daily_snapshot_artifact_invalid", "snapshot recommendation boundary");
+
+  for (const path of [routeIqCommercialRuntimePaths.dashboardSource, routeIqCommercialRuntimePaths.dashboardDeploySource]) {
+    const source = readText(repoRoot, path);
+    requireValue(source.includes(founderDailySnapshotEndpoint), "route_iq_product_daily_snapshot_dashboard_surface_invalid", `${path} must consume the governed endpoint`);
+    requireValue(!source.includes("localStorage.setItem(founderDailyIntelligence"), "route_iq_product_daily_snapshot_dashboard_surface_invalid", `${path} must not persist Founder Intelligence`);
+  }
+  const workerSource = readText(repoRoot, routeIqCommercialRuntimePaths.infrastructureWorker);
+  requireValue(workerSource.includes(founderDailySnapshotEndpoint), "route_iq_product_daily_snapshot_endpoint_missing", "Infrastructure must implement the Founder-only snapshot endpoint");
+
+  return Object.freeze({
+    status: "integrated",
+    endpoint: founderDailySnapshotEndpoint,
+    method: "GET",
+    requiredSurfaceCount: requiredPaths.size,
+    validatedOwners: Object.freeze(["Prometheus Intelligence Engine", "Prometheus Infrastructure", "Prometheus Dashboard"]),
+    recommendationInfluence: "OFF"
+  });
+}
+
 export function verifyRouteIqCommercialProductContract(options = {}) {
-  return validateRouteIqCommercialProductContract(
+  const contractResult = validateRouteIqCommercialProductContract(
     options.artifacts ?? loadRouteIqCommercialProductArtifacts(options)
   );
+  if (options.allowPendingOwnerIntegration === true) {
+    try {
+      const runtimeResult = verifyRouteIqCommercialProductRuntimeSurfaces(options);
+      return Object.freeze({ ...contractResult, status: "passed", contractualRuntimeOwnersPendingIntegratedVerification: Object.freeze([]), founderDailySnapshotLifecycle: runtimeResult });
+    } catch (error) {
+      if (!(error instanceof RouteIqCommercialProductContractError)) throw error;
+      return Object.freeze({
+        ...contractResult,
+        status: "pending_owner_integration",
+        founderDailySnapshotLifecycle: Object.freeze({ status: "pending_owner_integration", blockingCode: error.code })
+      });
+    }
+  }
+  const runtimeResult = verifyRouteIqCommercialProductRuntimeSurfaces(options);
+  return Object.freeze({
+    ...contractResult,
+    status: "passed",
+    contractualRuntimeOwnersPendingIntegratedVerification: Object.freeze([]),
+    founderDailySnapshotLifecycle: runtimeResult
+  });
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

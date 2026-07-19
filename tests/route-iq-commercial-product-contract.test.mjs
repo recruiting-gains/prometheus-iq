@@ -1,29 +1,36 @@
 import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import {
   RouteIqCommercialProductContractError,
   loadRouteIqCommercialProductArtifacts,
+  routeIqCommercialProductPaths,
   validateRouteIqCommercialProductContract,
-  verifyRouteIqCommercialProductContract
+  verifyRouteIqCommercialProductContract,
+  verifyRouteIqCommercialProductRuntimeSurfaces
 } from "../scripts/verify-route-iq-commercial-product-contract.mjs";
 
 const clone = value => JSON.parse(JSON.stringify(value));
 
 test("Route IQ commercial product contract verifies committed owner boundaries", () => {
-  const result = verifyRouteIqCommercialProductContract();
-  assert.deepEqual(result, {
-    status: "passed",
-    batchId: "BATCH-20260718-002",
-    soleActiveProduct: "route_iq",
-    validatedCommittedOwnerArtifacts: ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus CRM"],
-    contractualRuntimeOwnersPendingIntegratedVerification: ["Prometheus Dashboard", "Prometheus Website", "Prometheus Infrastructure"],
-    lifecycleStageCount: 7,
-    acceptanceGateCount: 15,
-    recommendationInfluence: "OFF",
-    prospectiveCollection: "OFF",
-    productionMutationPerformed: false,
-    deploymentPerformed: false
-  });
+  const result = verifyRouteIqCommercialProductContract({ allowPendingOwnerIntegration: true });
+  assert.equal(result.batchId, "BATCH-20260718-002");
+  assert.equal(result.soleActiveProduct, "route_iq");
+  assert.deepEqual(result.validatedCommittedOwnerArtifacts, ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus CRM"]);
+  assert.equal(result.lifecycleStageCount, 7);
+  assert.equal(result.founderDailySnapshotLifecycleStageCount, 4);
+  assert.equal(result.acceptanceGateCount, 15);
+  assert.deepEqual(result.deploymentScopes, [
+    { scopeId: "private_dashboard_runtime", targetWorker: "prometheus-iq", deploymentAuthorizedNow: false },
+    { scopeId: "public_website_crm_runtime", targetWorker: "prometheusrouteiq-website", deploymentAuthorizedNow: false }
+  ]);
+  assert.equal(result.recommendationInfluence, "OFF");
+  assert.equal(result.prospectiveCollection, "OFF");
+  assert.equal(result.productionMutationPerformed, false);
+  assert.equal(result.deploymentPerformed, false);
+  assert.ok(["pending_owner_integration", "passed"].includes(result.status));
 });
 
 test("Route IQ is the sole active product and every directive gate has an owner surface", () => {
@@ -114,13 +121,59 @@ test("missing committed owner artifacts fail closed", () => {
   );
 });
 
-test("rollout remains Founder-gated, private-Worker-only, and forward-revertable", () => {
+test("daily snapshot lifecycle is complete by contract and final verification fails closed on missing surfaces", () => {
   const { contract } = loadRouteIqCommercialProductArtifacts();
-  assert.equal(contract.rollout.eventualDeploymentTarget, "private_prometheus_iq_worker_only");
-  assert.equal(contract.rollout.publicWorkerExcluded, true);
+  assert.equal(contract.founderDailySnapshotLifecycle.integrationStatus, "pending_owner_integration_until_required_surfaces_verify");
+  assert.equal(contract.founderDailySnapshotLifecycle.endpoint, "/api/dashboard/route-iq/intelligence/daily-snapshot");
+  assert.deepEqual(contract.founderDailySnapshotLifecycle.stages.map(stage => stage.ownerSubsystem), [
+    "Prometheus Intelligence Engine",
+    "Prometheus Intelligence Engine",
+    "Prometheus Infrastructure",
+    "Prometheus Dashboard"
+  ]);
+
+  const temporaryRepo = mkdtempSync(join(tmpdir(), "route-iq-product-surface-test-"));
+  try {
+    for (const path of [routeIqCommercialProductPaths.contract, routeIqCommercialProductPaths.intelligenceContract]) {
+      const target = resolve(temporaryRepo, path);
+      mkdirSync(dirname(target), { recursive: true });
+      writeFileSync(target, JSON.stringify(path === routeIqCommercialProductPaths.contract ? contract : loadRouteIqCommercialProductArtifacts().intelligenceContract));
+    }
+    assert.throws(
+      () => verifyRouteIqCommercialProductRuntimeSurfaces({ repoRoot: temporaryRepo }),
+      error => error instanceof RouteIqCommercialProductContractError
+        && error.code === "route_iq_product_required_surface_missing"
+    );
+  } finally {
+    rmSync(temporaryRepo, { recursive: true, force: true });
+  }
+});
+
+test("rollout keeps private Dashboard and public Website/CRM deployment scopes separately Founder-gated", () => {
+  const { contract } = loadRouteIqCommercialProductArtifacts();
+  assert.equal(Object.hasOwn(contract.rollout, "eventualDeploymentTarget"), false);
+  assert.equal(Object.hasOwn(contract.rollout, "publicWorkerExcluded"), false);
   assert.equal(contract.rollout.founderDeploymentAuthorizationRequired, true);
+  assert.equal(contract.rollout.deploymentAuthorizedByBatch, false);
+  assert.deepEqual(contract.rollout.deploymentScopes.map(scope => [scope.scopeId, scope.targetWorker, scope.deploymentAuthorizedNow]), [
+    ["private_dashboard_runtime", "prometheus-iq", false],
+    ["public_website_crm_runtime", "prometheusrouteiq-website", false]
+  ]);
   assert.equal(contract.rollout.rollback.historyRewriteAllowed, false);
   assert.equal(contract.rollout.rollback.archiveRewriteAllowed, false);
   assert.equal(contract.rollout.rollback.preserveExistingEvidence, true);
+  assert.equal(contract.rollout.rollback.sourceProcedure, "create_new_git_revert_commits_in_reverse_dependency_order_and_repeat_exact_tree_verification");
+  assert.ok(contract.rollout.rollback.evidenceSurfaces.includes("workers/infrastructure/route-iq-request-crm-runtime-v1.json"));
   assert.equal(contract.safetyState.deploymentAuthorizedByBatch, false);
+});
+
+test("capacity and rollback gates point only to committed evidence surfaces", () => {
+  const { contract } = loadRouteIqCommercialProductArtifacts();
+  const byGate = new Map(contract.acceptanceGates.map(gate => [gate.gate, gate]));
+  assert.ok(byGate.get(7).evidenceSurfaces.includes("workers/infrastructure/route-iq-commercial-capacity-harness.mjs"));
+  assert.ok(byGate.get(8).evidenceSurfaces.includes("workers/infrastructure/route-iq-request-crm-runtime-v1.json"));
+  assert.ok(byGate.get(15).evidenceSurfaces.includes("docs/route-iq-forward-compatible-rollback-v1.md"));
+  assert.equal(byGate.get(7).evidenceSurfaces.includes("tests/route-iq-commercial-readiness-capacity.test.mjs"), false);
+  assert.equal(byGate.get(8).evidenceSurfaces.includes("workers/infrastructure/route-iq-commercial-readiness-capacity-v1.json"), false);
+  assert.equal(byGate.get(15).evidenceSurfaces.includes("workers/infrastructure/route-iq-commercial-readiness-rollback-v1.json"), false);
 });
