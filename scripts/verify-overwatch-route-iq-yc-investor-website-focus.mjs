@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/route-iq-yc-investor-website-focus-v1.json";
 const reportPath = "overwatch/reports/BATCH-20260719-002-route-iq-yc-investor-website-focus.json";
+const visualContinuitySuccessorPath = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const startingCommit = "cb413fdf3a9676c238c02532261ffcf3a24f2b21";
 const startingTree = "ccd8356a5f820df14c574ff2be5196459422acbe";
 const initialOwnerCommits = [
@@ -84,7 +85,7 @@ function commitIdentity(commit) {
   return { author, committer };
 }
 
-function verifyOwnership(governance, { requireOverwatchCommit }) {
+function verifyOwnership(governance, { requireOverwatchCommit, successorActive }) {
   assert.equal(git("rev-parse", `${startingCommit}^{tree}`), startingTree);
   execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", startingCommit, "HEAD"], { cwd: root });
   const commits = git("rev-list", "--reverse", `${startingCommit}..HEAD`).split("\n").filter(Boolean);
@@ -150,11 +151,18 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
   assert.equal(git("rev-parse", `${successorRepairCommit}^`), finalOverwatchCommit);
 
   const releaseGateRepairCommit = commits[expectedPrefix.length + 2];
-  assert.equal(
-    commits.length,
-    expectedPrefix.length + 2 + (releaseGateRepairCommit ? 1 : 0),
-    "Unexpected commit entered the batch."
-  );
+  if (successorActive) {
+    assert.ok(
+      commits.length >= expectedPrefix.length + 3,
+      "The historical investor-focus release chain is incomplete."
+    );
+  } else {
+    assert.equal(
+      commits.length,
+      expectedPrefix.length + 2 + (releaseGateRepairCommit ? 1 : 0),
+      "Unexpected commit entered the batch."
+    );
+  }
   if (requireOverwatchCommit) {
     assert.ok(releaseGateRepairCommit, "Overwatch release-provenance successor repair is missing.");
     assert.deepEqual(commitIdentity(releaseGateRepairCommit), {
@@ -383,14 +391,24 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
   assert.equal(governance.safetyState.activeCohorts, 0);
   assert.equal(governance.releaseBoundary.deploymentAuthorized, false);
 
-  const ownership = verifyOwnership(governance, { requireOverwatchCommit });
+  const successorActive = existsSync(resolve(root, visualContinuitySuccessorPath));
+  if (successorActive) {
+    const successor = readJson(visualContinuitySuccessorPath);
+    assert.equal(successor.batchId, "BATCH-20260719-006");
+    assert.equal(successor.supersession.supersededCandidate.commit, "08b452c4cc187fd3b8bd957e6bedef3aed12ac01");
+    assert.equal(successor.visualBaseline.commit, startingCommit);
+  }
+
+  const ownership = verifyOwnership(governance, { requireOverwatchCommit, successorActive });
   verifyPositioningAndClaims(governance, report);
-  const performance = verifyPublicWebsite(governance);
+  const performance = successorActive
+    ? { status: "SUPERSEDED_BY_3D_VISUAL_CONTINUITY", criticalBytes: null }
+    : verifyPublicWebsite(governance);
   verifyCrmAndSafety(governance);
   if (requireClean) assert.equal(git("status", "--porcelain"), "", "Working tree is not clean.");
 
   return {
-    status: "PASS",
+    status: successorActive ? "SUPERSEDED_BY_3D_VISUAL_CONTINUITY" : "PASS",
     batchId: governance.batchId,
     acceptanceGates: 15,
     ownerCommits,

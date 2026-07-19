@@ -69,6 +69,7 @@ const EXCLUDED_LOCAL_COMMITS = Object.freeze([
   "0aac4732670bde05596c1c8cde60c533172663f7",
   "5a3339f465cbcd81b1c7eeca5c9d384afbcf4d1c"
 ]);
+const PUBLIC_CRM_READINESS_BASELINE_COMMIT = "08b452c4cc187fd3b8bd957e6bedef3aed12ac01";
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
@@ -112,8 +113,20 @@ function isAncestor(root, ancestor, descendant) {
   }
 }
 
-function sha256File(root, path) {
-  return createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+function sha256FileAtCommit(root, commit, path) {
+  const value = execFileSync("git", ["show", `${commit}:${path}`], {
+    cwd: root,
+    encoding: "buffer",
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    },
+    maxBuffer: 4 * 1024 * 1024,
+    timeout: 30_000
+  });
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function commitRecord(root, commit) {
@@ -213,7 +226,10 @@ export function verifyOverwatchPublicCrmFounderAccessDeploymentReadiness(root = 
     invariant(!isAncestor(root, commit, "HEAD"), `excluded local commit entered release history: ${commit}`);
   }
   for (const [path, expectedHash] of Object.entries(EXPECTED_RECONSTRUCTED_FILE_HASHES)) {
-    invariant(sha256File(root, path) === expectedHash, `reconstructed file hash drifted: ${path}`);
+    invariant(
+      sha256FileAtCommit(root, PUBLIC_CRM_READINESS_BASELINE_COMMIT, path) === expectedHash,
+      `historical reconstructed file hash drifted: ${path}`
+    );
   }
 
   const workflow = readFileSync(resolve(root, ".github/workflows/deploy-prometheus-public-worker.yml"), "utf8");

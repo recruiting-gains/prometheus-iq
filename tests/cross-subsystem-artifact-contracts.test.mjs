@@ -691,10 +691,16 @@ test("Social Media artifact contracts register analytics, attribution, and consu
     assert.equal(contract.canonicalSocialMediaPaths.instagramReportingView, "social-media/reporting/founder-instagram-analytics-reporting-view.js");
     assert.equal(contract.canonicalCampaignArtifactPaths.founderMarketingOperatingSystem, "social-media/founder-marketing-operating-system/founder-marketing-operating-system.v1.json");
     assert.equal(contract.canonicalContentCalendarArtifactPaths.contentCalendar, "social-media/founder-marketing-operating-system/content-calendar.md");
-    assert.equal(contract.canonicalWebsiteAttributionPaths.websiteReferralUtmContract, "deploy/prometheusrouteiq-website/website-attribution.js");
+    assert.equal(contract.canonicalWebsiteAttributionPaths.websiteReferralUtmContract, null);
+    assert.equal(contract.canonicalWebsiteAttributionPaths.retiredWebsiteReferralUtmContractStatus, "retired_from_active_route_iq_public_surface");
+    assert.equal(contract.canonicalWebsiteAttributionPaths.activeAcquisitionSourceModule, "src/route-iq-request-form.js");
+    assert.equal(contract.canonicalWebsiteAttributionPaths.persistentVisitorTrackingAllowed, false);
     assert.equal(contract.canonicalCrmAttributionHandoffPaths.crmFoundation, "crm/crm-foundation.mjs");
 
     assert.equal(contract.consumerRules.website.mayConsumeAttributionMetadataOnlyThroughContract, true);
+    assert.deepEqual(contract.consumerRules.website.allowedWritePaths, ["src/route-iq-request-form.js"]);
+    assert.equal(contract.consumerRules.website.mayPersistVisitorOrSessionIdentifiers, false);
+    assert.equal(contract.consumerRules.website.mayRetainRawQueryOrReferrer, false);
     assert.equal(contract.consumerRules.crm.mayConsumeLeadSourceAttributionOnlyThroughContract, true);
     assert.equal(contract.consumerRules.dashboard.mayDisplayAnalyticsOnlyFromCanonicalReports, true);
     assert.equal(contract.consumerRules.research.mayCiteCanonicalReportsOnly, true);

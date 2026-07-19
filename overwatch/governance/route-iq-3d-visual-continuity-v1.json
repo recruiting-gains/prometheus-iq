@@ -1,0 +1,221 @@
+{
+  "governanceId": "route-iq-3d-visual-continuity-governance-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260719-006",
+  "directive": "Route IQ 3D Visual Continuity + Messaging-Only Correction v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "CANDIDATE_GOVERNANCE_FROZEN_EXACT_HEAD_VERIFICATION_REQUIRED",
+  "startingRepositoryState": {
+    "branch": "main",
+    "commit": "08b452c4cc187fd3b8bd957e6bedef3aed12ac01",
+    "tree": "0c9e3dd9a0112c52412d6ed2977d7593773179de"
+  },
+  "supersession": {
+    "supersededCandidate": {
+      "commit": "08b452c4cc187fd3b8bd957e6bedef3aed12ac01",
+      "tree": "0c9e3dd9a0112c52412d6ed2977d7593773179de",
+      "deploymentAllowed": false,
+      "reason": "Founder required the original Route IQ 3D background, motion system, and visual identity."
+    },
+    "stalePinRepairInIsolationAllowed": false,
+    "replacementRequiresExactFinalHeadVerification": true
+  },
+  "visualBaseline": {
+    "commit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
+    "tree": "ccd8356a5f820df14c574ff2be5196459422acbe",
+    "requiredComponents": [
+      "IntelligenceScene",
+      "Three.js and React Three Fiber rendering",
+      "Flame intelligence core",
+      "Route lines and nodes",
+      "Orbiting particles",
+      "Rings",
+      "Star field",
+      "Pointer-responsive motion",
+      "Scroll-responsive Framer Motion",
+      "Original ember, gold, teal, and charcoal color identity"
+    ]
+  },
+  "dispatchAudit": {
+    "owningProduct": "Route IQ",
+    "verificationOwner": "Prometheus Overwatch",
+    "implementationOwnershipRespected": true,
+    "overwatchModifiedSubsystemImplementation": false,
+    "routeIq": {
+      "implementationRequired": false,
+      "validation": "Public positioning and supported-claims contract accepted without source change."
+    },
+    "website": {
+      "owner": "Prometheus Website",
+      "commits": [
+        {
+          "commit": "f7900d8093b49d37b1c22f0535d8860440cc4985",
+          "tree": "1fd16860e82d5343bdb1c3b1694e3d41f9077c43",
+          "subject": "website: restore Route IQ 3D visual continuity",
+          "files": [
+            "src/IntelligenceScene.jsx",
+            "src/main.jsx",
+            "src/styles.css",
+            "tests/website-route-iq-3d-visual-continuity.test.mjs",
+            "tests/website-route-iq-product-focus.test.mjs"
+          ]
+        },
+        {
+          "commit": "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b",
+          "tree": "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7",
+          "subject": "website: stop preloading the 3D fallback image",
+          "files": [
+            "landing.html",
+            "tests/website-route-iq-product-focus.test.mjs"
+          ]
+        },
+        {
+          "commit": "e99fcac45ea7bb6cc9f43a0559017749da275259",
+          "tree": "38894c0206ee6a8e533983801597ff406e624ede",
+          "subject": "website: retire legacy attribution test wiring",
+          "files": [
+            "tests/website-enterprise-lead-intake.test.mjs",
+            "tests/website-social-attribution.test.mjs"
+          ]
+        }
+      ]
+    },
+    "crm": {
+      "owner": "Prometheus CRM",
+      "runtimeChanged": false,
+      "commit": {
+        "commit": "06a3a3dbb063bbc99b73ee70dc80b54c767e1df2",
+        "tree": "2ea5516a5388a6a7ca5d66f9100fb18d85d1ebe9",
+        "subject": "crm: decouple foundation tests from deploy assets",
+        "files": ["tests/crm-foundation.test.mjs"]
+      }
+    },
+    "socialMedia": {
+      "owner": "Prometheus Social Media",
+      "commit": {
+        "commit": "8fcb8b8d2c828c414f43c9eed9b52135fb7d92a0",
+        "tree": "e89f1cdfde620661da65d3c2cebd82f4f90443ba",
+        "subject": "social-media: retire public website attribution artifact",
+        "files": [
+          "overwatch/artifact-contracts/social-media/fitness-connection-social-media-artifact-contract-v1.json",
+          "overwatch/artifact-contracts/social-media/smoothie-depot-social-media-artifact-contract-v1.json"
+        ]
+      }
+    },
+    "infrastructure": {
+      "owner": "Prometheus Infrastructure",
+      "commit": {
+        "commit": "1bfa8c0da4a1853bc097ddeab3cbf9513f4e1da5",
+        "tree": "d426f89999b681b602aa8132e03de18aba674209",
+        "subject": "infrastructure: bind 3D public release and rollback assets",
+        "files": [
+          ".gitattributes",
+          "deploy/prometheusrouteiq-website/assets/IntelligenceScene-CqK-yX9Z.js",
+          "deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js",
+          "deploy/prometheusrouteiq-website/assets/landing-D-Z5MAu6.js",
+          "deploy/prometheusrouteiq-website/assets/landing-DeG_Pei1.css",
+          "deploy/prometheusrouteiq-website/assets/landing-y4RbxV9s.css",
+          "deploy/prometheusrouteiq-website/enterprise-lead-intake.js",
+          "deploy/prometheusrouteiq-website/index.html",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-apple-touch-20260701-brand-v2.png",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-apple-touch.png",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-icon-512-20260701-brand-v2.png",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-icon-512.png",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-identity-og-20260701-brand-v2.jpg",
+          "deploy/prometheusrouteiq-website/public-assets/prometheus-company-identity-og.jpg",
+          "deploy/prometheusrouteiq-website/route-iq-request-form.js",
+          "deploy/prometheusrouteiq-website/website-attribution.js",
+          "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "scripts/verify-route-iq-public-deployment-assets.mjs",
+          "tests/github-actions-public-worker-deployment.test.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+        ]
+      },
+      "compatibilityRepair": {
+        "commit": "dcc4f8357fdb046206b3eff8aef660c9dc4f99ac",
+        "tree": "e3b4ba815230b976f95818b2653f84e2386a7f9b",
+        "subject": "infrastructure: own shared lead intake packet contract",
+        "files": [
+          "tests/shared-lead-intake-pipeline.test.mjs",
+          "workers/infrastructure/shared-lead-intake-packet.js",
+          "workers/infrastructure/shared-lead-intake-pipeline.js"
+        ]
+      }
+    }
+  },
+  "publicPositioning": {
+    "company": "Prometheus",
+    "solePromotedProduct": "Route IQ",
+    "buyer": "field operations leader",
+    "user": "field representative",
+    "primaryAction": "REQUEST ROUTE IQ",
+    "humanDecisionControl": true,
+    "recommendationSuperiorityClaimAllowed": false,
+    "fitnessConnectionRelationshipClaimAllowed": false
+  },
+  "visualRuntime": {
+    "supportedDevicesUse3dHero": true,
+    "lazyLoaded": true,
+    "blocksInitialCopyOrAction": false,
+    "pointerResponsive": true,
+    "scrollResponsive": true,
+    "reducedMotionUsesFallback": true,
+    "saveDataUsesFallback": true,
+    "noWebGlUsesFallback": true,
+    "fallbackImageMayReplaceSupported3d": false,
+    "desktopViewport": "1440x900",
+    "mobileViewport": "390x844"
+  },
+  "generatedAssets": {
+    "sourceDirectory": "dist-public",
+    "deploymentDirectory": "deploy/prometheusrouteiq-website",
+    "fileCount": 22,
+    "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    "initialCriticalBytes": 456547,
+    "fallbackImageBytes": 176252,
+    "lazy3dBytes": 892213,
+    "sourceDeploymentByteParityRequired": true,
+    "staleGeneratedPayloadAllowed": false
+  },
+  "rollback": {
+    "strategy": "new_forward_deployment",
+    "nativeCloudflareRollbackAllowed": false,
+    "contractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+    "contractSha256": "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b",
+    "artifactSha256": "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a",
+    "priorWebsiteAssetsSha256": "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
+    "durableObjectClassPreserved": true,
+    "bindingPreserved": true,
+    "migrationHistoryPreserved": true,
+    "acceptedRecordsPreserved": true
+  },
+  "crmBoundary": {
+    "requestFormPreserved": true,
+    "durableStoragePreserved": true,
+    "uniqueReceiptsPreserved": true,
+    "duplicateHandlingPreserved": true,
+    "spamProtectionPreserved": true,
+    "founderOnlyRetrievalAndExportPreserved": true,
+    "notificationAfterPersistencePreserved": true,
+    "productionRequestSubmitted": false
+  },
+  "safetyState": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "founderMappingChanged": false,
+    "anthonyMapped": false,
+    "productionDataChanged": false
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "workflowDispatchAuthorized": false,
+    "cloudflareMutationAuthorized": false,
+    "secretAccessAuthorized": false,
+    "normalFastForwardPushAllowedAfterExactHeadPass": true,
+    "archivalRefsPushAllowed": false
+  }
+}

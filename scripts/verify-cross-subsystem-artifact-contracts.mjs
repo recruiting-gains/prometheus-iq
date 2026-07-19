@@ -1154,7 +1154,11 @@ function validateSocialMediaArtifactContract(workspace, failures) {
   validateReferencedPaths(contract.canonicalSocialMediaPaths, `${artifactId} Social Media paths`, failures);
   validateReferencedPaths(contract.canonicalCampaignArtifactPaths, `${artifactId} campaign paths`, failures);
   validateReferencedPaths(contract.canonicalContentCalendarArtifactPaths, `${artifactId} content calendar paths`, failures);
-  validateReferencedPaths(contract.canonicalWebsiteAttributionPaths, `${artifactId} Website attribution paths`, failures);
+  validateReferencedPaths(
+    { activeAcquisitionSourceModule: contract.canonicalWebsiteAttributionPaths.activeAcquisitionSourceModule },
+    `${artifactId} Website acquisition-source paths`,
+    failures
+  );
   validateReferencedPaths(contract.canonicalCrmAttributionHandoffPaths, `${artifactId} CRM attribution handoff paths`, failures);
 
   assert(
@@ -1220,7 +1224,15 @@ function validateSocialMediaArtifactContract(workspace, failures) {
 
   assert(contract.consumerRules.website.mayConsumeAttributionMetadataOnlyThroughContract === true, `${artifactId} Website consumer rule missing.`, failures);
   assert(contract.consumerRules.website.mayReadRawProviderOutputs === false, `${artifactId} Website raw provider reads must be blocked.`, failures);
-  assert(contract.consumerRules.website.allowedWritePaths.includes("deploy/prometheusrouteiq-website/website-attribution.js"), `${artifactId} Website attribution path not registered.`, failures);
+  assert(contract.canonicalWebsiteAttributionPaths.websiteReferralUtmContract === null, `${artifactId} retired Website attribution path must remain inactive.`, failures);
+  assert(contract.canonicalWebsiteAttributionPaths.retiredWebsiteReferralUtmContractStatus === "retired_from_active_route_iq_public_surface", `${artifactId} Website attribution retirement is not governed.`, failures);
+  assert(contract.canonicalWebsiteAttributionPaths.activeAcquisitionSourceModule === "src/route-iq-request-form.js", `${artifactId} active acquisition-source module is not registered.`, failures);
+  assert(contract.canonicalWebsiteAttributionPaths.persistentVisitorTrackingAllowed === false, `${artifactId} persistent Website tracking must be prohibited.`, failures);
+  assert(contract.consumerRules.website.allowedWritePaths.includes("src/route-iq-request-form.js"), `${artifactId} Website acquisition-source module not registered.`, failures);
+  assert(contract.consumerRules.website.mayPersistVisitorOrSessionIdentifiers === false, `${artifactId} Website visitor/session identifiers must be prohibited.`, failures);
+  assert(contract.consumerRules.website.mayRetainRawQueryOrReferrer === false, `${artifactId} raw query/referrer retention must be prohibited.`, failures);
+  assert(exists("src/route-iq-request-form.js"), `${artifactId} active acquisition-source module is missing.`, failures);
+  assert(!exists("deploy/prometheusrouteiq-website/website-attribution.js"), `${artifactId} retired Website attribution payload is active.`, failures);
   assert(contract.consumerRules.crm.mayConsumeLeadSourceAttributionOnlyThroughContract === true, `${artifactId} CRM consumer rule missing.`, failures);
   assert(contract.consumerRules.crm.mustRejectCrossWorkspaceAttribution === true, `${artifactId} CRM must reject cross-workspace attribution.`, failures);
   assert(contract.consumerRules.crm.allowedWritePaths.includes("crm/crm-foundation.mjs"), `${artifactId} CRM attribution handoff path not registered.`, failures);
