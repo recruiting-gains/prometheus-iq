@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://prometheus.local/schemas/route-iq-commercial-workspace-v1.schema.json",
+  "title": "Route IQ Commercial Workspace Registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "registryVersion",
+    "product",
+    "activeProduct",
+    "recommendationInfluence",
+    "prospectiveCollection",
+    "workspaces"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "route-iq-commercial-workspace-v1" },
+    "registryVersion": { "const": "route-iq-commercial-workspace-registry-v1" },
+    "product": { "const": "route_iq" },
+    "activeProduct": { "const": true },
+    "recommendationInfluence": { "const": "OFF" },
+    "prospectiveCollection": { "const": "OFF" },
+    "workspaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/workspace" }
+    }
+  },
+  "$defs": {
+    "opaqueId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{2,127}$"
+    },
+    "strictPrincipalId": {
+      "type": ["string", "null"],
+      "pattern": "^riq_principal_[a-f0-9]{64}$"
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "workspaceId",
+        "workspaceState",
+        "normalOperationVisible",
+        "productionActivationAuthorized",
+        "business",
+        "operatingProfileId",
+        "locations",
+        "territories",
+        "roles",
+        "users",
+        "goals",
+        "terminology",
+        "successMeasurements",
+        "retention",
+        "intelligenceEligibility",
+        "evidenceGovernance",
+        "codexEvidence"
+      ],
+      "properties": {
+        "workspaceId": { "$ref": "#/$defs/opaqueId" },
+        "workspaceState": {
+          "enum": ["active_founder_research", "inactive_historical", "synthetic_validation_only"]
+        },
+        "normalOperationVisible": { "type": "boolean" },
+        "productionActivationAuthorized": { "type": "boolean" },
+        "business": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "brand", "businessType", "relationshipClassification", "publicRelationshipClaimsAllowed"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1, "maxLength": 160 },
+            "brand": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["displayName", "primaryColor", "accentColor"],
+              "properties": {
+                "displayName": { "type": "string", "minLength": 1, "maxLength": 160 },
+                "primaryColor": { "type": "string", "pattern": "^#[A-Fa-f0-9]{6}$" },
+                "accentColor": { "type": "string", "pattern": "^#[A-Fa-f0-9]{6}$" }
+              }
+            },
+            "businessType": { "$ref": "#/$defs/opaqueId" },
+            "relationshipClassification": {
+              "enum": ["FOUNDER_FIELD_RESEARCH", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_VALIDATION_FIXTURE"]
+            },
+            "publicRelationshipClaimsAllowed": { "const": false }
+          }
+        },
+        "operatingProfileId": { "$ref": "#/$defs/opaqueId" },
+        "locations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["locationId", "label", "territoryIds", "active"],
+            "properties": {
+              "locationId": { "$ref": "#/$defs/opaqueId" },
+              "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "territoryIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/opaqueId" } },
+              "active": { "type": "boolean" }
+            }
+          }
+        },
+        "territories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["territoryId", "label", "timezone", "active"],
+            "properties": {
+              "territoryId": { "$ref": "#/$defs/opaqueId" },
+              "label": { "type": "string", "minLength": 1, "maxLength": 160 },
+              "timezone": { "type": "string", "minLength": 1, "maxLength": 80 },
+              "active": { "type": "boolean" }
+            }
+          }
+        },
+        "roles": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["roleId", "operationalAccess", "founderIntelligenceAccess", "workspaceAdministration"],
+            "properties": {
+              "roleId": { "$ref": "#/$defs/opaqueId" },
+              "operationalAccess": { "type": "boolean" },
+              "founderIntelligenceAccess": { "type": "boolean" },
+              "workspaceAdministration": { "type": "boolean" }
+            }
+          }
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "userId",
+              "representativeId",
+              "displayName",
+              "roleId",
+              "authenticatedPrincipalId",
+              "identityMappingStatus",
+              "analysisPseudonym",
+              "active",
+              "founderIntelligenceEligibility"
+            ],
+            "properties": {
+              "userId": { "$ref": "#/$defs/opaqueId" },
+              "representativeId": { "$ref": "#/$defs/opaqueId" },
+              "displayName": { "type": "string", "minLength": 1, "maxLength": 120 },
+              "roleId": { "$ref": "#/$defs/opaqueId" },
+              "authenticatedPrincipalId": { "$ref": "#/$defs/strictPrincipalId" },
+              "identityMappingStatus": { "enum": ["exact_authenticated_identity_mapped", "pending_exact_authenticated_identity"] },
+              "analysisPseudonym": { "type": "string", "pattern": "^riq_rep_[a-f0-9]{24}$" },
+              "active": { "type": "boolean" },
+              "founderIntelligenceEligibility": { "type": "boolean" }
+            }
+          }
+        },
+        "goals": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "maxLength": 240 } },
+        "terminology": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["target", "visit", "outcome", "success", "followUp"],
+          "properties": {
+            "target": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "visit": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "outcome": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "success": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "followUp": { "type": "string", "minLength": 1, "maxLength": 80 }
+          }
+        },
+        "successMeasurements": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/opaqueId" } },
+        "retention": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["maximumCalendarMonths", "customerMayShorten", "customerMayExpand", "legalHoldSupported", "deletionMode"],
+          "properties": {
+            "maximumCalendarMonths": { "type": "integer", "minimum": 1, "maximum": 18 },
+            "customerMayShorten": { "const": true },
+            "customerMayExpand": { "const": false },
+            "legalHoldSupported": { "const": true },
+            "deletionMode": { "const": "append_only_auditable_data_owned" }
+          }
+        },
+        "intelligenceEligibility": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "governedEvidenceLearningEligible",
+            "founderReadOnlyIntelligenceEligible",
+            "representativeIntelligenceAccessAllowed",
+            "recommendationInfluence",
+            "prospectiveCollection"
+          ],
+          "properties": {
+            "governedEvidenceLearningEligible": { "type": "boolean" },
+            "founderReadOnlyIntelligenceEligible": { "type": "boolean" },
+            "representativeIntelligenceAccessAllowed": { "const": false },
+            "recommendationInfluence": { "const": "OFF" },
+            "prospectiveCollection": { "const": "OFF" }
+          }
+        },
+        "evidenceGovernance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["historicalEvidenceImmutable", "crossWorkspaceEvidenceAllowed", "classification"],
+          "properties": {
+            "historicalEvidenceImmutable": { "const": true },
+            "crossWorkspaceEvidenceAllowed": { "const": false },
+            "classification": {
+              "enum": ["FOUNDER_FIELD_RESEARCH", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_NONCANONICAL"]
+            }
+          }
+        },
+        "codexEvidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bundleAuthorized", "canonicalDatabase", "allowlistProjectionOnly", "sourceSessionIds"],
+          "properties": {
+            "bundleAuthorized": { "type": "boolean" },
+            "canonicalDatabase": { "const": false },
+            "allowlistProjectionOnly": { "const": true },
+            "sourceSessionIds": { "type": "array", "items": { "type": "string", "pattern": "^route-iq-field-session-[a-z0-9-]+$" } }
+          }
+        }
+      }
+    }
+  }
+}

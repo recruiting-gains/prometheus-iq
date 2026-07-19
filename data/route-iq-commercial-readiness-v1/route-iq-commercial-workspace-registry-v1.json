@@ -1,0 +1,312 @@
+{
+  "schemaVersion": "route-iq-commercial-workspace-v1",
+  "registryVersion": "route-iq-commercial-workspace-registry-v1",
+  "product": "route_iq",
+  "activeProduct": true,
+  "recommendationInfluence": "OFF",
+  "prospectiveCollection": "OFF",
+  "workspaces": [
+    {
+      "workspaceId": "fitness_connection",
+      "workspaceState": "active_founder_research",
+      "normalOperationVisible": true,
+      "productionActivationAuthorized": false,
+      "business": {
+        "name": "Fitness Connection",
+        "brand": {
+          "displayName": "Fitness Connection Field Research",
+          "primaryColor": "#111827",
+          "accentColor": "#D97706"
+        },
+        "businessType": "fitness_membership_sales",
+        "relationshipClassification": "FOUNDER_FIELD_RESEARCH",
+        "publicRelationshipClaimsAllowed": false
+      },
+      "operatingProfileId": "fitness",
+      "locations": [
+        {
+          "locationId": "founder_research_houston",
+          "label": "Founder Research - Houston",
+          "territoryIds": ["houston_south_founder_research"],
+          "active": true
+        }
+      ],
+      "territories": [
+        {
+          "territoryId": "houston_south_founder_research",
+          "label": "Houston South Founder Research",
+          "timezone": "America/Chicago",
+          "active": true
+        }
+      ],
+      "roles": [
+        {
+          "roleId": "founder",
+          "operationalAccess": true,
+          "founderIntelligenceAccess": true,
+          "workspaceAdministration": true
+        },
+        {
+          "roleId": "representative",
+          "operationalAccess": true,
+          "founderIntelligenceAccess": false,
+          "workspaceAdministration": false
+        },
+        {
+          "roleId": "founder_observer",
+          "operationalAccess": true,
+          "founderIntelligenceAccess": true,
+          "workspaceAdministration": false
+        }
+      ],
+      "users": [
+        {
+          "userId": "founder_cruz",
+          "representativeId": "cruz",
+          "displayName": "Cruz Garza",
+          "roleId": "founder",
+          "authenticatedPrincipalId": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+          "identityMappingStatus": "exact_authenticated_identity_mapped",
+          "analysisPseudonym": "riq_rep_840494a83be97a7bad3c115a",
+          "active": true,
+          "founderIntelligenceEligibility": true
+        },
+        {
+          "userId": "representative_anthony",
+          "representativeId": "anthony",
+          "displayName": "Anthony",
+          "roleId": "founder_observer",
+          "authenticatedPrincipalId": null,
+          "identityMappingStatus": "pending_exact_authenticated_identity",
+          "analysisPseudonym": "riq_rep_e7ce56ccfd3f7e5bb25b46df",
+          "active": true,
+          "founderIntelligenceEligibility": true
+        }
+      ],
+      "goals": [
+        "Preserve governed Founder field research evidence",
+        "Measure visit and outcome quality without recommendation influence"
+      ],
+      "terminology": {
+        "target": "business",
+        "visit": "field visit",
+        "outcome": "visit outcome",
+        "success": "verified outcome",
+        "followUp": "follow-up"
+      },
+      "successMeasurements": [
+        "visits_completed",
+        "conversations",
+        "leads",
+        "appointments",
+        "memberships_or_units",
+        "follow_ups"
+      ],
+      "retention": {
+        "maximumCalendarMonths": 18,
+        "customerMayShorten": true,
+        "customerMayExpand": false,
+        "legalHoldSupported": true,
+        "deletionMode": "append_only_auditable_data_owned"
+      },
+      "intelligenceEligibility": {
+        "governedEvidenceLearningEligible": true,
+        "founderReadOnlyIntelligenceEligible": true,
+        "representativeIntelligenceAccessAllowed": false,
+        "recommendationInfluence": "OFF",
+        "prospectiveCollection": "OFF"
+      },
+      "evidenceGovernance": {
+        "historicalEvidenceImmutable": true,
+        "crossWorkspaceEvidenceAllowed": false,
+        "classification": "FOUNDER_FIELD_RESEARCH"
+      },
+      "codexEvidence": {
+        "bundleAuthorized": true,
+        "canonicalDatabase": false,
+        "allowlistProjectionOnly": true,
+        "sourceSessionIds": [
+          "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+        ]
+      }
+    },
+    {
+      "workspaceId": "smoothie_depot",
+      "workspaceState": "inactive_historical",
+      "normalOperationVisible": false,
+      "productionActivationAuthorized": false,
+      "business": {
+        "name": "Smoothie Depot",
+        "brand": {
+          "displayName": "Smoothie Depot Historical Workspace",
+          "primaryColor": "#374151",
+          "accentColor": "#6B7280"
+        },
+        "businessType": "franchise_development",
+        "relationshipClassification": "HISTORICAL_INACTIVE_WORKSPACE",
+        "publicRelationshipClaimsAllowed": false
+      },
+      "operatingProfileId": "franchise_development",
+      "locations": [],
+      "territories": [],
+      "roles": [
+        {
+          "roleId": "historical_auditor",
+          "operationalAccess": false,
+          "founderIntelligenceAccess": false,
+          "workspaceAdministration": false
+        }
+      ],
+      "users": [],
+      "goals": ["Preserve historical records without active Route IQ exposure"],
+      "terminology": {
+        "target": "historical candidate",
+        "visit": "historical activity",
+        "outcome": "historical outcome",
+        "success": "not active",
+        "followUp": "not active"
+      },
+      "successMeasurements": ["historical_records_preserved"],
+      "retention": {
+        "maximumCalendarMonths": 18,
+        "customerMayShorten": true,
+        "customerMayExpand": false,
+        "legalHoldSupported": true,
+        "deletionMode": "append_only_auditable_data_owned"
+      },
+      "intelligenceEligibility": {
+        "governedEvidenceLearningEligible": false,
+        "founderReadOnlyIntelligenceEligible": false,
+        "representativeIntelligenceAccessAllowed": false,
+        "recommendationInfluence": "OFF",
+        "prospectiveCollection": "OFF"
+      },
+      "evidenceGovernance": {
+        "historicalEvidenceImmutable": true,
+        "crossWorkspaceEvidenceAllowed": false,
+        "classification": "HISTORICAL_INACTIVE_WORKSPACE"
+      },
+      "codexEvidence": {
+        "bundleAuthorized": false,
+        "canonicalDatabase": false,
+        "allowlistProjectionOnly": true,
+        "sourceSessionIds": []
+      }
+    },
+    {
+      "workspaceId": "summit_roofing_synthetic",
+      "workspaceState": "synthetic_validation_only",
+      "normalOperationVisible": false,
+      "productionActivationAuthorized": false,
+      "business": {
+        "name": "Summit Roofing Synthetic",
+        "brand": {
+          "displayName": "Summit Roofing Demo",
+          "primaryColor": "#1F2937",
+          "accentColor": "#0F766E"
+        },
+        "businessType": "roofing_outside_sales",
+        "relationshipClassification": "SYNTHETIC_VALIDATION_FIXTURE",
+        "publicRelationshipClaimsAllowed": false
+      },
+      "operatingProfileId": "roofing",
+      "locations": [
+        {
+          "locationId": "synthetic_branch_one",
+          "label": "Synthetic Branch One",
+          "territoryIds": ["synthetic_north_territory"],
+          "active": true
+        }
+      ],
+      "territories": [
+        {
+          "territoryId": "synthetic_north_territory",
+          "label": "Synthetic North Territory",
+          "timezone": "America/Chicago",
+          "active": true
+        }
+      ],
+      "roles": [
+        {
+          "roleId": "synthetic_owner",
+          "operationalAccess": true,
+          "founderIntelligenceAccess": true,
+          "workspaceAdministration": true
+        },
+        {
+          "roleId": "synthetic_representative",
+          "operationalAccess": true,
+          "founderIntelligenceAccess": false,
+          "workspaceAdministration": false
+        }
+      ],
+      "users": [
+        {
+          "userId": "synthetic_owner_01",
+          "representativeId": "synthetic_rep_01",
+          "displayName": "Synthetic Owner 01",
+          "roleId": "synthetic_owner",
+          "authenticatedPrincipalId": "riq_principal_bdf96b919f3f1b9f3ecb1c6c6ec36e5d89040576cc42e090f72e60b1f18221cc",
+          "identityMappingStatus": "exact_authenticated_identity_mapped",
+          "analysisPseudonym": "riq_rep_c7f6eb403856a25b993de339",
+          "active": true,
+          "founderIntelligenceEligibility": true
+        },
+        {
+          "userId": "synthetic_rep_02",
+          "representativeId": "synthetic_rep_02",
+          "displayName": "Synthetic Representative 02",
+          "roleId": "synthetic_representative",
+          "authenticatedPrincipalId": "riq_principal_14a3eb6b3d8b6da35c815a5be3970dbc040e15b35f96cbaa9b4f67bd1f0a0194",
+          "identityMappingStatus": "exact_authenticated_identity_mapped",
+          "analysisPseudonym": "riq_rep_43b4ef22b55443c746edeb55",
+          "active": true,
+          "founderIntelligenceEligibility": false
+        }
+      ],
+      "goals": [
+        "Book governed roof inspections",
+        "Track estimates and contracts without changing recommendation scoring"
+      ],
+      "terminology": {
+        "target": "property lead",
+        "visit": "door knock",
+        "outcome": "field outcome",
+        "success": "inspection or contract",
+        "followUp": "estimate follow-up"
+      },
+      "successMeasurements": [
+        "doors_knocked",
+        "homeowners_reached",
+        "inspections_booked",
+        "estimates_sent",
+        "contracts_signed"
+      ],
+      "retention": {
+        "maximumCalendarMonths": 12,
+        "customerMayShorten": true,
+        "customerMayExpand": false,
+        "legalHoldSupported": true,
+        "deletionMode": "append_only_auditable_data_owned"
+      },
+      "intelligenceEligibility": {
+        "governedEvidenceLearningEligible": false,
+        "founderReadOnlyIntelligenceEligible": true,
+        "representativeIntelligenceAccessAllowed": false,
+        "recommendationInfluence": "OFF",
+        "prospectiveCollection": "OFF"
+      },
+      "evidenceGovernance": {
+        "historicalEvidenceImmutable": true,
+        "crossWorkspaceEvidenceAllowed": false,
+        "classification": "SYNTHETIC_NONCANONICAL"
+      },
+      "codexEvidence": {
+        "bundleAuthorized": false,
+        "canonicalDatabase": false,
+        "allowlistProjectionOnly": true,
+        "sourceSessionIds": []
+      }
+    }
+  ]
+}

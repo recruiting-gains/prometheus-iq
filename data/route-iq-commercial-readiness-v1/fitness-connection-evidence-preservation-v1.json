@@ -1,0 +1,79 @@
+{
+  "manifestVersion": "fitness-connection-evidence-preservation-v1",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "classification": "FOUNDER_FIELD_RESEARCH",
+  "relationshipRepresentation": {
+    "customer": false,
+    "partner": false,
+    "sponsor": false,
+    "committedPilot": false,
+    "publicEndorsementClaimAllowed": false
+  },
+  "scope": "repository_founder_field_evidence",
+  "files": [
+    {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/business-hours-v1/founder-field-evidence.json",
+      "byteLength": 1264,
+      "sha256": "dab24aff4e85227d8ff7ec1a9e581ef29a79c67cde01397597d7e3288445a040"
+    },
+    {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/commercial-center-intelligence-v1/source-evidence/founder-july-11-commercial-center-observations.json",
+      "byteLength": 4636,
+      "sha256": "79faa934251f8443b63626e1eb29c3a45976b57e6465fc56518c1d9ba890c9c8"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/source-evidence/july-11-2026-founder-stress-test-findings.json",
+      "byteLength": 5451,
+      "sha256": "f66db5694698dcc75728a16a506c5bab66aac559b9913d991df6a6ce9cdcd9f9"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/evidence/stress-test-observations.json",
+      "byteLength": 5535,
+      "sha256": "6030bd109659140b00c012fbf09e6a05d63c23f197a58daec8bc63dd2603179e"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/manifest.json",
+      "byteLength": 2025,
+      "sha256": "e0bc2cc65e1c67fb39784c3a1fe87732875b64b6f5f2365df1924da5083265ba"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/calculated-metrics.json",
+      "byteLength": 1111,
+      "sha256": "71171b79aa725e533113f5cc1d040b13f6fc5cb3b5b4cdee993e8d4b836de911"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/field-session.json",
+      "byteLength": 12972,
+      "sha256": "b162ba286debf97461e2f2e172377ed00b07c6c755cd152678e7a944dbccafc8"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/normalized/history-updates.json",
+      "byteLength": 2585,
+      "sha256": "0d3f2508b92290b04a1d7b1cc979ee298eea97c9dda84061dbe66e2bea5b5c09"
+    },
+    {
+      "path": "data/route-iq-field-sessions-v1/workspaces/fitness_connection/sessions/route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11/raw/prometheus-iq-cruz-daily-report-2026-07-11.json",
+      "byteLength": 1934,
+      "sha256": "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
+    }
+  ],
+  "accidentalArchiveBoundary": {
+    "sessionId": "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-14",
+    "rawByteLength": 560,
+    "rawSha256": "ceb72963ab4e98d6039c1a4a1a409d281bf9e41e6001bd78cca4c04364815765",
+    "protectedArtifactCount": 7,
+    "reason": "AUTOMATION_SMOKE_TEST_ACCIDENTAL_FINALIZATION",
+    "state": "EXCLUDED_FROM_ANALYTICS",
+    "repositoryRawRecordPresence": "NOT_STORED_IN_REPOSITORY",
+    "productionDispositionVerification": "NOT_READ_IN_THIS_BATCH"
+  },
+  "invariants": {
+    "sourceFilesMayBeRewritten": false,
+    "historicalReplayAuthorized": false,
+    "productionMutationAuthorized": false,
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "crossWorkspaceUseAllowed": false
+  }
+}
