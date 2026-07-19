@@ -7,12 +7,13 @@ import {
   lstatSync,
   mkdtempSync,
   openSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 
 import { parseJsonc } from "./github-actions-private-worker-deployment.mjs";
 
@@ -290,6 +291,34 @@ function sha256File(root, path) {
   return createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
 }
 
+function sha256Directory(root, relativeDirectory) {
+  const directory = resolve(root, relativeDirectory);
+  const files = [];
+  const visit = current => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isSymbolicLink()) fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+      if (entry.isDirectory()) visit(path);
+      else if (entry.isFile()) files.push(path);
+      else fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+    }
+  };
+  try {
+    visit(directory);
+  } catch (error) {
+    if (error instanceof PublicDeploymentPolicyError) throw error;
+    fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+  }
+  const digest = createHash("sha256");
+  for (const path of files.sort((left, right) => relative(directory, left).localeCompare(relative(directory, right)))) {
+    digest.update(relative(directory, path).split("\\").join("/"), "utf8");
+    digest.update("\0", "utf8");
+    digest.update(readFileSync(path));
+    digest.update("\0", "utf8");
+  }
+  return digest.digest("hex");
+}
+
 export function verifyPublicForwardRollbackContract(root) {
   const contract = parseContract(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath);
   if (contract.version !== "route-iq-public-forward-rollback-v1"
@@ -297,8 +326,13 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.target !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker
     || contract.strategy !== "new_forward_deployment"
     || contract.nativeCloudflareRollbackAllowed !== false
+    || !LOWER_HEX_40.test(contract.candidateWebsiteCommit || "")
+    || !LOWER_HEX_40.test(contract.candidateWebsiteTree || "")
+    || !LOWER_HEX_64.test(contract.candidateDeploymentAssetsSha256 || "")
     || !LOWER_HEX_40.test(contract.sourceWebsiteCommit || "")
     || !LOWER_HEX_40.test(contract.sourceWebsiteTree || "")
+    || contract.candidateWebsiteCommit === contract.sourceWebsiteCommit
+    || contract.candidateWebsiteTree === contract.sourceWebsiteTree
     || contract.websiteAssetPath !== "deploy/prometheusrouteiq-website"
     || contract.statefulCompatibility?.durableObjectBinding !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmBinding
     || contract.statefulCompatibility?.durableObjectClass !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass
@@ -308,8 +342,10 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.statefulCompatibility?.deletedClassesAllowed !== false
     || contract.statefulCompatibility?.productionDataRewriteAllowed !== false
     || contract.artifact?.construction !== "canonical_deployable_bundle_with_prior_public_assets"
-    || contract.artifact?.identityVersion !== "route-iq-public-forward-rollback-artifact-v2"
+    || contract.artifact?.identityVersion !== "route-iq-public-forward-rollback-artifact-v3"
     || JSON.stringify(contract.artifact?.identityScope) !== JSON.stringify([
+      "candidate_website_owner_identity",
+      "candidate_deployment_assets_sha256",
       "candidate_stateful_file_manifest",
       "wrangler_configuration",
       "prior_public_assets",
@@ -327,13 +363,20 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.artifact?.dryRunRequiredBeforeDeployment !== true) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
   }
+  let candidateTree;
   let sourceTree;
   try {
+    candidateTree = runGit(root, ["rev-parse", `${contract.candidateWebsiteCommit}^{tree}`]);
+    runGit(root, ["merge-base", "--is-ancestor", contract.candidateWebsiteCommit, "HEAD"]);
     sourceTree = runGit(root, ["rev-parse", `${contract.sourceWebsiteCommit}^{tree}`]);
   } catch {
     fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
   }
+  if (candidateTree !== contract.candidateWebsiteTree) fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
   if (sourceTree !== contract.sourceWebsiteTree) fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+  if (sha256Directory(root, contract.websiteAssetPath) !== contract.candidateDeploymentAssetsSha256) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);
+  }
   for (const [path, expected] of Object.entries(contract.candidateStatefulFiles || {})) {
     if (!LOWER_HEX_64.test(expected) || sha256File(root, path) !== expected) {
       fail(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID);

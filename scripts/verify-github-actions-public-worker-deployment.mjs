@@ -11,9 +11,11 @@ import {
   verifyPublicWranglerPin
 } from "./lib/github-actions-public-worker-deployment.mjs";
 import { fixedCloudflarePublicWorkerSmokePlan } from "./run-cloudflare-public-worker-smoke.mjs";
+import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const paths = Object.freeze([
+  ".gitattributes",
   PUBLIC_WORKER_DEPLOYMENT_POLICY.workflowPath,
   PUBLIC_WORKER_DEPLOYMENT_POLICY.contractPath,
   PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath,
@@ -22,6 +24,7 @@ const paths = Object.freeze([
   "scripts/run-github-actions-public-worker-deployment.mjs",
   "scripts/run-cloudflare-public-worker-smoke.mjs",
   "scripts/verify-route-iq-public-forward-rollback.mjs",
+  "scripts/verify-route-iq-public-deployment-assets.mjs",
   "tests/github-actions-public-worker-deployment.test.mjs",
   "docs/github-actions-founder-triggered-public-worker-deployment-v1.md"
 ]);
@@ -51,8 +54,11 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   const library = read("scripts/lib/github-actions-public-worker-deployment.mjs");
   const documentation = read("docs/github-actions-founder-triggered-public-worker-deployment-v1.md");
   const rollbackContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath));
+  const attributes = read(".gitattributes");
 
   assert.match(workflow, /^name: Deploy Prometheus Public Worker$/mu);
+  assert.match(attributes, /^deploy\/prometheusrouteiq-website\/assets\/IntelligenceScene-\*\.js binary$/mu);
+  assert.doesNotMatch(attributes, /deploy\/prometheusrouteiq-website\/assets\/\*\.js binary/u);
   assert.deepEqual([...trigger.matchAll(/^  ([a-z_]+):$/gmu)].map(match => match[1]), ["workflow_dispatch"]);
   assert.deepEqual([...trigger.matchAll(/^      ([a-z0-9_]+):$/gmu)].map(match => match[1]), [
     "approved_commit",
@@ -128,7 +134,11 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.ok(smoke.every(request => ["GET", "HEAD"].includes(request.method) && request.body === false));
   assert.match(documentation, /cannot be attached while retaining the current live public Worker version/u);
   assert.match(documentation, /canonical deployable bundle rather than the entire repository tree/u);
-  assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v2");
+  assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
+  assert.equal(rollbackContract.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
+  assert.match(rollbackContract.candidateDeploymentAssetsSha256, /^[0-9a-f]{64}$/u);
+  assert.notEqual(rollbackContract.candidateWebsiteCommit, rollbackContract.sourceWebsiteCommit);
+  assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v3");
   assert.equal(rollbackContract.artifact.unrelatedRepositoryFilesAffectIdentity, false);
   assert.deepEqual(rollbackContract.artifact.requiredGeneratedOutputs, [
     "prometheus-iq-worker.js",
@@ -137,6 +147,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.deepEqual(rollbackContract.artifact.excludedBuildOnlyOutputs, ["README.md"]);
   assert.match(workflow, /verify-route-iq-public-forward-rollback\.mjs "\$\{\{ inputs\.rollback_artifact_sha256 \}\}"/u);
   assert.match(library, /assertPublicBindingsPreserved/u);
+  verifyRouteIqPublicDeploymentAssets({ build: false });
   verifyPublicStaticDeploymentPolicy(root);
   verifyPublicWranglerPin(root);
   return Object.freeze({ status: "GITHUB_ACTIONS_PUBLIC_WORKER_DEPLOYMENT_VERIFIED" });

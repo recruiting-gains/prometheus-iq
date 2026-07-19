@@ -30,9 +30,13 @@ import {
   verifyPublicStaticDeploymentPolicy,
   verifyPublicWranglerPin
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
-import { verifyPublicForwardRollbackArtifact } from "../scripts/lib/route-iq-public-forward-rollback.mjs";
+import {
+  hashPublicForwardRollbackArtifact,
+  verifyPublicForwardRollbackArtifact
+} from "../scripts/lib/route-iq-public-forward-rollback.mjs";
 import { runCloudflarePublicWorkerSmoke } from "../scripts/run-cloudflare-public-worker-smoke.mjs";
 import { verifyGithubActionsPublicWorkerDeployment } from "../scripts/verify-github-actions-public-worker-deployment.mjs";
+import { verifyRouteIqPublicDeploymentAssets } from "../scripts/verify-route-iq-public-deployment-assets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const approvedCommit = "a".repeat(40);
@@ -346,9 +350,27 @@ test("static owner gates and forward rollback artifact are deterministic", () =>
   const second = verifyPublicForwardRollbackArtifact(root);
   assert.equal(first.artifactSha256, second.artifactSha256);
   assert.equal(first.websiteAssetsSha256, second.websiteAssetsSha256);
-  assert.equal(first.identityVersion, "route-iq-public-forward-rollback-artifact-v2");
+  assert.equal(first.identityVersion, "route-iq-public-forward-rollback-artifact-v3");
+  assert.equal(first.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
+  assert.equal(first.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
+  assert.equal(first.candidateDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(first.generatedWorkerSha256, second.generatedWorkerSha256);
   assert.equal(first.generatedSourceMapSha256, second.generatedSourceMapSha256);
+});
+
+test("the frozen Website build is byte-identical to the stale-free deployment tree", () => {
+  const result = verifyRouteIqPublicDeploymentAssets();
+  assert.equal(result.fileCount, 22);
+  assert.equal(result.initialCriticalBytes, 456_547);
+  assert.deepEqual(result.sizes, {
+    index: 3_807,
+    criticalEntry: 354_492,
+    criticalCss: 18_724,
+    logo: 79_524,
+    fallback: 176_252,
+    socialPreview: 107_247,
+    lazy3d: 892_213
+  });
 });
 
 test("rollback identity ignores unrelated governance commits and detects runtime, config, and selected asset drift", () => {
@@ -423,13 +445,36 @@ test("rollback identity ignores unrelated governance commits and detects runtime
     );
     assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
 
+    fixtureGit(repository, ["switch", "--quiet", "-c", "candidate-asset-drift", stableCommit]);
+    const candidateAssetPath = "deploy/prometheusrouteiq-website/robots.txt";
+    const candidateAssetAbsolute = join(repository, candidateAssetPath);
+    writeFileSync(candidateAssetAbsolute, `${readFileSync(candidateAssetAbsolute, "utf8")}# candidate-drift-fixture\n`, "utf8");
+    commitFixture(repository, [candidateAssetPath], "test: drift candidate deployment assets");
+    assert.throws(
+      () => verifyPublicForwardRollbackArtifact(repository),
+      error => error instanceof PublicDeploymentPolicyError && error.code === PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID
+    );
+    updateRollbackContract(repository, contract => {
+      contract.candidateDeploymentAssetsSha256 = hashPublicForwardRollbackArtifact(
+        join(repository, contract.websiteAssetPath)
+      );
+    });
+    commitFixture(
+      repository,
+      [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
+      "test: pin candidate deployment asset drift"
+    );
+    assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
+
     fixtureGit(repository, ["switch", "--quiet", "-c", "asset-drift", stableCommit]);
     const assetPath = "deploy/prometheusrouteiq-website/robots.txt";
     const assetAbsolute = join(repository, assetPath);
+    const originalAsset = readFileSync(assetAbsolute);
     writeFileSync(assetAbsolute, `${readFileSync(assetAbsolute, "utf8")}# rollback-asset-drift-fixture\n`, "utf8");
     const assetCommit = commitFixture(repository, [assetPath], "test: create alternate prior website asset");
-    const unselectedAssetDrift = verifyPublicForwardRollbackArtifact(repository);
-    assert.equal(unselectedAssetDrift.artifactSha256, baseline.artifactSha256);
+    writeFileSync(assetAbsolute, originalAsset);
+    commitFixture(repository, [assetPath], "test: restore candidate deployment asset");
+    assert.equal(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
     const assetTree = fixtureGit(repository, ["rev-parse", `${assetCommit}^{tree}`]);
     updateRollbackContract(repository, contract => {
       contract.sourceWebsiteCommit = assetCommit;
