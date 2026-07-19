@@ -1,0 +1,363 @@
+{
+  "contractVersion": "route-iq-public-positioning-claims-contract-v1",
+  "batchId": "BATCH-20260719-002",
+  "directive": "Route IQ YC-Style Investor Website Focus + Buyer Conversion Audit v1",
+  "ownerSubsystem": "Prometheus Route IQ",
+  "status": "owner_positioning_contract_complete",
+  "sourceBaseline": {
+    "commit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
+    "tree": "ccd8356a5f820df14c574ff2be5196459422acbe",
+    "commercialProductContract": "docs/route-iq-commercial-product-contract-v1.json",
+    "commercialProductContractVersion": "route-iq-commercial-product-contract-v1"
+  },
+  "portfolio": {
+    "company": {
+      "name": "Prometheus",
+      "role": "company_and_governed_product_platform"
+    },
+    "soleActiveProduct": {
+      "productId": "route_iq",
+      "name": "Route IQ",
+      "state": "active"
+    },
+    "inactiveProductsPromotedPublicly": [],
+    "smoothieDepotPromotedPublicly": false,
+    "franchiseExpansionIsPrimaryMessage": false
+  },
+  "fiveSecondPositioning": {
+    "statement": "Route IQ helps field operations leaders turn representative, territory, customer-context, and outcome evidence into decision-ready intelligence so people can make the next field decision with better context.",
+    "whatItDoes": "turns_governed_field_evidence_into_decision_ready_intelligence",
+    "primaryBuyer": {
+      "count": 1,
+      "role": "field_operations_leader",
+      "accountability": "performance_of_distributed_representatives_territories_and_customer_outcomes"
+    },
+    "primaryUser": {
+      "count": 1,
+      "role": "field_representative",
+      "workflow": "visit_businesses_or_locations_record_actions_and_outcomes_and_make_human_controlled_next_decisions"
+    },
+    "problemSolved": "Field organizations plan routes and record visits, but evidence is fragmented across people, territories, customer context, and outcomes, making it difficult to see what is being learned or apply that learning to the next decision.",
+    "whyDifferent": "Route IQ governs the complete evidence-to-decision loop across representative, territory, customer context, and outcomes while preserving provenance, uncertainty, isolation, and human control.",
+    "primaryPublicAction": "REQUEST_ROUTE_IQ",
+    "permittedSecondaryAction": "SEE_HOW_ROUTE_IQ_WORKS"
+  },
+  "decisionSupportLifecycle": {
+    "narrative": "Governed field evidence becomes governed intelligence and, only where evidence is sufficient, probability estimates with confidence and limitations; a human makes the decision.",
+    "stages": [
+      {
+        "order": 1,
+        "stage": "governed_field_evidence",
+        "meaning": "authorized_representative_territory_customer_context_and_outcome_records_with_provenance"
+      },
+      {
+        "order": 2,
+        "stage": "governed_intelligence",
+        "meaning": "read_only_measurement_of_coverage_freshness_quality_trends_and_learning_state"
+      },
+      {
+        "order": 3,
+        "stage": "probability_with_confidence_and_limitations",
+        "meaning": "versioned_estimates_only_when_governed_evidence_is_sufficient_and_chronologically_valid"
+      },
+      {
+        "order": 4,
+        "stage": "human_decision",
+        "meaning": "the_person_remains_responsible_for_the_operational_choice"
+      }
+    ],
+    "probabilityBoundary": {
+      "alwaysAvailableClaimAllowed": false,
+      "currentRecommendationReadiness": "INSUFFICIENT_EVIDENCE",
+      "representativeFacingProbabilityAllowed": false,
+      "causalInterpretationAllowed": false,
+      "recommendationSuperiorityClaimAllowed": false
+    }
+  },
+  "differentiation": [
+    {
+      "category": "route_planner",
+      "categoryPurpose": "orders_stops_and_manages_travel",
+      "routeIqDifference": "governs_field_evidence_and_learning_context_across_people_territories_customers_and_outcomes",
+      "replacementClaimAllowed": false
+    },
+    {
+      "category": "crm",
+      "categoryPurpose": "records_contacts_pipeline_and_customer_interactions",
+      "routeIqDifference": "connects_field_actions_context_and_outcomes_to_a_governed_decision_learning_loop",
+      "replacementClaimAllowed": false
+    },
+    {
+      "category": "mapping_application",
+      "categoryPurpose": "shows_locations_and_navigation",
+      "routeIqDifference": "preserves_why_a_field_opportunity_was_available_what_happened_and_what_the_evidence_supports",
+      "replacementClaimAllowed": false
+    },
+    {
+      "category": "generic_ai_assistant",
+      "categoryPurpose": "produces_open_ended_responses_from_general_context",
+      "routeIqDifference": "uses_allowlisted_versioned_isolated_evidence_with_explicit_confidence_exclusions_and_human_control",
+      "replacementClaimAllowed": false
+    }
+  ],
+  "supportableClaims": [
+    {
+      "claimId": "prometheus_company_route_iq_product",
+      "publicText": "Prometheus is the company. Route IQ is its sole active product.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json"
+      ],
+      "requiredQualifier": "Do not promote paused or architecture-only products."
+    },
+    {
+      "claimId": "field_operations_buyer_and_user",
+      "publicText": "Route IQ is for field operations leaders and the representatives who visit businesses or locations.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json"
+      ],
+      "requiredQualifier": "Do not imply one role receives another role's protected intelligence."
+    },
+    {
+      "claimId": "fragmented_field_evidence_problem",
+      "publicText": "Route IQ addresses fragmented field evidence across representatives, territories, customer context, and outcomes.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json"
+      ],
+      "requiredQualifier": "Describe the problem without inventing customer losses or ROI."
+    },
+    {
+      "claimId": "governed_decision_support",
+      "publicText": "Route IQ turns governed field evidence into decision-ready intelligence for human decisions.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json",
+        "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json"
+      ],
+      "requiredQualifier": "Decision support is not autonomous action or recommendation activation."
+    },
+    {
+      "claimId": "context_learning_scope",
+      "publicText": "Route IQ measures governed evidence across representative, territory, customer context, and outcomes as evidence accumulates.",
+      "evidenceBasis": [
+        "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json"
+      ],
+      "requiredQualifier": "Learning coverage and insufficiency must remain visible."
+    },
+    {
+      "claimId": "probability_with_uncertainty",
+      "publicText": "Where governed evidence is sufficient, Route IQ can produce versioned probability estimates with confidence and limitations before a human decision.",
+      "evidenceBasis": [
+        "intelligence/contracts/shadow-decision-readiness-contracts.json"
+      ],
+      "requiredQualifier": "Current readiness is INSUFFICIENT_EVIDENCE and recommendation influence is OFF."
+    },
+    {
+      "claimId": "configuration_driven_reuse",
+      "publicText": "Route IQ uses shared workspace and operating-profile configuration for different field-business contexts instead of customer-specific code forks.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json"
+      ],
+      "requiredQualifier": "Do not imply onboarding requires only changing a business name or that every industry is already validated."
+    },
+    {
+      "claimId": "human_control",
+      "publicText": "Route IQ preserves human control over field decisions.",
+      "evidenceBasis": [
+        "docs/route-iq-commercial-product-contract-v1.json"
+      ],
+      "requiredQualifier": "Recommendation influence, prospective collection, and automated actions remain inactive."
+    }
+  ],
+  "forbiddenClaims": [
+    {
+      "claimId": "fitness_connection_relationship",
+      "reason": "Fitness Connection evidence is Founder field research and does not establish a customer, pilot, partner, sponsor, or endorsement relationship."
+    },
+    {
+      "claimId": "unverified_customer_or_traction",
+      "reason": "No customer logo, testimonial, deployment, revenue, or traction claim may be inferred without governed evidence and authorization."
+    },
+    {
+      "claimId": "proven_performance_improvement",
+      "reason": "No verified revenue, productivity, conversion, route-efficiency, or outcome improvement has been established."
+    },
+    {
+      "claimId": "causal_uplift",
+      "reason": "Observational field evidence cannot establish causal uplift."
+    },
+    {
+      "claimId": "recommendation_superiority_or_readiness",
+      "reason": "The current readiness state is INSUFFICIENT_EVIDENCE and recommendation influence is OFF."
+    },
+    {
+      "claimId": "autonomous_decisions_or_actions",
+      "reason": "Route IQ does not authorize autonomous field decisions, route changes, notifications, or actions."
+    },
+    {
+      "claimId": "representative_facing_shadow_intelligence",
+      "reason": "Shadow outputs, readiness, probabilities, and Founder intelligence are not representative-facing."
+    },
+    {
+      "claimId": "generic_ai_superiority",
+      "reason": "No general AI superiority or model-performance claim is supported."
+    },
+    {
+      "claimId": "instant_configuration_only_onboarding",
+      "reason": "Shared configuration avoids code forks but does not eliminate governed setup, authorization, terminology, territory, retention, or evidence work."
+    },
+    {
+      "claimId": "unlimited_scale",
+      "reason": "Only measured initial capacity may be reported; unlimited scale is not proven."
+    },
+    {
+      "claimId": "replacement_for_route_planner_crm_or_maps",
+      "reason": "Route IQ complements those operational systems and must not claim to replace them."
+    },
+    {
+      "claimId": "active_collection_cohort_or_influence",
+      "reason": "Prospective collection is OFF, active cohorts are zero, and recommendation influence is OFF."
+    }
+  ],
+  "fitnessConnectionBoundary": {
+    "classification": "FOUNDER_FIELD_RESEARCH",
+    "publicMentionPolicy": "omit_by_default",
+    "customerClaimAllowed": false,
+    "pilotClaimAllowed": false,
+    "partnerClaimAllowed": false,
+    "sponsorClaimAllowed": false,
+    "endorsementClaimAllowed": false,
+    "logoOrTestimonialUseAllowed": false,
+    "permittedDisclosureIfStrictlyNecessary": "Founder field research informed product development; no customer, pilot, partner, sponsor, or endorsement relationship is implied."
+  },
+  "currentLimitations": [
+    {
+      "limitationId": "insufficient_recommendation_evidence",
+      "disclosure": "The current readiness state is INSUFFICIENT_EVIDENCE."
+    },
+    {
+      "limitationId": "recommendation_influence_off",
+      "disclosure": "Recommendation influence is OFF."
+    },
+    {
+      "limitationId": "prospective_collection_off",
+      "disclosure": "Prospective evidence collection is OFF and active cohorts are zero."
+    },
+    {
+      "limitationId": "no_causal_or_superiority_evidence",
+      "disclosure": "Existing evidence does not prove causal uplift or recommendation superiority."
+    },
+    {
+      "limitationId": "founder_research_not_customer_validation",
+      "disclosure": "Founder field research is not a customer relationship, pilot, endorsement, or commercial validation."
+    },
+    {
+      "limitationId": "industry_generalization_not_yet_proven",
+      "disclosure": "Configuration-driven reuse is verified, but performance across industries is not yet proven."
+    },
+    {
+      "limitationId": "measured_capacity_not_unlimited_scale",
+      "disclosure": "Initial capacity has been tested; unlimited scale is not claimed."
+    },
+    {
+      "limitationId": "evidence_quality_controls_output",
+      "disclosure": "Intelligence quality depends on governed evidence coverage, freshness, chronology, and integrity."
+    }
+  ],
+  "investorObjectionResolution": [
+    {
+      "rank": 1,
+      "objectionId": "unclear_product",
+      "objection": "I cannot tell what Route IQ does in five seconds.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "Lead with one sentence: Route IQ turns governed field evidence into decision-ready intelligence for human field decisions."
+    },
+    {
+      "rank": 2,
+      "objectionId": "unclear_buyer",
+      "objection": "The buyer and day-to-day user are unclear.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "Name one primary buyer, the field operations leader, and one primary user, the field representative."
+    },
+    {
+      "rank": 3,
+      "objectionId": "route_planner_clone",
+      "objection": "This sounds like another route planner.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "Explain that travel ordering is not the category claim; the differentiated layer governs evidence and learning across people, territories, customer context, and outcomes."
+    },
+    {
+      "rank": 4,
+      "objectionId": "crm_feature",
+      "objection": "This sounds like a feature a CRM could add.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "State that Route IQ does not replace CRM; it governs field-operational context, chronology, outcomes, confidence, and the decision-learning loop."
+    },
+    {
+      "rank": 5,
+      "objectionId": "generic_ai_wrapper",
+      "objection": "This may be generic AI with field-sales copy.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "Describe the allowlisted evidence, provenance, versions, isolation, exclusions, deterministic artifacts, confidence, and human-control boundaries."
+    },
+    {
+      "rank": 6,
+      "objectionId": "no_proven_superiority",
+      "objection": "There is no proof Route IQ makes better decisions than people or existing tools.",
+      "resolutionStatus": "unresolved_disclosed",
+      "resolution": "Say so plainly: readiness is INSUFFICIENT_EVIDENCE, causal uplift is unproven, and recommendation influence remains OFF."
+    },
+    {
+      "rank": 7,
+      "objectionId": "customer_traction_ambiguity",
+      "objection": "Founder field research may be presented as customer traction.",
+      "resolutionStatus": "unresolved_disclosed",
+      "resolution": "Do not present it as traction; omit the company name publicly and disclose Founder research only when necessary without implying a relationship."
+    },
+    {
+      "rank": 8,
+      "objectionId": "fitness_specific_product",
+      "objection": "The product may be bespoke for one fitness workflow.",
+      "resolutionStatus": "resolved_with_qualification",
+      "resolution": "Point to shared workspace and operating-profile configuration plus synthetic non-fitness validation, while stating that cross-industry performance is not yet proven."
+    },
+    {
+      "rank": 9,
+      "objectionId": "automation_risk",
+      "objection": "The system may silently automate field decisions or expose unready predictions.",
+      "resolutionStatus": "resolved_by_governed_boundary",
+      "resolution": "State that humans decide, shadow outputs are not representative-facing, collection and influence are OFF, and activation is separately governed."
+    },
+    {
+      "rank": 10,
+      "objectionId": "unclear_next_step",
+      "objection": "A buyer does not know what to do after understanding the product.",
+      "resolutionStatus": "resolved_by_positioning",
+      "resolution": "Use one primary action, REQUEST ROUTE IQ, with SEE HOW ROUTE IQ WORKS only as a secondary explanatory action."
+    }
+  ],
+  "safetyState": {
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeProspectiveCohorts": 0,
+    "recommendationReadiness": "INSUFFICIENT_EVIDENCE",
+    "representativeFacingShadowOutput": false,
+    "automatedOperationalAction": false,
+    "deploymentAuthorizedByBatch": false,
+    "productionMutationAuthorizedByBatch": false
+  },
+  "ownerBoundary": {
+    "implementationOwner": "Prometheus Route IQ",
+    "ownerFiles": [
+      "docs/route-iq-public-positioning-claims-contract-v1.json",
+      "scripts/verify-route-iq-public-positioning-claims.mjs",
+      "tests/route-iq-public-positioning-claims.test.mjs"
+    ],
+    "websiteImplementationIncluded": false,
+    "crmImplementationIncluded": false,
+    "infrastructureImplementationIncluded": false,
+    "dataImplementationIncluded": false,
+    "intelligenceImplementationIncluded": false,
+    "overwatchGovernanceIncluded": false,
+    "productionBehaviorChanged": false,
+    "deploymentPerformed": false
+  }
+}
