@@ -45,9 +45,9 @@ function commitIdentity(commit) {
 function ownerAllowsPath(email, path) {
   const rules = {
     "crm@prometheus.local": /^(?:crm\/.*|tests\/crm-route-iq-request-lifecycle\.test\.mjs)$/u,
-    "data@prometheus.local": /^(?:data\/route-iq-commercial-readiness-v1\/.*|scripts\/build-route-iq-governed-codex-evidence-bundle\.mjs|tests\/route-iq-commercial-readiness-data\.test\.mjs)$/u,
+    "data@prometheus.local": /^(?:data\/route-iq-commercial-readiness-v1\/.*|data\/qualified-prospects\/google-qualified-businesses-v2\/runtime-pool-segmentation-v1\/route-intelligence-golden-route-quality-report\.json|scripts\/(?:build-route-iq-governed-codex-evidence-bundle|lib\/route-intelligence-quality-gate)\.mjs|tests\/(?:route-iq-commercial-readiness-data|route-intelligence-quality-gate)\.test\.mjs)$/u,
     "dashboard@prometheus.local": /^(?:_headers|index\.html|sw\.js|deploy\/cloudflare-pages\/(?:_headers|index\.html|sw\.js)|scripts\/verify-dashboard-(?:runtime-workflows|workspace-switcher)\.mjs|tests\/dashboard-route-iq-product-focus\.test\.mjs)$/u,
-    "infrastructure@prometheus.local": /^(?:docs\/route-iq-(?:request-crm-infrastructure|founder-daily-snapshot-infrastructure)-v1\.md|integrations\/shared-workspace-lead-intake-contract\.js|workers\/(?:infrastructure\/route-iq-(?:commercial-capacity-harness|request-crm-[^/]+)\.(?:mjs|js|json)|prometheus-iq-worker\.js)|wrangler\.prometheusrouteiq-website\.jsonc|scripts\/verify-route-iq-(?:request-crm|founder-daily-snapshot)-infrastructure\.mjs|tests\/route-iq-(?:request-crm|founder-daily-snapshot)-infrastructure\.test\.mjs)$/u,
+    "infrastructure@prometheus.local": /^(?:docs\/route-iq-(?:request-crm-infrastructure|founder-daily-snapshot-infrastructure)-v1\.md|integrations\/shared-workspace-lead-intake-contract\.js|workers\/(?:infrastructure\/route-iq-(?:commercial-capacity-harness|request-crm-[^/]+)\.(?:mjs|js|json)|prometheus-iq-worker\.js)|wrangler\.prometheusrouteiq-website\.jsonc|scripts\/verify-route-iq-(?:request-crm|founder-daily-snapshot|prospective-shadow)-infrastructure\.mjs|tests\/route-iq-(?:request-crm|founder-daily-snapshot|prospective-shadow)-infrastructure\.test\.mjs)$/u,
     "intelligence@prometheus.local": /^(?:intelligence\/.*|scripts\/(?:verify-route-iq-commercial-readiness-intelligence|verify-shadow-decision-readiness)\.mjs|tests\/(?:route-iq-commercial-readiness-intelligence[^/]*|shadow-decision-readiness)\.test\.mjs)$/u,
     "route-iq@prometheus.local": /^(?:docs\/route-iq-commercial-product-contract-v1\.json|scripts\/verify-route-iq-commercial-product-contract\.mjs|tests\/route-iq-commercial-product-contract\.test\.mjs)$/u,
     "website@prometheus.local": /^(?:src\/.*|landing\.html|public-site-static\/.*|deploy\/prometheusrouteiq-website\/.*|tests\/website-route-iq-product-focus\.test\.mjs)$/u,
@@ -226,6 +226,12 @@ export async function verifyOverwatchRouteIqCommercialReadiness({ requireClean =
   assert.equal(governance.ownershipProvenance.byteComparison, "IDENTICAL");
   assert.equal(governance.ownershipProvenance.retroactiveOwnershipClaimed, false);
   assert.equal(governance.ownershipProvenance.historyRewritten, false);
+  assert.deepEqual(governance.releaseGateOwnerRepairs.map(repair => repair.commit), [
+    "056da0f50f16d6ae571c7ec314be5e2585909ddd",
+    "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
+    "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
+  ]);
+  assert.ok(governance.releaseGateOwnerRepairs.every(repair => repair.runtimeBehaviorChanged !== true));
 
   const ownership = verifyOwnership();
   assert.equal(ownership.successor, intelligenceOwnershipSuccessor);

@@ -127,30 +127,53 @@
     "retroactiveOwnershipClaimed": false,
     "historyRewritten": false
   },
+  "releaseGateOwnerRepairs": [
+    {
+      "owner": "Prometheus Infrastructure",
+      "commit": "056da0f50f16d6ae571c7ec314be5e2585909ddd",
+      "scope": "prospective_shadow_dispatch_verifier_compatibility",
+      "runtimeBehaviorChanged": false
+    },
+    {
+      "owner": "Prometheus Data",
+      "commit": "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
+      "scope": "canonical_route_quality_runtime_surface_evidence",
+      "runtimeBehaviorChanged": false,
+      "routeOrderingChanged": false,
+      "recommendationScoringChanged": false
+    },
+    {
+      "owner": "Prometheus Intelligence Engine",
+      "commit": "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a",
+      "scope": "data_route_quality_protected_baseline_successor",
+      "intelligenceBehaviorChanged": false,
+      "recommendationInfluence": "OFF"
+    }
+  ],
   "protectedBaselineSuccessors": [
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
       "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
       "historicalSha256": "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8",
-      "successorSha256": "2bfd2da18dbf2adda3a0a8bc1c64b598e23025e22d338180c9a48ebd038e50b5",
+      "successorSha256": "f44a829340341e34f0d73b3af209ad89c49b877d730b4d918ad06a6341cae30f",
       "owner": "Prometheus Intelligence Engine",
-      "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
+      "ownerCommit": "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
     },
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
       "path": "scripts/verify-shadow-decision-readiness.mjs",
       "historicalSha256": "caed723ccdaf8aa2958298a06b549f7a4ab69a2beb9d4e3cfbb0ee284ef59b49",
-      "successorSha256": "857fa4c801204d4ea2ad690be31f58c0d48939717cd0f3dc1ed657cc89aeacda",
+      "successorSha256": "a40ceed99aee42c262aa2644e76c47fac735a6cbf25a7fce22e2aa5c08f9e795",
       "owner": "Prometheus Intelligence Engine",
-      "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
+      "ownerCommit": "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
     },
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
       "path": "tests/shadow-decision-readiness.test.mjs",
       "historicalSha256": "0ebbf3272cba2ec4c4fb6fdd168ca54f60ef2bd9116d393585e0b452416e61a7",
-      "successorSha256": "68ae06907fc684aabf8cf8f657d062943ca0db6a6dbf8648e283aefe17f16c93",
+      "successorSha256": "272d614cdeb34a8f4faf6a7d4abaf6ceec17e29d808e8fe1ffc0953b5fb5e0fa",
       "owner": "Prometheus Intelligence Engine",
-      "ownerCommit": "185767ca4c72736343f29f691fd5138c5e0662b7"
+      "ownerCommit": "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
     },
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",

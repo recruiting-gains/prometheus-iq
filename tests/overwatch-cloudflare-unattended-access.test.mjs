@@ -56,9 +56,9 @@ test("paused unattended access accepts only explicit owner-authored commercial s
     [...new Set(subsystemSuccessors.map(entry => entry.ownerCommit))].sort(),
     [
       "11ac0668b87ed347c22bf963938b8d650370cfdb",
-      "185767ca4c72736343f29f691fd5138c5e0662b7",
       "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162",
-      "82d1e6f23ca3a75c0073c051531477913258a98f"
+      "82d1e6f23ca3a75c0073c051531477913258a98f",
+      "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
     ].sort()
   );
   assert.ok(commercialReadiness.protectedBaselineSuccessors.every(entry => (
