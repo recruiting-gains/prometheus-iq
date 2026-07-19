@@ -12,6 +12,7 @@ const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/
 const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
 const prospectiveEventPath = "api/dashboard/route-iq/prospective/event";
+const founderDailyIntelligencePath = "api/dashboard/route-iq/intelligence/daily-snapshot";
 const prospectiveBootstrapContractVersion = "route-iq-prospective-browser-bootstrap-v1";
 const prospectiveEventContractVersion = "route-iq-prospective-browser-event-v1";
 const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-context-v1";
@@ -58,6 +59,114 @@ function enabledProspectiveBootstrap(overrides = {}) {
       runtimeContextContractVersion: prospectiveRuntimeContextContractVersion,
       coordinatorContractVersion: prospectiveCoordinatorContractVersion,
       ...overrides
+    }
+  };
+}
+
+function founderDailyIntelligenceResponse({ principal = {}, snapshot = {} } = {}) {
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      authorized: true,
+      contractVersion: "route-iq-commercial-readiness-intelligence-v1",
+      principal: {
+        identityContextSource: "server_verified_identity_mapping",
+        authenticationAuthority: "cloudflare_access",
+        authenticated: true,
+        callerSupplied: false,
+        role: "founder",
+        mappingId: "route-iq-founder-access-cruz-v1",
+        immutablePrincipalId: "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+        mappingStatus: "securely_mapped",
+        ...principal
+      },
+      snapshot: {
+        schemaVersion: "route-iq-daily-intelligence-snapshot-v1",
+        snapshotId: "route-iq-daily-snapshot-aaaaaaaaaaaaaaaaaaaaaaaa",
+        ownerSubsystem: "Prometheus Intelligence Engine",
+        audience: "founder_only",
+        workspaceId: "fitness_connection",
+        operatingProfileId: "fitness",
+        businessConfigurationVersion: "fitness-connection-founder-research-v1",
+        evidenceClassification: "FOUNDER_FIELD_RESEARCH",
+        classificationAuthority: "Prometheus Data",
+        retentionPolicyVersion: "route-iq-retention-policy-v1",
+        generatedFromEvidenceAt: "2026-07-17T21:00:00.000Z",
+        governedEvidenceSha256: "a".repeat(64),
+        governedInputSha256: "b".repeat(64),
+        evidenceCollected: {
+          totalRecords: 398,
+          byRecordKind: { field_session: 4, visit: 394 },
+          sourceRecordHashes: [],
+          evidenceClassification: "FOUNDER_FIELD_RESEARCH"
+        },
+        evidenceFreshness: {
+          earliestEvidenceAt: "2026-07-11T19:00:00.000Z",
+          latestEvidenceAt: "2026-07-17T21:00:00.000Z",
+          snapshotDate: "2026-07-17",
+          status: "FRESH_TO_GOVERNED_EVIDENCE",
+          byStatus: { FRESH: 398 },
+          wallClockAgeCalculated: false
+        },
+        dataQuality: {
+          status: "VERIFIED",
+          byStatus: { VERIFIED: 398 },
+          exclusionRecordsAdmitted: 0,
+          rawNotesConsumed: false,
+          contactInformationConsumed: false,
+          preciseLocationTrailsConsumed: false
+        },
+        visitAndOutcomeTrends: {
+          totals: { visits: 24, outcomes: 18, conversations: 9, leads: 4, appointments: 2, memberships: 1, followUps: 3 },
+          daily: [],
+          outcomeLinkRatePercent: 75,
+          observationalOnly: true
+        },
+        learningCoverage: {
+          representativesObserved: 2,
+          locationsObserved: 3,
+          territoriesObserved: 1,
+          representativeIds: ["cruz", "anthony"],
+          locationIds: ["location-001", "location-002", "location-003"],
+          territoryIds: ["territory-001"],
+          verifiedEvidenceRecords: 398,
+          thresholdQualifiedConclusionCount: 0,
+          coverageState: "INSUFFICIENT_EVIDENCE"
+        },
+        confidence: {
+          state: "INSUFFICIENT_EVIDENCE",
+          score: 0.25,
+          band: "insufficient_evidence",
+          limitations: ["verified_sessions_below_threshold"],
+          insufficiencyIsRecommendation: false,
+          predictionClaimed: false,
+          causalClaimed: false
+        },
+        changesSincePrevious: {
+          previousSnapshotId: null,
+          governedEvidenceChanged: true,
+          changeBasis: "INITIAL_GOVERNED_SNAPSHOT",
+          evidenceRecordDelta: 398,
+          visitDelta: 24,
+          outcomeDelta: 18,
+          learningStateChanged: true
+        },
+        safety: {
+          readOnly: true,
+          founderOnly: true,
+          representativeReadable: false,
+          recommendationInfluence: "OFF",
+          routeOrderingChanged: false,
+          routeScoringWeightsChanged: false,
+          discoveryModeInfluenceChanged: false,
+          nearbyContextInfluenceChanged: false,
+          offRouteLearningInfluenceChanged: false,
+          sourceEvidenceMutationAllowed: false
+        },
+        snapshotSha256: "c".repeat(64),
+        ...snapshot
+      }
     }
   };
 }
@@ -156,13 +265,18 @@ function startStaticServer({
   missingActive = false,
   fieldSessionResponses = [],
   prospectiveResponse = { status: 204 },
-  prospectiveBootstrapResponse = disabledProspectiveBootstrap()
+  prospectiveBootstrapResponse = disabledProspectiveBootstrap(),
+  founderDailyIntelligenceResponse: configuredFounderDailyIntelligenceResponse = {
+    status: 200,
+    body: { ok: false, authorized: false, code: "founder_intelligence_not_authorized" }
+  }
 } = {}) {
   const requests = [];
   const fieldSessionRequests = [];
   const prospectiveRequests = [];
   const prospectiveBootstrapRequests = [];
   const prospectiveNetworkLedger = [];
+  const founderDailyIntelligenceRequests = [];
   let fieldSessionAttempt = 0;
   const certificate = localHttpsCertificate();
   const server = createSecureServer({ key: certificate.key, cert: certificate.cert }, (request, response) => {
@@ -176,6 +290,22 @@ function startStaticServer({
     );
     const relativePath = pathname.replace(/^\/+/, "");
     requests.push({ path: relativePath, method: request.method });
+
+    if (relativePath === founderDailyIntelligencePath) {
+      founderDailyIntelligenceRequests.push({ method: request.method, headers: request.headers });
+      const configured = typeof configuredFounderDailyIntelligenceResponse === "function"
+        ? configuredFounderDailyIntelligenceResponse({ request, url })
+        : configuredFounderDailyIntelligenceResponse;
+      const status = Number(configured?.status || 200);
+      const body = configured?.body === undefined ? "" : JSON.stringify(configured.body);
+      response.writeHead(status, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+        ...(configured?.headers || {})
+      });
+      response.end(body);
+      return;
+    }
 
     if (relativePath === prospectiveEventPath) {
       prospectiveNetworkLedger.push({
@@ -322,6 +452,7 @@ function startStaticServer({
         prospectiveRequests,
         prospectiveBootstrapRequests,
         prospectiveNetworkLedger,
+        founderDailyIntelligenceRequests,
         close: () => new Promise(resolveClose => server.close(resolveClose))
       });
     });
@@ -659,6 +790,8 @@ async function snapshot(cdp) {
       profileButtonLabels: [...document.querySelectorAll("[data-rep-select]")].filter(visible).map(button => button.textContent.trim()),
       activeView: document.querySelector(".view.active")?.id || "",
       visibleTabs: [...document.querySelectorAll(".tab[data-tab]")].filter(visible).map(tab => tab.dataset.tab),
+      founderDailyIntelligenceVisible: visible(document.getElementById("founderDailyIntelligence")),
+      founderDailyIntelligenceText: text(document.getElementById("founderDailyIntelligence")),
       bestNextMove: text(document.getElementById("bestNextMove")),
       bestMoveAddress: text(document.getElementById("bestMoveAddress")),
       bestMoveDirections: document.getElementById("bestMoveDirections")?.href || "",
@@ -729,7 +862,8 @@ async function snapshot(cdp) {
         fieldSessionArchive: debug.fieldSessionArchive || {},
         runtimeFallback: debug.runtimeFallback || {},
         operatingProfile: debug.operatingProfile || {},
-        workspace: debug.workspace || {}
+        workspace: debug.workspace || {},
+        founderDailyIntelligence: debug.founderDailyIntelligence || {}
       },
       performance: {
         navigationDuration: Math.round(performance.getEntriesByType("navigation")[0]?.duration || 0),
@@ -890,24 +1024,15 @@ async function clickTab(cdp, tab) {
   await wait(150);
 }
 
-async function clickWorkspace(cdp, workspaceId) {
-  await cdp.evaluate(`(() => {
-    const target = document.querySelector('[data-workspace-select="${workspaceId}"]');
-    if (!target) throw new Error('Missing workspace selector ${workspaceId}');
-    target.click();
-    return target.dataset.workspaceSelect;
-  })()`);
-  await wait(500);
-}
-
-async function waitForPath(cdp, pathname, timeoutMs = 8000) {
+async function waitForFounderDailyIntelligence(cdp, expectedStatus, timeoutMs = 8000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
-    const currentPath = await cdp.evaluate("location.pathname");
-    if (currentPath === pathname) return currentPath;
+    const status = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence?.status || ''");
+    if (status === expectedStatus) return status;
     await wait(100);
   }
-  throw new Error(`Timed out waiting for path ${pathname}`);
+  const state = await cdp.evaluate("window.prometheusDebugState?.founderDailyIntelligence || null");
+  throw new Error(`Founder daily intelligence did not reach ${expectedStatus}: ${JSON.stringify(state)}`);
 }
 
 async function waitForPlacesRenderComplete(cdp, timeoutMs = 8000) {
@@ -2407,34 +2532,50 @@ async function runHarness() {
       delayMs: 4000
     }
   });
+  const founderDailyIntelligenceServer = await startStaticServer({
+    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
+  });
+  const founderDailyIntelligenceAnthonyServer = await startStaticServer({
+    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+      principal: {
+        mappingId: "route-iq-founder-access-anthony-pending",
+        immutablePrincipalId: "route-iq-principal-anthony-pending",
+        mappingStatus: "pending_secure_authenticated_identity_mapping"
+      }
+    })
+  });
+  const founderDailyIntelligenceUnsafeServer = await startStaticServer({
+    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+      snapshot: {
+        safety: {
+          readOnly: true,
+          founderOnly: true,
+          representativeReadable: false,
+          recommendationInfluence: "ON",
+          routeOrderingChanged: false,
+          routeScoringWeightsChanged: false,
+          discoveryModeInfluenceChanged: false,
+          nearbyContextInfluenceChanged: false,
+          offRouteLearningInfluenceChanged: false,
+          sourceEvidenceMutationAllowed: false
+        }
+      }
+    })
+  });
   const chrome = await launchChrome();
 
   try {
     const switcher = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     const switcherSnap = switcher.initial;
-    assertWorkflow("Founder workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness" && switcherSnap.activeWorkspaceButtons.includes("fitness_connection"), `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, activeWorkspaceButtons: switcherSnap.activeWorkspaceButtons, debug: switcherSnap.debug.workspace }));
-    assertWorkflow("Founder workspace switcher visible", switcherSnap.workspaceButtonLabels.some(label => label.includes("Fitness Connection")) && switcherSnap.workspaceButtonLabels.some(label => label.includes("Smoothie Depot")), switcherSnap.workspaceButtonLabels.join(" | "), JSON.stringify(switcherSnap.workspaceButtonLabels));
-    await clickWorkspace(switcher.cdp, "smoothie_depot");
-    await waitForPath(switcher.cdp, "/smoothie-depot-dashboard/");
-    const smoothieRouteSnap = await switcher.cdp.evaluate(`(() => ({
-      pathname: location.pathname,
-      workspaceId: document.body.dataset.workspaceId || "",
-      operatingProfileId: document.body.dataset.operatingProfileId || "",
-      owner: document.body.dataset.dashboardOwner || "",
-      jrAccess: document.body.dataset.jrAccess || "",
-      hasOperationsCenter: document.body.textContent.includes("Executive Intelligence Operations Center"),
-      hasOpenPackage: document.body.textContent.includes("Open Executive Intelligence Package"),
-      hasFounderReview: document.body.textContent.includes("Founder Review"),
-      hasExportWorkflow: document.body.textContent.includes("Export Professional Executive Package"),
-      hasIntelligenceLibrary: document.body.textContent.includes("Intelligence Library"),
-      hasLocalNotes: document.body.textContent.includes("Local Founder Notes"),
-      hasExecutivePackage: document.body.textContent.includes("Nutrition Depot Executive Intelligence Package v2"),
-      hasFixturePipeline: document.body.textContent.includes("Candidate Pipeline"),
-      hasSalesCommissionForecast: document.body.textContent.includes("Commission Forecast"),
-      hasFitnessRuntimeTerms: /Units|Memberships|Territories/.test(document.body.textContent)
+    const productFocus = await switcher.cdp.evaluate(`(() => ({
+      title: document.querySelector(".brand h1")?.textContent?.trim() || "",
+      bodyText: document.body.innerText,
+      workspaceControls: document.querySelectorAll("[data-workspace-select]").length,
+      smoothieLinks: [...document.querySelectorAll("a[href]")].filter(link => link.getAttribute("href")?.includes("smoothie-depot")).length
     }))()`);
-    assertWorkflow("Founder workspace switcher Smoothie Depot route", smoothieRouteSnap.pathname === "/smoothie-depot-dashboard/" && smoothieRouteSnap.workspaceId === "smoothie_depot" && smoothieRouteSnap.operatingProfileId === "franchise_development" && smoothieRouteSnap.owner === "cruz" && smoothieRouteSnap.jrAccess === "false", `${smoothieRouteSnap.pathname} workspace ${smoothieRouteSnap.workspaceId}`, JSON.stringify(smoothieRouteSnap));
-    assertWorkflow("Smoothie Depot workspace isolation from Fitness runtime", smoothieRouteSnap.hasOperationsCenter && smoothieRouteSnap.hasOpenPackage && smoothieRouteSnap.hasFounderReview && smoothieRouteSnap.hasExportWorkflow && smoothieRouteSnap.hasIntelligenceLibrary && smoothieRouteSnap.hasLocalNotes && smoothieRouteSnap.hasExecutivePackage && !smoothieRouteSnap.hasFixturePipeline && !smoothieRouteSnap.hasSalesCommissionForecast && !smoothieRouteSnap.hasFitnessRuntimeTerms, "operations center, package lifecycle, export, library, local notes, and Executive Intelligence Package visible without CRM sales workflow or Fitness runtime terms", JSON.stringify(smoothieRouteSnap));
+    assertWorkflow("Route IQ workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
+    assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.smoothieLinks === 0 && !/Smoothie Depot|\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
+    assertWorkflow("Founder snapshot fails closed without server principal", !switcherSnap.founderDailyIntelligenceVisible && switcherSnap.debug.founderDailyIntelligence.authorized === false, switcherSnap.debug.founderDailyIntelligence.status, JSON.stringify(switcherSnap.debug.founderDailyIntelligence));
     switcher.cdp.close();
 
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
@@ -2447,6 +2588,44 @@ async function runHarness() {
     assertWorkflow("Discovery Mode", founderSnap.todayText.includes("Discovery Mode") || founderSnap.routeRisk.includes("Discovery Mode") || founderSnap.statsText.includes("Discovery Mode"), founderSnap.routeRisk || "Discovery Mode visible in runtime text", JSON.stringify({ routeRisk: founderSnap.routeRisk, todayText: founderSnap.todayText.slice(0, 300) }));
     assertWorkflow("Prospective Founder/owner isolation", server.prospectiveRequests.length === 0, "Founder and owner route rendering produced no prospective signal", JSON.stringify(server.prospectiveRequests));
     verifyNoErrors("Founder", founder.eventLog, founderSnap);
+
+    const founderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=founder&rep=cruz&debug=1&harness=founder-daily-intelligence", "founder-daily-intelligence");
+    await waitForFounderDailyIntelligence(founderIntelligence.cdp, "rendered");
+    await clickTab(founderIntelligence.cdp, "stats");
+    const founderIntelligenceSnap = await snapshot(founderIntelligence.cdp);
+    assertWorkflow("Founder daily intelligence exact-principal access", founderIntelligenceSnap.founderDailyIntelligenceVisible && founderIntelligenceSnap.debug.founderDailyIntelligence.authorized === true && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === 1 && founderDailyIntelligenceServer.founderDailyIntelligenceRequests[0].method === "GET", "server-authenticated Cruz mapping rendered one read-only snapshot after one GET", JSON.stringify({ debug: founderIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests }));
+    assertWorkflow("Founder daily intelligence governed content", founderIntelligenceSnap.founderDailyIntelligenceText.includes("398 records") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("INSUFFICIENT EVIDENCE") && founderIntelligenceSnap.founderDailyIntelligenceText.includes("not a recommendation or prediction") && !/shadow|ranked|probability/i.test(founderIntelligenceSnap.founderDailyIntelligenceText), "evidence, freshness, quality, trends, coverage, confidence, and deltas render without shadow output or a readiness claim", founderIntelligenceSnap.founderDailyIntelligenceText);
+
+    const mobileFounderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=founder&rep=cruz&debug=1&harness=mobile-founder-daily-intelligence", "mobile-founder-daily-intelligence", {
+      standalone: true,
+      viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
+    });
+    await waitForFounderDailyIntelligence(mobileFounderIntelligence.cdp, "rendered");
+    await clickTab(mobileFounderIntelligence.cdp, "stats");
+    const mobileFounderIntelligenceFit = await mobileFitSnapshot(mobileFounderIntelligence.cdp);
+    assertWorkflow("Founder daily intelligence exact mobile viewport", mobileFounderIntelligenceFit.viewportWidth === 390, `${mobileFounderIntelligenceFit.viewportWidth}px viewport`, JSON.stringify(mobileFounderIntelligenceFit));
+    verifyMobileFit("Founder daily intelligence 390x844 no-horizontal-scroll", mobileFounderIntelligenceFit);
+
+    const privilegedRequestCount = founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length;
+    const forgedAdmin = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=admin&rep=cruz&debug=1&harness=founder-intelligence-admin-denied", "founder-intelligence-admin-denied");
+    const forgedManager = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=manager&rep=cruz&debug=1&harness=founder-intelligence-manager-denied", "founder-intelligence-manager-denied");
+    const representativeIntelligence = await runPageScenario(chrome, founderDailyIntelligenceServer, "/?role=rep&rep=anthony&debug=1&harness=founder-intelligence-rep-denied", "founder-intelligence-rep-denied");
+    const [forgedAdminSnap, forgedManagerSnap, representativeIntelligenceSnap] = await Promise.all([
+      snapshot(forgedAdmin.cdp),
+      snapshot(forgedManager.cdp),
+      snapshot(representativeIntelligence.cdp)
+    ]);
+    assertWorkflow("Founder daily intelligence role fail-closed", [forgedAdminSnap, forgedManagerSnap, representativeIntelligenceSnap].every(item => !item.founderDailyIntelligenceVisible && item.debug.founderDailyIntelligence.status === "role_ineligible") && founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length === privilegedRequestCount, "admin, manager, and representative roles issued no intelligence request and rendered no snapshot", JSON.stringify({ admin: forgedAdminSnap.debug.founderDailyIntelligence, manager: forgedManagerSnap.debug.founderDailyIntelligence, rep: representativeIntelligenceSnap.debug.founderDailyIntelligence, requests: founderDailyIntelligenceServer.founderDailyIntelligenceRequests.length }));
+
+    const pendingAnthony = await runPageScenario(chrome, founderDailyIntelligenceAnthonyServer, "/?role=founder&rep=anthony&debug=1&harness=founder-intelligence-anthony-pending", "founder-intelligence-anthony-pending");
+    await waitForFounderDailyIntelligence(pendingAnthony.cdp, "server_authorization_or_contract_rejected");
+    const pendingAnthonySnap = await snapshot(pendingAnthony.cdp);
+    assertWorkflow("Founder daily intelligence Anthony mapping pending", !pendingAnthonySnap.founderDailyIntelligenceVisible && pendingAnthonySnap.debug.founderDailyIntelligence.authorized === false && founderDailyIntelligenceAnthonyServer.founderDailyIntelligenceRequests.length === 1, "unmapped Anthony principal failed closed after one read-only GET", JSON.stringify(pendingAnthonySnap.debug.founderDailyIntelligence));
+
+    const unsafeFounderIntelligence = await runPageScenario(chrome, founderDailyIntelligenceUnsafeServer, "/?role=founder&rep=cruz&debug=1&harness=founder-intelligence-unsafe", "founder-intelligence-unsafe");
+    await waitForFounderDailyIntelligence(unsafeFounderIntelligence.cdp, "server_authorization_or_contract_rejected");
+    const unsafeFounderIntelligenceSnap = await snapshot(unsafeFounderIntelligence.cdp);
+    assertWorkflow("Founder daily intelligence safety contract fail-closed", !unsafeFounderIntelligenceSnap.founderDailyIntelligenceVisible && unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence.authorized === false, "snapshot with recommendation influence ON was rejected", JSON.stringify(unsafeFounderIntelligenceSnap.debug.founderDailyIntelligence));
 
     const prospective = await runPageScenario(chrome, prospectiveServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-seam", "prospective-shadow-seam", {
       standalone: true,
@@ -2799,6 +2978,13 @@ async function runHarness() {
     verifyRuntimePerformance(founderSnap, founder.routeLoadMs);
 
     founder.cdp.close();
+    founderIntelligence.cdp.close();
+    mobileFounderIntelligence.cdp.close();
+    forgedAdmin.cdp.close();
+    forgedManager.cdp.close();
+    representativeIntelligence.cdp.close();
+    pendingAnthony.cdp.close();
+    unsafeFounderIntelligence.cdp.close();
     mobileFounder.cdp.close();
     rep.cdp.close();
     anthonyLog.cdp.close();
@@ -2823,6 +3009,9 @@ async function runHarness() {
     await prospectiveStaleBootstrapServer.close();
     await prospectiveUnauthorizedBootstrapServer.close();
     await prospectiveTimeoutBootstrapServer.close();
+    await founderDailyIntelligenceServer.close();
+    await founderDailyIntelligenceAnthonyServer.close();
+    await founderDailyIntelligenceUnsafeServer.close();
     if (localCertificate?.certDir) {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
       localCertificate = undefined;

@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Prometheus IQ</title>
+  <title>Route IQ</title>
   <meta name="theme-color" content="#16201f">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-OWH8yd+hOYrkquTfdvkB63oTMnJu6Qq+MfKx69F9BIU='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'sha256-UO2hkMNt+5f4rxnF6vT9SYv8KUzNNp6/zjrAC+rWgjc='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Prometheus IQ">
+  <meta name="apple-mobile-web-app-title" content="Route IQ">
   <link rel="manifest" href="manifest.webmanifest" id="prometheusManifest">
   <link rel="icon" href="icons/prometheus.svg" type="image/svg+xml">
   <style>
@@ -158,50 +158,6 @@
     .mode-switch button.active {
       background: white;
       color: var(--command);
-    }
-
-    .workspace-switch {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 3px;
-      width: min(370px, 100%);
-      padding: 3px;
-      border: 1px solid rgba(255,255,255,.14);
-      border-radius: var(--radius);
-      background: rgba(255,255,255,.08);
-      min-width: 0;
-    }
-
-    .workspace-switch button {
-      min-width: 0;
-      min-height: 44px;
-      border-radius: 5px;
-      background: transparent;
-      color: rgba(255,255,255,.68);
-      font-size: 11px;
-      font-weight: 900;
-      line-height: 1.08;
-      padding: 5px 8px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .workspace-switch button span {
-      display: block;
-      margin-top: 3px;
-      color: rgba(255,255,255,.52);
-      font-size: 9px;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    .workspace-switch button.active {
-      background: white;
-      color: var(--command);
-    }
-
-    .workspace-switch button.active span {
-      color: var(--muted);
     }
 
     main {
@@ -899,8 +855,52 @@
     body.booting .owner-only,
     body.booting .manager-only,
     body.booting .admin-only,
-    body.booting .workspace-switch,
     body.booting .mode-switch { visibility: hidden; }
+
+    .daily-intelligence {
+      display: grid;
+      gap: 12px;
+    }
+
+    .daily-intelligence-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .daily-intelligence-metric {
+      min-width: 0;
+      min-height: 84px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #f6f9f5;
+      padding: 10px;
+    }
+
+    .daily-intelligence-metric span,
+    .daily-intelligence-metric small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.32;
+      overflow-wrap: anywhere;
+    }
+
+    .daily-intelligence-metric b {
+      display: block;
+      margin: 5px 0 3px;
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.18;
+      overflow-wrap: anywhere;
+    }
+
+    .daily-intelligence-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
 
     .empty {
       padding: 18px 14px;
@@ -1451,11 +1451,6 @@
         width: 100%;
       }
 
-      .workspace-switch {
-        grid-column: 1 / -1;
-        width: 100%;
-      }
-
       .mode-switch:not(#repProfileSwitch) {
         grid-column: 1 / 2;
       }
@@ -1468,6 +1463,10 @@
       .form-actions,
       .territory-kpis {
         grid-template-columns: 1fr;
+      }
+
+      .daily-intelligence-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .quick-facts {
@@ -1485,12 +1484,8 @@
     <header>
       <div class="topline">
         <div class="brand">
-          <h1>Prometheus IQ</h1>
-          <p id="todayLabel">Command center</p>
-        </div>
-        <div class="workspace-switch admin-only" id="workspaceSwitch" aria-label="Founder workspace selector">
-          <button class="active" type="button" data-workspace-select="fitness_connection">Fitness Connection<span>Fitness</span></button>
-          <button type="button" data-workspace-select="smoothie_depot">Smoothie Depot<span>Franchise Development</span></button>
+          <h1>Route IQ</h1>
+          <p id="todayLabel">Field intelligence</p>
         </div>
         <div class="mode-switch" aria-label="App mode">
           <button data-mode-select="rep">Rep</button>
@@ -1701,6 +1696,23 @@
             <b id="bestCategory">-</b>
           </article>
         </div>
+        <div id="founderDailyIntelligence" class="owner-only" hidden>
+          <div class="section-title">
+            <h2>Daily Intelligence Snapshot</h2>
+            <small id="founderSnapshotDate">Governed evidence</small>
+          </div>
+          <article class="panel pad daily-intelligence" aria-live="polite">
+            <div class="daily-intelligence-grid">
+              <div class="daily-intelligence-metric"><span>Evidence</span><b id="founderSnapshotEvidence">-</b><small id="founderSnapshotFreshness">-</small></div>
+              <div class="daily-intelligence-metric"><span>Data Quality</span><b id="founderSnapshotQuality">-</b><small id="founderSnapshotQualityDetail">-</small></div>
+              <div class="daily-intelligence-metric"><span>Visits / Outcomes</span><b id="founderSnapshotOutcomes">-</b><small id="founderSnapshotOutcomeRate">-</small></div>
+              <div class="daily-intelligence-metric"><span>Learning Coverage</span><b id="founderSnapshotCoverage">-</b><small id="founderSnapshotCoverageDetail">-</small></div>
+              <div class="daily-intelligence-metric"><span>Confidence</span><b id="founderSnapshotConfidence">-</b><small id="founderSnapshotConfidenceDetail">-</small></div>
+              <div class="daily-intelligence-metric"><span>Since Previous</span><b id="founderSnapshotDelta">-</b><small id="founderSnapshotDeltaDetail">-</small></div>
+            </div>
+            <p class="daily-intelligence-note" id="founderSnapshotLimitations"></p>
+          </article>
+        </div>
         <div class="section-title">
           <h2>Executive Insight</h2>
           <small>What Prometheus has learned</small>
@@ -1858,9 +1870,9 @@
     const legacyStoreKey = "field-production-tracker-v3";
     const activeRepStoreKey = "prometheus-active-rep";
     const sessionRoleStoreKey = "prometheus-session-role";
-    const appBuildVersion = "2026-07-14-prospective-collection-off-suppression-v1";
+    const appBuildVersion = "2026-07-18-route-iq-product-focus-v1";
     const appBuildStoreKey = "prometheus-app-build-version";
-    const serviceWorkerCacheVersion = "prometheus-v47-prospective-collection-off-suppression";
+    const serviceWorkerCacheVersion = "prometheus-v48-route-iq-product-focus";
     const launchContextStoreKey = "prometheus-launch-context";
     const fieldSessionArchiveStoreKey = "prometheus-route-iq-finalized-sessions-v1";
     const fieldSessionHandoffPath = "/api/dashboard/route-iq/field-session";
@@ -1909,6 +1921,12 @@
     const routeReplenishmentModulePath = "./intelligence/continuous-adaptive-route-replenishment.mjs";
     const operatingProfileRegistryPath = "./intelligence/profiles/operating-profiles.json";
     const operatingProfileContractsPath = "./intelligence/contracts/operating-profile-contracts.json";
+    const founderDailyIntelligencePath = "./api/dashboard/route-iq/intelligence/daily-snapshot";
+    const founderDailyIntelligenceContractVersion = "route-iq-commercial-readiness-intelligence-v1";
+    const founderDailySnapshotSchemaVersion = "route-iq-daily-intelligence-snapshot-v1";
+    const founderDailyIntelligencePrincipalMappingId = "route-iq-founder-access-cruz-v1";
+    const founderDailyIntelligencePrincipalId = "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4";
+    const founderDailyIntelligenceTimeoutMs = 2500;
     const runtimeDatasetExpectedVersion = "google-qualified-businesses-v2";
     const runtimeDatasetExpectedSegmentationVersion = "runtime-pool-segmentation-v1";
 
@@ -2056,22 +2074,15 @@
     }
 
     const appUrlParams = new URLSearchParams(location.search);
-    const workspaceStoreKey = "prometheus-founder-workspace";
     const defaultWorkspaceId = "fitness_connection";
-    const dashboardWorkspaces = {
+    const dashboardWorkspaces = Object.freeze({
       fitness_connection: {
         workspaceId: "fitness_connection",
         label: "Fitness Connection",
         operatingProfileId: "fitness",
         route: "/"
-      },
-      smoothie_depot: {
-        workspaceId: "smoothie_depot",
-        label: "Smoothie Depot",
-        operatingProfileId: "franchise_development",
-        route: "/smoothie-depot-dashboard/"
       }
-    };
+    });
     const requestedRuntimePool = appUrlParams.get("runtimePool") === "full" ? "full" : "active";
     const founderDebugEnabled = appUrlParams.get("debug") === "1";
     window.prometheusDebugState = {
@@ -2103,6 +2114,11 @@
         label: dashboardWorkspaces[defaultWorkspaceId].label,
         operatingProfileId: dashboardWorkspaces[defaultWorkspaceId].operatingProfileId,
         source: "route-default"
+      },
+      founderDailyIntelligence: {
+        status: "not_requested",
+        authorized: false,
+        rendered: false
       },
       lastError: "",
       lastUnhandledRejection: "",
@@ -20008,12 +20024,145 @@
       return sessionRole === "founder" || sessionRole === "admin";
     }
 
-    function canUseFounderWorkspaceSwitcher() {
-      return sessionRole === "founder" || sessionRole === "admin";
-    }
-
     function canUseOwnerMode() {
       return sessionRole === "founder" || sessionRole === "admin" || sessionRole === "manager";
+    }
+
+    function setFounderDailyIntelligenceStatus(status, authorized = false, rendered = false) {
+      window.prometheusDebugState.founderDailyIntelligence = { status, authorized, rendered };
+    }
+
+    function founderDailyIntelligenceHasForbiddenKeys(value) {
+      if (!value || typeof value !== "object") return false;
+      return Object.entries(value).some(([key, nested]) => (
+        /shadow|ranked|probabilit|candidate/i.test(key)
+        || founderDailyIntelligenceHasForbiddenKeys(nested)
+      ));
+    }
+
+    function validFounderDailyIntelligenceResponse(response, body) {
+      const exactKeys = (value, expected) => {
+        if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+        return JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...expected].sort());
+      };
+      if (!response?.ok
+        || !String(response.headers?.get("cache-control") || "").toLowerCase().includes("no-store")
+        || !String(response.headers?.get("content-type") || "").toLowerCase().includes("application/json")) return null;
+      if (!exactKeys(body, ["ok", "authorized", "contractVersion", "principal", "snapshot"])) return null;
+      if (body.ok !== true || body.authorized !== true || body.contractVersion !== founderDailyIntelligenceContractVersion) return null;
+      const principal = body.principal;
+      if (!exactKeys(principal, ["identityContextSource", "authenticationAuthority", "authenticated", "callerSupplied", "role", "mappingId", "immutablePrincipalId", "mappingStatus"])) return null;
+      if (principal.identityContextSource !== "server_verified_identity_mapping"
+        || principal.authenticationAuthority !== "cloudflare_access"
+        || principal.authenticated !== true
+        || principal.callerSupplied !== false
+        || principal.role !== "founder"
+        || principal.mappingId !== founderDailyIntelligencePrincipalMappingId
+        || principal.immutablePrincipalId !== founderDailyIntelligencePrincipalId
+        || principal.mappingStatus !== "securely_mapped") return null;
+
+      const snapshot = body.snapshot;
+      const expectedSnapshotKeys = [
+        "schemaVersion", "snapshotId", "ownerSubsystem", "audience", "workspaceId", "operatingProfileId",
+        "businessConfigurationVersion", "evidenceClassification", "classificationAuthority", "retentionPolicyVersion",
+        "generatedFromEvidenceAt", "governedEvidenceSha256", "governedInputSha256", "evidenceCollected",
+        "evidenceFreshness", "dataQuality", "visitAndOutcomeTrends", "learningCoverage", "confidence",
+        "changesSincePrevious", "safety", "snapshotSha256"
+      ];
+      if (!exactKeys(snapshot, expectedSnapshotKeys)
+        || snapshot.schemaVersion !== founderDailySnapshotSchemaVersion
+        || snapshot.ownerSubsystem !== "Prometheus Intelligence Engine"
+        || snapshot.audience !== "founder_only"
+        || snapshot.workspaceId !== defaultWorkspaceId
+        || snapshot.operatingProfileId !== dashboardWorkspaces[defaultWorkspaceId].operatingProfileId
+        || snapshot.evidenceClassification !== "FOUNDER_FIELD_RESEARCH"
+        || !/^route-iq-daily-snapshot-[a-f0-9]{24}$/u.test(String(snapshot.snapshotId || ""))
+        || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/u.test(String(snapshot.generatedFromEvidenceAt || ""))
+        || !/^[a-f0-9]{64}$/u.test(String(snapshot.snapshotSha256 || ""))
+        || founderDailyIntelligenceHasForbiddenKeys(snapshot)) return null;
+      if (!Number.isInteger(snapshot.evidenceCollected?.totalRecords) || snapshot.evidenceCollected.totalRecords < 0) return null;
+      if (!snapshot.evidenceFreshness || typeof snapshot.evidenceFreshness.status !== "string") return null;
+      if (!snapshot.dataQuality || !["VERIFIED", "REVIEW_REQUIRED"].includes(snapshot.dataQuality.status)) return null;
+      const totals = snapshot.visitAndOutcomeTrends?.totals;
+      if (!totals || !Number.isFinite(totals.visits) || !Number.isFinite(totals.outcomes)) return null;
+      if (!snapshot.learningCoverage || !Number.isFinite(snapshot.learningCoverage.representativesObserved)) return null;
+      if (!snapshot.confidence || !["INSUFFICIENT_EVIDENCE", "OBSERVING"].includes(snapshot.confidence.state)) return null;
+      if (!snapshot.changesSincePrevious || snapshot.changesSincePrevious.governedEvidenceChanged !== true) return null;
+      if (snapshot.safety?.readOnly !== true
+        || snapshot.safety?.founderOnly !== true
+        || snapshot.safety?.representativeReadable !== false
+        || snapshot.safety?.recommendationInfluence !== "OFF"
+        || snapshot.safety?.routeOrderingChanged !== false
+        || snapshot.safety?.routeScoringWeightsChanged !== false
+        || snapshot.safety?.sourceEvidenceMutationAllowed !== false) return null;
+      return snapshot;
+    }
+
+    function renderFounderDailyIntelligence(snapshot) {
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = String(value);
+      };
+      const totals = snapshot.visitAndOutcomeTrends.totals;
+      const coverage = snapshot.learningCoverage;
+      const changes = snapshot.changesSincePrevious;
+      const confidencePercent = Math.round(Number(snapshot.confidence.score || 0) * 100);
+      const signed = value => `${Number(value) >= 0 ? "+" : ""}${Number(value || 0)}`;
+      setText("founderSnapshotDate", `Through ${snapshot.evidenceFreshness.snapshotDate}`);
+      setText("founderSnapshotEvidence", `${snapshot.evidenceCollected.totalRecords} records`);
+      setText("founderSnapshotFreshness", snapshot.evidenceFreshness.status.replaceAll("_", " "));
+      setText("founderSnapshotQuality", snapshot.dataQuality.status.replaceAll("_", " "));
+      setText("founderSnapshotQualityDetail", `${Number(snapshot.dataQuality.byStatus?.VERIFIED || 0)} verified`);
+      setText("founderSnapshotOutcomes", `${totals.visits} / ${totals.outcomes}`);
+      setText("founderSnapshotOutcomeRate", snapshot.visitAndOutcomeTrends.outcomeLinkRatePercent === null ? "Outcome coverage unavailable" : `${snapshot.visitAndOutcomeTrends.outcomeLinkRatePercent}% outcome coverage`);
+      setText("founderSnapshotCoverage", `${coverage.representativesObserved} reps`);
+      setText("founderSnapshotCoverageDetail", `${coverage.locationsObserved} locations · ${coverage.territoriesObserved} territories`);
+      setText("founderSnapshotConfidence", snapshot.confidence.state.replaceAll("_", " "));
+      setText("founderSnapshotConfidenceDetail", `${confidencePercent}% governed confidence`);
+      setText("founderSnapshotDelta", `${signed(changes.evidenceRecordDelta)} evidence`);
+      setText("founderSnapshotDeltaDetail", `${signed(changes.visitDelta)} visits · ${signed(changes.outcomeDelta)} outcomes`);
+      const limitations = Array.isArray(snapshot.confidence.limitations) ? snapshot.confidence.limitations : [];
+      setText("founderSnapshotLimitations", limitations.length
+        ? `Limitations: ${limitations.map(value => String(value).replaceAll("_", " ")).join("; ")}. This is governed observation, not a recommendation or prediction.`
+        : "Governed observation only. Recommendation influence remains off.");
+      const container = document.getElementById("founderDailyIntelligence");
+      if (container) container.hidden = false;
+    }
+
+    async function loadFounderDailyIntelligence() {
+      const container = document.getElementById("founderDailyIntelligence");
+      if (container) container.hidden = true;
+      if (sessionRole !== "founder") {
+        setFounderDailyIntelligenceStatus("role_ineligible");
+        return false;
+      }
+      setFounderDailyIntelligenceStatus("requesting");
+      try {
+        const response = await fetch(founderDailyIntelligencePath, {
+          method: "GET",
+          mode: "same-origin",
+          credentials: "same-origin",
+          cache: "no-store",
+          redirect: "error",
+          headers: { "Accept": "application/json" },
+          signal: AbortSignal.timeout(founderDailyIntelligenceTimeoutMs)
+        });
+        let body = null;
+        try {
+          body = await response.json();
+        } catch (error) {}
+        const snapshot = validFounderDailyIntelligenceResponse(response, body);
+        if (!snapshot) {
+          setFounderDailyIntelligenceStatus("server_authorization_or_contract_rejected");
+          return false;
+        }
+        renderFounderDailyIntelligence(snapshot);
+        setFounderDailyIntelligenceStatus("rendered", true, true);
+        return true;
+      } catch (error) {
+        setFounderDailyIntelligenceStatus(error?.name === "TimeoutError" ? "request_timeout" : "request_unavailable");
+        return false;
+      }
     }
 
     let state = load();
@@ -25358,10 +25507,10 @@
       document.body.dataset.sessionRole = sessionRole;
       document.querySelectorAll("[data-mode-select]").forEach(button => button.classList.toggle("active", button.dataset.modeSelect === appMode));
       document.querySelectorAll("[data-rep-select]").forEach(button => button.classList.toggle("active", button.dataset.repSelect === activeRepId));
-      applyWorkspaceSwitcher();
+      applyRouteIqWorkspace();
     }
 
-    function applyWorkspaceSwitcher() {
+    function applyRouteIqWorkspace() {
       const currentWorkspace = dashboardWorkspaces[defaultWorkspaceId];
       document.body.dataset.workspaceId = currentWorkspace.workspaceId;
       document.body.dataset.workspaceName = currentWorkspace.label;
@@ -25372,30 +25521,6 @@
         operatingProfileId: currentWorkspace.operatingProfileId,
         source: "fitness-dashboard-route"
       };
-      const switcher = document.getElementById("workspaceSwitch");
-      if (!switcher) return;
-      if (!canUseFounderWorkspaceSwitcher()) {
-        switcher.innerHTML = "";
-        return;
-      }
-      switcher.querySelectorAll("[data-workspace-select]").forEach(button => {
-        button.classList.toggle("active", button.dataset.workspaceSelect === currentWorkspace.workspaceId);
-      });
-    }
-
-    function setWorkspaceSelection(workspaceId) {
-      if (!canUseFounderWorkspaceSwitcher()) return;
-      const workspace = dashboardWorkspaces[workspaceId] || dashboardWorkspaces[defaultWorkspaceId];
-      localStorage.setItem(workspaceStoreKey, workspace.workspaceId);
-      if (workspace.workspaceId !== defaultWorkspaceId) {
-        window.location.assign(workspace.route);
-        return;
-      }
-      if (location.pathname !== "/" && location.pathname !== "/index.html") {
-        window.location.assign(workspace.route);
-        return;
-      }
-      applyWorkspaceSwitcher();
     }
 
     function renderRepProfileSwitch() {
@@ -25452,9 +25577,6 @@
       if (event.target.closest("#bestMoveDirections")) {
         signalRouteIqProspectiveEvent("representative_action_observed");
       }
-
-      const workspaceSelect = event.target.closest("[data-workspace-select]");
-      if (workspaceSelect) setWorkspaceSelection(workspaceSelect.dataset.workspaceSelect);
 
       const modeSelect = event.target.closest("[data-mode-select]");
       if (modeSelect) setMode(modeSelect.dataset.modeSelect);
@@ -25611,6 +25733,7 @@
         await requestAdaptiveRouteReplenishment({ force: true, trigger: "startup" });
         void prospectiveBootstrapPromise;
         render();
+        void loadFounderDailyIntelligence();
         window.prometheusDebugState.startupCompleted = true;
         window.prometheusDebugState.lastStage = "startup-complete";
         updateFounderDebugPanel({ stage: "startup-complete" });

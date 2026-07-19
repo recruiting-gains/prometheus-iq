@@ -1,4 +1,4 @@
-const CACHE_NAME = "prometheus-v47-prospective-collection-off-suppression";
+const CACHE_NAME = "prometheus-v48-route-iq-product-focus";
 const APP_SHELL = [
   "./manifest.webmanifest",
   "./manifest-founder.webmanifest",

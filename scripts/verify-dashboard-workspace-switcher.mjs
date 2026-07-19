@@ -16,15 +16,16 @@ assert(smoothieSource === smoothieDeploy, "Smoothie Depot source and deploy asse
 assert(sourceIndex.includes('data-workspace-id="fitness_connection"'), "Fitness dashboard must default to the Fitness Connection workspace.");
 assert(sourceIndex.includes('data-workspace-name="Fitness Connection"'), "Fitness dashboard must identify the Fitness Connection workspace.");
 assert(sourceIndex.includes('data-operating-profile-id="fitness"'), "Fitness dashboard must default to the Fitness operating profile.");
-assert(sourceIndex.includes('id="workspaceSwitch"'), "Founder workspace switcher must be present.");
-assert(sourceIndex.includes('class="workspace-switch admin-only"'), "Workspace switcher must be Founder/Admin-only.");
-assert(sourceIndex.includes('data-workspace-select="fitness_connection"'), "Workspace switcher must include Fitness Connection.");
-assert(sourceIndex.includes('data-workspace-select="smoothie_depot"'), "Workspace switcher must include Smoothie Depot.");
-assert(sourceIndex.includes('route: "/smoothie-depot-dashboard/"'), "Smoothie Depot selection must route to the isolated Smoothie Depot dashboard.");
-assert(sourceIndex.includes('workspaceStoreKey = "prometheus-founder-workspace"'), "Workspace selection must use the Dashboard workspace store key.");
 assert(sourceIndex.includes('defaultWorkspaceId = "fitness_connection"'), "Workspace selection must default safely to Fitness Connection.");
-assert(sourceIndex.includes("function canUseFounderWorkspaceSwitcher()"), "Workspace switcher must use explicit Founder switcher guard.");
-assert(sourceIndex.includes("function setWorkspaceSelection(workspaceId)"), "Workspace switcher must use controlled workspace selection.");
+assert(sourceIndex.includes("function applyRouteIqWorkspace()"), "Route IQ must apply one controlled workspace scope.");
+assert(!sourceIndex.includes('id="workspaceSwitch"'), "Route IQ must not expose an active workspace switcher.");
+assert(!sourceIndex.includes("data-workspace-select"), "Route IQ must not expose active workspace-selection controls.");
+assert(!sourceIndex.includes("smoothie_depot"), "Route IQ runtime must not register the inactive Smoothie Depot workspace.");
+assert(!sourceIndex.includes("smoothie-depot-dashboard"), "Route IQ runtime must not link to the historical Smoothie Depot dashboard.");
+assert(!sourceIndex.includes("Smoothie Depot"), "Route IQ current-product views must not name Smoothie Depot.");
+assert(!/\bGaia\b/.test(sourceIndex), "Route IQ current-product views must not expose Gaia.");
+assert(!/\bAthena\b/.test(sourceIndex), "Route IQ current-product views must not expose Athena.");
+assert(sourceIndex.includes("<h1>Route IQ</h1>"), "Route IQ must be the Dashboard's active product identity.");
 
 for (const forbidden of [
   "Candidate Pipeline",
@@ -65,4 +66,4 @@ for (const forbidden of [
   assert(!smoothieSource.includes(forbidden), `Smoothie Depot dashboard must not render or access Fitness runtime term: ${forbidden}`);
 }
 
-console.log("Founder workspace switcher verified: Fitness defaults safely, Smoothie Depot routes through isolated dashboard, and deploy assets remain in sync.");
+console.log("Route IQ-only Dashboard verified: inactive products have no active navigation, and historical Smoothie Depot assets remain preserved and isolated.");
