@@ -1,0 +1,385 @@
+{
+  "contractVersion": "route-iq-commercial-product-contract-v1",
+  "batchId": "BATCH-20260718-002",
+  "directive": "Route IQ Commercial Readiness + Product Focus v1",
+  "ownerSubsystem": "Prometheus Route IQ",
+  "status": "commercial_release_candidate_contract",
+  "productPortfolio": {
+    "company": "Prometheus",
+    "soleActiveProduct": "route_iq",
+    "products": [
+      {
+        "productId": "route_iq",
+        "state": "active"
+      },
+      {
+        "productId": "gaia",
+        "state": "paused"
+      },
+      {
+        "productId": "athena",
+        "state": "architecture_only"
+      }
+    ],
+    "activeOperationalNavigation": [
+      "route_iq"
+    ]
+  },
+  "commercialArchitecture": {
+    "architectureMode": "configuration_driven_shared_route_iq_runtime",
+    "customerSpecificCodeForkAllowed": false,
+    "separateApplicationPerBusinessAllowed": false,
+    "separateModelPerBusinessRequired": false,
+    "workspaceIsolationRequired": true,
+    "operatingProfileIsolationRequired": true,
+    "representativeIsolationRequired": true,
+    "locationAndTerritoryIsolationRequired": true,
+    "configuration": {
+      "schemaPath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json",
+      "registryPath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+      "runtimeModulePath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs",
+      "requiredDimensions": [
+        "business_name_and_branding",
+        "business_type",
+        "locations_and_territories",
+        "user_and_representative_roster",
+        "roles_and_access",
+        "business_goals",
+        "visit_and_outcome_terminology",
+        "success_measurements",
+        "data_retention",
+        "intelligence_eligibility"
+      ]
+    },
+    "syntheticNonFitnessProof": {
+      "workspaceId": "summit_roofing_synthetic",
+      "businessType": "roofing_outside_sales",
+      "operatingProfileId": "roofing",
+      "state": "synthetic_validation_only",
+      "productionActivationAuthorized": false,
+      "codeForkRequired": false
+    }
+  },
+  "crossSubsystemLifecycle": [
+    {
+      "order": 1,
+      "stage": "workspace_configuration",
+      "ownerSubsystem": "Prometheus Data",
+      "input": "governed_business_configuration",
+      "output": "validated_workspace_and_operating_profile",
+      "ownerSurfaces": [
+        "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json",
+        "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+        "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry.mjs"
+      ]
+    },
+    {
+      "order": 2,
+      "stage": "operational_dashboard",
+      "ownerSubsystem": "Prometheus Dashboard",
+      "input": "authorized_active_workspace_configuration",
+      "output": "isolated_representative_field_workflow",
+      "ownerSurfaces": [
+        "index.html",
+        "deploy/cloudflare-pages/index.html",
+        "sw.js",
+        "scripts/verify-dashboard-runtime-workflows.mjs"
+      ]
+    },
+    {
+      "order": 3,
+      "stage": "append_only_evidence",
+      "ownerSubsystem": "Prometheus Data",
+      "input": "validated_field_session_events",
+      "output": "immutable_governed_archive",
+      "ownerSurfaces": [
+        "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+        "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs"
+      ]
+    },
+    {
+      "order": 4,
+      "stage": "read_only_intelligence",
+      "ownerSubsystem": "Prometheus Intelligence Engine",
+      "input": "data_attested_governed_evidence",
+      "output": "founder_only_deterministic_daily_snapshot",
+      "ownerSurfaces": [
+        "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
+        "intelligence/route-iq-daily-intelligence-snapshot.mjs"
+      ]
+    },
+    {
+      "order": 5,
+      "stage": "governed_codex_delivery",
+      "ownerSubsystem": "Prometheus Data",
+      "input": "explicitly_authorized_allowlist_projection",
+      "output": "redacted_integrity_bound_evidence_bundle",
+      "ownerSurfaces": [
+        "data/route-iq-commercial-readiness-v1/governed-codex-evidence-bundle.mjs",
+        "scripts/build-route-iq-governed-codex-evidence-bundle.mjs"
+      ]
+    },
+    {
+      "order": 6,
+      "stage": "public_route_iq_request",
+      "ownerSubsystem": "Prometheus Website",
+      "input": "consented_minimal_business_request",
+      "output": "validated_request_for_crm_persistence",
+      "ownerSurfaces": [
+        "src/main.jsx",
+        "src/route-iq-request-form.js"
+      ]
+    },
+    {
+      "order": 7,
+      "stage": "durable_request_crm",
+      "ownerSubsystem": "Prometheus CRM",
+      "input": "server_validated_route_iq_request",
+      "output": "durable_receipt_retrieval_and_export",
+      "ownerSurfaces": [
+        "crm/route-iq-request-crm-contract-v1.json",
+        "crm/route-iq-request-crm.mjs"
+      ]
+    }
+  ],
+  "accessControl": {
+    "identityAuthority": "server_verified_immutable_authenticated_principal",
+    "canonicalIdentitySourceOwner": "Prometheus Data",
+    "canonicalIdentitySourcePath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+    "crossConsumerPrincipalEqualityRequired": true,
+    "displayNameAuthorizationAllowed": false,
+    "founderIntelligence": {
+      "cruz": "exact_authenticated_identity_mapped",
+      "cruzCanonicalPrincipalId": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
+      "anthony": "pending_exact_authenticated_identity_mapping",
+      "anthonyAccessUntilMapped": false,
+      "representativeAccessAllowed": false
+    },
+    "crossWorkspaceAccessAllowed": false
+  },
+  "fitnessConnectionEvidenceBoundary": {
+    "workspaceId": "fitness_connection",
+    "classification": "FOUNDER_FIELD_RESEARCH",
+    "preservationManifestPath": "data/route-iq-commercial-readiness-v1/fitness-connection-evidence-preservation-v1.json",
+    "customer": false,
+    "partner": false,
+    "sponsor": false,
+    "committedPilot": false,
+    "publicPartnershipOrEndorsementClaimAllowed": false,
+    "historicalEvidenceRewriteAllowed": false,
+    "crossWorkspaceEvidenceUseAllowed": false
+  },
+  "historicalWorkspaceBoundary": {
+    "workspaceId": "smoothie_depot",
+    "state": "inactive_historical",
+    "normalOperationVisible": false,
+    "activeNavigationVisible": false,
+    "historicalDeletionAllowed": false,
+    "learningEligible": false,
+    "codexBundleEligible": false
+  },
+  "codexBoundary": {
+    "consumerRole": "analysis_consumer",
+    "canonicalProductionDatabase": false,
+    "oneActionCommand": "node scripts/build-route-iq-governed-codex-evidence-bundle.mjs",
+    "rawUncontrolledProductionUploadAllowed": false,
+    "secretsAllowed": false,
+    "unauthorizedPersonalInformationAllowed": false
+  },
+  "prohibitedCapabilities": [
+    "CUSTOMER_SPECIFIC_CODE_FORK",
+    "FITNESS_CONNECTION_CUSTOMER_PARTNER_SPONSOR_PILOT_OR_ENDORSEMENT_CLAIM",
+    "CROSS_WORKSPACE_ACCESS",
+    "FOUNDER_INTELLIGENCE_DISPLAY_NAME_AUTHORIZATION",
+    "REPRESENTATIVE_FOUNDER_INTELLIGENCE_ACCESS",
+    "RECOMMENDATION_INFLUENCE",
+    "PROSPECTIVE_COLLECTION_ACTIVATION",
+    "RAW_UNCONTROLLED_CODEX_UPLOAD",
+    "HISTORICAL_EVIDENCE_REWRITE",
+    "SMOOTHIE_DEPOT_ACTIVE_OPERATION",
+    "GAIA_OPERATIONAL_ACTIVATION",
+    "ATHENA_OPERATIONAL_ACTIVATION"
+  ],
+  "safetyState": {
+    "recommendationInfluence": "OFF",
+    "prospectiveCollection": "OFF",
+    "activeProspectiveCohorts": 0,
+    "representativeFacingShadowOutput": false,
+    "historicalReplayAuthorized": false,
+    "productionMutationAuthorizedByBatch": false,
+    "deploymentAuthorizedByBatch": false
+  },
+  "ownerSurfaceCatalog": {
+    "Prometheus Route IQ": [
+      "docs/route-iq-commercial-product-contract-v1.json",
+      "scripts/verify-route-iq-commercial-product-contract.mjs",
+      "tests/route-iq-commercial-product-contract.test.mjs"
+    ],
+    "Prometheus Data": [
+      "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-v1.schema.json",
+      "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+      "data/route-iq-commercial-readiness-v1/fitness-connection-evidence-preservation-v1.json",
+      "data/route-iq-commercial-readiness-v1/governed-codex-evidence-bundle.mjs",
+      "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs"
+    ],
+    "Prometheus Dashboard": [
+      "index.html",
+      "deploy/cloudflare-pages/index.html",
+      "sw.js",
+      "scripts/verify-dashboard-runtime-workflows.mjs"
+    ],
+    "Prometheus Intelligence Engine": [
+      "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json",
+      "intelligence/route-iq-daily-intelligence-snapshot.mjs",
+      "scripts/verify-route-iq-commercial-readiness-intelligence.mjs"
+    ],
+    "Prometheus CRM": [
+      "crm/route-iq-request-crm-contract-v1.json",
+      "crm/route-iq-request-crm.mjs"
+    ],
+    "Prometheus Website": [
+      "src/main.jsx",
+      "src/styles.css",
+      "src/route-iq-request-form.js",
+      "tests/website-route-iq-product-focus.test.mjs"
+    ],
+    "Prometheus Infrastructure": [
+      "workers/prometheus-iq-worker.js",
+      "workers/infrastructure/shared-lead-intake-pipeline.js"
+    ],
+    "Prometheus Overwatch": [
+      "overwatch/artifact-contracts/route-iq",
+      "scripts/verify-cross-subsystem-artifact-contracts.mjs"
+    ]
+  },
+  "rollout": {
+    "eventualDeploymentTarget": "private_prometheus_iq_worker_only",
+    "publicWorkerExcluded": true,
+    "founderDeploymentAuthorizationRequired": true,
+    "releasePrerequisites": [
+      "all_15_acceptance_gates_pass",
+      "exact_head_and_tree_frozen",
+      "full_repository_verification_passes",
+      "working_tree_clean",
+      "forward_rollback_rehearsed",
+      "recommendation_influence_off",
+      "prospective_collection_off",
+      "no_production_data_mutation"
+    ],
+    "rollback": {
+      "mode": "new_forward_revert_commits_and_forward_compatible_private_worker_deployment",
+      "historyRewriteAllowed": false,
+      "archiveRewriteAllowed": false,
+      "statefulMigrationDeletionAllowed": false,
+      "preserveExistingEvidence": true,
+      "restorePriorOperationalBehavior": true
+    }
+  },
+  "acceptanceGates": [
+    {
+      "gate": 1,
+      "name": "configuration_only_second_business",
+      "ownerSubsystems": ["Prometheus Data", "Prometheus Route IQ"],
+      "evidenceSurfaces": ["data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json"],
+      "requirement": "summit_roofing_synthetic_uses_shared_schema_without_code_fork"
+    },
+    {
+      "gate": 2,
+      "name": "smoothie_depot_removed_from_active_dashboard",
+      "ownerSubsystems": ["Prometheus Dashboard", "Prometheus Data"],
+      "evidenceSurfaces": ["index.html", "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json"],
+      "requirement": "inactive_historical_hidden_without_deletion"
+    },
+    {
+      "gate": 3,
+      "name": "gaia_and_athena_removed_from_operational_navigation",
+      "ownerSubsystems": ["Prometheus Dashboard", "Prometheus Route IQ"],
+      "evidenceSurfaces": ["index.html", "docs/route-iq-commercial-product-contract-v1.json"],
+      "requirement": "route_iq_is_only_active_operational_experience"
+    },
+    {
+      "gate": 4,
+      "name": "fitness_connection_founder_research_preservation",
+      "ownerSubsystems": ["Prometheus Data"],
+      "evidenceSurfaces": ["data/route-iq-commercial-readiness-v1/fitness-connection-evidence-preservation-v1.json"],
+      "requirement": "byte_identical_and_classified_founder_field_research"
+    },
+    {
+      "gate": 5,
+      "name": "no_public_relationship_claim",
+      "ownerSubsystems": ["Prometheus Website", "Prometheus Data", "Prometheus Route IQ"],
+      "evidenceSurfaces": ["src/main.jsx", "data/route-iq-commercial-readiness-v1/fitness-connection-evidence-preservation-v1.json"],
+      "requirement": "no_customer_partner_sponsor_pilot_or_endorsement_claim"
+    },
+    {
+      "gate": 6,
+      "name": "exact_principal_founder_intelligence",
+      "ownerSubsystems": ["Prometheus Data", "Prometheus Intelligence Engine", "Prometheus Infrastructure"],
+      "evidenceSurfaces": ["data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json", "intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json"],
+      "requirement": "cruz_exactly_mapped_anthony_denied_until_exact_mapping_representatives_denied"
+    },
+    {
+      "gate": 7,
+      "name": "multi_user_concurrency_integrity",
+      "ownerSubsystems": ["Prometheus Infrastructure", "Prometheus Data"],
+      "evidenceSurfaces": ["tests/route-iq-commercial-readiness-capacity.test.mjs", "tests/route-iq-commercial-readiness-data.test.mjs"],
+      "requirement": "10_workspaces_100_users_25_concurrent_zero_isolation_or_record_failures"
+    },
+    {
+      "gate": 8,
+      "name": "safe_capacity_and_latency_reported",
+      "ownerSubsystems": ["Prometheus Infrastructure"],
+      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-readiness-capacity-v1.json"],
+      "requirement": "measured_initial_capacity_latency_and_resource_usage_without_unlimited_scale_claim"
+    },
+    {
+      "gate": 9,
+      "name": "deterministic_daily_intelligence_snapshot",
+      "ownerSubsystems": ["Prometheus Intelligence Engine"],
+      "evidenceSurfaces": ["intelligence/route-iq-daily-intelligence-snapshot.mjs"],
+      "requirement": "snapshot_changes_only_when_governed_evidence_changes"
+    },
+    {
+      "gate": 10,
+      "name": "governed_codex_evidence_bundle",
+      "ownerSubsystems": ["Prometheus Data"],
+      "evidenceSurfaces": ["scripts/build-route-iq-governed-codex-evidence-bundle.mjs"],
+      "requirement": "one_action_redacted_manifested_integrity_bound_bundle"
+    },
+    {
+      "gate": 11,
+      "name": "focused_route_iq_website_story",
+      "ownerSubsystems": ["Prometheus Website"],
+      "evidenceSurfaces": ["src/main.jsx", "src/styles.css"],
+      "requirement": "prometheus_company_route_iq_only_active_product_request_route_iq_primary_action"
+    },
+    {
+      "gate": 12,
+      "name": "website_request_crm_lifecycle",
+      "ownerSubsystems": ["Prometheus Website", "Prometheus CRM", "Prometheus Infrastructure"],
+      "evidenceSurfaces": ["src/route-iq-request-form.js", "crm/route-iq-request-crm.mjs", "workers/prometheus-iq-worker.js"],
+      "requirement": "validated_stored_acknowledged_retrieved_exported_and_monitored"
+    },
+    {
+      "gate": 13,
+      "name": "recommendation_influence_off",
+      "ownerSubsystems": ["Prometheus Intelligence Engine", "Prometheus Route IQ"],
+      "evidenceSurfaces": ["intelligence/contracts/route-iq-commercial-readiness-intelligence-v1.json", "docs/route-iq-commercial-product-contract-v1.json"],
+      "requirement": "recommendation_influence_remains_off"
+    },
+    {
+      "gate": 14,
+      "name": "exact_tree_full_verification",
+      "ownerSubsystems": ["Prometheus Overwatch"],
+      "evidenceSurfaces": ["scripts/verify-cross-subsystem-artifact-contracts.mjs"],
+      "requirement": "security_aegis_contracts_dashboard_data_intelligence_infrastructure_crm_website_build_and_git_integrity_pass"
+    },
+    {
+      "gate": 15,
+      "name": "forward_rollback_rehearsal",
+      "ownerSubsystems": ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      "evidenceSurfaces": ["workers/infrastructure/route-iq-commercial-readiness-rollback-v1.json"],
+      "requirement": "forward_rollback_preserves_evidence_and_avoids_history_rewrite"
+    }
+  ]
+}
