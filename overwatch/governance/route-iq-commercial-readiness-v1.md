@@ -30,4 +30,6 @@ Final release-gate repairs remain owner-authored: Infrastructure aligned its pro
 
 CRM aligned its production-store validation with the active Route IQ SQLite Durable Object composition after the complete repository matrix exposed a stale Fitness-specific KV Worker assertion. The owner repair changes validation only and does not reactivate legacy Fitness or Smoothie intake behavior.
 
+Overwatch aligned the historical release-provenance verifier with the current Dashboard product-focus owner commit while retaining the distinct collection-OFF suppression commit. This is verification lineage only; the Dashboard contract and implementation remain unchanged.
+
 Commit `c5dc67d673ad767dc0fea77c74a0492fea14d6f5` is preserved as a second disclosed local author-identity contamination: its four paths are exclusively Overwatch governance and verification assets, but its recorded identity is `data@prometheus.local`. No Data implementation is present, no retroactive ownership is claimed, and history is not rewritten. The verifier requires a later genuine Overwatch-authored governance successor.
