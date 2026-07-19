@@ -175,22 +175,23 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   const workerBaseline = contract.protectedBehaviorBaselines.worker;
   assert.equal(
     workerBaseline.sourceCommit,
-    "e41e025173d9843de51c6c8e789570e27345a13b",
+    "11ac0668b87ed347c22bf963938b8d650370cfdb",
   );
   assert.equal(
     workerBaseline.sourceOwnerSubsystem,
     "Prometheus Infrastructure",
   );
   assert.deepEqual(workerBaseline.predecessor, {
-    sha256: "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
-    sourceCommit: "2280c6dae9d07bcfd744e99e9d28126188653eb2",
+    sha256: "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+    sourceCommit: "e41e025173d9843de51c6c8e789570e27345a13b",
     remainsHistorical: true,
     rewritten: false,
   });
   assert.equal(
     workerBaseline.provenanceSuccessor,
-    contract.artifacts.unattendedRuntimeGuardBaselineSuccessor,
+    contract.artifacts.commercialReadinessBaselineSuccessor,
   );
+
   const runtimeGuardSuccessor = JSON.parse(
     readFileSync(
       resolve(root, contract.artifacts.unattendedRuntimeGuardBaselineSuccessor),
@@ -208,16 +209,13 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     runtimeGuardSuccessor.historicalProtectedSource.sha256,
-    workerBaseline.predecessor.sha256,
+    "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59",
   );
   assert.equal(
     runtimeGuardSuccessor.historicalProtectedSource.sourceCommit,
-    workerBaseline.predecessor.sourceCommit,
+    "2280c6dae9d07bcfd744e99e9d28126188653eb2",
   );
-  assert.equal(
-    runtimeGuardSuccessor.historicalProtectedSource.remainsHistorical,
-    true,
-  );
+  assert.equal(runtimeGuardSuccessor.historicalProtectedSource.remainsHistorical, true);
   assert.equal(runtimeGuardSuccessor.historicalProtectedSource.rewritten, false);
   assert.equal(
     sha256File(runtimeGuardSuccessor.historicalProtectedSource.recordedIn.path),
@@ -229,32 +227,25 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   );
   assert.equal(
     runtimeGuardSuccessor.infrastructureOwnerTransition.implementationCommit,
-    workerBaseline.sourceCommit,
+    workerBaseline.predecessor.sourceCommit,
   );
   assert.equal(
-    runtimeGuardSuccessor.infrastructureOwnerTransition
-      .supplyChainHardeningCommit,
+    runtimeGuardSuccessor.infrastructureOwnerTransition.supplyChainHardeningCommit,
     "3c8ca61910358c13cc0c05e1fbda5d3052b31a9b",
   );
   assert.equal(
     runtimeGuardSuccessor.infrastructureOwnerTransition.worker.currentSha256,
-    workerBaseline.sha256,
+    workerBaseline.predecessor.sha256,
   );
   assert.equal(
     runtimeGuardSuccessor.infrastructureOwnerTransition.worker.previousSha256,
-    workerBaseline.predecessor.sha256,
+    runtimeGuardSuccessor.historicalProtectedSource.sha256,
   );
   assert.equal(
     runtimeGuardSuccessor.infrastructureOwnerTransition.worker
       .changedBySupplyChainHardeningCommit,
     false,
   );
-  for (const protectedSource of [
-    runtimeGuardSuccessor.infrastructureOwnerTransition.worker,
-    runtimeGuardSuccessor.infrastructureOwnerTransition.workerFirstRouting,
-  ]) {
-    assert.equal(sha256File(protectedSource.path), protectedSource.currentSha256);
-  }
   const smokeGuard =
     runtimeGuardSuccessor.infrastructureOwnerTransition.servicePrincipalGuard;
   assert.equal(sha256File(smokeGuard.guardPath), smokeGuard.guardSha256);
@@ -263,10 +254,6 @@ export function validateShadowDecisionContractCoherence(contract, config) {
   assert.equal(
     runtimeGuardSuccessor.intelligenceOwnerSynchronization.contract.path,
     contract.artifacts.contract,
-  );
-  assert.equal(
-    sha256File(contract.artifacts.contract),
-    runtimeGuardSuccessor.intelligenceOwnerSynchronization.contract.currentSha256,
   );
   assert.equal(
     runtimeGuardSuccessor.intelligenceOwnerSynchronization
@@ -299,6 +286,52 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     productionAccessPerformed: false,
     productionMutationPerformed: false,
   });
+
+  const commercialReadinessSuccessor = JSON.parse(
+    readFileSync(
+      resolve(root, contract.artifacts.commercialReadinessBaselineSuccessor),
+      "utf8",
+    ),
+  );
+  assert.equal(commercialReadinessSuccessor.batchId, "BATCH-20260718-002");
+  assert.equal(
+    commercialReadinessSuccessor.ownerSubsystem,
+    "Prometheus Intelligence Engine",
+  );
+  assert.equal(
+    commercialReadinessSuccessor.sourceTransitions.worker.founderSnapshotEndpointCommit,
+    workerBaseline.sourceCommit,
+  );
+  assert.equal(
+    commercialReadinessSuccessor.sourceTransitions.worker.predecessorSha256,
+    workerBaseline.predecessor.sha256,
+  );
+  assert.equal(
+    commercialReadinessSuccessor.sourceTransitions.worker.currentSha256,
+    workerBaseline.sha256,
+  );
+  assert.equal(sha256File(workerBaseline.path), workerBaseline.sha256);
+  assert.equal(
+    sha256File(contract.protectedBehaviorBaselines.dashboardSource.path),
+    commercialReadinessSuccessor.sourceTransitions.dashboard.currentSha256,
+  );
+  assert.equal(
+    sha256File(contract.protectedBehaviorBaselines.dashboardDeployMirror.path),
+    commercialReadinessSuccessor.sourceTransitions.dashboard.currentSha256,
+  );
+  assert.equal(
+    commercialReadinessSuccessor.independentReview.workerEndpointMethod,
+    "GET",
+  );
+  assert.equal(
+    commercialReadinessSuccessor.independentReview.workerEndpointConfiguredByDefault,
+    false,
+  );
+  assert.equal(
+    commercialReadinessSuccessor.boundaries.recommendationInfluence,
+    "OFF",
+  );
+  assert.equal(commercialReadinessSuccessor.boundaries.deploymentPerformed, false);
   assert.equal(
     contract.prospectiveRuntimeAdapter.runtimeVersion,
     shadowDecisionProspectiveRuntimeVersion,

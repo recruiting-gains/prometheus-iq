@@ -169,8 +169,8 @@
     "zeroLiveGoogleConstraintPreserved": true
   },
   "protectedBehaviorBaselines": {
-    "dashboardSourceSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
-    "dashboardDeployMirrorSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+    "dashboardSourceSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+    "dashboardDeployMirrorSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
     "dataArchiveRuntimeSha256": "68aa5ee9b216c4efe0fa3c8b3a01ce1c569e53ad15c2e6bfb7d5f8a80850e8b4",
     "dataRuntimeContractSha256": "4414e9ec8899f589864fb875368225922c1bc2dabbb0e1c4bdef074039512259",
     "adaptiveRouteEngineSha256": "c136cd445a78f8d043fdc0d83b841094aa27370c48aae226c0aab2c496b6fb19",
@@ -186,6 +186,7 @@
     "businessHoursEligibilitySha256": "intelligence/route-business-hours-eligibility.mjs",
     "goldenRouteBaselineSha256": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-baseline.json"
   },
+  "protectedBehaviorBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
   "inventionGovernance": {
     "classification": "implementation_of_existing_learning_architecture",
     "materiallyNewInventionIntroduced": false,

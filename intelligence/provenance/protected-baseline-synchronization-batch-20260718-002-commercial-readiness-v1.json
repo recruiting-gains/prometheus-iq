@@ -1,0 +1,76 @@
+{
+  "evidenceVersion": "route-iq-intelligence-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260718-002",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "status": "OWNER_REVIEWED_AND_SYNCHRONIZED",
+  "sourceTransitions": {
+    "dashboard": {
+      "ownerSubsystem": "Prometheus Dashboard",
+      "implementationCommit": "923bb148897b8e4e8845f54b49427b861040d765",
+      "contractAlignmentCommit": "82d1e6f23ca3a75c0073c051531477913258a98f",
+      "paths": [
+        "index.html",
+        "deploy/cloudflare-pages/index.html"
+      ],
+      "predecessorSha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16",
+      "currentSha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177",
+      "predecessorRemainsHistorical": true,
+      "historyRewritten": false
+    },
+    "worker": {
+      "ownerSubsystem": "Prometheus Infrastructure",
+      "requestCrmRuntimeCommit": "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162",
+      "founderSnapshotEndpointCommit": "11ac0668b87ed347c22bf963938b8d650370cfdb",
+      "path": "workers/prometheus-iq-worker.js",
+      "predecessorSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
+      "intermediateSha256": "9b9649621a86a8d600b29bef2ef1a416aef3092cea7c9fe497413ee1ba878cdf",
+      "currentSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+      "predecessorRemainsHistorical": true,
+      "historyRewritten": false
+    }
+  },
+  "consumerContracts": [
+    "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+    "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+    "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+    "intelligence/contracts/shadow-decision-readiness-contracts.json"
+  ],
+  "independentReview": {
+    "dashboardConsumerFounderOnly": true,
+    "dashboardConsumerRequiresExactServerPrincipal": true,
+    "dashboardConsumerReadOnlyGet": true,
+    "dashboardConsumerWritesBrowserStorage": false,
+    "dashboardConsumerExposesShadowOutput": false,
+    "workerEndpointPrivateTargetOnly": true,
+    "workerEndpointConfiguredByDefault": false,
+    "workerEndpointMethod": "GET",
+    "workerEndpointNoStore": true,
+    "workerEndpointRequiresCloudflareAccessJwt": true,
+    "workerEndpointRequiresExactSubjectDigest": true,
+    "workerEndpointRejectsShadowFields": true,
+    "workerEndpointRejectsRecommendationInfluence": true,
+    "routeGenerationSourceChanged": false,
+    "routeScoringSourceChanged": false,
+    "prospectiveCollectionChanged": false,
+    "representativeWorkflowInfluenceChanged": false,
+    "advisoryArtifactRegenerationRequired": false
+  },
+  "ownerReconstruction": {
+    "path": "intelligence/provenance/route-iq-commercial-readiness-founder-snapshot-owner-reconstruction-v1.json",
+    "legacyCommit": "9f9cb75dd8122bc07dda72d61e9ced119d409063",
+    "comparisonResult": "IDENTICAL",
+    "correctionRequired": false,
+    "snapshotSha256": "52465677d4f833cf30d0fd1353c070535e3b292637751010e8711ab02a4f6f1d",
+    "artifactFileSha256": "6e7ec5a0ef785aa421410bd68db0581d9b962a89d80478fa0827632c27fab706"
+  },
+  "boundaries": {
+    "collection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "representativeShadowOutputExposed": false,
+    "deploymentPerformed": false,
+    "productionAccessPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

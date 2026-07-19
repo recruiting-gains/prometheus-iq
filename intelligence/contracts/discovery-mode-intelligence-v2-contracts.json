@@ -137,7 +137,7 @@
   "protectedBehaviorBaselines": {
     "dashboard": {
       "path": "index.html",
-      "sha256": "9cae5bdb9afd51615ad834e88923c53498c712126c25bf0b717bfd9a40622e16"
+      "sha256": "385e35bc547cb74d6ce29290bfdb317345969e316ad6650946f083796332c177"
     },
     "routeScoring": {
       "path": "scripts/build-route-intelligence-quality-engine.mjs",
@@ -180,6 +180,7 @@
       "sha256": "539187bf7c20023fa5b56e60e0ceef86fc51ca9e00dbd42d997a602bdd0d0ffd"
     }
   },
+  "protectedBehaviorBaselineSuccessor": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-commercial-readiness-v1.json",
   "activationSafety": {
     "recommendationInfluenceActive": false,
     "productionQueueConsumerActive": false,

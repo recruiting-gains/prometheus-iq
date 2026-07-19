@@ -1393,7 +1393,7 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
   );
 });
 
-test("unattended runtime guard successor preserves the historical Worker baseline and zero influence", () => {
+test("unattended runtime guard successor remains the historical predecessor to the commercial-readiness Worker baseline", () => {
   const contract = JSON.parse(
     readFileSync(
       "intelligence/contracts/shadow-decision-readiness-contracts.json",
@@ -1427,15 +1427,17 @@ test("unattended runtime guard successor preserves the historical Worker baselin
     digest(readFileSync(worker.path)),
   );
   assert.equal(
-    worker.sha256,
+    worker.predecessor.sha256,
     successor.infrastructureOwnerTransition.worker.currentSha256,
   );
   assert.equal(
-    worker.predecessor.sha256,
-    successor.historicalProtectedSource.sha256,
+    worker.predecessor.sourceCommit,
+    successor.infrastructureOwnerTransition.implementationCommit,
   );
   assert.equal(worker.predecessor.remainsHistorical, true);
   assert.equal(worker.predecessor.rewritten, false);
+  assert.equal(successor.historicalProtectedSource.remainsHistorical, true);
+  assert.equal(successor.historicalProtectedSource.rewritten, false);
   assert.equal(
     digest(readFileSync(successor.historicalProtectedSource.recordedIn.path)),
     successor.historicalProtectedSource.recordedIn.sha256,
