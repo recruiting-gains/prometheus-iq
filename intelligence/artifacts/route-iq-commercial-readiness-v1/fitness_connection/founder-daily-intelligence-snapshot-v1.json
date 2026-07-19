@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "route-iq-daily-intelligence-snapshot-v1",
+  "snapshotId": "route-iq-daily-snapshot-111bce44a82eb0b66bbf7b6e",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "audience": "founder_only",
+  "workspaceId": "fitness_connection",
+  "operatingProfileId": "fitness",
+  "businessConfigurationVersion": "route-iq-commercial-workspace-registry-v1",
+  "businessConfigurationSha256": "b767be3708d0c1564abe97c1ea88e7f2195dbedc44fe583d509786ea4d37e638",
+  "evidenceClassification": "FOUNDER_FIELD_RESEARCH",
+  "classificationAuthority": "Prometheus Data",
+  "retentionPolicyVersion": "route-iq-founder-retention-18-month-v1",
+  "generatedFromEvidenceAt": "2026-07-11T19:31:21.937Z",
+  "governedEvidenceSha256": "d0fa2f32a6507d88b2a4961d086f694497d7f7a983e24cb4e546b4a7b5512c7d",
+  "governedInputSha256": "111bce44a82eb0b66bbf7b6e18efd58cd848d82aa5ed3ef48d85ca755d7f191e",
+  "evidenceCollected": {
+    "totalRecords": 5,
+    "byRecordKind": {
+      "field_session": 1,
+      "visit": 4
+    },
+    "sourceRecordHashes": [
+      "25db1cc68bae6ee475d227a0399cb3ce2c215d9a9b0793a41034032efc80a89b",
+      "5bac191a6fb04a08d7667d8eaf11d49a64e0066ba7868cb390ada6a7cd03ea0c",
+      "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
+      "b6fdb390d9b65bc4716720fd98f95bf7aebeb74483da45c70ebb52fcd142eca6",
+      "bbbe38b2743173608d997a9e0a0398f1fc5afdf8676c65bba663f17d2539eedc"
+    ],
+    "evidenceClassification": "FOUNDER_FIELD_RESEARCH"
+  },
+  "evidenceFreshness": {
+    "earliestEvidenceAt": "2026-07-11T18:29:37.862Z",
+    "latestEvidenceAt": "2026-07-11T19:31:21.937Z",
+    "snapshotDate": "2026-07-11",
+    "status": "UNKNOWN_PRESENT",
+    "byStatus": {
+      "UNKNOWN": 5
+    },
+    "wallClockAgeCalculated": false
+  },
+  "dataQuality": {
+    "status": "VERIFIED",
+    "byStatus": {
+      "VERIFIED": 5
+    },
+    "unavailableMetrics": [
+      "appointments",
+      "followUps",
+      "memberships"
+    ],
+    "exclusionRecordsAdmitted": 0,
+    "rawNotesConsumed": false,
+    "contactInformationConsumed": false,
+    "preciseLocationTrailsConsumed": false
+  },
+  "visitAndOutcomeTrends": {
+    "totals": {
+      "visits": 4,
+      "outcomes": 4,
+      "conversations": 4,
+      "leads": 3,
+      "appointments": null,
+      "memberships": null,
+      "units": 0,
+      "followUps": null
+    },
+    "daily": [
+      {
+        "date": "2026-07-11",
+        "evidenceRecords": 5,
+        "visits": 4,
+        "outcomes": 4,
+        "conversations": 4,
+        "leads": 3,
+        "appointments": null,
+        "memberships": null,
+        "units": 0,
+        "followUps": null
+      }
+    ],
+    "outcomeLinkRatePercent": 100,
+    "observationalOnly": true
+  },
+  "learningCoverage": {
+    "representativesObserved": 1,
+    "locationsObserved": 0,
+    "territoriesObserved": 0,
+    "representativeIds": [
+      "riq_rep_840494a83be97a7bad3c115a"
+    ],
+    "locationIds": [],
+    "territoryIds": [],
+    "verifiedEvidenceRecords": 5,
+    "thresholdQualifiedConclusionCount": 0,
+    "coverageState": "INSUFFICIENT_EVIDENCE"
+  },
+  "confidence": {
+    "state": "INSUFFICIENT_EVIDENCE",
+    "sourceAssessmentSha256": "22016a793d2e60c3930ecdb1cc6062e24ae96904b7f990b555cebf9d3cb11784",
+    "score": 0.675,
+    "band": "insufficient_evidence",
+    "limitations": [
+      "confidence_below_threshold",
+      "conversations_below_threshold",
+      "leads_below_threshold",
+      "memberships_below_threshold",
+      "recommendation_influence_disabled_pending_future_handoff",
+      "territory_identity_unavailable",
+      "verifiedSessions_below_threshold",
+      "visits_below_threshold"
+    ],
+    "insufficiencyIsRecommendation": false,
+    "predictionClaimed": false,
+    "causalClaimed": false
+  },
+  "changesSincePrevious": {
+    "previousSnapshotId": null,
+    "governedEvidenceChanged": true,
+    "changeBasis": "INITIAL_GOVERNED_SNAPSHOT",
+    "evidenceRecordDelta": 5,
+    "visitDelta": 4,
+    "outcomeDelta": 4,
+    "learningStateChanged": true
+  },
+  "safety": {
+    "readOnly": true,
+    "founderOnly": true,
+    "representativeReadable": false,
+    "recommendationInfluence": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringWeightsChanged": false,
+    "discoveryModeInfluenceChanged": false,
+    "nearbyContextInfluenceChanged": false,
+    "offRouteLearningInfluenceChanged": false,
+    "sourceEvidenceMutationAllowed": false
+  },
+  "snapshotSha256": "52465677d4f833cf30d0fd1353c070535e3b292637751010e8711ab02a4f6f1d"
+}

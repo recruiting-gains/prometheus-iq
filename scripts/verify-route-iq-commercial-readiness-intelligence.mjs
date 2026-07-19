@@ -1,15 +1,20 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import {
   authorizeRouteIqFounderIntelligencePrincipal,
+  buildCanonicalFitnessConnectionDailyIntelligenceSnapshot,
   buildRouteIqDailyIntelligenceSnapshot,
   computeRouteIqGovernedEvidenceHash,
   loadRouteIqCommercialReadinessIntelligenceContract,
+  routeIqCanonicalFounderDailySnapshotPath,
   validateRouteIqCommercialReadinessIntelligenceContract,
   validateRouteIqDailyIntelligenceSnapshot
 } from "../intelligence/route-iq-daily-intelligence-snapshot.mjs";
 
 const fixtureUrl = new URL("../intelligence/fixtures/route-iq-commercial-readiness-daily-snapshot-v1.json", import.meta.url);
+const canonicalArtifactUrl = new URL(`../${routeIqCanonicalFounderDailySnapshotPath}`, import.meta.url);
+const writeCanonicalFromCli = process.argv.includes("--write-canonical");
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -36,7 +41,11 @@ export function buildFixtureDailySnapshot(overrides = {}) {
   });
 }
 
-export function verifyRouteIqCommercialReadinessIntelligence() {
+function sha256Bytes(value) {
+  return createHash("sha256").update(value).digest("hex");
+}
+
+export function verifyRouteIqCommercialReadinessIntelligence(options = {}) {
   const contract = loadRouteIqCommercialReadinessIntelligenceContract();
   const fixture = loadRouteIqCommercialReadinessIntelligenceFixture();
   assert.deepEqual(validateRouteIqCommercialReadinessIntelligenceContract(contract), []);
@@ -86,6 +95,39 @@ export function verifyRouteIqCommercialReadinessIntelligence() {
     principal: {...fixture.principal, role: "representative"}
   }), /founder_role_required/);
 
+  const existingCanonical = existsSync(canonicalArtifactUrl)
+    ? JSON.parse(readFileSync(canonicalArtifactUrl, "utf8"))
+    : null;
+  const explicitWrite = options.writeCanonical === true || writeCanonicalFromCli;
+  const canonicalSnapshot = buildCanonicalFitnessConnectionDailyIntelligenceSnapshot({
+    contract,
+    previousSnapshot: explicitWrite ? null : existingCanonical
+  });
+  assert.deepEqual(validateRouteIqDailyIntelligenceSnapshot(canonicalSnapshot, contract), []);
+  assert.equal(canonicalSnapshot.workspaceId, "fitness_connection");
+  assert.equal(canonicalSnapshot.operatingProfileId, "fitness");
+  assert.equal(canonicalSnapshot.evidenceClassification, "FOUNDER_FIELD_RESEARCH");
+  assert.equal(canonicalSnapshot.evidenceFreshness.snapshotDate, "2026-07-11");
+  assert.equal(canonicalSnapshot.evidenceCollected.totalRecords, 5);
+  assert.deepEqual(canonicalSnapshot.evidenceCollected.byRecordKind, {field_session: 1, visit: 4});
+  assert.equal(canonicalSnapshot.visitAndOutcomeTrends.totals.visits, 4);
+  assert.equal(canonicalSnapshot.visitAndOutcomeTrends.totals.outcomes, 4);
+  assert.equal(canonicalSnapshot.visitAndOutcomeTrends.totals.conversations, 4);
+  assert.equal(canonicalSnapshot.visitAndOutcomeTrends.totals.leads, 3);
+  assert.equal(canonicalSnapshot.confidence.state, "INSUFFICIENT_EVIDENCE");
+  assert.equal(canonicalSnapshot.safety.recommendationInfluence, "OFF");
+  assert.equal(canonicalSnapshot.safety.representativeReadable, false);
+  assert.equal(canonicalSnapshot.evidenceCollected.sourceRecordHashes.includes("a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"), true);
+
+  if (explicitWrite) {
+    mkdirSync(new URL("./", canonicalArtifactUrl), {recursive: true});
+    writeFileSync(canonicalArtifactUrl, `${JSON.stringify(canonicalSnapshot, null, 2)}\n`, {flag: "w"});
+  } else {
+    assert.ok(existingCanonical, "Canonical Founder daily Intelligence snapshot is missing.");
+    assert.deepEqual(existingCanonical, canonicalSnapshot, "Canonical Founder daily Intelligence snapshot is stale.");
+  }
+  const artifactBytes = readFileSync(canonicalArtifactUrl);
+
   return {
     status: "passed",
     batchId: contract.batchId,
@@ -106,6 +148,12 @@ export function verifyRouteIqCommercialReadinessIntelligence() {
     discoveryMode: "advisory_only",
     nearbyContext: "advisory_only",
     offRouteLearning: "active_read_only_observation",
+    canonicalFounderSnapshotPath: routeIqCanonicalFounderDailySnapshotPath,
+    canonicalFounderSnapshotDate: canonicalSnapshot.evidenceFreshness.snapshotDate,
+    canonicalFounderSnapshotEvidenceRecords: canonicalSnapshot.evidenceCollected.totalRecords,
+    canonicalFounderSnapshotSha256: canonicalSnapshot.snapshotSha256,
+    canonicalFounderArtifactFileSha256: sha256Bytes(artifactBytes),
+    canonicalSourceRawSha256: "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a",
     governedInputSha256: snapshot.governedInputSha256,
     snapshotSha256: snapshot.snapshotSha256
   };
@@ -113,5 +161,5 @@ export function verifyRouteIqCommercialReadinessIntelligence() {
 
 const invokedPath = process.argv[1] ? new URL(`file://${process.argv[1]}`).pathname : "";
 if (invokedPath === new URL(import.meta.url).pathname) {
-  console.log(JSON.stringify(verifyRouteIqCommercialReadinessIntelligence(), null, 2));
+  console.log(JSON.stringify(verifyRouteIqCommercialReadinessIntelligence({writeCanonical: writeCanonicalFromCli}), null, 2));
 }

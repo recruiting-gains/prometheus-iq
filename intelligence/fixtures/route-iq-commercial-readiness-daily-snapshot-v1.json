@@ -124,6 +124,7 @@
   ],
   "learningAssessment": {
     "schemaVersion": "route-iq-governed-learning-assessment-v1",
+    "sourceAssessmentSha256": "6666666666666666666666666666666666666666666666666666666666666666",
     "state": "INSUFFICIENT_EVIDENCE",
     "confidenceScore": 0.25,
     "confidenceBand": "insufficient_evidence",

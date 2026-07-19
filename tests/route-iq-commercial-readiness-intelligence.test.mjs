@@ -1,10 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import {
   authorizeRouteIqFounderIntelligencePrincipal,
+  buildCanonicalFitnessConnectionDailyIntelligenceSnapshot,
   buildRouteIqDailyIntelligenceSnapshot,
   computeRouteIqGovernedEvidenceHash,
   loadRouteIqCommercialReadinessIntelligenceContract,
+  projectCanonicalFitnessConnectionDailyIntelligenceInput,
+  routeIqCanonicalFounderDailySnapshotPath,
   validateRouteIqCommercialReadinessIntelligenceContract,
   validateRouteIqDailyIntelligenceSnapshot
 } from "../intelligence/route-iq-daily-intelligence-snapshot.mjs";
@@ -15,6 +19,7 @@ import {
 } from "../scripts/verify-route-iq-commercial-readiness-intelligence.mjs";
 
 const clone = value => JSON.parse(JSON.stringify(value));
+const canonicalArtifactUrl = new URL(`../${routeIqCanonicalFounderDailySnapshotPath}`, import.meta.url);
 
 function assessmentFor(records, context, contract, overrides = {}) {
   const fixture = loadRouteIqCommercialReadinessIntelligenceFixture();
@@ -33,6 +38,10 @@ test("commercial-readiness Intelligence verifier passes", () => {
   assert.equal(result.recommendationInfluence, "OFF");
   assert.equal(result.routeOrderingChanged, false);
   assert.equal(result.routeScoringWeightsChanged, false);
+  assert.equal(result.canonicalFounderSnapshotDate, "2026-07-11");
+  assert.equal(result.canonicalFounderSnapshotEvidenceRecords, 5);
+  assert.match(result.canonicalFounderSnapshotSha256, /^[a-f0-9]{64}$/);
+  assert.match(result.canonicalFounderArtifactFileSha256, /^[a-f0-9]{64}$/);
 });
 
 test("contract keeps Discovery, Nearby Context, and off-route learning non-influential", () => {
@@ -228,4 +237,74 @@ test("snapshot is deeply immutable and representative output remains prohibited"
   assert.equal(snapshot.safety.discoveryModeInfluenceChanged, false);
   assert.equal(snapshot.safety.nearbyContextInfluenceChanged, false);
   assert.equal(snapshot.safety.offRouteLearningInfluenceChanged, false);
+});
+
+test("canonical July 11 Founder snapshot matches its stable checked-in artifact", () => {
+  const artifact = JSON.parse(readFileSync(canonicalArtifactUrl, "utf8"));
+  const regenerated = buildCanonicalFitnessConnectionDailyIntelligenceSnapshot({previousSnapshot: artifact});
+  assert.deepEqual(regenerated, artifact);
+  assert.deepEqual(validateRouteIqDailyIntelligenceSnapshot(artifact), []);
+  assert.equal(artifact.workspaceId, "fitness_connection");
+  assert.equal(artifact.operatingProfileId, "fitness");
+  assert.equal(artifact.evidenceClassification, "FOUNDER_FIELD_RESEARCH");
+  assert.equal(artifact.evidenceFreshness.snapshotDate, "2026-07-11");
+  assert.equal(artifact.evidenceCollected.totalRecords, 5);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.visits, 4);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.outcomes, 4);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.conversations, 4);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.leads, 3);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.memberships, null);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.appointments, null);
+  assert.equal(artifact.visitAndOutcomeTrends.totals.followUps, null);
+  assert.deepEqual(artifact.dataQuality.unavailableMetrics, ["appointments", "followUps", "memberships"]);
+  assert.equal(artifact.confidence.state, "INSUFFICIENT_EVIDENCE");
+  assert.equal(artifact.safety.recommendationInfluence, "OFF");
+  assert.equal(artifact.safety.representativeReadable, false);
+});
+
+test("canonical Founder artifact excludes source names, addresses, notes, contact, GPS, and secrets", () => {
+  const artifactText = readFileSync(canonicalArtifactUrl, "utf8");
+  for (const prohibited of [
+    "Cruz",
+    "cruz",
+    "Galachy Tire Shop",
+    "Exxon mechanic shop",
+    "Texans Auto Repair",
+    "Christian Brothers Automotive",
+    "8774 Almeda",
+    "14300 Gulf",
+    "10326 Blackhawk",
+    "9245 S Sam Houston",
+    "Comeback today",
+    "Business was closed",
+    "gpsAttached",
+    "googlePlaceId",
+    "sourceReport"
+  ]) assert.equal(artifactText.includes(prohibited), false, prohibited);
+});
+
+test("canonical projection uses Data pseudonym and changes only with governed input", () => {
+  const inputs = projectCanonicalFitnessConnectionDailyIntelligenceInput();
+  assert.equal(inputs.businessContext.evidenceClassification, "FOUNDER_FIELD_RESEARCH");
+  assert.equal(inputs.businessContext.sourceOwner, "Prometheus Data");
+  assert.equal(inputs.records.every(record => record.representativeId === "riq_rep_840494a83be97a7bad3c115a"), true);
+  const baseline = buildRouteIqDailyIntelligenceSnapshot(inputs);
+  const repeat = buildRouteIqDailyIntelligenceSnapshot({...inputs, previousSnapshot: baseline});
+  assert.deepEqual(repeat, baseline);
+
+  const changedRecords = clone(inputs.records);
+  const visit = changedRecords.find(record => record.recordKind === "visit");
+  visit.metrics.leads += 1;
+  visit.sourceRecordSha256 = "f".repeat(64);
+  const changedAssessment = clone(inputs.learningAssessment);
+  changedAssessment.sourceEvidenceSha256 = computeRouteIqGovernedEvidenceHash(changedRecords, inputs.businessContext);
+  const changed = buildRouteIqDailyIntelligenceSnapshot({
+    ...inputs,
+    records: changedRecords,
+    learningAssessment: changedAssessment,
+    previousSnapshot: baseline
+  });
+  assert.notEqual(changed.governedEvidenceSha256, baseline.governedEvidenceSha256);
+  assert.notEqual(changed.snapshotSha256, baseline.snapshotSha256);
+  assert.equal(changed.changesSincePrevious.governedEvidenceChanged, true);
 });

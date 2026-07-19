@@ -1,12 +1,19 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import {
+  loadCanonicalArchivedFieldSessionPackages,
+  loadReadOnlyFieldSessionLearningContract
+} from "./read-only-field-session-learning.mjs";
 
 export const routeIqDailyIntelligenceSnapshotVersion = "route-iq-daily-intelligence-snapshot-v1";
 export const routeIqDailyEvidenceVersion = "route-iq-governed-daily-evidence-v1";
 export const routeIqDailyLearningAssessmentVersion = "route-iq-governed-learning-assessment-v1";
 export const routeIqBusinessIntelligenceContextVersion = "route-iq-business-intelligence-context-v1";
+export const routeIqCanonicalFounderDailySnapshotPath = "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json";
 
 const contractUrl = new URL("./contracts/route-iq-commercial-readiness-intelligence-v1.json", import.meta.url);
+const canonicalWorkspaceRegistryUrl = new URL("../data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json", import.meta.url);
+const canonicalLearningSnapshotUrl = new URL("./artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json", import.meta.url);
 const strictOpaqueIdPattern = /^[a-z0-9][a-z0-9._:-]{2,159}$/;
 const sha256Pattern = /^[a-f0-9]{64}$/;
 const allowedRecordKinds = new Set(["field_session", "visit", "outcome", "learning_observation"]);
@@ -115,6 +122,12 @@ function normalizeMetrics(metrics = {}) {
   return normalized;
 }
 
+function normalizeUnavailableMetrics(values = []) {
+  const normalized = normalizeStringArray(values, "unavailableMetrics");
+  if (normalized.some(value => !metricNames.includes(value))) fail("invalid_unavailable_metric");
+  return normalized;
+}
+
 function normalizeEvidenceRecord(record, context) {
   if (!record || typeof record !== "object" || Array.isArray(record)) fail("invalid_evidence_record");
   assertNoForbiddenInput(record, "evidenceRecord");
@@ -151,6 +164,7 @@ function normalizeEvidenceRecord(record, context) {
     qualityStatus: record.qualityStatus,
     freshnessStatus: record.freshnessStatus,
     metrics: normalizeMetrics(record.metrics),
+    unavailableMetrics: normalizeUnavailableMetrics(record.unavailableMetrics),
     qualityReasons: normalizeStringArray(record.qualityReasons || [], "qualityReasons"),
     sourceVersions: sortObject(record.sourceVersions || {})
   };
@@ -195,6 +209,7 @@ function normalizeLearningAssessment(assessment, governedEvidenceSha256) {
   assertNoForbiddenInput(assessment, "learningAssessment");
   if (assessment.schemaVersion !== routeIqDailyLearningAssessmentVersion) fail("learning_assessment_schema_mismatch");
   if (assessment.sourceEvidenceSha256 !== governedEvidenceSha256) fail("learning_assessment_evidence_hash_mismatch");
+  if (!sha256Pattern.test(String(assessment.sourceAssessmentSha256 || ""))) fail("learning_assessment_source_hash_invalid");
   if (!allowedLearningStates.has(assessment.state)) fail("learning_assessment_state_invalid");
   if (assessment.recommendationInfluence !== "OFF") fail("recommendation_influence_must_remain_off");
   for (const flag of ["advisoryOnly", "readOnly"]) {
@@ -214,6 +229,7 @@ function normalizeLearningAssessment(assessment, governedEvidenceSha256) {
   return {
     schemaVersion: routeIqDailyLearningAssessmentVersion,
     sourceEvidenceSha256: governedEvidenceSha256,
+    sourceAssessmentSha256: assessment.sourceAssessmentSha256,
     state: assessment.state,
     confidenceScore: score === null ? null : Number(score),
     confidenceBand: String(assessment.confidenceBand || "").trim(),
@@ -230,9 +246,13 @@ function normalizeLearningAssessment(assessment, governedEvidenceSha256) {
 }
 
 function sumMetrics(records) {
-  const totals = Object.fromEntries(metricNames.map(name => [name, 0]));
-  for (const record of records) {
-    for (const name of metricNames) totals[name] += record.metrics[name];
+  const metricRecords = records.filter(record => record.recordKind === "visit" || record.recordKind === "outcome");
+  const totals = {};
+  for (const name of metricNames) {
+    const available = metricRecords.filter(record => !record.unavailableMetrics.includes(name));
+    totals[name] = available.length
+      ? available.reduce((sum, record) => sum + record.metrics[name], 0)
+      : null;
   }
   return totals;
 }
@@ -304,6 +324,217 @@ function assertPreviousSnapshot(previousSnapshot, context) {
 
 export function loadRouteIqCommercialReadinessIntelligenceContract() {
   return JSON.parse(readFileSync(contractUrl, "utf8"));
+}
+
+function readJson(url) {
+  return JSON.parse(readFileSync(url, "utf8"));
+}
+
+function evidenceIdentity(kind, value) {
+  return `evidence:${kind}:${computeRouteIqIntelligenceSha256(value).slice(0, 24)}`;
+}
+
+function sha256File(url) {
+  return createHash("sha256").update(readFileSync(url)).digest("hex");
+}
+
+function assertCanonicalSourceArtifactHashes() {
+  const sourceContract = loadReadOnlyFieldSessionLearningContract();
+  for (const [name, path] of Object.entries(sourceContract.canonicalSourceArtifacts || {})) {
+    const expected = sourceContract.canonicalSourceSha256?.[name];
+    if (!sha256Pattern.test(String(expected || ""))
+      || sha256File(new URL(`../${path}`, import.meta.url)) !== expected) {
+      fail("canonical_source_artifact_hash_mismatch", {name});
+    }
+  }
+}
+
+function canonicalFitnessWorkspace(registry) {
+  if (registry?.registryVersion !== "route-iq-commercial-workspace-registry-v1") fail("canonical_workspace_registry_version_invalid");
+  const workspace = registry?.workspaces?.find(candidate => candidate.workspaceId === "fitness_connection");
+  if (!workspace) fail("canonical_fitness_workspace_missing");
+  if (workspace.operatingProfileId !== "fitness"
+    || workspace.business?.relationshipClassification !== "FOUNDER_FIELD_RESEARCH"
+    || workspace.evidenceGovernance?.classification !== "FOUNDER_FIELD_RESEARCH") {
+    fail("canonical_fitness_workspace_governance_invalid");
+  }
+  return workspace;
+}
+
+function canonicalFounderIdentity(workspace, contract) {
+  const user = workspace.users?.find(candidate => candidate.representativeId === "cruz");
+  const mapping = contract.founderAccess.authorizedMappings[0];
+  if (!user
+    || user.identityMappingStatus !== "exact_authenticated_identity_mapped"
+    || user.authenticatedPrincipalId !== mapping.immutablePrincipalId
+    || user.founderIntelligenceEligibility !== true) {
+    fail("canonical_founder_identity_mismatch");
+  }
+  return user;
+}
+
+function assertCanonicalArchivePackage(archivePackage) {
+  const manifest = archivePackage?.manifest;
+  const verified = archivePackage?.verifiedFieldSession;
+  const metrics = archivePackage?.calculatedMetrics;
+  if (manifest?.sessionId !== "route-iq-field-session-fitness-connection-fitness-cruz-2026-07-11"
+    || manifest.workspaceId !== "fitness_connection"
+    || manifest.operatingProfileId !== "fitness"
+    || manifest.fieldSessionDate !== "2026-07-11"
+    || manifest.status !== "archived"
+    || manifest.sourceFinality !== "founder_designated_final"
+    || manifest.rawSha256 !== "a62ec0643d61c8280e0e23dcd8616894a30a421dc9150281fb7cad334f5c0e6a"
+    || verified?.sourceProvenance?.rawSha256 !== manifest.rawSha256
+    || metrics?.calculationProvenance?.sourceRawSha256 !== manifest.rawSha256
+    || !Array.isArray(verified?.verifiedFields?.completedVisits)
+    || verified.verifiedFields.completedVisits.length !== 4) {
+    fail("canonical_july_11_archive_invalid");
+  }
+}
+
+function projectCanonicalVisitRecord(visit, context) {
+  const report = visit?.sourceReport;
+  if (!visit?.visitId || !isIsoTimestamp(report?.timestamp)) fail("canonical_visit_invalid");
+  const outcomeObserved = typeof report.outcome === "string" && report.outcome.trim().length > 0;
+  return {
+    schemaVersion: routeIqDailyEvidenceVersion,
+    evidenceId: evidenceIdentity("visit", {sessionId: context.sessionId, visitId: visit.visitId}),
+    recordKind: "visit",
+    workspaceId: context.workspaceId,
+    operatingProfileId: context.operatingProfileId,
+    representativeId: context.representativePseudonym,
+    locationId: null,
+    territoryId: null,
+    occurredAt: report.timestamp,
+    sourceRecordSha256: computeRouteIqIntelligenceSha256(visit),
+    authorized: true,
+    excludedFromAnalytics: false,
+    qualityStatus: "VERIFIED",
+    freshnessStatus: "UNKNOWN",
+    metrics: {
+      visits: 1,
+      outcomes: outcomeObserved ? 1 : 0,
+      conversations: Number(report.conversations || 0),
+      leads: Number(report.leads || 0),
+      appointments: 0,
+      memberships: 0,
+      units: Number(report.units || 0),
+      followUps: 0
+    },
+    unavailableMetrics: ["appointments", "followUps", "memberships"],
+    qualityReasons: [],
+    sourceVersions: {
+      archive: "route-iq-field-session-archive-v1",
+      projection: "route-iq-fitness-founder-research-projection-v1"
+    }
+  };
+}
+
+export function projectCanonicalFitnessConnectionDailyIntelligenceInput(options = {}) {
+  const contract = options.contract || loadRouteIqCommercialReadinessIntelligenceContract();
+  assertCanonicalSourceArtifactHashes();
+  const registry = options.workspaceRegistry || readJson(canonicalWorkspaceRegistryUrl);
+  const learningSnapshot = options.learningSnapshot || readJson(canonicalLearningSnapshotUrl);
+  const archivePackages = options.archivePackages || loadCanonicalArchivedFieldSessionPackages();
+  if (!Array.isArray(archivePackages) || archivePackages.length !== 1) fail("canonical_archive_package_count_invalid");
+
+  const workspace = canonicalFitnessWorkspace(registry);
+  const founder = canonicalFounderIdentity(workspace, contract);
+  const archivePackage = archivePackages[0];
+  assertCanonicalArchivePackage(archivePackage);
+  const manifest = archivePackage.manifest;
+  const verified = archivePackage.verifiedFieldSession;
+  const metrics = archivePackage.calculatedMetrics;
+  const context = {
+    sessionId: manifest.sessionId,
+    workspaceId: workspace.workspaceId,
+    operatingProfileId: workspace.operatingProfileId,
+    representativePseudonym: founder.analysisPseudonym
+  };
+  const businessContext = {
+    schemaVersion: routeIqBusinessIntelligenceContextVersion,
+    sourceOwner: "Prometheus Data",
+    sourceMode: "server_supplied_canonical_configuration",
+    callerSupplied: false,
+    workspaceId: workspace.workspaceId,
+    operatingProfileId: workspace.operatingProfileId,
+    configurationVersion: registry.registryVersion,
+    canonicalConfigurationSha256: computeRouteIqIntelligenceSha256(workspace),
+    evidenceClassification: workspace.evidenceGovernance.classification,
+    classificationAuthority: "Prometheus Data",
+    retentionPolicyVersion: "route-iq-founder-retention-18-month-v1"
+  };
+  const sessionRecord = {
+    schemaVersion: routeIqDailyEvidenceVersion,
+    evidenceId: evidenceIdentity("session", manifest.sessionId),
+    recordKind: "field_session",
+    workspaceId: context.workspaceId,
+    operatingProfileId: context.operatingProfileId,
+    representativeId: context.representativePseudonym,
+    locationId: null,
+    territoryId: null,
+    occurredAt: metrics.calculations.lastLoggedVisitAt,
+    sourceRecordSha256: manifest.rawSha256,
+    authorized: true,
+    excludedFromAnalytics: false,
+    qualityStatus: "VERIFIED",
+    freshnessStatus: "UNKNOWN",
+    metrics: {},
+    unavailableMetrics: metricNames,
+    qualityReasons: [],
+    sourceVersions: {
+      archive: manifest.schemaVersion,
+      formulas: metrics.calculationProvenance.formulasVersion,
+      projection: "route-iq-fitness-founder-research-projection-v1"
+    }
+  };
+  const records = [
+    sessionRecord,
+    ...verified.verifiedFields.completedVisits.map(visit => projectCanonicalVisitRecord(visit, context))
+  ];
+  const governedEvidenceSha256 = computeRouteIqGovernedEvidenceHash(records, businessContext, contract);
+  const confidenceRecords = Array.isArray(learningSnapshot.learningConfidence) ? learningSnapshot.learningConfidence : [];
+  const confidenceScores = confidenceRecords.map(item => Number(item.score)).filter(Number.isFinite);
+  const thresholdQualifiedConclusionCount = Number(learningSnapshot.recommendationSafety?.thresholdQualifiedConclusionCount || 0);
+  const learningAssessment = {
+    schemaVersion: routeIqDailyLearningAssessmentVersion,
+    sourceEvidenceSha256: governedEvidenceSha256,
+    sourceAssessmentSha256: computeRouteIqIntelligenceSha256(learningSnapshot),
+    state: thresholdQualifiedConclusionCount > 0 ? "OBSERVING" : "INSUFFICIENT_EVIDENCE",
+    confidenceScore: confidenceScores.length ? Math.max(...confidenceScores) : null,
+    confidenceBand: thresholdQualifiedConclusionCount > 0 ? "observing" : "insufficient_evidence",
+    thresholdQualifiedConclusionCount,
+    limitations: [...new Set(confidenceRecords.flatMap(item => item.limitingFactors || []))].sort(),
+    advisoryOnly: true,
+    readOnly: true,
+    recommendationInfluence: "OFF",
+    routeOrderingChanged: false,
+    routeScoringWeightsChanged: false,
+    predictionClaimed: false,
+    causalClaimed: false
+  };
+  const mapping = contract.founderAccess.authorizedMappings[0];
+  const principal = {
+    identityContextSource: contract.founderAccess.identityContextSource,
+    authenticationAuthority: contract.founderAccess.authenticationAuthority,
+    authenticated: true,
+    callerSupplied: false,
+    role: "founder",
+    mappingId: mapping.mappingId,
+    immutablePrincipalId: mapping.immutablePrincipalId,
+    mappingStatus: mapping.status
+  };
+  return deepFreeze({principal, businessContext, records, learningAssessment});
+}
+
+export function buildCanonicalFitnessConnectionDailyIntelligenceSnapshot(options = {}) {
+  const contract = options.contract || loadRouteIqCommercialReadinessIntelligenceContract();
+  const inputs = projectCanonicalFitnessConnectionDailyIntelligenceInput({...options, contract});
+  return buildRouteIqDailyIntelligenceSnapshot({
+    ...inputs,
+    previousSnapshot: options.previousSnapshot || null,
+    contract
+  });
 }
 
 export function authorizeRouteIqFounderIntelligencePrincipal(principal, contract = loadRouteIqCommercialReadinessIntelligenceContract()) {
@@ -390,6 +621,9 @@ export function buildRouteIqDailyIntelligenceSnapshot({
   const dataQuality = {
     status: qualityCounts.PARTIAL || qualityCounts.UNKNOWN ? "REVIEW_REQUIRED" : "VERIFIED",
     byStatus: qualityCounts,
+    unavailableMetrics: [...new Set(governed.records
+      .filter(record => record.recordKind === "visit" || record.recordKind === "outcome")
+      .flatMap(record => record.unavailableMetrics))].sort(),
     exclusionRecordsAdmitted: 0,
     rawNotesConsumed: false,
     contactInformationConsumed: false,
@@ -414,6 +648,7 @@ export function buildRouteIqDailyIntelligenceSnapshot({
   };
   const confidence = {
     state: assessment.state,
+    sourceAssessmentSha256: assessment.sourceAssessmentSha256,
     score: assessment.confidenceScore,
     band: assessment.confidenceBand,
     limitations: assessment.limitations,
@@ -429,6 +664,7 @@ export function buildRouteIqDailyIntelligenceSnapshot({
     workspaceId: governed.context.workspaceId,
     operatingProfileId: governed.context.operatingProfileId,
     businessConfigurationVersion: governed.context.configurationVersion,
+    businessConfigurationSha256: governed.context.canonicalConfigurationSha256,
     evidenceClassification: governed.context.evidenceClassification,
     classificationAuthority: governed.context.classificationAuthority,
     retentionPolicyVersion: governed.context.retentionPolicyVersion,
@@ -483,7 +719,13 @@ export function validateRouteIqCommercialReadinessIntelligenceContract(contract 
   requireValue(contract?.founderAccess?.authorizedMappings?.[0]?.immutablePrincipalId === "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4", "cruz_canonical_principal_invalid");
   requireValue(contract?.founderAccess?.pendingMappings?.some(mapping => mapping.person === "anthony" && mapping.accessAllowed === false), "anthony_pending_mapping_missing");
   requireValue(contract?.snapshotContract?.wallClockAllowed === false, "snapshot_wall_clock_allowed");
+  requireValue(contract?.snapshotContract?.unavailableMetricsRemainNull === true, "snapshot_unavailable_metric_boundary_invalid");
   requireValue(contract?.snapshotContract?.unchangedEvidenceReturnsPriorSnapshotByteEquivalent === true, "unchanged_snapshot_not_stable");
+  requireValue(contract?.canonicalFounderSnapshot?.stableArtifactPath === routeIqCanonicalFounderDailySnapshotPath, "canonical_snapshot_path_invalid");
+  requireValue(contract?.canonicalFounderSnapshot?.evidenceClassification === "FOUNDER_FIELD_RESEARCH", "canonical_snapshot_classification_invalid");
+  requireValue(contract?.canonicalFounderSnapshot?.infrastructureConsumptionMode === "authenticated_founder_only_read_only_static_artifact", "canonical_snapshot_consumer_boundary_invalid");
+  requireValue(contract?.canonicalFounderSnapshot?.representativeEndpointAllowed === false, "canonical_snapshot_representative_endpoint_allowed");
+  requireValue(contract?.canonicalFounderSnapshot?.serverMutationAllowed === false, "canonical_snapshot_server_mutation_allowed");
   requireValue(contract?.learningBoundary?.recommendationInfluence === "OFF", "recommendation_influence_enabled");
   requireValue(contract?.safety?.routeOrderingChanged === false, "route_ordering_changed");
   requireValue(contract?.safety?.routeScoringWeightsChanged === false, "route_scoring_changed");
@@ -514,11 +756,13 @@ export function validateRouteIqDailyIntelligenceSnapshot(snapshot, contract = lo
   requireValue(snapshot?.audience === "founder_only", "snapshot_audience_invalid");
   requireValue(strictOpaqueIdPattern.test(String(snapshot?.workspaceId || "")), "snapshot_workspace_invalid");
   requireValue(strictOpaqueIdPattern.test(String(snapshot?.operatingProfileId || "")), "snapshot_profile_invalid");
+  requireValue(sha256Pattern.test(String(snapshot?.businessConfigurationSha256 || "")), "snapshot_business_configuration_hash_invalid");
   requireValue(isIsoTimestamp(snapshot?.generatedFromEvidenceAt), "snapshot_evidence_timestamp_invalid");
   requireValue(sha256Pattern.test(String(snapshot?.governedEvidenceSha256 || "")), "snapshot_evidence_hash_invalid");
   requireValue(sha256Pattern.test(String(snapshot?.governedInputSha256 || "")), "snapshot_input_hash_invalid");
   for (const section of contract?.snapshotContract?.requiredSections || []) requireValue(Boolean(snapshot?.[section]), `snapshot_section_missing:${section}`);
   requireValue(allowedLearningStates.has(snapshot?.confidence?.state), "snapshot_confidence_state_invalid");
+  requireValue(sha256Pattern.test(String(snapshot?.confidence?.sourceAssessmentSha256 || "")), "snapshot_learning_source_hash_invalid");
   requireValue(snapshot?.confidence?.insufficiencyIsRecommendation === false, "snapshot_insufficiency_presented_as_recommendation");
   requireValue(snapshot?.confidence?.predictionClaimed === false, "snapshot_prediction_claimed");
   requireValue(snapshot?.confidence?.causalClaimed === false, "snapshot_causal_claimed");

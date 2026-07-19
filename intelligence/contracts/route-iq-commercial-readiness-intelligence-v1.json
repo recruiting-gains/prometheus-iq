@@ -74,11 +74,26 @@
     "canonicalHashAlgorithm": "sha256",
     "unchangedEvidenceReturnsPriorSnapshotByteEquivalent": true,
     "rawNotesAllowed": false,
+    "unavailableMetricsRemainNull": true,
     "contactInformationAllowed": false,
     "businessNamesOrAddressesAllowed": false,
     "preciseLocationTrailsAllowed": false,
     "secretsAllowed": false,
     "sourceMutationAllowed": false
+  },
+  "canonicalFounderSnapshot": {
+    "stableArtifactPath": "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+    "workspaceId": "fitness_connection",
+    "operatingProfileId": "fitness",
+    "fieldSessionDate": "2026-07-11",
+    "evidenceClassification": "FOUNDER_FIELD_RESEARCH",
+    "sourceWorkspaceRegistryPath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+    "sourceArchiveContractPath": "intelligence/contracts/read-only-field-session-learning-contracts.json",
+    "sourceLearningSnapshotPath": "intelligence/artifacts/read-only-field-session-learning/fitness_connection/cruz/learning-snapshot-v1.json",
+    "infrastructureConsumptionMode": "authenticated_founder_only_read_only_static_artifact",
+    "representativeEndpointAllowed": false,
+    "serverMutationAllowed": false,
+    "generationMode": "deterministic_explicit_write_read_only_check_by_default"
   },
   "learningBoundary": {
     "allowedStates": [

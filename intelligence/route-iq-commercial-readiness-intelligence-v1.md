@@ -16,6 +16,12 @@ Records are normalized and sorted by timestamp, kind, and opaque identity. Objec
 
 The snapshot reports evidence counts, intrinsic freshness, data quality, daily visit and outcome trends, learning coverage, confidence or insufficiency, and changes from a prior governed snapshot. Insufficiency is explicitly not a recommendation or prediction.
 
+## Canonical Founder snapshot
+
+The stable read-only artifact is `intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json`. It projects the hash-pinned July 11 canonical field-session package through Data's current Fitness Connection `FOUNDER_FIELD_RESEARCH` workspace configuration. The projection contains only opaque evidence identities, the Data analysis pseudonym, timestamps, aggregate governed metrics, source hashes, quality states, and version lineage. Business and person names, addresses, raw notes, contact fields, GPS data, and secrets are never emitted. Metrics unavailable in the source remain `null` and are listed explicitly rather than inferred.
+
+`node scripts/verify-route-iq-commercial-readiness-intelligence.mjs` is read-only and fails if the artifact is stale. Intelligence owners may explicitly regenerate it with `--write-canonical` only after governed source evidence changes. Identical governed evidence returns the checked-in snapshot byte-equivalent. The stable path is suitable for a future authenticated Founder-only GET/HEAD endpoint; this batch adds no endpoint, representative access, deployment, or production activation.
+
 ## Access and safety
 
 Access requires an authenticated, server-derived, immutable principal mapping. Prometheus Data's `data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json` is the canonical identity registry, and Intelligence requires exact cross-consumer equality with Cruz's governed `riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4` identity. The current allowlist contains only mapping `route-iq-founder-access-cruz-v1`. Display names and representative roles cannot authorize access. Anthony remains denied until a separately secured authenticated identity mapping exists in that Data registry.
