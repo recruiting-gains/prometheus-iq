@@ -37,8 +37,8 @@ export const defaultPaths = {
   canonicalArtifactRegistry: "overwatch/artifact-contracts/canonical-artifact-registry.json"
 };
 
-const expectedRuntimeFileCount = 32;
-const expectedDashboardFetchCount = 9;
+const expectedRuntimeFileCount = 37;
+const expectedDashboardFetchCount = 10;
 const christianBrothersPlaceId = "ChIJiduac7LCQIYR-sGBtIAjKR0";
 
 const dashboardCategories = new Set([
