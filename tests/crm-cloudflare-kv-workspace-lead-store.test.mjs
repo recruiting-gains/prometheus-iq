@@ -21,7 +21,6 @@ import {
 import {
   createSharedLeadIntakeSubmission
 } from "../workers/infrastructure/shared-lead-intake-pipeline.js";
-import worker from "../workers/prometheus-iq-worker.js";
 
 function kvBinding() {
   const data = new Map();
@@ -203,50 +202,4 @@ test("production CRM adapter keeps Smoothie Depot runtime candidate persistence 
   assert.equal(result.status, "governance_blocked");
   assert.equal(result.code, "crm_workspace_runtime_governance_blocked");
   assert.equal(binding.data.size, 0);
-});
-
-test("production Worker binds Fitness Connection intake to CRM KV and reports missing binding failures", async () => {
-  const sharedStore = kvBinding();
-  const crmStore = kvBinding();
-  const request = (workspaceId = "fitness_connection") => new Request("https://prometheusrouteiq.com/api/partner-intake", {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json"
-    },
-    body: JSON.stringify(leadInput(workspaceId))
-  });
-
-  const persistedResponse = await worker.fetch(request(), {
-    SHARED_LEAD_INTAKE_STORE: sharedStore,
-    CRM_WORKSPACE_LEAD_STORE: crmStore
-  });
-  assert.equal(persistedResponse.status, 201);
-  assert.equal(persistedResponse.headers.get("X-Prometheus-CRM-Persistence"), "persisted");
-  assert.equal(crmStore.data.size, 3);
-
-  const smoothieCrmStore = kvBinding();
-  const smoothieResponse = await worker.fetch(request("smoothie_depot"), {
-    SHARED_LEAD_INTAKE_STORE: kvBinding(),
-    CRM_WORKSPACE_LEAD_STORE: smoothieCrmStore
-  });
-  assert.equal(smoothieResponse.status, 201);
-  assert.equal(smoothieResponse.headers.get("X-Prometheus-CRM-Persistence"), "governance_blocked");
-  assert.equal(smoothieCrmStore.data.size, 0);
-
-  const originalConsoleError = console.error;
-  console.error = () => {};
-  let missingBindingResponse;
-  try {
-    missingBindingResponse = await worker.fetch(request(), {
-      SHARED_LEAD_INTAKE_STORE: kvBinding()
-    });
-  } finally {
-    console.error = originalConsoleError;
-  }
-  const missingBindingBody = await missingBindingResponse.json();
-  assert.equal(missingBindingResponse.status, 503);
-  assert.equal(missingBindingResponse.headers.get("X-Prometheus-CRM-Persistence"), "failed");
-  assert.equal(missingBindingBody.code, "crm_workspace_lead_store_binding_missing");
-  assert.equal(missingBindingBody.infrastructurePersisted, true);
 });

@@ -59,10 +59,9 @@ function readJsonc(path) {
   return JSON.parse(stripJsonComments(read(path)));
 }
 
-const configs = [
-  readJsonc("wrangler.jsonc"),
-  readJsonc("wrangler.prometheusrouteiq-website.jsonc")
-];
+const privateWorkerConfig = readJsonc("wrangler.jsonc");
+const websiteWorkerConfig = readJsonc("wrangler.prometheusrouteiq-website.jsonc");
+const configs = [privateWorkerConfig, websiteWorkerConfig];
 for (const config of configs) {
   const crmBinding = config.kv_namespaces.find(binding => binding.binding === crmWorkspaceLeadStoreBinding);
   const infrastructureBinding = config.kv_namespaces.find(binding => binding.binding === "SHARED_LEAD_INTAKE_STORE");
@@ -85,9 +84,39 @@ assert.equal(smoothiePlanning.workspaceIsolation.runtimeCandidateRecordsAllowed,
 
 const worker = read("workers/prometheus-iq-worker.js");
 const intakePipeline = read("workers/infrastructure/shared-lead-intake-pipeline.js");
-assert.ok(worker.includes("persistWorkspaceLeadIntakeWithProductionStore"), "Production Worker must compose the CRM persistence consumer.");
-assert.ok(worker.includes('"X-Prometheus-CRM-Persistence"'), "Production Worker must expose safe CRM persistence status metadata.");
-assert.ok(intakePipeline.includes("record: result.record"), "Infrastructure handler must pass the prepared record only to the Worker composition boundary.");
+const routeIqRequestContract = JSON.parse(read("crm/route-iq-request-crm-contract-v1.json"));
+const routeIqRuntimeContract = JSON.parse(read("workers/infrastructure/route-iq-request-crm-runtime-v1.json"));
+const routeIqCoordinatorBinding = websiteWorkerConfig.durable_objects?.bindings?.find(
+  binding => binding.name === routeIqRuntimeContract.storage.binding
+);
+const routeIqCoordinatorMigration = websiteWorkerConfig.migrations?.find(
+  migration => migration.tag === routeIqRuntimeContract.storage.migrationTag
+);
+
+assert.equal(routeIqRequestContract.owner, "Prometheus CRM");
+assert.equal(routeIqRequestContract.workspace.workspaceId, routeIqRuntimeContract.publicIntake.workspaceId);
+assert.equal(routeIqRequestContract.workspace.operatingProfileId, routeIqRuntimeContract.publicIntake.operatingProfileId);
+assert.equal(routeIqRuntimeContract.publicIntake.path, "/api/partner-intake");
+assert.equal(routeIqRuntimeContract.publicIntake.legacyFitnessRoutingActive, false);
+assert.equal(routeIqRuntimeContract.publicIntake.legacySmoothieRoutingActive, false);
+assert.equal(routeIqRuntimeContract.boundaries.prospectiveCollection, "OFF");
+assert.equal(routeIqRuntimeContract.boundaries.activeCohorts, 0);
+assert.equal(routeIqRuntimeContract.boundaries.recommendationInfluence, "OFF");
+assert.ok(worker.includes("handleRouteIqRequestCrmRuntimeRequest"), "Production Worker must compose the Route IQ CRM runtime consumer.");
+assert.ok(worker.includes("isRouteIqRequestCrmPath"), "Production Worker must route only the governed Route IQ CRM paths.");
+assert.ok(worker.includes("RouteIqRequestCrmCoordinator"), "Production Worker must export the Route IQ CRM coordinator.");
+assert.equal(routeIqCoordinatorBinding?.class_name, routeIqRuntimeContract.storage.className, "Website Worker CRM coordinator binding mismatch.");
+assert.equal(
+  routeIqCoordinatorMigration?.new_sqlite_classes?.includes(routeIqRuntimeContract.storage.className),
+  true,
+  "Website Worker must declare the Route IQ CRM SQLite migration."
+);
+assert.equal(
+  privateWorkerConfig.durable_objects?.bindings?.some(binding => binding.name === routeIqRuntimeContract.storage.binding),
+  false,
+  "Private Worker must not receive the public Website CRM coordinator binding."
+);
+assert.ok(intakePipeline.includes("record: result.record"), "Legacy Infrastructure handoff must preserve the prepared-record boundary.");
 
 const bindingStatus = validateCloudflareKvCrmWorkspaceLeadStoreBinding({
   [crmWorkspaceLeadStoreBinding]: {
@@ -98,4 +127,4 @@ const bindingStatus = validateCloudflareKvCrmWorkspaceLeadStoreBinding({
 assert.equal(bindingStatus.ok, true);
 assert.equal(bindingStatus.bindingName, crmWorkspaceLeadStoreBinding);
 
-console.log("CRM production store validation passed: Cloudflare KV adapter, isolated bindings, handoff compatibility, Worker composition, and runtime governance are valid.");
+console.log("CRM production store validation passed: legacy KV isolation and the active Route IQ SQLite Durable Object composition are valid.");
