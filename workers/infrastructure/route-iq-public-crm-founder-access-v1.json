@@ -1,0 +1,84 @@
+{
+  "version": "route-iq-public-crm-founder-access-v1",
+  "batchId": "BATCH-20260719-004",
+  "owner": "Prometheus Infrastructure",
+  "implementationStatus": "SOURCE_CONTROLS_IMPLEMENTED_NOT_APPLIED",
+  "application": {
+    "name": "Route IQ Founder CRM",
+    "type": "self_hosted",
+    "domain": "prometheusrouteiq.com/api/partner-intake/founder/*",
+    "sessionDuration": "1h",
+    "appLauncherVisible": false,
+    "allowAuthenticateViaWarp": false,
+    "allowIframe": false,
+    "autoRedirectToIdentity": true,
+    "skipInterstitial": false,
+    "allowedIdentityProviderCount": 1,
+    "identityProviderIdStoredInSource": false,
+    "audienceStoredInSource": false
+  },
+  "policy": {
+    "name": "Route IQ Founder CRM - Cruz Only",
+    "decision": "allow",
+    "precedence": 1,
+    "include": "one_exact_founder_email_verified_by_the_selected_identity_provider",
+    "require": "one_exact_identity_provider_id",
+    "emailStoredInSource": false,
+    "identityProviderIdStoredInSource": false,
+    "bypassAllowed": false,
+    "everyoneAllowed": false,
+    "emailDomainWildcardAllowed": false,
+    "displayNameAllowed": false,
+    "serviceTokenAllowed": false
+  },
+  "httpBoundary": {
+    "publicWebsiteProtected": false,
+    "publicIntake": {
+      "path": "/api/partner-intake",
+      "method": "POST",
+      "cloudflareAccessRequired": false
+    },
+    "founderEndpoints": {
+      "applicationPath": "/api/partner-intake/founder/*",
+      "methods": [
+        "GET"
+      ],
+      "cloudflareAccessRequired": true
+    }
+  },
+  "principalCapture": {
+    "founderAttended": true,
+    "cloudflaredBrowserAuthentication": true,
+    "jwtSignatureVerificationRequired": true,
+    "issuerVerificationRequired": true,
+    "audienceVerificationRequired": true,
+    "emailVerificationRequired": true,
+    "immutableSubjectClaim": "sub",
+    "storedPrincipalValue": "sha256_of_verified_sub_only",
+    "rawJwtPersisted": false,
+    "rawSubjectPersisted": false,
+    "credentialOutputAllowed": false
+  },
+  "workerSettings": {
+    "storage": "protected_github_environment_secrets",
+    "names": [
+      "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+      "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+      "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+    ],
+    "valuesStoredInSource": false,
+    "appliedWithCandidateDeployment": true,
+    "canModifyLiveVersionWithoutNewVersion": false
+  },
+  "boundaries": {
+    "cloudflareMutationPerformed": false,
+    "githubMutationPerformed": false,
+    "deploymentPerformed": false,
+    "productionDataMutationPerformed": false,
+    "productionCrmRequestSubmitted": false,
+    "productionNotificationSent": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  }
+}

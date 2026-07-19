@@ -1,0 +1,81 @@
+{
+  "contractVersion": "github-actions-founder-triggered-public-worker-deployment-v1",
+  "batchId": "BATCH-20260719-004",
+  "owner": "Prometheus Infrastructure",
+  "implementationStatus": "SOURCE_CONTROLS_IMPLEMENTED_NOT_EXECUTED",
+  "releaseWiringOwner": "Prometheus Overwatch",
+  "target": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "branch": "main",
+    "publicWorker": "prometheusrouteiq-website",
+    "privateWorker": "prometheus-iq",
+    "privateWorkerDeploymentAllowed": false,
+    "publicConfig": "wrangler.prometheusrouteiq-website.jsonc",
+    "nameOverrideAllowed": false
+  },
+  "workflow": {
+    "name": "Deploy Prometheus Public Worker",
+    "path": ".github/workflows/deploy-prometheus-public-worker.yml",
+    "trigger": "workflow_dispatch",
+    "automaticTriggersAllowed": false,
+    "firstRunAttemptOnly": true,
+    "concurrencyGroup": "deploy-prometheus-public-worker",
+    "cancelInProgress": false,
+    "protectedEnvironment": "prometheus-public-worker-production",
+    "contentsPermission": "read",
+    "preflightReadsSecrets": false,
+    "deploymentAttempts": 1
+  },
+  "founderAuthorization": {
+    "actor": "PrometheusRouteIQ",
+    "triggeringActor": "PrometheusRouteIQ",
+    "exactPhrase": "I AUTHORIZE THIS EXACT PROMETHEUS PUBLIC WORKER DEPLOYMENT",
+    "requiredInputs": [
+      "approved_commit",
+      "approved_tree",
+      "batch_id",
+      "current_public_version",
+      "current_private_version",
+      "rollback_artifact_sha256",
+      "founder_authorization"
+    ],
+    "rerunAllowed": false
+  },
+  "cloudflare": {
+    "versionsCheckedBeforeMutation": [
+      "prometheusrouteiq-website",
+      "prometheus-iq"
+    ],
+    "publicVersionMustMatchInput": true,
+    "privateVersionMustMatchInput": true,
+    "publicTrafficRequired": 100,
+    "privateTrafficRequired": 100,
+    "privateVersionMustRemainUnchanged": true,
+    "keepVars": true,
+    "existingSecretsPreserved": true,
+    "existingBindingsInventoriedBeforeMutation": true,
+    "unknownUnpreservableBindingFailsBeforeMutation": true,
+    "crmMigrationTag": "route-iq-request-crm-sqlite-v1",
+    "crmBinding": "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+    "crmClass": "RouteIqRequestCrmCoordinator",
+    "deletedClassesAllowed": false
+  },
+  "smoke": {
+    "methods": [
+      "GET",
+      "HEAD"
+    ],
+    "requestBodiesAllowed": false,
+    "crmPostAllowed": false,
+    "productionRequestSubmissionAllowed": false,
+    "productionNotificationAllowed": false
+  },
+  "runtimeBoundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "privateWorkerMutationAllowed": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
