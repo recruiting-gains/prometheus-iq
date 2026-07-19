@@ -762,20 +762,20 @@ export function validateShadowDecisionContractCoherence(contract, config) {
     {
       path: "scripts/lib/route-intelligence-quality-gate.mjs",
       sha256:
-        "d2a1fa99709e6848a3edeef3bdf8713108c14727b449f21a75c71be669c4e556",
-      sourceCommit: "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
+        "5c61a563db6906d0446df4d14bcbc565e1b0183f6ae9dcd14b2c60f263bae179",
+      sourceCommit: "330752fb53c9466f6bc0339d771b2f2facbc2351",
       sourceOwnerSubsystem: "Prometheus Data",
       provenanceSuccessor:
-        "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json",
+        "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json",
       predecessor: {
         sha256:
-          "e4ff3c3e3cf919c4d4986f873b79868f7e9f7537ad37854997b60695921dbc56",
-        sourceCommit: "26b07905926662e3323e557d77c608db0cbc23ed",
+          "d2a1fa99709e6848a3edeef3bdf8713108c14727b449f21a75c71be669c4e556",
+        sourceCommit: "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
         remainsHistorical: true,
         rewritten: false,
       },
       provenance:
-        "Hash computed from the Data-owned commercial route-quality successor after canonical 37-file and ten-fetch evidence synchronization; Intelligence verifies but never rewrites the quality gate or historical baseline.",
+        "Hash computed from the Data-owned public Website runtime-surface successor after canonical 33-file and ten-fetch evidence synchronization; Intelligence verifies but never rewrites the quality gate or historical baseline.",
     },
   );
   for (const path of Object.values(contract.artifacts))

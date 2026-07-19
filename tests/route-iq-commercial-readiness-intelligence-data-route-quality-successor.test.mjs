@@ -8,26 +8,33 @@ const json = (path) => JSON.parse(read(path).toString("utf8"));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 const provenancePath =
-  "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json";
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json";
 const predecessorPath =
-  "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json";
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json";
 const gatePath = "scripts/lib/route-intelligence-quality-gate.mjs";
 const reportPath =
   "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json";
 const contractPath =
   "intelligence/contracts/shadow-decision-readiness-contracts.json";
+const publicClaimsPath =
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json";
 
 const provenance = json(provenancePath);
 const contract = json(contractPath);
+const publicClaims = json(publicClaimsPath);
 const report = json(reportPath);
 
 test("Data route-quality successor is mapped by exact owner evidence", () => {
-  assert.equal(provenance.batchId, "BATCH-20260718-002");
+  assert.equal(provenance.batchId, "BATCH-20260719-002");
   assert.equal(provenance.ownerSubsystem, "Prometheus Intelligence Engine");
   assert.equal(provenance.status, "OWNER_REVIEWED_AND_SYNCHRONIZED");
   assert.equal(
     provenance.dataOwnerTransition.commit,
-    "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
+    "330752fb53c9466f6bc0339d771b2f2facbc2351",
+  );
+  assert.equal(
+    provenance.dataOwnerTransition.tree,
+    "e1fd5b3e8b1d9ecf37552b3ffb6389755dbdd9d9",
   );
   assert.equal(provenance.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
   assert.deepEqual(provenance.dataOwnerTransition.changedPaths, [
@@ -42,6 +49,10 @@ test("Data route-quality successor is mapped by exact owner evidence", () => {
   assert.equal(
     sha256(read(reportPath)),
     provenance.dataOwnerTransition.canonicalRouteQualityReport.currentSha256,
+  );
+  assert.equal(
+    sha256(read("tests/route-intelligence-quality-gate.test.mjs")),
+    provenance.dataOwnerTransition.routeQualityRegression.currentSha256,
   );
 });
 
@@ -69,6 +80,29 @@ test("shadow readiness protects the Data successor and preserves its predecessor
   );
 });
 
+test("public Intelligence claims consume the synchronized shadow contract without semantic broadening", () => {
+  const shadowEvidence = publicClaims.canonicalEvidence.find(
+    (entry) => entry.path === contractPath,
+  );
+  const affectedReference =
+    provenance.protectedReferenceAudit.affectedIntelligenceReferences[1];
+  assert.ok(shadowEvidence);
+  assert.equal(shadowEvidence.sha256, sha256(read(contractPath)));
+  assert.equal(affectedReference.consumerPath, publicClaimsPath);
+  assert.equal(affectedReference.currentConsumerSha256, sha256(read(publicClaimsPath)));
+  assert.equal(affectedReference.currentProtectedSha256, shadowEvidence.sha256);
+  assert.equal(publicClaims.currentGovernedState.shadowReadiness, "INSUFFICIENT_EVIDENCE");
+  assert.equal(publicClaims.currentGovernedState.recommendationInfluence, "OFF");
+  assert.equal(publicClaims.currentGovernedState.prospectiveCollection, "OFF");
+  assert.equal(publicClaims.safety.routeOrderingChanged, false);
+  assert.equal(publicClaims.safety.routeScoringChanged, false);
+  assert.equal(publicClaims.safety.representativeWorkflowChanged, false);
+  assert.equal(provenance.reviewedInvariants.publicClaimSemanticsChanged, false);
+  assert.equal(provenance.downstreamOwnerHandoff.required, true);
+  assert.equal(provenance.downstreamOwnerHandoff.ownerSubsystem, "Prometheus Data");
+  assert.equal(provenance.downstreamOwnerHandoff.modifiedByIntelligence, false);
+});
+
 test("canonical Data report preserves route, queue, scoring, and zero-Google invariants", () => {
   assert.equal(report.status, "passed");
   assert.equal(report.dataset.activePoolRecords, 297);
@@ -88,8 +122,8 @@ test("canonical Data report preserves route, queue, scoring, and zero-Google inv
   );
   assert.deepEqual(report.runtimeSurface, {
     status: "passed",
-    checkedRuntimeFiles: 37,
-    expectedRuntimeFiles: 37,
+    checkedRuntimeFiles: 33,
+    expectedRuntimeFiles: 33,
     dashboardFetches: 10,
     deployDashboardFetches: 10,
     expectedDashboardFetches: 10,

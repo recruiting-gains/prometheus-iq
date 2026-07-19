@@ -1,0 +1,120 @@
+{
+  "version": "route-iq-intelligence-data-route-quality-protected-baseline-successor-v1",
+  "batchId": "BATCH-20260719-002",
+  "status": "OWNER_REVIEWED_AND_SYNCHRONIZED",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Map the owner-authored Data route-quality runtime-surface successor into every affected Intelligence-owned protected consumer without changing Intelligence behavior, public claim semantics, route behavior, recommendation influence, or historical baselines.",
+  "predecessor": {
+    "path": "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json",
+    "commit": "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a",
+    "tree": "6b94a587113392b22c5cf19bac3df5d8ecfdde84",
+    "sha256": "bd0e346b9eb54ac24db2ac36eae14b824b46fe90954f388c97bcc622111a530b",
+    "remainsHistorical": true,
+    "rewritten": false
+  },
+  "dataOwnerTransition": {
+    "commit": "330752fb53c9466f6bc0339d771b2f2facbc2351",
+    "tree": "e1fd5b3e8b1d9ecf37552b3ffb6389755dbdd9d9",
+    "ownerSubsystem": "Prometheus Data",
+    "subject": "data: synchronize route quality runtime surface",
+    "changedPaths": [
+      "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+      "scripts/lib/route-intelligence-quality-gate.mjs",
+      "tests/route-intelligence-quality-gate.test.mjs"
+    ],
+    "routeQualityGate": {
+      "path": "scripts/lib/route-intelligence-quality-gate.mjs",
+      "previousSha256": "d2a1fa99709e6848a3edeef3bdf8713108c14727b449f21a75c71be669c4e556",
+      "currentSha256": "5c61a563db6906d0446df4d14bcbc565e1b0183f6ae9dcd14b2c60f263bae179"
+    },
+    "canonicalRouteQualityReport": {
+      "path": "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+      "previousSha256": "96cf2a8f82453e00e029a3c31ca9a55da7ff33397d05c6759c343a5c9f6c0c4b",
+      "currentSha256": "403f97925d2817d8c698421490e091353794476da9f1845de702079b02058d1a"
+    },
+    "routeQualityRegression": {
+      "path": "tests/route-intelligence-quality-gate.test.mjs",
+      "previousSha256": "1b54166b45d13301abd046944c80b8445d92189f8ced634c14d5cae24bf58f35",
+      "currentSha256": "42792feb1ec2ca13a1906665d0024074c22999e2bb727bcee04a707d5ecc0f4b"
+    },
+    "runtimeEvidence": {
+      "previousCheckedRuntimeFiles": 37,
+      "currentCheckedRuntimeFiles": 33,
+      "previousDashboardFetches": 10,
+      "currentDashboardFetches": 10,
+      "sourceDeployFetchParity": true,
+      "liveGoogleApiCalls": 0
+    }
+  },
+  "protectedReferenceAudit": {
+    "affectedIntelligenceReferences": [
+      {
+        "consumerPath": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "jsonPath": "protectedBehaviorBaselines.routeQualityGate.sha256",
+        "protectedSourcePath": "scripts/lib/route-intelligence-quality-gate.mjs",
+        "previousConsumerSha256": "f44a829340341e34f0d73b3af209ad89c49b877d730b4d918ad06a6341cae30f",
+        "currentConsumerSha256": "3439a38b32e099d6fcd1ab17e8e4102350a037febd3f54801e9f163808bbe1dc",
+        "previousProtectedSha256": "d2a1fa99709e6848a3edeef3bdf8713108c14727b449f21a75c71be669c4e556",
+        "currentProtectedSha256": "5c61a563db6906d0446df4d14bcbc565e1b0183f6ae9dcd14b2c60f263bae179"
+      },
+      {
+        "consumerPath": "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+        "jsonPath": "canonicalEvidence[path=intelligence/contracts/shadow-decision-readiness-contracts.json].sha256",
+        "protectedSourcePath": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "previousConsumerSha256": "f8d5561acd1de19bcb3063e2b3ffa864747230737b60d9aaec11d2da79c49d8e",
+        "currentConsumerSha256": "11cd71135f46dfddc42582d3b1825114a15c624f69a5b39fe4843c7b50d3b64c",
+        "previousProtectedSha256": "f44a829340341e34f0d73b3af209ad89c49b877d730b4d918ad06a6341cae30f",
+        "currentProtectedSha256": "3439a38b32e099d6fcd1ab17e8e4102350a037febd3f54801e9f163808bbe1dc"
+      }
+    ],
+    "ownerVerificationMirrors": [
+      {
+        "path": "scripts/verify-shadow-decision-readiness.mjs",
+        "previousSha256": "a40ceed99aee42c262aa2644e76c47fac735a6cbf25a7fce22e2aa5c08f9e795",
+        "currentSha256": "910580db86a8f8a792514c3ccaeee999a392e9f07b6cbb4329ad5d08be6f3e5d"
+      },
+      {
+        "path": "tests/shadow-decision-readiness.test.mjs",
+        "previousSha256": "272d614cdeb34a8f4faf6a7d4abaf6ceec17e29d808e8fe1ffc0953b5fb5e0fa",
+        "currentSha256": "19db831b28c5ca991087ad1d0d677edf572801eb353e0b96d7ae4a34a88716c6"
+      }
+    ],
+    "canonicalReportPinnedByIntelligence": false,
+    "canonicalReportReviewedAsDataEvidence": true,
+    "allAffectedIntelligenceReferencesAccountedFor": true
+  },
+  "downstreamOwnerHandoff": {
+    "required": true,
+    "ownerSubsystem": "Prometheus Data",
+    "consumerPath": "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+    "currentPinnedIntelligenceClaimsSha256": "f8d5561acd1de19bcb3063e2b3ffa864747230737b60d9aaec11d2da79c49d8e",
+    "requiredIntelligenceClaimsSha256": "11cd71135f46dfddc42582d3b1825114a15c624f69a5b39fe4843c7b50d3b64c",
+    "status": "REQUIRES_SEPARATE_DATA_OWNER_SUCCESSOR",
+    "modifiedByIntelligence": false
+  },
+  "reviewedInvariants": {
+    "activePoolRecords": 297,
+    "expandedDashboardRouteRecords": 594,
+    "initialQueueStops": 15,
+    "replenishedQueueStops": 15,
+    "routeOrderingChanged": false,
+    "routeMembershipChanged": false,
+    "routeScoringChanged": false,
+    "runtimeBehaviorChanged": false,
+    "publicClaimSemanticsChanged": false,
+    "zeroLiveGoogleCalls": true
+  },
+  "advisoryArtifacts": {
+    "regenerationRequired": false,
+    "reason": "The canonical report was regenerated by the Data owner. Intelligence changed protected hash references and provenance only; no Intelligence advisory artifact, executable behavior, or public claim semantic changed."
+  },
+  "boundaries": {
+    "recommendationInfluence": "OFF",
+    "readinessState": "INSUFFICIENT_EVIDENCE",
+    "representativeShadowOutputExposed": false,
+    "routeLogicChangedByIntelligence": false,
+    "historicalBaselineRewritten": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  }
+}
