@@ -10,6 +10,7 @@ import {
 } from "../scripts/lib/cloudflare-unattended-keychain.mjs";
 import {
   evaluateCloudflareUnattendedKeychainInteroperabilityGovernance,
+  evaluateCloudflareUnattendedKeychainSuccessorOwnership,
   verifyOverwatchCloudflareUnattendedKeychainInteroperability
 } from "../scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs";
 
@@ -131,4 +132,36 @@ test("Batch report preserves OFF and no-action boundaries", () => {
   assert.equal(report.boundaries.prospectiveCollection, "OFF");
   assert.equal(report.boundaries.activeCohorts, 0);
   assert.equal(report.boundaries.recommendationInfluence, "OFF");
+});
+
+test("Historical ownership gate ignores unrelated subsystem successors", () => {
+  const result = evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+    commit: "dashboard-successor",
+    author: "Prometheus Dashboard <dashboard@prometheus.local>",
+    committer: "Prometheus Dashboard <dashboard@prometheus.local>",
+    paths: ["scripts/verify-dashboard-runtime-workflows.mjs"]
+  }]);
+  assert.equal(result.ok, true);
+});
+
+test("Historical ownership gate rejects protected cross-owner successors", () => {
+  const dashboardTouchesOverwatch =
+    evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+      commit: "dashboard-crosses-boundary",
+      author: "Prometheus Dashboard <dashboard@prometheus.local>",
+      committer: "Prometheus Dashboard <dashboard@prometheus.local>",
+      paths: [
+        "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs"
+      ]
+    }]);
+  assert.equal(dashboardTouchesOverwatch.ok, false);
+
+  const overwatchTouchesInfrastructure =
+    evaluateCloudflareUnattendedKeychainSuccessorOwnership([{
+      commit: "overwatch-crosses-boundary",
+      author: "Prometheus Overwatch <overwatch@prometheus.local>",
+      committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+      paths: ["scripts/lib/cloudflare-unattended-keychain.mjs"]
+    }]);
+  assert.equal(overwatchTouchesInfrastructure.ok, false);
 });

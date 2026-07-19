@@ -134,11 +134,6 @@ const ownerVerifierSuccessors = Object.freeze([
   }
 ]);
 
-const githubDeploymentOwnerCommits = new Set([
-  "7f67855145104034b32551e25d2ebf407ce2369c",
-  "335f75fa1d7e32160624e9ebe197d11a03e77b4e",
-  "38e983b6d0a121d8aadf443938ab5985771eddac"
-]);
 const githubDeploymentOwnerPaths = new Set([
   ".github/workflows/deploy-prometheus-private-worker.yml",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
@@ -174,6 +169,57 @@ const expectedOverwatchPaths = Object.freeze([
   "tests/cross-subsystem-artifact-contracts.test.mjs",
   "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
 ]);
+
+const infrastructureIdentity =
+  "Prometheus Infrastructure <infrastructure@prometheus.local>";
+const overwatchIdentity = "Prometheus Overwatch <overwatch@prometheus.local>";
+const infrastructureOwnedPaths = new Set([
+  ...Object.keys(ownerHashes),
+  ...ownerImplementationSuccessors.map(item => item.path),
+  ...ownerVerifierSuccessors.map(item => item.path),
+  ...githubDeploymentOwnerPaths
+]);
+const overwatchOwnedPaths = new Set([
+  ...expectedOverwatchPaths,
+  ...githubDeploymentUniqueOverwatchPaths
+]);
+
+function protectedPathOwner(path) {
+  if (infrastructureOwnedPaths.has(path)) return infrastructureIdentity;
+  if (overwatchOwnedPaths.has(path)) return overwatchIdentity;
+  if (/^overwatch\/(?:governance|reports)\/.*cloudflare-unattended-keychain/u.test(path)
+    || /^scripts\/verify-overwatch-cloudflare-unattended-keychain/u.test(path)
+    || /^tests\/overwatch-cloudflare-unattended-keychain/u.test(path)) {
+    return overwatchIdentity;
+  }
+  if (/^(?:docs|scripts|tests|workers\/infrastructure)\/.*cloudflare-unattended-keychain/u
+    .test(path)) {
+    return infrastructureIdentity;
+  }
+  return null;
+}
+
+export function evaluateCloudflareUnattendedKeychainSuccessorOwnership(commits) {
+  const failures = [];
+  for (const commit of commits) {
+    const protectedOwners = new Set(
+      commit.paths.map(protectedPathOwner).filter(Boolean)
+    );
+    if (protectedOwners.size === 0) continue;
+    if (protectedOwners.size !== 1) {
+      failures.push(`Cross-owner protected successor detected: ${commit.commit}`);
+      continue;
+    }
+    const expectedIdentity = [...protectedOwners][0];
+    if (commit.author !== expectedIdentity || commit.committer !== expectedIdentity) {
+      failures.push(`Protected successor ownership drifted: ${commit.commit}`);
+    }
+  }
+  return Object.freeze({
+    ok: failures.length === 0,
+    failures: Object.freeze(failures)
+  });
+}
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -545,23 +591,30 @@ function verifyOverwatchOwnership() {
   const commits = git(["rev-list", "--reverse", `${ownerCommit}..HEAD`])
     .split("\n").filter(Boolean);
   if (commits.length === 0) throw new Error("Overwatch governance commit is missing.");
-  for (const commit of commits) {
-    if (commit === ownerRepairCommit
-      || commit === ownerVerifierRepairCommit
-      || githubDeploymentOwnerCommits.has(commit)) continue;
-    const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
-      .split("\n");
-    if (!equal(metadata, [
-      "Prometheus Overwatch <overwatch@prometheus.local>",
-      "Prometheus Overwatch <overwatch@prometheus.local>"
-    ])) throw new Error(`Non-Overwatch successor commit detected: ${commit}`);
+  const successorOwnership = evaluateCloudflareUnattendedKeychainSuccessorOwnership(
+    commits.map(commit => {
+      const [author, committer] = git([
+        "show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit
+      ]).split("\n");
+      return {
+        commit,
+        author,
+        committer,
+        paths: git(["diff-tree", "--no-commit-id", "--name-only", "-r", commit])
+          .split("\n").filter(Boolean)
+      };
+    })
+  );
+  if (!successorOwnership.ok) {
+    throw new Error(successorOwnership.failures.join("\n"));
   }
   const paths = git(["diff", "--name-only", ownerCommit, "HEAD"])
     .split("\n").filter(Boolean);
   const ownerRepairPaths = new Set(ownerImplementationSuccessors.map(item => item.path));
   const ownerVerifierRepairPaths = new Set(ownerVerifierSuccessors.map(item => item.path));
   const overwatchPaths = paths.filter(path => (
-    !ownerRepairPaths.has(path)
+    expectedOverwatchPaths.includes(path)
+      && !ownerRepairPaths.has(path)
       && !ownerVerifierRepairPaths.has(path)
       && !githubDeploymentOwnerPaths.has(path)
       && !githubDeploymentUniqueOverwatchPaths.has(path)
