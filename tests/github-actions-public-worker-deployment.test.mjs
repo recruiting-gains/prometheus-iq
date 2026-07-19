@@ -111,13 +111,20 @@ test("Wrangler invocation is fixed to the public config with additive settings a
 });
 
 test("protected credentials become one owner-only temporary settings file and are scrubbed", () => {
-  const environment = {
-    CLOUDFLARE_API_TOKEN: "test-api-token-not-real",
-    CLOUDFLARE_ACCOUNT_ID: "a".repeat(32),
-    ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN: "https://prometheus-test.cloudflareaccess.com",
-    ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE: "b".repeat(64),
-    ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256: "c".repeat(64)
-  };
+  const names = [
+    "CLOUDFLARE_API_TOKEN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+    "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+    "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
+  ];
+  const environment = Object.fromEntries([
+    [names[0], "synthetic-token"],
+    [names[1], "a".repeat(32)],
+    [names[2], "https://prometheus-test.cloudflareaccess.com"],
+    [names[3], "b".repeat(64)],
+    [names[4], "c".repeat(64)]
+  ]);
   const credentials = takePublicDeploymentCredentials(environment);
   assert.deepEqual(Object.keys(environment), []);
   const temporaryRoot = mkdtempSync(join(tmpdir(), "route-iq-public-settings-test-"));

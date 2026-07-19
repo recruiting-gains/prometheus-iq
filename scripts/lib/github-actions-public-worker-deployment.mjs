@@ -657,8 +657,8 @@ function childEnvironment(credentials) {
     CI: "true",
     NO_COLOR: "1",
     WRANGLER_SEND_METRICS: "false",
-    CLOUDFLARE_API_TOKEN: credentials.apiToken,
-    CLOUDFLARE_ACCOUNT_ID: credentials.accountId
+    [CREDENTIAL_NAMES.apiToken]: credentials.apiToken,
+    [CREDENTIAL_NAMES.accountId]: credentials.accountId
   };
   for (const name of ["HOME", "PATH", "TMPDIR", "RUNNER_TEMP", "XDG_CONFIG_HOME"]) {
     if (boundedString(process.env[name])) environment[name] = process.env[name];
@@ -728,8 +728,8 @@ export async function runBoundedPublicWrangler({
     if (timedOut || overflow || result.failed || result.exitCode !== 0 || result.signal) fail(failureCode);
   } finally {
     for (const buffer of buffers) buffer.fill(0);
-    environment.CLOUDFLARE_API_TOKEN = "";
-    environment.CLOUDFLARE_ACCOUNT_ID = "";
+    environment[CREDENTIAL_NAMES.apiToken] = "";
+    environment[CREDENTIAL_NAMES.accountId] = "";
   }
 }
 
