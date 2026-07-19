@@ -58,6 +58,11 @@ const overwatchSuccessorRepairPaths = [
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-cloudflare-unattended-access.test.mjs"
 ].sort();
+const overwatchSuccessorRepairCommit = "40cdd510aeaa878d9a760fdf60b82fcb7e982485";
+const overwatchReleaseGateRepairPaths = [
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
+  "scripts/verify-release-provenance-repair.mjs"
+].sort();
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
@@ -136,26 +141,36 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
   assert.equal(git("rev-parse", `${finalOverwatchCommit}^`), ownerRepairCommits.at(-1));
 
   const successorRepairCommit = commits[expectedPrefix.length + 1];
+  assert.equal(successorRepairCommit, overwatchSuccessorRepairCommit, "Paused-verifier successor repair drifted.");
+  assert.deepEqual(commitIdentity(successorRepairCommit), {
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local"
+  });
+  assert.deepEqual(changedPaths(successorRepairCommit), overwatchSuccessorRepairPaths);
+  assert.equal(git("rev-parse", `${successorRepairCommit}^`), finalOverwatchCommit);
+
+  const releaseGateRepairCommit = commits[expectedPrefix.length + 2];
   assert.equal(
     commits.length,
-    expectedPrefix.length + 1 + (successorRepairCommit ? 1 : 0),
+    expectedPrefix.length + 2 + (releaseGateRepairCommit ? 1 : 0),
     "Unexpected commit entered the batch."
   );
   if (requireOverwatchCommit) {
-    assert.ok(successorRepairCommit, "Overwatch paused-verifier successor repair is missing.");
-    assert.deepEqual(commitIdentity(successorRepairCommit), {
+    assert.ok(releaseGateRepairCommit, "Overwatch release-provenance successor repair is missing.");
+    assert.deepEqual(commitIdentity(releaseGateRepairCommit), {
       author: "overwatch@prometheus.local",
       committer: "overwatch@prometheus.local"
     });
-    assert.deepEqual(changedPaths(successorRepairCommit), overwatchSuccessorRepairPaths);
-    assert.equal(git("rev-parse", `${successorRepairCommit}^`), finalOverwatchCommit);
+    assert.deepEqual(changedPaths(releaseGateRepairCommit), overwatchReleaseGateRepairPaths);
+    assert.equal(git("rev-parse", `${releaseGateRepairCommit}^`), successorRepairCommit);
   }
   return {
     commits,
     overwatchCommit: initialOverwatchCommit,
     overwatchRepairCommit: initialOverwatchRepairCommit,
     finalOverwatchCommit,
-    successorRepairCommit: successorRepairCommit ?? null
+    successorRepairCommit,
+    releaseGateRepairCommit: releaseGateRepairCommit ?? null
   };
 }
 
@@ -383,6 +398,7 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
     overwatchRepairCommit: ownership.overwatchRepairCommit,
     finalOverwatchCommit: ownership.finalOverwatchCommit,
     successorRepairCommit: ownership.successorRepairCommit,
+    releaseGateRepairCommit: ownership.releaseGateRepairCommit,
     scorecardCategories: report.scorecard.length,
     investorObjections: report.investorObjections.length,
     unresolvedDisclosures: report.investorObjections.filter(entry => entry.status === "unresolved_disclosed").length,

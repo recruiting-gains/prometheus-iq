@@ -15,6 +15,8 @@ const routeQualitySuccessorCommit = "73b477a0fdec725beb7fe6de795ec35fd457ef32";
 const routeQualityDataCommit = "26b07905926662e3323e557d77c608db0cbc23ed";
 const commercialRouteQualityDataCommit = "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f";
 const commercialRouteQualitySuccessorCommit = "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a";
+const investorWebsiteRouteQualityDataCommit = "330752fb53c9466f6bc0339d771b2f2facbc2351";
+const investorWebsiteRouteQualitySuccessorCommit = "88b3bbbf2c34d879881ced98620c15a602598c45";
 const currentIntelligenceSuccessorCommits = [
   "cd0a504328b0870aa695731230e6c43dd4698e3c",
   "ed46fb0964187a207468cd89fbdc1fbbb8426748",
@@ -33,6 +35,8 @@ const routeQualitySuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260714-002-route-quality-successor-v1.json";
 const commercialRouteQualitySuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json";
+const investorWebsiteRouteQualitySuccessorPath =
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json";
 const batchOneReportPath = "overwatch/reports/BATCH-20260713-001-route-iq-shadow-decision-readiness.json";
 const dashboardEvidencePath = "dashboard/decision-context-producer-validation-v1.md";
 const expectedPreBatchCommits = [
@@ -83,6 +87,15 @@ const expectedRouteQualityDataPaths = [
   "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
   "scripts/lib/route-intelligence-quality-gate.mjs",
   "tests/route-intelligence-quality-gate.test.mjs"
+].sort();
+
+const expectedInvestorWebsiteRouteQualitySuccessorPaths = [
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  investorWebsiteRouteQualitySuccessorPath,
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
 ].sort();
 
 const expectedRouteQualitySuccessorPaths = [
@@ -180,6 +193,7 @@ export function verifyReleaseProvenanceRepair() {
   const protectedBaselineSuccessor = readJson(protectedBaselineSuccessorPath);
   const routeQualitySuccessor = readJson(routeQualitySuccessorPath);
   const commercialRouteQualitySuccessor = readJson(commercialRouteQualitySuccessorPath);
+  const investorWebsiteRouteQualitySuccessor = readJson(investorWebsiteRouteQualitySuccessorPath);
   const batchOneReport = readJson(batchOneReportPath);
   const dashboardEvidence = read(dashboardEvidencePath).toString("utf8");
 
@@ -510,11 +524,6 @@ export function verifyReleaseProvenanceRepair() {
       currentTransition.currentSha256,
       `${currentTransition.path} commercial Data owner hash drifted.`
     );
-    assert.equal(
-      sha256(read(currentTransition.path)),
-      currentTransition.currentSha256,
-      `${currentTransition.path} canonical commercial Data hash drifted.`
-    );
   }
 
   const commercialReference = commercialRouteQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences[0];
@@ -526,7 +535,6 @@ export function verifyReleaseProvenanceRepair() {
     sha256(gitBytes("show", `${commercialRouteQualitySuccessorCommit}:${commercialReference.consumerPath}`)),
     commercialReference.currentConsumerSha256
   );
-  assert.equal(sha256(read(commercialReference.consumerPath)), commercialReference.currentConsumerSha256);
   assert.equal(commercialRouteQualitySuccessor.protectedReferenceAudit.allAffectedReferencesAccountedFor, true);
   assert.equal(commercialRouteQualitySuccessor.reviewedInvariants.runtimeBehaviorChanged, false);
   assert.equal(commercialRouteQualitySuccessor.reviewedInvariants.routeOrderingChanged, false);
@@ -534,6 +542,87 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(commercialRouteQualitySuccessor.boundaries.recommendationInfluence, "OFF");
   assert.equal(commercialRouteQualitySuccessor.boundaries.readinessState, "INSUFFICIENT_EVIDENCE");
   assert.equal(commercialRouteQualitySuccessor.boundaries.representativeShadowOutputExposed, false);
+
+  assert.equal(
+    investorWebsiteRouteQualitySuccessor.version,
+    "route-iq-intelligence-data-route-quality-protected-baseline-successor-v1"
+  );
+  assert.equal(investorWebsiteRouteQualitySuccessor.batchId, "BATCH-20260719-002");
+  assert.equal(investorWebsiteRouteQualitySuccessor.status, "OWNER_REVIEWED_AND_SYNCHRONIZED");
+  assert.equal(investorWebsiteRouteQualitySuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(investorWebsiteRouteQualitySuccessor.predecessor.path, commercialRouteQualitySuccessorPath);
+  assert.equal(
+    investorWebsiteRouteQualitySuccessor.predecessor.sha256,
+    sha256(read(commercialRouteQualitySuccessorPath))
+  );
+  assert.equal(investorWebsiteRouteQualitySuccessor.predecessor.remainsHistorical, true);
+  assert.equal(investorWebsiteRouteQualitySuccessor.predecessor.rewritten, false);
+
+  const investorWebsiteDataTransition = investorWebsiteRouteQualitySuccessor.dataOwnerTransition;
+  assert.equal(investorWebsiteDataTransition.commit, investorWebsiteRouteQualityDataCommit);
+  assert.equal(
+    investorWebsiteDataTransition.tree,
+    git("rev-parse", `${investorWebsiteRouteQualityDataCommit}^{tree}`)
+  );
+  assert.equal(investorWebsiteDataTransition.ownerSubsystem, "Prometheus Data");
+  assert.deepEqual(
+    investorWebsiteDataTransition.changedPaths.slice().sort(),
+    expectedRouteQualityDataPaths
+  );
+  for (const [historicalTransition, currentTransition] of [
+    [commercialDataTransition.routeQualityGate, investorWebsiteDataTransition.routeQualityGate],
+    [commercialDataTransition.canonicalRouteQualityReport, investorWebsiteDataTransition.canonicalRouteQualityReport]
+  ]) {
+    assert.equal(currentTransition.path, historicalTransition.path);
+    assert.equal(currentTransition.previousSha256, historicalTransition.currentSha256);
+    assert.equal(
+      sha256(gitBytes("show", `${investorWebsiteRouteQualityDataCommit}:${currentTransition.path}`)),
+      currentTransition.currentSha256,
+      `${currentTransition.path} investor Website Data owner hash drifted.`
+    );
+    assert.equal(
+      sha256(read(currentTransition.path)),
+      currentTransition.currentSha256,
+      `${currentTransition.path} canonical investor Website Data hash drifted.`
+    );
+  }
+  assert.equal(
+    sha256(gitBytes("show", `${investorWebsiteRouteQualityDataCommit}:${investorWebsiteDataTransition.routeQualityRegression.path}`)),
+    investorWebsiteDataTransition.routeQualityRegression.currentSha256
+  );
+  assert.equal(
+    sha256(read(investorWebsiteDataTransition.routeQualityRegression.path)),
+    investorWebsiteDataTransition.routeQualityRegression.currentSha256
+  );
+
+  assert.deepEqual(
+    changedPaths(investorWebsiteRouteQualitySuccessorCommit),
+    expectedInvestorWebsiteRouteQualitySuccessorPaths
+  );
+  assert.equal(
+    git("rev-parse", `${investorWebsiteRouteQualitySuccessorCommit}^{tree}`),
+    "de525c85f2d8b02ba6c5c3ad4148668d2702230f"
+  );
+  assert.equal(
+    investorWebsiteRouteQualitySuccessor.protectedReferenceAudit.allAffectedIntelligenceReferencesAccountedFor,
+    true
+  );
+  for (const reference of investorWebsiteRouteQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences) {
+    assert.equal(
+      sha256(gitBytes("show", `${investorWebsiteRouteQualitySuccessorCommit}:${reference.consumerPath}`)),
+      reference.currentConsumerSha256
+    );
+    assert.equal(sha256(read(reference.consumerPath)), reference.currentConsumerSha256);
+  }
+  for (const mirror of investorWebsiteRouteQualitySuccessor.protectedReferenceAudit.ownerVerificationMirrors) {
+    assert.equal(sha256(read(mirror.path)), mirror.currentSha256);
+  }
+  assert.equal(investorWebsiteRouteQualitySuccessor.reviewedInvariants.runtimeBehaviorChanged, false);
+  assert.equal(investorWebsiteRouteQualitySuccessor.reviewedInvariants.routeOrderingChanged, false);
+  assert.equal(investorWebsiteRouteQualitySuccessor.reviewedInvariants.routeScoringChanged, false);
+  assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.recommendationInfluence, "OFF");
+  assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.readinessState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.representativeShadowOutputExposed, false);
 
   const dataValidation = mapping.dataOwnerValidation;
   assert.equal(dataValidation.contractMismatchClosed, true);
