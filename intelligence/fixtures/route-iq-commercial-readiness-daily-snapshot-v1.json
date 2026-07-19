@@ -1,0 +1,143 @@
+{
+  "fixtureVersion": "route-iq-commercial-readiness-daily-snapshot-fixture-v1",
+  "canonical": false,
+  "productionConsumptionAllowed": false,
+  "principal": {
+    "identityContextSource": "server_verified_identity_mapping",
+    "authenticationAuthority": "cloudflare_access",
+    "authenticated": true,
+    "callerSupplied": false,
+    "role": "founder",
+    "mappingId": "route-iq-founder-access-cruz-v1",
+    "immutablePrincipalId": "route-iq-principal-founder-cruz-v1",
+    "mappingStatus": "securely_mapped"
+  },
+  "businessContext": {
+    "schemaVersion": "route-iq-business-intelligence-context-v1",
+    "sourceOwner": "Prometheus Data",
+    "sourceMode": "server_supplied_canonical_configuration",
+    "callerSupplied": false,
+    "workspaceId": "synthetic_home_services",
+    "operatingProfileId": "field_service",
+    "configurationVersion": "synthetic-home-services-v1",
+    "canonicalConfigurationSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "evidenceClassification": "SYNTHETIC_VALIDATION",
+    "classificationAuthority": "Prometheus Data",
+    "retentionPolicyVersion": "route-iq-retention-policy-v1"
+  },
+  "records": [
+    {
+      "schemaVersion": "route-iq-governed-daily-evidence-v1",
+      "evidenceId": "session:synthetic:2026-07-16",
+      "recordKind": "field_session",
+      "workspaceId": "synthetic_home_services",
+      "operatingProfileId": "field_service",
+      "representativeId": "rep-001",
+      "locationId": "location-001",
+      "territoryId": "territory-001",
+      "occurredAt": "2026-07-16T22:00:00.000Z",
+      "sourceRecordSha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "authorized": true,
+      "excludedFromAnalytics": false,
+      "qualityStatus": "VERIFIED",
+      "freshnessStatus": "FRESH",
+      "metrics": {},
+      "qualityReasons": [],
+      "sourceVersions": {
+        "archive": "route-iq-field-session-archive-v1"
+      }
+    },
+    {
+      "schemaVersion": "route-iq-governed-daily-evidence-v1",
+      "evidenceId": "visit:synthetic:001",
+      "recordKind": "visit",
+      "workspaceId": "synthetic_home_services",
+      "operatingProfileId": "field_service",
+      "representativeId": "rep-001",
+      "locationId": "location-001",
+      "territoryId": "territory-001",
+      "occurredAt": "2026-07-16T19:00:00.000Z",
+      "sourceRecordSha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "authorized": true,
+      "excludedFromAnalytics": false,
+      "qualityStatus": "VERIFIED",
+      "freshnessStatus": "FRESH",
+      "metrics": {
+        "visits": 1,
+        "outcomes": 1,
+        "conversations": 1,
+        "leads": 1
+      },
+      "qualityReasons": [],
+      "sourceVersions": {
+        "outcome": "route-iq-governed-outcome-v1"
+      }
+    },
+    {
+      "schemaVersion": "route-iq-governed-daily-evidence-v1",
+      "evidenceId": "visit:synthetic:002",
+      "recordKind": "visit",
+      "workspaceId": "synthetic_home_services",
+      "operatingProfileId": "field_service",
+      "representativeId": "rep-002",
+      "locationId": "location-002",
+      "territoryId": "territory-001",
+      "occurredAt": "2026-07-17T18:30:00.000Z",
+      "sourceRecordSha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "authorized": true,
+      "excludedFromAnalytics": false,
+      "qualityStatus": "PARTIAL",
+      "freshnessStatus": "UNKNOWN",
+      "metrics": {
+        "visits": 1,
+        "outcomes": 0,
+        "followUps": 1
+      },
+      "qualityReasons": [
+        "outcome_not_yet_observed"
+      ],
+      "sourceVersions": {
+        "outcome": "route-iq-governed-outcome-v1"
+      }
+    },
+    {
+      "schemaVersion": "route-iq-governed-daily-evidence-v1",
+      "evidenceId": "learning:synthetic:001",
+      "recordKind": "learning_observation",
+      "workspaceId": "synthetic_home_services",
+      "operatingProfileId": "field_service",
+      "representativeId": "rep-001",
+      "locationId": null,
+      "territoryId": "territory-001",
+      "occurredAt": "2026-07-17T19:00:00.000Z",
+      "sourceRecordSha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "authorized": true,
+      "excludedFromAnalytics": false,
+      "qualityStatus": "VERIFIED",
+      "freshnessStatus": "FRESH",
+      "metrics": {},
+      "qualityReasons": [],
+      "sourceVersions": {
+        "learning": "read-only-field-session-learning-v1"
+      }
+    }
+  ],
+  "learningAssessment": {
+    "schemaVersion": "route-iq-governed-learning-assessment-v1",
+    "state": "INSUFFICIENT_EVIDENCE",
+    "confidenceScore": 0.25,
+    "confidenceBand": "insufficient_evidence",
+    "thresholdQualifiedConclusionCount": 0,
+    "limitations": [
+      "outcome_coverage_incomplete",
+      "verified_sessions_below_threshold"
+    ],
+    "advisoryOnly": true,
+    "readOnly": true,
+    "recommendationInfluence": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringWeightsChanged": false,
+    "predictionClaimed": false,
+    "causalClaimed": false
+  }
+}

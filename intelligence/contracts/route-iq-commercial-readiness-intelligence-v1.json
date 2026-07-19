@@ -1,0 +1,143 @@
+{
+  "contractVersion": "route-iq-commercial-readiness-intelligence-v1",
+  "status": "active_read_only_founder_snapshot",
+  "batchId": "BATCH-20260718-002",
+  "directive": "Route IQ Commercial Readiness + Product Focus v1",
+  "ownerSubsystem": "Prometheus Intelligence Engine",
+  "purpose": "Create a deterministic Founder-only daily intelligence projection from Data-attested governed evidence without changing routes, scores, recommendations, representative workflows, or source evidence.",
+  "businessContextInput": {
+    "schemaVersion": "route-iq-business-intelligence-context-v1",
+    "sourceOwner": "Prometheus Data",
+    "sourceMode": "server_supplied_canonical_configuration",
+    "callerSuppliedContextAllowed": false,
+    "requiredFields": [
+      "workspaceId",
+      "operatingProfileId",
+      "configurationVersion",
+      "canonicalConfigurationSha256",
+      "evidenceClassification",
+      "classificationAuthority",
+      "retentionPolicyVersion"
+    ],
+    "allowedEvidenceClassifications": [
+      "FOUNDER_FIELD_RESEARCH",
+      "CUSTOMER_AUTHORIZED_OPERATIONAL",
+      "SYNTHETIC_VALIDATION"
+    ],
+    "fitnessConnectionRequiredClassification": "FOUNDER_FIELD_RESEARCH",
+    "dataConfigurationPathPinned": false,
+    "integrationMode": "validated_input_contract_until_data_configuration_is_available"
+  },
+  "founderAccess": {
+    "identityContextSource": "server_verified_identity_mapping",
+    "authenticationAuthority": "cloudflare_access",
+    "callerSuppliedIdentityAllowed": false,
+    "displayNameAuthorizationAllowed": false,
+    "representativeAccessAllowed": false,
+    "requiredRole": "founder",
+    "authorizedMappings": [
+      {
+        "mappingId": "route-iq-founder-access-cruz-v1",
+        "immutablePrincipalId": "route-iq-principal-founder-cruz-v1",
+        "status": "securely_mapped"
+      }
+    ],
+    "pendingMappings": [
+      {
+        "person": "anthony",
+        "status": "pending_secure_authenticated_identity_mapping",
+        "accessAllowed": false
+      }
+    ]
+  },
+  "snapshotContract": {
+    "schemaVersion": "route-iq-daily-intelligence-snapshot-v1",
+    "recordSchemaVersion": "route-iq-governed-daily-evidence-v1",
+    "learningAssessmentSchemaVersion": "route-iq-governed-learning-assessment-v1",
+    "requiredSections": [
+      "evidenceCollected",
+      "evidenceFreshness",
+      "dataQuality",
+      "visitAndOutcomeTrends",
+      "learningCoverage",
+      "confidence",
+      "changesSincePrevious",
+      "safety"
+    ],
+    "timestampSource": "governed_evidence_only",
+    "wallClockAllowed": false,
+    "stableOrderingRequired": true,
+    "canonicalHashAlgorithm": "sha256",
+    "unchangedEvidenceReturnsPriorSnapshotByteEquivalent": true,
+    "rawNotesAllowed": false,
+    "contactInformationAllowed": false,
+    "businessNamesOrAddressesAllowed": false,
+    "preciseLocationTrailsAllowed": false,
+    "secretsAllowed": false,
+    "sourceMutationAllowed": false
+  },
+  "learningBoundary": {
+    "allowedStates": [
+      "INSUFFICIENT_EVIDENCE",
+      "OBSERVING"
+    ],
+    "insufficiencyMayBePresentedAsRecommendation": false,
+    "predictionClaimsAllowed": false,
+    "causalClaimsAllowed": false,
+    "recommendationInfluence": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringWeightsChanged": false,
+    "representativeOutputAllowed": false
+  },
+  "advisoryDependencies": [
+    {
+      "feature": "Discovery Mode",
+      "contractPath": "intelligence/contracts/discovery-mode-intelligence-v2-contracts.json",
+      "requiredStatus": "advisory_only",
+      "requiredFalseFlags": [
+        "activationSafety.recommendationInfluenceActive",
+        "activationSafety.productionQueueConsumerActive",
+        "activationSafety.routeScoringWeightsChanged"
+      ]
+    },
+    {
+      "feature": "Nearby Context",
+      "contractPath": "intelligence/contracts/nearby-context-intelligence-v2-contracts.json",
+      "requiredStatus": "advisory_only",
+      "requiredFalseFlags": [
+        "activationSafety.dashboardConsumerActive",
+        "activationSafety.recommendationReplacementActive",
+        "activationSafety.routeScoringWeightsChanged"
+      ]
+    },
+    {
+      "feature": "Off-route learning",
+      "contractPath": "intelligence/contracts/off-route-learning-intelligence-contracts.json",
+      "requiredStatus": "active_read_only_observation",
+      "requiredFalseFlags": [
+        "readOnlySafety.modifyRouteRuntime",
+        "readOnlySafety.modifyRecommendationScoring",
+        "readOnlySafety.modifyRouteGeneration",
+        "readOnlySafety.activateRecommendationInfluence"
+      ]
+    }
+  ],
+  "administrativeDispositionBoundary": {
+    "excludedEvidenceAdmissionAllowed": false,
+    "hashOnlyExclusionAuditAllowed": true,
+    "sourceArchiveRewriteAllowed": false,
+    "automaticZeroVisitExclusionAllowed": false
+  },
+  "safety": {
+    "readOnly": true,
+    "founderOnly": true,
+    "recommendationInfluence": "OFF",
+    "routeOrderingChanged": false,
+    "routeScoringWeightsChanged": false,
+    "representativeWorkflowChanged": false,
+    "sourceEvidenceMutationAllowed": false,
+    "crossWorkspaceAggregationAllowed": false,
+    "crossOperatingProfileAggregationAllowed": false,
+    "productionActivationAuthorized": false
+  }
+}
