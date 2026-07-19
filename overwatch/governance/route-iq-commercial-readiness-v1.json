@@ -242,6 +242,16 @@
     },
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "wrangler.prometheusrouteiq-website.jsonc",
+      "historicalSha256": "dc115988da7fdc036c3216ed4ae241fef8ff75f84e04886744d58006642064d2",
+      "previousSuccessorSha256": "02337cb8cb663c5f9f6931a5176ab5380efd59eab86dc9398a76e10de2b2e3f5",
+      "successorSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+      "owner": "Prometheus Infrastructure",
+      "ownerCommit": "87c95cd0d3a875a486a313759f474cc899a2d53f",
+      "reason": "Recognize the Infrastructure-owned public Worker exposure hardening successor while preserving the prior protected mapping."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
       "path": "workers/prometheus-iq-worker.js",
       "historicalSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
       "successorSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
