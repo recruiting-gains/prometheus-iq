@@ -7,6 +7,7 @@ import { fixedCloudflareUnattendedSmokePlan } from
   "../scripts/run-cloudflare-unattended-smoke.mjs";
 import {
   evaluateGithubActionsPrivateWorkerDeploymentGovernance,
+  evaluateGithubActionsPrivateWorkerSuccessorOwnership,
   evaluateGithubActionsPrivateWorkerWorkflow,
   verifyOverwatchGithubActionsPrivateWorkerDeployment
 } from "../scripts/verify-overwatch-github-actions-private-worker-deployment.mjs";
@@ -205,4 +206,34 @@ test("fixed interoperability smoke is GET or HEAD only and bodyless", () => {
 test("canonical governance and workflow evaluations pass", () => {
   assert.equal(evaluate().ok, true);
   assert.equal(evaluateGithubActionsPrivateWorkerWorkflow(workflow).ok, true);
+});
+
+test("historical deployment gate ignores unrelated subsystem successors", () => {
+  const result = evaluateGithubActionsPrivateWorkerSuccessorOwnership([{
+    commit: "dashboard-successor",
+    author: "Prometheus Dashboard <dashboard@prometheus.local>",
+    committer: "Prometheus Dashboard <dashboard@prometheus.local>",
+    paths: ["scripts/verify-dashboard-runtime-workflows.mjs"]
+  }]);
+  assert.equal(result.ok, true);
+});
+
+test("historical deployment gate rejects protected cross-owner successors", () => {
+  const dashboardTouchesOverwatch =
+    evaluateGithubActionsPrivateWorkerSuccessorOwnership([{
+      commit: "dashboard-crosses-boundary",
+      author: "Prometheus Dashboard <dashboard@prometheus.local>",
+      committer: "Prometheus Dashboard <dashboard@prometheus.local>",
+      paths: ["scripts/verify-overwatch-github-actions-private-worker-deployment.mjs"]
+    }]);
+  assert.equal(dashboardTouchesOverwatch.ok, false);
+
+  const overwatchTouchesInfrastructure =
+    evaluateGithubActionsPrivateWorkerSuccessorOwnership([{
+      commit: "overwatch-crosses-boundary",
+      author: "Prometheus Overwatch <overwatch@prometheus.local>",
+      committer: "Prometheus Overwatch <overwatch@prometheus.local>",
+      paths: ["scripts/lib/github-actions-private-worker-deployment.mjs"]
+    }]);
+  assert.equal(overwatchTouchesInfrastructure.ok, false);
 });

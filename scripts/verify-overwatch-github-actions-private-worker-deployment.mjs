@@ -153,6 +153,56 @@ const expectedOverwatchPaths = Object.freeze([
   "tests/overwatch-github-actions-private-worker-deployment.test.mjs"
 ]);
 
+const infrastructureIdentity =
+  "Prometheus Infrastructure <infrastructure@prometheus.local>";
+const overwatchIdentity = "Prometheus Overwatch <overwatch@prometheus.local>";
+const infrastructureOwnedPaths = new Set([
+  ...Object.keys(historicalOwnerHashes),
+  ...Object.keys(compatibilityOwnerHashes)
+]);
+const overwatchOwnedPaths = new Set([
+  ...expectedOverwatchPaths,
+  ...protectedOverwatchVerifierSuccessors.map(item => item.path),
+  ...protectedVerificationAssetSuccessors.map(item => item.path)
+]);
+
+function protectedPathOwner(path) {
+  if (infrastructureOwnedPaths.has(path)) return infrastructureIdentity;
+  if (overwatchOwnedPaths.has(path)) return overwatchIdentity;
+  if (/^overwatch\/(?:governance|reports)\/.*github-actions-founder-triggered/u.test(path)
+    || /^scripts\/verify-overwatch-github-actions-private-worker/u.test(path)
+    || /^tests\/overwatch-github-actions-private-worker/u.test(path)) {
+    return overwatchIdentity;
+  }
+  if (/^(?:\.github\/workflows|docs|scripts|tests|workers\/infrastructure)\/.*github-actions-(?:founder-triggered-)?private-worker/u
+    .test(path)) {
+    return infrastructureIdentity;
+  }
+  return null;
+}
+
+export function evaluateGithubActionsPrivateWorkerSuccessorOwnership(commits) {
+  const failures = [];
+  for (const commit of commits) {
+    const protectedOwners = new Set(
+      commit.paths.map(protectedPathOwner).filter(Boolean)
+    );
+    if (protectedOwners.size === 0) continue;
+    if (protectedOwners.size !== 1) {
+      failures.push(`Cross-owner protected successor detected: ${commit.commit}`);
+      continue;
+    }
+    const expectedIdentity = [...protectedOwners][0];
+    if (commit.author !== expectedIdentity || commit.committer !== expectedIdentity) {
+      failures.push(`Protected successor ownership drifted: ${commit.commit}`);
+    }
+  }
+  return Object.freeze({
+    ok: failures.length === 0,
+    failures: Object.freeze(failures)
+  });
+}
+
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
 const sha256 = value => createHash("sha256").update(value).digest("hex");
@@ -643,23 +693,33 @@ function verifyOverwatchOwnership() {
   }
   const commits = git(["rev-list", "--reverse", `${compatibilityOwnerCommit}..HEAD`])
     .split("\n").filter(Boolean);
-  if (commits.length < 1 || commits.length > 3) {
-    throw new Error("Overwatch compatibility successor count drifted.");
+  if (commits.length < 1) {
+    throw new Error("Overwatch compatibility successor is missing.");
   }
-  for (const commit of commits) {
-    const metadata = git(["show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit])
-      .split("\n");
-    if (!equal(metadata, [
-      "Prometheus Overwatch <overwatch@prometheus.local>",
-      "Prometheus Overwatch <overwatch@prometheus.local>"
-    ])) throw new Error(`Non-Overwatch compatibility successor detected: ${commit}`);
+  const successorOwnership = evaluateGithubActionsPrivateWorkerSuccessorOwnership(
+    commits.map(commit => {
+      const [author, committer] = git([
+        "show", "-s", "--format=%an <%ae>%n%cn <%ce>", commit
+      ]).split("\n");
+      return {
+        commit,
+        author,
+        committer,
+        paths: git(["diff-tree", "--no-commit-id", "--name-only", "-r", commit])
+          .split("\n").filter(Boolean)
+      };
+    })
+  );
+  if (!successorOwnership.ok) {
+    throw new Error(successorOwnership.failures.join("\n"));
   }
   const paths = git(["diff", "--name-only", compatibilityOwnerCommit, "HEAD"])
     .split("\n").filter(Boolean);
-  if (!equal([...paths].sort(), [...expectedOverwatchPaths].sort())) {
+  const overwatchPaths = paths.filter(path => expectedOverwatchPaths.includes(path));
+  if (!equal([...overwatchPaths].sort(), [...expectedOverwatchPaths].sort())) {
     throw new Error("Overwatch compatibility file set drifted.");
   }
-  if (paths.some(path => Object.hasOwn(compatibilityOwnerHashes, path)
+  if (overwatchPaths.some(path => Object.hasOwn(compatibilityOwnerHashes, path)
     || path.startsWith("workers/infrastructure/")
     || path.startsWith("scripts/lib/github-actions-private-worker"))) {
     throw new Error("Overwatch modified Infrastructure implementation.");
