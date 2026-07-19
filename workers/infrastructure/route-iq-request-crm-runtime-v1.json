@@ -1,0 +1,54 @@
+{
+  "version": "route-iq-request-crm-infrastructure-v1",
+  "owner": "Prometheus Infrastructure",
+  "publicIntake": {
+    "path": "/api/partner-intake",
+    "method": "POST",
+    "workspaceId": "prometheus_route_iq",
+    "operatingProfileId": "route_iq_commercial",
+    "legacyFitnessRoutingActive": false,
+    "legacySmoothieRoutingActive": false
+  },
+  "storage": {
+    "binding": "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+    "className": "RouteIqRequestCrmCoordinator",
+    "migrationTag": "route-iq-request-crm-sqlite-v1",
+    "backend": "sqlite_backed_durable_object",
+    "atomicPutIfAbsent": "durable_object_storage_transaction",
+    "kvCasClaimed": false,
+    "deploymentTarget": "prometheusrouteiq-website Worker only",
+    "privateWorkerBinding": false,
+    "productionProvisioned": false
+  },
+  "founderAccess": {
+    "paths": [
+      "/api/partner-intake/founder/requests",
+      "/api/partner-intake/founder/requests/{receiptId}",
+      "/api/partner-intake/founder/export"
+    ],
+    "methods": ["GET"],
+    "authorization": "verified_cloudflare_access_subject_sha256_to_immutable_principal",
+    "displayNameAuthorization": false,
+    "representativeAccess": false,
+    "anthony": "pending_exact_authenticated_identity_mapping"
+  },
+  "notification": {
+    "afterDurablePersistence": true,
+    "contactPiiIncluded": false,
+    "deliveryFailureIsMonitored": true
+  },
+  "capacityTarget": {
+    "workspaceCount": 10,
+    "totalUsers": 100,
+    "concurrentUsers": 25,
+    "claim": "verified_safe_initial_test_capacity_only"
+  },
+  "boundaries": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "prospectiveRuntimeFilesChanged": false,
+    "deploymentPerformed": false,
+    "productionMutationPerformed": false
+  }
+}

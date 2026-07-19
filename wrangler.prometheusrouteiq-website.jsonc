@@ -17,6 +17,22 @@
   "observability": {
     "enabled": true
   },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+        "class_name": "RouteIqRequestCrmCoordinator"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "route-iq-request-crm-sqlite-v1",
+      "new_sqlite_classes": [
+        "RouteIqRequestCrmCoordinator"
+      ]
+    }
+  ],
   "vars": {
     "META_OAUTH_CALLBACK_URL": "https://prometheusrouteiq.com/api/oauth/meta/instagram/callback",
     "META_GRAPH_API_VERSION": "v21.0",

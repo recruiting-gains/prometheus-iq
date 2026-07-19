@@ -19,9 +19,10 @@ import {
   withAegisHeaders
 } from "./infrastructure/aegis-security-controls.js";
 import {
-  PARTNER_INTAKE_PATH,
-  handlePartnerIntakeRequest
-} from "./infrastructure/shared-lead-intake-pipeline.js";
+  ROUTE_IQ_REQUEST_CRM_PATH,
+  handleRouteIqRequestCrmRuntimeRequest,
+  isRouteIqRequestCrmPath
+} from "./infrastructure/route-iq-request-crm-runtime.js";
 import {
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
   getRouteIqProspectiveActivation,
@@ -34,9 +35,6 @@ import {
   markCloudflareUnattendedSmokeResponse,
   sanitizeCloudflareUnattendedSmokeAssetRequest
 } from "./infrastructure/cloudflare-unattended-smoke-guard.js";
-import {
-  persistWorkspaceLeadIntakeWithProductionStore
-} from "../crm/workspace-lead-production-runtime.mjs";
 import {
   FieldSessionArchiveError,
   consumeRouteIqEndOfDayHandoff,
@@ -523,44 +521,6 @@ async function handleMetaInstagramCallback(request, env) {
   });
 }
 
-async function handlePartnerIntakeWithCrm(request, env) {
-  const result = await handlePartnerIntakeRequest(request, env);
-  if (!result.record) return result;
-
-  try {
-    const crmPersistence = await persistWorkspaceLeadIntakeWithProductionStore(result.record, { env });
-    return {
-      ...result,
-      headers: {
-        ...(result.headers || {}),
-        "X-Prometheus-CRM-Persistence": crmPersistence.status
-      }
-    };
-  } catch (error) {
-    const code = error?.code || "crm_workspace_lead_persistence_failed";
-    console.error(JSON.stringify({
-      message: "CRM workspace lead persistence failed.",
-      code,
-      workspaceId: result.record.workspace.workspaceId,
-      submissionId: result.record.submissionId
-    }));
-    return {
-      body: {
-        ok: false,
-        code,
-        message: "CRM durable lead persistence is unavailable.",
-        submissionId: result.record.submissionId,
-        workspaceId: result.record.workspace.workspaceId,
-        infrastructurePersisted: true
-      },
-      status: error?.status || 500,
-      headers: {
-        "X-Prometheus-CRM-Persistence": "failed"
-      }
-    };
-  }
-}
-
 function logRouteIqProspectiveCloseFailure(error, phase = "close") {
   const status = Number.isInteger(error?.status) ? error.status : 500;
   const code = typeof error?.code === "string" && /^route_iq_[a-z0-9_]+$/u.test(error.code)
@@ -715,10 +675,7 @@ async function handleRouteIqFieldSessionHandoff(request, env, {
 
 async function handleApiRequest(request, env, executionContext) {
   const url = new URL(request.url);
-  if (url.pathname === PARTNER_INTAKE_PATH) {
-    const result = await handlePartnerIntakeWithCrm(request, env);
-    return jsonResponse(result.body, result.status, result.headers || {});
-  }
+  if (isRouteIqRequestCrmPath(url.pathname)) return handleRouteIqRequestCrmRuntimeRequest(request, env);
   if (CALLBACK_PATHS.includes(url.pathname)) return handleMetaInstagramCallback(request, env);
   if (url.pathname === STATUS_PATH) return handleMetaInstagramStatus(env);
   if (url.pathname === INSTAGRAM_SNAPSHOT_PATH) return handleMetaInstagramSnapshot(request, env);
@@ -780,9 +737,10 @@ export {
   INSTAGRAM_SNAPSHOT_PATH,
   ROUTE_IQ_FIELD_SESSION_HANDOFF_PATH,
   ROUTE_IQ_PROSPECTIVE_SHADOW_PATH,
+  ROUTE_IQ_REQUEST_CRM_PATH,
   STATUS_PATH,
   TOKEN_STORE_KEY,
-  handlePartnerIntakeWithCrm,
+  handleRouteIqRequestCrmRuntimeRequest,
   handleRouteIqFieldSessionHandoff,
   handleRouteIqProspectiveShadowRequest,
   persistMetaInstagramTokenPatch,
@@ -792,3 +750,7 @@ export {
 export {
   RouteIqProspectiveShadowCoordinator
 } from "./infrastructure/route-iq-prospective-shadow-durable-object.js";
+
+export {
+  RouteIqRequestCrmCoordinator
+} from "./infrastructure/route-iq-request-crm-durable-object.js";

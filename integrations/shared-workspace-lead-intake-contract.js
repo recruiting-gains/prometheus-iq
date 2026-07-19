@@ -28,6 +28,27 @@ export const SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT = Object.freeze({
   ownerSubsystem: "Prometheus Infrastructure",
   canonicalPath: "integrations/shared-workspace-lead-intake-contract.js",
   runtimeEntrypoint: "workers/infrastructure/shared-lead-intake-pipeline.js",
+  activeRouteIqRequestRuntime: Object.freeze({
+    status: "active_source_not_deployed",
+    endpoint: "/api/partner-intake",
+    runtimeEntrypoint: "workers/infrastructure/route-iq-request-crm-runtime.js",
+    crmContract: "crm/route-iq-request-crm-contract-v1.json",
+    workspaceId: "prometheus_route_iq",
+    operatingProfileId: "route_iq_commercial",
+    durableBinding: "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+    atomicStorage: "sqlite_backed_durable_object_transaction",
+    publicWorkerOnly: true,
+    founderRetrievalRequiresImmutablePrincipal: true,
+    representativeRetrievalAllowed: false,
+    fitnessConnectionCustomerIntakeActive: false,
+    smoothieDepotCustomerIntakeActive: false
+  }),
+  legacyWorkspaceIntakeRuntime: Object.freeze({
+    status: "historical_inactive",
+    runtimeEntrypoint: "workers/infrastructure/shared-lead-intake-pipeline.js",
+    productionRouteSelectedByWorker: false,
+    historicalRecordsPreserved: true
+  }),
   endpoint: Object.freeze({
     id: "partner_intake_endpoint",
     method: "POST",
