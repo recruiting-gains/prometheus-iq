@@ -18,6 +18,6 @@ The snapshot reports evidence counts, intrinsic freshness, data quality, daily v
 
 ## Access and safety
 
-Access requires an authenticated, server-derived, immutable principal mapping. The current allowlist contains only `route-iq-founder-access-cruz-v1`. Display names and representative roles cannot authorize access. Anthony remains denied until a separately secured authenticated identity mapping exists.
+Access requires an authenticated, server-derived, immutable principal mapping. Prometheus Data's `data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json` is the canonical identity registry, and Intelligence requires exact cross-consumer equality with Cruz's governed `riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4` identity. The current allowlist contains only mapping `route-iq-founder-access-cruz-v1`. Display names and representative roles cannot authorize access. Anthony remains denied until a separately secured authenticated identity mapping exists in that Data registry.
 
 Discovery Mode and Nearby Context remain advisory. Off-route learning remains read-only observation. Route ordering, route scoring, representative workflows, source evidence, and recommendation influence are unchanged. Recommendation influence remains `OFF`.

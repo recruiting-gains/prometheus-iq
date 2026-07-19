@@ -472,10 +472,15 @@ export function validateRouteIqCommercialReadinessIntelligenceContract(contract 
   requireValue(contract?.ownerSubsystem === "Prometheus Intelligence Engine", "contract_owner_invalid");
   requireValue(contract?.businessContextInput?.callerSuppliedContextAllowed === false, "caller_business_context_allowed");
   requireValue(contract?.businessContextInput?.fitnessConnectionRequiredClassification === "FOUNDER_FIELD_RESEARCH", "fitness_research_classification_missing");
+  requireValue(contract?.founderAccess?.canonicalIdentitySourceOwner === "Prometheus Data", "canonical_identity_owner_invalid");
+  requireValue(contract?.founderAccess?.canonicalIdentitySourcePath === "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json", "canonical_identity_source_invalid");
+  requireValue(contract?.founderAccess?.canonicalIdentityRegistryVersion === "route-iq-commercial-workspace-registry-v1", "canonical_identity_registry_version_invalid");
+  requireValue(contract?.founderAccess?.crossConsumerPrincipalEqualityRequired === true, "cross_consumer_principal_equality_not_required");
   requireValue(contract?.founderAccess?.displayNameAuthorizationAllowed === false, "display_name_authorization_allowed");
   requireValue(contract?.founderAccess?.representativeAccessAllowed === false, "representative_intelligence_access_allowed");
   requireValue(contract?.founderAccess?.authorizedMappings?.length === 1, "founder_mapping_count_invalid");
   requireValue(contract?.founderAccess?.authorizedMappings?.[0]?.mappingId === "route-iq-founder-access-cruz-v1", "cruz_mapping_missing");
+  requireValue(contract?.founderAccess?.authorizedMappings?.[0]?.immutablePrincipalId === "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4", "cruz_canonical_principal_invalid");
   requireValue(contract?.founderAccess?.pendingMappings?.some(mapping => mapping.person === "anthony" && mapping.accessAllowed === false), "anthony_pending_mapping_missing");
   requireValue(contract?.snapshotContract?.wallClockAllowed === false, "snapshot_wall_clock_allowed");
   requireValue(contract?.snapshotContract?.unchangedEvidenceReturnsPriorSnapshotByteEquivalent === true, "unchanged_snapshot_not_stable");

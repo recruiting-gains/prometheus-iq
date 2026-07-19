@@ -31,6 +31,10 @@
   "founderAccess": {
     "identityContextSource": "server_verified_identity_mapping",
     "authenticationAuthority": "cloudflare_access",
+    "canonicalIdentitySourceOwner": "Prometheus Data",
+    "canonicalIdentitySourcePath": "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json",
+    "canonicalIdentityRegistryVersion": "route-iq-commercial-workspace-registry-v1",
+    "crossConsumerPrincipalEqualityRequired": true,
     "callerSuppliedIdentityAllowed": false,
     "displayNameAuthorizationAllowed": false,
     "representativeAccessAllowed": false,
@@ -38,7 +42,7 @@
     "authorizedMappings": [
       {
         "mappingId": "route-iq-founder-access-cruz-v1",
-        "immutablePrincipalId": "route-iq-principal-founder-cruz-v1",
+        "immutablePrincipalId": "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4",
         "status": "securely_mapped"
       }
     ],

@@ -46,6 +46,10 @@ test("contract keeps Discovery, Nearby Context, and off-route learning non-influ
   assert.equal(contract.learningBoundary.recommendationInfluence, "OFF");
   assert.equal(contract.safety.routeOrderingChanged, false);
   assert.equal(contract.safety.routeScoringWeightsChanged, false);
+  assert.equal(contract.founderAccess.canonicalIdentitySourceOwner, "Prometheus Data");
+  assert.equal(contract.founderAccess.canonicalIdentitySourcePath, "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json");
+  assert.equal(contract.founderAccess.canonicalIdentityRegistryVersion, "route-iq-commercial-workspace-registry-v1");
+  assert.equal(contract.founderAccess.crossConsumerPrincipalEqualityRequired, true);
 });
 
 test("snapshot is deterministic across record ordering and has no wall-clock field", () => {
@@ -106,7 +110,7 @@ test("Cruz requires the exact secure immutable mapping", () => {
   const contract = loadRouteIqCommercialReadinessIntelligenceContract();
   const authorized = authorizeRouteIqFounderIntelligencePrincipal(fixture.principal, contract);
   assert.equal(authorized.mappingId, "route-iq-founder-access-cruz-v1");
-  assert.equal(authorized.immutablePrincipalId, "route-iq-principal-founder-cruz-v1");
+  assert.equal(authorized.immutablePrincipalId, "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4");
 
   for (const mutation of [
     {mappingId: "route-iq-founder-access-cruz-v2"},

@@ -43,6 +43,10 @@ export function verifyRouteIqCommercialReadinessIntelligence() {
   assert.equal(fixture.canonical, false);
   assert.equal(fixture.productionConsumptionAllowed, false);
   assert.equal(authorizeRouteIqFounderIntelligencePrincipal(fixture.principal, contract).authorized, true);
+  assert.equal(contract.founderAccess.canonicalIdentitySourceOwner, "Prometheus Data");
+  assert.equal(contract.founderAccess.canonicalIdentitySourcePath, "data/route-iq-commercial-readiness-v1/route-iq-commercial-workspace-registry-v1.json");
+  assert.equal(contract.founderAccess.canonicalIdentityRegistryVersion, "route-iq-commercial-workspace-registry-v1");
+  assert.equal(contract.founderAccess.authorizedMappings[0].immutablePrincipalId, "riq_principal_7250bf2f7db15371eea3173c4f25953cffd6adf5b29f093ce8f9f0977a70e3c4");
 
   const snapshot = buildFixtureDailySnapshot({contract, fixture});
   const reordered = buildFixtureDailySnapshot({contract, fixture, records: [...fixture.records].reverse()});
@@ -92,6 +96,9 @@ export function verifyRouteIqCommercialReadinessIntelligence() {
     snapshotDate: snapshot.evidenceFreshness.snapshotDate,
     learningState: snapshot.confidence.state,
     authorizedFounderMappings: contract.founderAccess.authorizedMappings.length,
+    canonicalIdentitySourceOwner: contract.founderAccess.canonicalIdentitySourceOwner,
+    canonicalIdentityRegistryVersion: contract.founderAccess.canonicalIdentityRegistryVersion,
+    cruzCanonicalPrincipalId: contract.founderAccess.authorizedMappings[0].immutablePrincipalId,
     anthonyAccess: "pending_secure_mapping",
     recommendationInfluence: snapshot.safety.recommendationInfluence,
     routeOrderingChanged: snapshot.safety.routeOrderingChanged,
