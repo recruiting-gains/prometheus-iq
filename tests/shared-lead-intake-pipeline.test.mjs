@@ -10,6 +10,9 @@ import {
 import {
   aegisRoutePolicy
 } from "../workers/infrastructure/aegis-security-controls.js";
+import {
+  ENTERPRISE_LEAD_INTAKE_VERSION
+} from "../workers/infrastructure/shared-lead-intake-packet.js";
 
 function kvStore() {
   const data = new Map();
@@ -70,6 +73,16 @@ test("workspace router resolves current isolated workspaces through explicit ali
   assert.equal(resolveWorkspace({ formId: "smoothie_depot_partner_intake" }).workspaceId, "smoothie_depot");
   assert.equal(resolveWorkspace({ partner: "Smoothie Depot" }).workspaceId, "smoothie_depot");
   assert.equal(resolveWorkspace({ workspaceId: "unknown_customer" }), null);
+});
+
+test("shared lead intake packet contract is Infrastructure-owned", async () => {
+  const source = await import("node:fs/promises").then(({ readFile }) => (
+    readFile(new URL("../workers/infrastructure/shared-lead-intake-pipeline.js", import.meta.url), "utf8")
+  ));
+
+  assert.equal(ENTERPRISE_LEAD_INTAKE_VERSION, "prometheus-enterprise-lead-intake.v1");
+  assert.match(source, /\.\/shared-lead-intake-packet\.js/);
+  assert.doesNotMatch(source, /deploy\/prometheusrouteiq-website/);
 });
 
 test("shared lead intake persists Fitness Connection submission without cross-workspace contamination", async () => {

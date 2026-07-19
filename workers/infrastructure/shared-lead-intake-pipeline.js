@@ -1,6 +1,6 @@
 import {
   createEnterpriseLeadIntake
-} from "../../deploy/prometheusrouteiq-website/enterprise-lead-intake.js";
+} from "./shared-lead-intake-packet.js";
 
 const SHARED_LEAD_INTAKE_VERSION = "shared-workspace-lead-intake.v1";
 const PARTNER_INTAKE_PATH = "/api/partner-intake";
