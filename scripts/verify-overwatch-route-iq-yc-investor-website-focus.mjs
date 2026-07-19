@@ -45,11 +45,18 @@ const overwatchRepairPaths = [
   "package.json",
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs"
 ].sort();
-const overwatchFinalPaths = [
+const firstFinalOverwatchCommit = "36c53448ddc43aa80d2d6074597cdfc92f376b75";
+const firstFinalOverwatchPaths = [
   "overwatch/governance/route-iq-yc-investor-website-focus-v1.json",
   "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
   "tests/overwatch-route-iq-yc-investor-website-focus.test.mjs"
+].sort();
+const overwatchSuccessorRepairPaths = [
+  "overwatch/governance/route-iq-commercial-readiness-v1.json",
+  "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
+  "tests/overwatch-cloudflare-unattended-access.test.mjs"
 ].sort();
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -120,21 +127,35 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
   }
 
   const finalOverwatchCommit = commits[expectedPrefix.length];
-  assert.equal(commits.length, expectedPrefix.length + (finalOverwatchCommit ? 1 : 0), "Unexpected commit entered the batch.");
+  assert.equal(finalOverwatchCommit, firstFinalOverwatchCommit, "First final Overwatch commit drifted.");
+  assert.deepEqual(commitIdentity(finalOverwatchCommit), {
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local"
+  });
+  assert.deepEqual(changedPaths(finalOverwatchCommit), firstFinalOverwatchPaths);
+  assert.equal(git("rev-parse", `${finalOverwatchCommit}^`), ownerRepairCommits.at(-1));
+
+  const successorRepairCommit = commits[expectedPrefix.length + 1];
+  assert.equal(
+    commits.length,
+    expectedPrefix.length + 1 + (successorRepairCommit ? 1 : 0),
+    "Unexpected commit entered the batch."
+  );
   if (requireOverwatchCommit) {
-    assert.ok(finalOverwatchCommit, "Final Overwatch successor-mapping commit is missing.");
-    assert.deepEqual(commitIdentity(finalOverwatchCommit), {
+    assert.ok(successorRepairCommit, "Overwatch paused-verifier successor repair is missing.");
+    assert.deepEqual(commitIdentity(successorRepairCommit), {
       author: "overwatch@prometheus.local",
       committer: "overwatch@prometheus.local"
     });
-    assert.deepEqual(changedPaths(finalOverwatchCommit), overwatchFinalPaths);
-    assert.equal(git("rev-parse", `${finalOverwatchCommit}^`), ownerRepairCommits.at(-1));
+    assert.deepEqual(changedPaths(successorRepairCommit), overwatchSuccessorRepairPaths);
+    assert.equal(git("rev-parse", `${successorRepairCommit}^`), finalOverwatchCommit);
   }
   return {
     commits,
     overwatchCommit: initialOverwatchCommit,
     overwatchRepairCommit: initialOverwatchRepairCommit,
-    finalOverwatchCommit: finalOverwatchCommit ?? null
+    finalOverwatchCommit,
+    successorRepairCommit: successorRepairCommit ?? null
   };
 }
 
@@ -361,6 +382,7 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
     overwatchCommit: ownership.overwatchCommit,
     overwatchRepairCommit: ownership.overwatchRepairCommit,
     finalOverwatchCommit: ownership.finalOverwatchCommit,
+    successorRepairCommit: ownership.successorRepairCommit,
     scorecardCategories: report.scorecard.length,
     investorObjections: report.investorObjections.length,
     unresolvedDisclosures: report.investorObjections.filter(entry => entry.status === "unresolved_disclosed").length,

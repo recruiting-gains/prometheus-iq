@@ -51,13 +51,14 @@ test("Overwatch independently verifies the source runtime guard and held deploym
 test("paused unattended access accepts only explicit owner-authored commercial successors", () => {
   const subsystemSuccessors = commercialReadiness.protectedBaselineSuccessors
     .filter(entry => entry.owner !== "Prometheus Overwatch");
-  assert.equal(subsystemSuccessors.length, 7);
+  assert.equal(subsystemSuccessors.length, 10);
   assert.deepEqual(
     [...new Set(subsystemSuccessors.map(entry => entry.ownerCommit))].sort(),
     [
       "11ac0668b87ed347c22bf963938b8d650370cfdb",
       "7b6e7a3423e1d1cae3068b99cc46bd3be6afb162",
       "82d1e6f23ca3a75c0073c051531477913258a98f",
+      "88b3bbbf2c34d879881ced98620c15a602598c45",
       "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a"
     ].sort()
   );
