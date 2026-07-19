@@ -11,7 +11,7 @@ test("Overwatch verifies Route IQ investor focus, buyer conversion, ownership, a
   assert.equal(result.status, "PASS");
   assert.equal(result.batchId, "BATCH-20260719-002");
   assert.equal(result.acceptanceGates, 15);
-  assert.equal(result.ownerCommits.length, 4);
+  assert.equal(result.ownerCommits.length, 7);
   assert.equal(result.scorecardCategories, 11);
   assert.equal(result.investorObjections, 10);
   assert.equal(result.unresolvedDisclosures, 2);

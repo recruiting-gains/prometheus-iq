@@ -130,9 +130,91 @@
           "src/styles.css",
           "tests/website-route-iq-product-focus.test.mjs"
         ]
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Data",
+        "implementationOwner": "Prometheus Data",
+        "dispatchTimestampUtc": "2026-07-19T08:04:18.000Z",
+        "scope": "canonical route-quality runtime-surface synchronization after the Website removed obsolete generated assets",
+        "commit": "330752fb53c9466f6bc0339d771b2f2facbc2351",
+        "tree": "e1fd5b3e8b1d9ecf37552b3ffb6389755dbdd9d9",
+        "files": [
+          "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+          "scripts/lib/route-intelligence-quality-gate.mjs",
+          "tests/route-intelligence-quality-gate.test.mjs"
+        ],
+        "runtimeBehaviorChanged": false,
+        "recommendationScoringChanged": false
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Intelligence Engine",
+        "implementationOwner": "Prometheus Intelligence Engine",
+        "dispatchTimestampUtc": "2026-07-19T08:12:36.000Z",
+        "scope": "Intelligence-owned protected-consumer synchronization for the Data route-quality successor",
+        "commit": "88b3bbbf2c34d879881ced98620c15a602598c45",
+        "tree": "de525c85f2d8b02ba6c5c3ad4148668d2702230f",
+        "files": [
+          "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+          "intelligence/contracts/shadow-decision-readiness-contracts.json",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json",
+          "scripts/verify-shadow-decision-readiness.mjs",
+          "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
+          "tests/shadow-decision-readiness.test.mjs"
+        ],
+        "intelligenceBehaviorChanged": false,
+        "recommendationInfluence": "OFF"
+      },
+      {
+        "product": "Route IQ",
+        "subsystem": "Prometheus Data",
+        "implementationOwner": "Prometheus Data",
+        "dispatchTimestampUtc": "2026-07-19T08:16:42.000Z",
+        "scope": "Data-owned evidence-matrix synchronization for the Intelligence public-claims successor",
+        "commit": "6fde8ae8210170bada5dae10d91f6564c7b0202d",
+        "tree": "130863edee81f4b4bc459230ecaeccdd1d8a203e",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+          "tests/route-iq-public-claims-data.test.mjs"
+        ],
+        "claimDispositionsChanged": false,
+        "runtimeBehaviorChanged": false
       }
     ]
   },
+  "protectedBaselineSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "historicalSha256": "15c331611ff4f4e770ab6ddd4639303720f7f031e4c7f47ad5ad1e4c4f9231f8",
+      "previousSuccessorSha256": "f44a829340341e34f0d73b3af209ad89c49b877d730b4d918ad06a6341cae30f",
+      "successorSha256": "3439a38b32e099d6fcd1ab17e8e4102350a037febd3f54801e9f163808bbe1dc",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "88b3bbbf2c34d879881ced98620c15a602598c45",
+      "historicalEvidenceRewritten": false
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "historicalSha256": "caed723ccdaf8aa2958298a06b549f7a4ab69a2beb9d4e3cfbb0ee284ef59b49",
+      "previousSuccessorSha256": "a40ceed99aee42c262aa2644e76c47fac735a6cbf25a7fce22e2aa5c08f9e795",
+      "successorSha256": "910580db86a8f8a792514c3ccaeee999a392e9f07b6cbb4329ad5d08be6f3e5d",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "88b3bbbf2c34d879881ced98620c15a602598c45",
+      "historicalEvidenceRewritten": false
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "historicalSha256": "0ebbf3272cba2ec4c4fb6fdd168ca54f60ef2bd9116d393585e0b452416e61a7",
+      "previousSuccessorSha256": "272d614cdeb34a8f4faf6a7d4abaf6ceec17e29d808e8fe1ffc0953b5fb5e0fa",
+      "successorSha256": "19db831b28c5ca991087ad1d0d677edf572801eb353e0b96d7ae4a34a88716c6",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "88b3bbbf2c34d879881ced98620c15a602598c45",
+      "historicalEvidenceRewritten": false
+    }
+  ],
   "publicPositioning": {
     "company": "Prometheus",
     "soleActiveProduct": "Route IQ",

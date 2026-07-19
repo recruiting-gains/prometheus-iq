@@ -26,6 +26,8 @@ const githubDeploymentSuccessorPath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const commercialReadinessSuccessorPath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
+const investorWebsiteFocusSuccessorPath =
+  "overwatch/governance/route-iq-yc-investor-website-focus-v1.json";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -258,6 +260,11 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     readJson(unattendedKeychainInteroperabilitySuccessorPath);
   const githubDeploymentSuccessor = readJson(githubDeploymentSuccessorPath);
   const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
+  const investorWebsiteFocusSuccessor = readJson(investorWebsiteFocusSuccessorPath);
+  const intelligenceSuccessors = [
+    ...commercialReadinessSuccessor.protectedBaselineSuccessors,
+    ...investorWebsiteFocusSuccessor.protectedBaselineSuccessors
+  ];
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
   const workflow = read(".github/workflows/security-gates.yml");
@@ -283,12 +290,12 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,
     "Intelligence evidence",
-    commercialReadinessSuccessor.protectedBaselineSuccessors
+    intelligenceSuccessors
   );
   verifyProtectedRuntimeHashes(
     governance,
     failures,
-    commercialReadinessSuccessor.protectedBaselineSuccessors
+    intelligenceSuccessors
   );
 
   if (governance.intelligenceEvidence.previousWorkerSha256 !== "723ce018f4a4e1f0f731da02c0852e75c9c2ef0808b124055db2ad1b96124c59"

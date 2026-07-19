@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -8,18 +9,31 @@ const governancePath = "overwatch/governance/route-iq-yc-investor-website-focus-
 const reportPath = "overwatch/reports/BATCH-20260719-002-route-iq-yc-investor-website-focus.json";
 const startingCommit = "cb413fdf3a9676c238c02532261ffcf3a24f2b21";
 const startingTree = "ccd8356a5f820df14c574ff2be5196459422acbe";
-const ownerCommits = [
+const initialOwnerCommits = [
   "1172cd763e2ec81e45e647e338dbd77e0308bc13",
   "c6a7d760a6e5b088693ec5627a61b579ec540560",
   "cf3b5556a82383cd80cc9288c569c354d99f9ef4",
   "e2ea54a3eb8be96e3f0fb9d044da15fcfca0b308"
 ];
-const ownerEmails = [
+const initialOwnerEmails = [
   "route-iq@prometheus.local",
   "intelligence@prometheus.local",
   "data@prometheus.local",
   "website@prometheus.local"
 ];
+const initialOverwatchCommit = "56e73da299fb5efbd4d54a8eb8df1f545f01264c";
+const initialOverwatchRepairCommit = "494d3a2ff137b47c606d098101d852868881d464";
+const ownerRepairCommits = [
+  "330752fb53c9466f6bc0339d771b2f2facbc2351",
+  "88b3bbbf2c34d879881ced98620c15a602598c45",
+  "6fde8ae8210170bada5dae10d91f6564c7b0202d"
+];
+const ownerRepairEmails = [
+  "data@prometheus.local",
+  "intelligence@prometheus.local",
+  "data@prometheus.local"
+];
+const ownerCommits = [...initialOwnerCommits, ...ownerRepairCommits];
 const overwatchPaths = [
   "overwatch/governance/route-iq-yc-investor-website-focus-v1.json",
   "overwatch/reports/BATCH-20260719-002-route-iq-yc-investor-website-focus.json",
@@ -31,10 +45,17 @@ const overwatchRepairPaths = [
   "package.json",
   "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs"
 ].sort();
+const overwatchFinalPaths = [
+  "overwatch/governance/route-iq-yc-investor-website-focus-v1.json",
+  "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+  "scripts/verify-overwatch-route-iq-yc-investor-website-focus.mjs",
+  "tests/overwatch-route-iq-yc-investor-website-focus.test.mjs"
+].sort();
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readBytes = path => readFileSync(resolve(root, path));
 const readJson = path => JSON.parse(read(path));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
 const git = (...args) => execFileSync("/usr/bin/git", args, {
   cwd: root,
   encoding: "utf8",
@@ -55,44 +76,65 @@ function verifyOwnership(governance, { requireOverwatchCommit }) {
   assert.equal(git("rev-parse", `${startingCommit}^{tree}`), startingTree);
   execFileSync("/usr/bin/git", ["merge-base", "--is-ancestor", startingCommit, "HEAD"], { cwd: root });
   const commits = git("rev-list", "--reverse", `${startingCommit}..HEAD`).split("\n").filter(Boolean);
-  assert.deepEqual(commits.slice(0, ownerCommits.length), ownerCommits, "Owner commit order drifted.");
-  assert.equal(git("rev-list", "--min-parents=2", `${startingCommit}..${ownerCommits.at(-1)}`), "", "Owner range contains a merge commit.");
+  const expectedPrefix = [
+    ...initialOwnerCommits,
+    initialOverwatchCommit,
+    initialOverwatchRepairCommit,
+    ...ownerRepairCommits
+  ];
+  assert.deepEqual(commits.slice(0, expectedPrefix.length), expectedPrefix, "Batch commit order drifted.");
+  assert.equal(git("rev-list", "--min-parents=2", `${startingCommit}..HEAD`), "", "Batch contains a merge commit.");
 
   const dispatchedByCommit = new Map(
     governance.dispatchAudit.dispatches.filter(entry => entry.commit).map(entry => [entry.commit, entry])
   );
-  for (let index = 0; index < ownerCommits.length; index += 1) {
-    const commit = ownerCommits[index];
+  for (let index = 0; index < initialOwnerCommits.length; index += 1) {
+    const commit = initialOwnerCommits[index];
     const identity = commitIdentity(commit);
-    assert.deepEqual(identity, { author: ownerEmails[index], committer: ownerEmails[index] });
+    assert.deepEqual(identity, { author: initialOwnerEmails[index], committer: initialOwnerEmails[index] });
     const dispatch = dispatchedByCommit.get(commit);
     assert.ok(dispatch, `Dispatch record missing for ${commit}.`);
     assert.deepEqual(changedPaths(commit), [...dispatch.files].sort(), `Changed-file ownership drifted for ${commit}.`);
   }
 
-  const overwatchCommit = commits[ownerCommits.length];
-  const overwatchRepairCommit = commits[ownerCommits.length + 1];
+  assert.deepEqual(commitIdentity(initialOverwatchCommit), {
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local"
+  });
+  assert.deepEqual(changedPaths(initialOverwatchCommit), overwatchPaths);
+  assert.equal(git("rev-parse", `${initialOverwatchCommit}^`), initialOwnerCommits.at(-1));
+  assert.deepEqual(commitIdentity(initialOverwatchRepairCommit), {
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local"
+  });
+  assert.deepEqual(changedPaths(initialOverwatchRepairCommit), overwatchRepairPaths);
+  assert.equal(git("rev-parse", `${initialOverwatchRepairCommit}^`), initialOverwatchCommit);
+
+  for (let index = 0; index < ownerRepairCommits.length; index += 1) {
+    const commit = ownerRepairCommits[index];
+    const identity = commitIdentity(commit);
+    assert.deepEqual(identity, { author: ownerRepairEmails[index], committer: ownerRepairEmails[index] });
+    const dispatch = dispatchedByCommit.get(commit);
+    assert.ok(dispatch, `Repair dispatch record missing for ${commit}.`);
+    assert.deepEqual(changedPaths(commit), [...dispatch.files].sort(), `Repair ownership drifted for ${commit}.`);
+  }
+
+  const finalOverwatchCommit = commits[expectedPrefix.length];
+  assert.equal(commits.length, expectedPrefix.length + (finalOverwatchCommit ? 1 : 0), "Unexpected commit entered the batch.");
   if (requireOverwatchCommit) {
-    assert.ok(overwatchCommit, "Overwatch release-gate commit is missing.");
-    assert.deepEqual(commitIdentity(overwatchCommit), {
+    assert.ok(finalOverwatchCommit, "Final Overwatch successor-mapping commit is missing.");
+    assert.deepEqual(commitIdentity(finalOverwatchCommit), {
       author: "overwatch@prometheus.local",
       committer: "overwatch@prometheus.local"
     });
-    assert.deepEqual(changedPaths(overwatchCommit), overwatchPaths);
-    assert.equal(git("rev-parse", `${overwatchCommit}^`), ownerCommits.at(-1));
-    if (overwatchRepairCommit) {
-      assert.deepEqual(commitIdentity(overwatchRepairCommit), {
-        author: "overwatch@prometheus.local",
-        committer: "overwatch@prometheus.local"
-      });
-      assert.deepEqual(changedPaths(overwatchRepairCommit), overwatchRepairPaths);
-      assert.equal(git("rev-parse", `${overwatchRepairCommit}^`), overwatchCommit);
-    }
+    assert.deepEqual(changedPaths(finalOverwatchCommit), overwatchFinalPaths);
+    assert.equal(git("rev-parse", `${finalOverwatchCommit}^`), ownerRepairCommits.at(-1));
   }
   return {
     commits,
-    overwatchCommit: overwatchCommit ?? null,
-    overwatchRepairCommit: overwatchRepairCommit ?? null
+    overwatchCommit: initialOverwatchCommit,
+    overwatchRepairCommit: initialOverwatchRepairCommit,
+    finalOverwatchCommit: finalOverwatchCommit ?? null
   };
 }
 
@@ -125,6 +167,16 @@ function verifyPositioningAndClaims(governance, report) {
 
   assert.equal(data.batchId, governance.batchId);
   assert.equal(data.status, "canonical_data_claim_boundaries_verified_cross_owner_corroborated");
+  assert.equal(governance.protectedBaselineSuccessors.length, 3);
+  for (const mapping of governance.protectedBaselineSuccessors) {
+    assert.equal(mapping.predecessorGovernanceId, "cloudflare-unattended-deployment-access-governance-v1");
+    assert.equal(mapping.owner, "Prometheus Intelligence Engine");
+    assert.equal(mapping.ownerCommit, "88b3bbbf2c34d879881ced98620c15a602598c45");
+    assert.equal(mapping.historicalEvidenceRewritten, false);
+    assert.match(mapping.historicalSha256, /^[a-f0-9]{64}$/u);
+    assert.match(mapping.previousSuccessorSha256, /^[a-f0-9]{64}$/u);
+    assert.equal(mapping.successorSha256, sha256(readBytes(mapping.path)));
+  }
   assert.equal(report.scorecard.length, 11);
   assert.ok(report.scorecard.every(entry => entry.after > entry.before));
   assert.equal(report.investorObjections.length, 10);
@@ -308,6 +360,7 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
     ownerCommits,
     overwatchCommit: ownership.overwatchCommit,
     overwatchRepairCommit: ownership.overwatchRepairCommit,
+    finalOverwatchCommit: ownership.finalOverwatchCommit,
     scorecardCategories: report.scorecard.length,
     investorObjections: report.investorObjections.length,
     unresolvedDisclosures: report.investorObjections.filter(entry => entry.status === "unresolved_disclosed").length,
