@@ -168,6 +168,13 @@ Because the immutable Overwatch mapping predates the `overwatch:` subject conven
 commit, tree, parent, author, committer, literal subject, and file scope are pinned explicitly. No
 general exception to the Overwatch subject convention is introduced.
 
+The subsequent historical-fixture repair is similarly exact. Infrastructure commits
+`a69dd6ac8785f0906d1ad91e9ca156f5250dc22e` and
+`0165ffc56a18408be5c2e970223944fa1dd02593` distinguish the immutable July 15 fixture from its
+current CI-portability successor and report the resulting six ownership tests. Overwatch commit
+`41d9f1fa9273482261500708d7299a1997f6ec69` maps those owner changes. This verifier accepts only
+that three-commit sequence followed by the exact four-file Infrastructure provenance admission.
+
 ## Operator use
 
 Local non-deployment diagnostic:

@@ -776,6 +776,8 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
   assert.equal(current.keychainCiOverwatchMappingSeen, true);
   assert.equal(current.keychainCiProvenanceAdmissionSeen, true);
   assert.equal(current.keychainCiMappingCompatibilityRepairSeen, true);
+  assert.equal(current.historicalKeychainFixtureSuccessorsSeen, 3);
+  assert.equal(current.historicalKeychainFixtureProvenanceAdmissionSeen, true);
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -819,6 +821,33 @@ test("owner boundary admits only the exact Keychain CI successor and provenance 
       files: [
         ...INFRASTRUCTURE_OWNER_BOUNDARY.keychainCiProvenanceAdmissionSuccessor.files,
         "scripts/unapproved-keychain-provenance.mjs"
+      ]
+    }
+  };
+  assert.throws(() => verifyInfrastructureOwnerBoundary(root, widenedAdmission));
+});
+
+test("owner boundary pins the historical Keychain fixture chain and exact admission", () => {
+  const wrongRepairTree = {
+    ...INFRASTRUCTURE_OWNER_BOUNDARY,
+    historicalKeychainFixtureSuccessors: [
+      {
+        ...INFRASTRUCTURE_OWNER_BOUNDARY.historicalKeychainFixtureSuccessors[0],
+        tree: "0".repeat(40)
+      },
+      ...INFRASTRUCTURE_OWNER_BOUNDARY.historicalKeychainFixtureSuccessors.slice(1)
+    ]
+  };
+  assert.throws(() => verifyInfrastructureOwnerBoundary(root, wrongRepairTree));
+
+  const widenedAdmission = {
+    ...INFRASTRUCTURE_OWNER_BOUNDARY,
+    historicalKeychainFixtureProvenanceAdmissionSuccessor: {
+      ...INFRASTRUCTURE_OWNER_BOUNDARY.historicalKeychainFixtureProvenanceAdmissionSuccessor,
+      files: [
+        ...INFRASTRUCTURE_OWNER_BOUNDARY
+          .historicalKeychainFixtureProvenanceAdmissionSuccessor.files,
+        "scripts/unapproved-historical-keychain-fixture.mjs"
       ]
     }
   };

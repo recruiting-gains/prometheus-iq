@@ -117,6 +117,12 @@ const keychainCiOverwatchMappingFiles = Object.freeze([
   "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
   "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
 ]);
+const historicalKeychainFixtureProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -285,6 +291,60 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: pin Keychain Overwatch mapping",
     files: keychainCiProvenanceAdmissionFiles
+  }),
+  historicalKeychainFixtureSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+      tree: "459845ad3a1494ffad84471c56fe5cc152c8b11d",
+      parent: "5f33e24e1e61f4866f49f96669c9c54e80cbb099",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: distinguish historical Keychain fixture successor",
+      files: Object.freeze([
+        "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+        "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs"
+      ])
+    }),
+    Object.freeze({
+      commit: "0165ffc56a18408be5c2e970223944fa1dd02593",
+      tree: "e8d3d8a9031eebfa8a9ebf46666bfd6b961b9c83",
+      parent: "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: report current owner verifier coverage",
+      files: Object.freeze([
+        "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs"
+      ])
+    }),
+    Object.freeze({
+      commit: "41d9f1fa9273482261500708d7299a1997f6ec69",
+      tree: "647e652e2fd152b8220cfc6e632c039dd33ea277",
+      parent: "0165ffc56a18408be5c2e970223944fa1dd02593",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "overwatch: govern historical Keychain fixture repairs",
+      files: Object.freeze([
+        "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json",
+        "scripts/verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs",
+        "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
+        "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
+      ])
+    })
+  ]),
+  historicalKeychainFixtureProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "41d9f1fa9273482261500708d7299a1997f6ec69",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit historical Keychain fixture successors",
+    files: historicalKeychainFixtureProvenanceAdmissionFiles
   })
 });
 
@@ -382,6 +442,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let keychainCiOverwatchMappingSeen = false;
   let keychainCiProvenanceAdmissionSeen = false;
   let keychainCiMappingCompatibilityRepairSeen = false;
+  let historicalKeychainFixtureSuccessorsSeen = 0;
+  let historicalKeychainFixtureProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -533,6 +595,34 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const historicalKeychainFixtureSuccessor =
+      boundary.historicalKeychainFixtureSuccessors?.[historicalKeychainFixtureSuccessorsSeen];
+    if (historicalKeychainFixtureSuccessor
+      && commit === historicalKeychainFixtureSuccessor.commit) {
+      assertCommitSnapshot(repositoryRoot, historicalKeychainFixtureSuccessor);
+      historicalKeychainFixtureSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const historicalKeychainFixtureAdmission =
+      boundary.historicalKeychainFixtureProvenanceAdmissionSuccessor;
+    const isHistoricalKeychainFixtureAdmission = historicalKeychainFixtureAdmission
+      && !historicalKeychainFixtureProvenanceAdmissionSeen
+      && historicalKeychainFixtureSuccessorsSeen ===
+        boundary.historicalKeychainFixtureSuccessors.length
+      && actual.parents[0] === historicalKeychainFixtureAdmission.parent
+      && actual.authorName === historicalKeychainFixtureAdmission.authorName
+      && actual.authorEmail === historicalKeychainFixtureAdmission.authorEmail
+      && actual.committerName === historicalKeychainFixtureAdmission.committerName
+      && actual.committerEmail === historicalKeychainFixtureAdmission.committerEmail
+      && actual.subject === historicalKeychainFixtureAdmission.subject
+      && JSON.stringify(actual.files) ===
+        JSON.stringify([...historicalKeychainFixtureAdmission.files].sort());
+    if (isHistoricalKeychainFixtureAdmission) {
+      historicalKeychainFixtureProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -562,6 +652,12 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.keychainCiProvenanceAdmissionSeen = keychainCiProvenanceAdmissionSeen;
     result.keychainCiMappingCompatibilityRepairSeen =
       keychainCiMappingCompatibilityRepairSeen;
+  }
+  if (boundary.historicalKeychainFixtureSuccessors) {
+    result.historicalKeychainFixtureSuccessorsSeen =
+      historicalKeychainFixtureSuccessorsSeen;
+    result.historicalKeychainFixtureProvenanceAdmissionSeen =
+      historicalKeychainFixtureProvenanceAdmissionSeen;
   }
   return Object.freeze(result);
 }
