@@ -12,7 +12,7 @@ import {
   rmSync,
   writeFileSync
 } from "node:fs";
-import { tmpdir } from "node:os";
+import { devNull, tmpdir } from "node:os";
 import { join, relative, resolve } from "node:path";
 
 import { parseJsonc } from "./github-actions-private-worker-deployment.mjs";
@@ -21,10 +21,14 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   contractVersion: "github-actions-founder-triggered-public-worker-deployment-v1",
   repository: "PrometheusRouteIQ/prometheus-iq",
   repositoryUrl: "https://github.com/PrometheusRouteIQ/prometheus-iq",
+  repositorySshUrl: "git@github.com:PrometheusRouteIQ/prometheus-iq.git",
   founderActor: "PrometheusRouteIQ",
   founderAuthorization: "I AUTHORIZE THIS EXACT PROMETHEUS PUBLIC WORKER DEPLOYMENT",
   workflowName: "Deploy Prometheus Public Worker",
   workflowPath: ".github/workflows/deploy-prometheus-public-worker.yml",
+  integrityWorkflowName: "Verify Prometheus Public Repository Integrity",
+  integrityWorkflowPath: ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+  integrityContractPath: "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
   workflowRef: "PrometheusRouteIQ/prometheus-iq/.github/workflows/deploy-prometheus-public-worker.yml@refs/heads/main",
   environmentName: "prometheus-public-worker-production",
   branch: "main",
@@ -61,6 +65,7 @@ export const PUBLIC_DEPLOYMENT_FAILURE = Object.freeze({
   REPOSITORY_DIRTY: "REPOSITORY_DIRTY",
   ORIGIN_MAIN_MISMATCH: "ORIGIN_MAIN_MISMATCH",
   REPOSITORY_INTEGRITY_FAILED: "REPOSITORY_INTEGRITY_FAILED",
+  PREFLIGHT_FAILED: "PREFLIGHT_FAILED",
   CONFIG_INVALID: "CONFIG_INVALID",
   GOVERNANCE_BOUNDARY_INVALID: "GOVERNANCE_BOUNDARY_INVALID",
   ROLLBACK_INVALID: "ROLLBACK_INVALID",
@@ -91,7 +96,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const TEAM_DOMAIN = /^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/u;
 const MAX_FILE_BYTES = 2_000_000;
 const MAX_GIT_BYTES = 2_000_000;
+const MAX_GIT_FSCK_BYTES = 128 * 1024;
 const GIT_TIMEOUT_MS = 30_000;
+const SAFE_DIAGNOSTIC = /^[A-Z][A-Z0-9_]*(?:=[A-Z0-9_,.-]+)?$/u;
+const GIT_FSCK_ARGUMENTS = Object.freeze([
+  "fsck",
+  "--full",
+  "--strict",
+  "--no-dangling",
+  "--no-progress"
+]);
 const FOUNDER_INPUT_NAMES = Object.freeze([
   "approved_commit",
   "approved_tree",
@@ -115,15 +129,36 @@ const CREDENTIAL_NAMES = Object.freeze({
 });
 
 export class PublicDeploymentPolicyError extends Error {
-  constructor(code) {
+  constructor(code, diagnostics = []) {
     super(code);
     this.name = "PublicDeploymentPolicyError";
     this.code = code;
+    this.diagnostics = Object.freeze([...new Set((Array.isArray(diagnostics) ? diagnostics : [])
+      .map(value => String(value))
+      .map(value => SAFE_DIAGNOSTIC.test(value) ? value : "DIAGNOSTIC_REDACTED"))].slice(0, 16));
   }
 }
 
-function fail(code) {
-  throw new PublicDeploymentPolicyError(code);
+function fail(code, diagnostics) {
+  throw new PublicDeploymentPolicyError(code, diagnostics);
+}
+
+function isExpectedPublicRepositoryOrigin(originUrl) {
+  return [
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl,
+    `${PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl}.git`,
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.repositorySshUrl
+  ].includes(originUrl);
+}
+
+export function formatPublicDeploymentFailure(error, mode = "verify") {
+  if (error instanceof PublicDeploymentPolicyError) {
+    return Object.freeze([error.code, ...error.diagnostics]);
+  }
+  return Object.freeze([
+    mode === "deploy" ? PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED : PUBLIC_DEPLOYMENT_FAILURE.PREFLIGHT_FAILED,
+    "PREFLIGHT_DIAGNOSTIC=UNCLASSIFIED_INTERNAL_FAILURE"
+  ]);
 }
 
 function isPlainObject(value) {
@@ -245,10 +280,7 @@ export function assertPublicRepositoryIdentity(identity, inputs) {
   if (identity.head !== inputs.approvedCommit
     || identity.tree !== inputs.approvedTree
     || identity.branch !== PUBLIC_WORKER_DEPLOYMENT_POLICY.branch
-    || ![
-      PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl,
-      `${PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl}.git`
-    ].includes(identity.originUrl)) {
+    || !isExpectedPublicRepositoryOrigin(identity.originUrl)) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_IDENTITY_MISMATCH);
   }
   if (identity.originMain !== inputs.approvedCommit) {
@@ -259,23 +291,153 @@ export function assertPublicRepositoryIdentity(identity, inputs) {
   }
 }
 
-export function verifyPublicRepositoryIntegrity(root) {
-  const result = spawnSync("git", ["fsck", "--full", "--strict"], {
+function runPublicIntegrityGit(root, argumentsList, {
+  allowAbsent = false,
+  classification,
+  runner = spawnSync,
+  timeout = GIT_TIMEOUT_MS
+} = {}) {
+  const result = runner("git", argumentsList, {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
     maxBuffer: MAX_GIT_BYTES,
+    timeout,
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_CONFIG_GLOBAL: devNull,
+      GIT_TERMINAL_PROMPT: "0",
+      LC_ALL: "C"
+    }
+  });
+  if (allowAbsent && result.status === 1 && !result.error && !result.signal) {
+    return Object.freeze({ output: "", absent: true });
+  }
+  if (result.status !== 0 || result.error || result.signal) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, [
+      `GIT_PROBE=${classification || "UNKNOWN"}`,
+      `GIT_PROBE_EXIT=${Number.isInteger(result.status) ? result.status : "NONE"}`,
+      `GIT_PROBE_SIGNAL=${typeof result.signal === "string" ? result.signal.toUpperCase() : "NONE"}`
+    ]);
+  }
+  return Object.freeze({ output: String(result.stdout || "").trim(), absent: false });
+}
+
+function byteLength(value) {
+  return Buffer.byteLength(String(value || ""), "utf8");
+}
+
+function classifyGitFsckOutput(stdout, stderr, result) {
+  const combined = `${String(stdout || "")}\n${String(stderr || "")}`;
+  const classifications = new Set();
+  if (result.error?.code === "ENOBUFS") classifications.add("OUTPUT_LIMIT_EXCEEDED");
+  else if (result.error?.code === "ETIMEDOUT") classifications.add("TIMEOUT");
+  else if (result.error) classifications.add("PROCESS_ERROR");
+  if (/missing (?:blob|commit|tag|tree)|missing object|does not exist/iu.test(combined)) {
+    classifications.add("MISSING_OBJECT");
+  }
+  if (/hash mismatch|object corrupt|corrupt loose object|sha1 mismatch|sha256 mismatch/iu.test(combined)) {
+    classifications.add("CORRUPT_OBJECT");
+  }
+  if (/invalid sha1 pointer|invalid sha256 pointer|invalid ref|bad ref|reference broken|refs verify/iu.test(combined)) {
+    classifications.add("INVALID_REF");
+  }
+  if (/error in (?:blob|commit|tag|tree)|malformed|bad(?:date|email|filemode|gpgsig)|missing(?:tree|type)/iu.test(combined)) {
+    classifications.add("MALFORMED_OBJECT");
+  }
+  if (/unable to read|failed to parse|could not open/iu.test(combined)) {
+    classifications.add("OBJECT_READ_FAILED");
+  }
+  if (result.signal) classifications.add("PROCESS_SIGNALLED");
+  if (classifications.size === 0) classifications.add("UNCLASSIFIED_FAILURE");
+  return [...classifications].sort();
+}
+
+function gitFsckFailureDiagnostics(result) {
+  const classifications = classifyGitFsckOutput(result.stdout, result.stderr, result);
+  return Object.freeze([
+    `GIT_FSCK_EXIT=${Number.isInteger(result.status) ? result.status : "NONE"}`,
+    `GIT_FSCK_SIGNAL=${typeof result.signal === "string" ? result.signal.toUpperCase() : "NONE"}`,
+    `GIT_FSCK_STDOUT_BYTES=${byteLength(result.stdout)}`,
+    `GIT_FSCK_STDERR_BYTES=${byteLength(result.stderr)}`,
+    `GIT_FSCK_CAPTURE_LIMIT_BYTES=${MAX_GIT_FSCK_BYTES}`,
+    `GIT_FSCK_CLASSIFICATIONS=${classifications.join(",")}`
+  ]);
+}
+
+export function inspectPublicRepositoryIntegrity(root) {
+  const gitVersion = runPublicIntegrityGit(root, ["version"], {
+    classification: "VERSION"
+  }).output;
+  const shallow = runPublicIntegrityGit(root, ["rev-parse", "--is-shallow-repository"], {
+    classification: "SHALLOW"
+  }).output;
+  const objectFormat = runPublicIntegrityGit(root, ["rev-parse", "--show-object-format"], {
+    classification: "OBJECT_FORMAT"
+  }).output;
+  const partialClone = runPublicIntegrityGit(root, ["config", "--get", "extensions.partialClone"], {
+    allowAbsent: true,
+    classification: "PARTIAL_CLONE"
+  });
+  const promisor = runPublicIntegrityGit(root, ["config", "--get-regexp", "^remote\\..*\\.promisor$"], {
+    allowAbsent: true,
+    classification: "PROMISOR"
+  });
+  const refs = runPublicIntegrityGit(root, ["for-each-ref", "--format=%(refname)"], {
+    classification: "REFERENCES"
+  }).output.split("\n").filter(Boolean);
+  return Object.freeze({
+    gitVersion,
+    shallow,
+    objectFormat,
+    partialClone: !partialClone.absent,
+    promisor: !promisor.absent,
+    refCount: refs.length
+  });
+}
+
+export function verifyPublicRepositoryIntegrity(root, { fsckRunner = spawnSync } = {}) {
+  const metadata = inspectPublicRepositoryIntegrity(root);
+  if (metadata.shallow !== "false") {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, [
+      "GIT_REPOSITORY_CLASSIFICATION=SHALLOW_REPOSITORY"
+    ]);
+  }
+  if (metadata.objectFormat !== "sha1") {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, [
+      "GIT_REPOSITORY_CLASSIFICATION=OBJECT_FORMAT_UNSUPPORTED"
+    ]);
+  }
+  if (metadata.partialClone || metadata.promisor) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, [
+      "GIT_REPOSITORY_CLASSIFICATION=PARTIAL_OR_PROMISOR_REPOSITORY"
+    ]);
+  }
+  const result = fsckRunner("git", GIT_FSCK_ARGUMENTS, {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+    maxBuffer: MAX_GIT_FSCK_BYTES,
     timeout: 120_000,
     env: {
       PATH: process.env.PATH,
       HOME: process.env.HOME,
       GIT_CONFIG_NOSYSTEM: "1",
-      GIT_TERMINAL_PROMPT: "0"
+      GIT_CONFIG_GLOBAL: devNull,
+      GIT_TERMINAL_PROMPT: "0",
+      LC_ALL: "C"
     }
   });
-  if (result.status !== 0 || result.error || result.signal) {
-    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED);
+  if (result.status !== 0
+    || result.error
+    || result.signal
+    || byteLength(result.stdout) > 0
+    || byteLength(result.stderr) > 0) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, gitFsckFailureDiagnostics(result));
   }
+  return Object.freeze({ status: "PUBLIC_REPOSITORY_INTEGRITY_VERIFIED", ...metadata });
 }
 
 function parseContract(root, path) {

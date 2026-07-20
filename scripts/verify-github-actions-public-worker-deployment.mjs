@@ -22,6 +22,7 @@ const paths = Object.freeze([
   "scripts/lib/github-actions-public-worker-deployment.mjs",
   "scripts/lib/route-iq-public-forward-rollback.mjs",
   "scripts/run-github-actions-public-worker-deployment.mjs",
+  "scripts/run-public-worker-repository-integrity-diagnostic.mjs",
   "scripts/run-cloudflare-public-worker-smoke.mjs",
   "scripts/verify-route-iq-public-forward-rollback.mjs",
   "scripts/verify-route-iq-public-deployment-assets.mjs",
@@ -116,7 +117,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     "npm run lint",
     "npm run typecheck",
     "npm run build",
-    "git fsck --full --strict"
+    "node scripts/run-public-worker-repository-integrity-diagnostic.mjs"
   ]) assert.ok(verification.includes(command), `missing ${command}`);
 
   const syntheticInputs = Object.freeze({

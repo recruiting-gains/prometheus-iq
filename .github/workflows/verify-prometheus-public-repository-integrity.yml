@@ -1,0 +1,62 @@
+name: Verify Prometheus Public Repository Integrity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-prometheus-public-repository-integrity
+  cancel-in-progress: false
+
+jobs:
+  integrity:
+    name: Verify public release repository integrity without deployment access
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Verify Prometheus Public Repository Integrity' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/verify-prometheus-public-repository-integrity.yml@refs/heads/main' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout complete main history
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Verify exact repository and surface bounded integrity diagnostics
+        run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs
+
+      - name: Set up pinned Node runtime without dependency cache
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24"
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Verify Infrastructure repair contract and path-independent rollback identity
+        run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs
+
+      - name: Require unchanged repository after verification
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          node scripts/run-public-worker-repository-integrity-diagnostic.mjs

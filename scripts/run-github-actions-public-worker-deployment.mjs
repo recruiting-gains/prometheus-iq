@@ -10,6 +10,7 @@ import {
   assertPublicRepositoryIdentity,
   createFounderSettingsSecretFile,
   fetchPublicWorkerState,
+  formatPublicDeploymentFailure,
   readPublicRepositoryIdentity,
   removeFounderSettingsSecretFile,
   runBoundedPublicWrangler,
@@ -34,12 +35,12 @@ export async function runPublicWorkerDeploymentCommand({
     throw new PublicDeploymentPolicyError(PUBLIC_DEPLOYMENT_FAILURE.INPUT_INVALID);
   }
   const inputs = validatePublicFounderDeploymentInputs(environment);
+  assertPublicRepositoryIdentity(readPublicRepositoryIdentity(root), inputs);
+  verifyPublicRepositoryIntegrity(root);
   verifyPublicStaticDeploymentPolicy(root);
   verifyPublicWranglerPin(root);
   verifyPublicForwardRollbackArtifact(root, inputs.rollbackArtifactSha256);
-  assertPublicRepositoryIdentity(readPublicRepositoryIdentity(root), inputs);
   if (mode === "verify") {
-    verifyPublicRepositoryIntegrity(root);
     return Object.freeze({ status: "PUBLIC_WORKER_DEPLOYMENT_PREFLIGHT_PASSED" });
   }
 
@@ -83,12 +84,7 @@ if (isMain) {
       const result = await runPublicWorkerDeploymentCommand({ mode });
       process.stdout.write(`${result.status}\n`);
     } catch (error) {
-      const code = error instanceof PublicDeploymentPolicyError
-        ? error.code
-        : mode === "deploy"
-          ? PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED
-          : PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED;
-      process.stdout.write(`${code}\n`);
+      process.stdout.write(`${formatPublicDeploymentFailure(error, mode).join("\n")}\n`);
       process.exitCode = 1;
     }
   }

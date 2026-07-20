@@ -17,6 +17,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 
 import {
+  PUBLIC_DEPLOYMENT_FAILURE,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
   PublicDeploymentPolicyError,
   verifyPublicForwardRollbackContract
@@ -138,16 +139,24 @@ function exactGeneratedOutputs(directory) {
 }
 
 function canonicalSourcePath(source, prefix, base) {
-  const normalized = source.split("\\").join("/");
+  const normalizedSources = new Set([resolve(source)]);
+  try {
+    normalizedSources.add(realpathSync(source));
+  } catch {
+    // The caller decides whether an unresolved source is inside an allowed boundary.
+  }
   const candidates = new Set([resolve(base), realpathSync(base)]);
-  for (const candidate of candidates) {
-    const marker = candidate.split("\\").join("/").replace(/^\/+|\/+$/gu, "");
-    const index = normalized.indexOf(marker);
-    const before = index > 0 ? normalized[index - 1] : "/";
-    const after = index >= 0 ? normalized[index + marker.length] : undefined;
-    if (index >= 0 && before === "/" && (after === "/" || after === undefined)) {
-      const suffix = normalized.slice(index + marker.length).replace(/^\/+|\/+$/gu, "");
-      return suffix ? `${prefix}/${suffix}` : prefix;
+  for (const normalizedSource of normalizedSources) {
+    const normalized = normalizedSource.split("\\").join("/");
+    for (const candidate of candidates) {
+      const marker = candidate.split("\\").join("/").replace(/^\/+|\/+$/gu, "");
+      const index = normalized.indexOf(marker);
+      const before = index > 0 ? normalized[index - 1] : "/";
+      const after = index >= 0 ? normalized[index + marker.length] : undefined;
+      if (index >= 0 && before === "/" && (after === "/" || after === undefined)) {
+        const suffix = normalized.slice(index + marker.length).replace(/^\/+|\/+$/gu, "");
+        return suffix ? `${prefix}/${suffix}` : prefix;
+      }
     }
   }
   return null;
@@ -180,6 +189,40 @@ function canonicalSourceMap(sourceMapPath, outputPath, { workspace, repositoryRo
     throw new Error("public_forward_rollback_source_map_outside_boundary");
   });
   writeFileSync(outputPath, `${canonicalJson(sourceMap)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+}
+
+export function canonicalizeGeneratedWorkerSource(source, {
+  workspace,
+  repositoryRoot
+}) {
+  if (typeof source !== "string" || source.includes("\0")) {
+    throw new Error("public_forward_rollback_generated_worker_invalid");
+  }
+  return source.split("\n").map(line => {
+    const match = /^\/\/ (.+)$/u.exec(line);
+    if (!match) return line;
+    const absoluteSource = resolve(workspace, match[1]);
+    const workspacePath = canonicalSourcePath(absoluteSource, "workspace", workspace);
+    if (workspacePath) return `// ${workspacePath}`;
+    const dependencyPath = canonicalSourcePath(
+      absoluteSource,
+      "node_modules",
+      resolve(repositoryRoot, "node_modules")
+    );
+    return dependencyPath ? `// ${dependencyPath}` : line;
+  }).join("\n");
+}
+
+function canonicalGeneratedWorker(inputPath, outputPath, context) {
+  const source = readFileSync(inputPath, "utf8");
+  const canonical = canonicalizeGeneratedWorkerSource(source, context);
+  const forbiddenRoots = [context.workspace, context.repositoryRoot]
+    .flatMap(path => [resolve(path), realpathSync(path)])
+    .map(path => path.split("\\").join("/"));
+  if (forbiddenRoots.some(path => canonical.includes(path))) {
+    throw new Error("public_forward_rollback_generated_worker_path_leak");
+  }
+  writeFileSync(outputPath, canonical, { encoding: "utf8", mode: 0o600, flag: "wx" });
 }
 
 function buildIdentityManifest(contract, components) {
@@ -231,8 +274,6 @@ export function buildPublicForwardRollbackArtifact(root, {
     const configurationSha256 = sha256File(configurationPath);
     const generatedWorkerPath = join(generatedDirectory, "prometheus-iq-worker.js");
     const generatedSourceMapPath = join(generatedDirectory, "prometheus-iq-worker.js.map");
-    const generatedWorkerSha256 = sha256File(generatedWorkerPath);
-
     mkdirSync(identityDirectory, { mode: 0o700 });
     mkdirSync(join(identityDirectory, "configuration"), { mode: 0o700 });
     mkdirSync(join(identityDirectory, "generated"), { mode: 0o700 });
@@ -243,12 +284,17 @@ export function buildPublicForwardRollbackArtifact(root, {
       force: false,
       dereference: false
     });
-    copyFileSync(generatedWorkerPath, join(identityDirectory, "generated", DEPLOYABLE_GENERATED_FILES[0]));
+    canonicalGeneratedWorker(
+      generatedWorkerPath,
+      join(identityDirectory, "generated", DEPLOYABLE_GENERATED_FILES[0]),
+      { workspace, repositoryRoot: root }
+    );
     canonicalSourceMap(
       generatedSourceMapPath,
       join(identityDirectory, "generated", DEPLOYABLE_GENERATED_FILES[1]),
       { workspace, repositoryRoot: root }
     );
+    const generatedWorkerSha256 = sha256File(join(identityDirectory, "generated", DEPLOYABLE_GENERATED_FILES[0]));
     const generatedSourceMapSha256 = sha256File(join(identityDirectory, "generated", DEPLOYABLE_GENERATED_FILES[1]));
     const components = Object.freeze({
       configuration: Object.freeze({
@@ -298,17 +344,23 @@ export function buildPublicForwardRollbackArtifact(root, {
 
 export function verifyPublicForwardRollbackArtifact(root, expectedSha256) {
   if (expectedSha256 !== undefined && !SHA256.test(expectedSha256)) {
-    throw new Error("public_forward_rollback_expected_hash_invalid");
+    throw new PublicDeploymentPolicyError(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID, [
+      "ROLLBACK_DIAGNOSTIC=EXPECTED_HASH_INVALID"
+    ]);
   }
   let result;
   try {
     result = buildPublicForwardRollbackArtifact(root);
   } catch (error) {
     if (error instanceof PublicDeploymentPolicyError) throw error;
-    throw new Error("public_forward_rollback_verification_failed");
+    throw new PublicDeploymentPolicyError(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID, [
+      "ROLLBACK_DIAGNOSTIC=ARTIFACT_GENERATION_FAILED"
+    ]);
   }
   if (expectedSha256 !== undefined && result.artifactSha256 !== expectedSha256) {
-    throw new Error("public_forward_rollback_hash_mismatch");
+    throw new PublicDeploymentPolicyError(PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID, [
+      "ROLLBACK_DIAGNOSTIC=ARTIFACT_HASH_MISMATCH"
+    ]);
   }
   return result;
 }

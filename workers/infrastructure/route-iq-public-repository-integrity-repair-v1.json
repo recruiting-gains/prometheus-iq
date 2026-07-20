@@ -1,0 +1,156 @@
+{
+  "version": "route-iq-public-repository-integrity-repair-v1",
+  "batchId": "BATCH-20260719-008",
+  "owner": "Prometheus Infrastructure",
+  "status": "OWNER_REPAIR_IMPLEMENTED_NOT_PUSHED_NOT_DEPLOYED",
+  "ownerFiles": [
+    ".github/workflows/deploy-prometheus-public-worker.yml",
+    ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+    "docs/route-iq-public-repository-integrity-repair-v1.md",
+    "scripts/lib/github-actions-public-worker-deployment.mjs",
+    "scripts/lib/route-iq-public-forward-rollback.mjs",
+    "scripts/run-github-actions-public-worker-deployment.mjs",
+    "scripts/run-public-worker-repository-integrity-diagnostic.mjs",
+    "scripts/verify-github-actions-public-worker-deployment.mjs",
+    "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+    "tests/public-repository-integrity-repair.test.mjs",
+    "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+  ],
+  "baseline": {
+    "branch": "main",
+    "head": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+    "tree": "f86156dc10fb90cedc00274d3654e89edfff562a",
+    "originMain": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d"
+  },
+  "failedRun": {
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "runId": 29714512987,
+    "verificationJobId": 88264893824,
+    "deploymentJobId": 88264927103,
+    "workflow": "Deploy Prometheus Public Worker",
+    "head": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+    "tree": "f86156dc10fb90cedc00274d3654e89edfff562a",
+    "runner": "ubuntu-24.04",
+    "gitVersion": "2.54.0",
+    "nodeVersion": "24.18.0",
+    "checkoutAction": "actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
+    "fetchDepth": 0,
+    "persistCredentials": false,
+    "cleanCheckout": true,
+    "command": "node scripts/run-github-actions-public-worker-deployment.mjs verify",
+    "exitCode": 1,
+    "sanitizedStdout": "REPOSITORY_INTEGRITY_FAILED",
+    "sanitizedStderr": "",
+    "reportedResult": "REPOSITORY_INTEGRITY_FAILED",
+    "gitFsckExecuted": false,
+    "artifactsProduced": 0,
+    "deploymentJobSkipped": true,
+    "protectedEnvironmentAccessed": false,
+    "cloudflareContacted": false,
+    "immutableEvidence": true
+  },
+  "reproduction": {
+    "suppressedDiagnostic": "ROLLBACK_HASH_MISMATCH",
+    "previouslySuppressedGitFsckDiagnostic": "NONE_FSCK_NOT_REACHED",
+    "failureStage": "ROLLBACK_ARTIFACT_VERIFICATION_BEFORE_GIT_FSCK",
+    "reachableRepositoryCorruptionReproduced": false,
+    "runnerSpecificGitCauseProven": false,
+    "localFullStrictFsck": {
+      "exitCode": 0,
+      "outputBytes": 237516,
+      "outputLines": 4318,
+      "benignDanglingLines": 4318
+    },
+    "cleanFullCheckoutStrictFsck": {
+      "exitCode": 0,
+      "outputBytes": 0,
+      "outputLines": 0
+    },
+    "preRepairRollbackIdentity": {
+      "localArtifactSha256": "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a",
+      "cleanCheckoutArtifactSha256": "2ac073ebfa27b77383cb991a14de07b9b07d8811f00d4b12804504fc42a83c34",
+      "localGeneratedWorkerSha256": "82840b02ff3fdefad8d98bcfef51f222346a24dd2ae3df784c65fbfe5eacb6f8",
+      "cleanCheckoutGeneratedWorkerSha256": "2ce6dcf11a865434f7af243a0d185788a99e6daafdcf10355186695c24445fb4",
+      "generatedSourceMapSha256": "1689e264098aabcda70a4fd8e96e8e590d816acc6e7fd594d40079d5c8737dba"
+    },
+    "rootCause": "ESBUILD_SECTION_COMMENTS_EMBEDDED_CHECKOUT_DEPENDENT_PATHS_AND_THE_TOP_LEVEL_WRAPPER_MISCLASSIFIED_THE_ROLLBACK_EXCEPTION"
+  },
+  "repair": {
+    "gitIntegrityArguments": [
+      "fsck",
+      "--full",
+      "--strict",
+      "--no-dangling",
+      "--no-progress"
+    ],
+    "fsckCaptureLimitBytes": 131072,
+    "systemGitConfigurationDisabled": true,
+    "globalGitConfigurationDisabled": true,
+    "shallowRepositoryRejected": true,
+    "partialCloneRejected": true,
+    "promisorRepositoryRejected": true,
+    "unsupportedObjectFormatRejected": true,
+    "fsckFailureOutputExposed": false,
+    "boundedNonsecretDiagnostics": true,
+    "nonemptySuccessfulFsckOutputRejected": true,
+    "integrityRunsBeforeRollbackAndCredentialAccess": true,
+    "exactHttpsAndSshRepositoryOriginsOnly": true,
+    "unknownPreflightFailureClass": "PREFLIGHT_FAILED",
+    "rollbackFailureClass": "ROLLBACK_INVALID",
+    "repositoryFailureClass": "REPOSITORY_INTEGRITY_FAILED",
+    "generatedWorkerPathsCanonicalized": true,
+    "filesystemAliasPathsCanonicalized": true,
+    "canonicalRollbackIdentity": {
+      "artifactSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
+      "candidateDeploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+      "websiteAssetsSha256": "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
+      "configurationSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+      "generatedWorkerSha256": "479e22180aa6c8126163d93c011fb8d9d007fcf662a8d7f20927994e75d1b89d",
+      "generatedSourceMapSha256": "1689e264098aabcda70a4fd8e96e8e590d816acc6e7fd594d40079d5c8737dba"
+    }
+  },
+  "safeCiVerification": {
+    "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+    "trigger": "workflow_dispatch",
+    "dispatched": false,
+    "automaticTriggersAllowed": false,
+    "contentsPermission": "read",
+    "protectedEnvironmentUsed": false,
+    "secretsAllowed": false,
+    "cloudflareRequestsAllowed": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "crmSubmissionAllowed": false
+  },
+  "preservation": {
+    "baselineCommit": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+    "gitObjects": {
+      "src": "2386f04cd661cf75549c170b40ef4c01bd235b04",
+      "crm": "85aeb4e16887a0a1b4faf7c0d463173b322db60c",
+      "deploy/prometheusrouteiq-website": "5c9a75c75e81770aa4825a911bafc6c005f46d4f",
+      "workers/prometheus-iq-worker.js": "c3199013a4685ef0d9df601ff05b0052e1abb99d",
+      "wrangler.prometheusrouteiq-website.jsonc": "91bf94141dc7a90ebd957ce7747f7ac27cd797dd",
+      "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json": "98ba4eabf1870282230ac44bbe444acbe9d322c9"
+    },
+    "previousReadinessSuccessorSha256": "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75",
+    "websiteImplementationModified": false,
+    "crmImplementationModified": false,
+    "generatedDeploymentAssetsModified": false,
+    "previousReadinessSuccessorModified": false
+  },
+  "boundaries": {
+    "workflowDispatched": false,
+    "pushPerformed": false,
+    "deploymentPerformed": false,
+    "protectedEnvironmentAccessed": false,
+    "secretAccessed": false,
+    "cloudflareContacted": false,
+    "productionDataMutated": false,
+    "crmRequestSubmitted": false,
+    "notificationSent": false,
+    "privateWorkerModified": false,
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF"
+  }
+}

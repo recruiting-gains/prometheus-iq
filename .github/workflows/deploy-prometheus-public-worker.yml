@@ -124,7 +124,7 @@ jobs:
           git diff --exit-code
           git diff --cached --exit-code
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
-          git fsck --full --strict
+          node scripts/run-public-worker-repository-integrity-diagnostic.mjs
 
   deploy:
     name: Deploy exact public Worker after Founder dispatch
