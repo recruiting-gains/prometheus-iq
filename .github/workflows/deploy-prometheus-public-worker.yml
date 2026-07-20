@@ -78,6 +78,9 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci
 
+      - name: Generate exact public assets before no-secret verification
+        run: npm run build
+
       - name: Verify no-secret dispatch context, exact repository, contracts, rollback, Wrangler, and Git integrity
         env:
           PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
@@ -116,9 +119,6 @@ jobs:
           node scripts/run-cloudflare-public-worker-smoke.mjs --dry-run
           node --test tests/github-actions-public-worker-deployment.test.mjs tests/cloudflare-public-crm-founder-access.test.mjs
 
-      - name: Run explicit production build gate
-        run: npm run build
-
       - name: Require clean worktree, clean index, and valid Git objects
         run: |
           git diff --exit-code
@@ -153,6 +153,9 @@ jobs:
 
       - name: Install exact locked dependencies
         run: npm ci
+
+      - name: Generate exact public assets before no-secret verification
+        run: npm run build
 
       - name: Re-verify exact release before any Cloudflare request
         env:

@@ -89,6 +89,18 @@ const publicIntakeSmokeProvenanceAdmissionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const cleanRunnerAssetGenerationSuccessorFiles = Object.freeze([
+  ".github/workflows/deploy-prometheus-public-worker.yml",
+  "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/github-actions-public-worker-deployment.test.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -208,6 +220,15 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit public intake smoke successors",
     files: publicIntakeSmokeProvenanceAdmissionFiles
+  }),
+  cleanRunnerAssetGenerationSuccessor: Object.freeze({
+    parent: "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: generate public assets before verification",
+    files: cleanRunnerAssetGenerationSuccessorFiles
   })
 });
 
@@ -300,6 +321,7 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let dashboardProvenanceAdmissionSeen = false;
   let publicIntakeSmokeSuccessorsSeen = 0;
   let publicIntakeSmokeProvenanceAdmissionSeen = false;
+  let cleanRunnerAssetGenerationSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -383,6 +405,21 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const cleanRunnerRepair = boundary.cleanRunnerAssetGenerationSuccessor;
+    const isCleanRunnerRepair = cleanRunnerRepair
+      && !cleanRunnerAssetGenerationSeen
+      && actual.parents[0] === cleanRunnerRepair.parent
+      && actual.authorName === cleanRunnerRepair.authorName
+      && actual.authorEmail === cleanRunnerRepair.authorEmail
+      && actual.committerName === cleanRunnerRepair.committerName
+      && actual.committerEmail === cleanRunnerRepair.committerEmail
+      && actual.subject === cleanRunnerRepair.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...cleanRunnerRepair.files].sort());
+    if (isCleanRunnerRepair) {
+      cleanRunnerAssetGenerationSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -402,6 +439,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   if (boundary.publicIntakeSmokeSuccessors) {
     result.publicIntakeSmokeSuccessorsSeen = publicIntakeSmokeSuccessorsSeen;
     result.publicIntakeSmokeProvenanceAdmissionSeen = publicIntakeSmokeProvenanceAdmissionSeen;
+  }
+  if (boundary.cleanRunnerAssetGenerationSuccessor) {
+    result.cleanRunnerAssetGenerationSeen = cleanRunnerAssetGenerationSeen;
   }
   return Object.freeze(result);
 }
@@ -435,7 +475,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_PUBLIC_INTAKE_SMOKE_PROVENANCE_ADMISSION_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_CLEAN_RUNNER_ASSET_GENERATION_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -464,6 +504,29 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     !== INFRASTRUCTURE_OWNER_BOUNDARY.publicIntakeSmokeProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.publicIntakeSmokeProvenanceAdmissionSeen, true);
   }
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY.cleanRunnerAssetGenerationSuccessor.parent) {
+    assert.equal(ownerBoundary.cleanRunnerAssetGenerationSeen, true);
+  }
+
+  assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {
+    batchId: "BATCH-20260720-002",
+    owner: "Prometheus Infrastructure",
+    failedRunId: 29723618108,
+    baselineHead: "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+    baselineTree: "e0d86821386d2f3d348eb88ae25f85f367878280",
+    rootCause: "DIST_PUBLIC_WAS_READ_BEFORE_DETERMINISTIC_BUILD_ON_A_CLEAN_RUNNER",
+    generatedDirectory: "dist-public",
+    buildCommand: "npm run build",
+    jobsRepaired: ["verification", "deploy"],
+    buildAfterDependencyInstall: true,
+    buildBeforeNoSecretVerification: true,
+    deploymentAssetsModified: false,
+    rollbackArtifactModified: false,
+    workflowRerunPerformed: false,
+    deploymentPerformed: false,
+    cloudflareContacted: false
+  });
 
   const failed = contract.failedRun;
   assert.equal(failed.runId, 29714512987);

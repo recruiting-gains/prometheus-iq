@@ -586,6 +586,20 @@ export function verifyPublicStaticDeploymentPolicy(root) {
     || deployment.target?.nameOverrideAllowed !== false
     || deployment.workflow?.trigger !== "workflow_dispatch"
     || deployment.workflow?.deploymentAttempts !== 1
+    || deployment.workflow?.generatedAssetsCommand !== "npm run build"
+    || deployment.workflow?.generatedAssetsDirectory !== "dist-public"
+    || deployment.workflow?.generatedAssetsBeforeNoSecretVerification !== true
+    || JSON.stringify(deployment.workflow?.generatedAssetsJobs) !== JSON.stringify(["verification", "deploy"])
+    || deployment.workflow?.assetIdentityVerifier !== "scripts/verify-route-iq-public-deployment-assets.mjs"
+    || deployment.cleanRunnerFailureEvidence?.runId !== 29723618108
+    || deployment.cleanRunnerFailureEvidence?.head !== "1e4e9be843fe418ae8920ccb109b4259fda5455c"
+    || deployment.cleanRunnerFailureEvidence?.tree !== "e0d86821386d2f3d348eb88ae25f85f367878280"
+    || deployment.cleanRunnerFailureEvidence?.failureClassification
+      !== "GENERATED_PUBLIC_ASSETS_MISSING_BEFORE_VERIFICATION"
+    || deployment.cleanRunnerFailureEvidence?.missingDirectory !== "dist-public"
+    || deployment.cleanRunnerFailureEvidence?.deploymentJobSkipped !== true
+    || deployment.cleanRunnerFailureEvidence?.cloudflareChanged !== false
+    || deployment.cleanRunnerFailureEvidence?.immutableEvidence !== true
     || deployment.cloudflare?.crmMigrationTag !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmMigration
     || deployment.cloudflare?.crmBinding !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmBinding
     || deployment.cloudflare?.crmClass !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass

@@ -405,6 +405,47 @@ function addPublicIntakeSmokeProvenanceSuccessors(ownerFixture) {
   });
 }
 
+function addCleanRunnerAssetGenerationSuccessor(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic clean-runner asset generation repair",
+    changes: [
+      {
+        path: ".github/workflows/deploy-public-worker.yml",
+        content: "name: synthetic clean-runner repair\n"
+      },
+      {
+        path: "scripts/verify-public-assets.mjs",
+        content: "export const generatedBeforeVerification = true;\n"
+      },
+      {
+        path: "tests/public-assets.test.mjs",
+        content: "export const exactIdentity = true;\n"
+      }
+    ]
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    repair,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      cleanRunnerAssetGenerationSuccessor: Object.freeze({
+        parent: repair.parent,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: repair.subject,
+        files: repair.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -725,6 +766,11 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     current.publicIntakeSmokeProvenanceAdmissionSeen,
     git(root, ["rev-parse", "HEAD"]) !== "6476c381c8e9512eaea4a90e0f6019138cfe1766"
   );
+  assert.equal(
+    current.cleanRunnerAssetGenerationSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "1e4e9be843fe418ae8920ccb109b4259fda5455c"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -737,6 +783,57 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       dashboardVerificationSeen: false,
       dashboardProvenanceAdmissionSeen: false
     });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact clean-runner asset-generation successor", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-clean-runner-"));
+  try {
+    const accepted = addCleanRunnerAssetGenerationSuccessor(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 4,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cleanRunnerAssetGenerationSeen: true
+    });
+
+    const scopeDrift = {
+      ...accepted.boundary,
+      cleanRunnerAssetGenerationSuccessor: {
+        ...accepted.boundary.cleanRunnerAssetGenerationSuccessor,
+        files: [
+          ...accepted.boundary.cleanRunnerAssetGenerationSuccessor.files,
+          "scripts/unapproved-owner-file.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, scopeDrift));
+
+    const mixedOwnership = {
+      ...accepted.boundary,
+      cleanRunnerAssetGenerationSuccessor: {
+        ...accepted.boundary.cleanRunnerAssetGenerationSuccessor,
+        committerName: "Prometheus Overwatch",
+        committerEmail: "overwatch@prometheus.local"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, mixedOwnership));
+
+    commitFixture(accepted.repository, {
+      path: "scripts/unapproved-later-infrastructure.mjs",
+      content: "export const unapproved = true;\n",
+      subject: "infrastructure: unapproved later successor",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

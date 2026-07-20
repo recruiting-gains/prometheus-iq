@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -13,6 +14,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import {
   PUBLIC_DEPLOYMENT_FAILURE,
@@ -150,6 +152,71 @@ test("Founder dispatch requires every exact no-secret input and rejects reruns o
       () => validatePublicFounderDeploymentInputs(validEnvironment(overrides)),
       PublicDeploymentPolicyError
     );
+  }
+});
+
+test("both clean-runner jobs build public assets before the first no-secret release verifier", () => {
+  const workflow = readFileSync(
+    join(root, ".github", "workflows", "deploy-prometheus-public-worker.yml"),
+    "utf8"
+  );
+  const verificationStart = workflow.indexOf("  verification:\n");
+  const deployStart = workflow.indexOf("  deploy:\n", verificationStart);
+  assert.ok(verificationStart >= 0 && deployStart > verificationStart);
+  const jobs = [
+    ["verification", workflow.slice(verificationStart, deployStart)],
+    ["deploy", workflow.slice(deployStart)]
+  ];
+  for (const [name, job] of jobs) {
+    const install = job.indexOf("run: npm ci");
+    const build = job.indexOf("run: npm run build");
+    const verify = job.indexOf("run: node scripts/run-github-actions-public-worker-deployment.mjs verify");
+    assert.ok(install >= 0 && install < build, `${name} must build after npm ci`);
+    assert.ok(build < verify, `${name} must build before no-secret verification`);
+    assert.equal([...job.matchAll(/^\s*run: npm run build$/gmu)].length, 1);
+  }
+});
+
+test("a clean checkout generates exact dist-public bytes before verifier-only asset validation", () => {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), "route-iq-public-clean-runner-assets-"));
+  const repository = join(fixtureRoot, "repository");
+  try {
+    fixtureGit(root, ["clone", "--quiet", "--no-local", root, repository]);
+    assert.equal(existsSync(join(repository, "dist-public")), false);
+    symlinkSync(resolve(root, "node_modules"), join(repository, "node_modules"), "dir");
+
+    const build = spawnSync("npm", ["run", "build"], {
+      cwd: repository,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 8 * 1024 * 1024,
+      timeout: 120_000,
+      env: { ...process.env, CI: "true", NO_COLOR: "1" }
+    });
+    assert.equal(build.status, 0, `clean checkout build failed\n${build.stderr}`);
+    assert.equal(existsSync(join(repository, "dist-public")), true);
+
+    const verifierUrl = pathToFileURL(
+      join(repository, "scripts", "verify-route-iq-public-deployment-assets.mjs")
+    ).href;
+    const verify = spawnSync(process.execPath, [
+      "--input-type=module",
+      "--eval",
+      `const { verifyRouteIqPublicDeploymentAssets } = await import(${JSON.stringify(verifierUrl)}); const result = verifyRouteIqPublicDeploymentAssets({ build: false }); process.stdout.write(result.deploymentAssetsSha256);`
+    ], {
+      cwd: repository,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      maxBuffer: 4 * 1024 * 1024,
+      timeout: 60_000,
+      env: { ...process.env, CI: "true", NO_COLOR: "1" }
+    });
+    assert.equal(verify.status, 0, `clean checkout asset verification failed\n${verify.stderr}`);
+    assert.equal(verify.stdout, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+    rmSync(join(repository, "node_modules"), { recursive: true, force: true });
+    assert.equal(fixtureGit(repository, ["status", "--porcelain=v1", "--untracked-files=all"]), "");
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });
 

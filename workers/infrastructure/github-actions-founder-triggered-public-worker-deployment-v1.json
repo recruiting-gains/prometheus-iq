@@ -24,7 +24,27 @@
     "protectedEnvironment": "prometheus-public-worker-production",
     "contentsPermission": "read",
     "preflightReadsSecrets": false,
-    "deploymentAttempts": 1
+    "deploymentAttempts": 1,
+    "generatedAssetsCommand": "npm run build",
+    "generatedAssetsDirectory": "dist-public",
+    "generatedAssetsBeforeNoSecretVerification": true,
+    "generatedAssetsJobs": [
+      "verification",
+      "deploy"
+    ],
+    "assetIdentityVerifier": "scripts/verify-route-iq-public-deployment-assets.mjs"
+  },
+  "cleanRunnerFailureEvidence": {
+    "batchId": "BATCH-20260720-002",
+    "runId": 29723618108,
+    "head": "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+    "tree": "e0d86821386d2f3d348eb88ae25f85f367878280",
+    "failedStep": "Verify no-secret dispatch context, exact repository, contracts, rollback, Wrangler, and Git integrity",
+    "failureClassification": "GENERATED_PUBLIC_ASSETS_MISSING_BEFORE_VERIFICATION",
+    "missingDirectory": "dist-public",
+    "deploymentJobSkipped": true,
+    "cloudflareChanged": false,
+    "immutableEvidence": true
   },
   "founderAuthorization": {
     "actor": "PrometheusRouteIQ",

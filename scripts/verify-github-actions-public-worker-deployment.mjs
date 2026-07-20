@@ -49,6 +49,18 @@ function count(source, pattern) {
   return [...source.matchAll(pattern)].length;
 }
 
+function assertGeneratedAssetsPrecedeVerification(job, jobName) {
+  const install = job.indexOf("run: npm ci");
+  const build = job.indexOf("run: npm run build");
+  const verification = job.indexOf(
+    "run: node scripts/run-github-actions-public-worker-deployment.mjs verify"
+  );
+  assert.ok(install >= 0, `${jobName} dependency installation is missing`);
+  assert.ok(build > install, `${jobName} public asset generation must follow npm ci`);
+  assert.ok(verification > build, `${jobName} public assets must exist before no-secret verification`);
+  assert.equal(count(job, /^\s*run: npm run build$/gmu), 1, `${jobName} must generate assets exactly once`);
+}
+
 export function verifyGithubActionsPublicWorkerDeployment() {
   for (const path of paths) assert.equal(existsSync(resolve(root, path)), true, `${path} must exist`);
   const workflow = read(PUBLIC_WORKER_DEPLOYMENT_POLICY.workflowPath);
@@ -57,6 +69,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   const deploy = workflow.slice(workflow.indexOf("  deploy:\n"));
   const library = read("scripts/lib/github-actions-public-worker-deployment.mjs");
   const documentation = read("docs/github-actions-founder-triggered-public-worker-deployment-v1.md");
+  const deploymentContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.contractPath));
   const rollbackContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath));
   const attributes = read(".gitattributes");
 
@@ -91,6 +104,8 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.match(workflow, /concurrency:\n  group: deploy-prometheus-public-worker\n  cancel-in-progress: false/u);
   assert.doesNotMatch(verification, /\$\{\{\s*secrets\./u);
   assert.doesNotMatch(verification, /prometheus-public-worker-production/u);
+  assertGeneratedAssetsPrecedeVerification(verification, "verification job");
+  assertGeneratedAssetsPrecedeVerification(deploy, "deploy job");
   assert.match(deploy, /environment:\n      name: prometheus-public-worker-production/u);
   assert.equal(count(deploy, /run: node scripts\/run-github-actions-public-worker-deployment\.mjs deploy/gmu), 1);
   assert.equal(count(deploy, /run: timeout 120s node scripts\/run-cloudflare-public-worker-smoke\.mjs --execute-fixed-profile/gmu), 2);
@@ -163,6 +178,27 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   ]) assert.equal(isPublicIntakeGuardAllowHeaderValid(method, value), false, `${method} ${value} must be rejected`);
   assert.match(documentation, /cannot be attached while retaining the current live public Worker version/u);
   assert.match(documentation, /canonical deployable bundle rather than the entire repository tree/u);
+  assert.match(documentation, /Run `29723618108` failed before deployment/u);
+  assert.equal(deploymentContract.workflow.generatedAssetsCommand, "npm run build");
+  assert.equal(deploymentContract.workflow.generatedAssetsDirectory, "dist-public");
+  assert.equal(deploymentContract.workflow.generatedAssetsBeforeNoSecretVerification, true);
+  assert.deepEqual(deploymentContract.workflow.generatedAssetsJobs, ["verification", "deploy"]);
+  assert.equal(
+    deploymentContract.workflow.assetIdentityVerifier,
+    "scripts/verify-route-iq-public-deployment-assets.mjs"
+  );
+  assert.deepEqual(deploymentContract.cleanRunnerFailureEvidence, {
+    batchId: "BATCH-20260720-002",
+    runId: 29723618108,
+    head: "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+    tree: "e0d86821386d2f3d348eb88ae25f85f367878280",
+    failedStep: "Verify no-secret dispatch context, exact repository, contracts, rollback, Wrangler, and Git integrity",
+    failureClassification: "GENERATED_PUBLIC_ASSETS_MISSING_BEFORE_VERIFICATION",
+    missingDirectory: "dist-public",
+    deploymentJobSkipped: true,
+    cloudflareChanged: false,
+    immutableEvidence: true
+  });
   assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
   assert.equal(rollbackContract.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
   assert.match(rollbackContract.candidateDeploymentAssetsSha256, /^[0-9a-f]{64}$/u);

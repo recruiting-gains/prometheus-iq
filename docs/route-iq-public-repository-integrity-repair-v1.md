@@ -2,7 +2,7 @@
 
 Owner: Prometheus Infrastructure
 Batch: BATCH-20260719-008
-Status: public-intake smoke provenance admission implemented locally; outgoing chain not pushed or deployed
+Status: clean-runner public-asset generation repair implemented locally; not pushed or deployed
 
 ## Failed run
 
@@ -125,6 +125,28 @@ files.
   one exact subject, and the four Infrastructure provenance files. Mixed ownership, merges, scope
   drift, extra files, and any later non-Overwatch successor remain rejected.
 
+## Clean-runner deployment failure and repair
+
+Founder-authorized workflow run `29723618108` used commit
+`1e4e9be843fe418ae8920ccb109b4259fda5455c`, tree
+`e0d86821386d2f3d348eb88ae25f85f367878280`. Its first no-secret verification
+step failed with a missing `dist-public` directory. The deployment job was skipped, no deployment
+artifact was produced, and Cloudflare remained unchanged. That run is consumed and is not retried
+by this repair.
+
+`dist-public` is deterministic generated output and is intentionally absent from a clean Git
+checkout. The public deployment workflow now runs the locked build exactly once in each job,
+immediately after `npm ci` and before the first no-secret release verifier. Focused tests reproduce
+an artifact-free clone, generate the directory, compare every byte with the tracked public
+deployment tree, and require the unchanged deployment-asset SHA-256. The repair does not modify the
+tracked deployment assets or forward-rollback artifact.
+
+The owner-boundary admission for this repair is constrained to parent
+`1e4e9be843fe418ae8920ccb109b4259fda5455c`, the Infrastructure author and committer identity,
+subject `infrastructure: generate public assets before verification`, and the exact documented
+Infrastructure file scope. Any mixed ownership, merge, extra file, or subsequent non-Overwatch
+successor remains rejected.
+
 The repaired path-independent rollback artifact is:
 
 `3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7`
@@ -144,7 +166,8 @@ node scripts/verify-route-iq-public-repository-integrity-repair.mjs
 node --test tests/public-repository-integrity-repair.test.mjs
 ```
 
-Both failed runs, the readiness successor, and the Dashboard test-only successor remain immutable
-evidence. The safe CI run is consumed and is not retried by this owner task. This repair does not
+All three failed runs, the readiness successor, and the Dashboard test-only successor remain
+immutable evidence. The safe CI and deployment workflow runs are consumed and are not retried by
+this owner task. This repair does not
 authorize a workflow dispatch, push, deployment, CRM submission, secret access, or production
 change.
