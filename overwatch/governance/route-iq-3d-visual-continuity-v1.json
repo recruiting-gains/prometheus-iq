@@ -301,7 +301,7 @@
       "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
       "path": "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
       "historicalSha256": "c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050",
-      "successorSha256": "c6672fba3c5d8fc5b8d8b52bcbd24f1fdf9bcbe7e9d4155b22628aeb2a02ec71",
+      "successorSha256": "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
       "owner": "Prometheus Overwatch",
       "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
     },

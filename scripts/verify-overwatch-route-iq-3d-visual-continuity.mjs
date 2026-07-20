@@ -207,7 +207,7 @@ export function validateRouteIq3dVisualContinuityGovernance(governance) {
     }
   ]);
   const expectedVerifierSuccessors = new Map([
-    ["scripts/verify-overwatch-cloudflare-unattended-access.mjs", ["c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050", "c6672fba3c5d8fc5b8d8b52bcbd24f1fdf9bcbe7e9d4155b22628aeb2a02ec71"]],
+    ["scripts/verify-overwatch-cloudflare-unattended-access.mjs", ["c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050", "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94"]],
     ["scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs", ["147000b8f5cf5962f6e65a1378f6051bff8ca62212d4a0187d3eb013a14494ed", "bb08cee4db710c1ef2cfa5092cfb010a3e1395a743486d8dc380b29ff37b036d"]],
     ["scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs", ["05ec07c66ea10ee5fa7200829e6e981e73c1a43e56276239e8f0e15784c76e12", "35f0cf48a76785844b96907f31414b5f67169aed1fa9f2dad9706ff253ecfedc"]],
     ["scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs", ["e6312d6d89d4d51e8adcd5a87cfcabad46d2d7396842ea76b19521c55201c0de", "6cc5f5f7c0efdce15757416ef0c0c6c504d6283fd2abab05f3189072395b9434"]],

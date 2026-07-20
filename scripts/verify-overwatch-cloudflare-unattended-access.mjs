@@ -26,6 +26,8 @@ const githubDeploymentSuccessorPath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const commercialReadinessSuccessorPath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
+const ycInvestorFocusSuccessorPath =
+  "overwatch/governance/route-iq-yc-investor-website-focus-v1.json";
 const routeIq3dSuccessorPath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 
@@ -214,20 +216,21 @@ export function evaluateCloudflareUnattendedAccessGovernance({
 function verifyHashes(entries, failures, label, successorMappings = [], terminalMappings = []) {
   for (const entry of Object.values(entries)) {
     const current = entry?.path ? sha256(read(entry.path)) : null;
-    const successor = successorMappings.find(mapping => (
+    const successors = successorMappings.filter(mapping => (
       mapping.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
       && mapping.path === entry?.path
       && mapping.historicalSha256 === entry?.sha256
     ));
-    const terminal = successor && terminalMappings.find(mapping => (
+    const direct = successors.some(mapping => mapping.successorSha256 === current);
+    const terminal = successors.some(successor => terminalMappings.some(mapping => (
       mapping.predecessorGovernanceId === "route-iq-yc-investor-website-focus-v1"
       && mapping.path === entry?.path
       && mapping.previousSuccessorSha256 === successor.successorSha256
       && mapping.successorSha256 === current
-    ));
+    )));
     if (!entry?.path || !entry?.sha256 || (
       current !== entry.sha256
-      && successor?.successorSha256 !== current
+      && !direct
       && !terminal
     )) {
       failures.push(`${label} hash drifted: ${entry?.path || "missing_path"}`);
@@ -269,6 +272,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     readJson(unattendedKeychainInteroperabilitySuccessorPath);
   const githubDeploymentSuccessor = readJson(githubDeploymentSuccessorPath);
   const commercialReadinessSuccessor = readJson(commercialReadinessSuccessorPath);
+  const ycInvestorFocusSuccessor = readJson(ycInvestorFocusSuccessorPath);
   const routeIq3dSuccessor = readJson(routeIq3dSuccessorPath);
   const packageJson = readJson("package.json");
   const packageLock = readJson("package-lock.json");
@@ -296,7 +300,7 @@ export function verifyOverwatchCloudflareUnattendedAccess() {
     Object.fromEntries(Object.entries(governance.intelligenceEvidence).filter(([, value]) => value?.path)),
     failures,
     "Intelligence evidence",
-    commercialReadinessSuccessor.protectedBaselineSuccessors,
+    ycInvestorFocusSuccessor.protectedBaselineSuccessors,
     routeIq3dSuccessor.protectedInvestorFocusBaselineSuccessors
   );
   verifyProtectedRuntimeHashes(
