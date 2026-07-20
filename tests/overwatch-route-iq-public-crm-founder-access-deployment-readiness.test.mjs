@@ -69,7 +69,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 33);
+  assert.equal(result.commits.length, 37);
   assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
@@ -98,14 +98,21 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "41d9f1fa9273482261500708d7299a1997f6ec69",
     "12d229fb18549e42dba90b075efe70753ee22f0e"
   ]);
-  assert.deepEqual(result.commits.slice(26, 32), [
+  assert.deepEqual(result.commits.slice(26, 33), [
     "3a2bd37f779e070b868256178bc40dbede8605c8",
     "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
     "577b9217185be2324824c5c4eeeaf6cd89300477",
     "13d221509c95515bb9a3dcc44326bf3393fff89e",
     "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
-    "7b8ff3fdf0c9a75a6dc68ec7c47a039ec974d0d2"
+    "7b8ff3fdf0c9a75a6dc68ec7c47a039ec974d0d2",
+    "5c920ad7c56289791d12c756d4b9627bf18b4632"
   ]);
+  assert.deepEqual(result.commits.slice(33, 36), [
+    "e896cabe19fc696834659ed1cbe05f027c434553",
+    "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+    "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc"
+  ]);
+  assert.equal(result.commits[36], result.head);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
   assert.equal(result.rollbackBundleSha256, "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7");
@@ -140,11 +147,15 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureOwnerRepairs.at(-1).commit,
-    "7b8ff3fdf0c9a75a6dc68ec7c47a039ec974d0d2"
+    "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9"
+    "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80"
+  );
+  assert.equal(
+    value.infrastructureEvidence.deploymentContractSha256,
+    "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612"
   );
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
@@ -152,6 +163,8 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsDashboardRuntimeHarnessAdoptionSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsSafeNoSecretAssetOrderingRepairSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsSafeNoSecretFullSuiteWorkflow, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsCloudflareDeploymentReadRepairSuccessors, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission, true);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
   assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
@@ -280,6 +293,36 @@ test("safe no-secret asset ordering closure pins the owner repair and preserves 
   const weakened = integrityReadinessGovernance();
   weakened.safeNoSecretAssetOrderingClosure.verification.failureHidden = true;
   assert.throws(() => validatePublicIntegrityReadiness(weakened));
+});
+
+test("Cloudflare deployment-read closure is classified, bounded, and preserves production", () => {
+  const value = integrityReadinessGovernance();
+  const closure = value.cloudflareDeploymentReadClosure;
+  assert.equal(closure.batchId, "BATCH-20260720-007");
+  assert.equal(closure.failedDeploymentRun.runId, 29780926642);
+  assert.equal(closure.failedDeploymentRun.preDeploymentSmokePassed, true);
+  assert.equal(closure.failedDeploymentRun.dryRunReached, false);
+  assert.equal(closure.failedDeploymentRun.uploadReached, false);
+  assert.equal(closure.failedDeploymentRun.publicVersionCreated, false);
+  assert.equal(closure.failedDeploymentRun.rollbackRequired, false);
+  assert.equal(closure.infrastructureOwnerCommits.length, 3);
+  assert.equal(closure.verification.productionRequestTimeoutMs, 30000);
+  assert.equal(closure.verification.testRequestTimeoutMaximumMs, 1000);
+  assert.equal(closure.verification.maximumSerializedStateReads, 12);
+  assert.equal(closure.verification.automaticRetries, 0);
+  assert.equal(closure.verification.deploymentAttempts, 1);
+  assert.equal(closure.verification.secretOutputAllowed, false);
+  assert.equal(closure.scope.websiteImplementationChanged, false);
+  assert.equal(closure.scope.crmImplementationChanged, false);
+  assert.equal(closure.scope.deploymentAssetsChanged, false);
+
+  const retried = integrityReadinessGovernance();
+  retried.cloudflareDeploymentReadClosure.verification.automaticRetries = 1;
+  assert.throws(() => validatePublicIntegrityReadiness(retried));
+
+  const hidden = integrityReadinessGovernance();
+  hidden.cloudflareDeploymentReadClosure.verification.unclassifiedBodyReadFailureAllowed = true;
+  assert.throws(() => validatePublicIntegrityReadiness(hidden));
 });
 
 test("Dashboard harness closure cannot weaken performance or gain deployment capability", () => {

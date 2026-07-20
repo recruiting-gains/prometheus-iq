@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -217,11 +217,52 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "e896cabe19fc696834659ed1cbe05f027c434553",
+      "tree": "d70f2f892755e1d9f86dd08be3d559344b5fcc66",
+      "parent": "5c920ad7c56289791d12c756d4b9627bf18b4632",
+      "subject": "infrastructure: classify Cloudflare deployment read failures",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+      ]
+    },
+    {
+      "commit": "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+      "tree": "f62ebac98952b9cc1156a81e9bf0cec2e0563dcb",
+      "parent": "e896cabe19fc696834659ed1cbe05f027c434553",
+      "subject": "infrastructure: extend bounded Cloudflare state deadline",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+      ]
+    },
+    {
+      "commit": "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc",
+      "tree": "e609307abc4fa4a14fcf47a2b2ad5f7b070fe315",
+      "parent": "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+      "subject": "infrastructure: admit Cloudflare deployment read repairs",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9",
+    "contractSha256": "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80",
+    "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+    "deploymentContractSha256": "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -249,6 +290,8 @@
     "ownerVerifierPinsDashboardRuntimeHarnessAdoptionSuccessor": true,
     "ownerVerifierPinsSafeNoSecretAssetOrderingRepairSuccessor": true,
     "ownerVerifierPinsSafeNoSecretFullSuiteWorkflow": true,
+    "ownerVerifierPinsCloudflareDeploymentReadRepairSuccessors": true,
+    "ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -682,6 +725,82 @@
       "websiteImplementationChanged": false,
       "crmImplementationChanged": false,
       "dashboardImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "rollbackContractChanged": false,
+      "rollbackBundleChanged": false,
+      "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    }
+  },
+  "cloudflareDeploymentReadClosure": {
+    "batchId": "BATCH-20260720-007",
+    "directive": "Autonomous Predeployment Closure: Cloudflare Deployment State Reads",
+    "failedDeploymentRun": {
+      "runId": 29780926642,
+      "verificationJobId": 88481727021,
+      "deploymentJobId": 88482773817,
+      "head": "5c920ad7c56289791d12c756d4b9627bf18b4632",
+      "tree": "5db5225a8f09d5e2295a89d4a7f2a3fa1305ff8b",
+      "observedElapsedMs": 15016,
+      "observedOutput": "DEPLOY_FAILED",
+      "preDeploymentSmokePassed": true,
+      "dryRunReached": false,
+      "uploadReached": false,
+      "publicVersionCreated": false,
+      "publicVersionUnchanged": true,
+      "privateVersionUnchanged": true,
+      "rollbackRequired": false,
+      "productionMutation": false
+    },
+    "rootCause": "RESPONSE_BODY_READ_ABORT_ESCAPED_TRANSPORT_CLASSIFIER_AT_INSUFFICIENT_DEADLINE",
+    "infrastructureOwnerCommits": [
+      {
+        "commit": "e896cabe19fc696834659ed1cbe05f027c434553",
+        "tree": "d70f2f892755e1d9f86dd08be3d559344b5fcc66",
+        "parent": "5c920ad7c56289791d12c756d4b9627bf18b4632",
+        "subject": "infrastructure: classify Cloudflare deployment read failures",
+        "owner": "Prometheus Infrastructure"
+      },
+      {
+        "commit": "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+        "tree": "f62ebac98952b9cc1156a81e9bf0cec2e0563dcb",
+        "parent": "e896cabe19fc696834659ed1cbe05f027c434553",
+        "subject": "infrastructure: extend bounded Cloudflare state deadline",
+        "owner": "Prometheus Infrastructure"
+      },
+      {
+        "commit": "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc",
+        "tree": "e609307abc4fa4a14fcf47a2b2ad5f7b070fe315",
+        "parent": "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+        "subject": "infrastructure: admit Cloudflare deployment read repairs",
+        "owner": "Prometheus Infrastructure"
+      }
+    ],
+    "verification": {
+      "productionRequestTimeoutMs": 30000,
+      "testRequestTimeoutMaximumMs": 1000,
+      "maximumSerializedStateReads": 12,
+      "maximumSerializedReadBudgetMs": 360000,
+      "automaticRetries": 0,
+      "deploymentAttempts": 1,
+      "safePhaseClassifications": [
+        "PUBLIC_DEPLOYMENTS",
+        "PUBLIC_SETTINGS",
+        "PRIVATE_DEPLOYMENTS",
+        "PRIVATE_SETTINGS"
+      ],
+      "secretOutputAllowed": false,
+      "unclassifiedBodyReadFailureAllowed": false
+    },
+    "contracts": {
+      "deploymentPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+      "deploymentSha256": "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612",
+      "repositoryIntegrityPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+      "repositoryIntegritySha256": "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80"
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
       "deploymentAssetsChanged": false,
       "rollbackContractChanged": false,
       "rollbackBundleChanged": false,
