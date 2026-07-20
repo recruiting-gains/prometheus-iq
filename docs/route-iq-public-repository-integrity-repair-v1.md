@@ -2,7 +2,7 @@
 
 Owner: Prometheus Infrastructure
 Batch: BATCH-20260719-008
-Status: historical repair range pushed; CI portability successor implemented locally, not pushed or deployed
+Status: Dashboard verification provenance admission implemented locally; outgoing chain not pushed or deployed
 
 ## Failed run
 
@@ -51,6 +51,29 @@ incorrect process-directory resolution contain coincidental boundary markers. Th
 HTTPS origin, missing tags, full-history checkout, Git integrity, and Node version were independently
 reproduced on macOS and were not causal.
 
+## Dashboard verification successor
+
+Dashboard commit `bb1509d42cd03c19b9db0f9011579b6a041ffd9c`, tree
+`2bd8186faafd7c922c17da9401c6dddbc64163bb`, is a linear successor of the Overwatch commit
+`03ed86e25bda0a67e55757969966f4bc61c4b63e`. Its author and committer are both
+`Prometheus Dashboard <dashboard@prometheus.local>`, and its exact scope is:
+
+- `scripts/verify-dashboard-runtime-workflows.mjs`
+- `tests/dashboard-route-iq-product-focus.test.mjs`
+
+The Dashboard successor replaces wall-clock-dependent Eventbrite verification with an explicit,
+advancing, noncanonical test clock and strengthens the test-only Add Place, access, map, and link
+assertions. Independent Infrastructure validation passed eight focused tests and all 184 browser
+workflow checks. The commit changes no product runtime, Website, CRM, Worker, configuration, or
+generated deployment asset.
+
+Infrastructure admits only that immutable Dashboard commit: exact hash, tree, parent, author,
+committer, subject, and two-file scope. The admission does not authorize any other Dashboard commit
+or any general Dashboard-owned path pattern. Its Infrastructure successor is separately constrained
+to parent `bb1509d42cd03c19b9db0f9011579b6a041ffd9c`, the Infrastructure owner identity, subject
+`infrastructure: admit Dashboard verification successor`, and the four Infrastructure provenance
+files.
+
 ## Repair
 
 - The generated Worker canonicalizes source-section paths relative to the extracted workspace and
@@ -91,6 +114,10 @@ reproduced on macOS and were not causal.
   `8d312bf747a289c675eb37adf582b43c860c635e`, Infrastructure author and committer identity, one exact
   subject, and the five documented Infrastructure files. The five pushed historical repair commits
   remain unchanged.
+- The Dashboard verification exception is an immutable commit admission in dependency order. An
+  altered Dashboard tree, identity, parent, subject, or file list fails closed, as does any additional
+  Dashboard successor. The Infrastructure provenance successor is equally constrained and does not
+  relax the default Overwatch-only descendant rule.
 
 The repaired path-independent rollback artifact is:
 
@@ -111,6 +138,7 @@ node scripts/verify-route-iq-public-repository-integrity-repair.mjs
 node --test tests/public-repository-integrity-repair.test.mjs
 ```
 
-Both failed runs and the readiness successor remain immutable evidence. The safe CI run is consumed
-and is not retried by this owner task. This repair does not authorize a workflow dispatch, push,
-deployment, CRM submission, secret access, or production change.
+Both failed runs, the readiness successor, and the Dashboard test-only successor remain immutable
+evidence. The safe CI run is consumed and is not retried by this owner task. This repair does not
+authorize a workflow dispatch, push, deployment, CRM submission, secret access, or production
+change.

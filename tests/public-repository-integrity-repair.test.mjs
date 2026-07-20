@@ -146,6 +146,42 @@ function commitFixture(repository, {
   });
 }
 
+function commitFilesFixture(repository, {
+  changes,
+  subject,
+  authorName,
+  authorEmail,
+  committerName = authorName,
+  committerEmail = authorEmail
+}) {
+  const files = changes.map(change => change.path).sort();
+  for (const change of changes) {
+    const absolutePath = join(repository, change.path);
+    mkdirSync(dirname(absolutePath), { recursive: true });
+    writeFileSync(absolutePath, change.content, "utf8");
+  }
+  git(repository, ["add", "--", ...files]);
+  git(repository, ["commit", "--quiet", "-m", subject], {
+    env: {
+      GIT_AUTHOR_NAME: authorName,
+      GIT_AUTHOR_EMAIL: authorEmail,
+      GIT_COMMITTER_NAME: committerName,
+      GIT_COMMITTER_EMAIL: committerEmail
+    }
+  });
+  return Object.freeze({
+    commit: git(repository, ["rev-parse", "HEAD"]),
+    tree: git(repository, ["rev-parse", "HEAD^{tree}"]),
+    parent: git(repository, ["rev-parse", "HEAD^"]),
+    authorName,
+    authorEmail,
+    committerName,
+    committerEmail,
+    subject,
+    files: Object.freeze(files)
+  });
+}
+
 function createOwnerBoundaryRepository(parent, name) {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -240,6 +276,63 @@ function createActionsCheckoutFixture(parent) {
   return Object.freeze({ ...ownerFixture, repository: checkout, dependabotBranches });
 }
 
+function addDashboardProvenanceSuccessors(ownerFixture) {
+  const dashboardIdentity = {
+    authorName: "Prometheus Dashboard",
+    authorEmail: "dashboard@prometheus.local"
+  };
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const dashboard = commitFilesFixture(ownerFixture.repository, {
+    ...dashboardIdentity,
+    subject: "dashboard: synthetic fixed-clock verification",
+    changes: [
+      {
+        path: "scripts/verify-dashboard-runtime-workflows.mjs",
+        content: "export const fixedClock = true;\n"
+      },
+      {
+        path: "tests/dashboard-route-iq-product-focus.test.mjs",
+        content: "export const fixedClockTest = true;\n"
+      }
+    ]
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic Dashboard provenance admission",
+    changes: [
+      {
+        path: "docs/dashboard-provenance-admission.md",
+        content: "dashboard provenance admission\n"
+      },
+      {
+        path: "scripts/verify-dashboard-provenance-admission.mjs",
+        content: "export const admitted = true;\n"
+      }
+    ]
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    dashboard,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      dashboardVerificationSuccessor: dashboard,
+      dashboardProvenanceAdmissionSuccessor: Object.freeze({
+        parent: dashboard.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -316,7 +409,9 @@ test("GitHub Actions seven-ref HTTPS checkout passes integrity and owner provena
       terminalOwnerCommit: actions.boundary.infrastructureCommits.at(-1).commit,
       descendants: 3,
       repairSeen: true,
-      ciPortabilityRepairSeen: false
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false
     });
   } finally {
     rmSync(fixture, { recursive: true, force: true });
@@ -552,6 +647,7 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
   const current = verifyInfrastructureOwnerBoundary(root);
   assert.equal(current.terminalOwnerCommit, "a2779239fc8f2d79d4b8781966d32cc23d4acbbd");
   assert.ok(current.descendants >= 1);
+  assert.equal(current.dashboardVerificationSeen, true);
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -560,8 +656,61 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       terminalOwnerCommit: boundary.infrastructureCommits.at(-1).commit,
       descendants: 3,
       repairSeen: true,
-      ciPortabilityRepairSeen: false
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false
     });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact Dashboard verification and Infrastructure provenance successors", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-dashboard-"));
+  try {
+    const accepted = addDashboardProvenanceSuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 5,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: true,
+      dashboardProvenanceAdmissionSeen: true
+    });
+
+    const unrecognized = createOwnerBoundaryRepository(fixture, "unrecognized");
+    commitFilesFixture(unrecognized.repository, {
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      subject: "dashboard: unrecognized verification successor",
+      changes: [
+        {
+          path: "scripts/verify-dashboard-runtime-workflows.mjs",
+          content: "export const unrecognized = true;\n"
+        },
+        {
+          path: "tests/dashboard-route-iq-product-focus.test.mjs",
+          content: "export const unrecognizedTest = true;\n"
+        }
+      ]
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      unrecognized.repository,
+      unrecognized.boundary
+    ));
+
+    commitFilesFixture(accepted.repository, {
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      subject: "dashboard: additional unapproved successor",
+      changes: [{
+        path: "scripts/verify-dashboard-runtime-workflows.mjs",
+        content: "export const additional = true;\n"
+      }]
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

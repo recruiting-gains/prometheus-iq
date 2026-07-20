@@ -2,7 +2,7 @@
   "version": "route-iq-public-repository-integrity-repair-v1",
   "batchId": "BATCH-20260719-008",
   "owner": "Prometheus Infrastructure",
-  "status": "OWNER_CI_PORTABILITY_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED",
+  "status": "OWNER_DASHBOARD_VERIFICATION_PROVENANCE_ADMISSION_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED",
   "ownerFiles": [
     ".github/workflows/deploy-prometheus-public-worker.yml",
     ".github/workflows/verify-prometheus-public-repository-integrity.yml",
@@ -104,6 +104,34 @@
       "files": [
         "docs/route-iq-public-repository-integrity-repair-v1.md",
         "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    },
+    "dashboardVerificationSuccessor": {
+      "commit": "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+      "tree": "2bd8186faafd7c922c17da9401c6dddbc64163bb",
+      "parent": "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+      "authorName": "Prometheus Dashboard",
+      "authorEmail": "dashboard@prometheus.local",
+      "committerName": "Prometheus Dashboard",
+      "committerEmail": "dashboard@prometheus.local",
+      "subject": "dashboard: stabilize Eventbrite expansion verification",
+      "files": [
+        "scripts/verify-dashboard-runtime-workflows.mjs",
+        "tests/dashboard-route-iq-product-focus.test.mjs"
+      ]
+    },
+    "dashboardProvenanceAdmissionSuccessor": {
+      "parent": "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: admit Dashboard verification successor",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
         "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
@@ -274,6 +302,27 @@
     "automaticRetryAllowed": false,
     "safeCiRunConsumed": true
   },
+  "dashboardVerificationProvenance": {
+    "classification": "DASHBOARD_TEST_ONLY_WALL_CLOCK_STABILIZATION",
+    "implementationOwner": "Prometheus Dashboard",
+    "verificationOwner": "Prometheus Infrastructure",
+    "commit": "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    "tree": "2bd8186faafd7c922c17da9401c6dddbc64163bb",
+    "parent": "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+    "files": [
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "tests/dashboard-route-iq-product-focus.test.mjs"
+    ],
+    "fileSha256": {
+      "scripts/verify-dashboard-runtime-workflows.mjs": "6834b7ee4ef2091e489d356fe868dead38881e1340ff37c17f96afe308060be2",
+      "tests/dashboard-route-iq-product-focus.test.mjs": "5d012fd1bbc31000ae92196eefc6a53af81b850faa01c22cdb7fb96750cfabaf"
+    },
+    "focusedTestsPassed": 8,
+    "browserWorkflowChecksPassed": 184,
+    "productRuntimeModified": false,
+    "generatedDeploymentAssetsModified": false,
+    "generallyAuthorizesDashboardSuccessors": false
+  },
   "preservation": {
     "baselineCommit": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
     "gitObjects": {
@@ -287,6 +336,7 @@
     "previousReadinessSuccessorSha256": "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75",
     "websiteImplementationModified": false,
     "crmImplementationModified": false,
+    "dashboardRuntimeModified": false,
     "generatedDeploymentAssetsModified": false,
     "previousReadinessSuccessorModified": false
   },

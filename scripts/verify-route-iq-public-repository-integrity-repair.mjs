@@ -68,6 +68,16 @@ const ciPortabilityRepairFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const dashboardVerificationSuccessorFiles = Object.freeze([
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-product-focus.test.mjs"
+]);
+const dashboardProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -134,6 +144,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: repair public integrity verifier portability",
     files: ciPortabilityRepairFiles
+  }),
+  dashboardVerificationSuccessor: Object.freeze({
+    commit: "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    tree: "2bd8186faafd7c922c17da9401c6dddbc64163bb",
+    parent: "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+    authorName: "Prometheus Dashboard",
+    authorEmail: "dashboard@prometheus.local",
+    committerName: "Prometheus Dashboard",
+    committerEmail: "dashboard@prometheus.local",
+    subject: "dashboard: stabilize Eventbrite expansion verification",
+    files: dashboardVerificationSuccessorFiles
+  }),
+  dashboardProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit Dashboard verification successor",
+    files: dashboardProvenanceAdmissionFiles
   })
 });
 
@@ -222,6 +252,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let previous = terminal;
   let repairSeen = false;
   let ciPortabilityRepairSeen = false;
+  let dashboardVerificationSeen = false;
+  let dashboardProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -258,6 +290,30 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const dashboardVerification = boundary.dashboardVerificationSuccessor;
+    if (dashboardVerification && commit === dashboardVerification.commit) {
+      assert.equal(dashboardVerificationSeen, false, "Dashboard verification successor repeated");
+      assertCommitSnapshot(repositoryRoot, dashboardVerification);
+      dashboardVerificationSeen = true;
+      previous = commit;
+      continue;
+    }
+    const dashboardAdmission = boundary.dashboardProvenanceAdmissionSuccessor;
+    const isDashboardAdmission = dashboardAdmission
+      && !dashboardProvenanceAdmissionSeen
+      && dashboardVerificationSeen
+      && actual.parents[0] === dashboardAdmission.parent
+      && actual.authorName === dashboardAdmission.authorName
+      && actual.authorEmail === dashboardAdmission.authorEmail
+      && actual.committerName === dashboardAdmission.committerName
+      && actual.committerEmail === dashboardAdmission.committerEmail
+      && actual.subject === dashboardAdmission.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...dashboardAdmission.files].sort());
+    if (isDashboardAdmission) {
+      dashboardProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -270,7 +326,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     terminalOwnerCommit: terminal,
     descendants: descendants.length,
     repairSeen,
-    ciPortabilityRepairSeen
+    ciPortabilityRepairSeen,
+    dashboardVerificationSeen,
+    dashboardProvenanceAdmissionSeen
   });
 }
 
@@ -303,7 +361,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_CI_PORTABILITY_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_DASHBOARD_VERIFICATION_PROVENANCE_ADMISSION_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -318,6 +376,11 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   const ownerBoundary = verifyInfrastructureOwnerBoundary(root);
   if (git(["rev-parse", "HEAD"]) !== INFRASTRUCTURE_OWNER_BOUNDARY.ciPortabilityRepairSuccessor.parent) {
     assert.equal(ownerBoundary.ciPortabilityRepairSeen, true);
+  }
+  assert.equal(ownerBoundary.dashboardVerificationSeen, true);
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY.dashboardProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.dashboardProvenanceAdmissionSeen, true);
   }
 
   const failed = contract.failedRun;
@@ -493,6 +556,30 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     safeCiRunConsumed: true
   });
 
+  assert.deepEqual(contract.dashboardVerificationProvenance, {
+    classification: "DASHBOARD_TEST_ONLY_WALL_CLOCK_STABILIZATION",
+    implementationOwner: "Prometheus Dashboard",
+    verificationOwner: "Prometheus Infrastructure",
+    commit: "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    tree: "2bd8186faafd7c922c17da9401c6dddbc64163bb",
+    parent: "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+    files: dashboardVerificationSuccessorFiles,
+    fileSha256: {
+      "scripts/verify-dashboard-runtime-workflows.mjs":
+        "6834b7ee4ef2091e489d356fe868dead38881e1340ff37c17f96afe308060be2",
+      "tests/dashboard-route-iq-product-focus.test.mjs":
+        "5d012fd1bbc31000ae92196eefc6a53af81b850faa01c22cdb7fb96750cfabaf"
+    },
+    focusedTestsPassed: 8,
+    browserWorkflowChecksPassed: 184,
+    productRuntimeModified: false,
+    generatedDeploymentAssetsModified: false,
+    generallyAuthorizesDashboardSuccessors: false
+  });
+  for (const [path, expected] of Object.entries(contract.dashboardVerificationProvenance.fileSha256)) {
+    assert.equal(sha256(path), expected, `${path} Dashboard verification evidence drifted`);
+  }
+
   assert.deepEqual(contract.preservation.gitObjects, expectedPreservedObjects);
   for (const [path, expected] of Object.entries(expectedPreservedObjects)) {
     assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} changed`);
@@ -510,6 +597,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   for (const field of [
     "websiteImplementationModified",
     "crmImplementationModified",
+    "dashboardRuntimeModified",
     "generatedDeploymentAssetsModified",
     "previousReadinessSuccessorModified"
   ]) assert.equal(contract.preservation[field], false);
