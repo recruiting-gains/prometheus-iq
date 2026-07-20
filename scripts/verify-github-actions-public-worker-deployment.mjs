@@ -10,7 +10,10 @@ import {
   verifyPublicStaticDeploymentPolicy,
   verifyPublicWranglerPin
 } from "./lib/github-actions-public-worker-deployment.mjs";
-import { fixedCloudflarePublicWorkerSmokePlan } from "./run-cloudflare-public-worker-smoke.mjs";
+import {
+  fixedCloudflarePublicWorkerSmokePlan,
+  isPublicIntakeGuardAllowHeaderValid
+} from "./run-cloudflare-public-worker-smoke.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -133,6 +136,21 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   const smoke = fixedCloudflarePublicWorkerSmokePlan();
   assert.ok(smoke.length > 0);
   assert.ok(smoke.every(request => ["GET", "HEAD"].includes(request.method) && request.body === false));
+  for (const value of ["POST", "POST, OPTIONS", "OPTIONS,POST", "\tPOST\t, \tOPTIONS\t"]) {
+    assert.equal(isPublicIntakeGuardAllowHeaderValid(value), true, `${value} must be accepted`);
+  }
+  for (const value of [
+    null,
+    "",
+    "OPTIONS",
+    "POST, POST",
+    "POST, OPTIONS, OPTIONS",
+    "POST, PUT",
+    "GET, POST",
+    "POST,,OPTIONS",
+    "post",
+    "POST; OPTIONS"
+  ]) assert.equal(isPublicIntakeGuardAllowHeaderValid(value), false, `${value} must be rejected`);
   assert.match(documentation, /cannot be attached while retaining the current live public Worker version/u);
   assert.match(documentation, /canonical deployable bundle rather than the entire repository tree/u);
   assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");

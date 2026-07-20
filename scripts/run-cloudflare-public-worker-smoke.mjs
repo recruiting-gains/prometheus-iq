@@ -10,6 +10,24 @@ import {
 } from "../workers/infrastructure/cloudflare-public-worker-smoke-contract.js";
 
 const REQUEST_TIMEOUT_MS = 15_000;
+const ALLOW_METHOD_TOKEN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/u;
+const PUBLIC_INTAKE_ALLOWED_METHODS = Object.freeze(new Set(["POST", "OPTIONS"]));
+
+export function isPublicIntakeGuardAllowHeaderValid(value) {
+  if (typeof value !== "string" || value.length === 0) return false;
+  const entries = value.split(",");
+  if (entries.length < 1 || entries.length > PUBLIC_INTAKE_ALLOWED_METHODS.size) return false;
+
+  const methods = new Set();
+  for (const entry of entries) {
+    const match = /^[\t ]*([^\t ]+)[\t ]*$/u.exec(entry);
+    if (!match || !ALLOW_METHOD_TOKEN.test(match[1])) return false;
+    const method = match[1];
+    if (!PUBLIC_INTAKE_ALLOWED_METHODS.has(method) || methods.has(method)) return false;
+    methods.add(method);
+  }
+  return methods.has("POST");
+}
 
 export function fixedCloudflarePublicWorkerSmokePlan() {
   return Object.freeze(CLOUDFLARE_PUBLIC_WORKER_SMOKE_REQUESTS.map(entry => Object.freeze({
@@ -45,7 +63,8 @@ function verifyResponse(entry, response) {
     return;
   }
   if (entry.kind === "public_intake_guard") {
-    if (response.status !== 405 || response.headers.get("allow") !== "POST") {
+    if (response.status !== 405
+      || !isPublicIntakeGuardAllowHeaderValid(response.headers.get("allow"))) {
       throw new Error("public_intake_guard_invalid");
     }
     return;
