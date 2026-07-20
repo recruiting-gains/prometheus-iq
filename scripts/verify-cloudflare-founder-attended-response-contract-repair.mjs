@@ -51,6 +51,32 @@ export const CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR = Obje
     })
   ])
 });
+export const CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_CI_PORTABILITY_SUCCESSOR = Object.freeze({
+  commit: "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+  tree: "955431d084ed6e529490e71e6432c8007217db36",
+  parent: "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+  authorName: "Prometheus Infrastructure",
+  authorEmail: "infrastructure@prometheus.local",
+  committerName: "Prometheus Infrastructure",
+  committerEmail: "infrastructure@prometheus.local",
+  subject: "Make Keychain owner verifier portable in CI",
+  authoredAt: "2026-07-20T11:10:39-05:00",
+  committedAt: "2026-07-20T11:10:39-05:00",
+  transitions: Object.freeze([
+    Object.freeze({
+      status: "M",
+      path: "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+      beforeSha256: "98d40d6fd46bf079d8ac8bfccd6458e7a94cbea69125fe941c219eb3b88ed5ef",
+      afterSha256: "df78ec38424ac7938acfce625445ecb5dc047d3743a7776832a768049a4c36f3"
+    }),
+    Object.freeze({
+      status: "M",
+      path: "tests/cloudflare-unattended-keychain-interoperability.test.mjs",
+      beforeSha256: "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a",
+      afterSha256: "3a6a7fea191da9a66b107722aa33cffebaec6bee16dc115a26aec528750ad976"
+    })
+  ])
+});
 
 export const CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS =
   Object.freeze([
@@ -122,7 +148,9 @@ function gitText(repositoryRoot, args) {
 function verifyAuthenticatedKeychainFixtureOwnerSuccessor({
   repositoryRoot,
   expectedBaselineCommit,
-  expectedOwnerSuccessor
+  expectedOwnerSuccessor,
+  expectedPaths,
+  requireCurrent
 }) {
   for (const value of [
     expectedBaselineCommit,
@@ -134,10 +162,7 @@ function verifyAuthenticatedKeychainFixtureOwnerSuccessor({
   }
   assert.deepEqual(
     expectedOwnerSuccessor.transitions.map(transition => transition.path),
-    [
-      "tests/cloudflare-founder-attended-service-token.test.mjs",
-      "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
-    ]
+    expectedPaths
   );
   for (const transition of expectedOwnerSuccessor.transitions) {
     assert.equal(transition.status, "M");
@@ -205,24 +230,49 @@ function verifyAuthenticatedKeychainFixtureOwnerSuccessor({
       ])),
       transition.afterSha256
     );
-    assert.equal(
-      sha256(readFileSync(resolve(repositoryRoot, transition.path))),
-      transition.afterSha256
-    );
+    if (requireCurrent) {
+      assert.equal(
+        sha256(readFileSync(resolve(repositoryRoot, transition.path))),
+        transition.afterSha256
+      );
+    }
   }
 }
 
 export function verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
   repositoryRoot = root,
   expectedBaselineCommit = baselineCommit,
-  expectedOwnerSuccessor = CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR
+  expectedOwnerSuccessor = CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR,
+  expectedCurrentSuccessor = CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_CI_PORTABILITY_SUCCESSOR
 } = {}) {
   assert.match(expectedBaselineCommit, /^[0-9a-f]{40}$/u);
   verifyAuthenticatedKeychainFixtureOwnerSuccessor({
     repositoryRoot,
     expectedBaselineCommit,
-    expectedOwnerSuccessor
+    expectedOwnerSuccessor,
+    expectedPaths: [
+      "tests/cloudflare-founder-attended-service-token.test.mjs",
+      "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+    ],
+    requireCurrent: false
   });
+  if (expectedCurrentSuccessor) {
+    execFileSync(
+      "/usr/bin/git",
+      ["merge-base", "--is-ancestor", expectedOwnerSuccessor.commit, expectedCurrentSuccessor.commit],
+      { cwd: resolve(repositoryRoot), stdio: "ignore" }
+    );
+    verifyAuthenticatedKeychainFixtureOwnerSuccessor({
+      repositoryRoot,
+      expectedBaselineCommit,
+      expectedOwnerSuccessor: expectedCurrentSuccessor,
+      expectedPaths: [
+        "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+        "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+      ],
+      requireCurrent: true
+    });
+  }
   assert.deepEqual(
     CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
     ["package.json"]
@@ -240,7 +290,9 @@ export function verifyCloudflareFounderAttendedResponseContractPredecessorImmuta
     );
   }
   const authenticatedPaths = new Set(
-    expectedOwnerSuccessor.transitions.map(transition => transition.path)
+    [expectedOwnerSuccessor, expectedCurrentSuccessor]
+      .filter(Boolean)
+      .flatMap(successor => successor.transitions.map(transition => transition.path))
   );
   const strictlyImmutablePaths =
     CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS.filter(

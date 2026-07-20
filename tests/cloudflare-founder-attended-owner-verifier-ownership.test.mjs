@@ -24,6 +24,7 @@ import {
   verifyCloudflareFounderAttendedFreshAttemptEvidenceRotation
 } from "../scripts/verify-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
 import {
+  CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_CI_PORTABILITY_SUCCESSOR,
   CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_FIXTURE_OWNER_SUCCESSOR,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_INFRASTRUCTURE_PREDECESSOR_PATHS,
   CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_OVERWATCH_RELEASE_WIRING_PATHS,
@@ -124,6 +125,22 @@ test("standalone Infrastructure owner verifier passes at the current repository 
   assert.equal(verifyCloudflareFounderAttendedCreateReceiptV2().status, "passed");
 });
 
+test("response-contract verifier pins the exact Keychain CI portability successor", () => {
+  assert.equal(
+    CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_CI_PORTABILITY_SUCCESSOR.commit,
+    "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b"
+  );
+  assert.deepEqual(
+    CLOUDFLARE_FOUNDER_ATTENDED_KEYCHAIN_CI_PORTABILITY_SUCCESSOR.transitions.map(
+      transition => transition.path
+    ),
+    [
+      "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+      "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+    ]
+  );
+});
+
 test("package release wiring is delegated without removing any Infrastructure predecessor", () => {
   assert.deepEqual(
     CLOUDFLARE_FOUNDER_ATTENDED_RECOVERY_OVERWATCH_RELEASE_WIRING_PATHS,
@@ -213,7 +230,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
     verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
       repositoryRoot: fixture.root,
       expectedBaselineCommit: fixture.baseline,
-      expectedOwnerSuccessor
+      expectedOwnerSuccessor,
+      expectedCurrentSuccessor: null
     })
   );
   assert.throws(() =>
@@ -223,7 +241,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
       expectedOwnerSuccessor: {
         ...expectedOwnerSuccessor,
         authorEmail: "wrong-owner@prometheus.local"
-      }
+      },
+      expectedCurrentSuccessor: null
     })
   );
   assert.throws(() =>
@@ -236,7 +255,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
           ...transition,
           afterSha256: index === 0 ? "0".repeat(64) : transition.afterSha256
         }))
-      }
+      },
+      expectedCurrentSuccessor: null
     })
   );
 
@@ -256,7 +276,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
     verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
       repositoryRoot: extraFixture.root,
       expectedBaselineCommit: extraFixture.baseline,
-      expectedOwnerSuccessor: extraSuccessor
+      expectedOwnerSuccessor: extraSuccessor,
+      expectedCurrentSuccessor: null
     })
   );
 
@@ -269,7 +290,8 @@ test("BATCH-003 delegates package drift and rejects Infrastructure predecessor d
     verifyCloudflareFounderAttendedResponseContractPredecessorImmutabilityTestOnly({
       repositoryRoot: fixture.root,
       expectedBaselineCommit: fixture.baseline,
-      expectedOwnerSuccessor
+      expectedOwnerSuccessor,
+      expectedCurrentSuccessor: null
     })
   );
 });
