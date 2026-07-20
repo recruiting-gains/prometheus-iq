@@ -529,6 +529,23 @@ test("Swift helper typechecks without touching Keychain values", { skip: process
   assert.equal(result.status, 0);
 });
 
+test("owner verifier remains portable when macOS Swift tooling is unavailable", () => {
+  const result = spawnSync(process.execPath, [
+    "--input-type=module",
+    "--eval",
+    [
+      "Object.defineProperty(process, 'platform', { value: 'linux' });",
+      "await import('./scripts/verify-cloudflare-unattended-keychain-interoperability.mjs');"
+    ].join("\n")
+  ], {
+    cwd: resolve("."),
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(JSON.parse(result.stdout).swiftTypecheck, "not_applicable");
+});
+
 function lstatMode(path) {
   return statSync(path).mode & 0o777;
 }

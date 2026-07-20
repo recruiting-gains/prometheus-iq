@@ -125,12 +125,16 @@ for (const path of implementationPaths) {
   assert.deepEqual(scanTextForCloudflareSecrets(read(path), path), []);
 }
 
-const swift = spawnSync(
-  "/usr/bin/swiftc",
-  ["-typecheck", "scripts/helpers/cloudflare-unattended-keychain-acl.swift"],
-  { cwd: root, stdio: ["ignore", "ignore", "ignore"] }
-);
-assert.equal(swift.status, 0);
+let swiftTypecheck = "not_applicable";
+if (process.platform === "darwin") {
+  const swift = spawnSync(
+    "/usr/bin/swiftc",
+    ["-typecheck", "scripts/helpers/cloudflare-unattended-keychain-acl.swift"],
+    { cwd: root, stdio: ["ignore", "ignore", "ignore"] }
+  );
+  assert.equal(swift.status, 0);
+  swiftTypecheck = "passed";
+}
 
 process.stdout.write(`${JSON.stringify({
   contractVersion: contract.contractVersion,
@@ -138,7 +142,7 @@ process.stdout.write(`${JSON.stringify({
   fixedItemCount: contract.governedItems.length,
   sharedLauncherIdentity: true,
   secretScan: "passed",
-  swiftTypecheck: "passed",
+  swiftTypecheck,
   cloudflareContacted: false,
   keychainValuesRead: false,
   deploymentPerformed: false,
