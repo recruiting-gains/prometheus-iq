@@ -102,3 +102,10 @@ test("Data and Intelligence runtime-evidence successors require exact owner prov
   value.dispatchAudit.runtimeEvidenceSuccessors[1].owner = "Prometheus Overwatch";
   assert.throws(() => validateRouteIq3dVisualContinuityGovernance(value));
 });
+
+test("historical investor-focus consumers resolve through exact Intelligence successors", () => {
+  const value = governance();
+  assert.equal(value.protectedInvestorFocusBaselineSuccessors.length, 3);
+  value.protectedInvestorFocusBaselineSuccessors[0].successorSha256 = "0".repeat(64);
+  assert.throws(() => validateRouteIq3dVisualContinuityGovernance(value));
+});

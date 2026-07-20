@@ -267,6 +267,35 @@
       "reason": "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
     }
   ],
+  "protectedInvestorFocusBaselineSuccessors": [
+    {
+      "predecessorGovernanceId": "route-iq-yc-investor-website-focus-v1",
+      "path": "intelligence/contracts/shadow-decision-readiness-contracts.json",
+      "previousSuccessorSha256": "3439a38b32e099d6fcd1ab17e8e4102350a037febd3f54801e9f163808bbe1dc",
+      "successorSha256": "f52ca21731476174cc29034e4df9d039da85f5b4cdc8011e1e9917656d5815de",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "b065d069bdb3439a0541074d80862494e1d8a9bc",
+      "historicalEvidenceRewritten": false
+    },
+    {
+      "predecessorGovernanceId": "route-iq-yc-investor-website-focus-v1",
+      "path": "scripts/verify-shadow-decision-readiness.mjs",
+      "previousSuccessorSha256": "910580db86a8f8a792514c3ccaeee999a392e9f07b6cbb4329ad5d08be6f3e5d",
+      "successorSha256": "0c8a1e483c7444c76d5435397c360ce3f5028a520d85ca1e58fe24d26d93d934",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "b065d069bdb3439a0541074d80862494e1d8a9bc",
+      "historicalEvidenceRewritten": false
+    },
+    {
+      "predecessorGovernanceId": "route-iq-yc-investor-website-focus-v1",
+      "path": "tests/shadow-decision-readiness.test.mjs",
+      "previousSuccessorSha256": "19db831b28c5ca991087ad1d0d677edf572801eb353e0b96d7ae4a34a88716c6",
+      "successorSha256": "47c3cc8a9f6a9447395c31851bd7207a25a7ed314f07c063c6daee4a71d73a79",
+      "owner": "Prometheus Intelligence Engine",
+      "ownerCommit": "b065d069bdb3439a0541074d80862494e1d8a9bc",
+      "historicalEvidenceRewritten": false
+    }
+  ],
   "protectedOverwatchVerifierSuccessors": [
     {
       "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",

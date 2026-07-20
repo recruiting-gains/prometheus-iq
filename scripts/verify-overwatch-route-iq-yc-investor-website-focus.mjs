@@ -182,7 +182,7 @@ function verifyOwnership(governance, { requireOverwatchCommit, successorActive }
   };
 }
 
-function verifyPositioningAndClaims(governance, report) {
+function verifyPositioningAndClaims(governance, report, visualSuccessor) {
   const route = readJson("docs/route-iq-public-positioning-claims-contract-v1.json");
   const intelligence = readJson("intelligence/contracts/route-iq-public-intelligence-claims-v1.json");
   const data = readJson("data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json");
@@ -212,6 +212,9 @@ function verifyPositioningAndClaims(governance, report) {
   assert.equal(data.batchId, governance.batchId);
   assert.equal(data.status, "canonical_data_claim_boundaries_verified_cross_owner_corroborated");
   assert.equal(governance.protectedBaselineSuccessors.length, 3);
+  const currentSuccessors = new Map(
+    (visualSuccessor?.protectedInvestorFocusBaselineSuccessors || []).map(mapping => [mapping.path, mapping])
+  );
   for (const mapping of governance.protectedBaselineSuccessors) {
     assert.equal(mapping.predecessorGovernanceId, "cloudflare-unattended-deployment-access-governance-v1");
     assert.equal(mapping.owner, "Prometheus Intelligence Engine");
@@ -219,7 +222,18 @@ function verifyPositioningAndClaims(governance, report) {
     assert.equal(mapping.historicalEvidenceRewritten, false);
     assert.match(mapping.historicalSha256, /^[a-f0-9]{64}$/u);
     assert.match(mapping.previousSuccessorSha256, /^[a-f0-9]{64}$/u);
-    assert.equal(mapping.successorSha256, sha256(readBytes(mapping.path)));
+    if (visualSuccessor) {
+      const current = currentSuccessors.get(mapping.path);
+      assert.ok(current, `Visual-continuity baseline successor missing: ${mapping.path}`);
+      assert.equal(current.predecessorGovernanceId, governance.governanceId);
+      assert.equal(current.previousSuccessorSha256, mapping.successorSha256);
+      assert.equal(current.owner, "Prometheus Intelligence Engine");
+      assert.equal(current.ownerCommit, "b065d069bdb3439a0541074d80862494e1d8a9bc");
+      assert.equal(current.historicalEvidenceRewritten, false);
+      assert.equal(current.successorSha256, sha256(readBytes(mapping.path)));
+    } else {
+      assert.equal(mapping.successorSha256, sha256(readBytes(mapping.path)));
+    }
   }
   assert.equal(report.scorecard.length, 11);
   assert.ok(report.scorecard.every(entry => entry.after > entry.before));
@@ -392,15 +406,16 @@ export function verifyOverwatchRouteIqYcInvestorWebsiteFocus({
   assert.equal(governance.releaseBoundary.deploymentAuthorized, false);
 
   const successorActive = existsSync(resolve(root, visualContinuitySuccessorPath));
+  let visualSuccessor = null;
   if (successorActive) {
-    const successor = readJson(visualContinuitySuccessorPath);
-    assert.equal(successor.batchId, "BATCH-20260719-006");
-    assert.equal(successor.supersession.supersededCandidate.commit, "08b452c4cc187fd3b8bd957e6bedef3aed12ac01");
-    assert.equal(successor.visualBaseline.commit, startingCommit);
+    visualSuccessor = readJson(visualContinuitySuccessorPath);
+    assert.equal(visualSuccessor.batchId, "BATCH-20260719-006");
+    assert.equal(visualSuccessor.supersession.supersededCandidate.commit, "08b452c4cc187fd3b8bd957e6bedef3aed12ac01");
+    assert.equal(visualSuccessor.visualBaseline.commit, startingCommit);
   }
 
   const ownership = verifyOwnership(governance, { requireOverwatchCommit, successorActive });
-  verifyPositioningAndClaims(governance, report);
+  verifyPositioningAndClaims(governance, report, visualSuccessor);
   const performance = successorActive
     ? { status: "SUPERSEDED_BY_3D_VISUAL_CONTINUITY", criticalBytes: null }
     : verifyPublicWebsite(governance);
