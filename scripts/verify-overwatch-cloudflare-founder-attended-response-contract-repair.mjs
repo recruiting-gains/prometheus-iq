@@ -34,6 +34,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const routeIq3dGovernancePath =
+  "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const commercialReadinessGovernancePath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const primaryCommit = "04a38d6424099824fa3760314c7b660ce30b6930";
@@ -351,6 +353,7 @@ function verifyOverwatchSuccessors(governance) {
       .map(item => [item.path, item])
   );
   const commercialReadinessGovernance = readJson(commercialReadinessGovernancePath);
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
   for (const item of governance.overwatchVerificationSuccessors) {
     const current = sha256(readFileSync(resolve(root, item.path)));
     const transition = transitions.get(item.path);
@@ -365,6 +368,17 @@ function verifyOverwatchSuccessors(governance) {
         && mapping.successorSha256 === current
         && mapping.owner === "Prometheus Overwatch"
       ));
+    const routeIq3dTransition = routeIq3dGovernance.protectedOverwatchVerifierSuccessors
+      .find(mapping => {
+        if (mapping.predecessorGovernanceId !== commercialReadinessGovernance.governanceId
+          || mapping.path !== item.path
+          || mapping.successorSha256 !== current
+          || mapping.owner !== "Prometheus Overwatch") return false;
+        const baseline = execFileSync("/usr/bin/git", [
+          "show", `${routeIq3dGovernance.startingRepositoryState.commit}:${item.path}`
+        ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+        return mapping.historicalSha256 === sha256(baseline);
+      });
     if (!/^[0-9a-f]{64}$/u.test(item.previousSha256)
       || (current !== item.successorSha256
         && !(transition?.previousSha256 === item.successorSha256
@@ -379,7 +393,8 @@ function verifyOverwatchSuccessors(governance) {
               && githubDeploymentTransition?.owner === "Prometheus Overwatch"))
           && transition?.owner === "Prometheus Overwatch"
           && keychainTransition?.owner === "Prometheus Overwatch")
-        && !commercialTransition)) {
+        && !commercialTransition
+        && !routeIq3dTransition)) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
     }
   }
@@ -419,6 +434,8 @@ function verifyReleaseWiring(governance) {
   const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
   const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
   const githubDeploymentTransition = githubDeploymentGovernance.protectedReleaseWiringTransitions[0];
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
+  const routeIq3dTransition = routeIq3dGovernance.protectedReleaseWiringTransitions[0];
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-response-contract:check"] !==
       expectedOverwatch
     || packageJson.scripts["infrastructure:cloudflare-founder-attended-response-contract:check"] !==
@@ -440,10 +457,12 @@ function verifyReleaseWiring(governance) {
     || transition.successorSha256 !== currentTransition.previousSha256
     || currentTransition.successorSha256 !== keychainTransition.previousSha256
     || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
-    || githubDeploymentTransition.successorSha256 !== sha256(read("package.json"))
+    || githubDeploymentTransition.successorSha256 !== routeIq3dTransition.previousSha256
+    || routeIq3dTransition.successorSha256 !== sha256(read("package.json"))
     || currentTransition.owner !== "Prometheus Overwatch"
     || keychainTransition.owner !== "Prometheus Overwatch"
-    || githubDeploymentTransition.owner !== "Prometheus Overwatch") {
+    || githubDeploymentTransition.owner !== "Prometheus Overwatch"
+    || routeIq3dTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Response-contract release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended-response-contract-(?:diagnostic|prepare|provision)/u

@@ -22,6 +22,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const routeIq3dGovernancePath =
+  "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const ownerCommit = "1853c6343090ed3430f7ba03a089f1008a12436c";
 const ownerParent = "1a1a6143366175accb12752a095d11a39566bb90";
 const ownerTree = "3936f8950d7884ad3358e5ba5b67a472e6afef97";
@@ -246,6 +248,11 @@ function verifyOwnerCommit(governance) {
     githubDeploymentGovernance.protectedReleaseWiringTransitions?.find(item =>
       item.path === "package.json"
     );
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
+  const routeIq3dPackage =
+    routeIq3dGovernance.protectedReleaseWiringTransitions?.find(item =>
+      item.path === "package.json"
+    );
   const founderPackage = packageTransitions.find(item =>
     item.predecessorGovernanceId === "cloudflare-founder-attended-service-token-provisioning-governance-v1"
   );
@@ -263,10 +270,12 @@ function verifyOwnerCommit(governance) {
     || responseContractPackage?.successorSha256 !== createReceiptV2Package?.previousSha256
     || createReceiptV2Package?.successorSha256 !== keychainPackage?.previousSha256
     || keychainPackage?.successorSha256 !== githubDeploymentPackage?.previousSha256
-    || githubDeploymentPackage?.successorSha256 !== currentPackageHash
+    || githubDeploymentPackage?.successorSha256 !== routeIq3dPackage?.previousSha256
+    || routeIq3dPackage?.successorSha256 !== currentPackageHash
     || createReceiptV2Package?.owner !== "Prometheus Overwatch"
     || keychainPackage?.owner !== "Prometheus Overwatch"
     || githubDeploymentPackage?.owner !== "Prometheus Overwatch"
+    || routeIq3dPackage?.owner !== "Prometheus Overwatch"
     || responseContractPackage?.owner !== "Prometheus Overwatch") {
     throw new Error("Protected package release-wiring transition drifted.");
   }

@@ -114,6 +114,32 @@ export function validateRouteIq3dVisualContinuityGovernance(governance) {
       reason: "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
     }
   ]);
+  assert.deepEqual(governance?.protectedReleaseWiringTransitions, [
+    {
+      path: "package.json",
+      previousSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
+      successorSha256: "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247",
+      owner: "Prometheus Overwatch",
+      reason: "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
+    }
+  ]);
+  const expectedVerifierSuccessors = new Map([
+    ["scripts/verify-overwatch-cloudflare-unattended-access.mjs", ["c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050", "8e00f286d836b2c2620232a27fab5c3a7afc9b83e194d17ad98c496e4d43f08c"]],
+    ["scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs", ["147000b8f5cf5962f6e65a1378f6051bff8ca62212d4a0187d3eb013a14494ed", "bb08cee4db710c1ef2cfa5092cfb010a3e1395a743486d8dc380b29ff37b036d"]],
+    ["scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs", ["05ec07c66ea10ee5fa7200829e6e981e73c1a43e56276239e8f0e15784c76e12", "35f0cf48a76785844b96907f31414b5f67169aed1fa9f2dad9706ff253ecfedc"]],
+    ["scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs", ["e6312d6d89d4d51e8adcd5a87cfcabad46d2d7396842ea76b19521c55201c0de", "6cc5f5f7c0efdce15757416ef0c0c6c504d6283fd2abab05f3189072395b9434"]],
+    ["scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs", ["1f5544c3c485065376e99d01dbb45bb8580d68817f37867d43c638ffa1d5ebf0", "44d307c19b27ce1b742253fc0b316330f6b21dff14d569e88d6fd91df02a3278"]],
+    ["scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs", ["fbbee236889f9f5e1fa91971a9d973ba7acbec3c5e4e592246f31a9ad30c861e", "6b373cde5c3f4d5156cc8aeb798a623e0f5fb0cb16e7079af1bc5e04da5693c6"]]
+  ]);
+  assert.equal(governance?.protectedOverwatchVerifierSuccessors?.length, expectedVerifierSuccessors.size);
+  for (const successor of governance.protectedOverwatchVerifierSuccessors) {
+    const hashes = expectedVerifierSuccessors.get(successor.path);
+    assert.ok(hashes, `Unexpected Overwatch verifier successor: ${successor.path}`);
+    assert.equal(successor.predecessorGovernanceId, "route-iq-commercial-readiness-governance-v1");
+    assert.equal(successor.historicalSha256, hashes[0]);
+    assert.equal(successor.successorSha256, hashes[1]);
+    assert.equal(successor.owner, "Prometheus Overwatch");
+  }
   assert.equal(governance?.releaseBoundary?.deploymentAuthorized, false);
   assert.equal(governance?.releaseBoundary?.cloudflareMutationAuthorized, false);
   assert.equal(governance?.releaseBoundary?.secretAccessAuthorized, false);

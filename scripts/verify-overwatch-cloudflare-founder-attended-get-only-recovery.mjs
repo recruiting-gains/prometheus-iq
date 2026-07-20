@@ -25,6 +25,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const routeIq3dGovernancePath =
+  "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const ownerCommit = "43eee7a13bb2f826c4ac750298d9e87dd28f4976";
 const ownerParent = "89267707a3a62b2e3d61897476e4dda7adf95987";
 const ownerTree = "79b2ce3883160e95fdeb4f0985689fa77f50cf6b";
@@ -357,6 +359,11 @@ function verifyReleaseWiring() {
     githubDeploymentGovernance.protectedReleaseWiringTransitions?.find(
       item => item.path === "package.json"
     );
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
+  const routeIq3dTransition =
+    routeIq3dGovernance.protectedReleaseWiringTransitions?.find(
+      item => item.path === "package.json"
+    );
   const command = "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
   if (packageJson.scripts["overwatch:cloudflare-founder-attended-recovery:check"] !== command
     || !packageJson.scripts["test:overwatch"]
@@ -378,10 +385,12 @@ function verifyReleaseWiring() {
     || responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
-    || githubDeploymentTransition?.successorSha256 !== sha256(read("package.json"))
+    || githubDeploymentTransition?.successorSha256 !== routeIq3dTransition?.previousSha256
+    || routeIq3dTransition?.successorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
-    || githubDeploymentTransition?.owner !== "Prometheus Overwatch") {
+    || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
+    || routeIq3dTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Recovery release wiring drifted.");
   }
   if (/wrangler|curl|https:\/\/|run-cloudflare-founder-attended|provision|cleanup/u.test(command)) {

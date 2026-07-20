@@ -221,6 +221,65 @@
       "reason": "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
     }
   ],
+  "protectedReleaseWiringTransitions": [
+    {
+      "path": "package.json",
+      "previousSha256": "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
+      "successorSha256": "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247",
+      "owner": "Prometheus Overwatch",
+      "reason": "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
+    }
+  ],
+  "protectedOverwatchVerifierSuccessors": [
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      "historicalSha256": "c15bc5951c56e2cd8a0763b3bac4ae2ab1941f54e716ebe6b90ef613ec8d0050",
+      "successorSha256": "8e00f286d836b2c2620232a27fab5c3a7afc9b83e194d17ad98c496e4d43f08c",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    },
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+      "historicalSha256": "147000b8f5cf5962f6e65a1378f6051bff8ca62212d4a0187d3eb013a14494ed",
+      "successorSha256": "bb08cee4db710c1ef2cfa5092cfb010a3e1395a743486d8dc380b29ff37b036d",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    },
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+      "historicalSha256": "05ec07c66ea10ee5fa7200829e6e981e73c1a43e56276239e8f0e15784c76e12",
+      "successorSha256": "35f0cf48a76785844b96907f31414b5f67169aed1fa9f2dad9706ff253ecfedc",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    },
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+      "historicalSha256": "e6312d6d89d4d51e8adcd5a87cfcabad46d2d7396842ea76b19521c55201c0de",
+      "successorSha256": "6cc5f5f7c0efdce15757416ef0c0c6c504d6283fd2abab05f3189072395b9434",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    },
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+      "historicalSha256": "1f5544c3c485065376e99d01dbb45bb8580d68817f37867d43c638ffa1d5ebf0",
+      "successorSha256": "44d307c19b27ce1b742253fc0b316330f6b21dff14d569e88d6fd91df02a3278",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    },
+    {
+      "predecessorGovernanceId": "route-iq-commercial-readiness-governance-v1",
+      "path": "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+      "historicalSha256": "fbbee236889f9f5e1fa91971a9d973ba7acbec3c5e4e592246f31a9ad30c861e",
+      "successorSha256": "6b373cde5c3f4d5156cc8aeb798a623e0f5fb0cb16e7079af1bc5e04da5693c6",
+      "owner": "Prometheus Overwatch",
+      "reason": "Adopt the BATCH-20260719-006 terminal verifier successor while retaining prior controls and paused unattended access."
+    }
+  ],
   "releaseBoundary": {
     "deploymentAuthorized": false,
     "workflowDispatchAuthorized": false,

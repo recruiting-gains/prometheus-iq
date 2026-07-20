@@ -70,6 +70,28 @@ test("Overwatch records the package release-wiring successor without reopening u
       reason: "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
     }
   ]);
+  assert.deepEqual(value.protectedReleaseWiringTransitions, [
+    {
+      path: "package.json",
+      previousSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
+      successorSha256: "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247",
+      owner: "Prometheus Overwatch",
+      reason: "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
+    }
+  ]);
+  assert.equal(value.protectedOverwatchVerifierSuccessors.length, 6);
+  assert.ok(value.protectedOverwatchVerifierSuccessors.every(successor => (
+    successor.predecessorGovernanceId === "route-iq-commercial-readiness-governance-v1"
+    && successor.owner === "Prometheus Overwatch"
+    && /^[a-f0-9]{64}$/u.test(successor.historicalSha256)
+    && /^[a-f0-9]{64}$/u.test(successor.successorSha256)
+  )));
   assert.equal(value.releaseBoundary.deploymentAuthorized, false);
   assert.equal(value.releaseBoundary.workflowDispatchAuthorized, false);
+});
+
+test("an ungoverned historical verifier successor fails closed", () => {
+  const value = governance();
+  value.protectedOverwatchVerifierSuccessors[0].successorSha256 = "0".repeat(64);
+  assert.throws(() => validateRouteIq3dVisualContinuityGovernance(value));
 });

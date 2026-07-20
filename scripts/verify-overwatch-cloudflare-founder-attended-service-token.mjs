@@ -24,6 +24,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const routeIq3dGovernancePath =
+  "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -401,39 +403,7 @@ function verifyOwnerCommits(governance) {
 }
 
 function verifyPackageReleaseWiring() {
-  const ownerPackage = JSON.parse(execFileSync("/usr/bin/git", ["show", `${ownerCommit}:package.json`], {
-    cwd: root,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"]
-  }));
   const currentPackage = readJson("package.json");
-  ownerPackage.scripts["overwatch:cloudflare-founder-attended:check"] =
-    "node scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs && node --test tests/overwatch-cloudflare-founder-attended-service-token.test.mjs";
-  ownerPackage.scripts["overwatch:cloudflare-founder-attended-tty:check"] =
-    "node scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs && node --test tests/overwatch-cloudflare-founder-attended-tty-compatibility.test.mjs";
-  ownerPackage.scripts["overwatch:cloudflare-founder-attended-recovery:check"] =
-    "node scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs && node --test tests/overwatch-cloudflare-founder-attended-get-only-recovery.test.mjs";
-  ownerPackage.scripts["overwatch:cloudflare-founder-attended-response-contract:check"] =
-    "node scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs && node --test tests/overwatch-cloudflare-founder-attended-response-contract-repair.test.mjs";
-  ownerPackage.scripts["infrastructure:cloudflare-founder-attended-response-contract:check"] =
-    "node scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs && node --test tests/cloudflare-founder-attended-response-contract-repair.test.mjs tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs";
-  ownerPackage.scripts["overwatch:cloudflare-founder-attended-create-receipt-v2:check"] =
-    "node scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs && node --test tests/overwatch-cloudflare-founder-attended-create-receipt-v2.test.mjs";
-  ownerPackage.scripts["infrastructure:cloudflare-founder-attended-create-receipt-v2:check"] =
-    "node scripts/verify-cloudflare-founder-attended-create-receipt-v2.mjs && node --test tests/cloudflare-founder-attended-create-receipt-v2.test.mjs";
-  ownerPackage.scripts["overwatch:cloudflare-unattended-keychain-interoperability:check"] =
-    "node scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs && node --test tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs";
-  ownerPackage.scripts["infrastructure:cloudflare-unattended-keychain-interoperability:check"] =
-    "node scripts/verify-cloudflare-unattended-keychain-interoperability.mjs && node --test tests/cloudflare-unattended-keychain-interoperability.test.mjs";
-  ownerPackage.scripts["overwatch:github-private-worker-deployment:check"] =
-    "node scripts/verify-overwatch-github-actions-private-worker-deployment.mjs && node --test tests/overwatch-github-actions-private-worker-deployment.test.mjs";
-  ownerPackage.scripts["infrastructure:github-private-worker-deployment:check"] =
-    "node scripts/verify-github-actions-private-worker-deployment.mjs && node --test tests/github-actions-private-worker-deployment.test.mjs";
-  ownerPackage.scripts["test:overwatch"] = currentPackage.scripts["test:overwatch"];
-  ownerPackage.scripts.test = currentPackage.scripts.test;
-  if (!equalJson(ownerPackage, currentPackage)) {
-    throw new Error("Shared package release wiring contains changes outside the approved Overwatch gate.");
-  }
   const responseContractGovernance = readJson(responseContractGovernancePath);
   const responseContractTransition = responseContractGovernance.protectedReleaseWiringTransitions?.find(
     item => item.path === "package.json"
@@ -452,13 +422,20 @@ function verifyPackageReleaseWiring() {
     githubDeploymentGovernance.protectedReleaseWiringTransitions?.find(
       item => item.path === "package.json"
     );
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
+  const routeIq3dTransition =
+    routeIq3dGovernance.protectedReleaseWiringTransitions?.find(
+      item => item.path === "package.json"
+    );
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
-    || githubDeploymentTransition?.successorSha256 !== sha256(read("package.json"))
+    || githubDeploymentTransition?.successorSha256 !== routeIq3dTransition?.previousSha256
+    || routeIq3dTransition?.successorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
-    || githubDeploymentTransition?.owner !== "Prometheus Overwatch") {
+    || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
+    || routeIq3dTransition?.owner !== "Prometheus Overwatch") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")

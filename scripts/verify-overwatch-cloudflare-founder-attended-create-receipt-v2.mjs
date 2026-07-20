@@ -41,6 +41,8 @@ const keychainInteroperabilityGovernancePath =
   "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json";
 const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
+const routeIq3dGovernancePath =
+  "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
 const commercialReadinessGovernancePath =
   "overwatch/governance/route-iq-commercial-readiness-v1.json";
 const contractPath = "workers/infrastructure/cloudflare-founder-attended-create-receipt-v2.json";
@@ -706,6 +708,8 @@ function verifyPredecessorTransitions(governance, rotation) {
   const keychainTransition = keychainInteroperabilityGovernance.protectedReleaseWiringTransitions[0];
   const githubDeploymentGovernance = readJson(githubDeploymentGovernancePath);
   const githubDeploymentTransition = githubDeploymentGovernance.protectedReleaseWiringTransitions[0];
+  const routeIq3dGovernance = readJson(routeIq3dGovernancePath);
+  const routeIq3dTransition = routeIq3dGovernance.protectedReleaseWiringTransitions[0];
   const keychainVerifierTransitions = new Map(
     keychainInteroperabilityGovernance.protectedOverwatchVerifierSuccessors
       .map(item => [item.path, item])
@@ -723,10 +727,12 @@ function verifyPredecessorTransitions(governance, rotation) {
   if (packageTransition.previousSha256 !== sha256(basePackage)
     || packageTransition.successorSha256 !== keychainTransition.previousSha256
     || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
-    || githubDeploymentTransition.successorSha256 !== sha256(read("package.json"))
+    || githubDeploymentTransition.successorSha256 !== routeIq3dTransition.previousSha256
+    || routeIq3dTransition.successorSha256 !== sha256(read("package.json"))
     || packageTransition.owner !== "Prometheus Overwatch"
     || keychainTransition.owner !== "Prometheus Overwatch"
-    || githubDeploymentTransition.owner !== "Prometheus Overwatch") {
+    || githubDeploymentTransition.owner !== "Prometheus Overwatch"
+    || routeIq3dTransition.owner !== "Prometheus Overwatch") {
     throw new Error("Package release-wiring transition drifted.");
   }
   for (const item of governance.overwatchVerificationSuccessors) {
@@ -761,16 +767,28 @@ function verifyPredecessorTransitions(governance, rotation) {
         && mapping.successorSha256 === current
         && mapping.owner === "Prometheus Overwatch"
       ));
+    const isRouteIq3dSuccessor =
+      routeIq3dGovernance.protectedOverwatchVerifierSuccessors.some(mapping => (
+        mapping.predecessorGovernanceId === commercialReadinessGovernance.governanceId
+        && mapping.path === item.path
+        && mapping.historicalSha256 === sha256(execFileSync("/usr/bin/git", [
+          "show", `${routeIq3dGovernance.startingRepositoryState.commit}:${item.path}`
+        ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }))
+        && mapping.successorSha256 === current
+        && mapping.owner === "Prometheus Overwatch"
+      ));
     if (item.previousSha256 !== sha256(previous)
       || (item.successorSha256 !== current
         && !isRotationSuccessor
         && !isKeychainSuccessor
         && !isGithubDeploymentSuccessor
-        && !isCommercialReadinessSuccessor)
+        && !isCommercialReadinessSuccessor
+        && !isRouteIq3dSuccessor)
       || (isRotationSuccessor && item.successorSha256 !== current
         && !isKeychainSuccessor
         && !isGithubDeploymentSuccessor
-        && !isCommercialReadinessSuccessor)
+        && !isCommercialReadinessSuccessor
+        && !isRouteIq3dSuccessor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }
