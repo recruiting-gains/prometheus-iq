@@ -17,6 +17,9 @@ const commercialRouteQualityDataCommit = "4f3acb7fd9f1f036e2d277a8323b52eb10ddce
 const commercialRouteQualitySuccessorCommit = "ecc9cbcc0222c627aeef952d2a651f4ba90cc42a";
 const investorWebsiteRouteQualityDataCommit = "330752fb53c9466f6bc0339d771b2f2facbc2351";
 const investorWebsiteRouteQualitySuccessorCommit = "88b3bbbf2c34d879881ced98620c15a602598c45";
+const restored3dRouteQualityDataCommit = "85850c74564798889ba50cb15c7a7b0406a521fd";
+const restored3dRouteQualitySuccessorCommit = "b065d069bdb3439a0541074d80862494e1d8a9bc";
+const restored3dClaimsDataCommit = "cee8d681fd2272aca3425f10b433507819085424";
 const currentIntelligenceSuccessorCommits = [
   "cd0a504328b0870aa695731230e6c43dd4698e3c",
   "ed46fb0964187a207468cd89fbdc1fbbb8426748",
@@ -37,6 +40,10 @@ const commercialRouteQualitySuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json";
 const investorWebsiteRouteQualitySuccessorPath =
   "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json";
+const restored3dRouteQualitySuccessorPath =
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json";
+const publicClaimsEvidenceMatrixPath =
+  "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json";
 const batchOneReportPath = "overwatch/reports/BATCH-20260713-001-route-iq-shadow-decision-readiness.json";
 const dashboardEvidencePath = "dashboard/decision-context-producer-validation-v1.md";
 const expectedPreBatchCommits = [
@@ -93,6 +100,15 @@ const expectedInvestorWebsiteRouteQualitySuccessorPaths = [
   "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
   investorWebsiteRouteQualitySuccessorPath,
+  "scripts/verify-shadow-decision-readiness.mjs",
+  "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
+  "tests/shadow-decision-readiness.test.mjs"
+].sort();
+
+const expectedRestored3dRouteQualitySuccessorPaths = [
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  restored3dRouteQualitySuccessorPath,
   "scripts/verify-shadow-decision-readiness.mjs",
   "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
   "tests/shadow-decision-readiness.test.mjs"
@@ -194,6 +210,7 @@ export function verifyReleaseProvenanceRepair() {
   const routeQualitySuccessor = readJson(routeQualitySuccessorPath);
   const commercialRouteQualitySuccessor = readJson(commercialRouteQualitySuccessorPath);
   const investorWebsiteRouteQualitySuccessor = readJson(investorWebsiteRouteQualitySuccessorPath);
+  const restored3dRouteQualitySuccessor = readJson(restored3dRouteQualitySuccessorPath);
   const batchOneReport = readJson(batchOneReportPath);
   const dashboardEvidence = read(dashboardEvidencePath).toString("utf8");
 
@@ -580,18 +597,9 @@ export function verifyReleaseProvenanceRepair() {
       currentTransition.currentSha256,
       `${currentTransition.path} investor Website Data owner hash drifted.`
     );
-    assert.equal(
-      sha256(read(currentTransition.path)),
-      currentTransition.currentSha256,
-      `${currentTransition.path} canonical investor Website Data hash drifted.`
-    );
   }
   assert.equal(
     sha256(gitBytes("show", `${investorWebsiteRouteQualityDataCommit}:${investorWebsiteDataTransition.routeQualityRegression.path}`)),
-    investorWebsiteDataTransition.routeQualityRegression.currentSha256
-  );
-  assert.equal(
-    sha256(read(investorWebsiteDataTransition.routeQualityRegression.path)),
     investorWebsiteDataTransition.routeQualityRegression.currentSha256
   );
 
@@ -612,10 +620,12 @@ export function verifyReleaseProvenanceRepair() {
       sha256(gitBytes("show", `${investorWebsiteRouteQualitySuccessorCommit}:${reference.consumerPath}`)),
       reference.currentConsumerSha256
     );
-    assert.equal(sha256(read(reference.consumerPath)), reference.currentConsumerSha256);
   }
   for (const mirror of investorWebsiteRouteQualitySuccessor.protectedReferenceAudit.ownerVerificationMirrors) {
-    assert.equal(sha256(read(mirror.path)), mirror.currentSha256);
+    assert.equal(
+      sha256(gitBytes("show", `${investorWebsiteRouteQualitySuccessorCommit}:${mirror.path}`)),
+      mirror.currentSha256
+    );
   }
   assert.equal(investorWebsiteRouteQualitySuccessor.reviewedInvariants.runtimeBehaviorChanged, false);
   assert.equal(investorWebsiteRouteQualitySuccessor.reviewedInvariants.routeOrderingChanged, false);
@@ -623,6 +633,84 @@ export function verifyReleaseProvenanceRepair() {
   assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.recommendationInfluence, "OFF");
   assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.readinessState, "INSUFFICIENT_EVIDENCE");
   assert.equal(investorWebsiteRouteQualitySuccessor.boundaries.representativeShadowOutputExposed, false);
+
+  assert.equal(restored3dRouteQualitySuccessor.batchId, "BATCH-20260719-006");
+  assert.equal(restored3dRouteQualitySuccessor.status, "OWNER_REVIEWED_AND_SYNCHRONIZED");
+  assert.equal(restored3dRouteQualitySuccessor.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(restored3dRouteQualitySuccessor.predecessor.path, investorWebsiteRouteQualitySuccessorPath);
+  assert.equal(
+    restored3dRouteQualitySuccessor.predecessor.sha256,
+    sha256(read(investorWebsiteRouteQualitySuccessorPath))
+  );
+  assert.equal(restored3dRouteQualitySuccessor.predecessor.remainsHistorical, true);
+  assert.equal(restored3dRouteQualitySuccessor.predecessor.rewritten, false);
+
+  const restoredDataTransition = restored3dRouteQualitySuccessor.dataOwnerTransition;
+  assert.equal(restoredDataTransition.commit, restored3dRouteQualityDataCommit);
+  assert.equal(restoredDataTransition.ownerSubsystem, "Prometheus Data");
+  assert.equal(
+    restoredDataTransition.tree,
+    git("rev-parse", `${restored3dRouteQualityDataCommit}^{tree}`)
+  );
+  assert.deepEqual(restoredDataTransition.changedPaths.slice().sort(), expectedRouteQualityDataPaths);
+  for (const transition of [
+    restoredDataTransition.routeQualityGate,
+    restoredDataTransition.canonicalRouteQualityReport,
+    restoredDataTransition.routeQualityRegression
+  ]) {
+    assert.equal(
+      sha256(gitBytes("show", `${restored3dRouteQualityDataCommit}:${transition.path}`)),
+      transition.currentSha256,
+      `${transition.path} restored 3D Data owner hash drifted.`
+    );
+    assert.equal(
+      sha256(read(transition.path)),
+      transition.currentSha256,
+      `${transition.path} restored 3D canonical hash drifted.`
+    );
+  }
+  assert.deepEqual(
+    changedPaths(restored3dRouteQualitySuccessorCommit),
+    expectedRestored3dRouteQualitySuccessorPaths
+  );
+  assert.equal(
+    restored3dRouteQualitySuccessor.dataOwnerTransition.commit,
+    restored3dRouteQualityDataCommit
+  );
+  for (const reference of restored3dRouteQualitySuccessor.protectedReferenceAudit.affectedIntelligenceReferences) {
+    assert.equal(
+      sha256(gitBytes("show", `${restored3dRouteQualitySuccessorCommit}:${reference.consumerPath}`)),
+      reference.currentConsumerSha256
+    );
+    assert.equal(sha256(read(reference.consumerPath)), reference.currentConsumerSha256);
+  }
+  for (const mirror of restored3dRouteQualitySuccessor.protectedReferenceAudit.ownerVerificationMirrors) {
+    assert.equal(sha256(read(mirror.path)), mirror.currentSha256);
+  }
+  assert.equal(restored3dRouteQualitySuccessor.reviewedInvariants.runtimeBehaviorChanged, false);
+  assert.equal(restored3dRouteQualitySuccessor.reviewedInvariants.routeOrderingChanged, false);
+  assert.equal(restored3dRouteQualitySuccessor.reviewedInvariants.routeScoringChanged, false);
+  assert.equal(restored3dRouteQualitySuccessor.boundaries.recommendationInfluence, "OFF");
+  assert.equal(restored3dRouteQualitySuccessor.boundaries.readinessState, "INSUFFICIENT_EVIDENCE");
+  assert.equal(restored3dRouteQualitySuccessor.boundaries.representativeShadowOutputExposed, false);
+
+  assert.deepEqual(changedPaths(restored3dClaimsDataCommit), [
+    publicClaimsEvidenceMatrixPath,
+    "tests/route-iq-public-claims-data.test.mjs"
+  ].sort());
+  const publicClaimsEvidenceMatrix = readJson(publicClaimsEvidenceMatrixPath);
+  const intelligenceCorroboration = publicClaimsEvidenceMatrix.crossOwnerCorroborationSources.find(
+    source => source.ownerSubsystem === "Prometheus Intelligence Engine"
+  );
+  assert.equal(intelligenceCorroboration.ownerCommit, restored3dRouteQualitySuccessorCommit);
+  assert.equal(
+    intelligenceCorroboration.ownerTree,
+    git("rev-parse", `${restored3dRouteQualitySuccessorCommit}^{tree}`)
+  );
+  assert.equal(
+    intelligenceCorroboration.sha256,
+    sha256(read(intelligenceCorroboration.path))
+  );
 
   const dataValidation = mapping.dataOwnerValidation;
   assert.equal(dataValidation.contractMismatchClosed, true);
