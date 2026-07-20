@@ -313,6 +313,20 @@
       "workflowDispatched": false,
       "deploymentPerformed": false,
       "freshExactFounderAuthorizationRequired": true
+    },
+    "overwatchVerificationRepair": {
+      "classification": "TEST_ONLY_STALE_LAST_INFRASTRUCTURE_INDEX",
+      "predecessorCommit": "027366403b8f0ad40b4c51ca8679703ecf2341c3",
+      "predecessorTree": "d37446a031638cd145c9bf87943fa9b3660c7d0c",
+      "predecessorParent": "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+      "predecessorSubject": "overwatch: record public predeployment smoke repair",
+      "failedAssertionExpectedCommit": "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54",
+      "failedAssertionActualCommit": "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+      "dashboardAdmissionStillPinned": true,
+      "smokeAdmissionNowPinned": true,
+      "productRuntimeModified": false,
+      "generatedDeploymentAssetsModified": false,
+      "productionModified": false
     }
   },
   "safeNonDeploymentCi": {

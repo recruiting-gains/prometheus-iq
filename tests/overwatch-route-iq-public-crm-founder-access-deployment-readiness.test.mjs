@@ -69,8 +69,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 14);
-  assert.deepEqual(result.commits.slice(0, 13), [
+  assert.equal(result.commits.length, 15);
+  assert.deepEqual(result.commits.slice(0, 14), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
@@ -83,7 +83,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2",
     "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
     "6476c381c8e9512eaea4a90e0f6019138cfe1766",
-    "c0c35e83901aad5b8f4108a2a6b09b6210cb5243"
+    "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+    "027366403b8f0ad40b4c51ca8679703ecf2341c3"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -110,8 +111,12 @@ test("Dashboard rollover repair and Infrastructure admission remain exact and te
   assert.equal(value.dashboardVerificationRepair.generatedDeploymentAssetsModified, false);
   assert.equal(value.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors, false);
   assert.equal(
-    value.infrastructureOwnerRepairs.at(-1).commit,
+    value.infrastructureOwnerRepairs[4].commit,
     "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54"
+  );
+  assert.equal(
+    value.infrastructureOwnerRepairs.at(-1).commit,
+    "c0c35e83901aad5b8f4108a2a6b09b6210cb5243"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,

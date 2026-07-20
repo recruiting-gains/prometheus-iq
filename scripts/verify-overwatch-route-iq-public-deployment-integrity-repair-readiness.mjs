@@ -171,6 +171,12 @@ const FOURTH_OVERWATCH_SUCCESSOR = Object.freeze({
   parent: "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54",
   subject: "overwatch: close public integrity verification provenance"
 });
+const FIFTH_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "027366403b8f0ad40b4c51ca8679703ecf2341c3",
+  tree: "d37446a031638cd145c9bf87943fa9b3660c7d0c",
+  parent: "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+  subject: "overwatch: record public predeployment smoke repair"
+});
 const DASHBOARD_VERIFICATION_SUCCESSOR = Object.freeze({
   commit: "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
   tree: "2bd8186faafd7c922c17da9401c6dddbc64163bb",
@@ -372,6 +378,20 @@ export function validatePublicIntegrityReadiness(governance) {
       workflowDispatched: false,
       deploymentPerformed: false,
       freshExactFounderAuthorizationRequired: true
+    },
+    overwatchVerificationRepair: {
+      classification: "TEST_ONLY_STALE_LAST_INFRASTRUCTURE_INDEX",
+      predecessorCommit: FIFTH_OVERWATCH_SUCCESSOR.commit,
+      predecessorTree: FIFTH_OVERWATCH_SUCCESSOR.tree,
+      predecessorParent: FIFTH_OVERWATCH_SUCCESSOR.parent,
+      predecessorSubject: FIFTH_OVERWATCH_SUCCESSOR.subject,
+      failedAssertionExpectedCommit: INFRASTRUCTURE_COMMITS[4].commit,
+      failedAssertionActualCommit: INFRASTRUCTURE_COMMITS[7].commit,
+      dashboardAdmissionStillPinned: true,
+      smokeAdmissionNowPinned: true,
+      productRuntimeModified: false,
+      generatedDeploymentAssetsModified: false,
+      productionModified: false
     }
   });
 
@@ -450,9 +470,9 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 14 : 13;
+  const expectedCount = requireCommittedOverwatch ? 15 : 14;
   assert.equal(commits.length, expectedCount);
-  assert.deepEqual(commits.slice(0, 13), [
+  assert.deepEqual(commits.slice(0, 14), [
     INFRASTRUCTURE_COMMITS[0].commit,
     INFRASTRUCTURE_COMMITS[1].commit,
     FIRST_OVERWATCH_SUCCESSOR.commit,
@@ -465,7 +485,8 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     FOURTH_OVERWATCH_SUCCESSOR.commit,
     INFRASTRUCTURE_COMMITS[5].commit,
     INFRASTRUCTURE_COMMITS[6].commit,
-    INFRASTRUCTURE_COMMITS[7].commit
+    INFRASTRUCTURE_COMMITS[7].commit,
+    FIFTH_OVERWATCH_SUCCESSOR.commit
   ]);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
@@ -524,13 +545,21 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.equal(fourthOverwatch.subject, FOURTH_OVERWATCH_SUCCESSOR.subject);
   assert.deepEqual(sorted(fourthOverwatch.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
 
+  assert.equal(git(root, "rev-parse", `${FIFTH_OVERWATCH_SUCCESSOR.commit}^{tree}`), FIFTH_OVERWATCH_SUCCESSOR.tree);
+  assert.equal(git(root, "rev-parse", `${FIFTH_OVERWATCH_SUCCESSOR.commit}^`), FIFTH_OVERWATCH_SUCCESSOR.parent);
+  const fifthOverwatch = commitRecord(root, FIFTH_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(fifthOverwatch.author, "overwatch@prometheus.local");
+  assert.equal(fifthOverwatch.committer, "overwatch@prometheus.local");
+  assert.equal(fifthOverwatch.subject, FIFTH_OVERWATCH_SUCCESSOR.subject);
+  assert.deepEqual(sorted(fifthOverwatch.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[13]);
+    const record = commitRecord(root, commits[14]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, "overwatch: record public predeployment smoke repair");
+    assert.equal(record.subject, "overwatch: repair public predeployment test pin");
     assert.deepEqual(sorted(record.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
-    assert.equal(git(root, "rev-parse", `${commits[13]}^`), INFRASTRUCTURE_COMMITS[7].commit);
+    assert.equal(git(root, "rev-parse", `${commits[14]}^`), FIFTH_OVERWATCH_SUCCESSOR.commit);
   }
   return commits;
 }
