@@ -31,6 +31,12 @@
       "tree": "03a1df0b8ccb9fe92e6673cb9e951044273ed32b",
       "subject": "Authenticate Keychain fixture successor"
     },
+    "ownerCiPortabilityCommit": {
+      "commit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+      "parent": "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+      "tree": "955431d084ed6e529490e71e6432c8007217db36",
+      "subject": "Make Keychain owner verifier portable in CI"
+    },
     "implementationOwnershipRespected": true,
     "overwatchModifiedInfrastructureImplementation": false,
     "overwatchChangeTypes": [
@@ -161,6 +167,22 @@
       "previousSha256": "1ee230b0cddd87005504d9ce1d548240d7b81b5b1a642dfb93da398d7e84832f",
       "successorSha256": "ddf8468f54382ef2fdff0d80ceb07ba814a4d17624d8e8f113a7e7dd5c980f85",
       "ownerCommit": "26396e471a9271f957a27b8764c396fd3c5b120a",
+      "owner": "Prometheus Infrastructure"
+    }
+  ],
+  "ownerCiPortabilitySuccessors": [
+    {
+      "path": "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+      "previousSha256": "98d40d6fd46bf079d8ac8bfccd6458e7a94cbea69125fe941c219eb3b88ed5ef",
+      "successorSha256": "df78ec38424ac7938acfce625445ecb5dc047d3743a7776832a768049a4c36f3",
+      "ownerCommit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+      "owner": "Prometheus Infrastructure"
+    },
+    {
+      "path": "tests/cloudflare-unattended-keychain-interoperability.test.mjs",
+      "previousSha256": "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a",
+      "successorSha256": "3a6a7fea191da9a66b107722aa33cffebaec6bee16dc115a26aec528750ad976",
+      "ownerCommit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
       "owner": "Prometheus Infrastructure"
     }
   ],

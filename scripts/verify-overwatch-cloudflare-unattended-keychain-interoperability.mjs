@@ -26,6 +26,9 @@ const ownerRepairTree = "5084667426465a7df46cbbf2dc35c0f043c1436e";
 const ownerVerifierRepairCommit = "26396e471a9271f957a27b8764c396fd3c5b120a";
 const ownerVerifierRepairParent = "3b349e3d0501cb7fe0ba559824897aa3f440c5b3";
 const ownerVerifierRepairTree = "03a1df0b8ccb9fe92e6673cb9e951044273ed32b";
+const ownerCiPortabilityCommit = "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b";
+const ownerCiPortabilityParent = "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c";
+const ownerCiPortabilityTree = "955431d084ed6e529490e71e6432c8007217db36";
 
 const ownerHashes = Object.freeze({
   "docs/cloudflare-unattended-keychain-interoperability-v1.md":
@@ -134,6 +137,23 @@ const ownerVerifierSuccessors = Object.freeze([
   }
 ]);
 
+const ownerCiPortabilitySuccessors = Object.freeze([
+  {
+    path: "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+    previousSha256: "98d40d6fd46bf079d8ac8bfccd6458e7a94cbea69125fe941c219eb3b88ed5ef",
+    successorSha256: "df78ec38424ac7938acfce625445ecb5dc047d3743a7776832a768049a4c36f3",
+    ownerCommit: ownerCiPortabilityCommit,
+    owner: "Prometheus Infrastructure"
+  },
+  {
+    path: "tests/cloudflare-unattended-keychain-interoperability.test.mjs",
+    previousSha256: "492217e6f2a6b14ec0588e2e08cf4f1e0f2d4a1eb2757c995fc256fee25b9f8a",
+    successorSha256: "3a6a7fea191da9a66b107722aa33cffebaec6bee16dc115a26aec528750ad976",
+    ownerCommit: ownerCiPortabilityCommit,
+    owner: "Prometheus Infrastructure"
+  }
+]);
+
 const githubDeploymentOwnerPaths = new Set([
   ".github/workflows/deploy-prometheus-private-worker.yml",
   "docs/github-actions-founder-triggered-private-worker-deployment-v1.md",
@@ -177,6 +197,7 @@ const infrastructureOwnedPaths = new Set([
   ...Object.keys(ownerHashes),
   ...ownerImplementationSuccessors.map(item => item.path),
   ...ownerVerifierSuccessors.map(item => item.path),
+  ...ownerCiPortabilitySuccessors.map(item => item.path),
   ...githubDeploymentOwnerPaths
 ]);
 const overwatchOwnedPaths = new Set([
@@ -268,6 +289,12 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
     tree: ownerVerifierRepairTree,
     subject: "Authenticate Keychain fixture successor"
   }), "Owner verifier repair commit drifted.");
+  require(equal(governance.dispatchAudit.ownerCiPortabilityCommit, {
+    commit: ownerCiPortabilityCommit,
+    parent: ownerCiPortabilityParent,
+    tree: ownerCiPortabilityTree,
+    subject: "Make Keychain owner verifier portable in CI"
+  }), "Owner CI portability commit drifted.");
   require(governance.dispatchAudit.implementationOwnershipRespected === true,
     "Implementation ownership is not affirmed.");
   require(governance.dispatchAudit.overwatchModifiedInfrastructureImplementation === false,
@@ -312,6 +339,9 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   "Owner implementation successor mapping drifted.");
   require(equal(governance.ownerVerifierSuccessors, ownerVerifierSuccessors),
     "Owner verifier successor mapping drifted.");
+  require(equal(governance.ownerCiPortabilitySuccessors,
+    ownerCiPortabilitySuccessors),
+  "Owner CI portability successor mapping drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",
@@ -407,7 +437,8 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   "Report ownership drifted.");
   require(report.owners.implementationCommit === ownerCommit
     && report.owners.implementationRepairCommit === ownerRepairCommit
-    && report.owners.implementationVerifierRepairCommit === ownerVerifierRepairCommit,
+    && report.owners.implementationVerifierRepairCommit === ownerVerifierRepairCommit
+    && report.owners.implementationCiPortabilityCommit === ownerCiPortabilityCommit,
   "Report owner commit chain drifted.");
   require(report.owners.ownershipRespected === true
     && report.owners.overwatchModifiedInfrastructureImplementation === false,
@@ -452,6 +483,9 @@ function verifyOwnerCommit(governance) {
   const successors = new Map(
     governance.ownerImplementationSuccessors.map(item => [item.path, item])
   );
+  const ciPortabilitySuccessors = new Map(
+    governance.ownerCiPortabilitySuccessors.map(item => [item.path, item])
+  );
   for (const [path, expectedHash] of Object.entries(ownerHashes)) {
     const ownerBytes = execFileSync("/usr/bin/git", ["show", `${ownerCommit}:${path}`], {
       cwd: root,
@@ -460,11 +494,17 @@ function verifyOwnerCommit(governance) {
     });
     const currentHash = sha256(readFileSync(resolve(root, path)));
     const successor = successors.get(path);
+    const ciPortabilitySuccessor = ciPortabilitySuccessors.get(path);
+    const acceptedPredecessorHash = successor?.successorSha256 ?? expectedHash;
     const currentAccepted = currentHash === expectedHash
       || (successor?.previousSha256 === expectedHash
         && successor?.successorSha256 === currentHash
         && successor?.ownerCommit === ownerRepairCommit
-        && successor?.owner === "Prometheus Infrastructure");
+        && successor?.owner === "Prometheus Infrastructure")
+      || (ciPortabilitySuccessor?.previousSha256 === acceptedPredecessorHash
+        && ciPortabilitySuccessor?.successorSha256 === currentHash
+        && ciPortabilitySuccessor?.ownerCommit === ownerCiPortabilityCommit
+        && ciPortabilitySuccessor?.owner === "Prometheus Infrastructure");
     if (sha256(ownerBytes) !== expectedHash
       || !currentAccepted
       || evidence.get(path)?.sha256AtOwnerCommit !== expectedHash) {
@@ -511,9 +551,16 @@ function verifyOwnerCommit(governance) {
         stdio: ["ignore", "pipe", "ignore"]
       }
     );
+    const currentHash = sha256(readFileSync(resolve(root, successor.path)));
+    const ciPortabilitySuccessor = ciPortabilitySuccessors.get(successor.path);
+    const currentAccepted = currentHash === successor.successorSha256
+      || (ciPortabilitySuccessor?.previousSha256 === successor.successorSha256
+        && ciPortabilitySuccessor?.successorSha256 === currentHash
+        && ciPortabilitySuccessor?.ownerCommit === ownerCiPortabilityCommit
+        && ciPortabilitySuccessor?.owner === "Prometheus Infrastructure");
     if (sha256(previous) !== successor.previousSha256
       || sha256(repaired) !== successor.successorSha256
-      || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
+      || !currentAccepted) {
       throw new Error(`Infrastructure owner repair evidence drifted: ${successor.path}`);
     }
   }
@@ -563,6 +610,50 @@ function verifyOwnerCommit(governance) {
       || sha256(repaired) !== successor.successorSha256
       || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
       throw new Error(`Infrastructure owner verifier repair drifted: ${successor.path}`);
+    }
+  }
+
+  const ciPortabilityFields = git([
+    "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s",
+    ownerCiPortabilityCommit
+  ]).split("\n");
+  if (!equal(ciPortabilityFields, [
+    ownerCiPortabilityCommit,
+    ownerCiPortabilityParent,
+    ownerCiPortabilityTree,
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "Make Keychain owner verifier portable in CI"
+  ])) throw new Error("Infrastructure owner CI portability metadata drifted.");
+  const ciPortabilityPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", ownerCiPortabilityCommit
+  ]).split("\n").filter(Boolean);
+  if (!equal(ciPortabilityPaths,
+    ownerCiPortabilitySuccessors.map(item => item.path))) {
+    throw new Error("Infrastructure owner CI portability file set drifted.");
+  }
+  execFileSync("/usr/bin/git", [
+    "merge-base", "--is-ancestor", ownerCiPortabilityCommit, "HEAD"
+  ], { cwd: root, stdio: "ignore" });
+  for (const successor of ownerCiPortabilitySuccessors) {
+    const previous = execFileSync(
+      "/usr/bin/git", ["show", `${ownerCiPortabilityParent}:${successor.path}`], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }
+    );
+    const repaired = execFileSync(
+      "/usr/bin/git", ["show", `${ownerCiPortabilityCommit}:${successor.path}`], {
+        cwd: root,
+        encoding: null,
+        stdio: ["ignore", "pipe", "ignore"]
+      }
+    );
+    if (sha256(previous) !== successor.previousSha256
+      || sha256(repaired) !== successor.successorSha256
+      || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
+      throw new Error(`Infrastructure owner CI portability evidence drifted: ${successor.path}`);
     }
   }
 }
@@ -659,7 +750,10 @@ function verifyOwnerVerifier() {
     || result.cloudflareContacted !== false
     || result.keychainValuesRead !== false
     || result.deploymentPerformed !== false
-    || result.productionMutated !== false) {
+    || result.productionMutated !== false
+    || !["passed", "not_applicable"].includes(result.swiftTypecheck)
+    || (process.platform === "darwin" && result.swiftTypecheck !== "passed")
+    || (process.platform !== "darwin" && result.swiftTypecheck !== "not_applicable")) {
     throw new Error("Infrastructure owner verifier failed.");
   }
   return result;
@@ -702,7 +796,8 @@ export function verifyOverwatchCloudflareUnattendedKeychainInteroperability() {
     implementationCommit: ownerCommit,
     implementationRepairCommit: ownerRepairCommit,
     implementationVerifierRepairCommit: ownerVerifierRepairCommit,
-    focusedOwnerTests: 16,
+    implementationCiPortabilityCommit: ownerCiPortabilityCommit,
+    focusedOwnerTests: 17,
     realClassification: "FOUR_PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
     unattendedControl: "OFF_UNCONSUMED",
     cloudflareRequestPerformed: false,
