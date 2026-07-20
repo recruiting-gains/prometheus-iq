@@ -69,7 +69,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 27);
+  assert.equal(result.commits.length, 31);
   assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
@@ -97,6 +97,12 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "0165ffc56a18408be5c2e970223944fa1dd02593",
     "41d9f1fa9273482261500708d7299a1997f6ec69",
     "12d229fb18549e42dba90b075efe70753ee22f0e"
+  ]);
+  assert.deepEqual(result.commits.slice(26, 30), [
+    "3a2bd37f779e070b868256178bc40dbede8605c8",
+    "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+    "577b9217185be2324824c5c4eeeaf6cd89300477",
+    "13d221509c95515bb9a3dcc44326bf3393fff89e"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -128,14 +134,17 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureOwnerRepairs.at(-1).commit,
-    "2595702c5c30ec269aee2694a81ea223fb2903e6"
+    "13d221509c95515bb9a3dcc44326bf3393fff89e"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "995cc419b2e4f0add515feb74dadc8208c1a5ac2da674eadb7b6fcadd7e6359a"
+    "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015"
   );
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsDashboardRuntimeHarnessSuccessors, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsDashboardRuntimeHarnessAdoptionSuccessor, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsSafeNoSecretFullSuiteWorkflow, true);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
   assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
@@ -162,6 +171,25 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.predeploymentSmokeRepair.scope.generatedDeploymentAssetsChanged, false);
   assert.equal(value.predeploymentSmokeRepair.authorizationBoundary.originalExactAuthorizationReusable, false);
   assert.equal(value.predeploymentSmokeRepair.authorizationBoundary.freshExactFounderAuthorizationRequired, true);
+  assert.equal(value.dashboardRuntimeHarnessClosure.batchId, "BATCH-20260720-005");
+  assert.equal(value.dashboardRuntimeHarnessClosure.failedDeploymentRun.runId, 29764135072);
+  assert.deepEqual(
+    value.dashboardRuntimeHarnessClosure.dashboardOwnerCommits.map(record => record.commit),
+    [
+      "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+      "577b9217185be2324824c5c4eeeaf6cd89300477"
+    ]
+  );
+  assert.equal(
+    value.dashboardRuntimeHarnessClosure.infrastructureAdoption.commit,
+    "13d221509c95515bb9a3dcc44326bf3393fff89e"
+  );
+  assert.equal(value.dashboardRuntimeHarnessClosure.verification.focusedTestsPassed, 18);
+  assert.equal(value.dashboardRuntimeHarnessClosure.verification.browserWorkflowChecksPassed, 185);
+  assert.equal(value.dashboardRuntimeHarnessClosure.verification.performanceThresholdWeakened, false);
+  assert.equal(value.dashboardRuntimeHarnessClosure.scope.websiteImplementationChanged, false);
+  assert.equal(value.dashboardRuntimeHarnessClosure.scope.crmImplementationChanged, false);
+  assert.equal(value.dashboardRuntimeHarnessClosure.scope.deploymentAssetsChanged, false);
 
   const broadened = integrityReadinessGovernance();
   broadened.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors = true;
@@ -207,10 +235,30 @@ test("failed safe CI is immutable, non-deploying evidence and requires a fresh r
   assert.equal(value.safeNonDeploymentCi.latestRun.repositoryIntegrity, "PASS");
   assert.equal(value.safeNonDeploymentCi.latestRun.ownerVerifier, "FAIL");
   assert.equal(value.safeNonDeploymentCi.latestRun.consumed, true);
+  assert.equal(value.safeNonDeploymentCi.fullRepositorySuiteRequired, true);
+  assert.equal(value.safeNonDeploymentCi.dashboardRuntimeHarnessRequired, true);
+  assert.equal(
+    value.safeNonDeploymentCi.workflowSha256,
+    "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f"
+  );
   assert.equal(value.safeNonDeploymentCi.nextRunRequired, true);
 
   value.safeNonDeploymentCi.latestRun.deploymentCapability = true;
   assert.throws(() => validatePublicIntegrityReadiness(value));
+});
+
+test("Dashboard harness closure cannot weaken performance or gain deployment capability", () => {
+  const weakened = integrityReadinessGovernance();
+  weakened.dashboardRuntimeHarnessClosure.verification.performanceThresholdWeakened = true;
+  assert.throws(() => validatePublicIntegrityReadiness(weakened));
+
+  const deploying = integrityReadinessGovernance();
+  deploying.dashboardRuntimeHarnessClosure.verification.safeWorkflowCanDeploy = true;
+  assert.throws(() => validatePublicIntegrityReadiness(deploying));
+
+  const staleWorkflow = integrityReadinessGovernance();
+  staleWorkflow.safeNonDeploymentCi.workflowSha256 = "0".repeat(64);
+  assert.throws(() => validatePublicIntegrityReadiness(staleWorkflow));
 });
 
 test("integrity repair readiness cannot authorize deployment or reuse the consumed attempt", () => {

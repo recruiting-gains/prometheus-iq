@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -189,11 +189,25 @@
         "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "13d221509c95515bb9a3dcc44326bf3393fff89e",
+      "tree": "9bf6128afaa0e08976b32ec04c30b116208565ed",
+      "parent": "577b9217185be2324824c5c4eeeaf6cd89300477",
+      "subject": "infrastructure: adopt Dashboard runtime harness repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "995cc419b2e4f0add515feb74dadc8208c1a5ac2da674eadb7b6fcadd7e6359a",
+    "contractSha256": "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -217,6 +231,9 @@
     "ownerVerifierPinsPublicIntakeSmokeProvenanceAdmission": true,
     "ownerVerifierPinsCleanRunnerAssetGenerationSuccessor": true,
     "ownerVerifierPinsKeychainCiPortabilitySuccessors": true,
+    "ownerVerifierPinsDashboardRuntimeHarnessSuccessors": true,
+    "ownerVerifierPinsDashboardRuntimeHarnessAdoptionSuccessor": true,
+    "ownerVerifierPinsSafeNoSecretFullSuiteWorkflow": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -454,7 +471,7 @@
         ]
       }
     ],
-    "infrastructureContractSha256": "995cc419b2e4f0add515feb74dadc8208c1a5ac2da674eadb7b6fcadd7e6359a",
+    "infrastructureContractSha256": "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015",
     "macosSwiftTypecheckPreserved": true,
     "linuxSwiftTypecheckNotApplicable": true,
     "websiteImplementationChanged": false,
@@ -522,6 +539,87 @@
     "rollbackContractChanged": false,
     "productionChanged": false
   },
+  "dashboardRuntimeHarnessClosure": {
+    "batchId": "BATCH-20260720-005",
+    "directive": "Autonomous Predeployment Closure: Dashboard Runtime Harness",
+    "failedDeploymentRun": {
+      "runId": 29764135072,
+      "verificationJobId": 88425920616,
+      "deploymentJobId": 88426400617,
+      "head": "3a2bd37f779e070b868256178bc40dbede8605c8",
+      "tree": "e848b3454a296487e32891ca23e12d6a0f6d3d82",
+      "runner": "ubuntu-24.04",
+      "failure": "HARNESS_INFRASTRUCTURE_FETCH_FAILED",
+      "deploymentJobSkipped": true,
+      "protectedEnvironmentAccessed": false,
+      "cloudflareContacted": false,
+      "productionMutation": false
+    },
+    "rootCauses": [
+      "MACOS_ONLY_DEFAULT_CHROME_PATH_ON_UBUNTU",
+      "ASYNCHRONOUS_SPAWN_FAILURE_MASKED_AS_GENERIC_FETCH_FAILURE",
+      "UNRESERVED_RANDOM_CDP_PORT",
+      "CLEANUP_REGISTERED_AFTER_READINESS",
+      "READINESS_BUDGET_TOO_SHORT_UNDER_CPU_CONTENTION",
+      "CDP_PAGE_TARGETS_NOT_CLOSED_BETWEEN_SCENARIOS"
+    ],
+    "dashboardOwnerCommits": [
+      {
+        "commit": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "tree": "ace6df9882d8033c5ffc08770b60a35653434e7e",
+        "parent": "3a2bd37f779e070b868256178bc40dbede8605c8",
+        "subject": "dashboard: stabilize runtime harness startup",
+        "owner": "Prometheus Dashboard",
+        "files": [
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "tests/dashboard-route-iq-product-focus.test.mjs"
+        ]
+      },
+      {
+        "commit": "577b9217185be2324824c5c4eeeaf6cd89300477",
+        "tree": "37c857d916b336b87e7f4f878d74332cc62cf329",
+        "parent": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "subject": "Harden Dashboard Chrome harness lifecycle",
+        "owner": "Prometheus Dashboard",
+        "files": [
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "tests/dashboard-route-iq-product-focus.test.mjs"
+        ]
+      }
+    ],
+    "infrastructureAdoption": {
+      "commit": "13d221509c95515bb9a3dcc44326bf3393fff89e",
+      "tree": "9bf6128afaa0e08976b32ec04c30b116208565ed",
+      "parent": "577b9217185be2324824c5c4eeeaf6cd89300477",
+      "subject": "infrastructure: adopt Dashboard runtime harness repair",
+      "owner": "Prometheus Infrastructure",
+      "contractSha256": "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015",
+      "safeWorkflowSha256": "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f"
+    },
+    "verification": {
+      "focusedTestsPassed": 18,
+      "browserWorkflowChecksPassed": 185,
+      "consecutiveRealChromeRunsPassed": 3,
+      "concurrentRealChromeLaunchesPassed": 4,
+      "startupInterruptCleanupPassed": true,
+      "placesPerformanceThresholdMs": 8000,
+      "performanceThresholdWeakened": false,
+      "safeWorkflowRunsFullRepositorySuite": true,
+      "safeWorkflowUsesProtectedEnvironment": false,
+      "safeWorkflowUsesSecrets": false,
+      "safeWorkflowCanDeploy": false,
+      "safeWorkflowCanWriteCrm": false
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "rollbackContractChanged": false,
+      "rollbackBundleChanged": false,
+      "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    }
+  },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
     "workflowName": "Verify Prometheus Public Repository Integrity",
@@ -534,6 +632,9 @@
     "deploymentCapability": false,
     "crmWriteCapability": false,
     "mustPassBeforeFreshDeploymentReview": true,
+    "fullRepositorySuiteRequired": true,
+    "dashboardRuntimeHarnessRequired": true,
+    "workflowSha256": "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
     "nextRunRequired": true,
     "latestRun": {
       "runId": 29717192952,
