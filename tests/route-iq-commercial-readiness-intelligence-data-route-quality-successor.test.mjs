@@ -8,9 +8,9 @@ const json = (path) => JSON.parse(read(path).toString("utf8"));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
 const provenancePath =
-  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json";
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json";
 const predecessorPath =
-  "intelligence/provenance/protected-baseline-synchronization-batch-20260718-002-data-route-quality-successor-v1.json";
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json";
 const gatePath = "scripts/lib/route-intelligence-quality-gate.mjs";
 const reportPath =
   "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json";
@@ -25,16 +25,16 @@ const publicClaims = json(publicClaimsPath);
 const report = json(reportPath);
 
 test("Data route-quality successor is mapped by exact owner evidence", () => {
-  assert.equal(provenance.batchId, "BATCH-20260719-002");
+  assert.equal(provenance.batchId, "BATCH-20260719-006");
   assert.equal(provenance.ownerSubsystem, "Prometheus Intelligence Engine");
   assert.equal(provenance.status, "OWNER_REVIEWED_AND_SYNCHRONIZED");
   assert.equal(
     provenance.dataOwnerTransition.commit,
-    "330752fb53c9466f6bc0339d771b2f2facbc2351",
+    "85850c74564798889ba50cb15c7a7b0406a521fd",
   );
   assert.equal(
     provenance.dataOwnerTransition.tree,
-    "e1fd5b3e8b1d9ecf37552b3ffb6389755dbdd9d9",
+    "474eba67ed984b24466514b2760ed86b885ddc1e",
   );
   assert.equal(provenance.dataOwnerTransition.ownerSubsystem, "Prometheus Data");
   assert.deepEqual(provenance.dataOwnerTransition.changedPaths, [
@@ -122,8 +122,8 @@ test("canonical Data report preserves route, queue, scoring, and zero-Google inv
   );
   assert.deepEqual(report.runtimeSurface, {
     status: "passed",
-    checkedRuntimeFiles: 33,
-    expectedRuntimeFiles: 33,
+    checkedRuntimeFiles: 32,
+    expectedRuntimeFiles: 32,
     dashboardFetches: 10,
     deployDashboardFetches: 10,
     expectedDashboardFetches: 10,

@@ -1351,20 +1351,20 @@ test("protected hash mismatch and contract/config incoherence fail verifier", ()
     {
       path: "scripts/lib/route-intelligence-quality-gate.mjs",
       sha256:
-        "5c61a563db6906d0446df4d14bcbc565e1b0183f6ae9dcd14b2c60f263bae179",
-      sourceCommit: "330752fb53c9466f6bc0339d771b2f2facbc2351",
+        "30184d6d3ce3bd8dacf1e78c025c0fb594cfcb436c11939ee987a94c90828acb",
+      sourceCommit: "85850c74564798889ba50cb15c7a7b0406a521fd",
       sourceOwnerSubsystem: "Prometheus Data",
       provenanceSuccessor:
-        "intelligence/provenance/protected-baseline-synchronization-batch-20260719-002-data-route-quality-successor-v1.json",
+        "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json",
       predecessor: {
         sha256:
-          "d2a1fa99709e6848a3edeef3bdf8713108c14727b449f21a75c71be669c4e556",
-        sourceCommit: "4f3acb7fd9f1f036e2d277a8323b52eb10ddce0f",
+          "5c61a563db6906d0446df4d14bcbc565e1b0183f6ae9dcd14b2c60f263bae179",
+        sourceCommit: "330752fb53c9466f6bc0339d771b2f2facbc2351",
         remainsHistorical: true,
         rewritten: false,
       },
       provenance:
-        "Hash computed from the Data-owned public Website runtime-surface successor after canonical 33-file and ten-fetch evidence synchronization; Intelligence verifies but never rewrites the quality gate or historical baseline.",
+        "Hash computed from the Data-owned restored 3D Website runtime-surface successor after canonical 32-file and ten-fetch evidence synchronization; Intelligence verifies but never rewrites the quality gate or historical baseline.",
     },
   );
   assert.equal(
