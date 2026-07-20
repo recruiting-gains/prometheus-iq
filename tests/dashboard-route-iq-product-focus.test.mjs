@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { EventEmitter } from "node:events";
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -11,6 +12,7 @@ import {
   createNoncanonicalTestClockSource,
   eventbriteExpansionContract,
   eventbriteExpansionFixture,
+  installHarnessSignalCleanup,
   launchChrome,
   parseDevToolsActivePort,
   resolveChromeExecutable
@@ -36,7 +38,12 @@ function createHarnessFixture(t) {
   return { fixtureRoot, profileRoot };
 }
 
-function createFakeChrome(fixtureRoot, { exitEarly = false, ignoreSigterm = false } = {}) {
+function createFakeChrome(fixtureRoot, {
+  exitEarly = false,
+  ignoreSigterm = false,
+  neverRespond = false,
+  versionDelayMs = 0
+} = {}) {
   const executablePath = join(fixtureRoot, "fake-chrome.mjs");
   const lines = exitEarly
     ? [
@@ -51,20 +58,29 @@ function createFakeChrome(fixtureRoot, { exitEarly = false, ignoreSigterm = fals
         "import { join } from 'node:path';",
         "const args = process.argv.slice(2);",
         "const userDataArg = args.find(argument => argument.startsWith('--user-data-dir='));",
-        "if (!userDataArg || !args.includes('--remote-debugging-address=127.0.0.1') || !args.includes('--remote-debugging-port=0')) {",
-        "  console.error('expected OS-assigned DevTools port');",
+        "if (!userDataArg || !args.includes('--remote-debugging-address=127.0.0.1') || !args.includes('--remote-debugging-port=0') || !args.includes('--disable-default-apps') || !args.includes('--disable-extensions')) {",
+        "  console.error('expected isolated OS-assigned DevTools launch');",
         "  process.exit(41);",
         "}",
         "const userDataDir = userDataArg.slice('--user-data-dir='.length);",
+        "const sockets = new Set();",
         "const server = createServer((request, response) => {",
         "  if (request.url !== '/json/version') {",
         "    response.writeHead(404, { connection: 'close' });",
         "    response.end();",
         "    return;",
         "  }",
+        neverRespond ? "  return;" : `  setTimeout(() => {`,
+        ...(neverRespond ? [] : [
         "  const port = server.address().port;",
         "  response.writeHead(200, { 'content-type': 'application/json', connection: 'close' });",
         "  response.end(JSON.stringify({ webSocketDebuggerUrl: 'ws://127.0.0.1:' + port + '/devtools/browser/fake' }));",
+        `  }, ${Number(versionDelayMs)});`
+        ]),
+        "});",
+        "server.on('connection', socket => {",
+        "  sockets.add(socket);",
+        "  socket.on('close', () => sockets.delete(socket));",
         "});",
         "server.listen(0, '127.0.0.1', () => {",
         "  const port = server.address().port;",
@@ -72,7 +88,7 @@ function createFakeChrome(fixtureRoot, { exitEarly = false, ignoreSigterm = fals
         "});",
         ignoreSigterm
           ? "process.on('SIGTERM', () => {});"
-          : "process.on('SIGTERM', () => server.close(() => process.exit(0)));"
+          : "process.on('SIGTERM', () => { for (const socket of sockets) socket.destroy(); server.close(() => process.exit(0)); });"
       ];
   writeFileSync(executablePath, `${lines.join("\n")}\n`);
   chmodSync(executablePath, 0o755);
@@ -254,6 +270,69 @@ test("Dashboard harness waits for DevTools readiness on an OS-assigned loopback 
   assert.deepEqual(readdirSync(profileRoot), []);
 });
 
+test("Dashboard harness gives concurrent DevTools readiness one bounded transaction and isolates ports", async t => {
+  const { fixtureRoot, profileRoot } = createHarnessFixture(t);
+  const executablePath = createFakeChrome(fixtureRoot, { versionDelayMs: 2250 });
+  const launches = await Promise.all(Array.from({ length: 4 }, () => launchChrome({
+    executablePath,
+    tempRoot: profileRoot,
+    readinessTimeoutMs: 5000,
+    gracefulShutdownTimeoutMs: 500,
+    forceShutdownTimeoutMs: 500
+  })));
+  try {
+    assert.equal(new Set(launches.map(chrome => chrome.debugPort)).size, launches.length);
+    assert.equal(readdirSync(profileRoot).length, launches.length);
+  } finally {
+    await Promise.all(launches.map(chrome => chrome.close()));
+  }
+  assert.deepEqual(readdirSync(profileRoot), []);
+});
+
+test("Dashboard harness preserves the DevTools endpoint and timeout cause in readiness diagnostics", async t => {
+  const { fixtureRoot, profileRoot } = createHarnessFixture(t);
+  const executablePath = createFakeChrome(fixtureRoot, { neverRespond: true });
+  await assert.rejects(
+    launchChrome({
+      executablePath,
+      tempRoot: profileRoot,
+      readinessTimeoutMs: 1500,
+      gracefulShutdownTimeoutMs: 250,
+      forceShutdownTimeoutMs: 500
+    }),
+    error => {
+      assert.match(error.message, /Chrome published DevToolsActivePort but its readiness transaction failed/u);
+      assert.match(error.message, /endpoint=http:\/\/127\.0\.0\.1:\d+\/json\/version/u);
+      assert.match(error.message, /cause=(?:TimeoutError|AbortError)(?: \[\d+\])?: .*timeout/iu);
+      assert.ok(["TimeoutError", "AbortError"].includes(error.cause?.name));
+      return true;
+    }
+  );
+  assert.deepEqual(readdirSync(profileRoot), []);
+});
+
+test("Dashboard harness registers Chrome cleanup before readiness completes", async t => {
+  const { fixtureRoot, profileRoot } = createHarnessFixture(t);
+  const executablePath = createFakeChrome(fixtureRoot, { versionDelayMs: 3000 });
+  let registeredClose;
+  const launchOutcome = launchChrome({
+    executablePath,
+    tempRoot: profileRoot,
+    readinessTimeoutMs: 5000,
+    gracefulShutdownTimeoutMs: 500,
+    forceShutdownTimeoutMs: 500,
+    registerCleanup: close => {
+      registeredClose = close;
+    }
+  }).then(chrome => chrome, error => error);
+  assert.equal(typeof registeredClose, "function");
+  await registeredClose();
+  const outcome = await launchOutcome;
+  assert.ok(outcome instanceof Error);
+  assert.match(outcome.message, /Chrome exited before DevTools readiness/u);
+  assert.deepEqual(readdirSync(profileRoot), []);
+});
+
 test("Dashboard harness reports premature Chrome exit without waiting for a fetch timeout", async t => {
   const { fixtureRoot, profileRoot } = createHarnessFixture(t);
   const executablePath = createFakeChrome(fixtureRoot, { exitEarly: true });
@@ -296,4 +375,33 @@ test("Dashboard harness closes every acquired resource in reverse order after fa
   ]);
   assert.deepEqual(closed, ["Chrome", "second server", "first server"]);
   assert.deepEqual(failures, [{ name: "second server", error: cleanupFailure }]);
+});
+
+test("Dashboard harness completes cleanup once before exiting on an interrupt signal", async () => {
+  const processTarget = new EventEmitter();
+  const events = [];
+  let resolveExit;
+  const exited = new Promise(resolve => {
+    resolveExit = resolve;
+  });
+  const remove = installHarnessSignalCleanup(async () => {
+    events.push("cleanup:start");
+    await Promise.resolve();
+    events.push("cleanup:end");
+    return [];
+  }, {
+    processTarget,
+    onSignal: signal => events.push(`signal:${signal}`),
+    reportError: message => events.push(`error:${message}`),
+    exitProcess: code => {
+      events.push(`exit:${code}`);
+      resolveExit();
+    }
+  });
+
+  processTarget.emit("SIGTERM");
+  processTarget.emit("SIGINT");
+  await exited;
+  remove();
+  assert.deepEqual(events, ["signal:SIGTERM", "cleanup:start", "cleanup:end", "exit:143"]);
 });

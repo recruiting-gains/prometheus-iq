@@ -20,6 +20,9 @@ const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-c
 const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
 const routeUpdateCompletionPrefix = "Route updated using your latest result.";
 const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
+const chromeStartupTimeoutMs = 30000;
+const chromeControlTimeoutMs = 30000;
+const chromeTargetCloseTimeoutMs = 10000;
 export const eventbriteExpansionFixture = Object.freeze({
   now: "2026-07-19T17:00:00.000Z",
   timezoneId: "America/Chicago",
@@ -523,6 +526,21 @@ function chromeStderrSuffix(stderr) {
   return detail ? `; stderr=${detail}` : "";
 }
 
+function errorCauseDiagnostic(error) {
+  const details = [];
+  const seen = new Set();
+  let current = error;
+  while (current && !seen.has(current)) {
+    seen.add(current);
+    const name = current.name || "Error";
+    const code = current.code ? ` [${current.code}]` : "";
+    const message = current.message || String(current);
+    details.push(`${name}${code}: ${message}`);
+    current = current.cause;
+  }
+  return details.join(" <- caused by ");
+}
+
 async function waitForChromeReadiness({
   processHandle,
   userDataDir,
@@ -531,6 +549,7 @@ async function waitForChromeReadiness({
   timeoutMs
 }) {
   const activePortPath = join(userDataDir, "DevToolsActivePort");
+  const startedAt = Date.now();
   const deadline = Date.now() + timeoutMs;
   let lastError;
   let terminalError;
@@ -564,53 +583,73 @@ async function waitForChromeReadiness({
   }
 
   try {
-    while (Date.now() < deadline) {
+    let activePort;
+    while (!activePort && Date.now() < deadline) {
       if (terminalError) throw terminalError;
-      let activePort;
       try {
         activePort = parseDevToolsActivePort(readFileSync(activePortPath, "utf8"));
       } catch (error) {
         lastError = error;
       }
+      if (!activePort) await raceTerminal(wait(50));
+    }
 
-      if (activePort) {
-        try {
-          const remainingMs = Math.max(1, deadline - Date.now());
-          const response = await raceTerminal(fetchImpl(
-            `http://127.0.0.1:${activePort.debugPort}/json/version`,
-            { signal: AbortSignal.timeout(Math.min(2000, remainingMs)) }
-          ));
-          if (!response.ok) {
-            lastError = new Error(`Chrome DevTools readiness returned HTTP ${response.status}.`);
-          } else {
-            const version = await raceTerminal(response.json());
-            if (typeof version?.webSocketDebuggerUrl !== "string" || !version.webSocketDebuggerUrl) {
-              lastError = new Error("Chrome DevTools readiness response omitted webSocketDebuggerUrl.");
-            } else {
-              return { ...activePort, version };
-            }
-          }
-        } catch (error) {
-          if (terminalError) throw terminalError;
-          lastError = error;
-        }
+    if (terminalError) throw terminalError;
+    if (!activePort) {
+      const lastDetail = lastError ? `; last port-file error=${errorCauseDiagnostic(lastError)}` : "";
+      throw new Error(`Chrome did not publish DevToolsActivePort within ${timeoutMs}ms${lastDetail}${chromeStderrSuffix(getStderr())}`);
+    }
+
+    const endpoint = `http://127.0.0.1:${activePort.debugPort}/json/version`;
+    const remainingMs = Math.max(1, deadline - Date.now());
+    try {
+      const response = await raceTerminal(fetchImpl(endpoint, {
+        signal: AbortSignal.timeout(remainingMs)
+      }));
+      if (!response.ok) throw new Error(`Chrome DevTools readiness returned HTTP ${response.status}.`);
+      const version = await raceTerminal(response.json());
+      if (typeof version?.webSocketDebuggerUrl !== "string" || !version.webSocketDebuggerUrl) {
+        throw new Error("Chrome DevTools readiness response omitted webSocketDebuggerUrl.");
       }
-      await raceTerminal(wait(50));
+      return { ...activePort, version };
+    } catch (error) {
+      if (terminalError) throw terminalError;
+      throw new Error(
+        `Chrome published DevToolsActivePort but its readiness transaction failed after ${Date.now() - startedAt}ms; endpoint=${endpoint}; cause=${errorCauseDiagnostic(error)}${chromeStderrSuffix(getStderr())}`,
+        { cause: error }
+      );
     }
   } finally {
     processHandle.off("error", onError);
     processHandle.off("exit", onExit);
   }
-
-  if (terminalError) throw terminalError;
-  const lastDetail = lastError?.message ? `; last readiness error=${lastError.message}` : "";
-  throw new Error(`Chrome DevTools did not become ready within ${timeoutMs}ms${lastDetail}${chromeStderrSuffix(getStderr())}`);
 }
 
-async function createPage(debugPort) {
-  const response = await fetch(`http://127.0.0.1:${debugPort}/json/new?${encodeURIComponent("about:blank")}`, { method: "PUT" });
-  if (!response.ok) throw new Error(`Unable to create Chrome target: HTTP ${response.status}`);
-  return response.json();
+async function createPage(debugPort, timeoutMs = chromeControlTimeoutMs) {
+  const endpoint = `http://127.0.0.1:${debugPort}/json/new?${encodeURIComponent("about:blank")}`;
+  try {
+    const response = await fetch(endpoint, {
+      method: "PUT",
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    throw new Error(`Unable to create Chrome target; endpoint=${endpoint}; cause=${errorCauseDiagnostic(error)}`, { cause: error });
+  }
+}
+
+async function listChromePageTargets(debugPort, timeoutMs = chromeControlTimeoutMs) {
+  const endpoint = `http://127.0.0.1:${debugPort}/json/list`;
+  try {
+    const response = await fetch(endpoint, { signal: AbortSignal.timeout(timeoutMs) });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const targets = await response.json();
+    if (!Array.isArray(targets)) throw new Error("Chrome target list was not an array.");
+    return targets.filter(target => target?.type === "page");
+  } catch (error) {
+    throw new Error(`Unable to inspect Chrome page targets; endpoint=${endpoint}; cause=${errorCauseDiagnostic(error)}`, { cause: error });
+  }
 }
 
 class CdpSession {
@@ -620,12 +659,13 @@ class CdpSession {
     this.nextId = 1;
     this.pending = new Map();
     this.handlers = new Map();
+    this.closePromise = null;
   }
 
   async connect() {
     this.socket = new WebSocket(this.webSocketUrl);
     await new Promise((resolveOpen, rejectOpen) => {
-      const timer = setTimeout(() => rejectOpen(new Error("Timed out connecting to Chrome CDP.")), 8000);
+      const timer = setTimeout(() => rejectOpen(new Error(`Timed out connecting to Chrome CDP after ${chromeControlTimeoutMs}ms: ${this.webSocketUrl}`)), chromeControlTimeoutMs);
       this.socket.onopen = () => {
         clearTimeout(timer);
         resolveOpen();
@@ -696,13 +736,45 @@ class CdpSession {
   }
 
   close() {
-    if (!this.socket || this.socket.readyState === WebSocket.CLOSED) return;
-    this.socket.onmessage = null;
-    this.socket.onerror = null;
-    this.socket.onclose = null;
-    try {
-      this.socket.close();
-    } catch (error) {}
+    if (this.closePromise) return this.closePromise;
+    this.closePromise = (async () => {
+      if (!this.socket || this.socket.readyState === WebSocket.CLOSED) return;
+      const socket = this.socket;
+      if (socket.readyState === WebSocket.OPEN) {
+        let closeTimer;
+        try {
+          await new Promise((resolveClose, rejectClose) => {
+            closeTimer = setTimeout(
+              () => rejectClose(new Error(`Timed out closing Chrome page target after ${chromeTargetCloseTimeoutMs}ms.`)),
+              chromeTargetCloseTimeoutMs
+            );
+            this.send("Page.close").then(resolveClose, rejectClose);
+          });
+        } catch (error) {
+          if (socket.readyState === WebSocket.OPEN) {
+            throw new Error(`Unable to close Chrome page target: ${errorCauseDiagnostic(error)}`, { cause: error });
+          }
+        } finally {
+          clearTimeout(closeTimer);
+          socket.onmessage = null;
+          socket.onerror = null;
+          socket.onclose = null;
+          if (socket.readyState !== WebSocket.CLOSED) {
+            try {
+              socket.close();
+            } catch (error) {}
+          }
+        }
+        return;
+      }
+      socket.onmessage = null;
+      socket.onerror = null;
+      socket.onclose = null;
+      try {
+        socket.close();
+      } catch (error) {}
+    })();
+    return this.closePromise;
   }
 }
 
@@ -763,11 +835,12 @@ async function closeChromeProcess(processHandle, userDataDir, shutdownOptions) {
 export async function launchChrome({
   executablePath,
   tempRoot = tmpdir(),
-  readinessTimeoutMs = 8000,
+  readinessTimeoutMs = chromeStartupTimeoutMs,
   gracefulShutdownTimeoutMs = 1500,
   forceShutdownTimeoutMs = 1500,
   spawnImpl = spawn,
-  fetchImpl = fetch
+  fetchImpl = fetch,
+  registerCleanup
 } = {}) {
   const chromeExecutable = executablePath
     ? resolveChromeExecutable({ environment: { ...process.env, CHROME_PATH: executablePath } })
@@ -779,6 +852,8 @@ export async function launchChrome({
     "--no-sandbox",
     "--disable-background-networking",
     "--disable-component-update",
+    "--disable-default-apps",
+    "--disable-extensions",
     "--disable-sync",
     "--ignore-certificate-errors",
     "--no-first-run",
@@ -808,6 +883,12 @@ export async function launchChrome({
     closePromise ||= closeChromeProcess(processHandle, userDataDir, shutdownOptions);
     return closePromise;
   };
+  try {
+    registerCleanup?.(close);
+  } catch (error) {
+    await close();
+    throw new Error(`Unable to register Chrome cleanup: ${errorCauseDiagnostic(error)}`, { cause: error });
+  }
   let readiness;
   try {
     readiness = await waitForChromeReadiness({
@@ -2470,8 +2551,17 @@ async function runPageScenario(chrome, server, path, name, options = {}) {
     const initial = await snapshot(cdp);
     return { name, cdp, eventLog, routeLoadMs, initial };
   } catch (error) {
-    cdp.close();
-    throw new Error(`${error.message}; events=${JSON.stringify(eventLog)}`);
+    const scenarioError = new Error(`${error.message}; events=${JSON.stringify(eventLog)}`, { cause: error });
+    try {
+      await cdp.close();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [scenarioError, cleanupError],
+        `${scenarioError.message}; target cleanup failed: ${errorCauseDiagnostic(cleanupError)}`,
+        { cause: scenarioError }
+      );
+    }
+    throw scenarioError;
   }
 }
 
@@ -2743,11 +2833,79 @@ export async function closeHarnessResources(resources) {
   return failures;
 }
 
+function createHarnessCleanup(resources) {
+  let cleanupPromise;
+  return () => {
+    cleanupPromise ||= (async () => {
+      const failures = await closeHarnessResources(resources);
+      if (localCertificate?.certDir) {
+        try {
+          rmSync(localCertificate.certDir, { recursive: true, force: true });
+        } catch (error) {
+          failures.push({ name: "local HTTPS certificate", error });
+        }
+        localCertificate = undefined;
+      }
+      return failures;
+    })();
+    return cleanupPromise;
+  };
+}
+
+export function installHarnessSignalCleanup(cleanup, {
+  processTarget = process,
+  exitProcess = code => process.exit(code),
+  reportError = message => console.error(message),
+  onSignal = () => {}
+} = {}) {
+  let handlingSignal = false;
+  const signals = ["SIGINT", "SIGTERM"];
+  const handlers = new Map();
+  const remove = () => {
+    for (const [signal, handler] of handlers) processTarget.off(signal, handler);
+  };
+  for (const signal of signals) {
+    const handler = () => {
+      if (handlingSignal) return;
+      handlingSignal = true;
+      onSignal(signal);
+      remove();
+      void Promise.resolve()
+        .then(cleanup)
+        .then(failures => {
+          for (const failure of failures || []) {
+            reportError(`FAIL Harness ${failure.name} cleanup after ${signal}: ${errorCauseDiagnostic(failure.error)}`);
+          }
+          exitProcess(failures?.length ? 1 : signal === "SIGINT" ? 130 : 143);
+        })
+        .catch(error => {
+          reportError(`FAIL Harness cleanup after ${signal}: ${errorCauseDiagnostic(error)}`);
+          exitProcess(1);
+        });
+    };
+    handlers.set(signal, handler);
+    processTarget.once(signal, handler);
+  }
+  return remove;
+}
+
 async function runHarness() {
   verifyRouteUpdateStatusContract();
   const chromeExecutable = resolveChromeExecutable();
   const resources = [];
-  const startServer = async (name, options) => trackHarnessResource(resources, name, await startStaticServer(options));
+  let interruptedSignal;
+  const cleanupHarness = createHarnessCleanup(resources);
+  const removeSignalHandlers = installHarnessSignalCleanup(cleanupHarness, {
+    onSignal: signal => {
+      interruptedSignal = signal;
+    }
+  });
+  const startServer = async (name, options) => {
+    if (interruptedSignal) throw new Error(`Dashboard harness interrupted by ${interruptedSignal}.`);
+    const server = trackHarnessResource(resources, name, await startStaticServer(options));
+    if (interruptedSignal) throw new Error(`Dashboard harness interrupted by ${interruptedSignal}.`);
+    return server;
+  };
   let harnessError;
   try {
     const server = await startServer("primary HTTPS server");
@@ -2845,7 +3003,10 @@ async function runHarness() {
         snapshot: { businessConfigurationSha256: "A".repeat(64) }
       })
     });
-    const chrome = trackHarnessResource(resources, "Chrome", await launchChrome({ executablePath: chromeExecutable }));
+    const chrome = await launchChrome({
+      executablePath: chromeExecutable,
+      registerCleanup: close => resources.push({ name: "Chrome", close })
+    });
 
     const switcher = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     const switcherSnap = switcher.initial;
@@ -2858,7 +3019,7 @@ async function runHarness() {
     assertWorkflow("Route IQ workspace default", switcherSnap.workspaceId === "fitness_connection" && switcherSnap.workspaceOperatingProfileId === "fitness", `workspace ${switcherSnap.workspaceId}, profile ${switcherSnap.workspaceOperatingProfileId}`, JSON.stringify({ workspaceId: switcherSnap.workspaceId, workspaceName: switcherSnap.workspaceName, debug: switcherSnap.debug.workspace }));
     assertWorkflow("Route IQ only active Dashboard product", productFocus.title === "Route IQ" && productFocus.workspaceControls === 0 && productFocus.smoothieLinks === 0 && !/Smoothie Depot|\bGaia\b|\bAthena\b/.test(productFocus.bodyText), "Route IQ renders without inactive-product navigation or current-product labels", JSON.stringify(productFocus));
     assertWorkflow("Founder snapshot fails closed without server principal", !switcherSnap.founderDailyIntelligenceVisible && switcherSnap.debug.founderDailyIntelligence.authorized === false, switcherSnap.debug.founderDailyIntelligence.status, JSON.stringify(switcherSnap.debug.founderDailyIntelligence));
-    switcher.cdp.close();
+    await switcher.cdp.close();
 
     const founder = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=runtime-workflows-founder", "founder");
     const founderSnap = founder.initial;
@@ -2913,6 +3074,16 @@ async function runHarness() {
     await waitForFounderDailyIntelligence(invalidConfigurationHash.cdp, "server_authorization_or_contract_rejected");
     const invalidConfigurationHashSnap = await snapshot(invalidConfigurationHash.cdp);
     assertWorkflow("Founder daily intelligence configuration hash fail-closed", !invalidConfigurationHashSnap.founderDailyIntelligenceVisible && invalidConfigurationHashSnap.debug.founderDailyIntelligence.authorized === false, "uppercase/noncanonical business configuration hash was rejected", JSON.stringify(invalidConfigurationHashSnap.debug.founderDailyIntelligence));
+    await Promise.all([
+      founderIntelligence,
+      mobileFounderIntelligence,
+      forgedAdmin,
+      forgedManager,
+      representativeIntelligence,
+      pendingAnthony,
+      unsafeFounderIntelligence,
+      invalidConfigurationHash
+    ].map(scenario => scenario.cdp.close()));
 
     const prospective = await runPageScenario(chrome, prospectiveServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-shadow-seam", "prospective-shadow-seam", {
       standalone: true,
@@ -2969,7 +3140,7 @@ async function runHarness() {
         JSON.stringify(result)
       );
       verifyNoErrors(`Prospective ${invalidBootstrap.label} bootstrap`, scenario.eventLog, await snapshot(scenario.cdp));
-      scenario.cdp.close();
+      await scenario.cdp.close();
     }
 
     const prospectiveUnavailableBootstrap = await runPageScenario(chrome, prospectiveUnavailableBootstrapServer, "/?role=rep&rep=anthony&debug=1&harness=prospective-bootstrap-unavailable", "prospective-bootstrap-unavailable");
@@ -2992,12 +3163,14 @@ async function runHarness() {
     verifyNoErrors("Prospective failure isolation", prospectiveFailure.eventLog, await snapshot(prospectiveFailure.cdp), {
       allow: ["server responded with a status of 503"]
     });
-    prospective.cdp.close();
-    prospectiveOff.cdp.close();
-    prospectiveInvalidBootstrap.cdp.close();
-    prospectiveUnavailableBootstrap.cdp.close();
-    prospectiveTimeoutBootstrap.cdp.close();
-    prospectiveFailure.cdp.close();
+    await Promise.all([
+      prospective,
+      prospectiveOff,
+      prospectiveInvalidBootstrap,
+      prospectiveUnavailableBootstrap,
+      prospectiveTimeoutBootstrap,
+      prospectiveFailure
+    ].map(scenario => scenario.cdp.close()));
 
     for (const expected of [
       { profileId: "general_outside_sales", terms: ["Opportunities Today", "Appointments", "Leads", "Outside Sales Route", "Verified Opportunities"] },
@@ -3008,7 +3181,7 @@ async function runHarness() {
       const profileScenario = await runPageScenario(chrome, server, `/?role=founder&debug=1&operatingProfile=${expected.profileId}&harness=operating-profile-${expected.profileId}`, `operating-profile-${expected.profileId}`);
       verifyOperatingProfileVocabulary(`Operating Profile ${expected.profileId} vocabulary`, profileScenario.initial, expected);
       verifyNoErrors(`Operating Profile ${expected.profileId}`, profileScenario.eventLog, profileScenario.initial);
-      profileScenario.cdp.close();
+      await profileScenario.cdp.close();
     }
 
     await clickTab(founder.cdp, "route");
@@ -3027,6 +3200,14 @@ async function runHarness() {
     const territoryPolicy = await verifyTerritoryPermissionModel(founder.cdp);
     assertWorkflow("Beta Stability Sprint 2 territory owner permission model", territoryPolicy.afterOwner.assignedRadiusMiles === 5 && territoryPolicy.afterOwner.allowedRadiusMiles === 10 && territoryPolicy.afterOwner.allowRepRadiusChanges === true && territoryPolicy.afterOwner.lockAssignedRadius === false && territoryPolicy.ownerStatus.includes("rep changes allowed"), territoryPolicy.ownerStatus, JSON.stringify(territoryPolicy));
     assertWorkflow("Beta Stability Sprint 2 territory rep allowed adjustment", territoryPolicy.repDisabledBefore === false && territoryPolicy.afterRep.assignedRadiusMiles === 10 && territoryPolicy.repStatus.includes("Rep adjustment allowed"), territoryPolicy.repStatus, JSON.stringify(territoryPolicy));
+
+    const activePageTargets = await listChromePageTargets(chrome.debugPort);
+    assertWorkflow(
+      "Harness page-target teardown",
+      activePageTargets.length === 2,
+      `${activePageTargets.length} page targets remain before Places rendering`,
+      JSON.stringify(activePageTargets.map(target => ({ id: target.id, title: target.title, url: target.url })))
+    );
 
     await clickTab(founder.cdp, "places");
     const placesSnap = await snapshot(founder.cdp);
@@ -3054,7 +3235,7 @@ async function runHarness() {
       JSON.stringify(eventbriteExpansion)
     );
     verifyNoErrors("Eventbrite expansion fixed clock", eventbrite.eventLog, await snapshot(eventbrite.cdp));
-    eventbrite.cdp.close();
+    await eventbrite.cdp.close();
 
     const mobileFounder = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -3240,11 +3421,13 @@ async function runHarness() {
     verifyNoErrors("End Day field-session retry", fieldSessionRetry.eventLog, await snapshot(fieldSessionRetry.cdp), {
       allow: ["server responded with a status of 503"]
     });
-    fieldSession.cdp.close();
-    fieldSessionRetry.cdp.close();
-    visitCorrection.cdp.close();
-    addPlace.cdp.close();
-    decisionContext.cdp.close();
+    await Promise.all([
+      fieldSession,
+      fieldSessionRetry,
+      visitCorrection,
+      addPlace,
+      decisionContext
+    ].map(scenario => scenario.cdp.close()));
 
     const adaptive = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&harness=continuous-adaptive-replenishment", "adaptive-replenishment", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
@@ -3277,35 +3460,22 @@ async function runHarness() {
 
     verifyRuntimePerformance(founderSnap, founder.routeLoadMs);
 
-    founder.cdp.close();
-    founderIntelligence.cdp.close();
-    mobileFounderIntelligence.cdp.close();
-    forgedAdmin.cdp.close();
-    forgedManager.cdp.close();
-    representativeIntelligence.cdp.close();
-    pendingAnthony.cdp.close();
-    unsafeFounderIntelligence.cdp.close();
-    invalidConfigurationHash.cdp.close();
-    mobileFounder.cdp.close();
-    rep.cdp.close();
-    anthonyLog.cdp.close();
-    anthonyPwa.cdp.close();
-    adaptive.cdp.close();
-    full.cdp.close();
-    fallback.cdp.close();
+    await Promise.all([
+      founder,
+      mobileFounder,
+      rep,
+      anthonyLog,
+      anthonyPwa,
+      adaptive,
+      full,
+      fallback
+    ].map(scenario => scenario.cdp.close()));
   } catch (error) {
     harnessError = error;
   }
 
-  const cleanupFailures = await closeHarnessResources(resources);
-  if (localCertificate?.certDir) {
-    try {
-      rmSync(localCertificate.certDir, { recursive: true, force: true });
-    } catch (error) {
-      cleanupFailures.push({ name: "local HTTPS certificate", error });
-    }
-    localCertificate = undefined;
-  }
+  const cleanupFailures = await cleanupHarness();
+  removeSignalHandlers();
   if (harnessError && cleanupFailures.length) {
     throw new AggregateError(
       [harnessError, ...cleanupFailures.map(failure => failure.error)],
