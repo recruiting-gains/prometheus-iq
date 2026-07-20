@@ -14,7 +14,7 @@ import {
   writeFileSync
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 
 import {
   PUBLIC_DEPLOYMENT_FAILURE,
@@ -162,6 +162,70 @@ function canonicalSourcePath(source, prefix, base) {
   return null;
 }
 
+function canonicalExistingSourcePath(source, prefix, base) {
+  let realSource;
+  let realBase;
+  try {
+    realSource = realpathSync(source);
+    realBase = realpathSync(base);
+  } catch {
+    throw new Error("public_forward_rollback_source_map_source_invalid");
+  }
+  const suffix = relative(realBase, realSource);
+  if (!suffix
+    || suffix === ".."
+    || suffix.startsWith("../")
+    || suffix.startsWith("..\\")
+    || isAbsolute(suffix)) {
+    return null;
+  }
+  return `${prefix}/${suffix.split("\\").join("/")}`;
+}
+
+export function canonicalizeGeneratedSourceMap(sourceMap, {
+  sourceMapDirectory,
+  workspace,
+  repositoryRoot
+}) {
+  if (!sourceMap || typeof sourceMap !== "object" || !Array.isArray(sourceMap.sources)) {
+    throw new Error("public_forward_rollback_source_map_invalid");
+  }
+  if (typeof sourceMap.sourceRoot !== "string") {
+    throw new Error("public_forward_rollback_source_map_invalid");
+  }
+  let declaredGeneratedRoot;
+  let realGeneratedRoot;
+  let generatedDirectory;
+  try {
+    generatedDirectory = realpathSync(sourceMapDirectory);
+    declaredGeneratedRoot = resolve(sourceMapDirectory, sourceMap.sourceRoot);
+    realGeneratedRoot = realpathSync(declaredGeneratedRoot);
+  } catch {
+    throw new Error("public_forward_rollback_source_map_invalid");
+  }
+  if (realGeneratedRoot !== generatedDirectory) {
+    throw new Error("public_forward_rollback_source_map_invalid");
+  }
+
+  const repositoryNodeModules = resolve(repositoryRoot, "node_modules");
+  const sources = sourceMap.sources.map(source => {
+    if (typeof source !== "string" || source.length < 1 || source.includes("\0")) {
+      throw new Error("public_forward_rollback_source_map_invalid");
+    }
+    const absoluteSource = resolve(declaredGeneratedRoot, source);
+    const dependencyPath = canonicalExistingSourcePath(
+      absoluteSource,
+      "node_modules",
+      repositoryNodeModules
+    );
+    if (dependencyPath) return dependencyPath;
+    const workspacePath = canonicalExistingSourcePath(absoluteSource, "workspace", workspace);
+    if (workspacePath) return workspacePath;
+    throw new Error("public_forward_rollback_source_map_outside_boundary");
+  });
+  return Object.freeze({ ...sourceMap, sourceRoot: "generated", sources: Object.freeze(sources) });
+}
+
 function canonicalSourceMap(sourceMapPath, outputPath, { workspace, repositoryRoot }) {
   let sourceMap;
   try {
@@ -169,26 +233,12 @@ function canonicalSourceMap(sourceMapPath, outputPath, { workspace, repositoryRo
   } catch {
     throw new Error("public_forward_rollback_source_map_invalid");
   }
-  if (!sourceMap || typeof sourceMap !== "object" || !Array.isArray(sourceMap.sources)) {
-    throw new Error("public_forward_rollback_source_map_invalid");
-  }
-  if (typeof sourceMap.sourceRoot !== "string"
-    || realpathSync(sourceMap.sourceRoot) !== realpathSync(dirname(sourceMapPath))) {
-    throw new Error("public_forward_rollback_source_map_invalid");
-  }
-  sourceMap.sourceRoot = "generated";
-  const repositoryNodeModules = resolve(repositoryRoot, "node_modules");
-  sourceMap.sources = sourceMap.sources.map(source => {
-    if (typeof source !== "string" || source.length < 1 || source.includes("\0")) {
-      throw new Error("public_forward_rollback_source_map_invalid");
-    }
-    const workspacePath = canonicalSourcePath(source, "workspace", workspace);
-    if (workspacePath) return workspacePath;
-    const dependencyPath = canonicalSourcePath(source, "node_modules", repositoryNodeModules);
-    if (dependencyPath) return dependencyPath;
-    throw new Error("public_forward_rollback_source_map_outside_boundary");
+  const canonical = canonicalizeGeneratedSourceMap(sourceMap, {
+    sourceMapDirectory: dirname(sourceMapPath),
+    workspace,
+    repositoryRoot
   });
-  writeFileSync(outputPath, `${canonicalJson(sourceMap)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
+  writeFileSync(outputPath, `${canonicalJson(canonical)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
 }
 
 export function canonicalizeGeneratedWorkerSource(source, {

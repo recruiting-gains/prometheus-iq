@@ -14,6 +14,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 
 import {
+  PUBLIC_WORKER_DEPLOYMENT_POLICY,
   PUBLIC_DEPLOYMENT_FAILURE,
   PublicDeploymentPolicyError,
   assertPublicRepositoryIdentity,
@@ -21,14 +22,74 @@ import {
   verifyPublicRepositoryIntegrity
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
 import {
+  canonicalizeGeneratedSourceMap,
   canonicalizeGeneratedWorkerSource,
   verifyPublicForwardRollbackArtifact
 } from "../scripts/lib/route-iq-public-forward-rollback.mjs";
 import {
+  INFRASTRUCTURE_OWNER_VERIFIER_FAILURE,
+  classifyInfrastructureOwnerVerifierFailure,
   verifyInfrastructureOwnerBoundary
 } from "../scripts/verify-route-iq-public-repository-integrity-repair.mjs";
 
 const root = resolve(import.meta.dirname, "..");
+const actionsDependencySources = Object.freeze([
+  "jose/dist/webapi/lib/buffer_utils.js",
+  "jose/dist/webapi/lib/base64.js",
+  "jose/dist/webapi/util/base64url.js",
+  "jose/dist/webapi/lib/crypto_key.js",
+  "jose/dist/webapi/lib/invalid_key_input.js",
+  "jose/dist/webapi/util/errors.js",
+  "jose/dist/webapi/lib/is_key_like.js",
+  "jose/dist/webapi/lib/helpers.js",
+  "jose/dist/webapi/lib/type_checks.js",
+  "jose/dist/webapi/lib/signing.js",
+  "jose/dist/webapi/lib/jwk_to_key.js",
+  "jose/dist/webapi/lib/normalize_key.js",
+  "jose/dist/webapi/key/import.js",
+  "jose/dist/webapi/lib/validate_crit.js",
+  "jose/dist/webapi/lib/validate_algorithms.js",
+  "jose/dist/webapi/lib/check_key_type.js",
+  "jose/dist/webapi/jws/flattened/verify.js",
+  "jose/dist/webapi/jws/compact/verify.js",
+  "jose/dist/webapi/lib/jwt_claims_set.js",
+  "jose/dist/webapi/jwt/verify.js",
+  "jose/dist/webapi/jwks/local.js",
+  "jose/dist/webapi/jwks/remote.js",
+  "jose/dist/webapi/util/decode_jwt.js"
+]);
+const actionsWorkspaceSources = Object.freeze([
+  "intelligence/artifacts/route-iq-commercial-readiness-v1/fitness_connection/founder-daily-intelligence-snapshot-v1.json",
+  "social-media/infrastructure/meta-instagram-oauth-workflow.js",
+  "social-media/contracts/social-media-contract.js",
+  "social-media/infrastructure/instagram-runtime-controls.js",
+  "social-media/providers/instagram-business-provider.js",
+  "social-media/reporting/founder-instagram-analytics-reporting-view.js",
+  "workers/infrastructure/aegis-security-controls.js",
+  "crm/route-iq-request-crm.mjs",
+  "workers/infrastructure/route-iq-request-crm-runtime.js",
+  "data/route-iq-field-sessions-v1/route-iq-field-session-archive.mjs",
+  "data/route-iq-field-sessions-v1/route-iq-retention-governance.mjs",
+  "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-coordinator.mjs",
+  "data/route-iq-field-sessions-v1/route-iq-prospective-retention-policy.mjs",
+  "intelligence/route-iq-committed-outcome-evaluation.mjs",
+  "intelligence/route-iq-prospective-retention-admission.mjs",
+  "workers/infrastructure/route-iq-prospective-shadow-contract.js",
+  "workers/infrastructure/route-iq-prospective-shadow-access.js",
+  "workers/infrastructure/route-iq-prospective-shadow-authority.js",
+  "workers/infrastructure/route-iq-prospective-shadow-retention-admission.js",
+  "intelligence/shadow-decision-readiness-runtime.mjs",
+  "scripts/lib/business-hours-governance.mjs",
+  "intelligence/route-business-hours-eligibility.mjs",
+  "intelligence/continuous-adaptive-route-replenishment.mjs",
+  "workers/infrastructure/route-iq-prospective-shadow-orchestration.js",
+  "workers/infrastructure/route-iq-prospective-shadow-runtime.js",
+  "workers/infrastructure/cloudflare-unattended-smoke-contract.js",
+  "workers/infrastructure/cloudflare-unattended-smoke-guard.js",
+  "workers/infrastructure/route-iq-prospective-shadow-durable-object.js",
+  "workers/infrastructure/route-iq-request-crm-durable-object.js",
+  "workers/prometheus-iq-worker.js"
+]);
 
 function git(repository, argumentsList, { input, env = {} } = {}) {
   const result = spawnSync("git", argumentsList, {
@@ -157,6 +218,28 @@ function createOwnerBoundaryRepository(parent, name) {
   });
 }
 
+function createActionsCheckoutFixture(parent) {
+  const ownerFixture = createOwnerBoundaryRepository(parent, "actions-source");
+  const dependabotBranches = [
+    "dependabot/github_actions/actions/checkout-7",
+    "dependabot/github_actions/actions/setup-node-6",
+    "dependabot/npm_and_yarn/framer-motion-12.42.2",
+    "dependabot/npm_and_yarn/three-0.185.1",
+    "dependabot/npm_and_yarn/vite-8.1.4"
+  ];
+  for (const branch of dependabotBranches) {
+    git(ownerFixture.repository, ["branch", branch, "HEAD"]);
+  }
+  const checkout = join(parent, "actions-checkout");
+  git(parent, [
+    "clone", "--quiet", "--no-local", "--no-tags", "--no-single-branch",
+    `file://${ownerFixture.repository}`, checkout
+  ]);
+  git(checkout, ["symbolic-ref", "--delete", "refs/remotes/origin/HEAD"]);
+  git(checkout, ["remote", "set-url", "origin", PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl]);
+  return Object.freeze({ ...ownerFixture, repository: checkout, dependabotBranches });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -206,6 +289,35 @@ test("valid and CI-equivalent full repositories pass exact strict integrity", ()
     assert.equal(result.partialClone, false);
     assert.equal(result.promisor, false);
     assert.ok(result.refCount >= 3);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("GitHub Actions seven-ref HTTPS checkout passes integrity and owner provenance", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-actions-ref-shape-"));
+  try {
+    const actions = createActionsCheckoutFixture(fixture);
+    const refs = git(actions.repository, ["for-each-ref", "--format=%(refname)"])
+      .split("\n").filter(Boolean).sort();
+    assert.deepEqual(refs, [
+      "refs/heads/main",
+      ...actions.dependabotBranches.map(branch => `refs/remotes/origin/${branch}`),
+      "refs/remotes/origin/main"
+    ].sort());
+    assert.equal(refs.length, 7);
+    assert.equal(git(actions.repository, ["tag", "--list"]), "");
+    assert.equal(
+      git(actions.repository, ["remote", "get-url", "origin"]),
+      PUBLIC_WORKER_DEPLOYMENT_POLICY.repositoryUrl
+    );
+    assert.equal(verifyPublicRepositoryIntegrity(actions.repository).refCount, 7);
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(actions.repository, actions.boundary), {
+      terminalOwnerCommit: actions.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 3,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false
+    });
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
@@ -447,7 +559,8 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     assert.deepEqual(verifyInfrastructureOwnerBoundary(repository, boundary), {
       terminalOwnerCommit: boundary.infrastructureCommits.at(-1).commit,
       descendants: 3,
-      repairSeen: true
+      repairSeen: true,
+      ciPortabilityRepairSeen: false
     });
   } finally {
     rmSync(fixture, { recursive: true, force: true });
@@ -520,6 +633,179 @@ test("unknown verification exceptions are not mislabeled as repository corruptio
     formatPublicDeploymentFailure(new Error("synthetic"), "verify")[0],
     PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED
   );
+});
+
+test("all 53 Actions source-map entries resolve from the validated source root", () => {
+  assert.equal(actionsDependencySources.length, 23);
+  assert.equal(actionsWorkspaceSources.length, 30);
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-source-map-actions-"));
+  try {
+    const repository = join(fixture, "prometheus-actions-exact");
+    const workspace = join(fixture, "route-iq-linux-raw");
+    const generated = join(workspace, ".generated");
+    mkdirSync(generated, { recursive: true });
+    const dependencyFiles = actionsDependencySources.map(path => join(repository, "node_modules", path));
+    const workspaceFiles = actionsWorkspaceSources.map(path => join(workspace, path));
+    for (const path of [...dependencyFiles, ...workspaceFiles]) {
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, "export const governed = true;\n", "utf8");
+    }
+    const relativeSources = [...dependencyFiles, ...workspaceFiles]
+      .map(path => relative(generated, path).split("\\").join("/"));
+    assert.equal(relativeSources.length, 53);
+    assert.ok(relativeSources.every(path => path.startsWith("..")));
+
+    const original = Object.freeze({
+      version: 3,
+      sourceRoot: generated,
+      sources: Object.freeze(relativeSources),
+      names: Object.freeze([]),
+      mappings: ""
+    });
+    const canonical = canonicalizeGeneratedSourceMap(original, {
+      sourceMapDirectory: generated,
+      workspace,
+      repositoryRoot: repository
+    });
+    assert.equal(canonical.sourceRoot, "generated");
+    assert.deepEqual(canonical.sources, [
+      ...actionsDependencySources.map(path => `node_modules/${path}`),
+      ...actionsWorkspaceSources.map(path => `workspace/${path}`)
+    ]);
+    assert.equal(original.sourceRoot, generated);
+    assert.deepEqual(original.sources, relativeSources);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("source-map resolution preserves a validated lexical root across filesystem aliases", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-source-map-root-alias-"));
+  try {
+    const repository = join(fixture, "repository");
+    const workspace = join(fixture, "deep", "storage", "workspace");
+    const workspaceAlias = join(fixture, "workspace-alias");
+    const generated = join(workspace, ".generated");
+    const generatedAlias = join(workspaceAlias, ".generated");
+    const runtime = join(workspace, "workers", "runtime.js");
+    const dependency = join(repository, "node_modules", "jose", "index.js");
+    for (const path of [runtime, dependency]) {
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, "export const governed = true;\n", "utf8");
+    }
+    mkdirSync(generated, { recursive: true });
+    symlinkSync(workspace, workspaceAlias, "dir");
+
+    const sources = [runtime, dependency]
+      .map(path => relative(generatedAlias, path).split("\\").join("/"));
+    assert.ok(sources.every(path => path.startsWith("..")));
+    assert.deepEqual(canonicalizeGeneratedSourceMap({
+      version: 3,
+      sourceRoot: generatedAlias,
+      sources,
+      names: [],
+      mappings: ""
+    }, {
+      sourceMapDirectory: generatedAlias,
+      workspace,
+      repositoryRoot: repository
+    }).sources, [
+      "workspace/workers/runtime.js",
+      "node_modules/jose/index.js"
+    ]);
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("source-map canonicalization rejects malformed, missing, and realpath-escaped sources", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-source-map-adversarial-"));
+  try {
+    const repository = join(fixture, "repository");
+    const workspace = join(fixture, "workspace");
+    const generated = join(workspace, ".generated");
+    const runtime = join(workspace, "workers", "runtime.js");
+    const outside = join(fixture, "outside.js");
+    const escaped = join(workspace, "workers", "escaped.js");
+    mkdirSync(join(repository, "node_modules"), { recursive: true });
+    mkdirSync(generated, { recursive: true });
+    mkdirSync(dirname(runtime), { recursive: true });
+    writeFileSync(runtime, "export const runtime = true;\n", "utf8");
+    writeFileSync(outside, "export const outside = true;\n", "utf8");
+    symlinkSync(outside, escaped);
+
+    const canonicalize = sourceMap => canonicalizeGeneratedSourceMap(sourceMap, {
+      sourceMapDirectory: generated,
+      workspace,
+      repositoryRoot: repository
+    });
+    for (const sourceMap of [
+      null,
+      {},
+      { sourceRoot: generated, sources: "not-an-array" },
+      { sourceRoot: workspace, sources: [relative(generated, runtime)] },
+      { sourceRoot: generated, sources: [""] },
+      { sourceRoot: generated, sources: [null] },
+      { sourceRoot: generated, sources: ["bad\0source"] }
+    ]) {
+      assert.throws(canonicalize.bind(null, sourceMap), {
+        message: "public_forward_rollback_source_map_invalid"
+      });
+    }
+    assert.throws(
+      () => canonicalize({ sourceRoot: generated, sources: ["../missing.js"] }),
+      { message: "public_forward_rollback_source_map_source_invalid" }
+    );
+    for (const path of [outside, escaped]) {
+      assert.throws(
+        () => canonicalize({
+          sourceRoot: generated,
+          sources: [relative(generated, path).split("\\").join("/")]
+        }),
+        { message: "public_forward_rollback_source_map_outside_boundary" }
+      );
+    }
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner verifier emits only bounded fixed classifications without reason leakage", () => {
+  const cases = [
+    [
+      new Error("public_forward_rollback_source_map_outside_boundary"),
+      INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY
+    ],
+    [
+      new Error("public_forward_rollback_SECRET_VALUE=do-not-print"),
+      INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.ROLLBACK_GENERATION_FAILED
+    ],
+    [
+      Object.assign(new Error("Authorization: Bearer do-not-print"), { code: "ERR_ASSERTION" }),
+      INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.CONTRACT_OR_PROVENANCE_INVALID
+    ],
+    [
+      new PublicDeploymentPolicyError(PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED, [
+        "SECRET_VALUE=do-not-print"
+      ]),
+      INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.REPOSITORY_INTEGRITY_FAILED
+    ],
+    [
+      new Error("cookie=do-not-print"),
+      INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.INTERNAL_FAILURE
+    ]
+  ];
+  for (const [error, expected] of cases) {
+    const output = classifyInfrastructureOwnerVerifierFailure(error);
+    assert.equal(output, expected);
+    assert.match(output, /^[A-Z_]{1,80}$/u);
+    assert.doesNotMatch(output, /SECRET|Authorization|Bearer|cookie|do-not-print/iu);
+  }
+  const verifier = readFileSync(
+    join(root, "scripts", "verify-route-iq-public-repository-integrity-repair.mjs"),
+    "utf8"
+  );
+  assert.doesNotMatch(verifier, /process\.stdout\.write\(["'`]FAIL/u);
 });
 
 test("generated rollback worker comments canonicalize distinct checkout roots identically", () => {

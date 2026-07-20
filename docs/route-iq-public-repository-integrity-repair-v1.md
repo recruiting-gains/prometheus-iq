@@ -2,7 +2,7 @@
 
 Owner: Prometheus Infrastructure
 Batch: BATCH-20260719-008
-Status: implemented locally; not pushed or deployed
+Status: historical repair range pushed; CI portability successor implemented locally, not pushed or deployed
 
 ## Failed run
 
@@ -29,10 +29,41 @@ under both the local Git runtime and a separately built Git 2.54.0 binary. These
 what every hosted runner would report; the repaired command therefore preserves strict, fail-closed
 fsck and emits bounded classifications if a future runner detects a real failure.
 
+## Safe CI portability failure
+
+The read-only workflow run `29717192952` checked out commit
+`8d312bf747a289c675eb37adf582b43c860c635e` and tree
+`36f163193fdb91cf241ddb0ff03bce200c7506c6` on Ubuntu 24.04 with Git 2.54.0,
+Node 24.18.0, npm 11.16.0, an exact HTTPS origin, no tags, and seven refs: local `main`,
+`origin/main`, and five Dependabot remote branches. Its standalone strict repository diagnostic
+passed before dependency installation. The later owner verifier printed only `FAIL` and exited 1;
+the workflow had no deployment capability, environment, secrets, Cloudflare access, or production
+write path.
+
+An isolated Ubuntu reproduction of that exact checkout shape proved the owner verifier failed in
+rollback source-map canonicalization. Wrangler emitted 53 valid relative `sources[]` entries and a
+valid source-map `sourceRoot`. The canonicalizer resolved those entries from the verifier process
+directory instead of from `sourceRoot`, so all 53 resolved outside the permitted workspace and
+`node_modules` boundaries and raised `public_forward_rollback_source_map_outside_boundary`.
+
+The same defect passed on macOS only because its deeper `/private/var/...` temporary path made the
+incorrect process-directory resolution contain coincidental boundary markers. The seven-ref shape,
+HTTPS origin, missing tags, full-history checkout, Git integrity, and Node version were independently
+reproduced on macOS and were not causal.
+
 ## Repair
 
 - The generated Worker canonicalizes source-section paths relative to the extracted workspace and
   resolves filesystem aliases before hashing.
+- Generated source maps now resolve every relative source from the already validated `sourceRoot`,
+  require the source to exist, resolve filesystem aliases, and admit only files whose real paths are
+  inside the extracted workspace or the governed repository `node_modules` tree. Missing sources,
+  altered roots, symlink escapes, and out-of-bound paths fail closed.
+- Owner-verifier failures now emit one fixed, bounded, nonsecret classification. A valid source that
+  escapes the two governed boundaries reports
+  `OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY`; assertion, rollback, repository-integrity,
+  and internal failures have separate closed classifications. Raw exception text is never emitted,
+  and bare `FAIL` is no longer an output path.
 - Rollback failures report `ROLLBACK_INVALID`; unexpected preflight exceptions report
   `PREFLIGHT_FAILED`; only failed repository checks report `REPOSITORY_INTEGRITY_FAILED`.
 - Strict fsck now runs before rollback generation and any credential access. It uses
@@ -56,6 +87,10 @@ fsck and emits bounded classifications if a future runner detects a real failure
   Overwatch-authored governance and verification successors are permitted only in Overwatch-owned
   paths; merges, mixed identities, Infrastructure-path drift, and out-of-scope owner files fail
   closed.
+- The CI portability successor is constrained to parent
+  `8d312bf747a289c675eb37adf582b43c860c635e`, Infrastructure author and committer identity, one exact
+  subject, and the five documented Infrastructure files. The five pushed historical repair commits
+  remain unchanged.
 
 The repaired path-independent rollback artifact is:
 
@@ -76,5 +111,6 @@ node scripts/verify-route-iq-public-repository-integrity-repair.mjs
 node --test tests/public-repository-integrity-repair.test.mjs
 ```
 
-The previous failed run and readiness successor remain immutable evidence. This repair does not
-authorize a workflow dispatch, push, deployment, CRM submission, secret access, or production change.
+Both failed runs and the readiness successor remain immutable evidence. The safe CI run is consumed
+and is not retried by this owner task. This repair does not authorize a workflow dispatch, push,
+deployment, CRM submission, secret access, or production change.

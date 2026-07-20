@@ -2,7 +2,7 @@
   "version": "route-iq-public-repository-integrity-repair-v1",
   "batchId": "BATCH-20260719-008",
   "owner": "Prometheus Infrastructure",
-  "status": "OWNER_REPAIR_IMPLEMENTED_NOT_PUSHED_NOT_DEPLOYED",
+  "status": "OWNER_CI_PORTABILITY_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED",
   "ownerFiles": [
     ".github/workflows/deploy-prometheus-public-worker.yml",
     ".github/workflows/verify-prometheus-public-repository-integrity.yml",
@@ -93,6 +93,21 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "ciPortabilityRepairSuccessor": {
+      "parent": "8d312bf747a289c675eb37adf582b43c860c635e",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: repair public integrity verifier portability",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "baseline": {
@@ -179,6 +194,9 @@
     "repositoryFailureClass": "REPOSITORY_INTEGRITY_FAILED",
     "generatedWorkerPathsCanonicalized": true,
     "filesystemAliasPathsCanonicalized": true,
+    "sourceMapSourcesResolvedAgainstValidatedRoot": true,
+    "sourceMapRealpathContainmentRequired": true,
+    "genericOwnerVerifierFailureAllowed": false,
     "canonicalRollbackIdentity": {
       "artifactSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
       "candidateDeploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
@@ -191,7 +209,7 @@
   "safeCiVerification": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
     "trigger": "workflow_dispatch",
-    "dispatched": false,
+    "dispatched": true,
     "automaticTriggersAllowed": false,
     "contentsPermission": "read",
     "pinnedNodeVersion": "24",
@@ -206,6 +224,30 @@
     "productionMutationAllowed": false,
     "crmSubmissionAllowed": false
   },
+  "safeCiFailure": {
+    "runId": 29717192952,
+    "jobId": 88272671229,
+    "head": "8d312bf747a289c675eb37adf582b43c860c635e",
+    "tree": "36f163193fdb91cf241ddb0ff03bce200c7506c6",
+    "runner": "ubuntu-24.04",
+    "gitVersion": "2.54.0",
+    "nodeVersion": "24.18.0",
+    "npmVersion": "11.16.0",
+    "refCount": 7,
+    "origin": "HTTPS_EXACT_REPOSITORY",
+    "tagsPresent": false,
+    "repositoryIntegrityDiagnostic": "PUBLIC_REPOSITORY_INTEGRITY_VERIFIED",
+    "ownerVerifierOutput": "FAIL",
+    "exactFailure": "PUBLIC_FORWARD_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+    "rejectedSourceCount": 53,
+    "sourceMapRootValidated": true,
+    "deployCapabilityPresent": false,
+    "protectedEnvironmentAccessed": false,
+    "secretsAccessed": false,
+    "cloudflareContacted": false,
+    "productionMutated": false,
+    "consumed": true
+  },
   "successorRepair": {
     "owner": "Prometheus Infrastructure",
     "classification": "PINNED_NODE_ORDERING_REPAIR",
@@ -219,6 +261,18 @@
       "INSTALL_LOCKED_DEPENDENCIES",
       "VERIFY_ROLLBACK_IDENTITY"
     ]
+  },
+  "ciPortabilityRepair": {
+    "owner": "Prometheus Infrastructure",
+    "classification": "SOURCE_MAP_ROOT_RELATIVE_RESOLUTION_REPAIR",
+    "predecessorCommit": "8d312bf747a289c675eb37adf582b43c860c635e",
+    "predecessorCommitsPreserved": true,
+    "rootCause": "RELATIVE_SOURCE_MAP_ENTRIES_WERE_RESOLVED_FROM_PROCESS_CWD_INSTEAD_OF_VALIDATED_SOURCE_ROOT",
+    "macPathCoincidenceMaskedFailure": true,
+    "githubRefShapeCausedFailure": false,
+    "fixedFailureClassification": "OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+    "automaticRetryAllowed": false,
+    "safeCiRunConsumed": true
   },
   "preservation": {
     "baselineCommit": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
@@ -237,8 +291,10 @@
     "previousReadinessSuccessorModified": false
   },
   "boundaries": {
-    "workflowDispatched": false,
-    "pushPerformed": false,
+    "safeNonDeploymentWorkflowDispatched": true,
+    "deploymentWorkflowDispatched": false,
+    "historicalRepairRangePushed": true,
+    "currentRepairPushPerformed": false,
     "deploymentPerformed": false,
     "protectedEnvironmentAccessed": false,
     "secretAccessed": false,

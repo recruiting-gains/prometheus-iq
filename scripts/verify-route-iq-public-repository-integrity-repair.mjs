@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 import {
+  PUBLIC_DEPLOYMENT_FAILURE,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
+  PublicDeploymentPolicyError,
   verifyPublicRepositoryIntegrity
 } from "./lib/github-actions-public-worker-deployment.mjs";
 import { buildPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
@@ -59,6 +61,23 @@ const ownerBoundaryRepairFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const ciPortabilityRepairFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/lib/route-iq-public-forward-rollback.mjs",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+
+export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
+  ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
+    "OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+  ROLLBACK_GENERATION_FAILED: "OWNER_VERIFIER_ROLLBACK_GENERATION_FAILED",
+  ROLLBACK_INVALID: "OWNER_VERIFIER_ROLLBACK_INVALID",
+  REPOSITORY_INTEGRITY_FAILED: "OWNER_VERIFIER_REPOSITORY_INTEGRITY_FAILED",
+  CONTRACT_OR_PROVENANCE_INVALID: "OWNER_VERIFIER_CONTRACT_OR_PROVENANCE_INVALID",
+  INTERNAL_FAILURE: "OWNER_VERIFIER_INTERNAL_FAILURE"
+});
 
 export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
   infrastructureCommits: Object.freeze([
@@ -106,6 +125,15 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: constrain repository integrity owner boundary",
     files: ownerBoundaryRepairFiles
+  }),
+  ciPortabilityRepairSuccessor: Object.freeze({
+    parent: "8d312bf747a289c675eb37adf582b43c860c635e",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: repair public integrity verifier portability",
+    files: ciPortabilityRepairFiles
   })
 });
 
@@ -193,6 +221,7 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
 
   let previous = terminal;
   let repairSeen = false;
+  let ciPortabilityRepairSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -214,6 +243,21 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const portabilityRepair = boundary.ciPortabilityRepairSuccessor;
+    const isPortabilityRepair = portabilityRepair
+      && !ciPortabilityRepairSeen
+      && actual.parents[0] === portabilityRepair.parent
+      && actual.authorName === portabilityRepair.authorName
+      && actual.authorEmail === portabilityRepair.authorEmail
+      && actual.committerName === portabilityRepair.committerName
+      && actual.committerEmail === portabilityRepair.committerEmail
+      && actual.subject === portabilityRepair.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...portabilityRepair.files].sort());
+    if (isPortabilityRepair) {
+      ciPortabilityRepairSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -222,7 +266,34 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     assert.ok(actual.files.length > 0 && actual.files.every(isOverwatchOwnedPath));
     previous = commit;
   }
-  return Object.freeze({ terminalOwnerCommit: terminal, descendants: descendants.length, repairSeen });
+  return Object.freeze({
+    terminalOwnerCommit: terminal,
+    descendants: descendants.length,
+    repairSeen,
+    ciPortabilityRepairSeen
+  });
+}
+
+export function classifyInfrastructureOwnerVerifierFailure(error) {
+  if (error?.message === "public_forward_rollback_source_map_outside_boundary") {
+    return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY;
+  }
+  if (error instanceof PublicDeploymentPolicyError) {
+    if (error.code === PUBLIC_DEPLOYMENT_FAILURE.REPOSITORY_INTEGRITY_FAILED) {
+      return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.REPOSITORY_INTEGRITY_FAILED;
+    }
+    if (error.code === PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID) {
+      return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.ROLLBACK_INVALID;
+    }
+  }
+  if (typeof error?.message === "string"
+    && error.message.startsWith("public_forward_rollback_")) {
+    return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.ROLLBACK_GENERATION_FAILED;
+  }
+  if (error?.code === "ERR_ASSERTION") {
+    return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.CONTRACT_OR_PROVENANCE_INVALID;
+  }
+  return INFRASTRUCTURE_OWNER_VERIFIER_FAILURE.INTERNAL_FAILURE;
 }
 
 export function verifyRouteIqPublicRepositoryIntegrityRepair() {
@@ -230,7 +301,10 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.version, "route-iq-public-repository-integrity-repair-v1");
   assert.equal(contract.batchId, "BATCH-20260719-008");
   assert.equal(contract.owner, "Prometheus Infrastructure");
-  assert.equal(contract.status, "OWNER_REPAIR_IMPLEMENTED_NOT_PUSHED_NOT_DEPLOYED");
+  assert.equal(
+    contract.status,
+    "OWNER_CI_PORTABILITY_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
+  );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
   assert.deepEqual(contract.baseline, {
@@ -241,7 +315,10 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   });
   assert.equal(git(["rev-parse", `${contract.baseline.head}^{tree}`]), contract.baseline.tree);
   git(["merge-base", "--is-ancestor", contract.baseline.head, "HEAD"]);
-  verifyInfrastructureOwnerBoundary(root);
+  const ownerBoundary = verifyInfrastructureOwnerBoundary(root);
+  if (git(["rev-parse", "HEAD"]) !== INFRASTRUCTURE_OWNER_BOUNDARY.ciPortabilityRepairSuccessor.parent) {
+    assert.equal(ownerBoundary.ciPortabilityRepairSeen, true);
+  }
 
   const failed = contract.failedRun;
   assert.equal(failed.runId, 29714512987);
@@ -306,8 +383,11 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "integrityRunsBeforeRollbackAndCredentialAccess",
     "exactHttpsAndSshRepositoryOriginsOnly",
     "generatedWorkerPathsCanonicalized",
-    "filesystemAliasPathsCanonicalized"
+    "filesystemAliasPathsCanonicalized",
+    "sourceMapSourcesResolvedAgainstValidatedRoot",
+    "sourceMapRealpathContainmentRequired"
   ]) assert.equal(repair[field], true, `${field} must remain enabled`);
+  assert.equal(repair.genericOwnerVerifierFailureAllowed, false);
   assert.equal(repair.fsckFailureOutputExposed, false);
   assert.equal(repair.unknownPreflightFailureClass, "PREFLIGHT_FAILED");
   assert.equal(repair.rollbackFailureClass, "ROLLBACK_INVALID");
@@ -326,7 +406,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   const safeCi = contract.safeCiVerification;
   assert.equal(safeCi.workflow, PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath);
   assert.equal(safeCi.trigger, "workflow_dispatch");
-  assert.equal(safeCi.dispatched, false);
+  assert.equal(safeCi.dispatched, true);
   assert.equal(safeCi.contentsPermission, "read");
   assert.equal(safeCi.pinnedNodeVersion, "24");
   for (const field of [
@@ -344,6 +424,31 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "productionMutationAllowed",
     "crmSubmissionAllowed"
   ]) assert.equal(safeCi[field], false, `${field} must remain disabled`);
+
+  assert.deepEqual(contract.safeCiFailure, {
+    runId: 29717192952,
+    jobId: 88272671229,
+    head: "8d312bf747a289c675eb37adf582b43c860c635e",
+    tree: "36f163193fdb91cf241ddb0ff03bce200c7506c6",
+    runner: "ubuntu-24.04",
+    gitVersion: "2.54.0",
+    nodeVersion: "24.18.0",
+    npmVersion: "11.16.0",
+    refCount: 7,
+    origin: "HTTPS_EXACT_REPOSITORY",
+    tagsPresent: false,
+    repositoryIntegrityDiagnostic: "PUBLIC_REPOSITORY_INTEGRITY_VERIFIED",
+    ownerVerifierOutput: "FAIL",
+    exactFailure: "PUBLIC_FORWARD_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+    rejectedSourceCount: 53,
+    sourceMapRootValidated: true,
+    deployCapabilityPresent: false,
+    protectedEnvironmentAccessed: false,
+    secretsAccessed: false,
+    cloudflareContacted: false,
+    productionMutated: false,
+    consumed: true
+  });
 
   const safeWorkflow = read(PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath);
   const checkout = safeWorkflow.indexOf("uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5");
@@ -374,6 +479,20 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     ]
   });
 
+  assert.deepEqual(contract.ciPortabilityRepair, {
+    owner: "Prometheus Infrastructure",
+    classification: "SOURCE_MAP_ROOT_RELATIVE_RESOLUTION_REPAIR",
+    predecessorCommit: "8d312bf747a289c675eb37adf582b43c860c635e",
+    predecessorCommitsPreserved: true,
+    rootCause:
+      "RELATIVE_SOURCE_MAP_ENTRIES_WERE_RESOLVED_FROM_PROCESS_CWD_INSTEAD_OF_VALIDATED_SOURCE_ROOT",
+    macPathCoincidenceMaskedFailure: true,
+    githubRefShapeCausedFailure: false,
+    fixedFailureClassification: "OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+    automaticRetryAllowed: false,
+    safeCiRunConsumed: true
+  });
+
   assert.deepEqual(contract.preservation.gitObjects, expectedPreservedObjects);
   for (const [path, expected] of Object.entries(expectedPreservedObjects)) {
     assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} changed`);
@@ -396,8 +515,6 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   ]) assert.equal(contract.preservation[field], false);
 
   for (const field of [
-    "workflowDispatched",
-    "pushPerformed",
     "deploymentPerformed",
     "protectedEnvironmentAccessed",
     "secretAccessed",
@@ -407,6 +524,10 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "notificationSent",
     "privateWorkerModified"
   ]) assert.equal(contract.boundaries[field], false, `${field} boundary widened`);
+  assert.equal(contract.boundaries.safeNonDeploymentWorkflowDispatched, true);
+  assert.equal(contract.boundaries.deploymentWorkflowDispatched, false);
+  assert.equal(contract.boundaries.historicalRepairRangePushed, true);
+  assert.equal(contract.boundaries.currentRepairPushPerformed, false);
   assert.equal(contract.boundaries.collection, "OFF");
   assert.equal(contract.boundaries.activeCohortCount, 0);
   assert.equal(contract.boundaries.recommendationInfluence, "OFF");
@@ -422,8 +543,8 @@ const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(imp
 if (isMain) {
   try {
     process.stdout.write(`${verifyRouteIqPublicRepositoryIntegrityRepair().status}\n`);
-  } catch {
-    process.stdout.write("FAIL\n");
+  } catch (error) {
+    process.stdout.write(`${classifyInfrastructureOwnerVerifierFailure(error)}\n`);
     process.exitCode = 1;
   }
 }
