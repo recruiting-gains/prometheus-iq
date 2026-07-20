@@ -130,6 +130,6 @@
   "devDependencies": {
     "miniflare": "^4.20260708.1",
     "vite": "^6.1.0",
-    "wrangler": "4.110.0"
+    "wrangler": "4.112.0"
   }
 }
