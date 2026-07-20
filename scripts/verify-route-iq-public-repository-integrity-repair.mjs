@@ -123,6 +123,35 @@ const historicalKeychainFixtureProvenanceAdmissionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const dashboardRuntimeHarnessSuccessorFiles = Object.freeze([
+  "scripts/verify-dashboard-runtime-workflows.mjs",
+  "tests/dashboard-route-iq-product-focus.test.mjs"
+]);
+const dashboardRuntimeHarnessAdoptionFiles = Object.freeze([
+  ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+
+export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
+  "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
+  "npm ci",
+  "npm test",
+  "npm run lint",
+  "npm run typecheck",
+  "npm run build",
+  "npm run security:check",
+  "npm run security:aegis:verify",
+  "npm run infrastructure:route-iq-forward-rollback:check",
+  "npm run infrastructure:route-iq-public-deployment-assets:check",
+  "node scripts/verify-route-iq-public-forward-rollback.mjs",
+  "node scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "node scripts/verify-github-actions-public-worker-deployment.mjs",
+  "npm run overwatch:artifact-contracts:check",
+  "node scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -345,6 +374,39 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit historical Keychain fixture successors",
     files: historicalKeychainFixtureProvenanceAdmissionFiles
+  }),
+  dashboardRuntimeHarnessSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+      tree: "ace6df9882d8033c5ffc08770b60a35653434e7e",
+      parent: "3a2bd37f779e070b868256178bc40dbede8605c8",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "dashboard: stabilize runtime harness startup",
+      files: dashboardRuntimeHarnessSuccessorFiles
+    }),
+    Object.freeze({
+      commit: "577b9217185be2324824c5c4eeeaf6cd89300477",
+      tree: "37c857d916b336b87e7f4f878d74332cc62cf329",
+      parent: "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local",
+      subject: "Harden Dashboard Chrome harness lifecycle",
+      files: dashboardRuntimeHarnessSuccessorFiles
+    })
+  ]),
+  dashboardRuntimeHarnessAdoptionSuccessor: Object.freeze({
+    parent: "577b9217185be2324824c5c4eeeaf6cd89300477",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: adopt Dashboard runtime harness repair",
+    files: dashboardRuntimeHarnessAdoptionFiles
   })
 });
 
@@ -354,6 +416,107 @@ function read(path) {
 
 function sha256(path) {
   return createHash("sha256").update(readFileSync(resolve(root, path))).digest("hex");
+}
+
+function sha256AtCommit(commit, path) {
+  return createHash("sha256").update(execFileSync("git", ["show", `${commit}:${path}`], {
+    cwd: root,
+    stdio: ["ignore", "pipe", "ignore"],
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  })).digest("hex");
+}
+
+function countExactTrimmedLine(source, expected) {
+  return source.split("\n").filter(line => line.trim() === expected).length;
+}
+
+export function verifySafeNoSecretPredeploymentWorkflow(source = read(
+  PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath
+)) {
+  assert.match(source, /^on:\n  workflow_dispatch:\n\npermissions:\n  contents: read\n/mu);
+  assert.doesNotMatch(
+    source,
+    /^  (?:push|pull_request|pull_request_target|schedule|repository_dispatch|workflow_call|workflow_run):/mu
+  );
+  assert.match(source, /group: verify-prometheus-public-repository-integrity/u);
+  assert.match(source, /cancel-in-progress: false/u);
+  assert.equal(countExactTrimmedLine(source, "runs-on: ubuntu-latest"), 1);
+  assert.equal(countExactTrimmedLine(source, "timeout-minutes: 90"), 1);
+  for (const requiredIdentityCheck of [
+    "github.event_name == 'workflow_dispatch'",
+    "github.repository == 'PrometheusRouteIQ/prometheus-iq'",
+    "github.actor == 'PrometheusRouteIQ'",
+    "github.triggering_actor == 'PrometheusRouteIQ'",
+    "github.ref == 'refs/heads/main'",
+    "github.ref_name == 'main'",
+    "github.ref_type == 'branch'",
+    "github.workflow == 'Verify Prometheus Public Repository Integrity'",
+    "github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/verify-prometheus-public-repository-integrity.yml@refs/heads/main'",
+    "github.run_attempt == 1"
+  ]) assert.equal(source.split(requiredIdentityCheck).length - 1, 1,
+    `${requiredIdentityCheck} must appear exactly once`);
+
+  const actions = source.split("\n")
+    .map(line => line.trim())
+    .filter(line => line.startsWith("uses: "));
+  assert.deepEqual(actions, [
+    "uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5",
+    "uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020"
+  ]);
+  for (const required of [
+    "repository: PrometheusRouteIQ/prometheus-iq",
+    "ref: main",
+    "fetch-depth: 0",
+    "persist-credentials: false",
+    "clean: true",
+    "node-version: \"24\""
+  ]) assert.equal(countExactTrimmedLine(source, required), 1, `${required} must appear exactly once`);
+
+  const runCommands = source.split("\n")
+    .map(line => line.trim())
+    .filter(line => line.startsWith("run: ") && line !== "run: |")
+    .map(line => line.slice("run: ".length));
+  assert.deepEqual(runCommands, SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS);
+  assert.equal(countExactTrimmedLine(source, "run: |"), 1);
+  for (const cleanupCommand of [
+    "git diff --exit-code",
+    "git diff --cached --exit-code",
+    "test -z \"$(git status --porcelain=v1 --untracked-files=all)\"",
+    "node scripts/run-public-worker-repository-integrity-diagnostic.mjs"
+  ]) assert.ok(countExactTrimmedLine(source, cleanupCommand) >= 1,
+    `${cleanupCommand} final integrity command is required`);
+
+  for (const forbidden of [
+    /^\s*environment:/mu,
+    /^\s*env:/mu,
+    /\bsecrets\./u,
+    /\bvars\./u,
+    /\bCLOUDFLARE_[A-Z0-9_]+\b/u,
+    /\bGITHUB_TOKEN\b/u,
+    /\bGH_TOKEN\b/u,
+    /\bid-token:\s*write\b/u,
+    /\bcontents:\s*write\b/u,
+    /\bcontinue-on-error:/u,
+    /\|\|\s*true/u,
+    /run-github-actions-public-worker-deployment\.mjs/u,
+    /\bwrangler\b/iu,
+    /api\.cloudflare\.com/iu,
+    /\b(?:curl|wget)\b/iu,
+    /\b(?:POST|PUT|PATCH|DELETE)\b/u,
+    /partner-intake/iu,
+    /actions\/upload-artifact/iu,
+    /npm\s+publish/iu
+  ]) assert.doesNotMatch(source, forbidden);
+
+  return Object.freeze({
+    status: "SAFE_NO_SECRET_FULL_PREDEPLOYMENT_WORKFLOW_VERIFIED",
+    runCommands: Object.freeze([...runCommands])
+  });
 }
 
 function git(argumentsList) {
@@ -444,6 +607,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let keychainCiMappingCompatibilityRepairSeen = false;
   let historicalKeychainFixtureSuccessorsSeen = 0;
   let historicalKeychainFixtureProvenanceAdmissionSeen = false;
+  let dashboardRuntimeHarnessSuccessorsSeen = 0;
+  let dashboardRuntimeHarnessAdoptionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -623,6 +788,33 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const dashboardRuntimeHarnessSuccessor =
+      boundary.dashboardRuntimeHarnessSuccessors?.[dashboardRuntimeHarnessSuccessorsSeen];
+    if (dashboardRuntimeHarnessSuccessor
+      && commit === dashboardRuntimeHarnessSuccessor.commit) {
+      assertCommitSnapshot(repositoryRoot, dashboardRuntimeHarnessSuccessor);
+      dashboardRuntimeHarnessSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const dashboardRuntimeHarnessAdoption = boundary.dashboardRuntimeHarnessAdoptionSuccessor;
+    const isDashboardRuntimeHarnessAdoption = dashboardRuntimeHarnessAdoption
+      && !dashboardRuntimeHarnessAdoptionSeen
+      && dashboardRuntimeHarnessSuccessorsSeen ===
+        boundary.dashboardRuntimeHarnessSuccessors.length
+      && actual.parents[0] === dashboardRuntimeHarnessAdoption.parent
+      && actual.authorName === dashboardRuntimeHarnessAdoption.authorName
+      && actual.authorEmail === dashboardRuntimeHarnessAdoption.authorEmail
+      && actual.committerName === dashboardRuntimeHarnessAdoption.committerName
+      && actual.committerEmail === dashboardRuntimeHarnessAdoption.committerEmail
+      && actual.subject === dashboardRuntimeHarnessAdoption.subject
+      && JSON.stringify(actual.files) ===
+        JSON.stringify([...dashboardRuntimeHarnessAdoption.files].sort());
+    if (isDashboardRuntimeHarnessAdoption) {
+      dashboardRuntimeHarnessAdoptionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -658,6 +850,10 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       historicalKeychainFixtureSuccessorsSeen;
     result.historicalKeychainFixtureProvenanceAdmissionSeen =
       historicalKeychainFixtureProvenanceAdmissionSeen;
+  }
+  if (boundary.dashboardRuntimeHarnessSuccessors) {
+    result.dashboardRuntimeHarnessSuccessorsSeen = dashboardRuntimeHarnessSuccessorsSeen;
+    result.dashboardRuntimeHarnessAdoptionSeen = dashboardRuntimeHarnessAdoptionSeen;
   }
   return Object.freeze(result);
 }
@@ -723,6 +919,14 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   if (git(["rev-parse", "HEAD"])
     !== INFRASTRUCTURE_OWNER_BOUNDARY.cleanRunnerAssetGenerationSuccessor.parent) {
     assert.equal(ownerBoundary.cleanRunnerAssetGenerationSeen, true);
+  }
+  assert.equal(
+    ownerBoundary.dashboardRuntimeHarnessSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.dashboardRuntimeHarnessSuccessors.length
+  );
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY.dashboardRuntimeHarnessAdoptionSuccessor.parent) {
+    assert.equal(ownerBoundary.dashboardRuntimeHarnessAdoptionSeen, true);
   }
 
   assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {
@@ -849,6 +1053,39 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "crmSubmissionAllowed"
   ]) assert.equal(safeCi[field], false, `${field} must remain disabled`);
 
+  const fullPredeploymentCi = contract.safeNoSecretFullPredeploymentCi;
+  assert.deepEqual(fullPredeploymentCi, {
+    batchId: "BATCH-20260720-005",
+    owner: "Prometheus Infrastructure",
+    workflow: PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath,
+    workflowSha256: "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
+    trigger: "workflow_dispatch",
+    repository: "PrometheusRouteIQ/prometheus-iq",
+    founderActor: "PrometheusRouteIQ",
+    branch: "main",
+    runAttempt: 1,
+    runner: "ubuntu-latest",
+    timeoutMinutes: 90,
+    contentsPermission: "read",
+    requiredCommands: SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS,
+    finalCleanGitChecks: [
+      "git diff --exit-code",
+      "git diff --cached --exit-code",
+      "test -z \"$(git status --porcelain=v1 --untracked-files=all)\"",
+      "node scripts/run-public-worker-repository-integrity-diagnostic.mjs"
+    ],
+    protectedEnvironmentUsed: false,
+    secretsAllowed: false,
+    cloudflareRequestsAllowed: false,
+    deploymentAllowed: false,
+    productionMutationAllowed: false,
+    crmSubmissionAllowed: false,
+    notificationAllowed: false,
+    workflowDispatchPerformed: false
+  });
+  assert.equal(sha256(fullPredeploymentCi.workflow), fullPredeploymentCi.workflowSha256);
+  verifySafeNoSecretPredeploymentWorkflow();
+
   assert.deepEqual(contract.safeCiFailure, {
     runId: 29717192952,
     jobId: 88272671229,
@@ -938,7 +1175,70 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     generallyAuthorizesDashboardSuccessors: false
   });
   for (const [path, expected] of Object.entries(contract.dashboardVerificationProvenance.fileSha256)) {
-    assert.equal(sha256(path), expected, `${path} Dashboard verification evidence drifted`);
+    assert.equal(
+      sha256AtCommit(contract.dashboardVerificationProvenance.commit, path),
+      expected,
+      `${path} historical Dashboard verification evidence drifted`
+    );
+  }
+
+  assert.deepEqual(contract.dashboardRuntimeHarnessProvenance, {
+    batchId: "BATCH-20260720-005",
+    failedRunId: 29764135072,
+    implementationOwner: "Prometheus Dashboard",
+    verificationOwner: "Prometheus Infrastructure",
+    classification: "DASHBOARD_CROSS_PLATFORM_CDP_HARNESS_LIFECYCLE_REPAIR",
+    rootCauses: [
+      "MACOS_ONLY_DEFAULT_CHROME_PATH_ON_UBUNTU",
+      "ASYNCHRONOUS_SPAWN_FAILURE_MASKED_AS_GENERIC_FETCH_FAILURE",
+      "UNRESERVED_RANDOM_CDP_PORT",
+      "CLEANUP_REGISTERED_AFTER_READINESS",
+      "READINESS_BUDGET_TOO_SHORT_UNDER_CPU_CONTENTION",
+      "CDP_PAGE_TARGETS_NOT_CLOSED_BETWEEN_SCENARIOS"
+    ],
+    ownerCommits: [
+      {
+        commit: "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        tree: "ace6df9882d8033c5ffc08770b60a35653434e7e",
+        parent: "3a2bd37f779e070b868256178bc40dbede8605c8",
+        subject: "dashboard: stabilize runtime harness startup"
+      },
+      {
+        commit: "577b9217185be2324824c5c4eeeaf6cd89300477",
+        tree: "37c857d916b336b87e7f4f878d74332cc62cf329",
+        parent: "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        subject: "Harden Dashboard Chrome harness lifecycle"
+      }
+    ],
+    ownerIdentity: {
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      committerName: "Prometheus Dashboard",
+      committerEmail: "dashboard@prometheus.local"
+    },
+    files: dashboardRuntimeHarnessSuccessorFiles,
+    fileSha256: {
+      "scripts/verify-dashboard-runtime-workflows.mjs":
+        "a8de222e3365885ecb866a1700f1c1b78f43aec58718246b9a4de663d5734f4d",
+      "tests/dashboard-route-iq-product-focus.test.mjs":
+        "81a88eae103a380d0e2e4b070636dca8033c143abf0b00b72d004b66487683ef"
+    },
+    focusedTestsPassed: 18,
+    browserWorkflowChecksPassed: 185,
+    consecutiveRealChromeRunsPassed: 3,
+    concurrentRealChromeLaunchesPassed: 4,
+    startupInterruptCleanupPassed: true,
+    productRuntimeModified: false,
+    publicWebsiteModified: false,
+    crmModified: false,
+    generatedDeploymentAssetsModified: false,
+    rollbackContractModified: false,
+    generallyAuthorizesDashboardSuccessors: false
+  });
+  for (const [path, expected] of Object.entries(
+    contract.dashboardRuntimeHarnessProvenance.fileSha256
+  )) {
+    assert.equal(sha256(path), expected, `${path} final Dashboard harness evidence drifted`);
   }
 
   assert.deepEqual(contract.preservation.gitObjects, expectedPreservedObjects);

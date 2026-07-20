@@ -29,8 +29,10 @@ import {
 import {
   INFRASTRUCTURE_OWNER_BOUNDARY,
   INFRASTRUCTURE_OWNER_VERIFIER_FAILURE,
+  SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS,
   classifyInfrastructureOwnerVerifierFailure,
-  verifyInfrastructureOwnerBoundary
+  verifyInfrastructureOwnerBoundary,
+  verifySafeNoSecretPredeploymentWorkflow
 } from "../scripts/verify-route-iq-public-repository-integrity-repair.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -329,6 +331,90 @@ function addDashboardProvenanceSuccessors(ownerFixture) {
         committerEmail: infrastructureIdentity.authorEmail,
         subject: admission.subject,
         files: admission.files
+      })
+    })
+  });
+}
+
+function addDashboardRuntimeHarnessSuccessors(ownerFixture) {
+  const dashboardIdentity = {
+    authorName: "Prometheus Dashboard",
+    authorEmail: "dashboard@prometheus.local"
+  };
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const startup = commitFilesFixture(ownerFixture.repository, {
+    ...dashboardIdentity,
+    subject: "dashboard: synthetic cross-platform Chrome discovery",
+    changes: [
+      {
+        path: "scripts/verify-dashboard-runtime-workflows.mjs",
+        content: "export const crossPlatformChrome = true;\n"
+      },
+      {
+        path: "tests/dashboard-route-iq-product-focus.test.mjs",
+        content: "export const crossPlatformChromeTest = true;\n"
+      }
+    ]
+  });
+  const lifecycle = commitFilesFixture(ownerFixture.repository, {
+    ...dashboardIdentity,
+    subject: "dashboard: synthetic deterministic Chrome lifecycle",
+    changes: [
+      {
+        path: "scripts/verify-dashboard-runtime-workflows.mjs",
+        content: "export const deterministicChromeLifecycle = true;\n"
+      },
+      {
+        path: "tests/dashboard-route-iq-product-focus.test.mjs",
+        content: "export const deterministicChromeLifecycleTest = true;\n"
+      }
+    ]
+  });
+  const adoption = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic Dashboard harness adoption",
+    changes: [
+      {
+        path: ".github/workflows/verify-public-integrity.yml",
+        content: "name: synthetic full no-secret verification\n"
+      },
+      {
+        path: "docs/dashboard-harness-adoption.md",
+        content: "Dashboard harness adoption\n"
+      },
+      {
+        path: "scripts/verify-dashboard-harness-adoption.mjs",
+        content: "export const adopted = true;\n"
+      },
+      {
+        path: "tests/dashboard-harness-adoption.test.mjs",
+        content: "export const adoptedTest = true;\n"
+      },
+      {
+        path: "workers/infrastructure/dashboard-harness-adoption.json",
+        content: "{}\n"
+      }
+    ]
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    startup,
+    lifecycle,
+    adoption,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      dashboardRuntimeHarnessSuccessors: Object.freeze([startup, lifecycle]),
+      dashboardRuntimeHarnessAdoptionSuccessor: Object.freeze({
+        parent: lifecycle.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: adoption.subject,
+        files: adoption.files
       })
     })
   });
@@ -724,15 +810,15 @@ test("malformed object diagnostics remain fatal and sanitized", () => {
   }
 });
 
-test("safe integrity workflow has no secret, environment, deployment, Cloudflare, or CRM write path", () => {
+test("safe integrity workflow runs the complete suite with no deployment or secret capability", () => {
   const workflow = readFileSync(
     join(root, ".github", "workflows", "verify-prometheus-public-repository-integrity.yml"),
     "utf8"
   );
-  assert.match(workflow, /^on:\n  workflow_dispatch:\n/mu);
-  assert.match(workflow, /permissions:\n  contents: read/u);
-  assert.match(workflow, /fetch-depth: 0/u);
-  assert.match(workflow, /persist-credentials: false/u);
+  assert.deepEqual(verifySafeNoSecretPredeploymentWorkflow(workflow), {
+    status: "SAFE_NO_SECRET_FULL_PREDEPLOYMENT_WORKFLOW_VERIFIED",
+    runCommands: SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS
+  });
   const checkout = workflow.indexOf("uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5");
   const setupNode = workflow.indexOf("uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020");
   const firstRepositoryNodeScript = workflow.indexOf("run: node scripts/");
@@ -745,16 +831,28 @@ test("safe integrity workflow has no secret, environment, deployment, Cloudflare
   assert.ok(setupNode < firstRepositoryNodeScript);
   assert.equal(firstRepositoryNodeScript, diagnostic);
   assert.ok(diagnostic < npmInstall && npmInstall < rollbackVerification);
-  for (const forbidden of [
-    /\benvironment:/u,
-    /\bsecrets\./u,
-    /run-github-actions-public-worker-deployment/u,
-    /\bwrangler\b/u,
-    /api\.cloudflare\.com/u,
-    /\bcurl\b/u,
-    /\bPOST\b/u,
-    /partner-intake/u
-  ]) assert.doesNotMatch(workflow, forbidden);
+  assert.ok(workflow.indexOf("run: npm test") < workflow.indexOf("run: npm run lint"));
+  assert.ok(workflow.indexOf("run: npm run lint") < workflow.indexOf("run: npm run typecheck"));
+  assert.ok(workflow.indexOf("run: npm run typecheck") < workflow.indexOf("run: npm run build"));
+});
+
+test("safe integrity workflow mutations fail closed before gaining capability or losing coverage", () => {
+  const workflow = readFileSync(
+    join(root, ".github", "workflows", "verify-prometheus-public-repository-integrity.yml"),
+    "utf8"
+  );
+  for (const mutation of [
+    source => source.replace("  workflow_dispatch:", "  push:"),
+    source => source.replace("  contents: read", "  contents: write"),
+    source => source.replace("    runs-on: ubuntu-latest", "    environment: production\n    runs-on: ubuntu-latest"),
+    source => source.replace("    steps:", "    env:\n      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}\n    steps:"),
+    source => source.replace("      - name: Require unchanged repository after verification",
+      "      - name: Deploy\n        run: wrangler deploy\n\n      - name: Require unchanged repository after verification"),
+    source => source.replace("        run: npm test", "        run: npm test || true"),
+    source => source.replace("      - name: Run complete repository verification suite\n        run: npm test\n\n", ""),
+    source => source.replace("github.actor == 'PrometheusRouteIQ'", "github.actor != ''"),
+    source => source.replace("github.run_attempt == 1", "github.run_attempt >= 1")
+  ]) assert.throws(() => verifySafeNoSecretPredeploymentWorkflow(mutation(workflow)));
 });
 
 test("owner boundary pins frozen Infrastructure commits and permits legitimate Overwatch successors", () => {
@@ -778,6 +876,12 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
   assert.equal(current.keychainCiMappingCompatibilityRepairSeen, true);
   assert.equal(current.historicalKeychainFixtureSuccessorsSeen, 3);
   assert.equal(current.historicalKeychainFixtureProvenanceAdmissionSeen, true);
+  assert.equal(current.dashboardRuntimeHarnessSuccessorsSeen, 2);
+  assert.equal(
+    current.dashboardRuntimeHarnessAdoptionSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "577b9217185be2324824c5c4eeeaf6cd89300477"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1012,6 +1116,72 @@ test("owner boundary admits only the exact Dashboard verification and Infrastruc
       changes: [{
         path: "scripts/verify-dashboard-runtime-workflows.mjs",
         content: "export const additional = true;\n"
+      }]
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the ordered Dashboard harness pair and Infrastructure adoption", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-dashboard-harness-"));
+  try {
+    const accepted = addDashboardRuntimeHarnessSuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 6,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      dashboardRuntimeHarnessSuccessorsSeen: 2,
+      dashboardRuntimeHarnessAdoptionSeen: true
+    });
+
+    const reordered = {
+      ...accepted.boundary,
+      dashboardRuntimeHarnessSuccessors: [
+        accepted.boundary.dashboardRuntimeHarnessSuccessors[1],
+        accepted.boundary.dashboardRuntimeHarnessSuccessors[0]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, reordered));
+
+    const mixedOwner = {
+      ...accepted.boundary,
+      dashboardRuntimeHarnessSuccessors: [
+        {
+          ...accepted.boundary.dashboardRuntimeHarnessSuccessors[0],
+          committerName: "Prometheus Infrastructure",
+          committerEmail: "infrastructure@prometheus.local"
+        },
+        accepted.boundary.dashboardRuntimeHarnessSuccessors[1]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, mixedOwner));
+
+    const adoptionScopeDrift = {
+      ...accepted.boundary,
+      dashboardRuntimeHarnessAdoptionSuccessor: {
+        ...accepted.boundary.dashboardRuntimeHarnessAdoptionSuccessor,
+        files: [
+          ...accepted.boundary.dashboardRuntimeHarnessAdoptionSuccessor.files,
+          "overwatch/governance/unowned.json"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, adoptionScopeDrift));
+
+    commitFilesFixture(accepted.repository, {
+      authorName: "Prometheus Dashboard",
+      authorEmail: "dashboard@prometheus.local",
+      subject: "dashboard: unapproved third harness successor",
+      changes: [{
+        path: "scripts/verify-dashboard-runtime-workflows.mjs",
+        content: "export const thirdSuccessor = true;\n"
       }]
     });
     assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));

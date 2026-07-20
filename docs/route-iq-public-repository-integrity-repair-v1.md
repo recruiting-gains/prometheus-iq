@@ -175,6 +175,34 @@ current CI-portability successor and report the resulting six ownership tests. O
 `41d9f1fa9273482261500708d7299a1997f6ec69` maps those owner changes. This verifier accepts only
 that three-commit sequence followed by the exact four-file Infrastructure provenance admission.
 
+## Dashboard runtime harness adoption and full no-secret CI
+
+GitHub Actions run `29764135072` failed before deployment while executing
+`dashboard:runtime-workflows:check`. The first Dashboard owner repair replaced the macOS-only
+default Chrome path, surfaced process-launch failure directly, used Chrome's operating-system
+assigned DevTools port, bounded readiness work, and registered cleanup before startup could fail.
+The second Dashboard owner repair preserved that cross-platform foundation while allowing one
+bounded 30-second readiness transaction under runner CPU contention and closing each CDP page
+target between scenarios. It also preserves deterministic interrupt cleanup. These repairs are
+the ordered owner commits:
+
+- `38339cdf24f2ccdf54f2eb204278eb80d9ad1972`
+- `577b9217185be2324824c5c4eeeaf6cd89300477`
+
+Infrastructure adopts only that exact two-commit sequence, Dashboard identity, file scope, final
+file hashes, and test evidence. The admission does not generally authorize later Dashboard
+successors and does not classify either Dashboard file as Infrastructure implementation.
+
+The existing `Verify Prometheus Public Repository Integrity` workflow now runs the complete
+applicable predeployment suite on Ubuntu. It remains manual `workflow_dispatch` only, Founder-only,
+main-only, first-attempt-only, read-only, and concurrency protected. It has no protected
+environment, secret reference, Cloudflare request, deployment command, CRM submission, notification,
+or production mutation path. In addition to `npm test`, it invokes explicit lint, typecheck, build,
+security, Aegis, rollback, deployment-asset, owner-provenance, release-readiness, and artifact-contract
+gates before requiring a clean repository. Static adversarial tests fail closed if a trigger,
+permission, environment, secret, deploy command, blanket success override, required command, actor
+check, or one-attempt guard drifts.
+
 ## Operator use
 
 Local non-deployment diagnostic:

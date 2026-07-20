@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   integrity:
-    name: Verify public release repository integrity without deployment access
+    name: Verify full public predeployment suite without deployment access
     if: >-
       ${{
         github.event_name == 'workflow_dispatch' &&
@@ -27,7 +27,7 @@ jobs:
         github.run_attempt == 1
       }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - name: Checkout complete main history
         # actions/checkout v4.3.1
@@ -51,8 +51,44 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci
 
-      - name: Verify Infrastructure repair contract and path-independent rollback identity
+      - name: Run complete repository verification suite
+        run: npm test
+
+      - name: Run explicit lint gate
+        run: npm run lint
+
+      - name: Run explicit typecheck gate
+        run: npm run typecheck
+
+      - name: Run explicit deterministic build gate
+        run: npm run build
+
+      - name: Run explicit security gate
+        run: npm run security:check
+
+      - name: Run explicit Aegis gate
+        run: npm run security:aegis:verify
+
+      - name: Verify forward rollback candidate and rehearsal
+        run: npm run infrastructure:route-iq-forward-rollback:check
+
+      - name: Verify public deployment assets
+        run: npm run infrastructure:route-iq-public-deployment-assets:check
+
+      - name: Verify deterministic public forward rollback identity
+        run: node scripts/verify-route-iq-public-forward-rollback.mjs
+
+      - name: Verify Infrastructure owner provenance and repository integrity
         run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs
+
+      - name: Verify public deployment workflow contract without dispatch
+        run: node scripts/verify-github-actions-public-worker-deployment.mjs
+
+      - name: Verify cross-subsystem artifact contracts
+        run: npm run overwatch:artifact-contracts:check
+
+      - name: Verify Overwatch public release readiness pins
+        run: node scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs
 
       - name: Require unchanged repository after verification
         run: |

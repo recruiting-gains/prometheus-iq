@@ -319,6 +319,51 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "dashboardRuntimeHarnessSuccessors": [
+      {
+        "commit": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "tree": "ace6df9882d8033c5ffc08770b60a35653434e7e",
+        "parent": "3a2bd37f779e070b868256178bc40dbede8605c8",
+        "authorName": "Prometheus Dashboard",
+        "authorEmail": "dashboard@prometheus.local",
+        "committerName": "Prometheus Dashboard",
+        "committerEmail": "dashboard@prometheus.local",
+        "subject": "dashboard: stabilize runtime harness startup",
+        "files": [
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "tests/dashboard-route-iq-product-focus.test.mjs"
+        ]
+      },
+      {
+        "commit": "577b9217185be2324824c5c4eeeaf6cd89300477",
+        "tree": "37c857d916b336b87e7f4f878d74332cc62cf329",
+        "parent": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "authorName": "Prometheus Dashboard",
+        "authorEmail": "dashboard@prometheus.local",
+        "committerName": "Prometheus Dashboard",
+        "committerEmail": "dashboard@prometheus.local",
+        "subject": "Harden Dashboard Chrome harness lifecycle",
+        "files": [
+          "scripts/verify-dashboard-runtime-workflows.mjs",
+          "tests/dashboard-route-iq-product-focus.test.mjs"
+        ]
+      }
+    ],
+    "dashboardRuntimeHarnessAdoptionSuccessor": {
+      "parent": "577b9217185be2324824c5c4eeeaf6cd89300477",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: adopt Dashboard runtime harness repair",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cleanRunnerAssetGenerationRepair": {
@@ -471,6 +516,51 @@
     "productionMutationAllowed": false,
     "crmSubmissionAllowed": false
   },
+  "safeNoSecretFullPredeploymentCi": {
+    "batchId": "BATCH-20260720-005",
+    "owner": "Prometheus Infrastructure",
+    "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+    "workflowSha256": "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
+    "trigger": "workflow_dispatch",
+    "repository": "PrometheusRouteIQ/prometheus-iq",
+    "founderActor": "PrometheusRouteIQ",
+    "branch": "main",
+    "runAttempt": 1,
+    "runner": "ubuntu-latest",
+    "timeoutMinutes": 90,
+    "contentsPermission": "read",
+    "requiredCommands": [
+      "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
+      "npm ci",
+      "npm test",
+      "npm run lint",
+      "npm run typecheck",
+      "npm run build",
+      "npm run security:check",
+      "npm run security:aegis:verify",
+      "npm run infrastructure:route-iq-forward-rollback:check",
+      "npm run infrastructure:route-iq-public-deployment-assets:check",
+      "node scripts/verify-route-iq-public-forward-rollback.mjs",
+      "node scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "node scripts/verify-github-actions-public-worker-deployment.mjs",
+      "npm run overwatch:artifact-contracts:check",
+      "node scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs"
+    ],
+    "finalCleanGitChecks": [
+      "git diff --exit-code",
+      "git diff --cached --exit-code",
+      "test -z \"$(git status --porcelain=v1 --untracked-files=all)\"",
+      "node scripts/run-public-worker-repository-integrity-diagnostic.mjs"
+    ],
+    "protectedEnvironmentUsed": false,
+    "secretsAllowed": false,
+    "cloudflareRequestsAllowed": false,
+    "deploymentAllowed": false,
+    "productionMutationAllowed": false,
+    "crmSubmissionAllowed": false,
+    "notificationAllowed": false,
+    "workflowDispatchPerformed": false
+  },
   "safeCiFailure": {
     "runId": 29717192952,
     "jobId": 88272671229,
@@ -540,6 +630,60 @@
     "browserWorkflowChecksPassed": 184,
     "productRuntimeModified": false,
     "generatedDeploymentAssetsModified": false,
+    "generallyAuthorizesDashboardSuccessors": false
+  },
+  "dashboardRuntimeHarnessProvenance": {
+    "batchId": "BATCH-20260720-005",
+    "failedRunId": 29764135072,
+    "implementationOwner": "Prometheus Dashboard",
+    "verificationOwner": "Prometheus Infrastructure",
+    "classification": "DASHBOARD_CROSS_PLATFORM_CDP_HARNESS_LIFECYCLE_REPAIR",
+    "rootCauses": [
+      "MACOS_ONLY_DEFAULT_CHROME_PATH_ON_UBUNTU",
+      "ASYNCHRONOUS_SPAWN_FAILURE_MASKED_AS_GENERIC_FETCH_FAILURE",
+      "UNRESERVED_RANDOM_CDP_PORT",
+      "CLEANUP_REGISTERED_AFTER_READINESS",
+      "READINESS_BUDGET_TOO_SHORT_UNDER_CPU_CONTENTION",
+      "CDP_PAGE_TARGETS_NOT_CLOSED_BETWEEN_SCENARIOS"
+    ],
+    "ownerCommits": [
+      {
+        "commit": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "tree": "ace6df9882d8033c5ffc08770b60a35653434e7e",
+        "parent": "3a2bd37f779e070b868256178bc40dbede8605c8",
+        "subject": "dashboard: stabilize runtime harness startup"
+      },
+      {
+        "commit": "577b9217185be2324824c5c4eeeaf6cd89300477",
+        "tree": "37c857d916b336b87e7f4f878d74332cc62cf329",
+        "parent": "38339cdf24f2ccdf54f2eb204278eb80d9ad1972",
+        "subject": "Harden Dashboard Chrome harness lifecycle"
+      }
+    ],
+    "ownerIdentity": {
+      "authorName": "Prometheus Dashboard",
+      "authorEmail": "dashboard@prometheus.local",
+      "committerName": "Prometheus Dashboard",
+      "committerEmail": "dashboard@prometheus.local"
+    },
+    "files": [
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "tests/dashboard-route-iq-product-focus.test.mjs"
+    ],
+    "fileSha256": {
+      "scripts/verify-dashboard-runtime-workflows.mjs": "a8de222e3365885ecb866a1700f1c1b78f43aec58718246b9a4de663d5734f4d",
+      "tests/dashboard-route-iq-product-focus.test.mjs": "81a88eae103a380d0e2e4b070636dca8033c143abf0b00b72d004b66487683ef"
+    },
+    "focusedTestsPassed": 18,
+    "browserWorkflowChecksPassed": 185,
+    "consecutiveRealChromeRunsPassed": 3,
+    "concurrentRealChromeLaunchesPassed": 4,
+    "startupInterruptCleanupPassed": true,
+    "productRuntimeModified": false,
+    "publicWebsiteModified": false,
+    "crmModified": false,
+    "generatedDeploymentAssetsModified": false,
+    "rollbackContractModified": false,
     "generallyAuthorizesDashboardSuccessors": false
   },
   "preservation": {
