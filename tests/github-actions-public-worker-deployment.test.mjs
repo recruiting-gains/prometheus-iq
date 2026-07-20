@@ -336,7 +336,8 @@ test("fixed smoke ledger attempts only GET and HEAD and never submits a CRM requ
       });
     }
     if (url.pathname === "/api/partner-intake") {
-      return new Response(null, { status: 405, headers: { Allow: "POST, OPTIONS" } });
+      const allow = options.method === "GET" ? "POST, OPTIONS" : "GET, POST";
+      return new Response(null, { status: 405, headers: { Allow: allow } });
     }
     return new Response(options.method === "HEAD" ? null : "ok", { status: 200 });
   };
@@ -345,50 +346,80 @@ test("fixed smoke ledger attempts only GET and HEAD and never submits a CRM requ
   assert.ok(ledger.every(entry => ["GET", "HEAD"].includes(entry.method) && entry.body === undefined));
 });
 
-test("public intake Allow parser accepts only POST with optional OPTIONS as a strict method set", () => {
-  for (const value of [
-    "POST",
-    "POST,OPTIONS",
-    "POST, OPTIONS",
-    "OPTIONS, POST",
-    "\tOPTIONS\t,\tPOST\t"
-  ]) assert.equal(isPublicIntakeGuardAllowHeaderValid(value), true, `${value} must be accepted`);
+test("public intake Allow parser applies exact method-aware GET and HEAD sets", () => {
+  for (const [method, value] of [
+    ["GET", "POST"],
+    ["GET", "POST,OPTIONS"],
+    ["GET", "OPTIONS, POST"],
+    ["GET", "\tOPTIONS\t,\tPOST\t"],
+    ["HEAD", "GET, POST"],
+    ["HEAD", "POST,GET"],
+    ["HEAD", "\tPOST\t,\tGET\t"]
+  ]) assert.equal(isPublicIntakeGuardAllowHeaderValid(method, value), true, `${method} ${value} must be accepted`);
 
-  for (const value of [
-    null,
-    undefined,
-    "",
-    " ",
-    "OPTIONS",
-    "GET",
-    "GET, POST",
-    "POST, HEAD",
-    "POST, PUT",
-    "POST, PATCH",
-    "POST, DELETE",
-    "POST, CONNECT",
-    "POST, TRACE",
-    "POST, POST",
-    "POST, OPTIONS, OPTIONS",
-    ",POST",
-    "POST,",
-    "POST,,OPTIONS",
-    "post",
-    "POST, options",
-    "POST OPTIONS",
-    "POST;OPTIONS",
-    "POST, OPT(IONS)",
-    "POST,\nOPTIONS",
-    "POST,\u0000OPTIONS"
-  ]) assert.equal(isPublicIntakeGuardAllowHeaderValid(value), false, `${String(value)} must be rejected`);
+  for (const [method, value] of [
+    ["GET", null],
+    ["GET", undefined],
+    ["GET", ""],
+    ["GET", "OPTIONS"],
+    ["GET", "GET, POST"],
+    ["GET", "POST, HEAD"],
+    ["GET", "POST, PUT"],
+    ["GET", "POST, PATCH"],
+    ["GET", "POST, DELETE"],
+    ["GET", "POST, POST"],
+    ["GET", "POST, OPTIONS, OPTIONS"],
+    ["GET", ",POST"],
+    ["GET", "POST,"],
+    ["GET", "POST,,OPTIONS"],
+    ["GET", "post"],
+    ["GET", "POST, options"],
+    ["GET", "POST;OPTIONS"],
+    ["HEAD", "POST"],
+    ["HEAD", "OPTIONS"],
+    ["HEAD", "POST, OPTIONS"],
+    ["HEAD", "GET"],
+    ["HEAD", "GET, OPTIONS"],
+    ["HEAD", "GET, PUT"],
+    ["HEAD", "GET, PATCH"],
+    ["HEAD", "GET, DELETE"],
+    ["HEAD", "GET, POST, PUT"],
+    ["HEAD", "GET, GET"],
+    ["HEAD", "GET, POST, OPTIONS"],
+    ["HEAD", "get, POST"],
+    ["HEAD", "GET, post"],
+    ["HEAD", "GET,,POST"],
+    ["HEAD", "GET,\nPOST"],
+    ["HEAD", "GET,\u0000POST"],
+    ["OPTIONS", "POST"],
+    ["toString", "POST"],
+    ["__proto__", "POST"]
+  ]) assert.equal(
+    isPublicIntakeGuardAllowHeaderValid(method, value),
+    false,
+    `${method} ${String(value)} must be rejected`
+  );
 });
 
 test("public intake smoke fails closed on malformed, duplicate, missing, or unexpected Allow methods", async () => {
-  for (const allow of [null, "OPTIONS", "POST, POST", "POST,,OPTIONS", "POST, PUT", "GET, POST"]) {
+  for (const { getAllow, headAllow } of [
+    { getAllow: null, headAllow: "GET, POST" },
+    { getAllow: "OPTIONS", headAllow: "GET, POST" },
+    { getAllow: "POST, POST", headAllow: "GET, POST" },
+    { getAllow: "POST,,OPTIONS", headAllow: "GET, POST" },
+    { getAllow: "POST, PUT", headAllow: "GET, POST" },
+    { getAllow: "GET, POST", headAllow: "GET, POST" },
+    { getAllow: "POST", headAllow: "POST, OPTIONS" },
+    { getAllow: "POST, OPTIONS", headAllow: "GET, GET" },
+    { getAllow: "POST, OPTIONS", headAllow: "GET, PUT" },
+    { getAllow: "POST, OPTIONS", headAllow: "GET, POST, PUT" },
+    { getAllow: "POST, OPTIONS", headAllow: "GET, POST, OPTIONS" }
+  ]) {
     const ledger = [];
     const fetchImpl = async (url, options) => {
       ledger.push({ method: options.method, path: url.pathname, body: options.body });
       if (url.pathname === "/api/partner-intake") {
+        const allow = options.method === "GET" ? getAllow : headAllow;
         return {
           status: 405,
           redirected: false,

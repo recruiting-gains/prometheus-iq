@@ -11,22 +11,28 @@ import {
 
 const REQUEST_TIMEOUT_MS = 15_000;
 const ALLOW_METHOD_TOKEN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/u;
-const PUBLIC_INTAKE_ALLOWED_METHODS = Object.freeze(new Set(["POST", "OPTIONS"]));
+const PUBLIC_INTAKE_ALLOW_SIGNATURES = Object.freeze({
+  GET: Object.freeze(["POST", "OPTIONS,POST"]),
+  HEAD: Object.freeze(["GET,POST"])
+});
 
-export function isPublicIntakeGuardAllowHeaderValid(value) {
+export function isPublicIntakeGuardAllowHeaderValid(probeMethod, value) {
+  if (!Object.hasOwn(PUBLIC_INTAKE_ALLOW_SIGNATURES, probeMethod)) return false;
+  const acceptedSignatures = PUBLIC_INTAKE_ALLOW_SIGNATURES[probeMethod];
   if (typeof value !== "string" || value.length === 0) return false;
   const entries = value.split(",");
-  if (entries.length < 1 || entries.length > PUBLIC_INTAKE_ALLOWED_METHODS.size) return false;
+  if (entries.length < 1 || entries.length > 2) return false;
 
   const methods = new Set();
   for (const entry of entries) {
     const match = /^[\t ]*([^\t ]+)[\t ]*$/u.exec(entry);
     if (!match || !ALLOW_METHOD_TOKEN.test(match[1])) return false;
     const method = match[1];
-    if (!PUBLIC_INTAKE_ALLOWED_METHODS.has(method) || methods.has(method)) return false;
+    if (methods.has(method)) return false;
     methods.add(method);
   }
-  return methods.has("POST");
+  if (!methods.has("POST")) return false;
+  return acceptedSignatures.includes([...methods].sort().join(","));
 }
 
 export function fixedCloudflarePublicWorkerSmokePlan() {
@@ -64,7 +70,7 @@ function verifyResponse(entry, response) {
   }
   if (entry.kind === "public_intake_guard") {
     if (response.status !== 405
-      || !isPublicIntakeGuardAllowHeaderValid(response.headers.get("allow"))) {
+      || !isPublicIntakeGuardAllowHeaderValid(entry.method, response.headers.get("allow"))) {
       throw new Error("public_intake_guard_invalid");
     }
     return;
