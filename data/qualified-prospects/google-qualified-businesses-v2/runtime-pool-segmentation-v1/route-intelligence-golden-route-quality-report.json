@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-19T08:02:06.357Z",
+  "generatedAt": "2026-07-20T00:50:41.717Z",
   "gateVersion": "route-intelligence-golden-route-quality-gate-v1",
   "status": "passed",
   "artifactGovernance": {
@@ -810,11 +810,11 @@
   "zeroLiveGoogle": {
     "status": "passed",
     "exitCode": 0,
-    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 33,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
+    "stdout": "{\n  \"status\": \"passed\",\n  \"checked_files\": 32,\n  \"live_google_api_calls\": 0,\n  \"google_api_endpoint_or_key_references\": 0,\n  \"generic_network_primitives\": [\n    {\n      \"file\": \"index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/index.html\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 10\n    },\n    {\n      \"file\": \"deploy/cloudflare-pages/sw.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 2\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/IntelligenceScene-CqK-yX9Z.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 3\n    },\n    {\n      \"file\": \"deploy/prometheusrouteiq-website/assets/landing-D-Z5MAu6.js\",\n      \"pattern\": \"Client fetch\",\n      \"count\": 1\n    }\n  ],\n  \"note\": \"Runtime app files contain no Google API endpoint/key references. Google Maps links are static navigation links only.\"\n}",
     "stderr": "",
     "evidence": {
       "status": "passed",
-      "checked_files": 33,
+      "checked_files": 32,
       "live_google_api_calls": 0,
       "google_api_endpoint_or_key_references": 0,
       "generic_network_primitives": [
@@ -834,7 +834,12 @@
           "count": 2
         },
         {
-          "file": "deploy/prometheusrouteiq-website/assets/landing-CzB0CTIz.js",
+          "file": "deploy/prometheusrouteiq-website/assets/IntelligenceScene-CqK-yX9Z.js",
+          "pattern": "Client fetch",
+          "count": 3
+        },
+        {
+          "file": "deploy/prometheusrouteiq-website/assets/landing-D-Z5MAu6.js",
           "pattern": "Client fetch",
           "count": 1
         }
@@ -844,8 +849,8 @@
   },
   "runtimeSurface": {
     "status": "passed",
-    "checkedRuntimeFiles": 33,
-    "expectedRuntimeFiles": 33,
+    "checkedRuntimeFiles": 32,
+    "expectedRuntimeFiles": 32,
     "dashboardFetches": 10,
     "deployDashboardFetches": 10,
     "expectedDashboardFetches": 10,
@@ -856,17 +861,21 @@
     "status": "observed",
     "branch": "main",
     "baseRef": "origin/main",
-    "baseCommit": "cb413fdf3a9676c238c02532261ffcf3a24f2b21",
-    "ahead": 6,
+    "baseCommit": "08b452c4cc187fd3b8bd957e6bedef3aed12ac01",
+    "ahead": 10,
     "behind": 0,
     "expectedLocalCommitCount": null,
     "localCommitSubjects": [
-      "route-iq: govern public positioning claims",
-      "intelligence: govern public intelligence claims",
-      "data: govern public Route IQ evidence claims",
-      "website: focus Route IQ investor conversion",
-      "overwatch: verify Route IQ investor website focus",
-      "overwatch: preserve paused release wiring baselines"
+      "website: restore Route IQ 3D visual continuity",
+      "website: stop preloading the 3D fallback image",
+      "infrastructure: bind 3D public release and rollback assets",
+      "crm: decouple foundation tests from deploy assets",
+      "website: retire legacy attribution test wiring",
+      "infrastructure: own shared lead intake packet contract",
+      "social-media: retire public website attribution artifact",
+      "overwatch: govern Route IQ 3D release successor",
+      "overwatch: record 3D release wiring successor",
+      "overwatch: chain 3D release verifier successors"
     ]
   },
   "dashboardCompatibility": {
