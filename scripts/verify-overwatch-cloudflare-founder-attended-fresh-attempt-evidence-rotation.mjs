@@ -234,6 +234,8 @@ function verifyOwnerCommits(governance) {
     keychainInteroperabilityGovernance.ownerVerifierSuccessors
       .map(item => [item.path, item])
   );
+  const historicalFixtureSuccessors =
+    keychainInteroperabilityGovernance.ownerHistoricalFixtureVerifierSuccessors;
   const initialFields = git([
     "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", initialOwnerCommit
   ]).split("\n");
@@ -285,14 +287,45 @@ function verifyOwnerCommits(governance) {
     });
     const current = sha256(readFileSync(resolve(root, path)));
     const successor = ownerVerifierSuccessors.get(path);
+    let successorExpected = successor?.successorSha256 ?? expectedHash;
+    for (const transition of historicalFixtureSuccessors.filter(
+      item => item.path === path
+    )) {
+      if (transition.previousSha256 !== successorExpected
+        || transition.owner !== "Prometheus Infrastructure") {
+        throw new Error(`Infrastructure historical fixture chain drifted: ${path}`);
+      }
+      successorExpected = transition.successorSha256;
+    }
     const currentAccepted = current === expectedHash
       || (successor?.previousSha256 === expectedHash
-        && successor?.successorSha256 === current
+        && successorExpected === current
         && successor?.owner === "Prometheus Infrastructure");
     if (sha256(ownerBytes) !== expectedHash
       || !currentAccepted
       || evidence.get(path)?.sha256AtFinalOwnerCommit !== expectedHash) {
       throw new Error(`Infrastructure owner evidence drifted: ${path}`);
+    }
+  }
+
+  for (const expected of
+    keychainInteroperabilityGovernance.dispatchAudit.ownerHistoricalFixtureRepairCommits) {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", expected.commit
+    ]).split("\n");
+    if (!equal(fields, [
+      expected.commit,
+      expected.parent,
+      expected.tree,
+      "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      expected.subject
+    ])) throw new Error("Infrastructure historical fixture repair metadata drifted.");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", expected.commit
+    ]).split("\n").filter(Boolean);
+    if (!equal(paths, expected.transitions.map(item => item.path))) {
+      throw new Error("Infrastructure historical fixture repair file set drifted.");
     }
   }
 }

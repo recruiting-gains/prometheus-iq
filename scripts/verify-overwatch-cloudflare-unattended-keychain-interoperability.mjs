@@ -29,6 +29,39 @@ const ownerVerifierRepairTree = "03a1df0b8ccb9fe92e6673cb9e951044273ed32b";
 const ownerCiPortabilityCommit = "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b";
 const ownerCiPortabilityParent = "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c";
 const ownerCiPortabilityTree = "955431d084ed6e529490e71e6432c8007217db36";
+const ownerHistoricalFixtureRepairCommits = Object.freeze([
+  Object.freeze({
+    commit: "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+    parent: "5f33e24e1e61f4866f49f96669c9c54e80cbb099",
+    tree: "459845ad3a1494ffad84471c56fe5cc152c8b11d",
+    subject: "infrastructure: distinguish historical Keychain fixture successor",
+    transitions: Object.freeze([
+      Object.freeze({
+        path: "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+        previousSha256: "f52922d6094b321f905ee41c17f1feff73a804cb7496fceb0c684d24b03f1ffe",
+        successorSha256: "69bd7ac5890364401d4dd226a001fa6d22b5d8a7e14f17659ef2095d9e2bd059"
+      }),
+      Object.freeze({
+        path: "tests/cloudflare-founder-attended-owner-verifier-ownership.test.mjs",
+        previousSha256: "ddf8468f54382ef2fdff0d80ceb07ba814a4d17624d8e8f113a7e7dd5c980f85",
+        successorSha256: "277522072e4181d06f674408df2ad09121c826869c5a4b133107495aded1374c"
+      })
+    ])
+  }),
+  Object.freeze({
+    commit: "0165ffc56a18408be5c2e970223944fa1dd02593",
+    parent: "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+    tree: "e8d3d8a9031eebfa8a9ebf46666bfd6b961b9c83",
+    subject: "infrastructure: report current owner verifier coverage",
+    transitions: Object.freeze([
+      Object.freeze({
+        path: "scripts/verify-cloudflare-founder-attended-response-contract-repair.mjs",
+        previousSha256: "69bd7ac5890364401d4dd226a001fa6d22b5d8a7e14f17659ef2095d9e2bd059",
+        successorSha256: "3c672388f7029487b0c802ec2c02842c12bd9ff78410ef41893b7899ae687706"
+      })
+    ])
+  })
+]);
 
 const ownerHashes = Object.freeze({
   "docs/cloudflare-unattended-keychain-interoperability-v1.md":
@@ -198,6 +231,8 @@ const infrastructureOwnedPaths = new Set([
   ...ownerImplementationSuccessors.map(item => item.path),
   ...ownerVerifierSuccessors.map(item => item.path),
   ...ownerCiPortabilitySuccessors.map(item => item.path),
+  ...ownerHistoricalFixtureRepairCommits.flatMap(commit =>
+    commit.transitions.map(item => item.path)),
   ...githubDeploymentOwnerPaths
 ]);
 const overwatchOwnedPaths = new Set([
@@ -295,6 +330,10 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
     tree: ownerCiPortabilityTree,
     subject: "Make Keychain owner verifier portable in CI"
   }), "Owner CI portability commit drifted.");
+  require(equal(
+    governance.dispatchAudit.ownerHistoricalFixtureRepairCommits,
+    ownerHistoricalFixtureRepairCommits
+  ), "Owner historical fixture repair commits drifted.");
   require(governance.dispatchAudit.implementationOwnershipRespected === true,
     "Implementation ownership is not affirmed.");
   require(governance.dispatchAudit.overwatchModifiedInfrastructureImplementation === false,
@@ -342,6 +381,15 @@ export function evaluateCloudflareUnattendedKeychainInteroperabilityGovernance({
   require(equal(governance.ownerCiPortabilitySuccessors,
     ownerCiPortabilitySuccessors),
   "Owner CI portability successor mapping drifted.");
+  require(equal(
+    governance.ownerHistoricalFixtureVerifierSuccessors,
+    ownerHistoricalFixtureRepairCommits.flatMap(commit =>
+      commit.transitions.map(transition => ({
+        ...transition,
+        ownerCommit: commit.commit,
+        owner: "Prometheus Infrastructure"
+      })))
+  ), "Owner historical fixture successor mapping drifted.");
 
   const classification = governance.independentRetrievalClassification;
   require(classification.executionIdentity === "MATCHED",
@@ -591,6 +639,7 @@ function verifyOwnerCommit(governance) {
   execFileSync("/usr/bin/git", [
     "merge-base", "--is-ancestor", ownerVerifierRepairCommit, "HEAD"
   ], { cwd: root, stdio: "ignore" });
+  const historicalFixtureTransitions = governance.ownerHistoricalFixtureVerifierSuccessors;
   for (const successor of ownerVerifierSuccessors) {
     const previous = execFileSync(
       "/usr/bin/git", ["show", `${ownerVerifierRepairParent}:${successor.path}`], {
@@ -606,9 +655,18 @@ function verifyOwnerCommit(governance) {
         stdio: ["ignore", "pipe", "ignore"]
       }
     );
+    let currentExpected = successor.successorSha256;
+    for (const transition of historicalFixtureTransitions.filter(
+      item => item.path === successor.path
+    )) {
+      if (transition.previousSha256 !== currentExpected) {
+        throw new Error(`Infrastructure historical fixture chain drifted: ${successor.path}`);
+      }
+      currentExpected = transition.successorSha256;
+    }
     if (sha256(previous) !== successor.previousSha256
       || sha256(repaired) !== successor.successorSha256
-      || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
+      || sha256(readFileSync(resolve(root, successor.path))) !== currentExpected) {
       throw new Error(`Infrastructure owner verifier repair drifted: ${successor.path}`);
     }
   }
@@ -654,6 +712,46 @@ function verifyOwnerCommit(governance) {
       || sha256(repaired) !== successor.successorSha256
       || sha256(readFileSync(resolve(root, successor.path))) !== successor.successorSha256) {
       throw new Error(`Infrastructure owner CI portability evidence drifted: ${successor.path}`);
+    }
+  }
+
+  for (const expected of ownerHistoricalFixtureRepairCommits) {
+    const fields = git([
+      "show", "-s", "--format=%H%n%P%n%T%n%an <%ae>%n%cn <%ce>%n%s", expected.commit
+    ]).split("\n");
+    if (!equal(fields, [
+      expected.commit,
+      expected.parent,
+      expected.tree,
+      "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      "Prometheus Infrastructure <infrastructure@prometheus.local>",
+      expected.subject
+    ])) throw new Error("Infrastructure historical fixture repair metadata drifted.");
+    const paths = git([
+      "diff-tree", "--no-commit-id", "--name-only", "-r", expected.commit
+    ]).split("\n").filter(Boolean);
+    if (!equal(paths, expected.transitions.map(item => item.path))) {
+      throw new Error("Infrastructure historical fixture repair file set drifted.");
+    }
+    for (const transition of expected.transitions) {
+      const previous = execFileSync(
+        "/usr/bin/git", ["show", `${expected.parent}:${transition.path}`], {
+          cwd: root,
+          encoding: null,
+          stdio: ["ignore", "pipe", "ignore"]
+        }
+      );
+      const repaired = execFileSync(
+        "/usr/bin/git", ["show", `${expected.commit}:${transition.path}`], {
+          cwd: root,
+          encoding: null,
+          stdio: ["ignore", "pipe", "ignore"]
+        }
+      );
+      if (sha256(previous) !== transition.previousSha256
+        || sha256(repaired) !== transition.successorSha256) {
+        throw new Error(`Infrastructure historical fixture repair drifted: ${transition.path}`);
+      }
     }
   }
 }
@@ -703,10 +801,15 @@ function verifyOverwatchOwnership() {
     .split("\n").filter(Boolean);
   const ownerRepairPaths = new Set(ownerImplementationSuccessors.map(item => item.path));
   const ownerVerifierRepairPaths = new Set(ownerVerifierSuccessors.map(item => item.path));
+  const ownerHistoricalFixtureRepairPaths = new Set(
+    ownerHistoricalFixtureRepairCommits.flatMap(commit =>
+      commit.transitions.map(item => item.path))
+  );
   const overwatchPaths = paths.filter(path => (
     expectedOverwatchPaths.includes(path)
       && !ownerRepairPaths.has(path)
       && !ownerVerifierRepairPaths.has(path)
+      && !ownerHistoricalFixtureRepairPaths.has(path)
       && !githubDeploymentOwnerPaths.has(path)
       && !githubDeploymentUniqueOverwatchPaths.has(path)
   ));
@@ -797,6 +900,9 @@ export function verifyOverwatchCloudflareUnattendedKeychainInteroperability() {
     implementationRepairCommit: ownerRepairCommit,
     implementationVerifierRepairCommit: ownerVerifierRepairCommit,
     implementationCiPortabilityCommit: ownerCiPortabilityCommit,
+    implementationHistoricalFixtureRepairCommits: Object.freeze(
+      ownerHistoricalFixtureRepairCommits.map(item => item.commit)
+    ),
     focusedOwnerTests: 17,
     realClassification: "FOUR_PRESENT_NOT_RETRIEVABLE_INTERACTION_REQUIRED",
     unattendedControl: "OFF_UNCONSUMED",

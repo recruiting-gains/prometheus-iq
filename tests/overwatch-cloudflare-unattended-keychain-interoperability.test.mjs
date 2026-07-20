@@ -44,6 +44,10 @@ test("Overwatch independently verifies owner provenance and release boundaries",
     verified.implementationCiPortabilityCommit,
     "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b"
   );
+  assert.deepEqual(verified.implementationHistoricalFixtureRepairCommits, [
+    "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+    "0165ffc56a18408be5c2e970223944fa1dd02593"
+  ]);
   assert.equal(verified.cloudflareRequestPerformed, false);
   assert.equal(verified.keychainAclModified, false);
   assert.equal(verified.deploymentPerformed, false);
@@ -58,9 +62,11 @@ test("Overwatch rejects ownership, classification, remediation, and release weak
     value => { value.ownerImplementationSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.ownerVerifierSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.ownerCiPortabilitySuccessors[0].successorSha256 = "0".repeat(64); },
+    value => { value.ownerHistoricalFixtureVerifierSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.dispatchAudit.ownerRepairCommit.commit = "0".repeat(40); },
     value => { value.dispatchAudit.ownerVerifierRepairCommit.commit = "0".repeat(40); },
     value => { value.dispatchAudit.ownerCiPortabilityCommit.commit = "0".repeat(40); },
+    value => { value.dispatchAudit.ownerHistoricalFixtureRepairCommits[0].commit = "0".repeat(40); },
     value => { value.protectedPredecessorSuccessors[0].successorSha256 = "0".repeat(64); },
     value => { value.protectedPredecessorSuccessors[1].successorOwner = "Prometheus Infrastructure"; },
     value => { value.protectedReleaseWiringTransitions[0].successorSha256 = "0".repeat(64); },
