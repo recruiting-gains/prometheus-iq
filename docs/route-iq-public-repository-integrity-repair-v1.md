@@ -151,6 +151,21 @@ The repaired path-independent rollback artifact is:
 
 `3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7`
 
+## Safe no-secret clean-runner asset ordering
+
+Safe no-secret workflow run `29776569151` checked commit
+`5d5ffe858d7e132778c96746eabd4a99afe9d1f4`, tree
+`e0164513b6a807796558c2d7bf6c059184839659`, on Ubuntu 24.04 with Node 24.18.0.
+Dependency installation passed, but `npm test` reached the exact deployment-asset verifier before the
+ignored `dist-public` directory had been generated. The run failed closed; it had no protected
+environment, secret, Cloudflare, deployment, CRM-write, or production-mutation capability.
+
+Infrastructure now places the single top-level deterministic `npm run build` step immediately after
+`npm ci` and before `npm test`. The later duplicate workflow build step was removed. Static and
+adversarial tests require that exact ordering, exactly one top-level build command, the unchanged
+full-suite command, and rejection of missing or reordered generation. Asset parity remains strict;
+there is no retry, `continue-on-error`, `|| true`, or weakened release check.
+
 ## Keychain verifier CI portability provenance
 
 Founder-authorized deployment workflow run `29758138044` failed closed in the no-secret test job

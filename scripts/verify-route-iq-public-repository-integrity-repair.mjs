@@ -134,14 +134,21 @@ const dashboardRuntimeHarnessAdoptionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const safeNoSecretAssetOrderingRepairFiles = Object.freeze([
+  ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
   "npm ci",
+  "npm run build",
   "npm test",
   "npm run lint",
   "npm run typecheck",
-  "npm run build",
   "npm run security:check",
   "npm run security:aegis:verify",
   "npm run infrastructure:route-iq-forward-rollback:check",
@@ -407,6 +414,15 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: adopt Dashboard runtime harness repair",
     files: dashboardRuntimeHarnessAdoptionFiles
+  }),
+  safeNoSecretAssetOrderingRepairSuccessor: Object.freeze({
+    parent: "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: order clean-runner public asset generation",
+    files: safeNoSecretAssetOrderingRepairFiles
   })
 });
 
@@ -609,6 +625,7 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let historicalKeychainFixtureProvenanceAdmissionSeen = false;
   let dashboardRuntimeHarnessSuccessorsSeen = 0;
   let dashboardRuntimeHarnessAdoptionSeen = false;
+  let safeNoSecretAssetOrderingRepairSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -815,6 +832,24 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const safeNoSecretAssetOrderingRepair =
+      boundary.safeNoSecretAssetOrderingRepairSuccessor;
+    const isSafeNoSecretAssetOrderingRepair = safeNoSecretAssetOrderingRepair
+      && !safeNoSecretAssetOrderingRepairSeen
+      && dashboardRuntimeHarnessAdoptionSeen
+      && actual.parents[0] === safeNoSecretAssetOrderingRepair.parent
+      && actual.authorName === safeNoSecretAssetOrderingRepair.authorName
+      && actual.authorEmail === safeNoSecretAssetOrderingRepair.authorEmail
+      && actual.committerName === safeNoSecretAssetOrderingRepair.committerName
+      && actual.committerEmail === safeNoSecretAssetOrderingRepair.committerEmail
+      && actual.subject === safeNoSecretAssetOrderingRepair.subject
+      && JSON.stringify(actual.files) ===
+        JSON.stringify([...safeNoSecretAssetOrderingRepair.files].sort());
+    if (isSafeNoSecretAssetOrderingRepair) {
+      safeNoSecretAssetOrderingRepairSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -854,6 +889,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   if (boundary.dashboardRuntimeHarnessSuccessors) {
     result.dashboardRuntimeHarnessSuccessorsSeen = dashboardRuntimeHarnessSuccessorsSeen;
     result.dashboardRuntimeHarnessAdoptionSeen = dashboardRuntimeHarnessAdoptionSeen;
+  }
+  if (boundary.safeNoSecretAssetOrderingRepairSuccessor) {
+    result.safeNoSecretAssetOrderingRepairSeen = safeNoSecretAssetOrderingRepairSeen;
   }
   return Object.freeze(result);
 }
@@ -927,6 +965,10 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   if (git(["rev-parse", "HEAD"])
     !== INFRASTRUCTURE_OWNER_BOUNDARY.dashboardRuntimeHarnessAdoptionSuccessor.parent) {
     assert.equal(ownerBoundary.dashboardRuntimeHarnessAdoptionSeen, true);
+  }
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY.safeNoSecretAssetOrderingRepairSuccessor.parent) {
+    assert.equal(ownerBoundary.safeNoSecretAssetOrderingRepairSeen, true);
   }
 
   assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {
@@ -1055,10 +1097,10 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
 
   const fullPredeploymentCi = contract.safeNoSecretFullPredeploymentCi;
   assert.deepEqual(fullPredeploymentCi, {
-    batchId: "BATCH-20260720-005",
+    batchId: "BATCH-20260720-006",
     owner: "Prometheus Infrastructure",
     workflow: PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath,
-    workflowSha256: "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
+    workflowSha256: "025bbc2fa4802a737d85d40d1ab3c38334c9458fa29b19a78f9b151da8bcb4b9",
     trigger: "workflow_dispatch",
     repository: "PrometheusRouteIQ/prometheus-iq",
     founderActor: "PrometheusRouteIQ",
@@ -1117,13 +1159,51 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   const firstRepositoryNodeScript = safeWorkflow.indexOf("run: node scripts/");
   const diagnostic = safeWorkflow.indexOf("run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs");
   const npmInstall = safeWorkflow.indexOf("run: npm ci");
+  const deterministicBuild = safeWorkflow.indexOf("run: npm run build");
+  const repositorySuite = safeWorkflow.indexOf("run: npm test");
   const rollbackVerification = safeWorkflow.indexOf(
     "run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs"
   );
   assert.ok(checkout >= 0 && checkout < setupNode);
   assert.ok(setupNode < firstRepositoryNodeScript);
   assert.equal(firstRepositoryNodeScript, diagnostic);
-  assert.ok(diagnostic < npmInstall && npmInstall < rollbackVerification);
+  assert.ok(
+    diagnostic < npmInstall
+      && npmInstall < deterministicBuild
+      && deterministicBuild < repositorySuite
+      && repositorySuite < rollbackVerification
+  );
+
+  assert.deepEqual(contract.safeNoSecretAssetOrderingRepair, {
+    batchId: "BATCH-20260720-006",
+    owner: "Prometheus Infrastructure",
+    failedRunId: 29776569151,
+    failedJobId: 88467261279,
+    head: "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+    tree: "e0164513b6a807796558c2d7bf6c059184839659",
+    runner: "ubuntu-24.04",
+    nodeVersion: "24.18.0",
+    classification: "DIST_PUBLIC_READ_BEFORE_BUILD_IN_SAFE_NO_SECRET_WORKFLOW",
+    failingCommand: "npm test",
+    failingPath: "dist-public",
+    dependencyInstallPassed: true,
+    dashboardHarnessReached: false,
+    deploymentCapabilityPresent: false,
+    protectedEnvironmentAccessed: false,
+    secretsAccessed: false,
+    cloudflareContacted: false,
+    productionMutated: false,
+    repair: {
+      command: "npm run build",
+      afterDependencyInstall: true,
+      beforeRepositorySuite: true,
+      topLevelBuildSteps: 1,
+      assetParityPreserved: true,
+      failureHidden: false,
+      blanketRetryAdded: false,
+      continueOnErrorAdded: false
+    }
+  });
 
   assert.deepEqual(contract.successorRepair, {
     owner: "Prometheus Infrastructure",

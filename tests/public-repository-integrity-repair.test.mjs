@@ -824,16 +824,23 @@ test("safe integrity workflow runs the complete suite with no deployment or secr
   const firstRepositoryNodeScript = workflow.indexOf("run: node scripts/");
   const diagnostic = workflow.indexOf("run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs");
   const npmInstall = workflow.indexOf("run: npm ci");
+  const deterministicBuild = workflow.indexOf("run: npm run build");
+  const repositorySuite = workflow.indexOf("run: npm test");
   const rollbackVerification = workflow.indexOf(
     "run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs"
   );
   assert.ok(checkout >= 0 && checkout < setupNode);
   assert.ok(setupNode < firstRepositoryNodeScript);
   assert.equal(firstRepositoryNodeScript, diagnostic);
-  assert.ok(diagnostic < npmInstall && npmInstall < rollbackVerification);
-  assert.ok(workflow.indexOf("run: npm test") < workflow.indexOf("run: npm run lint"));
+  assert.ok(
+    diagnostic < npmInstall
+      && npmInstall < deterministicBuild
+      && deterministicBuild < repositorySuite
+      && repositorySuite < rollbackVerification
+  );
+  assert.equal(workflow.match(/^\s*run: npm run build$/gmu)?.length, 1);
+  assert.ok(repositorySuite < workflow.indexOf("run: npm run lint"));
   assert.ok(workflow.indexOf("run: npm run lint") < workflow.indexOf("run: npm run typecheck"));
-  assert.ok(workflow.indexOf("run: npm run typecheck") < workflow.indexOf("run: npm run build"));
 });
 
 test("safe integrity workflow mutations fail closed before gaining capability or losing coverage", () => {
@@ -849,6 +856,11 @@ test("safe integrity workflow mutations fail closed before gaining capability or
     source => source.replace("      - name: Require unchanged repository after verification",
       "      - name: Deploy\n        run: wrangler deploy\n\n      - name: Require unchanged repository after verification"),
     source => source.replace("        run: npm test", "        run: npm test || true"),
+    source => source.replace("      - name: Generate exact public assets before repository verification\n        run: npm run build\n\n", ""),
+    source => source.replace(
+      "      - name: Generate exact public assets before repository verification\n        run: npm run build\n\n      - name: Run complete repository verification suite\n        run: npm test",
+      "      - name: Run complete repository verification suite\n        run: npm test\n\n      - name: Generate exact public assets before repository verification\n        run: npm run build"
+    ),
     source => source.replace("      - name: Run complete repository verification suite\n        run: npm test\n\n", ""),
     source => source.replace("github.actor == 'PrometheusRouteIQ'", "github.actor != ''"),
     source => source.replace("github.run_attempt == 1", "github.run_attempt >= 1")
@@ -881,6 +893,11 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     current.dashboardRuntimeHarnessAdoptionSeen,
     git(root, ["rev-parse", "HEAD"])
       !== "577b9217185be2324824c5c4eeeaf6cd89300477"
+  );
+  assert.equal(
+    current.safeNoSecretAssetOrderingRepairSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "5d5ffe858d7e132778c96746eabd4a99afe9d1f4"
   );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));

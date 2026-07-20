@@ -51,6 +51,9 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci
 
+      - name: Generate exact public assets before repository verification
+        run: npm run build
+
       - name: Run complete repository verification suite
         run: npm test
 
@@ -59,9 +62,6 @@ jobs:
 
       - name: Run explicit typecheck gate
         run: npm run typecheck
-
-      - name: Run explicit deterministic build gate
-        run: npm run build
 
       - name: Run explicit security gate
         run: npm run security:check

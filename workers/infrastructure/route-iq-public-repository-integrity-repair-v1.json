@@ -364,6 +364,21 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "safeNoSecretAssetOrderingRepairSuccessor": {
+      "parent": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: order clean-runner public asset generation",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cleanRunnerAssetGenerationRepair": {
@@ -517,10 +532,10 @@
     "crmSubmissionAllowed": false
   },
   "safeNoSecretFullPredeploymentCi": {
-    "batchId": "BATCH-20260720-005",
+    "batchId": "BATCH-20260720-006",
     "owner": "Prometheus Infrastructure",
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
-    "workflowSha256": "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
+    "workflowSha256": "025bbc2fa4802a737d85d40d1ab3c38334c9458fa29b19a78f9b151da8bcb4b9",
     "trigger": "workflow_dispatch",
     "repository": "PrometheusRouteIQ/prometheus-iq",
     "founderActor": "PrometheusRouteIQ",
@@ -532,10 +547,10 @@
     "requiredCommands": [
       "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
       "npm ci",
+      "npm run build",
       "npm test",
       "npm run lint",
       "npm run typecheck",
-      "npm run build",
       "npm run security:check",
       "npm run security:aegis:verify",
       "npm run infrastructure:route-iq-forward-rollback:check",
@@ -560,6 +575,36 @@
     "crmSubmissionAllowed": false,
     "notificationAllowed": false,
     "workflowDispatchPerformed": false
+  },
+  "safeNoSecretAssetOrderingRepair": {
+    "batchId": "BATCH-20260720-006",
+    "owner": "Prometheus Infrastructure",
+    "failedRunId": 29776569151,
+    "failedJobId": 88467261279,
+    "head": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+    "tree": "e0164513b6a807796558c2d7bf6c059184839659",
+    "runner": "ubuntu-24.04",
+    "nodeVersion": "24.18.0",
+    "classification": "DIST_PUBLIC_READ_BEFORE_BUILD_IN_SAFE_NO_SECRET_WORKFLOW",
+    "failingCommand": "npm test",
+    "failingPath": "dist-public",
+    "dependencyInstallPassed": true,
+    "dashboardHarnessReached": false,
+    "deploymentCapabilityPresent": false,
+    "protectedEnvironmentAccessed": false,
+    "secretsAccessed": false,
+    "cloudflareContacted": false,
+    "productionMutated": false,
+    "repair": {
+      "command": "npm run build",
+      "afterDependencyInstall": true,
+      "beforeRepositorySuite": true,
+      "topLevelBuildSteps": 1,
+      "assetParityPreserved": true,
+      "failureHidden": false,
+      "blanketRetryAdded": false,
+      "continueOnErrorAdded": false
+    }
   },
   "safeCiFailure": {
     "runId": 29717192952,
