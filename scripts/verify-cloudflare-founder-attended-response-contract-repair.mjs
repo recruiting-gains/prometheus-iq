@@ -468,7 +468,7 @@ export function verifyCloudflareFounderAttendedResponseContractRepair() {
     status: "passed",
     batchId: CLOUDFLARE_FOUNDER_ATTENDED_RESPONSE_CONTRACT_BATCH_ID,
     focusedTests: 17,
-    ownerVerifierOwnershipTests: 5,
+    ownerVerifierOwnershipTests: 6,
     packageReleaseWiringOwner: "Prometheus Overwatch",
     predecessorControlsOrReceiptsAccessed: false,
     cloudflareApiContacted: false,
