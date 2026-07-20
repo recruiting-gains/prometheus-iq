@@ -69,13 +69,17 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.deepEqual(result.commits.slice(0, 6), [
+  assert.equal(result.commits.length, 10);
+  assert.deepEqual(result.commits.slice(0, 9), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
     "a23ac70a74f753486cc6ceda8eddeedfa187f5c5",
     "8d312bf747a289c675eb37adf582b43c860c635e",
-    "1363548cb72285cdd759b1dbed73fa6a8a3d1c2a"
+    "1363548cb72285cdd759b1dbed73fa6a8a3d1c2a",
+    "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+    "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -83,6 +87,32 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
   assert.equal(result.safeCiPending, true);
   assert.equal(result.deploymentAuthorized, false);
+});
+
+test("Dashboard rollover repair and Infrastructure admission remain exact and test-only", () => {
+  const value = integrityReadinessGovernance();
+  assert.deepEqual(value.dashboardVerificationRepair.files, [
+    "scripts/verify-dashboard-runtime-workflows.mjs",
+    "tests/dashboard-route-iq-product-focus.test.mjs"
+  ]);
+  assert.equal(value.dashboardVerificationRepair.commit, "bb1509d42cd03c19b9db0f9011579b6a041ffd9c");
+  assert.equal(value.dashboardVerificationRepair.browserWorkflowChecksPassed, 184);
+  assert.equal(value.dashboardVerificationRepair.focusedTestsPassed, 8);
+  assert.equal(value.dashboardVerificationRepair.productRuntimeModified, false);
+  assert.equal(value.dashboardVerificationRepair.generatedDeploymentAssetsModified, false);
+  assert.equal(value.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors, false);
+  assert.equal(
+    value.infrastructureOwnerRepairs.at(-1).commit,
+    "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54"
+  );
+  assert.equal(
+    value.infrastructureEvidence.contractSha256,
+    "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6"
+  );
+
+  const broadened = integrityReadinessGovernance();
+  broadened.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors = true;
+  assert.throws(() => validatePublicIntegrityReadiness(broadened));
 });
 
 test("failed safe CI is immutable, non-deploying evidence and requires a fresh run", () => {

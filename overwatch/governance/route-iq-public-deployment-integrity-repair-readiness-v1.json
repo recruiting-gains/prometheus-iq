@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -41,6 +41,23 @@
     "invalidFetchedRefReproduced": false,
     "shallowOrPartialCheckoutReproduced": false,
     "speculationUsed": false
+  },
+  "dashboardVerificationRepair": {
+    "classification": "TEST_ONLY_WALL_CLOCK_DEPENDENCY_REMOVED",
+    "commit": "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+    "tree": "2bd8186faafd7c922c17da9401c6dddbc64163bb",
+    "parent": "03ed86e25bda0a67e55757969966f4bc61c4b63e",
+    "subject": "dashboard: stabilize Eventbrite expansion verification",
+    "owner": "Prometheus Dashboard",
+    "files": [
+      "scripts/verify-dashboard-runtime-workflows.mjs",
+      "tests/dashboard-route-iq-product-focus.test.mjs"
+    ],
+    "browserWorkflowChecksPassed": 184,
+    "focusedTestsPassed": 8,
+    "productRuntimeModified": false,
+    "generatedDeploymentAssetsModified": false,
+    "generallyAuthorizesDashboardSuccessors": false
   },
   "infrastructureOwnerRepairs": [
     {
@@ -103,11 +120,24 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54",
+      "tree": "73337f6bfb2e29e62df0a98a10e928df578e14fa",
+      "parent": "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
+      "subject": "infrastructure: admit Dashboard verification successor",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "cb9725ec53a95c585377be8ac42ea3fbfa9ec426a25711decb0e3218dd423349",
+    "contractSha256": "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -124,7 +154,10 @@
     "sourceMapSourcesResolvedAgainstValidatedRoot": true,
     "sourceMapRealpathContainmentRequired": true,
     "genericOwnerVerifierFailureAllowed": false,
-    "ownerVerifierAllowsOnlyGovernedOverwatchDescendants": true,
+    "ownerVerifierAllowsOnlyGovernedSuccessorSequence": true,
+    "ownerVerifierPinsDashboardVerificationSuccessor": true,
+    "ownerVerifierPinsInfrastructureAdmissionSuccessor": true,
+    "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
   "releaseIdentities": {
