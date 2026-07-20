@@ -33,6 +33,23 @@ const EXPECTED_OWNER_EMAILS = Object.freeze({
   "dcc4f8357fdb046206b3eff8aef660c9dc4f99ac": "infrastructure@prometheus.local",
   "8fcb8b8d2c828c414f43c9eed9b52135fb7d92a0": "social-media@prometheus.local"
 });
+const EXPECTED_EVIDENCE_SUCCESSOR_ORDER = Object.freeze([
+  "85850c74564798889ba50cb15c7a7b0406a521fd",
+  "b065d069bdb3439a0541074d80862494e1d8a9bc",
+  "cee8d681fd2272aca3425f10b433507819085424"
+]);
+const EXPECTED_EVIDENCE_OWNER_EMAILS = Object.freeze({
+  "85850c74564798889ba50cb15c7a7b0406a521fd": "data@prometheus.local",
+  "b065d069bdb3439a0541074d80862494e1d8a9bc": "intelligence@prometheus.local",
+  "cee8d681fd2272aca3425f10b433507819085424": "data@prometheus.local"
+});
+const ALLOWED_EVIDENCE_SUCCESSOR_PATHS = new Set([
+  "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+  "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+  "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+  "intelligence/contracts/shadow-decision-readiness-contracts.json",
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json"
+]);
 const CRM_HASHES = Object.freeze({
   "crm/route-iq-request-crm.mjs": "05405c79698db0eeb378be37195128adb04c78da0e9720a345b757490d015825",
   "crm/route-iq-request-crm-contract-v1.json": "fb7ee1af5559f145c5e6eddf73b33e8367d584f748d60e8fe1a5a6651b2b0476",
@@ -90,6 +107,43 @@ export function validateRouteIq3dVisualContinuityGovernance(governance) {
   assert.equal(governance?.visualBaseline?.tree, "ccd8356a5f820df14c574ff2be5196459422acbe");
   assert.equal(governance?.dispatchAudit?.implementationOwnershipRespected, true);
   assert.equal(governance?.dispatchAudit?.overwatchModifiedSubsystemImplementation, false);
+  assert.deepEqual(governance?.dispatchAudit?.runtimeEvidenceSuccessors, [
+    {
+      commit: "85850c74564798889ba50cb15c7a7b0406a521fd",
+      tree: "474eba67ed984b24466514b2760ed86b885ddc1e",
+      owner: "Prometheus Data",
+      subject: "data: synchronize restored 3D runtime surface",
+      files: [
+        "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+        "scripts/lib/route-intelligence-quality-gate.mjs",
+        "tests/route-intelligence-quality-gate.test.mjs"
+      ]
+    },
+    {
+      commit: "b065d069bdb3439a0541074d80862494e1d8a9bc",
+      tree: "5831b5c559c9fe403bb1b20623578245f4f1bcdf",
+      owner: "Prometheus Intelligence Engine",
+      subject: "intelligence: synchronize restored 3D route-quality consumers",
+      files: [
+        "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+        "intelligence/contracts/shadow-decision-readiness-contracts.json",
+        "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json",
+        "scripts/verify-shadow-decision-readiness.mjs",
+        "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
+        "tests/shadow-decision-readiness.test.mjs"
+      ]
+    },
+    {
+      commit: "cee8d681fd2272aca3425f10b433507819085424",
+      tree: "f2a9a2ebdd710b792e77792ad1d613f0dcd1db27",
+      owner: "Prometheus Data",
+      subject: "data: synchronize restored 3D intelligence claims",
+      files: [
+        "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+        "tests/route-iq-public-claims-data.test.mjs"
+      ]
+    }
+  ]);
   assert.equal(governance?.publicPositioning?.solePromotedProduct, "Route IQ");
   assert.equal(governance?.publicPositioning?.primaryAction, "REQUEST ROUTE IQ");
   assert.equal(governance?.publicPositioning?.recommendationSuperiorityClaimAllowed, false);
@@ -171,6 +225,23 @@ function verifyOwnership(root, governance) {
     assert.equal(record.committer, EXPECTED_OWNER_EMAILS[commit], `Owner committer drifted: ${commit}`);
     assert.equal(sameStrings(record.paths, governed.files), true, `Owner file scope drifted: ${commit}`);
   }
+  const evidenceByCommit = new Map(
+    governance.dispatchAudit.runtimeEvidenceSuccessors.map(record => [record.commit, record])
+  );
+  assert.deepEqual(
+    commits.filter(commit => EXPECTED_EVIDENCE_SUCCESSOR_ORDER.includes(commit)),
+    EXPECTED_EVIDENCE_SUCCESSOR_ORDER
+  );
+  for (const commit of EXPECTED_EVIDENCE_SUCCESSOR_ORDER) {
+    const record = commitRecord(root, commit);
+    const governed = evidenceByCommit.get(commit);
+    assert.ok(governed, `Evidence successor dispatch missing: ${commit}`);
+    assert.equal(record.tree, governed.tree, `Evidence successor tree drifted: ${commit}`);
+    assert.equal(record.subject, governed.subject, `Evidence successor subject drifted: ${commit}`);
+    assert.equal(record.author, EXPECTED_EVIDENCE_OWNER_EMAILS[commit], `Evidence successor author drifted: ${commit}`);
+    assert.equal(record.committer, EXPECTED_EVIDENCE_OWNER_EMAILS[commit], `Evidence successor committer drifted: ${commit}`);
+    assert.equal(sameStrings(record.paths, governed.files), true, `Evidence successor file scope drifted: ${commit}`);
+  }
   return commits;
 }
 
@@ -245,7 +316,13 @@ function verifyCrmAndIsolation(root) {
   assert.match(wrangler, /"name"\s*:\s*"prometheusrouteiq-website"/u);
 
   const changed = git(root, "diff", "--name-only", `${STARTING_COMMIT}..HEAD`).split("\n").filter(Boolean);
-  for (const prefix of ["data/", "intelligence/", "dashboard/", "index.html", "workers/prometheus-iq-worker.js"]) {
+  for (const prefix of ["data/", "intelligence/"]) {
+    const unexpected = changed.filter(path => (
+      (path === prefix || path.startsWith(prefix)) && !ALLOWED_EVIDENCE_SUCCESSOR_PATHS.has(path)
+    ));
+    assert.deepEqual(unexpected, [], `Protected runtime scope changed outside governed evidence successors: ${prefix}`);
+  }
+  for (const prefix of ["dashboard/", "index.html", "workers/prometheus-iq-worker.js"]) {
     assert.equal(changed.some(path => path === prefix || path.startsWith(prefix)), false, `Protected runtime scope changed: ${prefix}`);
   }
 }

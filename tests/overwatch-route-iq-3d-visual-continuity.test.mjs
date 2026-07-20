@@ -95,3 +95,10 @@ test("an ungoverned historical verifier successor fails closed", () => {
   value.protectedOverwatchVerifierSuccessors[0].successorSha256 = "0".repeat(64);
   assert.throws(() => validateRouteIq3dVisualContinuityGovernance(value));
 });
+
+test("Data and Intelligence runtime-evidence successors require exact owner provenance", () => {
+  const value = governance();
+  assert.equal(value.dispatchAudit.runtimeEvidenceSuccessors.length, 3);
+  value.dispatchAudit.runtimeEvidenceSuccessors[1].owner = "Prometheus Overwatch";
+  assert.throws(() => validateRouteIq3dVisualContinuityGovernance(value));
+});

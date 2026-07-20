@@ -144,7 +144,44 @@
           "workers/infrastructure/shared-lead-intake-pipeline.js"
         ]
       }
-    }
+    },
+    "runtimeEvidenceSuccessors": [
+      {
+        "commit": "85850c74564798889ba50cb15c7a7b0406a521fd",
+        "tree": "474eba67ed984b24466514b2760ed86b885ddc1e",
+        "owner": "Prometheus Data",
+        "subject": "data: synchronize restored 3D runtime surface",
+        "files": [
+          "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/route-intelligence-golden-route-quality-report.json",
+          "scripts/lib/route-intelligence-quality-gate.mjs",
+          "tests/route-intelligence-quality-gate.test.mjs"
+        ]
+      },
+      {
+        "commit": "b065d069bdb3439a0541074d80862494e1d8a9bc",
+        "tree": "5831b5c559c9fe403bb1b20623578245f4f1bcdf",
+        "owner": "Prometheus Intelligence Engine",
+        "subject": "intelligence: synchronize restored 3D route-quality consumers",
+        "files": [
+          "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
+          "intelligence/contracts/shadow-decision-readiness-contracts.json",
+          "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json",
+          "scripts/verify-shadow-decision-readiness.mjs",
+          "tests/route-iq-commercial-readiness-intelligence-data-route-quality-successor.test.mjs",
+          "tests/shadow-decision-readiness.test.mjs"
+        ]
+      },
+      {
+        "commit": "cee8d681fd2272aca3425f10b433507819085424",
+        "tree": "f2a9a2ebdd710b792e77792ad1d613f0dcd1db27",
+        "owner": "Prometheus Data",
+        "subject": "data: synchronize restored 3D intelligence claims",
+        "files": [
+          "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
+          "tests/route-iq-public-claims-data.test.mjs"
+        ]
+      }
+    ]
   },
   "publicPositioning": {
     "company": "Prometheus",
