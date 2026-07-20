@@ -1,13 +1,12 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createServer as createSecureServer } from "node:https";
-import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
-import { extname, join, normalize, resolve } from "node:path";
+import { accessSync, constants as fsConstants, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { delimiter, extname, join, normalize, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(import.meta.dirname, "..");
 const dashboardRoot = resolve(root, "deploy/cloudflare-pages");
-const chromePath = process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const activePoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pool-segmentation-v1/active-pool.json";
 const fullPoolPath = "data/qualified-prospects/google-qualified-businesses-v2/runtime-pools.json";
 const fieldSessionHandoffPath = "api/dashboard/route-iq/field-session";
@@ -29,7 +28,6 @@ export const eventbriteExpansionFixture = Object.freeze({
 });
 
 const results = [];
-const errors = [];
 let localCertificate;
 
 function disabledProspectiveBootstrap() {
@@ -110,6 +108,68 @@ function fail(name, detail) {
 function assertWorkflow(name, condition, detail, failureDetail = detail) {
   if (condition) pass(name, detail);
   else fail(name, failureDetail);
+}
+
+function executableCandidates(command, pathValue) {
+  if (!command) return [];
+  if (command.includes("/") || command.includes("\\")) return [resolve(command)];
+  return String(pathValue || "")
+    .split(delimiter)
+    .filter(Boolean)
+    .map(directory => resolve(directory, command));
+}
+
+function canExecute(path) {
+  try {
+    accessSync(path, fsConstants.X_OK);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+export function resolveChromeExecutable({
+  environment = process.env,
+  platform = process.platform,
+  isExecutable = canExecute
+} = {}) {
+  const configuredPath = String(environment.CHROME_PATH || "").trim();
+  if (configuredPath) {
+    const configuredCandidates = executableCandidates(configuredPath, environment.PATH);
+    const executable = configuredCandidates.find(isExecutable);
+    if (executable) return executable;
+    throw new Error(`Configured CHROME_PATH is not executable: ${configuredPath}`);
+  }
+
+  const platformPaths = platform === "darwin"
+    ? [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+      ]
+    : platform === "linux"
+    ? [
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+        "/usr/bin/chromium",
+        "/usr/bin/chromium-browser"
+      ]
+    : platform === "win32"
+    ? [
+        environment.PROGRAMFILES && join(environment.PROGRAMFILES, "Google/Chrome/Application/chrome.exe"),
+        environment["PROGRAMFILES(X86)"] && join(environment["PROGRAMFILES(X86)"], "Google/Chrome/Application/chrome.exe"),
+        environment.LOCALAPPDATA && join(environment.LOCALAPPDATA, "Google/Chrome/Application/chrome.exe")
+      ].filter(Boolean)
+    : [];
+  const pathCommands = platform === "win32"
+    ? ["chrome.exe"]
+    : ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser"];
+  const candidates = [
+    ...platformPaths,
+    ...pathCommands.flatMap(command => executableCandidates(command, environment.PATH))
+  ].filter((candidate, index, all) => all.indexOf(candidate) === index);
+  const executable = candidates.find(isExecutable);
+  if (executable) return executable;
+  throw new Error(`No executable Chrome or Chromium found for ${platform}; set CHROME_PATH explicitly.`);
 }
 
 export function createNoncanonicalTestClockSource(now) {
@@ -227,12 +287,20 @@ function localHttpsCertificate() {
     "-out",
     certPath
   ], { stdio: "ignore" });
-  if (result.status !== 0) throw new Error("Unable to create local HTTPS certificate with openssl.");
-  localCertificate = {
-    key: readFileSync(keyPath),
-    cert: readFileSync(certPath),
-    certDir
-  };
+  if (result.status !== 0) {
+    rmSync(certDir, { recursive: true, force: true });
+    throw new Error(`Unable to create local HTTPS certificate with openssl${result.error ? `: ${result.error.message}` : "."}`);
+  }
+  try {
+    localCertificate = {
+      key: readFileSync(keyPath),
+      cert: readFileSync(certPath),
+      certDir
+    };
+  } catch (error) {
+    rmSync(certDir, { recursive: true, force: true });
+    throw error;
+  }
   return localCertificate;
 }
 
@@ -438,20 +506,105 @@ function wait(ms) {
   return new Promise(resolveWait => setTimeout(resolveWait, ms));
 }
 
-async function waitForJson(url, timeoutMs = 8000) {
+export function parseDevToolsActivePort(value) {
+  const [portLine, browserWebSocketPath] = String(value || "").trim().split(/\r?\n/u);
+  const debugPort = Number(portLine);
+  if (!Number.isInteger(debugPort) || debugPort < 1 || debugPort > 65535) {
+    throw new Error("Chrome DevToolsActivePort did not contain a valid TCP port.");
+  }
+  if (!browserWebSocketPath?.startsWith("/devtools/browser/")) {
+    throw new Error("Chrome DevToolsActivePort did not contain a browser websocket path.");
+  }
+  return { debugPort, browserWebSocketPath };
+}
+
+function chromeStderrSuffix(stderr) {
+  const detail = String(stderr || "").trim();
+  return detail ? `; stderr=${detail}` : "";
+}
+
+async function waitForChromeReadiness({
+  processHandle,
+  userDataDir,
+  getStderr,
+  fetchImpl,
+  timeoutMs
+}) {
+  const activePortPath = join(userDataDir, "DevToolsActivePort");
   const deadline = Date.now() + timeoutMs;
   let lastError;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) return response.json();
-      lastError = new Error(`HTTP ${response.status}`);
-    } catch (error) {
-      lastError = error;
-    }
-    await wait(100);
+  let terminalError;
+  let notifyTerminal;
+  const terminal = new Promise(resolveTerminal => {
+    notifyTerminal = resolveTerminal;
+  });
+  const setTerminalError = error => {
+    if (terminalError) return;
+    terminalError = error;
+    notifyTerminal();
+  };
+  const onError = error => {
+    setTerminalError(new Error(`Chrome failed to start: ${error.message}${chromeStderrSuffix(getStderr())}`));
+  };
+  const onExit = (code, signal) => {
+    const status = signal ? `signal ${signal}` : `code ${code ?? "unknown"}`;
+    setTerminalError(new Error(`Chrome exited before DevTools readiness (${status})${chromeStderrSuffix(getStderr())}`));
+  };
+  const raceTerminal = promise => Promise.race([
+    promise,
+    terminal.then(() => {
+      throw terminalError;
+    })
+  ]);
+
+  processHandle.once("error", onError);
+  processHandle.once("exit", onExit);
+  if (processHandle.exitCode !== null || processHandle.signalCode !== null) {
+    onExit(processHandle.exitCode, processHandle.signalCode);
   }
-  throw lastError || new Error(`Timed out waiting for ${url}`);
+
+  try {
+    while (Date.now() < deadline) {
+      if (terminalError) throw terminalError;
+      let activePort;
+      try {
+        activePort = parseDevToolsActivePort(readFileSync(activePortPath, "utf8"));
+      } catch (error) {
+        lastError = error;
+      }
+
+      if (activePort) {
+        try {
+          const remainingMs = Math.max(1, deadline - Date.now());
+          const response = await raceTerminal(fetchImpl(
+            `http://127.0.0.1:${activePort.debugPort}/json/version`,
+            { signal: AbortSignal.timeout(Math.min(2000, remainingMs)) }
+          ));
+          if (!response.ok) {
+            lastError = new Error(`Chrome DevTools readiness returned HTTP ${response.status}.`);
+          } else {
+            const version = await raceTerminal(response.json());
+            if (typeof version?.webSocketDebuggerUrl !== "string" || !version.webSocketDebuggerUrl) {
+              lastError = new Error("Chrome DevTools readiness response omitted webSocketDebuggerUrl.");
+            } else {
+              return { ...activePort, version };
+            }
+          }
+        } catch (error) {
+          if (terminalError) throw terminalError;
+          lastError = error;
+        }
+      }
+      await raceTerminal(wait(50));
+    }
+  } finally {
+    processHandle.off("error", onError);
+    processHandle.off("exit", onExit);
+  }
+
+  if (terminalError) throw terminalError;
+  const lastDetail = lastError?.message ? `; last readiness error=${lastError.message}` : "";
+  throw new Error(`Chrome DevTools did not become ready within ${timeoutMs}ms${lastDetail}${chromeStderrSuffix(getStderr())}`);
 }
 
 async function createPage(debugPort) {
@@ -553,9 +706,73 @@ class CdpSession {
   }
 }
 
-async function launchChrome() {
-  const debugPort = 9400 + Math.floor(Math.random() * 1000);
-  const userDataDir = join(tmpdir(), `prometheus-dashboard-runtime-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+function processHasStopped(processHandle) {
+  return !processHandle?.pid || processHandle.exitCode !== null || processHandle.signalCode !== null;
+}
+
+function waitForProcessExit(processHandle, timeoutMs) {
+  if (processHasStopped(processHandle)) return Promise.resolve(true);
+  return new Promise(resolveExit => {
+    let settled = false;
+    const finish = exited => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      processHandle.off("exit", onExit);
+      resolveExit(exited || processHasStopped(processHandle));
+    };
+    const onExit = () => finish(true);
+    const timer = setTimeout(() => finish(false), timeoutMs);
+    processHandle.once("exit", onExit);
+    if (processHasStopped(processHandle)) finish(true);
+  });
+}
+
+export async function terminateChromeProcess(processHandle, {
+  gracefulTimeoutMs = 1500,
+  forceTimeoutMs = 1500
+} = {}) {
+  if (processHasStopped(processHandle)) return;
+  if (!processHandle.kill("SIGTERM") && !processHasStopped(processHandle)) {
+    throw new Error("Unable to send SIGTERM to Chrome.");
+  }
+  if (await waitForProcessExit(processHandle, gracefulTimeoutMs)) return;
+  if (!processHandle.kill("SIGKILL") && !processHasStopped(processHandle)) {
+    throw new Error("Unable to send SIGKILL to Chrome after its shutdown deadline.");
+  }
+  if (!await waitForProcessExit(processHandle, forceTimeoutMs)) {
+    throw new Error("Chrome remained alive after SIGKILL.");
+  }
+}
+
+async function closeChromeProcess(processHandle, userDataDir, shutdownOptions) {
+  const failures = [];
+  try {
+    await terminateChromeProcess(processHandle, shutdownOptions);
+  } catch (error) {
+    failures.push(error);
+  }
+  try {
+    rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
+  } catch (error) {
+    failures.push(new Error(`Chrome profile cleanup failed: ${error.message}`));
+  }
+  if (failures.length) throw new AggregateError(failures, "Chrome teardown failed.");
+}
+
+export async function launchChrome({
+  executablePath,
+  tempRoot = tmpdir(),
+  readinessTimeoutMs = 8000,
+  gracefulShutdownTimeoutMs = 1500,
+  forceShutdownTimeoutMs = 1500,
+  spawnImpl = spawn,
+  fetchImpl = fetch
+} = {}) {
+  const chromeExecutable = executablePath
+    ? resolveChromeExecutable({ environment: { ...process.env, CHROME_PATH: executablePath } })
+    : resolveChromeExecutable();
+  const userDataDir = mkdtempSync(join(tempRoot, "prometheus-dashboard-runtime-"));
   const args = [
     "--headless=new",
     "--disable-gpu",
@@ -567,38 +784,55 @@ async function launchChrome() {
     "--no-first-run",
     "--no-default-browser-check",
     `--user-data-dir=${userDataDir}`,
-    `--remote-debugging-port=${debugPort}`,
+    "--remote-debugging-address=127.0.0.1",
+    "--remote-debugging-port=0",
     "about:blank"
   ];
-  const processHandle = spawn(chromePath, args, { stdio: ["ignore", "pipe", "pipe"] });
+  let processHandle;
+  try {
+    processHandle = spawnImpl(chromeExecutable, args, { stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    rmSync(userDataDir, { recursive: true, force: true });
+    throw new Error(`Chrome failed to start: ${error.message}`);
+  }
   let stderr = "";
-  processHandle.stderr.on("data", chunk => {
-    stderr += chunk.toString();
+  processHandle.stderr?.on("data", chunk => {
+    stderr = `${stderr}${chunk.toString()}`.slice(-16384);
   });
-  processHandle.on("error", error => {
-    errors.push(`Chrome launch failed: ${error.message}`);
-  });
-  await waitForJson(`http://127.0.0.1:${debugPort}/json/version`);
+  const shutdownOptions = {
+    gracefulTimeoutMs: gracefulShutdownTimeoutMs,
+    forceTimeoutMs: forceShutdownTimeoutMs
+  };
+  let closePromise;
+  const close = () => {
+    closePromise ||= closeChromeProcess(processHandle, userDataDir, shutdownOptions);
+    return closePromise;
+  };
+  let readiness;
+  try {
+    readiness = await waitForChromeReadiness({
+      processHandle,
+      userDataDir,
+      getStderr: () => stderr,
+      fetchImpl,
+      timeoutMs: readinessTimeoutMs
+    });
+  } catch (startupError) {
+    try {
+      await close();
+    } catch (teardownError) {
+      throw new AggregateError(
+        [startupError, teardownError],
+        `Chrome startup and teardown failed: ${startupError.message}`,
+        { cause: startupError }
+      );
+    }
+    throw startupError;
+  }
   return {
-    debugPort,
+    debugPort: readiness.debugPort,
     close: async () => {
-      if (!processHandle.killed) processHandle.kill("SIGTERM");
-      await new Promise(resolveClose => {
-        const timer = setTimeout(resolveClose, 1500);
-        processHandle.once("exit", () => {
-          clearTimeout(timer);
-          resolveClose();
-        });
-      });
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        try {
-          rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
-          break;
-        } catch (error) {
-          if (attempt === 2) errors.push(`Chrome profile cleanup failed: ${error.message}`);
-          await wait(200);
-        }
-      }
+      await close();
       if (stderr && process.env.PROMETHEUS_DASHBOARD_HARNESS_DEBUG) console.error(stderr);
     }
   };
@@ -2492,106 +2726,127 @@ function verifyRuntimePerformance(activeSnap, activeRouteLoadMs) {
   assertWorkflow("Route loading performance regressions", activeBytes < fullBytes && activeResourceMs < 5000 && activeRouteLoadMs < 60000, detail, detail);
 }
 
+function trackHarnessResource(resources, name, resource) {
+  resources.push({ name, close: resource.close });
+  return resource;
+}
+
+export async function closeHarnessResources(resources) {
+  const failures = [];
+  for (const resource of [...resources].reverse()) {
+    try {
+      await resource.close();
+    } catch (error) {
+      failures.push({ name: resource.name, error });
+    }
+  }
+  return failures;
+}
+
 async function runHarness() {
   verifyRouteUpdateStatusContract();
-  const server = await startStaticServer();
-  const fallbackServer = await startStaticServer({ missingActive: true });
-  const fieldSessionServer = await startStaticServer();
-  const fieldSessionRetryServer = await startStaticServer({
-    fieldSessionResponses: [
-      { status: 503, code: "field_session_store_unavailable", retryable: true },
-      { status: 201 }
-    ]
-  });
-  const visitCorrectionServer = await startStaticServer();
-  const addPlaceServer = await startStaticServer();
-  const decisionContextServer = await startStaticServer();
-  const prospectiveServer = await startStaticServer({
-    prospectiveResponse: {
-      status: 202,
-      body: {
-        marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD",
-        rankedCandidates: ["must-not-reach-the-representative"],
-        probability: 0.99,
-        confidence: "must-not-reach-the-representative"
-      }
-    },
-    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
-  });
-  const prospectiveOffServer = await startStaticServer();
-  const prospectiveFailureServer = await startStaticServer({
-    prospectiveResponse: {
-      status: 503,
-      body: { marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD", code: "prospective_runtime_unavailable" }
-    },
-    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
-  });
-  const prospectiveInvalidBootstrapServer = await startStaticServer({
-    prospectiveBootstrapResponse: {
-      status: 200,
-      body: { collection: "ON", status: "enabled" }
-    }
-  });
-  const prospectiveUnavailableBootstrapServer = await startStaticServer({
-    prospectiveBootstrapResponse: {
-      status: 503,
-      body: { ok: false, code: "prospective_bootstrap_unavailable" }
-    }
-  });
-  const prospectiveStaleBootstrapServer = await startStaticServer({
-    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({
-      issuedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-      expiresAt: new Date(Date.now() - 60 * 1000).toISOString()
-    })
-  });
-  const prospectiveUnauthorizedBootstrapServer = await startStaticServer({
-    prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({ representativeId: "cruz" })
-  });
-  const prospectiveTimeoutBootstrapServer = await startStaticServer({
-    prospectiveBootstrapResponse: {
-      status: 200,
-      body: enabledProspectiveBootstrap().body,
-      delayMs: 4000
-    }
-  });
-  const founderDailyIntelligenceServer = await startStaticServer({
-    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
-  });
-  const founderDailyIntelligenceAnthonyServer = await startStaticServer({
-    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
-      principal: {
-        mappingId: "route-iq-founder-access-anthony-pending",
-        immutablePrincipalId: "route-iq-principal-anthony-pending",
-        mappingStatus: "pending_secure_authenticated_identity_mapping"
-      }
-    })
-  });
-  const founderDailyIntelligenceUnsafeServer = await startStaticServer({
-    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
-      snapshot: {
-        safety: {
-          readOnly: true,
-          founderOnly: true,
-          representativeReadable: false,
-          recommendationInfluence: "ON",
-          routeOrderingChanged: false,
-          routeScoringWeightsChanged: false,
-          discoveryModeInfluenceChanged: false,
-          nearbyContextInfluenceChanged: false,
-          offRouteLearningInfluenceChanged: false,
-          sourceEvidenceMutationAllowed: false
-        }
-      }
-    })
-  });
-  const founderDailyIntelligenceInvalidConfigurationHashServer = await startStaticServer({
-    founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
-      snapshot: { businessConfigurationSha256: "A".repeat(64) }
-    })
-  });
-  const chrome = await launchChrome();
-
+  const chromeExecutable = resolveChromeExecutable();
+  const resources = [];
+  const startServer = async (name, options) => trackHarnessResource(resources, name, await startStaticServer(options));
+  let harnessError;
   try {
+    const server = await startServer("primary HTTPS server");
+    const fallbackServer = await startServer("fallback HTTPS server", { missingActive: true });
+    const fieldSessionServer = await startServer("field-session HTTPS server");
+    const fieldSessionRetryServer = await startServer("field-session retry HTTPS server", {
+      fieldSessionResponses: [
+        { status: 503, code: "field_session_store_unavailable", retryable: true },
+        { status: 201 }
+      ]
+    });
+    const visitCorrectionServer = await startServer("visit-correction HTTPS server");
+    const addPlaceServer = await startServer("add-place HTTPS server");
+    const decisionContextServer = await startServer("decision-context HTTPS server");
+    const prospectiveServer = await startServer("prospective HTTPS server", {
+      prospectiveResponse: {
+        status: 202,
+        body: {
+          marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD",
+          rankedCandidates: ["must-not-reach-the-representative"],
+          probability: 0.99,
+          confidence: "must-not-reach-the-representative"
+        }
+      },
+      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
+    });
+    const prospectiveOffServer = await startServer("prospective-off HTTPS server");
+    const prospectiveFailureServer = await startServer("prospective-failure HTTPS server", {
+      prospectiveResponse: {
+        status: 503,
+        body: { marker: "DO_NOT_EXPOSE_SHADOW_PAYLOAD", code: "prospective_runtime_unavailable" }
+      },
+      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap()
+    });
+    const prospectiveInvalidBootstrapServer = await startServer("prospective invalid-bootstrap HTTPS server", {
+      prospectiveBootstrapResponse: {
+        status: 200,
+        body: { collection: "ON", status: "enabled" }
+      }
+    });
+    const prospectiveUnavailableBootstrapServer = await startServer("prospective unavailable-bootstrap HTTPS server", {
+      prospectiveBootstrapResponse: {
+        status: 503,
+        body: { ok: false, code: "prospective_bootstrap_unavailable" }
+      }
+    });
+    const prospectiveStaleBootstrapServer = await startServer("prospective stale-bootstrap HTTPS server", {
+      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({
+        issuedAt: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
+        expiresAt: new Date(Date.now() - 60 * 1000).toISOString()
+      })
+    });
+    const prospectiveUnauthorizedBootstrapServer = await startServer("prospective unauthorized-bootstrap HTTPS server", {
+      prospectiveBootstrapResponse: () => enabledProspectiveBootstrap({ representativeId: "cruz" })
+    });
+    const prospectiveTimeoutBootstrapServer = await startServer("prospective timeout-bootstrap HTTPS server", {
+      prospectiveBootstrapResponse: {
+        status: 200,
+        body: enabledProspectiveBootstrap().body,
+        delayMs: 4000
+      }
+    });
+    const founderDailyIntelligenceServer = await startServer("Founder intelligence HTTPS server", {
+      founderDailyIntelligenceResponse: founderDailyIntelligenceResponse()
+    });
+    const founderDailyIntelligenceAnthonyServer = await startServer("Anthony intelligence HTTPS server", {
+      founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+        principal: {
+          mappingId: "route-iq-founder-access-anthony-pending",
+          immutablePrincipalId: "route-iq-principal-anthony-pending",
+          mappingStatus: "pending_secure_authenticated_identity_mapping"
+        }
+      })
+    });
+    const founderDailyIntelligenceUnsafeServer = await startServer("unsafe intelligence HTTPS server", {
+      founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+        snapshot: {
+          safety: {
+            readOnly: true,
+            founderOnly: true,
+            representativeReadable: false,
+            recommendationInfluence: "ON",
+            routeOrderingChanged: false,
+            routeScoringWeightsChanged: false,
+            discoveryModeInfluenceChanged: false,
+            nearbyContextInfluenceChanged: false,
+            offRouteLearningInfluenceChanged: false,
+            sourceEvidenceMutationAllowed: false
+          }
+        }
+      })
+    });
+    const founderDailyIntelligenceInvalidConfigurationHashServer = await startServer("invalid intelligence configuration HTTPS server", {
+      founderDailyIntelligenceResponse: founderDailyIntelligenceResponse({
+        snapshot: { businessConfigurationSha256: "A".repeat(64) }
+      })
+    });
+    const chrome = trackHarnessResource(resources, "Chrome", await launchChrome({ executablePath: chromeExecutable }));
+
     const switcher = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=workspace-switcher", "workspace-switcher");
     const switcherSnap = switcher.initial;
     const productFocus = await switcher.cdp.evaluate(`(() => ({
@@ -3038,31 +3293,32 @@ async function runHarness() {
     adaptive.cdp.close();
     full.cdp.close();
     fallback.cdp.close();
-  } finally {
-    await chrome.close();
-    await server.close();
-    await fallbackServer.close();
-    await fieldSessionServer.close();
-    await fieldSessionRetryServer.close();
-    await visitCorrectionServer.close();
-    await addPlaceServer.close();
-    await decisionContextServer.close();
-    await prospectiveServer.close();
-    await prospectiveOffServer.close();
-    await prospectiveFailureServer.close();
-    await prospectiveInvalidBootstrapServer.close();
-    await prospectiveUnavailableBootstrapServer.close();
-    await prospectiveStaleBootstrapServer.close();
-    await prospectiveUnauthorizedBootstrapServer.close();
-    await prospectiveTimeoutBootstrapServer.close();
-    await founderDailyIntelligenceServer.close();
-    await founderDailyIntelligenceAnthonyServer.close();
-    await founderDailyIntelligenceUnsafeServer.close();
-    await founderDailyIntelligenceInvalidConfigurationHashServer.close();
-    if (localCertificate?.certDir) {
+  } catch (error) {
+    harnessError = error;
+  }
+
+  const cleanupFailures = await closeHarnessResources(resources);
+  if (localCertificate?.certDir) {
+    try {
       rmSync(localCertificate.certDir, { recursive: true, force: true });
-      localCertificate = undefined;
+    } catch (error) {
+      cleanupFailures.push({ name: "local HTTPS certificate", error });
     }
+    localCertificate = undefined;
+  }
+  if (harnessError && cleanupFailures.length) {
+    throw new AggregateError(
+      [harnessError, ...cleanupFailures.map(failure => failure.error)],
+      `Dashboard harness failed and cleanup also failed: ${cleanupFailures.map(failure => failure.name).join(", ")}`,
+      { cause: harnessError }
+    );
+  }
+  if (harnessError) throw harnessError;
+  if (cleanupFailures.length) {
+    throw new AggregateError(
+      cleanupFailures.map(failure => failure.error),
+      `Dashboard harness cleanup failed: ${cleanupFailures.map(failure => failure.name).join(", ")}`
+    );
   }
 }
 
@@ -3070,13 +3326,10 @@ try {
   if (fileURLToPath(import.meta.url) === process.argv[1]) {
     await runHarness();
     const failed = results.filter(result => result.status === "FAIL");
-    if (errors.length) errors.forEach(error => fail("Harness infrastructure", error));
-    const finalFailures = results.filter(result => result.status === "FAIL");
-    console.log(`Dashboard runtime workflow regression harness complete: ${results.length - finalFailures.length}/${results.length} passed.`);
-    if (failed.length || errors.length) process.exitCode = 1;
-    process.exit(process.exitCode || 0);
+    console.log(`Dashboard runtime workflow regression harness complete: ${results.length - failed.length}/${results.length} passed.`);
+    if (failed.length) process.exitCode = 1;
   }
 } catch (error) {
   console.error(`FAIL Harness infrastructure: ${error.stack || error.message || error}`);
-  process.exit(1);
+  process.exitCode = 1;
 }
