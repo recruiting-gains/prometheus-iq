@@ -24,10 +24,13 @@ import {
   canonicalizeGeneratedWorkerSource,
   verifyPublicForwardRollbackArtifact
 } from "../scripts/lib/route-iq-public-forward-rollback.mjs";
+import {
+  verifyInfrastructureOwnerBoundary
+} from "../scripts/verify-route-iq-public-repository-integrity-repair.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 
-function git(repository, argumentsList, { input } = {}) {
+function git(repository, argumentsList, { input, env = {} } = {}) {
   const result = spawnSync("git", argumentsList, {
     cwd: repository,
     input,
@@ -39,11 +42,119 @@ function git(repository, argumentsList, { input } = {}) {
       PATH: process.env.PATH,
       HOME: process.env.HOME,
       GIT_CONFIG_NOSYSTEM: "1",
-      GIT_TERMINAL_PROMPT: "0"
+      GIT_TERMINAL_PROMPT: "0",
+      ...env
     }
   });
   assert.equal(result.status, 0, `fixture Git failed: ${argumentsList.join(" ")}\n${result.stderr}`);
   return String(result.stdout || "").trim();
+}
+
+function commitFixture(repository, {
+  path,
+  content,
+  subject,
+  authorName,
+  authorEmail,
+  committerName = authorName,
+  committerEmail = authorEmail
+}) {
+  const absolutePath = join(repository, path);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, content, "utf8");
+  git(repository, ["add", path]);
+  git(repository, ["commit", "--quiet", "-m", subject], {
+    env: {
+      GIT_AUTHOR_NAME: authorName,
+      GIT_AUTHOR_EMAIL: authorEmail,
+      GIT_COMMITTER_NAME: committerName,
+      GIT_COMMITTER_EMAIL: committerEmail
+    }
+  });
+  const commit = git(repository, ["rev-parse", "HEAD"]);
+  return Object.freeze({
+    commit,
+    tree: git(repository, ["rev-parse", "HEAD^{tree}"]),
+    parent: git(repository, ["rev-parse", "HEAD^"]),
+    authorName,
+    authorEmail,
+    committerName,
+    committerEmail,
+    subject,
+    files: Object.freeze([path])
+  });
+}
+
+function createOwnerBoundaryRepository(parent, name) {
+  const repository = join(parent, name);
+  mkdirSync(repository);
+  git(repository, ["init", "--quiet", "--initial-branch=main"]);
+  writeFileSync(join(repository, "baseline.txt"), "baseline\n", "utf8");
+  git(repository, ["add", "baseline.txt"]);
+  git(repository, ["commit", "--quiet", "-m", "baseline: seed"], {
+    env: {
+      GIT_AUTHOR_NAME: "Prometheus Foundation",
+      GIT_AUTHOR_EMAIL: "foundation@prometheus.local",
+      GIT_COMMITTER_NAME: "Prometheus Foundation",
+      GIT_COMMITTER_EMAIL: "foundation@prometheus.local"
+    }
+  });
+
+  const infrastructure = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const overwatch = {
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local"
+  };
+  const first = commitFixture(repository, {
+    ...infrastructure,
+    path: "scripts/infrastructure-first.mjs",
+    content: "export const first = true;\n",
+    subject: "infrastructure: first frozen owner commit"
+  });
+  const terminal = commitFixture(repository, {
+    ...infrastructure,
+    path: "scripts/infrastructure-terminal.mjs",
+    content: "export const terminal = true;\n",
+    subject: "infrastructure: terminal frozen owner commit"
+  });
+  const knownOverwatchSuccessor = commitFixture(repository, {
+    ...overwatch,
+    path: "overwatch/governance/known-successor.json",
+    content: "{}\n",
+    subject: "overwatch: known governance successor"
+  });
+  const repair = commitFixture(repository, {
+    ...infrastructure,
+    path: "docs/owner-boundary-repair.md",
+    content: "owner boundary\n",
+    subject: "infrastructure: synthetic owner boundary repair"
+  });
+  commitFixture(repository, {
+    ...overwatch,
+    path: "scripts/verify-overwatch-later-successor.mjs",
+    content: "export const verified = true;\n",
+    subject: "overwatch: later governance successor"
+  });
+
+  return Object.freeze({
+    repository,
+    boundary: Object.freeze({
+      infrastructureCommits: Object.freeze([first, terminal]),
+      knownOverwatchSuccessor,
+      boundaryRepairSuccessor: Object.freeze({
+        parent: knownOverwatchSuccessor.commit,
+        authorName: infrastructure.authorName,
+        authorEmail: infrastructure.authorEmail,
+        committerName: infrastructure.authorName,
+        committerEmail: infrastructure.authorEmail,
+        subject: repair.subject,
+        files: repair.files
+      })
+    })
+  });
 }
 
 function createRepository(parent, name = "repository") {
@@ -323,6 +434,81 @@ test("safe integrity workflow has no secret, environment, deployment, Cloudflare
     /\bPOST\b/u,
     /partner-intake/u
   ]) assert.doesNotMatch(workflow, forbidden);
+});
+
+test("owner boundary pins frozen Infrastructure commits and permits legitimate Overwatch successors", () => {
+  const current = verifyInfrastructureOwnerBoundary(root);
+  assert.equal(current.terminalOwnerCommit, "a2779239fc8f2d79d4b8781966d32cc23d4acbbd");
+  assert.ok(current.descendants >= 1);
+
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
+  try {
+    const { repository, boundary } = createOwnerBoundaryRepository(fixture, "repository");
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(repository, boundary), {
+      terminalOwnerCommit: boundary.infrastructureCommits.at(-1).commit,
+      descendants: 3,
+      repairSeen: true
+    });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary rejects an Overwatch-authored Infrastructure-path mutation", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-path-"));
+  try {
+    const { repository, boundary } = createOwnerBoundaryRepository(fixture, "repository");
+    commitFixture(repository, {
+      path: "scripts/infrastructure-first.mjs",
+      content: "export const first = false;\n",
+      subject: "overwatch: mutate Infrastructure implementation",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(repository, boundary));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary rejects mixed ownership and merge successors", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-invalid-"));
+  try {
+    const mixed = createOwnerBoundaryRepository(fixture, "mixed");
+    commitFixture(mixed.repository, {
+      path: "overwatch/governance/mixed-owner.json",
+      content: "{}\n",
+      subject: "overwatch: mixed owner successor",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(mixed.repository, mixed.boundary));
+
+    const merged = createOwnerBoundaryRepository(fixture, "merged");
+    const current = git(merged.repository, ["rev-parse", "HEAD"]);
+    const mergeParent = git(merged.repository, ["rev-parse", "HEAD~1"]);
+    const tree = git(merged.repository, ["rev-parse", "HEAD^{tree}"]);
+    const mergeCommit = git(merged.repository, [
+      "commit-tree", tree, "-p", current, "-p", mergeParent
+    ], {
+      input: "overwatch: merge successor\n",
+      env: {
+        GIT_AUTHOR_NAME: "Prometheus Overwatch",
+        GIT_AUTHOR_EMAIL: "overwatch@prometheus.local",
+        GIT_COMMITTER_NAME: "Prometheus Overwatch",
+        GIT_COMMITTER_EMAIL: "overwatch@prometheus.local"
+      }
+    });
+    git(merged.repository, ["update-ref", "refs/heads/main", mergeCommit, current]);
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(merged.repository, merged.boundary),
+      /linear non-merge successor/u
+    );
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
 });
 
 test("unknown verification exceptions are not mislabeled as repository corruption", () => {

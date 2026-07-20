@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 import {
@@ -36,6 +37,77 @@ const expectedOwnerFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const pinnedNodeSuccessorFiles = Object.freeze([
+  ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+const knownOverwatchSuccessorFiles = Object.freeze([
+  "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+  "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
+  "scripts/verify-overwatch-route-iq-public-crm-founder-access-deployment-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
+const ownerBoundaryRepairFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+
+export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
+  infrastructureCommits: Object.freeze([
+    Object.freeze({
+      commit: "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+      tree: "8b5202428cfdb6a3586bdc90f39cce4d3ea02e97",
+      parent: "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: repair public repository integrity diagnostics",
+      files: expectedOwnerFiles,
+      contractBlob: "673857de365f5c193684afd125970b7b2f65e99d"
+    }),
+    Object.freeze({
+      commit: "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
+      tree: "025d3d01cae56753f9d0c5e63af5ea369a52b4ff",
+      parent: "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: pin safe integrity diagnostic runtime",
+      files: pinnedNodeSuccessorFiles,
+      contractBlob: "67fccf3fbd534f877097b33154028c84c0ffbbc2"
+    })
+  ]),
+  knownOverwatchSuccessor: Object.freeze({
+    commit: "96af76e8094beafc2de455ebb5d80755c0160a2e",
+    tree: "464118922a37710452ec85009df24007e9a4ffdf",
+    parent: "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local",
+    committerName: "Prometheus Overwatch",
+    committerEmail: "overwatch@prometheus.local",
+    subject: "overwatch: record public integrity repair readiness",
+    files: knownOverwatchSuccessorFiles
+  }),
+  boundaryRepairSuccessor: Object.freeze({
+    parent: "96af76e8094beafc2de455ebb5d80755c0160a2e",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: constrain repository integrity owner boundary",
+    files: ownerBoundaryRepairFiles
+  })
+});
 
 function read(path) {
   return readFileSync(resolve(root, path), "utf8");
@@ -46,8 +118,12 @@ function sha256(path) {
 }
 
 function git(argumentsList) {
+  return gitAt(root, argumentsList);
+}
+
+function gitAt(repositoryRoot, argumentsList) {
   return execFileSync("git", argumentsList, {
-    cwd: root,
+    cwd: repositoryRoot,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "ignore"],
     env: {
@@ -59,6 +135,96 @@ function git(argumentsList) {
   }).trim();
 }
 
+function commitSnapshot(repositoryRoot, commit) {
+  const [hash, tree, parents, authorName, authorEmail, committerName, committerEmail, ...subject] = gitAt(
+    repositoryRoot,
+    ["show", "-s", "--format=%H%n%T%n%P%n%an%n%ae%n%cn%n%ce%n%s", commit]
+  ).split("\n");
+  return Object.freeze({
+    commit: hash,
+    tree,
+    parents: parents.split(" ").filter(Boolean),
+    authorName,
+    authorEmail,
+    committerName,
+    committerEmail,
+    subject: subject.join("\n"),
+    files: gitAt(repositoryRoot, ["diff-tree", "--no-commit-id", "--name-only", "-r", commit])
+      .split("\n").filter(Boolean).sort()
+  });
+}
+
+function assertCommitSnapshot(repositoryRoot, expected) {
+  const actual = commitSnapshot(repositoryRoot, expected.commit);
+  assert.equal(actual.commit, expected.commit);
+  assert.equal(actual.tree, expected.tree);
+  assert.deepEqual(actual.parents, [expected.parent]);
+  for (const field of ["authorName", "authorEmail", "committerName", "committerEmail", "subject"]) {
+    assert.equal(actual[field], expected[field], `${expected.commit} ${field} drifted`);
+  }
+  assert.deepEqual(actual.files, [...expected.files].sort(), `${expected.commit} file scope drifted`);
+  if (expected.contractBlob) {
+    assert.equal(
+      gitAt(repositoryRoot, ["rev-parse", `${expected.commit}:${PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityContractPath}`]),
+      expected.contractBlob,
+      `${expected.commit} contract blob drifted`
+    );
+  }
+  return actual;
+}
+
+function isOverwatchOwnedPath(path) {
+  return path.startsWith("overwatch/")
+    || path.startsWith("scripts/verify-overwatch-")
+    || path.startsWith("tests/overwatch-");
+}
+
+export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INFRASTRUCTURE_OWNER_BOUNDARY) {
+  for (const expected of boundary.infrastructureCommits) {
+    assertCommitSnapshot(repositoryRoot, expected);
+    gitAt(repositoryRoot, ["merge-base", "--is-ancestor", expected.commit, "HEAD"]);
+  }
+  const terminal = boundary.infrastructureCommits.at(-1).commit;
+  const descendants = gitAt(repositoryRoot, ["rev-list", "--reverse", `${terminal}..HEAD`])
+    .split("\n").filter(Boolean);
+  assert.ok(descendants.length >= 1, "known Overwatch successor is missing");
+  assert.equal(descendants[0], boundary.knownOverwatchSuccessor.commit);
+  assertCommitSnapshot(repositoryRoot, boundary.knownOverwatchSuccessor);
+
+  let previous = terminal;
+  let repairSeen = false;
+  for (const commit of descendants) {
+    const actual = commitSnapshot(repositoryRoot, commit);
+    assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
+    if (commit === boundary.knownOverwatchSuccessor.commit) {
+      previous = commit;
+      continue;
+    }
+    const repair = boundary.boundaryRepairSuccessor;
+    const isRepair = !repairSeen
+      && actual.parents[0] === repair.parent
+      && actual.authorName === repair.authorName
+      && actual.authorEmail === repair.authorEmail
+      && actual.committerName === repair.committerName
+      && actual.committerEmail === repair.committerEmail
+      && actual.subject === repair.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...repair.files].sort());
+    if (isRepair) {
+      repairSeen = true;
+      previous = commit;
+      continue;
+    }
+    assert.equal(actual.authorName, "Prometheus Overwatch");
+    assert.equal(actual.authorEmail, "overwatch@prometheus.local");
+    assert.equal(actual.committerName, "Prometheus Overwatch");
+    assert.equal(actual.committerEmail, "overwatch@prometheus.local");
+    assert.match(actual.subject, /^overwatch: /u);
+    assert.ok(actual.files.length > 0 && actual.files.every(isOverwatchOwnedPath));
+    previous = commit;
+  }
+  return Object.freeze({ terminalOwnerCommit: terminal, descendants: descendants.length, repairSeen });
+}
+
 export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   const contract = JSON.parse(read(contractPath));
   assert.equal(contract.version, "route-iq-public-repository-integrity-repair-v1");
@@ -66,6 +232,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(contract.status, "OWNER_REPAIR_IMPLEMENTED_NOT_PUSHED_NOT_DEPLOYED");
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
+  assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
   assert.deepEqual(contract.baseline, {
     branch: "main",
     head: "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
@@ -74,12 +241,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   });
   assert.equal(git(["rev-parse", `${contract.baseline.head}^{tree}`]), contract.baseline.tree);
   git(["merge-base", "--is-ancestor", contract.baseline.head, "HEAD"]);
-  if (git(["rev-parse", "HEAD"]) !== contract.baseline.head) {
-    assert.deepEqual(
-      git(["diff", "--name-only", `${contract.baseline.head}..HEAD`]).split("\n").filter(Boolean),
-      expectedOwnerFiles
-    );
-  }
+  verifyInfrastructureOwnerBoundary(root);
 
   const failed = contract.failedRun;
   assert.equal(failed.runId, 29714512987);
@@ -256,9 +418,12 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   });
 }
 
-try {
-  process.stdout.write(`${verifyRouteIqPublicRepositoryIntegrityRepair().status}\n`);
-} catch {
-  process.stdout.write("FAIL\n");
-  process.exitCode = 1;
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  try {
+    process.stdout.write(`${verifyRouteIqPublicRepositoryIntegrityRepair().status}\n`);
+  } catch {
+    process.stdout.write("FAIL\n");
+    process.exitCode = 1;
+  }
 }

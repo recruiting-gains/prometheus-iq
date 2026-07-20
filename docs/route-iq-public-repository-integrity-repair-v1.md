@@ -46,6 +46,16 @@ fsck and emits bounded classifications if a future runner detects a real failure
 - The Infrastructure successor fixes the runtime order to checkout, pinned Node 24 setup, repository
   diagnostic, locked dependency installation, then rollback verification. No repository-owned Node
   script may execute with the hosted runner's ambient Node runtime.
+- Owner verification now terminates the Infrastructure implementation boundary at
+  `a2779239fc8f2d79d4b8781966d32cc23d4acbbd`, with predecessor
+  `a2bcfedcd996e4d6d22adc26d20bd77a39e763e7`. It pins each commit's parent, tree, author and
+  committer identities, subject, file scope, and contract blob instead of treating every later
+  commit as Infrastructure work.
+- The legitimate Overwatch readiness successor
+  `96af76e8094beafc2de455ebb5d80755c0160a2e` is independently pinned. Later linear,
+  Overwatch-authored governance and verification successors are permitted only in Overwatch-owned
+  paths; merges, mixed identities, Infrastructure-path drift, and out-of-scope owner files fail
+  closed.
 
 The repaired path-independent rollback artifact is:
 

@@ -16,6 +16,85 @@
     "tests/public-repository-integrity-repair.test.mjs",
     "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
   ],
+  "ownerBoundary": {
+    "infrastructureCommits": [
+      {
+        "commit": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+        "tree": "8b5202428cfdb6a3586bdc90f39cce4d3ea02e97",
+        "parent": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+        "authorName": "Prometheus Infrastructure",
+        "authorEmail": "infrastructure@prometheus.local",
+        "committerName": "Prometheus Infrastructure",
+        "committerEmail": "infrastructure@prometheus.local",
+        "subject": "infrastructure: repair public repository integrity diagnostics",
+        "files": [
+          ".github/workflows/deploy-prometheus-public-worker.yml",
+          ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/run-github-actions-public-worker-deployment.mjs",
+          "scripts/run-public-worker-repository-integrity-diagnostic.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ],
+        "contractBlob": "673857de365f5c193684afd125970b7b2f65e99d"
+      },
+      {
+        "commit": "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
+        "tree": "025d3d01cae56753f9d0c5e63af5ea369a52b4ff",
+        "parent": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+        "authorName": "Prometheus Infrastructure",
+        "authorEmail": "infrastructure@prometheus.local",
+        "committerName": "Prometheus Infrastructure",
+        "committerEmail": "infrastructure@prometheus.local",
+        "subject": "infrastructure: pin safe integrity diagnostic runtime",
+        "files": [
+          ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ],
+        "contractBlob": "67fccf3fbd534f877097b33154028c84c0ffbbc2"
+      }
+    ],
+    "knownOverwatchSuccessor": {
+      "commit": "96af76e8094beafc2de455ebb5d80755c0160a2e",
+      "tree": "464118922a37710452ec85009df24007e9a4ffdf",
+      "parent": "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
+      "authorName": "Prometheus Overwatch",
+      "authorEmail": "overwatch@prometheus.local",
+      "committerName": "Prometheus Overwatch",
+      "committerEmail": "overwatch@prometheus.local",
+      "subject": "overwatch: record public integrity repair readiness",
+      "files": [
+        "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+        "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
+        "scripts/verify-overwatch-route-iq-public-crm-founder-access-deployment-readiness.mjs",
+        "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+        "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
+        "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+        "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+      ]
+    },
+    "boundaryRepairSuccessor": {
+      "parent": "96af76e8094beafc2de455ebb5d80755c0160a2e",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: constrain repository integrity owner boundary",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    }
+  },
   "baseline": {
     "branch": "main",
     "head": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
