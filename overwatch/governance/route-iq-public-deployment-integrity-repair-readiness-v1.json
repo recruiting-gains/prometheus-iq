@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -89,11 +89,25 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "1363548cb72285cdd759b1dbed73fa6a8a3d1c2a",
+      "tree": "5cef523d23b28088bcf7b05561a4bac3784e364b",
+      "parent": "8d312bf747a289c675eb37adf582b43c860c635e",
+      "subject": "infrastructure: repair public integrity verifier portability",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "d2284276529a7240bd214818ef6f5f6b5f750c51185f129ca9cb45eafa79fd51",
+    "contractSha256": "cb9725ec53a95c585377be8ac42ea3fbfa9ec426a25711decb0e3218dd423349",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -107,6 +121,9 @@
     "missingCorruptMalformedAndInvalidRefFailuresRemainFatal": true,
     "repositoryIntegrityRunsBeforeRollbackAndCredentials": true,
     "pinnedNodeRunsBeforeRepositoryScripts": true,
+    "sourceMapSourcesResolvedAgainstValidatedRoot": true,
+    "sourceMapRealpathContainmentRequired": true,
+    "genericOwnerVerifierFailureAllowed": false,
     "ownerVerifierAllowsOnlyGovernedOverwatchDescendants": true,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -130,7 +147,25 @@
     "cloudflareAccessAllowed": false,
     "deploymentCapability": false,
     "crmWriteCapability": false,
-    "mustPassBeforeFreshDeploymentReview": true
+    "mustPassBeforeFreshDeploymentReview": true,
+    "nextRunRequired": true,
+    "latestRun": {
+      "runId": 29717192952,
+      "jobId": 88272671229,
+      "head": "8d312bf747a289c675eb37adf582b43c860c635e",
+      "tree": "36f163193fdb91cf241ddb0ff03bce200c7506c6",
+      "repositoryIntegrity": "PASS",
+      "ownerVerifier": "FAIL",
+      "classification": "OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
+      "exactCause": "RELATIVE_SOURCE_MAP_ENTRIES_RESOLVED_FROM_PROCESS_CWD_INSTEAD_OF_VALIDATED_SOURCE_ROOT",
+      "rejectedSourceCount": 53,
+      "consumed": true,
+      "deploymentCapability": false,
+      "protectedEnvironmentUsed": false,
+      "secretsAccessed": false,
+      "cloudflareContacted": false,
+      "productionMutation": false
+    }
   },
   "productionIdentities": {
     "publicWorker": {

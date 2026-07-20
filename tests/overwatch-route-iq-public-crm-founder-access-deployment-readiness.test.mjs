@@ -69,11 +69,13 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.deepEqual(result.commits.slice(0, 4), [
+  assert.deepEqual(result.commits.slice(0, 6), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
-    "a23ac70a74f753486cc6ceda8eddeedfa187f5c5"
+    "a23ac70a74f753486cc6ceda8eddeedfa187f5c5",
+    "8d312bf747a289c675eb37adf582b43c860c635e",
+    "1363548cb72285cdd759b1dbed73fa6a8a3d1c2a"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -81,6 +83,18 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
   assert.equal(result.safeCiPending, true);
   assert.equal(result.deploymentAuthorized, false);
+});
+
+test("failed safe CI is immutable, non-deploying evidence and requires a fresh run", () => {
+  const value = integrityReadinessGovernance();
+  assert.equal(value.safeNonDeploymentCi.latestRun.runId, 29717192952);
+  assert.equal(value.safeNonDeploymentCi.latestRun.repositoryIntegrity, "PASS");
+  assert.equal(value.safeNonDeploymentCi.latestRun.ownerVerifier, "FAIL");
+  assert.equal(value.safeNonDeploymentCi.latestRun.consumed, true);
+  assert.equal(value.safeNonDeploymentCi.nextRunRequired, true);
+
+  value.safeNonDeploymentCi.latestRun.deploymentCapability = true;
+  assert.throws(() => validatePublicIntegrityReadiness(value));
 });
 
 test("integrity repair readiness cannot authorize deployment or reuse the consumed attempt", () => {
