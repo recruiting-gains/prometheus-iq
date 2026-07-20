@@ -141,6 +141,18 @@ const safeNoSecretAssetOrderingRepairFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const cloudflareDeploymentReadRepairFiles = Object.freeze([
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "tests/github-actions-public-worker-deployment.test.mjs",
+  "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+]);
+const cloudflareDeploymentReadProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -423,6 +435,39 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: order clean-runner public asset generation",
     files: safeNoSecretAssetOrderingRepairFiles
+  }),
+  cloudflareDeploymentReadRepairSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "e896cabe19fc696834659ed1cbe05f027c434553",
+      tree: "d70f2f892755e1d9f86dd08be3d559344b5fcc66",
+      parent: "5c920ad7c56289791d12c756d4b9627bf18b4632",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: classify Cloudflare deployment read failures",
+      files: cloudflareDeploymentReadRepairFiles
+    }),
+    Object.freeze({
+      commit: "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+      tree: "f62ebac98952b9cc1156a81e9bf0cec2e0563dcb",
+      parent: "e896cabe19fc696834659ed1cbe05f027c434553",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: extend bounded Cloudflare state deadline",
+      files: cloudflareDeploymentReadRepairFiles
+    })
+  ]),
+  cloudflareDeploymentReadProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit Cloudflare deployment read repairs",
+    files: cloudflareDeploymentReadProvenanceAdmissionFiles
   })
 });
 
@@ -626,6 +671,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let dashboardRuntimeHarnessSuccessorsSeen = 0;
   let dashboardRuntimeHarnessAdoptionSeen = false;
   let safeNoSecretAssetOrderingRepairSeen = false;
+  let cloudflareDeploymentReadRepairSuccessorsSeen = 0;
+  let cloudflareDeploymentReadProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -850,6 +897,35 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const cloudflareDeploymentReadRepair =
+      boundary.cloudflareDeploymentReadRepairSuccessors?.[
+        cloudflareDeploymentReadRepairSuccessorsSeen
+      ];
+    if (cloudflareDeploymentReadRepair && commit === cloudflareDeploymentReadRepair.commit) {
+      assertCommitSnapshot(repositoryRoot, cloudflareDeploymentReadRepair);
+      cloudflareDeploymentReadRepairSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const cloudflareDeploymentReadAdmission =
+      boundary.cloudflareDeploymentReadProvenanceAdmissionSuccessor;
+    const isCloudflareDeploymentReadAdmission = cloudflareDeploymentReadAdmission
+      && !cloudflareDeploymentReadProvenanceAdmissionSeen
+      && cloudflareDeploymentReadRepairSuccessorsSeen
+        === boundary.cloudflareDeploymentReadRepairSuccessors.length
+      && actual.parents[0] === cloudflareDeploymentReadAdmission.parent
+      && actual.authorName === cloudflareDeploymentReadAdmission.authorName
+      && actual.authorEmail === cloudflareDeploymentReadAdmission.authorEmail
+      && actual.committerName === cloudflareDeploymentReadAdmission.committerName
+      && actual.committerEmail === cloudflareDeploymentReadAdmission.committerEmail
+      && actual.subject === cloudflareDeploymentReadAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...cloudflareDeploymentReadAdmission.files].sort());
+    if (isCloudflareDeploymentReadAdmission) {
+      cloudflareDeploymentReadProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -893,6 +969,12 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   if (boundary.safeNoSecretAssetOrderingRepairSuccessor) {
     result.safeNoSecretAssetOrderingRepairSeen = safeNoSecretAssetOrderingRepairSeen;
   }
+  if (boundary.cloudflareDeploymentReadRepairSuccessors) {
+    result.cloudflareDeploymentReadRepairSuccessorsSeen =
+      cloudflareDeploymentReadRepairSuccessorsSeen;
+    result.cloudflareDeploymentReadProvenanceAdmissionSeen =
+      cloudflareDeploymentReadProvenanceAdmissionSeen;
+  }
   return Object.freeze(result);
 }
 
@@ -925,7 +1007,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_CLEAN_RUNNER_ASSET_GENERATION_REPAIR_IMPLEMENTED_LOCALLY_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_CLOUDFLARE_DEPLOYMENT_READ_REPAIRS_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -970,6 +1052,37 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     !== INFRASTRUCTURE_OWNER_BOUNDARY.safeNoSecretAssetOrderingRepairSuccessor.parent) {
     assert.equal(ownerBoundary.safeNoSecretAssetOrderingRepairSeen, true);
   }
+  assert.equal(
+    ownerBoundary.cloudflareDeploymentReadRepairSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.cloudflareDeploymentReadRepairSuccessors.length
+  );
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .cloudflareDeploymentReadProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.cloudflareDeploymentReadProvenanceAdmissionSeen, true);
+  }
+
+  assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
+    failedRunId: 29780926642,
+    failedHead: "5c920ad7c56289791d12c756d4b9627bf18b4632",
+    failedTree: "5db5225a8f09d5e2295a89d4a7f2a3fa1305ff8b",
+    classificationCommit: "e896cabe19fc696834659ed1cbe05f027c434553",
+    classificationTree: "d70f2f892755e1d9f86dd08be3d559344b5fcc66",
+    deadlineCommit: "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
+    deadlineTree: "f62ebac98952b9cc1156a81e9bf0cec2e0563dcb",
+    observedDeadlineMs: 15000,
+    productionDeadlineMs: 30000,
+    testDeadlineMaximumMs: 1000,
+    maximumSerializedStateReads: 12,
+    maximumSerializedReadBudgetMs: 360000,
+    retriesAllowed: 0,
+    deploymentAttemptsAllowed: 1,
+    publicVersionCreated: false,
+    rollbackRequired: false,
+    deploymentAssetsModified: false,
+    rollbackArtifactsModified: false,
+    cloudflareContactedByRepair: false
+  });
 
   assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {
     batchId: "BATCH-20260720-002",

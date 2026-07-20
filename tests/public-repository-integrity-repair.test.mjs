@@ -533,6 +533,58 @@ function addCleanRunnerAssetGenerationSuccessor(ownerFixture) {
   });
 }
 
+function addCloudflareDeploymentReadRepairSuccessors(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const repairFiles = [
+    "scripts/lib/github-actions-public-worker-deployment.mjs",
+    "scripts/verify-github-actions-public-worker-deployment.mjs",
+    "tests/github-actions-public-worker-deployment.test.mjs",
+    "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+  ];
+  const classification = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic classify Cloudflare deployment reads",
+    changes: repairFiles.map(path => ({ path, content: `classification:${path}\n` }))
+  });
+  const deadline = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic bounded Cloudflare deadline",
+    changes: repairFiles.map(path => ({ path, content: `deadline:${path}\n` }))
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit Cloudflare deployment read repairs",
+    changes: [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ].map(path => ({ path, content: `admission:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    classification,
+    deadline,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      cloudflareDeploymentReadRepairSuccessors: Object.freeze([classification, deadline]),
+      cloudflareDeploymentReadProvenanceAdmissionSuccessor: Object.freeze({
+        parent: deadline.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -899,6 +951,12 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "5d5ffe858d7e132778c96746eabd4a99afe9d1f4"
   );
+  assert.equal(current.cloudflareDeploymentReadRepairSuccessorsSeen, 2);
+  assert.equal(
+    current.cloudflareDeploymentReadProvenanceAdmissionSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "f09b8c1ee6e4c0be14c41f672601e2e5854014eb"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1017,6 +1075,70 @@ test("owner boundary admits only the exact clean-runner asset-generation success
       path: "scripts/unapproved-later-infrastructure.mjs",
       content: "export const unapproved = true;\n",
       subject: "infrastructure: unapproved later successor",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the ordered Cloudflare read repairs and Infrastructure provenance", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-cloudflare-reads-"));
+  try {
+    const accepted = addCloudflareDeploymentReadRepairSuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 6,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cloudflareDeploymentReadRepairSuccessorsSeen: 2,
+      cloudflareDeploymentReadProvenanceAdmissionSeen: true
+    });
+
+    const reordered = {
+      ...accepted.boundary,
+      cloudflareDeploymentReadRepairSuccessors: [
+        accepted.boundary.cloudflareDeploymentReadRepairSuccessors[1],
+        accepted.boundary.cloudflareDeploymentReadRepairSuccessors[0]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, reordered));
+
+    const mixedOwnership = {
+      ...accepted.boundary,
+      cloudflareDeploymentReadRepairSuccessors: [
+        {
+          ...accepted.boundary.cloudflareDeploymentReadRepairSuccessors[0],
+          committerName: "Prometheus Overwatch",
+          committerEmail: "overwatch@prometheus.local"
+        },
+        accepted.boundary.cloudflareDeploymentReadRepairSuccessors[1]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, mixedOwnership));
+
+    const widenedAdmission = {
+      ...accepted.boundary,
+      cloudflareDeploymentReadProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.cloudflareDeploymentReadProvenanceAdmissionSuccessor,
+        files: [
+          ...accepted.boundary.cloudflareDeploymentReadProvenanceAdmissionSuccessor.files,
+          "scripts/unapproved-cloudflare-read-admission.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, widenedAdmission));
+
+    commitFixture(accepted.repository, {
+      path: "scripts/unapproved-cloudflare-read-successor.mjs",
+      content: "export const unapproved = true;\n",
+      subject: "infrastructure: unapproved Cloudflare read successor",
       authorName: "Prometheus Infrastructure",
       authorEmail: "infrastructure@prometheus.local"
     });

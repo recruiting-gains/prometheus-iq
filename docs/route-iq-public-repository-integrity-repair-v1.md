@@ -166,6 +166,29 @@ adversarial tests require that exact ordering, exactly one top-level build comma
 full-suite command, and rejection of missing or reordered generation. Asset parity remains strict;
 there is no retry, `continue-on-error`, `|| true`, or weakened release check.
 
+## Cloudflare deployment state-read repair provenance
+
+Founder-authorized run `29780926642` completed the full no-secret verification job and the fixed
+pre-deployment GET/HEAD smoke. Its guarded deployment step then stopped after 15.016 seconds with
+only `DEPLOY_FAILED`. The public version remained unchanged and no version was created, so no
+rollback was required. Local synthetic reproduction proved that an error while consuming a
+Cloudflare response body escaped the transport classifier and reached the generic command fallback.
+
+Infrastructure commit `e896cabe19fc696834659ed1cbe05f027c434553` closes that gap with fixed,
+nonsecret endpoint phases and distinct network, HTTP, timeout, body-read, and response-validation
+classifications. It preserves the response-size limit, zero retries, and one deployment attempt.
+Infrastructure commit `f09b8c1ee6e4c0be14c41f672601e2e5854014eb` then replaces the confirmed
+insufficient 15-second production deadline with a fixed 30-second deadline. Six lifecycle snapshots
+perform at most 12 serialized state reads, so the worst-case read budget is six minutes inside the
+30-minute deployment job. The only injectable shorter deadline is exposed through a test-only helper
+capped at one second; the production entry point has no timeout override.
+
+The owner boundary admits only those two commits in that order, with exact commit, tree, parent,
+Infrastructure identity, subject, and four-file scope, followed by the exact four-file Infrastructure
+provenance admission. Reordered commits, mixed ownership, merges, widened scope, extra Infrastructure
+successors, retries, and deployment capability remain rejected. This repair did not contact
+Cloudflare and did not modify Website, CRM, deployment assets, or rollback artifacts.
+
 ## Keychain verifier CI portability provenance
 
 Founder-authorized deployment workflow run `29758138044` failed closed in the no-secret test job
