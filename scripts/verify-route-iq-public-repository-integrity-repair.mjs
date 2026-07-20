@@ -111,6 +111,12 @@ const keychainCiProvenanceAdmissionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const keychainCiOverwatchMappingFiles = Object.freeze([
+  "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json",
+  "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json",
+  "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
+  "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -251,6 +257,17 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     subject: "Make Keychain owner verifier portable in CI",
     files: keychainCiPortabilitySuccessorFiles
   }),
+  keychainCiOverwatchMappingSuccessor: Object.freeze({
+    commit: "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    tree: "23ec45072e108c932fedd29481aca78de5b71773",
+    parent: "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local",
+    committerName: "Prometheus Overwatch",
+    committerEmail: "overwatch@prometheus.local",
+    subject: "Record Keychain CI portability successor",
+    files: keychainCiOverwatchMappingFiles
+  }),
   keychainCiProvenanceAdmissionSuccessor: Object.freeze({
     parent: "06a6464035d3b8d46f308c77955a80a62ddfa957",
     authorName: "Prometheus Infrastructure",
@@ -258,6 +275,15 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerName: "Prometheus Infrastructure",
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit Keychain CI portability successor",
+    files: keychainCiProvenanceAdmissionFiles
+  }),
+  keychainCiMappingCompatibilityRepairSuccessor: Object.freeze({
+    parent: "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: pin Keychain Overwatch mapping",
     files: keychainCiProvenanceAdmissionFiles
   })
 });
@@ -353,7 +379,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let publicIntakeSmokeProvenanceAdmissionSeen = false;
   let cleanRunnerAssetGenerationSeen = false;
   let keychainCiPortabilitySuccessorSeen = false;
+  let keychainCiOverwatchMappingSeen = false;
   let keychainCiProvenanceAdmissionSeen = false;
+  let keychainCiMappingCompatibilityRepairSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -461,10 +489,22 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const keychainCiMapping = boundary.keychainCiOverwatchMappingSuccessor;
+    if (keychainCiMapping && commit === keychainCiMapping.commit) {
+      assert.equal(keychainCiOverwatchMappingSeen, false,
+        "Keychain CI Overwatch mapping repeated");
+      assert.equal(keychainCiPortabilitySuccessorSeen, true,
+        "Keychain CI Overwatch mapping preceded its owner repair");
+      assertCommitSnapshot(repositoryRoot, keychainCiMapping);
+      keychainCiOverwatchMappingSeen = true;
+      previous = commit;
+      continue;
+    }
     const keychainCiAdmission = boundary.keychainCiProvenanceAdmissionSuccessor;
     const isKeychainCiAdmission = keychainCiAdmission
       && !keychainCiProvenanceAdmissionSeen
       && keychainCiPortabilitySuccessorSeen
+      && keychainCiOverwatchMappingSeen
       && actual.parents[0] === keychainCiAdmission.parent
       && actual.authorName === keychainCiAdmission.authorName
       && actual.authorEmail === keychainCiAdmission.authorEmail
@@ -474,6 +514,22 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       && JSON.stringify(actual.files) === JSON.stringify([...keychainCiAdmission.files].sort());
     if (isKeychainCiAdmission) {
       keychainCiProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
+    const keychainCiMappingRepair = boundary.keychainCiMappingCompatibilityRepairSuccessor;
+    const isKeychainCiMappingRepair = keychainCiMappingRepair
+      && !keychainCiMappingCompatibilityRepairSeen
+      && keychainCiProvenanceAdmissionSeen
+      && actual.parents[0] === keychainCiMappingRepair.parent
+      && actual.authorName === keychainCiMappingRepair.authorName
+      && actual.authorEmail === keychainCiMappingRepair.authorEmail
+      && actual.committerName === keychainCiMappingRepair.committerName
+      && actual.committerEmail === keychainCiMappingRepair.committerEmail
+      && actual.subject === keychainCiMappingRepair.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...keychainCiMappingRepair.files].sort());
+    if (isKeychainCiMappingRepair) {
+      keychainCiMappingCompatibilityRepairSeen = true;
       previous = commit;
       continue;
     }
@@ -502,7 +558,10 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   }
   if (boundary.keychainCiPortabilitySuccessor) {
     result.keychainCiPortabilitySuccessorSeen = keychainCiPortabilitySuccessorSeen;
+    result.keychainCiOverwatchMappingSeen = keychainCiOverwatchMappingSeen;
     result.keychainCiProvenanceAdmissionSeen = keychainCiProvenanceAdmissionSeen;
+    result.keychainCiMappingCompatibilityRepairSeen =
+      keychainCiMappingCompatibilityRepairSeen;
   }
   return Object.freeze(result);
 }

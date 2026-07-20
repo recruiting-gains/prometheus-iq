@@ -217,6 +217,22 @@
         "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
       ]
     },
+    "keychainCiOverwatchMappingSuccessor": {
+      "commit": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+      "tree": "23ec45072e108c932fedd29481aca78de5b71773",
+      "parent": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+      "authorName": "Prometheus Overwatch",
+      "authorEmail": "overwatch@prometheus.local",
+      "committerName": "Prometheus Overwatch",
+      "committerEmail": "overwatch@prometheus.local",
+      "subject": "Record Keychain CI portability successor",
+      "files": [
+        "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json",
+        "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json",
+        "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
+        "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
+      ]
+    },
     "keychainCiProvenanceAdmissionSuccessor": {
       "parent": "06a6464035d3b8d46f308c77955a80a62ddfa957",
       "authorName": "Prometheus Infrastructure",
@@ -224,6 +240,20 @@
       "committerName": "Prometheus Infrastructure",
       "committerEmail": "infrastructure@prometheus.local",
       "subject": "infrastructure: admit Keychain CI portability successor",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    },
+    "keychainCiMappingCompatibilityRepairSuccessor": {
+      "parent": "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: pin Keychain Overwatch mapping",
       "files": [
         "docs/route-iq-public-repository-integrity-repair-v1.md",
         "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
@@ -261,6 +291,7 @@
     "ownerRepairCommit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
     "ownerRepairTree": "955431d084ed6e529490e71e6432c8007217db36",
     "overwatchMappingCommit": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    "overwatchMappingPinnedByExactMetadata": true,
     "macosSwiftTypecheckPreserved": true,
     "linuxNotApplicableClassification": true,
     "automaticRetryAllowed": false,

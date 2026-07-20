@@ -773,7 +773,9 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       !== "1e4e9be843fe418ae8920ccb109b4259fda5455c"
   );
   assert.equal(current.keychainCiPortabilitySuccessorSeen, true);
+  assert.equal(current.keychainCiOverwatchMappingSeen, true);
   assert.equal(current.keychainCiProvenanceAdmissionSeen, true);
+  assert.equal(current.keychainCiMappingCompatibilityRepairSeen, true);
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -800,6 +802,15 @@ test("owner boundary admits only the exact Keychain CI successor and provenance 
     }
   };
   assert.throws(() => verifyInfrastructureOwnerBoundary(root, wrongOwnerTree));
+
+  const wrongMappingSubject = {
+    ...INFRASTRUCTURE_OWNER_BOUNDARY,
+    keychainCiOverwatchMappingSuccessor: {
+      ...INFRASTRUCTURE_OWNER_BOUNDARY.keychainCiOverwatchMappingSuccessor,
+      subject: "overwatch: substituted mapping"
+    }
+  };
+  assert.throws(() => verifyInfrastructureOwnerBoundary(root, wrongMappingSubject));
 
   const widenedAdmission = {
     ...INFRASTRUCTURE_OWNER_BOUNDARY,

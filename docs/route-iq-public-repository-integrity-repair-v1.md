@@ -164,6 +164,9 @@ files.
 This integrity gate admits only that exact Infrastructure commit, followed by the exact Overwatch
 mapping and this four-file Infrastructure provenance admission. It does not permit generic
 Infrastructure successors, mixed ownership, altered file scope, merges, or deployment retries.
+Because the immutable Overwatch mapping predates the `overwatch:` subject convention, its full
+commit, tree, parent, author, committer, literal subject, and file scope are pinned explicitly. No
+general exception to the Overwatch subject convention is introduced.
 
 ## Operator use
 
