@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
+import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
@@ -358,6 +359,13 @@ function verifyCrmAndIsolation(root) {
 
 export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = true, requireClean = true } = {}) {
   const governance = validateRouteIq3dVisualContinuityGovernance(readJson(root, ROUTE_IQ_3D_GOVERNANCE_PATH));
+  const authoritativeSuccessor = verifyOverwatchRevised3dReleaseReadinessSuccessor({
+    root,
+    build: false,
+    requireClean,
+    requireFounderAcceptance: true,
+    requireCommittedSuccessor: true
+  });
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
@@ -397,6 +405,7 @@ export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = 
     recommendationInfluence: governance.safetyState.recommendationInfluence,
     prospectiveCollection: governance.safetyState.prospectiveCollection,
     activeCohorts: governance.safetyState.activeCohorts,
+    readinessStatus: authoritativeSuccessor.status,
     deploymentPerformed: false
   });
 }

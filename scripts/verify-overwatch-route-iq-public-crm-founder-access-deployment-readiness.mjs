@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
+
 export const GOVERNANCE_PATH = "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json";
 
 const EXPECTED_CRM_PATHS = Object.freeze([
@@ -198,6 +200,13 @@ export function validatePublicCrmReadinessGovernance(governance) {
 
 export function verifyOverwatchPublicCrmFounderAccessDeploymentReadiness(root = resolve(fileURLToPath(new URL("..", import.meta.url)))) {
   const governance = validatePublicCrmReadinessGovernance(JSON.parse(readFileSync(resolve(root, GOVERNANCE_PATH), "utf8")));
+  const authoritativeSuccessor = verifyOverwatchRevised3dReleaseReadinessSuccessor({
+    root,
+    build: false,
+    requireClean: true,
+    requireFounderAcceptance: true,
+    requireCommittedSuccessor: true
+  });
   const crm = commitRecord(root, governance.dispatchAudit.crm.commit);
   invariant(crm.tree === governance.dispatchAudit.crm.tree, "CRM tree drifted");
   invariant(crm.author === governance.dispatchAudit.crm.author, "CRM author drifted");
@@ -249,14 +258,18 @@ export function verifyOverwatchPublicCrmFounderAccessDeploymentReadiness(root = 
   return Object.freeze({
     ok: true,
     batchId: governance.batchId,
-    status: governance.status,
-    determination: governance.determination,
+    status: authoritativeSuccessor.status,
+    determination: "AUTHORITATIVE_SUCCESSOR_REQUIRED_FOR_DEPLOYMENT_REVIEW",
+    historicalStatus: governance.status,
+    historicalClassification: "HISTORICAL_RECONSTRUCTION_EVIDENCE_SUPERSEDED_NON_DEPLOYABLE",
     accessApplicationId: governance.cloudflareAccess.application.id,
     accessPolicyId: governance.cloudflareAccess.policy.id,
     crmCommit: governance.dispatchAudit.crm.commit,
     infrastructureCommits: infrastructureCommits.map(item => item.commit),
     excludedCommits: EXCLUDED_LOCAL_COMMITS,
-    rollbackArtifactSha256: governance.rollback.artifactSha256
+    rollbackArtifactSha256: authoritativeSuccessor.rollbackBundleSha256,
+    historicalRollbackArtifactSha256: governance.rollback.artifactSha256,
+    authoritativeSuccessorBatchId: authoritativeSuccessor.batchId
   });
 }
 

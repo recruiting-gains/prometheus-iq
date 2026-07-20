@@ -1,0 +1,143 @@
+{
+  "governanceId": "route-iq-revised-3d-release-readiness-successor-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260719-007",
+  "directive": "Route IQ Revised 3D Release Readiness Successor Closure v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "READY_FOR_EXPLICIT_FOUNDER_DEPLOYMENT_DECISION",
+  "authority": {
+    "authoritativeDeploymentReadinessRecord": true,
+    "deploymentAuthorizationSource": false,
+    "explicitFounderDeploymentDecisionRequired": true,
+    "finalReleaseHeadAndTreeRecordedExternally": true,
+    "selfReferentialCommitOrTreePinAllowed": false
+  },
+  "protectedImplementationPredecessor": {
+    "commit": "cbe50718e45faf1be264de59ae1c1990f5c8d7da",
+    "tree": "43f5989cad0db36701c8e092bcaa7038d7aa44ad",
+    "relationship": "PROTECTED_IMPLEMENTATION_PREDECESSOR",
+    "implementationChangesAllowedAfterPredecessor": false,
+    "allowedSuccessorOwnership": "Prometheus Overwatch",
+    "allowedSuccessorScope": [
+      "governance",
+      "verification",
+      "tests",
+      "provenance"
+    ]
+  },
+  "predecessorGovernance": {
+    "path": "overwatch/governance/route-iq-3d-visual-continuity-v1.json",
+    "sha256": "9d263113cb36ac6c9eeca0cc5785c5062fc773f0817f6b2eb23f6441be24b099",
+    "recordedState": "CANDIDATE_GOVERNANCE_FROZEN_EXACT_HEAD_VERIFICATION_REQUIRED",
+    "authoritativeSuccessorState": "READY_FOR_EXPLICIT_FOUNDER_DEPLOYMENT_DECISION",
+    "predecessorStateIsDeploymentAuthority": false
+  },
+  "historicalReadinessRecord": {
+    "governanceId": "route-iq-public-crm-founder-access-deployment-readiness-governance-v1",
+    "jsonPath": "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json",
+    "jsonSha256": "b5f2dedca4f561f154c7df2270ea8c1f268496e89440524bf8e8a35d61bd8e4e",
+    "markdownPath": "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.md",
+    "markdownSha256": "3ee3bf2685dfc75362f017174437ebdd81aa434e01e7cea016b75b65a68f8f7c",
+    "classification": [
+      "HISTORICAL_RECONSTRUCTION_EVIDENCE",
+      "SUPERSEDED",
+      "NON_DEPLOYABLE",
+      "NOT_AN_AUTHORIZATION_SOURCE"
+    ],
+    "historicalRollbackSha256": "850b22be068103dd4b9d860624151293ba5e57244fd381de08e6563e368277d0",
+    "historicalRollbackIdentityIsCurrent": false,
+    "executableDeploymentAuthority": false,
+    "rewritten": false
+  },
+  "releaseIdentities": {
+    "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    "rollbackContractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+    "rollbackContractSha256": "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b",
+    "deterministicForwardRollbackBundleSha256": "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a"
+  },
+  "productionIdentities": {
+    "publicWorker": {
+      "name": "prometheusrouteiq-website",
+      "version": "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+      "trafficPercent": 100
+    },
+    "privateWorker": {
+      "name": "prometheus-iq",
+      "version": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+      "trafficPercent": 100
+    },
+    "productionChangedByClosure": false
+  },
+  "githubEnvironment": {
+    "name": "prometheus-public-worker-production",
+    "branch": "main",
+    "settingNames": [
+      {
+        "name": "CLOUDFLARE_API_TOKEN",
+        "status": "PRESENT"
+      },
+      {
+        "name": "CLOUDFLARE_ACCOUNT_ID",
+        "status": "PRESENT"
+      },
+      {
+        "name": "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
+        "status": "PRESENT"
+      },
+      {
+        "name": "ROUTE_IQ_REQUEST_CRM_ACCESS_AUDIENCE",
+        "status": "PRESENT"
+      },
+      {
+        "name": "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256",
+        "status": "PRESENT"
+      }
+    ],
+    "valuesAccessed": false,
+    "valuesStoredInSource": false
+  },
+  "founderPrincipal": {
+    "founder": "Cruz Garza",
+    "mappingStatus": "COMPLETE",
+    "immutableSubjectHashStoredOnlyInProtectedRuntimeSetting": true,
+    "twoAuthenticationConsistency": "PASS",
+    "rawJwtStored": false,
+    "rawSubjectStored": false,
+    "subjectHashStoredInSource": false,
+    "anthonyMapped": false
+  },
+  "edgeProtections": {
+    "accessApplicationId": "58513324-6467-49fa-a75a-0e9a9af11820",
+    "accessPolicyId": "82b77a0f-8640-4e55-9191-0335b0dc0025",
+    "founderRootAndDescendantsProtected": true,
+    "rawPathWafRuleId": "95b3e54b4a564f35a158b906c844b3a0",
+    "aegisWafRuleId": "af1688f3366446b991ba2ec12066093b",
+    "wafProtectionsActive": true,
+    "workersDev": "OFF",
+    "previewUrls": "OFF"
+  },
+  "visualAcceptance": {
+    "requiredConfirmation": "I reviewed the revised Route IQ website and accept the restored 3D background, motion, mobile presentation, Route IQ-focused wording, and REQUEST ROUTE IQ experience as the intended public design.",
+    "status": "ACCEPTED",
+    "acceptedBy": "Cruz Garza",
+    "acceptedAt": "2026-07-20T03:06:29Z"
+  },
+  "safetyState": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMapped": false,
+    "deploymentPerformed": false,
+    "workflowDispatched": false,
+    "productionDataChanged": false
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "workflowDispatchAuthorized": false,
+    "cloudflareMutationAuthorized": false,
+    "githubMutationAuthorized": false,
+    "secretAccessAuthorized": false,
+    "normalFastForwardPushAllowedAfterExactHeadPassAndFounderVisualAcceptance": true,
+    "archivalRefsPushAllowed": false
+  }
+}
