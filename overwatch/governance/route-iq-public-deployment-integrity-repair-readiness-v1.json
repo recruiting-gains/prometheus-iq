@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -133,11 +133,48 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+      "tree": "1e75df8788becfd8b1bfd3fa1d1505a7492e2b01",
+      "parent": "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2",
+      "subject": "infrastructure: accept strict public intake Allow set",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/run-cloudflare-public-worker-smoke.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs"
+      ]
+    },
+    {
+      "commit": "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+      "tree": "16918f0b77ae5ac7d1697b8f324d77e90b0ae50f",
+      "parent": "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+      "subject": "infrastructure: validate intake Allow by probe method",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/run-cloudflare-public-worker-smoke.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs"
+      ]
+    },
+    {
+      "commit": "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+      "tree": "10ed7ef01d3118c5cd13ad57a767d234c7d0f365",
+      "parent": "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+      "subject": "infrastructure: admit public intake smoke successors",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6",
+    "contractSha256": "701c96666a2783df872028262c314c3b83f378f7d32df2942a6d15a80631bbb6",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -157,6 +194,8 @@
     "ownerVerifierAllowsOnlyGovernedSuccessorSequence": true,
     "ownerVerifierPinsDashboardVerificationSuccessor": true,
     "ownerVerifierPinsInfrastructureAdmissionSuccessor": true,
+    "ownerVerifierPinsPublicIntakeSmokeSuccessors": true,
+    "ownerVerifierPinsPublicIntakeSmokeProvenanceAdmission": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -168,6 +207,113 @@
     "websiteAndCrmImplementationChanged": false,
     "generatedDeploymentAssetsChanged": false,
     "newFounderVisualAcceptanceRequired": false
+  },
+  "predeploymentSmokeRepair": {
+    "batchId": "BATCH-20260720-001",
+    "directive": "Route IQ Combined Final Preflight + Public Deployment v1",
+    "classification": "READ_ONLY_SMOKE_VERIFIER_CONTRACT_REPAIR",
+    "authorizedCandidate": {
+      "commit": "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2",
+      "tree": "aa63fad16a927354f66378e47c96ea88611894a4",
+      "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+      "rollbackContractSha256": "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b",
+      "deterministicRollbackBundleSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
+      "infrastructureContractSha256": "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6"
+    },
+    "rootCause": "METHOD_AWARE_VALID_ALLOW_SETS_WERE_REJECTED_BY_A_LITERAL_SINGLE_VALUE_CHECK",
+    "liveObservation": {
+      "target": "prometheusrouteiq-website",
+      "path": "/api/partner-intake",
+      "requests": [
+        {
+          "method": "GET",
+          "status": 405,
+          "allow": [
+            "POST",
+            "OPTIONS"
+          ]
+        },
+        {
+          "method": "HEAD",
+          "status": 405,
+          "allow": [
+            "GET",
+            "POST"
+          ]
+        }
+      ],
+      "methodsRestrictedTo": [
+        "GET",
+        "HEAD"
+      ],
+      "responseBodiesRetained": false,
+      "writeAttempted": false,
+      "productionMutation": false
+    },
+    "ownerCommits": [
+      {
+        "commit": "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+        "tree": "1e75df8788becfd8b1bfd3fa1d1505a7492e2b01",
+        "parent": "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2",
+        "subject": "infrastructure: accept strict public intake Allow set",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "scripts/run-cloudflare-public-worker-smoke.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "tests/github-actions-public-worker-deployment.test.mjs"
+        ]
+      },
+      {
+        "commit": "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+        "tree": "16918f0b77ae5ac7d1697b8f324d77e90b0ae50f",
+        "parent": "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+        "subject": "infrastructure: validate intake Allow by probe method",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "scripts/run-cloudflare-public-worker-smoke.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "tests/github-actions-public-worker-deployment.test.mjs"
+        ]
+      },
+      {
+        "commit": "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
+        "tree": "10ed7ef01d3118c5cd13ad57a767d234c7d0f365",
+        "parent": "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+        "subject": "infrastructure: admit public intake smoke successors",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
+    "verification": {
+      "strictMethodAwareAllowSet": true,
+      "unknownMethodsRejected": true,
+      "lowercaseMethodsRejected": true,
+      "duplicateMethodsRejected": true,
+      "missingPostRejected": true,
+      "extraMethodsRejected": true,
+      "liveGetHeadSmokePassed": true
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "generatedDeploymentAssetsChanged": false,
+      "rollbackContractChanged": false,
+      "deterministicRollbackBundleChanged": false,
+      "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    },
+    "authorizationBoundary": {
+      "originalExactAuthorizationReusable": false,
+      "authorizationTransfersToSuccessorHead": false,
+      "workflowDispatched": false,
+      "deploymentPerformed": false,
+      "freshExactFounderAuthorizationRequired": true
+    }
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
@@ -232,6 +378,8 @@
     "secretAccessAuthorized": false,
     "normalFastForwardPushAllowedAfterExactHeadPass": true,
     "archivalRefsPushAllowed": false,
-    "freshFounderDeploymentReviewRequired": true
+    "freshFounderDeploymentReviewRequired": true,
+    "combinedDeploymentAuthorizationReusable": false,
+    "freshExactCandidateAuthorizationRequired": true
   }
 }

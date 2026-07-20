@@ -69,8 +69,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 10);
-  assert.deepEqual(result.commits.slice(0, 9), [
+  assert.equal(result.commits.length, 14);
+  assert.deepEqual(result.commits.slice(0, 13), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
@@ -79,12 +79,20 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "1363548cb72285cdd759b1dbed73fa6a8a3d1c2a",
     "03ed86e25bda0a67e55757969966f4bc61c4b63e",
     "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
-    "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54"
+    "a377c39f2e4c8f7f68a8f5908f133f9c24c7ac54",
+    "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2",
+    "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+    "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+    "c0c35e83901aad5b8f4108a2a6b09b6210cb5243"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
   assert.equal(result.rollbackBundleSha256, "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7");
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
+  assert.equal(result.predeploymentBatchId, "BATCH-20260720-001");
+  assert.equal(result.authorizedCandidateCommit, "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2");
+  assert.equal(result.authorizedCandidateTree, "aa63fad16a927354f66378e47c96ea88611894a4");
+  assert.equal(result.freshExactFounderAuthorizationRequired, true);
   assert.equal(result.safeCiPending, true);
   assert.equal(result.deploymentAuthorized, false);
 });
@@ -107,8 +115,21 @@ test("Dashboard rollover repair and Infrastructure admission remain exact and te
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6"
+    "701c96666a2783df872028262c314c3b83f378f7d32df2942a6d15a80631bbb6"
   );
+  assert.deepEqual(
+    value.predeploymentSmokeRepair.ownerCommits.map(record => record.commit),
+    [
+      "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
+      "6476c381c8e9512eaea4a90e0f6019138cfe1766",
+      "c0c35e83901aad5b8f4108a2a6b09b6210cb5243"
+    ]
+  );
+  assert.equal(value.predeploymentSmokeRepair.scope.websiteImplementationChanged, false);
+  assert.equal(value.predeploymentSmokeRepair.scope.crmImplementationChanged, false);
+  assert.equal(value.predeploymentSmokeRepair.scope.generatedDeploymentAssetsChanged, false);
+  assert.equal(value.predeploymentSmokeRepair.authorizationBoundary.originalExactAuthorizationReusable, false);
+  assert.equal(value.predeploymentSmokeRepair.authorizationBoundary.freshExactFounderAuthorizationRequired, true);
 
   const broadened = integrityReadinessGovernance();
   broadened.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors = true;
@@ -135,6 +156,10 @@ test("integrity repair readiness cannot authorize deployment or reuse the consum
   const reused = integrityReadinessGovernance();
   reused.releaseBoundary.failedDeploymentAuthorizationReusable = true;
   assert.throws(() => validatePublicIntegrityReadiness(reused));
+
+  const transferred = integrityReadinessGovernance();
+  transferred.predeploymentSmokeRepair.authorizationBoundary.authorizationTransfersToSuccessorHead = true;
+  assert.throws(() => validatePublicIntegrityReadiness(transferred));
 
   const rollback = integrityReadinessGovernance();
   rollback.releaseIdentities.deterministicForwardRollbackBundleSha256 = "0".repeat(64);
