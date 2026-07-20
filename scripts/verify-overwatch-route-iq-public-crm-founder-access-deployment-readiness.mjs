@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
+import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 
 export const GOVERNANCE_PATH = "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json";
 
@@ -200,12 +200,11 @@ export function validatePublicCrmReadinessGovernance(governance) {
 
 export function verifyOverwatchPublicCrmFounderAccessDeploymentReadiness(root = resolve(fileURLToPath(new URL("..", import.meta.url)))) {
   const governance = validatePublicCrmReadinessGovernance(JSON.parse(readFileSync(resolve(root, GOVERNANCE_PATH), "utf8")));
-  const authoritativeSuccessor = verifyOverwatchRevised3dReleaseReadinessSuccessor({
+  const authoritativeSuccessor = verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     root,
     build: false,
     requireClean: true,
-    requireFounderAcceptance: true,
-    requireCommittedSuccessor: true
+    requireCommittedOverwatch: true
   });
   const crm = commitRecord(root, governance.dispatchAudit.crm.commit);
   invariant(crm.tree === governance.dispatchAudit.crm.tree, "CRM tree drifted");

@@ -1,0 +1,152 @@
+{
+  "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
+  "version": "1.0.0",
+  "batchId": "BATCH-20260719-008",
+  "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
+  "ownerSubsystem": "Prometheus Overwatch",
+  "status": "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI",
+  "historicalReadiness": {
+    "path": "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json",
+    "sha256": "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75",
+    "commit": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
+    "tree": "f86156dc10fb90cedc00274d3654e89edfff562a",
+    "classification": [
+      "HISTORICAL_READINESS_EVIDENCE",
+      "DEPLOYMENT_ATTEMPT_CONSUMED",
+      "SUPERSEDED_BY_INTEGRITY_REPAIR",
+      "NOT_REUSABLE_FOR_DEPLOYMENT"
+    ],
+    "founderVisualAcceptancePreserved": true,
+    "rewritten": false
+  },
+  "failedRun": {
+    "runId": 29714512987,
+    "verificationJobId": 88264893824,
+    "deploymentJobId": 88264927103,
+    "reportedClassification": "REPOSITORY_INTEGRITY_FAILED",
+    "actualFailureStage": "ROLLBACK_ARTIFACT_VERIFICATION_BEFORE_GIT_FSCK",
+    "suppressedDiagnostic": "ROLLBACK_HASH_MISMATCH",
+    "previouslySuppressedGitFsckDiagnostic": "NONE_FSCK_NOT_REACHED",
+    "gitFsckExecuted": false,
+    "deploymentJobSkipped": true,
+    "protectedEnvironmentAccessed": false,
+    "cloudflareContacted": false,
+    "artifactsProduced": 0
+  },
+  "rootCause": {
+    "classification": "CHECKOUT_DEPENDENT_ROLLBACK_IDENTITY_AND_WRAPPER_MISCLASSIFICATION",
+    "generatedBundleEmbeddedCheckoutDependentPaths": true,
+    "rollbackFailureMisclassifiedAsRepositoryIntegrity": true,
+    "reachableRepositoryCorruptionReproduced": false,
+    "invalidFetchedRefReproduced": false,
+    "shallowOrPartialCheckoutReproduced": false,
+    "speculationUsed": false
+  },
+  "infrastructureOwnerRepairs": [
+    {
+      "commit": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+      "tree": "8b5202428cfdb6a3586bdc90f39cce4d3ea02e97",
+      "subject": "infrastructure: repair public repository integrity diagnostics",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/deploy-prometheus-public-worker.yml",
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/run-github-actions-public-worker-deployment.mjs",
+        "scripts/run-public-worker-repository-integrity-diagnostic.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    },
+    {
+      "commit": "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
+      "tree": "025d3d01cae56753f9d0c5e63af5ea369a52b4ff",
+      "subject": "infrastructure: pin safe integrity diagnostic runtime",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
+    }
+  ],
+  "infrastructureEvidence": {
+    "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+    "contractSha256": "a14e97a048175c80c240f89455b32d5f394e9fcadbb2037f93dc9afa087ad758",
+    "strictGitArguments": [
+      "fsck",
+      "--full",
+      "--strict",
+      "--no-dangling",
+      "--no-progress"
+    ],
+    "boundedDiagnosticBytes": 131072,
+    "fullHistoryRequired": true,
+    "shallowPartialAndPromisorRejected": true,
+    "missingCorruptMalformedAndInvalidRefFailuresRemainFatal": true,
+    "repositoryIntegrityRunsBeforeRollbackAndCredentials": true,
+    "pinnedNodeRunsBeforeRepositoryScripts": true
+  },
+  "releaseIdentities": {
+    "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    "rollbackContractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+    "rollbackContractSha256": "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b",
+    "deterministicForwardRollbackBundleSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
+    "websiteAndCrmImplementationChanged": false,
+    "generatedDeploymentAssetsChanged": false,
+    "newFounderVisualAcceptanceRequired": false
+  },
+  "safeNonDeploymentCi": {
+    "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+    "workflowName": "Verify Prometheus Public Repository Integrity",
+    "trigger": "workflow_dispatch",
+    "dispatchAuthorizedAfterVerifiedFastForwardPush": true,
+    "resultRecordedExternally": true,
+    "protectedEnvironmentUsed": false,
+    "secretsAllowed": false,
+    "cloudflareAccessAllowed": false,
+    "deploymentCapability": false,
+    "crmWriteCapability": false,
+    "mustPassBeforeFreshDeploymentReview": true
+  },
+  "productionIdentities": {
+    "publicWorker": {
+      "name": "prometheusrouteiq-website",
+      "version": "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+      "trafficPercent": 100
+    },
+    "privateWorker": {
+      "name": "prometheus-iq",
+      "version": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+      "trafficPercent": 100
+    },
+    "changedByBatch": false
+  },
+  "safetyState": {
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMapped": false,
+    "deploymentPerformed": false,
+    "productionDataChanged": false,
+    "crmRequestSubmitted": false,
+    "notificationSent": false
+  },
+  "releaseBoundary": {
+    "deploymentAuthorized": false,
+    "deploymentWorkflowDispatchAuthorized": false,
+    "failedDeploymentAuthorizationReusable": false,
+    "safeIntegrityWorkflowDispatchAuthorized": true,
+    "cloudflareMutationAuthorized": false,
+    "secretAccessAuthorized": false,
+    "normalFastForwardPushAllowedAfterExactHeadPass": true,
+    "archivalRefsPushAllowed": false,
+    "freshFounderDeploymentReviewRequired": true
+  }
+}

@@ -8,7 +8,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
-import { verifyOverwatchRevised3dReleaseReadinessSuccessor } from "./verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
+import { verifyOverwatchPublicDeploymentIntegrityRepairReadiness } from "./verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 export const ROUTE_IQ_3D_GOVERNANCE_PATH = "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
@@ -359,12 +359,11 @@ function verifyCrmAndIsolation(root) {
 
 export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = true, requireClean = true } = {}) {
   const governance = validateRouteIq3dVisualContinuityGovernance(readJson(root, ROUTE_IQ_3D_GOVERNANCE_PATH));
-  const authoritativeSuccessor = verifyOverwatchRevised3dReleaseReadinessSuccessor({
+  const authoritativeSuccessor = verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     root,
     build: false,
     requireClean,
-    requireFounderAcceptance: true,
-    requireCommittedSuccessor: true
+    requireCommittedOverwatch: true
   });
   const commits = verifyOwnership(root, governance);
   verifyWebsiteAndClaims(root);
@@ -378,7 +377,7 @@ export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = 
   assert.equal(deployment.sizes.fallback, governance.generatedAssets.fallbackImageBytes);
   assert.equal(deployment.sizes.lazy3d, governance.generatedAssets.lazy3dBytes);
   const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, governance.rollback.artifactSha256);
+  assert.equal(rollback.artifactSha256, authoritativeSuccessor.rollbackBundleSha256);
   assert.equal(rollback.websiteAssetsSha256, governance.rollback.priorWebsiteAssetsSha256);
 
   for (const path of [

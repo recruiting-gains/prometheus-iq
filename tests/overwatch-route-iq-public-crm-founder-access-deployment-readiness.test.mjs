@@ -12,6 +12,11 @@ import {
   validateRevised3dReadinessSuccessor,
   verifyOverwatchRevised3dReleaseReadinessSuccessor
 } from "../scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs";
+import {
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  validatePublicIntegrityReadiness,
+  verifyOverwatchPublicDeploymentIntegrityRepairReadiness
+} from "../scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs";
 
 function governance() {
   return JSON.parse(readFileSync(GOVERNANCE_PATH, "utf8"));
@@ -19,6 +24,10 @@ function governance() {
 
 function successorGovernance() {
   return JSON.parse(readFileSync(REVISED_3D_READINESS_SUCCESSOR_PATH, "utf8"));
+}
+
+function integrityReadinessGovernance() {
+  return JSON.parse(readFileSync(PUBLIC_INTEGRITY_READINESS_PATH, "utf8"));
 }
 
 test("Overwatch independently verifies owner provenance and the public CRM release boundary", () => {
@@ -35,14 +44,14 @@ test("Overwatch independently verifies owner provenance and the public CRM relea
     "0aac4732670bde05596c1c8cde60c533172663f7",
     "5a3339f465cbcd81b1c7eeca5c9d384afbcf4d1c"
   ]);
-  assert.equal(result.status, "READY_FOR_EXPLICIT_FOUNDER_DEPLOYMENT_DECISION");
-  assert.equal(result.authoritativeSuccessorBatchId, "BATCH-20260719-007");
+  assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
+  assert.equal(result.authoritativeSuccessorBatchId, "BATCH-20260719-008");
   assert.equal(result.historicalClassification, "HISTORICAL_RECONSTRUCTION_EVIDENCE_SUPERSEDED_NON_DEPLOYABLE");
-  assert.equal(result.rollbackArtifactSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
+  assert.equal(result.rollbackArtifactSha256, "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7");
   assert.equal(result.historicalRollbackArtifactSha256, "4636e18bd3d99a803803a7ab78dcd2dbf634de8d9e34386c5c43f4df6fcb1ad1");
 });
 
-test("authoritative revised 3D successor pins current readiness identities", () => {
+test("historical revised 3D successor remains pinned to the consumed deployment attempt", () => {
   const result = verifyOverwatchRevised3dReleaseReadinessSuccessor();
   assert.equal(result.batchId, "BATCH-20260719-007");
   assert.equal(result.protectedImplementationCommit, "cbe50718e45faf1be264de59ae1c1990f5c8d7da");
@@ -50,8 +59,40 @@ test("authoritative revised 3D successor pins current readiness identities", () 
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
   assert.equal(result.rollbackBundleSha256, "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a");
+  assert.equal(result.historicalSuccessorCommit, "d5174c50ee7b02f930b5fa1f50723ce9db3e447d");
+  assert.equal(result.historicalSuccessorTree, "f86156dc10fb90cedc00274d3654e89edfff562a");
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
   assert.equal(result.deploymentAuthorized, false);
+});
+
+test("integrity repair successor pins the current rollback identity and safe-CI boundary", () => {
+  const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
+  assert.equal(result.batchId, "BATCH-20260719-008");
+  assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
+  assert.deepEqual(result.commits.slice(0, 2), [
+    "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+    "a2779239fc8f2d79d4b8781966d32cc23d4acbbd"
+  ]);
+  assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+  assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
+  assert.equal(result.rollbackBundleSha256, "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7");
+  assert.equal(result.founderVisualAcceptance, "ACCEPTED");
+  assert.equal(result.safeCiPending, true);
+  assert.equal(result.deploymentAuthorized, false);
+});
+
+test("integrity repair readiness cannot authorize deployment or reuse the consumed attempt", () => {
+  const deployment = integrityReadinessGovernance();
+  deployment.releaseBoundary.deploymentAuthorized = true;
+  assert.throws(() => validatePublicIntegrityReadiness(deployment));
+
+  const reused = integrityReadinessGovernance();
+  reused.releaseBoundary.failedDeploymentAuthorizationReusable = true;
+  assert.throws(() => validatePublicIntegrityReadiness(reused));
+
+  const rollback = integrityReadinessGovernance();
+  rollback.releaseIdentities.deterministicForwardRollbackBundleSha256 = "0".repeat(64);
+  assert.throws(() => validatePublicIntegrityReadiness(rollback));
 });
 
 test("historical readiness evidence cannot become executable deployment authority", () => {

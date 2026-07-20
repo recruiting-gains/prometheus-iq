@@ -7,7 +7,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { verifyPublicForwardRollbackArtifact } from "./lib/route-iq-public-forward-rollback.mjs";
 import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-deployment-assets.mjs";
 
 export const REVISED_3D_READINESS_SUCCESSOR_PATH =
@@ -16,6 +15,9 @@ export const REVISED_3D_READINESS_SUCCESSOR_PATH =
 const ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const IMPLEMENTATION_COMMIT = "cbe50718e45faf1be264de59ae1c1990f5c8d7da";
 const IMPLEMENTATION_TREE = "43f5989cad0db36701c8e092bcaa7038d7aa44ad";
+const HISTORICAL_SUCCESSOR_COMMIT = "d5174c50ee7b02f930b5fa1f50723ce9db3e447d";
+const HISTORICAL_SUCCESSOR_TREE = "f86156dc10fb90cedc00274d3654e89edfff562a";
+const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
 const HISTORICAL_JSON_PATH =
   "overwatch/governance/route-iq-public-crm-founder-access-deployment-readiness-v1.json";
 const HISTORICAL_MARKDOWN_PATH =
@@ -204,12 +206,16 @@ export function validateRevised3dReadinessSuccessor(
 
 function verifyProtectedSuccessor(root) {
   assert.equal(git(root, "rev-parse", `${IMPLEMENTATION_COMMIT}^{tree}`), IMPLEMENTATION_TREE);
-  execFileSync("git", ["merge-base", "--is-ancestor", IMPLEMENTATION_COMMIT, "HEAD"], { cwd: root });
-  assert.equal(git(root, "rev-list", "--min-parents=2", `${IMPLEMENTATION_COMMIT}..HEAD`), "");
-  const commits = git(root, "rev-list", "--reverse", `${IMPLEMENTATION_COMMIT}..HEAD`)
+  assert.equal(git(root, "rev-parse", `${HISTORICAL_SUCCESSOR_COMMIT}^{tree}`), HISTORICAL_SUCCESSOR_TREE);
+  execFileSync("git", ["merge-base", "--is-ancestor", HISTORICAL_SUCCESSOR_COMMIT, "HEAD"], { cwd: root });
+  assert.equal(
+    git(root, "rev-list", "--min-parents=2", `${IMPLEMENTATION_COMMIT}..${HISTORICAL_SUCCESSOR_COMMIT}`),
+    ""
+  );
+  const commits = git(root, "rev-list", "--reverse", `${IMPLEMENTATION_COMMIT}..${HISTORICAL_SUCCESSOR_COMMIT}`)
     .split("\n")
     .filter(Boolean);
-  assert.ok(commits.length > 0, "Authoritative readiness successor is not committed after the protected candidate.");
+  assert.deepEqual(commits, [HISTORICAL_SUCCESSOR_COMMIT]);
   for (const commit of commits) {
     const record = commitRecord(root, commit);
     assert.equal(record.author, "overwatch@prometheus.local", `Non-Overwatch author after protected candidate: ${commit}`);
@@ -219,21 +225,11 @@ function verifyProtectedSuccessor(root) {
       assert.ok(EXPECTED_SUCCESSOR_PATHS.includes(path), `Out-of-scope successor path: ${path}`);
     }
   }
-  const changed = git(root, "diff", "--name-only", `${IMPLEMENTATION_COMMIT}..HEAD`)
+  const changed = git(root, "diff", "--name-only", `${IMPLEMENTATION_COMMIT}..${HISTORICAL_SUCCESSOR_COMMIT}`)
     .split("\n")
     .filter(Boolean);
   assert.deepEqual(sorted(changed), sorted(EXPECTED_SUCCESSOR_PATHS));
   return commits;
-}
-
-function verifyConsumerResolution(root) {
-  for (const path of [
-    "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
-    "scripts/verify-overwatch-route-iq-public-crm-founder-access-deployment-readiness.mjs"
-  ]) {
-    const source = read(root, path).toString("utf8");
-    assert.match(source, /verifyOverwatchRevised3dReleaseReadinessSuccessor/u, `Readiness consumer does not resolve successor: ${path}`);
-  }
 }
 
 export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
@@ -250,6 +246,7 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
   assert.equal(sha256(read(root, HISTORICAL_JSON_PATH)), HISTORICAL_JSON_SHA256);
   assert.equal(sha256(read(root, HISTORICAL_MARKDOWN_PATH)), HISTORICAL_MARKDOWN_SHA256);
   assert.equal(sha256(read(root, PREDECESSOR_GOVERNANCE_PATH)), PREDECESSOR_GOVERNANCE_SHA256);
+  assert.equal(sha256(read(root, REVISED_3D_READINESS_SUCCESSOR_PATH)), HISTORICAL_SUCCESSOR_SHA256);
   assert.equal(
     readJson(root, HISTORICAL_JSON_PATH).recovery.infrastructureRepairComparison.files[
       "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
@@ -263,8 +260,6 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
 
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
   assert.equal(deployment.deploymentAssetsSha256, DEPLOYMENT_ASSETS_SHA256);
-  const rollback = verifyPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, ROLLBACK_BUNDLE_SHA256);
 
   const wrangler = read(root, "wrangler.prometheusrouteiq-website.jsonc").toString("utf8");
   assert.match(wrangler, /"workers_dev"\s*:\s*false/u);
@@ -277,7 +272,6 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
   assert.doesNotMatch(workflow, /--name/u);
   assert.doesNotMatch(workflow, /partner-intake[^\n]*(?:POST|PUT|PATCH|DELETE)/iu);
 
-  verifyConsumerResolution(root);
   const successorCommits = requireCommittedSuccessor ? verifyProtectedSuccessor(root) : [];
   if (requireClean) assert.equal(git(root, "status", "--porcelain"), "", "Working tree is not clean.");
   return Object.freeze({
@@ -291,6 +285,8 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
     deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
     rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
     rollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+    historicalSuccessorCommit: HISTORICAL_SUCCESSOR_COMMIT,
+    historicalSuccessorTree: HISTORICAL_SUCCESSOR_TREE,
     publicWorkerVersion: successor.productionIdentities.publicWorker.version,
     privateWorkerVersion: successor.productionIdentities.privateWorker.version,
     founderVisualAcceptance: successor.visualAcceptance.status,
