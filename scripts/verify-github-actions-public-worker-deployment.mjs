@@ -199,6 +199,43 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     cloudflareChanged: false,
     immutableEvidence: true
   });
+  assert.deepEqual(deploymentContract.cloudflareReadFailureEvidence, {
+    batchId: "BATCH-20260720-006",
+    runId: 29780926642,
+    head: "5c920ad7c56289791d12c756d4b9627bf18b4632",
+    tree: "5db5225a8f09d5e2295a89d4a7f2a3fa1305ff8b",
+    requestTimeoutMs: 15000,
+    observedElapsedMs: 15016,
+    observedOutput: "DEPLOY_FAILED",
+    rootCause: "response_body_read_error_outside_transport_classifier",
+    fixedReadPhases: [
+      "PUBLIC_DEPLOYMENTS",
+      "PUBLIC_SETTINGS",
+      "PRIVATE_DEPLOYMENTS",
+      "PRIVATE_SETTINGS"
+    ],
+    fixedFailureClassifications: [
+      "NETWORK_UNCERTAIN",
+      "REQUEST_TIMEOUT",
+      "REDIRECT_DENIED",
+      "HTTP_FAILED",
+      "RESPONSE_BODY_FAILED",
+      "RESPONSE_INVALID"
+    ],
+    automaticRetryAllowed: false,
+    publicVersionCreated: false,
+    publicVersionUnchanged: true,
+    privateVersionUnchanged: true,
+    rollbackRequired: false,
+    secretOutputAllowed: false,
+    immutableEvidence: true
+  });
+  for (const marker of [
+    "CLOUDFLARE_READ_PHASE",
+    "REQUEST_TIMEOUT",
+    "RESPONSE_BODY_FAILED",
+    "HTTP_STATUS"
+  ]) assert.ok(library.includes(marker), `missing fixed Cloudflare read marker ${marker}`);
   assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
   assert.equal(rollbackContract.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
   assert.match(rollbackContract.candidateDeploymentAssetsSha256, /^[0-9a-f]{64}$/u);

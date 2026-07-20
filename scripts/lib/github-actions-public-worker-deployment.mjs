@@ -73,8 +73,10 @@ export const PUBLIC_DEPLOYMENT_FAILURE = Object.freeze({
   CREDENTIAL_CONTEXT_INVALID: "CREDENTIAL_CONTEXT_INVALID",
   SETTINGS_INVALID: "SETTINGS_INVALID",
   NETWORK_UNCERTAIN: "NETWORK_UNCERTAIN",
+  REQUEST_TIMEOUT: "REQUEST_TIMEOUT",
   REDIRECT_DENIED: "REDIRECT_DENIED",
   HTTP_FAILED: "HTTP_FAILED",
+  RESPONSE_BODY_FAILED: "RESPONSE_BODY_FAILED",
   RESPONSE_INVALID: "RESPONSE_INVALID",
   CURRENT_PUBLIC_VERSION_MISMATCH: "CURRENT_PUBLIC_VERSION_MISMATCH",
   CURRENT_PRIVATE_VERSION_MISMATCH: "CURRENT_PRIVATE_VERSION_MISMATCH",
@@ -88,6 +90,13 @@ export const PUBLIC_DEPLOYMENT_FAILURE = Object.freeze({
   REQUIRED_BINDING_MISSING: "REQUIRED_BINDING_MISSING"
 });
 
+export const PUBLIC_CLOUDFLARE_READ_PHASE = Object.freeze({
+  PUBLIC_DEPLOYMENTS: "PUBLIC_DEPLOYMENTS",
+  PUBLIC_SETTINGS: "PUBLIC_SETTINGS",
+  PRIVATE_DEPLOYMENTS: "PRIVATE_DEPLOYMENTS",
+  PRIVATE_SETTINGS: "PRIVATE_SETTINGS"
+});
+
 const LOWER_HEX_40 = /^[0-9a-f]{40}$/u;
 const LOWER_HEX_64 = /^[0-9a-f]{64}$/u;
 const ACCOUNT_ID = /^[0-9a-f]{32}$/u;
@@ -99,6 +108,7 @@ const MAX_GIT_BYTES = 2_000_000;
 const MAX_GIT_FSCK_BYTES = 128 * 1024;
 const GIT_TIMEOUT_MS = 30_000;
 const SAFE_DIAGNOSTIC = /^[A-Z][A-Z0-9_]*(?:=[A-Z0-9_,.-]+)?$/u;
+const CLOUDFLARE_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
 const GIT_FSCK_ARGUMENTS = Object.freeze([
   "fsck",
   "--full",
@@ -141,6 +151,24 @@ export class PublicDeploymentPolicyError extends Error {
 
 function fail(code, diagnostics) {
   throw new PublicDeploymentPolicyError(code, diagnostics);
+}
+
+function cloudflareReadPhaseDiagnostic(phase) {
+  if (!CLOUDFLARE_READ_PHASES.has(phase)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return `CLOUDFLARE_READ_PHASE=${phase}`;
+}
+
+function failCloudflareRead(error, phase, signal, fallbackCode) {
+  const diagnostic = cloudflareReadPhaseDiagnostic(phase);
+  if (error instanceof PublicDeploymentPolicyError) {
+    throw new PublicDeploymentPolicyError(error.code, [...error.diagnostics, diagnostic]);
+  }
+  if (signal?.aborted) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.REQUEST_TIMEOUT, [diagnostic]);
+  }
+  fail(fallbackCode, [diagnostic]);
 }
 
 function isExpectedPublicRepositoryOrigin(originUrl) {
@@ -807,37 +835,75 @@ function parseEnvelope(body, kind) {
   }
 }
 
-async function boundedResponse(response) {
-  if (!response.body?.getReader) fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID);
-  const reader = response.body.getReader();
+async function boundedResponse(response, signal, phase) {
+  const diagnostic = cloudflareReadPhaseDiagnostic(phase);
+  let responseBody;
+  try {
+    responseBody = response?.body;
+  } catch (error) {
+    failCloudflareRead(error, phase, signal, PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_BODY_FAILED);
+  }
+  if (!responseBody || typeof responseBody.getReader !== "function") {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID, [diagnostic]);
+  }
+  let reader;
+  try {
+    reader = responseBody.getReader();
+  } catch (error) {
+    failCloudflareRead(error, phase, signal, PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_BODY_FAILED);
+  }
   const chunks = [];
   let total = 0;
+  let result;
+  let readFailure;
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (!(value instanceof Uint8Array)) fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID);
+      if (!(value instanceof Uint8Array)) {
+        fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID, [diagnostic]);
+      }
       total += value.byteLength;
       if (total > PUBLIC_WORKER_DEPLOYMENT_POLICY.responseByteLimit) {
-        fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID);
+        fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID, [diagnostic]);
       }
       chunks.push(Buffer.from(value));
     }
-    return Buffer.concat(chunks, total);
+    result = Buffer.concat(chunks, total);
+  } catch (error) {
+    readFailure = error;
   } finally {
     for (const chunk of chunks) chunk.fill(0);
-    reader.releaseLock();
+    try {
+      reader.releaseLock();
+    } catch (error) {
+      readFailure ||= error;
+    }
   }
+  if (readFailure) {
+    failCloudflareRead(
+      readFailure,
+      phase,
+      signal,
+      PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_BODY_FAILED
+    );
+  }
+  return result;
 }
 
-async function fetchCloudflareJson(path, credentials, fetchImpl) {
+async function fetchCloudflareJson(path, credentials, fetchImpl, phase, requestTimeoutMs) {
   if (!boundedString(credentials?.apiToken)
     || !ACCOUNT_ID.test(credentials?.accountId || "")
-    || typeof fetchImpl !== "function") {
+    || typeof fetchImpl !== "function"
+    || !CLOUDFLARE_READ_PHASES.has(phase)
+    || !Number.isSafeInteger(requestTimeoutMs)
+    || requestTimeoutMs < 1
+    || requestTimeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
   }
+  const diagnostic = cloudflareReadPhaseDiagnostic(phase);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs);
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
   const headers = { Accept: "application/json", Authorization: `Bearer ${credentials.apiToken}` };
   let body;
   try {
@@ -852,14 +918,37 @@ async function fetchCloudflareJson(path, credentials, fetchImpl) {
         referrerPolicy: "no-referrer",
         signal: controller.signal
       });
-    } catch {
-      fail(PUBLIC_DEPLOYMENT_FAILURE.NETWORK_UNCERTAIN);
+    } catch (error) {
+      failCloudflareRead(
+        error,
+        phase,
+        controller.signal,
+        PUBLIC_DEPLOYMENT_FAILURE.NETWORK_UNCERTAIN
+      );
     }
-    if (response.redirected || (response.status >= 300 && response.status < 400)) {
-      fail(PUBLIC_DEPLOYMENT_FAILURE.REDIRECT_DENIED);
+    let redirected;
+    let status;
+    try {
+      redirected = response.redirected;
+      status = response.status;
+    } catch (error) {
+      failCloudflareRead(
+        error,
+        phase,
+        controller.signal,
+        PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID
+      );
     }
-    if (response.status !== 200) fail(PUBLIC_DEPLOYMENT_FAILURE.HTTP_FAILED);
-    body = await boundedResponse(response);
+    if (!Number.isInteger(status) || status < 100 || status > 599) {
+      fail(PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID, [diagnostic]);
+    }
+    if (redirected || (status >= 300 && status < 400)) {
+      fail(PUBLIC_DEPLOYMENT_FAILURE.REDIRECT_DENIED, [diagnostic, `HTTP_STATUS=${status}`]);
+    }
+    if (status !== 200) {
+      fail(PUBLIC_DEPLOYMENT_FAILURE.HTTP_FAILED, [diagnostic, `HTTP_STATUS=${status}`]);
+    }
+    body = await boundedResponse(response, controller.signal, phase);
     return body;
   } finally {
     clearTimeout(timeout);
@@ -867,19 +956,63 @@ async function fetchCloudflareJson(path, credentials, fetchImpl) {
   }
 }
 
-export async function fetchPublicWorkerState(worker, credentials, fetchImpl = globalThis.fetch) {
+export async function fetchPublicWorkerState(
+  worker,
+  credentials,
+  fetchImpl = globalThis.fetch,
+  options = {}
+) {
   if (![PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker, PUBLIC_WORKER_DEPLOYMENT_POLICY.privateWorker].includes(worker)) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
   }
+  if (!isPlainObject(options) || !exactKeys(options, [], ["requestTimeoutMs"])) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
+  }
+  const requestTimeoutMs = options.requestTimeoutMs
+    ?? PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs;
+  if (!Number.isSafeInteger(requestTimeoutMs)
+    || requestTimeoutMs < 1
+    || requestTimeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
+  }
+  const phasePrefix = worker === PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker
+    ? "PUBLIC"
+    : "PRIVATE";
+  const deploymentPhase = PUBLIC_CLOUDFLARE_READ_PHASE[`${phasePrefix}_DEPLOYMENTS`];
+  const settingsPhase = PUBLIC_CLOUDFLARE_READ_PHASE[`${phasePrefix}_SETTINGS`];
   const base = `/client/v4/accounts/${credentials.accountId}/workers/scripts/${worker}`;
   let deploymentBody;
   let settingsBody;
   try {
-    deploymentBody = await fetchCloudflareJson(`${base}/deployments`, credentials, fetchImpl);
-    settingsBody = await fetchCloudflareJson(`${base}/settings`, credentials, fetchImpl);
+    deploymentBody = await fetchCloudflareJson(
+      `${base}/deployments`,
+      credentials,
+      fetchImpl,
+      deploymentPhase,
+      requestTimeoutMs
+    );
+    settingsBody = await fetchCloudflareJson(
+      `${base}/settings`,
+      credentials,
+      fetchImpl,
+      settingsPhase,
+      requestTimeoutMs
+    );
+    let deployment;
+    let bindings;
+    try {
+      deployment = parseEnvelope(deploymentBody, "deployments");
+    } catch (error) {
+      failCloudflareRead(error, deploymentPhase, undefined, PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID);
+    }
+    try {
+      bindings = parseEnvelope(settingsBody, "settings");
+    } catch (error) {
+      failCloudflareRead(error, settingsPhase, undefined, PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID);
+    }
     return Object.freeze({
-      deployment: parseEnvelope(deploymentBody, "deployments"),
-      bindings: parseEnvelope(settingsBody, "settings")
+      deployment,
+      bindings
     });
   } finally {
     if (deploymentBody) deploymentBody.fill(0);

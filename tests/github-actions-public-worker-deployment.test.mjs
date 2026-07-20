@@ -18,12 +18,14 @@ import { pathToFileURL } from "node:url";
 
 import {
   PUBLIC_DEPLOYMENT_FAILURE,
+  PUBLIC_CLOUDFLARE_READ_PHASE,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
   PublicDeploymentPolicyError,
   assertPublicBindingsCanBePreserved,
   buildPublicWranglerInvocation,
   createFounderSettingsSecretFile,
   fetchPublicWorkerState,
+  formatPublicDeploymentFailure,
   removeFounderSettingsSecretFile,
   runPublicDeploymentLifecycle,
   scrubPublicDeploymentCredentials,
@@ -300,6 +302,109 @@ test("Cloudflare read-side state parser requires one version at 100 percent and 
   assert.equal(result.deployment.versionId, publicVersion);
   assert.deepEqual(result.bindings, ["ROUTE_IQ_REQUEST_CRM_COORDINATOR:durable_object_namespace"]);
   assert.equal(requests.length, 2);
+});
+
+test("Cloudflare network, HTTP, timeout, and body failures retain safe endpoint classifications", async () => {
+  const sensitiveToken = "synthetic-sensitive-token-must-not-appear";
+  const sensitiveFailure = "synthetic-sensitive-provider-detail-must-not-appear";
+  const credentials = { apiToken: sensitiveToken, accountId: "a".repeat(32) };
+  const cases = [
+    {
+      expectedCode: PUBLIC_DEPLOYMENT_FAILURE.NETWORK_UNCERTAIN,
+      expectedDiagnostics: ["CLOUDFLARE_READ_PHASE=PUBLIC_DEPLOYMENTS"],
+      fetchImpl: async () => { throw new Error(sensitiveFailure); }
+    },
+    {
+      expectedCode: PUBLIC_DEPLOYMENT_FAILURE.HTTP_FAILED,
+      expectedDiagnostics: ["CLOUDFLARE_READ_PHASE=PUBLIC_DEPLOYMENTS", "HTTP_STATUS=503"],
+      fetchImpl: async () => response({ providerDetail: sensitiveFailure }, 503)
+    },
+    {
+      expectedCode: PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_BODY_FAILED,
+      expectedDiagnostics: ["CLOUDFLARE_READ_PHASE=PUBLIC_DEPLOYMENTS"],
+      fetchImpl: async () => new Response(new ReadableStream({
+        start(controller) {
+          controller.error(new Error(sensitiveFailure));
+        }
+      }), { status: 200 })
+    },
+    {
+      expectedCode: PUBLIC_DEPLOYMENT_FAILURE.REQUEST_TIMEOUT,
+      expectedDiagnostics: ["CLOUDFLARE_READ_PHASE=PUBLIC_DEPLOYMENTS"],
+      fetchImpl: async (_url, options) => new Response(new ReadableStream({
+        start(controller) {
+          options.signal.addEventListener("abort", () => {
+            controller.error(new Error(sensitiveFailure));
+          }, { once: true });
+        }
+      }), { status: 200 })
+    }
+  ];
+  for (const fixture of cases) {
+    let calls = 0;
+    let captured;
+    await assert.rejects(
+      fetchPublicWorkerState(
+        PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker,
+        credentials,
+        async (...args) => {
+          calls += 1;
+          return fixture.fetchImpl(...args);
+        },
+        { requestTimeoutMs: 10 }
+      ),
+      error => {
+        captured = error;
+        return error instanceof PublicDeploymentPolicyError
+          && error.code === fixture.expectedCode
+          && fixture.expectedDiagnostics.every(value => error.diagnostics.includes(value));
+      }
+    );
+    assert.equal(calls, 1, `${fixture.expectedCode} must not retry`);
+    const output = formatPublicDeploymentFailure(captured, "deploy").join("\n");
+    assert.equal(output.includes("UNCLASSIFIED_INTERNAL_FAILURE"), false);
+    assert.equal(output.includes(sensitiveToken), false);
+    assert.equal(output.includes(sensitiveFailure), false);
+  }
+});
+
+test("private settings parser failures identify the exact safe phase", async () => {
+  const credentials = { apiToken: "test", accountId: "a".repeat(32) };
+  let calls = 0;
+  await assert.rejects(
+    fetchPublicWorkerState(
+      PUBLIC_WORKER_DEPLOYMENT_POLICY.privateWorker,
+      credentials,
+      async url => {
+        calls += 1;
+        if (url.pathname.endsWith("/deployments")) {
+          return response({
+            success: true,
+            errors: [],
+            messages: [],
+            result: {
+              deployments: [{
+                id: "33333333-3333-4333-8333-333333333333",
+                strategy: "percentage",
+                versions: [{ version_id: privateVersion, percentage: 100 }]
+              }]
+            }
+          });
+        }
+        return response({
+          success: true,
+          errors: [],
+          messages: [],
+          result: { bindings: "not-an-array" }
+        });
+      }
+    ),
+    error => error.code === PUBLIC_DEPLOYMENT_FAILURE.RESPONSE_INVALID
+      && error.diagnostics.includes(
+        `CLOUDFLARE_READ_PHASE=${PUBLIC_CLOUDFLARE_READ_PHASE.PRIVATE_SETTINGS}`
+      )
+  );
+  assert.equal(calls, 2);
 });
 
 test("unknown live bindings fail before mutation while configured, plain, and secret bindings are preservable", () => {
