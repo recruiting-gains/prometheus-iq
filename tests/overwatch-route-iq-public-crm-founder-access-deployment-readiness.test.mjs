@@ -69,8 +69,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 22);
-  assert.deepEqual(result.commits.slice(0, 21), [
+  assert.equal(result.commits.length, 27);
+  assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
@@ -91,7 +91,12 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
     "06a6464035d3b8d46f308c77955a80a62ddfa957",
     "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
-    "f26d35aaf612f4b89194d75fa721ce5cd3068b85"
+    "f26d35aaf612f4b89194d75fa721ce5cd3068b85",
+    "5f33e24e1e61f4866f49f96669c9c54e80cbb099",
+    "a69dd6ac8785f0906d1ad91e9ca156f5250dc22e",
+    "0165ffc56a18408be5c2e970223944fa1dd02593",
+    "41d9f1fa9273482261500708d7299a1997f6ec69",
+    "12d229fb18549e42dba90b075efe70753ee22f0e"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -127,7 +132,7 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "96e19edafe0cb28d3372041d646538466d28d5f82e1507245a312424bc435fc0"
+    "995cc419b2e4f0add515feb74dadc8208c1a5ac2da674eadb7b6fcadd7e6359a"
   );
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
@@ -140,6 +145,10 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(value.keychainCiPortabilityClosure.websiteImplementationChanged, false);
   assert.equal(value.keychainCiPortabilityClosure.deploymentAssetsChanged, false);
+  assert.equal(value.historicalKeychainFixtureClosure.successors.length, 4);
+  assert.equal(value.historicalKeychainFixtureClosure.ownerVerifierOwnershipTests, 6);
+  assert.equal(value.historicalKeychainFixtureClosure.historicalFixtureCommitPreserved, true);
+  assert.equal(value.historicalKeychainFixtureClosure.websiteImplementationChanged, false);
   assert.deepEqual(
     value.predeploymentSmokeRepair.ownerCommits.map(record => record.commit),
     [
