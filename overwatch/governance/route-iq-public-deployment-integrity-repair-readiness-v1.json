@@ -46,6 +46,7 @@
     {
       "commit": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
       "tree": "8b5202428cfdb6a3586bdc90f39cce4d3ea02e97",
+      "parent": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",
       "subject": "infrastructure: repair public repository integrity diagnostics",
       "owner": "Prometheus Infrastructure",
       "files": [
@@ -65,6 +66,7 @@
     {
       "commit": "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
       "tree": "025d3d01cae56753f9d0c5e63af5ea369a52b4ff",
+      "parent": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
       "subject": "infrastructure: pin safe integrity diagnostic runtime",
       "owner": "Prometheus Infrastructure",
       "files": [
@@ -74,11 +76,24 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "a23ac70a74f753486cc6ceda8eddeedfa187f5c5",
+      "tree": "b2b1d3058cc2002bf2f1432b8d6cd05c6a84d7a1",
+      "parent": "96af76e8094beafc2de455ebb5d80755c0160a2e",
+      "subject": "infrastructure: constrain repository integrity owner boundary",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "a14e97a048175c80c240f89455b32d5f394e9fcadbb2037f93dc9afa087ad758",
+    "contractSha256": "d2284276529a7240bd214818ef6f5f6b5f750c51185f129ca9cb45eafa79fd51",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -91,7 +106,9 @@
     "shallowPartialAndPromisorRejected": true,
     "missingCorruptMalformedAndInvalidRefFailuresRemainFatal": true,
     "repositoryIntegrityRunsBeforeRollbackAndCredentials": true,
-    "pinnedNodeRunsBeforeRepositoryScripts": true
+    "pinnedNodeRunsBeforeRepositoryScripts": true,
+    "ownerVerifierAllowsOnlyGovernedOverwatchDescendants": true,
+    "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
   "releaseIdentities": {
     "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
