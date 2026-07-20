@@ -69,8 +69,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 17);
-  assert.deepEqual(result.commits.slice(0, 16), [
+  assert.equal(result.commits.length, 22);
+  assert.deepEqual(result.commits.slice(0, 21), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
@@ -86,7 +86,12 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
     "027366403b8f0ad40b4c51ca8679703ecf2341c3",
     "1e4e9be843fe418ae8920ccb109b4259fda5455c",
-    "2595702c5c30ec269aee2694a81ea223fb2903e6"
+    "2595702c5c30ec269aee2694a81ea223fb2903e6",
+    "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+    "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+    "f26d35aaf612f4b89194d75fa721ce5cd3068b85"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -122,9 +127,19 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "7622f01b313302c866e7c52a919aaa5993bb4662346edb3c5367db8a618cebf7"
+    "96e19edafe0cb28d3372041d646538466d28d5f82e1507245a312424bc435fc0"
   );
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
+  assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
+  assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
+  assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
+  assert.equal(
+    value.keychainCiPortabilityClosure.successors.at(-1).commit,
+    "f26d35aaf612f4b89194d75fa721ce5cd3068b85"
+  );
+  assert.equal(value.keychainCiPortabilityClosure.websiteImplementationChanged, false);
+  assert.equal(value.keychainCiPortabilityClosure.deploymentAssetsChanged, false);
   assert.deepEqual(
     value.predeploymentSmokeRepair.ownerCommits.map(record => record.commit),
     [

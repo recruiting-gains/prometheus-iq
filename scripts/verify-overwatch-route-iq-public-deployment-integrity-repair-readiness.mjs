@@ -22,7 +22,7 @@ const INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "7622f01b313302c866e7c52a919aaa5993bb4662346edb3c5367db8a618cebf7";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "96e19edafe0cb28d3372041d646538466d28d5f82e1507245a312424bc435fc0";
 const ROLLBACK_CONTRACT_SHA256 = "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const ROLLBACK_BUNDLE_SHA256 = "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7";
@@ -201,6 +201,12 @@ const SIXTH_OVERWATCH_SUCCESSOR = Object.freeze({
   parent: FIFTH_OVERWATCH_SUCCESSOR.commit,
   subject: "overwatch: repair public predeployment test pin"
 });
+const SEVENTH_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+  tree: "abf7736785ec2640e94ed767a40b83b21cf87de5",
+  parent: "2595702c5c30ec269aee2694a81ea223fb2903e6",
+  subject: "overwatch: close public clean-runner provenance"
+});
 const DASHBOARD_VERIFICATION_SUCCESSOR = Object.freeze({
   commit: "bb1509d42cd03c19b9db0f9011579b6a041ffd9c",
   tree: "2bd8186faafd7c922c17da9401c6dddbc64163bb",
@@ -211,6 +217,58 @@ const DASHBOARD_VERIFICATION_SUCCESSOR = Object.freeze({
     "tests/dashboard-route-iq-product-focus.test.mjs"
   ])
 });
+const KEYCHAIN_CI_SUCCESSORS = Object.freeze([
+  Object.freeze({
+    commit: "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    tree: "955431d084ed6e529490e71e6432c8007217db36",
+    parent: "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+    subject: "Make Keychain owner verifier portable in CI",
+    ownerEmail: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+      "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    tree: "23ec45072e108c932fedd29481aca78de5b71773",
+    parent: "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    subject: "Record Keychain CI portability successor",
+    ownerEmail: "overwatch@prometheus.local",
+    files: Object.freeze([
+      "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json",
+      "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json",
+      "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
+      "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+    tree: "75a58d332c1a29d872fe87f44c814c8ad785cb9c",
+    parent: "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    subject: "infrastructure: admit Keychain CI portability successor",
+    ownerEmail: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "f26d35aaf612f4b89194d75fa721ce5cd3068b85",
+    tree: "b1d4e42822d571cfee8cae0962d84a2d9ab0f64f",
+    parent: "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+    subject: "infrastructure: pin Keychain Overwatch mapping",
+    ownerEmail: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  })
+]);
 const FINAL_OVERWATCH_SUCCESSOR_PATHS = Object.freeze([
   PUBLIC_INTEGRITY_READINESS_PATH,
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
@@ -253,7 +311,7 @@ function commitRecord(root, commit) {
 
 export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.governanceId, "route-iq-public-deployment-integrity-repair-readiness-v1");
-  assert.equal(governance?.version, "1.4.0");
+  assert.equal(governance?.version, "1.5.0");
   assert.equal(governance?.batchId, "BATCH-20260719-008");
   assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(governance?.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
@@ -335,6 +393,7 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicIntakeSmokeSuccessors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicIntakeSmokeProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
 
@@ -462,6 +521,37 @@ export function validatePublicIntegrityReadiness(governance) {
     freshExactFounderDeploymentAuthorizationRequired: true
   });
 
+  assert.deepEqual(governance?.keychainCiPortabilityClosure, {
+    failedDeploymentRun: {
+      runId: 29758138044,
+      verificationJobId: 88405719162,
+      deploymentJobId: 88405978303,
+      failureClassification: "MACOS_SWIFTC_INVOKED_ON_LINUX_CLEAN_RUNNER",
+      deploymentJobSkipped: true,
+      protectedEnvironmentAccessed: false,
+      cloudflareContacted: false,
+      productionMutation: false
+    },
+    successors: KEYCHAIN_CI_SUCCESSORS.map(record => ({
+      commit: record.commit,
+      tree: record.tree,
+      parent: record.parent,
+      subject: record.subject,
+      owner: record.ownerEmail === "overwatch@prometheus.local"
+        ? "Prometheus Overwatch"
+        : "Prometheus Infrastructure",
+      files: [...record.files]
+    })),
+    infrastructureContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+    macosSwiftTypecheckPreserved: true,
+    linuxSwiftTypecheckNotApplicable: true,
+    websiteImplementationChanged: false,
+    crmImplementationChanged: false,
+    deploymentAssetsChanged: false,
+    rollbackContractChanged: false,
+    productionChanged: false
+  });
+
   assert.deepEqual(governance?.productionIdentities, {
     publicWorker: {
       name: "prometheusrouteiq-website",
@@ -537,9 +627,9 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 17 : 16;
+  const expectedCount = requireCommittedOverwatch ? 22 : 21;
   assert.equal(commits.length, expectedCount);
-  assert.deepEqual(commits.slice(0, 16), [
+  assert.deepEqual(commits.slice(0, 21), [
     INFRASTRUCTURE_COMMITS[0].commit,
     INFRASTRUCTURE_COMMITS[1].commit,
     FIRST_OVERWATCH_SUCCESSOR.commit,
@@ -555,7 +645,9 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     INFRASTRUCTURE_COMMITS[7].commit,
     FIFTH_OVERWATCH_SUCCESSOR.commit,
     SIXTH_OVERWATCH_SUCCESSOR.commit,
-    INFRASTRUCTURE_COMMITS[8].commit
+    INFRASTRUCTURE_COMMITS[8].commit,
+    SEVENTH_OVERWATCH_SUCCESSOR.commit,
+    ...KEYCHAIN_CI_SUCCESSORS.map(record => record.commit)
   ]);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
@@ -630,13 +722,31 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.equal(sixthOverwatch.subject, SIXTH_OVERWATCH_SUCCESSOR.subject);
   assert.deepEqual(sorted(sixthOverwatch.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
 
+  assert.equal(git(root, "rev-parse", `${SEVENTH_OVERWATCH_SUCCESSOR.commit}^{tree}`), SEVENTH_OVERWATCH_SUCCESSOR.tree);
+  assert.equal(git(root, "rev-parse", `${SEVENTH_OVERWATCH_SUCCESSOR.commit}^`), SEVENTH_OVERWATCH_SUCCESSOR.parent);
+  const seventhOverwatch = commitRecord(root, SEVENTH_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(seventhOverwatch.author, "overwatch@prometheus.local");
+  assert.equal(seventhOverwatch.committer, "overwatch@prometheus.local");
+  assert.equal(seventhOverwatch.subject, SEVENTH_OVERWATCH_SUCCESSOR.subject);
+  assert.deepEqual(sorted(seventhOverwatch.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
+
+  for (const expected of KEYCHAIN_CI_SUCCESSORS) {
+    assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
+    assert.equal(git(root, "rev-parse", `${expected.commit}^`), expected.parent);
+    const record = commitRecord(root, expected.commit);
+    assert.equal(record.author, expected.ownerEmail);
+    assert.equal(record.committer, expected.ownerEmail);
+    assert.equal(record.subject, expected.subject);
+    assert.deepEqual(sorted(record.files), sorted(expected.files));
+  }
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[16]);
+    const record = commitRecord(root, commits[21]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, "overwatch: close public clean-runner provenance");
+    assert.equal(record.subject, "overwatch: close Keychain CI portability provenance");
     assert.deepEqual(sorted(record.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
-    assert.equal(git(root, "rev-parse", `${commits[16]}^`), INFRASTRUCTURE_COMMITS[8].commit);
+    assert.equal(git(root, "rev-parse", `${commits[21]}^`), KEYCHAIN_CI_SUCCESSORS.at(-1).commit);
   }
   return commits;
 }

@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -193,7 +193,7 @@
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "7622f01b313302c866e7c52a919aaa5993bb4662346edb3c5367db8a618cebf7",
+    "contractSha256": "96e19edafe0cb28d3372041d646538466d28d5f82e1507245a312424bc435fc0",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -216,6 +216,7 @@
     "ownerVerifierPinsPublicIntakeSmokeSuccessors": true,
     "ownerVerifierPinsPublicIntakeSmokeProvenanceAdmission": true,
     "ownerVerifierPinsCleanRunnerAssetGenerationSuccessor": true,
+    "ownerVerifierPinsKeychainCiPortabilitySuccessors": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -389,6 +390,78 @@
     },
     "safeCiNextRunRequired": true,
     "freshExactFounderDeploymentAuthorizationRequired": true
+  },
+  "keychainCiPortabilityClosure": {
+    "failedDeploymentRun": {
+      "runId": 29758138044,
+      "verificationJobId": 88405719162,
+      "deploymentJobId": 88405978303,
+      "failureClassification": "MACOS_SWIFTC_INVOKED_ON_LINUX_CLEAN_RUNNER",
+      "deploymentJobSkipped": true,
+      "protectedEnvironmentAccessed": false,
+      "cloudflareContacted": false,
+      "productionMutation": false
+    },
+    "successors": [
+      {
+        "commit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+        "tree": "955431d084ed6e529490e71e6432c8007217db36",
+        "parent": "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+        "subject": "Make Keychain owner verifier portable in CI",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+          "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+        ]
+      },
+      {
+        "commit": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+        "tree": "23ec45072e108c932fedd29481aca78de5b71773",
+        "parent": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+        "subject": "Record Keychain CI portability successor",
+        "owner": "Prometheus Overwatch",
+        "files": [
+          "overwatch/governance/cloudflare-unattended-keychain-interoperability-v1.json",
+          "overwatch/reports/BATCH-20260715-008-cloudflare-unattended-keychain-interoperability.json",
+          "scripts/verify-overwatch-cloudflare-unattended-keychain-interoperability.mjs",
+          "tests/overwatch-cloudflare-unattended-keychain-interoperability.test.mjs"
+        ]
+      },
+      {
+        "commit": "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+        "tree": "75a58d332c1a29d872fe87f44c814c8ad785cb9c",
+        "parent": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+        "subject": "infrastructure: admit Keychain CI portability successor",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      },
+      {
+        "commit": "f26d35aaf612f4b89194d75fa721ce5cd3068b85",
+        "tree": "b1d4e42822d571cfee8cae0962d84a2d9ab0f64f",
+        "parent": "89f6e5c0e40d759289793fb6a6f1767a6888d6c4",
+        "subject": "infrastructure: pin Keychain Overwatch mapping",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
+    "infrastructureContractSha256": "96e19edafe0cb28d3372041d646538466d28d5f82e1507245a312424bc435fc0",
+    "macosSwiftTypecheckPreserved": true,
+    "linuxSwiftTypecheckNotApplicable": true,
+    "websiteImplementationChanged": false,
+    "crmImplementationChanged": false,
+    "deploymentAssetsChanged": false,
+    "rollbackContractChanged": false,
+    "productionChanged": false
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
