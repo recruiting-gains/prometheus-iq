@@ -222,6 +222,12 @@ export function verifyGithubActionsPublicWorkerDeployment() {
       "RESPONSE_BODY_FAILED",
       "RESPONSE_INVALID"
     ],
+    productionRequestTimeoutMs: 30000,
+    testRequestTimeoutMaximumMs: 1000,
+    maximumSerializedStateReads: 12,
+    maximumSerializedReadBudgetMs: 360000,
+    deploymentJobTimeoutMs: 1800000,
+    deadlineRationale: "double_confirmed_insufficient_deadline_with_six_minute_fail_closed_read_budget",
     automaticRetryAllowed: false,
     publicVersionCreated: false,
     publicVersionUnchanged: true,
@@ -236,6 +242,8 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     "RESPONSE_BODY_FAILED",
     "HTTP_STATUS"
   ]) assert.ok(library.includes(marker), `missing fixed Cloudflare read marker ${marker}`);
+  assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs, 30000);
+  assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs, 1000);
   assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
   assert.equal(rollbackContract.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
   assert.match(rollbackContract.candidateDeploymentAssetsSha256, /^[0-9a-f]{64}$/u);

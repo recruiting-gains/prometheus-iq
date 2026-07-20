@@ -25,6 +25,7 @@ import {
   buildPublicWranglerInvocation,
   createFounderSettingsSecretFile,
   fetchPublicWorkerState,
+  fetchPublicWorkerStateForTest,
   formatPublicDeploymentFailure,
   removeFounderSettingsSecretFile,
   runPublicDeploymentLifecycle,
@@ -304,6 +305,34 @@ test("Cloudflare read-side state parser requires one version at 100 percent and 
   assert.equal(requests.length, 2);
 });
 
+test("production Cloudflare reads pin a bounded thirty-second deadline with only a smaller test override", async () => {
+  assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs, 30_000);
+  assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs, 1_000);
+  let calls = 0;
+  await assert.rejects(
+    fetchPublicWorkerStateForTest(
+      PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker,
+      { apiToken: "test", accountId: "a".repeat(32) },
+      async () => {
+        calls += 1;
+        return response({});
+      },
+      1_001
+    ),
+    error => error.code === PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID
+  );
+  assert.equal(calls, 0);
+  const productionCommand = readFileSync(
+    join(root, "scripts", "run-github-actions-public-worker-deployment.mjs"),
+    "utf8"
+  );
+  assert.match(
+    productionCommand,
+    /fetchState: worker => fetchPublicWorkerState\(worker, credentials, fetchImpl\)/u
+  );
+  assert.equal(productionCommand.includes("fetchPublicWorkerStateForTest"), false);
+});
+
 test("Cloudflare network, HTTP, timeout, and body failures retain safe endpoint classifications", async () => {
   const sensitiveToken = "synthetic-sensitive-token-must-not-appear";
   const sensitiveFailure = "synthetic-sensitive-provider-detail-must-not-appear";
@@ -344,14 +373,14 @@ test("Cloudflare network, HTTP, timeout, and body failures retain safe endpoint 
     let calls = 0;
     let captured;
     await assert.rejects(
-      fetchPublicWorkerState(
+      fetchPublicWorkerStateForTest(
         PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker,
         credentials,
         async (...args) => {
           calls += 1;
           return fixture.fetchImpl(...args);
         },
-        { requestTimeoutMs: 10 }
+        10
       ),
       error => {
         captured = error;

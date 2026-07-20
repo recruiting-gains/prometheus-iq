@@ -69,6 +69,12 @@
       "RESPONSE_BODY_FAILED",
       "RESPONSE_INVALID"
     ],
+    "productionRequestTimeoutMs": 30000,
+    "testRequestTimeoutMaximumMs": 1000,
+    "maximumSerializedStateReads": 12,
+    "maximumSerializedReadBudgetMs": 360000,
+    "deploymentJobTimeoutMs": 1800000,
+    "deadlineRationale": "double_confirmed_insufficient_deadline_with_six_minute_fail_closed_read_budget",
     "automaticRetryAllowed": false,
     "publicVersionCreated": false,
     "publicVersionUnchanged": true,

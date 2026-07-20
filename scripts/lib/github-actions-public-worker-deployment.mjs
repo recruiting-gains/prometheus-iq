@@ -53,7 +53,8 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   cloudflareApiOrigin: "https://api.cloudflare.com",
   responseByteLimit: 128 * 1024,
   commandOutputByteLimit: 128 * 1024,
-  requestTimeoutMs: 15_000,
+  requestTimeoutMs: 30_000,
+  testRequestTimeoutMaximumMs: 1_000,
   dryRunTimeoutMs: 240_000,
   deployTimeoutMs: 300_000
 });
@@ -628,6 +629,14 @@ export function verifyPublicStaticDeploymentPolicy(root) {
     || deployment.cleanRunnerFailureEvidence?.deploymentJobSkipped !== true
     || deployment.cleanRunnerFailureEvidence?.cloudflareChanged !== false
     || deployment.cleanRunnerFailureEvidence?.immutableEvidence !== true
+    || deployment.cloudflareReadFailureEvidence?.productionRequestTimeoutMs
+      !== PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs
+    || deployment.cloudflareReadFailureEvidence?.testRequestTimeoutMaximumMs
+      !== PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs
+    || deployment.cloudflareReadFailureEvidence?.maximumSerializedStateReads !== 12
+    || deployment.cloudflareReadFailureEvidence?.maximumSerializedReadBudgetMs !== 360000
+    || deployment.cloudflareReadFailureEvidence?.deploymentJobTimeoutMs !== 1800000
+    || deployment.cloudflareReadFailureEvidence?.automaticRetryAllowed !== false
     || deployment.cloudflare?.crmMigrationTag !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmMigration
     || deployment.cloudflare?.crmBinding !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmBinding
     || deployment.cloudflare?.crmClass !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass
@@ -956,20 +965,15 @@ async function fetchCloudflareJson(path, credentials, fetchImpl, phase, requestT
   }
 }
 
-export async function fetchPublicWorkerState(
+async function fetchPublicWorkerStateWithTimeout(
   worker,
   credentials,
-  fetchImpl = globalThis.fetch,
-  options = {}
+  fetchImpl,
+  requestTimeoutMs
 ) {
   if (![PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker, PUBLIC_WORKER_DEPLOYMENT_POLICY.privateWorker].includes(worker)) {
     fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
   }
-  if (!isPlainObject(options) || !exactKeys(options, [], ["requestTimeoutMs"])) {
-    fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
-  }
-  const requestTimeoutMs = options.requestTimeoutMs
-    ?? PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs;
   if (!Number.isSafeInteger(requestTimeoutMs)
     || requestTimeoutMs < 1
     || requestTimeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs) {
@@ -1018,6 +1022,33 @@ export async function fetchPublicWorkerState(
     if (deploymentBody) deploymentBody.fill(0);
     if (settingsBody) settingsBody.fill(0);
   }
+}
+
+export async function fetchPublicWorkerState(
+  worker,
+  credentials,
+  fetchImpl = globalThis.fetch
+) {
+  return fetchPublicWorkerStateWithTimeout(
+    worker,
+    credentials,
+    fetchImpl,
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs
+  );
+}
+
+export async function fetchPublicWorkerStateForTest(
+  worker,
+  credentials,
+  fetchImpl,
+  requestTimeoutMs
+) {
+  if (!Number.isSafeInteger(requestTimeoutMs)
+    || requestTimeoutMs < 1
+    || requestTimeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CREDENTIAL_CONTEXT_INVALID);
+  }
+  return fetchPublicWorkerStateWithTimeout(worker, credentials, fetchImpl, requestTimeoutMs);
 }
 
 function childEnvironment(credentials) {
