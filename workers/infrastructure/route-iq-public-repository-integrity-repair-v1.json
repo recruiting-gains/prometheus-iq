@@ -202,6 +202,34 @@
         "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "keychainCiPortabilitySuccessor": {
+      "commit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+      "tree": "955431d084ed6e529490e71e6432c8007217db36",
+      "parent": "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "Make Keychain owner verifier portable in CI",
+      "files": [
+        "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+        "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+      ]
+    },
+    "keychainCiProvenanceAdmissionSuccessor": {
+      "parent": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: admit Keychain CI portability successor",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cleanRunnerAssetGenerationRepair": {
@@ -222,6 +250,20 @@
     "deploymentAssetsModified": false,
     "rollbackArtifactModified": false,
     "workflowRerunPerformed": false,
+    "deploymentPerformed": false,
+    "cloudflareContacted": false
+  },
+  "keychainCiPortabilityProvenance": {
+    "failedRunId": 29758138044,
+    "failedJobId": 88405719162,
+    "deploymentJobSkipped": true,
+    "rootCause": "MACOS_SWIFTC_OWNER_CHECK_RAN_UNCONDITIONALLY_ON_LINUX",
+    "ownerRepairCommit": "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    "ownerRepairTree": "955431d084ed6e529490e71e6432c8007217db36",
+    "overwatchMappingCommit": "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    "macosSwiftTypecheckPreserved": true,
+    "linuxNotApplicableClassification": true,
+    "automaticRetryAllowed": false,
     "deploymentPerformed": false,
     "cloudflareContacted": false
   },

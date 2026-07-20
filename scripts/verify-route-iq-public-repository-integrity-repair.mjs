@@ -101,6 +101,16 @@ const cleanRunnerAssetGenerationSuccessorFiles = Object.freeze([
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const keychainCiPortabilitySuccessorFiles = Object.freeze([
+  "scripts/verify-cloudflare-unattended-keychain-interoperability.mjs",
+  "tests/cloudflare-unattended-keychain-interoperability.test.mjs"
+]);
+const keychainCiProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const INFRASTRUCTURE_OWNER_VERIFIER_FAILURE = Object.freeze({
   ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY:
@@ -229,6 +239,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: generate public assets before verification",
     files: cleanRunnerAssetGenerationSuccessorFiles
+  }),
+  keychainCiPortabilitySuccessor: Object.freeze({
+    commit: "af2d85d80a1abf332e202a1d24ca0c290d9d6a6b",
+    tree: "955431d084ed6e529490e71e6432c8007217db36",
+    parent: "bb0fe15841027a63ccbebfeeac21e5ead4d5e76c",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "Make Keychain owner verifier portable in CI",
+    files: keychainCiPortabilitySuccessorFiles
+  }),
+  keychainCiProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "06a6464035d3b8d46f308c77955a80a62ddfa957",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit Keychain CI portability successor",
+    files: keychainCiProvenanceAdmissionFiles
   })
 });
 
@@ -322,6 +352,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let publicIntakeSmokeSuccessorsSeen = 0;
   let publicIntakeSmokeProvenanceAdmissionSeen = false;
   let cleanRunnerAssetGenerationSeen = false;
+  let keychainCiPortabilitySuccessorSeen = false;
+  let keychainCiProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -420,6 +452,31 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const keychainCiSuccessor = boundary.keychainCiPortabilitySuccessor;
+    if (keychainCiSuccessor && commit === keychainCiSuccessor.commit) {
+      assert.equal(keychainCiPortabilitySuccessorSeen, false,
+        "Keychain CI portability successor repeated");
+      assertCommitSnapshot(repositoryRoot, keychainCiSuccessor);
+      keychainCiPortabilitySuccessorSeen = true;
+      previous = commit;
+      continue;
+    }
+    const keychainCiAdmission = boundary.keychainCiProvenanceAdmissionSuccessor;
+    const isKeychainCiAdmission = keychainCiAdmission
+      && !keychainCiProvenanceAdmissionSeen
+      && keychainCiPortabilitySuccessorSeen
+      && actual.parents[0] === keychainCiAdmission.parent
+      && actual.authorName === keychainCiAdmission.authorName
+      && actual.authorEmail === keychainCiAdmission.authorEmail
+      && actual.committerName === keychainCiAdmission.committerName
+      && actual.committerEmail === keychainCiAdmission.committerEmail
+      && actual.subject === keychainCiAdmission.subject
+      && JSON.stringify(actual.files) === JSON.stringify([...keychainCiAdmission.files].sort());
+    if (isKeychainCiAdmission) {
+      keychainCiProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -442,6 +499,10 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   }
   if (boundary.cleanRunnerAssetGenerationSuccessor) {
     result.cleanRunnerAssetGenerationSeen = cleanRunnerAssetGenerationSeen;
+  }
+  if (boundary.keychainCiPortabilitySuccessor) {
+    result.keychainCiPortabilitySuccessorSeen = keychainCiPortabilitySuccessorSeen;
+    result.keychainCiProvenanceAdmissionSeen = keychainCiProvenanceAdmissionSeen;
   }
   return Object.freeze(result);
 }

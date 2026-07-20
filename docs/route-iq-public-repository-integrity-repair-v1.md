@@ -151,6 +151,20 @@ The repaired path-independent rollback artifact is:
 
 `3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7`
 
+## Keychain verifier CI portability provenance
+
+Founder-authorized deployment workflow run `29758138044` failed closed in the no-secret test job
+before Cloudflare access. The unrelated Keychain interoperability owner verifier invoked macOS
+`/usr/bin/swiftc` unconditionally on the Linux runner. Infrastructure commit
+`af2d85d80a1abf332e202a1d24ca0c290d9d6a6b` preserves the macOS typecheck and reports the check as
+not applicable on non-macOS hosts; its regression test exercises that Linux path. Overwatch commit
+`06a6464035d3b8d46f308c77955a80a62ddfa957` independently pins the two owner-authored successor
+files.
+
+This integrity gate admits only that exact Infrastructure commit, followed by the exact Overwatch
+mapping and this four-file Infrastructure provenance admission. It does not permit generic
+Infrastructure successors, mixed ownership, altered file scope, merges, or deployment retries.
+
 ## Operator use
 
 Local non-deployment diagnostic:

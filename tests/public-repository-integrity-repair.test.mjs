@@ -27,6 +27,7 @@ import {
   verifyPublicForwardRollbackArtifact
 } from "../scripts/lib/route-iq-public-forward-rollback.mjs";
 import {
+  INFRASTRUCTURE_OWNER_BOUNDARY,
   INFRASTRUCTURE_OWNER_VERIFIER_FAILURE,
   classifyInfrastructureOwnerVerifierFailure,
   verifyInfrastructureOwnerBoundary
@@ -771,6 +772,8 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "1e4e9be843fe418ae8920ccb109b4259fda5455c"
   );
+  assert.equal(current.keychainCiPortabilitySuccessorSeen, true);
+  assert.equal(current.keychainCiProvenanceAdmissionSeen, true);
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -786,6 +789,29 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
+});
+
+test("owner boundary admits only the exact Keychain CI successor and provenance admission", () => {
+  const wrongOwnerTree = {
+    ...INFRASTRUCTURE_OWNER_BOUNDARY,
+    keychainCiPortabilitySuccessor: {
+      ...INFRASTRUCTURE_OWNER_BOUNDARY.keychainCiPortabilitySuccessor,
+      tree: "0".repeat(40)
+    }
+  };
+  assert.throws(() => verifyInfrastructureOwnerBoundary(root, wrongOwnerTree));
+
+  const widenedAdmission = {
+    ...INFRASTRUCTURE_OWNER_BOUNDARY,
+    keychainCiProvenanceAdmissionSuccessor: {
+      ...INFRASTRUCTURE_OWNER_BOUNDARY.keychainCiProvenanceAdmissionSuccessor,
+      files: [
+        ...INFRASTRUCTURE_OWNER_BOUNDARY.keychainCiProvenanceAdmissionSuccessor.files,
+        "scripts/unapproved-keychain-provenance.mjs"
+      ]
+    }
+  };
+  assert.throws(() => verifyInfrastructureOwnerBoundary(root, widenedAdmission));
 });
 
 test("owner boundary admits only the exact clean-runner asset-generation successor", () => {
