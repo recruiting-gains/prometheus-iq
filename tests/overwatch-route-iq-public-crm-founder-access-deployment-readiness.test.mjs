@@ -69,8 +69,8 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 15);
-  assert.deepEqual(result.commits.slice(0, 14), [
+  assert.equal(result.commits.length, 17);
+  assert.deepEqual(result.commits.slice(0, 16), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
     "96af76e8094beafc2de455ebb5d80755c0160a2e",
@@ -84,7 +84,9 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "c05c92930f33ca2f50362c1ad3c35efc95a645f0",
     "6476c381c8e9512eaea4a90e0f6019138cfe1766",
     "c0c35e83901aad5b8f4108a2a6b09b6210cb5243",
-    "027366403b8f0ad40b4c51ca8679703ecf2341c3"
+    "027366403b8f0ad40b4c51ca8679703ecf2341c3",
+    "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+    "2595702c5c30ec269aee2694a81ea223fb2903e6"
   ]);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b");
@@ -98,7 +100,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.deploymentAuthorized, false);
 });
 
-test("Dashboard rollover repair and Infrastructure admission remain exact and test-only", () => {
+test("Dashboard rollover and clean-runner Infrastructure repairs remain exact and test-only", () => {
   const value = integrityReadinessGovernance();
   assert.deepEqual(value.dashboardVerificationRepair.files, [
     "scripts/verify-dashboard-runtime-workflows.mjs",
@@ -116,12 +118,13 @@ test("Dashboard rollover repair and Infrastructure admission remain exact and te
   );
   assert.equal(
     value.infrastructureOwnerRepairs.at(-1).commit,
-    "c0c35e83901aad5b8f4108a2a6b09b6210cb5243"
+    "2595702c5c30ec269aee2694a81ea223fb2903e6"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "701c96666a2783df872028262c314c3b83f378f7d32df2942a6d15a80631bbb6"
+    "7622f01b313302c866e7c52a919aaa5993bb4662346edb3c5367db8a618cebf7"
   );
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
   assert.deepEqual(
     value.predeploymentSmokeRepair.ownerCommits.map(record => record.commit),
     [
@@ -139,6 +142,39 @@ test("Dashboard rollover repair and Infrastructure admission remain exact and te
   const broadened = integrityReadinessGovernance();
   broadened.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors = true;
   assert.throws(() => validatePublicIntegrityReadiness(broadened));
+});
+
+test("clean-runner closure preserves failed-run evidence and rejects the mixed-owner local commit", () => {
+  const value = integrityReadinessGovernance();
+  assert.equal(value.predeploymentClosure.batchId, "BATCH-20260720-003");
+  assert.equal(value.predeploymentClosure.failedDeploymentRun.runId, 29723618108);
+  assert.equal(value.predeploymentClosure.failedDeploymentRun.verificationJobId, 88291684567);
+  assert.equal(value.predeploymentClosure.failedDeploymentRun.deploymentJobSkipped, true);
+  assert.equal(value.predeploymentClosure.failedDeploymentRun.cloudflareContacted, false);
+  assert.equal(value.predeploymentClosure.failedDeploymentRun.productionMutation, false);
+  assert.equal(
+    value.predeploymentClosure.rejectedLocalCommit.commit,
+    "c7f8f80f0c64444efc1354f050dc304a9fd25ae1"
+  );
+  assert.equal(value.predeploymentClosure.rejectedLocalCommit.pushAllowed, false);
+  assert.equal(value.predeploymentClosure.rejectedLocalCommit.mergeAllowed, false);
+  assert.equal(value.predeploymentClosure.rejectedLocalCommit.deploymentAllowed, false);
+  assert.equal(
+    value.predeploymentClosure.ownerRepair.commit,
+    "2595702c5c30ec269aee2694a81ea223fb2903e6"
+  );
+  assert.equal(value.predeploymentClosure.ownerRepair.owner, "Prometheus Infrastructure");
+  assert.equal(value.predeploymentClosure.ownerRepair.binaryDiffEquivalentToRejectedCommit, true);
+  assert.equal(value.predeploymentClosure.ownerRepair.websiteImplementationChanged, false);
+  assert.equal(value.predeploymentClosure.ownerRepair.crmImplementationChanged, false);
+  assert.equal(value.predeploymentClosure.ownerRepair.deploymentAssetsChanged, false);
+  assert.equal(value.predeploymentClosure.ownerRepair.rollbackArtifactChanged, false);
+  assert.equal(value.predeploymentClosure.ownerRepair.productionChanged, false);
+  assert.equal(value.predeploymentClosure.freshExactFounderDeploymentAuthorizationRequired, true);
+
+  const pushable = integrityReadinessGovernance();
+  pushable.predeploymentClosure.rejectedLocalCommit.pushAllowed = true;
+  assert.throws(() => validatePublicIntegrityReadiness(pushable));
 });
 
 test("failed safe CI is immutable, non-deploying evidence and requires a fresh run", () => {

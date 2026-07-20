@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -170,11 +170,30 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "2595702c5c30ec269aee2694a81ea223fb2903e6",
+      "tree": "926a4421088fab0071eaba943bae544be2877178",
+      "parent": "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+      "subject": "infrastructure: generate public assets before verification",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/deploy-prometheus-public-worker.yml",
+        "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "701c96666a2783df872028262c314c3b83f378f7d32df2942a6d15a80631bbb6",
+    "contractSha256": "7622f01b313302c866e7c52a919aaa5993bb4662346edb3c5367db8a618cebf7",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -196,6 +215,7 @@
     "ownerVerifierPinsInfrastructureAdmissionSuccessor": true,
     "ownerVerifierPinsPublicIntakeSmokeSuccessors": true,
     "ownerVerifierPinsPublicIntakeSmokeProvenanceAdmission": true,
+    "ownerVerifierPinsCleanRunnerAssetGenerationSuccessor": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -328,6 +348,47 @@
       "generatedDeploymentAssetsModified": false,
       "productionModified": false
     }
+  },
+  "predeploymentClosure": {
+    "batchId": "BATCH-20260720-003",
+    "directive": "Autonomous Predeployment Closure",
+    "failedDeploymentRun": {
+      "runId": 29723618108,
+      "verificationJobId": 88291684567,
+      "failureClassification": "DIST_PUBLIC_READ_BEFORE_DETERMINISTIC_BUILD_ON_CLEAN_RUNNER",
+      "deploymentJobSkipped": true,
+      "protectedEnvironmentAccessed": false,
+      "cloudflareContacted": false,
+      "productionMutation": false
+    },
+    "rejectedLocalCommit": {
+      "commit": "c7f8f80f0c64444efc1354f050dc304a9fd25ae1",
+      "tree": "926a4421088fab0071eaba943bae544be2877178",
+      "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+      "classification": "REJECTED_MIXED_OWNERSHIP_LOCAL_ONLY",
+      "archivalRef": "refs/archive-local/BATCH-20260720-003/rejected-overwatch-identity",
+      "pushAllowed": false,
+      "mergeAllowed": false,
+      "deploymentAllowed": false
+    },
+    "ownerRepair": {
+      "commit": "2595702c5c30ec269aee2694a81ea223fb2903e6",
+      "tree": "926a4421088fab0071eaba943bae544be2877178",
+      "parent": "1e4e9be843fe418ae8920ccb109b4259fda5455c",
+      "owner": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: generate public assets before verification",
+      "binaryDiffEquivalentToRejectedCommit": true,
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "rollbackArtifactChanged": false,
+      "productionChanged": false
+    },
+    "safeCiNextRunRequired": true,
+    "freshExactFounderDeploymentAuthorizationRequired": true
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
