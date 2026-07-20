@@ -103,6 +103,17 @@ export function validateRouteIq3dVisualContinuityGovernance(governance) {
   assert.equal(governance?.safetyState?.prospectiveCollection, "OFF");
   assert.equal(governance?.safetyState?.activeCohorts, 0);
   assert.equal(governance?.safetyState?.recommendationInfluence, "OFF");
+  assert.deepEqual(governance?.protectedPredecessorSuccessors, [
+    {
+      predecessorGovernanceId: "cloudflare-unattended-deployment-access-governance-v1",
+      path: "package.json",
+      historicalSha256: "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      previousSuccessorSha256: "4495e53724179fc0520beae1dc4b865fda003e1f2ec7472bc9d5aa4f88b50a2e",
+      successorSha256: "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247",
+      owner: "Prometheus Overwatch",
+      reason: "Register BATCH-20260719-006 verification and release-gate wiring while unattended deployment remains paused."
+    }
+  ]);
   assert.equal(governance?.releaseBoundary?.deploymentAuthorized, false);
   assert.equal(governance?.releaseBoundary?.cloudflareMutationAuthorized, false);
   assert.equal(governance?.releaseBoundary?.secretAccessAuthorized, false);
