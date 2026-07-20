@@ -333,6 +333,78 @@ function addDashboardProvenanceSuccessors(ownerFixture) {
   });
 }
 
+function addPublicIntakeSmokeProvenanceSuccessors(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const smokeChanges = suffix => [
+    {
+      path: "scripts/run-public-intake-smoke.mjs",
+      content: `export const smoke = "${suffix}";\n`
+    },
+    {
+      path: "scripts/verify-public-intake-smoke.mjs",
+      content: `export const verified = "${suffix}";\n`
+    },
+    {
+      path: "tests/public-intake-smoke.test.mjs",
+      content: `export const tested = "${suffix}";\n`
+    }
+  ];
+  const strictSet = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic strict intake Allow set",
+    changes: smokeChanges("strict")
+  });
+  const methodAware = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic method-aware intake Allow set",
+    changes: smokeChanges("method-aware")
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic public intake provenance admission",
+    changes: [
+      {
+        path: "docs/public-intake-provenance.md",
+        content: "public intake provenance\n"
+      },
+      {
+        path: "scripts/verify-public-intake-provenance.mjs",
+        content: "export const admitted = true;\n"
+      },
+      {
+        path: "tests/public-intake-provenance.test.mjs",
+        content: "export const admittedTest = true;\n"
+      },
+      {
+        path: "workers/infrastructure/public-intake-provenance.json",
+        content: "{}\n"
+      }
+    ]
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    strictSet,
+    methodAware,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      publicIntakeSmokeSuccessors: Object.freeze([strictSet, methodAware]),
+      publicIntakeSmokeProvenanceAdmissionSuccessor: Object.freeze({
+        parent: methodAware.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -648,6 +720,11 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
   assert.equal(current.terminalOwnerCommit, "a2779239fc8f2d79d4b8781966d32cc23d4acbbd");
   assert.ok(current.descendants >= 1);
   assert.equal(current.dashboardVerificationSeen, true);
+  assert.equal(current.publicIntakeSmokeSuccessorsSeen, 2);
+  assert.equal(
+    current.publicIntakeSmokeProvenanceAdmissionSeen,
+    git(root, ["rev-parse", "HEAD"]) !== "6476c381c8e9512eaea4a90e0f6019138cfe1766"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -660,6 +737,70 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       dashboardVerificationSeen: false,
       dashboardProvenanceAdmissionSeen: false
     });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the ordered exact public-intake smoke and provenance successors", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-public-intake-"));
+  try {
+    const accepted = addPublicIntakeSmokeProvenanceSuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 6,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      publicIntakeSmokeSuccessorsSeen: 2,
+      publicIntakeSmokeProvenanceAdmissionSeen: true
+    });
+
+    const reordered = {
+      ...accepted.boundary,
+      publicIntakeSmokeSuccessors: [
+        accepted.boundary.publicIntakeSmokeSuccessors[1],
+        accepted.boundary.publicIntakeSmokeSuccessors[0]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, reordered));
+
+    const scopeDrift = {
+      ...accepted.boundary,
+      publicIntakeSmokeSuccessors: [
+        {
+          ...accepted.boundary.publicIntakeSmokeSuccessors[0],
+          files: [...accepted.boundary.publicIntakeSmokeSuccessors[0].files, "scripts/extra-owner-file.mjs"]
+        },
+        accepted.boundary.publicIntakeSmokeSuccessors[1]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, scopeDrift));
+
+    const mixedOwnership = {
+      ...accepted.boundary,
+      publicIntakeSmokeSuccessors: [
+        {
+          ...accepted.boundary.publicIntakeSmokeSuccessors[0],
+          committerName: "Prometheus Overwatch",
+          committerEmail: "overwatch@prometheus.local"
+        },
+        accepted.boundary.publicIntakeSmokeSuccessors[1]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, mixedOwnership));
+
+    commitFixture(accepted.repository, {
+      path: "scripts/unapproved-infrastructure-successor.mjs",
+      content: "export const unapproved = true;\n",
+      subject: "infrastructure: unapproved later successor",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

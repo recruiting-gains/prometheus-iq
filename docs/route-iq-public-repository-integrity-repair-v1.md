@@ -2,7 +2,7 @@
 
 Owner: Prometheus Infrastructure
 Batch: BATCH-20260719-008
-Status: Dashboard verification provenance admission implemented locally; outgoing chain not pushed or deployed
+Status: public-intake smoke provenance admission implemented locally; outgoing chain not pushed or deployed
 
 ## Failed run
 
@@ -118,6 +118,12 @@ files.
   altered Dashboard tree, identity, parent, subject, or file list fails closed, as does any additional
   Dashboard successor. The Infrastructure provenance successor is equally constrained and does not
   relax the default Overwatch-only descendant rule.
+- Public-intake smoke commits `c05c92930f33ca2f50362c1ad3c35efc95a645f0` and
+  `6476c381c8e9512eaea4a90e0f6019138cfe1766` are admitted only as an ordered immutable pair. Each
+  exact parent, tree, Infrastructure author and committer identity, subject, and three-file scope is
+  pinned. Their provenance successor is limited to parent `6476c381c8e9512eaea4a90e0f6019138cfe1766`,
+  one exact subject, and the four Infrastructure provenance files. Mixed ownership, merges, scope
+  drift, extra files, and any later non-Overwatch successor remain rejected.
 
 The repaired path-independent rollback artifact is:
 
