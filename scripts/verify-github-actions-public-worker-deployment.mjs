@@ -5,6 +5,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  PUBLIC_WRANGLER_FAILURE_REASON,
+  PUBLIC_WRANGLER_PHASE,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
   buildPublicWranglerInvocation,
   verifyPublicStaticDeploymentPolicy,
@@ -236,12 +238,58 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     secretOutputAllowed: false,
     immutableEvidence: true
   });
+  assert.deepEqual(deploymentContract.wranglerFailureDiagnostics, {
+    contractVersion: "wrangler-post-asset-failure-classification-v1",
+    wranglerVersion: "4.110.0",
+    phases: Object.values(PUBLIC_WRANGLER_PHASE),
+    reasonCodes: Object.values(PUBLIC_WRANGLER_FAILURE_REASON),
+    emittedFields: ["WRANGLER_PHASE", "WRANGLER_FAILURE_REASON"],
+    rawChildOutputAllowed: false,
+    outputStringMaterializationAllowed: false,
+    capturedOutputZeroized: true,
+    oneChildInvocationPerMode: true,
+    wrapperRetryAllowed: false,
+    timeoutKillsChild: true,
+    overflowKillsChild: true,
+    ambiguousOutputReason: "UNKNOWN_NONZERO_EXIT"
+  });
+  assert.deepEqual(deploymentContract.wranglerDeploymentFailureEvidence, {
+    batchId: "BATCH-20260720-007",
+    runId: 29786701514,
+    verificationPassed: true,
+    preDeploymentSmokePassed: true,
+    dryRunPassed: true,
+    deployChildInvoked: true,
+    deployChildExitedNonzero: true,
+    observedOutput: "DEPLOY_FAILED",
+    matchingSuccessfulCloudflareMutationAuditEntries: 0,
+    publicVersionUnchanged: true,
+    privateVersionUnchanged: true,
+    failureDimension: "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER",
+    retroactiveReasonAssignmentAllowed: false,
+    automaticRetryAllowed: false,
+    immutableEvidence: true
+  });
+  assert.deepEqual(deploymentContract.priorWranglerAssetAuditEvidence, {
+    batchId: "BATCH-20260720-006",
+    runId: 29780926642,
+    observedLocalMinute: "2026-07-20 16:43 CDT",
+    successfulAssetUploadSessionEntries: 1,
+    successfulUploadAssetsEntries: 3,
+    attributedToBatch20260720007: false,
+    preservedSeparately: true,
+    immutableEvidence: true
+  });
   for (const marker of [
     "CLOUDFLARE_READ_PHASE",
     "REQUEST_TIMEOUT",
     "RESPONSE_BODY_FAILED",
-    "HTTP_STATUS"
-  ]) assert.ok(library.includes(marker), `missing fixed Cloudflare read marker ${marker}`);
+    "HTTP_STATUS",
+    "WRANGLER_PHASE",
+    "WRANGLER_FAILURE_REASON",
+    "ASSET_COMPLETION_MISSING",
+    "UNKNOWN_NONZERO_EXIT"
+  ]) assert.ok(library.includes(marker), `missing fixed deployment diagnostic marker ${marker}`);
   assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.requestTimeoutMs, 30000);
   assert.equal(PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs, 1000);
   assert.equal(rollbackContract.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");

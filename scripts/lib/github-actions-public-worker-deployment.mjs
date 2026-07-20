@@ -98,6 +98,26 @@ export const PUBLIC_CLOUDFLARE_READ_PHASE = Object.freeze({
   PRIVATE_SETTINGS: "PRIVATE_SETTINGS"
 });
 
+export const PUBLIC_WRANGLER_PHASE = Object.freeze({
+  DRY_RUN: "DRY_RUN",
+  DEPLOY: "DEPLOY"
+});
+
+export const PUBLIC_WRANGLER_FAILURE_REASON = Object.freeze({
+  SPAWN_FAILED: "SPAWN_FAILED",
+  TIMEOUT: "TIMEOUT",
+  OUTPUT_OVERFLOW: "OUTPUT_OVERFLOW",
+  TERMINATED_BY_SIGNAL: "TERMINATED_BY_SIGNAL",
+  ASSET_SESSION_REJECTED: "ASSET_SESSION_REJECTED",
+  ASSET_UPLOAD_FAILED: "ASSET_UPLOAD_FAILED",
+  ASSET_COMPLETION_MISSING: "ASSET_COMPLETION_MISSING",
+  WORKER_VERSION_UPLOAD_REJECTED: "WORKER_VERSION_UPLOAD_REJECTED",
+  MIGRATION_BINDING_CONFIG_REJECTED: "MIGRATION_BINDING_CONFIG_REJECTED",
+  AUTHORIZATION_DENIED: "AUTHORIZATION_DENIED",
+  NETWORK_UNCERTAIN: "NETWORK_UNCERTAIN",
+  UNKNOWN_NONZERO_EXIT: "UNKNOWN_NONZERO_EXIT"
+});
+
 const LOWER_HEX_40 = /^[0-9a-f]{40}$/u;
 const LOWER_HEX_64 = /^[0-9a-f]{64}$/u;
 const ACCOUNT_ID = /^[0-9a-f]{32}$/u;
@@ -110,6 +130,51 @@ const MAX_GIT_FSCK_BYTES = 128 * 1024;
 const GIT_TIMEOUT_MS = 30_000;
 const SAFE_DIAGNOSTIC = /^[A-Z][A-Z0-9_]*(?:=[A-Z0-9_,.-]+)?$/u;
 const CLOUDFLARE_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
+const WRANGLER_FAILURE_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
+const WRANGLER_OUTPUT_PATTERNS = Object.freeze({
+  authorization: Object.freeze([
+    "no api token found.",
+    "not logged in.",
+    "incorrect permissions on your api token",
+    "please ensure it has the correct permissions for this operation.",
+    "the configured cloudflare api token contains a character that cannot be used",
+    "[code: 9106]",
+    "[code: 10000]"
+  ]),
+  network: Object.freeze([
+    "unable to resolve cloudflare's api hostname",
+    "the request to cloudflare's api timed out.",
+    "a fetch request failed, likely due to a connectivity issue."
+  ]),
+  assetCompletion: Object.freeze([
+    "failed to complete asset upload. please try again.",
+    "could not find assets information to attach to deployment. please try again."
+  ]),
+  assetSession: Object.freeze([
+    "an unexpected response has been received from the cloudflare api for assets upload. please try again.",
+    "/assets-upload-session) failed."
+  ]),
+  assetUpload: Object.freeze([
+    "asset upload took too long on bucket",
+    "upload took too long.",
+    "upload failed, aborting...",
+    "/workers/assets/upload) failed.",
+    "/workers/assets/upload?base64=true) failed.",
+    "a file was requested that does not appear to exist."
+  ]),
+  migrationBindingConfig: Object.freeze([
+    "cannot apply deleted_classes migration to non-existent class",
+    "cannot apply renamed_classes migration to non-existent class",
+    "cannot apply new_classes migration to existing class",
+    "cannot apply new_sqlite_classes migration to existing class",
+    "durable object migrations require es module format workers",
+    "a durable object binding references a class declared in `exports` but not yet provisioned.",
+    "binding db of type d1 must have a valid `id` specified",
+    "you must use a real database in the database_id configuration.",
+    "cannot use assets with a binding in an assets-only worker.",
+    "[code: 10021]"
+  ])
+});
 const GIT_FSCK_ARGUMENTS = Object.freeze([
   "fsck",
   "--full",
@@ -637,6 +702,48 @@ export function verifyPublicStaticDeploymentPolicy(root) {
     || deployment.cloudflareReadFailureEvidence?.maximumSerializedReadBudgetMs !== 360000
     || deployment.cloudflareReadFailureEvidence?.deploymentJobTimeoutMs !== 1800000
     || deployment.cloudflareReadFailureEvidence?.automaticRetryAllowed !== false
+    || deployment.wranglerFailureDiagnostics?.contractVersion
+      !== "wrangler-post-asset-failure-classification-v1"
+    || deployment.wranglerFailureDiagnostics?.wranglerVersion
+      !== PUBLIC_WORKER_DEPLOYMENT_POLICY.wranglerVersion
+    || JSON.stringify(deployment.wranglerFailureDiagnostics?.phases)
+      !== JSON.stringify(Object.values(PUBLIC_WRANGLER_PHASE))
+    || JSON.stringify(deployment.wranglerFailureDiagnostics?.reasonCodes)
+      !== JSON.stringify(Object.values(PUBLIC_WRANGLER_FAILURE_REASON))
+    || JSON.stringify(deployment.wranglerFailureDiagnostics?.emittedFields)
+      !== JSON.stringify(["WRANGLER_PHASE", "WRANGLER_FAILURE_REASON"])
+    || deployment.wranglerFailureDiagnostics?.rawChildOutputAllowed !== false
+    || deployment.wranglerFailureDiagnostics?.outputStringMaterializationAllowed !== false
+    || deployment.wranglerFailureDiagnostics?.capturedOutputZeroized !== true
+    || deployment.wranglerFailureDiagnostics?.oneChildInvocationPerMode !== true
+    || deployment.wranglerFailureDiagnostics?.wrapperRetryAllowed !== false
+    || deployment.wranglerFailureDiagnostics?.timeoutKillsChild !== true
+    || deployment.wranglerFailureDiagnostics?.overflowKillsChild !== true
+    || deployment.wranglerFailureDiagnostics?.ambiguousOutputReason
+      !== PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT
+    || deployment.wranglerDeploymentFailureEvidence?.batchId !== "BATCH-20260720-007"
+    || deployment.wranglerDeploymentFailureEvidence?.runId !== 29786701514
+    || deployment.wranglerDeploymentFailureEvidence?.verificationPassed !== true
+    || deployment.wranglerDeploymentFailureEvidence?.preDeploymentSmokePassed !== true
+    || deployment.wranglerDeploymentFailureEvidence?.dryRunPassed !== true
+    || deployment.wranglerDeploymentFailureEvidence?.deployChildInvoked !== true
+    || deployment.wranglerDeploymentFailureEvidence?.deployChildExitedNonzero !== true
+    || deployment.wranglerDeploymentFailureEvidence?.observedOutput !== "DEPLOY_FAILED"
+    || deployment.wranglerDeploymentFailureEvidence?.matchingSuccessfulCloudflareMutationAuditEntries !== 0
+    || deployment.wranglerDeploymentFailureEvidence?.publicVersionUnchanged !== true
+    || deployment.wranglerDeploymentFailureEvidence?.privateVersionUnchanged !== true
+    || deployment.wranglerDeploymentFailureEvidence?.failureDimension
+      !== "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER"
+    || deployment.wranglerDeploymentFailureEvidence?.retroactiveReasonAssignmentAllowed !== false
+    || deployment.wranglerDeploymentFailureEvidence?.automaticRetryAllowed !== false
+    || deployment.wranglerDeploymentFailureEvidence?.immutableEvidence !== true
+    || deployment.priorWranglerAssetAuditEvidence?.batchId !== "BATCH-20260720-006"
+    || deployment.priorWranglerAssetAuditEvidence?.runId !== 29780926642
+    || deployment.priorWranglerAssetAuditEvidence?.successfulAssetUploadSessionEntries !== 1
+    || deployment.priorWranglerAssetAuditEvidence?.successfulUploadAssetsEntries !== 3
+    || deployment.priorWranglerAssetAuditEvidence?.attributedToBatch20260720007 !== false
+    || deployment.priorWranglerAssetAuditEvidence?.preservedSeparately !== true
+    || deployment.priorWranglerAssetAuditEvidence?.immutableEvidence !== true
     || deployment.cloudflare?.crmMigrationTag !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmMigration
     || deployment.cloudflare?.crmBinding !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmBinding
     || deployment.cloudflare?.crmClass !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass
@@ -1065,20 +1172,90 @@ function childEnvironment(credentials) {
   return environment;
 }
 
-export async function runBoundedPublicWrangler({
+function publicWranglerPhase(mode) {
+  if (mode === "dry-run") return PUBLIC_WRANGLER_PHASE.DRY_RUN;
+  if (mode === "deploy") return PUBLIC_WRANGLER_PHASE.DEPLOY;
+  fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+}
+
+function publicWranglerDiagnostics(mode, reason) {
+  if (!WRANGLER_FAILURE_REASONS.has(reason)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return Object.freeze([
+    `WRANGLER_PHASE=${publicWranglerPhase(mode)}`,
+    `WRANGLER_FAILURE_REASON=${reason}`
+  ]);
+}
+
+function asciiFold(byte) {
+  return byte >= 65 && byte <= 90 ? byte + 32 : byte;
+}
+
+function outputIncludes(output, pattern) {
+  return output.includes(Buffer.from(pattern, "ascii"));
+}
+
+function outputIncludesAny(output, patterns) {
+  return patterns.some(pattern => outputIncludes(output, pattern));
+}
+
+function classifyPublicWranglerOutput(buffers) {
+  const output = Buffer.concat(buffers);
+  const folded = Buffer.alloc(output.length);
+  try {
+    for (let index = 0; index < output.length; index += 1) {
+      folded[index] = asciiFold(output[index]);
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.authorization)) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.AUTHORIZATION_DENIED;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.network)) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.NETWORK_UNCERTAIN;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.assetCompletion)) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.ASSET_COMPLETION_MISSING;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.assetSession)) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.ASSET_SESSION_REJECTED;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.assetUpload)) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.ASSET_UPLOAD_FAILED;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.migrationBindingConfig)
+      || (outputIncludes(folded, "inherit binding '") && outputIncludes(folded, "' is invalid"))) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.MIGRATION_BINDING_CONFIG_REJECTED;
+    }
+    if (outputIncludes(folded, "a request to the cloudflare api (")
+      && (outputIncludes(
+        folded,
+        `/workers/scripts/${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}/versions) failed.`
+      ) || outputIncludes(
+        folded,
+        `/workers/scripts/${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}) failed.`
+      ))) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.WORKER_VERSION_UPLOAD_REJECTED;
+    }
+    return PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT;
+  } finally {
+    folded.fill(0);
+    output.fill(0);
+  }
+}
+
+async function runBoundedPublicWranglerWithLimits({
   root,
   mode,
   inputs,
   credentials,
   secretFile,
-  spawnImpl = spawn
+  spawnImpl,
+  timeoutMs,
+  outputByteLimit
 }) {
   const failureCode = mode === "dry-run"
     ? PUBLIC_DEPLOYMENT_FAILURE.DRY_RUN_FAILED
     : PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED;
-  const timeoutMs = mode === "dry-run"
-    ? PUBLIC_WORKER_DEPLOYMENT_POLICY.dryRunTimeoutMs
-    : PUBLIC_WORKER_DEPLOYMENT_POLICY.deployTimeoutMs;
   const environment = childEnvironment(credentials);
   const buffers = [];
   let outputBytes = 0;
@@ -1093,13 +1270,20 @@ export async function runBoundedPublicWrangler({
         stdio: ["ignore", "pipe", "pipe"]
       });
     } catch {
-      fail(failureCode);
+      fail(failureCode, publicWranglerDiagnostics(mode, PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED));
     }
-    if (!child?.stdout || !child?.stderr || typeof child.kill !== "function") fail(failureCode);
+    if (!child?.stdout
+      || !child?.stderr
+      || typeof child.stdout.on !== "function"
+      || typeof child.stderr.on !== "function"
+      || typeof child.once !== "function"
+      || typeof child.kill !== "function") {
+      fail(failureCode, publicWranglerDiagnostics(mode, PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED));
+    }
     const capture = chunk => {
       const copy = Buffer.from(chunk);
       outputBytes += copy.length;
-      if (outputBytes > PUBLIC_WORKER_DEPLOYMENT_POLICY.commandOutputByteLimit) {
+      if (outputBytes > outputByteLimit) {
         overflow = true;
         copy.fill(0);
         child.kill("SIGKILL");
@@ -1124,12 +1308,60 @@ export async function runBoundedPublicWrangler({
         resolveResult({ exitCode, signal });
       });
     });
-    if (timedOut || overflow || result.failed || result.exitCode !== 0 || result.signal) fail(failureCode);
+    let reason;
+    if (timedOut) reason = PUBLIC_WRANGLER_FAILURE_REASON.TIMEOUT;
+    else if (overflow) reason = PUBLIC_WRANGLER_FAILURE_REASON.OUTPUT_OVERFLOW;
+    else if (result.failed) reason = PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED;
+    else if (result.signal) reason = PUBLIC_WRANGLER_FAILURE_REASON.TERMINATED_BY_SIGNAL;
+    else if (result.exitCode !== 0) reason = classifyPublicWranglerOutput(buffers);
+    if (reason) fail(failureCode, publicWranglerDiagnostics(mode, reason));
   } finally {
     for (const buffer of buffers) buffer.fill(0);
     environment[CREDENTIAL_NAMES.apiToken] = "";
     environment[CREDENTIAL_NAMES.accountId] = "";
   }
+}
+
+export async function runBoundedPublicWrangler({
+  root,
+  mode,
+  inputs,
+  credentials,
+  secretFile,
+  spawnImpl = spawn
+}) {
+  return runBoundedPublicWranglerWithLimits({
+    root,
+    mode,
+    inputs,
+    credentials,
+    secretFile,
+    spawnImpl,
+    timeoutMs: mode === "dry-run"
+      ? PUBLIC_WORKER_DEPLOYMENT_POLICY.dryRunTimeoutMs
+      : PUBLIC_WORKER_DEPLOYMENT_POLICY.deployTimeoutMs,
+    outputByteLimit: PUBLIC_WORKER_DEPLOYMENT_POLICY.commandOutputByteLimit
+  });
+}
+
+export async function runBoundedPublicWranglerForTest({
+  timeoutMs,
+  outputByteLimit,
+  ...options
+}) {
+  if (!Number.isSafeInteger(timeoutMs)
+    || timeoutMs < 1
+    || timeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.testRequestTimeoutMaximumMs
+    || !Number.isSafeInteger(outputByteLimit)
+    || outputByteLimit < 1
+    || outputByteLimit > 4096) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return runBoundedPublicWranglerWithLimits({
+    ...options,
+    timeoutMs,
+    outputByteLimit
+  });
 }
 
 function sameState(left, right) {

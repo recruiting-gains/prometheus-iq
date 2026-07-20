@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { EventEmitter } from "node:events";
 import {
   existsSync,
   lstatSync,
@@ -14,11 +15,14 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { PassThrough } from "node:stream";
 import { pathToFileURL } from "node:url";
 
 import {
   PUBLIC_DEPLOYMENT_FAILURE,
   PUBLIC_CLOUDFLARE_READ_PHASE,
+  PUBLIC_WRANGLER_FAILURE_REASON,
+  PUBLIC_WRANGLER_PHASE,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
   PublicDeploymentPolicyError,
   assertPublicBindingsCanBePreserved,
@@ -28,6 +32,7 @@ import {
   fetchPublicWorkerStateForTest,
   formatPublicDeploymentFailure,
   removeFounderSettingsSecretFile,
+  runBoundedPublicWranglerForTest,
   runPublicDeploymentLifecycle,
   scrubPublicDeploymentCredentials,
   takePublicDeploymentCredentials,
@@ -52,6 +57,95 @@ const approvedTree = "b".repeat(40);
 const publicVersion = "11111111-1111-4111-8111-111111111111";
 const privateVersion = "22222222-2222-4222-8222-222222222222";
 const rollbackHash = "c".repeat(64);
+const syntheticWranglerSecrets = Object.freeze({
+  apiToken: "synthetic-api-token-must-never-escape",
+  accountId: "d".repeat(32),
+  secretFile: "/private/synthetic/settings-must-never-escape.json",
+  providerBody: "provider-body-must-never-escape",
+  filesystemPath: "/Users/private/path-must-never-escape",
+  resourceId: "99999999-9999-4999-8999-999999999999",
+  contentHash: "e".repeat(64)
+});
+
+function wranglerSpawnFixture({
+  stdout = [],
+  stderr = [],
+  exitCode = 1,
+  signal = null,
+  emitError = false,
+  neverClose = false,
+  throwOnSpawn = false
+} = {}) {
+  let calls = 0;
+  const killSignals = [];
+  return {
+    get calls() { return calls; },
+    killSignals,
+    spawnImpl() {
+      calls += 1;
+      if (throwOnSpawn) throw new Error(syntheticWranglerSecrets.providerBody);
+      const child = new EventEmitter();
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      child.kill = killSignal => {
+        killSignals.push(killSignal);
+        queueMicrotask(() => child.emit("close", null, killSignal));
+        return true;
+      };
+      queueMicrotask(() => {
+        for (const chunk of stdout) child.stdout.write(chunk);
+        for (const chunk of stderr) child.stderr.write(chunk);
+        if (emitError) child.emit("error", new Error(syntheticWranglerSecrets.providerBody));
+        else if (!neverClose) child.emit("close", exitCode, signal);
+      });
+      return child;
+    }
+  };
+}
+
+async function captureWranglerFailure({
+  mode = "deploy",
+  fixture,
+  timeoutMs = 100,
+  outputByteLimit = 4096
+}) {
+  let captured;
+  await assert.rejects(
+    runBoundedPublicWranglerForTest({
+      root,
+      mode,
+      inputs: {
+        batchId: "BATCH-20260720-007",
+        approvedCommit
+      },
+      credentials: {
+        apiToken: syntheticWranglerSecrets.apiToken,
+        accountId: syntheticWranglerSecrets.accountId
+      },
+      secretFile: syntheticWranglerSecrets.secretFile,
+      spawnImpl: fixture.spawnImpl,
+      timeoutMs,
+      outputByteLimit
+    }),
+    error => {
+      captured = error;
+      return error instanceof PublicDeploymentPolicyError;
+    }
+  );
+  assert.equal(fixture.calls, 1, "the wrapper must invoke one child exactly once");
+  return {
+    captured,
+    formatted: formatPublicDeploymentFailure(captured, mode)
+  };
+}
+
+function assertNoWranglerSensitiveOutput(formatted) {
+  const output = formatted.join("\n");
+  for (const value of Object.values(syntheticWranglerSecrets)) {
+    assert.equal(output.includes(value), false, "fixed diagnostics must not expose sensitive child context");
+  }
+  assert.match(output, /^[A-Z0-9_=\n]+$/u);
+}
 
 function validEnvironment(overrides = {}) {
   const dispatch = {
@@ -331,6 +425,144 @@ test("production Cloudflare reads pin a bounded thirty-second deadline with only
     /fetchState: worker => fetchPublicWorkerState\(worker, credentials, fetchImpl\)/u
   );
   assert.equal(productionCommand.includes("fetchPublicWorkerStateForTest"), false);
+});
+
+test("Wrangler nonzero exits emit only deterministic fixed phase and reason diagnostics", async () => {
+  const cases = [
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.ASSET_SESSION_REJECTED,
+      output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/public/assets-upload-session) failed.\n${syntheticWranglerSecrets.providerBody}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.ASSET_UPLOAD_FAILED,
+      output: `Upload took too long.\nAsset upload took too long on bucket 1/3. ${syntheticWranglerSecrets.filesystemPath}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.ASSET_COMPLETION_MISSING,
+      output: `Failed to complete asset upload. Please try again. ${syntheticWranglerSecrets.resourceId}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.WORKER_VERSION_UPLOAD_REJECTED,
+      output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}/versions) failed. ${syntheticWranglerSecrets.providerBody}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.MIGRATION_BINDING_CONFIG_REJECTED,
+      output: `Cannot apply new_sqlite_classes migration to existing class Example. ${syntheticWranglerSecrets.contentHash}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.AUTHORIZATION_DENIED,
+      output: `Please ensure it has the correct permissions for this operation. ${syntheticWranglerSecrets.apiToken}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.NETWORK_UNCERTAIN,
+      output: `A fetch request failed, likely due to a connectivity issue. ${syntheticWranglerSecrets.filesystemPath}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT,
+      output: `ambiguous provider asset-session authorization network message ${syntheticWranglerSecrets.providerBody} ${syntheticWranglerSecrets.filesystemPath}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT,
+      output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/unrelated-worker/versions) failed. ${syntheticWranglerSecrets.providerBody}`
+    }
+  ];
+  for (const fixtureCase of cases) {
+    const fixture = wranglerSpawnFixture({ stderr: [fixtureCase.output] });
+    const { captured, formatted } = await captureWranglerFailure({ fixture });
+    assert.equal(captured.code, PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED);
+    assert.deepEqual(formatted, [
+      PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED,
+      `WRANGLER_PHASE=${PUBLIC_WRANGLER_PHASE.DEPLOY}`,
+      `WRANGLER_FAILURE_REASON=${fixtureCase.expected}`
+    ]);
+    assertNoWranglerSensitiveOutput(formatted);
+  }
+});
+
+test("Wrangler process failures distinguish spawn, timeout, overflow, signal, and dry-run phase", async () => {
+  const fixtures = [
+    {
+      fixture: wranglerSpawnFixture({ throwOnSpawn: true }),
+      reason: PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED
+    },
+    {
+      fixture: wranglerSpawnFixture({ emitError: true }),
+      reason: PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED
+    },
+    {
+      fixture: wranglerSpawnFixture({ neverClose: true }),
+      reason: PUBLIC_WRANGLER_FAILURE_REASON.TIMEOUT,
+      timeoutMs: 5,
+      expectedKill: "SIGTERM"
+    },
+    {
+      fixture: wranglerSpawnFixture({
+        stdout: [Buffer.from("x".repeat(17), "ascii")],
+        neverClose: true
+      }),
+      reason: PUBLIC_WRANGLER_FAILURE_REASON.OUTPUT_OVERFLOW,
+      outputByteLimit: 16,
+      expectedKill: "SIGKILL"
+    },
+    {
+      fixture: wranglerSpawnFixture({ signal: "SIGABRT", exitCode: null }),
+      reason: PUBLIC_WRANGLER_FAILURE_REASON.TERMINATED_BY_SIGNAL
+    }
+  ];
+  for (const fixtureCase of fixtures) {
+    const { formatted } = await captureWranglerFailure({
+      fixture: fixtureCase.fixture,
+      timeoutMs: fixtureCase.timeoutMs ?? 100,
+      outputByteLimit: fixtureCase.outputByteLimit ?? 4096
+    });
+    assert.deepEqual(formatted, [
+      PUBLIC_DEPLOYMENT_FAILURE.DEPLOY_FAILED,
+      "WRANGLER_PHASE=DEPLOY",
+      `WRANGLER_FAILURE_REASON=${fixtureCase.reason}`
+    ]);
+    if (fixtureCase.expectedKill) {
+      assert.equal(fixtureCase.fixture.killSignals[0], fixtureCase.expectedKill);
+    } else {
+      assert.deepEqual(fixtureCase.fixture.killSignals, []);
+    }
+    assertNoWranglerSensitiveOutput(formatted);
+  }
+
+  const dryRunFixture = wranglerSpawnFixture({ stderr: ["unclassified dry-run failure"] });
+  const { captured, formatted } = await captureWranglerFailure({
+    mode: "dry-run",
+    fixture: dryRunFixture
+  });
+  assert.equal(captured.code, PUBLIC_DEPLOYMENT_FAILURE.DRY_RUN_FAILED);
+  assert.deepEqual(formatted, [
+    PUBLIC_DEPLOYMENT_FAILURE.DRY_RUN_FAILED,
+    "WRANGLER_PHASE=DRY_RUN",
+    "WRANGLER_FAILURE_REASON=UNKNOWN_NONZERO_EXIT"
+  ]);
+});
+
+test("Wrangler classifier follows pinned 4.110.0 messages without materializing raw output strings", () => {
+  const wrangler = JSON.parse(readFileSync(join(root, "node_modules", "wrangler", "package.json"), "utf8"));
+  assert.equal(wrangler.version, "4.110.0");
+  const wranglerSource = readFileSync(join(root, "node_modules", "wrangler", "wrangler-dist", "cli.js"), "utf8");
+  for (const message of [
+    "An unexpected response has been received from the Cloudflare API for assets upload. Please try again.",
+    "Failed to complete asset upload. Please try again.",
+    "Asset upload took too long on bucket",
+    "A request to the Cloudflare API (${resource}) failed.",
+    "Cannot apply new_sqlite_classes migration to existing class",
+    "A fetch request failed, likely due to a connectivity issue."
+  ]) assert.ok(wranglerSource.includes(message), `Wrangler source message drifted: ${message}`);
+
+  const library = readFileSync(join(root, "scripts", "lib", "github-actions-public-worker-deployment.mjs"), "utf8");
+  const classifier = library.slice(
+    library.indexOf("function classifyPublicWranglerOutput"),
+    library.indexOf("async function runBoundedPublicWranglerWithLimits")
+  );
+  assert.match(classifier, /const output = Buffer\.concat\(buffers\)/u);
+  assert.match(classifier, /folded\.fill\(0\)/u);
+  assert.match(classifier, /output\.fill\(0\)/u);
+  assert.doesNotMatch(classifier, /\.toString\(|TextDecoder|String\(/u);
 });
 
 test("Cloudflare network, HTTP, timeout, and body failures retain safe endpoint classifications", async () => {

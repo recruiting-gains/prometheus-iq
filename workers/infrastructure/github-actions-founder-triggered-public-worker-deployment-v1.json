@@ -83,6 +83,67 @@
     "secretOutputAllowed": false,
     "immutableEvidence": true
   },
+  "wranglerFailureDiagnostics": {
+    "contractVersion": "wrangler-post-asset-failure-classification-v1",
+    "wranglerVersion": "4.110.0",
+    "phases": [
+      "DRY_RUN",
+      "DEPLOY"
+    ],
+    "reasonCodes": [
+      "SPAWN_FAILED",
+      "TIMEOUT",
+      "OUTPUT_OVERFLOW",
+      "TERMINATED_BY_SIGNAL",
+      "ASSET_SESSION_REJECTED",
+      "ASSET_UPLOAD_FAILED",
+      "ASSET_COMPLETION_MISSING",
+      "WORKER_VERSION_UPLOAD_REJECTED",
+      "MIGRATION_BINDING_CONFIG_REJECTED",
+      "AUTHORIZATION_DENIED",
+      "NETWORK_UNCERTAIN",
+      "UNKNOWN_NONZERO_EXIT"
+    ],
+    "emittedFields": [
+      "WRANGLER_PHASE",
+      "WRANGLER_FAILURE_REASON"
+    ],
+    "rawChildOutputAllowed": false,
+    "outputStringMaterializationAllowed": false,
+    "capturedOutputZeroized": true,
+    "oneChildInvocationPerMode": true,
+    "wrapperRetryAllowed": false,
+    "timeoutKillsChild": true,
+    "overflowKillsChild": true,
+    "ambiguousOutputReason": "UNKNOWN_NONZERO_EXIT"
+  },
+  "wranglerDeploymentFailureEvidence": {
+    "batchId": "BATCH-20260720-007",
+    "runId": 29786701514,
+    "verificationPassed": true,
+    "preDeploymentSmokePassed": true,
+    "dryRunPassed": true,
+    "deployChildInvoked": true,
+    "deployChildExitedNonzero": true,
+    "observedOutput": "DEPLOY_FAILED",
+    "matchingSuccessfulCloudflareMutationAuditEntries": 0,
+    "publicVersionUnchanged": true,
+    "privateVersionUnchanged": true,
+    "failureDimension": "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER",
+    "retroactiveReasonAssignmentAllowed": false,
+    "automaticRetryAllowed": false,
+    "immutableEvidence": true
+  },
+  "priorWranglerAssetAuditEvidence": {
+    "batchId": "BATCH-20260720-006",
+    "runId": 29780926642,
+    "observedLocalMinute": "2026-07-20 16:43 CDT",
+    "successfulAssetUploadSessionEntries": 1,
+    "successfulUploadAssetsEntries": 3,
+    "attributedToBatch20260720007": false,
+    "preservedSeparately": true,
+    "immutableEvidence": true
+  },
   "founderAuthorization": {
     "actor": "PrometheusRouteIQ",
     "triggeringActor": "PrometheusRouteIQ",
