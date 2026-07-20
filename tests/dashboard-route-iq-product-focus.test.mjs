@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { runInNewContext } from "node:vm";
+
+import {
+  createNoncanonicalTestClockSource,
+  eventbriteExpansionContract,
+  eventbriteExpansionFixture
+} from "../scripts/verify-dashboard-runtime-workflows.mjs";
 
 const read = path => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const sha256 = value => createHash("sha256").update(value).digest("hex");
@@ -73,4 +80,65 @@ test("source and deploy service-worker markers remain synchronized", () => {
   assert.equal(serviceWorker, deployServiceWorker);
   assert.match(source, /serviceWorkerCacheVersion = "prometheus-v48-route-iq-product-focus"/);
   assert.match(serviceWorker, /CACHE_NAME = "prometheus-v48-route-iq-product-focus"/);
+});
+
+test("Eventbrite expansion uses an explicit advancing clock instead of the wall-clock date", () => {
+  const context = {};
+  runInNewContext(createNoncanonicalTestClockSource(eventbriteExpansionFixture.now), context);
+  const clock = runInNewContext(`({
+    now: Date.now(),
+    iso: new Date().toISOString(),
+    explicit: new Date("2030-01-02T03:04:05.000Z").toISOString(),
+    marker: globalThis.__prometheusNoncanonicalTestClock
+  })`, context);
+  const fixtureEpochMs = Date.parse(eventbriteExpansionFixture.now);
+  assert.ok(clock.now >= fixtureEpochMs && clock.now < fixtureEpochMs + 1000);
+  assert.match(clock.iso, /^2026-07-19T17:00:00\./u);
+  assert.equal(clock.explicit, "2030-01-02T03:04:05.000Z");
+  assert.equal(clock.marker.now, eventbriteExpansionFixture.now);
+  assert.equal(clock.marker.mode, "advancing-offset");
+  assert.equal(eventbriteExpansionFixture.timezoneId, "America/Chicago");
+  assert.equal(eventbriteExpansionFixture.localDate, "2026-07-19");
+});
+
+test("Eventbrite expansion contract rejects count, access, map, Add, and state regressions", () => {
+  const valid = {
+    testClockNow: eventbriteExpansionFixture.now,
+    testClockMode: "advancing-offset",
+    localDate: eventbriteExpansionFixture.localDate,
+    eventCards: eventbriteExpansionFixture.expectedCardCount,
+    accessCards: eventbriteExpansionFixture.expectedCardCount,
+    mapLinks: eventbriteExpansionFixture.expectedCardCount,
+    mapLinksValid: true,
+    eventbriteLinks: eventbriteExpansionFixture.expectedCardCount,
+    eventbriteLinksValid: true,
+    addButtons: eventbriteExpansionFixture.expectedCardCount,
+    firstCardName: "Houston Biggest Business, Tech & Entrepreneur Networking Soiree",
+    addModalActive: true,
+    addModalTitle: "Add Place",
+    addFormName: "Houston Biggest Business, Tech & Entrepreneur Networking Soiree",
+    addFormCategory: "Event",
+    addFormAddress: "Bungalow Heights, Houston, TX",
+    placeCountUnchanged: true
+  };
+  assert.equal(eventbriteExpansionContract(valid), true);
+
+  const regressions = [
+    ["wall-clock rollover count", { eventCards: 5 }],
+    ["empty expansion", { eventCards: 0, accessCards: 0, mapLinks: 0, eventbriteLinks: 0, addButtons: 0 }],
+    ["missing access disclosure", { accessCards: 5 }],
+    ["missing map action", { mapLinks: 5 }],
+    ["unsafe map action", { mapLinksValid: false }],
+    ["missing Eventbrite access", { eventbriteLinks: 5 }],
+    ["unsafe Eventbrite access", { eventbriteLinksValid: false }],
+    ["missing Add action", { addButtons: 5 }],
+    ["Add modal did not open", { addModalActive: false }],
+    ["Add selected a different event", { addFormName: "Different event" }],
+    ["Add lost event category", { addFormCategory: "Business" }],
+    ["Add lost event address", { addFormAddress: "" }],
+    ["Add mutated state before save", { placeCountUnchanged: false }]
+  ];
+  for (const [label, change] of regressions) {
+    assert.equal(eventbriteExpansionContract({ ...valid, ...change }), false, label);
+  }
 });

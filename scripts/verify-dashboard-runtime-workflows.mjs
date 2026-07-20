@@ -21,6 +21,12 @@ const prospectiveRuntimeContextContractVersion = "route-iq-prospective-runtime-c
 const prospectiveCoordinatorContractVersion = "route-iq-prospective-coordinator-contract-v1";
 const routeUpdateCompletionPrefix = "Route updated using your latest result.";
 const governedRouteHoursDetailPattern = /^(?:1 stop has|(?:[2-9]|[1-9]\d+) stops have) unverified hours\.$/;
+export const eventbriteExpansionFixture = Object.freeze({
+  now: "2026-07-19T17:00:00.000Z",
+  timezoneId: "America/Chicago",
+  localDate: "2026-07-19",
+  expectedCardCount: 6
+});
 
 const results = [];
 const errors = [];
@@ -104,6 +110,55 @@ function fail(name, detail) {
 function assertWorkflow(name, condition, detail, failureDetail = detail) {
   if (condition) pass(name, detail);
   else fail(name, failureDetail);
+}
+
+export function createNoncanonicalTestClockSource(now) {
+  const targetEpochMs = Date.parse(now);
+  if (!Number.isFinite(targetEpochMs)) throw new Error("Noncanonical test clock requires a valid timestamp.");
+  return `(() => {
+    const NativeDate = globalThis.Date;
+    const installedAt = NativeDate.now();
+    const targetEpochMs = ${targetEpochMs};
+    class NoncanonicalTestDate extends NativeDate {
+      constructor(...args) {
+        if (args.length) super(...args);
+        else super(targetEpochMs + (NativeDate.now() - installedAt));
+      }
+      static now() {
+        return targetEpochMs + (NativeDate.now() - installedAt);
+      }
+    }
+    Object.defineProperty(globalThis, "Date", {
+      value: NoncanonicalTestDate,
+      configurable: true,
+      writable: true
+    });
+    Object.defineProperty(globalThis, "__prometheusNoncanonicalTestClock", {
+      value: Object.freeze({ now: ${JSON.stringify(new Date(targetEpochMs).toISOString())}, mode: "advancing-offset" }),
+      configurable: false,
+      writable: false
+    });
+  })();`;
+}
+
+export function eventbriteExpansionContract(snapshot) {
+  return snapshot.testClockNow === eventbriteExpansionFixture.now
+    && snapshot.testClockMode === "advancing-offset"
+    && snapshot.localDate === eventbriteExpansionFixture.localDate
+    && snapshot.eventCards === eventbriteExpansionFixture.expectedCardCount
+    && snapshot.accessCards === snapshot.eventCards
+    && snapshot.mapLinks === snapshot.eventCards
+    && snapshot.mapLinksValid
+    && snapshot.eventbriteLinks === snapshot.eventCards
+    && snapshot.eventbriteLinksValid
+    && snapshot.addButtons === snapshot.eventCards
+    && snapshot.addModalActive
+    && snapshot.addModalTitle === "Add Place"
+    && snapshot.addFormName !== ""
+    && snapshot.addFormName === snapshot.firstCardName
+    && snapshot.addFormCategory === "Event"
+    && snapshot.addFormAddress !== ""
+    && snapshot.placeCountUnchanged;
 }
 
 function inspectRouteUpdateStatus(value) {
@@ -632,6 +687,14 @@ async function setStandaloneMode(cdp, enabled) {
         return nativeMatchMedia(query);
       };
     })();`
+  });
+}
+
+async function setNoncanonicalTestClock(cdp, fixture) {
+  if (!fixture) return;
+  await cdp.send("Emulation.setTimezoneOverride", { timezoneId: fixture.timezoneId });
+  await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: createNoncanonicalTestClockSource(fixture.now)
   });
 }
 
@@ -2122,12 +2185,51 @@ async function verifyDesktopRepresentativePlaces(cdp) {
   })()`);
 }
 
+async function verifyEventbriteExpansion(cdp) {
+  return cdp.evaluate(`(() => {
+    const cards = [...document.querySelectorAll("#eventOpportunities .item")];
+    const accessCards = cards.filter(card => [...card.querySelectorAll(".address-line")]
+      .some(line => line.textContent.includes("Access:")));
+    const mapLinks = cards.map(card => [...card.querySelectorAll("a")]
+      .find(link => link.textContent.trim() === "Open map")).filter(Boolean);
+    const eventbriteLinks = cards.map(card => [...card.querySelectorAll("a")]
+      .find(link => link.textContent.trim() === "View Eventbrite")).filter(Boolean);
+    const addButtons = cards.map(card => card.querySelector("[data-add-event]")).filter(Boolean);
+    const firstCardName = cards[0]?.querySelector("h3")?.textContent?.trim() || "";
+    const placeCountBefore = state.places.length;
+    addButtons[0]?.click();
+    const form = document.getElementById("placeForm");
+    const result = {
+      testClockNow: globalThis.__prometheusNoncanonicalTestClock?.now || "",
+      testClockMode: globalThis.__prometheusNoncanonicalTestClock?.mode || "",
+      localDate: todayKey(),
+      eventCards: cards.length,
+      accessCards: accessCards.length,
+      mapLinks: mapLinks.length,
+      mapLinksValid: mapLinks.every(link => link.href.startsWith("https://www.google.com/maps/search/?api=1&query=")),
+      eventbriteLinks: eventbriteLinks.length,
+      eventbriteLinksValid: eventbriteLinks.every(link => link.href.startsWith("https://www.eventbrite.com/")),
+      addButtons: addButtons.length,
+      firstCardName,
+      addModalActive: document.getElementById("modal")?.classList.contains("active") === true,
+      addModalTitle: document.getElementById("modalTitle")?.textContent?.trim() || "",
+      addFormName: form?.elements.name?.value?.trim() || "",
+      addFormCategory: form?.elements.category?.value || "",
+      addFormAddress: form?.elements.address?.value?.trim() || "",
+      placeCountUnchanged: state.places.length === placeCountBefore
+    };
+    closeModal();
+    return result;
+  })()`);
+}
+
 async function runPageScenario(chrome, server, path, name, options = {}) {
   const eventLog = { runtimeExceptions: [], consoleErrors: [], logErrors: [], network: [] };
   const cdp = await attachPage(chrome, eventLog);
   try {
     await setViewport(cdp, options.viewport);
     await setStandaloneMode(cdp, options.standalone);
+    await setNoncanonicalTestClock(cdp, options.noncanonicalTestClock);
     const url = `${server.origin}${path}`;
     await navigateAndWait(cdp, url);
     const routeLoadMs = await waitForDashboardReady(cdp, 60000);
@@ -2684,7 +2786,20 @@ async function runHarness() {
     await clickTab(founder.cdp, "find");
     const findSnap = await snapshot(founder.cdp);
     assertWorkflow("Find/Search functionality", findSnap.activeView === "view-find" && findSnap.findText.includes("Find Places") && (findSnap.searchItems > 0 || findSnap.targetIdeas > 0), `${findSnap.searchItems} searches and ${findSnap.targetIdeas} target ideas rendered`, JSON.stringify({ activeView: findSnap.activeView, searchItems: findSnap.searchItems, targetIdeas: findSnap.targetIdeas }));
-    assertWorkflow("Beta Route Controls Eventbrite expansion", findSnap.eventCards >= 6 && findSnap.eventText.includes("Access:") && findSnap.eventText.includes("Open map") && findSnap.eventText.includes("Add"), `${findSnap.eventCards} event cards rendered`, JSON.stringify({ eventCards: findSnap.eventCards, eventText: findSnap.eventText.slice(0, 800) }));
+
+    const eventbrite = await runPageScenario(chrome, server, "/?role=founder&debug=1&harness=eventbrite-expansion-fixed-clock", "eventbrite-expansion-fixed-clock", {
+      noncanonicalTestClock: eventbriteExpansionFixture
+    });
+    await clickTab(eventbrite.cdp, "find");
+    const eventbriteExpansion = await verifyEventbriteExpansion(eventbrite.cdp);
+    assertWorkflow(
+      "Beta Route Controls Eventbrite expansion",
+      eventbriteExpansionContract(eventbriteExpansion),
+      `${eventbriteExpansion.eventCards} event cards rendered with access, map, Eventbrite, and Add behavior at the noncanonical ${eventbriteExpansion.localDate} test clock`,
+      JSON.stringify(eventbriteExpansion)
+    );
+    verifyNoErrors("Eventbrite expansion fixed clock", eventbrite.eventLog, await snapshot(eventbrite.cdp));
+    eventbrite.cdp.close();
 
     const mobileFounder = await runPageScenario(chrome, server, "/?role=founder&rep=cruz&debug=1&pwa=founder&harness=mobile-founder-fit", "mobile-founder", {
       viewport: { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }
