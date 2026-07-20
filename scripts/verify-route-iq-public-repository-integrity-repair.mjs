@@ -166,6 +166,13 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(safeCi.trigger, "workflow_dispatch");
   assert.equal(safeCi.dispatched, false);
   assert.equal(safeCi.contentsPermission, "read");
+  assert.equal(safeCi.pinnedNodeVersion, "24");
+  for (const field of [
+    "checkoutBeforeNodeSetup",
+    "nodeSetupBeforeRepositoryScripts",
+    "diagnosticBeforeDependencyInstall",
+    "diagnosticBeforeRollbackGeneration"
+  ]) assert.equal(safeCi[field], true, `${field} must remain enabled`);
   for (const field of [
     "automaticTriggersAllowed",
     "protectedEnvironmentUsed",
@@ -175,6 +182,35 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "productionMutationAllowed",
     "crmSubmissionAllowed"
   ]) assert.equal(safeCi[field], false, `${field} must remain disabled`);
+
+  const safeWorkflow = read(PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath);
+  const checkout = safeWorkflow.indexOf("uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5");
+  const setupNode = safeWorkflow.indexOf("uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020");
+  const firstRepositoryNodeScript = safeWorkflow.indexOf("run: node scripts/");
+  const diagnostic = safeWorkflow.indexOf("run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs");
+  const npmInstall = safeWorkflow.indexOf("run: npm ci");
+  const rollbackVerification = safeWorkflow.indexOf(
+    "run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs"
+  );
+  assert.ok(checkout >= 0 && checkout < setupNode);
+  assert.ok(setupNode < firstRepositoryNodeScript);
+  assert.equal(firstRepositoryNodeScript, diagnostic);
+  assert.ok(diagnostic < npmInstall && npmInstall < rollbackVerification);
+
+  assert.deepEqual(contract.successorRepair, {
+    owner: "Prometheus Infrastructure",
+    classification: "PINNED_NODE_ORDERING_REPAIR",
+    predecessorCommit: "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+    predecessorAmended: false,
+    ambientHostedNodeAllowed: false,
+    repositoryNodeExecutionOrder: [
+      "CHECKOUT_COMPLETE_HISTORY",
+      "SETUP_PINNED_NODE_24",
+      "RUN_REPOSITORY_DIAGNOSTIC",
+      "INSTALL_LOCKED_DEPENDENCIES",
+      "VERIFY_ROLLBACK_IDENTITY"
+    ]
+  });
 
   assert.deepEqual(contract.preservation.gitObjects, expectedPreservedObjects);
   for (const [path, expected] of Object.entries(expectedPreservedObjects)) {

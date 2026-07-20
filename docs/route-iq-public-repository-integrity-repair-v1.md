@@ -43,6 +43,9 @@ fsck and emits bounded classifications if a future runner detects a real failure
   bounded byte counts only.
 - A separate manual, read-only CI workflow can reproduce repository-integrity verification without
   a protected environment, secrets, Cloudflare access, deployment, or CRM activity.
+- The Infrastructure successor fixes the runtime order to checkout, pinned Node 24 setup, repository
+  diagnostic, locked dependency installation, then rollback verification. No repository-owned Node
+  script may execute with the hosted runner's ambient Node runtime.
 
 The repaired path-independent rollback artifact is:
 

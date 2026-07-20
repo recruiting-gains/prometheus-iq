@@ -115,12 +115,31 @@
     "dispatched": false,
     "automaticTriggersAllowed": false,
     "contentsPermission": "read",
+    "pinnedNodeVersion": "24",
+    "checkoutBeforeNodeSetup": true,
+    "nodeSetupBeforeRepositoryScripts": true,
+    "diagnosticBeforeDependencyInstall": true,
+    "diagnosticBeforeRollbackGeneration": true,
     "protectedEnvironmentUsed": false,
     "secretsAllowed": false,
     "cloudflareRequestsAllowed": false,
     "deploymentAllowed": false,
     "productionMutationAllowed": false,
     "crmSubmissionAllowed": false
+  },
+  "successorRepair": {
+    "owner": "Prometheus Infrastructure",
+    "classification": "PINNED_NODE_ORDERING_REPAIR",
+    "predecessorCommit": "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
+    "predecessorAmended": false,
+    "ambientHostedNodeAllowed": false,
+    "repositoryNodeExecutionOrder": [
+      "CHECKOUT_COMPLETE_HISTORY",
+      "SETUP_PINNED_NODE_24",
+      "RUN_REPOSITORY_DIAGNOSTIC",
+      "INSTALL_LOCKED_DEPENDENCIES",
+      "VERIFY_ROLLBACK_IDENTITY"
+    ]
   },
   "preservation": {
     "baselineCommit": "d5174c50ee7b02f930b5fa1f50723ce9db3e447d",

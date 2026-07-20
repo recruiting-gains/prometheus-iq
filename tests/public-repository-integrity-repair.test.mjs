@@ -301,6 +301,18 @@ test("safe integrity workflow has no secret, environment, deployment, Cloudflare
   assert.match(workflow, /permissions:\n  contents: read/u);
   assert.match(workflow, /fetch-depth: 0/u);
   assert.match(workflow, /persist-credentials: false/u);
+  const checkout = workflow.indexOf("uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5");
+  const setupNode = workflow.indexOf("uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020");
+  const firstRepositoryNodeScript = workflow.indexOf("run: node scripts/");
+  const diagnostic = workflow.indexOf("run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs");
+  const npmInstall = workflow.indexOf("run: npm ci");
+  const rollbackVerification = workflow.indexOf(
+    "run: node scripts/verify-route-iq-public-repository-integrity-repair.mjs"
+  );
+  assert.ok(checkout >= 0 && checkout < setupNode);
+  assert.ok(setupNode < firstRepositoryNodeScript);
+  assert.equal(firstRepositoryNodeScript, diagnostic);
+  assert.ok(diagnostic < npmInstall && npmInstall < rollbackVerification);
   for (const forbidden of [
     /\benvironment:/u,
     /\bsecrets\./u,

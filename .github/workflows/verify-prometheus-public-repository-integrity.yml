@@ -39,14 +39,14 @@ jobs:
           persist-credentials: false
           clean: true
 
-      - name: Verify exact repository and surface bounded integrity diagnostics
-        run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs
-
       - name: Set up pinned Node runtime without dependency cache
         # actions/setup-node v4.4.0
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "24"
+
+      - name: Verify exact repository and surface bounded integrity diagnostics
+        run: node scripts/run-public-worker-repository-integrity-diagnostic.mjs
 
       - name: Install exact locked dependencies
         run: npm ci
