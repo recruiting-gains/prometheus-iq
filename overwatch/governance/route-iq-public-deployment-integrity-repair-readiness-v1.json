@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -203,11 +203,25 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "7b8ff3fdf0c9a75a6dc68ec7c47a039ec974d0d2",
+      "tree": "3c016deef6db8a33c86cdcd5b3eb905e443255a0",
+      "parent": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+      "subject": "infrastructure: order clean-runner public asset generation",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015",
+    "contractSha256": "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -233,6 +247,7 @@
     "ownerVerifierPinsKeychainCiPortabilitySuccessors": true,
     "ownerVerifierPinsDashboardRuntimeHarnessSuccessors": true,
     "ownerVerifierPinsDashboardRuntimeHarnessAdoptionSuccessor": true,
+    "ownerVerifierPinsSafeNoSecretAssetOrderingRepairSuccessor": true,
     "ownerVerifierPinsSafeNoSecretFullSuiteWorkflow": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
@@ -620,6 +635,60 @@
       "privateWorkerChanged": false
     }
   },
+  "safeNoSecretAssetOrderingClosure": {
+    "batchId": "BATCH-20260720-006",
+    "directive": "Autonomous Predeployment Closure: Safe No-Secret Asset Ordering",
+    "failedSafeRun": {
+      "runId": 29776569151,
+      "jobId": 88467261279,
+      "head": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+      "tree": "e0164513b6a807796558c2d7bf6c059184839659",
+      "runner": "ubuntu-24.04",
+      "nodeVersion": "24.18.0",
+      "failure": "DIST_PUBLIC_READ_BEFORE_BUILD_IN_SAFE_NO_SECRET_WORKFLOW",
+      "deploymentCapability": false,
+      "protectedEnvironmentAccessed": false,
+      "secretsAccessed": false,
+      "cloudflareContacted": false,
+      "productionMutation": false
+    },
+    "infrastructureRepair": {
+      "commit": "7b8ff3fdf0c9a75a6dc68ec7c47a039ec974d0d2",
+      "tree": "3c016deef6db8a33c86cdcd5b3eb905e443255a0",
+      "parent": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+      "subject": "infrastructure: order clean-runner public asset generation",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/verify-prometheus-public-repository-integrity.yml",
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ],
+      "contractSha256": "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9",
+      "safeWorkflowSha256": "025bbc2fa4802a737d85d40d1ab3c38334c9458fa29b19a78f9b151da8bcb4b9"
+    },
+    "verification": {
+      "deterministicBuildAfterNpmCi": true,
+      "deterministicBuildBeforeNpmTest": true,
+      "topLevelBuildSteps": 1,
+      "fullRepositorySuitePreserved": true,
+      "strictAssetParityPreserved": true,
+      "blanketRetryAdded": false,
+      "continueOnErrorAdded": false,
+      "failureHidden": false
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "dashboardImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "rollbackContractChanged": false,
+      "rollbackBundleChanged": false,
+      "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    }
+  },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
     "workflowName": "Verify Prometheus Public Repository Integrity",
@@ -634,18 +703,19 @@
     "mustPassBeforeFreshDeploymentReview": true,
     "fullRepositorySuiteRequired": true,
     "dashboardRuntimeHarnessRequired": true,
-    "workflowSha256": "f93f8e9e86b67f347714b2cf1bc36877d5572d73d2b36674bd7d6ee4a42df06f",
+    "workflowSha256": "025bbc2fa4802a737d85d40d1ab3c38334c9458fa29b19a78f9b151da8bcb4b9",
     "nextRunRequired": true,
     "latestRun": {
-      "runId": 29717192952,
-      "jobId": 88272671229,
-      "head": "8d312bf747a289c675eb37adf582b43c860c635e",
-      "tree": "36f163193fdb91cf241ddb0ff03bce200c7506c6",
+      "runId": 29776569151,
+      "jobId": 88467261279,
+      "head": "5d5ffe858d7e132778c96746eabd4a99afe9d1f4",
+      "tree": "e0164513b6a807796558c2d7bf6c059184839659",
       "repositoryIntegrity": "PASS",
-      "ownerVerifier": "FAIL",
-      "classification": "OWNER_VERIFIER_ROLLBACK_SOURCE_MAP_OUTSIDE_BOUNDARY",
-      "exactCause": "RELATIVE_SOURCE_MAP_ENTRIES_RESOLVED_FROM_PROCESS_CWD_INSTEAD_OF_VALIDATED_SOURCE_ROOT",
-      "rejectedSourceCount": 53,
+      "dependencyInstall": "PASS",
+      "fullRepositorySuite": "FAIL",
+      "ownerVerifier": "NOT_REACHED",
+      "classification": "DIST_PUBLIC_READ_BEFORE_BUILD_IN_SAFE_NO_SECRET_WORKFLOW",
+      "exactCause": "SAFE_WORKFLOW_BUILD_RAN_AFTER_FIRST_GENERATED_ASSET_CONSUMER",
       "consumed": true,
       "deploymentCapability": false,
       "protectedEnvironmentUsed": false,
