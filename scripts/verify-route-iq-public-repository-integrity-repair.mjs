@@ -198,6 +198,18 @@ const publicWorkerStartupProvenanceAdmissionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const publicConfigEntryConsumerRepairFiles = Object.freeze([
+  "docs/route-iq-public-crm-edge-boundary-infrastructure-v1.md",
+  "scripts/verify-route-iq-public-crm-edge-boundary-infrastructure.mjs",
+  "tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json"
+]);
+const publicConfigEntryConsumerProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -577,6 +589,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit public Worker startup repair chain",
     files: publicWorkerStartupProvenanceAdmissionFiles
+  }),
+  publicConfigEntryConsumerRepairSuccessor: Object.freeze({
+    commit: "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+    tree: "90dac84f6cbc891e7c3f3156aa4eaaf7c73f9ce2",
+    parent: "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: align edge boundary with public entry",
+    files: publicConfigEntryConsumerRepairFiles
+  }),
+  publicConfigEntryConsumerProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit public config entry consumer repair",
+    files: publicConfigEntryConsumerProvenanceAdmissionFiles
   })
 });
 
@@ -786,6 +818,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let wranglerDeploymentDiagnosticProvenanceAdmissionSeen = false;
   let publicWorkerStartupRepairSuccessorsSeen = 0;
   let publicWorkerStartupProvenanceAdmissionSeen = false;
+  let publicConfigEntryConsumerRepairSeen = false;
+  let publicConfigEntryConsumerProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1096,6 +1130,35 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const publicConfigEntryConsumerRepair =
+      boundary.publicConfigEntryConsumerRepairSuccessor;
+    if (publicConfigEntryConsumerRepair
+      && commit === publicConfigEntryConsumerRepair.commit) {
+      assert.equal(publicConfigEntryConsumerRepairSeen, false,
+        "public config entry consumer repair repeated");
+      assertCommitSnapshot(repositoryRoot, publicConfigEntryConsumerRepair);
+      publicConfigEntryConsumerRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    const publicConfigEntryConsumerAdmission =
+      boundary.publicConfigEntryConsumerProvenanceAdmissionSuccessor;
+    const isPublicConfigEntryConsumerAdmission = publicConfigEntryConsumerAdmission
+      && !publicConfigEntryConsumerProvenanceAdmissionSeen
+      && publicConfigEntryConsumerRepairSeen
+      && actual.parents[0] === publicConfigEntryConsumerAdmission.parent
+      && actual.authorName === publicConfigEntryConsumerAdmission.authorName
+      && actual.authorEmail === publicConfigEntryConsumerAdmission.authorEmail
+      && actual.committerName === publicConfigEntryConsumerAdmission.committerName
+      && actual.committerEmail === publicConfigEntryConsumerAdmission.committerEmail
+      && actual.subject === publicConfigEntryConsumerAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...publicConfigEntryConsumerAdmission.files].sort());
+    if (isPublicConfigEntryConsumerAdmission) {
+      publicConfigEntryConsumerProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1156,6 +1219,11 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.publicWorkerStartupProvenanceAdmissionSeen =
       publicWorkerStartupProvenanceAdmissionSeen;
   }
+  if (boundary.publicConfigEntryConsumerRepairSuccessor) {
+    result.publicConfigEntryConsumerRepairSeen = publicConfigEntryConsumerRepairSeen;
+    result.publicConfigEntryConsumerProvenanceAdmissionSeen =
+      publicConfigEntryConsumerProvenanceAdmissionSeen;
+  }
   return Object.freeze(result);
 }
 
@@ -1188,7 +1256,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_PUBLIC_WORKER_STARTUP_REPAIR_CHAIN_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_PUBLIC_CONFIG_ENTRY_CONSUMER_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -1256,6 +1324,12 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     !== INFRASTRUCTURE_OWNER_BOUNDARY
       .publicWorkerStartupProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.publicWorkerStartupProvenanceAdmissionSeen, true);
+  }
+  assert.equal(ownerBoundary.publicConfigEntryConsumerRepairSeen, true);
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .publicConfigEntryConsumerProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.publicConfigEntryConsumerProvenanceAdmissionSeen, true);
   }
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
@@ -1334,6 +1408,32 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     deploymentAssetsModified: false,
     rollbackArtifactSha256:
       "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+    generallyAuthorizesSuccessors: false
+  });
+
+  assert.deepEqual(contract.publicConfigEntryConsumerRepair, {
+    ownerCommit: "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+    ownerTree: "90dac84f6cbc891e7c3f3156aa4eaaf7c73f9ce2",
+    parent: "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f",
+    historicalPublicConfigSha256:
+      "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+    currentPublicConfigSha256:
+      "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+    changedTopLevelKeys: ["main"],
+    historicalMain: "workers/prometheus-iq-worker.js",
+    currentMain: "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+    edgeBoundaryContractSha256:
+      "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
+    focusedTestsPassed: 7,
+    workersDev: false,
+    previewUrls: false,
+    apexAndWwwCustomDomainsPreserved: true,
+    accessAndWafBoundariesPreserved: true,
+    crmClassBindingMigrationPreserved: true,
+    publicPrivateIsolationPreserved: true,
+    deploymentPerformed: false,
+    cloudflareContacted: false,
+    productionMutationPerformed: false,
     generallyAuthorizesSuccessors: false
   });
 

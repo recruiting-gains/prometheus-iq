@@ -711,6 +711,51 @@ function addPublicWorkerStartupRepairSuccessors(ownerFixture) {
   });
 }
 
+function addPublicConfigEntryConsumerRepairSuccessor(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic align edge boundary with public entry",
+    changes: [
+      "docs/route-iq-public-crm-edge-boundary-infrastructure-v1.md",
+      "scripts/verify-route-iq-public-crm-edge-boundary-infrastructure.mjs",
+      "tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs",
+      "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json"
+    ].map(path => ({ path, content: `config-consumer:${path}\n` }))
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit public config entry consumer repair",
+    changes: [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ].map(path => ({ path, content: `config-consumer-admission:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    repair,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      publicConfigEntryConsumerRepairSuccessor: repair,
+      publicConfigEntryConsumerProvenanceAdmissionSuccessor: Object.freeze({
+        parent: repair.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -1435,6 +1480,84 @@ test("owner boundary admits only the exact public Worker startup repair chain", 
     assert.throws(() => verifyInfrastructureOwnerBoundary(
       accepted.repository,
       accepted.boundary
+    ));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact public config entry consumer repair", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-config-consumer-"));
+  try {
+    const accepted = addPublicConfigEntryConsumerRepairSuccessor(
+      addPublicWorkerStartupRepairSuccessors(
+        addWranglerDeploymentDiagnosticRepairSuccessors(
+          addCloudflareDeploymentReadRepairSuccessors(
+            createOwnerBoundaryRepository(fixture, "accepted")
+          )
+        )
+      )
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 14,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cloudflareDeploymentReadRepairSuccessorsSeen: 2,
+      cloudflareDeploymentReadProvenanceAdmissionSeen: true,
+      wranglerDeploymentDiagnosticRepairSeen: true,
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen: true,
+      publicWorkerStartupRepairSuccessorsSeen: 3,
+      publicWorkerStartupProvenanceAdmissionSeen: true,
+      publicConfigEntryConsumerRepairSeen: true,
+      publicConfigEntryConsumerProvenanceAdmissionSeen: true
+    });
+
+    const wrongOwner = {
+      ...accepted.boundary,
+      publicConfigEntryConsumerRepairSuccessor: {
+        ...accepted.boundary.publicConfigEntryConsumerRepairSuccessor,
+        authorName: "Prometheus Overwatch"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongOwner));
+
+    const wrongTree = {
+      ...accepted.boundary,
+      publicConfigEntryConsumerRepairSuccessor: {
+        ...accepted.boundary.publicConfigEntryConsumerRepairSuccessor,
+        tree: "0".repeat(40)
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongTree));
+
+    const widenedRepair = {
+      ...accepted.boundary,
+      publicConfigEntryConsumerRepairSuccessor: {
+        ...accepted.boundary.publicConfigEntryConsumerRepairSuccessor,
+        files: [
+          ...accepted.boundary.publicConfigEntryConsumerRepairSuccessor.files,
+          "wrangler.prometheusrouteiq-website.jsonc"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, widenedRepair));
+
+    const widenedAdmission = {
+      ...accepted.boundary,
+      publicConfigEntryConsumerProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.publicConfigEntryConsumerProvenanceAdmissionSuccessor,
+        files: [
+          ...accepted.boundary.publicConfigEntryConsumerProvenanceAdmissionSuccessor.files,
+          "scripts/unapproved-config-consumer-admission.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      widenedAdmission
     ));
   } finally {
     rmSync(fixture, { recursive: true, force: true });

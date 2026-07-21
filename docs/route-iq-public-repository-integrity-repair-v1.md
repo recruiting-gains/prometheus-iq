@@ -300,6 +300,25 @@ forward rollback artifact is
 `b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a` and preserves the CRM class,
 binding, SQLite migration history, namespace, and records while retaining the narrow adapter.
 
+## Public config entry consumer repair provenance
+
+Infrastructure commit `8aac9d66fa5b5d6ff191354e68a364aa142ede95` updates the edge-boundary
+consumer from historical public configuration SHA-256
+`a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f` to current SHA-256
+`5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0`. The
+historical semantic projection remains pinned, proving that `main` is the sole admitted top-level
+successor from `workers/prometheus-iq-worker.js` to the narrow Infrastructure adapter. Seven focused
+tests reject changes to the adapter, export surface, edge flags, Worker identity, bindings,
+migrations, variables, assets, observability, private configuration, and contract scope.
+
+The edge-boundary contract SHA-256 is
+`8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d`. The exact
+repair commit is pinned by full commit, tree, parent, Infrastructure identity, subject, and four-file
+scope, followed by this exact four-file Infrastructure provenance admission. It does not authorize
+later config or Infrastructure successors. `workers_dev` and preview URLs remain off; apex and www,
+Access/WAF boundaries, the CRM class/binding/migration, public/private isolation, and the no-deploy
+boundary remain unchanged.
+
 ## Operator use
 
 Local non-deployment diagnostic:
