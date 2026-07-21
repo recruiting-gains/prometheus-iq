@@ -1225,6 +1225,15 @@
       "policyHashChanged": false,
       "otherIntelligenceSuccessorsAllowed": false
     },
+    "pausedUnattendedAccessAlignment": {
+      "classification": "EXACT_INFRASTRUCTURE_PUBLIC_ADAPTER_SUCCESSOR_COUNT_ALIGNMENT",
+      "ownerRepairCommit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "previousSubsystemSuccessorCount": 11,
+      "currentSubsystemSuccessorCount": 12,
+      "unattendedAccessResumed": false,
+      "credentialOrRuntimeBehaviorChanged": false,
+      "testWeakened": false
+    },
     "contracts": {
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
