@@ -815,6 +815,75 @@ function addCrmPublicWorkerAdapterRepairSuccessor(ownerFixture) {
   });
 }
 
+function addPublicDeploymentWorkflowV2Successors(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const overwatchIdentity = {
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local"
+  };
+  const owner = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic qualify immutable public releases",
+    changes: [
+      {
+        path: ".github/workflows/qualify-synthetic-public-worker.yml",
+        content: "name: Qualify synthetic public Worker\n"
+      },
+      {
+        path: "workers/infrastructure/synthetic-public-workflow-v2.json",
+        content: "{}\n"
+      }
+    ]
+  });
+  const overwatch = commitFilesFixture(ownerFixture.repository, {
+    ...overwatchIdentity,
+    subject: "overwatch: synthetic govern public deployment workflow v2",
+    changes: [
+      {
+        path: "overwatch/governance/synthetic-public-workflow-v2.json",
+        content: "{}\n"
+      },
+      {
+        path: "tests/overwatch-synthetic-public-workflow-v2.test.mjs",
+        content: "export const governed = true;\n"
+      }
+    ]
+  });
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit public deployment workflow v2 chain",
+    changes: [
+      "docs/synthetic-public-workflow-v2-provenance.md",
+      "scripts/verify-synthetic-public-workflow-v2-provenance.mjs",
+      "tests/synthetic-public-workflow-v2-provenance.test.mjs",
+      "workers/infrastructure/synthetic-public-workflow-v2-provenance.json"
+    ].map(path => ({ path, content: `workflow-v2-provenance:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    owner,
+    overwatch,
+    repair,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      publicDeploymentWorkflowV2OwnerSuccessor: owner,
+      publicDeploymentWorkflowV2OverwatchSuccessor: overwatch,
+      publicDeploymentWorkflowV2ProvenanceRepairSuccessor: Object.freeze({
+        parent: overwatch.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: repair.subject,
+        files: repair.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -1193,6 +1262,13 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "ba4d25df97e12852982e1bbdc2b1e89ef5265da1"
   );
+  assert.equal(current.publicDeploymentWorkflowV2OwnerSeen, true);
+  assert.equal(current.publicDeploymentWorkflowV2OverwatchSeen, true);
+  assert.equal(
+    current.publicDeploymentWorkflowV2ProvenanceRepairSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "ee80a44b8a28847d4a4acfc3fae8574697661edc"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1205,6 +1281,57 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
       dashboardVerificationSeen: false,
       dashboardProvenanceAdmissionSeen: false
     });
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact public deployment Workflow v2 chain", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-workflow-v2-provenance-"));
+  try {
+    const base = createOwnerBoundaryRepository(fixture, "repository");
+    const accepted = addPublicDeploymentWorkflowV2Successors(base);
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 6,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      publicDeploymentWorkflowV2OwnerSeen: true,
+      publicDeploymentWorkflowV2OverwatchSeen: true,
+      publicDeploymentWorkflowV2ProvenanceRepairSeen: true
+    });
+
+    const wrongOwner = {
+      ...accepted.boundary,
+      publicDeploymentWorkflowV2OwnerSuccessor: {
+        ...accepted.boundary.publicDeploymentWorkflowV2OwnerSuccessor,
+        authorName: "Prometheus Overwatch"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongOwner));
+
+    const wrongPath = {
+      ...accepted.boundary,
+      publicDeploymentWorkflowV2OverwatchSuccessor: {
+        ...accepted.boundary.publicDeploymentWorkflowV2OverwatchSuccessor,
+        files: [
+          ...accepted.boundary.publicDeploymentWorkflowV2OverwatchSuccessor.files,
+          "overwatch/governance/unapproved.json"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongPath));
+
+    const wrongParent = {
+      ...accepted.boundary,
+      publicDeploymentWorkflowV2ProvenanceRepairSuccessor: {
+        ...accepted.boundary.publicDeploymentWorkflowV2ProvenanceRepairSuccessor,
+        parent: "0".repeat(40)
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongParent));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

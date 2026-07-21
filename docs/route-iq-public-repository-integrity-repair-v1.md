@@ -336,6 +336,28 @@ artifact remains `b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d7
 No production Worker implementation, deployment, Cloudflare state, production data, public/private
 isolation boundary, CRM migration, namespace, or accepted record changed under this admission.
 
+## Public deployment Workflow v2 provenance
+
+Infrastructure commit `30c04aca19423f448b35218491d69ecc458367c7`, tree
+`a46088a5c223ba763db7a7eb99a8aec1a47b4c11`, follows deployed baseline
+`07bf2eddc9707cb410ff6670efe9465ca68cd6b4`. It owns the 15 exact Workflow v2 paths that
+separate qualification from deployment and produce an immutable qualified artifact without
+contacting Cloudflare. The boundary pins its Infrastructure author and committer identity and the
+literal subject `infrastructure: qualify immutable public releases`.
+
+Overwatch commit `ee80a44b8a28847d4a4acfc3fae8574697661edc`, tree
+`a17607eee5ff0d77f3cdfb603bc913e9f982a78a`, follows that owner commit directly. It is admitted
+only as the exact 11-file governance successor with Overwatch author and committer identity and the
+literal subject `overwatch: govern public deployment workflow v2`.
+
+This Infrastructure provenance repair is admitted without a self-referential commit hash. It must
+follow the exact Overwatch successor and match the Infrastructure identity, literal subject
+`infrastructure: admit public deployment workflow v2 chain`, and the four owner-scoped integrity
+verifier, test, documentation, and contract paths exactly. Synthetic repositories prove that the
+valid ordered chain passes while a substituted owner, widened or changed path set, or incorrect
+parent fails closed. The admission does not authorize another Infrastructure successor, deployment,
+Cloudflare contact, product or CRM changes, or private Worker changes.
+
 ## Operator use
 
 Local non-deployment diagnostic:
