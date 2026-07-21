@@ -147,15 +147,15 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureOwnerRepairs.at(-1).commit,
-    "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc"
+    "1cbb6aa1cadde1b4896990b3bb50d857d994071c"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80"
+    "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5"
   );
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
-    "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612"
+    "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61"
   );
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCleanRunnerAssetGenerationSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsKeychainCiPortabilitySuccessors, true);
@@ -165,6 +165,8 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsSafeNoSecretFullSuiteWorkflow, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCloudflareDeploymentReadRepairSuccessors, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsWranglerFailureDiagnosticSuccessor, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsWranglerFailureProvenanceAdmission, true);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
   assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
@@ -323,6 +325,46 @@ test("Cloudflare deployment-read closure is classified, bounded, and preserves p
   const hidden = integrityReadinessGovernance();
   hidden.cloudflareDeploymentReadClosure.verification.unclassifiedBodyReadFailureAllowed = true;
   assert.throws(() => validatePublicIntegrityReadiness(hidden));
+});
+
+test("Wrangler deployment failure closure preserves the consumed attempt and adds safe diagnostics", () => {
+  const value = integrityReadinessGovernance();
+  const closure = value.wranglerDeploymentFailureClosure;
+  assert.equal(closure.batchId, "BATCH-20260720-008");
+  assert.equal(closure.consumedDeploymentRun.authorizationBatchId, "BATCH-20260720-007");
+  assert.equal(closure.consumedDeploymentRun.runId, 29786701514);
+  assert.equal(closure.consumedDeploymentRun.verificationPassed, true);
+  assert.equal(closure.consumedDeploymentRun.dryRunPassed, true);
+  assert.equal(closure.consumedDeploymentRun.deployChildExitedNonzero, true);
+  assert.equal(closure.consumedDeploymentRun.matchingSuccessfulCloudflareMutationAuditEntries, 0);
+  assert.equal(closure.consumedDeploymentRun.publicVersionUnchanged, true);
+  assert.equal(closure.consumedDeploymentRun.privateVersionUnchanged, true);
+  assert.equal(closure.consumedDeploymentRun.authorizationReusable, false);
+  assert.equal(closure.evidenceReconciliation.currentRunFailureDimension, "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER");
+  assert.equal(closure.evidenceReconciliation.priorAssetAuditBatchId, "BATCH-20260720-006");
+  assert.equal(closure.evidenceReconciliation.priorAssetAuditAttributedToCurrentRun, false);
+  assert.equal(closure.infrastructureRepair.commit, "ba4d25df97e12852982e1bbdc2b1e89ef5265da1");
+  assert.equal(closure.infrastructureProvenanceAdmission.commit, "1cbb6aa1cadde1b4896990b3bb50d857d994071c");
+  assert.equal(closure.infrastructureProvenanceAdmission.exactSuccessorOnly, true);
+  assert.equal(closure.infrastructureProvenanceAdmission.genericInfrastructureSuccessorsAllowed, false);
+  assert.equal(closure.verification.wrapperRetries, 0);
+  assert.equal(closure.verification.rawChildOutputAllowed, false);
+  assert.equal(closure.verification.outputStringMaterializationAllowed, false);
+  assert.equal(closure.verification.capturedOutputZeroized, true);
+  assert.equal(closure.verification.secretDisclosureAllowed, false);
+  assert.equal(closure.scope.websiteImplementationChanged, false);
+  assert.equal(closure.scope.crmImplementationChanged, false);
+  assert.equal(closure.scope.deploymentAssetsChanged, false);
+  assert.equal(closure.releaseBoundary.deploymentPerformed, false);
+  assert.equal(closure.releaseBoundary.freshExactFounderAuthorizationRequired, true);
+
+  const retried = integrityReadinessGovernance();
+  retried.wranglerDeploymentFailureClosure.verification.wrapperRetries = 1;
+  assert.throws(() => validatePublicIntegrityReadiness(retried));
+
+  const reassigned = integrityReadinessGovernance();
+  reassigned.wranglerDeploymentFailureClosure.evidenceReconciliation.retroactiveReasonAssignmentAllowed = true;
+  assert.throws(() => validatePublicIntegrityReadiness(reassigned));
 });
 
 test("Dashboard harness closure cannot weaken performance or gain deployment capability", () => {

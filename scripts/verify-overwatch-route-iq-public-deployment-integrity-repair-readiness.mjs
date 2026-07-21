@@ -24,8 +24,12 @@ const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5";
+const CLOUDFLARE_READ_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80";
 const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61";
+const CLOUDFLARE_READ_DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256 =
   "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612";
 const PRE_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
   "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015";
@@ -213,6 +217,30 @@ const INFRASTRUCTURE_COMMITS = Object.freeze([
     tree: "e609307abc4fa4a14fcf47a2b2ad5f7b070fe315",
     parent: "f09b8c1ee6e4c0be14c41f672601e2e5854014eb",
     subject: "infrastructure: admit Cloudflare deployment read repairs",
+    files: Object.freeze([
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+    tree: "31abba310779208a7f940321adfe8916a8dd31ca",
+    parent: "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+    subject: "infrastructure: classify Wrangler deployment failures",
+    files: Object.freeze([
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      "tests/github-actions-public-worker-deployment.test.mjs",
+      DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "1cbb6aa1cadde1b4896990b3bb50d857d994071c",
+    tree: "b7ee0b4df72249c5df06a81f58c70d4a805ab281",
+    parent: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+    subject: "infrastructure: admit Wrangler deployment diagnostic repair",
     files: Object.freeze([
       "docs/route-iq-public-repository-integrity-repair-v1.md",
       "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
@@ -448,6 +476,15 @@ const SAFE_NO_SECRET_ASSET_ORDERING_OVERWATCH_SUCCESSOR = Object.freeze({
 });
 const CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUBJECT =
   "overwatch: close Cloudflare deployment read provenance";
+const CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+  tree: "f28390609db59464e6c520d3201d281d044bb770",
+  parent: "d8da4f23a9df80f91e8f95bf80b7075e8d2532dc",
+  subject: CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUBJECT,
+  files: FINAL_OVERWATCH_SUCCESSOR_PATHS
+});
+const WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUBJECT =
+  "overwatch: close Wrangler deployment failure provenance";
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -485,7 +522,7 @@ function commitRecord(root, commit) {
 
 export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.governanceId, "route-iq-public-deployment-integrity-repair-readiness-v1");
-  assert.equal(governance?.version, "1.9.0");
+  assert.equal(governance?.version, "1.10.0");
   assert.equal(governance?.batchId, "BATCH-20260719-008");
   assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(governance?.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
@@ -582,6 +619,8 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsSafeNoSecretFullSuiteWorkflow, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCloudflareDeploymentReadRepairSuccessors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsWranglerFailureDiagnosticSuccessor, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsWranglerFailureProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
 
@@ -922,9 +961,9 @@ export function validatePublicIntegrityReadiness(governance) {
     },
     contracts: {
       deploymentPath: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH,
-      deploymentSha256: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256,
+      deploymentSha256: CLOUDFLARE_READ_DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256,
       repositoryIntegrityPath: INFRASTRUCTURE_CONTRACT_PATH,
-      repositoryIntegritySha256: INFRASTRUCTURE_CONTRACT_SHA256
+      repositoryIntegritySha256: CLOUDFLARE_READ_INFRASTRUCTURE_CONTRACT_SHA256
     },
     scope: {
       websiteImplementationChanged: false,
@@ -934,6 +973,91 @@ export function validatePublicIntegrityReadiness(governance) {
       rollbackBundleChanged: false,
       publicWorkerChanged: false,
       privateWorkerChanged: false
+    }
+  });
+
+  assert.deepEqual(governance?.wranglerDeploymentFailureClosure, {
+    batchId: "BATCH-20260720-008",
+    directive: "Autonomous Predeployment Closure: Wrangler Deployment Failure Diagnostics",
+    consumedDeploymentRun: {
+      authorizationBatchId: "BATCH-20260720-007",
+      runId: 29786701514,
+      runNumber: 6,
+      verificationJobId: 88499671929,
+      deploymentJobId: 88500521088,
+      head: CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.commit,
+      tree: CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.tree,
+      verificationPassed: true,
+      preDeploymentSmokePassed: true,
+      dryRunPassed: true,
+      deployChildInvoked: true,
+      deployChildExitedNonzero: true,
+      observedOutput: "DEPLOY_FAILED",
+      matchingSuccessfulCloudflareMutationAuditEntries: 0,
+      publicVersionUnchanged: true,
+      privateVersionUnchanged: true,
+      rollbackRequired: false,
+      productionMutationProven: false,
+      authorizationReusable: false
+    },
+    evidenceReconciliation: {
+      currentRunFailureDimension: "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER",
+      retroactiveReasonAssignmentAllowed: false,
+      priorAssetAuditBatchId: "BATCH-20260720-006",
+      priorAssetAuditRunId: 29780926642,
+      priorAssetAuditLocalMinute: "2026-07-20 16:43 CDT",
+      priorSuccessfulAssetUploadSessionEntries: 1,
+      priorSuccessfulUploadAssetsEntries: 3,
+      priorAssetAuditAttributedToCurrentRun: false
+    },
+    infrastructureRepair: {
+      commit: INFRASTRUCTURE_COMMITS[14].commit,
+      tree: INFRASTRUCTURE_COMMITS[14].tree,
+      parent: INFRASTRUCTURE_COMMITS[14].parent,
+      subject: INFRASTRUCTURE_COMMITS[14].subject,
+      owner: "Prometheus Infrastructure",
+      files: [...INFRASTRUCTURE_COMMITS[14].files],
+      deploymentContractSha256: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256
+    },
+    infrastructureProvenanceAdmission: {
+      commit: INFRASTRUCTURE_COMMITS[15].commit,
+      tree: INFRASTRUCTURE_COMMITS[15].tree,
+      parent: INFRASTRUCTURE_COMMITS[15].parent,
+      subject: INFRASTRUCTURE_COMMITS[15].subject,
+      owner: "Prometheus Infrastructure",
+      files: [...INFRASTRUCTURE_COMMITS[15].files],
+      repositoryIntegrityContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      exactSuccessorOnly: true,
+      genericInfrastructureSuccessorsAllowed: false
+    },
+    verification: {
+      fixedOutputFields: ["WRANGLER_PHASE", "WRANGLER_FAILURE_REASON"],
+      phases: ["DRY_RUN", "DEPLOY"],
+      rawChildOutputAllowed: false,
+      outputStringMaterializationAllowed: false,
+      capturedOutputZeroized: true,
+      oneChildInvocationPerMode: true,
+      wrapperRetries: 0,
+      timeoutKillsChild: true,
+      overflowKillsChild: true,
+      ambiguousOutputFailsClosed: true,
+      secretDisclosureAllowed: false
+    },
+    scope: {
+      websiteImplementationChanged: false,
+      crmImplementationChanged: false,
+      deploymentAssetsChanged: false,
+      rollbackContractChanged: false,
+      rollbackBundleChanged: false,
+      deploymentWorkflowChanged: false,
+      publicWorkerChanged: false,
+      privateWorkerChanged: false
+    },
+    releaseBoundary: {
+      deploymentPerformed: false,
+      deploymentAuthorizationReusable: false,
+      freshExactFounderAuthorizationRequired: true,
+      safeNoSecretCiRequired: true
     }
   });
 
@@ -1019,7 +1143,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 37 : 36;
+  const expectedCount = requireCommittedOverwatch ? 40 : 39;
   assert.equal(commits.length, expectedCount);
   assert.deepEqual(commits.slice(0, 26), [
     INFRASTRUCTURE_COMMITS[0].commit,
@@ -1053,6 +1177,9 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   ]);
   assert.deepEqual(commits.slice(33, 36), INFRASTRUCTURE_COMMITS.slice(11, 14)
     .map(record => record.commit));
+  assert.equal(commits[36], CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(commits[37], INFRASTRUCTURE_COMMITS[14].commit);
+  assert.equal(commits[38], INFRASTRUCTURE_COMMITS[15].commit);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
@@ -1235,16 +1362,33 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     SAFE_NO_SECRET_ASSET_ORDERING_OVERWATCH_SUCCESSOR.parent
   );
 
+  const cloudflareReadOverwatch = commitRecord(
+    root,
+    CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.commit
+  );
+  assert.equal(cloudflareReadOverwatch.author, "overwatch@prometheus.local");
+  assert.equal(cloudflareReadOverwatch.committer, "overwatch@prometheus.local");
+  assert.equal(cloudflareReadOverwatch.subject, CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.subject);
+  assert.deepEqual(
+    sorted(cloudflareReadOverwatch.files),
+    sorted(CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.files)
+  );
+  assert.equal(
+    git(root, "rev-parse", `${CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.commit}^{tree}`),
+    CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.tree
+  );
+  assert.equal(
+    git(root, "rev-parse", `${CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.commit}^`),
+    CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUCCESSOR.parent
+  );
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[36]);
+    const record = commitRecord(root, commits[39]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, CLOUDFLARE_DEPLOYMENT_READ_OVERWATCH_SUBJECT);
+    assert.equal(record.subject, WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUBJECT);
     assert.deepEqual(sorted(record.files), sorted(FINAL_OVERWATCH_SUCCESSOR_PATHS));
-    assert.equal(
-      git(root, "rev-parse", `${commits[36]}^`),
-      INFRASTRUCTURE_COMMITS.at(-1).commit
-    );
+    assert.equal(git(root, "rev-parse", `${commits[39]}^`), INFRASTRUCTURE_COMMITS.at(-1).commit);
   }
   return commits;
 }

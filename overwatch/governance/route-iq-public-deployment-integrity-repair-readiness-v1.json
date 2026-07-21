@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -256,13 +256,39 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+      "tree": "31abba310779208a7f940321adfe8916a8dd31ca",
+      "parent": "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+      "subject": "infrastructure: classify Wrangler deployment failures",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+      ]
+    },
+    {
+      "commit": "1cbb6aa1cadde1b4896990b3bb50d857d994071c",
+      "tree": "b7ee0b4df72249c5df06a81f58c70d4a805ab281",
+      "parent": "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+      "subject": "infrastructure: admit Wrangler deployment diagnostic repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80",
+    "contractSha256": "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
-    "deploymentContractSha256": "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612",
+    "deploymentContractSha256": "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -292,6 +318,8 @@
     "ownerVerifierPinsSafeNoSecretFullSuiteWorkflow": true,
     "ownerVerifierPinsCloudflareDeploymentReadRepairSuccessors": true,
     "ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission": true,
+    "ownerVerifierPinsWranglerFailureDiagnosticSuccessor": true,
+    "ownerVerifierPinsWranglerFailureProvenanceAdmission": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -806,6 +834,106 @@
       "rollbackBundleChanged": false,
       "publicWorkerChanged": false,
       "privateWorkerChanged": false
+    }
+  },
+  "wranglerDeploymentFailureClosure": {
+    "batchId": "BATCH-20260720-008",
+    "directive": "Autonomous Predeployment Closure: Wrangler Deployment Failure Diagnostics",
+    "consumedDeploymentRun": {
+      "authorizationBatchId": "BATCH-20260720-007",
+      "runId": 29786701514,
+      "runNumber": 6,
+      "verificationJobId": 88499671929,
+      "deploymentJobId": 88500521088,
+      "head": "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+      "tree": "f28390609db59464e6c520d3201d281d044bb770",
+      "verificationPassed": true,
+      "preDeploymentSmokePassed": true,
+      "dryRunPassed": true,
+      "deployChildInvoked": true,
+      "deployChildExitedNonzero": true,
+      "observedOutput": "DEPLOY_FAILED",
+      "matchingSuccessfulCloudflareMutationAuditEntries": 0,
+      "publicVersionUnchanged": true,
+      "privateVersionUnchanged": true,
+      "rollbackRequired": false,
+      "productionMutationProven": false,
+      "authorizationReusable": false
+    },
+    "evidenceReconciliation": {
+      "currentRunFailureDimension": "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER",
+      "retroactiveReasonAssignmentAllowed": false,
+      "priorAssetAuditBatchId": "BATCH-20260720-006",
+      "priorAssetAuditRunId": 29780926642,
+      "priorAssetAuditLocalMinute": "2026-07-20 16:43 CDT",
+      "priorSuccessfulAssetUploadSessionEntries": 1,
+      "priorSuccessfulUploadAssetsEntries": 3,
+      "priorAssetAuditAttributedToCurrentRun": false
+    },
+    "infrastructureRepair": {
+      "commit": "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+      "tree": "31abba310779208a7f940321adfe8916a8dd31ca",
+      "parent": "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+      "subject": "infrastructure: classify Wrangler deployment failures",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+      ],
+      "deploymentContractSha256": "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61"
+    },
+    "infrastructureProvenanceAdmission": {
+      "commit": "1cbb6aa1cadde1b4896990b3bb50d857d994071c",
+      "tree": "b7ee0b4df72249c5df06a81f58c70d4a805ab281",
+      "parent": "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+      "subject": "infrastructure: admit Wrangler deployment diagnostic repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ],
+      "repositoryIntegrityContractSha256": "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5",
+      "exactSuccessorOnly": true,
+      "genericInfrastructureSuccessorsAllowed": false
+    },
+    "verification": {
+      "fixedOutputFields": [
+        "WRANGLER_PHASE",
+        "WRANGLER_FAILURE_REASON"
+      ],
+      "phases": [
+        "DRY_RUN",
+        "DEPLOY"
+      ],
+      "rawChildOutputAllowed": false,
+      "outputStringMaterializationAllowed": false,
+      "capturedOutputZeroized": true,
+      "oneChildInvocationPerMode": true,
+      "wrapperRetries": 0,
+      "timeoutKillsChild": true,
+      "overflowKillsChild": true,
+      "ambiguousOutputFailsClosed": true,
+      "secretDisclosureAllowed": false
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "rollbackContractChanged": false,
+      "rollbackBundleChanged": false,
+      "deploymentWorkflowChanged": false,
+      "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    },
+    "releaseBoundary": {
+      "deploymentPerformed": false,
+      "deploymentAuthorizationReusable": false,
+      "freshExactFounderAuthorizationRequired": true,
+      "safeNoSecretCiRequired": true
     }
   },
   "safeNonDeploymentCi": {
