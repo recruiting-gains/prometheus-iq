@@ -369,7 +369,10 @@ export function verifyOverwatchRouteIq3dVisualContinuity({ root = ROOT, build = 
   verifyWebsiteAndClaims(root);
   verifyCrmAndIsolation(root);
 
-  assert.equal(sha256File(root, governance.rollback.contractPath), governance.rollback.contractSha256);
+  assert.equal(
+    sha256File(root, governance.rollback.contractPath),
+    authoritativeSuccessor.rollbackContractSha256
+  );
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
   assert.equal(deployment.deploymentAssetsSha256, governance.generatedAssets.deploymentAssetsSha256);
   assert.equal(deployment.fileCount, governance.generatedAssets.fileCount);

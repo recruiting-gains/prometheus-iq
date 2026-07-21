@@ -24,10 +24,14 @@ const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "d74d6105a91eb1b5b81c7158c1e5a53bd137bd444c2bd6389e7e97e610165fc0";
 const CLOUDFLARE_READ_INFRASTRUCTURE_CONTRACT_SHA256 =
   "dcf724bac263447b38b3db1b5356f9e6a94871dc299a15ca767b1ba8385dbc80";
 const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912";
+const WRANGLER_DIAGNOSTIC_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5";
+const WRANGLER_DIAGNOSTIC_DEPLOYMENT_CONTRACT_SHA256 =
   "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61";
 const CLOUDFLARE_READ_DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256 =
   "6db577e033e65969f412583a3f40459c59115fcb13eaf45fd5cfa9c9c8b99612";
@@ -35,9 +39,13 @@ const PRE_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
   "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015";
 const SAFE_NO_SECRET_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
   "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9";
-const ROLLBACK_CONTRACT_SHA256 = "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
+const ROLLBACK_CONTRACT_SHA256 = "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
-const ROLLBACK_BUNDLE_SHA256 = "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7";
+const ROLLBACK_BUNDLE_SHA256 = "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a";
+const HISTORICAL_ROLLBACK_CONTRACT_SHA256 =
+  "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
+const HISTORICAL_ROLLBACK_BUNDLE_SHA256 =
+  "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7";
 const HISTORICAL_SUCCESSOR_COMMIT = "d5174c50ee7b02f930b5fa1f50723ce9db3e447d";
 const HISTORICAL_SUCCESSOR_TREE = "f86156dc10fb90cedc00274d3654e89edfff562a";
 const INFRASTRUCTURE_COMMITS = Object.freeze([
@@ -241,6 +249,49 @@ const INFRASTRUCTURE_COMMITS = Object.freeze([
     tree: "b7ee0b4df72249c5df06a81f58c70d4a805ab281",
     parent: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
     subject: "infrastructure: admit Wrangler deployment diagnostic repair",
+    files: Object.freeze([
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "94061fea1c238ca854bde9d17a860e1375af9c52",
+    tree: "4a5718a96851a5eaa4e6b3fda7fa5ed6932e4ea5",
+    parent: "f0593640bae9cb9517d954415ca4980226a51073",
+    subject: "infrastructure: gate public Worker module startup",
+    files: Object.freeze([
+      ".github/workflows/deploy-prometheus-public-worker.yml",
+      "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/lib/route-iq-public-forward-rollback.mjs",
+      "scripts/run-public-worker-workerd-startup-preflight.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      "tests/github-actions-public-worker-deployment.test.mjs",
+      DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH,
+      "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+      ROLLBACK_CONTRACT_PATH,
+      "wrangler.prometheusrouteiq-website.jsonc"
+    ])
+  }),
+  Object.freeze({
+    commit: "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+    tree: "d080d0e7bf39a17cb7a21fe79e1b8c63b0787c25",
+    parent: "94061fea1c238ca854bde9d17a860e1375af9c52",
+    subject: "infrastructure: align rollback bundle with public adapter",
+    files: Object.freeze([
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/lib/route-iq-public-forward-rollback.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      ROLLBACK_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "c375c02652823a5a5c19a0f166d420da15ca3330",
+    tree: "cf7d9fec6d610497290e9a8cc7842f3418cc0e4b",
+    parent: "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+    subject: "infrastructure: admit public Worker startup repair chain",
     files: Object.freeze([
       "docs/route-iq-public-repository-integrity-repair-v1.md",
       "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
@@ -507,6 +558,30 @@ const WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR = Object.freeze({
 });
 const WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUBJECT =
   "overwatch: finalize Wrangler diagnostic verification";
+const WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+  tree: "87fc124fe0f1b4fe69d3cf94bbe942c2b3a4ea46",
+  parent: WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit,
+  subject: WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUBJECT,
+  files: WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_PATHS
+});
+const PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR = Object.freeze({
+  commit: "f0593640bae9cb9517d954415ca4980226a51073",
+  tree: "dd4cf6180eabcf0298ed84d5d07f1de00cadafc4",
+  parent: WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit,
+  subject: "intelligence: make retention policy loading Worker-safe",
+  files: Object.freeze([
+    "intelligence/route-iq-prospective-retention-admission.mjs",
+    "tests/route-iq-prospective-retention-intelligence.test.mjs"
+  ])
+});
+const PUBLIC_WORKER_STARTUP_OVERWATCH_SUBJECT =
+  "overwatch: close public Worker startup repair provenance";
+const PUBLIC_WORKER_STARTUP_OVERWATCH_PATHS = Object.freeze([
+  ...FINAL_OVERWATCH_SUCCESSOR_PATHS,
+  "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
+  "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs"
+]);
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -643,6 +718,8 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsWranglerFailureDiagnosticSuccessor, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsWranglerFailureProvenanceAdmission, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicWorkerStartupRepairSuccessors, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicWorkerStartupProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
 
@@ -662,8 +739,8 @@ export function validatePublicIntegrityReadiness(governance) {
       commit: FOURTH_OVERWATCH_SUCCESSOR.commit,
       tree: FOURTH_OVERWATCH_SUCCESSOR.tree,
       deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
-      rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
-      deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      rollbackContractSha256: HISTORICAL_ROLLBACK_CONTRACT_SHA256,
+      deterministicRollbackBundleSha256: HISTORICAL_ROLLBACK_BUNDLE_SHA256,
       infrastructureContractSha256: "4eb1333e4013519fb62b2c1efb5fea6bad2399f2ddfdaa52ecec922d8f5fede6"
     },
     rootCause: "METHOD_AWARE_VALID_ALLOW_SETS_WERE_REJECTED_BY_A_LITERAL_SINGLE_VALUE_CHECK",
@@ -1039,7 +1116,7 @@ export function validatePublicIntegrityReadiness(governance) {
       subject: INFRASTRUCTURE_COMMITS[14].subject,
       owner: "Prometheus Infrastructure",
       files: [...INFRASTRUCTURE_COMMITS[14].files],
-      deploymentContractSha256: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256
+      deploymentContractSha256: WRANGLER_DIAGNOSTIC_DEPLOYMENT_CONTRACT_SHA256
     },
     infrastructureProvenanceAdmission: {
       commit: INFRASTRUCTURE_COMMITS[15].commit,
@@ -1048,7 +1125,7 @@ export function validatePublicIntegrityReadiness(governance) {
       subject: INFRASTRUCTURE_COMMITS[15].subject,
       owner: "Prometheus Infrastructure",
       files: [...INFRASTRUCTURE_COMMITS[15].files],
-      repositoryIntegrityContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      repositoryIntegrityContractSha256: WRANGLER_DIAGNOSTIC_INFRASTRUCTURE_CONTRACT_SHA256,
       exactSuccessorOnly: true,
       genericInfrastructureSuccessorsAllowed: false
     },
@@ -1073,6 +1150,99 @@ export function validatePublicIntegrityReadiness(governance) {
       rollbackBundleChanged: false,
       deploymentWorkflowChanged: false,
       publicWorkerChanged: false,
+      privateWorkerChanged: false
+    },
+    releaseBoundary: {
+      deploymentPerformed: false,
+      deploymentAuthorizationReusable: false,
+      freshExactFounderAuthorizationRequired: true,
+      safeNoSecretCiRequired: true
+    }
+  });
+
+  assert.deepEqual(governance?.publicWorkerStartupFailureClosure, {
+    batchId: "BATCH-20260720-009",
+    directive: "Autonomous Predeployment Closure: Public Worker Workerd Startup",
+    consumedDeploymentRun: {
+      authorizationBatchId: "BATCH-20260720-008",
+      runId: 29795006056,
+      runNumber: 7,
+      verificationJobId: 88524441880,
+      deploymentJobId: 88525105691,
+      head: WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit,
+      tree: WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.tree,
+      verificationPassed: true,
+      deployStepReached: true,
+      wranglerDeployAttempted: true,
+      reportedCloudflareCode: 10021,
+      publicVersionCreated: false,
+      publicCrmNamespaceCreated: false,
+      publicVersionUnchanged: true,
+      privateVersionUnchanged: true,
+      rollbackRequired: false,
+      productionMutation: false,
+      authorizationReusable: false
+    },
+    correctedClassification: {
+      predecessor: "MIGRATION_BINDING_CONFIG_REJECTED",
+      actual: "WORKER_RUNTIME_STARTUP_REJECTED",
+      genericCloudflareCodeTreatedAsSpecificCause: false,
+      rootCauseSequence: [
+        "WORKER_RUNTIME_FILESYSTEM_IMPORT_AT_MODULE_STARTUP",
+        "INVALID_PUBLIC_EXPORT_SURFACE"
+      ]
+    },
+    ownerRepairs: [
+      {
+        commit: PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.commit,
+        tree: PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.tree,
+        parent: PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.parent,
+        subject: PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.subject,
+        owner: "Prometheus Intelligence",
+        files: [...PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.files]
+      },
+      ...INFRASTRUCTURE_COMMITS.slice(16, 19).map(record => ({
+        commit: record.commit,
+        tree: record.tree,
+        parent: record.parent,
+        subject: record.subject,
+        owner: "Prometheus Infrastructure",
+        files: [...record.files]
+      }))
+    ],
+    verification: {
+      publicEntryAdapter: "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+      publicEntryExports: ["default", "RouteIqRequestCrmCoordinator"],
+      workerdPreflightBeforeCloudflare: true,
+      workerdPreflightMethod: "HEAD",
+      workerdPreflightExpectedStatus: 200,
+      secretValuesRequired: false,
+      automaticRetries: 0,
+      cloudflareRequestsDuringRepair: false,
+      focusedDeploymentTestsPassed: 25,
+      focusedIntelligenceTestsPassed: 5,
+      repositoryIntegrityOwnerTestsPassed: 30,
+      wrongOwnerRejected: true,
+      reorderedChainRejected: true,
+      widenedAdmissionRejected: true,
+      extraSuccessorRejected: true
+    },
+    contracts: {
+      deploymentPath: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH,
+      deploymentSha256: DEPLOYMENT_INFRASTRUCTURE_CONTRACT_SHA256,
+      repositoryIntegrityPath: INFRASTRUCTURE_CONTRACT_PATH,
+      repositoryIntegritySha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      rollbackPath: ROLLBACK_CONTRACT_PATH,
+      rollbackSha256: ROLLBACK_CONTRACT_SHA256,
+      deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256
+    },
+    scope: {
+      websiteImplementationChanged: false,
+      crmImplementationChanged: false,
+      deploymentAssetsChanged: false,
+      publicWorkerRuntimeChanged: true,
+      publicWorkerProductionChanged: false,
       privateWorkerChanged: false
     },
     releaseBoundary: {
@@ -1165,7 +1335,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 42 : 41;
+  const expectedCount = requireCommittedOverwatch ? 47 : 46;
   assert.equal(commits.length, expectedCount);
   assert.deepEqual(commits.slice(0, 26), [
     INFRASTRUCTURE_COMMITS[0].commit,
@@ -1204,6 +1374,10 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.equal(commits[38], INFRASTRUCTURE_COMMITS[15].commit);
   assert.equal(commits[39], WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUCCESSOR.commit);
   assert.equal(commits[40], WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(commits[41], WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(commits[42], PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.commit);
+  assert.deepEqual(commits.slice(43, 46), INFRASTRUCTURE_COMMITS.slice(16, 19)
+    .map(record => record.commit));
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
@@ -1449,15 +1623,49 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.parent
   );
 
+  const wranglerDiagnosticFinal = commitRecord(
+    root,
+    WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit
+  );
+  assert.equal(wranglerDiagnosticFinal.author, "overwatch@prometheus.local");
+  assert.equal(wranglerDiagnosticFinal.committer, "overwatch@prometheus.local");
+  assert.equal(wranglerDiagnosticFinal.subject, WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.subject);
+  assert.deepEqual(
+    sorted(wranglerDiagnosticFinal.files),
+    sorted(WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.files)
+  );
+  assert.equal(
+    git(root, "rev-parse", `${WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit}^{tree}`),
+    WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.tree
+  );
+  assert.equal(
+    git(root, "rev-parse", `${WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.commit}^`),
+    WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUCCESSOR.parent
+  );
+
+  const intelligenceRepair = commitRecord(root, PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.commit);
+  assert.equal(intelligenceRepair.author, "intelligence@prometheus.local");
+  assert.equal(intelligenceRepair.committer, "intelligence@prometheus.local");
+  assert.equal(intelligenceRepair.subject, PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.subject);
+  assert.deepEqual(sorted(intelligenceRepair.files), sorted(PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.files));
+  assert.equal(
+    git(root, "rev-parse", `${PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.commit}^{tree}`),
+    PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.tree
+  );
+  assert.equal(
+    git(root, "rev-parse", `${PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.commit}^`),
+    PUBLIC_WORKER_STARTUP_INTELLIGENCE_REPAIR.parent
+  );
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[41]);
+    const record = commitRecord(root, commits[46]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUBJECT);
-    assert.deepEqual(sorted(record.files), sorted(WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_PATHS));
+    assert.equal(record.subject, PUBLIC_WORKER_STARTUP_OVERWATCH_SUBJECT);
+    assert.deepEqual(sorted(record.files), sorted(PUBLIC_WORKER_STARTUP_OVERWATCH_PATHS));
     assert.equal(
-      git(root, "rev-parse", `${commits[41]}^`),
-      WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit
+      git(root, "rev-parse", `${commits[46]}^`),
+      INFRASTRUCTURE_COMMITS[18].commit
     );
   }
   return commits;

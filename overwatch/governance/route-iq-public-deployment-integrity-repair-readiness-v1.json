@@ -282,13 +282,59 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "tree": "4a5718a96851a5eaa4e6b3fda7fa5ed6932e4ea5",
+      "parent": "f0593640bae9cb9517d954415ca4980226a51073",
+      "subject": "infrastructure: gate public Worker module startup",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        ".github/workflows/deploy-prometheus-public-worker.yml",
+        "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/run-public-worker-workerd-startup-preflight.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "tests/github-actions-public-worker-deployment.test.mjs",
+        "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+        "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+        "wrangler.prometheusrouteiq-website.jsonc"
+      ]
+    },
+    {
+      "commit": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+      "tree": "d080d0e7bf39a17cb7a21fe79e1b8c63b0787c25",
+      "parent": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "subject": "infrastructure: align rollback bundle with public adapter",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/lib/route-iq-public-forward-rollback.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+      ]
+    },
+    {
+      "commit": "c375c02652823a5a5c19a0f166d420da15ca3330",
+      "tree": "cf7d9fec6d610497290e9a8cc7842f3418cc0e4b",
+      "parent": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+      "subject": "infrastructure: admit public Worker startup repair chain",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "859ab8fb8d9188d762f4ab66ff901a75c1d9ccde052bec732d8cd3c1d79c44b5",
+    "contractSha256": "d74d6105a91eb1b5b81c7158c1e5a53bd137bd444c2bd6389e7e97e610165fc0",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
-    "deploymentContractSha256": "dab4aea1760e84434a62b485561ad47b444bafc2bc8cf27c8b4054deef046e61",
+    "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
     "strictGitArguments": [
       "fsck",
       "--full",
@@ -320,14 +366,16 @@
     "ownerVerifierPinsCloudflareDeploymentReadProvenanceAdmission": true,
     "ownerVerifierPinsWranglerFailureDiagnosticSuccessor": true,
     "ownerVerifierPinsWranglerFailureProvenanceAdmission": true,
+    "ownerVerifierPinsPublicWorkerStartupRepairSuccessors": true,
+    "ownerVerifierPinsPublicWorkerStartupProvenanceAdmission": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
   "releaseIdentities": {
     "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
     "rollbackContractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
-    "rollbackContractSha256": "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b",
-    "deterministicForwardRollbackBundleSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
+    "rollbackContractSha256": "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2",
+    "deterministicForwardRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
     "websiteAndCrmImplementationChanged": false,
     "generatedDeploymentAssetsChanged": false,
     "newFounderVisualAcceptanceRequired": false
@@ -927,6 +975,142 @@
       "rollbackBundleChanged": false,
       "deploymentWorkflowChanged": false,
       "publicWorkerChanged": false,
+      "privateWorkerChanged": false
+    },
+    "releaseBoundary": {
+      "deploymentPerformed": false,
+      "deploymentAuthorizationReusable": false,
+      "freshExactFounderAuthorizationRequired": true,
+      "safeNoSecretCiRequired": true
+    }
+  },
+  "publicWorkerStartupFailureClosure": {
+    "batchId": "BATCH-20260720-009",
+    "directive": "Autonomous Predeployment Closure: Public Worker Workerd Startup",
+    "consumedDeploymentRun": {
+      "authorizationBatchId": "BATCH-20260720-008",
+      "runId": 29795006056,
+      "runNumber": 7,
+      "verificationJobId": 88524441880,
+      "deploymentJobId": 88525105691,
+      "head": "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+      "tree": "87fc124fe0f1b4fe69d3cf94bbe942c2b3a4ea46",
+      "verificationPassed": true,
+      "deployStepReached": true,
+      "wranglerDeployAttempted": true,
+      "reportedCloudflareCode": 10021,
+      "publicVersionCreated": false,
+      "publicCrmNamespaceCreated": false,
+      "publicVersionUnchanged": true,
+      "privateVersionUnchanged": true,
+      "rollbackRequired": false,
+      "productionMutation": false,
+      "authorizationReusable": false
+    },
+    "correctedClassification": {
+      "predecessor": "MIGRATION_BINDING_CONFIG_REJECTED",
+      "actual": "WORKER_RUNTIME_STARTUP_REJECTED",
+      "genericCloudflareCodeTreatedAsSpecificCause": false,
+      "rootCauseSequence": [
+        "WORKER_RUNTIME_FILESYSTEM_IMPORT_AT_MODULE_STARTUP",
+        "INVALID_PUBLIC_EXPORT_SURFACE"
+      ]
+    },
+    "ownerRepairs": [
+      {
+        "commit": "f0593640bae9cb9517d954415ca4980226a51073",
+        "tree": "dd4cf6180eabcf0298ed84d5d07f1de00cadafc4",
+        "parent": "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+        "subject": "intelligence: make retention policy loading Worker-safe",
+        "owner": "Prometheus Intelligence",
+        "files": [
+          "intelligence/route-iq-prospective-retention-admission.mjs",
+          "tests/route-iq-prospective-retention-intelligence.test.mjs"
+        ]
+      },
+      {
+        "commit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+        "tree": "4a5718a96851a5eaa4e6b3fda7fa5ed6932e4ea5",
+        "parent": "f0593640bae9cb9517d954415ca4980226a51073",
+        "subject": "infrastructure: gate public Worker module startup",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          ".github/workflows/deploy-prometheus-public-worker.yml",
+          "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/run-public-worker-workerd-startup-preflight.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "tests/github-actions-public-worker-deployment.test.mjs",
+          "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+          "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "wrangler.prometheusrouteiq-website.jsonc"
+        ]
+      },
+      {
+        "commit": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+        "tree": "d080d0e7bf39a17cb7a21fe79e1b8c63b0787c25",
+        "parent": "94061fea1c238ca854bde9d17a860e1375af9c52",
+        "subject": "infrastructure: align rollback bundle with public adapter",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+        ]
+      },
+      {
+        "commit": "c375c02652823a5a5c19a0f166d420da15ca3330",
+        "tree": "cf7d9fec6d610497290e9a8cc7842f3418cc0e4b",
+        "parent": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+        "subject": "infrastructure: admit public Worker startup repair chain",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
+    "verification": {
+      "publicEntryAdapter": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+      "publicEntryExports": [
+        "default",
+        "RouteIqRequestCrmCoordinator"
+      ],
+      "workerdPreflightBeforeCloudflare": true,
+      "workerdPreflightMethod": "HEAD",
+      "workerdPreflightExpectedStatus": 200,
+      "secretValuesRequired": false,
+      "automaticRetries": 0,
+      "cloudflareRequestsDuringRepair": false,
+      "focusedDeploymentTestsPassed": 25,
+      "focusedIntelligenceTestsPassed": 5,
+      "repositoryIntegrityOwnerTestsPassed": 30,
+      "wrongOwnerRejected": true,
+      "reorderedChainRejected": true,
+      "widenedAdmissionRejected": true,
+      "extraSuccessorRejected": true
+    },
+    "contracts": {
+      "deploymentPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+      "deploymentSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
+      "repositoryIntegrityPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+      "repositoryIntegritySha256": "d74d6105a91eb1b5b81c7158c1e5a53bd137bd444c2bd6389e7e97e610165fc0",
+      "rollbackPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "rollbackSha256": "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2",
+      "deterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+      "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15"
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "deploymentAssetsChanged": false,
+      "publicWorkerRuntimeChanged": true,
+      "publicWorkerProductionChanged": false,
       "privateWorkerChanged": false
     },
     "releaseBoundary": {

@@ -29,6 +29,8 @@ const PREDECESSOR_GOVERNANCE_SHA256 = "9d263113cb36ac6c9eeca0cc5785c5062fc773f08
 const HISTORICAL_ROLLBACK_SHA256 = "850b22be068103dd4b9d860624151293ba5e57244fd381de08e6563e368277d0";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const ROLLBACK_CONTRACT_SHA256 = "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
+const CURRENT_ROLLBACK_CONTRACT_SHA256 =
+  "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
 const ROLLBACK_BUNDLE_SHA256 = "381b471ed3fa0a1fdab0b612600be2f2b6e77b45d3b9c02418a056e0eb500b5a";
 const EXPECTED_SUCCESSOR_PATHS = Object.freeze([
   "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json",
@@ -255,7 +257,7 @@ export function verifyOverwatchRevised3dReleaseReadinessSuccessor({
   );
   assert.equal(
     sha256(read(root, successor.releaseIdentities.rollbackContractPath)),
-    ROLLBACK_CONTRACT_SHA256
+    CURRENT_ROLLBACK_CONTRACT_SHA256
   );
 
   const deployment = verifyRouteIqPublicDeploymentAssets({ build });
