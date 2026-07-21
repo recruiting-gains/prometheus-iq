@@ -639,6 +639,21 @@ const INTELLIGENCE_3D_BOUNDARY_OVERWATCH_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
+const INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "9ec13294dd894f9a8aa449cea39be7f8c5f5cc2b",
+  tree: "9d4dc9bec25e4e38e97f79c8fb7b4fbf1a6fcd1c",
+  parent: PUBLIC_CONFIG_CONSUMER_OVERWATCH_SUCCESSOR.commit,
+  subject: INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUBJECT,
+  files: INTELLIGENCE_3D_BOUNDARY_OVERWATCH_PATHS
+});
+const CURRENT_ROLLBACK_TEST_OVERWATCH_SUBJECT =
+  "overwatch: align 3D rollback test with current bundle";
+const CURRENT_ROLLBACK_TEST_OVERWATCH_PATHS = Object.freeze([
+  PUBLIC_INTEGRITY_READINESS_PATH,
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -1354,6 +1369,12 @@ export function validatePublicIntegrityReadiness(governance) {
       otherIntelligencePathsAllowed: false,
       historicalVisualBaselineRewritten: false
     },
+    overwatchTestAlignment: {
+      classification: "CURRENT_ROLLBACK_BUNDLE_EXPECTATION_ALIGNMENT",
+      historicalRollbackEvidencePreserved: true,
+      currentDeterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      testWeakened: false
+    },
     contracts: {
       edgeBoundaryPath: "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       edgeBoundarySha256: "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
@@ -1458,7 +1479,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 51 : 50;
+  const expectedCount = requireCommittedOverwatch ? 52 : 51;
   assert.equal(commits.length, expectedCount);
   assert.deepEqual(commits.slice(0, 26), [
     INFRASTRUCTURE_COMMITS[0].commit,
@@ -1505,6 +1526,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.deepEqual(commits.slice(47, 49), INFRASTRUCTURE_COMMITS.slice(19, 21)
     .map(record => record.commit));
   assert.equal(commits[49], PUBLIC_CONFIG_CONSUMER_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(commits[50], INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.commit);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
@@ -1815,15 +1837,38 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     PUBLIC_CONFIG_CONSUMER_OVERWATCH_SUCCESSOR.parent
   );
 
+  const intelligenceBoundaryOverwatch = commitRecord(
+    root,
+    INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.commit
+  );
+  assert.equal(intelligenceBoundaryOverwatch.author, "overwatch@prometheus.local");
+  assert.equal(intelligenceBoundaryOverwatch.committer, "overwatch@prometheus.local");
+  assert.equal(
+    intelligenceBoundaryOverwatch.subject,
+    INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.subject
+  );
+  assert.deepEqual(
+    sorted(intelligenceBoundaryOverwatch.files),
+    sorted(INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.files)
+  );
+  assert.equal(
+    git(root, "rev-parse", `${INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.commit}^{tree}`),
+    INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.tree
+  );
+  assert.equal(
+    git(root, "rev-parse", `${INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.commit}^`),
+    INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.parent
+  );
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[50]);
+    const record = commitRecord(root, commits[51]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUBJECT);
-    assert.deepEqual(sorted(record.files), sorted(INTELLIGENCE_3D_BOUNDARY_OVERWATCH_PATHS));
+    assert.equal(record.subject, CURRENT_ROLLBACK_TEST_OVERWATCH_SUBJECT);
+    assert.deepEqual(sorted(record.files), sorted(CURRENT_ROLLBACK_TEST_OVERWATCH_PATHS));
     assert.equal(
-      git(root, "rev-parse", `${commits[50]}^`),
-      PUBLIC_CONFIG_CONSUMER_OVERWATCH_SUCCESSOR.commit
+      git(root, "rev-parse", `${commits[51]}^`),
+      INTELLIGENCE_3D_BOUNDARY_OVERWATCH_SUCCESSOR.commit
     );
   }
   return commits;

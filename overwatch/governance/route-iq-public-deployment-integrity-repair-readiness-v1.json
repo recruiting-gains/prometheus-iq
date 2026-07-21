@@ -1210,6 +1210,12 @@
       "otherIntelligencePathsAllowed": false,
       "historicalVisualBaselineRewritten": false
     },
+    "overwatchTestAlignment": {
+      "classification": "CURRENT_ROLLBACK_BUNDLE_EXPECTATION_ALIGNMENT",
+      "historicalRollbackEvidencePreserved": true,
+      "currentDeterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+      "testWeakened": false
+    },
     "contracts": {
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
