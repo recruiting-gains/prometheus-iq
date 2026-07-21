@@ -70,6 +70,21 @@
       { "path": "workers/infrastructure/github-actions-public-worker-deployment-v2.json", "sha256": "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7" }
     ]
   },
+  "authorizationBoundaryGovernance": {
+    "ownerCommit": "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+    "ownerTree": "25a215fda6751214d5c8a8b2d4474531aaf6536b",
+    "parent": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+    "subject": "overwatch: govern deployment authorization boundary repair",
+    "author": "Prometheus Overwatch <overwatch@prometheus.local>",
+    "committer": "Prometheus Overwatch <overwatch@prometheus.local>",
+    "classification": "OVERWATCH_GOVERNANCE_VERIFICATION_AND_DOCUMENTATION_ONLY",
+    "files": [
+      { "path": "overwatch/governance/public-deployment-workflow-v2.json", "sha256": "d9677c1ecf3af4d31237921e5e4a17e84afa7d914a786c8207a6be509385ffa1" },
+      { "path": "overwatch/governance/public-deployment-workflow-v2.md", "sha256": "8b11dfc829d0f1e16a6be487020ccc8b5387a22b7439fb3f47d3429ce7bc28d0" },
+      { "path": "scripts/verify-overwatch-public-deployment-workflow-v2.mjs", "sha256": "d3e094df7b8af008317c2b86c9b61f5fb5ef66ce4fc27231ab4c58a4f0bcabc4" },
+      { "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs", "sha256": "089eafd6336c799dce1129a296403f4e82fe8fc949701ab618eef7ca8296caf3" }
+    ]
+  },
   "provenanceRepair": {
     "ownerCommit": "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de",
     "ownerTree": "7cc6670f1599f32a1d7283a353495866930784fd",
