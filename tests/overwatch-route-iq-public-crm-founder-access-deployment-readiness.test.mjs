@@ -69,7 +69,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 54);
+  assert.equal(result.commits.length, 57);
   assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
@@ -133,7 +133,10 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.commits[50], "9ec13294dd894f9a8aa449cea39be7f8c5f5cc2b");
   assert.equal(result.commits[51], "329db670b928b6d955ad0d851d9f73584bffcbb1");
   assert.equal(result.commits[52], "1eb66ceb578e72d0ceff0e68d9c8b4037e299f85");
-  assert.equal(result.commits[53], result.head);
+  assert.equal(result.commits[53], "d562f62acf749685e099d4d7f572a4e06d69bc7b");
+  assert.equal(result.commits[54], "ab480ba101bc314946879af5cdb7997bd8085b4d");
+  assert.equal(result.commits[55], "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a");
+  assert.equal(result.commits[56], result.head);
   assert.equal(result.commits.at(-1), result.head);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2");
@@ -168,13 +171,23 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
     "13d221509c95515bb9a3dcc44326bf3393fff89e"
   );
   assert.equal(
-    value.infrastructureOwnerRepairs.at(-1).commit,
+    value.infrastructureOwnerRepairs.at(-2).commit,
     "d1e1aab1163ff3206cbdcd366b65db6f9b186982"
   );
   assert.equal(
+    value.infrastructureOwnerRepairs.at(-1).commit,
+    "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a"
+  );
+  assert.equal(
     value.infrastructureEvidence.contractSha256,
+    "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27"
+  );
+  assert.equal(
+    value.infrastructureEvidence.previousContractSha256,
     "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5"
   );
+  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a");
+  assert.equal(value.infrastructureEvidence.contractSuccessorOwner, "Prometheus Infrastructure");
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
     "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912"
@@ -489,7 +502,8 @@ test("public config consumer closure preserves every edge and deployment boundar
   assert.equal(closure.pausedUnattendedAccessAlignment.credentialOrRuntimeBehaviorChanged, false);
   assert.equal(closure.pausedUnattendedAccessAlignment.testWeakened, false);
   assert.equal(closure.contracts.edgeBoundarySha256, "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d");
-  assert.equal(closure.contracts.repositoryIntegritySha256, "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5");
+  assert.equal(closure.contracts.repositoryIntegritySha256, "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27");
+  assert.equal(closure.contracts.previousRepositoryIntegritySha256, "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5");
   assert.equal(closure.scope.websiteImplementationChanged, false);
   assert.equal(closure.scope.crmImplementationChanged, false);
   assert.equal(closure.scope.publicWorkerProductionChanged, false);
@@ -519,6 +533,25 @@ test("public config consumer closure preserves every edge and deployment boundar
   const resumedUnattended = integrityReadinessGovernance();
   resumedUnattended.publicConfigConsumerRepairClosure.pausedUnattendedAccessAlignment.unattendedAccessResumed = true;
   assert.throws(() => validatePublicIntegrityReadiness(resumedUnattended));
+});
+
+test("CRM public adapter repair is exact, owner-authored, and behavior-preserving", () => {
+  const closure = integrityReadinessGovernance().crmPublicAdapterRepairClosure;
+  assert.equal(closure.classification, "EXACT_CRM_ADAPTER_REPAIR_AND_INFRASTRUCTURE_PROVENANCE_ADMISSION");
+  assert.equal(closure.crmOwnerRepair.commit, "ab480ba101bc314946879af5cdb7997bd8085b4d");
+  assert.equal(closure.crmOwnerRepair.owner, "Prometheus CRM");
+  assert.equal(closure.crmOwnerRepair.crmBehaviorChanged, false);
+  assert.equal(closure.crmOwnerRepair.crmSchemaChanged, false);
+  assert.equal(closure.infrastructureProvenanceAdmission.commit, "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a");
+  assert.equal(closure.infrastructureProvenanceAdmission.crmCommitSubstitutionAllowed, false);
+  assert.equal(closure.infrastructureProvenanceAdmission.mixedOwnershipAllowed, false);
+  assert.equal(closure.deploymentAssetsChanged, false);
+  assert.equal(closure.rollbackArtifactsChanged, false);
+  assert.equal(closure.productionChanged, false);
+
+  const substituted = integrityReadinessGovernance();
+  substituted.crmPublicAdapterRepairClosure.crmOwnerRepair.commit = "0".repeat(40);
+  assert.throws(() => validatePublicIntegrityReadiness(substituted));
 });
 
 test("Dashboard harness closure cannot weaken performance or gain deployment capability", () => {

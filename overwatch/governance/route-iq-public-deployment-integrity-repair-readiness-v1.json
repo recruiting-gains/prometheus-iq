@@ -354,11 +354,27 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a",
+      "tree": "11d365e61cacf66d079a0b82c8db3d7646153cd3",
+      "parent": "ab480ba101bc314946879af5cdb7997bd8085b4d",
+      "subject": "infrastructure: admit CRM public Worker adapter repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
+    "contractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
+    "previousContractSha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
+    "contractSuccessorCommit": "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a",
+    "contractSuccessorOwner": "Prometheus Infrastructure",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
     "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
     "strictGitArguments": [
@@ -1238,7 +1254,8 @@
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
       "repositoryIntegrityPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-      "repositoryIntegritySha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
+      "repositoryIntegritySha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
+      "previousRepositoryIntegritySha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
       "deterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a"
     },
     "scope": {
@@ -1254,6 +1271,33 @@
       "freshExactFounderAuthorizationRequired": true,
       "safeNoSecretCiRequired": true
     }
+  },
+  "crmPublicAdapterRepairClosure": {
+    "classification": "EXACT_CRM_ADAPTER_REPAIR_AND_INFRASTRUCTURE_PROVENANCE_ADMISSION",
+    "crmOwnerRepair": {
+      "commit": "ab480ba101bc314946879af5cdb7997bd8085b4d",
+      "tree": "97a4ef6a0925db41fc03b9b9d092aa32aa2051e3",
+      "parent": "d562f62acf749685e099d4d7f572a4e06d69bc7b",
+      "subject": "crm: accept governed public Worker adapter",
+      "owner": "Prometheus CRM",
+      "files": [
+        "crm/production-worker-entrypoint-contract.mjs",
+        "scripts/validate-crm-production-store.mjs",
+        "tests/crm-cloudflare-kv-workspace-lead-store.test.mjs"
+      ],
+      "crmBehaviorChanged": false,
+      "crmSchemaChanged": false
+    },
+    "infrastructureProvenanceAdmission": {
+      "commit": "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a",
+      "tree": "11d365e61cacf66d079a0b82c8db3d7646153cd3",
+      "contractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
+      "crmCommitSubstitutionAllowed": false,
+      "mixedOwnershipAllowed": false
+    },
+    "deploymentAssetsChanged": false,
+    "rollbackArtifactsChanged": false,
+    "productionChanged": false
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
