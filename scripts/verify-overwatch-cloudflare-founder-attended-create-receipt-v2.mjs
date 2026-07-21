@@ -23,6 +23,10 @@ import {
 import {
   verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
 } from "./verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
+import {
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
+  hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor
+} from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -728,7 +732,11 @@ function verifyPredecessorTransitions(governance, rotation) {
     || packageTransition.successorSha256 !== keychainTransition.previousSha256
     || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
     || githubDeploymentTransition.successorSha256 !== routeIq3dTransition.previousSha256
-    || routeIq3dTransition.successorSha256 !== sha256(read("package.json"))
+    || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
+      historicalSha256: routeIq3dTransition.successorSha256,
+      successorSha256: sha256(read("package.json"))
+    })
     || packageTransition.owner !== "Prometheus Overwatch"
     || keychainTransition.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition.owner !== "Prometheus Overwatch"
@@ -767,28 +775,36 @@ function verifyPredecessorTransitions(governance, rotation) {
         && mapping.successorSha256 === current
         && mapping.owner === "Prometheus Overwatch"
       ));
-    const isRouteIq3dSuccessor =
-      routeIq3dGovernance.protectedOverwatchVerifierSuccessors.some(mapping => (
+    const routeIq3dTransition =
+      routeIq3dGovernance.protectedOverwatchVerifierSuccessors.find(mapping => (
         mapping.predecessorGovernanceId === commercialReadinessGovernance.governanceId
         && mapping.path === item.path
         && mapping.historicalSha256 === sha256(execFileSync("/usr/bin/git", [
           "show", `${routeIq3dGovernance.startingRepositoryState.commit}:${item.path}`
         ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] }))
-        && mapping.successorSha256 === current
         && mapping.owner === "Prometheus Overwatch"
       ));
+    const isRouteIq3dSuccessor = routeIq3dTransition?.successorSha256 === current;
+    const isWorkflowV2Successor = routeIq3dTransition
+      && hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
+        path: item.path,
+        historicalSha256: routeIq3dTransition.successorSha256,
+        successorSha256: current
+      });
     if (item.previousSha256 !== sha256(previous)
       || (item.successorSha256 !== current
         && !isRotationSuccessor
         && !isKeychainSuccessor
         && !isGithubDeploymentSuccessor
         && !isCommercialReadinessSuccessor
-        && !isRouteIq3dSuccessor)
+        && !isRouteIq3dSuccessor
+        && !isWorkflowV2Successor)
       || (isRotationSuccessor && item.successorSha256 !== current
         && !isKeychainSuccessor
         && !isGithubDeploymentSuccessor
         && !isCommercialReadinessSuccessor
-        && !isRouteIq3dSuccessor)
+        && !isRouteIq3dSuccessor
+        && !isWorkflowV2Successor)
       || item.owner !== "Prometheus Overwatch") {
       throw new Error(`Overwatch verification successor drifted: ${item.path}`);
     }

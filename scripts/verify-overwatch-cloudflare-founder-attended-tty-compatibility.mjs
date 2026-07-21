@@ -8,6 +8,9 @@ import {
   scanTrackedRepository,
   verifyLocalSecretArtifacts
 } from "./check-cloudflare-unattended-secret-presence.mjs";
+import {
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
+} from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath = "overwatch/governance/cloudflare-founder-attended-real-macos-tty-compatibility-repair-v1.json";
@@ -271,7 +274,11 @@ function verifyOwnerCommit(governance) {
     || createReceiptV2Package?.successorSha256 !== keychainPackage?.previousSha256
     || keychainPackage?.successorSha256 !== githubDeploymentPackage?.previousSha256
     || githubDeploymentPackage?.successorSha256 !== routeIq3dPackage?.previousSha256
-    || routeIq3dPackage?.successorSha256 !== currentPackageHash
+    || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
+      historicalSha256: routeIq3dPackage?.successorSha256,
+      successorSha256: currentPackageHash
+    })
     || createReceiptV2Package?.owner !== "Prometheus Overwatch"
     || keychainPackage?.owner !== "Prometheus Overwatch"
     || githubDeploymentPackage?.owner !== "Prometheus Overwatch"

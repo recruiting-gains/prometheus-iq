@@ -4,6 +4,8 @@ import test from "node:test";
 
 import {
   evaluatePublicDeploymentWorkflowV2Governance,
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
+  hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor,
   verifyOverwatchPublicDeploymentWorkflowV2
 } from "../scripts/verify-overwatch-public-deployment-workflow-v2.mjs";
 
@@ -92,4 +94,58 @@ test("paused unattended access accepts only the exact Overwatch package successo
   assert.equal(new Set(
     sources.governance.protectedPredecessorSuccessors.map(item => item.predecessorGovernanceId)
   ).size, 2);
+});
+
+test("historical gates accept only an exact governed Workflow v2 package successor", () => {
+  const transition = sources.governance.protectedPredecessorSuccessors[1];
+  assert.equal(hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+    governance: sources.governance,
+    predecessorGovernanceId: transition.predecessorGovernanceId,
+    historicalSha256: transition.historicalSha256,
+    successorSha256: transition.successorSha256
+  }), true);
+
+  for (const patch of [
+    { predecessorGovernanceId: "wrong-governance" },
+    { historicalSha256: "0".repeat(64) },
+    { successorSha256: "f".repeat(64) }
+  ]) {
+    assert.equal(hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      governance: sources.governance,
+      predecessorGovernanceId: transition.predecessorGovernanceId,
+      historicalSha256: transition.historicalSha256,
+      successorSha256: transition.successorSha256,
+      ...patch
+    }), false);
+  }
+
+  assert.equal(hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+    governance: {
+      ...sources.governance,
+      protectedPredecessorSuccessors: [{ ...transition, owner: "Prometheus Infrastructure" }]
+    },
+    predecessorGovernanceId: transition.predecessorGovernanceId,
+    historicalSha256: transition.historicalSha256,
+    successorSha256: transition.successorSha256
+  }), false);
+});
+
+test("historical verifier successors require the exact linear Overwatch tail", () => {
+  assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
+    path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+    historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
+    successorSha256: "6d0bbb82091b1c9f931da80db0656e7e8a8cefbe8a8488e17b55428b439eb932"
+  }), true);
+  for (const patch of [
+    { path: "src/App.jsx" },
+    { historicalSha256: "0".repeat(64) },
+    { successorSha256: "f".repeat(64) }
+  ]) {
+    assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
+      path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+      historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
+      successorSha256: "6d0bbb82091b1c9f931da80db0656e7e8a8cefbe8a8488e17b55428b439eb932",
+      ...patch
+    }), false);
+  }
 });

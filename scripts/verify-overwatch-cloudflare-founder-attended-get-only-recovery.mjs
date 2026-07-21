@@ -8,6 +8,9 @@ import {
   listTrackedFiles,
   scanTrackedRepository
 } from "./check-cloudflare-unattended-secret-presence.mjs";
+import {
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor
+} from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -386,7 +389,11 @@ function verifyReleaseWiring() {
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
     || githubDeploymentTransition?.successorSha256 !== routeIq3dTransition?.previousSha256
-    || routeIq3dTransition?.successorSha256 !== sha256(read("package.json"))
+    || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
+      historicalSha256: routeIq3dTransition?.successorSha256,
+      successorSha256: sha256(read("package.json"))
+    })
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"

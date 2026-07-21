@@ -14,6 +14,8 @@ import { verifyRouteIqPublicDeploymentAssets } from "./verify-route-iq-public-de
 
 const root = resolve(import.meta.dirname, "..");
 const GOVERNANCE_PATH = "overwatch/governance/public-deployment-workflow-v2.json";
+const HISTORICAL_READINESS_GOVERNANCE_PATH =
+  "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json";
 const DOCUMENTATION_PATH = "overwatch/governance/public-deployment-workflow-v2.md";
 const OWNER_CONTRACT_PATH = "workers/infrastructure/github-actions-public-worker-deployment-v2.json";
 const OWNER_COMMIT = "30c04aca19423f448b35218491d69ecc458367c7";
@@ -32,6 +34,22 @@ const PACKAGE_PATH = "package.json";
 const HISTORICAL_PACKAGE_SHA256 = "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d";
 const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
 const CURRENT_PACKAGE_SHA256 = "8bf7f51f8dbb6310031b6d26736dfe5209b2c74d42e5e56de475592f36bb7b51";
+const WORKFLOW_V2_TAIL_ANCHOR = "5b5b59509206578336b9671582669b600d0c74d4";
+const WORKFLOW_V2_TAIL_PARENT = "0d828948968b8cedf3b1961c5320c74c03a8e18c";
+const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
+  HISTORICAL_READINESS_GOVERNANCE_PATH,
+  GOVERNANCE_PATH,
+  "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
+  "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
 const readJson = path => JSON.parse(read(path));
@@ -147,6 +165,85 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(documentation.includes("does not request or grant deployment authorization"), "No-deployment boundary is undocumented.");
 
   return Object.freeze({ ok: failures.length === 0, failures: Object.freeze(failures) });
+}
+
+export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+  governance = readJson(GOVERNANCE_PATH),
+  predecessorGovernanceId,
+  historicalSha256,
+  successorSha256
+}) {
+  const matches = governance.protectedPredecessorSuccessors?.filter(item => (
+    item.predecessorGovernanceId === predecessorGovernanceId
+    && item.path === PACKAGE_PATH
+    && item.historicalSha256 === historicalSha256
+    && item.successorSha256 === successorSha256
+    && item.owner === "Prometheus Overwatch"
+    && item.ownerCommit === "ee80a44b8a28847d4a4acfc3fae8574697661edc"
+    && item.classification === "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+  )) ?? [];
+  return matches.length === 1;
+}
+
+export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
+  path,
+  historicalSha256,
+  successorSha256
+}) {
+  try {
+    if (!WORKFLOW_V2_TAIL_PATHS.includes(path)
+      || !/^[0-9a-f]{64}$/u.test(historicalSha256)
+      || !/^[0-9a-f]{64}$/u.test(successorSha256)) return false;
+
+    const historicalGovernance = readJson(HISTORICAL_READINESS_GOVERNANCE_PATH);
+    const governedTail = historicalGovernance.workflowV2ReadinessClosure?.governedOverwatchTail;
+    if (governedTail?.linearHistoryRequired !== true
+      || governedTail?.mergesAllowed !== false
+      || governedTail?.authorAndCommitter !== "overwatch@prometheus.local"
+      || governedTail?.subjectPrefix !== "overwatch:"
+      || governedTail?.subsystemImplementationAllowed !== false
+      || JSON.stringify(governedTail?.allowedPaths) !== JSON.stringify(WORKFLOW_V2_TAIL_PATHS)) {
+      return false;
+    }
+
+    const historical = execFileSync("/usr/bin/git", [
+      "show", `${WORKFLOW_V2_TAIL_PARENT}:${path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    const committedCurrent = execFileSync("/usr/bin/git", ["show", `HEAD:${path}`], {
+      cwd: root,
+      encoding: null,
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    if (sha256(historical) !== historicalSha256
+      || sha256(committedCurrent) !== successorSha256
+      || sha256(readFileSync(resolve(root, path))) !== successorSha256) return false;
+
+    const commits = git([
+      "rev-list", "--reverse", "--ancestry-path", `${WORKFLOW_V2_TAIL_PARENT}..HEAD`
+    ]).split("\n").filter(Boolean);
+    if (commits[0] !== WORKFLOW_V2_TAIL_ANCHOR) return false;
+
+    let previous = WORKFLOW_V2_TAIL_PARENT;
+    let pathChanged = false;
+    for (const commit of commits) {
+      const [author, committer, parents, subject] = git([
+        "show", "-s", "--format=%ae%n%ce%n%P%n%s", commit
+      ]).split("\n");
+      const files = git(["diff-tree", "--no-commit-id", "--name-only", "-r", commit])
+        .split("\n").filter(Boolean);
+      if (author !== "overwatch@prometheus.local"
+        || committer !== "overwatch@prometheus.local"
+        || parents !== previous
+        || !subject.startsWith("overwatch:")
+        || files.length === 0
+        || files.some(file => !WORKFLOW_V2_TAIL_PATHS.includes(file))) return false;
+      if (files.includes(path)) pathChanged = true;
+      previous = commit;
+    }
+    return previous === git(["rev-parse", "HEAD"]) && pathChanged;
+  } catch {
+    return false;
+  }
 }
 
 function commitIdentity(commit) {

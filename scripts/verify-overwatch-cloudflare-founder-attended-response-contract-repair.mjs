@@ -17,6 +17,10 @@ import {
 import {
   verifyOverwatchFounderAttendedFreshAttemptEvidenceRotation
 } from "./verify-overwatch-cloudflare-founder-attended-fresh-attempt-evidence-rotation.mjs";
+import {
+  hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
+  hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor
+} from "./verify-overwatch-public-deployment-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const governancePath =
@@ -372,12 +376,17 @@ function verifyOverwatchSuccessors(governance) {
       .find(mapping => {
         if (mapping.predecessorGovernanceId !== commercialReadinessGovernance.governanceId
           || mapping.path !== item.path
-          || mapping.successorSha256 !== current
           || mapping.owner !== "Prometheus Overwatch") return false;
         const baseline = execFileSync("/usr/bin/git", [
           "show", `${routeIq3dGovernance.startingRepositoryState.commit}:${item.path}`
         ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
         return mapping.historicalSha256 === sha256(baseline);
+      });
+    const workflowV2Transition = routeIq3dTransition
+      && hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
+        path: item.path,
+        historicalSha256: routeIq3dTransition.successorSha256,
+        successorSha256: current
       });
     if (!/^[0-9a-f]{64}$/u.test(item.previousSha256)
       || (current !== item.successorSha256
@@ -394,7 +403,8 @@ function verifyOverwatchSuccessors(governance) {
           && transition?.owner === "Prometheus Overwatch"
           && keychainTransition?.owner === "Prometheus Overwatch")
         && !commercialTransition
-        && !routeIq3dTransition)) {
+        && routeIq3dTransition?.successorSha256 !== current
+        && !workflowV2Transition)) {
       throw new Error(`Overwatch verifier successor drifted: ${item.path}`);
     }
   }
@@ -458,7 +468,11 @@ function verifyReleaseWiring(governance) {
     || currentTransition.successorSha256 !== keychainTransition.previousSha256
     || keychainTransition.successorSha256 !== githubDeploymentTransition.previousSha256
     || githubDeploymentTransition.successorSha256 !== routeIq3dTransition.previousSha256
-    || routeIq3dTransition.successorSha256 !== sha256(read("package.json"))
+    || !hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
+      predecessorGovernanceId: "route-iq-3d-visual-continuity-v1",
+      historicalSha256: routeIq3dTransition.successorSha256,
+      successorSha256: sha256(read("package.json"))
+    })
     || currentTransition.owner !== "Prometheus Overwatch"
     || keychainTransition.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition.owner !== "Prometheus Overwatch"

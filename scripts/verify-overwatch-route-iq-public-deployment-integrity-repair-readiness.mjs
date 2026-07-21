@@ -844,7 +844,11 @@ const WORKFLOW_V2_RELEASE_WIRING_CLOSURE = Object.freeze({
 const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   PUBLIC_INTEGRITY_READINESS_PATH,
   "overwatch/governance/public-deployment-workflow-v2.json",
+  "scripts/verify-overwatch-cloudflare-founder-attended-create-receipt-v2.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-get-only-recovery.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-response-contract-repair.mjs",
   "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+  "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
