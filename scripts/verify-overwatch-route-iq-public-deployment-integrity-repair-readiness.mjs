@@ -498,6 +498,15 @@ const WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
+const WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR = Object.freeze({
+  commit: "162b09a715381e2894a9a1469b8f1fc2cc47e5e8",
+  tree: "7dc0620888dc38c879d70596bc730a4552a9fb59",
+  parent: WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUCCESSOR.commit,
+  subject: WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUBJECT,
+  files: WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_PATHS
+});
+const WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUBJECT =
+  "overwatch: finalize Wrangler diagnostic verification";
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -1156,7 +1165,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 41 : 40;
+  const expectedCount = requireCommittedOverwatch ? 42 : 41;
   assert.equal(commits.length, expectedCount);
   assert.deepEqual(commits.slice(0, 26), [
     INFRASTRUCTURE_COMMITS[0].commit,
@@ -1194,6 +1203,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.equal(commits[37], INFRASTRUCTURE_COMMITS[14].commit);
   assert.equal(commits[38], INFRASTRUCTURE_COMMITS[15].commit);
   assert.equal(commits[39], WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUCCESSOR.commit);
+  assert.equal(commits[40], WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
@@ -1416,15 +1426,38 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUCCESSOR.parent
   );
 
+  const wranglerDiagnosticOverwatch = commitRecord(
+    root,
+    WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit
+  );
+  assert.equal(wranglerDiagnosticOverwatch.author, "overwatch@prometheus.local");
+  assert.equal(wranglerDiagnosticOverwatch.committer, "overwatch@prometheus.local");
+  assert.equal(
+    wranglerDiagnosticOverwatch.subject,
+    WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.subject
+  );
+  assert.deepEqual(
+    sorted(wranglerDiagnosticOverwatch.files),
+    sorted(WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.files)
+  );
+  assert.equal(
+    git(root, "rev-parse", `${WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit}^{tree}`),
+    WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.tree
+  );
+  assert.equal(
+    git(root, "rev-parse", `${WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit}^`),
+    WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.parent
+  );
+
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[40]);
+    const record = commitRecord(root, commits[41]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUBJECT);
+    assert.equal(record.subject, WRANGLER_DIAGNOSTIC_FINAL_OVERWATCH_SUBJECT);
     assert.deepEqual(sorted(record.files), sorted(WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_PATHS));
     assert.equal(
-      git(root, "rev-parse", `${commits[40]}^`),
-      WRANGLER_DEPLOYMENT_FAILURE_OVERWATCH_SUCCESSOR.commit
+      git(root, "rev-parse", `${commits[41]}^`),
+      WRANGLER_DIAGNOSTIC_VERIFICATION_OVERWATCH_SUCCESSOR.commit
     );
   }
   return commits;
