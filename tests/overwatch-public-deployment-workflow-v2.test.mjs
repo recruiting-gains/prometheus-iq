@@ -28,6 +28,8 @@ test("canonical Public Deployment Workflow v2 governance verifies", () => {
 test("governance fails closed on ownership or production-boundary drift", () => {
   for (const patch of [
     { dispatchAudit: { ...sources.governance.dispatchAudit, implementationOwner: "Prometheus Overwatch" } },
+    { provenanceRepair: { ...sources.governance.provenanceRepair, author: "Prometheus Overwatch <overwatch@prometheus.local>" } },
+    { provenanceRepair: { ...sources.governance.provenanceRepair, parent: "07bf2eddc9707cb410ff6670efe9465ca68cd6b4" } },
     { architecture: { ...sources.governance.architecture, preBoundaryFailureConsumesAuthorization: true } },
     { runtimeBoundaries: { ...sources.governance.runtimeBoundaries, deploymentPerformedByBatch: true } },
     { productContinuity: { ...sources.governance.productContinuity, approvedWebsiteSourceChanged: true } }

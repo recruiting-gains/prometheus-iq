@@ -20,6 +20,10 @@ const OWNER_COMMIT = "30c04aca19423f448b35218491d69ecc458367c7";
 const OWNER_TREE = "a46088a5c223ba763db7a7eb99a8aec1a47b4c11";
 const OWNER_PARENT = "07bf2eddc9707cb410ff6670efe9465ca68cd6b4";
 const OWNER_IDENTITY = "Prometheus Infrastructure <infrastructure@prometheus.local>";
+const PROVENANCE_REPAIR_COMMIT = "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de";
+const PROVENANCE_REPAIR_TREE = "7cc6670f1599f32a1d7283a353495866930784fd";
+const PROVENANCE_REPAIR_PARENT = "ee80a44b8a28847d4a4acfc3fae8574697661edc";
+const PROVENANCE_REPAIR_SUBJECT = "infrastructure: admit public deployment workflow v2 chain";
 const OVERWATCH_IDENTITY = "Prometheus Overwatch <overwatch@prometheus.local>";
 const DEPLOYMENT_ASSET_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 
@@ -63,6 +67,12 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(governance.implementationProvenance?.author === OWNER_IDENTITY, "Owner author drifted.");
   require(governance.implementationProvenance?.committer === OWNER_IDENTITY, "Owner committer drifted.");
   require(governance.implementationProvenance?.legacyProvenanceGap === false, "Unexpected provenance gap.");
+  require(governance.provenanceRepair?.ownerCommit === PROVENANCE_REPAIR_COMMIT, "Provenance repair commit drifted.");
+  require(governance.provenanceRepair?.ownerTree === PROVENANCE_REPAIR_TREE, "Provenance repair tree drifted.");
+  require(governance.provenanceRepair?.parent === PROVENANCE_REPAIR_PARENT, "Provenance repair parent drifted.");
+  require(governance.provenanceRepair?.subject === PROVENANCE_REPAIR_SUBJECT, "Provenance repair subject drifted.");
+  require(governance.provenanceRepair?.author === OWNER_IDENTITY, "Provenance repair author drifted.");
+  require(governance.provenanceRepair?.committer === OWNER_IDENTITY, "Provenance repair committer drifted.");
   require(governance.architecture?.qualificationContactsCloudflare === false, "Qualification can contact Cloudflare.");
   require(governance.architecture?.qualificationAccessesProtectedSecrets === false, "Qualification can access secrets.");
   require(governance.architecture?.qualificationBuildsArtifactExactlyOnce === true, "Qualification build count drifted.");
@@ -148,6 +158,23 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
     assert.equal(sha256(read(evidence.path)), evidence.sha256, `Owner evidence drifted: ${evidence.path}`);
   }
   assert.equal(committedPaths.some(path => /^(?:src\/|crm\/|data\/|intelligence\/|index\.html|deploy\/prometheusrouteiq-website\/)/u.test(path)), false);
+
+  const repairIdentity = commitIdentity(PROVENANCE_REPAIR_COMMIT);
+  assert.equal(repairIdentity.author, OWNER_IDENTITY);
+  assert.equal(repairIdentity.committer, OWNER_IDENTITY);
+  assert.deepEqual(repairIdentity.parents, [PROVENANCE_REPAIR_PARENT]);
+  assert.equal(repairIdentity.tree, PROVENANCE_REPAIR_TREE);
+  assert.equal(git(["show", "-s", "--format=%s", PROVENANCE_REPAIR_COMMIT]), PROVENANCE_REPAIR_SUBJECT);
+  assert.doesNotThrow(() => git(["merge-base", "--is-ancestor", PROVENANCE_REPAIR_COMMIT, "HEAD"]));
+
+  const repairPaths = git(["diff-tree", "--no-commit-id", "--name-only", "-r", PROVENANCE_REPAIR_COMMIT])
+    .split("\n").filter(Boolean).sort();
+  const governedRepairPaths = governance.provenanceRepair.files.map(item => item.path).sort();
+  assert.deepEqual(repairPaths, governedRepairPaths);
+  for (const evidence of governance.provenanceRepair.files) {
+    assert.equal(sha256(read(evidence.path)), evidence.sha256, `Provenance repair evidence drifted: ${evidence.path}`);
+  }
+  assert.equal(repairPaths.every(path => /^(?:docs\/|scripts\/verify-|tests\/|workers\/infrastructure\/)/u.test(path)), true);
 
   for (const path of [GOVERNANCE_PATH, DOCUMENTATION_PATH]) {
     assert.equal(git(["log", "-1", "--format=%an <%ae>", "--", path]), OVERWATCH_IDENTITY);

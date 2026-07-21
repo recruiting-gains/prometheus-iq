@@ -9,6 +9,8 @@ Production action: none
 
 Prometheus Infrastructure owns the qualification workflow, immutable release construction, deployment adapter, Cloudflare read and deploy boundary, GET/HEAD smoke plan, and forward-compatible rollback mechanics. Prometheus Overwatch owns this governance record, provenance mapping, registry wiring, and independent release gates. Overwatch did not modify Infrastructure implementation files.
 
+Infrastructure successor commit `3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de` independently updated the historical public-release provenance verifier to admit the correctly owned Workflow v2 chain. Overwatch pins that commit's identity, parent, tree, exact four-file scope, and file hashes; it does not claim or alter Infrastructure ownership.
+
 ## Governed Lifecycle
 
 `Qualify Prometheus Public Worker` runs the complete no-secret repository suite in the pinned deployment environment, builds the public deployment payload exactly once, creates a deterministic manifest, and uploads the content-addressed release. It cannot access protected deployment secrets or contact Cloudflare.
