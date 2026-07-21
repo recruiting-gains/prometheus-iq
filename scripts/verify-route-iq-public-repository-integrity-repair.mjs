@@ -153,6 +153,18 @@ const cloudflareDeploymentReadProvenanceAdmissionFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const wranglerDeploymentDiagnosticRepairFiles = Object.freeze([
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "tests/github-actions-public-worker-deployment.test.mjs",
+  "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+]);
+const wranglerDeploymentDiagnosticProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -468,6 +480,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit Cloudflare deployment read repairs",
     files: cloudflareDeploymentReadProvenanceAdmissionFiles
+  }),
+  wranglerDeploymentDiagnosticRepairSuccessor: Object.freeze({
+    commit: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+    tree: "31abba310779208a7f940321adfe8916a8dd31ca",
+    parent: "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: classify Wrangler deployment failures",
+    files: wranglerDeploymentDiagnosticRepairFiles
+  }),
+  wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit Wrangler deployment diagnostic repair",
+    files: wranglerDeploymentDiagnosticProvenanceAdmissionFiles
   })
 });
 
@@ -673,6 +705,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let safeNoSecretAssetOrderingRepairSeen = false;
   let cloudflareDeploymentReadRepairSuccessorsSeen = 0;
   let cloudflareDeploymentReadProvenanceAdmissionSeen = false;
+  let wranglerDeploymentDiagnosticRepairSeen = false;
+  let wranglerDeploymentDiagnosticProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -926,6 +960,35 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const wranglerDeploymentDiagnosticRepair =
+      boundary.wranglerDeploymentDiagnosticRepairSuccessor;
+    if (wranglerDeploymentDiagnosticRepair
+      && commit === wranglerDeploymentDiagnosticRepair.commit) {
+      assert.equal(wranglerDeploymentDiagnosticRepairSeen, false,
+        "Wrangler deployment diagnostic repair repeated");
+      assertCommitSnapshot(repositoryRoot, wranglerDeploymentDiagnosticRepair);
+      wranglerDeploymentDiagnosticRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    const wranglerDeploymentDiagnosticAdmission =
+      boundary.wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor;
+    const isWranglerDeploymentDiagnosticAdmission = wranglerDeploymentDiagnosticAdmission
+      && !wranglerDeploymentDiagnosticProvenanceAdmissionSeen
+      && wranglerDeploymentDiagnosticRepairSeen
+      && actual.parents[0] === wranglerDeploymentDiagnosticAdmission.parent
+      && actual.authorName === wranglerDeploymentDiagnosticAdmission.authorName
+      && actual.authorEmail === wranglerDeploymentDiagnosticAdmission.authorEmail
+      && actual.committerName === wranglerDeploymentDiagnosticAdmission.committerName
+      && actual.committerEmail === wranglerDeploymentDiagnosticAdmission.committerEmail
+      && actual.subject === wranglerDeploymentDiagnosticAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...wranglerDeploymentDiagnosticAdmission.files].sort());
+    if (isWranglerDeploymentDiagnosticAdmission) {
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -975,6 +1038,11 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.cloudflareDeploymentReadProvenanceAdmissionSeen =
       cloudflareDeploymentReadProvenanceAdmissionSeen;
   }
+  if (boundary.wranglerDeploymentDiagnosticRepairSuccessor) {
+    result.wranglerDeploymentDiagnosticRepairSeen = wranglerDeploymentDiagnosticRepairSeen;
+    result.wranglerDeploymentDiagnosticProvenanceAdmissionSeen =
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen;
+  }
   return Object.freeze(result);
 }
 
@@ -1007,7 +1075,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_CLOUDFLARE_DEPLOYMENT_READ_REPAIRS_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_WRANGLER_DEPLOYMENT_DIAGNOSTIC_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -1061,6 +1129,12 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
       .cloudflareDeploymentReadProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.cloudflareDeploymentReadProvenanceAdmissionSeen, true);
   }
+  assert.equal(ownerBoundary.wranglerDeploymentDiagnosticRepairSeen, true);
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.wranglerDeploymentDiagnosticProvenanceAdmissionSeen, true);
+  }
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
     failedRunId: 29780926642,
@@ -1082,6 +1156,23 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     deploymentAssetsModified: false,
     rollbackArtifactsModified: false,
     cloudflareContactedByRepair: false
+  });
+
+  assert.deepEqual(contract.wranglerDeploymentDiagnosticRepair, {
+    batchId: "BATCH-20260720-007",
+    failedRunId: 29786701514,
+    failedHead: "9a2c27da613f1222039c5a8ae583ce9f70d98056",
+    failedTree: "f28390609db59464e6c520d3201d281d044bb770",
+    repairCommit: "ba4d25df97e12852982e1bbdc2b1e89ef5265da1",
+    repairTree: "31abba310779208a7f940321adfe8916a8dd31ca",
+    preRepairFailureDimension: "UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER",
+    matchingSuccessfulCloudflareMutationAuditEntries: 0,
+    retroactiveReasonAssignmentAllowed: false,
+    priorRunEvidencePreservedSeparately: true,
+    cloudflareContactedByRepair: false,
+    deploymentPerformedByRepair: false,
+    deploymentAssetsModified: false,
+    rollbackArtifactsModified: false
   });
 
   assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {

@@ -241,6 +241,34 @@ gates before requiring a clean repository. Static adversarial tests fail closed 
 permission, environment, secret, deploy command, blanket success override, required command, actor
 check, or one-attempt guard drifts.
 
+## Wrangler deployment diagnostic repair provenance
+
+BATCH-20260720-007 run `29786701514` passed repository verification, pre-deployment smoke, and
+Wrangler dry-run before invoking the bounded Wrangler deploy child. The child exited nonzero, but
+the predecessor wrapper discarded its output and reported only `DEPLOY_FAILED`. No matching
+successful Cloudflare mutation audit entry exists for that run, and the public and private Worker
+versions remained unchanged. The failure dimension therefore remains
+`UNCLASSIFIABLE_FROM_PRE_REPAIR_WRAPPER`; this repair does not assign a reason retroactively.
+
+The successful asset-upload-session and three successful Upload Assets entries observed at 16:43
+CDT belong to BATCH-20260720-006 run `29780926642`. That prior evidence remains separate and is not
+attributed to BATCH-20260720-007.
+
+Infrastructure commit `ba4d25df97e12852982e1bbdc2b1e89ef5265da1` adds fixed, nonsecret Wrangler
+4.110.0 deployment diagnostics for spawn failure, timeout, bounded-output overflow, signal
+termination, asset-session rejection, asset upload failure, missing asset completion, Worker
+version/upload rejection, migration/binding/config rejection, authorization denial, network
+uncertainty, and unknown nonzero exit. Ambiguous output remains `UNKNOWN_NONZERO_EXIT`. The wrapper
+still runs one child per mode, never retries, kills on timeout or overflow, zeroizes every captured
+buffer, and emits only the fixed phase and reason fields. It never emits or materializes raw child
+output as text.
+
+The owner boundary pins that exact repair commit, tree, parent, Infrastructure identity, subject,
+and four-file scope, followed by this exact four-file Infrastructure provenance admission. Synthetic
+repositories reject reordered lineage, mixed ownership, widened admission scope, merges, and later
+unapproved Infrastructure successors. This repair did not contact Cloudflare and did not modify the
+website, CRM, deployment assets, rollback artifacts, deployment workflow, or Overwatch files.
+
 ## Operator use
 
 Local non-deployment diagnostic:

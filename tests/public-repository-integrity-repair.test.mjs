@@ -585,6 +585,52 @@ function addCloudflareDeploymentReadRepairSuccessors(ownerFixture) {
   });
 }
 
+function addWranglerDeploymentDiagnosticRepairSuccessors(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const repairFiles = [
+    "scripts/lib/github-actions-public-worker-deployment.mjs",
+    "scripts/verify-github-actions-public-worker-deployment.mjs",
+    "tests/github-actions-public-worker-deployment.test.mjs",
+    "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
+  ];
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic classify Wrangler deployment failures",
+    changes: repairFiles.map(path => ({ path, content: `wrangler-repair:${path}\n` }))
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit Wrangler deployment diagnostic repair",
+    changes: [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ].map(path => ({ path, content: `wrangler-admission:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    repair,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      wranglerDeploymentDiagnosticRepairSuccessor: Object.freeze(repair),
+      wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor: Object.freeze({
+        parent: repair.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -957,6 +1003,12 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "f09b8c1ee6e4c0be14c41f672601e2e5854014eb"
   );
+  assert.equal(current.wranglerDeploymentDiagnosticRepairSeen, true);
+  assert.equal(
+    current.wranglerDeploymentDiagnosticProvenanceAdmissionSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "ba4d25df97e12852982e1bbdc2b1e89ef5265da1"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1143,6 +1195,70 @@ test("owner boundary admits only the ordered Cloudflare read repairs and Infrast
       authorEmail: "infrastructure@prometheus.local"
     });
     assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact Wrangler diagnostic repair and provenance", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-wrangler-diagnostic-"));
+  try {
+    const accepted = addWranglerDeploymentDiagnosticRepairSuccessors(
+      addCloudflareDeploymentReadRepairSuccessors(
+        createOwnerBoundaryRepository(fixture, "accepted")
+      )
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 8,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cloudflareDeploymentReadRepairSuccessorsSeen: 2,
+      cloudflareDeploymentReadProvenanceAdmissionSeen: true,
+      wranglerDeploymentDiagnosticRepairSeen: true,
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen: true
+    });
+
+    const wrongOwner = {
+      ...accepted.boundary,
+      wranglerDeploymentDiagnosticRepairSuccessor: {
+        ...accepted.boundary.wranglerDeploymentDiagnosticRepairSuccessor,
+        authorName: "Prometheus Overwatch"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongOwner));
+
+    const wrongParent = {
+      ...accepted.boundary,
+      wranglerDeploymentDiagnosticRepairSuccessor: {
+        ...accepted.boundary.wranglerDeploymentDiagnosticRepairSuccessor,
+        parent: accepted.boundary.cloudflareDeploymentReadRepairSuccessors[0].commit
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongParent));
+
+    const wrongFiles = {
+      ...accepted.boundary,
+      wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor,
+        files: [
+          ...accepted.boundary.wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor.files,
+          "scripts/unapproved-wrangler-diagnostic-admission.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongFiles));
+
+    const wrongHash = {
+      ...accepted.boundary,
+      wranglerDeploymentDiagnosticRepairSuccessor: {
+        ...accepted.boundary.wranglerDeploymentDiagnosticRepairSuccessor,
+        tree: "0000000000000000000000000000000000000000"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongHash));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
