@@ -62,7 +62,7 @@ function requireAccessChallenge(response) {
   }
 }
 
-function verifyResponse(entry, response) {
+export function verifyCloudflarePublicWorkerSmokeResponse(entry, response) {
   if (response.redirected) throw new Error("smoke_redirect_followed");
   if (entry.kind === "public_asset") {
     if (response.status !== 200) throw new Error("public_asset_unavailable");
@@ -117,7 +117,7 @@ export async function runCloudflarePublicWorkerSmoke({
         keepalive: false,
         signal: controller.signal
       });
-      verifyResponse(entry, response);
+      verifyCloudflarePublicWorkerSmokeResponse(entry, response);
       results.push(Object.freeze({
         kind: entry.kind,
         method: entry.method,

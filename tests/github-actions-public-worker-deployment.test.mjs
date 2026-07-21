@@ -270,32 +270,30 @@ test("Founder dispatch requires every exact no-secret input and rejects reruns o
   }
 });
 
-test("both clean-runner jobs build public assets before the first no-secret release verifier", () => {
-  const workflow = readFileSync(
+test("qualification prepares source then builds one artifact while deployment never rebuilds", () => {
+  const qualification = readFileSync(
+    join(root, ".github", "workflows", "qualify-prometheus-public-worker.yml"),
+    "utf8"
+  );
+  const deployment = readFileSync(
     join(root, ".github", "workflows", "deploy-prometheus-public-worker.yml"),
     "utf8"
   );
-  const verificationStart = workflow.indexOf("  verification:\n");
-  const deployStart = workflow.indexOf("  deploy:\n", verificationStart);
-  assert.ok(verificationStart >= 0 && deployStart > verificationStart);
-  const jobs = [
-    ["verification", workflow.slice(verificationStart, deployStart)],
-    ["deploy", workflow.slice(deployStart)]
-  ];
-  for (const [name, job] of jobs) {
-    const install = job.indexOf("run: npm ci");
-    const build = job.indexOf("run: npm run build");
-    const startup = job.indexOf("run: node scripts/run-public-worker-workerd-startup-preflight.mjs");
-    const verify = job.indexOf("run: node scripts/run-github-actions-public-worker-deployment.mjs verify");
-    assert.ok(install >= 0 && install < build, `${name} must build after npm ci`);
-    assert.ok(build < startup, `${name} must build before local Workerd startup`);
-    assert.ok(startup < verify, `${name} must start Workerd before no-secret verification`);
-    assert.equal([...job.matchAll(/^\s*run: npm run build$/gmu)].length, 1);
-    assert.equal(
-      [...job.matchAll(/^\s*run: node scripts\/run-public-worker-workerd-startup-preflight\.mjs$/gmu)].length,
-      1
-    );
-  }
+  assert.equal([...qualification.matchAll(/^\s*run: npm test$/gmu)].length, 1);
+  assert.equal(
+    [...qualification.matchAll(/^\s*run: node scripts\/run-github-actions-public-worker-qualification\.mjs build$/gmu)].length,
+    1
+  );
+  assert.equal([...qualification.matchAll(/^        run: npm run build$/gmu)].length, 1);
+  assert.equal([...deployment.matchAll(/npm run build|npm test|vite build/gmu)].length, 0);
+  assert.equal(
+    [...deployment.matchAll(/actions\/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0/gmu)].length,
+    2
+  );
+  assert.equal(
+    [...deployment.matchAll(/^\s*run: node scripts\/run-github-actions-public-worker-deployment-v2\.mjs deploy$/gmu)].length,
+    1
+  );
 });
 
 test("public config exposes only the narrow adapter and the configured Worker passes local Workerd HEAD", async () => {

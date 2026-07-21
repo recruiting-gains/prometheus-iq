@@ -1616,6 +1616,7 @@ async function runBoundedPublicWranglerWithLimits({
   credentials,
   secretFile,
   spawnImpl,
+  invocationBuilder,
   timeoutMs,
   outputByteLimit
 }) {
@@ -1630,7 +1631,7 @@ async function runBoundedPublicWranglerWithLimits({
   let overflow = false;
   try {
     try {
-      child = spawnImpl(process.execPath, buildPublicWranglerInvocation(mode, inputs, secretFile), {
+      child = spawnImpl(process.execPath, invocationBuilder(mode, inputs, secretFile), {
         cwd: root,
         env: environment,
         stdio: ["ignore", "pipe", "pipe"]
@@ -1694,6 +1695,7 @@ export async function runBoundedPublicWrangler({
   inputs,
   credentials,
   secretFile,
+  invocationBuilder = buildPublicWranglerInvocation,
   spawnImpl = spawn
 }) {
   return runBoundedPublicWranglerWithLimits({
@@ -1702,6 +1704,7 @@ export async function runBoundedPublicWrangler({
     inputs,
     credentials,
     secretFile,
+    invocationBuilder,
     spawnImpl,
     timeoutMs: mode === "dry-run"
       ? PUBLIC_WORKER_DEPLOYMENT_POLICY.dryRunTimeoutMs
@@ -1713,6 +1716,7 @@ export async function runBoundedPublicWrangler({
 export async function runBoundedPublicWranglerForTest({
   timeoutMs,
   outputByteLimit,
+  invocationBuilder = buildPublicWranglerInvocation,
   ...options
 }) {
   if (!Number.isSafeInteger(timeoutMs)
@@ -1725,6 +1729,7 @@ export async function runBoundedPublicWranglerForTest({
   }
   return runBoundedPublicWranglerWithLimits({
     ...options,
+    invocationBuilder,
     timeoutMs,
     outputByteLimit
   });
@@ -1736,7 +1741,7 @@ function sameState(left, right) {
     && JSON.stringify(left.bindings) === JSON.stringify(right.bindings);
 }
 
-function assertPublicBindingsPreserved(before, after) {
+export function assertPublicBindingsPreserved(before, after) {
   const final = new Set(after);
   for (const binding of before) {
     if (!final.has(binding)) fail(PUBLIC_DEPLOYMENT_FAILURE.BINDING_REMOVED);

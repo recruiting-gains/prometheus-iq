@@ -294,7 +294,8 @@ function buildIdentityManifest(contract, components) {
 }
 
 export function buildPublicForwardRollbackArtifact(root, {
-  temporaryRoot = tmpdir()
+  temporaryRoot = tmpdir(),
+  outputDirectory
 } = {}) {
   const contract = verifyPublicForwardRollbackContract(root);
   const workspace = mkdtempSync(join(temporaryRoot, "route-iq-public-forward-rollback-"));
@@ -369,6 +370,20 @@ export function buildPublicForwardRollbackArtifact(root, {
     if (![artifactSha256, websiteAssetsSha256, configurationSha256, generatedWorkerSha256, generatedSourceMapSha256]
       .every(value => SHA256.test(value))) {
       throw new Error("public_forward_rollback_hash_invalid");
+    }
+    if (outputDirectory !== undefined) {
+      if (typeof outputDirectory !== "string" || outputDirectory.length < 1) {
+        throw new Error("public_forward_rollback_output_invalid");
+      }
+      cpSync(identityDirectory, outputDirectory, {
+        recursive: true,
+        errorOnExist: true,
+        force: false,
+        dereference: false
+      });
+      if (hashPublicForwardRollbackArtifact(outputDirectory) !== artifactSha256) {
+        throw new Error("public_forward_rollback_output_identity_mismatch");
+      }
     }
     return Object.freeze({
       status: "PUBLIC_FORWARD_ROLLBACK_VERIFIED",

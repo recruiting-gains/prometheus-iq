@@ -1,0 +1,140 @@
+name: Qualify Prometheus Public Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_commit:
+        description: Candidate commit at current origin/main (40 lowercase hex)
+        required: true
+        type: string
+      candidate_tree:
+        description: Candidate tree for the exact commit (40 lowercase hex)
+        required: true
+        type: string
+      batch_id:
+        description: Qualification batch ID (BATCH-YYYYMMDD-NNN)
+        required: true
+        type: string
+      current_public_version:
+        description: Current public Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+      current_private_version:
+        description: Current private Worker version prerequisite (canonical lowercase UUID)
+        required: true
+        type: string
+      rollback_artifact_sha256:
+        description: Verified deterministic forward rollback artifact SHA-256
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: qualify-prometheus-public-worker-${{ inputs.candidate_commit }}
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Verify and freeze one immutable public release artifact
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' &&
+        github.repository == 'PrometheusRouteIQ/prometheus-iq' &&
+        github.actor == 'PrometheusRouteIQ' &&
+        github.triggering_actor == 'PrometheusRouteIQ' &&
+        github.ref == 'refs/heads/main' &&
+        github.ref_name == 'main' &&
+        github.ref_type == 'branch' &&
+        github.workflow == 'Qualify Prometheus Public Worker' &&
+        github.workflow_ref == 'PrometheusRouteIQ/prometheus-iq/.github/workflows/qualify-prometheus-public-worker.yml@refs/heads/main' &&
+        github.run_attempt == 1
+      }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    outputs:
+      qualification_artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      qualification_transport_digest: ${{ steps.upload.outputs.artifact-digest }}
+      qualified_artifact_sha256: ${{ steps.freeze.outputs.qualified_artifact_sha256 }}
+      qualified_manifest_sha256: ${{ steps.freeze.outputs.qualified_manifest_sha256 }}
+      deployment_asset_sha256: ${{ steps.freeze.outputs.deployment_asset_sha256 }}
+      rollback_contract_sha256: ${{ steps.freeze.outputs.rollback_contract_sha256 }}
+      rollback_artifact_sha256: ${{ steps.freeze.outputs.rollback_artifact_sha256 }}
+      workflow_contract_sha256: ${{ steps.freeze.outputs.workflow_contract_sha256 }}
+    steps:
+      - name: Checkout exact main repository
+        # actions/checkout v4.3.1
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          repository: PrometheusRouteIQ/prometheus-iq
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Set up exact qualification and deployment Node runtime
+        # actions/setup-node v4.4.0
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "24.4.1"
+
+      - name: Install exact locked dependencies
+        run: npm ci
+
+      - name: Build deterministic public source required by clean-checkout verifiers
+        run: npm run build
+
+      - name: Run complete no-secret repository qualification suite
+        run: npm test
+
+      - name: Run explicit lint, typecheck, security, Aegis, secret, contract, and Git gates
+        run: |
+          npm run lint
+          npm run typecheck
+          npm run security:check
+          node scripts/check-cloudflare-unattended-secret-presence.mjs --source=environment
+          npm run security:aegis:verify
+          node scripts/verify-cross-subsystem-artifact-contracts.mjs
+          node scripts/run-public-worker-repository-integrity-diagnostic.mjs
+
+      - name: Verify public runtime startup and Workflow v2 regression contract
+        run: |
+          node scripts/run-public-worker-workerd-startup-preflight.mjs
+          node scripts/verify-github-actions-public-worker-workflow-v2.mjs
+          node --test tests/github-actions-public-worker-workflow-v2.test.mjs
+
+      - name: Build and freeze the public deployment artifact exactly once
+        id: freeze
+        env:
+          PROMETHEUS_CANDIDATE_COMMIT: ${{ inputs.candidate_commit }}
+          PROMETHEUS_CANDIDATE_TREE: ${{ inputs.candidate_tree }}
+          PROMETHEUS_BATCH_ID: ${{ inputs.batch_id }}
+          PROMETHEUS_CURRENT_PUBLIC_VERSION: ${{ inputs.current_public_version }}
+          PROMETHEUS_CURRENT_PRIVATE_VERSION: ${{ inputs.current_private_version }}
+          PROMETHEUS_ROLLBACK_ARTIFACT_SHA256: ${{ inputs.rollback_artifact_sha256 }}
+          PROMETHEUS_DISPATCH_INPUTS_JSON: ${{ toJSON(github.event.inputs) }}
+          PROMETHEUS_QUALIFIED_RELEASE_OUTPUT: ${{ runner.temp }}/prometheus-public-qualified-release
+          PROMETHEUS_RUNNER_IMAGE: ubuntu-24.04
+        run: node scripts/run-github-actions-public-worker-qualification.mjs build
+
+      - name: Upload immutable qualified release through GitHub artifact storage
+        id: upload
+        # actions/upload-artifact v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prometheus-public-qualified-${{ inputs.candidate_commit }}
+          path: ${{ runner.temp }}/prometheus-public-qualified-release
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30
+
+      - name: Require unchanged exact repository after qualification
+        run: |
+          git diff --exit-code
+          git diff --cached --exit-code
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          test "$(git rev-parse HEAD)" = "${{ inputs.candidate_commit }}"
+          test "$(git rev-parse HEAD^{tree})" = "${{ inputs.candidate_tree }}"
