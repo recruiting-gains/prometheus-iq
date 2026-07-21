@@ -884,6 +884,81 @@ function addPublicDeploymentWorkflowV2Successors(ownerFixture) {
   });
 }
 
+function addDeploymentAuthorizationBoundarySuccessors(ownerFixture) {
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const overwatchIdentity = {
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local"
+  };
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic consume deployment authorization at spawn",
+    changes: [
+      {
+        path: "scripts/lib/synthetic-deployment-authorization-boundary.mjs",
+        content: "export const consumedAtSpawn = true;\n"
+      },
+      {
+        path: "workers/infrastructure/synthetic-deployment-authorization-boundary.json",
+        content: "{}\n"
+      }
+    ]
+  });
+  const governance = commitFilesFixture(ownerFixture.repository, {
+    ...overwatchIdentity,
+    subject: "overwatch: synthetic govern deployment authorization boundary repair",
+    changes: [{
+      path: "overwatch/governance/synthetic-deployment-authorization-boundary.json",
+      content: "{}\n"
+    }]
+  });
+  const governanceAdmission = commitFilesFixture(ownerFixture.repository, {
+    ...overwatchIdentity,
+    subject: "overwatch: synthetic admit authorization boundary governance successor",
+    changes: [{
+      path: "scripts/verify-overwatch-synthetic-deployment-authorization-boundary.mjs",
+      content: "export const admitted = true;\n"
+    }]
+  });
+  const provenanceAdmission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit deployment authorization boundary repair",
+    changes: [
+      "docs/synthetic-deployment-authorization-boundary.md",
+      "scripts/verify-synthetic-deployment-authorization-boundary.mjs",
+      "tests/synthetic-deployment-authorization-boundary.test.mjs",
+      "workers/infrastructure/synthetic-deployment-authorization-boundary-admission.json"
+    ].map(path => ({ path, content: `authorization-boundary:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    repair,
+    governance,
+    governanceAdmission,
+    provenanceAdmission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      deploymentAuthorizationBoundaryRepairSuccessor: repair,
+      deploymentAuthorizationBoundaryOverwatchSuccessors: Object.freeze([
+        governance,
+        governanceAdmission
+      ]),
+      deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor: Object.freeze({
+        parent: governanceAdmission.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: provenanceAdmission.subject,
+        files: provenanceAdmission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -1269,6 +1344,13 @@ test("owner boundary pins frozen Infrastructure commits and permits legitimate O
     git(root, ["rev-parse", "HEAD"])
       !== "ee80a44b8a28847d4a4acfc3fae8574697661edc"
   );
+  assert.equal(current.deploymentAuthorizationBoundaryRepairSeen, true);
+  assert.equal(current.deploymentAuthorizationBoundaryOverwatchSuccessorsSeen, 2);
+  assert.equal(
+    current.deploymentAuthorizationBoundaryProvenanceAdmissionSeen,
+    git(root, ["rev-parse", "HEAD"])
+      !== "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a"
+  );
 
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-valid-"));
   try {
@@ -1332,6 +1414,93 @@ test("owner boundary admits only the exact public deployment Workflow v2 chain",
       }
     };
     assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongParent));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact deployment authorization repair chain", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-authorization-boundary-provenance-"));
+  try {
+    const accepted = addDeploymentAuthorizationBoundarySuccessors(
+      createOwnerBoundaryRepository(fixture, "accepted")
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 7,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      deploymentAuthorizationBoundaryRepairSeen: true,
+      deploymentAuthorizationBoundaryOverwatchSuccessorsSeen: 2,
+      deploymentAuthorizationBoundaryProvenanceAdmissionSeen: true
+    });
+
+    const wrongIdentity = {
+      ...accepted.boundary,
+      deploymentAuthorizationBoundaryRepairSuccessor: {
+        ...accepted.boundary.deploymentAuthorizationBoundaryRepairSuccessor,
+        authorName: "Prometheus Overwatch"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongIdentity));
+
+    const wrongParent = {
+      ...accepted.boundary,
+      deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor,
+        parent: "0".repeat(40)
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongParent));
+
+    const wrongFiles = {
+      ...accepted.boundary,
+      deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor,
+        files: [
+          ...accepted.boundary.deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor.files,
+          "scripts/unapproved-authorization-boundary.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongFiles));
+
+    const reordered = {
+      ...accepted.boundary,
+      deploymentAuthorizationBoundaryOverwatchSuccessors: [
+        ...accepted.boundary.deploymentAuthorizationBoundaryOverwatchSuccessors
+      ].reverse()
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, reordered));
+
+    const missing = {
+      ...accepted.boundary,
+      deploymentAuthorizationBoundaryOverwatchSuccessors:
+        accepted.boundary.deploymentAuthorizationBoundaryOverwatchSuccessors.slice(0, 1)
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, missing));
+
+    const current = git(accepted.repository, ["rev-parse", "HEAD"]);
+    const mergeParent = git(accepted.repository, ["rev-parse", "HEAD~1"]);
+    const tree = git(accepted.repository, ["rev-parse", "HEAD^{tree}"]);
+    const mergeCommit = git(accepted.repository, [
+      "commit-tree", tree, "-p", current, "-p", mergeParent
+    ], {
+      input: "overwatch: synthetic merge after authorization admission\n",
+      env: {
+        GIT_AUTHOR_NAME: "Prometheus Overwatch",
+        GIT_AUTHOR_EMAIL: "overwatch@prometheus.local",
+        GIT_COMMITTER_NAME: "Prometheus Overwatch",
+        GIT_COMMITTER_EMAIL: "overwatch@prometheus.local"
+      }
+    });
+    git(accepted.repository, ["update-ref", "refs/heads/main", mergeCommit, current]);
+    assert.throws(
+      () => verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary),
+      /linear non-merge successor/u
+    );
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

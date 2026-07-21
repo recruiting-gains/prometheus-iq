@@ -358,6 +358,30 @@ valid ordered chain passes while a substituted owner, widened or changed path se
 parent fails closed. The admission does not authorize another Infrastructure successor, deployment,
 Cloudflare contact, product or CRM changes, or private Worker changes.
 
+## Deployment authorization boundary repair provenance
+
+Infrastructure commit `9c6440ba3c286b06a79435a8ec7bdf477cb4fd79`, tree
+`9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2`, follows the exact admitted Workflow v2 chain at
+`6db68f845e91c967e34f3b825e4cbc2372cef6d8`. It is pinned as the eight-file Infrastructure-owned
+repair that consumes a one-shot Founder deployment authorization only after Wrangler successfully
+spawns. Invocation or spawn failure remains unconsumed; any failure after spawn remains consumed and
+cannot be retried.
+
+The repair is followed by exact Overwatch governance commits
+`e2465d7a28c3222626cc8c60ed0690f8a425ee6f`, tree
+`25a215fda6751214d5c8a8b2d4474531aaf6536b`, and
+`4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a`, tree
+`a8ccbaced4a0780286864af590dcd30cce8ac245`. Their parents, Overwatch identities, literal subjects,
+and four-file then three-file governance scopes are pinned exactly and in order.
+
+This Infrastructure admission follows only `4d7f5d1` and is intentionally dynamic to avoid a
+self-referential commit claim. It requires the exact Infrastructure author and committer identity,
+literal subject `infrastructure: admit deployment authorization boundary repair`, and only this
+verifier, focused test, documentation, and Infrastructure contract. Regression fixtures reject a
+wrong identity, parent, file set, merge, reordered governance pair, or missing governance member.
+No deployment, workflow dispatch, Cloudflare contact, secret access, production mutation, product
+change, CRM change, rollback change, or private Worker change is admitted.
+
 ## Operator use
 
 Local non-deployment diagnostic:

@@ -649,6 +649,73 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "deploymentAuthorizationBoundaryRepairSuccessor": {
+      "commit": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+      "tree": "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2",
+      "parent": "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: consume deployment authorization at spawn",
+      "files": [
+        "docs/github-actions-public-worker-deployment-v2.md",
+        "scripts/lib/github-actions-public-worker-deployment.mjs",
+        "scripts/lib/github-actions-public-worker-workflow-v2.mjs",
+        "scripts/run-github-actions-public-worker-deployment-v2.mjs",
+        "scripts/verify-github-actions-public-worker-deployment.mjs",
+        "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+      ]
+    },
+    "deploymentAuthorizationBoundaryOverwatchSuccessors": [
+      {
+        "commit": "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+        "tree": "25a215fda6751214d5c8a8b2d4474531aaf6536b",
+        "parent": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+        "authorName": "Prometheus Overwatch",
+        "authorEmail": "overwatch@prometheus.local",
+        "committerName": "Prometheus Overwatch",
+        "committerEmail": "overwatch@prometheus.local",
+        "subject": "overwatch: govern deployment authorization boundary repair",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+        ]
+      },
+      {
+        "commit": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+        "tree": "a8ccbaced4a0780286864af590dcd30cce8ac245",
+        "parent": "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+        "authorName": "Prometheus Overwatch",
+        "authorEmail": "overwatch@prometheus.local",
+        "committerName": "Prometheus Overwatch",
+        "committerEmail": "overwatch@prometheus.local",
+        "subject": "overwatch: admit authorization boundary governance successor",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+        ]
+      }
+    ],
+    "deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor": {
+      "parent": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: admit deployment authorization boundary repair",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cloudflareDeploymentReadRepair": {

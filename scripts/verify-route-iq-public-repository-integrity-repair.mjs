@@ -265,6 +265,33 @@ const publicDeploymentWorkflowV2ProvenanceRepairFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const deploymentAuthorizationBoundaryRepairFiles = Object.freeze([
+  "docs/github-actions-public-worker-deployment-v2.md",
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/lib/github-actions-public-worker-workflow-v2.mjs",
+  "scripts/run-github-actions-public-worker-deployment-v2.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+  "tests/github-actions-public-worker-workflow-v2.test.mjs",
+  "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+]);
+const deploymentAuthorizationBoundaryGovernanceFiles = Object.freeze([
+  "overwatch/governance/public-deployment-workflow-v2.json",
+  "overwatch/governance/public-deployment-workflow-v2.md",
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+]);
+const deploymentAuthorizationBoundaryGovernanceAdmissionFiles = Object.freeze([
+  "overwatch/governance/public-deployment-workflow-v2.json",
+  "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+]);
+const deploymentAuthorizationBoundaryProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -715,6 +742,50 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit public deployment workflow v2 chain",
     files: publicDeploymentWorkflowV2ProvenanceRepairFiles
+  }),
+  deploymentAuthorizationBoundaryRepairSuccessor: Object.freeze({
+    commit: "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+    tree: "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2",
+    parent: "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: consume deployment authorization at spawn",
+    files: deploymentAuthorizationBoundaryRepairFiles
+  }),
+  deploymentAuthorizationBoundaryOverwatchSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+      tree: "25a215fda6751214d5c8a8b2d4474531aaf6536b",
+      parent: "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "overwatch: govern deployment authorization boundary repair",
+      files: deploymentAuthorizationBoundaryGovernanceFiles
+    }),
+    Object.freeze({
+      commit: "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+      tree: "a8ccbaced4a0780286864af590dcd30cce8ac245",
+      parent: "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+      authorName: "Prometheus Overwatch",
+      authorEmail: "overwatch@prometheus.local",
+      committerName: "Prometheus Overwatch",
+      committerEmail: "overwatch@prometheus.local",
+      subject: "overwatch: admit authorization boundary governance successor",
+      files: deploymentAuthorizationBoundaryGovernanceAdmissionFiles
+    })
+  ]),
+  deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit deployment authorization boundary repair",
+    files: deploymentAuthorizationBoundaryProvenanceAdmissionFiles
   })
 });
 
@@ -931,6 +1002,9 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let publicDeploymentWorkflowV2OwnerSeen = false;
   let publicDeploymentWorkflowV2OverwatchSeen = false;
   let publicDeploymentWorkflowV2ProvenanceRepairSeen = false;
+  let deploymentAuthorizationBoundaryRepairSeen = false;
+  let deploymentAuthorizationBoundaryOverwatchSuccessorsSeen = 0;
+  let deploymentAuthorizationBoundaryProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1343,6 +1417,59 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const deploymentAuthorizationBoundaryRepair =
+      boundary.deploymentAuthorizationBoundaryRepairSuccessor;
+    if (deploymentAuthorizationBoundaryRepair
+      && commit === deploymentAuthorizationBoundaryRepair.commit) {
+      assert.equal(deploymentAuthorizationBoundaryRepairSeen, false,
+        "deployment authorization boundary repair repeated");
+      if (boundary.publicDeploymentWorkflowV2OwnerSuccessor) {
+        assert.equal(publicDeploymentWorkflowV2OwnerSeen, true,
+          "deployment authorization repair preceded Workflow v2 owner implementation");
+        assert.equal(publicDeploymentWorkflowV2OverwatchSeen, true,
+          "deployment authorization repair preceded Workflow v2 governance");
+        assert.equal(publicDeploymentWorkflowV2ProvenanceRepairSeen, true,
+          "deployment authorization repair preceded Workflow v2 provenance admission");
+      }
+      assertCommitSnapshot(repositoryRoot, deploymentAuthorizationBoundaryRepair);
+      deploymentAuthorizationBoundaryRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    const expectedDeploymentAuthorizationBoundaryOverwatch =
+      boundary.deploymentAuthorizationBoundaryOverwatchSuccessors?.[
+        deploymentAuthorizationBoundaryOverwatchSuccessorsSeen
+      ];
+    if (expectedDeploymentAuthorizationBoundaryOverwatch
+      && commit === expectedDeploymentAuthorizationBoundaryOverwatch.commit) {
+      assert.equal(deploymentAuthorizationBoundaryRepairSeen, true,
+        "deployment authorization governance preceded its Infrastructure repair");
+      assertCommitSnapshot(repositoryRoot, expectedDeploymentAuthorizationBoundaryOverwatch);
+      deploymentAuthorizationBoundaryOverwatchSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const deploymentAuthorizationBoundaryAdmission =
+      boundary.deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor;
+    const isDeploymentAuthorizationBoundaryAdmission =
+      deploymentAuthorizationBoundaryAdmission
+      && !deploymentAuthorizationBoundaryProvenanceAdmissionSeen
+      && deploymentAuthorizationBoundaryRepairSeen
+      && deploymentAuthorizationBoundaryOverwatchSuccessorsSeen
+        === boundary.deploymentAuthorizationBoundaryOverwatchSuccessors.length
+      && actual.parents[0] === deploymentAuthorizationBoundaryAdmission.parent
+      && actual.authorName === deploymentAuthorizationBoundaryAdmission.authorName
+      && actual.authorEmail === deploymentAuthorizationBoundaryAdmission.authorEmail
+      && actual.committerName === deploymentAuthorizationBoundaryAdmission.committerName
+      && actual.committerEmail === deploymentAuthorizationBoundaryAdmission.committerEmail
+      && actual.subject === deploymentAuthorizationBoundaryAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...deploymentAuthorizationBoundaryAdmission.files].sort());
+    if (isDeploymentAuthorizationBoundaryAdmission) {
+      deploymentAuthorizationBoundaryProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1418,6 +1545,26 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.publicDeploymentWorkflowV2OverwatchSeen = publicDeploymentWorkflowV2OverwatchSeen;
     result.publicDeploymentWorkflowV2ProvenanceRepairSeen =
       publicDeploymentWorkflowV2ProvenanceRepairSeen;
+  }
+  if (boundary.deploymentAuthorizationBoundaryRepairSuccessor) {
+    assert.equal(deploymentAuthorizationBoundaryRepairSeen, true,
+      "deployment authorization boundary repair is missing");
+    assert.equal(boundary.deploymentAuthorizationBoundaryOverwatchSuccessors.length, 2,
+      "deployment authorization boundary requires exactly two Overwatch successors");
+    assert.equal(deploymentAuthorizationBoundaryOverwatchSuccessorsSeen,
+      boundary.deploymentAuthorizationBoundaryOverwatchSuccessors.length,
+      "deployment authorization boundary Overwatch chain is incomplete or reordered");
+    if (gitAt(repositoryRoot, ["rev-parse", "HEAD"])
+      !== boundary.deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor.parent) {
+      assert.equal(deploymentAuthorizationBoundaryProvenanceAdmissionSeen, true,
+        "deployment authorization boundary provenance admission is missing");
+    }
+    result.deploymentAuthorizationBoundaryRepairSeen =
+      deploymentAuthorizationBoundaryRepairSeen;
+    result.deploymentAuthorizationBoundaryOverwatchSuccessorsSeen =
+      deploymentAuthorizationBoundaryOverwatchSuccessorsSeen;
+    result.deploymentAuthorizationBoundaryProvenanceAdmissionSeen =
+      deploymentAuthorizationBoundaryProvenanceAdmissionSeen;
   }
   return Object.freeze(result);
 }
@@ -1538,6 +1685,16 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     !== INFRASTRUCTURE_OWNER_BOUNDARY
       .publicDeploymentWorkflowV2ProvenanceRepairSuccessor.parent) {
     assert.equal(ownerBoundary.publicDeploymentWorkflowV2ProvenanceRepairSeen, true);
+  }
+  assert.equal(ownerBoundary.deploymentAuthorizationBoundaryRepairSeen, true);
+  assert.equal(
+    ownerBoundary.deploymentAuthorizationBoundaryOverwatchSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.deploymentAuthorizationBoundaryOverwatchSuccessors.length
+  );
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.deploymentAuthorizationBoundaryProvenanceAdmissionSeen, true);
   }
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
