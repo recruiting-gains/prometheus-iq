@@ -807,6 +807,15 @@ const WORKFLOW_V2_READINESS_CLOSURE_PATHS = Object.freeze([
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
+const WORKFLOW_V2_READINESS_CLOSURE = Object.freeze({
+  commit: "19d27686408db1eaf3f33a2ed15c36827441f3ec",
+  tree: "e7c1c5c62a3d96865c0951dd7e03020970ef1acf",
+  parent: WORKFLOW_V2_OVERWATCH_PROVENANCE_PIN.commit,
+  subject: WORKFLOW_V2_READINESS_CLOSURE_SUBJECT,
+  files: WORKFLOW_V2_READINESS_CLOSURE_PATHS
+});
+const WORKFLOW_V2_FINAL_READINESS_SUBJECT =
+  "overwatch: finalize workflow v2 historical readiness";
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -962,6 +971,16 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicDeploymentWorkflowV2Successors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
+  assert.deepEqual(governance?.workflowV2ReadinessClosure, {
+    commit: WORKFLOW_V2_READINESS_CLOSURE.commit,
+    tree: WORKFLOW_V2_READINESS_CLOSURE.tree,
+    parent: WORKFLOW_V2_READINESS_CLOSURE.parent,
+    subject: WORKFLOW_V2_READINESS_CLOSURE.subject,
+    owner: "Prometheus Overwatch",
+    files: [...WORKFLOW_V2_READINESS_CLOSURE.files],
+    finalSuccessorSubject: WORKFLOW_V2_FINAL_READINESS_SUBJECT,
+    sourceOrProductionBehaviorChanged: false
+  });
 
   assert.equal(governance?.releaseIdentities?.deploymentAssetsSha256, DEPLOYMENT_ASSETS_SHA256);
   assert.equal(governance?.releaseIdentities?.rollbackContractPath, ROLLBACK_CONTRACT_PATH);
@@ -1687,7 +1706,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const commits = git(root, "rev-list", "--reverse", `${HISTORICAL_SUCCESSOR_COMMIT}..HEAD`)
     .split("\n")
     .filter(Boolean);
-  const expectedCount = requireCommittedOverwatch ? 62 : 61;
+  const expectedCount = requireCommittedOverwatch ? 63 : 62;
   assert.equal(commits.length, expectedCount);
   assert.deepEqual(commits.slice(0, 26), [
     INFRASTRUCTURE_COMMITS[0].commit,
@@ -1745,6 +1764,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   assert.equal(commits[58], WORKFLOW_V2_OVERWATCH_GOVERNANCE.commit);
   assert.equal(commits[59], INFRASTRUCTURE_COMMITS[23].commit);
   assert.equal(commits[60], WORKFLOW_V2_OVERWATCH_PROVENANCE_PIN.commit);
+  assert.equal(commits[61], WORKFLOW_V2_READINESS_CLOSURE.commit);
 
   for (const expected of INFRASTRUCTURE_COMMITS) {
     assert.equal(git(root, "rev-parse", `${expected.commit}^{tree}`), expected.tree);
@@ -2155,7 +2175,11 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     );
   }
 
-  for (const expected of [WORKFLOW_V2_OVERWATCH_GOVERNANCE, WORKFLOW_V2_OVERWATCH_PROVENANCE_PIN]) {
+  for (const expected of [
+    WORKFLOW_V2_OVERWATCH_GOVERNANCE,
+    WORKFLOW_V2_OVERWATCH_PROVENANCE_PIN,
+    WORKFLOW_V2_READINESS_CLOSURE
+  ]) {
     const record = commitRecord(root, expected.commit);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
@@ -2166,12 +2190,12 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   }
 
   if (requireCommittedOverwatch) {
-    const record = commitRecord(root, commits[61]);
+    const record = commitRecord(root, commits[62]);
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
-    assert.equal(record.subject, WORKFLOW_V2_READINESS_CLOSURE_SUBJECT);
+    assert.equal(record.subject, WORKFLOW_V2_FINAL_READINESS_SUBJECT);
     assert.deepEqual(sorted(record.files), sorted(WORKFLOW_V2_READINESS_CLOSURE_PATHS));
-    assert.equal(git(root, "rev-parse", `${commits[61]}^`), WORKFLOW_V2_OVERWATCH_PROVENANCE_PIN.commit);
+    assert.equal(git(root, "rev-parse", `${commits[62]}^`), WORKFLOW_V2_READINESS_CLOSURE.commit);
   }
   return commits;
 }

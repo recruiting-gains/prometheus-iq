@@ -453,6 +453,20 @@
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
+  "workflowV2ReadinessClosure": {
+    "commit": "19d27686408db1eaf3f33a2ed15c36827441f3ec",
+    "tree": "e7c1c5c62a3d96865c0951dd7e03020970ef1acf",
+    "parent": "c3da99ebc1744d0e540719a78531ec983b18ebdb",
+    "subject": "overwatch: close workflow v2 historical readiness",
+    "owner": "Prometheus Overwatch",
+    "files": [
+      "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+      "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+      "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+    ],
+    "finalSuccessorSubject": "overwatch: finalize workflow v2 historical readiness",
+    "sourceOrProductionBehaviorChanged": false
+  },
   "releaseIdentities": {
     "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
     "rollbackContractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
