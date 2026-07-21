@@ -1,0 +1,26 @@
+# Public Deployment Workflow v2 Governance
+
+Owner: Prometheus Overwatch
+Implementation owner: Prometheus Infrastructure
+Batch: `BATCH-20260720-010`
+Production action: none
+
+## Dispatch Audit
+
+Prometheus Infrastructure owns the qualification workflow, immutable release construction, deployment adapter, Cloudflare read and deploy boundary, GET/HEAD smoke plan, and forward-compatible rollback mechanics. Prometheus Overwatch owns this governance record, provenance mapping, registry wiring, and independent release gates. Overwatch did not modify Infrastructure implementation files.
+
+## Governed Lifecycle
+
+`Qualify Prometheus Public Worker` runs the complete no-secret repository suite in the pinned deployment environment, builds the public deployment payload exactly once, creates a deterministic manifest, and uploads the content-addressed release. It cannot access protected deployment secrets or contact Cloudflare.
+
+`Deploy Prometheus Public Worker` downloads the exact qualified artifact and cannot rebuild it. Local artifact, repository, workflow, rollback, target, and toolchain checks happen before any Cloudflare request. Read-only public and private Worker prerequisites are then checked. Founder authorization is consumed only immediately before the single forward Wrangler deployment child begins.
+
+A pre-boundary failure records that deployment never began, performs no production mutation, and leaves an unchanged qualified candidate valid. A source, contract, manifest, payload, rollback identity, target, or prerequisite change invalidates the candidate and requires new qualification and authorization. Automatic deployment retries are prohibited.
+
+Postdeployment smoke uses only fixed GET and HEAD requests with no body. A critical failure may invoke one verified forward-compatible rollback payload. Native rollback, private Worker mutation, CRM submission, notification, collection activation, cohort activation, recommendation influence, and Anthony mapping remain prohibited.
+
+## Product Continuity
+
+The Infrastructure owner commit does not alter Website, CRM, Data, Dashboard, Intelligence, or private Worker implementation. The approved Route IQ 3D website and CRM deployment assets retain SHA-256 `5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15`.
+
+This batch changes and verifies the release system only. It does not request or grant deployment authorization.

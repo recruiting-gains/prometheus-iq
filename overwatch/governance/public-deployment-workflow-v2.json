@@ -1,0 +1,105 @@
+{
+  "governanceId": "public-deployment-workflow-v2-governance-v1",
+  "schema": "PublicDeploymentWorkflowV2GovernanceV1",
+  "version": "1.0.0",
+  "status": "active_source_verified_not_deployed",
+  "batchId": "BATCH-20260720-010",
+  "engineeringDirective": "PUBLIC DEPLOYMENT WORKFLOW V2 - AUTONOMOUS ENGINEERING DIRECTIVE",
+  "owningSubsystem": "Prometheus Overwatch",
+  "dispatchAudit": {
+    "dispatchTimestampUtc": "2026-07-21T05:15:04Z",
+    "product": "Route IQ public release system",
+    "implementationOwner": "Prometheus Infrastructure",
+    "verificationOwner": "Prometheus Overwatch",
+    "dependencyOrder": [
+      "Prometheus Infrastructure implementation",
+      "Prometheus Overwatch governance and independent verification"
+    ],
+    "ownershipRespected": true
+  },
+  "startingRelease": {
+    "commit": "07bf2eddc9707cb410ff6670efe9465ca68cd6b4",
+    "tree": "e1546b4500803bb03898c6ffb18377ffd08e599e",
+    "batchId": "BATCH-20260720-009",
+    "deploymentAssetSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    "publicWorkerVersionPrefix": "0396f868",
+    "completePublicWorkerVersionRequiredAtQualification": true,
+    "privateWorkerVersion": "b8cba784-dfd3-4f8e-8356-816cccf6aecc"
+  },
+  "implementationProvenance": {
+    "ownerCommit": "30c04aca19423f448b35218491d69ecc458367c7",
+    "ownerTree": "a46088a5c223ba763db7a7eb99a8aec1a47b4c11",
+    "parent": "07bf2eddc9707cb410ff6670efe9465ca68cd6b4",
+    "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "legacyProvenanceGap": false,
+    "files": [
+      { "path": ".github/workflows/deploy-prometheus-public-worker.yml", "sha256": "d48738a7cf4c61cae13cba28be95f51da86497a3ae8328d72aec1bdf6465262b" },
+      { "path": ".github/workflows/qualify-prometheus-public-worker.yml", "sha256": "50abf4fc40dc3f5ceed6ef92bb4c1ccb4be2733ae35579b26d09e7413ceeee2f" },
+      { "path": "docs/github-actions-public-worker-deployment-v2.md", "sha256": "a66e0c9e930772887c2073fb5532919c2d8172a0a1eb305befd3d7719bfacbff" },
+      { "path": "scripts/lib/cloudflare-public-worker-smoke-v2.mjs", "sha256": "86d91e786e7d1ce1e7d2073aac225ef10be608d54fd09793aac7e4d56d4ef49d" },
+      { "path": "scripts/lib/github-actions-public-worker-deployment.mjs", "sha256": "0f95b6a25d84fc614475cc29df107cb6dc05299c3202965611b243fab07481e4" },
+      { "path": "scripts/lib/github-actions-public-worker-workflow-v2.mjs", "sha256": "945e0a5ef1ab24f59063a4d5791f4e84a292e72efcb2131721c2fb06e9724cc7" },
+      { "path": "scripts/lib/route-iq-public-forward-rollback.mjs", "sha256": "1fbc183076a8a4687bb5c331935818ff5738ee58a3e8f61723784d111c95bbe4" },
+      { "path": "scripts/run-cloudflare-public-worker-smoke.mjs", "sha256": "f31c8412f58616448e4fa52fdc3f4f1618251470cc2a08a064e42369ca191e38" },
+      { "path": "scripts/run-github-actions-public-worker-deployment-v2.mjs", "sha256": "5b2779d721c64fae458a947dedbd20c134c0a5ce79f26821bf847c9f90f6da90" },
+      { "path": "scripts/run-github-actions-public-worker-qualification.mjs", "sha256": "cc09db1a4a5db76f454a7fa8a0e745e109d8c23b708e729f7729b7e1e5cadcd7" },
+      { "path": "scripts/verify-github-actions-public-worker-deployment.mjs", "sha256": "6947c273b7b8723c10aa285bf4733dad961e137d52010780f1cba9bd0d9c4bf5" },
+      { "path": "scripts/verify-github-actions-public-worker-workflow-v2.mjs", "sha256": "edce0e79555e7faf0857f026b4e2e707a78c9ea667c6b71a8b075019d9fb8860" },
+      { "path": "tests/github-actions-public-worker-deployment.test.mjs", "sha256": "36e594e8e7a78426ae7ef7dbd61331bbb9bb835c59c92d6597d191f93453d168" },
+      { "path": "tests/github-actions-public-worker-workflow-v2.test.mjs", "sha256": "d1a476d70d187749879646c39d6d5b76c91af2e8d6b381140a38df6d1dc59662" },
+      { "path": "workers/infrastructure/github-actions-public-worker-deployment-v2.json", "sha256": "13973445a73170e577fbd44926b6b96039531658268af9b7d3068a6c963f5f8c" }
+    ]
+  },
+  "architecture": {
+    "qualificationWorkflow": ".github/workflows/qualify-prometheus-public-worker.yml",
+    "deploymentWorkflow": ".github/workflows/deploy-prometheus-public-worker.yml",
+    "qualificationContactsCloudflare": false,
+    "qualificationAccessesProtectedSecrets": false,
+    "qualificationBuildsArtifactExactlyOnce": true,
+    "deploymentConsumesQualifiedArtifact": true,
+    "deploymentRebuildAllowed": false,
+    "targetWorker": "prometheusrouteiq-website",
+    "privateWorkerMutationAllowed": false,
+    "authorizationConsumedAt": "immediately_before_forward_wrangler_deploy_child",
+    "preBoundaryFailureConsumesAuthorization": false,
+    "forwardDeploymentAttempts": 1,
+    "automaticRetryAllowed": false,
+    "smokeMethods": ["GET", "HEAD"],
+    "criticalFailureRollback": "verified_forward_deployment_only",
+    "nativeRollbackAllowed": false
+  },
+  "candidateStability": {
+    "frozenIdentityIncludes": [
+      "commit",
+      "tree",
+      "qualified_artifact_sha256",
+      "manifest_sha256",
+      "workflow_contract_sha256",
+      "rollback_contract_sha256",
+      "rollback_artifact_sha256",
+      "current_public_version",
+      "current_private_version"
+    ],
+    "sourceChangeInvalidatesCandidate": true,
+    "preBoundaryExternalFailureInvalidatesUnchangedCandidate": false,
+    "materiallyChangedCandidateMayReuseAuthorization": false
+  },
+  "runtimeBoundaries": {
+    "deploymentPerformedByBatch": false,
+    "cloudflareContactedByBatch": false,
+    "productionDataMutatedByBatch": false,
+    "crmSubmissionPerformed": false,
+    "notificationSent": false,
+    "collection": "OFF",
+    "activeCohortCount": 0,
+    "recommendationInfluence": "OFF",
+    "anthonyMapped": false
+  },
+  "productContinuity": {
+    "approvedWebsiteSourceChanged": false,
+    "crmBehaviorChanged": false,
+    "deploymentAssetSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    "privateWorkerChanged": false
+  }
+}

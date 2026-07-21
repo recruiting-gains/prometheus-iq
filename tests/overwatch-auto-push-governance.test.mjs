@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -135,6 +136,25 @@ test("Overwatch canonical automatic commit and push policy verifies", () => {
     deploymentFounderGated: true,
     recommendationInfluenceActivationAuthorized: false
   });
+});
+
+test("autonomous predeployment closure persists across sessions without granting deployment authority", () => {
+  const policy = JSON.parse(readFileSync(
+    "overwatch/governance/verified-engineering-batch-auto-push-v1.json",
+    "utf8"
+  ));
+  const closure = policy.autonomousPredeploymentClosure;
+
+  assert.equal(closure.appliesAcrossOverwatchSessions, true);
+  assert.equal(closure.intermediateHoldForFixableEngineeringFailureAllowed, false);
+  assert.equal(closure.deploymentAuthorizationMayBeRequestedWhileCandidateChanges, false);
+  assert.equal(closure.candidateMutationAfterFreezeAllowed, false);
+  assert.equal(closure.sourceChangeInvalidatesFrozenCandidate, true);
+  assert.equal(closure.unchangedCandidateSurvivesPreBoundaryExternalFailure, true);
+  assert.equal(closure.deploymentWithoutExactFounderAuthorizationAllowed, false);
+  assert.equal(closure.productionMutationDuringPredeploymentClosureAllowed, false);
+  assert.equal(closure.secretValueAccessDuringNoSecretClosureAllowed, false);
+  assert.equal(closure.founderReturnConditions.length, 5);
 });
 
 test("A complete Founder-authorized batch is auto-push eligible", () => {

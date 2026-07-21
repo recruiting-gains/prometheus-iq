@@ -264,7 +264,7 @@ export function verifyAutomaticCommitPushGovernance() {
   const securityWorkflow = read(securityWorkflowPath);
 
   assert.equal(policy.policyId, "verified-engineering-batch-automatic-commit-push-governance-v1");
-  assert.equal(policy.version, "1.1.0");
+  assert.equal(policy.version, "1.2.0");
   assert.equal(policy.status, "active_after_verified_origin_installation");
   assert.equal(policy.permanence, "permanent_until_revoked_or_superseded_by_founder");
   assert.equal(policy.owningSubsystem, "Prometheus Overwatch");
@@ -285,6 +285,49 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.equal(policy.standingPushAuthorization.founderDirectiveMustBeDirectlySubmittedApprovedOrOrdered, true);
   assert.equal(policy.standingPushAuthorization.chiefArchitectDraftAloneIsAuthorization, false);
   assert.equal(policy.standingPushAuthorization.normalFastForwardOnly, true);
+
+  assert.equal(policy.autonomousPredeploymentClosure.status, "active_permanent_until_founder_revocation_or_supersession");
+  assert.equal(policy.autonomousPredeploymentClosure.adoptionBatchId, "BATCH-20260720-010");
+  assert.equal(policy.autonomousPredeploymentClosure.appliesAcrossOverwatchSessions, true);
+  assert.deepEqual(policy.autonomousPredeploymentClosure.scope, [
+    "public_deployment_preparation",
+    "equivalent_release_readiness_work"
+  ]);
+  assert.deepEqual(policy.autonomousPredeploymentClosure.ordinaryFailureFamilies, [
+    "test",
+    "ci",
+    "integrity",
+    "portability",
+    "provenance",
+    "ownership",
+    "workflow",
+    "build",
+    "verification"
+  ]);
+  assert.deepEqual(policy.autonomousPredeploymentClosure.requiredBehavior, [
+    "diagnose_and_dispatch_to_correct_owner",
+    "repair_narrowly_with_regression_coverage",
+    "commit_under_correct_owner_identity",
+    "independently_verify_exact_integrated_head_and_tree",
+    "normal_fast_forward_push_when_auto_push_eligible",
+    "rerun_safe_no_secret_ci_until_stable",
+    "freeze_one_immutable_candidate_before_requesting_deployment_authorization"
+  ]);
+  assert.equal(policy.autonomousPredeploymentClosure.intermediateHoldForFixableEngineeringFailureAllowed, false);
+  assert.equal(policy.autonomousPredeploymentClosure.deploymentAuthorizationMayBeRequestedWhileCandidateChanges, false);
+  assert.equal(policy.autonomousPredeploymentClosure.candidateMutationAfterFreezeAllowed, false);
+  assert.equal(policy.autonomousPredeploymentClosure.sourceChangeInvalidatesFrozenCandidate, true);
+  assert.equal(policy.autonomousPredeploymentClosure.unchangedCandidateSurvivesPreBoundaryExternalFailure, true);
+  assert.deepEqual(policy.autonomousPredeploymentClosure.founderReturnConditions, [
+    "immutable_candidate_passed_all_required_gates_and_needs_deployment_authorization",
+    "founder_authentication_credentials_mfa_or_physical_identity_action_unavoidable",
+    "material_product_security_privacy_crm_schema_data_handling_or_deployment_scope_decision_required",
+    "destructive_or_irreversible_action_required",
+    "genuine_blocker_remains_after_safe_in_scope_remedies_exhausted"
+  ]);
+  assert.equal(policy.autonomousPredeploymentClosure.deploymentWithoutExactFounderAuthorizationAllowed, false);
+  assert.equal(policy.autonomousPredeploymentClosure.productionMutationDuringPredeploymentClosureAllowed, false);
+  assert.equal(policy.autonomousPredeploymentClosure.secretValueAccessDuringNoSecretClosureAllowed, false);
 
   assert.deepEqual(sorted(Object.keys(policy.automaticPushRequirements)), sorted(requiredAutomaticPushRequirements));
   for (const requirement of requiredAutomaticPushRequirements) {
@@ -381,6 +424,10 @@ export function verifyAutomaticCommitPushGovernance() {
   assert.match(documentation, /new browser context/);
   assert.match(documentation, /default-deny write guard/);
   assert.match(documentation, /production application-data counts before and after/);
+  assert.match(documentation, /Autonomous Predeployment Closure/);
+  assert.match(documentation, /does not return an intermediate `HOLD` for a fixable engineering failure/);
+  assert.match(documentation, /does not request deployment authorization while the candidate is still changing/);
+  assert.match(documentation, /temporary runner or external infrastructure failure before the production mutation boundary does not invalidate/);
   assert.match(systemMap, /Verified Engineering Batch Automatic Commit \+ Push Governance v1/);
   assert.match(masterState, /Automatic Commit and Push Governance/);
   assert.match(masterState, /Production deployment always requires separate Founder approval/);

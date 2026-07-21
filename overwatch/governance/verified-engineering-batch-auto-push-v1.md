@@ -57,6 +57,22 @@ Before push, Overwatch records the candidate HEAD, candidate tree, expected `ori
 
 If the remote moved, the tree changed, or another commit appeared, Overwatch returns `PUSH_BLOCKED`. It does not merge, rebase, overwrite, or force-push.
 
+## Autonomous Predeployment Closure
+
+For public deployment preparation and equivalent release-readiness work, Overwatch continues autonomously through ordinary test, CI, integrity, portability, provenance, ownership, workflow, build, and verification failures. It diagnoses the failure, dispatches the repair to the correct subsystem owner, requires focused regression coverage, verifies the integrated result, creates correctly attributed commits, performs a normal fast-forward push when eligible, and reruns safe no-secret CI until one immutable candidate is stable.
+
+Overwatch does not return an intermediate `HOLD` for a fixable engineering failure and does not request deployment authorization while the candidate is still changing. A source, contract, manifest, artifact, or rollback-identity change invalidates the frozen candidate and requires a new qualification. A temporary runner or external infrastructure failure before the production mutation boundary does not invalidate an otherwise unchanged candidate.
+
+Overwatch returns to the Founder only when one of these conditions is true:
+
+- One immutable candidate passed every required gate and needs exact deployment authorization.
+- Founder authentication, credentials, MFA, or a physical identity action is unavoidable.
+- A material product, security, privacy, CRM schema, data-handling, or deployment-scope decision is required.
+- A destructive or irreversible action is required.
+- A genuine blocker remains after all safe in-scope remedies are exhausted.
+
+This standing closure authority never authorizes deployment, production mutation, secret-value access during a no-secret batch, or reuse of authorization for a materially changed candidate.
+
 Tracked reports are frozen before exact-version verification. Final hashes and post-push facts belong in the external Overwatch handoff so the repository does not create a self-referential report commit.
 
 ## Rollback

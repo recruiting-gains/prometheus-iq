@@ -154,6 +154,18 @@ test("Cross-subsystem artifact contracts verify canonical paths and consumers", 
       failClosedIfMissing: true
     },
     {
+      artifactId: "public-deployment-workflow-v2-governance-v1",
+      artifactType: "overwatch_infrastructure_public_worker_qualification_deployment_governance",
+      ownerSubsystem: "Prometheus Overwatch",
+      path: "overwatch/governance/public-deployment-workflow-v2.json",
+      documentationPath: "overwatch/governance/public-deployment-workflow-v2.md",
+      schema: "PublicDeploymentWorkflowV2GovernanceV1",
+      writeAllowed: ["Prometheus Overwatch"],
+      readAllowed: ["Prometheus Infrastructure", "Prometheus Overwatch"],
+      productionConsumer: false,
+      failClosedIfMissing: true
+    },
+    {
       artifactId: "route-iq-commercial-readiness-governance-v1",
       artifactType: "overwatch_route_iq_commercial_release_governance",
       ownerSubsystem: "Prometheus Overwatch",
