@@ -13,7 +13,8 @@ const root = resolve(import.meta.dirname, "..");
 const canonical = Object.freeze({
   publicConfigText: readFileSync(resolve(root, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.publicConfigPath), "utf8"),
   privateConfigText: readFileSync(resolve(root, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.privateConfigPath), "utf8"),
-  contractText: readFileSync(resolve(root, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.contractPath), "utf8")
+  contractText: readFileSync(resolve(root, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.contractPath), "utf8"),
+  publicEntryText: readFileSync(resolve(root, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.publicEntryPath), "utf8")
 });
 
 function mutatePublic(mutator) {
@@ -58,12 +59,36 @@ test("public Worker identity and runtime entrypoint drift fail closed", () => {
   }
 });
 
+test("only the narrow public main-entry successor is admitted", () => {
+  const config = JSON.parse(canonical.publicConfigText);
+  assert.equal(config.main, ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.publicEntryPath);
+  assert.equal(config.workers_dev, false);
+  assert.equal(config.preview_urls, false);
+
+  const historicalMain = mutatePublic(value => {
+    value.main = ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY.historicalPublicEntryPath;
+  });
+  assert.throws(() => validate({ publicConfigText: historicalMain }));
+  assert.throws(() => validate({
+    publicEntryText: canonical.publicEntryText.replace(
+      "export default worker;",
+      "export const CALLBACK_PATH = '/callback';\nexport default worker;"
+    )
+  }));
+
+  const contract = JSON.parse(canonical.contractText);
+  assert.deepEqual(contract.preservation.intendedConfigSuccessor.changedTopLevelKeys, ["main"]);
+  contract.preservation.intendedConfigSuccessor.changedTopLevelKeys.push("workers_dev");
+  assert.throws(() => validate({ contractText: JSON.stringify(contract) }));
+});
+
 test("public bindings, migrations, variables, and assets remain byte-governed", () => {
   const mutations = [
     config => { config.durable_objects.bindings = []; },
     config => { config.migrations[0].tag = "changed"; },
     config => { config.vars.META_GRAPH_API_VERSION = "changed"; },
     config => { config.assets.directory = "./deploy/other"; },
+    config => { config.observability.enabled = false; },
     config => { config.kv_namespaces = []; },
     config => { config.send_email = []; }
   ];

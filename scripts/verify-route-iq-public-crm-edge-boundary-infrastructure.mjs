@@ -14,8 +14,15 @@ export const ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY = Object.freeze({
   owner: "Prometheus Infrastructure",
   publicWorker: "prometheusrouteiq-website",
   publicConfigPath: "wrangler.prometheusrouteiq-website.jsonc",
-  publicConfigSha256: "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
-  publicPreservedSemanticSha256: "85cf18ce15c23320ef5a647cb3436bddd463a0f9b046a1edd01a852238964351",
+  publicConfigSha256: "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+  historicalPublicConfigSha256: "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+  publicPreservedSemanticSha256: "615270da72eb4bc233163edaf3078c25502727e564f844e5264b878e0280b345",
+  historicalPublicPreservedSemanticSha256:
+    "85cf18ce15c23320ef5a647cb3436bddd463a0f9b046a1edd01a852238964351",
+  historicalPublicEntryPath: "workers/prometheus-iq-worker.js",
+  publicEntryPath: "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+  publicEntrySha256: "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
+  publicEntryExports: Object.freeze(["default", "RouteIqRequestCrmCoordinator"]),
   privateWorker: "prometheus-iq",
   privateConfigPath: "wrangler.jsonc",
   privateConfigSha256: "dffa373f19f73efc3bc907ea4a396006c8e6a928797d4c7ddc07a959bd4d690f",
@@ -63,7 +70,8 @@ function parseJson(value, label) {
 export function validateRouteIqPublicCrmEdgeBoundary({
   publicConfigText,
   privateConfigText,
-  contractText
+  contractText,
+  publicEntryText
 }) {
   const publicConfig = parseJson(publicConfigText, "public_config");
   const contract = parseJson(contractText, "edge_boundary_contract");
@@ -91,21 +99,62 @@ export function validateRouteIqPublicCrmEdgeBoundary({
   });
 
   assert.equal(publicConfig.name, policy.publicWorker);
+  assert.equal(publicConfig.main, policy.publicEntryPath);
   assert.equal(workersDev, false);
   assert.equal(previewUrls, false);
   assert.equal(sha256(publicConfigText), policy.publicConfigSha256);
   assert.equal(sha256(canonicalJson(preservedPublicConfig)), policy.publicPreservedSemanticSha256);
+  assert.equal(
+    sha256(canonicalJson({
+      ...preservedPublicConfig,
+      main: policy.historicalPublicEntryPath
+    })),
+    policy.historicalPublicPreservedSemanticSha256
+  );
+  assert.equal(sha256(publicEntryText), policy.publicEntrySha256);
   assert.deepEqual(preservedKeys, [...policy.preservedPublicTopLevelKeys]);
   assert.equal(sha256(privateConfigText), policy.privateConfigSha256);
+  assert.equal(Object.hasOwn(publicConfig, "routes"), false);
+  assert.deepEqual(publicConfig.durable_objects?.bindings, [{
+    name: "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
+    class_name: "RouteIqRequestCrmCoordinator"
+  }]);
+  assert.deepEqual(publicConfig.migrations, [{
+    tag: "route-iq-request-crm-sqlite-v1",
+    new_sqlite_classes: ["RouteIqRequestCrmCoordinator"]
+  }]);
 
   assert.equal(contract.preservation.publicConfigSha256, policy.publicConfigSha256);
+  assert.equal(
+    contract.preservation.historicalPublicConfigSha256,
+    policy.historicalPublicConfigSha256
+  );
   assert.equal(
     contract.preservation.publicConfigSemanticSha256ExcludingEdgeFlags,
     policy.publicPreservedSemanticSha256
   );
+  assert.equal(
+    contract.preservation.historicalPublicConfigSemanticSha256ExcludingEdgeFlags,
+    policy.historicalPublicPreservedSemanticSha256
+  );
+  assert.deepEqual(contract.preservation.intendedConfigSuccessor, {
+    changedTopLevelKeys: ["main"],
+    historicalMain: policy.historicalPublicEntryPath,
+    currentMain: policy.publicEntryPath,
+    currentMainSha256: policy.publicEntrySha256,
+    currentMainExports: [...policy.publicEntryExports]
+  });
   assert.equal(contract.preservation.privateConfigSha256, policy.privateConfigSha256);
   assert.deepEqual(contract.preservation.preservedPublicTopLevelKeys, [...policy.preservedPublicTopLevelKeys]);
-  for (const field of ["bindingsPreserved", "migrationsPreserved", "variablesPreserved", "assetsPreserved"]) {
+  for (const field of [
+    "bindingsPreserved",
+    "migrationsPreserved",
+    "variablesPreserved",
+    "assetsPreserved",
+    "apexAndWwwCustomDomainsPreserved",
+    "accessAndWafBoundariesPreserved",
+    "publicPrivateIsolationPreserved"
+  ]) {
     assert.equal(contract.preservation[field], true);
   }
   assert.deepEqual(contract.boundaries, {
@@ -129,6 +178,7 @@ export function verifyRouteIqPublicCrmEdgeBoundaryInfrastructure(repositoryRoot 
   const policy = ROUTE_IQ_PUBLIC_EDGE_BOUNDARY_POLICY;
   const requiredPaths = [
     policy.publicConfigPath,
+    policy.publicEntryPath,
     policy.privateConfigPath,
     policy.contractPath,
     policy.documentationPath,
@@ -141,7 +191,8 @@ export function verifyRouteIqPublicCrmEdgeBoundaryInfrastructure(repositoryRoot 
   const result = validateRouteIqPublicCrmEdgeBoundary({
     publicConfigText: readFileSync(resolve(repositoryRoot, policy.publicConfigPath), "utf8"),
     privateConfigText: readFileSync(resolve(repositoryRoot, policy.privateConfigPath), "utf8"),
-    contractText: readFileSync(resolve(repositoryRoot, policy.contractPath), "utf8")
+    contractText: readFileSync(resolve(repositoryRoot, policy.contractPath), "utf8"),
+    publicEntryText: readFileSync(resolve(repositoryRoot, policy.publicEntryPath), "utf8")
   });
   const documentation = readFileSync(resolve(repositoryRoot, policy.documentationPath), "utf8");
   assert.match(documentation, /workers_dev`:\s*`false`/u);

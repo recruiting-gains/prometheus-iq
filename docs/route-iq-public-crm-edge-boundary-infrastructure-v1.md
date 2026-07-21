@@ -17,9 +17,9 @@ References:
 
 ## Ownership and preservation
 
-This declaration targets the public `prometheusrouteiq-website` Worker only. The Infrastructure verifier pins the complete public configuration, the semantic content that existed before the two edge flags, and the raw private `prometheus-iq` Wrangler configuration. A change to the public assets, bindings, migrations, variables, KV namespaces, email binding, runtime entrypoint, or Worker name fails closed. Any private Worker configuration change also fails closed.
+This declaration targets the public `prometheusrouteiq-website` Worker only. The Infrastructure verifier pins the complete current public configuration, its historical predecessor identity, and the raw private `prometheus-iq` Wrangler configuration. The only admitted semantic successor is the `main` entry change from `workers/prometheus-iq-worker.js` to `workers/infrastructure/prometheusrouteiq-website-entry.mjs`. Replacing that adapter, changing its exact export surface, or changing any other public top-level value fails closed.
 
-The public Durable Object binding and additive SQLite migration remain intact. No binding, migration, variable, asset path, Worker entrypoint, or private/public target boundary changed.
+The adapter exports only the default fetch handler and `RouteIqRequestCrmCoordinator`. The public Durable Object binding and additive `route-iq-request-crm-sqlite-v1` migration remain intact. No binding, migration, variable, asset path, Worker identity, apex or www custom domain, Access/WAF boundary, or private/public target boundary changed. `workers_dev` and `preview_urls` remain explicitly disabled.
 
 ## Runtime boundary
 
@@ -32,4 +32,4 @@ node scripts/verify-route-iq-public-crm-edge-boundary-infrastructure.mjs
 node --test tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs
 ```
 
-The existing forward rollback artifact remains a new forward deployment. Its Infrastructure-owned configuration hash advances with this public configuration while its Durable Object class, binding, migration history, and accepted-record preservation rules remain unchanged.
+The existing forward rollback artifact remains a new forward deployment. Its Infrastructure-owned configuration hash advances to `5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0` with this intended entry adapter while its Durable Object class, binding, migration history, namespace, and accepted-record preservation rules remain unchanged.

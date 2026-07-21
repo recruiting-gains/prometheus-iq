@@ -18,8 +18,22 @@
     "cloudflareMutationPerformed": false
   },
   "preservation": {
-    "publicConfigSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
-    "publicConfigSemanticSha256ExcludingEdgeFlags": "85cf18ce15c23320ef5a647cb3436bddd463a0f9b046a1edd01a852238964351",
+    "publicConfigSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+    "historicalPublicConfigSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+    "publicConfigSemanticSha256ExcludingEdgeFlags": "615270da72eb4bc233163edaf3078c25502727e564f844e5264b878e0280b345",
+    "historicalPublicConfigSemanticSha256ExcludingEdgeFlags": "85cf18ce15c23320ef5a647cb3436bddd463a0f9b046a1edd01a852238964351",
+    "intendedConfigSuccessor": {
+      "changedTopLevelKeys": [
+        "main"
+      ],
+      "historicalMain": "workers/prometheus-iq-worker.js",
+      "currentMain": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+      "currentMainSha256": "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
+      "currentMainExports": [
+        "default",
+        "RouteIqRequestCrmCoordinator"
+      ]
+    },
     "privateConfigSha256": "dffa373f19f73efc3bc907ea4a396006c8e6a928797d4c7ddc07a959bd4d690f",
     "preservedPublicTopLevelKeys": [
       "$schema",
@@ -38,7 +52,10 @@
     "bindingsPreserved": true,
     "migrationsPreserved": true,
     "variablesPreserved": true,
-    "assetsPreserved": true
+    "assetsPreserved": true,
+    "apexAndWwwCustomDomainsPreserved": true,
+    "accessAndWafBoundariesPreserved": true,
+    "publicPrivateIsolationPreserved": true
   },
   "boundaries": {
     "deploymentPerformed": false,
