@@ -59,7 +59,7 @@ const CRM_HASHES = Object.freeze({
   "workers/infrastructure/route-iq-request-crm-durable-object.js": "70d3e7a46d207f12a3689191784cc2984ae42897190ee1b0ded54f1baa6f2ec6",
   "workers/infrastructure/route-iq-request-crm-runtime-v1.json": "e78245b94531d97b700ac4c25c7fc4730dd5e78e29da24b1eaeda2c4b78db32e",
   "workers/prometheus-iq-worker.js": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
-  "wrangler.prometheusrouteiq-website.jsonc": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f"
+  "wrangler.prometheusrouteiq-website.jsonc": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0"
 });
 
 const read = (root, path) => readFileSync(resolve(root, path), "utf8");

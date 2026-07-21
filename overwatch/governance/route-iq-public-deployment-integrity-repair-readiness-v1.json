@@ -328,11 +328,37 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+      "tree": "90dac84f6cbc891e7c3f3156aa4eaaf7c73f9ce2",
+      "parent": "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f",
+      "subject": "infrastructure: align edge boundary with public entry",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-crm-edge-boundary-infrastructure-v1.md",
+        "scripts/verify-route-iq-public-crm-edge-boundary-infrastructure.mjs",
+        "tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs",
+        "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json"
+      ]
+    },
+    {
+      "commit": "d1e1aab1163ff3206cbdcd366b65db6f9b186982",
+      "tree": "d533ea8bbd62a8ffdf8a46ccb86b95971819ca3f",
+      "parent": "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+      "subject": "infrastructure: admit public config entry consumer repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "d74d6105a91eb1b5b81c7158c1e5a53bd137bd444c2bd6389e7e97e610165fc0",
+    "contractSha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
     "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
     "strictGitArguments": [
@@ -368,6 +394,8 @@
     "ownerVerifierPinsWranglerFailureProvenanceAdmission": true,
     "ownerVerifierPinsPublicWorkerStartupRepairSuccessors": true,
     "ownerVerifierPinsPublicWorkerStartupProvenanceAdmission": true,
+    "ownerVerifierPinsPublicConfigConsumerRepairSuccessor": true,
+    "ownerVerifierPinsPublicConfigConsumerProvenanceAdmission": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -1110,6 +1138,82 @@
       "crmImplementationChanged": false,
       "deploymentAssetsChanged": false,
       "publicWorkerRuntimeChanged": true,
+      "publicWorkerProductionChanged": false,
+      "privateWorkerChanged": false
+    },
+    "releaseBoundary": {
+      "deploymentPerformed": false,
+      "deploymentAuthorizationReusable": false,
+      "freshExactFounderAuthorizationRequired": true,
+      "safeNoSecretCiRequired": true
+    }
+  },
+  "publicConfigConsumerRepairClosure": {
+    "batchId": "BATCH-20260720-010",
+    "directive": "Autonomous Predeployment Closure: Public Config Consumer Alignment",
+    "triggeringVerification": {
+      "head": "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f",
+      "tree": "b2785e271fc0741fa7a14cc849aa0db18bed141d",
+      "command": "npm test",
+      "failingGate": "overwatch:route-iq-3d-visual-continuity:check",
+      "classification": "STALE_PUBLIC_CONFIG_CONSUMER_PIN",
+      "failureHidden": false,
+      "suiteWeakened": false
+    },
+    "ownerRepairs": [
+      {
+        "commit": "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+        "tree": "90dac84f6cbc891e7c3f3156aa4eaaf7c73f9ce2",
+        "parent": "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f",
+        "subject": "infrastructure: align edge boundary with public entry",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-crm-edge-boundary-infrastructure-v1.md",
+          "scripts/verify-route-iq-public-crm-edge-boundary-infrastructure.mjs",
+          "tests/route-iq-public-crm-edge-boundary-infrastructure.test.mjs",
+          "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json"
+        ]
+      },
+      {
+        "commit": "d1e1aab1163ff3206cbdcd366b65db6f9b186982",
+        "tree": "d533ea8bbd62a8ffdf8a46ccb86b95971819ca3f",
+        "parent": "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+        "subject": "infrastructure: admit public config entry consumer repair",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
+    "verification": {
+      "publicConfigSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+      "publicEntryAdapterSha256": "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
+      "onlyAdmittedSemanticChange": "main",
+      "workersDevOff": true,
+      "previewUrlsOff": true,
+      "apexAndWwwPreserved": true,
+      "accessAndWafBoundariesPreserved": true,
+      "crmClassBindingAndMigrationPreserved": true,
+      "publicPrivateIsolationPreserved": true,
+      "focusedEdgeTestsPassed": 7,
+      "repositoryIntegrityOwnerTestsPassed": 31,
+      "cloudflareContacted": false,
+      "deploymentPerformed": false
+    },
+    "contracts": {
+      "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
+      "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
+      "repositoryIntegrityPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
+      "repositoryIntegritySha256": "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5",
+      "deterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a"
+    },
+    "scope": {
+      "websiteImplementationChanged": false,
+      "crmImplementationChanged": false,
+      "deploymentAssetsChanged": false,
       "publicWorkerProductionChanged": false,
       "privateWorkerChanged": false
     },

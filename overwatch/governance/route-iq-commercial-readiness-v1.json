@@ -252,6 +252,16 @@
     },
     {
       "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "wrangler.prometheusrouteiq-website.jsonc",
+      "historicalSha256": "dc115988da7fdc036c3216ed4ae241fef8ff75f84e04886744d58006642064d2",
+      "previousSuccessorSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+      "successorSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+      "owner": "Prometheus Infrastructure",
+      "ownerCommit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "reason": "Recognize only the Infrastructure-owned narrow public entry adapter successor while preserving workers.dev, preview, domain, Access, WAF, CRM binding, and migration boundaries."
+    },
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
       "path": "workers/prometheus-iq-worker.js",
       "historicalSha256": "b260dcea7204c6de0c0e403a5a67bdac5f95dd46acfc62150ce852666a780870",
       "successorSha256": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",

@@ -69,7 +69,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 47);
+  assert.equal(result.commits.length, 50);
   assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
@@ -123,6 +123,11 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
     "94061fea1c238ca854bde9d17a860e1375af9c52",
     "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
     "c375c02652823a5a5c19a0f166d420da15ca3330",
+    "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f"
+  ]);
+  assert.deepEqual(result.commits.slice(47, 50), [
+    "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+    "d1e1aab1163ff3206cbdcd366b65db6f9b186982",
     result.head
   ]);
   assert.equal(result.commits.at(-1), result.head);
@@ -160,11 +165,11 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   );
   assert.equal(
     value.infrastructureOwnerRepairs.at(-1).commit,
-    "c375c02652823a5a5c19a0f166d420da15ca3330"
+    "d1e1aab1163ff3206cbdcd366b65db6f9b186982"
   );
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "d74d6105a91eb1b5b81c7158c1e5a53bd137bd444c2bd6389e7e97e610165fc0"
+    "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5"
   );
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
@@ -182,6 +187,8 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsWranglerFailureProvenanceAdmission, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicWorkerStartupRepairSuccessors, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicWorkerStartupProvenanceAdmission, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicConfigConsumerRepairSuccessor, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicConfigConsumerProvenanceAdmission, true);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
   assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
@@ -426,6 +433,45 @@ test("public Worker startup closure pins the consumed attempt and exact owner re
 
   const widened = integrityReadinessGovernance();
   widened.publicWorkerStartupFailureClosure.ownerRepairs[0].files.push("intelligence/unauthorized.mjs");
+  assert.throws(() => validatePublicIntegrityReadiness(widened));
+});
+
+test("public config consumer closure preserves every edge and deployment boundary", () => {
+  const value = integrityReadinessGovernance();
+  const closure = value.publicConfigConsumerRepairClosure;
+  assert.equal(closure.batchId, "BATCH-20260720-010");
+  assert.equal(closure.triggeringVerification.head, "4970dfad5ae5598551d4f1cf20bbb7e18a9a084f");
+  assert.equal(closure.triggeringVerification.classification, "STALE_PUBLIC_CONFIG_CONSUMER_PIN");
+  assert.equal(closure.triggeringVerification.failureHidden, false);
+  assert.deepEqual(closure.ownerRepairs.map(record => record.commit), [
+    "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
+    "d1e1aab1163ff3206cbdcd366b65db6f9b186982"
+  ]);
+  assert.equal(closure.verification.onlyAdmittedSemanticChange, "main");
+  assert.equal(closure.verification.workersDevOff, true);
+  assert.equal(closure.verification.previewUrlsOff, true);
+  assert.equal(closure.verification.apexAndWwwPreserved, true);
+  assert.equal(closure.verification.accessAndWafBoundariesPreserved, true);
+  assert.equal(closure.verification.crmClassBindingAndMigrationPreserved, true);
+  assert.equal(closure.verification.publicPrivateIsolationPreserved, true);
+  assert.equal(closure.verification.focusedEdgeTestsPassed, 7);
+  assert.equal(closure.verification.repositoryIntegrityOwnerTestsPassed, 31);
+  assert.equal(closure.verification.cloudflareContacted, false);
+  assert.equal(closure.verification.deploymentPerformed, false);
+  assert.equal(closure.contracts.edgeBoundarySha256, "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d");
+  assert.equal(closure.contracts.repositoryIntegritySha256, "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5");
+  assert.equal(closure.scope.websiteImplementationChanged, false);
+  assert.equal(closure.scope.crmImplementationChanged, false);
+  assert.equal(closure.scope.publicWorkerProductionChanged, false);
+  assert.equal(closure.releaseBoundary.deploymentPerformed, false);
+  assert.equal(closure.releaseBoundary.freshExactFounderAuthorizationRequired, true);
+
+  const enabled = integrityReadinessGovernance();
+  enabled.publicConfigConsumerRepairClosure.verification.workersDevOff = false;
+  assert.throws(() => validatePublicIntegrityReadiness(enabled));
+
+  const widened = integrityReadinessGovernance();
+  widened.publicConfigConsumerRepairClosure.verification.onlyAdmittedSemanticChange = "all";
   assert.throws(() => validatePublicIntegrityReadiness(widened));
 });
 
