@@ -11,6 +11,10 @@ import {
   supportedWorkspaceLeadIntakeWorkspaces
 } from "../crm/workspace-lead-persistence.mjs";
 import {
+  crmPublicWorkerEntrypoint,
+  validateCrmProductionWorkerEntrypoints
+} from "../crm/production-worker-entrypoint-contract.mjs";
+import {
   SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT
 } from "../integrations/shared-workspace-lead-intake-contract.js";
 
@@ -68,8 +72,13 @@ for (const config of configs) {
   assert.ok(crmBinding, `${config.name} must declare ${crmWorkspaceLeadStoreBinding}.`);
   assert.equal(crmBinding.id, crmWorkspaceLeadStoreNamespaceId, `${config.name} CRM KV namespace mismatch.`);
   assert.notEqual(crmBinding.id, infrastructureBinding?.id, `${config.name} must isolate CRM storage from Infrastructure storage.`);
-  assert.equal(config.main, "workers/prometheus-iq-worker.js", `${config.name} must use the composed production Worker.`);
 }
+
+validateCrmProductionWorkerEntrypoints({
+  privateWorkerMain: privateWorkerConfig.main,
+  publicWorkerMain: websiteWorkerConfig.main,
+  publicWorkerAdapterSource: read(crmPublicWorkerEntrypoint)
+});
 
 assert.equal(crmWorkspaceLeadStoreTechnology, "cloudflare_workers_kv");
 assert.equal(SHARED_WORKSPACE_LEAD_INTAKE_CONTRACT.crmHandoffPacket.contract, "shared_workspace_crm_lead_intake_packet.v1");
@@ -127,4 +136,4 @@ const bindingStatus = validateCloudflareKvCrmWorkspaceLeadStoreBinding({
 assert.equal(bindingStatus.ok, true);
 assert.equal(bindingStatus.bindingName, crmWorkspaceLeadStoreBinding);
 
-console.log("CRM production store validation passed: legacy KV isolation and the active Route IQ SQLite Durable Object composition are valid.");
+console.log("CRM production store validation passed: legacy KV isolation, governed Worker entrypoints, and the active Route IQ SQLite Durable Object composition are valid.");

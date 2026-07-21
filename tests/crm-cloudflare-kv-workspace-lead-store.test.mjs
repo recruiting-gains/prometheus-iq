@@ -15,6 +15,12 @@ import {
   crmWorkspaceLeadPersistencePrefix
 } from "../crm/workspace-lead-persistence.mjs";
 import {
+  CrmProductionWorkerEntrypointError,
+  crmComposedWorkerEntrypoint,
+  crmPublicWorkerEntrypoint,
+  validateCrmProductionWorkerEntrypoints
+} from "../crm/production-worker-entrypoint-contract.mjs";
+import {
   createCrmState,
   persistWorkspaceLeadIntakeHandoff
 } from "../crm/crm-foundation.mjs";
@@ -59,6 +65,15 @@ function leadInput(workspaceId = "fitness_connection") {
     }
   };
 }
+
+const validPublicWorkerAdapter = `
+import worker, {
+  RouteIqRequestCrmCoordinator
+} from "../prometheus-iq-worker.js";
+
+export { RouteIqRequestCrmCoordinator };
+export default worker;
+`;
 
 async function intakeRecord(workspaceId = "fitness_connection", suffix = "default") {
   const result = await createSharedLeadIntakeSubmission({
@@ -202,4 +217,52 @@ test("production CRM adapter keeps Smoothie Depot runtime candidate persistence 
   assert.equal(result.status, "governance_blocked");
   assert.equal(result.code, "crm_workspace_runtime_governance_blocked");
   assert.equal(binding.data.size, 0);
+});
+
+test("CRM production entrypoint contract accepts the private composition and narrow public adapter", () => {
+  assert.deepEqual(validateCrmProductionWorkerEntrypoints({
+    privateWorkerMain: crmComposedWorkerEntrypoint,
+    publicWorkerMain: crmPublicWorkerEntrypoint,
+    publicWorkerAdapterSource: validPublicWorkerAdapter
+  }), {
+    privateWorkerMain: crmComposedWorkerEntrypoint,
+    publicWorkerMain: crmPublicWorkerEntrypoint,
+    composedWorkerImportedByPublicAdapter: true,
+    routeIqRequestCrmCoordinatorExported: true,
+    additionalPublicAdapterExportsAllowed: false
+  });
+});
+
+test("CRM production entrypoint contract fails closed on path or adapter-surface drift", () => {
+  const rejectedCases = [
+    {
+      overrides: { privateWorkerMain: "workers/infrastructure/prometheusrouteiq-website-entry.mjs" },
+      code: "crm_private_worker_entrypoint_mismatch"
+    },
+    {
+      overrides: { publicWorkerMain: "workers/prometheus-iq-worker.js" },
+      code: "crm_public_worker_entrypoint_mismatch"
+    },
+    {
+      overrides: { publicWorkerAdapterSource: validPublicWorkerAdapter.replace("../prometheus-iq-worker.js", "../other-worker.js") },
+      code: "crm_public_worker_adapter_contract_mismatch"
+    },
+    {
+      overrides: { publicWorkerAdapterSource: validPublicWorkerAdapter.replace("export default worker;", "export { CALLBACK_PATH };\nexport default worker;") },
+      code: "crm_public_worker_adapter_contract_mismatch"
+    },
+    {
+      overrides: { publicWorkerAdapterSource: validPublicWorkerAdapter.replace("export { RouteIqRequestCrmCoordinator };", "") },
+      code: "crm_public_worker_adapter_contract_mismatch"
+    }
+  ];
+
+  for (const { overrides, code } of rejectedCases) {
+    assert.throws(() => validateCrmProductionWorkerEntrypoints({
+      privateWorkerMain: crmComposedWorkerEntrypoint,
+      publicWorkerMain: crmPublicWorkerEntrypoint,
+      publicWorkerAdapterSource: validPublicWorkerAdapter,
+      ...overrides
+    }), error => error instanceof CrmProductionWorkerEntrypointError && error.code === code);
+  }
 });
