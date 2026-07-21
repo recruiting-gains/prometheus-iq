@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import {
   calculateRouteIqRetentionBoundary,
@@ -15,6 +16,8 @@ import {
   evaluateRouteIqProspectiveIntelligenceRetentionAdmission,
   loadRouteIqProspectiveRetentionPolicy,
   routeIqProspectiveIntelligenceRetentionAdmissionVersion,
+  routeIqProspectiveRetentionPolicyPath,
+  routeIqProspectiveRetentionPolicySha256,
   validateRouteIqProspectiveRetentionPolicy,
 } from "../intelligence/route-iq-prospective-retention-admission.mjs";
 import {
@@ -77,7 +80,16 @@ async function dataAdmission(overrides = {}) {
 }
 
 test("final Data policy is hash-bound to the 18-calendar-month contract", () => {
+  const policyBytes = readFileSync(
+    new URL(`../${routeIqProspectiveRetentionPolicyPath}`, import.meta.url),
+  );
   const policy = loadRouteIqProspectiveRetentionPolicy();
+  assert.equal(digest(policyBytes), routeIqProspectiveRetentionPolicySha256);
+  assert.equal(
+    computeRouteIqProspectiveRetentionPolicySha256(),
+    routeIqProspectiveRetentionPolicySha256,
+  );
+  assert.deepEqual(policy, JSON.parse(policyBytes.toString("utf8")));
   assert.equal(validateRouteIqProspectiveRetentionPolicy(policy), true);
   assert.equal(policy.batchId, "BATCH-20260714-004");
   assert.equal(policy.retentionDecision.maximumCalendarMonths, 18);
@@ -86,6 +98,25 @@ test("final Data policy is hash-bound to the 18-calendar-month contract", () => 
   assert.equal(policy.scope.collectionActivated, false);
   assert.equal(policy.scope.activeCohorts, 0);
   assert.equal(policy.scope.recommendationInfluence, "off");
+});
+
+test("runtime policy loading is detached and has no filesystem or import.meta dependency", () => {
+  const moduleSource = readFileSync(
+    new URL(
+      "../intelligence/route-iq-prospective-retention-admission.mjs",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+  const firstPolicy = loadRouteIqProspectiveRetentionPolicy();
+  firstPolicy.scope.collectionActivated = true;
+
+  assert.equal(
+    loadRouteIqProspectiveRetentionPolicy().scope.collectionActivated,
+    false,
+  );
+  assert.doesNotMatch(moduleSource, /from\s+["']node:(?:fs|path|url)["']/u);
+  assert.doesNotMatch(moduleSource, /\bimport\.meta\b/u);
 });
 
 test("only a Data-ledger-authenticated, hash-bound admission is eligible", async () => {

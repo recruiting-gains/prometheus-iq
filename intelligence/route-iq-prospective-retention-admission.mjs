@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+
+import routeIqProspectiveRetentionPolicy from "../data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json" with {
+  type: "json",
+};
 
 import {
   evaluateRouteIqProspectiveRetentionEnvelope,
@@ -21,9 +22,12 @@ export const routeIqProspectiveIntelligenceRetentionAdmissionVersion =
   "route-iq-prospective-intelligence-retention-admission-v1";
 export const routeIqProspectiveRetentionPolicyPath =
   "data/route-iq-field-sessions-v1/route-iq-prospective-shadow-retention-policy-v1.json";
+export const routeIqProspectiveRetentionPolicySha256 =
+  "2f03e82180bffa3489b92009e4bbdfe5cc7227317f7bb41a5036283b5336b601";
 
-const moduleDir = dirname(fileURLToPath(import.meta.url));
-const repoRoot = resolve(moduleDir, "..");
+const routeIqProspectiveRetentionPolicySnapshot = JSON.stringify(
+  routeIqProspectiveRetentionPolicy,
+);
 const SHA256_PATTERN = /^[a-f0-9]{64}$/;
 const SESSION_ID_PATTERN =
   /^route-iq-field-session-fitness-connection-fitness-[a-z0-9_-]+-\d{4}-\d{2}-\d{2}$/;
@@ -110,15 +114,11 @@ function canonicalTimestamp(value) {
 }
 
 export function loadRouteIqProspectiveRetentionPolicy() {
-  return JSON.parse(
-    readFileSync(resolve(repoRoot, routeIqProspectiveRetentionPolicyPath), "utf8"),
-  );
+  return JSON.parse(routeIqProspectiveRetentionPolicySnapshot);
 }
 
 export function computeRouteIqProspectiveRetentionPolicySha256() {
-  return sha256(
-    readFileSync(resolve(repoRoot, routeIqProspectiveRetentionPolicyPath), "utf8"),
-  );
+  return routeIqProspectiveRetentionPolicySha256;
 }
 
 export function validateRouteIqProspectiveRetentionPolicy(policy) {
