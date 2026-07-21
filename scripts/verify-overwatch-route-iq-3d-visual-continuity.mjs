@@ -49,7 +49,8 @@ const ALLOWED_EVIDENCE_SUCCESSOR_PATHS = new Set([
   "data/route-iq-commercial-readiness-v1/route-iq-public-claims-evidence-matrix-v1.json",
   "intelligence/contracts/route-iq-public-intelligence-claims-v1.json",
   "intelligence/contracts/shadow-decision-readiness-contracts.json",
-  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json"
+  "intelligence/provenance/protected-baseline-synchronization-batch-20260719-006-data-route-quality-successor-v1.json",
+  "intelligence/route-iq-prospective-retention-admission.mjs"
 ]);
 const CRM_HASHES = Object.freeze({
   "crm/route-iq-request-crm.mjs": "05405c79698db0eeb378be37195128adb04c78da0e9720a345b757490d015825",

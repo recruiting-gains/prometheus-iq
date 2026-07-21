@@ -69,7 +69,7 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   const result = verifyOverwatchPublicDeploymentIntegrityRepairReadiness();
   assert.equal(result.batchId, "BATCH-20260719-008");
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
-  assert.equal(result.commits.length, 50);
+  assert.equal(result.commits.length, 51);
   assert.deepEqual(result.commits.slice(0, 26), [
     "a2bcfedcd996e4d6d22adc26d20bd77a39e763e7",
     "a2779239fc8f2d79d4b8781966d32cc23d4acbbd",
@@ -128,8 +128,9 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.deepEqual(result.commits.slice(47, 50), [
     "8aac9d66fa5b5d6ff191354e68a364aa142ede95",
     "d1e1aab1163ff3206cbdcd366b65db6f9b186982",
-    result.head
+    "e2a79a3b2808dd229b117275c2ea0791b55c67ea"
   ]);
+  assert.equal(result.commits[50], result.head);
   assert.equal(result.commits.at(-1), result.head);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
   assert.equal(result.rollbackContractSha256, "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2");
@@ -458,6 +459,10 @@ test("public config consumer closure preserves every edge and deployment boundar
   assert.equal(closure.verification.repositoryIntegrityOwnerTestsPassed, 31);
   assert.equal(closure.verification.cloudflareContacted, false);
   assert.equal(closure.verification.deploymentPerformed, false);
+  assert.equal(closure.overwatchConsumerAdmission.classification, "EXACT_INTELLIGENCE_STARTUP_PATH_ADMISSION");
+  assert.equal(closure.overwatchConsumerAdmission.ownerRepairCommit, "f0593640bae9cb9517d954415ca4980226a51073");
+  assert.equal(closure.overwatchConsumerAdmission.allowedPath, "intelligence/route-iq-prospective-retention-admission.mjs");
+  assert.equal(closure.overwatchConsumerAdmission.otherIntelligencePathsAllowed, false);
   assert.equal(closure.contracts.edgeBoundarySha256, "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d");
   assert.equal(closure.contracts.repositoryIntegritySha256, "6a2ad13f9bcb6010862559a1ed5ebf851e9c571cd8c3218cc580b3fb8bc092b5");
   assert.equal(closure.scope.websiteImplementationChanged, false);
@@ -473,6 +478,10 @@ test("public config consumer closure preserves every edge and deployment boundar
   const widened = integrityReadinessGovernance();
   widened.publicConfigConsumerRepairClosure.verification.onlyAdmittedSemanticChange = "all";
   assert.throws(() => validatePublicIntegrityReadiness(widened));
+
+  const broadenedIntelligence = integrityReadinessGovernance();
+  broadenedIntelligence.publicConfigConsumerRepairClosure.overwatchConsumerAdmission.otherIntelligencePathsAllowed = true;
+  assert.throws(() => validatePublicIntegrityReadiness(broadenedIntelligence));
 });
 
 test("Dashboard harness closure cannot weaken performance or gain deployment capability", () => {

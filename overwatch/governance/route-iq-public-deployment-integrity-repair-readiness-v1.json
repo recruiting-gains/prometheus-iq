@@ -1203,6 +1203,13 @@
       "cloudflareContacted": false,
       "deploymentPerformed": false
     },
+    "overwatchConsumerAdmission": {
+      "classification": "EXACT_INTELLIGENCE_STARTUP_PATH_ADMISSION",
+      "ownerRepairCommit": "f0593640bae9cb9517d954415ca4980226a51073",
+      "allowedPath": "intelligence/route-iq-prospective-retention-admission.mjs",
+      "otherIntelligencePathsAllowed": false,
+      "historicalVisualBaselineRewritten": false
+    },
     "contracts": {
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
