@@ -26,6 +26,8 @@ const githubDeploymentGovernancePath =
   "overwatch/governance/github-actions-founder-triggered-private-worker-deployment-v1.json";
 const routeIq3dGovernancePath =
   "overwatch/governance/route-iq-3d-visual-continuity-v1.json";
+const publicDeploymentWorkflowV2GovernancePath =
+  "overwatch/governance/public-deployment-workflow-v2.json";
 const registryPath = "overwatch/artifact-contracts/canonical-artifact-registry.json";
 const ownerCommit = "a0a1eb8e434015ea7a0f403e4be0a8979724d9a8";
 const ownerParent = "09418ac6eb4a67b7cc302ba7a30705e9c1012fd5";
@@ -427,15 +429,24 @@ function verifyPackageReleaseWiring() {
     routeIq3dGovernance.protectedReleaseWiringTransitions?.find(
       item => item.path === "package.json"
     );
+  const publicDeploymentWorkflowV2Governance = readJson(publicDeploymentWorkflowV2GovernancePath);
+  const workflowV2Transition =
+    publicDeploymentWorkflowV2Governance.protectedPredecessorSuccessors?.find(item => (
+      item.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
+      && item.path === "package.json"
+    ));
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256
     || packageTransition?.successorSha256 !== keychainTransition?.previousSha256
     || keychainTransition?.successorSha256 !== githubDeploymentTransition?.previousSha256
     || githubDeploymentTransition?.successorSha256 !== routeIq3dTransition?.previousSha256
-    || routeIq3dTransition?.successorSha256 !== sha256(read("package.json"))
+    || routeIq3dTransition?.successorSha256 !== workflowV2Transition?.historicalSha256
+    || workflowV2Transition?.successorSha256 !== sha256(read("package.json"))
     || packageTransition?.owner !== "Prometheus Overwatch"
     || keychainTransition?.owner !== "Prometheus Overwatch"
     || githubDeploymentTransition?.owner !== "Prometheus Overwatch"
-    || routeIq3dTransition?.owner !== "Prometheus Overwatch") {
+    || routeIq3dTransition?.owner !== "Prometheus Overwatch"
+    || workflowV2Transition?.owner !== "Prometheus Overwatch"
+    || workflowV2Transition?.ownerCommit !== "ee80a44b8a28847d4a4acfc3fae8574697661edc") {
     throw new Error("Current package release-wiring successor hash drifted.");
   }
   if (!currentPackage.scripts["test:overwatch"].includes("tests/overwatch-cloudflare-founder-attended-service-token.test.mjs")

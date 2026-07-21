@@ -477,6 +477,38 @@
       ]
     },
     "releaseWiringSuccessorSubject": "overwatch: admit workflow v2 release wiring successor",
+    "releaseWiringSuccessor": {
+      "commit": "5b5b59509206578336b9671582669b600d0c74d4",
+      "tree": "2f85affdbbb55550ea99fbc8c28413cab0f9a00e",
+      "parent": "0d828948968b8cedf3b1961c5320c74c03a8e18c",
+      "subject": "overwatch: admit workflow v2 release wiring successor",
+      "files": [
+        "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+        "overwatch/governance/public-deployment-workflow-v2.json",
+        "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+        "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+        "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+        "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+        "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+      ]
+    },
+    "governedOverwatchTail": {
+      "linearHistoryRequired": true,
+      "mergesAllowed": false,
+      "authorAndCommitter": "overwatch@prometheus.local",
+      "subjectPrefix": "overwatch:",
+      "allowedPaths": [
+        "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+        "overwatch/governance/public-deployment-workflow-v2.json",
+        "scripts/verify-overwatch-cloudflare-founder-attended-service-token.mjs",
+        "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
+        "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+        "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+        "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+        "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+      ],
+      "subsystemImplementationAllowed": false
+    },
     "sourceOrProductionBehaviorChanged": false
   },
   "releaseIdentities": {
