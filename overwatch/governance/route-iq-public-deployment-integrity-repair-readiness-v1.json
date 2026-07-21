@@ -1216,6 +1216,15 @@
       "currentDeterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
       "testWeakened": false
     },
+    "retentionConsumerAdmission": {
+      "classification": "EXACT_INTELLIGENCE_RETENTION_RUNTIME_SUCCESSOR",
+      "ownerRepairCommit": "f0593640bae9cb9517d954415ca4980226a51073",
+      "previousRuntimeSha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780",
+      "currentRuntimeSha256": "9d2ef3b3ff4a440432ab31af041aa3c19e55c384ac788c2a4e0c7db7452bfcda",
+      "retentionDecisionChanged": false,
+      "policyHashChanged": false,
+      "otherIntelligenceSuccessorsAllowed": false
+    },
     "contracts": {
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",

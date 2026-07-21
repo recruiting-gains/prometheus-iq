@@ -101,7 +101,11 @@
   },
   "intelligenceAdmission": {
     "runtimePath": "intelligence/route-iq-prospective-retention-admission.mjs",
-    "runtimeSha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780",
+    "runtimeSha256": "9d2ef3b3ff4a440432ab31af041aa3c19e55c384ac788c2a4e0c7db7452bfcda",
+    "previousRuntimeSha256": "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780",
+    "runtimeSuccessorOwnerCommit": "f0593640bae9cb9517d954415ca4980226a51073",
+    "runtimeSuccessorOwner": "Prometheus Intelligence",
+    "runtimeSuccessorClassification": "WORKER_SAFE_STATIC_POLICY_IMPORT_WITH_UNCHANGED_GOVERNED_POLICY_HASH",
     "evaluationRuntimePath": "intelligence/route-iq-committed-outcome-evaluation.mjs",
     "evaluationRuntimeSha256": "2f5a513564b94998e426d29aa72ee7807983ea6ded3d5e08e216706f2b073e53",
     "specificationPath": "intelligence/provenance/specifications/prospective-retention-admission-v1.json",

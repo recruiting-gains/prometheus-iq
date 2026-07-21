@@ -451,6 +451,19 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   ]) {
     assert.equal(sha256(read(governance.intelligenceAdmission[pathKey])), governance.intelligenceAdmission[hashKey]);
   }
+  assert.equal(
+    governance.intelligenceAdmission.previousRuntimeSha256,
+    "eea1a1f1e9a6fde8fdc8c9fe1e5606a240bbe97ac533ece88342cf7555787780"
+  );
+  assert.equal(
+    governance.intelligenceAdmission.runtimeSuccessorOwnerCommit,
+    "f0593640bae9cb9517d954415ca4980226a51073"
+  );
+  assert.equal(governance.intelligenceAdmission.runtimeSuccessorOwner, "Prometheus Intelligence");
+  assert.equal(
+    governance.intelligenceAdmission.runtimeSuccessorClassification,
+    "WORKER_SAFE_STATIC_POLICY_IMPORT_WITH_UNCHANGED_GOVERNED_POLICY_HASH"
+  );
 
   assert.equal(policy.batchId, batchId);
   assert.equal(policy.retentionDecision.maximumCalendarMonths, 18);
