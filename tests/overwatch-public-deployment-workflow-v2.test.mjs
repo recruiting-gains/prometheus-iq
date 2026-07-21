@@ -32,6 +32,9 @@ test("governance fails closed on ownership or production-boundary drift", () => 
     { dispatchAudit: { ...sources.governance.dispatchAudit, implementationOwner: "Prometheus Overwatch" } },
     { provenanceRepair: { ...sources.governance.provenanceRepair, author: "Prometheus Overwatch <overwatch@prometheus.local>" } },
     { provenanceRepair: { ...sources.governance.provenanceRepair, parent: "07bf2eddc9707cb410ff6670efe9465ca68cd6b4" } },
+    { authorizationBoundaryRepair: { ...sources.governance.authorizationBoundaryRepair, ownerCommit: "0".repeat(40) } },
+    { authorizationBoundaryRepair: { ...sources.governance.authorizationBoundaryRepair, author: "Prometheus Overwatch <overwatch@prometheus.local>" } },
+    { architecture: { ...sources.governance.architecture, authorizationConsumedAt: "before_process_spawn" } },
     { architecture: { ...sources.governance.architecture, preBoundaryFailureConsumesAuthorization: true } },
     { runtimeBoundaries: { ...sources.governance.runtimeBoundaries, deploymentPerformedByBatch: true } },
     { productContinuity: { ...sources.governance.productContinuity, approvedWebsiteSourceChanged: true } }

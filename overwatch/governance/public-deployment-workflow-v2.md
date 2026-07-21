@@ -11,13 +11,15 @@ Prometheus Infrastructure owns the qualification workflow, immutable release con
 
 Infrastructure successor commit `3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de` independently updated the historical public-release provenance verifier to admit the correctly owned Workflow v2 chain. Overwatch pins that commit's identity, parent, tree, exact four-file scope, and file hashes; it does not claim or alter Infrastructure ownership.
 
+Infrastructure successor commit `9c6440ba3c286b06a79435a8ec7bdf477cb4fd79` closes the production-boundary audit finding. Overwatch pins its Infrastructure identity, parent, tree, eight-file scope, and exact hashes. The repair remains Infrastructure-owned; Overwatch records and independently verifies it.
+
 ## Governed Lifecycle
 
 `Qualify Prometheus Public Worker` runs the complete no-secret repository suite in the pinned deployment environment, builds the public deployment payload exactly once, creates a deterministic manifest, and uploads the content-addressed release. It cannot access protected deployment secrets or contact Cloudflare.
 
-`Deploy Prometheus Public Worker` downloads the exact qualified artifact and cannot rebuild it. Local artifact, repository, workflow, rollback, target, and toolchain checks happen before any Cloudflare request. Read-only public and private Worker prerequisites are then checked. Founder authorization is consumed only immediately before the single forward Wrangler deployment child begins.
+`Deploy Prometheus Public Worker` downloads the exact qualified artifact and cannot rebuild it. Local artifact, repository, workflow, rollback, target, and toolchain checks happen before Cloudflare access. Only the exact public and private Worker identity and binding prerequisites may be read before authorization. Founder authorization is consumed only after the single forward Wrangler deployment process emits its successful spawn event.
 
-A pre-boundary failure records that deployment never began, performs no production mutation, and leaves an unchanged qualified candidate valid. A source, contract, manifest, payload, rollback identity, target, or prerequisite change invalidates the candidate and requires new qualification and authorization. Automatic deployment retries are prohibited.
+An invocation-construction or process-spawn failure records that deployment never began, leaves authorization unconsumed, performs no production mutation, and leaves an unchanged qualified candidate valid. Any failure after successful process spawn consumes that authorization and cannot retry automatically. A source, contract, manifest, payload, rollback identity, target, or prerequisite change invalidates the candidate and requires new qualification and authorization.
 
 Postdeployment smoke uses only fixed GET and HEAD requests with no body. A critical failure may invoke one verified forward-compatible rollback payload. Native rollback, private Worker mutation, CRM submission, notification, collection activation, cohort activation, recommendation influence, and Anthony mapping remain prohibited.
 

@@ -1,7 +1,7 @@
 {
   "governanceId": "public-deployment-workflow-v2-governance-v1",
   "schema": "PublicDeploymentWorkflowV2GovernanceV1",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "status": "active_source_verified_not_deployed",
   "batchId": "BATCH-20260720-010",
   "engineeringDirective": "PUBLIC DEPLOYMENT WORKFLOW V2 - AUTONOMOUS ENGINEERING DIRECTIVE",
@@ -51,6 +51,25 @@
       { "path": "workers/infrastructure/github-actions-public-worker-deployment-v2.json", "sha256": "13973445a73170e577fbd44926b6b96039531658268af9b7d3068a6c963f5f8c" }
     ]
   },
+  "authorizationBoundaryRepair": {
+    "ownerCommit": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+    "ownerTree": "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2",
+    "parent": "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+    "subject": "infrastructure: consume deployment authorization at spawn",
+    "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "reason": "Consume Founder authorization only after the single Wrangler deployment process emits its successful spawn event; invocation and spawn failures remain pre-boundary and unconsumed.",
+    "files": [
+      { "path": "docs/github-actions-public-worker-deployment-v2.md", "sha256": "9d88f5c2da440c53938a4e0379c12e5bd05bafd35d1e468c54278b0ed2a743c6" },
+      { "path": "scripts/lib/github-actions-public-worker-deployment.mjs", "sha256": "2d975908951044b7def8c768ddfb22255d813640e70440d0b2616dcda4d939a7" },
+      { "path": "scripts/lib/github-actions-public-worker-workflow-v2.mjs", "sha256": "bd4b8e411fe58bcddfee549c866fac5e79b33eb92a97bedf120e07253ad41619" },
+      { "path": "scripts/run-github-actions-public-worker-deployment-v2.mjs", "sha256": "9c0a76e81ad2fb5299daf7f7f8f264d586539e6a36988ad7a1693e89ba4e7481" },
+      { "path": "scripts/verify-github-actions-public-worker-deployment.mjs", "sha256": "254823a1abb7dfc12212a4d4b350615c13e2687153c3388069ba1025f83b9548" },
+      { "path": "scripts/verify-github-actions-public-worker-workflow-v2.mjs", "sha256": "67d79b63c891a113761bcfe3c2c0a4f30de22ae0241202e919d5899f33975da6" },
+      { "path": "tests/github-actions-public-worker-workflow-v2.test.mjs", "sha256": "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a" },
+      { "path": "workers/infrastructure/github-actions-public-worker-deployment-v2.json", "sha256": "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7" }
+    ]
+  },
   "provenanceRepair": {
     "ownerCommit": "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de",
     "ownerTree": "7cc6670f1599f32a1d7283a353495866930784fd",
@@ -76,7 +95,7 @@
     "deploymentRebuildAllowed": false,
     "targetWorker": "prometheusrouteiq-website",
     "privateWorkerMutationAllowed": false,
-    "authorizationConsumedAt": "immediately_before_forward_wrangler_deploy_child",
+    "authorizationConsumedAt": "after_forward_wrangler_process_spawn_confirmed",
     "preBoundaryFailureConsumesAuthorization": false,
     "forwardDeploymentAttempts": 1,
     "automaticRetryAllowed": false,
