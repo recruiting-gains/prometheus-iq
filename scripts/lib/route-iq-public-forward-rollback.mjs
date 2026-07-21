@@ -27,13 +27,13 @@ const MAX_ARCHIVE_BYTES = 256 * 1024 * 1024;
 const COMMAND_TIMEOUT_MS = 240_000;
 const SHA256 = /^[0-9a-f]{64}$/u;
 const GENERATED_OUTPUT_FILES = Object.freeze([
-  "prometheus-iq-worker.js",
-  "prometheus-iq-worker.js.map",
+  "prometheusrouteiq-website-entry.js",
+  "prometheusrouteiq-website-entry.js.map",
   "README.md"
 ]);
 const DEPLOYABLE_GENERATED_FILES = Object.freeze([
-  "prometheus-iq-worker.js",
-  "prometheus-iq-worker.js.map"
+  "prometheusrouteiq-website-entry.js",
+  "prometheusrouteiq-website-entry.js.map"
 ]);
 
 function run(root, command, argumentsList, options = {}) {
@@ -322,8 +322,8 @@ export function buildPublicForwardRollbackArtifact(root, {
     const websiteAssetsSha256 = hashPublicForwardRollbackArtifact(publicAssets);
     const configurationPath = join(workspace, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig);
     const configurationSha256 = sha256File(configurationPath);
-    const generatedWorkerPath = join(generatedDirectory, "prometheus-iq-worker.js");
-    const generatedSourceMapPath = join(generatedDirectory, "prometheus-iq-worker.js.map");
+    const generatedWorkerPath = join(generatedDirectory, DEPLOYABLE_GENERATED_FILES[0]);
+    const generatedSourceMapPath = join(generatedDirectory, DEPLOYABLE_GENERATED_FILES[1]);
     mkdirSync(identityDirectory, { mode: 0o700 });
     mkdirSync(join(identityDirectory, "configuration"), { mode: 0o700 });
     mkdirSync(join(identityDirectory, "generated"), { mode: 0o700 });

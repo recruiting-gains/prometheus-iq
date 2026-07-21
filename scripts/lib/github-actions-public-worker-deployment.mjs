@@ -651,8 +651,8 @@ export function verifyPublicForwardRollbackContract(root) {
       "canonical_generated_source_map"
     ])
     || JSON.stringify(contract.artifact?.requiredGeneratedOutputs) !== JSON.stringify([
-      "prometheus-iq-worker.js",
-      "prometheus-iq-worker.js.map"
+      "prometheusrouteiq-website-entry.js",
+      "prometheusrouteiq-website-entry.js.map"
     ])
     || JSON.stringify(contract.artifact?.excludedBuildOnlyOutputs) !== JSON.stringify(["README.md"])
     || contract.artifact?.unrelatedRepositoryFilesAffectIdentity !== false

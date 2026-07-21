@@ -349,8 +349,8 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.equal(rollbackContract.artifact.identityVersion, "route-iq-public-forward-rollback-artifact-v3");
   assert.equal(rollbackContract.artifact.unrelatedRepositoryFilesAffectIdentity, false);
   assert.deepEqual(rollbackContract.artifact.requiredGeneratedOutputs, [
-    "prometheus-iq-worker.js",
-    "prometheus-iq-worker.js.map"
+    "prometheusrouteiq-website-entry.js",
+    "prometheusrouteiq-website-entry.js.map"
   ]);
   assert.deepEqual(rollbackContract.artifact.excludedBuildOnlyOutputs, ["README.md"]);
   assert.match(workflow, /verify-route-iq-public-forward-rollback\.mjs "\$\{\{ inputs\.rollback_artifact_sha256 \}\}"/u);

@@ -48,8 +48,8 @@
       "canonical_generated_source_map"
     ],
     "requiredGeneratedOutputs": [
-      "prometheus-iq-worker.js",
-      "prometheus-iq-worker.js.map"
+      "prometheusrouteiq-website-entry.js",
+      "prometheusrouteiq-website-entry.js.map"
     ],
     "excludedBuildOnlyOutputs": [
       "README.md"
