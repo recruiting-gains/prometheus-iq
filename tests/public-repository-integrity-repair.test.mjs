@@ -756,6 +756,65 @@ function addPublicConfigEntryConsumerRepairSuccessor(ownerFixture) {
   });
 }
 
+function addCrmPublicWorkerAdapterRepairSuccessor(ownerFixture) {
+  const overwatchIdentity = {
+    authorName: "Prometheus Overwatch",
+    authorEmail: "overwatch@prometheus.local"
+  };
+  const crmIdentity = {
+    authorName: "Prometheus CRM",
+    authorEmail: "crm@prometheus.local"
+  };
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const closure = commitFixture(ownerFixture.repository, {
+    ...overwatchIdentity,
+    path: "overwatch/governance/synthetic-crm-adapter-closure.json",
+    content: "{}\n",
+    subject: "overwatch: synthetic close public adapter evidence"
+  });
+  const repair = commitFilesFixture(ownerFixture.repository, {
+    ...crmIdentity,
+    subject: "crm: synthetic accept governed public Worker adapter",
+    changes: [
+      "crm/production-worker-entrypoint-contract.mjs",
+      "scripts/validate-crm-production-store.mjs",
+      "tests/crm-cloudflare-kv-workspace-lead-store.test.mjs"
+    ].map(path => ({ path, content: `crm-adapter:${path}\n` }))
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit CRM public Worker adapter repair",
+    changes: [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ].map(path => ({ path, content: `crm-adapter-admission:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    closure,
+    repair,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      crmPublicWorkerAdapterRepairSuccessor: repair,
+      crmPublicWorkerAdapterProvenanceAdmissionSuccessor: Object.freeze({
+        parent: repair.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -1558,6 +1617,82 @@ test("owner boundary admits only the exact public config entry consumer repair",
     assert.throws(() => verifyInfrastructureOwnerBoundary(
       accepted.repository,
       widenedAdmission
+    ));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact CRM public Worker adapter repair", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-crm-adapter-"));
+  try {
+    const accepted = addCrmPublicWorkerAdapterRepairSuccessor(
+      addPublicConfigEntryConsumerRepairSuccessor(
+        addPublicWorkerStartupRepairSuccessors(
+          addWranglerDeploymentDiagnosticRepairSuccessors(
+            addCloudflareDeploymentReadRepairSuccessors(
+              createOwnerBoundaryRepository(fixture, "accepted")
+            )
+          )
+        )
+      )
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 17,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cloudflareDeploymentReadRepairSuccessorsSeen: 2,
+      cloudflareDeploymentReadProvenanceAdmissionSeen: true,
+      wranglerDeploymentDiagnosticRepairSeen: true,
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen: true,
+      publicWorkerStartupRepairSuccessorsSeen: 3,
+      publicWorkerStartupProvenanceAdmissionSeen: true,
+      publicConfigEntryConsumerRepairSeen: true,
+      publicConfigEntryConsumerProvenanceAdmissionSeen: true,
+      crmPublicWorkerAdapterRepairSeen: true,
+      crmPublicWorkerAdapterProvenanceAdmissionSeen: true
+    });
+
+    const substitutedOwner = {
+      ...accepted.boundary,
+      crmPublicWorkerAdapterRepairSuccessor: {
+        ...accepted.boundary.crmPublicWorkerAdapterRepairSuccessor,
+        authorName: "Prometheus Infrastructure"
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      substitutedOwner
+    ));
+
+    const substitutedPaths = {
+      ...accepted.boundary,
+      crmPublicWorkerAdapterRepairSuccessor: {
+        ...accepted.boundary.crmPublicWorkerAdapterRepairSuccessor,
+        files: [
+          ...accepted.boundary.crmPublicWorkerAdapterRepairSuccessor.files,
+          "crm/unapproved-runtime.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      substitutedPaths
+    ));
+
+    const substitutedOrder = {
+      ...accepted.boundary,
+      crmPublicWorkerAdapterRepairSuccessor: {
+        ...accepted.boundary.crmPublicWorkerAdapterRepairSuccessor,
+        parent: accepted.boundary.publicConfigEntryConsumerRepairSuccessor.commit
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      substitutedOrder
     ));
   } finally {
     rmSync(fixture, { recursive: true, force: true });

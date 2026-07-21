@@ -319,6 +319,23 @@ later config or Infrastructure successors. `workers_dev` and preview URLs remain
 Access/WAF boundaries, the CRM class/binding/migration, public/private isolation, and the no-deploy
 boundary remain unchanged.
 
+## CRM public Worker adapter repair provenance
+
+CRM commit `ab480ba101bc314946879af5cdb7997bd8085b4d`, tree
+`97a4ef6a0925db41fc03b9b9d092aa32aa2051e3`, follows the existing Overwatch closure at
+`d562f62acf749685e099d4d7f572a4e06d69bc7b`. It adds the CRM-owned production entrypoint
+contract and updates only the CRM validator and its focused test. The CRM handoff reports 40 of 40
+independent validation tests passing.
+
+The owner boundary pins that exact CRM commit, parent, owner and committer identity, literal subject,
+and three-file scope. This four-file Infrastructure admission is constrained to that CRM commit and
+does not authorize another CRM successor, reordered lineage, substituted ownership, or widened paths.
+The original deployment asset remains
+`5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15`, and the forward rollback
+artifact remains `b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a`.
+No production Worker implementation, deployment, Cloudflare state, production data, public/private
+isolation boundary, CRM migration, namespace, or accepted record changed under this admission.
+
 ## Operator use
 
 Local non-deployment diagnostic:

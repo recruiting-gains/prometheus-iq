@@ -19,7 +19,6 @@ const root = resolve(import.meta.dirname, "..");
 const contractPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityContractPath;
 const expectedPreservedObjects = Object.freeze({
   src: "2386f04cd661cf75549c170b40ef4c01bd235b04",
-  crm: "85aeb4e16887a0a1b4faf7c0d463173b322db60c",
   "deploy/prometheusrouteiq-website": "5c9a75c75e81770aa4825a911bafc6c005f46d4f",
   "workers/prometheus-iq-worker.js": "c3199013a4685ef0d9df601ff05b0052e1abb99d",
   "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json":
@@ -29,6 +28,15 @@ const expectedPublicWorkerStartupObjects = Object.freeze({
   "wrangler.prometheusrouteiq-website.jsonc": "0ed68f2eb4f04fec784d506bb2232057717420a6",
   "workers/infrastructure/prometheusrouteiq-website-entry.mjs":
     "b5c96f6b0436502b79634f9de2f53c421d1d4bb8"
+});
+const expectedCrmPublicWorkerAdapterObjects = Object.freeze({
+  crm: "c4de2b5179c1dfa4cb746e57a4f07faf340be4ee",
+  "crm/production-worker-entrypoint-contract.mjs":
+    "92e360a01f98ca5cca2632a213701e0025d9913b",
+  "scripts/validate-crm-production-store.mjs":
+    "a74b3b73ac47677650c71647c6eaeae3fede7a8e",
+  "tests/crm-cloudflare-kv-workspace-lead-store.test.mjs":
+    "12db18ecbd52f02d6fcd6b74dcec64df1bf26cc8"
 });
 const expectedOwnerFiles = Object.freeze([
   ".github/workflows/deploy-prometheus-public-worker.yml",
@@ -205,6 +213,17 @@ const publicConfigEntryConsumerRepairFiles = Object.freeze([
   "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json"
 ]);
 const publicConfigEntryConsumerProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+const crmPublicWorkerAdapterRepairFiles = Object.freeze([
+  "crm/production-worker-entrypoint-contract.mjs",
+  "scripts/validate-crm-production-store.mjs",
+  "tests/crm-cloudflare-kv-workspace-lead-store.test.mjs"
+]);
+const crmPublicWorkerAdapterProvenanceAdmissionFiles = Object.freeze([
   "docs/route-iq-public-repository-integrity-repair-v1.md",
   "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
   "tests/public-repository-integrity-repair.test.mjs",
@@ -609,6 +628,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit public config entry consumer repair",
     files: publicConfigEntryConsumerProvenanceAdmissionFiles
+  }),
+  crmPublicWorkerAdapterRepairSuccessor: Object.freeze({
+    commit: "ab480ba101bc314946879af5cdb7997bd8085b4d",
+    tree: "97a4ef6a0925db41fc03b9b9d092aa32aa2051e3",
+    parent: "d562f62acf749685e099d4d7f572a4e06d69bc7b",
+    authorName: "Prometheus CRM",
+    authorEmail: "crm@prometheus.local",
+    committerName: "Prometheus CRM",
+    committerEmail: "crm@prometheus.local",
+    subject: "crm: accept governed public Worker adapter",
+    files: crmPublicWorkerAdapterRepairFiles
+  }),
+  crmPublicWorkerAdapterProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "ab480ba101bc314946879af5cdb7997bd8085b4d",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit CRM public Worker adapter repair",
+    files: crmPublicWorkerAdapterProvenanceAdmissionFiles
   })
 });
 
@@ -820,6 +859,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let publicWorkerStartupProvenanceAdmissionSeen = false;
   let publicConfigEntryConsumerRepairSeen = false;
   let publicConfigEntryConsumerProvenanceAdmissionSeen = false;
+  let crmPublicWorkerAdapterRepairSeen = false;
+  let crmPublicWorkerAdapterProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1159,6 +1200,35 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const crmPublicWorkerAdapterRepair =
+      boundary.crmPublicWorkerAdapterRepairSuccessor;
+    if (crmPublicWorkerAdapterRepair
+      && commit === crmPublicWorkerAdapterRepair.commit) {
+      assert.equal(crmPublicWorkerAdapterRepairSeen, false,
+        "CRM public Worker adapter repair repeated");
+      assertCommitSnapshot(repositoryRoot, crmPublicWorkerAdapterRepair);
+      crmPublicWorkerAdapterRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    const crmPublicWorkerAdapterAdmission =
+      boundary.crmPublicWorkerAdapterProvenanceAdmissionSuccessor;
+    const isCrmPublicWorkerAdapterAdmission = crmPublicWorkerAdapterAdmission
+      && !crmPublicWorkerAdapterProvenanceAdmissionSeen
+      && crmPublicWorkerAdapterRepairSeen
+      && actual.parents[0] === crmPublicWorkerAdapterAdmission.parent
+      && actual.authorName === crmPublicWorkerAdapterAdmission.authorName
+      && actual.authorEmail === crmPublicWorkerAdapterAdmission.authorEmail
+      && actual.committerName === crmPublicWorkerAdapterAdmission.committerName
+      && actual.committerEmail === crmPublicWorkerAdapterAdmission.committerEmail
+      && actual.subject === crmPublicWorkerAdapterAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...crmPublicWorkerAdapterAdmission.files].sort());
+    if (isCrmPublicWorkerAdapterAdmission) {
+      crmPublicWorkerAdapterProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1224,6 +1294,11 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.publicConfigEntryConsumerProvenanceAdmissionSeen =
       publicConfigEntryConsumerProvenanceAdmissionSeen;
   }
+  if (boundary.crmPublicWorkerAdapterRepairSuccessor) {
+    result.crmPublicWorkerAdapterRepairSeen = crmPublicWorkerAdapterRepairSeen;
+    result.crmPublicWorkerAdapterProvenanceAdmissionSeen =
+      crmPublicWorkerAdapterProvenanceAdmissionSeen;
+  }
   return Object.freeze(result);
 }
 
@@ -1256,7 +1331,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_PUBLIC_CONFIG_ENTRY_CONSUMER_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_CRM_PUBLIC_WORKER_ADAPTER_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -1330,6 +1405,12 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     !== INFRASTRUCTURE_OWNER_BOUNDARY
       .publicConfigEntryConsumerProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.publicConfigEntryConsumerProvenanceAdmissionSeen, true);
+  }
+  assert.equal(ownerBoundary.crmPublicWorkerAdapterRepairSeen, true);
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .crmPublicWorkerAdapterProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.crmPublicWorkerAdapterProvenanceAdmissionSeen, true);
   }
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
@@ -1431,6 +1512,26 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     accessAndWafBoundariesPreserved: true,
     crmClassBindingMigrationPreserved: true,
     publicPrivateIsolationPreserved: true,
+    deploymentPerformed: false,
+    cloudflareContacted: false,
+    productionMutationPerformed: false,
+    generallyAuthorizesSuccessors: false
+  });
+
+  assert.deepEqual(contract.crmPublicWorkerAdapterRepair, {
+    ownerCommit: "ab480ba101bc314946879af5cdb7997bd8085b4d",
+    ownerTree: "97a4ef6a0925db41fc03b9b9d092aa32aa2051e3",
+    parent: "d562f62acf749685e099d4d7f572a4e06d69bc7b",
+    owner: "Prometheus CRM",
+    subject: "crm: accept governed public Worker adapter",
+    files: crmPublicWorkerAdapterRepairFiles,
+    independentValidationTestsPassed: 40,
+    deploymentAssetSha256:
+      "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+    rollbackArtifactSha256:
+      "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+    publicPrivateIsolationPreserved: true,
+    productionWorkerImplementationModified: false,
     deploymentPerformed: false,
     cloudflareContacted: false,
     productionMutationPerformed: false,
@@ -1806,22 +1907,38 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     git(["rev-parse", `${contract.baseline.head}:wrangler.prometheusrouteiq-website.jsonc`]),
     contract.preservation.preStartupWranglerGitObject
   );
+  assert.deepEqual(
+    contract.preservation.crmPublicWorkerAdapterGitObjects,
+    expectedCrmPublicWorkerAdapterObjects
+  );
+  for (const [path, expected] of Object.entries(expectedCrmPublicWorkerAdapterObjects)) {
+    assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} CRM repair drifted`);
+  }
+  assert.equal(
+    contract.preservation.preCrmAdapterGitObject,
+    "85aeb4e16887a0a1b4faf7c0d463173b322db60c"
+  );
+  assert.equal(
+    git(["rev-parse", `${contract.baseline.head}:crm`]),
+    contract.preservation.preCrmAdapterGitObject
+  );
   assert.equal(
     sha256("overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"),
     contract.preservation.previousReadinessSuccessorSha256
   );
   assert.equal(git([
     "diff", "--name-only", `${contract.baseline.head}..HEAD`, "--",
-    "src", "crm", "deploy/prometheusrouteiq-website", "workers/prometheus-iq-worker.js",
+    "src", "deploy/prometheusrouteiq-website", "workers/prometheus-iq-worker.js",
     "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"
   ]), "");
   for (const field of [
     "websiteImplementationModified",
-    "crmImplementationModified",
     "dashboardRuntimeModified",
     "generatedDeploymentAssetsModified",
     "previousReadinessSuccessorModified"
   ]) assert.equal(contract.preservation[field], false);
+  assert.equal(contract.preservation.crmImplementationModified, true);
+  assert.equal(contract.preservation.crmProductionWorkerImplementationModified, false);
   assert.equal(contract.preservation.publicWorkerConfigurationModified, true);
   assert.equal(contract.preservation.publicWorkerEntryAdapterAdded, true);
   assert.equal(contract.preservation.rollbackContractRegenerated, true);
