@@ -1617,6 +1617,7 @@ async function runBoundedPublicWranglerWithLimits({
   secretFile,
   spawnImpl,
   invocationBuilder,
+  onProcessStarted,
   timeoutMs,
   outputByteLimit
 }) {
@@ -1629,9 +1630,20 @@ async function runBoundedPublicWranglerWithLimits({
   let child;
   let timedOut = false;
   let overflow = false;
+  let invocation;
+  let processStarted = onProcessStarted === undefined;
+  let processStartError;
   try {
+    if (onProcessStarted !== undefined && typeof onProcessStarted !== "function") {
+      fail(failureCode, publicWranglerDiagnostics(mode, PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED));
+    }
     try {
-      child = spawnImpl(process.execPath, invocationBuilder(mode, inputs, secretFile), {
+      invocation = invocationBuilder(mode, inputs, secretFile);
+    } catch {
+      fail(failureCode, publicWranglerDiagnostics(mode, PUBLIC_WRANGLER_FAILURE_REASON.SPAWN_FAILED));
+    }
+    try {
+      child = spawnImpl(process.execPath, invocation, {
         cwd: root,
         env: environment,
         stdio: ["ignore", "pipe", "pipe"]
@@ -1661,20 +1673,39 @@ async function runBoundedPublicWranglerWithLimits({
     child.stdout.on("data", capture);
     child.stderr.on("data", capture);
     const result = await new Promise(resolveResult => {
+      let settled = false;
+      const settle = value => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolveResult(value);
+      };
       const timer = setTimeout(() => {
         timedOut = true;
         child.kill("SIGTERM");
         setTimeout(() => child.kill("SIGKILL"), 1_000).unref();
       }, timeoutMs);
+      if (onProcessStarted) {
+        child.once("spawn", () => {
+          if (settled) return;
+          try {
+            onProcessStarted();
+            processStarted = true;
+          } catch (error) {
+            processStartError = error;
+            child.kill("SIGKILL");
+            settle({ boundaryFailed: true });
+          }
+        });
+      }
       child.once("error", () => {
-        clearTimeout(timer);
-        resolveResult({ failed: true });
+        settle({ failed: true });
       });
       child.once("close", (exitCode, signal) => {
-        clearTimeout(timer);
-        resolveResult({ exitCode, signal });
+        settle(processStarted ? { exitCode, signal } : { failed: true });
       });
     });
+    if (processStartError) throw processStartError;
     let reason;
     if (timedOut) reason = PUBLIC_WRANGLER_FAILURE_REASON.TIMEOUT;
     else if (overflow) reason = PUBLIC_WRANGLER_FAILURE_REASON.OUTPUT_OVERFLOW;
@@ -1696,7 +1727,8 @@ export async function runBoundedPublicWrangler({
   credentials,
   secretFile,
   invocationBuilder = buildPublicWranglerInvocation,
-  spawnImpl = spawn
+  spawnImpl = spawn,
+  onProcessStarted
 }) {
   return runBoundedPublicWranglerWithLimits({
     root,
@@ -1706,6 +1738,7 @@ export async function runBoundedPublicWrangler({
     secretFile,
     invocationBuilder,
     spawnImpl,
+    onProcessStarted,
     timeoutMs: mode === "dry-run"
       ? PUBLIC_WORKER_DEPLOYMENT_POLICY.dryRunTimeoutMs
       : PUBLIC_WORKER_DEPLOYMENT_POLICY.deployTimeoutMs,

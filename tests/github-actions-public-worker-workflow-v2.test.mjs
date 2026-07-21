@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { EventEmitter } from "node:events";
 import {
   appendFileSync,
   chmodSync,
@@ -11,10 +12,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { PassThrough } from "node:stream";
 
 import {
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
-  PublicDeploymentPolicyError
+  PublicDeploymentPolicyError,
+  runBoundedPublicWranglerForTest
 } from "../scripts/lib/github-actions-public-worker-deployment.mjs";
 import {
   PUBLIC_WORKFLOW_V2_PHASE,
@@ -217,7 +220,7 @@ const requiredBindings = Object.freeze([
   "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256:secret_text"
 ]);
 
-function lifecycleFixture({ smoke, privateChanged = false } = {}) {
+function lifecycleFixture({ smoke, privateChanged = false, deployFailure = "none" } = {}) {
   const temporary = mkdtempSync(join(tmpdir(), "prometheus-public-workflow-v2-lifecycle-"));
   const evidence = createPublicDeploymentEvidenceRecorder(join(temporary, "evidence"));
   const initialPublic = workerState(publicVersion, "public-deployment-1", requiredBindings);
@@ -252,9 +255,11 @@ function lifecycleFixture({ smoke, privateChanged = false } = {}) {
       return states.get(worker).shift();
     },
     runDryRun: async () => { calls.dryRun += 1; },
-    runDeploy: async () => {
-      assert.ok(evidence.phases().includes(PUBLIC_WORKFLOW_V2_PHASE.AUTHORIZATION_CONSUMED));
+    runDeploy: async (_release, onMutationBoundary) => {
       calls.deploy += 1;
+      if (deployFailure === "before-spawn") throw new Error("synthetic pre-spawn failure");
+      onMutationBoundary();
+      if (deployFailure === "after-spawn") throw new Error("synthetic post-spawn failure");
     },
     runRollback: async () => { calls.rollback += 1; },
     runSmoke: async () => {
@@ -264,6 +269,44 @@ function lifecycleFixture({ smoke, privateChanged = false } = {}) {
     evidence
   });
   return { temporary, evidence, calls, result };
+}
+
+function wranglerBoundaryFixture({ throwOnSpawn = false, emitSpawnError = false } = {}) {
+  let calls = 0;
+  return {
+    get calls() { return calls; },
+    spawnImpl() {
+      calls += 1;
+      if (throwOnSpawn) throw new Error("synthetic synchronous spawn failure");
+      const child = new EventEmitter();
+      child.stdout = new PassThrough();
+      child.stderr = new PassThrough();
+      child.kill = () => true;
+      queueMicrotask(() => {
+        if (emitSpawnError) child.emit("error", new Error("synthetic asynchronous spawn failure"));
+        else {
+          child.emit("spawn");
+          child.emit("close", 0, null);
+        }
+      });
+      return child;
+    }
+  };
+}
+
+function runBoundaryWrangler({ fixture, invocationBuilder, onProcessStarted }) {
+  return runBoundedPublicWranglerForTest({
+    root,
+    mode: "deploy",
+    inputs: { batchId, approvedCommit: commit },
+    credentials: { apiToken: "synthetic-token", accountId: "a".repeat(32) },
+    secretFile: "/tmp/synthetic-settings.json",
+    spawnImpl: fixture.spawnImpl,
+    invocationBuilder,
+    onProcessStarted,
+    timeoutMs: 100,
+    outputByteLimit: 4096
+  });
 }
 
 test("qualification and deployment accept only exact pinned contexts and identical toolchain workflows", () => {
@@ -510,6 +553,89 @@ test("deployment evidence namespaces fail closed instead of reusing prior author
   }
 });
 
+test("Wrangler consumes authorization only after invocation construction and a successful spawn", async () => {
+  let consumed = 0;
+  const onProcessStarted = () => { consumed += 1; };
+
+  const invocationFailure = wranglerBoundaryFixture();
+  await assert.rejects(
+    runBoundaryWrangler({
+      fixture: invocationFailure,
+      invocationBuilder: () => { throw new Error("synthetic invocation failure"); },
+      onProcessStarted
+    }),
+    PublicDeploymentPolicyError
+  );
+  assert.equal(invocationFailure.calls, 0);
+  assert.equal(consumed, 0);
+
+  const synchronousSpawnFailure = wranglerBoundaryFixture({ throwOnSpawn: true });
+  await assert.rejects(
+    runBoundaryWrangler({
+      fixture: synchronousSpawnFailure,
+      invocationBuilder: () => ["synthetic-wrangler"],
+      onProcessStarted
+    }),
+    PublicDeploymentPolicyError
+  );
+  assert.equal(synchronousSpawnFailure.calls, 1);
+  assert.equal(consumed, 0);
+
+  const asynchronousSpawnFailure = wranglerBoundaryFixture({ emitSpawnError: true });
+  await assert.rejects(
+    runBoundaryWrangler({
+      fixture: asynchronousSpawnFailure,
+      invocationBuilder: () => ["synthetic-wrangler"],
+      onProcessStarted
+    }),
+    PublicDeploymentPolicyError
+  );
+  assert.equal(asynchronousSpawnFailure.calls, 1);
+  assert.equal(consumed, 0);
+
+  const successfulSpawn = wranglerBoundaryFixture();
+  await runBoundaryWrangler({
+    fixture: successfulSpawn,
+    invocationBuilder: () => ["synthetic-wrangler"],
+    onProcessStarted
+  });
+  assert.equal(successfulSpawn.calls, 1);
+  assert.equal(consumed, 1);
+});
+
+test("pre-spawn and post-spawn failures each stop after one deployment invocation", async () => {
+  const preSpawn = lifecycleFixture({ deployFailure: "before-spawn" });
+  try {
+    await assert.rejects(preSpawn.result, /synthetic pre-spawn failure/u);
+    assert.equal(preSpawn.calls.deploy, 1);
+    assert.equal(preSpawn.calls.rollback, 0);
+    assert.equal(preSpawn.calls.smoke, 0);
+    assert.deepEqual(preSpawn.evidence.phases(), [
+      PUBLIC_WORKFLOW_V2_PHASE.DEPLOYMENT_NOT_BEGUN,
+      PUBLIC_WORKFLOW_V2_PHASE.LOCAL_PREFLIGHT_PASSED,
+      PUBLIC_WORKFLOW_V2_PHASE.PRODUCTION_PREREQUISITES_PASSED
+    ]);
+  } finally {
+    rmSync(preSpawn.temporary, { recursive: true, force: true });
+  }
+
+  const postSpawn = lifecycleFixture({ deployFailure: "after-spawn" });
+  try {
+    await assert.rejects(postSpawn.result, /synthetic post-spawn failure/u);
+    assert.equal(postSpawn.calls.deploy, 1);
+    assert.equal(postSpawn.calls.rollback, 0);
+    assert.equal(postSpawn.calls.smoke, 0);
+    assert.deepEqual(postSpawn.evidence.phases(), [
+      PUBLIC_WORKFLOW_V2_PHASE.DEPLOYMENT_NOT_BEGUN,
+      PUBLIC_WORKFLOW_V2_PHASE.LOCAL_PREFLIGHT_PASSED,
+      PUBLIC_WORKFLOW_V2_PHASE.PRODUCTION_PREREQUISITES_PASSED,
+      PUBLIC_WORKFLOW_V2_PHASE.AUTHORIZATION_CONSUMED
+    ]);
+  } finally {
+    rmSync(postSpawn.temporary, { recursive: true, force: true });
+  }
+});
+
 test("authorization is consumed only at the mutation boundary and exactly one forward request occurs", async () => {
   const fixture = lifecycleFixture();
   try {
@@ -613,6 +739,13 @@ test("smoke plan is GET/HEAD-only and classifies failures without CRM or notific
 
 test("Infrastructure contract preserves CRM, collection, cohort, recommendation, and Anthony boundaries", () => {
   const contract = JSON.parse(readFileSync(join(root, PUBLIC_WORKFLOW_V2_POLICY.contractPath), "utf8"));
+  assert.equal(contract.authorization.consumedAt, "forward_wrangler_process_spawn_confirmed");
+  assert.equal(contract.authorization.preAuthorizationCloudflareReadOnlyRequestsAllowed, true);
+  assert.equal(contract.authorization.preAuthorizationCloudflareMutationRequestsAllowed, false);
+  assert.deepEqual(contract.cloudflare.prerequisiteReadsAfterLocalPreBoundary, [
+    PUBLIC_WORKFLOW_V2_POLICY.publicWorker,
+    PUBLIC_WORKFLOW_V2_POLICY.privateWorker
+  ]);
   assert.equal(contract.cloudflare.crmBinding, "ROUTE_IQ_REQUEST_CRM_COORDINATOR");
   assert.equal(contract.cloudflare.crmClass, "RouteIqRequestCrmCoordinator");
   assert.equal(contract.cloudflare.crmMigration, "route-iq-request-crm-sqlite-v1");

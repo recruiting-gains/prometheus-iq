@@ -636,8 +636,9 @@ function buildManifest(root, inputs, runtime, payload, rollbackResult) {
       deployment: PUBLIC_WORKFLOW_V2_POLICY.deploymentWorkflowPath,
       artifactStorage: "github-actions-artifact-v4",
       artifactRetentionDays: PUBLIC_WORKFLOW_V2_POLICY.artifactRetentionDays,
-      authorizationConsumedAt: "immediately_before_forward_wrangler_deploy_child",
-      preBoundaryCloudflareRequestsAllowed: false,
+      authorizationConsumedAt: "forward_wrangler_process_spawn_confirmed",
+      preAuthorizationCloudflareReadOnlyRequestsAllowed: true,
+      preAuthorizationCloudflareMutationRequestsAllowed: false,
       automaticRetriesAllowed: false,
       forwardDeploymentAttempts: 1,
       rollbackAttemptsOnCriticalSmoke: 1
@@ -846,7 +847,9 @@ export function verifyQualifiedPublicRelease(root, releaseDirectory, expected, r
     || manifest.toolchain?.publicArtifactBuilds !== 1
     || manifest.toolchain?.deployRebuildAllowed !== false
     || manifest.toolchain?.wranglerDeployMode !== "no-bundle"
-    || manifest.workflow?.preBoundaryCloudflareRequestsAllowed !== false
+    || manifest.workflow?.authorizationConsumedAt !== "forward_wrangler_process_spawn_confirmed"
+    || manifest.workflow?.preAuthorizationCloudflareReadOnlyRequestsAllowed !== true
+    || manifest.workflow?.preAuthorizationCloudflareMutationRequestsAllowed !== false
     || manifest.workflow?.automaticRetriesAllowed !== false
     || manifest.workflow?.forwardDeploymentAttempts !== 1
     || manifest.workflow?.rollbackAttemptsOnCriticalSmoke !== 1
@@ -1011,8 +1014,14 @@ export async function runQualifiedPublicDeploymentLifecycle({
 
   if (deploymentAttempts !== 0) fail(PUBLIC_WORKFLOW_V2_FAILURE.DEPLOYMENT_ATTEMPT_LIMIT);
   deploymentAttempts += 1;
-  evidence.append(PUBLIC_WORKFLOW_V2_PHASE.AUTHORIZATION_CONSUMED);
-  await runDeploy(release);
+  let authorizationConsumed = false;
+  const consumeAuthorization = () => {
+    if (authorizationConsumed) fail(PUBLIC_WORKFLOW_V2_FAILURE.DEPLOYMENT_ATTEMPT_LIMIT);
+    evidence.append(PUBLIC_WORKFLOW_V2_PHASE.AUTHORIZATION_CONSUMED);
+    authorizationConsumed = true;
+  };
+  await runDeploy(release, consumeAuthorization);
+  if (!authorizationConsumed) fail(PUBLIC_WORKFLOW_V2_FAILURE.DEPLOYMENT_BOUNDARY_INVALID);
   evidence.append(PUBLIC_WORKFLOW_V2_PHASE.DEPLOYMENT_REQUEST_COMPLETED);
 
   const deployedPublic = await fetchState(PUBLIC_WORKFLOW_V2_POLICY.publicWorker);

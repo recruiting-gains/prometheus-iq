@@ -61,7 +61,8 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.equal(v2Contract.deployment.wranglerMode, "no-bundle");
   assert.equal(v2Contract.deployment.forwardDeploymentAttempts, 1);
   assert.equal(v2Contract.deployment.automaticRetryAllowed, false);
-  assert.equal(v2Contract.authorization.preBoundaryCloudflareRequestsAllowed, false);
+  assert.equal(v2Contract.authorization.preAuthorizationCloudflareReadOnlyRequestsAllowed, true);
+  assert.equal(v2Contract.authorization.preAuthorizationCloudflareMutationRequestsAllowed, false);
   assert.equal(v2Contract.authorization.changedCandidateRequiresNewQualificationAndAuthorization, true);
 
   assert.match(publicEntrypoint, /export \{ RouteIqRequestCrmCoordinator \};/u);

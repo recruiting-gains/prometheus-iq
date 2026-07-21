@@ -73,12 +73,13 @@ export async function runPublicWorkerDeploymentV2Command({
           release
         )
       }),
-      runDeploy: release => runBoundedPublicWrangler({
+      runDeploy: (release, onMutationBoundary) => runBoundedPublicWrangler({
         root,
         mode: "deploy",
         inputs,
         credentials,
         secretFile: settingsArtifact.path,
+        onProcessStarted: onMutationBoundary,
         invocationBuilder: () => buildQualifiedPublicWranglerInvocation(
           "deploy",
           inputs,

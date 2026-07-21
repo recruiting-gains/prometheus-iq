@@ -104,7 +104,10 @@ export function verifyGithubActionsPublicWorkerWorkflowV2() {
   assert.match(library, /AUTHORIZATION_CONSUMED/u);
   assert.match(library, /--no-bundle/u);
   assert.match(library, /PUBLIC_WORKER_FORWARD_ROLLBACK_VERIFIED/u);
-  assert.match(library, /preBoundaryCloudflareRequestsAllowed: false/u);
+  assert.match(library, /authorizationConsumedAt: "forward_wrangler_process_spawn_confirmed"/u);
+  assert.match(library, /preAuthorizationCloudflareReadOnlyRequestsAllowed: true/u);
+  assert.match(library, /preAuthorizationCloudflareMutationRequestsAllowed: false/u);
+  assert.match(deploymentCommand, /onProcessStarted: onMutationBoundary/u);
   assert.match(deploymentCommand, /runPublicWorkerSmokeV2/u);
   assert.match(deploymentCommand, /runRollback/u);
 
@@ -135,7 +138,13 @@ export function verifyGithubActionsPublicWorkerWorkflowV2() {
   assert.equal(contract.deployment.wranglerMode, "no-bundle");
   assert.equal(contract.deployment.forwardDeploymentAttempts, 1);
   assert.equal(contract.deployment.automaticRetryAllowed, false);
-  assert.equal(contract.authorization.preBoundaryCloudflareRequestsAllowed, false);
+  assert.equal(contract.authorization.consumedAt, "forward_wrangler_process_spawn_confirmed");
+  assert.equal(contract.authorization.preAuthorizationCloudflareReadOnlyRequestsAllowed, true);
+  assert.equal(
+    contract.authorization.preAuthorizationCloudflareReadScope,
+    "exact_public_and_private_worker_identity_and_binding_prerequisites_only"
+  );
+  assert.equal(contract.authorization.preAuthorizationCloudflareMutationRequestsAllowed, false);
   assert.equal(contract.authorization.preBoundaryFailureRecordsDeploymentBegan, false);
   assert.equal(contract.authorization.changedCandidateRequiresNewQualificationAndAuthorization, true);
   assert.equal(contract.smoke.crmSubmissionAllowed, false);

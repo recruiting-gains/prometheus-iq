@@ -12,7 +12,7 @@ Production status: not executed by this batch
 4. GitHub stores the immutable release under a unique artifact ID. The payload and manifest have independent SHA-256 identities; the upload action also supplies its transport digest.
 5. A Founder authorization names the candidate, production prerequisites, qualification run and artifact IDs, payload and manifest hashes, deployment assets, rollback identities, and Workflow v2 contract.
 6. `Deploy Prometheus Public Worker` downloads only that artifact, verifies every identity, and performs no source build.
-7. The protected job performs an artifact-local Wrangler `--no-bundle --dry-run`, validates the current public and private versions, then records authorization consumption immediately before the one permitted forward deployment child is started.
+7. The protected job performs an artifact-local Wrangler `--no-bundle --dry-run`, validates the current public and private versions with two bounded read-only Cloudflare checks, then records authorization consumption only after Node confirms that the one permitted forward deployment child spawned successfully.
 8. The fixed GET/HEAD smoke plan runs after deployment. Critical failure permits only the qualified forward-compatible rollback payload. Noncritical failure is reported without another production mutation.
 
 ## Artifact Layout
@@ -40,7 +40,9 @@ The deployment config inside each payload points only to already generated Worke
 
 Local verification, artifact download, artifact hashing, repository validation, dependency installation, and the no-bundle dry run occur before any Cloudflare request. A failure there records only `DEPLOYMENT_NOT_BEGUN` and never consumes authorization.
 
-Read-only current-version checks occur after the local pre-boundary has passed. They do not consume the Founder authorization. Authorization is consumed by an append-only `AUTHORIZATION_CONSUMED` phase immediately before the forward Wrangler deployment child is invoked. That child can be invoked once. Ambiguous or failed execution is never retried automatically.
+Read-only current-version checks occur after the local pre-boundary has passed. They do not consume the Founder authorization and are the only Cloudflare requests allowed before consumption. Authorization is consumed by an append-only `AUTHORIZATION_CONSUMED` phase only when the forward Wrangler deployment child emits Node's successful `spawn` event. That child can be invoked once. Ambiguous or failed execution is never retried automatically.
+
+Invocation construction happens before the child-process call. A construction failure, synchronous spawn failure, or asynchronous spawn failure before Node's `spawn` event leaves authorization unconsumed and still ends the workflow with no automatic retry. The successful `spawn` event is the mutation boundary because the child then exists with production credentials and authority to issue the Cloudflare mutation. Authorization is recorded synchronously at that event before normal child completion is accepted. Any error, timeout, signal, or uncertain result after that point remains consumed and cannot be retried.
 
 An external runner interruption before `AUTHORIZATION_CONSUMED` does not alter the qualified candidate. A changed commit, tree, manifest, artifact, workflow contract, rollback identity, target, or production prerequisite requires a new qualification and a new authorization.
 
