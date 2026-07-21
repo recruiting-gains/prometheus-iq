@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -404,13 +404,27 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    {
+      "commit": "d2963aa66e304932729cf8154ab729f5d8b71113",
+      "tree": "b589078b7c9945eb2e12db2183788778e11e7c93",
+      "parent": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+      "subject": "infrastructure: admit deployment authorization boundary repair",
+      "owner": "Prometheus Infrastructure",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
-    "previousContractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
-    "contractSuccessorCommit": "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de",
+    "contractSha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e",
+    "previousContractSha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
+    "preWorkflowV2ContractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
+    "contractSuccessorCommit": "d2963aa66e304932729cf8154ab729f5d8b71113",
     "contractSuccessorOwner": "Prometheus Infrastructure",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
     "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
@@ -450,6 +464,7 @@
     "ownerVerifierPinsPublicConfigConsumerRepairSuccessor": true,
     "ownerVerifierPinsPublicConfigConsumerProvenanceAdmission": true,
     "ownerVerifierPinsPublicDeploymentWorkflowV2Successors": true,
+    "ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -492,6 +507,63 @@
         "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
       ]
     },
+    "authorizationBoundarySuccessors": [
+      {
+        "commit": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+        "tree": "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2",
+        "parent": "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+        "subject": "infrastructure: consume deployment authorization at spawn",
+        "ownerEmail": "infrastructure@prometheus.local",
+        "files": [
+          "docs/github-actions-public-worker-deployment-v2.md",
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/github-actions-public-worker-workflow-v2.mjs",
+          "scripts/run-github-actions-public-worker-deployment-v2.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+          "tests/github-actions-public-worker-workflow-v2.test.mjs",
+          "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+        ]
+      },
+      {
+        "commit": "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+        "tree": "25a215fda6751214d5c8a8b2d4474531aaf6536b",
+        "parent": "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+        "subject": "overwatch: govern deployment authorization boundary repair",
+        "ownerEmail": "overwatch@prometheus.local",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "overwatch/governance/public-deployment-workflow-v2.md",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+        ]
+      },
+      {
+        "commit": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+        "tree": "a8ccbaced4a0780286864af590dcd30cce8ac245",
+        "parent": "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+        "subject": "overwatch: admit authorization boundary governance successor",
+        "ownerEmail": "overwatch@prometheus.local",
+        "files": [
+          "overwatch/governance/public-deployment-workflow-v2.json",
+          "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+          "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+        ]
+      },
+      {
+        "commit": "d2963aa66e304932729cf8154ab729f5d8b71113",
+        "tree": "b589078b7c9945eb2e12db2183788778e11e7c93",
+        "parent": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+        "subject": "infrastructure: admit deployment authorization boundary repair",
+        "ownerEmail": "infrastructure@prometheus.local",
+        "files": [
+          "docs/route-iq-public-repository-integrity-repair-v1.md",
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
     "governedOverwatchTail": {
       "linearHistoryRequired": true,
       "mergesAllowed": false,
@@ -1354,8 +1426,9 @@
       "edgeBoundaryPath": "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       "edgeBoundarySha256": "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
       "repositoryIntegrityPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-      "repositoryIntegritySha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
-      "previousRepositoryIntegritySha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
+      "repositoryIntegritySha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e",
+      "previousRepositoryIntegritySha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
+      "preWorkflowV2RepositoryIntegritySha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
       "deterministicRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a"
     },
     "scope": {

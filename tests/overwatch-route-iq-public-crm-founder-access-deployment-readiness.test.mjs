@@ -177,19 +177,24 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
     value.infrastructureOwnerRepairs[9].commit,
     "13d221509c95515bb9a3dcc44326bf3393fff89e"
   );
-  assert.equal(value.infrastructureOwnerRepairs.at(-4).commit, "d1e1aab1163ff3206cbdcd366b65db6f9b186982");
-  assert.equal(value.infrastructureOwnerRepairs.at(-3).commit, "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a");
-  assert.equal(value.infrastructureOwnerRepairs.at(-2).commit, "30c04aca19423f448b35218491d69ecc458367c7");
-  assert.equal(value.infrastructureOwnerRepairs.at(-1).commit, "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de");
+  assert.equal(value.infrastructureOwnerRepairs.at(-5).commit, "d1e1aab1163ff3206cbdcd366b65db6f9b186982");
+  assert.equal(value.infrastructureOwnerRepairs.at(-4).commit, "3cf1dc03e3b9dabd02e35c81888feb2e34e0cd0a");
+  assert.equal(value.infrastructureOwnerRepairs.at(-3).commit, "30c04aca19423f448b35218491d69ecc458367c7");
+  assert.equal(value.infrastructureOwnerRepairs.at(-2).commit, "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de");
+  assert.equal(value.infrastructureOwnerRepairs.at(-1).commit, "d2963aa66e304932729cf8154ab729f5d8b71113");
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e"
+    "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e"
   );
   assert.equal(
     value.infrastructureEvidence.previousContractSha256,
+    "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e"
+  );
+  assert.equal(
+    value.infrastructureEvidence.preWorkflowV2ContractSha256,
     "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27"
   );
-  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de");
+  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "d2963aa66e304932729cf8154ab729f5d8b71113");
   assert.equal(value.infrastructureEvidence.contractSuccessorOwner, "Prometheus Infrastructure");
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
@@ -210,6 +215,16 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicConfigConsumerRepairSuccessor, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicConfigConsumerProvenanceAdmission, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicDeploymentWorkflowV2Successors, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors, true);
+  assert.deepEqual(
+    value.workflowV2ReadinessClosure.authorizationBoundarySuccessors.map(item => item.commit),
+    [
+      "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+      "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+      "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+      "d2963aa66e304932729cf8154ab729f5d8b71113"
+    ]
+  );
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.runId, 29758138044);
   assert.equal(value.keychainCiPortabilityClosure.failedDeploymentRun.deploymentJobSkipped, true);
   assert.equal(value.keychainCiPortabilityClosure.successors.length, 4);
@@ -506,8 +521,9 @@ test("public config consumer closure preserves every edge and deployment boundar
   assert.equal(closure.pausedUnattendedAccessAlignment.credentialOrRuntimeBehaviorChanged, false);
   assert.equal(closure.pausedUnattendedAccessAlignment.testWeakened, false);
   assert.equal(closure.contracts.edgeBoundarySha256, "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d");
-  assert.equal(closure.contracts.repositoryIntegritySha256, "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e");
-  assert.equal(closure.contracts.previousRepositoryIntegritySha256, "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27");
+  assert.equal(closure.contracts.repositoryIntegritySha256, "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e");
+  assert.equal(closure.contracts.previousRepositoryIntegritySha256, "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e");
+  assert.equal(closure.contracts.preWorkflowV2RepositoryIntegritySha256, "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27");
   assert.equal(closure.scope.websiteImplementationChanged, false);
   assert.equal(closure.scope.crmImplementationChanged, false);
   assert.equal(closure.scope.publicWorkerProductionChanged, false);

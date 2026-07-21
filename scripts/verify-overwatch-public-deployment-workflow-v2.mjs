@@ -34,6 +34,10 @@ const AUTHORIZATION_BOUNDARY_GOVERNANCE_COMMIT = "e2465d7a28c3222626cc8c60ed0690
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_TREE = "25a215fda6751214d5c8a8b2d4474531aaf6536b";
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_PARENT = AUTHORIZATION_BOUNDARY_REPAIR_COMMIT;
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_SUBJECT = "overwatch: govern deployment authorization boundary repair";
+const AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT = "d2963aa66e304932729cf8154ab729f5d8b71113";
+const AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_TREE = "b589078b7c9945eb2e12db2183788778e11e7c93";
+const AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PARENT = "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a";
+const AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_SUBJECT = "infrastructure: admit deployment authorization boundary repair";
 const OVERWATCH_IDENTITY = "Prometheus Overwatch <overwatch@prometheus.local>";
 const DEPLOYMENT_ASSET_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
@@ -73,6 +77,12 @@ const AUTHORIZATION_BOUNDARY_GOVERNANCE_PATHS = Object.freeze([
   DOCUMENTATION_PATH,
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+]);
+const AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PATHS = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -134,6 +144,13 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(governance.authorizationBoundaryGovernance?.author === OVERWATCH_IDENTITY, "Authorization-boundary governance author drifted.");
   require(governance.authorizationBoundaryGovernance?.committer === OVERWATCH_IDENTITY, "Authorization-boundary governance committer drifted.");
   require(governance.authorizationBoundaryGovernance?.classification === "OVERWATCH_GOVERNANCE_VERIFICATION_AND_DOCUMENTATION_ONLY", "Authorization-boundary governance classification drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.ownerCommit === AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT, "Authorization-boundary provenance-admission commit drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.ownerTree === AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_TREE, "Authorization-boundary provenance-admission tree drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.parent === AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PARENT, "Authorization-boundary provenance-admission parent drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.subject === AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_SUBJECT, "Authorization-boundary provenance-admission subject drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.author === OWNER_IDENTITY, "Authorization-boundary provenance-admission author drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.committer === OWNER_IDENTITY, "Authorization-boundary provenance-admission committer drifted.");
+  require(governance.authorizationBoundaryProvenanceAdmission?.classification === "INFRASTRUCTURE_OWNER_VERIFIER_PROVENANCE_ADMISSION_ONLY", "Authorization-boundary provenance-admission classification drifted.");
   require(governance.architecture?.qualificationContactsCloudflare === false, "Qualification can contact Cloudflare.");
   require(governance.architecture?.qualificationAccessesProtectedSecrets === false, "Qualification can access secrets.");
   require(governance.architecture?.qualificationBuildsArtifactExactlyOnce === true, "Qualification build count drifted.");
@@ -267,6 +284,7 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     let pathChanged = false;
     let authorizationBoundaryRepairSeen = false;
     let authorizationBoundaryGovernanceSeen = false;
+    let authorizationBoundaryProvenanceAdmissionSeen = false;
     for (const commit of commits) {
       const [author, committer, parents, subject, tree] = git([
         "show", "-s", "--format=%ae%n%ce%n%P%n%s%n%T", commit
@@ -308,6 +326,24 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
         continue;
       }
 
+      if (commit === AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT) {
+        if (!authorizationBoundaryRepairSeen
+          || !authorizationBoundaryGovernanceSeen
+          || authorizationBoundaryProvenanceAdmissionSeen
+          || previous !== AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PARENT
+          || author !== "infrastructure@prometheus.local"
+          || committer !== "infrastructure@prometheus.local"
+          || parents !== previous
+          || subject !== AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_SUBJECT
+          || tree !== AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_TREE
+          || JSON.stringify([...files].sort()) !== JSON.stringify([...AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PATHS].sort())) {
+          return false;
+        }
+        authorizationBoundaryProvenanceAdmissionSeen = true;
+        previous = commit;
+        continue;
+      }
+
       if (author !== "overwatch@prometheus.local"
         || committer !== "overwatch@prometheus.local"
         || parents !== previous
@@ -320,7 +356,8 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     return previous === git(["rev-parse", "HEAD"])
       && pathChanged
       && authorizationBoundaryRepairSeen
-      && authorizationBoundaryGovernanceSeen;
+      && authorizationBoundaryGovernanceSeen
+      && authorizationBoundaryProvenanceAdmissionSeen;
   } catch {
     return false;
   }
@@ -422,6 +459,35 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
     assert.equal(sha256(committedEvidence), evidence.sha256, `Authorization-boundary governance evidence drifted: ${evidence.path}`);
   }
 
+  const boundaryProvenanceAdmissionIdentity = commitIdentity(AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT);
+  assert.equal(boundaryProvenanceAdmissionIdentity.author, OWNER_IDENTITY);
+  assert.equal(boundaryProvenanceAdmissionIdentity.committer, OWNER_IDENTITY);
+  assert.deepEqual(boundaryProvenanceAdmissionIdentity.parents, [AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PARENT]);
+  assert.equal(boundaryProvenanceAdmissionIdentity.tree, AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_TREE);
+  assert.equal(
+    git(["show", "-s", "--format=%s", AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT]),
+    AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_SUBJECT
+  );
+  assert.doesNotThrow(() => git(["merge-base", "--is-ancestor", AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT, "HEAD"]));
+
+  const boundaryProvenanceAdmissionPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT
+  ]).split("\n").filter(Boolean).sort();
+  const governedBoundaryProvenanceAdmissionPaths = governance.authorizationBoundaryProvenanceAdmission.files
+    .map(item => item.path).sort();
+  assert.deepEqual(boundaryProvenanceAdmissionPaths, governedBoundaryProvenanceAdmissionPaths);
+  assert.deepEqual(boundaryProvenanceAdmissionPaths, [...AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_PATHS].sort());
+  for (const evidence of governance.authorizationBoundaryProvenanceAdmission.files) {
+    const committedEvidence = execFileSync("/usr/bin/git", [
+      "show", `${AUTHORIZATION_BOUNDARY_PROVENANCE_ADMISSION_COMMIT}:${evidence.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    assert.equal(sha256(committedEvidence), evidence.sha256, `Authorization-boundary provenance-admission evidence drifted: ${evidence.path}`);
+  }
+  assert.equal(
+    boundaryProvenanceAdmissionPaths.every(path => /^(?:docs\/|scripts\/verify-|tests\/|workers\/infrastructure\/)/u.test(path)),
+    true
+  );
+
   const repairIdentity = commitIdentity(PROVENANCE_REPAIR_COMMIT);
   assert.equal(repairIdentity.author, OWNER_IDENTITY);
   assert.equal(repairIdentity.committer, OWNER_IDENTITY);
@@ -435,7 +501,10 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   const governedRepairPaths = governance.provenanceRepair.files.map(item => item.path).sort();
   assert.deepEqual(repairPaths, governedRepairPaths);
   for (const evidence of governance.provenanceRepair.files) {
-    assert.equal(sha256(read(evidence.path)), evidence.sha256, `Provenance repair evidence drifted: ${evidence.path}`);
+    const committedEvidence = execFileSync("/usr/bin/git", [
+      "show", `${PROVENANCE_REPAIR_COMMIT}:${evidence.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    assert.equal(sha256(committedEvidence), evidence.sha256, `Historical provenance repair evidence drifted: ${evidence.path}`);
   }
   assert.equal(repairPaths.every(path => /^(?:docs\/|scripts\/verify-|tests\/|workers\/infrastructure\/)/u.test(path)), true);
   assert.equal(sha256(read(PACKAGE_PATH)), CURRENT_PACKAGE_SHA256);

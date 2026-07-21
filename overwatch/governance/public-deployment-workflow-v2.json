@@ -85,6 +85,21 @@
       { "path": "tests/overwatch-public-deployment-workflow-v2.test.mjs", "sha256": "089eafd6336c799dce1129a296403f4e82fe8fc949701ab618eef7ca8296caf3" }
     ]
   },
+  "authorizationBoundaryProvenanceAdmission": {
+    "ownerCommit": "d2963aa66e304932729cf8154ab729f5d8b71113",
+    "ownerTree": "b589078b7c9945eb2e12db2183788778e11e7c93",
+    "parent": "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+    "subject": "infrastructure: admit deployment authorization boundary repair",
+    "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "classification": "INFRASTRUCTURE_OWNER_VERIFIER_PROVENANCE_ADMISSION_ONLY",
+    "files": [
+      { "path": "docs/route-iq-public-repository-integrity-repair-v1.md", "sha256": "fc2432124d70ef0832f6d3d8316a1ed8c34f0f0c7b70666dcc4d2ad3687990fa" },
+      { "path": "scripts/verify-route-iq-public-repository-integrity-repair.mjs", "sha256": "9e27903eedb47d5763e01b8f894bad68921959346006a8f11d995d10cee3df69" },
+      { "path": "tests/public-repository-integrity-repair.test.mjs", "sha256": "5cc8495b2f120a6269079bba0737b0486864e65c2c0f21661bcea9becb17697d" },
+      { "path": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json", "sha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e" }
+    ]
+  },
   "provenanceRepair": {
     "ownerCommit": "3743db6f883f44b6d1d1dd69bc1a9c79f6d8b6de",
     "ownerTree": "7cc6670f1599f32a1d7283a353495866930784fd",

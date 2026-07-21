@@ -24,7 +24,9 @@ const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e";
+const PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e";
 const PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256 =
   "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27";
 const PRE_CRM_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256 =
@@ -369,6 +371,18 @@ const INFRASTRUCTURE_COMMITS = Object.freeze([
     tree: "7cc6670f1599f32a1d7283a353495866930784fd",
     parent: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
     subject: "infrastructure: admit public deployment workflow v2 chain",
+    files: Object.freeze([
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      INFRASTRUCTURE_CONTRACT_PATH
+    ])
+  }),
+  Object.freeze({
+    commit: "d2963aa66e304932729cf8154ab729f5d8b71113",
+    tree: "b589078b7c9945eb2e12db2183788778e11e7c93",
+    parent: "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+    subject: "infrastructure: admit deployment authorization boundary repair",
     files: Object.freeze([
       "docs/route-iq-public-repository-integrity-repair-v1.md",
       "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
@@ -855,6 +869,58 @@ const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
+const WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS = Object.freeze([
+  Object.freeze({
+    commit: "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+    tree: "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2",
+    parent: "6db68f845e91c967e34f3b825e4cbc2372cef6d8",
+    subject: "infrastructure: consume deployment authorization at spawn",
+    ownerEmail: "infrastructure@prometheus.local",
+    files: Object.freeze([
+      "docs/github-actions-public-worker-deployment-v2.md",
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/lib/github-actions-public-worker-workflow-v2.mjs",
+      "scripts/run-github-actions-public-worker-deployment-v2.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
+      "tests/github-actions-public-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+    ])
+  }),
+  Object.freeze({
+    commit: "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+    tree: "25a215fda6751214d5c8a8b2d4474531aaf6536b",
+    parent: "9c6440ba3c286b06a79435a8ec7bdf477cb4fd79",
+    subject: "overwatch: govern deployment authorization boundary repair",
+    ownerEmail: "overwatch@prometheus.local",
+    files: Object.freeze([
+      "overwatch/governance/public-deployment-workflow-v2.json",
+      "overwatch/governance/public-deployment-workflow-v2.md",
+      "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+    tree: "a8ccbaced4a0780286864af590dcd30cce8ac245",
+    parent: "e2465d7a28c3222626cc8c60ed0690f8a425ee6f",
+    subject: "overwatch: admit authorization boundary governance successor",
+    ownerEmail: "overwatch@prometheus.local",
+    files: Object.freeze([
+      "overwatch/governance/public-deployment-workflow-v2.json",
+      "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+      "tests/overwatch-public-deployment-workflow-v2.test.mjs"
+    ])
+  }),
+  Object.freeze({
+    commit: "d2963aa66e304932729cf8154ab729f5d8b71113",
+    tree: "b589078b7c9945eb2e12db2183788778e11e7c93",
+    parent: "4d7f5d140a7f856a18b99c1ab49a37d7555d3b5a",
+    subject: "infrastructure: admit deployment authorization boundary repair",
+    ownerEmail: "infrastructure@prometheus.local",
+    files: INFRASTRUCTURE_COMMITS.at(-1).files
+  })
+]);
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -892,7 +958,7 @@ function commitRecord(root, commit) {
 
 export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.governanceId, "route-iq-public-deployment-integrity-repair-readiness-v1");
-  assert.equal(governance?.version, "1.10.0");
+  assert.equal(governance?.version, "1.10.1");
   assert.equal(governance?.batchId, "BATCH-20260719-008");
   assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(governance?.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
@@ -956,11 +1022,15 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.contractSha256, INFRASTRUCTURE_CONTRACT_SHA256);
   assert.equal(
     governance?.infrastructureEvidence?.previousContractSha256,
+    PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256
+  );
+  assert.equal(
+    governance?.infrastructureEvidence?.preWorkflowV2ContractSha256,
     PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256
   );
   assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorCommit,
-    INFRASTRUCTURE_COMMITS[23].commit
+    INFRASTRUCTURE_COMMITS.at(-1).commit
   );
   assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorOwner,
@@ -1008,6 +1078,7 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicConfigConsumerRepairSuccessor, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicConfigConsumerProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicDeploymentWorkflowV2Successors, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
   assert.deepEqual(governance?.workflowV2ReadinessClosure, {
@@ -1033,6 +1104,14 @@ export function validatePublicIntegrityReadiness(governance) {
       subject: WORKFLOW_V2_RELEASE_WIRING_CLOSURE.subject,
       files: [...WORKFLOW_V2_RELEASE_WIRING_CLOSURE.files]
     },
+    authorizationBoundarySuccessors: WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS.map(record => ({
+      commit: record.commit,
+      tree: record.tree,
+      parent: record.parent,
+      subject: record.subject,
+      ownerEmail: record.ownerEmail,
+      files: [...record.files]
+    })),
     governedOverwatchTail: {
       linearHistoryRequired: true,
       mergesAllowed: false,
@@ -1645,7 +1724,8 @@ export function validatePublicIntegrityReadiness(governance) {
       edgeBoundarySha256: "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
       repositoryIntegrityPath: INFRASTRUCTURE_CONTRACT_PATH,
       repositoryIntegritySha256: INFRASTRUCTURE_CONTRACT_SHA256,
-      previousRepositoryIntegritySha256: PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256,
+      previousRepositoryIntegritySha256: PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256,
+      preWorkflowV2RepositoryIntegritySha256: PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256,
       deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256
     },
     scope: {
@@ -2257,8 +2337,23 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   const tail = commits.slice(64);
   if (requireCommittedOverwatch) assert.ok(tail.length >= 1, "Governed Overwatch successor is missing.");
   let previous = WORKFLOW_V2_RELEASE_WIRING_CLOSURE.commit;
+  let authorizationBoundarySuccessorIndex = 0;
   for (const commit of tail) {
     const record = commitRecord(root, commit);
+    const expectedBoundarySuccessor =
+      WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS[authorizationBoundarySuccessorIndex];
+    if (expectedBoundarySuccessor && commit === expectedBoundarySuccessor.commit) {
+      assert.equal(record.author, expectedBoundarySuccessor.ownerEmail);
+      assert.equal(record.committer, expectedBoundarySuccessor.ownerEmail);
+      assert.equal(record.subject, expectedBoundarySuccessor.subject);
+      assert.deepEqual(sorted(record.files), sorted(expectedBoundarySuccessor.files));
+      assert.equal(git(root, "rev-parse", `${commit}^{tree}`), expectedBoundarySuccessor.tree);
+      assert.equal(git(root, "rev-parse", `${commit}^`), previous);
+      assert.equal(expectedBoundarySuccessor.parent, previous);
+      authorizationBoundarySuccessorIndex += 1;
+      previous = commit;
+      continue;
+    }
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
     assert.match(record.subject, /^overwatch:/u);
@@ -2267,6 +2362,11 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     assert.equal(git(root, "rev-parse", `${commit}^`), previous);
     previous = commit;
   }
+  assert.equal(
+    authorizationBoundarySuccessorIndex,
+    WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS.length,
+    "Deployment authorization boundary successor chain is incomplete."
+  );
   if (requireCommittedOverwatch) assert.equal(previous, git(root, "rev-parse", "HEAD"));
   return commits;
 }
