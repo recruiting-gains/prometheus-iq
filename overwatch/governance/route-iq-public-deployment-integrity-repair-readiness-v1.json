@@ -465,6 +465,18 @@
       "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
     ],
     "finalSuccessorSubject": "overwatch: finalize workflow v2 historical readiness",
+    "finalSuccessor": {
+      "commit": "0d828948968b8cedf3b1961c5320c74c03a8e18c",
+      "tree": "f2e075ae7b594bb67957d8ad67b5e16491f97122",
+      "parent": "19d27686408db1eaf3f33a2ed15c36827441f3ec",
+      "subject": "overwatch: finalize workflow v2 historical readiness",
+      "files": [
+        "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
+        "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+        "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
+      ]
+    },
+    "releaseWiringSuccessorSubject": "overwatch: admit workflow v2 release wiring successor",
     "sourceOrProductionBehaviorChanged": false
   },
   "releaseIdentities": {

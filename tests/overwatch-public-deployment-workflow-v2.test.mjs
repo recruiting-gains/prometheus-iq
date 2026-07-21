@@ -71,3 +71,21 @@ test("candidate freeze cannot be weakened or reused after material change", () =
     }).ok, false);
   }
 });
+
+test("paused unattended access accepts only the exact Overwatch package successor", () => {
+  for (const patch of [
+    { successorSha256: "0".repeat(64) },
+    { owner: "Prometheus Infrastructure" },
+    { path: "package-lock.json" }
+  ]) {
+    assert.equal(evaluate({
+      governance: {
+        ...sources.governance,
+        protectedPredecessorSuccessors: [{
+          ...sources.governance.protectedPredecessorSuccessors[0],
+          ...patch
+        }]
+      }
+    }).ok, false);
+  }
+});

@@ -116,5 +116,16 @@
     "crmBehaviorChanged": false,
     "deploymentAssetSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
     "privateWorkerChanged": false
-  }
+  },
+  "protectedPredecessorSuccessors": [
+    {
+      "predecessorGovernanceId": "cloudflare-unattended-deployment-access-governance-v1",
+      "path": "package.json",
+      "historicalSha256": "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d",
+      "successorSha256": "8bf7f51f8dbb6310031b6d26736dfe5209b2c74d42e5e56de475592f36bb7b51",
+      "owner": "Prometheus Overwatch",
+      "ownerCommit": "ee80a44b8a28847d4a4acfc3fae8574697661edc",
+      "classification": "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+    }
+  ]
 }
