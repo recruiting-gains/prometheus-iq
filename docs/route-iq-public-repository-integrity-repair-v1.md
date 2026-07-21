@@ -269,6 +269,37 @@ repositories reject reordered lineage, mixed ownership, widened admission scope,
 unapproved Infrastructure successors. This repair did not contact Cloudflare and did not modify the
 website, CRM, deployment assets, rollback artifacts, deployment workflow, or Overwatch files.
 
+## Public Worker module-start repair provenance
+
+BATCH-20260720-008 run `29795006056`, verification job `88524441880`, and deployment job
+`88525105691` reached Cloudflare with the pre-repair public bundle. Cloudflare returned code `10021`,
+which the predecessor classifier incorrectly labeled `MIGRATION_BINDING_CONFIG_REJECTED`. The public
+and private Worker versions and their 100 percent traffic allocations remained unchanged, the public
+CRM Durable Object namespace was not created, and no production mutation occurred.
+
+Local Workerd reproduction established the ordered root causes without assigning either from the
+generic provider code alone. First, module evaluation failed as
+`WORKER_RUNTIME_FILESYSTEM_IMPORT_AT_MODULE_STARTUP` because the Intelligence retention module used
+`fileURLToPath(import.meta.url)` at module startup. After the Intelligence-owned correction, Workerd
+advanced and rejected the broad public export surface as `INVALID_PUBLIC_EXPORT_SURFACE`, including
+the non-handler `CALLBACK_PATH` export. Infrastructure then introduced a narrow public entry adapter
+that exports only the default fetch handler and `RouteIqRequestCrmCoordinator`, plus a local-only,
+no-secret Workerd startup preflight requiring `HEAD /` to return `200` before any Cloudflare request.
+
+The exact admitted owner chain is:
+
+- Intelligence commit `f0593640bae9cb9517d954415ca4980226a51073`
+- Infrastructure commit `94061fea1c238ca854bde9d17a860e1375af9c52`
+- Infrastructure commit `ce5f66f777fcfd6f59fe2b33eebb05bc836742dc`
+
+Each commit is pinned by full commit, tree, parent, author and committer identity, literal subject,
+and exact changed paths. This four-file Infrastructure admission is constrained to parent
+`ce5f66f777fcfd6f59fe2b33eebb05bc836742dc`; it does not authorize generic Intelligence or
+Infrastructure successors. The original Website deployment asset remains unchanged. The regenerated
+forward rollback artifact is
+`b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a` and preserves the CRM class,
+binding, SQLite migration history, namespace, and records while retaining the narrow adapter.
+
 ## Operator use
 
 Local non-deployment diagnostic:
@@ -284,7 +315,7 @@ node scripts/verify-route-iq-public-repository-integrity-repair.mjs
 node --test tests/public-repository-integrity-repair.test.mjs
 ```
 
-All three failed runs, the readiness successor, and the Dashboard test-only successor remain
+All recorded failed runs, the readiness successor, and the Dashboard test-only successor remain
 immutable evidence. The safe CI and deployment workflow runs are consumed and are not retried by
 this owner task. This repair does not
 authorize a workflow dispatch, push, deployment, CRM submission, secret access, or production

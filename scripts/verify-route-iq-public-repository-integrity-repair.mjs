@@ -22,9 +22,13 @@ const expectedPreservedObjects = Object.freeze({
   crm: "85aeb4e16887a0a1b4faf7c0d463173b322db60c",
   "deploy/prometheusrouteiq-website": "5c9a75c75e81770aa4825a911bafc6c005f46d4f",
   "workers/prometheus-iq-worker.js": "c3199013a4685ef0d9df601ff05b0052e1abb99d",
-  "wrangler.prometheusrouteiq-website.jsonc": "91bf94141dc7a90ebd957ce7747f7ac27cd797dd",
   "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json":
     "98ba4eabf1870282230ac44bbe444acbe9d322c9"
+});
+const expectedPublicWorkerStartupObjects = Object.freeze({
+  "wrangler.prometheusrouteiq-website.jsonc": "0ed68f2eb4f04fec784d506bb2232057717420a6",
+  "workers/infrastructure/prometheusrouteiq-website-entry.mjs":
+    "b5c96f6b0436502b79634f9de2f53c421d1d4bb8"
 });
 const expectedOwnerFiles = Object.freeze([
   ".github/workflows/deploy-prometheus-public-worker.yml",
@@ -160,6 +164,35 @@ const wranglerDeploymentDiagnosticRepairFiles = Object.freeze([
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json"
 ]);
 const wranglerDeploymentDiagnosticProvenanceAdmissionFiles = Object.freeze([
+  "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+const publicWorkerStartupIntelligenceRepairFiles = Object.freeze([
+  "intelligence/route-iq-prospective-retention-admission.mjs",
+  "tests/route-iq-prospective-retention-intelligence.test.mjs"
+]);
+const publicWorkerStartupInfrastructureRepairFiles = Object.freeze([
+  ".github/workflows/deploy-prometheus-public-worker.yml",
+  "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/lib/route-iq-public-forward-rollback.mjs",
+  "scripts/run-public-worker-workerd-startup-preflight.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "tests/github-actions-public-worker-deployment.test.mjs",
+  "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+  "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+  "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+  "wrangler.prometheusrouteiq-website.jsonc"
+]);
+const publicWorkerStartupRollbackAlignmentFiles = Object.freeze([
+  "scripts/lib/github-actions-public-worker-deployment.mjs",
+  "scripts/lib/route-iq-public-forward-rollback.mjs",
+  "scripts/verify-github-actions-public-worker-deployment.mjs",
+  "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+]);
+const publicWorkerStartupProvenanceAdmissionFiles = Object.freeze([
   "docs/route-iq-public-repository-integrity-repair-v1.md",
   "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
   "tests/public-repository-integrity-repair.test.mjs",
@@ -500,6 +533,50 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit Wrangler deployment diagnostic repair",
     files: wranglerDeploymentDiagnosticProvenanceAdmissionFiles
+  }),
+  publicWorkerStartupRepairSuccessors: Object.freeze([
+    Object.freeze({
+      commit: "f0593640bae9cb9517d954415ca4980226a51073",
+      tree: "dd4cf6180eabcf0298ed84d5d07f1de00cadafc4",
+      parent: "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+      authorName: "Prometheus Intelligence",
+      authorEmail: "intelligence@prometheus.local",
+      committerName: "Prometheus Intelligence",
+      committerEmail: "intelligence@prometheus.local",
+      subject: "intelligence: make retention policy loading Worker-safe",
+      files: publicWorkerStartupIntelligenceRepairFiles
+    }),
+    Object.freeze({
+      commit: "94061fea1c238ca854bde9d17a860e1375af9c52",
+      tree: "4a5718a96851a5eaa4e6b3fda7fa5ed6932e4ea5",
+      parent: "f0593640bae9cb9517d954415ca4980226a51073",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: gate public Worker module startup",
+      files: publicWorkerStartupInfrastructureRepairFiles
+    }),
+    Object.freeze({
+      commit: "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+      tree: "d080d0e7bf39a17cb7a21fe79e1b8c63b0787c25",
+      parent: "94061fea1c238ca854bde9d17a860e1375af9c52",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local",
+      committerName: "Prometheus Infrastructure",
+      committerEmail: "infrastructure@prometheus.local",
+      subject: "infrastructure: align rollback bundle with public adapter",
+      files: publicWorkerStartupRollbackAlignmentFiles
+    })
+  ]),
+  publicWorkerStartupProvenanceAdmissionSuccessor: Object.freeze({
+    parent: "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: admit public Worker startup repair chain",
+    files: publicWorkerStartupProvenanceAdmissionFiles
   })
 });
 
@@ -707,6 +784,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let cloudflareDeploymentReadProvenanceAdmissionSeen = false;
   let wranglerDeploymentDiagnosticRepairSeen = false;
   let wranglerDeploymentDiagnosticProvenanceAdmissionSeen = false;
+  let publicWorkerStartupRepairSuccessorsSeen = 0;
+  let publicWorkerStartupProvenanceAdmissionSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -989,6 +1068,34 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const publicWorkerStartupRepair = boundary.publicWorkerStartupRepairSuccessors?.[
+      publicWorkerStartupRepairSuccessorsSeen
+    ];
+    if (publicWorkerStartupRepair && commit === publicWorkerStartupRepair.commit) {
+      assertCommitSnapshot(repositoryRoot, publicWorkerStartupRepair);
+      publicWorkerStartupRepairSuccessorsSeen += 1;
+      previous = commit;
+      continue;
+    }
+    const publicWorkerStartupAdmission =
+      boundary.publicWorkerStartupProvenanceAdmissionSuccessor;
+    const isPublicWorkerStartupAdmission = publicWorkerStartupAdmission
+      && !publicWorkerStartupProvenanceAdmissionSeen
+      && publicWorkerStartupRepairSuccessorsSeen
+        === boundary.publicWorkerStartupRepairSuccessors.length
+      && actual.parents[0] === publicWorkerStartupAdmission.parent
+      && actual.authorName === publicWorkerStartupAdmission.authorName
+      && actual.authorEmail === publicWorkerStartupAdmission.authorEmail
+      && actual.committerName === publicWorkerStartupAdmission.committerName
+      && actual.committerEmail === publicWorkerStartupAdmission.committerEmail
+      && actual.subject === publicWorkerStartupAdmission.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...publicWorkerStartupAdmission.files].sort());
+    if (isPublicWorkerStartupAdmission) {
+      publicWorkerStartupProvenanceAdmissionSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1043,6 +1150,12 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     result.wranglerDeploymentDiagnosticProvenanceAdmissionSeen =
       wranglerDeploymentDiagnosticProvenanceAdmissionSeen;
   }
+  if (boundary.publicWorkerStartupRepairSuccessors) {
+    result.publicWorkerStartupRepairSuccessorsSeen =
+      publicWorkerStartupRepairSuccessorsSeen;
+    result.publicWorkerStartupProvenanceAdmissionSeen =
+      publicWorkerStartupProvenanceAdmissionSeen;
+  }
   return Object.freeze(result);
 }
 
@@ -1075,7 +1188,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(contract.owner, "Prometheus Infrastructure");
   assert.equal(
     contract.status,
-    "OWNER_WRANGLER_DEPLOYMENT_DIAGNOSTIC_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
+    "OWNER_PUBLIC_WORKER_STARTUP_REPAIR_CHAIN_ADMITTED_NOT_PUSHED_NOT_DEPLOYED"
   );
   assert.deepEqual(contract.ownerFiles, expectedOwnerFiles);
   assert.deepEqual(contract.ownerBoundary, INFRASTRUCTURE_OWNER_BOUNDARY);
@@ -1135,6 +1248,15 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
       .wranglerDeploymentDiagnosticProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.wranglerDeploymentDiagnosticProvenanceAdmissionSeen, true);
   }
+  assert.equal(
+    ownerBoundary.publicWorkerStartupRepairSuccessorsSeen,
+    INFRASTRUCTURE_OWNER_BOUNDARY.publicWorkerStartupRepairSuccessors.length
+  );
+  if (git(["rev-parse", "HEAD"])
+    !== INFRASTRUCTURE_OWNER_BOUNDARY
+      .publicWorkerStartupProvenanceAdmissionSuccessor.parent) {
+    assert.equal(ownerBoundary.publicWorkerStartupProvenanceAdmissionSeen, true);
+  }
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
     failedRunId: 29780926642,
@@ -1173,6 +1295,46 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     deploymentPerformedByRepair: false,
     deploymentAssetsModified: false,
     rollbackArtifactsModified: false
+  });
+
+  assert.deepEqual(contract.publicWorkerStartupRepair, {
+    batchId: "BATCH-20260720-008",
+    failedRunId: 29795006056,
+    verificationJobId: 88524441880,
+    deploymentJobId: 88525105691,
+    failedHead: "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+    failedTree: "87fc124fe0f1b4fe69d3cf94bbe942c2b3a4ea46",
+    reportedCloudflareCode: 10021,
+    predecessorClassification: "MIGRATION_BINDING_CONFIG_REJECTED",
+    correctedFailureClass: "WORKER_RUNTIME_STARTUP_REJECTED",
+    rootCauseSequence: [
+      "WORKER_RUNTIME_FILESYSTEM_IMPORT_AT_MODULE_STARTUP",
+      "INVALID_PUBLIC_EXPORT_SURFACE"
+    ],
+    successorChain: [
+      "f0593640bae9cb9517d954415ca4980226a51073",
+      "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc"
+    ],
+    publicEntryAdapter:
+      "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+    publicEntryExports: ["default", "RouteIqRequestCrmCoordinator"],
+    publicWorkerVersionBefore: "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+    publicWorkerVersionAfter: "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+    privateWorkerVersionBefore: "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    privateWorkerVersionAfter: "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    publicTrafficBeforePercent: 100,
+    publicTrafficAfterPercent: 100,
+    privateTrafficBeforePercent: 100,
+    privateTrafficAfterPercent: 100,
+    publicCrmNamespaceCreated: false,
+    productionMutationOccurred: false,
+    repairCloudflareContacted: false,
+    repairDeploymentPerformed: false,
+    deploymentAssetsModified: false,
+    rollbackArtifactSha256:
+      "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+    generallyAuthorizesSuccessors: false
   });
 
   assert.deepEqual(contract.cleanRunnerAssetGenerationRepair, {
@@ -1529,6 +1691,21 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   for (const [path, expected] of Object.entries(expectedPreservedObjects)) {
     assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} changed`);
   }
+  assert.deepEqual(
+    contract.preservation.publicWorkerStartupGitObjects,
+    expectedPublicWorkerStartupObjects
+  );
+  for (const [path, expected] of Object.entries(expectedPublicWorkerStartupObjects)) {
+    assert.equal(git(["rev-parse", `HEAD:${path}`]), expected, `${path} startup repair drifted`);
+  }
+  assert.equal(
+    contract.preservation.preStartupWranglerGitObject,
+    "91bf94141dc7a90ebd957ce7747f7ac27cd797dd"
+  );
+  assert.equal(
+    git(["rev-parse", `${contract.baseline.head}:wrangler.prometheusrouteiq-website.jsonc`]),
+    contract.preservation.preStartupWranglerGitObject
+  );
   assert.equal(
     sha256("overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"),
     contract.preservation.previousReadinessSuccessorSha256
@@ -1536,7 +1713,6 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(git([
     "diff", "--name-only", `${contract.baseline.head}..HEAD`, "--",
     "src", "crm", "deploy/prometheusrouteiq-website", "workers/prometheus-iq-worker.js",
-    "wrangler.prometheusrouteiq-website.jsonc",
     "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json"
   ]), "");
   for (const field of [
@@ -1546,6 +1722,9 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
     "generatedDeploymentAssetsModified",
     "previousReadinessSuccessorModified"
   ]) assert.equal(contract.preservation[field], false);
+  assert.equal(contract.preservation.publicWorkerConfigurationModified, true);
+  assert.equal(contract.preservation.publicWorkerEntryAdapterAdded, true);
+  assert.equal(contract.preservation.rollbackContractRegenerated, true);
 
   for (const field of [
     "deploymentPerformed",

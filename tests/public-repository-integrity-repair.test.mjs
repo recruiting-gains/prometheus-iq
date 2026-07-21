@@ -631,6 +631,86 @@ function addWranglerDeploymentDiagnosticRepairSuccessors(ownerFixture) {
   });
 }
 
+function addPublicWorkerStartupRepairSuccessors(ownerFixture) {
+  const intelligenceIdentity = {
+    authorName: "Prometheus Intelligence",
+    authorEmail: "intelligence@prometheus.local"
+  };
+  const infrastructureIdentity = {
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local"
+  };
+  const intelligence = commitFilesFixture(ownerFixture.repository, {
+    ...intelligenceIdentity,
+    subject: "intelligence: synthetic Worker-safe retention loading",
+    changes: [
+      "intelligence/route-iq-prospective-retention-admission.mjs",
+      "tests/route-iq-prospective-retention-intelligence.test.mjs"
+    ].map(path => ({ path, content: `intelligence-startup:${path}\n` }))
+  });
+  const startup = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic public Worker startup gate",
+    changes: [
+      ".github/workflows/deploy-prometheus-public-worker.yml",
+      "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/lib/route-iq-public-forward-rollback.mjs",
+      "scripts/run-public-worker-workerd-startup-preflight.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      "tests/github-actions-public-worker-deployment.test.mjs",
+      "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+      "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+      "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+      "wrangler.prometheusrouteiq-website.jsonc"
+    ].map(path => ({ path, content: `startup-gate:${path}\n` }))
+  });
+  const rollback = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic align public adapter rollback",
+    changes: [
+      "scripts/lib/github-actions-public-worker-deployment.mjs",
+      "scripts/lib/route-iq-public-forward-rollback.mjs",
+      "scripts/verify-github-actions-public-worker-deployment.mjs",
+      "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+    ].map(path => ({ path, content: `rollback-alignment:${path}\n` }))
+  });
+  const admission = commitFilesFixture(ownerFixture.repository, {
+    ...infrastructureIdentity,
+    subject: "infrastructure: synthetic admit public Worker startup repair chain",
+    changes: [
+      "docs/route-iq-public-repository-integrity-repair-v1.md",
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/public-repository-integrity-repair.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ].map(path => ({ path, content: `startup-admission:${path}\n` }))
+  });
+  return Object.freeze({
+    repository: ownerFixture.repository,
+    intelligence,
+    startup,
+    rollback,
+    admission,
+    boundary: Object.freeze({
+      ...ownerFixture.boundary,
+      publicWorkerStartupRepairSuccessors: Object.freeze([
+        intelligence,
+        startup,
+        rollback
+      ]),
+      publicWorkerStartupProvenanceAdmissionSuccessor: Object.freeze({
+        parent: rollback.commit,
+        authorName: infrastructureIdentity.authorName,
+        authorEmail: infrastructureIdentity.authorEmail,
+        committerName: infrastructureIdentity.authorName,
+        committerEmail: infrastructureIdentity.authorEmail,
+        subject: admission.subject,
+        files: admission.files
+      })
+    })
+  });
+}
+
 function createRepository(parent, name = "repository") {
   const repository = join(parent, name);
   mkdirSync(repository);
@@ -1259,6 +1339,103 @@ test("owner boundary admits only the exact Wrangler diagnostic repair and proven
       }
     };
     assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, wrongHash));
+  } finally {
+    rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test("owner boundary admits only the exact public Worker startup repair chain", () => {
+  const fixture = mkdtempSync(join(tmpdir(), "route-iq-owner-boundary-worker-startup-"));
+  try {
+    const accepted = addPublicWorkerStartupRepairSuccessors(
+      addWranglerDeploymentDiagnosticRepairSuccessors(
+        addCloudflareDeploymentReadRepairSuccessors(
+          createOwnerBoundaryRepository(fixture, "accepted")
+        )
+      )
+    );
+    assert.deepEqual(verifyInfrastructureOwnerBoundary(accepted.repository, accepted.boundary), {
+      terminalOwnerCommit: accepted.boundary.infrastructureCommits.at(-1).commit,
+      descendants: 12,
+      repairSeen: true,
+      ciPortabilityRepairSeen: false,
+      dashboardVerificationSeen: false,
+      dashboardProvenanceAdmissionSeen: false,
+      cloudflareDeploymentReadRepairSuccessorsSeen: 2,
+      cloudflareDeploymentReadProvenanceAdmissionSeen: true,
+      wranglerDeploymentDiagnosticRepairSeen: true,
+      wranglerDeploymentDiagnosticProvenanceAdmissionSeen: true,
+      publicWorkerStartupRepairSuccessorsSeen: 3,
+      publicWorkerStartupProvenanceAdmissionSeen: true
+    });
+
+    const wrongIntelligenceOwner = {
+      ...accepted.boundary,
+      publicWorkerStartupRepairSuccessors: [
+        {
+          ...accepted.boundary.publicWorkerStartupRepairSuccessors[0],
+          authorName: "Prometheus Infrastructure"
+        },
+        ...accepted.boundary.publicWorkerStartupRepairSuccessors.slice(1)
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      wrongIntelligenceOwner
+    ));
+
+    const reordered = {
+      ...accepted.boundary,
+      publicWorkerStartupRepairSuccessors: [
+        accepted.boundary.publicWorkerStartupRepairSuccessors[1],
+        accepted.boundary.publicWorkerStartupRepairSuccessors[0],
+        accepted.boundary.publicWorkerStartupRepairSuccessors[2]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, reordered));
+
+    const widenedRepair = {
+      ...accepted.boundary,
+      publicWorkerStartupRepairSuccessors: [
+        accepted.boundary.publicWorkerStartupRepairSuccessors[0],
+        {
+          ...accepted.boundary.publicWorkerStartupRepairSuccessors[1],
+          files: [
+            ...accepted.boundary.publicWorkerStartupRepairSuccessors[1].files,
+            "workers/infrastructure/unapproved-public-entry.mjs"
+          ]
+        },
+        accepted.boundary.publicWorkerStartupRepairSuccessors[2]
+      ]
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(accepted.repository, widenedRepair));
+
+    const widenedAdmission = {
+      ...accepted.boundary,
+      publicWorkerStartupProvenanceAdmissionSuccessor: {
+        ...accepted.boundary.publicWorkerStartupProvenanceAdmissionSuccessor,
+        files: [
+          ...accepted.boundary.publicWorkerStartupProvenanceAdmissionSuccessor.files,
+          "scripts/unapproved-public-startup-admission.mjs"
+        ]
+      }
+    };
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      widenedAdmission
+    ));
+
+    commitFixture(accepted.repository, {
+      path: "scripts/unapproved-public-startup-successor.mjs",
+      content: "export const unapproved = true;\n",
+      subject: "infrastructure: unapproved public startup successor",
+      authorName: "Prometheus Infrastructure",
+      authorEmail: "infrastructure@prometheus.local"
+    });
+    assert.throws(() => verifyInfrastructureOwnerBoundary(
+      accepted.repository,
+      accepted.boundary
+    ));
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }

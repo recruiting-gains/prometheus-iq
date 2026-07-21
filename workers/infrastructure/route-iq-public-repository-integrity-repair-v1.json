@@ -2,7 +2,7 @@
   "version": "route-iq-public-repository-integrity-repair-v1",
   "batchId": "BATCH-20260719-008",
   "owner": "Prometheus Infrastructure",
-  "status": "OWNER_WRANGLER_DEPLOYMENT_DIAGNOSTIC_REPAIR_ADMITTED_NOT_PUSHED_NOT_DEPLOYED",
+  "status": "OWNER_PUBLIC_WORKER_STARTUP_REPAIR_CHAIN_ADMITTED_NOT_PUSHED_NOT_DEPLOYED",
   "ownerFiles": [
     ".github/workflows/deploy-prometheus-public-worker.yml",
     ".github/workflows/verify-prometheus-public-repository-integrity.yml",
@@ -457,6 +457,75 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "publicWorkerStartupRepairSuccessors": [
+      {
+        "commit": "f0593640bae9cb9517d954415ca4980226a51073",
+        "tree": "dd4cf6180eabcf0298ed84d5d07f1de00cadafc4",
+        "parent": "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+        "authorName": "Prometheus Intelligence",
+        "authorEmail": "intelligence@prometheus.local",
+        "committerName": "Prometheus Intelligence",
+        "committerEmail": "intelligence@prometheus.local",
+        "subject": "intelligence: make retention policy loading Worker-safe",
+        "files": [
+          "intelligence/route-iq-prospective-retention-admission.mjs",
+          "tests/route-iq-prospective-retention-intelligence.test.mjs"
+        ]
+      },
+      {
+        "commit": "94061fea1c238ca854bde9d17a860e1375af9c52",
+        "tree": "4a5718a96851a5eaa4e6b3fda7fa5ed6932e4ea5",
+        "parent": "f0593640bae9cb9517d954415ca4980226a51073",
+        "authorName": "Prometheus Infrastructure",
+        "authorEmail": "infrastructure@prometheus.local",
+        "committerName": "Prometheus Infrastructure",
+        "committerEmail": "infrastructure@prometheus.local",
+        "subject": "infrastructure: gate public Worker module startup",
+        "files": [
+          ".github/workflows/deploy-prometheus-public-worker.yml",
+          "docs/github-actions-founder-triggered-public-worker-deployment-v1.md",
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/run-public-worker-workerd-startup-preflight.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "tests/github-actions-public-worker-deployment.test.mjs",
+          "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
+          "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "wrangler.prometheusrouteiq-website.jsonc"
+        ]
+      },
+      {
+        "commit": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+        "tree": "d080d0e7bf39a17cb7a21fe79e1b8c63b0787c25",
+        "parent": "94061fea1c238ca854bde9d17a860e1375af9c52",
+        "authorName": "Prometheus Infrastructure",
+        "authorEmail": "infrastructure@prometheus.local",
+        "committerName": "Prometheus Infrastructure",
+        "committerEmail": "infrastructure@prometheus.local",
+        "subject": "infrastructure: align rollback bundle with public adapter",
+        "files": [
+          "scripts/lib/github-actions-public-worker-deployment.mjs",
+          "scripts/lib/route-iq-public-forward-rollback.mjs",
+          "scripts/verify-github-actions-public-worker-deployment.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json"
+        ]
+      }
+    ],
+    "publicWorkerStartupProvenanceAdmissionSuccessor": {
+      "parent": "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: admit public Worker startup repair chain",
+      "files": [
+        "docs/route-iq-public-repository-integrity-repair-v1.md",
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cloudflareDeploymentReadRepair": {
@@ -495,6 +564,46 @@
     "deploymentPerformedByRepair": false,
     "deploymentAssetsModified": false,
     "rollbackArtifactsModified": false
+  },
+  "publicWorkerStartupRepair": {
+    "batchId": "BATCH-20260720-008",
+    "failedRunId": 29795006056,
+    "verificationJobId": 88524441880,
+    "deploymentJobId": 88525105691,
+    "failedHead": "c0842d5ec44f4797e395e5f9fcb2b2ad720cfe40",
+    "failedTree": "87fc124fe0f1b4fe69d3cf94bbe942c2b3a4ea46",
+    "reportedCloudflareCode": 10021,
+    "predecessorClassification": "MIGRATION_BINDING_CONFIG_REJECTED",
+    "correctedFailureClass": "WORKER_RUNTIME_STARTUP_REJECTED",
+    "rootCauseSequence": [
+      "WORKER_RUNTIME_FILESYSTEM_IMPORT_AT_MODULE_STARTUP",
+      "INVALID_PUBLIC_EXPORT_SURFACE"
+    ],
+    "successorChain": [
+      "f0593640bae9cb9517d954415ca4980226a51073",
+      "94061fea1c238ca854bde9d17a860e1375af9c52",
+      "ce5f66f777fcfd6f59fe2b33eebb05bc836742dc"
+    ],
+    "publicEntryAdapter": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+    "publicEntryExports": [
+      "default",
+      "RouteIqRequestCrmCoordinator"
+    ],
+    "publicWorkerVersionBefore": "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+    "publicWorkerVersionAfter": "a0296f92-4427-4cea-a3e2-9a5e05a4596c",
+    "privateWorkerVersionBefore": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "privateWorkerVersionAfter": "b8cba784-dfd3-4f8e-8356-816cccf6aecc",
+    "publicTrafficBeforePercent": 100,
+    "publicTrafficAfterPercent": 100,
+    "privateTrafficBeforePercent": 100,
+    "privateTrafficAfterPercent": 100,
+    "publicCrmNamespaceCreated": false,
+    "productionMutationOccurred": false,
+    "repairCloudflareContacted": false,
+    "repairDeploymentPerformed": false,
+    "deploymentAssetsModified": false,
+    "rollbackArtifactSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+    "generallyAuthorizesSuccessors": false
   },
   "cleanRunnerAssetGenerationRepair": {
     "batchId": "BATCH-20260720-002",
@@ -620,12 +729,12 @@
     "sourceMapRealpathContainmentRequired": true,
     "genericOwnerVerifierFailureAllowed": false,
     "canonicalRollbackIdentity": {
-      "artifactSha256": "3c1991905657516653ee74ef0ac59f711b21f95df06bf490be5f370479ba7ff7",
+      "artifactSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
       "candidateDeploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
       "websiteAssetsSha256": "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
-      "configurationSha256": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
-      "generatedWorkerSha256": "479e22180aa6c8126163d93c011fb8d9d007fcf662a8d7f20927994e75d1b89d",
-      "generatedSourceMapSha256": "1689e264098aabcda70a4fd8e96e8e590d816acc6e7fd594d40079d5c8737dba"
+      "configurationSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+      "generatedWorkerSha256": "7af82fa06e0b0642efb654c80cf9cb1dd572837188d1f5635b107807fef245c5",
+      "generatedSourceMapSha256": "e76236ffd75d4098f804832b271ec8bcfca07ecf728e538ad3462c931040e7b2"
     }
   },
   "safeCiVerification": {
@@ -853,15 +962,22 @@
       "crm": "85aeb4e16887a0a1b4faf7c0d463173b322db60c",
       "deploy/prometheusrouteiq-website": "5c9a75c75e81770aa4825a911bafc6c005f46d4f",
       "workers/prometheus-iq-worker.js": "c3199013a4685ef0d9df601ff05b0052e1abb99d",
-      "wrangler.prometheusrouteiq-website.jsonc": "91bf94141dc7a90ebd957ce7747f7ac27cd797dd",
       "overwatch/governance/route-iq-revised-3d-release-readiness-successor-v1.json": "98ba4eabf1870282230ac44bbe444acbe9d322c9"
+    },
+    "preStartupWranglerGitObject": "91bf94141dc7a90ebd957ce7747f7ac27cd797dd",
+    "publicWorkerStartupGitObjects": {
+      "wrangler.prometheusrouteiq-website.jsonc": "0ed68f2eb4f04fec784d506bb2232057717420a6",
+      "workers/infrastructure/prometheusrouteiq-website-entry.mjs": "b5c96f6b0436502b79634f9de2f53c421d1d4bb8"
     },
     "previousReadinessSuccessorSha256": "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75",
     "websiteImplementationModified": false,
     "crmImplementationModified": false,
     "dashboardRuntimeModified": false,
     "generatedDeploymentAssetsModified": false,
-    "previousReadinessSuccessorModified": false
+    "previousReadinessSuccessorModified": false,
+    "publicWorkerConfigurationModified": true,
+    "publicWorkerEntryAdapterAdded": true,
+    "rollbackContractRegenerated": true
   },
   "boundaries": {
     "safeNonDeploymentWorkflowDispatched": true,
