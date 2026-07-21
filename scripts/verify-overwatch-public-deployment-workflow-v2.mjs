@@ -27,8 +27,10 @@ const PROVENANCE_REPAIR_SUBJECT = "infrastructure: admit public deployment workf
 const OVERWATCH_IDENTITY = "Prometheus Overwatch <overwatch@prometheus.local>";
 const DEPLOYMENT_ASSET_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
 const UNATTENDED_GOVERNANCE_ID = "cloudflare-unattended-deployment-access-governance-v1";
+const ROUTE_IQ_3D_GOVERNANCE_ID = "route-iq-3d-visual-continuity-v1";
 const PACKAGE_PATH = "package.json";
 const HISTORICAL_PACKAGE_SHA256 = "a150ca1b1121c779415365551efdbff970e458915ba6491716ccbfdd0a111d0d";
+const HISTORICAL_3D_PACKAGE_SHA256 = "f34246136a294d5a7180d76a452ff8c9c69bb7d1d35419c1115426b8ea4e0247";
 const CURRENT_PACKAGE_SHA256 = "8bf7f51f8dbb6310031b6d26736dfe5209b2c74d42e5e56de475592f36bb7b51";
 
 const read = path => readFileSync(resolve(root, path), "utf8");
@@ -101,15 +103,26 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(governance.productContinuity?.deploymentAssetSha256 === DEPLOYMENT_ASSET_SHA256, "Deployment asset identity drifted.");
   require(governance.productContinuity?.approvedWebsiteSourceChanged === false, "Website source changed.");
   require(governance.productContinuity?.crmBehaviorChanged === false, "CRM behavior changed.");
-  require(JSON.stringify(governance.protectedPredecessorSuccessors) === JSON.stringify([{
-    predecessorGovernanceId: UNATTENDED_GOVERNANCE_ID,
-    path: PACKAGE_PATH,
-    historicalSha256: HISTORICAL_PACKAGE_SHA256,
-    successorSha256: CURRENT_PACKAGE_SHA256,
-    owner: "Prometheus Overwatch",
-    ownerCommit: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
-    classification: "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
-  }]), "Protected predecessor successor mapping drifted.");
+  require(JSON.stringify(governance.protectedPredecessorSuccessors) === JSON.stringify([
+    {
+      predecessorGovernanceId: UNATTENDED_GOVERNANCE_ID,
+      path: PACKAGE_PATH,
+      historicalSha256: HISTORICAL_PACKAGE_SHA256,
+      successorSha256: CURRENT_PACKAGE_SHA256,
+      owner: "Prometheus Overwatch",
+      ownerCommit: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
+      classification: "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+    },
+    {
+      predecessorGovernanceId: ROUTE_IQ_3D_GOVERNANCE_ID,
+      path: PACKAGE_PATH,
+      historicalSha256: HISTORICAL_3D_PACKAGE_SHA256,
+      successorSha256: CURRENT_PACKAGE_SHA256,
+      owner: "Prometheus Overwatch",
+      ownerCommit: "ee80a44b8a28847d4a4acfc3fae8574697661edc",
+      classification: "OVERWATCH_RELEASE_GATE_REGISTRATION_ONLY"
+    }
+  ]), "Protected predecessor successor mapping drifted.");
 
   require(ownerContract.owner === "Prometheus Infrastructure", "Infrastructure contract ownership drifted.");
   require(ownerContract.status === "SOURCE_IMPLEMENTED_NOT_QUALIFIED_NOT_DEPLOYED", "Infrastructure status drifted.");

@@ -432,7 +432,7 @@ function verifyPackageReleaseWiring() {
   const publicDeploymentWorkflowV2Governance = readJson(publicDeploymentWorkflowV2GovernancePath);
   const workflowV2Transition =
     publicDeploymentWorkflowV2Governance.protectedPredecessorSuccessors?.find(item => (
-      item.predecessorGovernanceId === "cloudflare-unattended-deployment-access-governance-v1"
+      item.predecessorGovernanceId === "route-iq-3d-visual-continuity-v1"
       && item.path === "package.json"
     ));
   if (responseContractTransition?.successorSha256 !== packageTransition?.previousSha256

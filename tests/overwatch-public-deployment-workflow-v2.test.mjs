@@ -88,4 +88,8 @@ test("paused unattended access accepts only the exact Overwatch package successo
       }
     }).ok, false);
   }
+  assert.equal(sources.governance.protectedPredecessorSuccessors.length, 2);
+  assert.equal(new Set(
+    sources.governance.protectedPredecessorSuccessors.map(item => item.predecessorGovernanceId)
+  ).size, 2);
 });
