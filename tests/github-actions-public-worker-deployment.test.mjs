@@ -23,9 +23,11 @@ import {
   PUBLIC_CLOUDFLARE_READ_PHASE,
   PUBLIC_WRANGLER_FAILURE_REASON,
   PUBLIC_WRANGLER_PHASE,
+  PUBLIC_WORKER_STARTUP_FAILURE_REASON,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
   PublicDeploymentPolicyError,
   assertPublicBindingsCanBePreserved,
+  buildPublicWorkerStartupInvocation,
   buildPublicWranglerInvocation,
   createFounderSettingsSecretFile,
   fetchPublicWorkerState,
@@ -34,6 +36,8 @@ import {
   removeFounderSettingsSecretFile,
   runBoundedPublicWranglerForTest,
   runPublicDeploymentLifecycle,
+  runPublicWorkerWorkerdStartupPreflight,
+  runPublicWorkerWorkerdStartupPreflightForTest,
   scrubPublicDeploymentCredentials,
   takePublicDeploymentCredentials,
   validatePublicFounderDeploymentInputs,
@@ -234,6 +238,20 @@ function sha256Path(path) {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
 }
 
+function createWorkerdFixture(source, { compatibilityFlags = [] } = {}) {
+  const fixtureRoot = mkdtempSync(join(tmpdir(), "route-iq-public-workerd-fixture-"));
+  symlinkSync(resolve(root, "node_modules"), join(fixtureRoot, "node_modules"), "dir");
+  writeFileSync(join(fixtureRoot, "worker.mjs"), source, "utf8");
+  writeFileSync(join(fixtureRoot, "wrangler.jsonc"), `${JSON.stringify({
+    name: "route-iq-public-workerd-fixture",
+    main: "worker.mjs",
+    compatibility_date: "2026-07-01",
+    compatibility_flags: compatibilityFlags,
+    workers_dev: false
+  }, null, 2)}\n`, "utf8");
+  return fixtureRoot;
+}
+
 test("Founder dispatch requires every exact no-secret input and rejects reruns or another actor", () => {
   const inputs = validatePublicFounderDeploymentInputs(validEnvironment());
   assert.equal(inputs.approvedCommit, approvedCommit);
@@ -267,10 +285,123 @@ test("both clean-runner jobs build public assets before the first no-secret rele
   for (const [name, job] of jobs) {
     const install = job.indexOf("run: npm ci");
     const build = job.indexOf("run: npm run build");
+    const startup = job.indexOf("run: node scripts/run-public-worker-workerd-startup-preflight.mjs");
     const verify = job.indexOf("run: node scripts/run-github-actions-public-worker-deployment.mjs verify");
     assert.ok(install >= 0 && install < build, `${name} must build after npm ci`);
-    assert.ok(build < verify, `${name} must build before no-secret verification`);
+    assert.ok(build < startup, `${name} must build before local Workerd startup`);
+    assert.ok(startup < verify, `${name} must start Workerd before no-secret verification`);
     assert.equal([...job.matchAll(/^\s*run: npm run build$/gmu)].length, 1);
+    assert.equal(
+      [...job.matchAll(/^\s*run: node scripts\/run-public-worker-workerd-startup-preflight\.mjs$/gmu)].length,
+      1
+    );
+  }
+});
+
+test("public config exposes only the narrow adapter and the configured Worker passes local Workerd HEAD", async () => {
+  const config = JSON.parse(readFileSync(join(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig), "utf8"));
+  assert.equal(config.main, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
+  const adapter = readFileSync(join(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint), "utf8");
+  assert.match(adapter, /import worker, \{\s*RouteIqRequestCrmCoordinator\s*\}/u);
+  assert.match(adapter, /export \{ RouteIqRequestCrmCoordinator \};/u);
+  assert.match(adapter, /export default worker;/u);
+  assert.doesNotMatch(adapter, /CALLBACK_PATH|RouteIqProspectiveShadowCoordinator/u);
+
+  const result = await runPublicWorkerWorkerdStartupPreflight({ root });
+  assert.equal(result.status, "PUBLIC_WORKER_WORKERD_STARTUP_PREFLIGHT_PASSED");
+});
+
+test("local Workerd preflight is local-only, no-secret, one-child, and requires loopback HEAD 200", async () => {
+  const fixture = wranglerSpawnFixture({
+    stdout: ["[wrangler:info] Ready on http://127.0.0.1:43210\n"],
+    neverClose: true
+  });
+  let invocation;
+  let options;
+  let probes = 0;
+  const result = await runPublicWorkerWorkerdStartupPreflightForTest({
+    root,
+    configPath: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+    spawnImpl(command, args, spawnOptions) {
+      invocation = [command, ...args];
+      options = { ...spawnOptions, env: { ...spawnOptions.env } };
+      return fixture.spawnImpl();
+    },
+    probeImpl: async port => {
+      probes += 1;
+      assert.equal(port, 43210);
+    },
+    timeoutMs: 100,
+    outputByteLimit: 4096
+  });
+  assert.equal(result.status, "PUBLIC_WORKER_WORKERD_STARTUP_PREFLIGHT_PASSED");
+  assert.equal(fixture.calls, 1);
+  assert.equal(probes, 1);
+  assert.deepEqual(fixture.killSignals, ["SIGTERM"]);
+  assert.deepEqual(invocation, [
+    process.execPath,
+    ...buildPublicWorkerStartupInvocation(
+      PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+      invocation[invocation.indexOf("--persist-to") + 1]
+    )
+  ]);
+  assert.ok(invocation.includes("--local"));
+  assert.ok(invocation.includes("--latest=false"));
+  assert.equal(invocation.includes("--remote"), false);
+  assert.equal(invocation.includes("--tunnel"), false);
+  assert.equal(options.env.CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV, "false");
+  assert.equal(Object.hasOwn(options.env, "CLOUDFLARE_API_TOKEN"), false);
+  assert.equal(Object.hasOwn(options.env, "CLOUDFLARE_ACCOUNT_ID"), false);
+  assert.deepEqual(options.stdio, ["ignore", "pipe", "pipe"]);
+});
+
+test("local Workerd preflight rejects the observed CALLBACK_PATH export surface before Cloudflare", async () => {
+  const fixtureRoot = createWorkerdFixture(`
+export const CALLBACK_PATH = "/api/oauth/callback";
+export default { fetch() { return new Response("healthy handler"); } };
+`);
+  try {
+    await assert.rejects(
+      runPublicWorkerWorkerdStartupPreflightForTest({
+        root: fixtureRoot,
+        configPath: "wrangler.jsonc",
+        timeoutMs: 10_000,
+        outputByteLimit: 64 * 1024
+      }),
+      error => error instanceof PublicDeploymentPolicyError
+        && error.code === PUBLIC_DEPLOYMENT_FAILURE.WORKER_STARTUP_FAILED
+        && error.diagnostics.includes("WORKER_STARTUP_PHASE=LOCAL_WORKERD")
+        && error.diagnostics.includes(
+          `WORKER_STARTUP_FAILURE_REASON=${PUBLIC_WORKER_STARTUP_FAILURE_REASON.EXPORT_SURFACE_REJECTED}`
+        )
+    );
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+});
+
+test("local Workerd preflight rejects the original fileURLToPath import-meta startup failure", async () => {
+  const fixtureRoot = createWorkerdFixture(`
+import { fileURLToPath } from "node:url";
+export const MODULE_PATH = fileURLToPath(import.meta.url);
+export default { fetch() { return new Response("unreachable"); } };
+`, { compatibilityFlags: ["nodejs_compat"] });
+  try {
+    await assert.rejects(
+      runPublicWorkerWorkerdStartupPreflightForTest({
+        root: fixtureRoot,
+        configPath: "wrangler.jsonc",
+        timeoutMs: 10_000,
+        outputByteLimit: 64 * 1024
+      }),
+      error => error instanceof PublicDeploymentPolicyError
+        && error.code === PUBLIC_DEPLOYMENT_FAILURE.WORKER_STARTUP_FAILED
+        && error.diagnostics.includes(
+          `WORKER_STARTUP_FAILURE_REASON=${PUBLIC_WORKER_STARTUP_FAILURE_REASON.MODULE_STARTUP_REJECTED}`
+        )
+    );
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });
 
@@ -446,8 +577,12 @@ test("Wrangler nonzero exits emit only deterministic fixed phase and reason diag
       output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}/versions) failed. ${syntheticWranglerSecrets.providerBody}`
     },
     {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.WORKER_RUNTIME_STARTUP_REJECTED,
+      output: `The Workers runtime failed to start. service core:user:${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}: Uncaught TypeError: synthetic startup rejection [code: 10021] ${syntheticWranglerSecrets.providerBody}`
+    },
+    {
       expected: PUBLIC_WRANGLER_FAILURE_REASON.MIGRATION_BINDING_CONFIG_REJECTED,
-      output: `Cannot apply new_sqlite_classes migration to existing class Example. ${syntheticWranglerSecrets.contentHash}`
+      output: `Cannot apply new_sqlite_classes migration to existing class Example. [code: 10021] ${syntheticWranglerSecrets.contentHash}`
     },
     {
       expected: PUBLIC_WRANGLER_FAILURE_REASON.AUTHORIZATION_DENIED,
@@ -464,6 +599,14 @@ test("Wrangler nonzero exits emit only deterministic fixed phase and reason diag
     {
       expected: PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT,
       output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/unrelated-worker/versions) failed. ${syntheticWranglerSecrets.providerBody}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.WORKER_VERSION_UPLOAD_REJECTED,
+      output: `A request to the Cloudflare API (/accounts/${syntheticWranglerSecrets.accountId}/workers/scripts/${PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker}/versions) failed. [code: 10021] ${syntheticWranglerSecrets.providerBody}`
+    },
+    {
+      expected: PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT,
+      output: `Unspecified Cloudflare rejection [code: 10021] ${syntheticWranglerSecrets.providerBody}`
     }
   ];
   for (const fixtureCase of cases) {
@@ -882,6 +1025,8 @@ test("static owner gates and forward rollback artifact are deterministic", () =>
   assert.equal(first.candidateWebsiteCommit, "7a66490704ca5a7f4d3a6b720ae9c498e2f1676b");
   assert.equal(first.candidateWebsiteTree, "b3bff85693bcaa1f23f97d9c31e3607b59e8f8a7");
   assert.equal(first.candidateDeploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+  assert.equal(first.publicEntrypoint, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
+  assert.deepEqual(first.publicEntrypointExports, ["default", "RouteIqRequestCrmCoordinator"]);
   assert.equal(first.generatedWorkerSha256, second.generatedWorkerSha256);
   assert.equal(first.generatedSourceMapSha256, second.generatedSourceMapSha256);
 });
@@ -970,6 +1115,29 @@ test("rollback identity ignores unrelated governance commits and detects runtime
       repository,
       [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
       "test: pin rollback config drift"
+    );
+    assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
+
+    fixtureGit(repository, ["switch", "--quiet", "-c", "entrypoint-drift", stableCommit]);
+    const entrypointPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint;
+    const entrypointAbsolute = join(repository, entrypointPath);
+    writeFileSync(
+      entrypointAbsolute,
+      `${readFileSync(entrypointAbsolute, "utf8")}\n// synthetic rollback drift\n`,
+      "utf8"
+    );
+    commitFixture(repository, [entrypointPath], "test: drift public entrypoint without contract update");
+    assert.throws(
+      () => verifyPublicForwardRollbackArtifact(repository),
+      error => error instanceof PublicDeploymentPolicyError && error.code === PUBLIC_DEPLOYMENT_FAILURE.ROLLBACK_INVALID
+    );
+    updateRollbackContract(repository, contract => {
+      contract.candidateStatefulFiles[entrypointPath] = sha256Path(entrypointAbsolute);
+    });
+    commitFixture(
+      repository,
+      [PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath],
+      "test: pin public entrypoint drift"
     );
     assert.notEqual(verifyPublicForwardRollbackArtifact(repository).artifactSha256, baseline.artifactSha256);
 

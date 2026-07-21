@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { request as httpRequest } from "node:http";
 import {
   chmodSync,
   closeSync,
@@ -39,6 +40,7 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   publicWorker: "prometheusrouteiq-website",
   privateWorker: "prometheus-iq",
   publicConfig: "wrangler.prometheusrouteiq-website.jsonc",
+  publicEntrypoint: "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
   privateConfig: "wrangler.jsonc",
   contractPath: "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
   accessContractPath: "workers/infrastructure/route-iq-public-crm-founder-access-v1.json",
@@ -55,6 +57,8 @@ export const PUBLIC_WORKER_DEPLOYMENT_POLICY = Object.freeze({
   commandOutputByteLimit: 128 * 1024,
   requestTimeoutMs: 30_000,
   testRequestTimeoutMaximumMs: 1_000,
+  startupTimeoutMs: 30_000,
+  startupOutputByteLimit: 64 * 1024,
   dryRunTimeoutMs: 240_000,
   deployTimeoutMs: 300_000
 });
@@ -83,6 +87,7 @@ export const PUBLIC_DEPLOYMENT_FAILURE = Object.freeze({
   CURRENT_PRIVATE_VERSION_MISMATCH: "CURRENT_PRIVATE_VERSION_MISMATCH",
   TRAFFIC_SPLIT: "TRAFFIC_SPLIT",
   CONCURRENT_DEPLOYMENT_DETECTED: "CONCURRENT_DEPLOYMENT_DETECTED",
+  WORKER_STARTUP_FAILED: "WORKER_STARTUP_FAILED",
   DRY_RUN_FAILED: "DRY_RUN_FAILED",
   DEPLOY_FAILED: "DEPLOY_FAILED",
   POST_DEPLOY_VERSION_MISMATCH: "POST_DEPLOY_VERSION_MISMATCH",
@@ -112,9 +117,21 @@ export const PUBLIC_WRANGLER_FAILURE_REASON = Object.freeze({
   ASSET_UPLOAD_FAILED: "ASSET_UPLOAD_FAILED",
   ASSET_COMPLETION_MISSING: "ASSET_COMPLETION_MISSING",
   WORKER_VERSION_UPLOAD_REJECTED: "WORKER_VERSION_UPLOAD_REJECTED",
+  WORKER_RUNTIME_STARTUP_REJECTED: "WORKER_RUNTIME_STARTUP_REJECTED",
   MIGRATION_BINDING_CONFIG_REJECTED: "MIGRATION_BINDING_CONFIG_REJECTED",
   AUTHORIZATION_DENIED: "AUTHORIZATION_DENIED",
   NETWORK_UNCERTAIN: "NETWORK_UNCERTAIN",
+  UNKNOWN_NONZERO_EXIT: "UNKNOWN_NONZERO_EXIT"
+});
+
+export const PUBLIC_WORKER_STARTUP_FAILURE_REASON = Object.freeze({
+  SPAWN_FAILED: "SPAWN_FAILED",
+  TIMEOUT: "TIMEOUT",
+  OUTPUT_OVERFLOW: "OUTPUT_OVERFLOW",
+  TERMINATED_BEFORE_READY: "TERMINATED_BEFORE_READY",
+  EXPORT_SURFACE_REJECTED: "EXPORT_SURFACE_REJECTED",
+  MODULE_STARTUP_REJECTED: "MODULE_STARTUP_REJECTED",
+  LOOPBACK_HEAD_REJECTED: "LOOPBACK_HEAD_REJECTED",
   UNKNOWN_NONZERO_EXIT: "UNKNOWN_NONZERO_EXIT"
 });
 
@@ -131,6 +148,25 @@ const GIT_TIMEOUT_MS = 30_000;
 const SAFE_DIAGNOSTIC = /^[A-Z][A-Z0-9_]*(?:=[A-Z0-9_,.-]+)?$/u;
 const CLOUDFLARE_READ_PHASES = new Set(Object.values(PUBLIC_CLOUDFLARE_READ_PHASE));
 const WRANGLER_FAILURE_REASONS = new Set(Object.values(PUBLIC_WRANGLER_FAILURE_REASON));
+const WORKER_STARTUP_FAILURE_REASONS = new Set(Object.values(PUBLIC_WORKER_STARTUP_FAILURE_REASON));
+const WORKER_STARTUP_READY_PATTERN = "ready on http://127.0.0.1:";
+const PUBLIC_WORKER_ENTRYPOINT_SOURCE = `import worker, {
+  RouteIqRequestCrmCoordinator
+} from "../prometheus-iq-worker.js";
+
+export { RouteIqRequestCrmCoordinator };
+export default worker;
+`;
+const WORKER_STARTUP_OUTPUT_PATTERNS = Object.freeze({
+  exportSurface: Object.freeze([
+    "incorrect type for map entry '",
+    "not of type 'function or exportedhandler'"
+  ]),
+  moduleStartup: Object.freeze([
+    "the workers runtime failed to start.",
+    "service core:user:"
+  ])
+});
 const WRANGLER_OUTPUT_PATTERNS = Object.freeze({
   authorization: Object.freeze([
     "no api token found.",
@@ -162,6 +198,10 @@ const WRANGLER_OUTPUT_PATTERNS = Object.freeze({
     "/workers/assets/upload?base64=true) failed.",
     "a file was requested that does not appear to exist."
   ]),
+  workerStartup: Object.freeze([
+    "the workers runtime failed to start.",
+    "script startup exceeded cpu time limit"
+  ]),
   migrationBindingConfig: Object.freeze([
     "cannot apply deleted_classes migration to non-existent class",
     "cannot apply renamed_classes migration to non-existent class",
@@ -171,8 +211,7 @@ const WRANGLER_OUTPUT_PATTERNS = Object.freeze({
     "a durable object binding references a class declared in `exports` but not yet provisioned.",
     "binding db of type d1 must have a valid `id` specified",
     "you must use a real database in the database_id configuration.",
-    "cannot use assets with a binding in an assets-only worker.",
-    "[code: 10021]"
+    "cannot use assets with a binding in an assets-only worker."
   ])
 });
 const GIT_FSCK_ARGUMENTS = Object.freeze([
@@ -590,6 +629,9 @@ export function verifyPublicForwardRollbackContract(root) {
     || contract.candidateWebsiteCommit === contract.sourceWebsiteCommit
     || contract.candidateWebsiteTree === contract.sourceWebsiteTree
     || contract.websiteAssetPath !== "deploy/prometheusrouteiq-website"
+    || contract.statefulCompatibility?.publicEntrypoint !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
+    || JSON.stringify(contract.statefulCompatibility?.publicEntrypointExports)
+      !== JSON.stringify(["default", PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass])
     || contract.statefulCompatibility?.durableObjectBinding !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmBinding
     || contract.statefulCompatibility?.durableObjectClass !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmClass
     || contract.statefulCompatibility?.migrationTag !== PUBLIC_WORKER_DEPLOYMENT_POLICY.crmMigration
@@ -643,12 +685,36 @@ export function verifyPublicForwardRollbackContract(root) {
   return Object.freeze(contract);
 }
 
+export function verifyPublicWorkerStartupBoundary(root) {
+  let publicConfig;
+  let publicEntrypoint;
+  try {
+    publicConfig = parseJsonc(readRegularFile(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig));
+    publicEntrypoint = readRegularFile(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
+  } catch {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  if (publicConfig?.name !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker
+    || publicConfig?.main !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
+    || publicConfig?.workers_dev !== false
+    || publicConfig?.preview_urls !== false
+    || publicEntrypoint !== PUBLIC_WORKER_ENTRYPOINT_SOURCE) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return Object.freeze({
+    config: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+    entrypoint: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
+  });
+}
+
 export function verifyPublicStaticDeploymentPolicy(root) {
   let publicConfig;
   let privateConfig;
+  let publicEntrypoint;
   try {
     publicConfig = parseJsonc(readRegularFile(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig));
     privateConfig = parseJsonc(readRegularFile(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.privateConfig));
+    publicEntrypoint = readRegularFile(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
   } catch {
     fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
   }
@@ -659,7 +725,8 @@ export function verifyPublicStaticDeploymentPolicy(root) {
   const bindings = publicConfig?.durable_objects?.bindings;
   const migrations = publicConfig?.migrations;
   if (publicConfig?.name !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicWorker
-    || publicConfig?.main !== "workers/prometheus-iq-worker.js"
+    || publicConfig?.main !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
+    || publicEntrypoint !== PUBLIC_WORKER_ENTRYPOINT_SOURCE
     || publicConfig?.assets?.directory !== "./deploy/prometheusrouteiq-website"
     || JSON.stringify(publicConfig?.assets?.run_worker_first) !== JSON.stringify(["/api/*"])
     || !Array.isArray(bindings)
@@ -721,6 +788,32 @@ export function verifyPublicStaticDeploymentPolicy(root) {
     || deployment.wranglerFailureDiagnostics?.overflowKillsChild !== true
     || deployment.wranglerFailureDiagnostics?.ambiguousOutputReason
       !== PUBLIC_WRANGLER_FAILURE_REASON.UNKNOWN_NONZERO_EXIT
+    || deployment.workerdStartupPreflight?.contractVersion
+      !== "public-worker-local-workerd-startup-preflight-v1"
+    || deployment.workerdStartupPreflight?.command
+      !== "node scripts/run-public-worker-workerd-startup-preflight.mjs"
+    || deployment.workerdStartupPreflight?.config !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig
+    || deployment.workerdStartupPreflight?.entrypoint !== PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint
+    || JSON.stringify(deployment.workerdStartupPreflight?.jobs)
+      !== JSON.stringify(["verification", "deploy"])
+    || deployment.workerdStartupPreflight?.beforeAnyCloudflareRequest !== true
+    || deployment.workerdStartupPreflight?.localOnly !== true
+    || deployment.workerdStartupPreflight?.externalNetworkAllowed !== false
+    || deployment.workerdStartupPreflight?.devVarsLoadingAllowed !== false
+    || deployment.workerdStartupPreflight?.credentialsAllowed !== false
+    || deployment.workerdStartupPreflight?.loopbackMethod !== "HEAD"
+    || deployment.workerdStartupPreflight?.loopbackPath !== "/"
+    || deployment.workerdStartupPreflight?.requiredStatus !== 200
+    || deployment.workerdStartupPreflight?.oneChildInvocation !== true
+    || deployment.workerdStartupPreflight?.automaticRetryAllowed !== false
+    || deployment.workerdStartupPreflight?.timeoutMs
+      !== PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs
+    || deployment.workerdStartupPreflight?.outputByteLimit
+      !== PUBLIC_WORKER_DEPLOYMENT_POLICY.startupOutputByteLimit
+    || deployment.workerdStartupPreflight?.rawChildOutputAllowed !== false
+    || deployment.workerdStartupPreflight?.capturedOutputZeroized !== true
+    || JSON.stringify(deployment.workerdStartupPreflight?.failureReasons)
+      !== JSON.stringify(Object.values(PUBLIC_WORKER_STARTUP_FAILURE_REASON))
     || deployment.wranglerDeploymentFailureEvidence?.batchId !== "BATCH-20260720-007"
     || deployment.wranglerDeploymentFailureEvidence?.runId !== 29786701514
     || deployment.wranglerDeploymentFailureEvidence?.verificationPassed !== true
@@ -1163,6 +1256,7 @@ function childEnvironment(credentials) {
     CI: "true",
     NO_COLOR: "1",
     WRANGLER_SEND_METRICS: "false",
+    CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
     [CREDENTIAL_NAMES.apiToken]: credentials.apiToken,
     [CREDENTIAL_NAMES.accountId]: credentials.accountId
   };
@@ -1200,6 +1294,273 @@ function outputIncludesAny(output, patterns) {
   return patterns.some(pattern => outputIncludes(output, pattern));
 }
 
+function publicWorkerStartupDiagnostics(reason) {
+  if (!WORKER_STARTUP_FAILURE_REASONS.has(reason)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return Object.freeze([
+    "WORKER_STARTUP_PHASE=LOCAL_WORKERD",
+    `WORKER_STARTUP_FAILURE_REASON=${reason}`
+  ]);
+}
+
+function startupChildEnvironment(temporaryRoot) {
+  const environment = {
+    CI: "true",
+    NO_COLOR: "1",
+    WRANGLER_SEND_METRICS: "false",
+    CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: "false",
+    HOME: temporaryRoot,
+    TMPDIR: temporaryRoot,
+    XDG_CONFIG_HOME: temporaryRoot
+  };
+  if (boundedString(process.env.PATH)) environment.PATH = process.env.PATH;
+  return environment;
+}
+
+export function buildPublicWorkerStartupInvocation(configPath, persistencePath) {
+  if (!boundedString(configPath) || !boundedString(persistencePath)) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return Object.freeze([
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.wranglerModule,
+    "dev",
+    "--config",
+    configPath,
+    "--local",
+    "--ip",
+    "127.0.0.1",
+    "--port",
+    "0",
+    "--inspector-ip",
+    "127.0.0.1",
+    "--inspector-port",
+    "0",
+    "--persist-to",
+    persistencePath,
+    "--show-interactive-dev-session=false",
+    "--log-level",
+    "info",
+    "--latest=false"
+  ]);
+}
+
+function foldedOutput(buffers) {
+  const output = Buffer.concat(buffers);
+  const folded = Buffer.alloc(output.length);
+  for (let index = 0; index < output.length; index += 1) {
+    folded[index] = asciiFold(output[index]);
+  }
+  output.fill(0);
+  return folded;
+}
+
+function publicWorkerStartupPort(buffers) {
+  const folded = foldedOutput(buffers);
+  try {
+    const marker = Buffer.from(WORKER_STARTUP_READY_PATTERN, "ascii");
+    const markerIndex = folded.indexOf(marker);
+    marker.fill(0);
+    if (markerIndex < 0) return null;
+    let port = 0;
+    let digits = 0;
+    for (let index = markerIndex + WORKER_STARTUP_READY_PATTERN.length;
+      index < folded.length && digits < 5;
+      index += 1) {
+      const byte = folded[index];
+      if (byte < 48 || byte > 57) break;
+      port = (port * 10) + (byte - 48);
+      digits += 1;
+    }
+    return digits > 0 && port > 0 && port <= 65_535 ? port : null;
+  } finally {
+    folded.fill(0);
+  }
+}
+
+function probePublicWorkerLoopbackHead(port) {
+  return new Promise((resolveProbe, rejectProbe) => {
+    const request = httpRequest({
+      host: "127.0.0.1",
+      port,
+      path: "/",
+      method: "HEAD",
+      timeout: 5_000,
+      headers: { Connection: "close" }
+    }, response => {
+      const accepted = response.statusCode === 200;
+      response.resume();
+      response.once("end", () => accepted ? resolveProbe() : rejectProbe(new Error("STATUS_REJECTED")));
+    });
+    request.once("timeout", () => request.destroy(new Error("TIMEOUT")));
+    request.once("error", rejectProbe);
+    request.end();
+  });
+}
+
+function classifyPublicWorkerStartupOutput(buffers) {
+  const folded = foldedOutput(buffers);
+  try {
+    if (WORKER_STARTUP_OUTPUT_PATTERNS.exportSurface.every(pattern => outputIncludes(folded, pattern))) {
+      return PUBLIC_WORKER_STARTUP_FAILURE_REASON.EXPORT_SURFACE_REJECTED;
+    }
+    if (outputIncludesAny(folded, WORKER_STARTUP_OUTPUT_PATTERNS.moduleStartup)
+      || (outputIncludes(folded, "service core:user:") && outputIncludes(folded, "uncaught "))) {
+      return PUBLIC_WORKER_STARTUP_FAILURE_REASON.MODULE_STARTUP_REJECTED;
+    }
+    return PUBLIC_WORKER_STARTUP_FAILURE_REASON.UNKNOWN_NONZERO_EXIT;
+  } finally {
+    folded.fill(0);
+  }
+}
+
+async function runBoundedPublicWorkerStartupWithLimits({
+  root,
+  configPath,
+  spawnImpl,
+  probeImpl,
+  timeoutMs,
+  outputByteLimit
+}) {
+  const temporaryRoot = mkdtempSync(join(tmpdir(), "prometheus-public-workerd-preflight-"));
+  const persistencePath = join(temporaryRoot, "state");
+  const environment = startupChildEnvironment(temporaryRoot);
+  const buffers = [];
+  let outputBytes = 0;
+  let child;
+  let timedOut = false;
+  let overflow = false;
+  let ready = false;
+  let probePassed = false;
+  let probeFailed = false;
+  let probePromise;
+  try {
+    try {
+      child = spawnImpl(
+        process.execPath,
+        buildPublicWorkerStartupInvocation(configPath, persistencePath),
+        {
+          cwd: root,
+          env: environment,
+          stdio: ["ignore", "pipe", "pipe"]
+        }
+      );
+    } catch {
+      fail(
+        PUBLIC_DEPLOYMENT_FAILURE.WORKER_STARTUP_FAILED,
+        publicWorkerStartupDiagnostics(PUBLIC_WORKER_STARTUP_FAILURE_REASON.SPAWN_FAILED)
+      );
+    }
+    if (!child?.stdout
+      || !child?.stderr
+      || typeof child.stdout.on !== "function"
+      || typeof child.stderr.on !== "function"
+      || typeof child.once !== "function"
+      || typeof child.kill !== "function") {
+      fail(
+        PUBLIC_DEPLOYMENT_FAILURE.WORKER_STARTUP_FAILED,
+        publicWorkerStartupDiagnostics(PUBLIC_WORKER_STARTUP_FAILURE_REASON.SPAWN_FAILED)
+      );
+    }
+    const capture = chunk => {
+      const copy = Buffer.from(chunk);
+      outputBytes += copy.length;
+      if (outputBytes > outputByteLimit) {
+        overflow = true;
+        copy.fill(0);
+        child.kill("SIGKILL");
+        return;
+      }
+      buffers.push(copy);
+      const port = ready ? null : publicWorkerStartupPort(buffers);
+      if (port !== null) {
+        ready = true;
+        probePromise = Promise.resolve()
+          .then(() => probeImpl(port))
+          .then(() => { probePassed = true; })
+          .catch(() => { probeFailed = true; })
+          .finally(() => child.kill("SIGTERM"));
+      }
+    };
+    child.stdout.on("data", capture);
+    child.stderr.on("data", capture);
+    const result = await new Promise(resolveResult => {
+      const timer = setTimeout(() => {
+        timedOut = true;
+        child.kill("SIGTERM");
+        setTimeout(() => child.kill("SIGKILL"), 1_000).unref();
+      }, timeoutMs);
+      child.once("error", () => {
+        clearTimeout(timer);
+        resolveResult({ failed: true });
+      });
+      child.once("close", (exitCode, signal) => {
+        clearTimeout(timer);
+        resolveResult({ exitCode, signal });
+      });
+    });
+    if (probePromise) await probePromise;
+    if (ready && probePassed && !timedOut && !overflow) {
+      return Object.freeze({ status: "PUBLIC_WORKER_WORKERD_STARTUP_PREFLIGHT_PASSED" });
+    }
+    let reason;
+    if (timedOut) reason = PUBLIC_WORKER_STARTUP_FAILURE_REASON.TIMEOUT;
+    else if (overflow) reason = PUBLIC_WORKER_STARTUP_FAILURE_REASON.OUTPUT_OVERFLOW;
+    else if (result.failed) reason = PUBLIC_WORKER_STARTUP_FAILURE_REASON.SPAWN_FAILED;
+    else if (probeFailed) reason = PUBLIC_WORKER_STARTUP_FAILURE_REASON.LOOPBACK_HEAD_REJECTED;
+    else if (result.signal || result.exitCode === 0) {
+      reason = PUBLIC_WORKER_STARTUP_FAILURE_REASON.TERMINATED_BEFORE_READY;
+    } else {
+      reason = classifyPublicWorkerStartupOutput(buffers);
+    }
+    fail(PUBLIC_DEPLOYMENT_FAILURE.WORKER_STARTUP_FAILED, publicWorkerStartupDiagnostics(reason));
+  } finally {
+    for (const buffer of buffers) buffer.fill(0);
+    for (const key of Object.keys(environment)) environment[key] = "";
+    rmSync(temporaryRoot, { recursive: true, force: true });
+  }
+}
+
+export async function runPublicWorkerWorkerdStartupPreflight({
+  root,
+  spawnImpl = spawn
+}) {
+  return runBoundedPublicWorkerStartupWithLimits({
+    root,
+    configPath: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+    spawnImpl,
+    probeImpl: probePublicWorkerLoopbackHead,
+    timeoutMs: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs,
+    outputByteLimit: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupOutputByteLimit
+  });
+}
+
+export async function runPublicWorkerWorkerdStartupPreflightForTest({
+  root,
+  configPath,
+  spawnImpl = spawn,
+  probeImpl = probePublicWorkerLoopbackHead,
+  timeoutMs,
+  outputByteLimit
+}) {
+  if (!Number.isSafeInteger(timeoutMs)
+    || timeoutMs < 1
+    || timeoutMs > PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs
+    || !Number.isSafeInteger(outputByteLimit)
+    || outputByteLimit < 1
+    || outputByteLimit > PUBLIC_WORKER_DEPLOYMENT_POLICY.startupOutputByteLimit) {
+    fail(PUBLIC_DEPLOYMENT_FAILURE.CONFIG_INVALID);
+  }
+  return runBoundedPublicWorkerStartupWithLimits({
+    root,
+    configPath,
+    spawnImpl,
+    probeImpl,
+    timeoutMs,
+    outputByteLimit
+  });
+}
+
 function classifyPublicWranglerOutput(buffers) {
   const output = Buffer.concat(buffers);
   const folded = Buffer.alloc(output.length);
@@ -1221,6 +1582,11 @@ function classifyPublicWranglerOutput(buffers) {
     }
     if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.assetUpload)) {
       return PUBLIC_WRANGLER_FAILURE_REASON.ASSET_UPLOAD_FAILED;
+    }
+    if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.workerStartup)
+      || (outputIncludes(folded, "service core:user:")
+        && outputIncludes(folded, "uncaught "))) {
+      return PUBLIC_WRANGLER_FAILURE_REASON.WORKER_RUNTIME_STARTUP_REJECTED;
     }
     if (outputIncludesAny(folded, WRANGLER_OUTPUT_PATTERNS.migrationBindingConfig)
       || (outputIncludes(folded, "inherit binding '") && outputIncludes(folded, "' is invalid"))) {

@@ -7,7 +7,9 @@ import { resolve } from "node:path";
 import {
   PUBLIC_WRANGLER_FAILURE_REASON,
   PUBLIC_WRANGLER_PHASE,
+  PUBLIC_WORKER_STARTUP_FAILURE_REASON,
   PUBLIC_WORKER_DEPLOYMENT_POLICY,
+  buildPublicWorkerStartupInvocation,
   buildPublicWranglerInvocation,
   verifyPublicStaticDeploymentPolicy,
   verifyPublicWranglerPin
@@ -26,12 +28,14 @@ const paths = Object.freeze([
   PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath,
   "scripts/lib/github-actions-public-worker-deployment.mjs",
   "scripts/lib/route-iq-public-forward-rollback.mjs",
+  "scripts/run-public-worker-workerd-startup-preflight.mjs",
   "scripts/run-github-actions-public-worker-deployment.mjs",
   "scripts/run-public-worker-repository-integrity-diagnostic.mjs",
   "scripts/run-cloudflare-public-worker-smoke.mjs",
   "scripts/verify-route-iq-public-forward-rollback.mjs",
   "scripts/verify-route-iq-public-deployment-assets.mjs",
   "tests/github-actions-public-worker-deployment.test.mjs",
+  PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint,
   "docs/github-actions-founder-triggered-public-worker-deployment-v1.md"
 ]);
 
@@ -54,13 +58,20 @@ function count(source, pattern) {
 function assertGeneratedAssetsPrecedeVerification(job, jobName) {
   const install = job.indexOf("run: npm ci");
   const build = job.indexOf("run: npm run build");
+  const startup = job.indexOf("run: node scripts/run-public-worker-workerd-startup-preflight.mjs");
   const verification = job.indexOf(
     "run: node scripts/run-github-actions-public-worker-deployment.mjs verify"
   );
   assert.ok(install >= 0, `${jobName} dependency installation is missing`);
   assert.ok(build > install, `${jobName} public asset generation must follow npm ci`);
-  assert.ok(verification > build, `${jobName} public assets must exist before no-secret verification`);
+  assert.ok(startup > build, `${jobName} local Workerd startup must follow public asset generation`);
+  assert.ok(verification > startup, `${jobName} local Workerd startup must precede no-secret verification`);
   assert.equal(count(job, /^\s*run: npm run build$/gmu), 1, `${jobName} must generate assets exactly once`);
+  assert.equal(
+    count(job, /^\s*run: node scripts\/run-public-worker-workerd-startup-preflight\.mjs$/gmu),
+    1,
+    `${jobName} must start the configured public Worker exactly once`
+  );
 }
 
 export function verifyGithubActionsPublicWorkerDeployment() {
@@ -71,6 +82,7 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   const deploy = workflow.slice(workflow.indexOf("  deploy:\n"));
   const library = read("scripts/lib/github-actions-public-worker-deployment.mjs");
   const documentation = read("docs/github-actions-founder-triggered-public-worker-deployment-v1.md");
+  const publicEntrypoint = read(PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint);
   const deploymentContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.contractPath));
   const rollbackContract = JSON.parse(read(PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath));
   const attributes = read(".gitattributes");
@@ -108,6 +120,9 @@ export function verifyGithubActionsPublicWorkerDeployment() {
   assert.doesNotMatch(verification, /prometheus-public-worker-production/u);
   assertGeneratedAssetsPrecedeVerification(verification, "verification job");
   assertGeneratedAssetsPrecedeVerification(deploy, "deploy job");
+  assert.match(publicEntrypoint, /export \{ RouteIqRequestCrmCoordinator \};/u);
+  assert.match(publicEntrypoint, /export default worker;/u);
+  assert.doesNotMatch(publicEntrypoint, /CALLBACK_PATH|RouteIqProspectiveShadowCoordinator/u);
   assert.match(deploy, /environment:\n      name: prometheus-public-worker-production/u);
   assert.equal(count(deploy, /run: node scripts\/run-github-actions-public-worker-deployment\.mjs deploy/gmu), 1);
   assert.equal(count(deploy, /run: timeout 120s node scripts\/run-cloudflare-public-worker-smoke\.mjs --execute-fixed-profile/gmu), 2);
@@ -144,6 +159,16 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     batchId: "BATCH-20260719-004",
     approvedCommit: "a".repeat(40)
   });
+  const startupInvocation = buildPublicWorkerStartupInvocation(
+    PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+    "/tmp/public-workerd-state"
+  );
+  for (const required of ["dev", "--local", "127.0.0.1", "--latest=false"]) {
+    assert.ok(startupInvocation.includes(required));
+  }
+  for (const forbidden of ["--remote", "--tunnel", "--name"]) {
+    assert.equal(startupInvocation.includes(forbidden), false);
+  }
   for (const mode of ["dry-run", "deploy"]) {
     const invocation = buildPublicWranglerInvocation(mode, syntheticInputs, "/tmp/settings.json");
     assert.ok(invocation.includes(PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig));
@@ -253,6 +278,28 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     overflowKillsChild: true,
     ambiguousOutputReason: "UNKNOWN_NONZERO_EXIT"
   });
+  assert.deepEqual(deploymentContract.workerdStartupPreflight, {
+    contractVersion: "public-worker-local-workerd-startup-preflight-v1",
+    command: "node scripts/run-public-worker-workerd-startup-preflight.mjs",
+    config: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicConfig,
+    entrypoint: PUBLIC_WORKER_DEPLOYMENT_POLICY.publicEntrypoint,
+    jobs: ["verification", "deploy"],
+    beforeAnyCloudflareRequest: true,
+    localOnly: true,
+    externalNetworkAllowed: false,
+    devVarsLoadingAllowed: false,
+    credentialsAllowed: false,
+    loopbackMethod: "HEAD",
+    loopbackPath: "/",
+    requiredStatus: 200,
+    oneChildInvocation: true,
+    automaticRetryAllowed: false,
+    timeoutMs: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupTimeoutMs,
+    outputByteLimit: PUBLIC_WORKER_DEPLOYMENT_POLICY.startupOutputByteLimit,
+    rawChildOutputAllowed: false,
+    capturedOutputZeroized: true,
+    failureReasons: Object.values(PUBLIC_WORKER_STARTUP_FAILURE_REASON)
+  });
   assert.deepEqual(deploymentContract.wranglerDeploymentFailureEvidence, {
     batchId: "BATCH-20260720-007",
     runId: 29786701514,
@@ -287,6 +334,9 @@ export function verifyGithubActionsPublicWorkerDeployment() {
     "HTTP_STATUS",
     "WRANGLER_PHASE",
     "WRANGLER_FAILURE_REASON",
+    "WORKER_STARTUP_PHASE",
+    "WORKER_STARTUP_FAILURE_REASON",
+    "WORKER_RUNTIME_STARTUP_REJECTED",
     "ASSET_COMPLETION_MISSING",
     "UNKNOWN_NONZERO_EXIT"
   ]) assert.ok(library.includes(marker), `missing fixed deployment diagnostic marker ${marker}`);

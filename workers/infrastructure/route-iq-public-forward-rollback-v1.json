@@ -12,8 +12,9 @@
   "sourceWebsiteTree": "ccd8356a5f820df14c574ff2be5196459422acbe",
   "websiteAssetPath": "deploy/prometheusrouteiq-website",
   "candidateStatefulFiles": {
-    "wrangler.prometheusrouteiq-website.jsonc": "a93267b924c9cca22c891df5d037483e2ecf453de19d115730756444d354f23f",
+    "wrangler.prometheusrouteiq-website.jsonc": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
     "workers/prometheus-iq-worker.js": "4950424f65b20e68d332b89bd660983107cec1dd81d55ae2d8c4e77cab0ce68a",
+    "workers/infrastructure/prometheusrouteiq-website-entry.mjs": "045c768163e043b1429d51dacf33f842966a323eb080d0e1cf45debfc7ccebf5",
     "workers/infrastructure/route-iq-request-crm-durable-object.js": "70d3e7a46d207f12a3689191784cc2984ae42897190ee1b0ded54f1baa6f2ec6",
     "workers/infrastructure/route-iq-request-crm-runtime.js": "54fe48b4aca2e4013107abfde914b404af77bd27380ab1e23fef5dafebb25998",
     "workers/infrastructure/route-iq-request-crm-runtime-v1.json": "e78245b94531d97b700ac4c25c7fc4730dd5e78e29da24b1eaeda2c4b78db32e",
@@ -21,6 +22,11 @@
     "crm/route-iq-request-crm-contract-v1.json": "fb7ee1af5559f145c5e6eddf73b33e8367d584f748d60e8fe1a5a6651b2b0476"
   },
   "statefulCompatibility": {
+    "publicEntrypoint": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+    "publicEntrypointExports": [
+      "default",
+      "RouteIqRequestCrmCoordinator"
+    ],
     "durableObjectBinding": "ROUTE_IQ_REQUEST_CRM_COORDINATOR",
     "durableObjectClass": "RouteIqRequestCrmCoordinator",
     "migrationTag": "route-iq-request-crm-sqlite-v1",

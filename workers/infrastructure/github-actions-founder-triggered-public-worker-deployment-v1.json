@@ -99,6 +99,7 @@
       "ASSET_UPLOAD_FAILED",
       "ASSET_COMPLETION_MISSING",
       "WORKER_VERSION_UPLOAD_REJECTED",
+      "WORKER_RUNTIME_STARTUP_REJECTED",
       "MIGRATION_BINDING_CONFIG_REJECTED",
       "AUTHORIZATION_DENIED",
       "NETWORK_UNCERTAIN",
@@ -116,6 +117,40 @@
     "timeoutKillsChild": true,
     "overflowKillsChild": true,
     "ambiguousOutputReason": "UNKNOWN_NONZERO_EXIT"
+  },
+  "workerdStartupPreflight": {
+    "contractVersion": "public-worker-local-workerd-startup-preflight-v1",
+    "command": "node scripts/run-public-worker-workerd-startup-preflight.mjs",
+    "config": "wrangler.prometheusrouteiq-website.jsonc",
+    "entrypoint": "workers/infrastructure/prometheusrouteiq-website-entry.mjs",
+    "jobs": [
+      "verification",
+      "deploy"
+    ],
+    "beforeAnyCloudflareRequest": true,
+    "localOnly": true,
+    "externalNetworkAllowed": false,
+    "devVarsLoadingAllowed": false,
+    "credentialsAllowed": false,
+    "loopbackMethod": "HEAD",
+    "loopbackPath": "/",
+    "requiredStatus": 200,
+    "oneChildInvocation": true,
+    "automaticRetryAllowed": false,
+    "timeoutMs": 30000,
+    "outputByteLimit": 65536,
+    "rawChildOutputAllowed": false,
+    "capturedOutputZeroized": true,
+    "failureReasons": [
+      "SPAWN_FAILED",
+      "TIMEOUT",
+      "OUTPUT_OVERFLOW",
+      "TERMINATED_BEFORE_READY",
+      "EXPORT_SURFACE_REJECTED",
+      "MODULE_STARTUP_REJECTED",
+      "LOOPBACK_HEAD_REJECTED",
+      "UNKNOWN_NONZERO_EXIT"
+    ]
   },
   "wranglerDeploymentFailureEvidence": {
     "batchId": "BATCH-20260720-007",

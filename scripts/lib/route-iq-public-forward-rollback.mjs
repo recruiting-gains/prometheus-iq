@@ -383,6 +383,8 @@ export function buildPublicForwardRollbackArtifact(root, {
       generatedSourceMapSha256,
       sourceWebsiteCommit: contract.sourceWebsiteCommit,
       sourceWebsiteTree: contract.sourceWebsiteTree,
+      publicEntrypoint: contract.statefulCompatibility.publicEntrypoint,
+      publicEntrypointExports: Object.freeze([...contract.statefulCompatibility.publicEntrypointExports]),
       durableObjectBinding: contract.statefulCompatibility.durableObjectBinding,
       durableObjectClass: contract.statefulCompatibility.durableObjectClass,
       migrationTag: contract.statefulCompatibility.migrationTag

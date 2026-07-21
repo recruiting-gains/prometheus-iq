@@ -81,6 +81,9 @@ jobs:
       - name: Generate exact public assets before no-secret verification
         run: npm run build
 
+      - name: Require local Workerd startup and loopback HEAD before any Cloudflare request
+        run: node scripts/run-public-worker-workerd-startup-preflight.mjs
+
       - name: Verify no-secret dispatch context, exact repository, contracts, rollback, Wrangler, and Git integrity
         env:
           PROMETHEUS_APPROVED_COMMIT: ${{ inputs.approved_commit }}
@@ -156,6 +159,9 @@ jobs:
 
       - name: Generate exact public assets before no-secret verification
         run: npm run build
+
+      - name: Require local Workerd startup and loopback HEAD before any Cloudflare request
+        run: node scripts/run-public-worker-workerd-startup-preflight.mjs
 
       - name: Re-verify exact release before any Cloudflare request
         env:
