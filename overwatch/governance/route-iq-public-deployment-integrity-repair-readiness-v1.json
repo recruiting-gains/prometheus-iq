@@ -1,6 +1,6 @@
 {
   "governanceId": "route-iq-public-deployment-integrity-repair-readiness-v1",
-  "version": "1.10.1",
+  "version": "1.11.0",
   "batchId": "BATCH-20260719-008",
   "directive": "Route IQ Public Deployment Repository-Integrity Diagnostic + Fail-Closed Repair v1",
   "ownerSubsystem": "Prometheus Overwatch",
@@ -421,10 +421,11 @@
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e",
+    "contractSha256": "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e",
     "previousContractSha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
     "preWorkflowV2ContractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
-    "contractSuccessorCommit": "d2963aa66e304932729cf8154ab729f5d8b71113",
+    "preFounderJwtRepairContractSha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e",
+    "contractSuccessorCommit": "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3",
     "contractSuccessorOwner": "Prometheus Infrastructure",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
     "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
@@ -465,6 +466,8 @@
     "ownerVerifierPinsPublicConfigConsumerProvenanceAdmission": true,
     "ownerVerifierPinsPublicDeploymentWorkflowV2Successors": true,
     "ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors": true,
+    "ownerVerifierPinsFounderJwtValidationRepair": true,
+    "ownerVerifierPinsCanonicalRollbackIdentitySuccessor": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -579,8 +582,11 @@
         "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
         "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
         "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+        "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
         "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+        "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
         "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+        "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
         "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
       ],
       "subsystemImplementationAllowed": false
@@ -590,9 +596,10 @@
   "releaseIdentities": {
     "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
     "rollbackContractPath": "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
-    "rollbackContractSha256": "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2",
-    "deterministicForwardRollbackBundleSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+    "rollbackContractSha256": "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f",
+    "deterministicForwardRollbackBundleSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
     "websiteAndCrmImplementationChanged": false,
+    "infrastructureAuthenticationRuntimeChanged": true,
     "generatedDeploymentAssetsChanged": false,
     "newFounderVisualAcceptanceRequired": false
   },
@@ -1471,6 +1478,110 @@
     "deploymentAssetsChanged": false,
     "rollbackArtifactsChanged": false,
     "productionChanged": false
+  },
+  "founderJwtValidationRepairClosure": {
+    "batchId": "BATCH-20260721-011A",
+    "directive": "Route IQ Founder JWT Validation Repair",
+    "status": "REPAIR_QUALIFIED_FOUNDER_AUTHORIZATION_REQUIRED",
+    "confirmedProductionEvidence": {
+      "accessAuthenticationCompleted": true,
+      "workerErrorCode": "route_iq_request_founder_auth_invalid",
+      "failedBeforeFounderSubjectComparison": true,
+      "historicalFailureDimension": "UNPROVABLE_FROM_PRE_REPAIR_GENERIC_CLASSIFICATION",
+      "jwtOrClaimValueRetained": false
+    },
+    "rootCause": {
+      "classification": "VALIDATION_FAILURE_DIMENSIONS_COLLAPSED_TO_GENERIC_CODE",
+      "exactHistoricalValidationFailureKnown": false,
+      "retroactiveCauseClaimAllowed": false,
+      "runtimeDeploymentTarget": "prometheusrouteiq-website",
+      "privateWorkerOwnsFounderCrmRuntime": false
+    },
+    "ownerRepairs": [
+      {
+        "commit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+        "tree": "275c88e592f285578aa2dd6a0d64c151f84c3abf",
+        "parent": "76eb41c5c49965c79b1b7a13de19e0d1b1020b62",
+        "subject": "infrastructure: classify Founder Access JWT failures",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "docs/route-iq-request-crm-infrastructure-v1.md",
+          "scripts/verify-cloudflare-public-crm-founder-access.mjs",
+          "scripts/verify-route-iq-request-crm-infrastructure.mjs",
+          "tests/route-iq-request-crm-infrastructure.test.mjs",
+          "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+          "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+          "workers/infrastructure/route-iq-request-crm-runtime.js"
+        ]
+      },
+      {
+        "commit": "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3",
+        "tree": "8705e3cb903bdc7e94d5e439be8ca79e17645008",
+        "parent": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+        "subject": "infrastructure: advance canonical rollback identity",
+        "owner": "Prometheus Infrastructure",
+        "files": [
+          "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+          "tests/public-repository-integrity-repair.test.mjs",
+          "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+        ]
+      }
+    ],
+    "validationBoundary": {
+      "exactIssuerRequired": true,
+      "exactAudienceRequired": true,
+      "algorithms": [
+        "RS256"
+      ],
+      "signatureRequired": true,
+      "requiredClaims": [
+        "iss",
+        "aud",
+        "sub",
+        "iat",
+        "exp"
+      ],
+      "notBeforeValidatedWhenPresent": true,
+      "clockToleranceSeconds": 5,
+      "immutableFounderSubjectSha256Required": true,
+      "authenticationBypassAdded": false
+    },
+    "verification": {
+      "infrastructureJwtAndCrmTestsPassed": 16,
+      "founderAccessBoundaryTestsPassed": 10,
+      "repositoryIntegrityOwnerTestsPassed": 35,
+      "bundledPublicWorkerMiniflareJwksPassed": true,
+      "remoteJwksFetchAndKeySelectionExercised": true,
+      "externalNetworkUsed": false,
+      "fixedNonsecretFailureCodesOnly": true,
+      "secretOrClaimValueDisclosureDetected": false
+    },
+    "releaseIdentities": {
+      "deploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+      "rollbackContractSha256": "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f",
+      "deterministicRollbackBundleSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
+      "infrastructureContractSha256": "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e",
+      "authenticationRuntimeSha256": "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
+      "authenticationContractSha256": "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849"
+    },
+    "productionBoundary": {
+      "deploymentPerformed": false,
+      "settingsChanged": false,
+      "settingsChangeJustified": false,
+      "publicWorkerForwardDeploymentRequired": true,
+      "authenticatedReadOnlyFounderGetRequiredAfterDeployment": true,
+      "privateWorkerChangeAllowed": false,
+      "crmWriteAllowed": false
+    },
+    "safety": {
+      "leadCreated": false,
+      "crmRecordCreatedOrModified": false,
+      "notificationSent": false,
+      "anthonyMapped": false,
+      "prospectiveCollection": "OFF",
+      "activeCohorts": 0,
+      "recommendationInfluence": "OFF"
+    }
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",

@@ -24,7 +24,9 @@ const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e";
+const PRE_FOUNDER_JWT_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e";
 const PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256 =
   "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e";
 const PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256 =
@@ -47,9 +49,13 @@ const PRE_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
   "408c38b30b1a8374d51521a197fd9c600b0bc69e93d8fba0e3f1a0f7bda94015";
 const SAFE_NO_SECRET_ASSET_ORDERING_INFRASTRUCTURE_CONTRACT_SHA256 =
   "720458551a9383d7705b6a03f58e938072a61aae22ef3a55cb0c6eea867226b9";
-const ROLLBACK_CONTRACT_SHA256 = "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
+const ROLLBACK_CONTRACT_SHA256 = "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f";
 const DEPLOYMENT_ASSETS_SHA256 = "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15";
-const ROLLBACK_BUNDLE_SHA256 = "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a";
+const ROLLBACK_BUNDLE_SHA256 = "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863";
+const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_CONTRACT_SHA256 =
+  "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2";
+const PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256 =
+  "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a";
 const HISTORICAL_ROLLBACK_CONTRACT_SHA256 =
   "150d24acaeee5f1f6589bb92582fc701e7480cca22d5bd136ce0f27af4fc220b";
 const HISTORICAL_ROLLBACK_BUNDLE_SHA256 =
@@ -865,8 +871,11 @@ const WORKFLOW_V2_OVERWATCH_TAIL_PATHS = Object.freeze([
   "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
 const WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS = Object.freeze([
@@ -921,6 +930,34 @@ const WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS = Object.freeze([
     files: INFRASTRUCTURE_COMMITS.at(-1).files
   })
 ]);
+const FOUNDER_JWT_VALIDATION_REPAIR = Object.freeze({
+  commit: "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+  tree: "275c88e592f285578aa2dd6a0d64c151f84c3abf",
+  parent: "76eb41c5c49965c79b1b7a13de19e0d1b1020b62",
+  subject: "infrastructure: classify Founder Access JWT failures",
+  ownerEmail: "infrastructure@prometheus.local",
+  files: Object.freeze([
+    "docs/route-iq-request-crm-infrastructure-v1.md",
+    "scripts/verify-cloudflare-public-crm-founder-access.mjs",
+    "scripts/verify-route-iq-request-crm-infrastructure.mjs",
+    "tests/route-iq-request-crm-infrastructure.test.mjs",
+    "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+    "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+    "workers/infrastructure/route-iq-request-crm-runtime.js"
+  ])
+});
+const CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR = Object.freeze({
+  commit: "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3",
+  tree: "8705e3cb903bdc7e94d5e439be8ca79e17645008",
+  parent: FOUNDER_JWT_VALIDATION_REPAIR.commit,
+  subject: "infrastructure: advance canonical rollback identity",
+  ownerEmail: "infrastructure@prometheus.local",
+  files: Object.freeze([
+    "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+    "tests/public-repository-integrity-repair.test.mjs",
+    "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+  ])
+});
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -958,7 +995,7 @@ function commitRecord(root, commit) {
 
 export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.governanceId, "route-iq-public-deployment-integrity-repair-readiness-v1");
-  assert.equal(governance?.version, "1.10.1");
+  assert.equal(governance?.version, "1.11.0");
   assert.equal(governance?.batchId, "BATCH-20260719-008");
   assert.equal(governance?.ownerSubsystem, "Prometheus Overwatch");
   assert.equal(governance?.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
@@ -1029,8 +1066,12 @@ export function validatePublicIntegrityReadiness(governance) {
     PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256
   );
   assert.equal(
+    governance?.infrastructureEvidence?.preFounderJwtRepairContractSha256,
+    PRE_FOUNDER_JWT_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256
+  );
+  assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorCommit,
-    INFRASTRUCTURE_COMMITS.at(-1).commit
+    CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.commit
   );
   assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorOwner,
@@ -1079,6 +1120,8 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicConfigConsumerProvenanceAdmission, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsPublicDeploymentWorkflowV2Successors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsFounderJwtValidationRepair, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCanonicalRollbackIdentitySuccessor, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
   assert.deepEqual(governance?.workflowV2ReadinessClosure, {
@@ -1128,8 +1171,85 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.releaseIdentities?.rollbackContractSha256, ROLLBACK_CONTRACT_SHA256);
   assert.equal(governance?.releaseIdentities?.deterministicForwardRollbackBundleSha256, ROLLBACK_BUNDLE_SHA256);
   assert.equal(governance?.releaseIdentities?.websiteAndCrmImplementationChanged, false);
+  assert.equal(governance?.releaseIdentities?.infrastructureAuthenticationRuntimeChanged, true);
   assert.equal(governance?.releaseIdentities?.generatedDeploymentAssetsChanged, false);
   assert.equal(governance?.releaseIdentities?.newFounderVisualAcceptanceRequired, false);
+
+  assert.deepEqual(governance?.founderJwtValidationRepairClosure, {
+    batchId: "BATCH-20260721-011A",
+    directive: "Route IQ Founder JWT Validation Repair",
+    status: "REPAIR_QUALIFIED_FOUNDER_AUTHORIZATION_REQUIRED",
+    confirmedProductionEvidence: {
+      accessAuthenticationCompleted: true,
+      workerErrorCode: "route_iq_request_founder_auth_invalid",
+      failedBeforeFounderSubjectComparison: true,
+      historicalFailureDimension: "UNPROVABLE_FROM_PRE_REPAIR_GENERIC_CLASSIFICATION",
+      jwtOrClaimValueRetained: false
+    },
+    rootCause: {
+      classification: "VALIDATION_FAILURE_DIMENSIONS_COLLAPSED_TO_GENERIC_CODE",
+      exactHistoricalValidationFailureKnown: false,
+      retroactiveCauseClaimAllowed: false,
+      runtimeDeploymentTarget: "prometheusrouteiq-website",
+      privateWorkerOwnsFounderCrmRuntime: false
+    },
+    ownerRepairs: [FOUNDER_JWT_VALIDATION_REPAIR, CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR]
+      .map(record => ({
+        commit: record.commit,
+        tree: record.tree,
+        parent: record.parent,
+        subject: record.subject,
+        owner: "Prometheus Infrastructure",
+        files: [...record.files]
+      })),
+    validationBoundary: {
+      exactIssuerRequired: true,
+      exactAudienceRequired: true,
+      algorithms: ["RS256"],
+      signatureRequired: true,
+      requiredClaims: ["iss", "aud", "sub", "iat", "exp"],
+      notBeforeValidatedWhenPresent: true,
+      clockToleranceSeconds: 5,
+      immutableFounderSubjectSha256Required: true,
+      authenticationBypassAdded: false
+    },
+    verification: {
+      infrastructureJwtAndCrmTestsPassed: 16,
+      founderAccessBoundaryTestsPassed: 10,
+      repositoryIntegrityOwnerTestsPassed: 35,
+      bundledPublicWorkerMiniflareJwksPassed: true,
+      remoteJwksFetchAndKeySelectionExercised: true,
+      externalNetworkUsed: false,
+      fixedNonsecretFailureCodesOnly: true,
+      secretOrClaimValueDisclosureDetected: false
+    },
+    releaseIdentities: {
+      deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
+      rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
+      deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      infrastructureContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      authenticationRuntimeSha256: "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
+      authenticationContractSha256: "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849"
+    },
+    productionBoundary: {
+      deploymentPerformed: false,
+      settingsChanged: false,
+      settingsChangeJustified: false,
+      publicWorkerForwardDeploymentRequired: true,
+      authenticatedReadOnlyFounderGetRequiredAfterDeployment: true,
+      privateWorkerChangeAllowed: false,
+      crmWriteAllowed: false
+    },
+    safety: {
+      leadCreated: false,
+      crmRecordCreatedOrModified: false,
+      notificationSent: false,
+      anthonyMapped: false,
+      prospectiveCollection: "OFF",
+      activeCohorts: 0,
+      recommendationInfluence: "OFF"
+    }
+  });
 
   assert.deepEqual(governance?.predeploymentSmokeRepair, {
     batchId: "BATCH-20260720-001",
@@ -1633,8 +1753,8 @@ export function validatePublicIntegrityReadiness(governance) {
       repositoryIntegrityPath: INFRASTRUCTURE_CONTRACT_PATH,
       repositoryIntegritySha256: PUBLIC_WORKER_STARTUP_INFRASTRUCTURE_CONTRACT_SHA256,
       rollbackPath: ROLLBACK_CONTRACT_PATH,
-      rollbackSha256: ROLLBACK_CONTRACT_SHA256,
-      deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      rollbackSha256: PRE_FOUNDER_JWT_REPAIR_ROLLBACK_CONTRACT_SHA256,
+      deterministicRollbackBundleSha256: PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256,
       deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256
     },
     scope: {
@@ -1698,7 +1818,7 @@ export function validatePublicIntegrityReadiness(governance) {
     overwatchTestAlignment: {
       classification: "CURRENT_ROLLBACK_BUNDLE_EXPECTATION_ALIGNMENT",
       historicalRollbackEvidencePreserved: true,
-      currentDeterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+      currentDeterministicRollbackBundleSha256: PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256,
       testWeakened: false
     },
     retentionConsumerAdmission: {
@@ -1723,10 +1843,10 @@ export function validatePublicIntegrityReadiness(governance) {
       edgeBoundaryPath: "workers/infrastructure/route-iq-public-crm-edge-boundary-v1.json",
       edgeBoundarySha256: "8308c4a69d52667d192e943d9ef45d9875ca3bcb835561f3765ec7b56253e53d",
       repositoryIntegrityPath: INFRASTRUCTURE_CONTRACT_PATH,
-      repositoryIntegritySha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      repositoryIntegritySha256: PRE_FOUNDER_JWT_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256,
       previousRepositoryIntegritySha256: PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256,
       preWorkflowV2RepositoryIntegritySha256: PRE_WORKFLOW_V2_ADMISSION_INFRASTRUCTURE_CONTRACT_SHA256,
-      deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256
+      deterministicRollbackBundleSha256: PRE_FOUNDER_JWT_REPAIR_ROLLBACK_BUNDLE_SHA256
     },
     scope: {
       websiteImplementationChanged: false,
@@ -2338,6 +2458,8 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   if (requireCommittedOverwatch) assert.ok(tail.length >= 1, "Governed Overwatch successor is missing.");
   let previous = WORKFLOW_V2_RELEASE_WIRING_CLOSURE.commit;
   let authorizationBoundarySuccessorIndex = 0;
+  let founderJwtValidationRepairSeen = false;
+  let canonicalRollbackIdentitySuccessorSeen = false;
   for (const commit of tail) {
     const record = commitRecord(root, commit);
     const expectedBoundarySuccessor =
@@ -2354,6 +2476,36 @@ function verifyOwnership(root, requireCommittedOverwatch) {
       previous = commit;
       continue;
     }
+    if (commit === FOUNDER_JWT_VALIDATION_REPAIR.commit) {
+      assert.equal(founderJwtValidationRepairSeen, false);
+      assert.equal(record.author, FOUNDER_JWT_VALIDATION_REPAIR.ownerEmail);
+      assert.equal(record.committer, FOUNDER_JWT_VALIDATION_REPAIR.ownerEmail);
+      assert.equal(record.subject, FOUNDER_JWT_VALIDATION_REPAIR.subject);
+      assert.deepEqual(sorted(record.files), sorted(FOUNDER_JWT_VALIDATION_REPAIR.files));
+      assert.equal(git(root, "rev-parse", `${commit}^{tree}`), FOUNDER_JWT_VALIDATION_REPAIR.tree);
+      assert.equal(git(root, "rev-parse", `${commit}^`), previous);
+      assert.equal(FOUNDER_JWT_VALIDATION_REPAIR.parent, previous);
+      founderJwtValidationRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    if (commit === CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.commit) {
+      assert.equal(founderJwtValidationRepairSeen, true);
+      assert.equal(canonicalRollbackIdentitySuccessorSeen, false);
+      assert.equal(record.author, CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.ownerEmail);
+      assert.equal(record.committer, CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.ownerEmail);
+      assert.equal(record.subject, CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.subject);
+      assert.deepEqual(sorted(record.files), sorted(CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.files));
+      assert.equal(
+        git(root, "rev-parse", `${commit}^{tree}`),
+        CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.tree
+      );
+      assert.equal(git(root, "rev-parse", `${commit}^`), previous);
+      assert.equal(CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.parent, previous);
+      canonicalRollbackIdentitySuccessorSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
     assert.match(record.subject, /^overwatch:/u);
@@ -2366,6 +2518,12 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     authorizationBoundarySuccessorIndex,
     WORKFLOW_V2_AUTHORIZATION_BOUNDARY_SUCCESSORS.length,
     "Deployment authorization boundary successor chain is incomplete."
+  );
+  assert.equal(founderJwtValidationRepairSeen, true, "Founder JWT validation repair is missing.");
+  assert.equal(
+    canonicalRollbackIdentitySuccessorSeen,
+    true,
+    "Canonical rollback identity successor is missing."
   );
   if (requireCommittedOverwatch) assert.equal(previous, git(root, "rev-parse", "HEAD"));
   return commits;
@@ -2430,6 +2588,7 @@ export function verifyOverwatchPublicDeploymentIntegrityRepairReadiness({
     deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
     rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
     rollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
+    founderJwtRepairStatus: governance.founderJwtValidationRepairClosure.status,
     founderVisualAcceptance: historical.founderVisualAcceptance,
     predeploymentBatchId: governance.predeploymentSmokeRepair.batchId,
     authorizedCandidateCommit: governance.predeploymentSmokeRepair.authorizedCandidate.commit,

@@ -47,7 +47,7 @@ test("Overwatch independently verifies owner provenance and the public CRM relea
   assert.equal(result.status, "CANDIDATE_READY_FOR_SAFE_NON_DEPLOYMENT_CI");
   assert.equal(result.authoritativeSuccessorBatchId, "BATCH-20260719-008");
   assert.equal(result.historicalClassification, "HISTORICAL_RECONSTRUCTION_EVIDENCE_SUPERSEDED_NON_DEPLOYABLE");
-  assert.equal(result.rollbackArtifactSha256, "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a");
+  assert.equal(result.rollbackArtifactSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
   assert.equal(result.historicalRollbackArtifactSha256, "4636e18bd3d99a803803a7ab78dcd2dbf634de8d9e34386c5c43f4df6fcb1ad1");
 });
 
@@ -146,8 +146,9 @@ test("integrity repair successor pins the current rollback identity and safe-CI 
   assert.equal(result.commits[63], "5b5b59509206578336b9671582669b600d0c74d4");
   assert.equal(result.commits.at(-1), result.head);
   assert.equal(result.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
-  assert.equal(result.rollbackContractSha256, "a1baf16aeb970c5b9c434e333781e98c968692b80be07004295333c5741bf1e2");
-  assert.equal(result.rollbackBundleSha256, "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a");
+  assert.equal(result.rollbackContractSha256, "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f");
+  assert.equal(result.rollbackBundleSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
+  assert.equal(result.founderJwtRepairStatus, "REPAIR_QUALIFIED_FOUNDER_AUTHORIZATION_REQUIRED");
   assert.equal(result.founderVisualAcceptance, "ACCEPTED");
   assert.equal(result.predeploymentBatchId, "BATCH-20260720-001");
   assert.equal(result.authorizedCandidateCommit, "37f3c963174b6a26cf9685fe0919ccc3bbfd65c2");
@@ -184,7 +185,7 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureOwnerRepairs.at(-1).commit, "d2963aa66e304932729cf8154ab729f5d8b71113");
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e"
+    "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e"
   );
   assert.equal(
     value.infrastructureEvidence.previousContractSha256,
@@ -194,7 +195,11 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
     value.infrastructureEvidence.preWorkflowV2ContractSha256,
     "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27"
   );
-  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "d2963aa66e304932729cf8154ab729f5d8b71113");
+  assert.equal(
+    value.infrastructureEvidence.preFounderJwtRepairContractSha256,
+    "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e"
+  );
+  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3");
   assert.equal(value.infrastructureEvidence.contractSuccessorOwner, "Prometheus Infrastructure");
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
@@ -216,6 +221,8 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicConfigConsumerProvenanceAdmission, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsPublicDeploymentWorkflowV2Successors, true);
   assert.equal(value.infrastructureEvidence.ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsFounderJwtValidationRepair, true);
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsCanonicalRollbackIdentitySuccessor, true);
   assert.deepEqual(
     value.workflowV2ReadinessClosure.authorizationBoundarySuccessors.map(item => item.commit),
     [
@@ -274,6 +281,47 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   const broadened = integrityReadinessGovernance();
   broadened.dashboardVerificationRepair.generallyAuthorizesDashboardSuccessors = true;
   assert.throws(() => validatePublicIntegrityReadiness(broadened));
+});
+
+test("Founder JWT repair remains exact, fail-closed, and production-gated", () => {
+  const closure = integrityReadinessGovernance().founderJwtValidationRepairClosure;
+  assert.equal(closure.status, "REPAIR_QUALIFIED_FOUNDER_AUTHORIZATION_REQUIRED");
+  assert.equal(
+    closure.confirmedProductionEvidence.historicalFailureDimension,
+    "UNPROVABLE_FROM_PRE_REPAIR_GENERIC_CLASSIFICATION"
+  );
+  assert.equal(closure.rootCause.exactHistoricalValidationFailureKnown, false);
+  assert.equal(closure.rootCause.retroactiveCauseClaimAllowed, false);
+  assert.equal(closure.rootCause.runtimeDeploymentTarget, "prometheusrouteiq-website");
+  assert.equal(closure.rootCause.privateWorkerOwnsFounderCrmRuntime, false);
+  assert.deepEqual(closure.ownerRepairs.map(record => record.commit), [
+    "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+    "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3"
+  ]);
+  assert.deepEqual(closure.validationBoundary.algorithms, ["RS256"]);
+  assert.deepEqual(closure.validationBoundary.requiredClaims, ["iss", "aud", "sub", "iat", "exp"]);
+  assert.equal(closure.validationBoundary.exactIssuerRequired, true);
+  assert.equal(closure.validationBoundary.exactAudienceRequired, true);
+  assert.equal(closure.validationBoundary.signatureRequired, true);
+  assert.equal(closure.validationBoundary.immutableFounderSubjectSha256Required, true);
+  assert.equal(closure.validationBoundary.authenticationBypassAdded, false);
+  assert.equal(closure.releaseIdentities.deploymentAssetsSha256, "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15");
+  assert.equal(closure.releaseIdentities.rollbackContractSha256, "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f");
+  assert.equal(closure.releaseIdentities.deterministicRollbackBundleSha256, "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863");
+  assert.equal(closure.releaseIdentities.infrastructureContractSha256, "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e");
+  assert.equal(closure.productionBoundary.deploymentPerformed, false);
+  assert.equal(closure.productionBoundary.settingsChanged, false);
+  assert.equal(closure.productionBoundary.settingsChangeJustified, false);
+  assert.equal(closure.productionBoundary.publicWorkerForwardDeploymentRequired, true);
+  assert.equal(closure.productionBoundary.privateWorkerChangeAllowed, false);
+  assert.equal(closure.productionBoundary.crmWriteAllowed, false);
+  assert.equal(closure.safety.leadCreated, false);
+  assert.equal(closure.safety.crmRecordCreatedOrModified, false);
+  assert.equal(closure.safety.notificationSent, false);
+
+  const weakened = integrityReadinessGovernance();
+  weakened.founderJwtValidationRepairClosure.validationBoundary.authenticationBypassAdded = true;
+  assert.throws(() => validatePublicIntegrityReadiness(weakened));
 });
 
 test("clean-runner closure preserves failed-run evidence and rejects the mixed-owner local commit", () => {
