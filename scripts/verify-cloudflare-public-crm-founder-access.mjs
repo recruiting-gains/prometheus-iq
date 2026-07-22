@@ -42,7 +42,14 @@ export function verifyCloudflarePublicCrmFounderAccess() {
   assert.match(library, /ghCommand/u);
   assert.match(runner, /createControllingTtyConfirmation/u);
   assert.match(runtime, /Cf-Access-Jwt-Assertion/u);
-  assert.match(runtime, /requiredClaims: \["sub", "iat", "exp"\]/u);
+  assert.match(runtime, /FOUNDER_ACCESS_REQUIRED_CLAIMS = Object\.freeze\(\["sub", "iat", "exp"\]\)/u);
+  assert.match(runtime, /algorithms: \["RS256"\]/u);
+  assert.match(runtime, /route_iq_request_founder_auth_issuer_mismatch/u);
+  assert.match(runtime, /route_iq_request_founder_auth_audience_mismatch/u);
+  assert.match(runtime, /route_iq_request_founder_auth_signing_key_unknown/u);
+  assert.match(runtime, /route_iq_request_founder_auth_signature_invalid/u);
+  assert.match(runtime, /route_iq_request_founder_auth_jwks_timeout/u);
+  assert.match(runtime, /route_iq_request_founder_auth_jwks_unavailable/u);
   assert.match(runtime, /createRemoteJWKSet/u);
   assert.match(runtime, /expectedSubjectSha256/u);
   assert.doesNotMatch(documentation, /Fitness Connection.*(?:customer|partner|sponsor|endorser)/iu);

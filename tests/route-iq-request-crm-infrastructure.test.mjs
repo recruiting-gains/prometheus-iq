@@ -1,10 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 import { SignJWT, createLocalJWKSet, exportJWK } from "jose";
+import { Miniflare } from "miniflare";
 
 import { routeIqRequestFounderAuthorization } from "../crm/route-iq-request-crm.mjs";
 import { runRouteIqCommercialCapacityHarness } from "../workers/infrastructure/route-iq-commercial-capacity-harness.mjs";
@@ -14,6 +17,7 @@ import {
   ROUTE_IQ_REQUEST_CRM_BINDING,
   ROUTE_IQ_REQUEST_CRM_ENV,
   ROUTE_IQ_REQUEST_CRM_EXPORT_PATH,
+  ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES,
   ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH,
   ROUTE_IQ_REQUEST_CRM_PATH,
   createRouteIqRequestCrmDurableStore,
@@ -104,6 +108,146 @@ function exactFounderPrincipal(overrides = {}) {
     identityImmutable: true,
     ...overrides
   };
+}
+
+async function founderJwtHarness() {
+  const primary = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const secondary = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const primaryJwk = await exportJWK(primary.publicKey);
+  const secondaryJwk = await exportJWK(secondary.publicKey);
+  Object.assign(primaryJwk, { alg: "RS256", use: "sig", kid: "route-iq-founder-primary" });
+  Object.assign(secondaryJwk, { alg: "RS256", use: "sig", kid: "route-iq-founder-secondary" });
+  const issuer = "https://prometheus-test.cloudflareaccess.com";
+  const audience = "route-iq-request-founder-test-audience";
+  const subject = "immutable-access-subject-cruz-test";
+  const epoch = Math.floor(now.getTime() / 1000);
+  const env = {
+    [ROUTE_IQ_REQUEST_CRM_ENV.accessTeamDomain]: issuer,
+    [ROUTE_IQ_REQUEST_CRM_ENV.accessAudience]: audience,
+    [ROUTE_IQ_REQUEST_CRM_ENV.founderSubjectSha256]: createHash("sha256").update(subject).digest("hex")
+  };
+  const primaryResolver = createLocalJWKSet({ keys: [primaryJwk] });
+  const issue = async ({
+    privateKey = primary.privateKey,
+    kid = primaryJwk.kid,
+    tokenIssuer = issuer,
+    tokenAudience = audience,
+    tokenSubject = subject,
+    issuedAt = epoch - 10,
+    notBefore = epoch - 10,
+    expiration = epoch + 300,
+    omit = []
+  } = {}) => {
+    let builder = new SignJWT({}).setProtectedHeader({ alg: "RS256", kid });
+    if (!omit.includes("iss")) builder = builder.setIssuer(tokenIssuer);
+    if (!omit.includes("aud")) builder = builder.setAudience(tokenAudience);
+    if (!omit.includes("sub")) builder = builder.setSubject(tokenSubject);
+    if (!omit.includes("iat")) builder = builder.setIssuedAt(issuedAt);
+    if (!omit.includes("nbf")) builder = builder.setNotBefore(notBefore);
+    if (!omit.includes("exp")) builder = builder.setExpirationTime(expiration);
+    return builder.sign(privateKey);
+  };
+  const request = token => new Request(`https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH}`, {
+    headers: { "Cf-Access-Jwt-Assertion": token }
+  });
+  const readStore = {
+    async get() { return null; },
+    async list() { return { keys: [] }; },
+    async put() {},
+    async putIfAbsent() { return false; }
+  };
+  const verify = (token, { keyResolver = primaryResolver, environment = env } = {}) => (
+    handleRouteIqRequestCrmRuntimeRequest(request(token), environment, {
+      store: readStore,
+      authTestHooks: { enabled: true, keyResolver, currentDate: now },
+      now
+    })
+  );
+  return {
+    audience,
+    env,
+    epoch,
+    issue,
+    issuer,
+    primaryJwk,
+    primaryResolver,
+    secondary,
+    secondaryJwk,
+    subject,
+    verify
+  };
+}
+
+function bundlePublicWorkerForJwksFixture() {
+  const root = resolve(import.meta.dirname, "..");
+  const outputDirectory = mkdtempSync(join(tmpdir(), "route-iq-founder-jwks-bundle-"));
+  const wrangler = resolve(root, "node_modules/wrangler/bin/wrangler.js");
+  const result = spawnSync(process.execPath, [
+    wrangler,
+    "deploy",
+    "--dry-run",
+    "--strict",
+    "--keep-vars",
+    "--config",
+    "wrangler.prometheusrouteiq-website.jsonc",
+    "--outdir",
+    outputDirectory
+  ], {
+    cwd: root,
+    encoding: "utf8",
+    env: {
+      CI: "1",
+      HOME: process.env.HOME,
+      NO_COLOR: "1",
+      NO_UPDATE_NOTIFIER: "1",
+      PATH: process.env.PATH,
+      WRANGLER_SEND_METRICS: "false"
+    },
+    maxBuffer: 2 * 1024 * 1024,
+    timeout: 120_000
+  });
+  if (result.status !== 0) {
+    rmSync(outputDirectory, { recursive: true, force: true });
+    assert.fail("The local public Worker bundle did not complete.");
+  }
+  const path = join(outputDirectory, "prometheusrouteiq-website-entry.js");
+  const script = readFileSync(path, "utf8").replace(/\n\/\/# sourceMappingURL=.*\n?$/u, "\n");
+  return {
+    outputDirectory,
+    script,
+    dispose() {
+      rmSync(outputDirectory, { recursive: true, force: true });
+    }
+  };
+}
+
+async function dispatchBundledFounderJwt({ fixture, script, token, outboundService }) {
+  const root = resolve(import.meta.dirname, "..");
+  const miniflare = new Miniflare({
+    modules: true,
+    modulesRoot: root,
+    script,
+    scriptPath: join(root, "route-iq-founder-jwks-bundled-fixture.mjs"),
+    compatibilityDate: "2026-07-01",
+    compatibilityFlags: ["nodejs_compat"],
+    bindings: fixture.env,
+    durableObjects: {
+      [ROUTE_IQ_REQUEST_CRM_BINDING]: {
+        className: "RouteIqRequestCrmCoordinator",
+        useSQLite: true
+      }
+    },
+    outboundService
+  });
+  try {
+    const response = await miniflare.dispatchFetch(
+      `https://prometheusrouteiq.com${ROUTE_IQ_REQUEST_CRM_FOUNDER_PATH}`,
+      { headers: { "Cf-Access-Jwt-Assertion": token } }
+    );
+    return { status: response.status, body: await response.json() };
+  } finally {
+    await miniflare.dispose();
+  }
 }
 
 test("SQLite-backed Durable Object adapter provides transactional putIfAbsent", async () => {
@@ -322,6 +466,213 @@ test("Founder retrieval requires a cryptographically verified exact immutable su
   assert.equal((await denied.json()).code, "route_iq_request_founder_principal_unmapped");
 });
 
+test("Founder JWT accepts only the exact issuer, audience, RS256 signature, and immutable subject", async () => {
+  const fixture = await founderJwtHarness();
+  const token = await fixture.issue();
+  const authorized = await fixture.verify(token);
+  assert.equal(authorized.status, 200);
+
+  const withinClockTolerance = await fixture.issue({ notBefore: fixture.epoch + 4 });
+  assert.equal((await fixture.verify(withinClockTolerance)).status, 200);
+
+  const unmappedEnvironment = {
+    ...fixture.env,
+    [ROUTE_IQ_REQUEST_CRM_ENV.founderSubjectSha256]: createHash("sha256")
+      .update("unmapped-founder-subject")
+      .digest("hex")
+  };
+  const unmapped = await fixture.verify(token, { environment: unmappedEnvironment });
+  assert.equal(unmapped.status, 403);
+  assert.equal((await unmapped.json()).code, "route_iq_request_founder_principal_unmapped");
+});
+
+test("Founder JWT reports fixed issuer, audience, signing-key, signature, and time classifications", async () => {
+  const fixture = await founderJwtHarness();
+  const cases = [
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.issuerMismatch,
+      status: 403,
+      token: await fixture.issue({ tokenIssuer: "https://different-team.cloudflareaccess.com" })
+    },
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.audienceMismatch,
+      status: 403,
+      token: await fixture.issue({ tokenAudience: "different-route-iq-audience" })
+    },
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.signingKeyUnknown,
+      status: 403,
+      token: await fixture.issue({ privateKey: fixture.secondary.privateKey, kid: fixture.secondaryJwk.kid })
+    },
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.signatureInvalid,
+      status: 403,
+      token: await fixture.issue({ privateKey: fixture.secondary.privateKey, kid: fixture.primaryJwk.kid })
+    },
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenExpired,
+      status: 403,
+      token: await fixture.issue({ expiration: fixture.epoch - 6 })
+    },
+    {
+      code: ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenPremature,
+      status: 403,
+      token: await fixture.issue({ notBefore: fixture.epoch + 6 })
+    }
+  ];
+  for (const testCase of cases) {
+    const result = await fixture.verify(testCase.token);
+    assert.equal(result.status, testCase.status);
+    assert.equal((await result.json()).code, testCase.code);
+  }
+});
+
+test("Founder JWT fails closed for missing claims, malformed tokens, disallowed algorithms, and JWKS failure", async () => {
+  const fixture = await founderJwtHarness();
+  const validToken = await fixture.issue();
+  const invalidConfiguration = await fixture.verify(validToken, {
+    environment: {
+      ...fixture.env,
+      [ROUTE_IQ_REQUEST_CRM_ENV.accessTeamDomain]: "https://not-an-access-team.example"
+    }
+  });
+  assert.equal(invalidConfiguration.status, 503);
+  assert.equal((await invalidConfiguration.json()).code, "route_iq_request_founder_auth_config_invalid");
+
+  const missingClaim = await fixture.verify(await fixture.issue({ omit: ["sub"] }));
+  assert.equal(missingClaim.status, 403);
+  assert.equal((await missingClaim.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.claimMissing);
+
+  const malformed = await fixture.verify("not-a-jwt");
+  assert.equal(malformed.status, 403);
+  assert.equal((await malformed.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenMalformed);
+
+  const hmacToken = await new SignJWT({})
+    .setProtectedHeader({ alg: "HS256", kid: "disallowed-synthetic-key" })
+    .setIssuer(fixture.issuer)
+    .setAudience(fixture.audience)
+    .setSubject(fixture.subject)
+    .setIssuedAt(fixture.epoch - 10)
+    .setNotBefore(fixture.epoch - 10)
+    .setExpirationTime(fixture.epoch + 300)
+    .sign(new TextEncoder().encode("synthetic-test-only-hmac-key-material"));
+  const algorithm = await fixture.verify(hmacToken);
+  assert.equal(algorithm.status, 403);
+  assert.equal((await algorithm.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.algorithmInvalid);
+
+  const unavailable = await fixture.verify(validToken, {
+    keyResolver: async () => { throw new TypeError("sensitive resolver detail"); }
+  });
+  assert.equal(unavailable.status, 503);
+  assert.equal((await unavailable.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksUnavailable);
+
+  const timeout = await fixture.verify(validToken, {
+    keyResolver: async () => {
+      throw Object.assign(new Error("sensitive timeout detail"), { code: "ERR_JWKS_TIMEOUT" });
+    }
+  });
+  assert.equal(timeout.status, 503);
+  assert.equal((await timeout.json()).code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksTimeout);
+});
+
+test("bundled public Worker fetches and selects remote JWKS without external network", { timeout: 30_000 }, async () => {
+  const fixture = await founderJwtHarness();
+  const bundle = bundlePublicWorkerForJwksFixture();
+  const bundleEpoch = Math.floor(Date.now() / 1000);
+  const bundleTimes = {
+    issuedAt: bundleEpoch - 10,
+    notBefore: bundleEpoch - 10,
+    expiration: bundleEpoch + 300
+  };
+  const jwksResponse = request => {
+    assert.equal(request.method, "GET");
+    assert.equal(new URL(request.url).origin, fixture.issuer);
+    assert.equal(new URL(request.url).pathname, "/cdn-cgi/access/certs");
+    return Response.json({ keys: [fixture.primaryJwk] });
+  };
+  try {
+    const validCalls = [];
+    const valid = await dispatchBundledFounderJwt({
+      fixture,
+      script: bundle.script,
+      token: await fixture.issue(bundleTimes),
+      outboundService: request => {
+        validCalls.push("JWKS_GET");
+        return jwksResponse(request);
+      }
+    });
+    assert.equal(valid.status, 200);
+    assert.equal(valid.body.recordCount, 0);
+    assert.deepEqual(validCalls, ["JWKS_GET"]);
+
+    const unknown = await dispatchBundledFounderJwt({
+      fixture,
+      script: bundle.script,
+      token: await fixture.issue({
+        ...bundleTimes,
+        privateKey: fixture.secondary.privateKey,
+        kid: fixture.secondaryJwk.kid
+      }),
+      outboundService: jwksResponse
+    });
+    assert.equal(unknown.status, 403);
+    assert.equal(unknown.body.code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.signingKeyUnknown);
+
+    const network = await dispatchBundledFounderJwt({
+      fixture,
+      script: bundle.script,
+      token: await fixture.issue(bundleTimes),
+      outboundService: async () => { throw new TypeError("synthetic network failure"); }
+    });
+    assert.equal(network.status, 503);
+    assert.equal(network.body.code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksUnavailable);
+
+    const timeout = await dispatchBundledFounderJwt({
+      fixture,
+      script: bundle.script,
+      token: await fixture.issue(bundleTimes),
+      outboundService: request => new Promise((_resolvePromise, rejectPromise) => {
+        request.signal.addEventListener("abort", () => rejectPromise(request.signal.reason), { once: true });
+      })
+    });
+    assert.equal(timeout.status, 503);
+    assert.equal(timeout.body.code, ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksTimeout);
+  } finally {
+    bundle.dispose();
+  }
+});
+
+test("Founder JWT diagnostics disclose no token, claim, key, resolver, or configuration values", async () => {
+  const fixture = await founderJwtHarness();
+  const token = await fixture.issue({ tokenAudience: "nonmatching-sensitive-audience-fixture" });
+  const output = [];
+  const originals = { error: console.error, log: console.log, warn: console.warn };
+  console.error = value => output.push(String(value));
+  console.log = value => output.push(String(value));
+  console.warn = value => output.push(String(value));
+  let body;
+  try {
+    const result = await fixture.verify(token);
+    body = JSON.stringify(await result.json());
+  } finally {
+    Object.assign(console, originals);
+  }
+  const observable = `${output.join("\n")}\n${body}`;
+  for (const sensitive of [
+    token,
+    fixture.issuer,
+    fixture.audience,
+    fixture.subject,
+    fixture.primaryJwk.kid,
+    "nonmatching-sensitive-audience-fixture",
+    "sensitive resolver detail"
+  ]) {
+    assert.equal(observable.includes(sensitive), false);
+  }
+  assert.equal(output.length, 0);
+  assert.match(body, /route_iq_request_founder_auth_audience_mismatch/u);
+});
+
 test("missing durable binding, unsupported methods, and malformed exports fail closed", async () => {
   const missing = await handleRouteIqRequestCrmRuntimeRequest(postRequest(), {}, { now });
   assert.equal(missing.status, 503);
@@ -386,10 +737,22 @@ test("governed initial capacity target passes at 10 workspaces, 100 users, and 2
 test("active Worker route and source configuration use only the Route IQ CRM runtime", () => {
   const root = resolve(import.meta.dirname, "..");
   const worker = readFileSync(resolve(root, "workers/prometheus-iq-worker.js"), "utf8");
+  const publicEntry = readFileSync(resolve(root, "workers/infrastructure/prometheusrouteiq-website-entry.mjs"), "utf8");
+  const publicConfig = readFileSync(resolve(root, "wrangler.prometheusrouteiq-website.jsonc"), "utf8");
+  const privateConfig = readFileSync(resolve(root, "wrangler.jsonc"), "utf8");
   const contract = JSON.parse(readFileSync(resolve(root, "workers/infrastructure/route-iq-request-crm-runtime-v1.json"), "utf8"));
   const integration = readFileSync(resolve(root, "integrations/shared-workspace-lead-intake-contract.js"), "utf8");
   assert.match(worker, /isRouteIqRequestCrmPath/u);
   assert.doesNotMatch(worker, /handlePartnerIntakeRequest/u);
+  assert.match(publicEntry, /prometheus-iq-worker\.js/u);
+  assert.match(publicEntry, /RouteIqRequestCrmCoordinator/u);
+  assert.match(publicConfig, /"name"\s*:\s*"prometheusrouteiq-website"/u);
+  assert.match(publicConfig, /prometheusrouteiq-website-entry\.mjs/u);
+  assert.match(publicConfig, /ROUTE_IQ_REQUEST_CRM_COORDINATOR/u);
+  assert.match(publicConfig, /route-iq-request-crm-sqlite-v1/u);
+  assert.doesNotMatch(privateConfig, /ROUTE_IQ_REQUEST_CRM_COORDINATOR|route-iq-request-crm-sqlite-v1/u);
+  assert.equal(contract.storage.deploymentTarget, "prometheusrouteiq-website Worker only");
+  assert.equal(contract.storage.privateWorkerBinding, false);
   assert.equal(contract.publicIntake.legacyFitnessRoutingActive, false);
   assert.equal(contract.publicIntake.legacySmoothieRoutingActive, false);
   assert.equal(contract.storage.kvCasClaimed, false);

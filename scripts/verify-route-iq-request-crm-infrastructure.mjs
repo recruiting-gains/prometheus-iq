@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 import { runRouteIqCommercialCapacityHarness } from "../workers/infrastructure/route-iq-commercial-capacity-harness.mjs";
 import {
   ROUTE_IQ_REQUEST_CRM_BINDING,
+  ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES,
   ROUTE_IQ_REQUEST_CRM_PATH
 } from "../workers/infrastructure/route-iq-request-crm-runtime.js";
 
@@ -21,6 +22,25 @@ assert.equal(contract.publicIntake.legacyFitnessRoutingActive, false);
 assert.equal(contract.publicIntake.legacySmoothieRoutingActive, false);
 assert.equal(contract.storage.binding, ROUTE_IQ_REQUEST_CRM_BINDING);
 assert.equal(contract.storage.kvCasClaimed, false);
+assert.equal(contract.founderAccess.jwtValidation.version, "route-iq-request-founder-jwt-validation-v2");
+assert.deepEqual(contract.founderAccess.jwtValidation.algorithms, ["RS256"]);
+assert.deepEqual(contract.founderAccess.jwtValidation.requiredClaims, ["iss", "aud", "sub", "iat", "exp"]);
+assert.equal(contract.founderAccess.jwtValidation.notBefore, "validated_when_present");
+assert.equal(contract.founderAccess.jwtValidation.clockToleranceSeconds, 5);
+assert.equal(contract.founderAccess.jwtValidation.immutableSubjectSha256Required, true);
+assert.equal(contract.founderAccess.jwtValidation.failClosed, true);
+assert.equal(contract.founderAccess.verification.bundledPublicEntrypoint, "workers/infrastructure/prometheusrouteiq-website-entry.mjs");
+assert.equal(contract.founderAccess.verification.workerCompatibleRuntime, "Miniflare");
+assert.equal(contract.founderAccess.verification.remoteJwksFetchExercised, true);
+assert.equal(contract.founderAccess.verification.remoteJwksKeySelectionExercised, true);
+assert.equal(contract.founderAccess.verification.externalNetworkRequired, false);
+assert.equal(contract.storage.deploymentTarget, "prometheusrouteiq-website Worker only");
+assert.equal(contract.storage.privateWorkerBinding, false);
+assert.deepEqual(
+  contract.founderAccess.safeFailureCodes,
+  Object.values(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES).sort()
+);
+assert.equal(contract.founderAccess.failureDetailsDisclosed, false);
 assert.equal(contract.boundaries.prospectiveCollection, "OFF");
 assert.equal(contract.boundaries.activeCohorts, 0);
 assert.equal(contract.boundaries.recommendationInfluence, "OFF");

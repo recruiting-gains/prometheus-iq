@@ -21,6 +21,21 @@ export const ROUTE_IQ_REQUEST_CRM_ENV = Object.freeze({
   accessTeamDomain: "ROUTE_IQ_REQUEST_CRM_ACCESS_TEAM_DOMAIN",
   founderSubjectSha256: "ROUTE_IQ_REQUEST_CRM_FOUNDER_SUBJECT_SHA256"
 });
+export const ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES = Object.freeze({
+  algorithmInvalid: "route_iq_request_founder_auth_algorithm_invalid",
+  audienceMismatch: "route_iq_request_founder_auth_audience_mismatch",
+  claimMissing: "route_iq_request_founder_auth_claim_missing",
+  invalid: "route_iq_request_founder_auth_invalid",
+  issuerMismatch: "route_iq_request_founder_auth_issuer_mismatch",
+  jwksInvalid: "route_iq_request_founder_auth_jwks_invalid",
+  jwksTimeout: "route_iq_request_founder_auth_jwks_timeout",
+  jwksUnavailable: "route_iq_request_founder_auth_jwks_unavailable",
+  signatureInvalid: "route_iq_request_founder_auth_signature_invalid",
+  signingKeyUnknown: "route_iq_request_founder_auth_signing_key_unknown",
+  tokenExpired: "route_iq_request_founder_auth_token_expired",
+  tokenMalformed: "route_iq_request_founder_auth_token_malformed",
+  tokenPremature: "route_iq_request_founder_auth_token_premature"
+});
 
 const PUBLIC_REQUEST_VERSION = "route-iq-public-request.v1";
 const PUBLIC_FORM_ID = "route_iq_request";
@@ -57,6 +72,8 @@ const TIMELINES = Object.freeze({
 
 let cachedJwksOrigin = null;
 let cachedJwks = null;
+
+const FOUNDER_ACCESS_REQUIRED_CLAIMS = Object.freeze(["sub", "iat", "exp"]);
 
 function response(body, status = 200, headers = {}) {
   return new Response(typeof body === "string" ? body : JSON.stringify(body), {
@@ -153,6 +170,68 @@ function jwksFor(issuer) {
   return cachedJwks;
 }
 
+function founderAuthError(code, status = 403) {
+  return runtimeError(code, "Founder authentication is not authorized.", status);
+}
+
+function classifyFounderKeyResolutionFailure(error) {
+  switch (error?.code) {
+    case "ERR_JWKS_NO_MATCHING_KEY":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.signingKeyUnknown);
+    case "ERR_JWKS_INVALID":
+    case "ERR_JWKS_MULTIPLE_MATCHING_KEYS":
+    case "ERR_JWK_INVALID":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksInvalid, 503);
+    case "ERR_JWKS_TIMEOUT":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksTimeout, 503);
+    case "ERR_JOSE_GENERIC":
+    default:
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.jwksUnavailable, 503);
+  }
+}
+
+async function resolveFounderSigningKey(keyResolver, ...argumentsList) {
+  try {
+    return await keyResolver(...argumentsList);
+  } catch (error) {
+    throw classifyFounderKeyResolutionFailure(error);
+  }
+}
+
+function classifyFounderJwtFailure(error) {
+  if (error?.code === "ERR_JWT_EXPIRED") {
+    return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenExpired);
+  }
+  if (error?.code === "ERR_JWT_CLAIM_VALIDATION_FAILED") {
+    if (error.reason === "missing" && FOUNDER_ACCESS_REQUIRED_CLAIMS.includes(error.claim)) {
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.claimMissing);
+    }
+    if (error.claim === "iss") {
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.issuerMismatch);
+    }
+    if (error.claim === "aud") {
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.audienceMismatch);
+    }
+    if ((error.claim === "nbf" || error.claim === "iat") && error.reason === "check_failed") {
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenPremature);
+    }
+    return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenMalformed);
+  }
+  switch (error?.code) {
+    case "ERR_JWS_SIGNATURE_VERIFICATION_FAILED":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.signatureInvalid);
+    case "ERR_JOSE_ALG_NOT_ALLOWED":
+    case "ERR_JOSE_NOT_SUPPORTED":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.algorithmInvalid);
+    case "ERR_JWS_INVALID":
+    case "ERR_JWT_INVALID":
+    case "ERR_JWK_INVALID":
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenMalformed);
+    default:
+      return founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.invalid);
+  }
+}
+
 async function founderPrincipal(request, env, testHooks) {
   if (testHooks?.enabled === true && testHooks.principal) return testHooks.principal;
   const issuer = canonicalTeamDomain(env?.[ROUTE_IQ_REQUEST_CRM_ENV.accessTeamDomain]);
@@ -168,16 +247,20 @@ async function founderPrincipal(request, env, testHooks) {
   try {
     const currentDate = testHooks?.enabled === true ? testHooks.currentDate : undefined;
     const keyResolver = testHooks?.enabled === true ? testHooks.keyResolver : jwksFor(issuer);
-    const { payload } = await jwtVerify(token, keyResolver, {
-      issuer,
-      audience,
-      algorithms: ["RS256"],
-      requiredClaims: ["sub", "iat", "exp"],
-      clockTolerance: 5,
-      ...(currentDate ? { currentDate } : {})
-    });
+    const { payload } = await jwtVerify(
+      token,
+      (...argumentsList) => resolveFounderSigningKey(keyResolver, ...argumentsList),
+      {
+        issuer,
+        audience,
+        algorithms: ["RS256"],
+        requiredClaims: FOUNDER_ACCESS_REQUIRED_CLAIMS,
+        clockTolerance: 5,
+        ...(currentDate ? { currentDate } : {})
+      }
+    );
     if (typeof payload.sub !== "string" || payload.sub.length < 1 || payload.sub.length > 512) {
-      throw new Error("invalid subject");
+      throw founderAuthError(ROUTE_IQ_REQUEST_CRM_FOUNDER_AUTH_FAILURES.tokenMalformed);
     }
     if (await sha256(payload.sub) !== expectedSubjectSha256) {
       throw runtimeError("route_iq_request_founder_principal_unmapped", "Founder authentication is not authorized.", 403);
@@ -192,7 +275,7 @@ async function founderPrincipal(request, env, testHooks) {
     };
   } catch (error) {
     if (error?.code?.startsWith?.("route_iq_request_")) throw error;
-    throw runtimeError("route_iq_request_founder_auth_invalid", "Founder authentication is not authorized.", 403);
+    throw classifyFounderJwtFailure(error);
   }
 }
 
