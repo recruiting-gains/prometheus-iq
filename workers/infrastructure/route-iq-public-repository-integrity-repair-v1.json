@@ -748,6 +748,19 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "workflowV2FixtureRepairSuccessor": {
+      "parent": "781a9472a4bd43a998826a3a130e547907f1f36a",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: derive Workflow v2 rollback fixture",
+      "files": [
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/github-actions-public-worker-workflow-v2.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cloudflareDeploymentReadRepair": {

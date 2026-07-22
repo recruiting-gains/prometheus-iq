@@ -315,6 +315,11 @@ const canonicalRollbackIdentitySuccessorFiles = Object.freeze([
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
+const workflowV2FixtureRepairSuccessorFiles = Object.freeze([
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/github-actions-public-worker-workflow-v2.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
 
 export const SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS = Object.freeze([
   "node scripts/run-public-worker-repository-integrity-diagnostic.mjs",
@@ -829,6 +834,15 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: advance canonical rollback identity",
     files: canonicalRollbackIdentitySuccessorFiles
+  }),
+  workflowV2FixtureRepairSuccessor: Object.freeze({
+    parent: "781a9472a4bd43a998826a3a130e547907f1f36a",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: derive Workflow v2 rollback fixture",
+    files: workflowV2FixtureRepairSuccessorFiles
   })
 });
 
@@ -883,6 +897,7 @@ export function verifyCanonicalRollbackIdentityAdvancement({
   );
   delete preservedCurrent.ownerBoundary.founderJwtRepairSuccessor;
   delete preservedCurrent.ownerBoundary.canonicalRollbackIdentitySuccessor;
+  delete preservedCurrent.ownerBoundary.workflowV2FixtureRepairSuccessor;
   assert.deepEqual(preservedCurrent, predecessorContract);
 
   const canonical = currentContract.repair.canonicalRollbackIdentity;
@@ -1100,6 +1115,7 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let deploymentAuthorizationBoundaryProvenanceAdmissionSeen = false;
   let founderJwtRepairSeen = false;
   let canonicalRollbackIdentitySuccessorSeen = false;
+  let workflowV2FixtureRepairSuccessorSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1592,6 +1608,23 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const workflowV2FixtureRepair = boundary.workflowV2FixtureRepairSuccessor;
+    const isWorkflowV2FixtureRepair = workflowV2FixtureRepair
+      && !workflowV2FixtureRepairSuccessorSeen
+      && canonicalRollbackIdentitySuccessorSeen
+      && actual.parents[0] === workflowV2FixtureRepair.parent
+      && actual.authorName === workflowV2FixtureRepair.authorName
+      && actual.authorEmail === workflowV2FixtureRepair.authorEmail
+      && actual.committerName === workflowV2FixtureRepair.committerName
+      && actual.committerEmail === workflowV2FixtureRepair.committerEmail
+      && actual.subject === workflowV2FixtureRepair.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...workflowV2FixtureRepair.files].sort());
+    if (isWorkflowV2FixtureRepair) {
+      workflowV2FixtureRepairSuccessorSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1697,6 +1730,11 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
     }
     result.founderJwtRepairSeen = founderJwtRepairSeen;
     result.canonicalRollbackIdentitySuccessorSeen = canonicalRollbackIdentitySuccessorSeen;
+  }
+  if (boundary.workflowV2FixtureRepairSuccessor) {
+    assert.equal(workflowV2FixtureRepairSuccessorSeen, true,
+      "Workflow v2 fixture repair successor is missing");
+    result.workflowV2FixtureRepairSuccessorSeen = workflowV2FixtureRepairSuccessorSeen;
   }
   return Object.freeze(result);
 }
@@ -1828,6 +1866,7 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
       .deploymentAuthorizationBoundaryProvenanceAdmissionSuccessor.parent) {
     assert.equal(ownerBoundary.deploymentAuthorizationBoundaryProvenanceAdmissionSeen, true);
   }
+  assert.equal(ownerBoundary.workflowV2FixtureRepairSuccessorSeen, true);
 
   assert.deepEqual(contract.cloudflareDeploymentReadRepair, {
     failedRunId: 29780926642,

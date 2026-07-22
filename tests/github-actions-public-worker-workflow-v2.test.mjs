@@ -37,6 +37,7 @@ import {
   publicWorkerSmokeV2Plan,
   runPublicWorkerSmokeV2
 } from "../scripts/lib/cloudflare-public-worker-smoke-v2.mjs";
+import { buildPublicForwardRollbackArtifact } from "../scripts/lib/route-iq-public-forward-rollback.mjs";
 import { verifyGithubActionsPublicWorkerWorkflowV2 } from "../scripts/verify-github-actions-public-worker-workflow-v2.mjs";
 
 const root = resolve(import.meta.dirname, "..");
@@ -45,7 +46,7 @@ const tree = "e1546b4500803bb03898c6ffb18377ffd08e599e";
 const batchId = "BATCH-20260720-010";
 const publicVersion = "0396f868-1111-4111-8111-111111111111";
 const privateVersion = "b8cba784-dfd3-4f8e-8356-816cccf6aecc";
-const rollbackArtifactSha256 = "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a";
+const rollbackArtifactSha256 = buildPublicForwardRollbackArtifact(root).artifactSha256;
 const runtimeIdentity = Object.freeze({
   runner: PUBLIC_WORKFLOW_V2_POLICY.runner,
   architecture: PUBLIC_WORKFLOW_V2_POLICY.architecture,
