@@ -324,7 +324,7 @@ test("Founder JWT repair remains exact, fail-closed, and production-gated", () =
   assert.equal(closure.safety.crmRecordCreatedOrModified, false);
   assert.equal(closure.safety.notificationSent, false);
 
-  const fixtureRepair = value.workflowV2FixtureRepairClosure;
+  const fixtureRepair = integrityReadinessGovernance().workflowV2FixtureRepairClosure;
   assert.equal(fixtureRepair.ownerCommit, "9e91ccbd71cd7298fcb74de5ca6a4ced20125113");
   assert.equal(fixtureRepair.owner, "Prometheus Infrastructure");
   assert.equal(
