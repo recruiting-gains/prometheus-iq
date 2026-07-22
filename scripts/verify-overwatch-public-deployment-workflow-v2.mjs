@@ -58,8 +58,11 @@ const WORKFLOW_V2_TAIL_PATHS = Object.freeze([
   "scripts/verify-overwatch-cloudflare-founder-attended-tty-compatibility.mjs",
   "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
   "scripts/verify-overwatch-public-deployment-workflow-v2.mjs",
+  "scripts/verify-overwatch-route-iq-3d-visual-continuity.mjs",
   "scripts/verify-overwatch-route-iq-public-deployment-integrity-repair-readiness.mjs",
+  "scripts/verify-overwatch-route-iq-revised-3d-release-readiness-successor.mjs",
   "tests/overwatch-public-deployment-workflow-v2.test.mjs",
+  "tests/overwatch-route-iq-3d-visual-continuity.test.mjs",
   "tests/overwatch-route-iq-public-crm-founder-access-deployment-readiness.test.mjs"
 ]);
 const AUTHORIZATION_BOUNDARY_REPAIR_PATHS = Object.freeze([
@@ -242,6 +245,22 @@ export function hasGovernedPublicDeploymentWorkflowV2PackageSuccessor({
   return matches.length === 1;
 }
 
+export function isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+  path,
+  author,
+  committer,
+  subject,
+  files
+}) {
+  if (!WORKFLOW_V2_TAIL_PATHS.includes(path) || !Array.isArray(files)) return false;
+  if (!files.includes(path)) return true;
+  return author === "overwatch@prometheus.local"
+    && committer === "overwatch@prometheus.local"
+    && subject.startsWith("overwatch:")
+    && files.length > 0
+    && files.every(file => WORKFLOW_V2_TAIL_PATHS.includes(file));
+}
+
 export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
   path,
   historicalSha256,
@@ -258,6 +277,8 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
       || governedTail?.mergesAllowed !== false
       || governedTail?.authorAndCommitter !== "overwatch@prometheus.local"
       || governedTail?.subjectPrefix !== "overwatch:"
+      || governedTail?.ownershipAppliesTo !== "COMMITS_MODIFYING_GOVERNED_PATH"
+      || governedTail?.unrelatedSubsystemCommitsAllowed !== true
       || governedTail?.subsystemImplementationAllowed !== false
       || JSON.stringify(governedTail?.allowedPaths) !== JSON.stringify(WORKFLOW_V2_TAIL_PATHS)) {
       return false;
@@ -344,13 +365,17 @@ export function hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
         continue;
       }
 
-      if (author !== "overwatch@prometheus.local"
-        || committer !== "overwatch@prometheus.local"
-        || parents !== previous
-        || !subject.startsWith("overwatch:")
-        || files.length === 0
-        || files.some(file => !WORKFLOW_V2_TAIL_PATHS.includes(file))) return false;
-      if (files.includes(path)) pathChanged = true;
+      if (parents !== previous) return false;
+      if (!isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+        path,
+        author,
+        committer,
+        subject,
+        files
+      })) return false;
+      if (files.includes(path)) {
+        pathChanged = true;
+      }
       previous = commit;
     }
     return previous === git(["rev-parse", "HEAD"])

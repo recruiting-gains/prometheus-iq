@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
@@ -6,6 +7,7 @@ import {
   evaluatePublicDeploymentWorkflowV2Governance,
   hasGovernedPublicDeploymentWorkflowV2PackageSuccessor,
   hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor,
+  isGovernedPublicDeploymentWorkflowV2VerifierCommit,
   verifyOverwatchPublicDeploymentWorkflowV2
 } from "../scripts/verify-overwatch-public-deployment-workflow-v2.mjs";
 
@@ -137,7 +139,14 @@ test("historical gates accept only an exact governed Workflow v2 package success
   }), false);
 });
 
-test("historical verifier successors require the exact linear Overwatch tail", () => {
+test("historical verifier successors preserve path ownership across unrelated owner commits", () => {
+  const laterInfrastructureCommits = execFileSync("/usr/bin/git", [
+    "log",
+    "--format=%H",
+    "--author=infrastructure@prometheus.local",
+    "5b5b59509206578336b9671582669b600d0c74d4..HEAD"
+  ], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+  assert.ok(laterInfrastructureCommits.length > 0);
   assert.equal(hasGovernedPublicDeploymentWorkflowV2VerifierSuccessor({
     path: "scripts/verify-overwatch-cloudflare-unattended-access.mjs",
     historicalSha256: "766abafe2ef2d8d30b862b8b635424d622faad526732eb4893f1645b3186bf94",
@@ -155,4 +164,36 @@ test("historical verifier successors require the exact linear Overwatch tail", (
       ...patch
     }), false);
   }
+});
+
+test("protected verifier ownership rejects subsystem edits without rejecting unrelated work", () => {
+  const path = "scripts/verify-overwatch-cloudflare-unattended-access.mjs";
+  assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+    path,
+    author: "infrastructure@prometheus.local",
+    committer: "infrastructure@prometheus.local",
+    subject: "infrastructure: repair unrelated runtime",
+    files: ["workers/infrastructure/unrelated-runtime.js"]
+  }), true);
+  assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+    path,
+    author: "infrastructure@prometheus.local",
+    committer: "infrastructure@prometheus.local",
+    subject: "infrastructure: modify verifier",
+    files: [path]
+  }), false);
+  assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+    path,
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local",
+    subject: "overwatch: advance verifier",
+    files: [path, "workers/infrastructure/unrelated-runtime.js"]
+  }), false);
+  assert.equal(isGovernedPublicDeploymentWorkflowV2VerifierCommit({
+    path,
+    author: "overwatch@prometheus.local",
+    committer: "overwatch@prometheus.local",
+    subject: "overwatch: advance verifier",
+    files: [path]
+  }), true);
 });

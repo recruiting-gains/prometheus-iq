@@ -572,6 +572,8 @@
       "mergesAllowed": false,
       "authorAndCommitter": "overwatch@prometheus.local",
       "subjectPrefix": "overwatch:",
+      "ownershipAppliesTo": "COMMITS_MODIFYING_GOVERNED_PATH",
+      "unrelatedSubsystemCommitsAllowed": true,
       "allowedPaths": [
         "overwatch/governance/route-iq-public-deployment-integrity-repair-readiness-v1.json",
         "overwatch/governance/public-deployment-workflow-v2.json",

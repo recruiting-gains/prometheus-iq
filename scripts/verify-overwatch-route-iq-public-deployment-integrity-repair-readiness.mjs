@@ -1160,6 +1160,8 @@ export function validatePublicIntegrityReadiness(governance) {
       mergesAllowed: false,
       authorAndCommitter: "overwatch@prometheus.local",
       subjectPrefix: "overwatch:",
+      ownershipAppliesTo: "COMMITS_MODIFYING_GOVERNED_PATH",
+      unrelatedSubsystemCommitsAllowed: true,
       allowedPaths: [...WORKFLOW_V2_OVERWATCH_TAIL_PATHS],
       subsystemImplementationAllowed: false
     },
