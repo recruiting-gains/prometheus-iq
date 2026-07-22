@@ -185,7 +185,7 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
   assert.equal(value.infrastructureOwnerRepairs.at(-1).commit, "d2963aa66e304932729cf8154ab729f5d8b71113");
   assert.equal(
     value.infrastructureEvidence.contractSha256,
-    "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e"
+    "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc"
   );
   assert.equal(
     value.infrastructureEvidence.previousContractSha256,
@@ -199,8 +199,13 @@ test("Dashboard rollover and clean-runner Infrastructure repairs remain exact an
     value.infrastructureEvidence.preFounderJwtRepairContractSha256,
     "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e"
   );
-  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3");
+  assert.equal(
+    value.infrastructureEvidence.preWorkflowV2FixtureRepairContractSha256,
+    "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e"
+  );
+  assert.equal(value.infrastructureEvidence.contractSuccessorCommit, "9e91ccbd71cd7298fcb74de5ca6a4ced20125113");
   assert.equal(value.infrastructureEvidence.contractSuccessorOwner, "Prometheus Infrastructure");
+  assert.equal(value.infrastructureEvidence.ownerVerifierPinsWorkflowV2FixtureRepairSuccessor, true);
   assert.equal(
     value.infrastructureEvidence.deploymentContractSha256,
     "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912"
@@ -318,6 +323,17 @@ test("Founder JWT repair remains exact, fail-closed, and production-gated", () =
   assert.equal(closure.safety.leadCreated, false);
   assert.equal(closure.safety.crmRecordCreatedOrModified, false);
   assert.equal(closure.safety.notificationSent, false);
+
+  const fixtureRepair = value.workflowV2FixtureRepairClosure;
+  assert.equal(fixtureRepair.ownerCommit, "9e91ccbd71cd7298fcb74de5ca6a4ced20125113");
+  assert.equal(fixtureRepair.owner, "Prometheus Infrastructure");
+  assert.equal(
+    fixtureRepair.currentInfrastructureContractSha256,
+    "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc"
+  );
+  assert.equal(fixtureRepair.jwtValidationRuntimeChanged, false);
+  assert.equal(fixtureRepair.websiteOrCrmRuntimeChanged, false);
+  assert.equal(fixtureRepair.productionTouched, false);
 
   const weakened = integrityReadinessGovernance();
   weakened.founderJwtValidationRepairClosure.validationBoundary.authenticationBypassAdded = true;

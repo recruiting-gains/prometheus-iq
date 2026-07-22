@@ -24,7 +24,9 @@ const DEPLOYMENT_INFRASTRUCTURE_CONTRACT_PATH =
   "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json";
 const ROLLBACK_CONTRACT_PATH = "workers/infrastructure/route-iq-public-forward-rollback-v1.json";
 const HISTORICAL_SUCCESSOR_SHA256 = "aea011a5633a3d666f7bc402d6d7cfa38884833c1ce4ca3d6a6cdc84c4d27f75";
-const INFRASTRUCTURE_CONTRACT_SHA256 = "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e";
+const INFRASTRUCTURE_CONTRACT_SHA256 = "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc";
+const PRE_WORKFLOW_V2_FIXTURE_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256 =
+  "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e";
 const PRE_FOUNDER_JWT_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256 =
   "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e";
 const PRE_AUTHORIZATION_BOUNDARY_INFRASTRUCTURE_CONTRACT_SHA256 =
@@ -958,6 +960,18 @@ const CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR = Object.freeze({
     "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
   ])
 });
+const WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR = Object.freeze({
+  commit: "9e91ccbd71cd7298fcb74de5ca6a4ced20125113",
+  tree: "1691ed5ffb5bc139a66b60cbafd5b5c60ad12892",
+  parent: "781a9472a4bd43a998826a3a130e547907f1f36a",
+  subject: "infrastructure: derive Workflow v2 rollback fixture",
+  ownerEmail: "infrastructure@prometheus.local",
+  files: Object.freeze([
+    "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+    "tests/github-actions-public-worker-workflow-v2.test.mjs",
+    "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+  ])
+});
 const HISTORICAL_CLASSIFICATION = Object.freeze([
   "DEPLOYMENT_ATTEMPT_CONSUMED",
   "HISTORICAL_READINESS_EVIDENCE",
@@ -1070,8 +1084,12 @@ export function validatePublicIntegrityReadiness(governance) {
     PRE_FOUNDER_JWT_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256
   );
   assert.equal(
+    governance?.infrastructureEvidence?.preWorkflowV2FixtureRepairContractSha256,
+    PRE_WORKFLOW_V2_FIXTURE_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256
+  );
+  assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorCommit,
-    CANONICAL_ROLLBACK_IDENTITY_SUCCESSOR.commit
+    WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.commit
   );
   assert.equal(
     governance?.infrastructureEvidence?.contractSuccessorOwner,
@@ -1122,6 +1140,7 @@ export function validatePublicIntegrityReadiness(governance) {
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsFounderJwtValidationRepair, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsCanonicalRollbackIdentitySuccessor, true);
+  assert.equal(governance?.infrastructureEvidence?.ownerVerifierPinsWorkflowV2FixtureRepairSuccessor, true);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierGenerallyAllowsDashboardSuccessors, false);
   assert.equal(governance?.infrastructureEvidence?.ownerVerifierRejectsMixedOwnershipAndMerges, true);
   assert.deepEqual(governance?.workflowV2ReadinessClosure, {
@@ -1229,7 +1248,7 @@ export function validatePublicIntegrityReadiness(governance) {
       deploymentAssetsSha256: DEPLOYMENT_ASSETS_SHA256,
       rollbackContractSha256: ROLLBACK_CONTRACT_SHA256,
       deterministicRollbackBundleSha256: ROLLBACK_BUNDLE_SHA256,
-      infrastructureContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+      infrastructureContractSha256: PRE_WORKFLOW_V2_FIXTURE_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256,
       authenticationRuntimeSha256: "7726770982fe39bb4030a24b8117dfb2cac69954c4279a8876282e4b8e1adac8",
       authenticationContractSha256: "7103fba8dacc1fd966b44d6d02d175e46c8842cd802b6d1791952958724d9849"
     },
@@ -1251,6 +1270,28 @@ export function validatePublicIntegrityReadiness(governance) {
       activeCohorts: 0,
       recommendationInfluence: "OFF"
     }
+  });
+
+  assert.deepEqual(governance?.workflowV2FixtureRepairClosure, {
+    batchId: "BATCH-20260721-011C",
+    status: "SUCCESSOR_RECONSTRUCTED_PENDING_QUALIFICATION",
+    ownerCommit: WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.commit,
+    ownerTree: WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.tree,
+    parent: WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.parent,
+    subject: WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.subject,
+    owner: "Prometheus Infrastructure",
+    files: [...WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.files],
+    historicalFixtureSha256:
+      "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a",
+    successorFixtureSha256:
+      "45a7b5c8120f7a7a3a885c3ac0d92aba29756b84f792bfed0d0c572ad56383e6",
+    previousInfrastructureContractSha256:
+      PRE_WORKFLOW_V2_FIXTURE_REPAIR_INFRASTRUCTURE_CONTRACT_SHA256,
+    currentInfrastructureContractSha256: INFRASTRUCTURE_CONTRACT_SHA256,
+    rollbackArtifactSha256: ROLLBACK_BUNDLE_SHA256,
+    jwtValidationRuntimeChanged: false,
+    websiteOrCrmRuntimeChanged: false,
+    productionTouched: false
   });
 
   assert.deepEqual(governance?.predeploymentSmokeRepair, {
@@ -2462,6 +2503,7 @@ function verifyOwnership(root, requireCommittedOverwatch) {
   let authorizationBoundarySuccessorIndex = 0;
   let founderJwtValidationRepairSeen = false;
   let canonicalRollbackIdentitySuccessorSeen = false;
+  let workflowV2FixtureRepairSuccessorSeen = false;
   for (const commit of tail) {
     const record = commitRecord(root, commit);
     const expectedBoundarySuccessor =
@@ -2508,6 +2550,23 @@ function verifyOwnership(root, requireCommittedOverwatch) {
       previous = commit;
       continue;
     }
+    if (commit === WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.commit) {
+      assert.equal(canonicalRollbackIdentitySuccessorSeen, true);
+      assert.equal(workflowV2FixtureRepairSuccessorSeen, false);
+      assert.equal(record.author, WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.ownerEmail);
+      assert.equal(record.committer, WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.ownerEmail);
+      assert.equal(record.subject, WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.subject);
+      assert.deepEqual(sorted(record.files), sorted(WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.files));
+      assert.equal(
+        git(root, "rev-parse", `${commit}^{tree}`),
+        WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.tree
+      );
+      assert.equal(git(root, "rev-parse", `${commit}^`), previous);
+      assert.equal(WORKFLOW_V2_FIXTURE_REPAIR_SUCCESSOR.parent, previous);
+      workflowV2FixtureRepairSuccessorSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(record.author, "overwatch@prometheus.local");
     assert.equal(record.committer, "overwatch@prometheus.local");
     assert.match(record.subject, /^overwatch:/u);
@@ -2526,6 +2585,11 @@ function verifyOwnership(root, requireCommittedOverwatch) {
     canonicalRollbackIdentitySuccessorSeen,
     true,
     "Canonical rollback identity successor is missing."
+  );
+  assert.equal(
+    workflowV2FixtureRepairSuccessorSeen,
+    true,
+    "Workflow v2 fixture repair successor is missing."
   );
   if (requireCommittedOverwatch) assert.equal(previous, git(root, "rev-parse", "HEAD"));
   return commits;

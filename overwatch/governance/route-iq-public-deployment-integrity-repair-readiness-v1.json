@@ -421,11 +421,12 @@
   ],
   "infrastructureEvidence": {
     "contractPath": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json",
-    "contractSha256": "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e",
+    "contractSha256": "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc",
     "previousContractSha256": "3a36629b5aed90238e8b8257dbb3ec9820d74f4f3c40fce94248e349afd22b4e",
     "preWorkflowV2ContractSha256": "09ffc8c9d631b0002bc84ae372924f3e75a677e65b85806d50d0c48c21f56b27",
     "preFounderJwtRepairContractSha256": "6785485920b689a781d19aeefd329e235b78367c905fa3c007f312ffe6802a1e",
-    "contractSuccessorCommit": "f09df1273b7b9ce4ea43bdfc065e929aa3405bf3",
+    "preWorkflowV2FixtureRepairContractSha256": "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e",
+    "contractSuccessorCommit": "9e91ccbd71cd7298fcb74de5ca6a4ced20125113",
     "contractSuccessorOwner": "Prometheus Infrastructure",
     "deploymentContractPath": "workers/infrastructure/github-actions-founder-triggered-public-worker-deployment-v1.json",
     "deploymentContractSha256": "66875cbc292f9d0fcf9f2fd0cd29625e4b2d8ecb5854b931da876cd3ca770912",
@@ -468,6 +469,7 @@
     "ownerVerifierPinsDeploymentAuthorizationBoundarySuccessors": true,
     "ownerVerifierPinsFounderJwtValidationRepair": true,
     "ownerVerifierPinsCanonicalRollbackIdentitySuccessor": true,
+    "ownerVerifierPinsWorkflowV2FixtureRepairSuccessor": true,
     "ownerVerifierGenerallyAllowsDashboardSuccessors": false,
     "ownerVerifierRejectsMixedOwnershipAndMerges": true
   },
@@ -1584,6 +1586,28 @@
       "activeCohorts": 0,
       "recommendationInfluence": "OFF"
     }
+  },
+  "workflowV2FixtureRepairClosure": {
+    "batchId": "BATCH-20260721-011C",
+    "status": "SUCCESSOR_RECONSTRUCTED_PENDING_QUALIFICATION",
+    "ownerCommit": "9e91ccbd71cd7298fcb74de5ca6a4ced20125113",
+    "ownerTree": "1691ed5ffb5bc139a66b60cbafd5b5c60ad12892",
+    "parent": "781a9472a4bd43a998826a3a130e547907f1f36a",
+    "subject": "infrastructure: derive Workflow v2 rollback fixture",
+    "owner": "Prometheus Infrastructure",
+    "files": [
+      "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+      "tests/github-actions-public-worker-workflow-v2.test.mjs",
+      "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+    ],
+    "historicalFixtureSha256": "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a",
+    "successorFixtureSha256": "45a7b5c8120f7a7a3a885c3ac0d92aba29756b84f792bfed0d0c572ad56383e6",
+    "previousInfrastructureContractSha256": "6bdfc39aad8907eb5ee1214c00a57f378bfd19e91c43d06504c5107ba345d22e",
+    "currentInfrastructureContractSha256": "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc",
+    "rollbackArtifactSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
+    "jwtValidationRuntimeChanged": false,
+    "websiteOrCrmRuntimeChanged": false,
+    "productionTouched": false
   },
   "safeNonDeploymentCi": {
     "workflow": ".github/workflows/verify-prometheus-public-repository-integrity.yml",
