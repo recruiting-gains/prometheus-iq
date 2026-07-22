@@ -30,6 +30,18 @@ const AUTHORIZATION_BOUNDARY_REPAIR_COMMIT = "9c6440ba3c286b06a79435a8ec7bdf477c
 const AUTHORIZATION_BOUNDARY_REPAIR_TREE = "9e09f7c9129b0eae1618cc0316da0f1a22d7c7c2";
 const AUTHORIZATION_BOUNDARY_REPAIR_PARENT = "6db68f845e91c967e34f3b825e4cbc2372cef6d8";
 const AUTHORIZATION_BOUNDARY_REPAIR_SUBJECT = "infrastructure: consume deployment authorization at spawn";
+const WORKFLOW_V2_FIXTURE_REPAIR_COMMIT = "9e91ccbd71cd7298fcb74de5ca6a4ced20125113";
+const WORKFLOW_V2_FIXTURE_REPAIR_TREE = "1691ed5ffb5bc139a66b60cbafd5b5c60ad12892";
+const WORKFLOW_V2_FIXTURE_REPAIR_PARENT = "781a9472a4bd43a998826a3a130e547907f1f36a";
+const WORKFLOW_V2_FIXTURE_REPAIR_SUBJECT = "infrastructure: derive Workflow v2 rollback fixture";
+const WORKFLOW_V2_FIXTURE_HISTORICAL_SHA256 =
+  "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a";
+const WORKFLOW_V2_FIXTURE_SUCCESSOR_SHA256 =
+  "45a7b5c8120f7a7a3a885c3ac0d92aba29756b84f792bfed0d0c572ad56383e6";
+const WORKFLOW_V2_FIXTURE_PATCH_SHA256 =
+  "3270a7cf5bae0e59e9ed74b16b5a5612d46bee89c8b77dd6bcd440f58b6d6ba7";
+const CURRENT_ROLLBACK_ARTIFACT_SHA256 =
+  "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863";
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_COMMIT = "e2465d7a28c3222626cc8c60ed0690f8a425ee6f";
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_TREE = "25a215fda6751214d5c8a8b2d4474531aaf6536b";
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_PARENT = AUTHORIZATION_BOUNDARY_REPAIR_COMMIT;
@@ -74,6 +86,11 @@ const AUTHORIZATION_BOUNDARY_REPAIR_PATHS = Object.freeze([
   "scripts/verify-github-actions-public-worker-workflow-v2.mjs",
   "tests/github-actions-public-worker-workflow-v2.test.mjs",
   "workers/infrastructure/github-actions-public-worker-deployment-v2.json"
+]);
+const WORKFLOW_V2_FIXTURE_REPAIR_PATHS = Object.freeze([
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/github-actions-public-worker-workflow-v2.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
 ]);
 const AUTHORIZATION_BOUNDARY_GOVERNANCE_PATHS = Object.freeze([
   GOVERNANCE_PATH,
@@ -140,6 +157,17 @@ export function evaluatePublicDeploymentWorkflowV2Governance({
   require(governance.authorizationBoundaryRepair?.subject === AUTHORIZATION_BOUNDARY_REPAIR_SUBJECT, "Authorization-boundary repair subject drifted.");
   require(governance.authorizationBoundaryRepair?.author === OWNER_IDENTITY, "Authorization-boundary repair author drifted.");
   require(governance.authorizationBoundaryRepair?.committer === OWNER_IDENTITY, "Authorization-boundary repair committer drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.ownerCommit === WORKFLOW_V2_FIXTURE_REPAIR_COMMIT, "Workflow v2 fixture repair commit drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.ownerTree === WORKFLOW_V2_FIXTURE_REPAIR_TREE, "Workflow v2 fixture repair tree drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.parent === WORKFLOW_V2_FIXTURE_REPAIR_PARENT, "Workflow v2 fixture repair parent drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.subject === WORKFLOW_V2_FIXTURE_REPAIR_SUBJECT, "Workflow v2 fixture repair subject drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.author === OWNER_IDENTITY, "Workflow v2 fixture repair author drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.committer === OWNER_IDENTITY, "Workflow v2 fixture repair committer drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.classification === "INFRASTRUCTURE_TEST_FIXTURE_AND_OWNER_PROVENANCE_ONLY", "Workflow v2 fixture repair classification drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.historicalTestSha256 === WORKFLOW_V2_FIXTURE_HISTORICAL_SHA256, "Workflow v2 historical fixture hash drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.successorTestSha256 === WORKFLOW_V2_FIXTURE_SUCCESSOR_SHA256, "Workflow v2 successor fixture hash drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.patchSha256 === WORKFLOW_V2_FIXTURE_PATCH_SHA256, "Workflow v2 fixture patch hash drifted.");
+  require(governance.workflowV2FixtureRepairSuccessor?.rollbackArtifactSha256 === CURRENT_ROLLBACK_ARTIFACT_SHA256, "Workflow v2 fixture rollback identity drifted.");
   require(governance.authorizationBoundaryGovernance?.ownerCommit === AUTHORIZATION_BOUNDARY_GOVERNANCE_COMMIT, "Authorization-boundary governance commit drifted.");
   require(governance.authorizationBoundaryGovernance?.ownerTree === AUTHORIZATION_BOUNDARY_GOVERNANCE_TREE, "Authorization-boundary governance tree drifted.");
   require(governance.authorizationBoundaryGovernance?.parent === AUTHORIZATION_BOUNDARY_GOVERNANCE_PARENT, "Authorization-boundary governance parent drifted.");
@@ -447,17 +475,49 @@ export function verifyOverwatchPublicDeploymentWorkflowV2() {
   assert.deepEqual(boundaryRepairPaths, [...AUTHORIZATION_BOUNDARY_REPAIR_PATHS].sort());
   const repairedEvidence = new Map();
   for (const evidence of governance.authorizationBoundaryRepair.files) {
-    assert.equal(sha256(read(evidence.path)), evidence.sha256, `Authorization-boundary repair evidence drifted: ${evidence.path}`);
+    const currentExpected = evidence.path === "tests/github-actions-public-worker-workflow-v2.test.mjs"
+      ? governance.workflowV2FixtureRepairSuccessor.successorTestSha256
+      : evidence.sha256;
+    assert.equal(sha256(read(evidence.path)), currentExpected, `Authorization-boundary repair evidence drifted: ${evidence.path}`);
     repairedEvidence.set(evidence.path, evidence.sha256);
   }
   for (const evidence of governance.implementationProvenance.files) {
+    const currentExpected = evidence.path === "tests/github-actions-public-worker-workflow-v2.test.mjs"
+      ? governance.workflowV2FixtureRepairSuccessor.successorTestSha256
+      : repairedEvidence.get(evidence.path) ?? evidence.sha256;
     assert.equal(
       sha256(read(evidence.path)),
-      repairedEvidence.get(evidence.path) ?? evidence.sha256,
+      currentExpected,
       `Current owner evidence is not governed: ${evidence.path}`
     );
   }
   assert.equal(boundaryRepairPaths.every(path => /^(?:docs\/|scripts\/|tests\/|workers\/infrastructure\/)/u.test(path)), true);
+
+  const fixtureRepairIdentity = commitIdentity(WORKFLOW_V2_FIXTURE_REPAIR_COMMIT);
+  assert.equal(fixtureRepairIdentity.author, OWNER_IDENTITY);
+  assert.equal(fixtureRepairIdentity.committer, OWNER_IDENTITY);
+  assert.deepEqual(fixtureRepairIdentity.parents, [WORKFLOW_V2_FIXTURE_REPAIR_PARENT]);
+  assert.equal(fixtureRepairIdentity.tree, WORKFLOW_V2_FIXTURE_REPAIR_TREE);
+  assert.equal(
+    git(["show", "-s", "--format=%s", WORKFLOW_V2_FIXTURE_REPAIR_COMMIT]),
+    WORKFLOW_V2_FIXTURE_REPAIR_SUBJECT
+  );
+  assert.doesNotThrow(() => git(["merge-base", "--is-ancestor", WORKFLOW_V2_FIXTURE_REPAIR_COMMIT, "HEAD"]));
+  const fixtureRepairPaths = git([
+    "diff-tree", "--no-commit-id", "--name-only", "-r", WORKFLOW_V2_FIXTURE_REPAIR_COMMIT
+  ]).split("\n").filter(Boolean).sort();
+  assert.deepEqual(fixtureRepairPaths, [...WORKFLOW_V2_FIXTURE_REPAIR_PATHS].sort());
+  assert.deepEqual(
+    governance.workflowV2FixtureRepairSuccessor.files.map(item => item.path).sort(),
+    [...WORKFLOW_V2_FIXTURE_REPAIR_PATHS].sort()
+  );
+  for (const evidence of governance.workflowV2FixtureRepairSuccessor.files) {
+    const committedEvidence = execFileSync("/usr/bin/git", [
+      "show", `${WORKFLOW_V2_FIXTURE_REPAIR_COMMIT}:${evidence.path}`
+    ], { cwd: root, encoding: null, stdio: ["ignore", "pipe", "ignore"] });
+    assert.equal(sha256(committedEvidence), evidence.sha256, `Workflow v2 fixture repair evidence drifted: ${evidence.path}`);
+    assert.equal(sha256(read(evidence.path)), evidence.sha256, `Workflow v2 fixture repair current evidence drifted: ${evidence.path}`);
+  }
 
   const boundaryGovernanceIdentity = commitIdentity(AUTHORIZATION_BOUNDARY_GOVERNANCE_COMMIT);
   assert.equal(boundaryGovernanceIdentity.author, OVERWATCH_IDENTITY);

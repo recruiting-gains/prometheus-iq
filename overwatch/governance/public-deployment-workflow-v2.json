@@ -1,7 +1,7 @@
 {
   "governanceId": "public-deployment-workflow-v2-governance-v1",
   "schema": "PublicDeploymentWorkflowV2GovernanceV1",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "status": "active_source_verified_not_deployed",
   "batchId": "BATCH-20260720-010",
   "engineeringDirective": "PUBLIC DEPLOYMENT WORKFLOW V2 - AUTONOMOUS ENGINEERING DIRECTIVE",
@@ -68,6 +68,24 @@
       { "path": "scripts/verify-github-actions-public-worker-workflow-v2.mjs", "sha256": "67d79b63c891a113761bcfe3c2c0a4f30de22ae0241202e919d5899f33975da6" },
       { "path": "tests/github-actions-public-worker-workflow-v2.test.mjs", "sha256": "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a" },
       { "path": "workers/infrastructure/github-actions-public-worker-deployment-v2.json", "sha256": "17ac6ac53220f77fe2d49339e7a93566c7c2419bb19c462200a2077f1df34ca7" }
+    ]
+  },
+  "workflowV2FixtureRepairSuccessor": {
+    "ownerCommit": "9e91ccbd71cd7298fcb74de5ca6a4ced20125113",
+    "ownerTree": "1691ed5ffb5bc139a66b60cbafd5b5c60ad12892",
+    "parent": "781a9472a4bd43a998826a3a130e547907f1f36a",
+    "subject": "infrastructure: derive Workflow v2 rollback fixture",
+    "author": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "committer": "Prometheus Infrastructure <infrastructure@prometheus.local>",
+    "classification": "INFRASTRUCTURE_TEST_FIXTURE_AND_OWNER_PROVENANCE_ONLY",
+    "historicalTestSha256": "4181006b560cd2a192f08f94966d35ad076ee4da22e519217f86e90ae21cd35a",
+    "successorTestSha256": "45a7b5c8120f7a7a3a885c3ac0d92aba29756b84f792bfed0d0c572ad56383e6",
+    "patchSha256": "3270a7cf5bae0e59e9ed74b16b5a5612d46bee89c8b77dd6bcd440f58b6d6ba7",
+    "rollbackArtifactSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
+    "files": [
+      { "path": "scripts/verify-route-iq-public-repository-integrity-repair.mjs", "sha256": "1735f62d87eb5912444f7c6736b1263f3fc297b4a72ded6acbba1ee2ee1d780a" },
+      { "path": "tests/github-actions-public-worker-workflow-v2.test.mjs", "sha256": "45a7b5c8120f7a7a3a885c3ac0d92aba29756b84f792bfed0d0c572ad56383e6" },
+      { "path": "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json", "sha256": "76c56b86ff9c8a16ae585d3e3dd30a213e199dc937c678cd7aaeefb26e6924fc" }
     ]
   },
   "authorizationBoundaryGovernance": {
