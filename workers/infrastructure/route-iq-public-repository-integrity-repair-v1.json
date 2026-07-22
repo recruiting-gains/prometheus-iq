@@ -716,6 +716,38 @@
         "tests/public-repository-integrity-repair.test.mjs",
         "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
       ]
+    },
+    "founderJwtRepairSuccessor": {
+      "commit": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "tree": "275c88e592f285578aa2dd6a0d64c151f84c3abf",
+      "parent": "76eb41c5c49965c79b1b7a13de19e0d1b1020b62",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: classify Founder Access JWT failures",
+      "files": [
+        "docs/route-iq-request-crm-infrastructure-v1.md",
+        "scripts/verify-cloudflare-public-crm-founder-access.mjs",
+        "scripts/verify-route-iq-request-crm-infrastructure.mjs",
+        "tests/route-iq-request-crm-infrastructure.test.mjs",
+        "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+        "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+        "workers/infrastructure/route-iq-request-crm-runtime.js"
+      ]
+    },
+    "canonicalRollbackIdentitySuccessor": {
+      "parent": "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+      "authorName": "Prometheus Infrastructure",
+      "authorEmail": "infrastructure@prometheus.local",
+      "committerName": "Prometheus Infrastructure",
+      "committerEmail": "infrastructure@prometheus.local",
+      "subject": "infrastructure: advance canonical rollback identity",
+      "files": [
+        "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+        "tests/public-repository-integrity-repair.test.mjs",
+        "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+      ]
     }
   },
   "cloudflareDeploymentReadRepair": {
@@ -964,12 +996,13 @@
     "sourceMapRealpathContainmentRequired": true,
     "genericOwnerVerifierFailureAllowed": false,
     "canonicalRollbackIdentity": {
-      "artifactSha256": "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+      "artifactSha256": "88bee90a9ff1fafe064598c5db27b59ca78606dc8938fb0dcfeea96fa4eb5863",
+      "rollbackContractSha256": "26e1eab16fa5aed2295d025d6146e01744f1ef37ad8f8eb05afb2ab921d7916f",
       "candidateDeploymentAssetsSha256": "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
       "websiteAssetsSha256": "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
       "configurationSha256": "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
-      "generatedWorkerSha256": "7af82fa06e0b0642efb654c80cf9cb1dd572837188d1f5635b107807fef245c5",
-      "generatedSourceMapSha256": "e76236ffd75d4098f804832b271ec8bcfca07ecf728e538ad3462c931040e7b2"
+      "generatedWorkerSha256": "892f1599bf6bcb4350c6811e1211e7a6b15e8bec9e4bb5552431a5c79a32b7d6",
+      "generatedSourceMapSha256": "84ce3b5a9e0131d5b7e1a25f20cdc815c8c1097bcc224744789a4e48d1facfbe"
     }
   },
   "safeCiVerification": {

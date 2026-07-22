@@ -17,6 +17,15 @@ import { buildPublicForwardRollbackArtifact } from "./lib/route-iq-public-forwar
 
 const root = resolve(import.meta.dirname, "..");
 const contractPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityContractPath;
+const canonicalRollbackPredecessorCommit = "b7ab413a298d62806f7274d5ef63e6cb63bddf2c";
+const canonicalRollbackPredecessorIdentity = Object.freeze({
+  artifactSha256: "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a",
+  candidateDeploymentAssetsSha256: "5fd9e497e7fe814aab6194b4302528c6cff0e243e76a3dd843738f1882cd8c15",
+  websiteAssetsSha256: "0972695df073a0d4273cf86c7bb6fc7a326e9f194dcb1d1e9e7080a20341b58d",
+  configurationSha256: "5b8e16a1e49172f20ef617d09e6e655b5ee453600b486fe5d216ebe5453b56f0",
+  generatedWorkerSha256: "7af82fa06e0b0642efb654c80cf9cb1dd572837188d1f5635b107807fef245c5",
+  generatedSourceMapSha256: "e76236ffd75d4098f804832b271ec8bcfca07ecf728e538ad3462c931040e7b2"
+});
 const expectedPreservedObjects = Object.freeze({
   src: "2386f04cd661cf75549c170b40ef4c01bd235b04",
   "deploy/prometheusrouteiq-website": "5c9a75c75e81770aa4825a911bafc6c005f46d4f",
@@ -288,6 +297,20 @@ const deploymentAuthorizationBoundaryGovernanceAdmissionFiles = Object.freeze([
 ]);
 const deploymentAuthorizationBoundaryProvenanceAdmissionFiles = Object.freeze([
   "docs/route-iq-public-repository-integrity-repair-v1.md",
+  "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
+  "tests/public-repository-integrity-repair.test.mjs",
+  "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
+]);
+const founderJwtRepairFiles = Object.freeze([
+  "docs/route-iq-request-crm-infrastructure-v1.md",
+  "scripts/verify-cloudflare-public-crm-founder-access.mjs",
+  "scripts/verify-route-iq-request-crm-infrastructure.mjs",
+  "tests/route-iq-request-crm-infrastructure.test.mjs",
+  "workers/infrastructure/route-iq-public-forward-rollback-v1.json",
+  "workers/infrastructure/route-iq-request-crm-runtime-v1.json",
+  "workers/infrastructure/route-iq-request-crm-runtime.js"
+]);
+const canonicalRollbackIdentitySuccessorFiles = Object.freeze([
   "scripts/verify-route-iq-public-repository-integrity-repair.mjs",
   "tests/public-repository-integrity-repair.test.mjs",
   "workers/infrastructure/route-iq-public-repository-integrity-repair-v1.json"
@@ -786,6 +809,26 @@ export const INFRASTRUCTURE_OWNER_BOUNDARY = Object.freeze({
     committerEmail: "infrastructure@prometheus.local",
     subject: "infrastructure: admit deployment authorization boundary repair",
     files: deploymentAuthorizationBoundaryProvenanceAdmissionFiles
+  }),
+  founderJwtRepairSuccessor: Object.freeze({
+    commit: "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+    tree: "275c88e592f285578aa2dd6a0d64c151f84c3abf",
+    parent: "76eb41c5c49965c79b1b7a13de19e0d1b1020b62",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: classify Founder Access JWT failures",
+    files: founderJwtRepairFiles
+  }),
+  canonicalRollbackIdentitySuccessor: Object.freeze({
+    parent: "b7ab413a298d62806f7274d5ef63e6cb63bddf2c",
+    authorName: "Prometheus Infrastructure",
+    authorEmail: "infrastructure@prometheus.local",
+    committerName: "Prometheus Infrastructure",
+    committerEmail: "infrastructure@prometheus.local",
+    subject: "infrastructure: advance canonical rollback identity",
+    files: canonicalRollbackIdentitySuccessorFiles
   })
 });
 
@@ -808,6 +851,56 @@ function sha256AtCommit(commit, path) {
       GIT_TERMINAL_PROMPT: "0"
     }
   })).digest("hex");
+}
+
+function jsonAtCommit(commit, path) {
+  return JSON.parse(execFileSync("git", ["show", `${commit}:${path}`], {
+    cwd: root,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "ignore"],
+    env: {
+      PATH: process.env.PATH,
+      HOME: process.env.HOME,
+      GIT_CONFIG_NOSYSTEM: "1",
+      GIT_TERMINAL_PROMPT: "0"
+    }
+  }));
+}
+
+export function verifyCanonicalRollbackIdentityAdvancement({
+  currentContract,
+  predecessorContract,
+  rollbackIdentity,
+  rollbackContractSha256
+}) {
+  assert.deepEqual(
+    predecessorContract.repair.canonicalRollbackIdentity,
+    canonicalRollbackPredecessorIdentity
+  );
+  const preservedCurrent = structuredClone(currentContract);
+  preservedCurrent.repair.canonicalRollbackIdentity = structuredClone(
+    predecessorContract.repair.canonicalRollbackIdentity
+  );
+  delete preservedCurrent.ownerBoundary.founderJwtRepairSuccessor;
+  delete preservedCurrent.ownerBoundary.canonicalRollbackIdentitySuccessor;
+  assert.deepEqual(preservedCurrent, predecessorContract);
+
+  const canonical = currentContract.repair.canonicalRollbackIdentity;
+  assert.equal(canonical.rollbackContractSha256, rollbackContractSha256);
+  assert.equal(canonical.artifactSha256, rollbackIdentity.artifactSha256);
+  for (const field of [
+    "candidateDeploymentAssetsSha256",
+    "websiteAssetsSha256",
+    "configurationSha256",
+    "generatedWorkerSha256",
+    "generatedSourceMapSha256"
+  ]) assert.equal(canonical[field], rollbackIdentity[field]);
+  assert.notEqual(canonical.artifactSha256, canonicalRollbackPredecessorIdentity.artifactSha256);
+  return Object.freeze({
+    status: "CANONICAL_ROLLBACK_IDENTITY_ADVANCEMENT_VERIFIED",
+    predecessorArtifactSha256: canonicalRollbackPredecessorIdentity.artifactSha256,
+    currentArtifactSha256: canonical.artifactSha256
+  });
 }
 
 function countExactTrimmedLine(source, expected) {
@@ -1005,6 +1098,8 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
   let deploymentAuthorizationBoundaryRepairSeen = false;
   let deploymentAuthorizationBoundaryOverwatchSuccessorsSeen = 0;
   let deploymentAuthorizationBoundaryProvenanceAdmissionSeen = false;
+  let founderJwtRepairSeen = false;
+  let canonicalRollbackIdentitySuccessorSeen = false;
   for (const commit of descendants) {
     const actual = commitSnapshot(repositoryRoot, commit);
     assert.deepEqual(actual.parents, [previous], `${commit} must remain a linear non-merge successor`);
@@ -1470,6 +1565,33 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       previous = commit;
       continue;
     }
+    const founderJwtRepair = boundary.founderJwtRepairSuccessor;
+    if (founderJwtRepair && commit === founderJwtRepair.commit) {
+      assert.equal(founderJwtRepairSeen, false, "Founder JWT repair successor repeated");
+      assert.equal(deploymentAuthorizationBoundaryProvenanceAdmissionSeen, true,
+        "Founder JWT repair preceded the deployment authorization provenance admission");
+      assertCommitSnapshot(repositoryRoot, founderJwtRepair);
+      founderJwtRepairSeen = true;
+      previous = commit;
+      continue;
+    }
+    const canonicalRollbackSuccessor = boundary.canonicalRollbackIdentitySuccessor;
+    const isCanonicalRollbackSuccessor = canonicalRollbackSuccessor
+      && !canonicalRollbackIdentitySuccessorSeen
+      && founderJwtRepairSeen
+      && actual.parents[0] === canonicalRollbackSuccessor.parent
+      && actual.authorName === canonicalRollbackSuccessor.authorName
+      && actual.authorEmail === canonicalRollbackSuccessor.authorEmail
+      && actual.committerName === canonicalRollbackSuccessor.committerName
+      && actual.committerEmail === canonicalRollbackSuccessor.committerEmail
+      && actual.subject === canonicalRollbackSuccessor.subject
+      && JSON.stringify(actual.files)
+        === JSON.stringify([...canonicalRollbackSuccessor.files].sort());
+    if (isCanonicalRollbackSuccessor) {
+      canonicalRollbackIdentitySuccessorSeen = true;
+      previous = commit;
+      continue;
+    }
     assert.equal(actual.authorName, "Prometheus Overwatch");
     assert.equal(actual.authorEmail, "overwatch@prometheus.local");
     assert.equal(actual.committerName, "Prometheus Overwatch");
@@ -1565,6 +1687,16 @@ export function verifyInfrastructureOwnerBoundary(repositoryRoot, boundary = INF
       deploymentAuthorizationBoundaryOverwatchSuccessorsSeen;
     result.deploymentAuthorizationBoundaryProvenanceAdmissionSeen =
       deploymentAuthorizationBoundaryProvenanceAdmissionSeen;
+  }
+  if (boundary.founderJwtRepairSuccessor) {
+    assert.equal(founderJwtRepairSeen, true, "Founder JWT repair successor is missing");
+    if (gitAt(repositoryRoot, ["rev-parse", "HEAD"])
+      !== boundary.canonicalRollbackIdentitySuccessor.parent) {
+      assert.equal(canonicalRollbackIdentitySuccessorSeen, true,
+        "canonical rollback identity successor is missing");
+    }
+    result.founderJwtRepairSeen = founderJwtRepairSeen;
+    result.canonicalRollbackIdentitySuccessorSeen = canonicalRollbackIdentitySuccessorSeen;
   }
   return Object.freeze(result);
 }
@@ -1915,14 +2047,12 @@ export function verifyRouteIqPublicRepositoryIntegrityRepair() {
   assert.equal(repair.repositoryFailureClass, "REPOSITORY_INTEGRITY_FAILED");
 
   const rollback = buildPublicForwardRollbackArtifact(root);
-  assert.equal(rollback.artifactSha256, repair.canonicalRollbackIdentity.artifactSha256);
-  for (const field of [
-    "candidateDeploymentAssetsSha256",
-    "websiteAssetsSha256",
-    "configurationSha256",
-    "generatedWorkerSha256",
-    "generatedSourceMapSha256"
-  ]) assert.equal(rollback[field], repair.canonicalRollbackIdentity[field]);
+  verifyCanonicalRollbackIdentityAdvancement({
+    currentContract: contract,
+    predecessorContract: jsonAtCommit(canonicalRollbackPredecessorCommit, contractPath),
+    rollbackIdentity: rollback,
+    rollbackContractSha256: sha256(PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath)
+  });
 
   const safeCi = contract.safeCiVerification;
   assert.equal(safeCi.workflow, PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityWorkflowPath);

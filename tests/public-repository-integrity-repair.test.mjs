@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   chmodSync,
   mkdirSync,
@@ -31,11 +32,13 @@ import {
   INFRASTRUCTURE_OWNER_VERIFIER_FAILURE,
   SAFE_NO_SECRET_PREDEPLOYMENT_RUN_COMMANDS,
   classifyInfrastructureOwnerVerifierFailure,
+  verifyCanonicalRollbackIdentityAdvancement,
   verifyInfrastructureOwnerBoundary,
   verifySafeNoSecretPredeploymentWorkflow
 } from "../scripts/verify-route-iq-public-repository-integrity-repair.mjs";
 
 const root = resolve(import.meta.dirname, "..");
+const rollbackIdentityPredecessorCommit = "b7ab413a298d62806f7274d5ef63e6cb63bddf2c";
 const actionsDependencySources = Object.freeze([
   "jose/dist/webapi/lib/buffer_utils.js",
   "jose/dist/webapi/lib/base64.js",
@@ -991,6 +994,50 @@ function expectIntegrityFailure(repository, classification) {
       && error.diagnostics.some(value => value.includes(classification))
   );
 }
+
+test("canonical rollback identity advances while predecessor closure evidence remains fixed", () => {
+  const contractPath = PUBLIC_WORKER_DEPLOYMENT_POLICY.integrityContractPath;
+  const currentContract = JSON.parse(readFileSync(join(root, contractPath), "utf8"));
+  const predecessorContract = JSON.parse(git(root, [
+    "show", `${rollbackIdentityPredecessorCommit}:${contractPath}`
+  ]));
+  const rollbackIdentity = verifyPublicForwardRollbackArtifact(root);
+  const rollbackContractSha256 = createHash("sha256")
+    .update(readFileSync(join(root, PUBLIC_WORKER_DEPLOYMENT_POLICY.rollbackContractPath)))
+    .digest("hex");
+
+  const result = verifyCanonicalRollbackIdentityAdvancement({
+    currentContract,
+    predecessorContract,
+    rollbackIdentity,
+    rollbackContractSha256
+  });
+  assert.equal(result.status, "CANONICAL_ROLLBACK_IDENTITY_ADVANCEMENT_VERIFIED");
+  assert.equal(
+    result.predecessorArtifactSha256,
+    "b0eae685ddefb99680bd60f074b58ae7514c467f6ce95d069e35dc450db2d76a"
+  );
+  assert.equal(result.currentArtifactSha256, rollbackIdentity.artifactSha256);
+
+  const historicalDrift = structuredClone(currentContract);
+  historicalDrift.failedRun.runId += 1;
+  assert.throws(() => verifyCanonicalRollbackIdentityAdvancement({
+    currentContract: historicalDrift,
+    predecessorContract,
+    rollbackIdentity,
+    rollbackContractSha256
+  }));
+
+  const staleCanonical = structuredClone(currentContract);
+  staleCanonical.repair.canonicalRollbackIdentity.artifactSha256 =
+    result.predecessorArtifactSha256;
+  assert.throws(() => verifyCanonicalRollbackIdentityAdvancement({
+    currentContract: staleCanonical,
+    predecessorContract,
+    rollbackIdentity,
+    rollbackContractSha256
+  }));
+});
 
 test("valid and CI-equivalent full repositories pass exact strict integrity", () => {
   const fixture = mkdtempSync(join(tmpdir(), "route-iq-integrity-valid-"));
