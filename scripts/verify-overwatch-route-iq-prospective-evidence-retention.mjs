@@ -447,7 +447,8 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
     ["evaluationRuntimePath", "evaluationRuntimeSha256"],
     ["specificationPath", "specificationSha256"],
     ["protectedBaselinePath", "protectedBaselineSha256"],
-    ["architectureSuccessorPath", "architectureSuccessorSha256"]
+    ["architectureSuccessorPath", "architectureSuccessorSha256"],
+    ["crossIndustryAdoptionPath", "crossIndustryAdoptionSha256"]
   ]) {
     assert.equal(sha256(read(governance.intelligenceAdmission[pathKey])), governance.intelligenceAdmission[hashKey]);
   }
@@ -495,8 +496,22 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   assert.equal(intelligence.activeCohorts, 0);
   assert.equal(intelligence.recommendationInfluence, "OFF");
 
+  const protectedBaselineEvidenceCommit = git(
+    "log",
+    "-1",
+    "--format=%H",
+    "--",
+    governance.intelligenceAdmission.protectedBaselinePath
+  );
   for (const artifact of protectedBaseline.dataOwnerLineage.artifacts) {
-    assert.equal(sha256(read(artifact.path)), artifact.sha256, `${artifact.path} protected hash drifted.`);
+    assert.equal(
+      sha256(execFileSync("git", [
+        "show",
+        `${protectedBaselineEvidenceCommit}:${artifact.path}`
+      ])),
+      artifact.sha256,
+      `${artifact.path} historical protected hash drifted.`
+    );
   }
   assert.equal(protectedBaseline.protectedBehavior.collection, "OFF");
   assert.equal(protectedBaseline.protectedBehavior.activeCohorts, 0);
@@ -514,6 +529,49 @@ export async function verifyOverwatchRouteIqProspectiveEvidenceRetention() {
   assert.equal(architectureSuccessor.historicalCheckpoint.rewritten, false);
   assert.equal(architectureSuccessor.boundaryValidation.collection, "OFF");
   assert.equal(architectureSuccessor.boundaryValidation.recommendationInfluence, "OFF");
+  const crossIndustryAdoption = readJson(
+    governance.intelligenceAdmission.crossIndustryAdoptionPath
+  );
+  assert.equal(crossIndustryAdoption.ownerSubsystem, "Prometheus Intelligence Engine");
+  assert.equal(
+    governance.intelligenceAdmission.crossIndustryAdoptionOwnerCommit,
+    "5215ad7f261590f5901dc84a3b8e59d9bde6ce8b"
+  );
+  assert.equal(
+    governance.intelligenceAdmission.crossIndustryAdoptionCorrectionCommit,
+    "894ea7843e084369acf7bf6158a3ea5088deb431"
+  );
+  assert.equal(
+    governance.intelligenceAdmission.crossIndustryAdoptionVerifierCommit,
+    "2da83e12095713772d2f3c444bd15b5fabf0ef65"
+  );
+  for (const commit of [
+    governance.intelligenceAdmission.crossIndustryAdoptionOwnerCommit,
+    governance.intelligenceAdmission.crossIndustryAdoptionCorrectionCommit,
+    governance.intelligenceAdmission.crossIndustryAdoptionVerifierCommit,
+    governance.intelligenceAdmission.currentDataLineageOwnerCommit
+  ]) {
+    assert.equal(git("cat-file", "-t", commit), "commit");
+    execFileSync("git", ["merge-base", "--is-ancestor", commit, "HEAD"]);
+  }
+  assert.equal(
+    crossIndustryAdoption.dataOwnerTransition.commit,
+    governance.intelligenceAdmission.currentDataLineageOwnerCommit
+  );
+  assert.equal(
+    crossIndustryAdoption.dataOwnerTransition.archiveRuntime.currentSha256,
+    governance.intelligenceAdmission.currentArchiveRuntimeSha256
+  );
+  assert.equal(
+    sha256(read(crossIndustryAdoption.dataOwnerTransition.archiveRuntime.path)),
+    governance.intelligenceAdmission.currentArchiveRuntimeSha256
+  );
+  assert.equal(crossIndustryAdoption.governedEmptyState.activeBusinessCount, 0);
+  assert.equal(crossIndustryAdoption.governedEmptyState.retiredOrDemoSupplyRestored, false);
+  assert.equal(crossIndustryAdoption.boundaries.prospectiveCollection, "OFF");
+  assert.equal(crossIndustryAdoption.boundaries.activeCohorts, 0);
+  assert.equal(crossIndustryAdoption.boundaries.recommendationInfluence, "OFF");
+  assert.equal(crossIndustryAdoption.boundaries.deploymentPerformed, false);
 
   const contracts = verifyCrossSubsystemArtifactContracts();
   assert.equal(contracts.ok, true, contracts.failures.join("\n"));
