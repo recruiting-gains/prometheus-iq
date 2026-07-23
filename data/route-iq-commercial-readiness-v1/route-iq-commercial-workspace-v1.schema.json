@@ -60,7 +60,7 @@
       "properties": {
         "workspaceId": { "$ref": "#/$defs/opaqueId" },
         "workspaceState": {
-          "enum": ["active_founder_research", "inactive_historical", "synthetic_validation_only"]
+          "enum": ["active_founder_research", "active_customer", "inactive_historical", "synthetic_validation_only"]
         },
         "normalOperationVisible": { "type": "boolean" },
         "productionActivationAuthorized": { "type": "boolean" },
@@ -82,7 +82,7 @@
             },
             "businessType": { "$ref": "#/$defs/opaqueId" },
             "relationshipClassification": {
-              "enum": ["FOUNDER_FIELD_RESEARCH", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_VALIDATION_FIXTURE"]
+              "enum": ["FOUNDER_FIELD_RESEARCH", "CUSTOMER_PRODUCTION", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_VALIDATION_FIXTURE"]
             },
             "publicRelationshipClaimsAllowed": { "const": false }
           }
@@ -212,7 +212,7 @@
             "historicalEvidenceImmutable": { "const": true },
             "crossWorkspaceEvidenceAllowed": { "const": false },
             "classification": {
-              "enum": ["FOUNDER_FIELD_RESEARCH", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_NONCANONICAL"]
+              "enum": ["FOUNDER_FIELD_RESEARCH", "CUSTOMER_GOVERNED_EVIDENCE", "HISTORICAL_INACTIVE_WORKSPACE", "SYNTHETIC_NONCANONICAL"]
             }
           }
         },
@@ -227,7 +227,42 @@
             "sourceSessionIds": { "type": "array", "items": { "type": "string", "pattern": "^route-iq-field-session-[a-z0-9-]+$" } }
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "workspaceState": { "const": "active_customer" } },
+            "required": ["workspaceState"]
+          },
+          "then": {
+            "properties": {
+              "normalOperationVisible": { "const": true },
+              "productionActivationAuthorized": { "const": true },
+              "business": {
+                "properties": {
+                  "relationshipClassification": { "const": "CUSTOMER_PRODUCTION" }
+                }
+              },
+              "users": { "minItems": 1 },
+              "intelligenceEligibility": {
+                "properties": {
+                  "founderReadOnlyIntelligenceEligible": { "const": false },
+                  "representativeIntelligenceAccessAllowed": { "const": false },
+                  "recommendationInfluence": { "const": "OFF" },
+                  "prospectiveCollection": { "const": "OFF" }
+                }
+              },
+              "evidenceGovernance": {
+                "properties": {
+                  "historicalEvidenceImmutable": { "const": true },
+                  "crossWorkspaceEvidenceAllowed": { "const": false },
+                  "classification": { "const": "CUSTOMER_GOVERNED_EVIDENCE" }
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

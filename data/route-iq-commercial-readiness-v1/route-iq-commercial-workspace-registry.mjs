@@ -15,16 +15,19 @@ const PRINCIPAL_ID = /^riq_principal_[a-f0-9]{64}$/;
 const ANALYSIS_PSEUDONYM = /^riq_rep_[a-f0-9]{24}$/;
 const WORKSPACE_STATES = new Set([
   "active_founder_research",
+  "active_customer",
   "inactive_historical",
   "synthetic_validation_only"
 ]);
 const RELATIONSHIP_CLASSIFICATIONS = new Set([
   routeIqFounderResearchClassification,
+  "CUSTOMER_PRODUCTION",
   "HISTORICAL_INACTIVE_WORKSPACE",
   "SYNTHETIC_VALIDATION_FIXTURE"
 ]);
 const EVIDENCE_CLASSIFICATIONS = new Set([
   routeIqFounderResearchClassification,
+  "CUSTOMER_GOVERNED_EVIDENCE",
   "HISTORICAL_INACTIVE_WORKSPACE",
   "SYNTHETIC_NONCANONICAL"
 ]);
@@ -204,7 +207,8 @@ function validateWorkspace(workspace, context, index) {
   if (!WORKSPACE_STATES.has(workspace.workspaceState)) {
     fail("route_iq_commercial_workspace_state_invalid", `${scope} has an invalid lifecycle state.`);
   }
-  if (typeof workspace.normalOperationVisible !== "boolean" || workspace.productionActivationAuthorized !== false) {
+  if (typeof workspace.normalOperationVisible !== "boolean"
+    || typeof workspace.productionActivationAuthorized !== "boolean") {
     fail("route_iq_commercial_workspace_activation_invalid", `${scope} has an unauthorized production state.`);
   }
 
@@ -328,6 +332,24 @@ function validateWorkspace(workspace, context, index) {
       || workspace.evidenceGovernance.classification !== "SYNTHETIC_NONCANONICAL")) {
     fail("route_iq_commercial_workspace_synthetic_boundary_invalid", `${scope} exposes a synthetic workspace.`);
   }
+  if (workspace.workspaceState === "active_customer") {
+    const activeUsers = workspace.users.filter(user => user.active);
+    const rolesById = new Map(workspace.roles.map(role => [role.roleId, role]));
+    if (!workspace.normalOperationVisible
+      || workspace.productionActivationAuthorized !== true
+      || workspace.business.relationshipClassification !== "CUSTOMER_PRODUCTION"
+      || workspace.evidenceGovernance.classification !== "CUSTOMER_GOVERNED_EVIDENCE"
+      || activeUsers.length < 1
+      || activeUsers.some(user => user.identityMappingStatus !== "exact_authenticated_identity_mapped")
+      || activeUsers.some(user => user.founderIntelligenceEligibility)
+      || activeUsers.some(user => rolesById.get(user.roleId)?.operationalAccess !== true)
+      || activeUsers.some(user => rolesById.get(user.roleId)?.founderIntelligenceAccess !== false)
+      || workspace.intelligenceEligibility.founderReadOnlyIntelligenceEligible) {
+      fail("route_iq_commercial_workspace_customer_activation_invalid", `${scope} is not a governed customer workspace.`);
+    }
+  } else if (workspace.productionActivationAuthorized !== false) {
+    fail("route_iq_commercial_workspace_activation_invalid", `${scope} has an unauthorized production state.`);
+  }
 }
 
 export function validateCommercialWorkspaceRegistry(registry, options = {}) {
@@ -383,7 +405,8 @@ export function loadCommercialWorkspaceRegistry(options = {}) {
 
 export function listNormalRouteIqWorkspaces(registry = loadCommercialWorkspaceRegistry()) {
   return registry.workspaces
-    .filter(workspace => workspace.normalOperationVisible && workspace.workspaceState === "active_founder_research")
+    .filter(workspace => workspace.normalOperationVisible
+      && ["active_founder_research", "active_customer"].includes(workspace.workspaceState))
     .map(workspace => ({
       workspaceId: workspace.workspaceId,
       operatingProfileId: workspace.operatingProfileId,

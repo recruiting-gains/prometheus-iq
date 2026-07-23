@@ -1,0 +1,20 @@
+{
+  "version": "route-iq-august-1-launch-envelope-v1",
+  "state": "OFF",
+  "classification": "PRODUCTION_ACTIVATION",
+  "issuedAt": null,
+  "expiresAt": null,
+  "limits": {
+    "maximumCompanies": 2,
+    "maximumNamedUsers": 40
+  },
+  "safety": {
+    "prelaunchHumanAcceptanceTester": "cruz",
+    "externalHumanTesting": false,
+    "anthonyMapped": false,
+    "prospectiveCollection": "OFF",
+    "activeCohorts": 0,
+    "recommendationInfluence": "OFF"
+  },
+  "workspaceAdmissions": []
+}
