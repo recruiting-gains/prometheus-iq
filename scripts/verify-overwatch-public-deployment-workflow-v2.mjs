@@ -430,13 +430,26 @@ const AUGUST1_OVERWATCH_SUCCESSOR_COMMIT =
 const AUGUST1_OVERWATCH_SUCCESSOR_TREE =
   "4e3b186cec2fe4fc1f290ac1b67f6c92c7777220";
 const CURRENT_AUGUST1_PIN_REFRESH = Object.freeze({
-  commit: "589e3fddb904338666e17c5fe35be0464290d4a7",
-  tree: "ab1a4540648747f86b49bcae6b60ef91cc506069",
-  parent: "8bf944a92c93a84a01f0508e84a518bbbca6812d",
-  subject: "overwatch: refresh August intelligence pins",
+  commit: "7e9074db15ef8a5182a18e1d6aa25b662d9bad57",
+  tree: "9af3c1702eb928ee299f47e0a560e95580c0e2eb",
+  parent: "a42bfa175bb162475f49bfccca58b98ddbec61b1",
+  subject: "overwatch: accept governed Dashboard harness successor",
   author: OVERWATCH_IDENTITY,
   committer: OVERWATCH_IDENTITY,
-  files: Object.freeze([AUGUST1_READINESS_REPORT_PATH])
+  files: Object.freeze([
+    {
+      path: AUGUST1_READINESS_REPORT_PATH,
+      sha256: "f1fb9add1cde6c8bcf5a70c7365e02ece6ff9f7801707dff869e3b09c1ee4cb1"
+    },
+    {
+      path: "scripts/verify-overwatch-route-iq-august-1-launch-readiness.mjs",
+      sha256: "fd909a16a69d5286c1ead7710823bbd5c0bca5dbe62b64f37a11594452ea1759"
+    },
+    {
+      path: "tests/overwatch-route-iq-august-1-launch-readiness.test.mjs",
+      sha256: "1f44fda6b957e2f86b24eba1aab174c892fde986ecdbc764a2e97d53e6987725"
+    }
+  ])
 });
 const AUGUST1_LAUNCH_CLOSEOUT_SUCCESSOR = Object.freeze({
   classification: "CONTROLLING_CURRENT_OWNER_SUCCESSOR",

@@ -13,6 +13,6 @@ test("Overwatch independently gates Route IQ shadow decision readiness", () => {
     exclusions: 4,
     requiredSample: 97,
     recommendationInfluence: "OFF",
-    contractArtifacts: 22
+    contractArtifacts: 24
   });
 });
